@@ -1,265 +1,28 @@
-
-# `daylily` is actively being split into 2 parts: `daylily-ephemeral-cluster` and `daylily-omics-analysis`
-## PLEASE STAND BY
-
-- [daylily-ephemeral-cluster](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster)
-
-- [daylily-omics-analysis](https://github.com/Daylily-Informatics/daylily-omics-analysis)
-
----
-
-# YOU MAY USE THE LAST STABLE TAGGED VERSION FOR THE TIME BEING (see below)
-
----
-
-# Daylily AWS Ephemeral Cluster Setup
-_(stable tagged release to use --> 0.7.196t ... use main at own risk)_
+# Daylily Ephemeral Cluster
+_(stable tagged release to use --> 0.7.213)_
 
 **beta release**
 
-Daylily is a framework for setting up ephemeral AWS clusters optimized for genomics data analysis. It leverages AWS ParallelCluster and provides automated scripts for cluster creation, management, and teardown.
+`Daylily Ephemeral Cluster` is an infrastructure as code project to spin up arbitrary self-scaling compute clusters which are pre-configured for bioinformatics multiomics analyses, with the primary aim to allow predictable and reproducible compute performance of bioinformatics analyses (importantly, by extension, *cost*). The core technologies leveraged are AWS Parallel Cluster (which manages creating and running the self-scaling slurm cluster), AWS Parallel Cluster UI (which allows nearly all `pcui` cli operations via a dashboard GUI), FSXlustre + mirrored S3 (which allows up to thousands of spot instances to work on the same shared filesystem, with core reference data mounted through an S3 link to FSx- results desired to be persisted can be reflected back through FSX to S3). The ephemeral cluster can be [easily configured](config/day_cluster/prod_cluster.yaml) to suit your needs. You can run any commands able to be run via the instance types you define in your cluster partitions.
+
+> This compute framework has been optimized to run a set of WGS analyses foramlized in the [daylily-omics-analysis](https://github.com/Daylily-Informatics/daylily-omics-analysis) repository. The core analysis workflows include short, long and hybrid alignment, variant calling, qc, etc. This is written in `snakemake`, but all workflow orchestrators which support running with a slurm executor (so, all of them: Nextflow, Cromwell, ...) will play well with this slurm cluster.  There is a toy [Cromwell integration example]() for the curious (I do not reccomend Cromwell). _note_: The version of snakemake used is a fork with some extra bits added to allow clear and universal monitoring of each jobs EC2 costs.
 
 
 <p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
 
 
-## Table of Contents
-## Table of Contents
-- [Daylily AWS Ephemeral Cluster Setup](#daylily-aws-ephemeral-cluster-setup)
-  - [Table of Contents](#table-of-contents)
-  - [Table of Contents](#table-of-contents-1)
-- [Intention](#intention)
-  - [Shift Focus](#shift-focus)
-  - [Raise the Bar](#raise-the-bar)
-  - [Escape Outdated ‘Best Practices’](#escape-outdated-best-practices)
-- [Intention](#intention-1)
-  - [Goal 1: Shift Conversation To Better Ways of Assessing Tools, Spend Less Time Finding Winners \& Loosers](#goal-1-shift-conversation-to-better-ways-of-assessing-tools-spend-less-time-finding-winners--loosers)
-  - [Goal 2: Establish Higher Expectations re: What Is Considered Sufficent Supporting Data/Docs For Published Tools](#goal-2-establish-higher-expectations-re-what-is-considered-sufficent-supporting-datadocs-for-published-tools)
-  - [Goal 3: Move Beyond 'commonly accepted best practices'. Why? Because they have our field stuck in 2012](#goal-3-move-beyond-commonly-accepted-best-practices-why-because-they-have-our-field-stuck-in-2012)
-- [Whitepaper In Progress](#whitepaper-in-progress)
-- [What's It All About?](#whats-it-all-about)
-  - [BFAIR: Bioinformatics FAIR Principles](#bfair-bioinformatics-fair-principles)
-  - [Comprehensive Cost Transparency \& Predictability (wip: interactive cost calculator is available here)](#comprehensive-cost-transparency--predictability-wip-interactive-cost-calculator-is-available-here)
-- [Self Funded Science](#self-funded-science)
-- [Installation -- Quickest Start](#installation----quickest-start)
-- [Installation -- Detailed](#installation----detailed)
-  - [AWS](#aws)
-    - [Create a `daylily-service`  IAM User](#create-a-daylily-service--iam-user)
-    - [Attach Permissiong \& Policies To The `daylily-service` User](#attach-permissiong--policies-to-the-daylily-service-user)
-      - [Permissions](#permissions)
-      - [Create Service Linked Role `VERY IMPORTANT`](#create-service-linked-role-very-important)
-      - [Inline Policy](#inline-policy)
-    - [Additional AWS Considerations (also will need _admin_ intervention)](#additional-aws-considerations-also-will-need-admin-intervention)
-      - [Quotas](#quotas)
-      - [Activate Cost Allocation Tags (optional, but strongly suggested)](#activate-cost-allocation-tags-optional-but-strongly-suggested)
-      - [A Note On Budgets](#a-note-on-budgets)
-    - [AWS `daylily-service` User Account](#aws-daylily-service-user-account)
-      - [CLI Credentials](#cli-credentials)
-        - [SSH Key Pair(s)](#ssh-key-pairs)
-          - [Place .pem File \& Set Permissions](#place-pem-file--set-permissions)
-  - [Default Region `us-west-2`](#default-region-us-west-2)
-  - [Prerequisites (On Your Local Machine)](#prerequisites-on-your-local-machine)
-    - [System Packages](#system-packages)
-      - [Check if your prereq's meet the min versions required](#check-if-your-prereqs-meet-the-min-versions-required)
-    - [AWS CLI Configuration](#aws-cli-configuration)
-      - [Opt 2](#opt-2)
-    - [Clone stable release of `daylily` Git Repository](#clone-stable-release-of-daylily-git-repository)
-      - [stable `daylily` release](#stable-daylily-release)
-    - [Install Miniconda (homebrew is not advised)](#install-miniconda-homebrew-is-not-advised)
-    - [Install DAYCLI Environment](#install-daycli-environment)
-- [Ephemeral Cluster Creation](#ephemeral-cluster-creation)
-  - [daylily-references-public Reference Bucket](#daylily-references-public-reference-bucket)
-    - [Clone `daylily-references-public` to YOURPREFIX-omics-analysis-REGION](#clone-daylily-references-public-to-yourprefix-omics-analysis-region)
-  - [Generate Analysis Cost Estimates per Availability Zone](#generate-analysis-cost-estimates-per-availability-zone)
-  - [Create An Ephemeral Cluster](#create-an-ephemeral-cluster)
-    - [Run Remote Slurm Tests On Headnode](#run-remote-slurm-tests-on-headnode)
-    - [Review Clusters](#review-clusters)
-    - [Confirm The Headnode Is Configured](#confirm-the-headnode-is-configured)
-- [Costs](#costs)
-  - [Monitoring (tags and budgets)](#monitoring-tags-and-budgets)
-  - [Regulating Usage via Budgets](#regulating-usage-via-budgets)
-  - [OF HOT \& IDLE CLUSTER ( ~$1.68 / hr )](#of-hot--idle-cluster--168--hr-)
-  - [OF RUNNING CLUSTER ( \>= $1.20 / hr )](#of-running-cluster---120--hr-)
-    - [Spot instances ( ~$1.20 / hr per 192vcpu instance )](#spot-instances--120--hr-per-192vcpu-instance-)
-    - [Data transfer, during analysis ( ~$0.00 )](#data-transfer-during-analysis--000-)
-    - [Data transfer, staging and moving off cluster ( ~$0.00 to \> $0.00/hr )](#data-transfer-staging-and-moving-off-cluster--000-to--000hr-)
-    - [Storage, during analysis ( ~$0.00 )](#storage-during-analysis--000-)
-  - [OF DELETED CLUSTER -- compute and Fsx ( ~$0.00 )](#of-deleted-cluster----compute-and-fsx--000-)
-  - [OF REFERENCE DATA in S3 ( $14.50 / month )](#of-reference-data-in-s3--1450--month-)
-  - [OF SAMPLE / READ DATA in S3 ( $0.00 to $A LOT / month )](#of-sample--read-data-in-s3--000-to-a-lot--month-)
-  - [OF RESULTS DATA in S3 ( $Varies, are you storing BAM or CRAM, vcf.gz or gvcf.gz? )](#of-results-data-in-s3--varies-are-you-storing-bam-or-cram-vcfgz-or-gvcfgz-)
-- [PCUI (technically optional, but you will be missing out)](#pcui-technically-optional-but-you-will-be-missing-out)
-  - [Install Steps](#install-steps)
-    - [Adding `inline policies` To The PCUI IAM Roles To Allow Access To Parallel Cluster Ref Buckets](#adding-inline-policies-to-the-pcui-iam-roles-to-allow-access-to-parallel-cluster-ref-buckets)
-  - [PCUI Costs ( ~ $1.00 / month )](#pcui-costs---100--month-)
-- [Working With The Ephemeral Clusters](#working-with-the-ephemeral-clusters)
-  - [PCUI](#pcui)
-  - [DAYCLI \& AWS Parallel Cluster CLI (pcluster)](#daycli--aws-parallel-cluster-cli-pcluster)
-    - [Activate The DAYCLI Conda Environment](#activate-the-daycli-conda-environment)
-    - [`pcluster` CLI Usage](#pcluster-cli-usage)
-      - [List Clusters](#list-clusters)
-      - [Describe Cluster](#describe-cluster)
-      - [SSH Into Cluster Headnode](#ssh-into-cluster-headnode)
-        - [Basic](#basic)
-        - [Facilitated](#facilitated)
-- [From The Epheemeral Cluster Headnode](#from-the-epheemeral-cluster-headnode)
-  - [Confirm Headnode Configuration Is Complete](#confirm-headnode-configuration-is-complete)
-    - [(if) Headnode Confiugration Incomplete](#if-headnode-confiugration-incomplete)
-    - [Confirm Headnode /fsx/ Directory Structure](#confirm-headnode-fsx-directory-structure)
-    - [Run A Local Test Workflow](#run-a-local-test-workflow)
-      - [First, clone a new daylily repo with `day-clone`.](#first-clone-a-new-daylily-repo-with-day-clone)
-      - [Next, init daylily and, set genome, stage an analysis\_manigest.csv and run a test workflow.](#next-init-daylily-and-set-genome-stage-an-analysis_manigestcsv-and-run-a-test-workflow)
-      - [More On The `-j` Flag](#more-on-the--j-flag)
-    - [Run A Slurm Test Workflow](#run-a-slurm-test-workflow)
-      - [(RUN ON A FULL 30x WGS DATA SET)](#run-on-a-full-30x-wgs-data-set)
-        - [Specify A Single Sample Manifest](#specify-a-single-sample-manifest)
-        - [Specify A Multi-Sample Manifest (in this case, all 7 GIAB samples) - 2 aligners, 1 deduper, 2 snv callers](#specify-a-multi-sample-manifest-in-this-case-all-7-giab-samples---2-aligners-1-deduper-2-snv-callers)
-        - [The Whole Magilla (3 aligners, 1 deduper, 5 snv callers, 3 sv callers)](#the-whole-magilla-3-aligners-1-deduper-5-snv-callers-3-sv-callers)
-  - [To Create Your Own `config/analysis_manifest.csv` File From Your Own `analysis_samples.tsv` File](#to-create-your-own-configanalysis_manifestcsv-file-from-your-own-analysis_samplestsv-file)
-  - [Supported References](#supported-references)
-    - [b37](#b37)
-    - [h38](#h38)
-    - [hg38\_broad](#hg38_broad)
-    - [Reference Artifacts](#reference-artifacts)
-      - [Supporting Files `yaml`](#supporting-files-yaml)
-      - [`/fsx/data/genomic_data/organism_references/H_sapiens/$DAY_GENOME_BUILD` Files](#fsxdatagenomic_dataorganism_referencesh_sapiensday_genome_build-files)
-      - [`/fsx/data/genomic_data/organism_annotations/H_sapiens/$DAY_GENOME_BUILD` Files](#fsxdatagenomic_dataorganism_annotationsh_sapiensday_genome_build-files)
-      - [Results Directories: `./results/day/$DAY_GENOME_BUILD/`](#results-directories-resultsdayday_genome_build)
-  - [Slurm Monitoring](#slurm-monitoring)
-    - [Monitor Slurm Submitted Jobs](#monitor-slurm-submitted-jobs)
-    - [SSH Into Compute Nodes](#ssh-into-compute-nodes)
-    - [Delete Cluster](#delete-cluster)
-    - [Export `fsx` Analysis Results Back To S3](#export-fsx-analysis-results-back-to-s3)
-      - [Facilitated](#facilitated-1)
-      - [Via `FSX` Console](#via-fsx-console)
-      - [Delete The Cluster, For Real](#delete-the-cluster-for-real)
-- [Other Monitoring Tools](#other-monitoring-tools)
-  - [PCUI (Parallel Cluster User Interface)](#pcui-parallel-cluster-user-interface)
-  - [Quick SSH Into Headnode](#quick-ssh-into-headnode)
-  - [AWS Cloudwatch](#aws-cloudwatch)
-- [And There Is More](#and-there-is-more)
-  - [S3 Reference Bucket \& Fsx Filesystem](#s3-reference-bucket--fsx-filesystem)
-    - [PREFIX-omics-analysis-REGION Reference Bucket](#prefix-omics-analysis-region-reference-bucket)
-      - [Reference Bucket Metrics](#reference-bucket-metrics)
-    - [The `YOURPREFIX-omics-analysis-REGION` s3 Bucket](#the-yourprefix-omics-analysis-region-s3-bucket)
-      - [daylily-references-public Bucket Contents](#daylily-references-public-bucket-contents)
-        - [Top Level Diretories](#top-level-diretories)
-- [Fsx Filesystem](#fsx-filesystem)
-  - [Fsx Directory Structure](#fsx-directory-structure)
-- [In Progress // Future Development](#in-progress--future-development)
-  - [Re-enable Sentieon Workflows \& Include in Benchmarking](#re-enable-sentieon-workflows--include-in-benchmarking)
-  - [Add Strobe Aligner To Benchmarking](#add-strobe-aligner-to-benchmarking)
-  - [Using Data From Benchmarking Experiments, Complete The Comprehensive Cost Caclulator](#using-data-from-benchmarking-experiments-complete-the-comprehensive-cost-caclulator)
-  - [Break Daylily Into 2 Parts: 1) Ephermal Cluster Manager 2) Analysis Pipeline](#break-daylily-into-2-parts-1-ephermal-cluster-manager-2-analysis-pipeline)
-  - [Update Analysis Pipeline To Run With Snakemake v8.\*](#update-analysis-pipeline-to-run-with-snakemake-v8)
-  - [Cromwell \& WDL's](#cromwell--wdls)
-- [General Components Overview](#general-components-overview)
-- [Managed Genomics Analysis Services](#managed-genomics-analysis-services)
-  - [Some Bioinformatics Bits, Big Picture](#some-bioinformatics-bits-big-picture)
-    - [The DAG For 1 Sample Running Through The `BWA-MEM2ert+Doppelmark+Deepvariant+Manta+TIDDIT+Dysgu+Svaba+QCforDays` Pipeline](#the-dag-for-1-sample-running-through-the-bwa-mem2ertdoppelmarkdeepvariantmantatidditdysgusvabaqcfordays-pipeline)
-    - [Daylily Framework, Cont.](#daylily-framework-cont)
-      - [Batch QC HTML Summary Report](#batch-qc-html-summary-report)
-    - [Consistent + Easy To Navigate Results Directory \& File Structure](#consistent--easy-to-navigate-results-directory--file-structure)
-    - [Automated Concordance Analysis Table](#automated-concordance-analysis-table)
-      - [Performance Monitoring Reports](#performance-monitoring-reports)
-      - [Observability w/CloudWatch Dashboard](#observability-wcloudwatch-dashboard)
-      - [Cost Tracking and Budget Enforcement](#cost-tracking-and-budget-enforcement)
-- [Metrics Required To Make Informed Decisions About Choosing An Analysis Pipeline](#metrics-required-to-make-informed-decisions-about-choosing-an-analysis-pipeline)
-  - [Accuracy / Precision / Recall / Fscore](#accuracy--precision--recall--fscore)
-  - [User Run Time](#user-run-time)
-  - [Cost Of Analysis](#cost-of-analysis)
-    - [Init Cost](#init-cost)
-    - [Compute Cost](#compute-cost)
-    - [Storage Cost (for computation)](#storage-cost-for-computation)
-    - [Other Costs (ie: data transfer)](#other-costs-ie-data-transfer)
-  - [Cost of Storage](#cost-of-storage)
-  - [Reproducibility](#reproducibility)
-  - [Longevity of Results](#longevity-of-results)
-- [Sentieon Tools \& License](#sentieon-tools--license)
-- [Contributing](#contributing)
-- [Versioning](#versioning)
-- [Known Issues](#known-issues)
-  - [_Fsx Mount Times Out During Headnode Creation \& Causes Pcluster `build-cluster` To Fail_](#fsx-mount-times-out-during-headnode-creation--causes-pcluster-build-cluster-to-fail)
-  - [Cloudstack Formation Fails When Creating Clusters In \>1 AZ A Region (must be manually sorted ATM)](#cloudstack-formation-fails-when-creating-clusters-in-1-az-a-region-must-be-manually-sorted-atm)
-- [Compliance / Data Security](#compliance--data-security)
-- [Detailed Docs](#detailed-docs)
-- [DAY](#day)
 
 
 
-# Intention
-  > The goal of daylily is to enable more rigorous comparisons of informatics tools by formalizing their compute environments and establishing hardware profiles that reproduce each tool’s accuracy and runtime/cost performance. This approach is general, not tied to a single toolset; while AWS is involved, nothing prevents deployment elsewhere. AWS simply offers a standardized hardware environment accessible to anyone with an account. By “compute environment,” I mean more than a container—containers alone don’t guarantee hardware performance, and cost/runtime considerations demand reproducibility on specific hardware. Though daylily uses containers and conda, it remains agnostic about the tools themselves. I have three main aims: I have three main aims:
-
-## Shift Focus
-  Move away from unhelpful debates over “the best” tool and toward evidence-based evaluations. Real use cases dictate tool choice, so let’s make sure relevant data and clear methodologies are accessible—or at least ensure enough detail is published to make meaningful comparisons. Specifically, I wish to move away from scant and overly reductive metrics which fail to describe our tools in as rich detail as they can be. ie:
-
-  > If I am looking for the best possible `recall` in SNV calling, initial data suggestes I might look towards [`sentieon bwa`+`sentieon DNAscope`](https://www.sentieon.com/) ... and interestingly, if I wanted the best possible `precision`, it would be worth investigating [`strobealigner`](https://github.com/ksahlin/strobealign) + `deepvariant` ([REF DATA](https://github.com/Daylily-Informatics/daylily_giab_analyses/blob/main/results/us_west_2d/all/concordance/pvr/hg38_usw2d-all__All_zoom.png)). `Fscore` would not be as informative for these more sepcific cases.
-
-## Raise the Bar 
-  Demand better metrics and documentation in tool publications: thorough cost data, specific and reproducible hardware details, more nuanced concordance metrics, and expansive QC reporting. Half-measures shouldn’t pass as “sufficient.”
-
-## Escape Outdated ‘Best Practices’
-  They were helpful at first, but our field is stuck in 2012. We need shareable frameworks that capture both accuracy and cost/runtime for truly reproducible pipeline performance—so we can finally move forward.
-
-  > [The daylily GIAB analyses repository contains (work in progress)](https://github.com/Daylily-Informatics/daylily_giab_analyses) results from the first stable daylily release, run on seven GIAB samples.
-
-
-
-
-
-
-
-
-# Intention
-
-> The intention of [**`daylily`**](https://github.com/Daylily-Informatics/daylily) is to provide a framework to better compare informatics tools, which I assert requires a great deal more control over compute hardware than is common presently.  Simply providing a container is insufficent in allowing for reproducible and meaningful comparisons b/c increasingly cost/runtime weigh as heavily as accuracy does in deciding between tools. Informatics tools must be presented with an (as best possibly) paired hardware environment where the asserted performance of the tool can be reproduced.  I have 3 goals here.
-
-## Goal 1: Shift Conversation To Better Ways of Assessing Tools, Spend Less Time Finding Winners & Loosers
-I am not really interested in advocating for which tool is the best for `x` application. My experience has been that selecting tools tends to be highly use-case driven, and what is helpful when making these decisions are datasets and approaches to evaluate a tool for your needs.... and barring this, at least being able to find sufficent information to make comparisons from published data would be nice.  
-
-## Goal 2: Establish Higher Expectations re: What Is Considered Sufficent Supporting Data/Docs For Published Tools
-I hope this conversation helps to set a higher expectation regarding what consititutes sufficent metrics and documentation produce when discussing these tools which allow unambiguous assessments of tools (so: detailed and comprehensive cost data, details on hardware which publised performance may be reporduced on, far richer concordance metrics and expansive QC reporting).
-
-## Goal 3: Move Beyond 'commonly accepted best practices'. Why? Because they have our field stuck in 2012
-I consider best practices to be a helpful starting point of investigation when moving into a new space, not as the end of the story. Rather than continue into a very satisfying rant, I'll offer that `best practices` have become so entrenched because there are not yet easily sharable frameworks to get reporducible pipepleine perofrmance (again, both in accuracy AND runtime/cost), and this factor is a very significant contributor to how stuck we are in quite outdated best practices. I think `daylily` can help.
-
-> The [daylily GIAB analyses](https://github.com/Daylily-Informatics/daylily_giab_analyses) repo will holds the (_WIP_) analsis from reuslts of the first stable release of `daylily` running on 7 GIAB samples. 
-
----
-
-# [Whitepaper In Progress](https://github.com/Daylily-Informatics/daylily_giab_analyses/blob/main/docs/whitepaper_draft.md)
-
-Drafting in progress, with the intention of publishing the results in [f1000-research](https://f1000research.com/).
-
-In order to demonstrate the capabilities of daylily, I am processing the 7 GIAB datasets vs: 3 aligners, 1 deduper, 5 SNV callers and 3 SV callers (plus generating concordance results and a variety of qc data), for both `b37` and `hg38`, which yields:
-> - 41 BAMs
-> -  210 SNV vcfs
-> - 129 SV vcfs
-> -  2 multiqc reports (per reference)
-> -   many qc data files
-> -   COST reporting for every task
-
-I will be assessing:
-> - Infrastructure management aspects of daylily.
-> - Impact on accuracy and cost of all the combinations of above tools.
->   - costs (spoiler:  best performance  is in the $3-4/sample is reasonably to assume) of compute, data transfer, data storage & long term data storage.
->   - fscore (spoiler: as expected performance acheivable of 0.998+)
-> - Globally, raising questions about bfx analysis reproducibility, best practices vs. best performance/accuracy, ...
-
-
-> Would you like to lend a hand?  [contact me](mailto:john@daylilyinformatics.com)
 
 
 # What's It All About?
 
-## BFAIR: Bioinformatics [FAIR](https://www.go-fair.org/fair-principles/) Principles 
-_this is a title rough idea! - not likely final, but is the gist of it_
-
-## Comprehensive Cost Transparency & Predictability [(wip: interactive cost calculator is available here)](https://day.dyly.bio)
+## Comprehensive Cost Transparency & Predictability ::: 30x FASTQ->VCF in ~1hr for ~$5 (modulo spot market variability, and a bit cheaper still if using sentieon ) ::: You Can Achieve This Cost and Runtime Performance Out Of The Box
 
 > 30x FASTQ->VCF, in 1hr, for <img src="docs/images/000000.png" valign="bottom" width=2 >~$3 - $4<img src="docs/images/000000.png" valign="bottom" width=2 > @ F-score 0.99xx
 
-> Be up and running in a few hours from reading this sentence. 
+> Be up and running in 1 or 2 hours from reading this sentence. 
 > - Have your first GIAB 30x Fastq->VCF (both snv and sv) ~60min later. 
 > - The (_onetime_) cost of staging data is ~$20, analysis will be ` ~$3.00 to $5.00 ` (pricing is established dynamically at cluster creation, and you can inspect the max bound on spot prices which are possible, this sets your upper bound... as does complexity of pipeline, but more on that latter).
 
@@ -504,7 +267,7 @@ region = <REGION>
 ### Clone stable release of `daylily` Git Repository
 
 ```bash
-git clone -b $(yq -r '.daylily.git_tag' "config/daylily/daylily_cli_global.yaml") https://github.com/Daylily-Informatics/daylily.git  # or, if you have set ssh keys with github and intend to make changes:  git clone git@github.com:Daylily-Informatics/daylily.git
+git clone -b $(yq -r '.daylily.git_tag' "config/daylily/daylily_cli_global.yaml") https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git  # or, if you have set ssh keys with github and intend to make changes:  git clone git@github.com:Daylily-Informatics/daylily.git
 cd daylily
 ```
 
@@ -776,7 +539,7 @@ Once logged in, as the 'ubuntu' user, run the following commands:
 
 > During cluster creation, and especially if you need to debug a failure, please go to the `CloudFormation` console and look at the `CLUSTER-NAME` stack.  The `Events` tab will give you a good idea of what is happening, and the `Outputs` tab will give you the IP of the headnode, and the `Resources` tab will give you the ARN of the FSx filesystem, which you can use to look at the FSx console to see the status of the filesystem creation.
 
-### Run Remote Slurm Tests On Headnode
+### Run Remote Slurm Tests On Headnode (using `daylily-omics-analysis`)
 
 ```bash
 ./bin/daylily-run-ephemeral-cluster-remote-tests $pem_file $region $AWS_PROFILE
@@ -822,7 +585,7 @@ The cost drivers are:
 ## OF RUNNING CLUSTER ( >= $1.20 / hr )
 There is the idle hourly costs, plus...
 
-### Spot instances ( ~$1.20 / hr per 192vcpu instance )
+### Spot instances ( ~$1.20 - $3.50 / hr per 192vcpu instance )
 For v192 spots, the cost is generally $1 to $3 per hour _(if you are discriminating in your AZ selection, the cost should be closer to $1/hr)_.
 
 - You pay for spot instances as they spin up and until they are shut down (which all happens automatically). The max spot price per resource group limits the max costs (as does the max number of instances allowed per group, and your quotas).
@@ -1049,12 +812,12 @@ bin/daylily-ssh-into-headnode
 
 # From The Epheemeral Cluster Headnode
 
-## Confirm Headnode Configuration Is Complete
+## Confirm Headnode Configuration Is Complete (using the `daylily-omics-analysis` repo)
 
 **Is `daylily` CLI Available & Working**
 
 ```bash
-cd ~/projects/daylily
+cd ~/projects/daylily-omics-analysis
 . dyinit # inisitalizes the daylily cli
 dy-a local hg38 # activates the local config using reference hg38, the other build available is b37
 
@@ -1097,241 +860,9 @@ drwxrwxrwx 3 root root 33K Sep 26 08:35 resources
 
 ### Run A Local Test Workflow
 
-#### First, clone a new daylily repo with `day-clone`.
-
-`day-clone` will be available on your path as long as conda is activated. This script will create a new named analysis directory in `/fsx/analysis_results/ubuntu/` named the string specified in the `-d` flag. It will use defaults to clone this repo into the new analysis dir (_to override defaults, run with `-h`_).
-
-```bash
-day-clone --help
-
-# create new analysis dir and clone daylily into it
-day-clone -d first_analysis
-echo "TO MOVE TO YOUR NEW ANALYSIS DIRECTORY, run:"
-echo  "        bash"
-echo  "        cd /fsx/analysis_results//ubuntu/07194a/daylily"
-
-# move to your new analysis dir
-bash
-cd /fsx/analysis_results//ubuntu/07194a/daylily
-
-```
-
-#### Next, init daylily and, set genome, stage an analysis_manigest.csv and run a test workflow.
-
-```bash
-. dyinit  --project PROJECT
-
-dy-a local hg38 # the other option: b37 ( or set via config command line below)
-
-head -n 2 .test_data/data/giab_30x_hg38_analysis_manifest.csv
-
-export DAY_CONTAINERIZED=false # or true to use pre-built container of all analysis envs. false will create each conda env as needed
-
-dy-r produce_deduplicated_bams -p -j 2 --config genome_build=hg38 aligners=['bwa2a','sent'] dedupers=['dppl'] -n # dry run
-dy-r produce_deduplicated_bams -p -j 2 --config genome_build=hg38 aligners=['bwa2a','sent'] dedupers=['dppl'] 
-```
-
-#### More On The `-j` Flag
-
-The `-j` flag specified in `dy-r` limits the number of jobs submitted to slurm. For out of the box settings, the advised range for `-j` is 1 to 10. You may omit this flag, and allow submitting all potnetial jobs to slurm, which slurm, /fsx, and the instances can handle growing to the 10s or even 100 thousands of instances... however, various quotas will begin causing problems before then.  The `local` defauly is set to `-j 1` and `slurm` is set to `-j 10`, `-j` may be set to any int > 0.
-
-This will produce a job plan, and then begin executing. The sample manifest can be found in `.test_data/data/0.01x_3_wgs_HG002.samplesheet.csv` (i am aware this is not a `.tsv` :-P ). Runtime on the default small test data runnin locally on the default headnode instance type should be ~5min.
-
-```text
-NOTE! NOTE !! NOTE !!! ---- The Undetermined Sample Is Excluded. Set --config keep_undetermined=1 to process it.
-Building DAG of jobs...
-Creating conda environment workflow/envs/vanilla_v0.1.yaml...
-Downloading and installing remote packages.
-Environment for /home/ubuntu/projects/daylily/workflow/rules/../envs/vanilla_v0.1.yaml created (location: ../../../../fsx/resources/environments/conda/ubuntu/ip-10-0-0-37/f7b02dfcffb9942845fe3a995dd77dca_)
-Creating conda environment workflow/envs/strobe_aligner.yaml...
-Downloading and installing remote packages.
-Environment for /home/ubuntu/projects/daylily/workflow/rules/../envs/strobe_aligner.yaml created (location: ../../../../fsx/resources/environments/conda/ubuntu/ip-10-0-0-37/a759d60f3b4e735d629d60f903591630_)
-Using shell: /usr/bin/bash
-Provided cores: 16
-Rules claiming more threads will be scaled down.
-Provided resources: vcpu=16
-Job stats:
-job                          count    min threads    max threads
--------------------------  -------  -------------  -------------
-doppelmark_dups                  1             16             16
-pre_prep_raw_fq                  1              1              1
-prep_results_dirs                1              1              1
-produce_deduplicated_bams        1              1              1
-stage_supporting_data            1              1              1
-strobe_align_sort                1             16             16
-workflow_staging                 1              1              1
-total                            7              1             16
-```
-
-> This should exit with a magenta success message and `RETURN CODE: 0`. Results can be found in `results/day/{hg38,b37}`.
-
-
-### Run A Slurm Test Workflow
-
-The following will submit jobs to the slurm scheduler on the headnode, and spot instances will be spun up to run the jobs (modulo limits imposed by config and quotas).
-
-First, create a working directory on the `/fsx/` filesystem.
-
-> init daylily, activate an analysis profile, set genome, stage an analysis_manigest.csv and run a test workflow.
-
-```bash
-# create a working analysis directory & clone daylily
-day-clone -d first_analysis
-
-bash
-cd /fsx/analysis_results/first_analysis/daylily # this command is provided from day-clone
-
-#  prepare to run the test
-tmux new -s slurm_test
-. dyinit 
-dy-a slurm hg38 # the other options being b37
-
-# create a test manifest for one giab sample only, which will run on the 0.01x test dataset
-head -n 2 .test_data/data/0.01xwgs_HG002_hg38.samplesheet.csv > config/analysis_manifest.csv
-
-export DAY_CONTAINERIZED=false # or true to use pre-built container of all analysis envs. false will create each conda env as needed
-
-# run the test, which will auto detect the analysis_manifest.csv file & will run this all via slurm
-dy-r produce_snv_concordances -p -k -j 2 --config genome_build=hg38 aligners=['bwa2a'] dedupers=['dppl'] snv_callers=['deep'] -n
-```
-
-Which will produce a plan that looks like.
-
-```text
-
-Job stats:
-job                           count    min threads    max threads
---------------------------  -------  -------------  -------------
-deep_concat_fofn                  1              2              2
-deep_concat_index_chunks          1              4              4
-deepvariant                      24             64             64
-doppelmark_dups                   1            192            192
-dv_sort_index_chunk_vcf          24              4              4
-pre_prep_raw_fq                   1              1              1
-prep_deep_chunkdirs               1              1              1
-prep_for_concordance_check        1             32             32
-prep_results_dirs                 1              1              1
-produce_snv_concordances          1              1              1
-stage_supporting_data             1              1              1
-strobe_align_sort                 1            192            192
-workflow_staging                  1              1              1
-total                            59              1            192
-```
-
-Run the test with:
-
-```bash
-dy-r produce_snv_concordances -p -k -j 6  --config genome_build=hg38 aligners=['bwa2a'] dedupers=['dppl'] snv_callers=['deep'] #  -j 6 will run 6 jobs in parallel max, which is done here b/c the test data runs so quickly we do not need to spin up one spor instance per deepvariant job & since 3 dv jobs can run on a 192 instance, this flag will limit creating only  2 instances at a time.
-```
-
-_note1:_ the first time you run a pipeline, if the docker images are not cached, there can be a delay in starting jobs as the docker images are cached. They are only pulled 1x per cluster lifetime, so subsequent runs will be faster.
-
-_note2:_ The first time a cold cluster requests spot instances, can take some time (~10min) to begin winning spot bids and running jobs. Hang tighe, and see below for monitoring tips.
-
-#### (RUN ON A FULL 30x WGS DATA SET)
-
-**ALERT** The `analysis_manifest.csv` is being re-worked to be more user friendly. The following will continue to work, but will be repleaced with a less touchy method soon.
-
-##### Specify A Single Sample Manifest
-
-You may repeat the above, and use the pre-existing analysis_manifest.csv template `.test_data/data/giab_30x_hg38_analysis_manifest.csv`.
-
-```bash
-tmux new -s slurm_test_30x_single
-
-# Create new analyiss dir
-day-clone -d slurmtest
-bash
-cd /fsx/analysis_results/slurmtest/daylily # this command is provided from day-clone
-
-
-. dyinit  --project PROJECT 
-dy-a slurm hg38 # the other option being b37
-
-# TO create a single sample manifest
-head -n 2 .test_data/data/giab_30x_hg38_analysis_manifest.csv > config/analysis_manifest.csv
-
-export DAY_CONTAINERIZED=false # or true to use pre-built container of all analysis envs. false will create each conda env as needed
-
-dy-r produce_snv_concordances -p -k -j 10 --config genome_build=hg38 aligners=['bwa2a'] dedupers=['dppl'] snv_callers=['deep'] -n  # dry run
-
-dy-r produce_snv_concordances -p -k -j 10  --config genome_build=hg38 aligners=['bwa2a'] dedupers=['dppl'] snv_callers=['deep'] # run jobs, and wait for completion
-```
-
-
-##### Specify A Multi-Sample Manifest (in this case, all 7 GIAB samples) - 2 aligners, 1 deduper, 2 snv callers
-
-```bash
-
-tmux new -s slurm_test_30x_multi
-
-# Create new analyiss dir
-day-clone -d fulltest
-bash
-cd /fsx/analysis_results/fulltest/daylily # this command is provided from day-clone
-
-
-. dyinit  --project PROJECT 
-dy-a slurm hg38 # the other options being b37
-
-# copy full 30x giab sample template to config/analysis_manifest.csv
-cp .test_data/data/giab_30x_hg38_analysis_manifest.csv  config/analysis_manifest.csv
-
-export DAY_CONTAINERIZED=false # or true to use pre-built container of all analysis envs. false will create each conda env as needed
-
-dy-r produce_snv_concordances -p -k -j 10 --config genome_build=hg38 aligners=['strobe,'bwa2a'] dedupers=['dppl'] snv_callers=['oct','deep'] -n  # dry run
-
-dy-r produce_snv_concordances -p -k -j 10 --config genome_build=hg38 aligners=['strobe','bwa2a'] dedupers=['dppl'] snv_callers=['oct','deep'] 
-
-```
-
-##### The Whole Magilla (3 aligners, 1 deduper, 5 snv callers, 3 sv callers)
-
-```bash
-max_snakemake_tasks_active_at_a_time=2 # for local headnode, maybe 400 for a full cluster
-dy-r produce_snv_concordances produce_manta produce_tiddit produce_dysgu produce_kat produce_multiqc_final_wgs -p -k -j $max_snakemake_tasks_active_at_a_time --config genome_build=hg38 aligners=['strobe','bwa2a','sent'] dedupers=['dppl'] snv_callers=['oct','sentd','deep','clair3','lfq2'] sv_callers=['tiddit','manta','dysgu'] -n
-```
-
-## To Create Your Own `config/analysis_manifest.csv` File From Your Own `analysis_samples.tsv` File
-
-The `analysis_manifest.csv` file is required to run the daylily pipeline. It should only be created via the helper script `./bin/daylily-analysis-samples-to-manifest-new`.
-
-**this script is still in development, more docs to come**, run with `-h` for now and see the example [etc/analysis_samples.tsv template](etc/analysis_samples.tsv) file for the format of the `analysis_samples.tsv` file. You also need to have a valid ephemeral cluster available.
-
-**TODO** document this
-
 ---
-
-## Supported References
-
-The references supported via cloning public references s3 bucket are `b37`, `hg38`, `hg38_broad`.  You specify a reference build by setting `export DAY_GENOME_BUILD=hg38` and/or when activating a compute environment, ie: `dy-a slurm hg38`. `dy-g hg38` will also do the trick.
-
-### b37
-- with no alt contigs.
-
-### h38
-- with no alt contigs.
-
-### hg38_broad
-- all contigs
-
-
-### Reference Artifacts
-
-#### Supporting Files `yaml`
-- The build will direct daylily to choose the correct `config/supporting_files/${DAY_GENOME_BUILD}_suppoting_files.yaml` which contain the paths to resources specific to the build.
-
-#### `/fsx/data/genomic_data/organism_references/H_sapiens/$DAY_GENOME_BUILD` Files
-
-- All reference files can be found here for the build.
-
-#### `/fsx/data/genomic_data/organism_annotations/H_sapiens/$DAY_GENOME_BUILD` Files
-
-- All annotation files can be found here for the build
-
-#### Results Directories: `./results/day/$DAY_GENOME_BUILD/`
-
-- Each build has it's own results subdirectory.
+> Please see the testing section of the [daylily-omics-analysis README](https://github.com/Daylily-Informatics/daylily-omics-analysis).
+---
 
 ## Slurm Monitoring
 
@@ -1499,36 +1030,6 @@ Daylily relies on a variety of pre-built reference data and resources to run. Th
 
 _note:_ you can choose to eliminate the data for `b37` or `hg38` to save on storage costs. In addition, you may choose to eliminate the GIAB fastq files if you do not intend to run concordance or benchmarking tests (which is advised against as this framework was developed explicitly to facilitate these types of comparisons in an ongoing way).
 
-##### Top Level Diretories
-
-See the secion on [shared Fsx filesystem](#shared-fsx-filesystem) for more on hos this bucket interacts with these ephemeral cluster region specific S3 buckets.
-
-```text
-.
-├── cluster_boot_config  # used to configure the head and compute nodes in the ephemeral cluster, is not mounted to cluster nodes
-└── data # this directory is mounted to the head and compute nodes under /fsx/data as READ-ONLY. Data added to the S3 bucket will become available to the fsx mount, but can not be written to via FSX
-    ├── cached_envs
-    │   ├── conda
-    │   └── containers
-    ├── genomic_data
-    │   ├── organism_annotations
-    │   │   └── H_sapiens
-    │   │       ├── b37
-    │   │       └── hg38
-    │   ├── organism_reads
-    │   │   └── H_sapiens
-    │   │       └── giab
-    │   └── organism_references
-    │       └── H_sapiens
-    │           ├── b37
-    │           └── hg38
-    └── tool_specific_resources
-        └── verifybam2
-            ├── exome
-            └── test
-```
-
-
 # Fsx Filesystem
 
 Are region specific, and may only intereact with `S3` buckets in the same region as the filesystem. There are region specific quotas to be aware of.
@@ -1569,21 +1070,11 @@ The following directories are created and accessible via `/fsx` on the headnode 
 
 # In Progress // Future Development
 
-## Re-enable Sentieon Workflows & Include in Benchmarking
 
-- I have a demo lisc, and old working workflows (but they are ~2yrs out of date at this point).  I will be updating these workflows and including them in the benchmarking results.
-
-## Add Strobe Aligner To Benchmarking
-
-- The aligner is already included, but I have not been running it as my $ resources are v. limited.
 
 ## Using Data From Benchmarking Experiments, Complete The Comprehensive Cost Caclulator
 
 - Rough draft script is running already, with best guesses for things like compute time per-x coverage, etc.
-
-## Break Daylily Into 2 Parts: 1) Ephermal Cluster Manager 2) Analysis Pipeline
-
-- The `daylily` repo grew from an analysis pipeline, and has co-mingled the ephmeral cluster infrastructure (which is not tied to any particular pipeline orchestrator). Breaking it into 2 parts will make things more modular and easier to maintain.
 
 ## Update Analysis Pipeline To Run With Snakemake v8.*
 
@@ -1639,7 +1130,7 @@ ode/rule is distributed to a suitable EC2 spot(or on demand if you prefer) insta
 
 #### [Batch QC HTML Summary Report](http://daylilyinformatics.com:8082/reports/DAY_final_multiqc.html)
 
-> The batch is comprised of google-brain Novaseq 30x HG002 fastqs, and again downsampling to: 25,20,15,10,5x.     
+> The batch is comprised of  Novaseq 30x HG002 fastqs, and again downsampling to: 25,20,15,10,5x.     
 [Example report](http://daylilyinformatics.com:8082/reports/DAY_final_multiqc.html).
 
 
@@ -1681,64 +1172,6 @@ ode/rule is distributed to a suitable EC2 spot(or on demand if you prefer) insta
 <p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/000000.png" valign="bottom" ></a></p>
 
 
-
-# Metrics Required To Make Informed Decisions About Choosing An Analysis Pipeline
-
-To make informed decisions about choosing an analysis pipeline, there are four key metrics to consider: accuracy(as generally measured via Fscore), user run time, cost of analysis and reproducibility. Further consideration should then be given to the longevity of results (how results are stored, costs associated with storage, and the ease of access to results). All of these can not be optimized simultaneously, and trade-offs must be made. Making these tradeoffs with intention is the primary goal of the daylily framework.
-
-## Accuracy / Precision / Recall / Fscore
-
-- what is the pipelines perofrmance?
-
-## User Run Time
-
-- how long does it take to run the pipeline?
-
-## Cost Of Analysis
-
-### Init Cost
-- is
-### Compute Cost
-- is
-### Storage Cost (for computation)
-- is
-### Other Costs (ie: data transfer)
-- is
-
-## Cost of Storage
-- is
-
-## Reproducibility
-- what is the asserted reproducibility of the pipeline? For 1 month? 1 year? 5 years? 20 years?
-- And how is this tested?
-
-## Longevity of Results
-- how are results stored? What are the costs and access mechanisms for these results?
-
-# Sentieon Tools & License
-To activate sentieon bwa and sentieon DNA scope, edit the `config/day_profiles/{local,slurm}/templates/rule_config.yaml` file to uncomment the following:
-
-```yaml
-active_snv_callers:
-    - deep
-#    - sentd
-
-active_aligners:
-    - bwa2a:
-        mkdup: dppl
-#    - sent:  # uncomment to run aligner (same deduper must be used presently in all aligner outputs, unless bundled into the align rule)
-#        mkdup: dppl  # One ddup'r per analysis run.  dppl and sent currently are active
-#    - strobe:
-
-```
-
-- This will enable running these two tools.  You will also need a liscence file from sentieon in order to run these tools.  
-- Please [contact them](https://www.sentieon.com/company/) to obtain a valid liscense . 
-- Once you have a lisence file, edit the `dyinit` file to include the */fsx/* relative path to this file where `export SENTIEON_LICENSE=` is found.  
-- Save the liscence file in the each region specific S3 reference bucket, ie: `s3://PREFIX-omics-analysis-REGION/data/cached_envs/`. When this bucket is mounted to the fsx filesystem, the liscence file will be available to all instances at `/fsx/data/cached_envs/`.
-
-
-
 # Contributing
 
 [Contributing Guidelines](CONTRIBUTING.md)
@@ -1760,13 +1193,8 @@ The command `bin/init_cloudstackformation.sh ./config/day_cluster/pcluster_env.y
 
 # Compliance / Data Security
 
-Is largely in your hands. AWS Parallel Cluster is as secure or insecure as you set it up to be. https://docs.aws.amazon.com/parallelcluster/v2/ug/security-compliance-validation.html
+All tools involved in `daylily-ephemeral-cluster` can be managed in such a way to satisfy various clinical comlicance requirements. This is largely in your hands. AWS Parallel Cluster is as secure or insecure as you set it up to be. https://docs.aws.amazon.com/parallelcluster/v2/ug/security-compliance-validation.html. The main point here is it *can* in my experience be managed in compliance heavy settings, no problem.
 
-
-# Detailed Docs
-
-> **[daylib](docs/daylib/README.md)**: python library code.
-> **and**: ...
 
 <p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/000000.png" valign="bottom" ></a></p>
 
@@ -1790,5 +1218,7 @@ _named in honor of Margaret Oakley Dahoff_
 Z
 a
 A
+ 
+ 
  
  

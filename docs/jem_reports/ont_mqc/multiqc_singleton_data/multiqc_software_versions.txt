@@ -1,2 +1,0 @@
-Sample	Bcftools
-Bcftools	1.21

@@ -1,7 +1,0 @@
-wf.readBackedPhasing.bam: gs://griffith-lab-cromwell/cromwell-executions/immuno/2bcdc58f-15d0-4a55-832e-6748f4dbb4ac/call-somatic/somaticExome/26844119-6d35-4008-927f-cdb3c6f77834/call-tumorIndexCram/tumor.cram
-wf.readBackedPhasing.bam_index: gs://griffith-lab-cromwell/cromwell-executions/immuno/2bcdc58f-15d0-4a55-832e-6748f4dbb4ac/call-somatic/somaticExome/26844119-6d35-4008-927f-cdb3c6f77834/call-tumorIndexCram/tumor.cram.crai
-wf.readBackedPhasing.reference: gs://griffith-lab-cromwell/input_data/maruska/2021-06-17/somatic_inputs/hla_and_brca_genes.fa
-wf.readBackedPhasing.reference_fai: gs://griffith-lab-cromwell/input_data/maruska/2021-06-17/somatic_inputs/hla_and_brca_genes.fa.fai
-wf.readBackedPhasing.reference_dict: gs://griffith-lab-cromwell/input_data/maruska/2021-06-17/somatic_inputs/hla_and_brca_genes.dict
-wf.readBackedPhasing.vcf: gs://griffith-lab-cromwell/cromwell-executions/immuno/9e665e2f-1710-476f-bef6-9f552972ad46/call-phaseVcf/phaseVcf/f5c6df6d-edc3-435d-afe0-78ab5db43af5/call-bgzipAndIndex/bgzipAndIndex/a4a8d2ac-db58-49cd-93bf-f87e7b2111a5/call-index/sorted.vcf.gz
-wf.readBackedPhasing.vcf_tbi: gs://griffith-lab-cromwell/cromwell-executions/immuno/9e665e2f-1710-476f-bef6-9f552972ad46/call-phaseVcf/phaseVcf/f5c6df6d-edc3-435d-afe0-78ab5db43af5/call-bgzipAndIndex/bgzipAndIndex/a4a8d2ac-db58-49cd-93bf-f87e7b2111a5/call-index/sorted.vcf.gz.tbi

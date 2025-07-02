@@ -1,4 +1,0 @@
-wf.bam: gs://griffith-lab-cromwell/cromwell-executions/wf/8dc1181b-ad18-48b5-9cd2-cbeea78cad2d/call-indexBam/tumor.bam.bam
-wf.reference: gs://griffith-lab-cromwell/input_data/maruska/2021-06-17/somatic_inputs/hla_and_brca_genes.fa
-wf.reference_fai: gs://griffith-lab-cromwell/input_data/maruska/2021-06-17/somatic_inputs/hla_and_brca_genes.fa.fai
-wf.reference_dict: gs://griffith-lab-cromwell/input_data/maruska/2021-06-17/somatic_inputs/hla_and_brca_genes.dict

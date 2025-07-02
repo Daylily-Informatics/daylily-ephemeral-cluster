@@ -1,5 +1,0 @@
-wf.merged_vcf_basename: "somatic_snvs"
-wf.vcfs:
-  - gs://griffith-lab-cromwell/cromwell-executions/varscanPreAndPostProcessing/e810e410-640f-4ac1-bf27-694efb1f0aea/call-varscan/shard-36/varscan/33adb2ca-f8d6-4d1e-bbb0-785b2df8c873/call-process_somatic_snvs/output.snp.Somatic.vcf
-  - gs://griffith-lab-cromwell/cromwell-executions/varscanPreAndPostProcessing/e810e410-640f-4ac1-bf27-694efb1f0aea/call-varscan/shard-1/varscan/8767d9d2-bba8-4bc5-bd1b-55d5966a7ee9/call-process_somatic_snvs/output.snp.Somatic.vcf
-wf.sequence_dictionary: gs://griffith-lab-cromwell/input_data/maruska/2021-06-17/somatic_inputs/hla_and_brca_genes.dict

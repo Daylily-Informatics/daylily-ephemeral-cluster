@@ -1,7 +1,0 @@
-channels:
-  - anaconda
-dependencies:
-    - python
-    - pip
-    - pip:
-      - git+https://github.com/iamh2o/Cyrius.git@v0.0.0.6-jem

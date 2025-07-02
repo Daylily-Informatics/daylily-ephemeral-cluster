@@ -1,9 +1,0 @@
-{
-    "wf.reference": "gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.fa",
-    "wf.reference_fai": "gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.fa.fai",
-    "wf.reference_dict": "gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.dict",
-    "wf.bam": "gs://griffith-lab-cromwell/cromwell-executions/alignmentExome/f915dab9-250b-4981-8ff2-c4f5871e5074/call-alignment/sequenceToBqsr/31ae31c2-4528-495b-b109-d9e7216b6b4d/call-markDuplicatesAndSort/MarkedSorted.bam",
-    "wf.bam_bai": "gs://griffith-lab-cromwell/cromwell-executions/alignmentExome/f915dab9-250b-4981-8ff2-c4f5871e5074/call-alignment/sequenceToBqsr/31ae31c2-4528-495b-b109-d9e7216b6b4d/call-markDuplicatesAndSort/MarkedSorted.bam.bai",
-    "wf.bqsr_table": "gs://griffith-lab-cromwell/cromwell-executions/alignmentExome/f915dab9-250b-4981-8ff2-c4f5871e5074/call-alignment/sequenceToBqsr/31ae31c2-4528-495b-b109-d9e7216b6b4d/call-bqsr/bqsr.table",
-    "wf.output_name": "final"
-}

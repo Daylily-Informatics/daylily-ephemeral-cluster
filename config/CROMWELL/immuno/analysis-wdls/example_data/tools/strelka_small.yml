@@ -1,9 +1,0 @@
-wf.tumor_bam: gs://griffith-lab-cromwell/input_data/cluster/tumor/H_NJ-HCC1395-HCC1395.bam
-wf.tumor_bam_bai: gs://griffith-lab-cromwell/input_data/cluster/tumor/H_NJ-HCC1395-HCC1395.bam.bai
-wf.normal_bam: gs://griffith-lab-cromwell/input_data/cluster/normal/H_NJ-HCC1395-HCC1395.bam
-wf.normal_bam_bai: gs://griffith-lab-cromwell/input_data/cluster/tumor/H_NJ-HCC1395-HCC1395.bam.bai
-wf.reference: gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.fa
-wf.reference_fai: gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.fa.fai
-wf.reference_dict: gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.dict
-wf.exome_mode: true
-wf.cpu_reserved: 8

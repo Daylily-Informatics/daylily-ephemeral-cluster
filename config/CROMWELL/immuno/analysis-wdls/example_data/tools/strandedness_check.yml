@@ -1,5 +1,0 @@
-wf.strandednessCheck.gtf_file: gs://griffith-lab-cromwell/input_data/GRC-human-build38_human_95_38_U2AF1_fix/rna_seq_annotation/Homo_sapiens.GRCh38.95.gtf
-wf.strandednessCheck.kallisto_index: gs://griffith-lab-cromwell/input_data/GRC-human-build38_human_95_38_U2AF1_fix/rna_seq_annotation/Homo_sapiens.GRCh38.cdna.all.fa.kallisto.idx
-wf.strandednessCheck.cdna_fasta: gs://griffith-lab-cromwell/input_data/GRC-human-build38_human_95_38_U2AF1_fix/rna_seq_annotation/Homo_sapiens.GRCh38.cdna.all.fa.gz
-wf.strandednessCheck.reads1: gs://griffith-lab-cromwell/cromwell-executions/rnaseqStarFusion/befff988-557f-417e-a1d5-166b20b84364/call-sequenceToTrimmedFastq/shard-0/sequenceToTrimmedFastq/8339633d-a7eb-460f-b8eb-85438ee8f644/call-trimFastq/trimmed_read_1.fastq
-wf.strandednessCheck.reads2: gs://griffith-lab-cromwell/cromwell-executions/rnaseqStarFusion/befff988-557f-417e-a1d5-166b20b84364/call-sequenceToTrimmedFastq/shard-0/sequenceToTrimmedFastq/8339633d-a7eb-460f-b8eb-85438ee8f644/call-trimFastq/trimmed_read_2.fastq

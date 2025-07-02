@@ -1,2 +1,0 @@
-wf.starFusionDetect.star_fusion_genome_dir_zip: gs://griffith-lab-cromwell/input_data/GRC-human-build38_human_95_38_U2AF1_fix/rna_seq_annotation/star_fusion_1.8.0_index.zip
-wf.starFusionDetect.junction_file: gs://griffith-lab-cromwell/cromwell-executions/rnaseqStarFusion/b794c6d8-702d-4521-9f50-c385b5d76145/call-starAlignFusion/STAR_Chimeric.out.junction

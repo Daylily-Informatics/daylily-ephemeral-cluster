@@ -1,2 +1,0 @@
-CURR_SHELL=$(ps -p $$ -o comm=)
-echo "$CURR_SHELL"

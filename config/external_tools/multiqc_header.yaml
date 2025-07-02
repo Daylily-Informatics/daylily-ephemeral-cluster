@@ -1,9 +1,0 @@
-report_header_info:
-  - Project/Budget: "REGSUB_PROJECT"
-  - Budget @ Runtime: "REGSUB_BUDGET"
-  - Spot Instances: "REGSUB_SPOTINSTANCES"
-  - Spot Costs per hr: "REGSUB_SPOTCOST"
-  - FQ->BAM.sort avg Costs: "REGSUB_TOTALCOST"
-  - BAM mrkdup avg Cost: "REGSUB_MRKDUPCOST"
-  - Results Dir (GB): "REGSUB_TOTALSIZE"
-

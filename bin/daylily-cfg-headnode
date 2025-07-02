@@ -13,6 +13,8 @@ CONFIG_FILE="config/daylily_cli_global.yaml"
 
 git_tag=$(yq -r '.daylily.git_tag' "$CONFIG_FILE")
 git_repo=$(yq -r '.daylily.git_repo' "$CONFIG_FILE")
+git_analysis_repo_tag=$(yq -r '.daylily.git_analysis_repo_tag' "$CONFIG_FILE")
+git_analysis_repo=$(yq -r '.daylily.git_analysis_repo' "$CONFIG_FILE")
 daylily_image_cmd=$(yq -r '.daylily.daylily_image_cmd' "$CONFIG_FILE")
 
 # Ensure both PEM file and region are provided
@@ -100,30 +102,30 @@ echo "(optional) save this SSH key in GitHub to your settings->ssh/gpg keys, whi
 sleep 15
 echo "Building the Daylily container on the head node..."
 # Pull the Daylily container using Singularity
-ssh -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null  \
+ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null  \
     " $daylily_image_cmd " 
 
 # Clone the Daylily repository to the head node
-echo "Cloning Daylily repository usibng https to the head node ~/projects"
-ssh -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \
-    "sudo su - $duser -c 'mkdir -p ~/projects && cd ~/projects &&  git clone -b ${git_tag} ${git_repo} daylily'"
+echo "Cloning Daylily repository using https to the head node ~/projects"
+ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \
+    "mkdir -p ~/projects && cd ~/projects &&  git clone -b ${git_analysis_repo_tag} ${git_analysis_repo_ssh} daylily-omics-analysis"
 
 # Initialize and configure the Daylily environment on the head node
 echo "Configuring Daylily environment on the head node..."
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-    "source ~/.bashrc && cd ~/projects/daylily && source dyinit --skip-project-check && source bin/day_build BUILD"
+    "source ~/.bashrc && cd ~/projects/daylily-omics-analysis && source dyinit --skip-project-check && source bin/day_build BUILD"
 
 # Run a simple help test for Daylily remotely
 echo "Running a simple help test on the head node..."
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-    "source ~/.bashrc && cd ~/projects/daylily && source dyinit --skip-project-check && source bin/day_activate local hg38 remote && ./bin/day_run help"
+    "source ~/.bashrc && cd ~/projects/daylily-omics-analysis && source dyinit --skip-project-check && source bin/day_activate local hg38 remote && ./bin/day_run help"
 
 
 
 # Finally, a quick test to confirm things are running as expected locally on the headnode
 echo "Run a quick test to ensure things are working as expected... [local run]"
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \
-    "source ~/.bashrc && cd ~/projects/daylily && source dyinit --project daylily-global && source bin/day_activate local hg38 remote && ./bin/day_run  produce_deduplicated_bams -p -k -j 2 --config aligners=['strobe'] dedupers=['dppl']  "
+    "source ~/.bashrc && cd ~/projects/daylily-omics-analysis && source dyinit --project daylily-global && source bin/day_activate local hg38 remote && ./bin/day_run  produce_deduplicated_bams -p -k -j 2 --config aligners=['strobe'] dedupers=['dppl']  "
 
 
 
@@ -132,7 +134,7 @@ echo "You can now SSH into the head node with the following command:"
 echo "        ssh -i $pem_file ubuntu@$cluster_ip_address"
 echo " "
 echo "Once logged in, as the 'ubuntu' user, run the following commands:"
-echo "  cd ~/projects/daylily"
+echo "  cd ~/projects/daylily-omics-analysis"
 echo "  source dyinit " 
 echo "  dy-a local"
 echo "  dy-g hg38"
@@ -154,14 +156,14 @@ if [[ "$REPLY" == "y" ]]; then
     # start building the minimal cached envs
     echo "Building some cached analysis environments to save a little time ... this can take a little time"
     ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \
-        "source ~/.bashrc && cd ~/projects/daylily && source dyinit --skip-project-check && source bin/day_activate local hg38 remote &&  ./bin/day_run  produce_snv_concordances -p -k -j 2 --config aligners=['strobe','bwa2a'] dedupers=['dppl'] snv_callers=['deep']  --conda-create-envs-only    "
+        "source ~/.bashrc && cd ~/projects/daylily-omics-analysis && source dyinit --skip-project-check && source bin/day_activate local hg38 remote &&  ./bin/day_run  produce_snv_concordances -p -k -j 2 --config aligners=['strobe','bwa2a'] dedupers=['dppl'] snv_callers=['deep']  --conda-create-envs-only    "
     echo " "
     echo "Caches have built for the following tools: strobe, bwa2a, dppl, oct, deep"
     echo " "
 else
     # Print the command that would have been run
     echo "Skipping cache building. Command would have been:"
-    echo -e "       ssh -t -i \"$pem_file\" ubuntu@\"$cluster_ip_address\" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \"source ~/.bashrc && cd ~/projects/daylily && source dyinit --skip-project-check && source bin/day_activate local hg38 remote && ./bin/day_run produce_snv_concordances -p -k -j 2 --config aligners=['strobe','bwa2a'] dedupers=['dppl'] snv_callers=['oct','deep'] --conda-create-envs-only\" \n"
+    echo -e "       ssh -t -i \"$pem_file\" ubuntu@\"$cluster_ip_address\" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \"source ~/.bashrc && cd ~/projects/daylily-omics-analysis && source dyinit --skip-project-check && source bin/day_activate local hg38 remote && ./bin/day_run produce_snv_concordances -p -k -j 2 --config aligners=['strobe','bwa2a'] dedupers=['dppl'] snv_callers=['oct','deep'] --conda-create-envs-only\" \n"
 fi
 echo "And, you may now access the headnode via the PCUI, via 'source bin/daylily-ssh-into-headnode', or SSH into the head node with the following command:"
 echo -e "       ssh -i $pem_file ubuntu@$cluster_ip_address\n"

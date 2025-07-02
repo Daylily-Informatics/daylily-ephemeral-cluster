@@ -54,8 +54,15 @@ OUT_TSV=./init_daylily_cluster.tsv
 
 - You can choose the region-availability-zone you wish to run in (be sure you already have a references bucket cloned into this region), and use the region-availability-zone in the create ephemeral cluster step.
 
-### Create Ephemeral Cluster
+### Create An Ephemeral Cluster
 _this script will check and install a number of prerequsites and attempt to install_
+
+
+#### Edit `config/daylily_ephemeral_cluster.yaml`
+
+- The config file `config/daylily_ephemeral_cluster.yaml` is used to pull routine defaults that will be used to skip user prompts in the next step. Please check out the file and set anything you wish to tweak.
+
+#### Run `daylily-create-ephemeral-cluster`
 
 ```bash
 export AWS_PROFILE=daylily-service

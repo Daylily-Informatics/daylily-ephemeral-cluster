@@ -1,9 +1,0 @@
-channels:
-  - conda-forge
-  - bioconda
-  - anaconda
-  - r
-  - defaults
-dependencies:
-  - illumina-interop=1.1.23
-  - multiqc

@@ -1,4 +1,0 @@
-wf.tumor_bam: gs://griffith-lab-test-immuno-pipeline/cromwell-executions/immuno/5358e50b-9908-43c7-9b91-f23aa1b25d84/call-somatic/somaticExome/5867667f-fd1e-4ef7-a519-545beedada03/call-tumorAlignmentAndQc/alignmentExome/451528b7-64d9-4784-891d-4c39feac673c/call-alignment/sequenceToBqsr/13fdac72-99ac-4535-97ca-2b2bfa62307c/call-indexBam/tumor.bam
-wf.normal_bam: gs://griffith-lab-test-immuno-pipeline/cromwell-executions/immuno/5358e50b-9908-43c7-9b91-f23aa1b25d84/call-somatic/somaticExome/5867667f-fd1e-4ef7-a519-545beedada03/call-normalAlignmentAndQc/alignmentExome/b86a31fa-9769-436e-9192-6c1bf0966d6b/call-alignment/sequenceToBqsr/4bd046f4-67d4-49dc-bd7e-29129961546e/call-indexBam/normal.bam
-wf.reference_fasta: gs://griffith-lab-workflow-inputs/human_GRCh38_ens95/aligner_indices/bwamem_0.7.15/all_sequences.fa
-wf.bait_intervals: gs://griffith-lab-workflow-inputs/human_GRCh38_ens95/capture_reagents/IDT_xGen_Lockdown_Exome_v1.baits.interval_list

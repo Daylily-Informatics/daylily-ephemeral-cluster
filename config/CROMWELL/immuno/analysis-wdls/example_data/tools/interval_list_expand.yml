@@ -1,2 +1,0 @@
-wf.interval_list: gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes_target.interval_list
-wf.roi_padding: 100

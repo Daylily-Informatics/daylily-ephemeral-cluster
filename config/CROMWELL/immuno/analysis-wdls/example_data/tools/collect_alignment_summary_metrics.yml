@@ -1,6 +1,0 @@
-wf.bam: gs://griffith-lab-cromwell/cromwell-executions/wf/5e2c28ab-f7dc-49a8-915d-f23ed4159e3d/call-applyBqsr/final.bam
-wf.bam_bai: gs://griffith-lab-cromwell/cromwell-executions/wf/7491b214-0afd-4c2e-856b-bb7829f30c60/call-indexBam/final.bam.bai
-wf.reference: gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.fa
-wf.reference_fai: gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.fa.fai
-wf.reference_dict: gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.dict
-wf.metric_accumulation_level: LIBRARY

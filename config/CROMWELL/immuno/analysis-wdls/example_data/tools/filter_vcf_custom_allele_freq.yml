@@ -1,3 +1,0 @@
-wf.vcf: gs://griffith-lab-cromwell/cromwell-executions/detectVariants/b26f0bed-8694-4fca-a300-25403d035ef4/call-filterVcf/filterVcf/810b6684-ae0c-490c-834a-dd1cea947880/call-filterKnownVariants/validated_annotated_pipeline_variants.vcf.gz
-wf.maximum_population_allele_frequency: 0.001
-wf.field_name: "gnomADe_AF"

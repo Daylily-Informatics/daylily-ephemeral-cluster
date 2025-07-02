@@ -1,2 +1,0 @@
-sample,sample_lane,SQ,RU,EX,LANE,r1_path,r2_path,biological_sex,iddna_uid,concordance_control_path,is_positive_control,is_negative_control,sample_type,merge_single,external_sample_id
-R0_EX4743_SQ0_0,R0_EX4743_SQ0_0,SQ0,R0,22EX4743,1,/lll/data/external_data/research_experiments/EX4743/RU0/raw_data/0.1covgenome_NA24694/R0_EX4743_SQ0_0.R1.fastq.gz,/lll/data/external_data/research_experiments/EX4743/RU0/raw_data/0.1covgenome_NA24694/R0_EX4743_SQ0_0.R2.fastq.gz,maLe,na,na,false,false,na,merge,na

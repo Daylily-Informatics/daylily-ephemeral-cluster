@@ -11,8 +11,8 @@ duser="ubuntu"
 
 CONFIG_FILE="config/daylily_cli_global.yaml"
 
-git_tag=$(yq -r '.daylily.git_tag' "$CONFIG_FILE")
-git_repo=$(yq -r '.daylily.git_repo' "$CONFIG_FILE")
+git_tag=$(yq -r '.daylily.git_analysis_repo_tag' "$CONFIG_FILE")
+git_repo=$(yq -r '.daylily.git_analysis_repo' "$CONFIG_FILE")
 
 # Ensure both PEM file and region are provided
 if [[ -z "$pem_file" || -z "$region" || -z "$aws_profile" ]]; then
@@ -91,12 +91,12 @@ read REPLY
 if [[ "$REPLY" == "y" ]]; then
 
     ssh -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \
-        "sudo su - $duser -c 'mkdir -p /fsx/analysis_results/ubuntu/daylily_remote_test && cd /fsx/analysis_results/ubuntu/daylily_remote_test &&  git clone -b ${git_tag} ${git_repo} daylily'"
+        "sudo su - $duser -c 'mkdir -p /fsx/analysis_results/ubuntu/daylily_remote_test && cd /fsx/analysis_results/ubuntu/daylily_remote_test &&  git clone -b ${git_tag} ${git_repo} daylily-omics-analysis'"
 
     session_name="cluster_test_$(date +%s)"  
     ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
         "tmux new-session -d -s \"$session_name\" \
-        \"bash -c 'source ~/.bashrc && cd /fsx/analysis_results/ubuntu/daylily_remote_test/daylily && source dyinit && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=true ./bin/day_run produce_snv_concordances -p -k -j 2 --config aligners=[\\\"strobe\\\",\\\"bwa2a\\\"] dedupers=[\\\"dppl\\\"] genome_build=\\\"hg38\\\" snv_callers=[\\\"deep\\\"]; bash'\"" && \
+        \"bash -c 'source ~/.bashrc && cd /fsx/analysis_results/ubuntu/daylily_remote_test/daylily-omics-analysis && source dyinit && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=true ./bin/day_run produce_snv_concordances -p -k -j 2 --config aligners=[\\\"strobe\\\",\\\"bwa2a\\\"] dedupers=[\\\"dppl\\\"] genome_build=\\\"hg38\\\" snv_callers=[\\\"deep\\\"]; bash'\"" && \
 
     echo "Tmux session >>> '$session_name' <<< started on the remote server."
     echo "You can monitor the session using the following command:"

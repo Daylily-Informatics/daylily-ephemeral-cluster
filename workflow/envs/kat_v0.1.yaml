@@ -1,9 +1,0 @@
-channels:
-  - conda-forge
-  - bioconda
-dependencies:
-  - kat
-  - boost
-  - boost-cpp
-  - seqkit
-

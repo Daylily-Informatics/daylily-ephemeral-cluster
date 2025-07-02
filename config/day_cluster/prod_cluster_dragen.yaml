@@ -253,6 +253,33 @@ Scheduling:
         AdditionalIamPolicies:
           - Policy: REGSUB_S3_IAM_POLICY
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+    - Name: dragen
+      CapacityType: ONDEMAND
+      AllocationStrategy: REGSUB_ALLOCATION_STRATEGY
+      ComputeResources:
+        - Name: all
+          Instances:
+            - InstanceType: f2.6xlarge 
+          MinCount: 0
+          MaxCount: REGSUB_MAX_COUNT_192I
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+      Networking:
+        SubnetIds:
+          - REGSUB_PRIVATE_SUBNET
+      Iam:
+        S3Access:
+          - BucketName: REGSUB_S3_BUCKET_NAME
+            EnableWriteAccess: false
+        AdditionalIamPolicies:
+          - Policy: REGSUB_S3_IAM_POLICY
+          - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Image:
+        CustomAmi: ami-0597a13384ead88b3
 Monitoring:
   DetailedMonitoring: REGSUB_DETAILED_MONITORING  
   Logs:

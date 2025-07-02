@@ -51,8 +51,15 @@ def get_instance_price(instance_type, az, profile, price_type):
             print(f"Error executing {' '.join(command)}: {e}")
             print(f"\n\tCONFIRM INSTANCE TYPE: {instance_type} is valid in {az} .\n\n")
             raise e
+        ret = 5.55
+        try:
+            ret = float(result)
+        except Exception as e:
+            print(f"Error converting result to float: {e}")
+            print(f"\n\tCONFIRM INSTANCE TYPE: {instance_type} is valid in {az} .\n\n")
 
-        return float(result) if result else None
+        return ret
+    
     elif price_type == 'dedicated':
         pricing_region = 'us-east-1'  # Use a region where the Pricing API is available
         location = get_region_name(region)  # Get the full region name

@@ -56,7 +56,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [ "$LOGFILE" == "" ]; then
-    LOGFILE="./create_daylily_s3_${region}.log"
+    LOGFILE="./logs/create_daylily_s3_${region}.log"
 fi
 
 if [ "$disable_warn" != true ]; then
@@ -76,7 +76,7 @@ if [[ "$s3_reference_data_version" != "0.7.131c" ]]; then
     exit 1
 else
     echo "Using Daylily S3 reference data version: $s3_reference_data_version"
-    source_bucket="daylily-references-public"
+    source_bucket="daylily-omics-analysis-references-public"
 fi
 
 
@@ -160,8 +160,9 @@ create_bucket
 # Compose bucket creation commands
 
 # Core dirs to copy
-echo "$s3_reference_data_version" > daylily_reference_version_$s3_reference_data_version.info
-cmd_version="aws s3 cp daylily_reference_version_$s3_reference_data_version.info  s3://${new_bucket}/s3_reference_data_version.info"
+ver_info_file="config/day_cluster/daylily_reference_version_$s3_reference_data_version.info"
+echo "$s3_reference_data_version" > $ver_info_file
+cmd_version="aws s3 cp $ver_info_file  s3://${new_bucket}/s3_reference_data_version.info"
 cmd_cluster_boot_config="aws s3 cp s3://${source_bucket}/cluster_boot_config s3://${new_bucket}/cluster_boot_config --recursive  --request-payer requester $accel_endpoint --metadata-directive REPLACE "
 cmd_cached_envs="aws s3 cp s3://${source_bucket}/data/cached_envs s3://${new_bucket}/data/cached_envs --recursive --request-payer requester $accel_endpoint --metadata-directive REPLACE "
 cmd_libs="aws s3 cp s3://${source_bucket}/data/lib s3://${new_bucket}/data/lib --recursive --request-payer requester  $accel_endpoint --metadata-directive REPLACE "
@@ -178,6 +179,9 @@ cmd_hg38_annotations="aws s3 cp s3://${source_bucket}/data/genomic_data/organism
 
 # Concordance Reads
 cmd_giab_reads="aws s3 cp s3://${source_bucket}/data/genomic_data/organism_reads s3://${new_bucket}/data/genomic_data/organism_reads --recursive --request-payer requester $accel_endpoint --metadata-directive REPLACE "
+
+# CRAMS
+## cmd_giab_crams="aws s3 cp s3://${source_bucket}/data/cram_data s3://${new_bucket}/data/cram_data --recursive --request-payer requester $accel_endpoint --metadata-directive REPLACE "
 
 
 if [ "$disable_dryrun" = false ]; then
@@ -212,9 +216,11 @@ if [ "$disable_dryrun" = false ]; then
     if [ "$exclude_giab_reads" = true ]; then
         echo ">>>> THESE TO BE EXCLUDED"
         echo "$cmd_giab_reads"
+        #echo "$cmd_giab_crams"
     else
         echo "THESE WILL BE INCLUDED"
         echo "$cmd_giab_reads"
+        #echo "$cmd_giab_crams"
     fi
 else
 
@@ -222,30 +228,30 @@ else
     echo "Running the following commands serially"
 
     echo ""
-    echo "NOW RUNNING 1 of 11"
+    echo "NOW RUNNING 1 of 12"
     echo "...$cmd_version"
     $cmd_version >> $LOGFILE 2>&1  && echo "success" || echo ">>>FAILED<<< will be fatal"
     
 
     echo " "
-    echo "NOW RUNNING 2 of 11"
+    echo "NOW RUNNING 2 of 12"
     echo "...$cmd_cluster_boot_config"
     $cmd_cluster_boot_config  >> $LOGFILE 2>&1 && echo "success" || echo ">>>FAILED<<< will be fatal"
     
 
-    echo "NOW RUNNING 3 of 11"
+    echo "NOW RUNNING 3 of 12"
     echo "... $cmd_cached_envs"
     $cmd_cached_envs >> $LOGFILE 2>&1 && echo "success" || echo ">>>FAILED<<< prob ok, but unexpected"
   
-    echo "NOW RUNNING 4 of 11"
+    echo "NOW RUNNING 4 of 12"
     echo "...$cmd_libs"
     $cmd_libs >> $LOGFILE 2>&1  && echo "success" || echo ">>>FAILED<<< will be fatal"
 
-    echo "NOW RUNNING 5 of 11"
+    echo "NOW RUNNING 5 of 12"
     echo "...$cmd_tool_specific_resources"
     $cmd_tool_specific_resources  >> $LOGFILE 2>&1  && echo "success" || echo ">>>FAILED<<< will be fatal"
 
-    echo "NOW RUNNING 6 of 11"
+    echo "NOW RUNNING 6 of 12"
     echo "...$cmd_budget"
     $cmd_budget  >> $LOGFILE 2>&1  && echo "success" || echo ">>>FAILED<<< will be fatal"
     
@@ -256,11 +262,11 @@ else
         echo "$cmd_hg38_ref"
         echo "$cmd_hg38_annotations"
     else
-        echo "NOW RUNNING 7 of 11"
+        echo "NOW RUNNING 7 of 12"
         echo "...$cmd_hg38_ref"
         $cmd_hg38_ref  >> $LOGFILE 2>&1  && echo "success" || echo ">>>FAILED<<< will be fatal if hg38 is needed" 
 
-        echo "NOW RUNNING 8 of 11"
+        echo "NOW RUNNING 8 of 12"
         echo "...$cmd_hg38_annotations"
         $cmd_hg38_annotations >> $LOGFILE 2>&1  && echo "success" || echo ">>>FAILED<<< will be fatal if hg38 is needed" 
 
@@ -271,11 +277,11 @@ else
         echo "$cmd_b37_ref"
         echo "$cmd_b37_annotations"
     else
-        echo "NOW RUNNING 9 of 11"
+        echo "NOW RUNNING 9 of 12"
         echo "...$cmd_b37_ref"
         $cmd_b37_ref  >> $LOGFILE 2>&1   && echo "success" || echo ">>>FAILED<<< will be fatal if b37 is needed" 
 
-        echo "NOW RUNNING 10 of 11"
+        echo "NOW RUNNING 10 of 12"
         echo "...$cmd_b37_annotations"
         $cmd_b37_annotations >> $LOGFILE 2>&1 && echo "success" || echo ">>>FAILED<<< will be fatal if b37 is needed" 
 
@@ -284,11 +290,18 @@ else
     if [ "$exclude_giab_reads" = true ]; then
         echo "Skipping GIAB reads copy:"
         echo "$cmd_giab_reads"
+
+        echo "Skipping GIAB crams copy:"
+        echo "$cmd_giab_crams"
+
     else
-        echo "NOW RUNNING 11 of 11"
+        echo "NOW RUNNING 11 of 12"
         echo "...$cmd_giab_reads"
         $cmd_giab_reads >> $LOGFILE 2>&1 && echo "success" || echo ">>>FAILED<<< will be fatal if GIAB reads are needed" 
-    
+
+        #echo "NOW RUNNING 12 of 12"
+        #echo "...$cmd_giab_crams"
+        #$cmd_giab_crams >> $LOGFILE 2>&1 && echo "success" || echo ">>>FAILED<<< will be fatal #if GIAB crams are needed"    
     fi
 
 

@@ -1,9 +1,0 @@
-Metric,Cost (USD)
-Reference FSx Cost (Walltime) - HG001,0.0023017379243827157
-Reference FSx Cost (Walltime) - HG002,0.0022715628780864195
-Reference S3 Cost (Walltime) - HG001,0.0017646657420267488
-Reference S3 Cost (Walltime) - HG002,0.001741531539866255
-Reference FSx Daily Cost,0.02
-Reference S3 Daily Cost,0.015333333333333332
-Reference FSx Monthly Cost,0.6
-Reference S3 Monthly Cost,0.45999999999999996

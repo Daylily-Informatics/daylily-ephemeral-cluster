@@ -1,9 +1,0 @@
-channels:
-  - conda-forge
-  - bioconda
-  - defaults
-dependencies:
-  - samtools
-  - isa-l==2.31.0
-  - seqkit
-  - mbuffer

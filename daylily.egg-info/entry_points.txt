@@ -1,0 +1,2 @@
+[console_scripts]
+calc_daylily_aws_cost_estimates = bin.calc_daylily_aws_cost_estimates:main

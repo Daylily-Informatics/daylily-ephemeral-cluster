@@ -1,5 +1,0 @@
-vcfReadcountAnnotator.vcf: gs://griffith-lab-cromwell/cromwell-executions/wf/734853bb-327b-41a4-828e-c355ee806bc2/call-vep/test.vcf.gz_annotated.vcf
-vcfReadcountAnnotator.snv_bam_readcount_tsv: gs://griffith-lab-cromwell/cromwell-executions/wf/e8eae7c8-2db9-4a4e-aa50-f1eb9fc52958/call-bamReadcount/H_NJ-HCC1395-HCC1395_bam_readcount_snv.tsv
-vcfReadcountAnnotator.indel_bam_readcount_tsv: gs://griffith-lab-cromwell/cromwell-executions/wf/e8eae7c8-2db9-4a4e-aa50-f1eb9fc52958/call-bamReadcount/H_NJ-HCC1395-HCC1395_bam_readcount_indel.tsv
-vcfReadcountAnnotator.data_type: "DNA"
-vcfReadcountAnnotator.sample_name: H_NJ-HCC1395-HCC1395

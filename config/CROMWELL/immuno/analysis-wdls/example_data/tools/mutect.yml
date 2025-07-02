@@ -1,9 +1,0 @@
-wf.reference: gs://griffith-lab-cromwell/input_data/maruska/2021-04-15/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.fa
-wf.reference_fai: gs://griffith-lab-cromwell/input_data/maruska/2021-04-15/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.fa.fai
-wf.reference_dict: gs://griffith-lab-cromwell/input_data/maruska/2021-04-15/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.dict
-
-wf.tumor_bam: gs://griffith-lab-cromwell/cromwell-executions/alignmentExome/988f1110-8f6c-4b30-a6e4-dc76288fd88e/call-alignment/sequenceToBqsr/053d0207-dd66-42d8-93f8-290b6e831e9a/call-indexBam/griffith-lab-cromwell/cromwell-executions/alignmentExome/988f1110-8f6c-4b30-a6e4-dc76288fd88e/call-alignment/sequenceToBqsr/053d0207-dd66-42d8-93f8-290b6e831e9a/call-applyBqsr/H_NJ-HCC1395-HCC1395.bam.bam
-wf.tumor_bam_bai: gs://griffith-lab-cromwell/cromwell-executions/alignmentExome/988f1110-8f6c-4b30-a6e4-dc76288fd88e/call-alignment/sequenceToBqsr/053d0207-dd66-42d8-93f8-290b6e831e9a/call-indexBam/H_NJ-HCC1395-HCC1395.bam.bam.bai
-wf.normal_bam: gs://griffith-lab-cromwell/cromwell-executions/alignmentExome/5992cdc2-b94d-481a-bd81-43522be983bb/call-alignment/sequenceToBqsr/a5f7899d-f5ef-4083-93bc-884469d79a83/call-indexBam/griffith-lab-cromwell/cromwell-executions/alignmentExome/5992cdc2-b94d-481a-bd81-43522be983bb/call-alignment/sequenceToBqsr/a5f7899d-f5ef-4083-93bc-884469d79a83/call-applyBqsr/H_NJ-HCC1395-HCC1395_BL.bam.bam
-wf.normal_bam_bai: gs://griffith-lab-cromwell/cromwell-executions/alignmentExome/5992cdc2-b94d-481a-bd81-43522be983bb/call-alignment/sequenceToBqsr/a5f7899d-f5ef-4083-93bc-884469d79a83/call-indexBam/H_NJ-HCC1395-HCC1395_BL.bam.bam.bai
-wf.interval_list: gs://griffith-lab-cromwell/cromwell-executions/mutect/34524d04-5141-4522-98e8-b111caa3c9df/call-splitIntervalList/glob-0fc990c5ca95eebc97c4c204e3e303e1/1.interval_list

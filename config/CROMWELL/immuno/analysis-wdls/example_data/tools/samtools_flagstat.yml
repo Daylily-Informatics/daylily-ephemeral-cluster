@@ -1,2 +1,0 @@
-wf.bam: gs://griffith-lab-test-immuno-pipeline/cromwell-executions/immuno/c1345bb0-af68-4a42-9ba6-6184d38fe7a3/call-rnaseq/rnaseq/566e0af6-42f0-4c68-af57-1087388f0194/call-indexBam/sorted.bam
-wf.bam_bai: gs://griffith-lab-test-immuno-pipeline/cromwell-executions/immuno/c1345bb0-af68-4a42-9ba6-6184d38fe7a3/call-rnaseq/rnaseq/566e0af6-42f0-4c68-af57-1087388f0194/call-indexBam/sorted.bam.bai

@@ -20,19 +20,22 @@ if [[ ! -f "$cluster_cfg_yaml" ]]; then
     exit 1
 fi
 
-
-# Iterate over each line in cluster_init_values.txt
+# Build Perl substitution commands from the init values file
+perl_cmd=""
 while IFS='=' read -r key value; do
-    # Skip empty lines or lines without key-value pairs
+    # Skip empty lines or incomplete lines
     [[ -z "$key" || -z "$value" ]] && continue
 
-    # Escape special characters in the value to prevent sed issues
-    escaped_value=$(printf '%s\n' "$value" | sed -e 's/[\/&]/\\&/g')
+    # Escape special characters for Perl regex substitution
+    escaped_key=$(printf '%s' "$key" | sed 's/[]\/$*.^|[]/\\&/g')
+    escaped_value=$(printf '%s' "$value" | sed 's/[\/&]/\\&/g')
 
-    # Substitute occurrences of the key in the cluster config YAML file
-    sed -i "" "s/$key/$escaped_value/g" "$cluster_cfg_yaml"
+    perl_cmd="$perl_cmd;s/$escaped_key/$escaped_value/g"
 done < "$cluster_init_values"
 
-echo "" 
+# Run the substitutions in-place
+perl -pi -e "$perl_cmd" "$cluster_cfg_yaml"
+
+echo ""
 echo "Substitutions completed in $cluster_cfg_yaml."
 echo ""

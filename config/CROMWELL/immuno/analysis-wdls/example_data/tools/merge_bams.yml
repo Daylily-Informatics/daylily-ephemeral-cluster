@@ -1,5 +1,0 @@
-wf.bams:
-  - gs://griffith-lab-workflow-inputs/input_data/maruska/2022-01-20/gscmnt/gc2560/core/instrument_data/2895499223/csf_150397219/gerald_H7HY2CCXX_3_ATCACGGT.bam
-  - gs://griffith-lab-workflow-inputs/input_data/maruska/2022-01-20/gscmnt/gc2560/core/instrument_data/2895499237/csf_150397351/gerald_H7HY2CCXX_4_ATCACGGT.bam
-  - gs://griffith-lab-workflow-inputs/input_data/maruska/2022-01-20/gscmnt/gc2560/core/instrument_data/2895499331/csf_150397221/gerald_H7HY2CCXX_3_TGACCACG.bam
-  - gs://griffith-lab-workflow-inputs/input_data/maruska/2022-01-20/gscmnt/gc2560/core/instrument_data/2895499399/csf_150397349/gerald_H7HY2CCXX_4_TGACCACG.bam

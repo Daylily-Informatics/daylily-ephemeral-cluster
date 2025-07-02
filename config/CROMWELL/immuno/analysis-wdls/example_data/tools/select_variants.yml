@@ -1,8 +1,0 @@
-wf.reference: gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.fa
-wf.reference_fai: gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.fa.fai
-wf.reference_dict: gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.dict
-wf.vcf: gs://griffith-lab-cromwell/cromwell-executions/somaticExome/9621cc75-2bac-47f2-97e1-ff100c69734c/call-detectVariants/detectVariants/da0aeac0-690b-4066-84fe-15fc09b7a967/call-mutect/mutect/47628520-ed57-4819-9b43-2e8a99afd0ed/call-fpFilter/fpFilter/41fc522c-b633-4ceb-88c1-b210deedb577/call-fpIndex/test.vcf.gz
-wf.vcf_tbi: gs://griffith-lab-cromwell/cromwell-executions/somaticExome/9621cc75-2bac-47f2-97e1-ff100c69734c/call-detectVariants/detectVariants/da0aeac0-690b-4066-84fe-15fc09b7a967/call-mutect/mutect/47628520-ed57-4819-9b43-2e8a99afd0ed/call-fpFilter/fpFilter/41fc522c-b633-4ceb-88c1-b210deedb577/call-fpIndex/test.vcf.gz.tbi
-wf.interval_list: gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes_target.interval_list
-wf.exclude_filtered: true
-wf.output_vcf_basename: mutect_filtered

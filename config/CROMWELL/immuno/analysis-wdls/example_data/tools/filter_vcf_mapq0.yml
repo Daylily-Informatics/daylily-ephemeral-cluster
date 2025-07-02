@@ -1,7 +1,0 @@
-wf.filterVcfMapq0.vcf: gs://griffith-lab-cromwell/cromwell-executions/somaticExome/cbf76b06-e9a4-4bc3-8ed5-fb00c8ad9f0c/call-detectVariants/detectVariants/d169392b-6cc6-4ae9-bf53-0bab8bf7a7f2/call-filterVcf/filterVcf/8d9e6195-3f48-4579-890c-fb037d09c945/call-filterVcfGnomadeAlleleFreq/annotated.af_filtered.vcf
-wf.filterVcfMapq0.tumor_bam: gs://griffith-lab-cromwell/cromwell-executions/somaticExome/cbf76b06-e9a4-4bc3-8ed5-fb00c8ad9f0c/call-tumorAlignmentAndQc/alignmentExome/3f586754-8b61-48ef-b424-13ba2c58f009/call-alignment/sequenceToBqsr/1654091f-434d-4a2c-8e5f-bc3f3af51741/call-indexBam/tumor.bam
-wf.filterVcfMapq0.tumor_bam_bai: gs://griffith-lab-cromwell/cromwell-executions/somaticExome/cbf76b06-e9a4-4bc3-8ed5-fb00c8ad9f0c/call-tumorAlignmentAndQc/alignmentExome/3f586754-8b61-48ef-b424-13ba2c58f009/call-alignment/sequenceToBqsr/1654091f-434d-4a2c-8e5f-bc3f3af51741/call-indexBam/tumor.bam.bai
-wf.filterVcfMapq0.reference: gs://griffith-lab-cromwell/input_data/maruska/2021-07-13/bga/Active/gmsroot/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.fa
-wf.filterVcfMapq0.reference_fai: gs://griffith-lab-cromwell/input_data/maruska/2021-07-13/bga/Active/gmsroot/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.fa.fai
-wf.filterVcfMapq0.reference_dict: gs://griffith-lab-cromwell/input_data/maruska/2021-07-13/bga/Active/gmsroot/gc2560/core/model_data/2887491634/build21f22873ebe0486c8e6f69c15435aa96/all_sequences.dict
-wf.filterVcfMapq0.threshold: 0.15

@@ -1,4 +1,0 @@
-channels:
-  - bioconda
-dependencies:
-  - clair3-illumina

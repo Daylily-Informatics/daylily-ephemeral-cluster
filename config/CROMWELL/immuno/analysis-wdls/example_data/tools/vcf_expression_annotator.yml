@@ -1,5 +1,0 @@
-wf.vcfExpressionAnnotator.vcf: gs://griffith-lab-cromwell/cromwell-executions/immuno/3176b2e9-944f-4a32-a039-495deccd9cb2/call-pvacseq/pvacseq/3999cd38-a08a-47bc-9d75-5bdbf28c4557/call-addTumorRnaBamReadcountToVcf/vcfReadcountAnnotator/241f227d-9c26-4df7-9614-cf31bc9ec496/call-addIndelBamReadcountToVcf/annotated.bam_readcount.vcf.gz
-wf.vcfExpressionAnnotator.expression_file: gs://griffith-lab-cromwell/cromwell-executions/immuno/2bcdc58f-15d0-4a55-832e-6748f4dbb4ac/call-rnaseq/rnaseq/a269df2c-b658-4b88-9825-c66400ef0396/call-transcriptToGene/gene_abundance.tsv
-wf.vcfExpressionAnnotator.expression_tool: kallisto
-wf.vcfExpressionAnnotator.data_type: gene
-wf.vcfExpressionAnnotator.sample_name: H_NJ-HCC1395-HCC1395

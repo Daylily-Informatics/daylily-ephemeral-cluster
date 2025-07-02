@@ -13,14 +13,14 @@ fi
 slurm_command=$(basename "$0")
 
 if [ -z "${project}" ]; then
-    echo "ERROR: Please specify a project/budget name with the comment flag. '--comment ProjectName' to proceed with any sbatch command."
-    echo "Available budgets/projects in /fsx/data/budget_tags/pcluster-project-budget-tags.tsv are:"
-    cat /fsx/data/budget_tags/pcluster-project-budget-tags.tsv 
-    echo "" 
-    echo "you may modify this script to fully block unknown projects, for now this will tag with the specified project and proceed."
-    echo "a log of warnings/errors will be written to ./sbatch_errs.log"
-    echo "Exiting..."
-    exit 1
+    echo "ERROR: Please specify a project/budget name with the comment flag. '--comment ProjectName' to proceed with any sbatch command." >&2
+    echo "Available budgets/projects in /fsx/data/budget_tags/pcluster-project-budget-tags.tsv are:" >&2
+    cat /fsx/data/budget_tags/pcluster-project-budget-tags.tsv  >&2
+    echo ""  >&2
+    echo "you may modify this script to fully block unknown projects, for now this will tag with the specified project and proceed."  >&2
+    echo "a log of warnings/errors will be written to ./sbatch_errs.log"  >&2
+    echo "setting project=unknown-project "  >&2
+    project="unknown-project"
 fi
 
 # Path to the file containing budget names and users
@@ -110,4 +110,4 @@ else
 fi
 
 # Append the modified --comment to the Slurm command
-/opt/slurm/sbin/${slurm_command} --export=ALL "$@" --comment="${modified_project}"
+/opt/slurm/sbin/${slurm_command} --comment="${modified_project}" --export=ALL "$@" 

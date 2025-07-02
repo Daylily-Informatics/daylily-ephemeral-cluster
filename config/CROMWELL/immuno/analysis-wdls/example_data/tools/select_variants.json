@@ -1,8 +1,0 @@
-{
-    "wf.reference": "gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.fa",
-    "wf.reference_fai": "gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.fa.fai",
-    "wf.reference_dict": "gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes.dict",
-    "wf.vcf": "gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes_omni.vcf.gz",
-    "wf.vcf_tbi": "gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes_omni.vcf.gz.tbi",
-    "wf.interval_list": "gs://griffith-lab-cromwell/input_data/maruska/2021-05-10/somatic_inputs/hla_and_brca_genes_target.interval_list"
-}

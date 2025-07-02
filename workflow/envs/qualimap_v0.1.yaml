@@ -1,9 +1,0 @@
-channels:
-  - conda-forge
-  - bioconda
-  - anaconda
-  - r
-  - defaults
-dependencies:
-  - qualimap=2.2.2d
-  - glances

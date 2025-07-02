@@ -1,5 +1,0 @@
- #DAY.COMPUTEenv.ANALYTIStunedFOR
-terminal_abbreviation:\[\e[35;1m\][Dloc]\[\e[0m\]
-env_var_val:local
-active:true
-env_script:config/day_profiles/local/profile_env.bash

@@ -77,6 +77,14 @@ if [[ -z "$region_az" ]]; then
     exit 3  # Exit the function with an error status
 fi
 
+if  yq --version &> /dev/null; then
+    echo "yq is installed, proceeding."
+else
+    echo "❌ Error: yq is not detected."
+    echo "Please run conda activate DAYCLI (or bash bin/init_daycli) to proceed."
+    exit 3  # Exit the function with an error status
+fi
+
 # Load the environment variables from .env file
 if [ -f $CONFIG_FILE ]; then
     echo "Loading configuration from $CONFIG_FILE"
@@ -93,6 +101,7 @@ if [ -f $CONFIG_FILE ]; then
     CONFIG_MAX_COUNT_8I=$(yq -r '.ephemeral_cluster.config.max_count_8I' $CONFIG_FILE)
     CONFIG_MAX_COUNT_128I=$(yq -r '.ephemeral_cluster.config.max_count_128I' $CONFIG_FILE)
     CONFIG_MAX_COUNT_192I=$(yq -r '.ephemeral_cluster.config.max_count_192I' $CONFIG_FILE)
+    CONFIG_HEADNODE_INSTANCE_TYPE=$(yq -r '.ephemeral_cluster.config.headnode_instance_type' $CONFIG_FILE)
 else
   echo "$CONFIG_FILE file not found!"
   sleep 1
@@ -112,6 +121,7 @@ echo "CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY: $CONFIG_SPOT_INSTANCE_ALLOCATION
 echo "CONFIG_MAX_COUNT_8I: $CONFIG_MAX_COUNT_8I"
 echo "CONFIG_MAX_COUNT_128I: $CONFIG_MAX_COUNT_128I"
 echo "CONFIG_MAX_COUNT_192I: $CONFIG_MAX_COUNT_192I"
+echo "CONFIG_HEADNOD_INSTANCE_TYPE: $CONFIG_HEADNODE_INSTANCE_TYPE"
 echo ""
 
 echo "If you wish to override the above values, please edit the $CONFIG_FILE file appropriately. These defaults are set for a very low quota account, so you will want to boost the CONFIG_MAX_COUNT_*I values if you have higher spot quotas."
@@ -847,6 +857,24 @@ enable_xmr=0
 #done
 echo ""
 
+
+echo "Choose the headnode instance type (tested with r7i.2xlarge & should be of the same family to be safe):"
+
+if [[ -n "$CONFIG_HEADNODE_INSTANCE_TYPE" ]]; then
+    sel_headnode_type="$CONFIG_HEADNODE_INSTANCE_TYPE"
+else
+    headnode_options="r7i.2xlarge r7i.4xlarge r7i.8xlarge r7i.16xlarge"
+    # Define select loop
+    select headnode_type in $headnode_options; do
+        sel_headnode_type=$(echo $headnode_type | awk '{print $1}')
+        echo "You selected headnode instance type: $sel_headnode_type"
+        break
+    done
+    echo "Headnode instance type: $sel_headnode_type"
+    echo ""
+fi
+
+echo ""
 echo "Choose the FSX Lustre File System Size (tested with 4800):"
 
 sel_fsx_size="4800"
@@ -1043,6 +1071,7 @@ REGSUB_DAYLILY_GIT_DEETS=$git_deets
 REGSUB_MAX_COUNT_8I=$CONFIG_MAX_COUNT_8I
 REGSUB_MAX_COUNT_128I=$CONFIG_MAX_COUNT_128I
 REGSUB_MAX_COUNT_192I=$CONFIG_MAX_COUNT_192I
+REGSUB_HEADNODE_INSTANCE_TYPE=$sel_headnode_type
 EOF
 
 echo ""

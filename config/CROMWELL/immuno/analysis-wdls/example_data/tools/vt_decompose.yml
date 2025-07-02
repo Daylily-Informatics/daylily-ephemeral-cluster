@@ -1,2 +1,0 @@
-wf.vcf: gs://griffith-lab-cromwell/cromwell-executions/wf/8309ed82-fc81-4fc4-8eb9-f3e09c4f200d/call-docmAddVariants/merged.vcf.gz
-wf.vcf_tbi: gs://griffith-lab-cromwell/cromwell-executions/wf/8309ed82-fc81-4fc4-8eb9-f3e09c4f200d/call-docmAddVariants/merged.vcf.gz.tbi

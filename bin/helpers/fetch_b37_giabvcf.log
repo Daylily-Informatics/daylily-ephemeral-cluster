@@ -1,7 +1,0 @@
-rclone copy http:giab/ftp/release/AshkenazimTrio/HG002_NA24385_son/NISTv4.2.1/GRCh37/ local:./b37/controls/giab/snv/v4.2.1/HG002
-rclone -P copy http:giab/ftp/release/AshkenazimTrio/HG003_NA24149_father/NISTv4.2.1/GRCh37/ local:./b37/controls/giab/snv/v4.2.1/HG003
-rclone -P copy http:giab/ftp/release/AshkenazimTrio/HG004_NA24143_mother/NISTv4.2.1/GRCh37/ local:./b37/controls/giab/snv/v4.2.1/HG004
-rclone -P copy http:giab/ftp/release/NA12878_HG001/NISTv4.2.1/GRCh37/ local:./b37/controls/giab/snv/v4.2.1/HG001
-rclone -P copy http:giab/ftp/release/ChineseTrio/HG005_NA24631_son/NISTv4.2.1/GRCh37/ local:./b37/controls/giab/snv/v4.2.1/HG005
-rclone -P copy http:giab/ftp/release/ChineseTrio/HG006_NA24694_father/NISTv4.2.1/GRCh37/ local:./b37/controls/giab/snv/v4.2.1/HG006
-rclone -P copy http:giab/ftp/release/ChineseTrio/HG007_NA24695_mother/NISTv4.2.1/GRCh37/ local:./b37/controls/giab/snv/v4.2.1/HG007

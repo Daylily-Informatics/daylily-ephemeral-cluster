@@ -1,2 +1,0 @@
-sample,sample_lane,SQ,RU,EX,LANE,r1_path,r2_path,biological_sex,iddna_uid,concordance_control_path,is_positive_control,is_negative_control,sample_type,merge_single,external_sample_id
-R0_EX4743_SQ0_0,R0_EX4743_SQ0_i,SQ0,R0,EX4743,0,.tiny_data/data/R0_EX4743_SQ0_0.R1.fastq.gz,.tiny_data/data/R0_EX4743_SQ0_0.R2.fastq.gz,male,na,na,na,na,na,merge,na

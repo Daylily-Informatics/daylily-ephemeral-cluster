@@ -1,2 +1,0 @@
-wf.fastq1: gs://griffith-lab-test-immuno-pipeline/input_data/mgriffit/2022-01-31/RNAseq_Tumor/RNAseq_Tumor_Lane1_R1.fastq.gz
-wf.fastq2: gs://griffith-lab-test-immuno-pipeline/input_data/mgriffit/2022-01-31/RNAseq_Tumor/RNAseq_Tumor_Lane1_R2.fastq.gz

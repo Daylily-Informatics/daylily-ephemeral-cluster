@@ -1,4 +1,0 @@
-wf.stringtie.bam: gs://griffith-lab-cromwell/cromwell-executions/rnaseq/501f5b53-a953-4095-a80d-db078f0f40f3/call-indexBam/sorted.bam
-wf.stringtie.reference_annotation: gs://griffith-lab-cromwell/input_data/maruska/2021-07-30/rna_inputs/subset_annotation.gtf
-wf.stringtie.strand: first
-wf.stringtie.sample_name: H_NJ-HCC1395-HCC1395_RNA

@@ -1,6 +1,0 @@
-channels:
-   - bioconda
-dependencies:
-  - tiddit==3.6.1
-  - curl
- 

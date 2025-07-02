@@ -1,2 +1,0 @@
-wf.intersectKnownVariants.vcf: gs://griffith-lab-cromwell/cromwell-executions/somaticExome/9621cc75-2bac-47f2-97e1-ff100c69734c/call-detectVariants/detectVariants/da0aeac0-690b-4066-84fe-15fc09b7a967/call-annotatedFilterIndex/test.vcf.gz
-wf.intersectKnownVariants.vcf_tbi: gs://griffith-lab-cromwell/cromwell-executions/somaticExome/9621cc75-2bac-47f2-97e1-ff100c69734c/call-detectVariants/detectVariants/da0aeac0-690b-4066-84fe-15fc09b7a967/call-annotatedFilterIndex/test.vcf.gz.tbi

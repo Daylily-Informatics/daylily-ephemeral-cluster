@@ -1,9 +1,0 @@
-channels:
-  - conda-forge
-  - bioconda
-  - anaconda
-  - r
-  - defaults
-dependencies:
-  - parallel
-  - gatk4=4.6.2.0

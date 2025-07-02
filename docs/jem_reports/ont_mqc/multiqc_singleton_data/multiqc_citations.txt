@@ -1,5 +1,0 @@
-10.1093/bioinformatics/btw354                      # MultiQC
-10.1016/j.ajhg.2017.01.017                         # peddy
-10.1093/bioinformatics/btx699                      # mosdepth
-10.1093/gigascience/giab008                        # bcftools
-

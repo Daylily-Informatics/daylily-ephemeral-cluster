@@ -1,9 +1,0 @@
-wf.reference: gs://griffith-lab-cromwell/input_data/maruska/2021-06-17/somatic_inputs/hla_and_brca_genes.fa
-wf.reference_fai: gs://griffith-lab-cromwell/input_data/maruska/2021-06-17/somatic_inputs/hla_and_brca_genes.fa.fai
-wf.reference_dict: gs://griffith-lab-cromwell/input_data/maruska/2021-06-17/somatic_inputs/hla_and_brca_genes.dict
-
-wf.vcf: gs://griffith-lab-cromwell/cromwell-executions/varscanPreAndPostProcessing/edc0e787-49aa-4fcf-8344-3636fbe64ec2/call-mergeScatteredSomaticIndels/somatic_indels.vcf.gz
-wf.vcf_tbi: gs://griffith-lab-cromwell/cromwell-executions/varscanPreAndPostProcessing/edc0e787-49aa-4fcf-8344-3636fbe64ec2/call-mergeScatteredSomaticIndels/somatic_indels.vcf.gz.tbi
-
-wf.filtered_vcf: gs://griffith-lab-cromwell/cromwell-executions/varscanPreAndPostProcessing/edc0e787-49aa-4fcf-8344-3636fbe64ec2/call-mergeScatteredSomaticHcIndels/somatic_hc_indels.vcf.gz
-wf.filtered_vcf_tbi: gs://griffith-lab-cromwell/cromwell-executions/varscanPreAndPostProcessing/edc0e787-49aa-4fcf-8344-3636fbe64ec2/call-mergeScatteredSomaticHcIndels/somatic_hc_indels.vcf.gz.tbi

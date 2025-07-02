@@ -1,2 +1,0 @@
-wf.vcf: gs://griffith-lab-cromwell/cromwell-executions/pindel/3fe3687c-03ae-4c23-86b2-827af247fda0/call-index/test.vcf.gz
-wf.vcf_tbi: gs://griffith-lab-cromwell/cromwell-executions/pindel/3fe3687c-03ae-4c23-86b2-827af247fda0/call-index/test.vcf.gz

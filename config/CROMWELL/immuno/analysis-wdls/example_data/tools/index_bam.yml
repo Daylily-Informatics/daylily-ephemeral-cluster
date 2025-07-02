@@ -1,1 +1,0 @@
-wf.bam: gs://griffith-lab-cromwell/cromwell-executions/somaticExome/45c6f242-b2fc-449a-9a49-adfad7fdcfd0/call-normalAlignmentAndQc/alignmentExome/ff186729-426e-44fa-b5ce-b262f4e88ded/call-alignment/sequenceToBqsr/7f30bc1e-7469-4909-bcd4-20875b034a88/call-applyBqsr/normal.bam.bam
