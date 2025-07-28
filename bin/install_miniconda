@@ -72,6 +72,7 @@ if [[ -x ~/miniconda3/bin/conda ]]; then
     echo "Initializing Conda..."
     ~/miniconda3/bin/conda init bash
     ~/miniconda3/bin/conda init zsh
+    ~/miniconda3/bin/conda config --set accept_channel_terms true
 
     # Define file paths
     BASHRC="$HOME/.bashrc"

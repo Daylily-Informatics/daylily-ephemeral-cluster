@@ -110,7 +110,7 @@ ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no 
 # Clone the Daylily repository to the head node
 echo "Cloning Daylily repository using https to the head node ~/projects"
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \
-    "mkdir -p ~/projects && cd ~/projects &&  git clone -b ${git_ephemeral_cluster_repo_tag} ${git_ephemeral_cluster_repo_ssh} daylily-omics-analysis"
+    "mkdir -p ~/projects && cd ~/projects &&  git clone -b ${git_analysis_repo_tag} ${git_analysis_repo} daylily-omics-analysis"
 
 # Initialize and configure the Daylily environment on the head node
 echo "Configuring Daylily environment on the head node..."
