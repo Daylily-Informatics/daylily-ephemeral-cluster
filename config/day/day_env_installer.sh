@@ -61,6 +61,9 @@ install_miniconda() {
     source "$HOME/.bashrc"
     conda activate
 
+    conda install -y conda=25.5.1
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main
+    conda tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r
     echo "Conda installation complete."
     
     echo "Adding repo tag pinning stuff"
