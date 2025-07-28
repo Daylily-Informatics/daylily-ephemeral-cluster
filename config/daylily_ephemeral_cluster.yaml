@@ -7,7 +7,7 @@ ephemeral_cluster:
     budget_amount: 200 # or other int
     enforce_budget: skip # or enforce
     auto_delete_fsx: Delete # or Retain
-    fsx_fs_size: 4800 # 4800 or 7200 or other valid FSX fs sizes
+    fsx_fs_size: 7200 # 4800 or 7200 or other valid FSX fs sizes
     enable_detailed_monitoring: false # or true
     cluster_template_yaml: config/day_cluster/prod_cluster.yaml
     spot_instance_allocation_strategy: price-capacity-optimized #price-capacity-optimized # lowest-price, price-capacity-optimized,capacity-optimized - lowest price can be very interrrupt'y

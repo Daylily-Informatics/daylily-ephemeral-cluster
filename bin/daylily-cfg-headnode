@@ -15,6 +15,8 @@ git_tag=$(yq -r '.daylily.git_tag' "$CONFIG_FILE")
 git_repo=$(yq -r '.daylily.git_repo' "$CONFIG_FILE")
 git_analysis_repo_tag=$(yq -r '.daylily.git_analysis_repo_tag' "$CONFIG_FILE")
 git_analysis_repo=$(yq -r '.daylily.git_analysis_repo' "$CONFIG_FILE")
+git_ephemeral_cluster_repo_tag=$(yq -r '.daylily.git_ephemeral_cluster_repo_tag' "$CONFIG_FILE")
+git_ephemeral_cluster_repo=$(yq -r '.daylily.git_ephemeral_cluster_repo' "$CONFIG_FILE")
 daylily_image_cmd=$(yq -r '.daylily.daylily_image_cmd' "$CONFIG_FILE")
 
 # Ensure both PEM file and region are provided
@@ -108,7 +110,7 @@ ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no 
 # Clone the Daylily repository to the head node
 echo "Cloning Daylily repository using https to the head node ~/projects"
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \
-    "mkdir -p ~/projects && cd ~/projects &&  git clone -b ${git_analysis_repo_tag} ${git_analysis_repo_ssh} daylily-omics-analysis"
+    "mkdir -p ~/projects && cd ~/projects &&  git clone -b ${git_ephemeral_cluster_repo_tag} ${git_ephemeral_cluster_repo_ssh} daylily-omics-analysis"
 
 # Initialize and configure the Daylily environment on the head node
 echo "Configuring Daylily environment on the head node..."
