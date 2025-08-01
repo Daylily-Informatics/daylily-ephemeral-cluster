@@ -12,6 +12,6 @@ daylily:
   analysis_root: /fsx/analysis_results/
   daylily_image_cmd: "singularity pull --name /fsx/resources/environments/containers/daylily:0.7.196.simg docker://daylilyinformatics/daylily:0.7.196"
   daylily_image_path: /fsx/resources/environments/containers/daylily:0.7.196.simg
-  sentieon_lic_path: /fsx/data/cached_envs/RCRF_Corporation_eval.lic
+  sentieon_lic_path: /fsx/data/cached_envs/Rare_Cancer_Research_Foundation_eval.lic
   sentieon_tmpdir: /dev/shm/
   sentieon_install_dir: /fsx/data/cached_envs/sentieon-genomics-202503.01.rc1/
