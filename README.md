@@ -296,7 +296,7 @@ _from `daylily` root dir_
 
 ```bash
 
-./bin/init_daycli 
+./bin/init_dayec
 
 conda activate DAY-EC
 
