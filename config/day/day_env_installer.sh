@@ -2,33 +2,33 @@
 
 ################################################################################
 # Script Name: day_env_installer.sh
-# Description: Sets up Miniconda and installs the DAY conda environment.
-# Usage:       source ./day_env_installer.sh DAY
-#              Provide 'DAY' as the argument to start the installation.
-#              If the 'DAY' environment already exists, the script will prompt accordingly.
+# Description: Sets up Miniconda and installs the DAYOA conda environment.
+# Usage:       source ./day_env_installer.sh DAYOA
+#              Provide 'DAYOA' as the argument to start the installation.
+#              If the 'DAYOA' environment already exists, the script will prompt accordingly.
 ################################################################################
 
 
 # Function to display usage information
 usage() {
-    echo "Usage: source $0 DAY"
-    echo "This script installs Miniconda and sets up the DAY conda environment."
-    echo "Provide 'DAY' as the argument to start the installation."
+    echo "Usage: source $0 DAYOA"
+    echo "This script installs Miniconda and sets up the DAYOA conda environment."
+    echo "Provide 'DAYOA' as the argument to start the installation."
     return 2
 }
 
 # Check if the correct argument is provided
-DY_ENVNAME="DAY"
+DY_ENVNAME="DAYOA"
 if [[ "$1" != "$DY_ENVNAME" ]]; then
     echo "Hello! This is the __ $DY_ENVNAME __ installation script."
     echo ""
-    echo "The DAY environment installs the software needed to trigger Snakemake and run the Day (dy-) CLI."
-    echo "To run and start the install, provide 'DAY' as the argument."
+    echo "The DAYOA environment installs the software needed to trigger Snakemake and run the Day (dy-) CLI."
+    echo "To run and start the install, provide 'DAYOA' as the argument."
     echo ""
-    echo "Usage: $0 DAY"
+    echo "Usage: $0 DAYOA"
     echo ""
-    echo "If you have an existing DAY install, you may need to remove it first:"
-    echo "  conda env remove -n DAY"
+    echo "If you have an existing DAYOA install, you may need to remove it first:"
+    echo "  conda env remove -n DAYOA"
     echo ""
     usage
 fi
@@ -102,28 +102,28 @@ conda config --set execute_threads 4 || echo 'Failed to set execute_threads'
 conda config --set always_yes yes || echo 'Failed to set always_yes'
 conda config --set default_threads 10 || echo 'Failed to set default_threads'
 
-# Check if the DAY environment already exists
+# Check if the DAYOA environment already exists
 if conda env list | grep -q "^$DY_ENVNAME\s"; then
     echo ""
-    echo "It appears you have a DAY environment already."
-    echo "You may need to manually remove the conda env dir for DAY and try again."
+    echo "It appears you have a DAYOA environment already."
+    echo "You may need to manually remove the conda env dir for DAYOA and try again."
     echo "To remove the environment, run:"
-    echo "  conda env remove -n DAY"
+    echo "  conda env remove -n DAYOA"
     return 0
 else
     conda install -y -n base -c conda-forge yq || echo 'Failed to install yq'
     cp bin/day-clone ~/miniconda3/condabin/day-clone || echo 'Failed to copy day-clone script to ~/minconda3/condabin'
-    echo "Installing DAY environment..."
-    # Create the DAY environment
+    echo "Installing DAYOA environment..."
+    # Create the DAYOA environment
     if conda env create -n "$DY_ENVNAME" -f "$SCRIPT_DIR/day.yaml"; then
-        echo "DAY environment created successfully."
+        echo "DAYOA environment created successfully."
         echo ""
         echo "Try the following commands to get started:"
         echo "  source dyinit --project <PROJECT>"
         echo "  dy-a local"
         echo "  dy-r help"
     else
-        echo "Failed to create DAY environment."
+        echo "Failed to create DAYOA environment."
         return 1
     fi
 fi

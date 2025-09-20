@@ -291,16 +291,16 @@ Install with:
 ```
 - open a new terminal/shell, and conda should be available: `conda -v`.
 
-### Install DAYCLI Environment
+### Install DAY-EC Environment
 _from `daylily` root dir_
 
 ```bash
 
 ./bin/init_daycli 
 
-conda activate DAYCLI
+conda activate DAY-EC
 
-# DAYCLI should now be active... did it work?
+# DAY-EC should now be active... did it work?
 colr  'did it work?' 0,100,255 255,100,0
 
 ```
@@ -337,7 +337,7 @@ _from your local machine, in the daylily git repo root_
 _running in a tmux/screen session is advised as the copy may take 1-many hours_
 
 ```bash
-conda activate DAYCLI
+conda activate DAY-EC
 # help
 ./bin/create_daylily_omics_analysis_s3.sh -h
 
@@ -367,7 +367,7 @@ _this command will take ~5min to complete, and much longer if you expand to all 
 
 ```bash
 
-conda activate DAYCLI
+conda activate DAY-EC
 export AWS_PROFILE=daylily-service
 REGION=us-west-2          
 OUT_TSV=./init_daylily_cluster.tsv
@@ -706,12 +706,12 @@ Go to the `IAM Dashboard`, and under roles, search for the role `ParallelCluster
 ## PCUI
 Visit your url created when you built a PCUI
 
-## DAYCLI & AWS Parallel Cluster CLI (pcluster)
+## DAY-EC & AWS Parallel Cluster CLI (pcluster)
 
-### Activate The DAYCLI Conda Environment
+### Activate The DAY-EC Conda Environment
 
 ```bash
-conda activate DAYCLI
+conda activate DAY-EC
 ```
 
 ### `pcluster` CLI Usage
@@ -837,7 +837,7 @@ If there is no `~/projects/daylily` directory, or the `dyinit` command is not fo
 From your remote terminal that you created the cluster with, run the following commands to complete the headnode configuration.
 
 ```bash
-conda activate DAYCLI
+conda activate DAY-EC
 
 ./bin/daylily-cfg-headnode $PATH_TO_PEM $CLUSTER_AWS_REGION $AWS_PROFILE
 ```

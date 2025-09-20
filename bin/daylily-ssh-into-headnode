@@ -28,11 +28,11 @@ if [ -n "$ZSH_VERSION" ]; then
 fi
 
 # Activate or create the Daylily CLI conda environment
-if conda env list | grep  "DAYCLI"; then
-    echo "Conda environment 'DAYCLI' already exists."
-    conda activate DAYCLI
+if conda env list | grep  "DAY-EC"; then
+    echo "Conda environment 'DAY-EC' already exists."
+    conda activate DAY-EC
 else
-    echo "'DAYCLI' environment not found. Attempting to create..."
+    echo "'DAY-EC' environment not found. Attempting to create..."
     source bin/init_daylily.sh
 
 fi

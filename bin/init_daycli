@@ -21,19 +21,19 @@ if ! command -v conda &> /dev/null; then
 fi
 
 # Activate or create the Daylily CLI conda environment
-if conda env list | grep -q "^DAYCLI "; then
-    echo "Conda environment 'DAYCLI' already exists!"
+if conda env list | grep -q "^DAY-EC "; then
+    echo "Conda environment 'DAY-EC' already exists!"
     echo "Activate with: "
-    echo "    conda activate DAYCLI"
+    echo "    conda activate DAY-EC"
     exit 3
 else
-    echo "Creating 'DAYCLI' environment."
-    conda env create -y -n DAYCLI -f config/day/daycli.yaml
+    echo "Creating 'DAY-EC' environment."
+    conda env create -y -n DAY-EC -f config/day/daycli.yaml
     if [ $? -ne 0 ]; then
-        echo "Error: Failed to create 'DAYCLI' environment."
+        echo "Error: Failed to create 'DAY-EC' environment."
         exit 1
     fi
 fi
 
 echo "Daylily CLI environment is ready!  Activate with: "
-echo "    conda activate DAYCLI"
+echo "    conda activate DAY-EC"

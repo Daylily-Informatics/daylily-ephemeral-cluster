@@ -6,10 +6,10 @@ unset cluster_name
 
 # Source Conda's base environment setup
 source $(conda info --base)/etc/profile.d/conda.sh
-conda activate DAYCLI
+conda activate DAY-EC
 
 if [ $? -ne 0 ]; then
-    echo "Error: Conda environment 'DAYCLI' not found. Please create it before running this script."
+    echo "Error: Conda environment 'DAY-EC' not found. Please create it before running this script."
     exit 1
 fi
 

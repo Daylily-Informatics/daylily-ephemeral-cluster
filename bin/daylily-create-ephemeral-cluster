@@ -81,7 +81,7 @@ if  yq --version &> /dev/null; then
     echo "yq is installed, proceeding."
 else
     echo "❌ Error: yq is not detected."
-    echo "Please run conda activate DAYCLI (or bash bin/init_daycli) to proceed."
+    echo "Please run conda activate DAY-EC (or bash bin/init_daycli) to proceed."
     exit 3  # Exit the function with an error status
 fi
 
@@ -218,14 +218,14 @@ fi
 echo "Conda version $current_version meets the requirement of $required_version or higher."
 
 
-# Check if the Conda environment DAYCLI is active
-if [[ "$CONDA_DEFAULT_ENV" == "DAYCLI" ]]; then
-    echo "The Conda environment DAYCLI is active, proceeding."
+# Check if the Conda environment DAY-EC is active
+if [[ "$CONDA_DEFAULT_ENV" == "DAY-EC" ]]; then
+    echo "The Conda environment DAY-EC is active, proceeding."
 else
-    echo "The Conda environment DAYCLI is not active or missing."
+    echo "The Conda environment DAY-EC is not active or missing."
     echo ""
-    echo "Please activate the DAYCLI environment by running:"
-    echo "    conda activate DAYCLI"
+    echo "Please activate the DAY-EC environment by running:"
+    echo "    conda activate DAY-EC"
     echo ""
     echo "If the environment does not exist, create it by running:"
     echo "    ./bin/init_daycli"
@@ -234,17 +234,17 @@ fi
 
 
 # Activate or create the Daylily CLI conda environment
-if conda env list | grep -q "^DAYCLI "; then
-    echo "Conda environment 'DAYCLI' already exists. Activating it."
+if conda env list | grep -q "^DAY-EC "; then
+    echo "Conda environment 'DAY-EC' already exists. Activating it."
 else
-    echo "Creating 'DAYCLI' environment."
+    echo "Creating 'DAY-EC' environment."
     source bin/init_daycli
     if [[ $? -ne 0 ]]; then
-        echo "❌ Error: Failed to create the 'DAYCLI' environment. Exiting."
+        echo "❌ Error: Failed to create the 'DAY-EC' environment. Exiting."
         exit 3
     fi
 fi
-conda activate DAYCLI
+conda activate DAY-EC
 
 AWS_CLI_USER=$(aws sts get-caller-identity --region $region --profile $AWS_PROFILE --query "Arn" --output text | awk -F '/' '{print $2}')
 
