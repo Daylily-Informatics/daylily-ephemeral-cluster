@@ -81,7 +81,7 @@ if  yq --version &> /dev/null; then
     echo "yq is installed, proceeding."
 else
     echo "❌ Error: yq is not detected."
-    echo "Please run conda activate DAY-EC (or bash bin/init_daycli) to proceed."
+    echo "Please run conda activate DAY-EC (or bash bin/init_dayec) to proceed."
     exit 3  # Exit the function with an error status
 fi
 
@@ -228,7 +228,7 @@ else
     echo "    conda activate DAY-EC"
     echo ""
     echo "If the environment does not exist, create it by running:"
-    echo "    ./bin/init_daycli"
+    echo "    ./bin/init_dayec"
     exit 3
 fi
 
@@ -238,7 +238,7 @@ if conda env list | grep -q "^DAY-EC "; then
     echo "Conda environment 'DAY-EC' already exists. Activating it."
 else
     echo "Creating 'DAY-EC' environment."
-    source bin/init_daycli
+    source bin/init_dayec
     if [[ $? -ne 0 ]]; then
         echo "❌ Error: Failed to create the 'DAY-EC' environment. Exiting."
         exit 3
