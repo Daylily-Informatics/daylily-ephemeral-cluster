@@ -3,11 +3,11 @@
 import os
 import sys
 
-if os.environ.get("CONDA_DEFAULT_ENV") != "DAYCLI":
-    sys.stderr.write("Error: The DAYCLI conda environment is not active. run: \n\tconda activate DAYCLI\n")
+if os.environ.get("CONDA_DEFAULT_ENV") != "DAY-EC":
+    sys.stderr.write("Error: The DAY-EC conda environment is not active. run: \n\tconda activate DAY-EC\n")
     sys.exit(1)
 else:
-    print("DAYCLI conda environment is active, continuing...",file=sys.stderr)
+    print("DAY-EC conda environment is active, continuing...", file=sys.stderr)
 
 import yaml
 import subprocess

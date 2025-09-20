@@ -6,7 +6,7 @@
 ## Making libs available
 
 ```bash
-conda activate DAYCLI
+conda activate DAY-EC
 cd ~/projects/daylily
 pip install -e .
 ```
