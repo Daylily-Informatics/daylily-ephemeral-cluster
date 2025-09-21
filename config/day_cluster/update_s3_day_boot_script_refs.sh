@@ -3,7 +3,7 @@
 bucket=$1
 # Define the source and destination paths
 REF_PATH="daylily2:daylily-references-public/cluster_boot_config/"
-ACTIVE_PATH="daylily-service-lsmc:lsmc-dayoa-omics-analysis-eu-central-1/cluster_boot_config/"
+ACTIVE_PATH="daylily-service-lsmc:lsmc-dayoa-omics-analysis-us-west-2/cluster_boot_config/"
 
 # List of files to copy
 FILES=(
