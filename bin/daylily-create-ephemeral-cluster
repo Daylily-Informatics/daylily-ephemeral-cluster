@@ -280,6 +280,111 @@ PY
     FINAL_CONFIG_SNAPSHOT="$snapshot_file"
 }
 
+write_cli_config_copy() {
+    local snapshot_dir="$HOME/.config/daylily"
+    mkdir -p "$snapshot_dir"
+
+    local cluster_name="${FINAL_CONFIG_VALUES["cluster_name"]}"
+    if [[ -z "$cluster_name" || "$cluster_name" == "PROMPTUSER" ]]; then
+        cluster_name="${ORIGINAL_CONFIG_VALUES["cluster_name"]}"
+    fi
+
+    if [[ -z "$cluster_name" || "$cluster_name" == "PROMPTUSER" ]]; then
+        echo "⚠️ Unable to determine cluster name for CLI config export; skipping."
+        return
+    fi
+
+    local timestamp
+    timestamp=$(date '+%Y%m%d%H%M%S')
+    local resolved_file="$snapshot_dir/${cluster_name}_cli_cfg_${timestamp}.yaml"
+
+    local values_tmp json_tmp
+    values_tmp=$(mktemp)
+    json_tmp=$(mktemp)
+
+    for key in "${CONFIG_KEYS[@]}"; do
+        local value="${FINAL_CONFIG_VALUES[$key]}"
+        if [[ -z "${value+x}" ]]; then
+            value=""
+        fi
+        printf '%s\t%s\n' "$key" "$value" >>"$values_tmp"
+    done
+
+    if ! yq -o=json '.' "$CONFIG_FILE" >"$json_tmp"; then
+        echo "⚠️ Unable to serialize configuration file '$CONFIG_FILE'; skipping CLI config export."
+        rm -f "$values_tmp" "$json_tmp"
+        return
+    fi
+
+    if ! python <<'PY' "$json_tmp" "$values_tmp"; then
+import json
+import sys
+
+json_path, values_path = sys.argv[1:3]
+
+def ensure_config_path(payload):
+    node = payload.setdefault('ephemeral_cluster', {})
+    if not isinstance(node, dict):
+        node = {}
+        payload['ephemeral_cluster'] = node
+    config = node.setdefault('config', {})
+    if not isinstance(config, dict):
+        config = {}
+        node['config'] = config
+    return config
+
+def convert_value(raw):
+    if raw == '':
+        return ''
+    lowered = raw.lower()
+    if lowered == 'true':
+        return True
+    if lowered == 'false':
+        return False
+    if raw.isdigit():
+        try:
+            return int(raw)
+        except ValueError:
+            return raw
+    return raw
+
+with open(json_path, 'r', encoding='utf-8') as handle:
+    data = json.load(handle)
+
+if not isinstance(data, dict):
+    data = {}
+
+config_section = ensure_config_path(data)
+
+with open(values_path, 'r', encoding='utf-8') as handle:
+    for line in handle:
+        line = line.rstrip('\n')
+        if not line:
+            continue
+        key, value = line.split('\t', 1)
+        if value == 'PROMPTUSER':
+            continue
+        config_section[key] = convert_value(value)
+
+with open(json_path, 'w', encoding='utf-8') as handle:
+    json.dump(data, handle)
+PY
+        echo "⚠️ Unable to update CLI configuration JSON payload; skipping CLI config export."
+        rm -f "$values_tmp" "$json_tmp"
+        return
+    fi
+
+    if ! yq -P '.' "$json_tmp" >"$resolved_file"; then
+        echo "⚠️ Unable to render CLI configuration YAML; skipping CLI config export."
+        rm -f "$values_tmp" "$json_tmp"
+        return
+    fi
+
+    rm -f "$values_tmp" "$json_tmp"
+    echo "✅ Wrote reusable CLI configuration to: $resolved_file"
+    RESOLVED_CLI_CONFIG="$resolved_file"
+}
+
 
 resolve_aws_profile() {
     local provided_profile="$1"
@@ -1792,6 +1897,11 @@ fi
 save_final_config_snapshot
 if [[ -n "$FINAL_CONFIG_SNAPSHOT" ]]; then
     echo "📄 Final configuration snapshot written to: $FINAL_CONFIG_SNAPSHOT"
+fi
+
+write_cli_config_copy
+if [[ -n "$RESOLVED_CLI_CONFIG" ]]; then
+    echo "📁 CLI configuration export saved to: $RESOLVED_CLI_CONFIG"
 fi
 
 echo "✅ ✅ ✅ ....fin! "
