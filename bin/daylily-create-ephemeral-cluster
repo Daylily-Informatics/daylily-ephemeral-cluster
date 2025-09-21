@@ -9,11 +9,46 @@ pass_on_warn=0  # Default for warnings causing failures
 
 # Function to display help
 usage() {
-    echo "Usage: $0 --profile AWS_PROFILE [--region-az REGION-AZ] [--pass-on-warn]"
+    echo "Usage: $0 [--profile AWS_PROFILE] [--region-az REGION-AZ] [--pass-on-warn]"
     echo "       --region-az REGION-AZ   Specify the AWS region and availability zone (ie: us-west-2b)"
     echo "       --pass-on-warn          Allow warnings to pass without failure (default: false)"
-    echo "       --profile  aws profile to use"
+    echo "       --profile  AWS profile to use (defaults to AWS_PROFILE environment variable)"
     echo " .     --config <path>       Path to the daylily-create-ephemeral-cluster config, default: ./.dayephmeral.env)"
+}
+
+
+resolve_aws_profile() {
+    local provided_profile="$1"
+    local final_profile=""
+
+    if [[ -n "$provided_profile" ]]; then
+        final_profile="$provided_profile"
+    elif [[ -n "${AWS_PROFILE:-}" ]]; then
+        final_profile="$AWS_PROFILE"
+    else
+        echo "❌ Error: AWS_PROFILE is not set. Please export AWS_PROFILE or use --profile." >&2
+        exit 3
+    fi
+
+    local available_profiles
+    if ! available_profiles=$(aws configure list-profiles 2>/dev/null); then
+        echo "❌ Error: Unable to list AWS profiles. Ensure the AWS CLI is installed and configured." >&2
+        exit 3
+    fi
+
+    if ! grep -Fxq "$final_profile" <<<"$available_profiles"; then
+        echo "❌ Error: AWS profile '$final_profile' not found. Please set AWS_PROFILE to a valid profile." >&2
+        exit 3
+    fi
+
+    export AWS_PROFILE="$final_profile"
+
+    if [[ "$AWS_PROFILE" == "default" ]]; then
+        echo "⚠️ WARNING: AWS_PROFILE is set to 'default'. Sleeping for 1 second..."
+        sleep 1
+    else
+        echo "ℹ️ Using AWS profile: $AWS_PROFILE"
+    fi
 }
 
 
@@ -23,14 +58,10 @@ if [[ $# -eq 0 ]]; then
     exit 0
 fi
 
-if [ -z "$AWS_PROFILE" ]; then
-    echo "❌ Error: AWS_PROFILE is not set."
-    exit 1  # Exit the function with an error status
-fi
-
 CONFIG_FILE="config/daylily_ephemeral_cluster.yaml"
 
 # Parse command-line arguments
+profile_arg=""
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --region-az)
@@ -47,7 +78,7 @@ while [[ $# -gt 0 ]]; do
             exit 0
             ;;
         --profile)
-            AWS_PROFILEIN="$2"
+            profile_arg="$2"
             shift 2
             ;;
         --config)
@@ -62,15 +93,7 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
-if [[ -z "$AWS_PROFILE" ]]; then
-    echo "❌ Error: --profile flag not set"
-    exit 3  # Exit the function with an error status
-fi
-
-if [[ "$AWS_PROFILE" != "$AWS_PROFILEIN" ]]; then
-    echo "❌ Error: AWS_PROFILE and --profile must match: $AWS_PROFILE and $AWS_PROFILEIN"
-    exit 3  # Exit the function with an error status
-fi
+resolve_aws_profile "$profile_arg"
 
 if [[ -z "$region_az" ]]; then
     echo "❌ Error: --region-az flag not set"
@@ -160,12 +183,6 @@ else
     exit 3  # Exit the function with an error status
 fi
 
-if [[ "$AWS_PROFILEIN" != "$AWS_PROFILE" ]]; then
-    echo "❌ Error: AWS_PROFILE and --profile must match: $AWS_PROFILE and $AWS_PROFILEIN"
-    exit 3  # Exit the function with an error status
-fi
-
-AWS_PROFILE=$AWS_PROFILE
 echo "YOUR AWS_PROFILE IS NOW SET TO: $AWS_PROFILE"
 
 # Function to handle warnings

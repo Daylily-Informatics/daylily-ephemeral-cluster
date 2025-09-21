@@ -5,7 +5,9 @@ from __future__ import annotations
 import argparse
 import io
 import json
+import os
 import re
+import subprocess
 import sys
 import textwrap
 import time
@@ -42,8 +44,56 @@ def parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
         required=True,
         help="EventBridge Scheduler expression (e.g. rate(60 minutes) or cron(...))",
     )
-    parser.add_argument("--profile", help="AWS profile to use for the boto3 session")
+    parser.add_argument(
+        "--profile",
+        help="AWS profile to use for the boto3 session (defaults to AWS_PROFILE environment variable).",
+    )
     return parser.parse_args(argv)
+
+
+def resolve_aws_profile(profile_argument: Optional[str]) -> str:
+    """Validate and return the AWS profile to use."""
+
+    profile = profile_argument or os.environ.get("AWS_PROFILE")
+    if not profile:
+        print(
+            "Error: AWS_PROFILE is not set. Please export AWS_PROFILE or supply --profile.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    try:
+        result = subprocess.run(
+            ["aws", "configure", "list-profiles"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        print("Error: AWS CLI is not installed or not found in PATH.", file=sys.stderr)
+        sys.exit(1)
+    except subprocess.CalledProcessError as exc:
+        message = exc.stderr.strip() or exc.stdout.strip() or str(exc)
+        print(f"Error listing AWS profiles: {message}", file=sys.stderr)
+        sys.exit(1)
+
+    available_profiles = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    if profile not in available_profiles:
+        print(
+            f"Error: AWS profile '{profile}' not found. Please set AWS_PROFILE to a valid profile.",
+            file=sys.stderr,
+        )
+        sys.exit(1)
+
+    os.environ["AWS_PROFILE"] = profile
+
+    if profile == "default":
+        print("WARNING: AWS_PROFILE is set to 'default'. Sleeping for 1 second...")
+        time.sleep(1)
+    else:
+        print(f"Using AWS profile: {profile}")
+
+    return profile
 
 
 def sanitize(value: str, *, max_length: int) -> str:
@@ -366,9 +416,9 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
 
     names = derive_names(args.cluster_name)
 
-    session = boto3.Session(profile_name=args.profile, region_name=args.region) if args.profile else boto3.Session(
-        region_name=args.region
-    )
+    profile = resolve_aws_profile(args.profile)
+
+    session = boto3.Session(profile_name=profile, region_name=args.region)
     sns_client = session.client("sns")
     iam_client = session.client("iam")
     lambda_client = session.client("lambda")

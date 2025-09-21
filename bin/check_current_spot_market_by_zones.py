@@ -9,10 +9,11 @@ if os.environ.get("CONDA_DEFAULT_ENV") != "DAY-EC":
 else:
     print("DAY-EC conda environment is active, continuing...", file=sys.stderr)
 
-import yaml
-import subprocess
-import statistics
 import argparse
+import statistics
+import subprocess
+import time
+import yaml
 from math import isnan, fsum
 from tabulate import tabulate
 from colr import color
@@ -117,9 +118,8 @@ def parse_arguments():
     )
     
     parser.add_argument(
-        "--profile", 
-        required=True,
-        help="AWS CLI profile, *you must set* AWS_PROFILE=profile and specify that same profile string here (required)."
+        "--profile",
+        help="AWS CLI profile to use (defaults to AWS_PROFILE environment variable)."
     )
     
     parser.add_argument(
@@ -253,6 +253,45 @@ def parse_arguments():
     )
     
     return parser.parse_args()
+
+
+def resolve_aws_profile(profile_argument):
+    """Determine which AWS profile to use and ensure it is valid."""
+
+    profile = profile_argument or os.environ.get('AWS_PROFILE')
+    if not profile:
+        print("Error: AWS_PROFILE is not set. Please export AWS_PROFILE or supply --profile.", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        result = subprocess.run(
+            ["aws", "configure", "list-profiles"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        print("Error: AWS CLI is not installed or not found in PATH.", file=sys.stderr)
+        sys.exit(1)
+    except subprocess.CalledProcessError as exc:
+        message = exc.stderr.strip() or exc.stdout.strip() or str(exc)
+        print(f"Error listing AWS profiles: {message}", file=sys.stderr)
+        sys.exit(1)
+
+    available_profiles = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    if profile not in available_profiles:
+        print(f"Error: AWS profile '{profile}' not found. Please set AWS_PROFILE to a valid profile.", file=sys.stderr)
+        sys.exit(1)
+
+    os.environ['AWS_PROFILE'] = profile
+
+    if profile == 'default':
+        print("WARNING: AWS_PROFILE is set to 'default'. Sleeping for 1 second...")
+        time.sleep(1)
+    else:
+        print(f"Using AWS profile: {profile}")
+
+    return profile
 
 def calculate_vcpu_mins(args):
     """Calculate total vCPU-minutes based on coverage."""
@@ -471,23 +510,10 @@ def main():
         print(e)
         return
 
-    if args.profile == "SETME":
-        print(f"\n\nERROR:: Your AWS_PROFILE is set to >{os.getenv('AWS_PROFILE')}<, Please set your AWS_PROFILE environment variable and specify the same string with --profile.\n")
-        raise SystemExit
-    if os.environ.get('AWS_PROFILE','') == '':
-        os.environ['AWS_PROFILE'] = args.profile
-    elif args.profile != os.environ['AWS_PROFILE']:
-        print(f"\n\nERROR:: Your AWS_PROFILE is set to >{os.getenv('AWS_PROFILE')}<, Please set your AWS_PROFILE environment variable and specify the same string with --profile.\n")
-        raise SystemExit
-    elif args.profile == os.environ['AWS_PROFILE']:
-        print(f"\n\nAWS_PROFILE is set to >{os.getenv('AWS_PROFILE')}< and profile passed is >{args.profile}<, all good.\n")
-    else:
-        print(f"\n\nAWS_PROFILE is set to >{os.getenv('AWS_PROFILE')}< and profile passed is >{args.profile}<, there is a problem.\n")
-        raise SystemExit
+    profile = resolve_aws_profile(args.profile)
 
-    
     zones = args.zones.split(',')
-    spot_data = collect_spot_prices(instance_types, zones, args.profile)
+    spot_data = collect_spot_prices(instance_types, zones, profile)
     vcpu_mins = calculate_vcpu_mins(args)
 
     # Calculate statistics for each zone
