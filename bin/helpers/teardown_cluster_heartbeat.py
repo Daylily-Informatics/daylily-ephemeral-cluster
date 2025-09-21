@@ -9,14 +9,17 @@ from typing import Iterable, Optional
 import boto3
 from botocore.exceptions import ClientError
 
-from setup_cluster_heartbeat import derive_names  # type: ignore
+from setup_cluster_heartbeat import derive_names, resolve_aws_profile  # type: ignore
 
 
 def parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cluster-name", required=True)
     parser.add_argument("--region", required=True)
-    parser.add_argument("--profile")
+    parser.add_argument(
+        "--profile",
+        help="AWS profile to use (defaults to AWS_PROFILE environment variable).",
+    )
     return parser.parse_args(argv)
 
 
@@ -58,9 +61,9 @@ def main(argv: Optional[Iterable[str]] = None) -> int:
 
     names = derive_names(args.cluster_name)
 
-    session = boto3.Session(profile_name=args.profile, region_name=args.region) if args.profile else boto3.Session(
-        region_name=args.region
-    )
+    profile = resolve_aws_profile(args.profile)
+
+    session = boto3.Session(profile_name=profile, region_name=args.region)
     scheduler_client = session.client("scheduler")
     lambda_client = session.client("lambda")
     sns_client = session.client("sns")

@@ -15,7 +15,6 @@ disable_dryrun=false # Default to true
 exclude_hg38_refs=false
 exclude_b37_refs=false
 exclude_giab_reads=false
-profile="setme"
 LOGFILE=""
 
 # Usage function
@@ -31,13 +30,48 @@ usage() {
     echo "  --exclude-hg38-refs                  Skip copying hg38 references and annotations ( default: false )"
     echo "  --exclude-b37-refs                   Skip copying b37 references and annotations ( default: false )"
     echo "  --exclude-giab-reads                 Skip copying GIAB reads ( default: false )"
-    echo "  --profile                             AWS profile to use, must match AWS_PROFILE ( required )"
+    echo "  --profile                             AWS profile to use (defaults to AWS_PROFILE environment variable)"
     echo "  --log-file                            Log file to write to ( default: ./create_daylily_s3_REGION.log )"
     echo "  --help                               Show this help message"
     exit 1
 }
 
+resolve_aws_profile() {
+    local provided_profile="$1"
+    local final_profile=""
+
+    if [[ -n "$provided_profile" ]]; then
+        final_profile="$provided_profile"
+    elif [[ -n "${AWS_PROFILE:-}" ]]; then
+        final_profile="$AWS_PROFILE"
+    else
+        echo "Error: AWS_PROFILE is not set. Please export AWS_PROFILE or use --profile." >&2
+        exit 1
+    fi
+
+    local available_profiles
+    if ! available_profiles=$(aws configure list-profiles 2>/dev/null); then
+        echo "Error: Unable to list AWS profiles. Ensure the AWS CLI is installed and configured." >&2
+        exit 1
+    fi
+
+    if ! grep -Fxq "$final_profile" <<<"$available_profiles"; then
+        echo "Error: AWS profile '$final_profile' not found. Please set AWS_PROFILE to a valid profile." >&2
+        exit 1
+    fi
+
+    export AWS_PROFILE="$final_profile"
+
+    if [[ "$AWS_PROFILE" == "default" ]]; then
+        echo "WARNING: AWS_PROFILE is set to 'default'. Sleeping for 1 second..."
+        sleep 1
+    else
+        echo "Using AWS profile: $AWS_PROFILE"
+    fi
+}
+
 # Parse command-line arguments
+profile_arg=""
 while [[ "$#" -gt 0 ]]; do
     case "$1" in
         --daylily-s3-version) s3_reference_data_version="$2"; shift 2;;
@@ -48,12 +82,14 @@ while [[ "$#" -gt 0 ]]; do
         --exclude-hg38-refs) exclude_hg38_refs=true; shift 1;;
         --exclude-b37-refs) exclude_b37_refs=true; shift 1;;
         --exclude-giab-reads) exclude_giab_reads=true; shift 1;;
-        --profile) profile="$2"; shift 2;;
+        --profile) profile_arg="$2"; shift 2;;
         --log-file) LOGFILE="$2"; shift 2;;
         --help) usage;;
         *) echo "Unknown parameter: $1"; usage;;
     esac
 done
+
+resolve_aws_profile "$profile_arg"
 
 if [ "$LOGFILE" == "" ]; then
     LOGFILE="./logs/create_daylily_s3_${region}.log"
@@ -80,11 +116,6 @@ else
 fi
 
 
-if [[ "$AWS_PROFILE" == "" ]]; then
-    echo "Please set AWS_PROFILE to continue"
-    exit 1
-fi
-
 if [[ "$region" == "" ]]; then
     echo "Please provide a region to create the new bucket in."
     exit 1
@@ -92,11 +123,6 @@ fi
 
 if [[ "$bucket_prefix" == "" ]]; then
     echo "Please provide a bucket prefix."
-    exit 1
-fi
-
-if [[ "$profile" == "setme" || "$AWS_PROFILE" != "$profile"  ]]; then
-    echo "Please set AWS_PROFILE and specify the matching string with --profile to continue. AWS_PROFILE: $AWS_PROFILE, --profile: $profile ."
     exit 1
 fi
 

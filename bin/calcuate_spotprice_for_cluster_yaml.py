@@ -1,12 +1,16 @@
 #!/usr/bin/env python
 
-import subprocess
-import statistics
 import argparse
+import json
+import os
+import statistics
+import subprocess
+import sys
+import time
 from copy import deepcopy
+
 from ruamel.yaml import YAML
 from ruamel.yaml.comments import CommentedMap
-import json
 
 
 def parse_arguments():
@@ -16,9 +20,48 @@ def parse_arguments():
     parser.add_argument("-b", "--bump-price", type=float, required=False, default=2.34, help="Price bump to add to the median spot price. default=1.81")
     parser.add_argument("-o", "--output", required=True, help="Output YAML configuration file path.")
     parser.add_argument("--az", required=True, help="Availability zone.")
-    parser.add_argument("--profile", help="AWS CLI profile to use.")
+    parser.add_argument("--profile", help="AWS CLI profile to use (defaults to AWS_PROFILE environment variable).")
     parser.add_argument("--avg-price-of", choices=['spot', 'dedicated'], default='spot', help="Type of price to calculate: spot or dedicated.")
     return parser.parse_args()
+
+
+def resolve_aws_profile(profile_argument):
+    """Resolve the AWS profile to use and ensure it is valid."""
+
+    profile = profile_argument or os.environ.get("AWS_PROFILE")
+    if not profile:
+        print("Error: AWS_PROFILE is not set. Please export AWS_PROFILE or supply --profile.", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        result = subprocess.run(
+            ["aws", "configure", "list-profiles"],
+            check=True,
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError:
+        print("Error: AWS CLI is not installed or not found in PATH.", file=sys.stderr)
+        sys.exit(1)
+    except subprocess.CalledProcessError as exc:
+        message = exc.stderr.strip() or exc.stdout.strip() or str(exc)
+        print(f"Error listing AWS profiles: {message}", file=sys.stderr)
+        sys.exit(1)
+
+    available_profiles = [line.strip() for line in result.stdout.splitlines() if line.strip()]
+    if profile not in available_profiles:
+        print(f"Error: AWS profile '{profile}' not found. Please set AWS_PROFILE to a valid profile.", file=sys.stderr)
+        sys.exit(1)
+
+    os.environ["AWS_PROFILE"] = profile
+
+    if profile == "default":
+        print("WARNING: AWS_PROFILE is set to 'default'. Sleeping for 1 second...")
+        time.sleep(1)
+    else:
+        print(f"Using AWS profile: {profile}")
+
+    return profile
 
 def run_aws_command(command):
     """Run an AWS CLI command and return the result as a string."""
@@ -202,7 +245,7 @@ def main():
     args = parse_arguments()
 
     az = args.az
-    profile = args.profile
+    profile = resolve_aws_profile(args.profile)
     price_type = args.avg_price_of
 
     with open(args.input, 'r') as f:
