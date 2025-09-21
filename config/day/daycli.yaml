@@ -1,38 +1,21 @@
 channels:
   - conda-forge
-  - bioconda
-  - defaults
 dependencies:
   - python==3.11.11
-  - pandas==1.5.3
   - ipython
   - perl
   - yappi
   - bash                # >=4 for assoc arrays; conda bash satisfies it
-  - networkx
   - yamllint
   - rclone
   - parallel
-  - pygraphviz
   - glances
-  - tabix
   - fd-find
-  - graphviz
-  - nodejs
   - jq
   - yq
   - pip
   - pip:
-      - setuptools>=68
-      - wheel>=0.41
-      - docopt==0.6.2
-      - colr==0.9.1
-      - xmltodict
-      - wrapt
-      - tabulate
-      - ruamel.yaml
-      - aws-parallelcluster==3.11.1
-      - "botocore>=1.34.69,<1.35"
-      - "boto3>=1.34.0,<1.35"
-      - "s3transfer>=0.10.0,<0.11"
+      - aws-parallelcluster==3.13.2
+      - boto3==1.40.35
+      - botocore==1.40.35
       - daylily-omics-references @ git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.1.0
