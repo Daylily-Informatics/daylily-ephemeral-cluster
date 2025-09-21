@@ -20,6 +20,10 @@ _on the laptop you'll create ephemeral clusters from_
 ## DAYLILY CLI & Ephemeral Cluster Creation
 _on the laptop you'll create ephemeral cluster, where you have saved the daylily-service user AWS cli credentials and have the appropriate `.pem`'s in `~/.ssh`._
 
+> Run `./bin/init_dayec` from the repository root before using the CLI.
+> The script now performs an editable `pip install`, so activating `DAY-EC`
+> places every `bin/` command on your shell `$PATH`.
+
 ### Create References S3 Bucket (if it does not already exist)
 _One is needed per region you intend to run in._
 

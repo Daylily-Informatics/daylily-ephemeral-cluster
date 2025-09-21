@@ -300,6 +300,10 @@ _from `daylily` root dir_
 
 conda activate DAY-EC
 
+# CLI commands from ./bin are now on your PATH.
+# Re-run this after pulling updates if needed.
+# (init_dayec performs an editable pip install each run)
+
 # DAY-EC should now be active... did it work?
 colr  'did it work?' 0,100,255 255,100,0
 
@@ -356,7 +360,9 @@ REGION=us-west-2
 The helper script is a thin wrapper around the
 [`daylily-omics-references`](https://github.com/Daylily-Informatics/daylily-omics-references)
 CLI (version `0.1.0`). Activating the `DAY-EC` conda environment installs the
-dependency automatically. You can also invoke the CLI directly:
+dependency automatically. You can also invoke the CLI directly once the
+`DAY-EC` environment is active (the editable install makes it available from
+any working directory):
 
 ```bash
 daylily-omics-references --profile $AWS_PROFILE --region $REGION \

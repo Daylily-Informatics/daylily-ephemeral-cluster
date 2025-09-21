@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import argparse
 from daylib.day_factory import PipelineFactory
 from daylib.day_cost_ec2 import SpotPriceFetcher, ZoneStat
