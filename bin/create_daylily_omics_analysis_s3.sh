@@ -60,7 +60,10 @@ resolve_aws_profile() {
             exit 1
         fi
         if ! grep -Fxq "$final_profile" <<<"$available_profiles"; then
-            echo "Error: AWS profile '$final_profile' not found. Please set AWS_PROFILE to a valid profile." >&2
+            echo "Error: AWS profile '$final_profile' not found." >&2
+            echo "Available profiles detected with \"aws configure list-profiles | grep -E '.'\":" >&2
+            echo "$available_profiles" | grep -E '.' | sed 's/^/  - /' >&2
+            echo "Please set AWS_PROFILE to a valid profile." >&2
             exit 1
         fi
     else
