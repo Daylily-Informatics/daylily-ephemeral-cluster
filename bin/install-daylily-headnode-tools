@@ -1,0 +1,27 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+REPO_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+CONFIG_SOURCE_DIR="$REPO_ROOT/config"
+TARGET_CONFIG_DIR="$HOME/.config/daylily"
+
+mkdir -p "$TARGET_CONFIG_DIR"
+
+cp "$CONFIG_SOURCE_DIR/daylily_cli_global.yaml" "$TARGET_CONFIG_DIR/daylily_cli_global.yaml"
+cp "$CONFIG_SOURCE_DIR/daylily_available_repositories.yaml" "$TARGET_CONFIG_DIR/daylily_available_repositories.yaml"
+
+# Install day-clone into a system-wide location if possible, otherwise fall back to ~/.local/bin
+INSTALL_TARGET="/usr/local/bin/day-clone"
+if command -v sudo >/dev/null 2>&1; then
+    if sudo install -m 0755 "$REPO_ROOT/bin/day-clone" "$INSTALL_TARGET"; then
+        echo "day-clone installed to $INSTALL_TARGET"
+        exit 0
+    else
+        echo "Warning: failed to install day-clone to $INSTALL_TARGET with sudo. Falling back to user installation." >&2
+    fi
+fi
+
+USER_BIN_DIR="$HOME/.local/bin"
+mkdir -p "$USER_BIN_DIR"
+install -m 0755 "$REPO_ROOT/bin/day-clone" "$USER_BIN_DIR/day-clone"
+echo "day-clone installed to $USER_BIN_DIR/day-clone. Ensure $USER_BIN_DIR is on your PATH."

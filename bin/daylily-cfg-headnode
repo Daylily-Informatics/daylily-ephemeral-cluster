@@ -11,10 +11,6 @@ duser="ubuntu"
 
 CONFIG_FILE="config/daylily_cli_global.yaml"
 
-git_tag=$(yq -r '.daylily.git_tag' "$CONFIG_FILE")
-git_repo=$(yq -r '.daylily.git_repo' "$CONFIG_FILE")
-git_analysis_repo_tag=$(yq -r '.daylily.git_analysis_repo_tag' "$CONFIG_FILE")
-git_analysis_repo=$(yq -r '.daylily.git_analysis_repo' "$CONFIG_FILE")
 git_ephemeral_cluster_repo_tag=$(yq -r '.daylily.git_ephemeral_cluster_repo_tag' "$CONFIG_FILE")
 git_ephemeral_cluster_repo=$(yq -r '.daylily.git_ephemeral_cluster_repo' "$CONFIG_FILE")
 daylily_image_cmd=$(yq -r '.daylily.daylily_image_cmd' "$CONFIG_FILE")
@@ -107,66 +103,32 @@ echo "Building the Daylily container on the head node..."
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null  \
     " $daylily_image_cmd " 
 
-# Clone the Daylily repository to the head node
-echo "Cloning Daylily repository using https to the head node ~/projects"
+# Clone the daylily-ephemeral-cluster repository to the head node
+echo "Cloning daylily-ephemeral-cluster repository using https to the head node ~/projects"
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \
-    "mkdir -p ~/projects && cd ~/projects &&  git clone -b ${git_analysis_repo_tag} ${git_analysis_repo} daylily-omics-analysis"
+    "mkdir -p ~/projects && cd ~/projects &&  git clone -b ${git_ephemeral_cluster_repo_tag} ${git_ephemeral_cluster_repo} daylily-ephemeral-cluster"
 
-# Initialize and configure the Daylily environment on the head node
-echo "Configuring Daylily environment on the head node..."
+# Install shared tooling from the repo (day-clone, config files, etc.)
+echo "Installing head node tooling from the cloned repository..."
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-    "source ~/.bashrc && cd ~/projects/daylily-omics-analysis && source dyinit --skip-project-check && source bin/day_build BUILD"
+    "source ~/.bashrc && cd ~/projects/daylily-ephemeral-cluster && ./bin/install-daylily-headnode-tools"
 
-# Run a simple help test for Daylily remotely
-echo "Running a simple help test on the head node..."
-ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-    "source ~/.bashrc && cd ~/projects/daylily-omics-analysis && source dyinit --skip-project-check && source bin/day_activate local hg38 remote && ./bin/day_run help"
-
-
-
-# Finally, a quick test to confirm things are running as expected locally on the headnode
-echo "Run a quick test to ensure things are working as expected... [local run]"
-ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \
-    "source ~/.bashrc && cd ~/projects/daylily-omics-analysis && source dyinit --project daylily-global && source bin/day_activate local hg38 remote && ./bin/day_run  produce_deduplicated_bams -p -k -j 2 --config aligners=['strobe'] dedupers=['dppl']  "
-
-
+echo "day-clone is now available on the head node. Use it to clone analysis repositories such as daylily-omics-analysis."
 
 # Provide final instructions for SSH access to the head node
 echo "You can now SSH into the head node with the following command:"
 echo "        ssh -i $pem_file ubuntu@$cluster_ip_address"
 echo " "
 echo "Once logged in, as the 'ubuntu' user, run the following commands:"
-echo "  cd ~/projects/daylily-omics-analysis"
-echo "  source dyinit " 
-echo "  dy-a local"
-echo "  dy-g hg38"
-echo "  dy-r help"
+echo "  cd ~/projects/daylily-ephemeral-cluster"
+echo "  ./bin/day-clone --list"
+echo "  day-clone -d <analysis_name> [--repository <repo-key>]"
 echo " "
-echo ".... and remember to re-clone the repo for each new analysis in the /fsx/analysis_results directory for non-test uses."
+echo ".... this will clone the selected analysis repository into /fsx/analysis_results/<user>/<analysis_name>/"
 echo " "
 echo "Setup complete. "
 
 echo " "
-echo "___bonus round___"
-echo "Would you like to start building various caches needed to run jobs? [y/n]"
-
-
-# Dont really need this if using the updated ref bucket
-timeout 1 bash -c 'read -p "Press y to start or n to skip: " REPLY && echo "$REPLY"' && export REPLY=$REPLY
-
-if [[ "$REPLY" == "y" ]]; then
-    # start building the minimal cached envs
-    echo "Building some cached analysis environments to save a little time ... this can take a little time"
-    ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \
-        "source ~/.bashrc && cd ~/projects/daylily-omics-analysis && source dyinit --skip-project-check && source bin/day_activate local hg38 remote &&  ./bin/day_run  produce_snv_concordances -p -k -j 2 --config aligners=['strobe','bwa2a'] dedupers=['dppl'] snv_callers=['deep']  --conda-create-envs-only    "
-    echo " "
-    echo "Caches have built for the following tools: strobe, bwa2a, dppl, oct, deep"
-    echo " "
-else
-    # Print the command that would have been run
-    echo "Skipping cache building. Command would have been:"
-    echo -e "       ssh -t -i \"$pem_file\" ubuntu@\"$cluster_ip_address\" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \"source ~/.bashrc && cd ~/projects/daylily-omics-analysis && source dyinit --skip-project-check && source bin/day_activate local hg38 remote && ./bin/day_run produce_snv_concordances -p -k -j 2 --config aligners=['strobe','bwa2a'] dedupers=['dppl'] snv_callers=['oct','deep'] --conda-create-envs-only\" \n"
-fi
 echo "And, you may now access the headnode via the PCUI, via 'source bin/daylily-ssh-into-headnode', or SSH into the head node with the following command:"
 echo -e "       ssh -i $pem_file ubuntu@$cluster_ip_address\n"
 echo " "
