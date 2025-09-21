@@ -7,6 +7,55 @@ echo "$CURR_SHELL"
 # Default configuration
 pass_on_warn=0  # Default for warnings causing failures
 
+EMAIL_REGEX='^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+
+suppress_pkg_resources_warning() {
+    local filter="ignore:pkg_resources is deprecated as an API:UserWarning"
+    if [[ -z "${PYTHONWARNINGS:-}" ]]; then
+        export PYTHONWARNINGS="$filter"
+    elif [[ "$PYTHONWARNINGS" != *"pkg_resources is deprecated as an API"* ]]; then
+        export PYTHONWARNINGS="${PYTHONWARNINGS},$filter"
+    fi
+}
+
+sanitize_config_var() {
+    local var_name="$1"
+    local value="${!var_name}"
+    if [[ "$value" == "null" ]]; then
+        printf -v "$var_name" ''
+    fi
+}
+
+is_valid_email() {
+    local email="$1"
+    [[ -n "$email" ]] || return 1
+    [[ $email =~ $EMAIL_REGEX ]]
+}
+
+prompt_for_valid_email() {
+    local __resultvar="$1"
+    local __prompt="$2"
+    local __input=""
+
+    while true; do
+        read -rp "$__prompt" __input
+        if [[ -z "$__input" ]]; then
+            echo "Email cannot be empty. Please try again."
+            continue
+        fi
+
+        if is_valid_email "$__input"; then
+            printf -v "$__resultvar" '%s' "$__input"
+            echo "Valid email entered: $__input"
+            break
+        else
+            echo "Invalid email format. Please use string@string.string format."
+        fi
+    done
+}
+
+suppress_pkg_resources_warning
+
 # Function to display help
 usage() {
     echo "Usage: $0 [--profile AWS_PROFILE] [--region-az REGION-AZ] [--pass-on-warn]"
@@ -130,7 +179,10 @@ if [ -f $CONFIG_FILE ]; then
 else
   echo "$CONFIG_FILE file not found!"
   sleep 1
-fi  
+fi
+
+sanitize_config_var CONFIG_BUDGET_EMAIL
+sanitize_config_var CONFIG_HEARTBEAT_EMAIL
 
 echo "$CONFIG_FILE file VARS (if any):"
 echo "CONFIG_BUDGET_EMAIL: $CONFIG_BUDGET_EMAIL"
@@ -708,25 +760,17 @@ done
 # Function to prompt for email
 budget_email=""
 if [[ -n "$CONFIG_BUDGET_EMAIL" && "$CONFIG_BUDGET_EMAIL" != "ENTEREMAIL" ]]; then
-    budget_email="$CONFIG_BUDGET_EMAIL"
+    if is_valid_email "$CONFIG_BUDGET_EMAIL"; then
+        budget_email="$CONFIG_BUDGET_EMAIL"
+        echo "✅ Using budget email from configuration: $budget_email"
+    else
+        echo "❌ Error: Configured budget email '$CONFIG_BUDGET_EMAIL' is not a valid email address."
+        echo "   ➜ Update $CONFIG_FILE with a valid email address or remove the value to be prompted interactively."
+        exit 3
+    fi
 else
-    prompt_for_email() {
-        while true; do
-            echo ""
-            read -rp "Enter an email address to send budget alerts to: " budget_email
-            # Regex pattern for basic email validation
-            if [[ -z "$budget_email" ]]; then
-                echo "Email cannot be empty. Please try again."
-            elif [[ "$budget_email" =~ ^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$ ]]; then
-                echo "Valid email entered: $budget_email"
-                break
-            else
-                echo "Invalid email format. Please use string@string.string format."
-            fi
-        done
-    }
-
-    prompt_for_email
+    echo ""
+    prompt_for_valid_email budget_email "Enter an email address to send budget alerts to: "
 fi
 
 echo ""
@@ -1028,9 +1072,8 @@ else
     read -p "Enter an email to receive heartbeat notifications for this cluster (leave blank to skip): " heartbeat_email
 fi
 
-email_regex='^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
 if [[ -n "$heartbeat_email" ]]; then
-    while [[ ! "$heartbeat_email" =~ $email_regex ]]; do
+    while ! is_valid_email "$heartbeat_email"; do
         echo "Invalid email format detected."
         read -p "Enter a valid email address (or leave blank to skip notifications): " heartbeat_email
         if [[ -z "$heartbeat_email" ]]; then
