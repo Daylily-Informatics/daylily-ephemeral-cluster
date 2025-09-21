@@ -123,7 +123,10 @@ prompt_for_positive_integer() {
 declare -A ORIGINAL_CONFIG_VALUES=()
 declare -A FINAL_CONFIG_VALUES=()
 declare -A CONFIG_ERROR_NOTES=()
+declare -A TEMPLATE_DEFAULTS=()
 declare -a CONFIG_KEYS=()
+
+INIT_TEMPLATE_FILE=""
 
 REQUIRED_CONFIG_KEYS=(
     "auto_delete_fsx"
@@ -171,6 +174,17 @@ get_original_config_value() {
     echo "${ORIGINAL_CONFIG_VALUES[$key]:-PROMPTUSER}"
 }
 
+get_template_default() {
+    local key="$1"
+    local fallback="$2"
+
+    if [[ -n "${TEMPLATE_DEFAULTS[$key]+x}" ]]; then
+        echo "${TEMPLATE_DEFAULTS[$key]}"
+    else
+        echo "$fallback"
+    fi
+}
+
 mark_config_error() {
     local key="$1"
     local original="$2"
@@ -196,10 +210,23 @@ ensure_config_key() {
 
 load_config_values() {
     local key
+    TEMPLATE_DEFAULTS=()
     mapfile -t CONFIG_KEYS < <(yq -r '.ephemeral_cluster.config | keys | .[]' "$CONFIG_FILE" 2>/dev/null || true)
 
     for key in "${REQUIRED_CONFIG_KEYS[@]}"; do
         ensure_config_key "$key"
+    done
+
+    local template_keys
+    mapfile -t template_keys < <(yq -r '.ephemeral_cluster.template_defaults | keys | .[]' "$CONFIG_FILE" 2>/dev/null || true)
+
+    for key in "${template_keys[@]}"; do
+        local value
+        value=$(yq -r ".ephemeral_cluster.template_defaults.$key // \"__MISSING__\"" "$CONFIG_FILE" 2>/dev/null)
+        if [[ "$value" == "__MISSING__" || "$value" == "null" ]]; then
+            continue
+        fi
+        TEMPLATE_DEFAULTS["$key"]="$value"
     done
 
     for key in "${CONFIG_KEYS[@]}"; do
@@ -385,6 +412,94 @@ PY
     RESOLVED_CLI_CONFIG="$resolved_file"
 }
 
+write_init_template_yaml() {
+    local output_path="$1"
+    local substitutions_file="$2"
+
+    if [[ -z "$output_path" || -z "$substitutions_file" ]]; then
+        echo "❌ Error: write_init_template_yaml requires an output path and a substitutions file." >&2
+        return 1
+    fi
+
+    local config_tmp defaults_tmp json_tmp
+    config_tmp=$(mktemp)
+    defaults_tmp=$(mktemp)
+    json_tmp=$(mktemp)
+
+    for key in "${CONFIG_KEYS[@]}"; do
+        local value="${FINAL_CONFIG_VALUES[$key]}"
+        if [[ -z "${value+x}" ]]; then
+            value=""
+        fi
+        printf '%s\t%s\n' "$key" "$value" >>"$config_tmp"
+    done
+
+    for key in "${!TEMPLATE_DEFAULTS[@]}"; do
+        printf '%s\t%s\n' "$key" "${TEMPLATE_DEFAULTS[$key]}" >>"$defaults_tmp"
+    done
+
+    python <<'PY' "$substitutions_file" "$config_tmp" "$defaults_tmp" "$CONFIG_FILE" "$json_tmp"
+import json
+import os
+import sys
+from datetime import datetime
+
+subs_path, config_path, defaults_path, source_config, json_path = sys.argv[1:6]
+
+
+def read_tab_file(path):
+    data = {}
+    if not path or not os.path.exists(path):
+        return data
+    with open(path, 'r', encoding='utf-8') as handle:
+        for raw_line in handle:
+            line = raw_line.rstrip('\n')
+            if not line:
+                continue
+            if '\t' not in line:
+                continue
+            key, value = line.split('\t', 1)
+            data[key] = value
+    return data
+
+
+substitutions = read_tab_file(subs_path)
+config_values = read_tab_file(config_path)
+template_defaults = read_tab_file(defaults_path)
+
+metadata = {
+    'generated_at': datetime.utcnow().isoformat(timespec='seconds') + 'Z',
+    'source_config_file': source_config,
+}
+
+cluster_name = config_values.get('cluster_name')
+if cluster_name:
+    metadata['cluster_name'] = cluster_name
+
+payload = {
+    'metadata': metadata,
+    'ephemeral_cluster': {
+        'config': config_values,
+    },
+    'substitutions': substitutions,
+}
+
+if template_defaults:
+    payload['ephemeral_cluster']['template_defaults'] = template_defaults
+
+with open(json_path, 'w', encoding='utf-8') as handle:
+    json.dump(payload, handle)
+PY
+
+    if ! yq -P '.' "$json_tmp" >"$output_path"; then
+        echo "❌ Error: Failed to render initialization template YAML to $output_path" >&2
+        rm -f "$config_tmp" "$defaults_tmp" "$json_tmp"
+        return 1
+    fi
+
+    rm -f "$config_tmp" "$defaults_tmp" "$json_tmp"
+}
+
 
 resolve_aws_profile() {
     local provided_profile="$1"
@@ -554,36 +669,39 @@ if [[ "$confirm" != "" ]]; then
     exit 3
 fi
 
+default_max_count_8=$(get_template_default "max_count_8I" "1")
 if is_promptuser "$CONFIG_MAX_COUNT_8I"; then
-    prompt_for_positive_integer CONFIG_MAX_COUNT_8I "Enter the max number of 8xlarge instances to request [1]: " "1"
+    prompt_for_positive_integer CONFIG_MAX_COUNT_8I "Enter the max number of 8xlarge instances to request [${default_max_count_8}]: " "$default_max_count_8"
     set_final_config_value "max_count_8I" "$CONFIG_MAX_COUNT_8I"
 elif [[ "$CONFIG_MAX_COUNT_8I" =~ ^[0-9]+$ ]]; then
     set_final_config_value "max_count_8I" "$CONFIG_MAX_COUNT_8I"
 else
     mark_config_error "max_count_8I" "$CONFIG_MAX_COUNT_8I" "expected positive integer"
-    prompt_for_positive_integer CONFIG_MAX_COUNT_8I "Enter the max number of 8xlarge instances to request [1]: " "1"
+    prompt_for_positive_integer CONFIG_MAX_COUNT_8I "Enter the max number of 8xlarge instances to request [${default_max_count_8}]: " "$default_max_count_8"
     set_final_config_value "max_count_8I" "$CONFIG_MAX_COUNT_8I"
 fi
 
+default_max_count_128=$(get_template_default "max_count_128I" "1")
 if is_promptuser "$CONFIG_MAX_COUNT_128I"; then
-    prompt_for_positive_integer CONFIG_MAX_COUNT_128I "Enter the max number of 128xlarge instances to request [1]: " "1"
+    prompt_for_positive_integer CONFIG_MAX_COUNT_128I "Enter the max number of 128xlarge instances to request [${default_max_count_128}]: " "$default_max_count_128"
     set_final_config_value "max_count_128I" "$CONFIG_MAX_COUNT_128I"
 elif [[ "$CONFIG_MAX_COUNT_128I" =~ ^[0-9]+$ ]]; then
     set_final_config_value "max_count_128I" "$CONFIG_MAX_COUNT_128I"
 else
     mark_config_error "max_count_128I" "$CONFIG_MAX_COUNT_128I" "expected positive integer"
-    prompt_for_positive_integer CONFIG_MAX_COUNT_128I "Enter the max number of 128xlarge instances to request [1]: " "1"
+    prompt_for_positive_integer CONFIG_MAX_COUNT_128I "Enter the max number of 128xlarge instances to request [${default_max_count_128}]: " "$default_max_count_128"
     set_final_config_value "max_count_128I" "$CONFIG_MAX_COUNT_128I"
 fi
 
+default_max_count_192=$(get_template_default "max_count_192I" "1")
 if is_promptuser "$CONFIG_MAX_COUNT_192I"; then
-    prompt_for_positive_integer CONFIG_MAX_COUNT_192I "Enter the max number of 192xlarge instances to request [1]: " "1"
+    prompt_for_positive_integer CONFIG_MAX_COUNT_192I "Enter the max number of 192xlarge instances to request [${default_max_count_192}]: " "$default_max_count_192"
     set_final_config_value "max_count_192I" "$CONFIG_MAX_COUNT_192I"
 elif [[ "$CONFIG_MAX_COUNT_192I" =~ ^[0-9]+$ ]]; then
     set_final_config_value "max_count_192I" "$CONFIG_MAX_COUNT_192I"
 else
     mark_config_error "max_count_192I" "$CONFIG_MAX_COUNT_192I" "expected positive integer"
-    prompt_for_positive_integer CONFIG_MAX_COUNT_192I "Enter the max number of 192xlarge instances to request [1]: " "1"
+    prompt_for_positive_integer CONFIG_MAX_COUNT_192I "Enter the max number of 192xlarge instances to request [${default_max_count_192}]: " "$default_max_count_192"
     set_final_config_value "max_count_192I" "$CONFIG_MAX_COUNT_192I"
 fi
 
@@ -1360,10 +1478,11 @@ if [[ -z "$global_budget_exists" || "$global_budget_exists" == "None" ]]; then
         fi
     fi
 
+    default_global_budget_amount=$(get_template_default "global_budget_amount" "200")
     while [[ -z "$gamount" ]]; do
-        echo -n "Enter a budget amount (default: 200): "
+        echo -n "Enter a budget amount (default: ${default_global_budget_amount}): "
         read gamount
-        gamount=${gamount:-200}
+        gamount=${gamount:-$default_global_budget_amount}
         if [[ ! "$gamount" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
             echo "Please enter a numeric budget amount."
             gamount=""
@@ -1421,10 +1540,11 @@ if [[ -z "$budget_exists" || "$budget_exists" == "None" ]]; then
         fi
     fi
 
+    default_budget_amount=$(get_template_default "budget_amount" "200")
     while [[ -z "$amount" ]]; do
-        echo -n "Enter a budget amount (default: 200): "
+        echo -n "Enter a budget amount (default: ${default_budget_amount}): "
         read amount
-        amount=${amount:-200}
+        amount=${amount:-$default_budget_amount}
         if [[ ! "$amount" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
             echo "Please enter a numeric budget amount."
             amount=""
@@ -1487,12 +1607,13 @@ if ! is_promptuser "$CONFIG_CLUSTER_TEMPLATE_YAML" && [[ -n "$CONFIG_CLUSTER_TEM
     fi
 fi
 
+default_cluster_template=$(get_template_default "cluster_template_yaml" "config/day_cluster/prod_cluster.yaml")
 while [[ -z "$cluster_yaml" ]]; do
-    echo -n "Enter the path to the Daylily cluster config YAML file [press Enter to use default 'config/day_cluster/prod_cluster.yaml']: "
+    echo -n "Enter the path to the Daylily cluster config YAML file [press Enter to use default '${default_cluster_template}']: "
     read cluster_yaml
 
     if [[ -z "$cluster_yaml" ]]; then
-        cluster_yaml="config/day_cluster/prod_cluster.yaml"
+        cluster_yaml="$default_cluster_template"
     fi
 
     if [[ ! -f "$cluster_yaml" ]]; then
@@ -1555,7 +1676,7 @@ set_final_config_value "headnode_instance_type" "$sel_headnode_type"
 echo ""
 echo "Choose the FSX Lustre File System Size (tested with 4800):"
 
-sel_fsx_size="4800"
+sel_fsx_size=$(get_template_default "fsx_fs_size" "4800")
 if ! is_promptuser "$CONFIG_FSX_FS_SIZE" && [[ -n "$CONFIG_FSX_FS_SIZE" ]]; then
     if [[ "$CONFIG_FSX_FS_SIZE" =~ ^[0-9]+$ ]]; then
         sel_fsx_size="$CONFIG_FSX_FS_SIZE"
@@ -1583,7 +1704,7 @@ echo "✅ FSX Lustre File System Size: $sel_fsx_size"
 echo ""
 
 # Enable detailed monitoring
-act_detailed_monitoring=false
+act_detailed_monitoring=$(get_template_default "enable_detailed_monitoring" "false")
 if ! is_promptuser "$CONFIG_ENABLE_DETAILED_MONITORING" && [[ -n "$CONFIG_ENABLE_DETAILED_MONITORING" ]]; then
     if [[ "$CONFIG_ENABLE_DETAILED_MONITORING" == "true" || "$CONFIG_ENABLE_DETAILED_MONITORING" == "false" ]]; then
         act_detailed_monitoring="$CONFIG_ENABLE_DETAILED_MONITORING"
@@ -1617,7 +1738,8 @@ echo ""
 mkdir -p $HOME/.config/daylily
 target_conf=$HOME/.config/daylily/${cluster_name}_cluster.yaml.init
 target_conf_fin=$HOME/.config/daylily/${cluster_name}_cluster.yaml
-regsub_vals=$HOME/.config/daylily/${cluster_name}_cluster_init_vals.txt
+init_template_timestamp=$(date '+%Y%m%d%H%M%S')
+INIT_TEMPLATE_FILE=$HOME/.config/daylily/${cluster_name}_init_template_${init_template_timestamp}.yaml
 
 cp "$cluster_yaml" "$target_conf"
 pem_name=$(basename "$pem_file" | cut -d '.' -f 1)
@@ -1625,7 +1747,7 @@ pem_name=$(basename "$pem_file" | cut -d '.' -f 1)
 
 # capture 'true' or 'false' for delete_local_root
 # if CONFIG_DELETE_LOCAL_ROOT is set, use that value
-delete_local_root=true
+delete_local_root=$(get_template_default "delete_local_root" "true")
 if ! is_promptuser "$CONFIG_DELETE_LOCAL_ROOT" && [[ -n "$CONFIG_DELETE_LOCAL_ROOT" ]]; then
     if [[ "$CONFIG_DELETE_LOCAL_ROOT" == "true" || "$CONFIG_DELETE_LOCAL_ROOT" == "false" ]]; then
         delete_local_root="$CONFIG_DELETE_LOCAL_ROOT"
@@ -1651,7 +1773,7 @@ set_final_config_value "delete_local_root" "$delete_local_root"
 echo "✅ Delete local root volume on termination?: $delete_local_root"
 
 # Retailn or delete the FSx Lustre file system
-save_fsx="Delete"
+save_fsx=$(get_template_default "auto_delete_fsx" "Delete")
 if ! is_promptuser "$CONFIG_AUTO_DELETE_FSX" && [[ -n "$CONFIG_AUTO_DELETE_FSX" ]]; then
     if [[ "$CONFIG_AUTO_DELETE_FSX" == "Retain" || "$CONFIG_AUTO_DELETE_FSX" == "Delete" ]]; then
         save_fsx="$CONFIG_AUTO_DELETE_FSX"
@@ -1706,7 +1828,7 @@ if [[ -n "$heartbeat_email" ]]; then
 fi
 
 if [[ -n "$heartbeat_email" ]]; then
-    default_schedule="rate(60 minutes)"
+    default_schedule=$(get_template_default "heartbeat_schedule" "rate(60 minutes)")
     if ! is_promptuser "$CONFIG_HEARTBEAT_SCHEDULE" && [[ -n "$CONFIG_HEARTBEAT_SCHEDULE" ]]; then
         if [[ "$CONFIG_HEARTBEAT_SCHEDULE" =~ ^(rate|cron)\(.+\)$ ]]; then
             heartbeat_schedule="$CONFIG_HEARTBEAT_SCHEDULE"
@@ -1717,7 +1839,7 @@ if [[ -n "$heartbeat_email" ]]; then
             heartbeat_schedule=""
         fi
     else
-        read -p "Enter an EventBridge Scheduler expression for notifications [rate(60 minutes)]: " heartbeat_schedule
+        read -p "Enter an EventBridge Scheduler expression for notifications [${default_schedule}]: " heartbeat_schedule
         if [[ -z "$heartbeat_schedule" ]]; then
             heartbeat_schedule="$default_schedule"
         fi
@@ -1757,17 +1879,39 @@ if ! is_promptuser "$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY" && [[ -n "$CONFIG
 fi
 
 if [[ -z "$allocation_strategy" ]]; then
+    default_allocation_strategy=$(get_template_default "spot_instance_allocation_strategy" "price-capacity-optimized")
+    local default_choice="1"
+    case "$default_allocation_strategy" in
+        "capacity-optimized")
+            default_choice="2"
+            ;;
+        "lowest-price")
+            default_choice="3"
+            ;;
+        "price-capacity-optimized")
+            default_choice="1"
+            ;;
+        *)
+            default_allocation_strategy="price-capacity-optimized"
+            default_choice="1"
+            ;;
+    esac
+
     # Loop until we get a valid selection or user presses Enter
     while true; do
         echo "Select A Spot Instance Allocation Strategy:"
         echo "1) price-capacity-optimized (default, balance of lowest-cost + capacity optimized placement)"
         echo "2) capacity-optimized (more expensive, fewer disruptions)"
         echo "3) lowest-price (potentially more disruptions)"
-        echo -n "Enter selection [1]: "
-        read user_choice
+        read -p "Enter selection [${default_choice}]: " user_choice
+
+        if [[ -z "$user_choice" ]]; then
+            allocation_strategy="$default_allocation_strategy"
+            break
+        fi
 
         case "$user_choice" in
-            ""|1)
+            1)
                 allocation_strategy="price-capacity-optimized"
                 break
                 ;;
@@ -1796,41 +1940,53 @@ git_deets=$(bin/get_git_deets.sh)
 if [[ "$enforce_budget_opt" == "false" ]]; then
     enforce_budget_opt="skip"
 fi
-# Write variables to config
-cat <<EOF > $regsub_vals
-REGSUB_REGION=$region
-REGSUB_PUB_SUBNET=$public_subnet
-REGSUB_KEYNAME=$pem_name
-REGSUB_S3_BUCKET_INIT=$bucket_url
-REGSUB_S3_BUCKET_NAME=$bucket_name
-REGSUB_S3_IAM_POLICY=$arn_policy_id
-REGSUB_PRIVATE_SUBNET=$private_subnet
-REGSUB_S3_BUCKET_REF=$bucket_url
-REGSUB_XMR_MINE=$enable_xmr
-REGSUB_XMR_POOL_URL=$xmr_pool_url
-REGSUB_XMR_WALLET=$xmr_wallet
-REGSUB_FSX_SIZE=$sel_fsx_size
-REGSUB_DETAILED_MONITORING=$act_detailed_monitoring
-REGSUB_CLUSTER_NAME=$cluster_name
-REGSUB_USERNAME=${USER}-${AWS_CLI_USER}
-REGSUB_PROJECT=$budget_name
-REGSUB_DELETE_LOCAL_ROOT=$delete_local_root
-REGSUB_SAVE_FSX=$save_fsx
-REGSUB_ENFORCE_BUDGET=$enforce_budget_opt
-REGSUB_AWS_ACCOUNT_ID=aws_profile-$AWS_PROFILE
-REGSUB_ALLOCATION_STRATEGY=$allocation_strategy
-REGSUB_DAYLILY_GIT_DEETS=$git_deets
-REGSUB_MAX_COUNT_8I=$CONFIG_MAX_COUNT_8I
-REGSUB_MAX_COUNT_128I=$CONFIG_MAX_COUNT_128I
-REGSUB_MAX_COUNT_192I=$CONFIG_MAX_COUNT_192I
-REGSUB_HEADNODE_INSTANCE_TYPE=$sel_headnode_type
-REGSUB_HEARTBEAT_EMAIL=$heartbeat_email
-REGSUB_HEARTBEAT_SCHEDULE=$heartbeat_schedule
-EOF
+declare -A REG_SUBSTITUTIONS=(
+    ["REGSUB_REGION"]="$region"
+    ["REGSUB_PUB_SUBNET"]="$public_subnet"
+    ["REGSUB_KEYNAME"]="$pem_name"
+    ["REGSUB_S3_BUCKET_INIT"]="$bucket_url"
+    ["REGSUB_S3_BUCKET_NAME"]="$bucket_name"
+    ["REGSUB_S3_IAM_POLICY"]="$arn_policy_id"
+    ["REGSUB_PRIVATE_SUBNET"]="$private_subnet"
+    ["REGSUB_S3_BUCKET_REF"]="$bucket_url"
+    ["REGSUB_XMR_MINE"]="$enable_xmr"
+    ["REGSUB_XMR_POOL_URL"]="$xmr_pool_url"
+    ["REGSUB_XMR_WALLET"]="$xmr_wallet"
+    ["REGSUB_FSX_SIZE"]="$sel_fsx_size"
+    ["REGSUB_DETAILED_MONITORING"]="$act_detailed_monitoring"
+    ["REGSUB_CLUSTER_NAME"]="$cluster_name"
+    ["REGSUB_USERNAME"]="${USER}-${AWS_CLI_USER}"
+    ["REGSUB_PROJECT"]="$budget_name"
+    ["REGSUB_DELETE_LOCAL_ROOT"]="$delete_local_root"
+    ["REGSUB_SAVE_FSX"]="$save_fsx"
+    ["REGSUB_ENFORCE_BUDGET"]="$enforce_budget_opt"
+    ["REGSUB_AWS_ACCOUNT_ID"]="aws_profile-$AWS_PROFILE"
+    ["REGSUB_ALLOCATION_STRATEGY"]="$allocation_strategy"
+    ["REGSUB_DAYLILY_GIT_DEETS"]="$git_deets"
+    ["REGSUB_MAX_COUNT_8I"]="$CONFIG_MAX_COUNT_8I"
+    ["REGSUB_MAX_COUNT_128I"]="$CONFIG_MAX_COUNT_128I"
+    ["REGSUB_MAX_COUNT_192I"]="$CONFIG_MAX_COUNT_192I"
+    ["REGSUB_HEADNODE_INSTANCE_TYPE"]="$sel_headnode_type"
+    ["REGSUB_HEARTBEAT_EMAIL"]="$heartbeat_email"
+    ["REGSUB_HEARTBEAT_SCHEDULE"]="$heartbeat_schedule"
+)
+
+subs_tmp=$(mktemp)
+for key in "${!REG_SUBSTITUTIONS[@]}"; do
+    printf '%s\t%s\n' "$key" "${REG_SUBSTITUTIONS[$key]}" >>"$subs_tmp"
+done
+
+if ! write_init_template_yaml "$INIT_TEMPLATE_FILE" "$subs_tmp"; then
+    echo "❌ Error: Failed to create initialization template YAML."
+    rm -f "$subs_tmp"
+    exit 3
+fi
+rm -f "$subs_tmp"
 
 echo ""
+echo "📄 Initialization template saved to: $INIT_TEMPLATE_FILE"
 
-bash bin/other/regsub_yaml.sh $regsub_vals $target_conf
+bash bin/other/regsub_yaml.sh "$INIT_TEMPLATE_FILE" "$target_conf"
 echo ""
 
 echo "Calculating max spot bid prices per partition resource group..."

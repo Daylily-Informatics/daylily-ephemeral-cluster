@@ -25,3 +25,28 @@ ephemeral_cluster:
     max_count_8I: PROMPTUSER  # Maximum number of 8xlarge instances to request
     max_count_128I: PROMPTUSER  # Maximum number of 128xlarge instances to request
     max_count_192I: PROMPTUSER  # Maximum number of 192xlarge instances to request
+  template_defaults:
+    ssh_key_name: ""
+    s3_bucket_name: ""
+    public_subnet_id: ""
+    private_subnet_id: ""
+    iam_policy_arn: ""
+    cluster_name: ""
+    budget_email: ""
+    allowed_budget_users: ""
+    budget_amount: "200"
+    global_allowed_budget_users: ""
+    global_budget_amount: "200"
+    enforce_budget: "skip"
+    cluster_template_yaml: "config/day_cluster/prod_cluster.yaml"
+    headnode_instance_type: "r7i.2xlarge"
+    fsx_fs_size: "4800"
+    enable_detailed_monitoring: "false"
+    delete_local_root: "true"
+    auto_delete_fsx: "Delete"
+    heartbeat_email: ""
+    heartbeat_schedule: "rate(60 minutes)"
+    spot_instance_allocation_strategy: "price-capacity-optimized"
+    max_count_8I: "1"
+    max_count_128I: "1"
+    max_count_192I: "1"
