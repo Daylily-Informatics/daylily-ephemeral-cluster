@@ -65,6 +65,217 @@ usage() {
     echo " .     --config <path>       Path to the daylily-create-ephemeral-cluster config, default: ./.dayephmeral.env)"
 }
 
+validate_config_file() {
+    local file_path="$1"
+
+    if [[ -z "$file_path" ]]; then
+        echo "❌ Error: Configuration file path cannot be empty."
+        return 1
+    fi
+
+    if [[ ! -f "$file_path" ]]; then
+        echo "❌ Error: Configuration file '$file_path' does not exist."
+        return 1
+    fi
+
+    if command -v yq >/dev/null 2>&1; then
+        if ! yq -e '.ephemeral_cluster.config' "$file_path" >/dev/null 2>&1; then
+            echo "❌ Error: Configuration file '$file_path' is missing the 'ephemeral_cluster.config' section."
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
+prompt_for_config_file() {
+    while true; do
+        read -rp "Enter path to the Daylily ephemeral cluster config file: " local_config
+        if validate_config_file "$local_config"; then
+            echo "✅ Using configuration file: $local_config"
+            echo "   ➜ Tip: export DAY_EX_CFG=\"$local_config\" to skip this prompt in future runs."
+            CONFIG_FILE="$local_config"
+            break
+        fi
+    done
+}
+
+prompt_for_positive_integer() {
+    local __resultvar="$1"
+    local __prompt="$2"
+    local __default="$3"
+    local __input=""
+
+    while true; do
+        read -rp "$__prompt" __input
+        if [[ -z "$__input" && -n "$__default" ]]; then
+            __input="$__default"
+        fi
+        if [[ "$__input" =~ ^[0-9]+$ ]]; then
+            printf -v "$__resultvar" '%s' "$__input"
+            break
+        else
+            echo "Please enter a positive integer."
+        fi
+    done
+}
+
+declare -A ORIGINAL_CONFIG_VALUES=()
+declare -A FINAL_CONFIG_VALUES=()
+declare -A CONFIG_ERROR_NOTES=()
+declare -a CONFIG_KEYS=()
+
+REQUIRED_CONFIG_KEYS=(
+    "auto_delete_fsx"
+    "budget_amount"
+    "budget_email"
+    "cluster_name"
+    "cluster_template_yaml"
+    "delete_local_root"
+    "enable_detailed_monitoring"
+    "enforce_budget"
+    "fsx_fs_size"
+    "global_allowed_budget_users"
+    "global_budget_amount"
+    "headnode_instance_type"
+    "heartbeat_email"
+    "heartbeat_schedule"
+    "iam_policy_arn"
+    "max_count_128I"
+    "max_count_192I"
+    "max_count_8I"
+    "private_subnet_id"
+    "public_subnet_id"
+    "s3_bucket_name"
+    "spot_instance_allocation_strategy"
+    "ssh_key_name"
+    "allowed_budget_users"
+)
+
+is_promptuser() {
+    [[ "$1" == "PROMPTUSER" ]]
+}
+
+set_final_config_value() {
+    local key="$1"
+    local value="$2"
+    FINAL_CONFIG_VALUES["$key"]="$value"
+}
+
+get_original_config_value() {
+    local key="$1"
+    echo "${ORIGINAL_CONFIG_VALUES[$key]:-PROMPTUSER}"
+}
+
+mark_config_error() {
+    local key="$1"
+    local original="$2"
+    local message="$3"
+    if [[ -n "$original" ]]; then
+        if [[ -n "$message" ]]; then
+            CONFIG_ERROR_NOTES["$key"]="${original}+ERROR (${message})"
+        else
+            CONFIG_ERROR_NOTES["$key"]="${original}+ERROR"
+        fi
+    fi
+}
+
+ensure_config_key() {
+    local key="$1"
+    for existing in "${CONFIG_KEYS[@]}"; do
+        if [[ "$existing" == "$key" ]]; then
+            return
+        fi
+    done
+    CONFIG_KEYS+=("$key")
+}
+
+load_config_values() {
+    local key
+    mapfile -t CONFIG_KEYS < <(yq -r '.ephemeral_cluster.config | keys | .[]' "$CONFIG_FILE" 2>/dev/null || true)
+
+    for key in "${REQUIRED_CONFIG_KEYS[@]}"; do
+        ensure_config_key "$key"
+    done
+
+    for key in "${CONFIG_KEYS[@]}"; do
+        local value
+        value=$(yq -r ".ephemeral_cluster.config.$key // \"__MISSING__\"" "$CONFIG_FILE" 2>/dev/null)
+        if [[ "$value" == "__MISSING__" ]]; then
+            value="PROMPTUSER"
+        elif [[ "$value" == "null" ]]; then
+            value=""
+        fi
+        ORIGINAL_CONFIG_VALUES["$key"]="$value"
+        FINAL_CONFIG_VALUES["$key"]="$value"
+    done
+}
+
+save_final_config_snapshot() {
+    local snapshot_dir="$HOME/.config/daylily"
+    mkdir -p "$snapshot_dir"
+
+    local base_name
+    base_name=$(basename "$CONFIG_FILE")
+    local timestamp
+    timestamp=$(date '+%Y%m%d%H%M%S')
+    local snapshot_file="$snapshot_dir/${base_name%.*}_final_${timestamp}.yaml"
+
+    local values_tmp
+    local errors_tmp
+    values_tmp=$(mktemp)
+    errors_tmp=$(mktemp)
+
+    for key in "${CONFIG_KEYS[@]}"; do
+        printf '%s\t%s\n' "$key" "${FINAL_CONFIG_VALUES[$key]}" >>"$values_tmp"
+    done
+
+    for key in "${!CONFIG_ERROR_NOTES[@]}"; do
+        printf '%s\t%s\n' "$key" "${CONFIG_ERROR_NOTES[$key]}" >>"$errors_tmp"
+    done
+
+    local json_tmp
+    json_tmp=$(mktemp)
+
+    python <<'PY' "$values_tmp" "$errors_tmp" "$json_tmp"
+import sys
+from pathlib import Path
+import json
+
+values_path, errors_path, json_path = sys.argv[1:4]
+
+config_values = {}
+with open(values_path, 'r', encoding='utf-8') as fh:
+    for line in fh:
+        key, value = line.rstrip('\n').split('\t', 1)
+        config_values[key] = value
+
+error_notes = {}
+with open(errors_path, 'r', encoding='utf-8') as fh:
+    for line in fh:
+        key, value = line.rstrip('\n').split('\t', 1)
+        if value:
+            error_notes[key] = value
+
+payload = {
+    'ephemeral_cluster': {
+        'config': config_values,
+    }
+}
+
+if error_notes:
+    payload['ephemeral_cluster']['config_errors'] = error_notes
+
+Path(json_path).write_text(json.dumps(payload), encoding='utf-8')
+PY
+
+    yq -P '.' "$json_tmp" >"$snapshot_file"
+
+    rm -f "$values_tmp" "$errors_tmp" "$json_tmp"
+    echo "✅ Saved configuration snapshot to: $snapshot_file"
+    FINAL_CONFIG_SNAPSHOT="$snapshot_file"
+}
+
 
 resolve_aws_profile() {
     local provided_profile="$1"
@@ -107,7 +318,8 @@ if [[ $# -eq 0 ]]; then
     exit 0
 fi
 
-CONFIG_FILE="config/daylily_ephemeral_cluster.yaml"
+CONFIG_FILE=""
+cli_config_file=""
 
 # Parse command-line arguments
 profile_arg=""
@@ -131,7 +343,7 @@ while [[ $# -gt 0 ]]; do
             shift 2
             ;;
         --config)
-            CONFIG_FILE="$2"
+            cli_config_file="$2"
             shift 2
             ;;
         *)
@@ -141,6 +353,24 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [[ -n "${DAY_EX_CFG:-}" ]]; then
+    CONFIG_FILE="$DAY_EX_CFG"
+elif [[ -n "$cli_config_file" ]]; then
+    CONFIG_FILE="$cli_config_file"
+fi
+
+if [[ -z "$CONFIG_FILE" ]]; then
+    echo "ℹ️ DAY_EX_CFG is not set and no --config file was provided."
+    prompt_for_config_file
+else
+    if ! validate_config_file "$CONFIG_FILE"; then
+        echo "ℹ️ Falling back to interactive configuration file selection."
+        prompt_for_config_file
+    else
+        echo "✅ Using configuration file: $CONFIG_FILE"
+    fi
+fi
 
 resolve_aws_profile "$profile_arg"
 
@@ -157,47 +387,48 @@ else
     exit 3  # Exit the function with an error status
 fi
 
-# Load the environment variables from .env file
-if [ -f $CONFIG_FILE ]; then
-    echo "Loading configuration from $CONFIG_FILE"
-    CONFIG_BUDGET_EMAIL=$(yq -r '.ephemeral_cluster.config.budget_email' $CONFIG_FILE)
-    CONFIG_ALLOWED_BUDGET_USERS=$(yq -r '.ephemeral_cluster.config.allowed_budget_users' $CONFIG_FILE)
-    CONFIG_BUDGET_AMOUNT=$(yq -r '.ephemeral_cluster.config.budget_amount' $CONFIG_FILE)
-    CONFIG_ENFORCE_BUDGET=$(yq -r '.ephemeral_cluster.config.enforce_budget' $CONFIG_FILE)
-    CONFIG_DELETE_LOCAL_ROOT=$(yq -r '.ephemeral_cluster.config.delete_local_root' $CONFIG_FILE)
-    CONFIG_AUTO_DELETE_FSX=$(yq -r '.ephemeral_cluster.config.auto_delete_fsx' $CONFIG_FILE)
-    CONFIG_FSX_FS_SIZE=$(yq -r '.ephemeral_cluster.config.fsx_fs_size' $CONFIG_FILE)
-    CONFIG_ENABLE_DETAILED_MONITORING=$(yq -r '.ephemeral_cluster.config.enable_detailed_monitoring' $CONFIG_FILE)
-    CONFIG_CLUSTER_TEMPLATE_YAML=$(yq -r '.ephemeral_cluster.config.cluster_template_yaml' $CONFIG_FILE)
-    CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY=$(yq -r '.ephemeral_cluster.config.spot_instance_allocation_strategy' $CONFIG_FILE)
-    CONFIG_MAX_COUNT_8I=$(yq -r '.ephemeral_cluster.config.max_count_8I' $CONFIG_FILE)
-    CONFIG_MAX_COUNT_128I=$(yq -r '.ephemeral_cluster.config.max_count_128I' $CONFIG_FILE)
-    CONFIG_MAX_COUNT_192I=$(yq -r '.ephemeral_cluster.config.max_count_192I' $CONFIG_FILE)
-    CONFIG_HEADNODE_INSTANCE_TYPE=$(yq -r '.ephemeral_cluster.config.headnode_instance_type' $CONFIG_FILE)
-    CONFIG_HEARTBEAT_EMAIL=$(yq -r '.ephemeral_cluster.config.heartbeat_email // ""' $CONFIG_FILE)
-    CONFIG_HEARTBEAT_SCHEDULE=$(yq -r '.ephemeral_cluster.config.heartbeat_schedule // ""' $CONFIG_FILE)
-else
-  echo "$CONFIG_FILE file not found!"
-  sleep 1
+# Ensure the configuration file has the expected structure now that yq is available
+if ! yq -e '.ephemeral_cluster.config' "$CONFIG_FILE" >/dev/null 2>&1; then
+    echo "❌ Error: '$CONFIG_FILE' does not contain an 'ephemeral_cluster.config' section."
+    prompt_for_config_file
 fi
+
+# Load configuration values
+echo "Loading configuration from $CONFIG_FILE"
+load_config_values
+
+CONFIG_BUDGET_EMAIL=$(get_original_config_value "budget_email")
+CONFIG_ALLOWED_BUDGET_USERS=$(get_original_config_value "allowed_budget_users")
+CONFIG_BUDGET_AMOUNT=$(get_original_config_value "budget_amount")
+CONFIG_ENFORCE_BUDGET=$(get_original_config_value "enforce_budget")
+CONFIG_DELETE_LOCAL_ROOT=$(get_original_config_value "delete_local_root")
+CONFIG_AUTO_DELETE_FSX=$(get_original_config_value "auto_delete_fsx")
+CONFIG_FSX_FS_SIZE=$(get_original_config_value "fsx_fs_size")
+CONFIG_ENABLE_DETAILED_MONITORING=$(get_original_config_value "enable_detailed_monitoring")
+CONFIG_CLUSTER_TEMPLATE_YAML=$(get_original_config_value "cluster_template_yaml")
+CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY=$(get_original_config_value "spot_instance_allocation_strategy")
+CONFIG_MAX_COUNT_8I=$(get_original_config_value "max_count_8I")
+CONFIG_MAX_COUNT_128I=$(get_original_config_value "max_count_128I")
+CONFIG_MAX_COUNT_192I=$(get_original_config_value "max_count_192I")
+CONFIG_HEADNODE_INSTANCE_TYPE=$(get_original_config_value "headnode_instance_type")
+CONFIG_HEARTBEAT_EMAIL=$(get_original_config_value "heartbeat_email")
+CONFIG_HEARTBEAT_SCHEDULE=$(get_original_config_value "heartbeat_schedule")
+CONFIG_SSH_KEY_NAME=$(get_original_config_value "ssh_key_name")
+CONFIG_S3_BUCKET_NAME=$(get_original_config_value "s3_bucket_name")
+CONFIG_PUBLIC_SUBNET_ID=$(get_original_config_value "public_subnet_id")
+CONFIG_PRIVATE_SUBNET_ID=$(get_original_config_value "private_subnet_id")
+CONFIG_IAM_POLICY_ARN=$(get_original_config_value "iam_policy_arn")
+CONFIG_CLUSTER_NAME=$(get_original_config_value "cluster_name")
+CONFIG_GLOBAL_ALLOWED_BUDGET_USERS=$(get_original_config_value "global_allowed_budget_users")
+CONFIG_GLOBAL_BUDGET_AMOUNT=$(get_original_config_value "global_budget_amount")
 
 sanitize_config_var CONFIG_BUDGET_EMAIL
 sanitize_config_var CONFIG_HEARTBEAT_EMAIL
 
-echo "$CONFIG_FILE file VARS (if any):"
-echo "CONFIG_BUDGET_EMAIL: $CONFIG_BUDGET_EMAIL"
-echo "CONFIG_ALLOWED_BUDGET_USERS: $CONFIG_ALLOWED_BUDGET_USERS"
-echo "CONFIG_BUDGET_AMOUNT: $CONFIG_BUDGET_AMOUNT"
-echo "CONFIG_ENFORCE_BUDGET: $CONFIG_ENFORCE_BUDGET"
-echo "CONFIG_DELETE_LOCAL_ROOT: $CONFIG_DELETE_LOCAL_ROOT"
-echo "CONFIG_AUTO_DELETE_FSX: $CONFIG_AUTO_DELETE_FSX"
-echo "CONFIG_FSX_FS_SIZE: $CONFIG_FSX_FS_SIZE"
-echo "CONFIG_ENABLE_DETAILED_MONITORING: $CONFIG_ENABLE_DETAILED_MONITORING"
-echo "CONFIG_CLUSTER_TEMPLATE_YAML: $CONFIG_CLUSTER_TEMPLATE_YAML"
-echo "CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY: $CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY"
-echo "CONFIG_MAX_COUNT_8I: $CONFIG_MAX_COUNT_8I"
-echo "CONFIG_MAX_COUNT_128I: $CONFIG_MAX_COUNT_128I"
-echo "CONFIG_MAX_COUNT_192I: $CONFIG_MAX_COUNT_192I"
+echo "$CONFIG_FILE configuration values:"
+for key in "${CONFIG_KEYS[@]}"; do
+    echo "  $key: ${ORIGINAL_CONFIG_VALUES[$key]}"
+done
 echo "CONFIG_HEADNOD_INSTANCE_TYPE: $CONFIG_HEADNODE_INSTANCE_TYPE"
 echo "CONFIG_HEARTBEAT_EMAIL: $CONFIG_HEARTBEAT_EMAIL"
 echo "CONFIG_HEARTBEAT_SCHEDULE: $CONFIG_HEARTBEAT_SCHEDULE"
@@ -214,14 +445,37 @@ if [[ "$confirm" != "" ]]; then
     exit 3
 fi
 
-if [[ -z "$CONFIG_MAX_COUNT_8I" ]]; then
-    CONFIG_MAX_COUNT_8I=1
+if is_promptuser "$CONFIG_MAX_COUNT_8I"; then
+    prompt_for_positive_integer CONFIG_MAX_COUNT_8I "Enter the max number of 8xlarge instances to request [1]: " "1"
+    set_final_config_value "max_count_8I" "$CONFIG_MAX_COUNT_8I"
+elif [[ "$CONFIG_MAX_COUNT_8I" =~ ^[0-9]+$ ]]; then
+    set_final_config_value "max_count_8I" "$CONFIG_MAX_COUNT_8I"
+else
+    mark_config_error "max_count_8I" "$CONFIG_MAX_COUNT_8I" "expected positive integer"
+    prompt_for_positive_integer CONFIG_MAX_COUNT_8I "Enter the max number of 8xlarge instances to request [1]: " "1"
+    set_final_config_value "max_count_8I" "$CONFIG_MAX_COUNT_8I"
 fi
-if [[ -z "$CONFIG_MAX_COUNT_128I" ]]; then
-    CONFIG_MAX_COUNT_128I=1
+
+if is_promptuser "$CONFIG_MAX_COUNT_128I"; then
+    prompt_for_positive_integer CONFIG_MAX_COUNT_128I "Enter the max number of 128xlarge instances to request [1]: " "1"
+    set_final_config_value "max_count_128I" "$CONFIG_MAX_COUNT_128I"
+elif [[ "$CONFIG_MAX_COUNT_128I" =~ ^[0-9]+$ ]]; then
+    set_final_config_value "max_count_128I" "$CONFIG_MAX_COUNT_128I"
+else
+    mark_config_error "max_count_128I" "$CONFIG_MAX_COUNT_128I" "expected positive integer"
+    prompt_for_positive_integer CONFIG_MAX_COUNT_128I "Enter the max number of 128xlarge instances to request [1]: " "1"
+    set_final_config_value "max_count_128I" "$CONFIG_MAX_COUNT_128I"
 fi
-if [[ -z "$CONFIG_MAX_COUNT_192I" ]]; then
-    CONFIG_MAX_COUNT_192I=1
+
+if is_promptuser "$CONFIG_MAX_COUNT_192I"; then
+    prompt_for_positive_integer CONFIG_MAX_COUNT_192I "Enter the max number of 192xlarge instances to request [1]: " "1"
+    set_final_config_value "max_count_192I" "$CONFIG_MAX_COUNT_192I"
+elif [[ "$CONFIG_MAX_COUNT_192I" =~ ^[0-9]+$ ]]; then
+    set_final_config_value "max_count_192I" "$CONFIG_MAX_COUNT_192I"
+else
+    mark_config_error "max_count_192I" "$CONFIG_MAX_COUNT_192I" "expected positive integer"
+    prompt_for_positive_integer CONFIG_MAX_COUNT_192I "Enter the max number of 192xlarge instances to request [1]: " "1"
+    set_final_config_value "max_count_192I" "$CONFIG_MAX_COUNT_192I"
 fi
 
 # Extract the last character
@@ -528,37 +782,56 @@ done <<< "$key_data"
 # Present valid keys to the user
 echo "Available ED25519 keys with matching PEM files:"
 valid_keys=()
+declare -A KEY_PEM_PATH_MAP=()
+declare -A KEY_DISPLAY_MAP=()
 index=1
 for key_info in "${filtered_keys[@]}"; do
     IFS='|' read -r key_name key_type pem_status pem_file <<< "$key_info"
     if [[ $pem_status == "✅ pem - FOUND" ]]; then
         valid_keys+=("$key_name")
-        echo "[$index] Key: $key_name | Type: $key_type | PEM: $pem_status"
+        KEY_PEM_PATH_MAP["$key_name"]="$pem_file"
+        KEY_DISPLAY_MAP["$key_name"]="Key: $key_name | Type: $key_type | PEM: $pem_status"
+        echo "[$index] ${KEY_DISPLAY_MAP[$key_name]}"
         ((index++))
     fi
 done
 echo ""
 
-# Check if no valid keys were found
 if [[ ${#valid_keys[@]} -eq 0 ]]; then
     echo "❌ No valid ED25519 keys with matching PEM files were found."
     echo "Please ensure the required keys are available in the $HOME/.ssh directory AND that the keypair name includes 'omics' in the name."
     exit 3
 fi
-# Present valid keys to the user using 'select'
-echo "Select a valid ED25519 key with a matching PEM file:"
-PS3="Enter the corresponding number: "
-select key_info in "${filtered_keys[@]}"; do
-    if [[ -n "$key_info" ]]; then
-        # Extract the key name from the selected item
-        selected_key=$(echo "$key_info" | awk -F'|' '{print $1}')
-        echo "You selected: $selected_key"
-        break
-    else
-        echo "Invalid selection. Please try again."
-    fi
-done
 
+selected_key=""
+
+if [[ ${#valid_keys[@]} -eq 1 ]]; then
+    selected_key="${valid_keys[0]}"
+    echo "ℹ️ Only one valid key found. Automatically selecting: $selected_key"
+elif ! is_promptuser "$CONFIG_SSH_KEY_NAME" && [[ -n "$CONFIG_SSH_KEY_NAME" ]]; then
+    if [[ -n "${KEY_PEM_PATH_MAP[$CONFIG_SSH_KEY_NAME]}" ]]; then
+        selected_key="$CONFIG_SSH_KEY_NAME"
+        echo "✅ Using SSH key from configuration: $selected_key"
+    else
+        mark_config_error "ssh_key_name" "$CONFIG_SSH_KEY_NAME" "key not found in region or PEM missing"
+        echo "⚠️ Configured SSH key '$CONFIG_SSH_KEY_NAME' is not available. Please choose from detected keys."
+    fi
+fi
+
+if [[ -z "$selected_key" ]]; then
+    echo "Select a valid ED25519 key with a matching PEM file:"
+    select key_choice in "${valid_keys[@]}"; do
+        if [[ -n "$key_choice" ]]; then
+            selected_key="$key_choice"
+            echo "You selected: $selected_key"
+            break
+        else
+            echo "Invalid selection. Please try again."
+        fi
+    done
+fi
+
+set_final_config_value "ssh_key_name" "$selected_key"
 echo ""
 
 # Proceed with further operations using the selected key
@@ -616,14 +889,49 @@ if [[ ${#matching_buckets[@]} -eq 0 ]]; then
     exit 3
 fi
 
-echo "Select a matching S3 bucket:"
-select bucket_choice in "${matching_buckets[@]}"; do
-    selected_bucket=$(echo "$bucket_choice" | awk '{print $1}')
-    echo "✅ You selected: $selected_bucket"
-    break
+bucket_choice=""
+selected_bucket=""
+declare -a bucket_names=()
+for entry in "${matching_buckets[@]}"; do
+    bucket_names+=("$(echo "$entry" | awk '{print $1}')")
 done
 
-bucket=$(echo $bucket_choice | cut -f 1 -d " " )
+if [[ ${#matching_buckets[@]} -eq 1 ]]; then
+    bucket_choice="${matching_buckets[0]}"
+    selected_bucket="${bucket_names[0]}"
+    echo "ℹ️ Only one matching bucket found. Automatically selecting: $selected_bucket"
+elif ! is_promptuser "$CONFIG_S3_BUCKET_NAME" && [[ -n "$CONFIG_S3_BUCKET_NAME" ]]; then
+    for entry in "${matching_buckets[@]}"; do
+        current_bucket=$(echo "$entry" | awk '{print $1}')
+        if [[ "$current_bucket" == "$CONFIG_S3_BUCKET_NAME" ]]; then
+            bucket_choice="$entry"
+            selected_bucket="$current_bucket"
+            echo "✅ Using S3 bucket from configuration: $selected_bucket"
+            break
+        fi
+    done
+    if [[ -z "$selected_bucket" ]]; then
+        mark_config_error "s3_bucket_name" "$CONFIG_S3_BUCKET_NAME" "bucket not found in selected region"
+        echo "⚠️ Configured S3 bucket '$CONFIG_S3_BUCKET_NAME' was not found. Please choose from detected buckets."
+    fi
+fi
+
+if [[ -z "$selected_bucket" ]]; then
+    echo "Select a matching S3 bucket:"
+    select choice in "${matching_buckets[@]}"; do
+        if [[ -n "$choice" ]]; then
+            bucket_choice="$choice"
+            selected_bucket=$(echo "$choice" | awk '{print $1}')
+            echo "✅ You selected: $selected_bucket"
+            break
+        else
+            echo "Invalid selection. Please try again."
+        fi
+    done
+fi
+
+bucket=$(echo "$selected_bucket" )
+set_final_config_value "s3_bucket_name" "$selected_bucket"
 
 
 # Check if the required folders exist in the bucket
@@ -689,47 +997,132 @@ echo ""
 public_subnets_new=$(aws ec2 describe-subnets --query "Subnets[*].[SubnetId, Tags[?Key=='Name'].Value | [0], AvailabilityZone]" --region "$region" --output text  --profile $AWS_PROFILE | grep "Public Subnet" | grep $region_az)
 echo "Select a Public Subnet (todo: move to selecting VPC first, then filtering options w/in VPC for pub/priv subs):"
 public_subnet_choices=()
+public_subnet_ids=()
 while read -r subnet_id subnet_name; do
     public_subnet_choices+=("$subnet_name ($subnet_id)")
+    public_subnet_ids+=("$subnet_id")
 done <<< "$public_subnets_new"
 echo ""
 
-select public_subnet_choice in "${public_subnet_choices[@]}"; do
-    public_subnet=$(echo "$public_subnet_choice" | sed -n 's/.*(\(.*\)).*/\1/p')
-    echo "✅ You selected Public Subnet: $public_subnet"
-    break
-done
+public_subnet=""
+if [[ ${#public_subnet_choices[@]} -eq 1 ]]; then
+    public_subnet_choice="${public_subnet_choices[0]}"
+    public_subnet="${public_subnet_ids[0]}"
+    echo "ℹ️ Only one public subnet found. Automatically selecting: $public_subnet"
+elif ! is_promptuser "$CONFIG_PUBLIC_SUBNET_ID" && [[ -n "$CONFIG_PUBLIC_SUBNET_ID" ]]; then
+    for idx in "${!public_subnet_ids[@]}"; do
+        if [[ "${public_subnet_ids[$idx]}" == "$CONFIG_PUBLIC_SUBNET_ID" ]]; then
+            public_subnet_choice="${public_subnet_choices[$idx]}"
+            public_subnet="$CONFIG_PUBLIC_SUBNET_ID"
+            echo "✅ Using public subnet from configuration: $public_subnet"
+            break
+        fi
+    done
+    if [[ -z "$public_subnet" ]]; then
+        mark_config_error "public_subnet_id" "$CONFIG_PUBLIC_SUBNET_ID" "public subnet not found in AZ"
+        echo "⚠️ Configured public subnet '$CONFIG_PUBLIC_SUBNET_ID' not found. Please choose from detected subnets."
+    fi
+fi
+
+if [[ -z "$public_subnet" ]]; then
+    select public_subnet_choice in "${public_subnet_choices[@]}"; do
+        if [[ -n "$public_subnet_choice" ]]; then
+            public_subnet=$(echo "$public_subnet_choice" | sed -n 's/.*(\(.*\)).*/\1/p')
+            echo "✅ You selected Public Subnet: $public_subnet"
+            break
+        else
+            echo "Invalid selection. Please try again."
+        fi
+    done
+fi
+set_final_config_value "public_subnet_id" "$public_subnet"
 echo ""
 
 echo "Select a Private Subnet (in same vpc as public):"
 private_subnets_new=$(aws ec2 describe-subnets --query "Subnets[*].[SubnetId, Tags[?Key=='Name'].Value | [0], AvailabilityZone]" --region "$region" --output text  --profile $AWS_PROFILE | grep "Private Subnet" | grep $region_az)
 private_subnet_choices=()
+private_subnet_ids=()
 while read -r subnet_id subnet_name; do
     private_subnet_choices+=("$subnet_name ($subnet_id)")
+    private_subnet_ids+=("$subnet_id")
 done <<< "$private_subnets_new"
 echo ""
 
-select private_subnet_choice in "${private_subnet_choices[@]}"; do
-    private_subnet=$(echo "$private_subnet_choice" | sed -n 's/.*(\(.*\)).*/\1/p')
-    echo "✅ You selected Private Subnet: $private_subnet"
-    break
-done
+private_subnet=""
+if [[ ${#private_subnet_choices[@]} -eq 1 ]]; then
+    private_subnet_choice="${private_subnet_choices[0]}"
+    private_subnet="${private_subnet_ids[0]}"
+    echo "ℹ️ Only one private subnet found. Automatically selecting: $private_subnet"
+elif ! is_promptuser "$CONFIG_PRIVATE_SUBNET_ID" && [[ -n "$CONFIG_PRIVATE_SUBNET_ID" ]]; then
+    for idx in "${!private_subnet_ids[@]}"; do
+        if [[ "${private_subnet_ids[$idx]}" == "$CONFIG_PRIVATE_SUBNET_ID" ]]; then
+            private_subnet_choice="${private_subnet_choices[$idx]}"
+            private_subnet="$CONFIG_PRIVATE_SUBNET_ID"
+            echo "✅ Using private subnet from configuration: $private_subnet"
+            break
+        fi
+    done
+    if [[ -z "$private_subnet" ]]; then
+        mark_config_error "private_subnet_id" "$CONFIG_PRIVATE_SUBNET_ID" "private subnet not found in AZ"
+        echo "⚠️ Configured private subnet '$CONFIG_PRIVATE_SUBNET_ID' not found. Please choose from detected subnets."
+    fi
+fi
+
+if [[ -z "$private_subnet" ]]; then
+    select private_subnet_choice in "${private_subnet_choices[@]}"; do
+        if [[ -n "$private_subnet_choice" ]]; then
+            private_subnet=$(echo "$private_subnet_choice" | sed -n 's/.*(\(.*\)).*/\1/p')
+            echo "✅ You selected Private Subnet: $private_subnet"
+            break
+        else
+            echo "Invalid selection. Please try again."
+        fi
+    done
+fi
+
+set_final_config_value "private_subnet_id" "$private_subnet"
 
 
 echo ""
 # Select an IAM policy ARN for 'pclusterTagsAndBudget'
 policy_arns=($(aws iam list-policies --query 'Policies[?PolicyName==`pclusterTagsAndBudget`].Arn' --output text --region "$region" --profile $AWS_PROFILE ))
 echo "Select an IAM policy ARN for 'pclusterTagsAndBudget':"
-select arn_policy_id in "${policy_arns[@]}"; do
-    echo "✅ You selected: $arn_policy_id"
-    break
-done
+arn_policy_id=""
+if [[ ${#policy_arns[@]} -eq 1 ]]; then
+    arn_policy_id="${policy_arns[0]}"
+    echo "ℹ️ Only one IAM policy ARN found. Automatically selecting: $arn_policy_id"
+elif ! is_promptuser "$CONFIG_IAM_POLICY_ARN" && [[ -n "$CONFIG_IAM_POLICY_ARN" ]]; then
+    for policy in "${policy_arns[@]}"; do
+        if [[ "$policy" == "$CONFIG_IAM_POLICY_ARN" ]]; then
+            arn_policy_id="$policy"
+            echo "✅ Using IAM policy ARN from configuration."
+            break
+        fi
+    done
+    if [[ -z "$arn_policy_id" ]]; then
+        mark_config_error "iam_policy_arn" "$CONFIG_IAM_POLICY_ARN" "policy ARN not found"
+        echo "⚠️ Configured IAM policy ARN '$CONFIG_IAM_POLICY_ARN' not found. Please choose from detected policies."
+    fi
+fi
+
+if [[ -z "$arn_policy_id" ]]; then
+    select arn_policy_choice in "${policy_arns[@]}"; do
+        if [[ -n "$arn_policy_choice" ]]; then
+            arn_policy_id="$arn_policy_choice"
+            echo "✅ You selected: $arn_policy_id"
+            break
+        else
+            echo "Invalid selection. Please try again."
+        fi
+    done
+fi
 echo ""
 
 if [[ -z "$arn_policy_id" ]]; then
     echo "❌ Error: No IAM policy ARN selected. Exiting."
     exit 3
 fi
+set_final_config_value "iam_policy_arn" "$arn_policy_id"
 
 echo ""
 
@@ -743,7 +1136,18 @@ validate_cluster_name() {
 }
 
 # Prompt user for cluster name in a loop until valid input is given
-while true; do
+cluster_name=""
+if ! is_promptuser "$CONFIG_CLUSTER_NAME" && [[ -n "$CONFIG_CLUSTER_NAME" ]]; then
+    if validate_cluster_name "$CONFIG_CLUSTER_NAME"; then
+        cluster_name="$CONFIG_CLUSTER_NAME"
+        echo "✅ Using cluster name from configuration: $cluster_name"
+    else
+        mark_config_error "cluster_name" "$CONFIG_CLUSTER_NAME" "invalid cluster name"
+        echo "⚠️ Configured cluster name '$CONFIG_CLUSTER_NAME' is invalid."
+    fi
+fi
+
+while [[ -z "$cluster_name" ]]; do
     read -rp "Enter the name for your cluster (alphanumeric and '-', max 25 chars): " cluster_name
 
     if validate_cluster_name "$cluster_name"; then
@@ -752,26 +1156,34 @@ while true; do
     else
         echo "❌ Error: Invalid cluster name."
         echo "   ➜ The name must be alphanumeric, may include '-', and be 25 characters or fewer."
+        cluster_name=""
     fi
 done
+set_final_config_value "cluster_name" "$cluster_name"
 
 # Default Budget Check
 
 # Function to prompt for email
 budget_email=""
-if [[ -n "$CONFIG_BUDGET_EMAIL" && "$CONFIG_BUDGET_EMAIL" != "ENTEREMAIL" ]]; then
+if ! is_promptuser "$CONFIG_BUDGET_EMAIL" && [[ -n "$CONFIG_BUDGET_EMAIL" ]]; then
     if is_valid_email "$CONFIG_BUDGET_EMAIL"; then
         budget_email="$CONFIG_BUDGET_EMAIL"
         echo "✅ Using budget email from configuration: $budget_email"
+        set_final_config_value "budget_email" "$budget_email"
     else
         echo "❌ Error: Configured budget email '$CONFIG_BUDGET_EMAIL' is not a valid email address."
         echo "   ➜ Update $CONFIG_FILE with a valid email address or remove the value to be prompted interactively."
-        exit 3
+        mark_config_error "budget_email" "$CONFIG_BUDGET_EMAIL" "invalid email"
     fi
 else
     echo ""
     prompt_for_valid_email budget_email "Enter an email address to send budget alerts to: "
 fi
+
+if [[ -z "$budget_email" ]]; then
+    prompt_for_valid_email budget_email "Enter an email address to send budget alerts to: "
+fi
+set_final_config_value "budget_email" "$budget_email"
 
 echo ""
 # CLuster Budget Check
@@ -787,12 +1199,36 @@ global_budget_exists=$(aws budgets describe-budgets \
 if [[ -z "$global_budget_exists" || "$global_budget_exists" == "None" ]]; then
     echo "Budget '$global_budget_name' not found."
 
-    echo -n "Enter csv string of allowed user names for budget (ubuntu is allowed for all budgets):"
-    read gallowed_users
+    if ! is_promptuser "$CONFIG_GLOBAL_ALLOWED_BUDGET_USERS" && [[ -n "$CONFIG_GLOBAL_ALLOWED_BUDGET_USERS" ]]; then
+        gallowed_users="$CONFIG_GLOBAL_ALLOWED_BUDGET_USERS"
+        echo "✅ Using global allowed budget users from configuration: $gallowed_users"
+    else
+        echo -n "Enter csv string of allowed user names for budget (ubuntu is allowed for all budgets):"
+        read gallowed_users
+    fi
+    set_final_config_value "global_allowed_budget_users" "$gallowed_users"
 
-    echo -n "Enter a budget amount (default: 300): "
-    read gamount
-    gamount=${gamount:-200}
+    gamount=""
+    if ! is_promptuser "$CONFIG_GLOBAL_BUDGET_AMOUNT" && [[ -n "$CONFIG_GLOBAL_BUDGET_AMOUNT" ]]; then
+        if [[ "$CONFIG_GLOBAL_BUDGET_AMOUNT" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+            gamount="$CONFIG_GLOBAL_BUDGET_AMOUNT"
+            echo "✅ Using global budget amount from configuration: $gamount"
+        else
+            mark_config_error "global_budget_amount" "$CONFIG_GLOBAL_BUDGET_AMOUNT" "expected numeric amount"
+            echo "⚠️ Configured global budget amount '$CONFIG_GLOBAL_BUDGET_AMOUNT' is invalid."
+        fi
+    fi
+
+    while [[ -z "$gamount" ]]; do
+        echo -n "Enter a budget amount (default: 200): "
+        read gamount
+        gamount=${gamount:-200}
+        if [[ ! "$gamount" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "Please enter a numeric budget amount."
+            gamount=""
+        fi
+    done
+    set_final_config_value "global_budget_amount" "$gamount"
 
     echo "Creating the budget..."
     echo "bin/create_budget.sh -p $global_budget_name -r $region -t 25,50,75,99 -e $budget_email -a $gamount -c $cluster_name -z $region_az -b $bucket_url  -u $gallowed_users "
@@ -824,21 +1260,36 @@ if [[ -z "$budget_exists" || "$budget_exists" == "None" ]]; then
     echo "Budget '$budget_name' not found."
 
     allowed_users=""
-    if [[ -n "$CONFIG_ALLOWED_BUDGET_USERS" ]]; then
+    if ! is_promptuser "$CONFIG_ALLOWED_BUDGET_USERS" && [[ -n "$CONFIG_ALLOWED_BUDGET_USERS" ]]; then
         allowed_users="$CONFIG_ALLOWED_BUDGET_USERS"
-    else        
+        echo "✅ Using cluster budget allowed users from configuration: $allowed_users"
+    else
         echo -n "Enter csv string of allowed user names for budget (ubuntu is allowed for all budgets):"
         read allowed_users
     fi
+    set_final_config_value "allowed_budget_users" "$allowed_users"
 
-    amount="200"
-    if [[ -n "$CONFIG_BUDGET_AMOUNT" ]]; then
-        amount="$CONFIG_BUDGET_AMOUNT"
-    else
+    amount=""
+    if ! is_promptuser "$CONFIG_BUDGET_AMOUNT" && [[ -n "$CONFIG_BUDGET_AMOUNT" ]]; then
+        if [[ "$CONFIG_BUDGET_AMOUNT" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+            amount="$CONFIG_BUDGET_AMOUNT"
+            echo "✅ Using cluster budget amount from configuration: $amount"
+        else
+            mark_config_error "budget_amount" "$CONFIG_BUDGET_AMOUNT" "expected numeric amount"
+            echo "⚠️ Configured cluster budget amount '$CONFIG_BUDGET_AMOUNT' is invalid."
+        fi
+    fi
+
+    while [[ -z "$amount" ]]; do
         echo -n "Enter a budget amount (default: 200): "
         read amount
-        amount=${gamount:-200}
-    fi
+        amount=${amount:-200}
+        if [[ ! "$amount" =~ ^[0-9]+(\.[0-9]+)?$ ]]; then
+            echo "Please enter a numeric budget amount."
+            amount=""
+        fi
+    done
+    set_final_config_value "budget_amount" "$amount"
 
     echo "Creating the budget..."
     echo "bin/create_budget.sh -p $budget_name -r $region -t 75 -e $budget_email -a $amount -c $cluster_name -z $region_az -b $bucket_url  -u $allowed_users "
@@ -857,9 +1308,18 @@ echo ""
 
 # Budget enforcement
 enforce_budget_opt="false"
-if [[ -n "$CONFIG_ENFORCE_BUDGET" ]]; then
-    enforce_budget_opt="$CONFIG_ENFORCE_BUDGET"
-else
+if ! is_promptuser "$CONFIG_ENFORCE_BUDGET" && [[ -n "$CONFIG_ENFORCE_BUDGET" ]]; then
+    if [[ "$CONFIG_ENFORCE_BUDGET" == "enforce" || "$CONFIG_ENFORCE_BUDGET" == "skip" ]]; then
+        enforce_budget_opt="$CONFIG_ENFORCE_BUDGET"
+        echo "✅ Using enforce budget setting from configuration: $enforce_budget_opt"
+    else
+        mark_config_error "enforce_budget" "$CONFIG_ENFORCE_BUDGET" "expected 'enforce' or 'skip'"
+        echo "⚠️ Configured enforce budget value '$CONFIG_ENFORCE_BUDGET' is invalid."
+        enforce_budget_opt=""
+    fi
+fi
+
+if [[ -z "$enforce_budget_opt" ]]; then
     echo "Enforce budget for the cluster? (1) No (2) Yes:"
     echo "if enforced, new jobs will be blocked if the budget is exceeded, but the cluster will continue to run until you shut it down."
     select enforce_budget in "No" "Yes"; do
@@ -872,24 +1332,34 @@ else
     done
     echo ""
 fi
+set_final_config_value "enforce_budget" "$enforce_budget_opt"
 
 # Cluster config file input
 cluster_yaml=""
-if [[ -n "$CONFIG_CLUSTER_TEMPLATE_YAML" ]]; then
-    cluster_yaml="$CONFIG_CLUSTER_TEMPLATE_YAML"
-else
+if ! is_promptuser "$CONFIG_CLUSTER_TEMPLATE_YAML" && [[ -n "$CONFIG_CLUSTER_TEMPLATE_YAML" ]]; then
+    if [[ -f "$CONFIG_CLUSTER_TEMPLATE_YAML" ]]; then
+        cluster_yaml="$CONFIG_CLUSTER_TEMPLATE_YAML"
+        echo "✅ Using cluster template YAML from configuration: $cluster_yaml"
+    else
+        mark_config_error "cluster_template_yaml" "$CONFIG_CLUSTER_TEMPLATE_YAML" "file not found"
+        echo "⚠️ Configured cluster template YAML '$CONFIG_CLUSTER_TEMPLATE_YAML' does not exist."
+    fi
+fi
 
+while [[ -z "$cluster_yaml" ]]; do
     echo -n "Enter the path to the Daylily cluster config YAML file [press Enter to use default 'config/day_cluster/prod_cluster.yaml']: "
     read cluster_yaml
 
     if [[ -z "$cluster_yaml" ]]; then
         cluster_yaml="config/day_cluster/prod_cluster.yaml"
-    fi    
-fi
-if [[ ! -f "$cluster_yaml" ]]; then
+    fi
+
+    if [[ ! -f "$cluster_yaml" ]]; then
         echo "❌ Error: YAML file '$cluster_yaml' does not exist."
-        exit 3
-    fi 
+        cluster_yaml=""
+    fi
+done
+set_final_config_value "cluster_template_yaml" "$cluster_yaml"
 echo "✅ Using cluster template yaml: $cluster_yaml"
 
 echo ""
@@ -925,8 +1395,9 @@ echo ""
 
 echo "Choose the headnode instance type (tested with r7i.2xlarge & should be of the same family to be safe):"
 
-if [[ -n "$CONFIG_HEADNODE_INSTANCE_TYPE" ]]; then
+if ! is_promptuser "$CONFIG_HEADNODE_INSTANCE_TYPE" && [[ -n "$CONFIG_HEADNODE_INSTANCE_TYPE" ]]; then
     sel_headnode_type="$CONFIG_HEADNODE_INSTANCE_TYPE"
+    echo "✅ Using headnode instance type from configuration: $sel_headnode_type"
 else
     headnode_options="r7i.2xlarge r7i.4xlarge r7i.8xlarge r7i.16xlarge"
     # Define select loop
@@ -938,14 +1409,24 @@ else
     echo "Headnode instance type: $sel_headnode_type"
     echo ""
 fi
+set_final_config_value "headnode_instance_type" "$sel_headnode_type"
 
 echo ""
 echo "Choose the FSX Lustre File System Size (tested with 4800):"
 
 sel_fsx_size="4800"
-if [[ -n "$CONFIG_FSX_FS_SIZE" ]]; then
-    sel_fsx_size="$CONFIG_FSX_FS_SIZE"
-else
+if ! is_promptuser "$CONFIG_FSX_FS_SIZE" && [[ -n "$CONFIG_FSX_FS_SIZE" ]]; then
+    if [[ "$CONFIG_FSX_FS_SIZE" =~ ^[0-9]+$ ]]; then
+        sel_fsx_size="$CONFIG_FSX_FS_SIZE"
+        echo "✅ Using FSX size from configuration: $sel_fsx_size"
+    else
+        mark_config_error "fsx_fs_size" "$CONFIG_FSX_FS_SIZE" "expected positive integer"
+        echo "⚠️ Configured FSX size '$CONFIG_FSX_FS_SIZE' is invalid."
+        sel_fsx_size=""
+    fi
+fi
+
+if [[ -z "$sel_fsx_size" ]]; then
     fsx_options="4800 7200"
     # Define select loop
     select fsx_size in $fsx_options; do
@@ -956,27 +1437,30 @@ else
     echo "FSX Lustre File System Size: $sel_fsx_size"
     echo ""
 fi
+set_final_config_value "fsx_fs_size" "$sel_fsx_size"
 echo "✅ FSX Lustre File System Size: $sel_fsx_size"
 echo ""
 
 # Enable detailed monitoring
 act_detailed_monitoring=false
-if [[ -n "$CONFIG_ENABLE_DETAILED_MONITORING" ]]; then
-    if [[ "$CONFIG_ENABLE_DETAILED_MONITORING" == "true" ]]; then
-        act_detailed_monitoring="true"
-    elif [[ "$CONFIG_ENABLE_DETAILED_MONITORING" == "false" ]]; then
-        act_detailed_monitoring="false"
+if ! is_promptuser "$CONFIG_ENABLE_DETAILED_MONITORING" && [[ -n "$CONFIG_ENABLE_DETAILED_MONITORING" ]]; then
+    if [[ "$CONFIG_ENABLE_DETAILED_MONITORING" == "true" || "$CONFIG_ENABLE_DETAILED_MONITORING" == "false" ]]; then
+        act_detailed_monitoring="$CONFIG_ENABLE_DETAILED_MONITORING"
+        echo "✅ Using detailed monitoring setting from configuration: $act_detailed_monitoring"
     else
-        echo "❌ Error: Invalid value for CONFIG_DETAILED_MONITORING. Expected 'true' or 'false'."
-        exit 3
+        mark_config_error "enable_detailed_monitoring" "$CONFIG_ENABLE_DETAILED_MONITORING" "expected 'true' or 'false'"
+        echo "⚠️ Configured detailed monitoring value '$CONFIG_ENABLE_DETAILED_MONITORING' is invalid."
+        act_detailed_monitoring=""
     fi
-else
+fi
+
+if [[ -z "$act_detailed_monitoring" ]]; then
     echo "Enable detailed monitoring (yes == incurs addl cost)? (1) No (2) Yes:"
     det_mon_options="No Yes"
     select detailed_monitoring in $det_mon_options; do
         sel_detailed_monitoring=$(echo $detailed_monitoring | awk '{print $1}')
         echo "You selected detailed monitoring: $sel_detailed_monitoring"
-        if [[ "$act_detailed_monitoring" == "Yes" ]]; then
+        if [[ "$sel_detailed_monitoring" == "Yes" ]]; then
             act_detailed_monitoring="true"
         else
             act_detailed_monitoring="false"
@@ -984,6 +1468,7 @@ else
         break
     done
 fi
+set_final_config_value "enable_detailed_monitoring" "$act_detailed_monitoring"
 echo "✅ Detailed monitoring enabled?: $act_detailed_monitoring"
 echo ""
 
@@ -1000,56 +1485,45 @@ pem_name=$(basename "$pem_file" | cut -d '.' -f 1)
 # capture 'true' or 'false' for delete_local_root
 # if CONFIG_DELETE_LOCAL_ROOT is set, use that value
 delete_local_root=true
-if [[ -n "$CONFIG_DELETE_LOCAL_ROOT" ]]; then
-    if [[ "$CONFIG_DELETE_LOCAL_ROOT" == "true" ]]; then
-        delete_local_root="true"
-    elif [[ "$CONFIG_DELETE_LOCAL_ROOT" == "false" ]]; then
-        delete_local_root="false"
+if ! is_promptuser "$CONFIG_DELETE_LOCAL_ROOT" && [[ -n "$CONFIG_DELETE_LOCAL_ROOT" ]]; then
+    if [[ "$CONFIG_DELETE_LOCAL_ROOT" == "true" || "$CONFIG_DELETE_LOCAL_ROOT" == "false" ]]; then
+        delete_local_root="$CONFIG_DELETE_LOCAL_ROOT"
+        echo "✅ Using delete local root setting from configuration: $delete_local_root"
     else
-        echo "❌ Error: Invalid value for CONFIG_DELETE_LOCAL_ROOT. Expected 'true' or 'false'."
-        exit 3
-    fi
-else
-
-    echo "Delete local root volume on termination? (1) No (2) Yes:"
-
-    delete_local_root="true"
-    if [[ -n "$CONFIG_DELETE_LOCAL_ROOT" ]]; then
-        if [[ "$CONFIG_DELETE_LOCAL_ROOT" == "true" ]]; then
-            delete_local_root="true"
-        elif [[ "$CONFIG_DELETE_LOCAL_ROOT" == "false" ]]; then
-            delete_local_root="false"
-        else
-            echo "❌ Error: Invalid value for CONFIG_DELETE_LOCAL_ROOT. Expected 'true' or 'false'."
-            exit 3
-        fi
-    else
-        select delete_local_root in "No" "Yes"; do
-            if [[ "$delete_local_root" == "Yes" ]]; then
-                delete_local_root="true"
-            else
-                delete_local_root="false"
-            fi
-            break
-        done
+        mark_config_error "delete_local_root" "$CONFIG_DELETE_LOCAL_ROOT" "expected 'true' or 'false'"
+        echo "⚠️ Configured delete local root value '$CONFIG_DELETE_LOCAL_ROOT' is invalid."
     fi
 fi
+
+if [[ "$delete_local_root" != "true" && "$delete_local_root" != "false" ]]; then
+    echo "Delete local root volume on termination? (1) No (2) Yes:"
+    select delete_local_root_choice in "No" "Yes"; do
+        if [[ "$delete_local_root_choice" == "Yes" ]]; then
+            delete_local_root="true"
+        else
+            delete_local_root="false"
+        fi
+        break
+    done
+fi
+set_final_config_value "delete_local_root" "$delete_local_root"
 echo "✅ Delete local root volume on termination?: $delete_local_root"
 
 # Retailn or delete the FSx Lustre file system
 save_fsx="Delete"
-if [[ -n "$CONFIG_AUTO_DELETE_FSX" ]]; then
-    if [[ "$CONFIG_AUTO_DELETE_FSX" == "Retain" ]]; then
-        save_fsx="Retain"
-    elif [[ "$CONFIG_AUTO_DELETE_FSX" == "Delete" ]]; then
-        save_fsx="Delete"
+if ! is_promptuser "$CONFIG_AUTO_DELETE_FSX" && [[ -n "$CONFIG_AUTO_DELETE_FSX" ]]; then
+    if [[ "$CONFIG_AUTO_DELETE_FSX" == "Retain" || "$CONFIG_AUTO_DELETE_FSX" == "Delete" ]]; then
+        save_fsx="$CONFIG_AUTO_DELETE_FSX"
+        echo "✅ Using FSx retention setting from configuration: $save_fsx"
     else
-        echo "❌ Error: Invalid value for CONFIG_AUTO_DELETE_FSX. Expected 'Retain' or 'Delete'."
-        exit 3
+        mark_config_error "auto_delete_fsx" "$CONFIG_AUTO_DELETE_FSX" "expected 'Retain' or 'Delete'"
+        echo "⚠️ Configured FSx retention setting '$CONFIG_AUTO_DELETE_FSX' is invalid."
     fi
-else
+fi
+
+if [[ "$save_fsx" != "Retain" && "$save_fsx" != "Delete" ]]; then
     echo "Retain or delete the FSx Lustre file system on cluster [update|termination]? (1) Retain (2) Delete:"
-   
+
     echo "[Retain|Delete] FSx Lustre file system on custer [update|termination]? (1) Retain (2) Delete:"
     select save_fsx in "Retain" "Delete"; do
         if [[ "$save_fsx" == "Delete" ]]; then
@@ -1060,14 +1534,22 @@ else
         break
     done
 fi
+set_final_config_value "auto_delete_fsx" "$save_fsx"
 echo "✅ Retain or delete the FSx Lustre file system on cluster [update|termination]?: $save_fsx"
 echo ""
 
 heartbeat_email=""
 heartbeat_schedule=""
 
-if [[ -n "$CONFIG_HEARTBEAT_EMAIL" ]]; then
-    heartbeat_email="$CONFIG_HEARTBEAT_EMAIL"
+if ! is_promptuser "$CONFIG_HEARTBEAT_EMAIL" && [[ -n "$CONFIG_HEARTBEAT_EMAIL" ]]; then
+    if is_valid_email "$CONFIG_HEARTBEAT_EMAIL"; then
+        heartbeat_email="$CONFIG_HEARTBEAT_EMAIL"
+        echo "✅ Using heartbeat email from configuration: $heartbeat_email"
+    else
+        mark_config_error "heartbeat_email" "$CONFIG_HEARTBEAT_EMAIL" "invalid email"
+        echo "⚠️ Configured heartbeat email '$CONFIG_HEARTBEAT_EMAIL' is invalid."
+        heartbeat_email=""
+    fi
 else
     read -p "Enter an email to receive heartbeat notifications for this cluster (leave blank to skip): " heartbeat_email
 fi
@@ -1084,8 +1566,15 @@ fi
 
 if [[ -n "$heartbeat_email" ]]; then
     default_schedule="rate(60 minutes)"
-    if [[ -n "$CONFIG_HEARTBEAT_SCHEDULE" ]]; then
-        heartbeat_schedule="$CONFIG_HEARTBEAT_SCHEDULE"
+    if ! is_promptuser "$CONFIG_HEARTBEAT_SCHEDULE" && [[ -n "$CONFIG_HEARTBEAT_SCHEDULE" ]]; then
+        if [[ "$CONFIG_HEARTBEAT_SCHEDULE" =~ ^(rate|cron)\(.+\)$ ]]; then
+            heartbeat_schedule="$CONFIG_HEARTBEAT_SCHEDULE"
+            echo "✅ Using heartbeat schedule from configuration: $heartbeat_schedule"
+        else
+            mark_config_error "heartbeat_schedule" "$CONFIG_HEARTBEAT_SCHEDULE" "invalid EventBridge expression"
+            echo "⚠️ Configured heartbeat schedule '$CONFIG_HEARTBEAT_SCHEDULE' is invalid."
+            heartbeat_schedule=""
+        fi
     else
         read -p "Enter an EventBridge Scheduler expression for notifications [rate(60 minutes)]: " heartbeat_schedule
         if [[ -z "$heartbeat_schedule" ]]; then
@@ -1104,48 +1593,61 @@ else
     echo "ℹ️ Cluster heartbeat email notifications will be skipped."
 fi
 
+if [[ -n "$heartbeat_email" ]]; then
+    set_final_config_value "heartbeat_email" "$heartbeat_email"
+else
+    set_final_config_value "heartbeat_email" ""
+fi
+if [[ -n "$heartbeat_schedule" ]]; then
+    set_final_config_value "heartbeat_schedule" "$heartbeat_schedule"
+else
+    set_final_config_value "heartbeat_schedule" ""
+fi
+
 allocation_strategy=""
-if [[ -n "$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY" ]]; then
+if ! is_promptuser "$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY" && [[ -n "$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY" ]]; then
     if [[ "$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY" == "price-capacity-optimized" || "$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY" == "capacity-optimized" || "$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY" == "lowest-price" ]]; then
         allocation_strategy="$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY"
+        echo "✅ Using allocation strategy from configuration: $allocation_strategy"
     else
-        echo "❌ Error: Invalid value for CONFIG_ALLOCATION_STRATEGY. Expected 'price-capacity-optimized', 'capacity-optimized', or 'lowest-price'."
-        exit 3
+        mark_config_error "spot_instance_allocation_strategy" "$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY" "expected price-capacity-optimized, capacity-optimized, or lowest-price"
+        echo "⚠️ Configured allocation strategy '$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY' is invalid."
     fi
-else
+fi
 
+if [[ -z "$allocation_strategy" ]]; then
     # Loop until we get a valid selection or user presses Enter
     while true; do
-    echo "Select A Spot Instance Allocation Strategy:"
-    echo "1) price-capacity-optimized (default, balance of lowest-cost + capacity optimized placement)"
-    echo "2) capacity-optimized (more expensive, fewer disruptions)"
-    echo "3) lowest-price (potentially more disruptions)"
-    echo -n "Enter selection [1]: "
-    read user_choice
+        echo "Select A Spot Instance Allocation Strategy:"
+        echo "1) price-capacity-optimized (default, balance of lowest-cost + capacity optimized placement)"
+        echo "2) capacity-optimized (more expensive, fewer disruptions)"
+        echo "3) lowest-price (potentially more disruptions)"
+        echo -n "Enter selection [1]: "
+        read user_choice
 
-    case "$user_choice" in
-        ""|1)
-        # Default or user entered 1
-        allocation_strategy="price-capacity-optimized"
-        break
-        ;;
-        2)
-        allocation_strategy="capacity-optimized"
-        break
-        ;;
-        3)
-        allocation_strategy="lowest-price"
-        break
-        ;;
-        *)
-        echo "Invalid selection. Please try again."
-        echo
-        ;;
-    esac
+        case "$user_choice" in
+            ""|1)
+                allocation_strategy="price-capacity-optimized"
+                break
+                ;;
+            2)
+                allocation_strategy="capacity-optimized"
+                break
+                ;;
+            3)
+                allocation_strategy="lowest-price"
+                break
+                ;;
+            *)
+                echo "Invalid selection. Please try again."
+                echo
+                ;;
+        esac
     done
 fi
 
 echo "✅ You selected the allocation strategy: $allocation_strategy"
+set_final_config_value "spot_instance_allocation_strategy" "$allocation_strategy"
 echo ""
 
 git_deets=$(bin/get_git_deets.sh)
@@ -1258,6 +1760,11 @@ if [[ -n "$heartbeat_email" ]]; then
     fi
 else
     echo "Skipping heartbeat notification setup."
+fi
+
+save_final_config_snapshot
+if [[ -n "$FINAL_CONFIG_SNAPSHOT" ]]; then
+    echo "📄 Final configuration snapshot written to: $FINAL_CONFIG_SNAPSHOT"
 fi
 
 echo "✅ ✅ ✅ ....fin! "
