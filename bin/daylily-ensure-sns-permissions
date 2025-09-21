@@ -1,0 +1,134 @@
+#!/bin/bash
+set -euo pipefail
+
+usage() {
+    cat <<'USAGE'
+Usage: $0 --region REGION --account-id ACCOUNT_ID --iam-user USER [--profile PROFILE]
+
+Ensures the specified IAM user has the inline policy required for SNS access.
+USAGE
+}
+
+region=""
+account_id=""
+iam_user=""
+profile=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --region)
+            region="$2"
+            shift 2
+            ;;
+        --account-id)
+            account_id="$2"
+            shift 2
+            ;;
+        --iam-user)
+            iam_user="$2"
+            shift 2
+            ;;
+        --profile)
+            profile="$2"
+            shift 2
+            ;;
+        --help|-h)
+            usage
+            exit 0
+            ;;
+        *)
+            echo "Unknown option: $1" >&2
+            usage >&2
+            exit 1
+            ;;
+    esac
+done
+
+if [[ -z "$region" || -z "$account_id" || -z "$iam_user" ]]; then
+    echo "Missing required arguments." >&2
+    usage >&2
+    exit 1
+fi
+
+policy_name="daylily-sns-${region}-${account_id}"
+policy_document=$(cat <<EOF_POLICY
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sns:CreateTopic",
+        "sns:DeleteTopic",
+        "sns:ListTopics",
+        "sns:GetTopicAttributes",
+        "sns:SetTopicAttributes",
+        "sns:Subscribe",
+        "sns:Unsubscribe",
+        "sns:Publish"
+      ],
+      "Resource": "arn:aws:sns:${region}:${account_id}:*"
+    }
+  ]
+}
+EOF_POLICY
+)
+
+policy_file=$(mktemp)
+trap 'rm -f "$policy_file"' EXIT
+printf '%s\n' "$policy_document" >"$policy_file"
+
+expected_doc=$(python3 - "$policy_file" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1]) as handle:
+    data = json.load(handle)
+
+print(json.dumps(data, sort_keys=True))
+PY
+)
+
+aws_cmd=(aws iam)
+if [[ -n "$profile" ]]; then
+    aws_cmd+=(--profile "$profile")
+fi
+
+existing_doc=""
+if existing_json="$("${aws_cmd[@]}" get-user-policy --user-name "$iam_user" --policy-name "$policy_name" 2>/dev/null)"; then
+    existing_doc=$(python3 <<'PY'
+import json
+import sys
+import urllib.parse
+
+data = json.load(sys.stdin)
+decoded = json.loads(urllib.parse.unquote(data.get("PolicyDocument", "{}")))
+print(json.dumps(decoded, sort_keys=True))
+PY
+<<<"$existing_json")
+fi
+
+if [[ -n "$existing_doc" && "$existing_doc" == "$expected_doc" ]]; then
+    echo "✅ Required SNS permissions already configured for IAM user '$iam_user' (policy '$policy_name')."
+    exit 0
+fi
+
+if "${aws_cmd[@]}" put-user-policy --user-name "$iam_user" --policy-name "$policy_name" --policy-document file://"$policy_file" >/dev/null 2>&1; then
+    echo "✅ Ensured SNS permissions for IAM user '$iam_user' via inline policy '$policy_name'."
+    exit 0
+fi
+
+cat <<EOF_MANUAL
+❌ Error: Unable to ensure SNS permissions for IAM user '$iam_user' in region '$region'.
+
+To fix this manually:
+  1) Open the AWS console and navigate to IAM → Users → $iam_user.
+  2) Choose "Add inline policy", switch to the JSON editor, and paste the policy below.
+  3) Name the policy '$policy_name' and save it.
+  4) Rerun ./bin/daylily-create-ephemeral-cluster.
+
+Policy JSON:
+$policy_document
+EOF_MANUAL
+
+exit 1
