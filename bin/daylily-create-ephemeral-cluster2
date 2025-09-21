@@ -697,23 +697,25 @@ while [[ $# -gt 0 ]]; do
     esac
 done
 
+DEFAULT_TEMPLATE="config/daylily_ephemeral_cluster_template.yaml"
+
 if [[ -n "${DAY_EX_CFG:-}" ]]; then
     CONFIG_FILE="$DAY_EX_CFG"
 elif [[ -n "$cli_config_file" ]]; then
     CONFIG_FILE="$cli_config_file"
-fi
-
-if [[ -z "$CONFIG_FILE" ]]; then
-    echo "ℹ️ DAY_EX_CFG is not set and no --config file was provided."
-    prompt_for_config_file
 else
-    if ! validate_config_file "$CONFIG_FILE"; then
-        echo "ℹ️ Falling back to interactive configuration file selection."
+    # Prompt with default
+    read -r -p "Enter path to config file [${DEFAULT_TEMPLATE}]: " user_cfg
+    CONFIG_FILE="${user_cfg:-$DEFAULT_TEMPLATE}"
+
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        echo "❌ Config file '$CONFIG_FILE' not found."
         prompt_for_config_file
     else
         echo "✅ Using configuration file: $CONFIG_FILE"
     fi
 fi
+
 
 resolve_aws_profile "$profile_arg"
 
