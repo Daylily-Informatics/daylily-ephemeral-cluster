@@ -69,5 +69,4 @@ if [ "${BASH_SOURCE[0]}" != "$0" ]; then
 else
     echo "Daylily CLI environment is ready. Run:"
     echo "    conda activate DAY-EC"
-    echo "    pip install -e ."
 fi
