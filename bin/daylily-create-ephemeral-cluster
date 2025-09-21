@@ -1066,7 +1066,7 @@ check_s3_folder() {
 
 echo "Validating required folders in bucket: $selected_bucket"
 check_s3_folder "$bucket" "data" || exit 3
-check_s3_folder "$bucket" "cluster_boot_config" || exit 3 
+check_s3_folder "$bucket" "cluster_boot_config" || exit 3
 
 
 bucket_url="s3://$selected_bucket"
@@ -1076,6 +1076,96 @@ echo "✅ All required folders exist in $bucket_url."
 ## TODO: add a check to confirim the bucket has the expected s3://%{bucket}/data and s3://%{bucket}/cluster_boot_config folders
 
 echo ""
+
+ensure_sns_permissions() {
+    local policy_name="daylily-sns-${region}-${AWS_ACCOUNT_ID}"
+    local policy_document
+    policy_document=$(cat <<EOF
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": [
+        "sns:CreateTopic",
+        "sns:DeleteTopic",
+        "sns:ListTopics",
+        "sns:GetTopicAttributes",
+        "sns:SetTopicAttributes",
+        "sns:Subscribe",
+        "sns:Unsubscribe",
+        "sns:Publish"
+      ],
+      "Resource": "arn:aws:sns:${region}:${AWS_ACCOUNT_ID}:*"
+    }
+  ]
+}
+EOF
+)
+
+    local policy_file
+    policy_file=$(mktemp)
+    printf '%s\n' "$policy_document" >"$policy_file"
+
+    local expected_doc
+    expected_doc=$(python3 - "$policy_file" <<'PY'
+import json
+import sys
+
+with open(sys.argv[1]) as handle:
+    data = json.load(handle)
+
+print(json.dumps(data, sort_keys=True))
+PY
+)
+
+    local existing_doc=""
+    local existing_json
+    if existing_json=$(aws iam get-user-policy --user-name "$AWS_CLI_USER" --policy-name "$policy_name" --profile $AWS_PROFILE 2>/dev/null); then
+        existing_doc=$(python3 - <<'PY'
+import json
+import sys
+import urllib.parse
+
+data = json.load(sys.stdin)
+decoded = json.loads(urllib.parse.unquote(data.get("PolicyDocument", "{}")))
+print(json.dumps(decoded, sort_keys=True))
+PY
+<<<"$existing_json")
+    fi
+
+    if [[ -n "$existing_doc" && "$existing_doc" == "$expected_doc" ]]; then
+        echo "✅ Required SNS permissions already configured for IAM user '$AWS_CLI_USER' (policy '$policy_name')."
+        rm -f "$policy_file"
+        return 0
+    fi
+
+    if aws iam put-user-policy --user-name "$AWS_CLI_USER" --policy-name "$policy_name" --policy-document file://"$policy_file" --profile $AWS_PROFILE >/dev/null 2>&1; then
+        echo "✅ Ensured SNS permissions for IAM user '$AWS_CLI_USER' via inline policy '$policy_name'."
+        rm -f "$policy_file"
+        return 0
+    fi
+
+    rm -f "$policy_file"
+
+    local manual_instructions
+    manual_instructions=$(cat <<EOF
+❌ Error: Unable to ensure SNS permissions for IAM user '$AWS_CLI_USER' in region '$region'.
+
+To fix this manually:
+  1) Open the AWS console and navigate to IAM → Users → $AWS_CLI_USER.
+  2) Choose "Add inline policy", switch to the JSON editor, and paste the policy below.
+  3) Name the policy '$policy_name' and save it.
+  4) Rerun ./bin/daylily-create-ephemeral-cluster.
+
+Policy JSON:
+$policy_document
+EOF
+)
+
+    handle_warning "$manual_instructions"
+    return 1
+}
 
 # Query for public and private subnets and ARN
 echo "Checking subnets and ARN in the specified AZ: $region_az..."
@@ -1103,6 +1193,9 @@ elif [[ -z "$public_subnets" || -z "$private_subnets"  ]]; then
 else
     echo "✅ All required resources are available."
 fi
+echo ""
+
+ensure_sns_permissions
 echo ""
 
 echo "✅ Setup complete. Proceeding with the remaining steps..."
