@@ -505,7 +505,7 @@ The script will take all of the info entered and proceed to:
 
 - Run a process will run to poll and populate maximum spot prices for the instance types used in the cluster.
 
-- A `CLUSTERNAME_cluster.yaml` and `CLUSTERNAME_cluster_init_vals.txt` file are created in `~/.config/daylily/`,
+- A `CLUSTERNAME_cluster.yaml` and `CLUSTERNAME_init_template_<timestamp>.yaml` file are created in `~/.config/daylily/`; the initialization template captures the collected values (replacing the legacy `_cluster_init_vals.txt`).
 
 - First, a dryrun cluster creation is attempted.  If successful, creation proceeds.  If unsuccessful, the process will terminate.
 
