@@ -30,3 +30,4 @@ dependencies:
     - tabulate
     - ruamel.yaml
     - aws-parallelcluster==3.11.1
+    - daylily-omics-references @ git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.1.0

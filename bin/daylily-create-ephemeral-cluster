@@ -18,6 +18,19 @@ suppress_pkg_resources_warning() {
     fi
 }
 
+ensure_reference_cli() {
+    if ! command -v daylily-omics-references >/dev/null 2>&1; then
+        cat <<'ERR'
+❌ Error: Required command 'daylily-omics-references' is not available.
+Activate the DAY-EC conda environment or install version 0.1.0 manually with:
+
+    pip install "git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.1.0"
+
+ERR
+        exit 3
+    fi
+}
+
 sanitize_config_var() {
     local var_name="$1"
     local value="${!var_name}"
@@ -1177,30 +1190,19 @@ fi
 bucket=$(echo "$selected_bucket" )
 set_final_config_value "s3_bucket_name" "$selected_bucket"
 
-
-# Check if the required folders exist in the bucket
-check_s3_folder() {
-    local bucket=$1
-    local folder=$2
-
-    if aws s3 ls "s3://$bucket/$folder/" --profile $AWS_PROFILE > /dev/null 2>&1; then
-        echo "Folder s3://$bucket/$folder/ exists."
-    else
-        echo "❌ Error: Folder s3://$bucket/$folder/ does not exist."
-        exit 1
-    fi
-}
-
-echo "Validating required folders in bucket: $selected_bucket"
-check_s3_folder "$bucket" "data" || exit 3
-check_s3_folder "$bucket" "cluster_boot_config" || exit 3
-
+echo "Validating reference bucket contents for: $selected_bucket"
+ensure_reference_cli
+if daylily-omics-references --profile "$AWS_PROFILE" --region "$region" \
+    verify --bucket "$selected_bucket"; then
+    echo "✅ Reference bucket $selected_bucket passed verification."
+else
+    status=$?
+    echo "❌ Reference bucket verification failed (exit $status). Review the output above for details."
+    exit 3
+fi
 
 bucket_url="s3://$selected_bucket"
 bucket_name=$bucket
-echo "✅ All required folders exist in $bucket_url."
-
-## TODO: add a check to confirim the bucket has the expected s3://%{bucket}/data and s3://%{bucket}/cluster_boot_config folders
 
 echo ""
 

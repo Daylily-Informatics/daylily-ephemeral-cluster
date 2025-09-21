@@ -32,6 +32,14 @@ REGION=us-west-2
 
 - This will take ~20min if you remain in `us-west-2`, longer if cross region.
 
+  The script wraps the [`daylily-omics-references`](https://github.com/Daylily-Informatics/daylily-omics-references)
+  CLI (version `0.1.0`). Activate the `DAY-EC` environment or run the CLI directly:
+
+  ```bash
+  daylily-omics-references --profile $AWS_PROFILE --region $REGION \
+    clone --bucket-prefix $BUCKET_PREFIX --version 0.7.131c --execute
+  ```
+
 > your reference bucket will be named **`yocorp-daylily-omics-analysis-us-west-2`**
 
 
@@ -56,6 +64,10 @@ OUT_TSV=./init_daylily_cluster.tsv
 
 ### Create An Ephemeral Cluster
 _this script will check and install a number of prerequsites and attempt to install_
+
+The workflow now verifies your selected reference bucket with the
+`daylily-omics-references` CLI before proceeding, ensuring the expected
+datasets are available.
 
 
 #### Edit `config/daylily_ephemeral_cluster.yaml`
