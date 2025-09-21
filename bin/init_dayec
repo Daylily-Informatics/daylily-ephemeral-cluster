@@ -53,3 +53,21 @@ echo "    conda activate DAY-EC"
 
 echo " and to complete installing this package w/in the DAY-EC environment, run: "
 echo "   pip install -e . "
+
+
+# Install into the environment
+conda run -n DAY-EC python -m pip install --editable "$REPO_ROOT"
+
+
+# If this script was sourced, actually activate it
+# (Detect if we are sourced by checking $BASH_SOURCE)
+if [ "${BASH_SOURCE[0]}" != "$0" ]; then
+    echo "Activating DAY-EC environment since script was sourced..."
+    conda activate DAY-EC
+    # optional: pip install again inside the active shell (to ensure console scripts)
+    pip install -e "$REPO_ROOT"
+else
+    echo "Daylily CLI environment is ready. Run:"
+    echo "    conda activate DAY-EC"
+    echo "    pip install -e ."
+fi
