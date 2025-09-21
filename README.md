@@ -300,10 +300,6 @@ _from `daylily` root dir_
 
 conda activate DAY-EC
 
-# install this repo to the DAY-EC conda env
-
-pip install -e .
-
 # CLI commands from ./bin are now on your PATH.
 # Re-run this after pulling updates if needed.
 # (init_dayec performs an editable pip install each run)
