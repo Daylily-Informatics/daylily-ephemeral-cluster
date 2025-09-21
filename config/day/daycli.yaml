@@ -9,6 +9,7 @@ dependencies:
   - ipython
   - perl
   - yappi
+  - bash
   - networkx
   - yamllint
   - pip

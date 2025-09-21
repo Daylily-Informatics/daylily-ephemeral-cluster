@@ -1,50 +1,36 @@
----
 ephemeral_cluster:
   config:
-    ssh_key_name: PROMPTUSER  # Name of the ED25519 key pair to use
-    s3_bucket_name: PROMPTUSER  # Omics analysis bucket name (without s3://)
-    public_subnet_id: PROMPTUSER  # Subnet ID used for public resources
-    private_subnet_id: PROMPTUSER  # Subnet ID used for private resources
-    iam_policy_arn: PROMPTUSER  # ARN of the pclusterTagsAndBudget IAM policy
-    cluster_name: PROMPTUSER  # Cluster name (alphanumeric + '-'; <=25 chars)
-    budget_email: PROMPTUSER  # Email address that receives budget alerts
-    allowed_budget_users: PROMPTUSER  # CSV of usernames allowed to receive cluster budget alerts
-    budget_amount: PROMPTUSER  # Numeric cluster budget threshold
-    global_allowed_budget_users: PROMPTUSER  # CSV of usernames for the global budget (if created)
-    global_budget_amount: PROMPTUSER  # Numeric global budget threshold
-    enforce_budget: PROMPTUSER  # 'enforce' or 'skip'
-    cluster_template_yaml: PROMPTUSER  # Path to the base ParallelCluster template YAML
-    headnode_instance_type: PROMPTUSER  # EC2 instance type used for the headnode
-    fsx_fs_size: PROMPTUSER  # FSx for Lustre size in GiB
-    enable_detailed_monitoring: PROMPTUSER  # 'true' or 'false'
-    delete_local_root: PROMPTUSER  # 'true' or 'false'
-    auto_delete_fsx: PROMPTUSER  # 'Retain' or 'Delete'
-    heartbeat_email: PROMPTUSER  # Optional heartbeat notification email
-    heartbeat_schedule: PROMPTUSER  # EventBridge schedule expression for heartbeat notifications
-    spot_instance_allocation_strategy: PROMPTUSER  # price-capacity-optimized | capacity-optimized | lowest-price
-    max_count_8I: PROMPTUSER  # Maximum number of 8xlarge instances to request
-    max_count_128I: PROMPTUSER  # Maximum number of 128xlarge instances to request
-    max_count_192I: PROMPTUSER  # Maximum number of 192xlarge instances to request
+    ssh_key_name: [PROMPTUSER, "", ""]           # dynamic list; default blank forces selection
+    s3_bucket_name: [PROMPTUSER, "", ""]
+    public_subnet_id: [PROMPTUSER, "", ""]
+    private_subnet_id: [PROMPTUSER, "", ""]
+    iam_policy_arn: [PROMPTUSER, "", ""]
+    cluster_name: [PROMPTUSER, "majors-cluster", ""]
+    budget_email: [PROMPTUSER, "", ""]
+    allowed_budget_users: [PROMPTUSER, "", ""]
+    budget_amount: [PROMPTUSER, "200", ""]
+    global_allowed_budget_users: [PROMPTUSER, "", ""]
+    global_budget_amount: [PROMPTUSER, "200", ""]
+    enforce_budget: [PROMPTUSER, "skip", ""]
+    cluster_template_yaml: [PROMPTUSER, "config/day_cluster/prod_cluster.yaml", ""]
+    headnode_instance_type: [PROMPTUSER, "r7i.2xlarge", ""]
+    fsx_fs_size: [PROMPTUSER, "4800", ""]
+    enable_detailed_monitoring: [PROMPTUSER, "false", ""]
+    delete_local_root: [PROMPTUSER, "true", ""]
+    auto_delete_fsx: [PROMPTUSER, "Delete", ""]
+    heartbeat_email: [PROMPTUSER, "", ""]
+    heartbeat_schedule: [PROMPTUSER, "rate(60 minutes)", ""]
+    spot_instance_allocation_strategy: [PROMPTUSER, "price-capacity-optimized", ""]
+    max_count_8I: [PROMPTUSER, "1", ""]
+    max_count_128I: [PROMPTUSER, "1", ""]
+    max_count_192I: [PROMPTUSER, "1", ""]
   template_defaults:
-    ssh_key_name: ""
-    s3_bucket_name: ""
-    public_subnet_id: ""
-    private_subnet_id: ""
-    iam_policy_arn: ""
-    cluster_name: ""
-    budget_email: ""
-    allowed_budget_users: ""
-    budget_amount: "200"
-    global_allowed_budget_users: ""
-    global_budget_amount: "200"
-    enforce_budget: "skip"
-    cluster_template_yaml: "config/day_cluster/prod_cluster.yaml"
+    # keep as you had; these are fallbacks if default_value is empty
     headnode_instance_type: "r7i.2xlarge"
     fsx_fs_size: "4800"
     enable_detailed_monitoring: "false"
     delete_local_root: "true"
     auto_delete_fsx: "Delete"
-    heartbeat_email: ""
     heartbeat_schedule: "rate(60 minutes)"
     spot_instance_allocation_strategy: "price-capacity-optimized"
     max_count_8I: "1"

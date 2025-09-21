@@ -5,6 +5,7 @@ dependencies:
   - python 
   - ipython
   - parallel 
+  - bash
   - jq 
   - nodejs==18.15.0 
   - aws-parallelcluster==3.11.1 
