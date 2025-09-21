@@ -156,6 +156,10 @@ is_promptuser() {
     [[ "$1" == "PROMPTUSER" ]]
 }
 
+is_auto_select_disabled() {
+    [[ "${DAY_DISABLE_AUTO_SELECT:-}" == "1" ]]
+}
+
 set_final_config_value() {
     local key="$1"
     local value="$2"
@@ -806,8 +810,12 @@ fi
 selected_key=""
 
 if [[ ${#valid_keys[@]} -eq 1 ]]; then
-    selected_key="${valid_keys[0]}"
-    echo "ℹ️ Only one valid key found. Automatically selecting: $selected_key"
+    if is_auto_select_disabled; then
+        echo "ℹ️ Only one valid key found, but DAY_DISABLE_AUTO_SELECT=1. Prompting for manual selection."
+    else
+        selected_key="${valid_keys[0]}"
+        echo "ℹ️ Only one valid key found. Automatically selecting: $selected_key"
+    fi
 elif ! is_promptuser "$CONFIG_SSH_KEY_NAME" && [[ -n "$CONFIG_SSH_KEY_NAME" ]]; then
     if [[ -n "${KEY_PEM_PATH_MAP[$CONFIG_SSH_KEY_NAME]}" ]]; then
         selected_key="$CONFIG_SSH_KEY_NAME"
@@ -897,9 +905,13 @@ for entry in "${matching_buckets[@]}"; do
 done
 
 if [[ ${#matching_buckets[@]} -eq 1 ]]; then
-    bucket_choice="${matching_buckets[0]}"
-    selected_bucket="${bucket_names[0]}"
-    echo "ℹ️ Only one matching bucket found. Automatically selecting: $selected_bucket"
+    if is_auto_select_disabled; then
+        echo "ℹ️ Only one matching bucket found, but DAY_DISABLE_AUTO_SELECT=1. Prompting for manual selection."
+    else
+        bucket_choice="${matching_buckets[0]}"
+        selected_bucket="${bucket_names[0]}"
+        echo "ℹ️ Only one matching bucket found. Automatically selecting: $selected_bucket"
+    fi
 elif ! is_promptuser "$CONFIG_S3_BUCKET_NAME" && [[ -n "$CONFIG_S3_BUCKET_NAME" ]]; then
     for entry in "${matching_buckets[@]}"; do
         current_bucket=$(echo "$entry" | awk '{print $1}')
@@ -1006,9 +1018,13 @@ echo ""
 
 public_subnet=""
 if [[ ${#public_subnet_choices[@]} -eq 1 ]]; then
-    public_subnet_choice="${public_subnet_choices[0]}"
-    public_subnet="${public_subnet_ids[0]}"
-    echo "ℹ️ Only one public subnet found. Automatically selecting: $public_subnet"
+    if is_auto_select_disabled; then
+        echo "ℹ️ Only one public subnet found, but DAY_DISABLE_AUTO_SELECT=1. Prompting for manual selection."
+    else
+        public_subnet_choice="${public_subnet_choices[0]}"
+        public_subnet="${public_subnet_ids[0]}"
+        echo "ℹ️ Only one public subnet found. Automatically selecting: $public_subnet"
+    fi
 elif ! is_promptuser "$CONFIG_PUBLIC_SUBNET_ID" && [[ -n "$CONFIG_PUBLIC_SUBNET_ID" ]]; then
     for idx in "${!public_subnet_ids[@]}"; do
         if [[ "${public_subnet_ids[$idx]}" == "$CONFIG_PUBLIC_SUBNET_ID" ]]; then
@@ -1050,9 +1066,13 @@ echo ""
 
 private_subnet=""
 if [[ ${#private_subnet_choices[@]} -eq 1 ]]; then
-    private_subnet_choice="${private_subnet_choices[0]}"
-    private_subnet="${private_subnet_ids[0]}"
-    echo "ℹ️ Only one private subnet found. Automatically selecting: $private_subnet"
+    if is_auto_select_disabled; then
+        echo "ℹ️ Only one private subnet found, but DAY_DISABLE_AUTO_SELECT=1. Prompting for manual selection."
+    else
+        private_subnet_choice="${private_subnet_choices[0]}"
+        private_subnet="${private_subnet_ids[0]}"
+        echo "ℹ️ Only one private subnet found. Automatically selecting: $private_subnet"
+    fi
 elif ! is_promptuser "$CONFIG_PRIVATE_SUBNET_ID" && [[ -n "$CONFIG_PRIVATE_SUBNET_ID" ]]; then
     for idx in "${!private_subnet_ids[@]}"; do
         if [[ "${private_subnet_ids[$idx]}" == "$CONFIG_PRIVATE_SUBNET_ID" ]]; then
@@ -1089,8 +1109,12 @@ policy_arns=($(aws iam list-policies --query 'Policies[?PolicyName==`pclusterTag
 echo "Select an IAM policy ARN for 'pclusterTagsAndBudget':"
 arn_policy_id=""
 if [[ ${#policy_arns[@]} -eq 1 ]]; then
-    arn_policy_id="${policy_arns[0]}"
-    echo "ℹ️ Only one IAM policy ARN found. Automatically selecting: $arn_policy_id"
+    if is_auto_select_disabled; then
+        echo "ℹ️ Only one IAM policy ARN found, but DAY_DISABLE_AUTO_SELECT=1. Prompting for manual selection."
+    else
+        arn_policy_id="${policy_arns[0]}"
+        echo "ℹ️ Only one IAM policy ARN found. Automatically selecting: $arn_policy_id"
+    fi
 elif ! is_promptuser "$CONFIG_IAM_POLICY_ARN" && [[ -n "$CONFIG_IAM_POLICY_ARN" ]]; then
     for policy in "${policy_arns[@]}"; do
         if [[ "$policy" == "$CONFIG_IAM_POLICY_ARN" ]]; then
