@@ -119,6 +119,15 @@ else
     fi
 fi
 
+echo "Tearing down heartbeat notification infrastructure (if present)..."
+python bin/helpers/teardown_cluster_heartbeat.py \
+    --cluster-name "$cluster_name" \
+    --region "$region" \
+    --profile "$AWS_PROFILE"
+if [[ $? -ne 0 ]]; then
+    echo "Warning: heartbeat notification teardown encountered an error."
+fi
+
 
 delete_cluster "$cluster_name" "$region"
 

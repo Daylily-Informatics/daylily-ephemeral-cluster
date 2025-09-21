@@ -102,6 +102,8 @@ if [ -f $CONFIG_FILE ]; then
     CONFIG_MAX_COUNT_128I=$(yq -r '.ephemeral_cluster.config.max_count_128I' $CONFIG_FILE)
     CONFIG_MAX_COUNT_192I=$(yq -r '.ephemeral_cluster.config.max_count_192I' $CONFIG_FILE)
     CONFIG_HEADNODE_INSTANCE_TYPE=$(yq -r '.ephemeral_cluster.config.headnode_instance_type' $CONFIG_FILE)
+    CONFIG_HEARTBEAT_EMAIL=$(yq -r '.ephemeral_cluster.config.heartbeat_email // ""' $CONFIG_FILE)
+    CONFIG_HEARTBEAT_SCHEDULE=$(yq -r '.ephemeral_cluster.config.heartbeat_schedule // ""' $CONFIG_FILE)
 else
   echo "$CONFIG_FILE file not found!"
   sleep 1
@@ -122,6 +124,8 @@ echo "CONFIG_MAX_COUNT_8I: $CONFIG_MAX_COUNT_8I"
 echo "CONFIG_MAX_COUNT_128I: $CONFIG_MAX_COUNT_128I"
 echo "CONFIG_MAX_COUNT_192I: $CONFIG_MAX_COUNT_192I"
 echo "CONFIG_HEADNOD_INSTANCE_TYPE: $CONFIG_HEADNODE_INSTANCE_TYPE"
+echo "CONFIG_HEARTBEAT_EMAIL: $CONFIG_HEARTBEAT_EMAIL"
+echo "CONFIG_HEARTBEAT_SCHEDULE: $CONFIG_HEARTBEAT_SCHEDULE"
 echo ""
 
 echo "If you wish to override the above values, please edit the $CONFIG_FILE file appropriately. These defaults are set for a very low quota account, so you will want to boost the CONFIG_MAX_COUNT_*I values if you have higher spot quotas."
@@ -998,6 +1002,48 @@ fi
 echo "✅ Retain or delete the FSx Lustre file system on cluster [update|termination]?: $save_fsx"
 echo ""
 
+heartbeat_email=""
+heartbeat_schedule=""
+
+if [[ -n "$CONFIG_HEARTBEAT_EMAIL" ]]; then
+    heartbeat_email="$CONFIG_HEARTBEAT_EMAIL"
+else
+    read -p "Enter an email to receive heartbeat notifications for this cluster (leave blank to skip): " heartbeat_email
+fi
+
+email_regex='^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+if [[ -n "$heartbeat_email" ]]; then
+    while [[ ! "$heartbeat_email" =~ $email_regex ]]; do
+        echo "Invalid email format detected."
+        read -p "Enter a valid email address (or leave blank to skip notifications): " heartbeat_email
+        if [[ -z "$heartbeat_email" ]]; then
+            break
+        fi
+    done
+fi
+
+if [[ -n "$heartbeat_email" ]]; then
+    default_schedule="rate(60 minutes)"
+    if [[ -n "$CONFIG_HEARTBEAT_SCHEDULE" ]]; then
+        heartbeat_schedule="$CONFIG_HEARTBEAT_SCHEDULE"
+    else
+        read -p "Enter an EventBridge Scheduler expression for notifications [rate(60 minutes)]: " heartbeat_schedule
+        if [[ -z "$heartbeat_schedule" ]]; then
+            heartbeat_schedule="$default_schedule"
+        fi
+    fi
+
+    while [[ ! "$heartbeat_schedule" =~ ^(rate|cron)\(.+\)$ ]]; do
+        echo "Invalid schedule expression. Examples: rate(60 minutes), rate(4 hours), cron(0 12 * * ? *)"
+        read -p "Enter a valid EventBridge schedule expression: " heartbeat_schedule
+    done
+
+    echo "✅ Cluster heartbeat notifications will be delivered to $heartbeat_email using schedule '$heartbeat_schedule'"
+else
+    heartbeat_schedule=""
+    echo "ℹ️ Cluster heartbeat email notifications will be skipped."
+fi
+
 allocation_strategy=""
 if [[ -n "$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY" ]]; then
     if [[ "$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY" == "price-capacity-optimized" || "$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY" == "capacity-optimized" || "$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY" == "lowest-price" ]]; then
@@ -1072,6 +1118,8 @@ REGSUB_MAX_COUNT_8I=$CONFIG_MAX_COUNT_8I
 REGSUB_MAX_COUNT_128I=$CONFIG_MAX_COUNT_128I
 REGSUB_MAX_COUNT_192I=$CONFIG_MAX_COUNT_192I
 REGSUB_HEADNODE_INSTANCE_TYPE=$sel_headnode_type
+REGSUB_HEARTBEAT_EMAIL=$heartbeat_email
+REGSUB_HEARTBEAT_SCHEDULE=$heartbeat_schedule
 EOF
 
 echo ""
@@ -1134,5 +1182,22 @@ echo ""
 sleep 2
 source ./bin/daylily-cfg-headnode $pem_file $region $AWS_PROFILE
 echo ""
+
+if [[ -n "$heartbeat_email" ]]; then
+    echo "Configuring heartbeat notifications via EventBridge Scheduler, Lambda, and SNS..."
+    python bin/helpers/setup_cluster_heartbeat.py \
+        --cluster-name "$cluster_name" \
+        --region "$region" \
+        --email "$heartbeat_email" \
+        --schedule "$heartbeat_schedule" \
+        --profile "$AWS_PROFILE"
+    if [[ $? -ne 0 ]]; then
+        echo "❌ Failed to configure heartbeat notifications. Please review the logs above and configure manually if desired."
+    else
+        echo "✅ Heartbeat notifications are in place. Remember to confirm the SNS email subscription."
+    fi
+else
+    echo "Skipping heartbeat notification setup."
+fi
 
 echo "✅ ✅ ✅ ....fin! "
