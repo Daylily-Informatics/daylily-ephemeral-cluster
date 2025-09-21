@@ -211,14 +211,23 @@ ensure_config_key() {
 load_config_values() {
     local key
     TEMPLATE_DEFAULTS=()
-    mapfile -t CONFIG_KEYS < <(yq -r '.ephemeral_cluster.config | keys | .[]' "$CONFIG_FILE" 2>/dev/null || true)
+    CONFIG_KEYS=()
+    while IFS= read -r key; do
+        if [[ -n "$key" ]]; then
+            CONFIG_KEYS+=("$key")
+        fi
+    done < <(yq -r '.ephemeral_cluster.config | keys | .[]' "$CONFIG_FILE" 2>/dev/null || true)
 
     for key in "${REQUIRED_CONFIG_KEYS[@]}"; do
         ensure_config_key "$key"
     done
 
-    local template_keys
-    mapfile -t template_keys < <(yq -r '.ephemeral_cluster.template_defaults | keys | .[]' "$CONFIG_FILE" 2>/dev/null || true)
+    local template_keys=()
+    while IFS= read -r key; do
+        if [[ -n "$key" ]]; then
+            template_keys+=("$key")
+        fi
+    done < <(yq -r '.ephemeral_cluster.template_defaults | keys | .[]' "$CONFIG_FILE" 2>/dev/null || true)
 
     for key in "${template_keys[@]}"; do
         local value
