@@ -1676,6 +1676,9 @@ echo ""
 
 git_deets=$(bin/get_git_deets.sh)
 
+if [[ "$enforce_budget_opt" == "false" ]]; then
+    enforce_budget_opt="skip"
+fi
 # Write variables to config
 cat <<EOF > $regsub_vals
 REGSUB_REGION=$region
