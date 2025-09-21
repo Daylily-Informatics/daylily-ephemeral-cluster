@@ -302,7 +302,7 @@ conda activate DAY-EC
 
 # install this repo to the DAY-EC conda env
 
-python -m pip install -e .
+pip install -e .
 
 # CLI commands from ./bin are now on your PATH.
 # Re-run this after pulling updates if needed.
