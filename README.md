@@ -444,29 +444,30 @@ REGION_AZ=us-west-2c
 # And to bypass the non-critical warnings (which is fine, not all can be resolved )
 ./bin/daylily-create-ephemeral-cluster --region-az $REGION_AZ --profile $AWS_PROFILE --pass-on-warn # If you created an inline policy with a name other than daylily-service-cluster-policy, you will need to acknowledge the warning to proceed (assuming the policy permissions were granted other ways)
 
-```    
+```
 
-> config for many user prompted options in `daylily-create-ephemeral-clsuter` can be specified in the yaml file: `config/daylily_ephemeral_cluster.yaml`.
-> The options specified there will be used in lieu of prompting on the command line.
-> ```yaml
-> ephemeral_cluster:
->  config:
->    delete_local_root: true # or false
->    budget_email: johnm@lsmc.com # any single valid email
->    allowed_budget_users: ubuntu # or other username or csv of usernames
->    budget_amount: 200 # or other int
->    enforce_budget: skip # or enforce
->    auto_delete_fsx: Delete # or Retain
->    fsx_fs_size: 4800 # or 7200 or other valid FSX fs sizes
->    enable_detailed_monitoring: false # or true
->    cluster_template_yaml: config/day_cluster/prod_cluster.yaml
->    spot_instance_allocation_strategy: price-capacity-optimized # lowest_price, price-capacity-optimized,capacity-optimized
->    max_count_8I: 4 # max number of spots of this cpu size to request
->    max_count_128I: 3 # max number of spots of this cpu size to request
->    max_count_192I: 2 # max number of spots of this cpu size to request
-> ```
->
-> *note:* CONFIG_MAX_COUNT_(n)I should be set so that you do not over-request spot instances far beyond your quotas as a deadlock can occur, especially when your quotas are very small.
+### Provide defaults with `DAY_EX_CFG`
+
+Configuration for every prompt in `bin/daylily-create-ephemeral-cluster` lives in a user-managed YAML file. Copy the template
+`config/daylily_ephemeral_cluster_template.yaml` to a writable location (for example `config/daylily_ephemeral_cluster.yaml`) and
+set the environment variable `DAY_EX_CFG` to point at it:
+
+```bash
+cp config/daylily_ephemeral_cluster_template.yaml config/daylily_ephemeral_cluster.yaml
+export DAY_EX_CFG=$PWD/config/daylily_ephemeral_cluster.yaml
+```
+
+- Each key in the template corresponds to information collected by the script. Provide a concrete value to skip the prompt or
+  leave the value set to `PROMPTUSER` to request the information interactively.
+- When the script encounters an invalid configured value (for example, an ARN that no longer exists), the error is logged and
+  the prompt is shown so you can supply a working value on the fly.
+- If a prompt queries AWS for options and only one choice is returned (key pair, S3 bucket, subnets, IAM policy, etc.), the
+  script automatically selects that single option and notes the selection in the terminal.
+- After a cluster is created, the script saves a timestamped snapshot of the resolved configuration (including any values you
+  entered interactively) in `~/.config/daylily/`. Any invalid configuration values are recorded in the snapshot with an
+  `+ERROR` suffix so they can be fixed before the next run.
+- Remember to adjust the `max_count_*I` settings to match your available spot-instance quotas to avoid deadlocks during
+  provisioning.
 
 **The gist of the flow of the script is as follows:**
 

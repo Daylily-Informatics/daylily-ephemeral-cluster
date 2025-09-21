@@ -4,3 +4,4 @@ __pycache__/
 *$py.class
 .vscode/
 etc/about_me.yaml
+config/daylily_ephemeral_cluster.yaml
