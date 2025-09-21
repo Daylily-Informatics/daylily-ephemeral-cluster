@@ -1,0 +1,310 @@
+#!/usr/bin/env python3
+"""Clone Daylily analysis repositories into the shared FSx workspace."""
+
+import argparse
+import getpass
+import os
+import subprocess
+import sys
+from typing import Any, Dict, List, Optional, Tuple
+
+
+CONFIG_DIR = os.path.expanduser("~/.config/daylily")
+GLOBAL_CONFIG_PATH = os.path.join(CONFIG_DIR, "daylily_cli_global.yaml")
+AVAILABLE_REPOS_PATH = os.path.join(CONFIG_DIR, "daylily_available_repositories.yaml")
+
+
+class ConfigError(RuntimeError):
+    """Raised when configuration files are missing or malformed."""
+
+
+def _strip_inline_comment(value: str) -> str:
+    """Remove inline comments that are not within quotes."""
+    in_single = False
+    in_double = False
+    for idx, char in enumerate(value):
+        if char == "'" and not in_double:
+            in_single = not in_single
+        elif char == '"' and not in_single:
+            in_double = not in_double
+        elif char == '#' and not in_single and not in_double:
+            return value[:idx].rstrip()
+    return value
+
+
+def _parse_simple_yaml(path: str) -> Dict[str, Any]:
+    """Parse a minimal subset of YAML containing nested dictionaries.
+
+    This parser is intentionally lightweight and supports the structures used
+    in the Daylily configuration files. It handles key/value pairs and nested
+    dictionaries that rely on indentation. Lists and complex YAML constructs
+    are intentionally unsupported.
+    """
+    if not os.path.exists(path):
+        raise ConfigError(f"Configuration file not found: {path}")
+
+    root: Dict[str, Any] = {}
+    stack: List[Tuple[Dict[str, Any], int]] = [(root, -1)]
+
+    with open(path, "r", encoding="utf-8") as handle:
+        for lineno, raw_line in enumerate(handle, start=1):
+            if not raw_line.strip():
+                continue
+            stripped = raw_line.strip()
+            if stripped.startswith("#") or stripped == "---":
+                continue
+
+            indent = len(raw_line) - len(raw_line.lstrip(" "))
+            while stack and indent <= stack[-1][1]:
+                stack.pop()
+            parent = stack[-1][0]
+
+            if ":" not in stripped:
+                raise ConfigError(
+                    f"Invalid line in {path}:{lineno}: '{raw_line.rstrip()}'"
+                )
+
+            key, value = stripped.split(":", 1)
+            key = key.strip()
+            value = _strip_inline_comment(value).strip()
+
+            if not key:
+                raise ConfigError(
+                    f"Missing key in {path}:{lineno}: '{raw_line.rstrip()}'"
+                )
+
+            if not value:
+                new_dict: Dict[str, Any] = {}
+                parent[key] = new_dict
+                stack.append((new_dict, indent))
+                continue
+
+            if (value.startswith('"') and value.endswith('"')) or (
+                value.startswith("'") and value.endswith("'")
+            ):
+                value = value[1:-1]
+
+            parent[key] = value
+
+    return root
+
+
+def load_global_config() -> Dict[str, Any]:
+    config = _parse_simple_yaml(GLOBAL_CONFIG_PATH)
+    if "daylily" not in config:
+        raise ConfigError(
+            f"Missing 'daylily' section in {GLOBAL_CONFIG_PATH}."
+        )
+    return config["daylily"]
+
+
+def load_available_repos() -> Tuple[str, Dict[str, Dict[str, Any]]]:
+    config = _parse_simple_yaml(AVAILABLE_REPOS_PATH)
+    repositories = config.get("repositories")
+    if not isinstance(repositories, dict) or not repositories:
+        raise ConfigError(
+            f"No repositories defined in {AVAILABLE_REPOS_PATH}."
+        )
+    default_repo = config.get("default_repository")
+    if not default_repo:
+        # Fall back to the first repository key for backwards compatibility.
+        default_repo = next(iter(repositories.keys()))
+    return default_repo, repositories
+
+
+def ensure_directory(path: str) -> None:
+    os.makedirs(path, exist_ok=True)
+
+
+def clone_repository(
+    git_url: str,
+    destination: str,
+    ref: Optional[str],
+) -> None:
+    cmd = ["git", "clone"]
+    if ref:
+        cmd.extend(["--branch", ref])
+    cmd.extend([git_url, destination])
+    try:
+        subprocess.run(cmd, check=True)
+    except subprocess.CalledProcessError as exc:
+        raise RuntimeError(
+            f"Git clone failed with exit code {exc.returncode}."
+        ) from exc
+
+
+def derive_default_path(repo_url: str) -> str:
+    basename = os.path.basename(repo_url)
+    if basename.endswith(".git"):
+        basename = basename[:-4]
+    return basename or "repository"
+
+
+def print_available_repositories(repositories: Dict[str, Dict[str, Any]]) -> None:
+    print("Available repositories:\n")
+    for key, repo in repositories.items():
+        name = repo.get("display_name", key)
+        print(f"- {key}: {name}")
+        if description := repo.get("description"):
+            print(f"    {description}")
+        default_ref = repo.get("default_ref")
+        if default_ref:
+            print(f"    Default ref: {default_ref}")
+        print()
+
+
+def main(argv: List[str]) -> int:
+    try:
+        global_cfg = load_global_config()
+        default_repo_key, available_repos = load_available_repos()
+    except ConfigError as err:
+        print(f"Error: {err}", file=sys.stderr)
+        return 2
+
+    parser = argparse.ArgumentParser(
+        description="Clone Daylily analysis repositories into the FSx analysis workspace.",
+    )
+    parser.add_argument(
+        "-d",
+        "--destination",
+        help="Name of the analysis workspace directory to create under the user-specific root.",
+    )
+    parser.add_argument(
+        "-t",
+        "--git-tag",
+        help="Git branch or tag to clone. Defaults to the repository's configured default.",
+    )
+    parser.add_argument(
+        "-r",
+        "--git-repo",
+        help="Override the git repository URL to clone. Overrides --repository.",
+    )
+    parser.add_argument(
+        "-c",
+        "--clone-root",
+        help="Root directory where analysis workspaces are created. Defaults to the configured analysis_root.",
+    )
+    parser.add_argument(
+        "-u",
+        "--user-name",
+        help="User directory to create within the clone root. Defaults to the current user.",
+    )
+    parser.add_argument(
+        "-w",
+        "--which-one",
+        choices=["https", "ssh"],
+        default="https",
+        help="Clone using https or ssh (default: https).",
+    )
+    parser.add_argument(
+        "--repository",
+        help="Key of the repository defined in daylily_available_repositories.yaml to clone.",
+    )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List available repositories and exit.",
+    )
+
+    args = parser.parse_args(argv)
+
+    if args.list:
+        print_available_repositories(available_repos)
+        return 0
+
+    if not args.destination:
+        print(
+            "Error: --destination (-d) is required when cloning a repository.",
+            file=sys.stderr,
+        )
+        return 1
+
+    clone_root = args.clone_root or global_cfg.get("analysis_root")
+    if not clone_root:
+        print(
+            "Error: analysis_root is not configured in daylily_cli_global.yaml.",
+            file=sys.stderr,
+        )
+        return 2
+
+    clone_root = os.path.abspath(os.path.expanduser(clone_root))
+    if not os.path.isdir(clone_root):
+        print(
+            f"Error: clone_root directory '{clone_root}' does not exist.",
+            file=sys.stderr,
+        )
+        return 1
+
+    user_name = args.user_name or os.environ.get("USER") or getpass.getuser()
+    user_root = os.path.join(clone_root, user_name)
+    ensure_directory(user_root)
+
+    destination_root = os.path.join(user_root, args.destination)
+    if os.path.exists(destination_root):
+        print(
+            f"Error: destination '{destination_root}' already exists.",
+            file=sys.stderr,
+        )
+        return 1
+
+    repo_config: Optional[Dict[str, Any]] = None
+    if not args.git_repo:
+        repo_key = args.repository or default_repo_key
+        repo_config = available_repos.get(repo_key)
+        if repo_config is None:
+            print(
+                f"Error: repository '{repo_key}' is not defined in daylily_available_repositories.yaml.",
+                file=sys.stderr,
+            )
+            return 1
+    else:
+        repo_key = "custom"
+
+    if args.git_repo:
+        git_url = args.git_repo
+        relative_path = derive_default_path(git_url)
+        default_ref = None
+    else:
+        preferred_key = "https_url" if args.which_one == "https" else "ssh_url"
+        git_url = repo_config.get(preferred_key, "")
+        if not git_url:
+            alternative_key = "ssh_url" if preferred_key == "https_url" else "https_url"
+            git_url = repo_config.get(alternative_key, "")
+        if not git_url:
+            print(
+                f"Error: repository '{repo_key}' does not define a git URL for cloning.",
+                file=sys.stderr,
+            )
+            return 1
+        relative_path = repo_config.get("relative_path") or repo_key
+        default_ref = repo_config.get("default_ref")
+
+    git_ref = args.git_tag or default_ref
+
+    relative_path = os.path.basename(relative_path.rstrip("/"))
+    target_repo_dir = os.path.join(destination_root, relative_path)
+    ensure_directory(destination_root)
+
+    print("Cloning repository...")
+    try:
+        clone_repository(git_url, target_repo_dir, git_ref)
+    except RuntimeError as err:
+        print(f"Error: {err}", file=sys.stderr)
+        return 1
+
+    print()
+    print("Great success! Daylily repository cloned.")
+    print(f"Repository: {git_url}")
+    if git_ref:
+        print(f"Reference : {git_ref}")
+    print(f"Location  : {target_repo_dir}")
+    print()
+    print("To get started:")
+    print(f"  cd {target_repo_dir}")
+    print("  # initialize and run the analysis repository per its documentation")
+
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main(sys.argv[1:]))
