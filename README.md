@@ -353,7 +353,17 @@ REGION=us-west-2
 
 ```
 
-> You may visit the `S3` console to confirm the bucket is being cloned as expected. The copy (if w/in `us-west-2` should take ~1hr, much longer across AZs.  
+The helper script is a thin wrapper around the
+[`daylily-omics-references`](https://github.com/Daylily-Informatics/daylily-omics-references)
+CLI (version `0.1.0`). Activating the `DAY-EC` conda environment installs the
+dependency automatically. You can also invoke the CLI directly:
+
+```bash
+daylily-omics-references --profile $AWS_PROFILE --region $REGION \
+  clone --bucket-prefix $BUCKET_PREFIX --version 0.7.131c --execute
+```
+
+> You may visit the `S3` console to confirm the bucket is being cloned as expected. The copy (if w/in `us-west-2` should take ~1hr, much longer across AZs.
 
 ---
 
@@ -446,6 +456,10 @@ REGION_AZ=us-west-2c
 
 ```
 
+During the run the script invokes the `daylily-omics-references` CLI to
+validate the selected reference bucket, preventing misconfigured buckets from
+reaching the cluster provisioning phase.
+
 ### Provide defaults with `DAY_EX_CFG`
 
 Configuration for every prompt in `bin/daylily-create-ephemeral-cluster` lives in a user-managed YAML file. Copy the template
@@ -475,7 +489,7 @@ export DAY_EX_CFG=$PWD/config/daylily_ephemeral_cluster.yaml
 
 - (_one per-region_) select the full path to your $HOME/.ssh/<mykey>.pem (from detected .pem files)
   
-- (_one per-region_) select the `s3` bucket you created and seeded, options presented will be any with names ending in `-omics-analysis`. Or you may select `1` and manually enter a s3 url.
+- (_one per-region_) select the `s3` bucket you created and seeded, options presented will be any with names ending in `-omics-analysis`. The script now verifies the bucket with the `daylily-omics-references` CLI and will halt if required data are missing. Or you may select `1` and manually enter a s3 url.
   
 - (_one per-region-az_) select the `Public Subnet ID` created when the cloudstack formation script was run earlier. **if none are detected, this will be auto-created for you via stack formation**
 
