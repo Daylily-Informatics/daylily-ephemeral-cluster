@@ -20,12 +20,13 @@ if ! command -v conda &> /dev/null; then
     exit 1
 fi
 
+REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
+ENV_ALREADY_EXISTS=false
+
 # Activate or create the Daylily CLI conda environment
 if conda env list | grep -q "^DAY-EC "; then
     echo "Conda environment 'DAY-EC' already exists!"
-    echo "Activate with: "
-    echo "    conda activate DAY-EC"
-    exit 3
+    ENV_ALREADY_EXISTS=true
 else
     echo "Creating 'DAY-EC' environment."
     conda env create -y -n DAY-EC -f config/day/daycli.yaml
@@ -33,6 +34,18 @@ else
         echo "Error: Failed to create 'DAY-EC' environment."
         exit 1
     fi
+fi
+
+echo "Installing daylily-ephemeral-cluster into DAY-EC via editable pip install..."
+if ! conda run -n DAY-EC python -m pip install --editable "$REPO_ROOT"; then
+    echo "Error: Failed to install the CLI into the DAY-EC environment."
+    exit 1
+fi
+
+if [ "$ENV_ALREADY_EXISTS" = true ]; then
+    echo "Reinstalled daylily-ephemeral-cluster in the existing DAY-EC environment."
+else
+    echo "DAY-EC environment created successfully."
 fi
 
 echo "Daylily CLI environment is ready!  Activate with: "

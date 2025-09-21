@@ -1,8 +1,12 @@
-import requests
-import socket
+#!/usr/bin/env python
+
 import os
+import socket
+
 import boto3
+import requests
 from botocore.exceptions import BotoCoreError, ClientError
+
 
 def get_aws_deets():
     # Initialize values
@@ -130,4 +134,10 @@ def get_aws_deets():
         spot_cost or ""
     ]
 
-print(get_aws_deets())
+
+def main():
+    print(get_aws_deets())
+
+
+if __name__ == "__main__":
+    main()
