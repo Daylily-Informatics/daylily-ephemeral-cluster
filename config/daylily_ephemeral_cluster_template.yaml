@@ -26,8 +26,8 @@ ephemeral_cluster:
     max_count_128I: PROMPTUSER  # Maximum number of 128xlarge instances to request
     max_count_192I: PROMPTUSER  # Maximum number of 192xlarge instances to request
   template_defaults:
-    ssh_key_name: "qq"
-    s3_bucket_name: "ee"
+    ssh_key_name: ""
+    s3_bucket_name: ""
     public_subnet_id: ""
     private_subnet_id: ""
     iam_policy_arn: ""
