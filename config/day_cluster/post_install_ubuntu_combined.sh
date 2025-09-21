@@ -18,6 +18,16 @@ wallet="$4"  # specified in the cluster yaml, wallet
 
 aws configure set region $region
 
+# Configure rclone to use AWS environment credentials in the current region
+mkdir -p "$HOME/.config/rclone"
+cat <<EOF > "$HOME/.config/rclone/rclone.conf"
+[daylily]
+type = s3
+provider = AWS
+env_auth = true
+region = $region
+EOF
+
 # for sentieon
 ulimit -n 16384
 
