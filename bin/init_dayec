@@ -50,3 +50,6 @@ fi
 
 echo "Daylily CLI environment is ready!  Activate with: "
 echo "    conda activate DAY-EC"
+
+echo " and to complete installing this package w/in the DAY-EC environment, run: "
+echo "   pip install -e . "
