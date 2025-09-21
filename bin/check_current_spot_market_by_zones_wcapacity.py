@@ -273,7 +273,16 @@ def resolve_aws_profile(profile_argument):
 
     available_profiles = [line.strip() for line in result.stdout.splitlines() if line.strip()]
     if profile not in available_profiles:
-        print(f"Error: AWS profile '{profile}' not found. Please set AWS_PROFILE to a valid profile.", file=sys.stderr)
+        available_profiles_display = "\n".join(
+            f"  - {name}" for name in available_profiles
+        ) or "  (no profiles detected)"
+        message = (
+            f"Error: AWS profile '{profile}' not found.\n"
+            "Available profiles detected with `aws configure list-profiles | grep -E '.'`:\n"
+            f"{available_profiles_display}\n"
+            "Please set AWS_PROFILE to a valid profile."
+        )
+        print(message, file=sys.stderr)
         sys.exit(1)
 
     os.environ['AWS_PROFILE'] = profile
