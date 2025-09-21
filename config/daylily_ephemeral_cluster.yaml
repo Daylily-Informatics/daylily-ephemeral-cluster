@@ -15,3 +15,5 @@ ephemeral_cluster:
     max_count_128I: 12 # max number of spots of this cpu size to request
     max_count_192I: 16 # max number of spots of this cpu size to request
     headnode_instance_type: r7i.2xlarge # r7i.2xlarge(tested with this)-<12G,  c7i.16xlarge$2.8-20G (consider this for larger job handling), m7i.8xlarge$1.6-12G,	 r7i.4xlarge$1.1<12G r7i.8xlarge$2.1-10G r7i.16xlarge$4.3-25G
+    heartbeat_email: "" # optional email to receive heartbeat notifications; leave blank to disable
+    heartbeat_schedule: rate(60 minutes) # EventBridge expression used when heartbeat_email is provided
