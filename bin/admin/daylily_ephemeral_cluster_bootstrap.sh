@@ -31,18 +31,19 @@ USER_NAME=""
 REGION=""
 PROFILE="${AWS_PROFILE:-}"
 
-while [[ $# -gt 0 ]]; do
+# robust arg parse (avoids $1 errors under set -u)
+while (( $# )); do
   case "$1" in
-    --user) USER_NAME="$2"; shift 2 ;;
-    --region) REGION="$2"; shift 2 ;;
-    --profile) PROFILE="$2"; shift 2 ;;
+    --user)   USER_NAME="${2:-}"; shift 2 ;;
+    --region) REGION="${2:-}"; shift 2 ;;
+    --profile) PROFILE="${2:-}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown arg: $1" >&2; usage >&2; exit 2 ;;
   esac
 done
 
-[[ -n "$USER_NAME" ]] || { echo "ERR: --user required" >&2; usage >&2; exit 2; }
-[[ -n "$REGION" ]] || { echo "ERR: --region required" >&2; usage >&2; exit 2; }
+: "${USER_NAME:?ERR: --user required}"
+: "${REGION:?ERR: --region required}"
 
 AWS=(aws)
 [[ -n "$PROFILE" ]] && AWS+=(--profile "$PROFILE")
@@ -50,8 +51,6 @@ AWS+=(--region "$REGION")
 
 ACCOUNT_ID="$("${AWS[@]}" sts get-caller-identity --query Account --output text)" || {
   echo "ERR: cannot query STS"; exit 3; }
-
-# ---- policy documents ----
 
 OPS_POLICY_NAME="DaylilyEClusterPolicy"
 ADJUST_POLICY_NAME="DaylilyPClusterLambdaAdjustRoles"
@@ -110,31 +109,42 @@ ADJUST_POLICY_DOC=$(cat <<JSON
 JSON
 )
 
-# ---- helpers ----
+# --- helpers ---
 create_or_update_policy() {
-  local name="$1" doc="$2"
-  local arn
-  set +e
+  local name="$1" doc="$2" arn tmp_json
   arn="$("${AWS[@]}" iam list-policies --scope Local \
-    --query "Policies[?PolicyName=='${name}'].Arn | [0]" --output text 2>/dev/null)"
-  set -e
+         --query "Policies[?PolicyName=='${name}'].Arn | [0]" \
+         --output text 2>/dev/null || true)"
+
+  tmp_json="$(mktemp)"
+  printf '%s\n' "${doc}" > "${tmp_json}"
+
   if [[ -z "$arn" || "$arn" == "None" ]]; then
-    echo "Creating policy ${name}"
-    arn="$("${AWS[@]}" iam create-policy --policy-name "${name}" \
-      --policy-document "${doc}" --query Policy.Arn --output text)"
+    >&2 echo "Creating policy ${name}"
+    arn="$("${AWS[@]}" iam create-policy \
+            --policy-name "${name}" \
+            --policy-document "file://${tmp_json}" \
+            --query Policy.Arn --output text)"
   else
-    echo "Updating policy ${name}"
-    "${AWS[@]}" iam create-policy-version --policy-arn "${arn}" \
-      --policy-document "${doc}" --set-as-default >/dev/null
+    >&2 echo "Updating policy ${name}"
+    "${AWS[@]}" iam create-policy-version \
+      --policy-arn "${arn}" \
+      --policy-document "file://${tmp_json}" \
+      --set-as-default >/dev/null
   fi
-  echo "${arn}"
+
+  rm -f "${tmp_json}"
+
+  # IMPORTANT: print ONLY the ARN on stdout
+  printf '%s\n' "${arn}"
 }
 
-# ---- create/update both ----
-OPS_ARN=$(create_or_update_policy "${OPS_POLICY_NAME}" "${OPS_POLICY_DOC}")
-ADJUST_ARN=$(create_or_update_policy "${ADJUST_POLICY_NAME}" "${ADJUST_POLICY_DOC}")
 
-# ---- attach ops policy to user ----
+# --- create/update both ---
+OPS_ARN="$(create_or_update_policy "${OPS_POLICY_NAME}" "${OPS_POLICY_DOC}")"
+ADJUST_ARN="$(create_or_update_policy "${ADJUST_POLICY_NAME}" "${ADJUST_POLICY_DOC}")"
+
+# --- attach ops policy to user ---
 echo "Attaching ${OPS_POLICY_NAME} to user ${USER_NAME}"
 "${AWS[@]}" iam attach-user-policy --user-name "${USER_NAME}" --policy-arn "${OPS_ARN}" || true
 
