@@ -1897,7 +1897,7 @@ echo ""
 echo "Calculating max spot bid prices per partition resource group..."
 echo ""
 python bin/calcuate_spotprice_for_cluster_yaml.py \
-  -i "$target_conf" -o "$target_conf_fin" \
+  -i "$INIT_TEMPLATE_FILE" -o "$target_conf_fin" \
   --az "$region_az" --profile "$AWS_PROFILE" -b 4.14
 rc=$?
 echo ""
