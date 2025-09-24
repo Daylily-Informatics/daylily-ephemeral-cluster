@@ -17,7 +17,7 @@ dependencies:
   - awscli==2.22.4
   - pip
   - pip:
-      - aws-parallelcluster[cli]==3.13.1
+      - aws-parallelcluster[cli]==3.13.2
       - attrs==23.2.0
       - click==8.3.0
       - connexion==2.13.1
@@ -31,4 +31,4 @@ dependencies:
       - werkzeug==2.3.8
       - colr
       - docopt
-      - daylily-omics-references @ git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.1.6
+      - daylily-omics-references @ git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.1.7
