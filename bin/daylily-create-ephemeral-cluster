@@ -895,7 +895,7 @@ AWS_CLI_USER=$(aws sts get-caller-identity --region $region --profile $AWS_PROFI
 # Ensure pcluster is installed
 echo "Checking pcluster version..."
 expected_pcluster_version="3.13.2"
-pcluster_version=$(pcluster version | grep 'version' | cut -d '"' -f 4)
+pcluster_version=$(AWS_PROFILE=${AWS_PROFILE} pcluster version | grep 'version' | cut -d '"' -f 4)
 if [[ "$pcluster_version" != "$expected_pcluster_version" ]]; then
     handle_warning "Warning: Expected pcluster version $expected_pcluster_version, but found version $pcluster_version."
     if [[ $? -ne 0 ]]; then
@@ -1911,7 +1911,7 @@ echo "✅ Spot bid prices calculated successfully."
 # ----- Dry run -----
 echo "Running a cluster creation dry run..."
 echo ""
-json_response=$(pcluster create-cluster -n "$cluster_name" -c "$target_conf_fin" --dryrun true --region "$region"  2>/dev/null || true)
+json_response=$(AWS_PROFILE=${AWS_PROFILE} pcluster create-cluster -n "$cluster_name" -c "$target_conf_fin" --dryrun true --region "$region"  2>/dev/null || true)
 message=$(echo "$json_response" | jq -r '.message' 2>/dev/null || echo "")
 echo ""
 
@@ -1923,7 +1923,7 @@ elif [[ "$DAY_BREAK" == "1" ]]; then
 else
     echo "❌ Error: Dry run failed:"
     echo "$json_response"
-    echo "   Command: pcluster create-cluster -n $cluster_name -c $target_conf_fin --dryrun true --region $region"
+    echo "   Command: AWS_PROFILE=${AWS_PROFILE} pcluster create-cluster -n $cluster_name -c $target_conf_fin --dryrun true --region $region"
     exit 3
 fi
 echo ""
@@ -1931,7 +1931,7 @@ echo ""
 # ----- Create the cluster -----
 echo "Creating the cluster $cluster_name in region $region"
 echo ""
-pcluster create-cluster -n "$cluster_name" -c "$target_conf_fin" --region "$region" || {
+AWS_PROFILE=${AWS_PROFILE} pcluster create-cluster -n "$cluster_name" -c "$target_conf_fin" --region "$region" || {
   echo "❌ Cluster creation failed."
   exit 3
 }
