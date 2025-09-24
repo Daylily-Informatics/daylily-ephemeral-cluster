@@ -1939,11 +1939,11 @@ echo ""
 
 # ----- Configure head node -----
 echo "✅ The cluster creation is complete (per API). Configuring the head node:"
-echo "   source ./bin/daylily-cfg-headnode $pem_file $region $AWS_PROFILE"
+echo "   source ./bin/daylily-cfg-headnode $pem_file $region $AWS_PROFILE $cluster_name"
 echo ""
 sleep 2
 # shellcheck disable=SC1091
-source ./bin/daylily-cfg-headnode "$pem_file" "$region" "$AWS_PROFILE" || {
+source ./bin/daylily-cfg-headnode "$pem_file" "$region" "$AWS_PROFILE" "$cluster_name" || {
   echo "⚠️ Head node configuration returned non-zero. Review logs; continuing."
 }
 echo ""
