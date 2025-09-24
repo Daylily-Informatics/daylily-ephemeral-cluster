@@ -28,4 +28,6 @@ dependencies:
       - tabulate==0.8.10
       - typeguard==2.13.3
       - werkzeug==2.3.8
+      - colr
+      - docopt
       - daylily-omics-references @ git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.1.5
