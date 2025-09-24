@@ -3,9 +3,8 @@
 # Set required versions
 required_versions=(
     "python3:3.11.0"
-    "git:2.46.0"
-    "wget:1.25.0"
-    "aws:2.22.4"
+    "git:2.34.0"
+    "wget:1.21.0"
 )
 
 # Check if pass_on_warn is set
@@ -59,9 +58,6 @@ for entry in "${required_versions[@]}"; do
             ;;
         wget)
             check_tool "wget" "$required_version" "wget --version | head -n1 | awk '{print \$3}'"
-            ;;
-        aws)
-            check_tool "aws" "$required_version" "aws --version | cut -d ' ' -f 1 | sed 's/aws-cli\///g'"
             ;;
         *)
             echo "Unknown tool $tool."

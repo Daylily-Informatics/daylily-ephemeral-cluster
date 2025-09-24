@@ -86,7 +86,7 @@ usage() {
     echo "       --region-az REGION-AZ   Specify the AWS region and availability zone (ie: us-west-2b)"
     echo "       --pass-on-warn          Allow warnings to pass without failure (default: false)"
     echo "       --profile  AWS profile to use (defaults to AWS_PROFILE environment variable)"
-    echo " .     --config <path>       Path to the daylily-create-ephemeral-cluster config, default: ./.dayephmeral.env)"
+    echo " .     --config <path>       Path to the daylily-create-ephemeral-cluster config, default: config/daylily_ephemeral_cluster_template.yaml  )"
 }
 
 validate_config_file() {

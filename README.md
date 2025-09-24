@@ -207,7 +207,6 @@ Install with `brew` or `apt-get`:
 - `python3`, tested with `3.11.0
 - `git`, tested with `2.46.0`
 - `wget`, tested with `1.25.0`
-- `awscli`, tested with `2.22.4` [AWS CLI docs](https://docs.aws.amazon.com/cli/latest/userguide/install-cliv2.html)
 - `tmux` (optional, but suggested)
 - `emacs` (optional, I guess, but I'm not sure how to live without it)
 
