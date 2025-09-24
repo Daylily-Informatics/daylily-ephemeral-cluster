@@ -3,10 +3,15 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
+
+** TO BE RUN BY AN ADMIN LEVEL USER **
+
+*** run 1x per region ***
+
 Create or update an IAM role that EventBridge Scheduler can assume to publish to SNS.
 
 USAGE:
-  create_scheduler_role_for_sns.sh --region REGION [--profile PROFILE] [--role-name NAME]
+  create_scheduler_role_for_sns.sh --region REGION [--profile PROFILE(admin)] [--role-name NAME]
 
 Defaults:
   --role-name eventbridge-scheduler-to-sns
