@@ -100,9 +100,14 @@ ADJUST_POLICY_DOC=$(cat <<JSON
 {
   "Version": "2012-10-17",
   "Statement": [
-    { "Effect": "Allow",
+    {
+      "Effect": "Allow",
       "Action": [ "iam:AttachRolePolicy", "iam:DetachRolePolicy" ],
-      "Resource": "arn:aws:iam::${ACCOUNT_ID}:role/*-Role*(HeadNode|ComputeFleet|LoginNode)*"
+      "Resource": [
+        "arn:aws:iam::${ACCOUNT_ID}:role/*-RoleHeadNode-*",
+        "arn:aws:iam::${ACCOUNT_ID}:role/*-RoleComputeFleet-*",
+        "arn:aws:iam::${ACCOUNT_ID}:role/*-RoleLoginNode-*"
+      ]
     }
   ]
 }
@@ -143,6 +148,33 @@ create_or_update_policy() {
 # --- create/update both ---
 OPS_ARN="$(create_or_update_policy "${OPS_POLICY_NAME}" "${OPS_POLICY_DOC}")"
 ADJUST_ARN="$(create_or_update_policy "${ADJUST_POLICY_NAME}" "${ADJUST_POLICY_DOC}")"
+
+sleep 7
+
+# --- attach adjust policy to all ParallelCluster Lambda roles ---
+echo "Scanning for ParallelCluster Lambda roles to grant attach/detach..."
+ROLE_NAMES="$("${AWS[@]}" iam list-roles \
+  --query "Roles[?starts_with(RoleName, 'ParallelClusterLambdaRole-')].RoleName" \
+  --output text || true)"
+
+if [[ -z "${ROLE_NAMES}" ]]; then
+  echo "No ParallelClusterLambdaRole-* roles found yet. Create a cluster and re-run this script to attach the adjust policy."
+else
+  for RN in ${ROLE_NAMES}; do
+    echo "Ensuring ${ADJUST_POLICY_NAME} is attached to role: ${RN}"
+    # Skip if already attached
+    ATTACHED="$("${AWS[@]}" iam list-attached-role-policies --role-name "${RN}" \
+      --query "AttachedPolicies[?PolicyArn=='${ADJUST_ARN}'] | length(@)" --output text)"
+    if [[ "${ATTACHED}" != "0" ]]; then
+      echo "  - already attached"
+    else
+      "${AWS[@]}" iam attach-role-policy --role-name "${RN}" --policy-arn "${ADJUST_ARN}"
+      echo "  - attached"
+    fi
+  done
+fi
+
+
 
 # --- attach ops policy to user ---
 echo "Attaching ${OPS_POLICY_NAME} to user ${USER_NAME}"
