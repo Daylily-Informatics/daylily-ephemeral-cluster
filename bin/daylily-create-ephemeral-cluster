@@ -1943,6 +1943,7 @@ echo "   source ./bin/daylily-cfg-headnode $pem_file $region $AWS_PROFILE $clust
 echo ""
 sleep 2
 # shellcheck disable=SC1091
+export AWS_PROFILE=$AWS_PROFILE
 source ./bin/daylily-cfg-headnode "$pem_file" "$region" "$AWS_PROFILE" "$cluster_name" || {
   echo "⚠️ Head node configuration returned non-zero. Review logs; continuing."
 }
@@ -1986,3 +1987,5 @@ fi
 echo "✅ ✅ ✅ ....fin!"
 
 command -v say >/dev/null 2>&1 && say "onward to daylily"
+
+unset AWS_PROFILE
