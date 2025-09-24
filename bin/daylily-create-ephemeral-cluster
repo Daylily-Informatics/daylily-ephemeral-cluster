@@ -1283,19 +1283,7 @@ elif [[ -z "$public_subnets" || -z "$private_subnets"  ]]; then
 else
     echo "✅ All required resources are available."
 fi
-echo ""
 
-# TODO: fix handling thsi script erroring
-sns_output=""
-if ! sns_output=$(bin/daylily-ensure-sns-permissions \
-    --region "$region" \
-    --account-id "$AWS_ACCOUNT_ID" \
-    --iam-user "$AWS_CLI_USER" \
-    --profile "$AWS_PROFILE"); then
-    echo "$sns_output"
-else
-    echo "$sns_output"
-fi
 echo ""
 
 echo "✅ Setup complete. Proceeding with the remaining steps..."
