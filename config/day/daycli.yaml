@@ -17,7 +17,7 @@ dependencies:
   - awscli==2.22.4
   - pip
   - pip:
-      - aws-parallelcluster[cli]==3.13.2
+      - aws-parallelcluster[cli]==3.13.1
       - attrs==23.2.0
       - click==8.3.0
       - connexion==2.13.1
