@@ -884,6 +884,38 @@ drwxrwxrwx 3 root root 33K Sep 26 08:35 resources
 > Please see the testing section of the [daylily-omics-analysis README](https://github.com/Daylily-Informatics/daylily-omics-analysis).
 ---
 
+## Stage Sample Data & Build an `analysis_manifest.csv`
+
+The sample staging helper that previously lived in `daylily-omics-analysis` now ships with this repository. Use it to turn an
+`analysis_samples.tsv` file into staged FASTQs under `/fsx/staged_sample_data` and the `analysis_manifest.csv` file that the
+workflows consume. A template TSV is available at [`etc/analysis_samples_template.tsv`](etc/analysis_samples_template.tsv).
+
+### Run Directly On The Head Node
+
+```bash
+cd ~/projects/daylily-ephemeral-cluster
+./bin/daylily-stage-analysis-samples-headnode /path/to/analysis_samples.tsv
+# optionally override the stage target
+./bin/daylily-stage-analysis-samples-headnode /path/to/analysis_samples.tsv /fsx/custom_dir
+```
+
+The helper defaults to `/fsx/staged_sample_data` and writes `analysis_manifest.csv` to that directory after staging.
+
+### Launch Staging From Your Laptop
+
+```bash
+./bin/daylily-stage-analysis-samples --profile <aws_profile> --region <aws_region> \
+    --pem ~/.ssh/<your-key>.pem --cluster <cluster-name> /path/to/analysis_samples.tsv
+```
+
+When values such as the region, cluster name, or PEM file are omitted the script will prompt for them. The workflow is:
+
+1. Upload the TSV to the selected head node.
+2. Run `daylily-analysis-samples-to-manifest-new.py` remotely so data are staged into `/fsx/staged_sample_data/<sample_prefix>/`.
+3. Download `analysis_manifest.csv` back next to the local TSV (disable with `--no-download`).
+
+This preserves the head node staging behaviour while allowing the process to be initiated during cluster provisioning.
+
 ## Slurm Monitoring
 
 ### Monitor Slurm Submitted Jobs
