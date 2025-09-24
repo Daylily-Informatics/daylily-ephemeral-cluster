@@ -6,6 +6,7 @@
 pem_file=$1
 region=$2
 aws_profile=$3
+requested_cluster_name=$4
 duser="ubuntu"
 
 
@@ -18,7 +19,7 @@ daylily_image_cmd=$(yq -r '.daylily.daylily_image_cmd' "$CONFIG_FILE")
 # Ensure both PEM file and region are provided
 if [[ -z "$pem_file" || -z "$region" || -z "$aws_profile" ]]; then
     echo "Error: You must provide both the PEM file path and the AWS region."
-    echo "Usage: source $0 /path/to/pem_file region profile"
+    echo "Usage: source $0 /path/to/pem_file region profile [cluster_name]"
     return 1
 fi
  
@@ -39,20 +40,37 @@ while IFS= read -r cluster_name; do
     cluster_array+=("$cluster_name")
 done <<< "$cluster_names"
 
-# Auto-select if there is only one cluster, otherwise prompt for selection
-if [[ ${#cluster_array[@]} -eq 1 ]]; then
-    selected_cluster=$cluster_array
-    echo "Only one cluster found: $selected_cluster. Auto-selecting it."
-else
-    echo "Select a cluster name:"
-    select selected_cluster in "${cluster_array[@]}"; do
-        if [[ -n "$selected_cluster" ]]; then
-            echo "You selected: $selected_cluster"
+# Auto-select the requested cluster when possible.
+selected_cluster=""
+if [[ -n "$requested_cluster_name" ]]; then
+    for cluster in "${cluster_array[@]}"; do
+        if [[ "$cluster" == "$requested_cluster_name" ]]; then
+            selected_cluster="$cluster"
+            echo "Auto-selecting user-requested cluster: $selected_cluster"
             break
-        else
-            echo "Invalid selection, please try again."
         fi
     done
+    if [[ -z "$selected_cluster" ]]; then
+        echo "⚠️ Requested cluster '$requested_cluster_name' not found in region $region."
+    fi
+fi
+
+# Auto-select if there is only one cluster or if a requested cluster was matched.
+if [[ -z "$selected_cluster" ]]; then
+    if [[ ${#cluster_array[@]} -eq 1 ]]; then
+        selected_cluster=${cluster_array[0]}
+        echo "Only one cluster found: $selected_cluster. Auto-selecting it."
+    else
+        echo "Select a cluster name:"
+        select selected_cluster in "${cluster_array[@]}"; do
+            if [[ -n "$selected_cluster" ]]; then
+                echo "You selected: $selected_cluster"
+                break
+            else
+                echo "Invalid selection, please try again."
+            fi
+        done
+    fi
 fi
 cluster_name=$selected_cluster
 
