@@ -1,0 +1,228 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+usage() {
+    cat <<'USAGE'
+Usage: daylily-stage-analysis-samples [options] <analysis_samples.tsv>
+
+Options:
+  --stage-target PATH     Remote staging directory (default: /fsx/staged_sample_data)
+  --region REGION         AWS region containing the cluster (defaults to AWS_REGION/AWS_DEFAULT_REGION)
+  --profile PROFILE       AWS CLI profile to use (defaults to AWS_PROFILE)
+  --cluster NAME          Cluster name to target (prompted if omitted)
+  --pem FILE              SSH PEM key for the cluster head node (prompted if omitted)
+  --remote-repo PATH      Remote path to the daylily-ephemeral-cluster checkout (default: ~/projects/daylily-ephemeral-cluster)
+  --remote-tmp PATH       Remote directory for uploading the TSV (default: /tmp)
+  --output FILE           Local destination for the generated manifest (default: <tsv_dir>/analysis_manifest.csv)
+  --no-download           Skip downloading the manifest back to the local machine
+  -h, --help              Show this help message and exit
+USAGE
+}
+
+require_cmd() {
+    if ! command -v "$1" >/dev/null 2>&1; then
+        echo "Error: required command '$1' not found in PATH" >&2
+        exit 1
+    fi
+}
+
+choose_from_list() {
+    local prompt="$1"; shift
+    local -a options=("$@")
+    if [[ ${#options[@]} -eq 0 ]]; then
+        echo "Error: no options available for selection (${prompt})" >&2
+        exit 1
+    fi
+    if [[ ${#options[@]} -eq 1 ]]; then
+        echo "${options[0]}"
+        return 0
+    fi
+    PS3="$prompt "
+    select opt in "${options[@]}"; do
+        if [[ -n "$opt" ]]; then
+            echo "$opt"
+            return 0
+        fi
+        echo "Invalid selection, try again." >&2
+    done
+}
+
+require_cmd aws
+require_cmd pcluster
+require_cmd ssh
+require_cmd scp
+require_cmd python3
+
+stage_target="/fsx/staged_sample_data"
+region="${AWS_REGION:-${AWS_DEFAULT_REGION:-}}"
+aws_profile="${AWS_PROFILE:-}"
+cluster_name=""
+pem_file=""
+remote_repo="~/projects/daylily-ephemeral-cluster"
+remote_tmp="/tmp"
+download_manifest="true"
+local_manifest=""
+ts_path=""
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --stage-target)
+            stage_target="$2"
+            shift 2
+            ;;
+        --region)
+            region="$2"
+            shift 2
+            ;;
+        --profile)
+            aws_profile="$2"
+            shift 2
+            ;;
+        --cluster)
+            cluster_name="$2"
+            shift 2
+            ;;
+        --pem)
+            pem_file="$2"
+            shift 2
+            ;;
+        --remote-repo)
+            remote_repo="$2"
+            shift 2
+            ;;
+        --remote-tmp)
+            remote_tmp="$2"
+            shift 2
+            ;;
+        --output)
+            local_manifest="$2"
+            shift 2
+            ;;
+        --no-download)
+            download_manifest="false"
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --)
+            shift
+            break
+            ;;
+        -*)
+            echo "Unknown option: $1" >&2
+            usage
+            exit 1
+            ;;
+        *)
+            if [[ -z "$ts_path" ]]; then
+                ts_path="$1"
+                shift
+            else
+                echo "Unexpected argument: $1" >&2
+                usage
+                exit 1
+            fi
+            ;;
+    esac
+done
+
+if [[ -z "$ts_path" ]]; then
+    echo "Error: analysis_samples TSV path is required" >&2
+    usage
+    exit 1
+fi
+
+if [[ ! -f "$ts_path" ]]; then
+    echo "Error: TSV file '$ts_path' not found" >&2
+    exit 1
+fi
+
+if [[ -z "$aws_profile" ]]; then
+    echo "Error: AWS profile not specified. Set AWS_PROFILE or pass --profile." >&2
+    exit 1
+fi
+
+if [[ -z "$region" ]]; then
+    echo "Selecting AWS region..."
+    mapfile -t region_options < <(aws ec2 describe-regions --region us-west-2 --profile "$aws_profile" --query 'Regions[].RegionName' --output text 2>/dev/null | tr '\t' '\n')
+    region="$(choose_from_list "Select region:" "${region_options[@]}")"
+fi
+
+if [[ -z "$cluster_name" ]]; then
+    echo "Locating clusters in region $region using profile $aws_profile..."
+    mapfile -t cluster_options < <(AWS_PROFILE="$aws_profile" pcluster list-clusters --region "$region" | grep clusterName | awk '{print $2}' | cut -d '"' -f 2)
+    if [[ ${#cluster_options[@]} -eq 0 ]]; then
+        echo "Error: No clusters found in region $region." >&2
+        exit 1
+    fi
+    cluster_name="$(choose_from_list "Select cluster:" "${cluster_options[@]}")"
+fi
+
+if [[ -z "$pem_file" ]]; then
+    mapfile -t pem_candidates < <(ls -1 ~/.ssh/*.pem 2>/dev/null)
+    if [[ ${#pem_candidates[@]} -eq 0 ]]; then
+        echo "Error: No PEM files found in ~/.ssh. Provide one with --pem." >&2
+        exit 1
+    fi
+    pem_file="$(choose_from_list "Select PEM file:" "${pem_candidates[@]}")"
+fi
+
+if [[ ! -f "$pem_file" ]]; then
+    echo "Error: PEM file '$pem_file' not found" >&2
+    exit 1
+fi
+
+echo "Using AWS profile: $aws_profile"
+echo "Using region: $region"
+echo "Target cluster: $cluster_name"
+echo "SSH key: $pem_file"
+echo "Stage target: $stage_target"
+
+cluster_ip=$(AWS_PROFILE="$aws_profile" pcluster describe-cluster-instances -n "$cluster_name" --region "$region" --output json \
+    | python3 -c 'import json,sys; data=json.load(sys.stdin); print(next((i["publicIpAddress"] for i in data["instances"] if i.get("nodeType")=="HeadNode"), "")) )')
+
+if [[ -z "$cluster_ip" ]]; then
+    echo "Error: Failed to resolve head node IP for cluster $cluster_name" >&2
+    exit 1
+fi
+
+echo "Head node IP: $cluster_ip"
+
+remote_basename="$(basename "$ts_path")"
+remote_timestamp="$(date +%s)"
+remote_tsv="$remote_tmp/${remote_basename%.tsv}_$remote_timestamp.tsv"
+
+ssh_opts=(-i "$pem_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null)
+
+echo "Preparing remote workspace ${remote_tmp}..."
+ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" "mkdir -p '$remote_tmp'"
+
+echo "Uploading TSV to head node..."
+scp "${ssh_opts[@]}" "$ts_path" "ubuntu@${cluster_ip}:${remote_tsv}"
+
+remote_repo_remote=${remote_repo/#\~/$'\\$HOME'}
+
+echo "Running remote staging script..."
+ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" "cd $remote_repo_remote && AWS_PROFILE='$aws_profile' python3 ./bin/daylily-analysis-samples-to-manifest-new.py '$remote_tsv' '$stage_target'"
+
+echo "Remote staging complete. Manifest located at $stage_target/analysis_manifest.csv"
+
+if [[ "$download_manifest" == "true" ]]; then
+    if [[ -z "$local_manifest" ]]; then
+        local_dir=$(cd "$(dirname "$ts_path")" && pwd)
+        local_manifest="$local_dir/analysis_manifest.csv"
+    fi
+    echo "Downloading manifest to $local_manifest..."
+    if ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" "test -f '$stage_target/analysis_manifest.csv'"; then
+        scp "${ssh_opts[@]}" "ubuntu@${cluster_ip}:${stage_target}/analysis_manifest.csv" "$local_manifest"
+    else
+        echo "Warning: Manifest not found at $stage_target/analysis_manifest.csv on head node; skipping download." >&2
+    fi
+fi
+
+echo "Cleaning up remote TSV..."
+ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" "rm -f '$remote_tsv'"
+
+echo "Done."
