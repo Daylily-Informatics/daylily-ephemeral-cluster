@@ -7,7 +7,11 @@
 				"ec2:*",
 				"autoscaling:*",
 				"elasticloadbalancing:*",
-				"elasticfilesystem:*"
+			        "elasticfilesystem:*",
+			    	"sns:CreateTopic",
+				"sns:ListTopics",
+				"sns:ListSubscriptions",
+				"sns:ListSubscriptionsByTopic"
 			],
 			"Resource": "*"
 		},
@@ -145,6 +149,18 @@
 				"tag:*"
 			],
 			"Resource": "*"
+		},
+	    	{
+			"Effect": "Allow",
+			"Action": [
+				"sns:GetTopicAttributes",
+				"sns:SetTopicAttributes",
+				"sns:Subscribe",
+				"sns:Unsubscribe",
+				"sns:Publish",
+				"sns:DeleteTopic"
+			],
+			"Resource": "arn:aws:sns:<REGION>:<AWS_ACCOUNT_ID>:*"
 		}
 	]
 }
