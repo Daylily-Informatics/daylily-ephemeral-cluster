@@ -1936,3 +1936,5 @@ if [[ -n "$NEXT_RUN_TEMPLATE" ]]; then
 fi
 
 echo "✅ ✅ ✅ ....fin!"
+
+command -v say >/dev/null 2>&1 && say "onward to daylily"

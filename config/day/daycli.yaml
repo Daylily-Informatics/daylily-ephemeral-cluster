@@ -1,23 +1,29 @@
+name: DC5
 channels:
   - conda-forge
+  - defaults
 dependencies:
-  - python==3.11.11
-  - ipython
-  - perl
-  - yappi
-  - bash                # >=4 for assoc arrays; conda bash satisfies it
-  - yamllint
-  - rclone
+  - python=3.11
+  - bash=5.2.37
+  - jq=1.8.1
+  - yq=3.4.3
+  - rclone=1.71.0
   - parallel
-  - glances
+  - perl
+  - yamllint
   - fd-find
-  - jq
-  - yq
-  - pip
+  - ipython
+  - yaml
   - pip:
-      - aws-parallelcluster==3.13.2
-      - boto3==1.40.35
-      - botocore==1.40.35
-      - colr
-      - docopt
-      - daylily-omics-references @ git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.1.0
+      - aws-parallelcluster[cli]==3.13.2
+      - attrs==23.2.0
+      - click==8.3.0
+      - connexion==2.13.1
+      - flask==2.2.5
+      - jinja2==3.1.6
+      - jsonschema==4.25.1
+      - jsonschema-specifications==2025.9.1
+      - rpds-py==0.27.1
+      - tabulate==0.8.10
+      - typeguard==2.13.3
+      - werkzeug==2.3.8
