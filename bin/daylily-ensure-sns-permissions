@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 set -euo pipefail
 
 usage() {
@@ -6,6 +6,8 @@ usage() {
 Usage: $0 --region REGION --account-id ACCOUNT_ID --iam-user USER [--profile PROFILE]
 
 Ensures the specified IAM user has the inline policy required for SNS access.
+- If jq is available, compares the existing inline policy to the expected one.
+- If jq is not available, skips comparison and just (re)applies the policy.
 USAGE
 }
 
@@ -16,31 +18,12 @@ profile=""
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
-        --region)
-            region="$2"
-            shift 2
-            ;;
-        --account-id)
-            account_id="$2"
-            shift 2
-            ;;
-        --iam-user)
-            iam_user="$2"
-            shift 2
-            ;;
-        --profile)
-            profile="$2"
-            shift 2
-            ;;
-        --help|-h)
-            usage
-            exit 0
-            ;;
-        *)
-            echo "Unknown option: $1" >&2
-            usage >&2
-            exit 1
-            ;;
+        --region)      region="$2"; shift 2 ;;
+        --account-id)  account_id="$2"; shift 2 ;;
+        --iam-user)    iam_user="$2"; shift 2 ;;
+        --profile)     profile="$2"; shift 2 ;;
+        --help|-h)     usage; exit 0 ;;
+        *) echo "Unknown option: $1" >&2; usage >&2; exit 1 ;;
     esac
 done
 
@@ -51,7 +34,8 @@ if [[ -z "$region" || -z "$account_id" || -z "$iam_user" ]]; then
 fi
 
 policy_name="daylily-sns-${region}-${account_id}"
-policy_document=$(cat <<EOF_POLICY
+
+policy_document=$(cat <<EOF
 {
   "Version": "2012-10-17",
   "Statement": [
@@ -71,64 +55,69 @@ policy_document=$(cat <<EOF_POLICY
     }
   ]
 }
-EOF_POLICY
+EOF
 )
 
-policy_file=$(mktemp)
+policy_file="$(mktemp)"
 trap 'rm -f "$policy_file"' EXIT
 printf '%s\n' "$policy_document" >"$policy_file"
 
-expected_doc=$(python3 - "$policy_file" <<'PY'
-import json
-import sys
-
-with open(sys.argv[1]) as handle:
-    data = json.load(handle)
-
-print(json.dumps(data, sort_keys=True))
-PY
-)
-
 aws_cmd=(aws iam)
-if [[ -n "$profile" ]]; then
-    aws_cmd+=(--profile "$profile")
+[[ -n "$profile" ]] && aws_cmd+=(--profile "$profile")
+
+# URL-decode helper (no python)
+urldecode() {
+    # Convert %XX to bytes; preserve '+' literally (AWS uses %20 for spaces).
+    local data=${1//+/+}
+    printf '%b' "${data//%/\\x}"
+}
+
+have_jq=false
+if command -v jq >/dev/null 2>&1; then
+    have_jq=true
 fi
 
 existing_doc=""
 if existing_json="$("${aws_cmd[@]}" get-user-policy --user-name "$iam_user" --policy-name "$policy_name" 2>/dev/null)"; then
-    existing_doc=$(python3 <<'PY'
-import json
-import sys
-import urllib.parse
-
-data = json.load(sys.stdin)
-decoded = json.loads(urllib.parse.unquote(data.get("PolicyDocument", "{}")))
-print(json.dumps(decoded, sort_keys=True))
-PY
-<<<"$existing_json")
+    # Extract PolicyDocument (URL-encoded JSON), decode, and normalize if jq present
+    encoded_doc=$(printf '%s' "$existing_json" | jq -r '.PolicyDocument' 2>/dev/null || echo "")
+    if [[ -n "$encoded_doc" && "$encoded_doc" != "null" ]]; then
+        decoded_doc="$(urldecode "$encoded_doc")"
+        if $have_jq; then
+            existing_doc="$(printf '%s' "$decoded_doc" | jq -cS . 2>/dev/null || true)"
+        else
+            existing_doc="$decoded_doc"
+        fi
+    fi
 fi
 
-if [[ -n "$existing_doc" && "$existing_doc" == "$expected_doc" ]]; then
+expected_doc="$policy_document"
+if $have_jq; then
+    expected_doc="$(jq -cS . <"$policy_file")"
+fi
+
+if $have_jq && [[ -n "${existing_doc:-}" && "$existing_doc" == "$expected_doc" ]]; then
     echo "✅ Required SNS permissions already configured for IAM user '$iam_user' (policy '$policy_name')."
     exit 0
 fi
 
-if "${aws_cmd[@]}" put-user-policy --user-name "$iam_user" --policy-name "$policy_name" --policy-document file://"$policy_file" >/dev/null 2>&1; then
+# Put/overwrite the inline policy (idempotent)
+if "${aws_cmd[@]}" put-user-policy \
+        --user-name "$iam_user" \
+        --policy-name "$policy_name" \
+        --policy-document "file://$policy_file" >/dev/null 2>&1; then
     echo "✅ Ensured SNS permissions for IAM user '$iam_user' via inline policy '$policy_name'."
     exit 0
 fi
 
-cat <<EOF_MANUAL
+cat <<EOF
 ❌ Error: Unable to ensure SNS permissions for IAM user '$iam_user' in region '$region'.
 
-To fix this manually:
-  1) Open the AWS console and navigate to IAM → Users → $iam_user.
-  2) Choose "Add inline policy", switch to the JSON editor, and paste the policy below.
-  3) Name the policy '$policy_name' and save it.
-  4) Rerun ./bin/daylily-create-ephemeral-cluster.
+Manual fix:
+  1) AWS Console → IAM → Users → $iam_user
+  2) Add inline policy (JSON), paste the following, name it '$policy_name', save:
 
-Policy JSON:
 $policy_document
-EOF_MANUAL
+EOF
 
 exit 1

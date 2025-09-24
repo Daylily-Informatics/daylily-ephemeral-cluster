@@ -510,7 +510,7 @@ PY
     RESOLVED_CLI_CONFIG="$resolved_file"
 }
 
-write_init_template_yaml() {
+OLDwrite_init_template_yaml() {
     local output_path="$1"
     local substitutions_file="$2"
 
@@ -1280,13 +1280,14 @@ else
 fi
 echo ""
 
+# TODO: fix handling thsi script erroring
 sns_output=""
 if ! sns_output=$(bin/daylily-ensure-sns-permissions \
     --region "$region" \
     --account-id "$AWS_ACCOUNT_ID" \
     --iam-user "$AWS_CLI_USER" \
     --profile "$AWS_PROFILE"); then
-    handle_warning "$sns_output"
+    echo "$sns_output"
 else
     echo "$sns_output"
 fi
@@ -1779,7 +1780,52 @@ echo "✅ Allocation strategy: $allocation_strategy"
 set_final_config_value "spot_instance_allocation_strategy" "$allocation_strategy"
 echo ""
 
+
+
+
 # ----- Build init template & resolved cluster YAML -----
+write_init_template_yaml() {
+  # $1: output YAML path
+  # $2: kvfile with KEY=VALUE lines (shell-escaped)
+  local out="$1"
+  local kvfile="$2"
+  # Point this at your input template with ${REGSUB_*} placeholders
+  local template="$3" #"${INIT_TEMPLATE_SRC:-config/daylily_ephemeral_cluster_init.yaml}"
+
+  # deps
+  if ! command -v envsubst >/dev/null 2>&1; then
+    echo "❌ envsubst not found. On macOS: brew install gettext && brew link --force gettext" >&2
+    return 1
+  fi
+  if [[ ! -f "$template" ]]; then
+    echo "❌ Template not found: $template" >&2
+    return 1
+  fi
+
+  mkdir -p "$(dirname "$out")"
+
+  # Load variables safely into env and render
+  set -a
+  # shellcheck disable=SC1090
+  . "$kvfile"
+  set +a
+
+  # Optional sanity checks for required vars (add/remove as needed)
+  local required=(REGSUB_REGION REGSUB_PUB_SUBNET REGSUB_PRIVATE_SUBNET REGSUB_CLUSTER_NAME)
+  for v in "${required[@]}"; do
+    if [[ -z "${!v:-}" ]]; then
+      echo "❌ Missing required substitution: $v" >&2
+      return 1
+    fi
+  done
+
+  if ! envsubst <"$template" >"$out"; then
+    echo "❌ envsubst failed to render $out" >&2
+    return 1
+  fi
+
+  echo "✅ Wrote init template: $out"
+}
 
 git_deets=$(bin/get_git_deets.sh || echo "git:unknown")
 
@@ -1787,48 +1833,56 @@ git_deets=$(bin/get_git_deets.sh || echo "git:unknown")
 enforce_budget_opt="${enforce_budget_opt:-skip}"
 [[ "$enforce_budget_opt" == "false" ]] && enforce_budget_opt="skip"
 
+# Ensure Bash >= 4 if you keep associative arrays
+if [[ -z "${BASH_VERSINFO:-}" || "${BASH_VERSINFO[0]}" -lt 4 ]]; then
+  echo "❌ Bash >= 4 required for associative arrays. Use Conda/Homebrew bash or refactor." >&2
+  exit 2
+fi
+
 declare -A REG_SUBSTITUTIONS=(
-    ["REGSUB_REGION"]="$region"
-    ["REGSUB_PUB_SUBNET"]="$public_subnet"
-    ["REGSUB_KEYNAME"]="$pem_name"
-    ["REGSUB_S3_BUCKET_INIT"]="$bucket_url"
-    ["REGSUB_S3_BUCKET_NAME"]="$bucket_name"
-    ["REGSUB_S3_IAM_POLICY"]="$arn_policy_id"
-    ["REGSUB_PRIVATE_SUBNET"]="$private_subnet"
-    ["REGSUB_S3_BUCKET_REF"]="$bucket_url"
-    ["REGSUB_XMR_MINE"]="$enable_xmr"
-    ["REGSUB_XMR_POOL_URL"]="$xmr_pool_url"
-    ["REGSUB_XMR_WALLET"]="$xmr_wallet"
-    ["REGSUB_FSX_SIZE"]="$sel_fsx_size"
-    ["REGSUB_DETAILED_MONITORING"]="$act_detailed_monitoring"
-    ["REGSUB_CLUSTER_NAME"]="$cluster_name"
-    ["REGSUB_USERNAME"]="${USER}-${AWS_CLI_USER}"
-    ["REGSUB_PROJECT"]="$budget_name"
-    ["REGSUB_DELETE_LOCAL_ROOT"]="$delete_local_root"
-    ["REGSUB_SAVE_FSX"]="$save_fsx"
-    ["REGSUB_ENFORCE_BUDGET"]="$enforce_budget_opt"
-    ["REGSUB_AWS_ACCOUNT_ID"]="aws_profile-$AWS_PROFILE"
-    ["REGSUB_ALLOCATION_STRATEGY"]="$allocation_strategy"
-    ["REGSUB_DAYLILY_GIT_DEETS"]="$git_deets"
-    ["REGSUB_MAX_COUNT_8I"]="$CONFIG_MAX_COUNT_8I"
-    ["REGSUB_MAX_COUNT_128I"]="$CONFIG_MAX_COUNT_128I"
-    ["REGSUB_MAX_COUNT_192I"]="$CONFIG_MAX_COUNT_192I"
-    ["REGSUB_HEADNODE_INSTANCE_TYPE"]="$sel_headnode_type"
-    ["REGSUB_HEARTBEAT_EMAIL"]="$heartbeat_email"
-    ["REGSUB_HEARTBEAT_SCHEDULE"]="$heartbeat_schedule"
+  ["REGSUB_REGION"]="$region"
+  ["REGSUB_PUB_SUBNET"]="$public_subnet"
+  ["REGSUB_KEYNAME"]="$pem_name"
+  ["REGSUB_S3_BUCKET_INIT"]="$bucket_url"
+  ["REGSUB_S3_BUCKET_NAME"]="$bucket_name"
+  ["REGSUB_S3_IAM_POLICY"]="$arn_policy_id"
+  ["REGSUB_PRIVATE_SUBNET"]="$private_subnet"
+  ["REGSUB_S3_BUCKET_REF"]="$bucket_url"
+  ["REGSUB_XMR_MINE"]="$enable_xmr"
+  ["REGSUB_XMR_POOL_URL"]="$xmr_pool_url"
+  ["REGSUB_XMR_WALLET"]="$xmr_wallet"
+  ["REGSUB_FSX_SIZE"]="$sel_fsx_size"
+  ["REGSUB_DETAILED_MONITORING"]="$act_detailed_monitoring"
+  ["REGSUB_CLUSTER_NAME"]="$cluster_name"
+  ["REGSUB_USERNAME"]="${USER}-${AWS_CLI_USER}"
+  ["REGSUB_PROJECT"]="$budget_name"
+  ["REGSUB_DELETE_LOCAL_ROOT"]="$delete_local_root"
+  ["REGSUB_SAVE_FSX"]="$save_fsx"
+  ["REGSUB_ENFORCE_BUDGET"]="$enforce_budget_opt"
+  ["REGSUB_AWS_ACCOUNT_ID"]="aws_profile-$AWS_PROFILE"
+  ["REGSUB_ALLOCATION_STRATEGY"]="$allocation_strategy"
+  ["REGSUB_DAYLILY_GIT_DEETS"]="$git_deets"
+  ["REGSUB_MAX_COUNT_8I"]="$CONFIG_MAX_COUNT_8I"
+  ["REGSUB_MAX_COUNT_128I"]="$CONFIG_MAX_COUNT_128I"
+  ["REGSUB_MAX_COUNT_192I"]="$CONFIG_MAX_COUNT_192I"
+  ["REGSUB_HEADNODE_INSTANCE_TYPE"]="$sel_headnode_type"
+  ["REGSUB_HEARTBEAT_EMAIL"]="$heartbeat_email"
+  ["REGSUB_HEARTBEAT_SCHEDULE"]="$heartbeat_schedule"
 )
 
 subs_tmp=$(mktemp)
+# Write **shell-safe assignments** (quoted) the parser can `.` (source)
 for key in "${!REG_SUBSTITUTIONS[@]}"; do
-    printf '%s\t%s\n' "$key" "${REG_SUBSTITUTIONS[$key]}" >>"$subs_tmp"
+  printf '%s=%q\n' "$key" "${REG_SUBSTITUTIONS[$key]}" >>"$subs_tmp"
 done
 
-if ! write_init_template_yaml "$INIT_TEMPLATE_FILE" "$subs_tmp"; then
-    echo "❌ Error: Failed to create initialization template YAML."
-    rm -f "$subs_tmp"
-    exit 3
+if ! write_init_template_yaml "$INIT_TEMPLATE_FILE" "$subs_tmp" "$cluster_yaml"; then
+  echo "❌ Error: Failed to create initialization template YAML."
+  echo "TMPFILES: $subs_tmp"
+  exit 3
 fi
 rm -f "$subs_tmp"
+
 
 echo ""
 echo "📄 Initialization template saved to: $INIT_TEMPLATE_FILE"
