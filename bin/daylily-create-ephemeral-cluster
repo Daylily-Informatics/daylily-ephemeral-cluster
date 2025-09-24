@@ -923,13 +923,18 @@ AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text  --pr
 caller_identity_arn=$(aws sts get-caller-identity --query 'Arn' --output text --region "$region"  --profile $AWS_PROFILE )
 
 # Check if the policy is attached to the user
-DY_POLICY_NAME="daylily-service-cluster-policy"
+DY_POLICY_NAME="DaylilyEClusterPolicy"
 if aws iam list-user-policies --user-name "$AWS_CLI_USER" | jq -e --arg policy "$DY_POLICY_NAME" '.PolicyNames[] | select(. == $policy)' > /dev/null; then
     echo "Policy $DY_POLICY_NAME is attached to the user. Proceeding..."
 else
     echo "WARNING: The policy '$DY_POLICY_NAME' is not attached to the user '$AWS_CLI_USER'."
     echo "Please see the README 'Inline Policies' section for instructions on attaching the policy."
     echo ""
+    echo """An admin user can run: bin/admin/daylily_ephemeral_cluster_bootstrap.sh \
+  --region us-west-2 \
+  --profile <admin_user_profile> \
+  --user daylily-service. """
+    echo "... and can add --emit-json to get a JSON policy document to attach manually if desired."
     echo "Do you want to proceed without attaching the policy (maybe you rolled your own)?"
     echo "1) Proceed anyway"
     echo "2) Exit"
