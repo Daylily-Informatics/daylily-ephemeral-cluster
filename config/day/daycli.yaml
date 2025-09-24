@@ -1,4 +1,3 @@
-name: DC5
 channels:
   - conda-forge
   - defaults
@@ -14,6 +13,7 @@ dependencies:
   - fd-find
   - ipython
   - yaml
+  - pip
   - pip:
       - aws-parallelcluster[cli]==3.13.2
       - attrs==23.2.0
@@ -27,3 +27,4 @@ dependencies:
       - tabulate==0.8.10
       - typeguard==2.13.3
       - werkzeug==2.3.8
+      - daylily-omics-references @ git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.1.3
