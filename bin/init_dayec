@@ -20,6 +20,23 @@ if ! command -v conda &> /dev/null; then
     exit 1
 fi
 
+
+
+CHANNELS_MAIN="https://repo.anaconda.com/pkgs/main"
+CHANNELS_R="https://repo.anaconda.com/pkgs/r"
+
+
+echo "conda supports 'tos'; attempting programmatic acceptance…"
+# Some CI setups need always_yes for non-interactive subcommands too.
+conda config --set always_yes true >/dev/null
+
+# Idempotent accepts (rerun-safe)
+conda tos accept --override-channels --channel "$CHANNELS_MAIN" || (echo tosFAIL && exit 1)
+conda tos accept --override-channels --channel "$CHANNELS_R"    || (echo tosFAIL && exit 1)
+echo "TOS accepted for: $CHANNELS_MAIN and $CHANNELS_R"
+
+
+
 REPO_ROOT=$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)
 ENV_ALREADY_EXISTS=false
 
