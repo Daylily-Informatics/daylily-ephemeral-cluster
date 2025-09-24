@@ -1236,16 +1236,16 @@ fi
 bucket=$(echo "$selected_bucket" )
 set_final_config_value "s3_bucket_name" "$selected_bucket"
 
+## TODO: parameterize what verification flags are used here
 echo "Validating reference bucket contents for: $selected_bucket"
 ensure_reference_cli
 if daylily-omics-references --profile "$AWS_PROFILE" --region "$region" \
-    verify --bucket "$selected_bucket"; then
+    verify --bucket "$selected_bucket"  --exclude-b37 ; then
     echo "✅ Reference bucket $selected_bucket passed verification."
 else
     status=$?
     echo "❌ Reference bucket verification failed (exit $status). Review the output above for details."
-    echo "SKIPPING FAIL FOR NOW"
-    #exit 3
+    exit 3
 fi
 
 bucket_url="s3://$selected_bucket"
