@@ -5,7 +5,7 @@ usage() {
     cat <<'USAGE'
 Usage: daylily-stage-analysis-samples-headnode <analysis_samples.tsv> [stage_target]
 
-Generate /fsx staging directories and an analysis_manifest.csv from an analysis_samples TSV.
+Generate /fsx staging directories and config/{samples.tsv,units.tsv} from an analysis_samples TSV.
 The optional stage_target defaults to /fsx/staged_sample_data.
 USAGE
 }
