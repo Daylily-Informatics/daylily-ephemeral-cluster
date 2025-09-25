@@ -13,8 +13,9 @@ Options:
   --pem FILE              SSH PEM key for the cluster head node (prompted if omitted)
   --remote-repo PATH      Remote path to the daylily-ephemeral-cluster checkout (default: ~/projects/daylily-ephemeral-cluster)
   --remote-tmp PATH       Remote directory for uploading the TSV (default: /tmp)
-  --output FILE           Local destination for the generated manifest (default: <tsv_dir>/analysis_manifest.csv)
-  --no-download           Skip downloading the manifest back to the local machine
+  --config-dir PATH       Local directory to place downloaded config files (default: <tsv_dir>)
+  --output PATH           Alias for --config-dir (deprecated)
+  --no-download           Skip downloading the config files back to the local machine
   -h, --help              Show this help message and exit
 USAGE
 }
@@ -60,8 +61,8 @@ cluster_name=""
 pem_file=""
 remote_repo="~/projects/daylily-ephemeral-cluster"
 remote_tmp="/tmp"
-download_manifest="true"
-local_manifest=""
+download_config="true"
+local_config_dir=""
 ts_path=""
 
 while [[ $# -gt 0 ]]; do
@@ -94,12 +95,16 @@ while [[ $# -gt 0 ]]; do
             remote_tmp="$2"
             shift 2
             ;;
+        --config-dir)
+            local_config_dir="$2"
+            shift 2
+            ;;
         --output)
-            local_manifest="$2"
+            local_config_dir="$2"
             shift 2
             ;;
         --no-download)
-            download_manifest="false"
+            download_config="false"
             shift
             ;;
         -h|--help)
@@ -207,18 +212,34 @@ remote_repo_remote=${remote_repo/#\~/$'\\$HOME'}
 echo "Running remote staging script..."
 ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" "cd $remote_repo_remote && AWS_PROFILE='$aws_profile' python3 ./bin/daylily-analysis-samples-to-manifest-new.py '$remote_tsv' '$stage_target'"
 
-echo "Remote staging complete. Manifest located at $stage_target/analysis_manifest.csv"
+echo "Remote staging complete. Config files located at $stage_target/{samples,units}.tsv"
 
-if [[ "$download_manifest" == "true" ]]; then
-    if [[ -z "$local_manifest" ]]; then
-        local_dir=$(cd "$(dirname "$ts_path")" && pwd)
-        local_manifest="$local_dir/analysis_manifest.csv"
-    fi
-    echo "Downloading manifest to $local_manifest..."
-    if ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" "test -f '$stage_target/analysis_manifest.csv'"; then
-        scp "${ssh_opts[@]}" "ubuntu@${cluster_ip}:${stage_target}/analysis_manifest.csv" "$local_manifest"
+if [[ "$download_config" == "true" ]]; then
+    if [[ -z "$local_config_dir" ]]; then
+        local_config_dir=$(cd "$(dirname "$ts_path")" && pwd)
     else
-        echo "Warning: Manifest not found at $stage_target/analysis_manifest.csv on head node; skipping download." >&2
+        if [[ "$local_config_dir" == *.csv ]]; then
+            echo "Warning: --output now expects a directory; using parent directory of $local_config_dir" >&2
+            local_config_dir=$(python3 -c 'import os,sys; print(os.path.abspath(os.path.dirname(sys.argv[1])))' "$local_config_dir")
+        else
+            local_config_dir=$(python3 -c 'import os,sys; print(os.path.abspath(sys.argv[1]))' "$local_config_dir")
+        fi
+    fi
+
+    mkdir -p "$local_config_dir"
+    local_samples="$local_config_dir/samples.tsv"
+    local_units="$local_config_dir/units.tsv"
+
+    echo "Downloading config files to $local_config_dir..."
+    if ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" "test -f '$stage_target/samples.tsv' && test -f '$stage_target/units.tsv'"; then
+        scp "${ssh_opts[@]}" "ubuntu@${cluster_ip}:${stage_target}/samples.tsv" "$local_samples"
+        scp "${ssh_opts[@]}" "ubuntu@${cluster_ip}:${stage_target}/units.tsv" "$local_units"
+        echo "Config files downloaded:"
+        echo "  samples -> $local_samples"
+        echo "  units   -> $local_units"
+        echo "Copy them into your workflow checkout (e.g. cp $local_samples config/samples.tsv)."
+    else
+        echo "Warning: Config files not found at $stage_target/{{samples,units}.tsv} on head node; skipping download." >&2
     fi
 fi
 

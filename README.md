@@ -884,11 +884,12 @@ drwxrwxrwx 3 root root 33K Sep 26 08:35 resources
 > Please see the testing section of the [daylily-omics-analysis README](https://github.com/Daylily-Informatics/daylily-omics-analysis).
 ---
 
-## Stage Sample Data & Build an `analysis_manifest.csv`
+## Stage Sample Data & Build `config/samples.tsv` and `config/units.tsv`
 
 The sample staging helper that previously lived in `daylily-omics-analysis` now ships with this repository. Use it to turn an
-`analysis_samples.tsv` file into staged FASTQs under `/fsx/staged_sample_data` and the `analysis_manifest.csv` file that the
-workflows consume. A template TSV is available at [`etc/analysis_samples_template.tsv`](etc/analysis_samples_template.tsv).
+`analysis_samples.tsv` file into staged FASTQs under `/fsx/staged_sample_data` and the Snakemake-style config tables (`samples.tsv`
+and `units.tsv`) that the workflows consume. A template TSV is available at
+[`etc/analysis_samples_template.tsv`](etc/analysis_samples_template.tsv).
 
 ### Run Directly On The Head Node
 
@@ -899,7 +900,7 @@ cd ~/projects/daylily-ephemeral-cluster
 ./bin/daylily-stage-analysis-samples-headnode /path/to/analysis_samples.tsv /fsx/custom_dir
 ```
 
-The helper defaults to `/fsx/staged_sample_data` and writes `analysis_manifest.csv` to that directory after staging.
+The helper defaults to `/fsx/staged_sample_data` and writes `samples.tsv` and `units.tsv` to that directory after staging.
 
 ### Launch Staging From Your Laptop
 
@@ -912,7 +913,7 @@ When values such as the region, cluster name, or PEM file are omitted the script
 
 1. Upload the TSV to the selected head node.
 2. Run `daylily-analysis-samples-to-manifest-new.py` remotely so data are staged into `/fsx/staged_sample_data/<sample_prefix>/`.
-3. Download `analysis_manifest.csv` back next to the local TSV (disable with `--no-download`).
+3. Download `samples.tsv` and `units.tsv` back next to the local TSV (disable with `--no-download`).
 
 This preserves the head node staging behaviour while allowing the process to be initiated during cluster provisioning.
 
@@ -1132,7 +1133,7 @@ The following directories are created and accessible via `/fsx` on the headnode 
 
 - A branch has been started for this work, which is reasonably straightforward. Tasks include:
 -  The AWS parallel cluster slurm snakemake executor, [pcluster-slurm](https://github.com/Daylily-Informatics/snakemake-executor-plugin-pcluster-slurm)  is written, but needs some additional features and to be tested at scale.
--  Migrate from the current `daylily` `analysis_manifest.csv` to the snakemake `v8.*` `config/samples/units` format (which is much cleaner than the current manifest).
+-  ✅ Migrated from the legacy `analysis_manifest.csv` to the Snakemake `v8.*` `config/samples/units` format (which is much cleaner than the original manifest).
 -  The actual workflow files should need very little tweaking.
 
 ## Cromwell & WDL's
@@ -1201,7 +1202,7 @@ ode/rule is distributed to a suitable EC2 spot(or on demand if you prefer) insta
     
 ### [Automated Concordance Analysis Table](http://daylilyinformatics.com:8081/components/daylily_qc_reports/other_reports/giabhcr_concordance_mqc.tsv)
   > Reported faceted by: SNPts, SNPtv, INS>0-<51, DEL>0-51, Indel>0-<51.
-  > Generated when the correct info is set in the analysis_manifest.
+  > Generated when the correct info is set in the config `samples.tsv`/`units.tsv` files.
 
 
 #### [Performance Monitoring Reports]()

@@ -8,6 +8,25 @@ import boto3
 from botocore.exceptions import NoCredentialsError
 from collections import defaultdict
 
+RUN_ID = 0
+SAMPLE_ID = 1
+SAMPLE_ANNO = 2
+SAMPLE_TYPE = 3
+LIB_PREP = 4
+SEQ_PLATFORM = 5
+LANE = 6
+SEQBC_ID = 7
+PATH_TO_CONCORDANCE = 8
+R1_FQ = 9
+R2_FQ = 10
+STAGE_DIRECTIVE = 11
+STAGE_TARGET = 12
+SUBSAMPLE_PCT = 13
+IS_POS_CTRL = 14
+IS_NEG_CTRL = 15
+N_X = 16
+N_Y = 17
+
 def log_info(message):
     print(f"[INFO] {message}")
 
@@ -61,16 +80,11 @@ def validate_subsample_pct(subsample_pct):
     except ValueError:
         return "na"
 
-def generate_analysis_manifest(manifest_file, rows):
-    header = [
-        "samp", "sample", "sample_lane", "SQ", "RU", "EX", "LANE", "r1_path", "r2_path",
-        "biological_sex", "iddna_uid", "concordance_control_path", "is_positive_control",
-        "is_negative_control", "sample_type", "merge_single", "tum_nrm_sampleid_match", "external_sample_id",
-        "instrument", "lib_prep", "bwa_kmer", "subsample_pct"
-    ]
-    with open(manifest_file, "w", newline="") as f:
-        writer = csv.writer(f)
-        writer.writerow(header)
+def write_tsv(path, header, rows):
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    with open(path, "w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=header, delimiter="\t")
+        writer.writeheader()
         writer.writerows(rows)
 
 def copy_files_to_target(src, dst, link=False):
@@ -92,18 +106,19 @@ def parse_and_validate_tsv(input_file, stage_target):
         next(ff)
         for line in ff:
             cols = line.strip().split("\t")
-            key = tuple(cols[:6])
+            key = tuple(cols[:SEQ_PLATFORM + 1])
             samples[key].append(cols)
 
-    rows = []
+    samples_rows = {}
+    units_rows = []
     for sample_key, entries in samples.items():
         is_multi_lane = len(entries) > 1
-        lanes = [e[6] for e in entries]
+        lanes = [e[LANE] for e in entries]
         if is_multi_lane and "0" in lanes:
             log_error(f"Invalid LANE=0 for multi-lane sample: {sample_key}")
 
 
-        if any("_" in part for part in sample_key + (entries[0][6], entries[0][7])):
+        if any("_" in part for part in sample_key + (entries[0][LANE], entries[0][SEQBC_ID])):
             log_warn(f"UNDERSCORES '_' FOUND AND WILL BE REPLACED WITH '-' IN: {sample_key}")
             log_warn(f"RUN_ID, SAMPLE_ID, SAMPLE_ANNO, SAMPLE_TYPE, LIB_PREP, SEQ_PLATFORM, LANE, SEQBC_ID must not contain underscores: {sample_key} .. {entries}\n\n")
             log_warn(" UNDERSCORES '_' WILL BE REPLACED WITH HYPHENS '-' \n")
@@ -111,17 +126,18 @@ def parse_and_validate_tsv(input_file, stage_target):
             #log_error(f"RUN_ID  SAMPLE_ID  SAMPLE_ANNO     SAMPLE_TYPE     LIB_PREP        SEQ_PLATFORM    LANE    SEQBC_ID must not contain underscores: {sample_key} .. {entries}\n")
             #raise Exception(f"RUN_ID  SAMPLE_ID  SAMPLE_ANNO     SAMPLE_TYPE     LIB_PREP        SEQ_PLATFORM    LANE    SEQBC_ID  must not contain underscores: {sample_key} .. {entries}\n")
             
-        ruid = sample_key[0].replace("_", "-")
-        sampleid = sample_key[1].replace("_", "-")
-        sampleanno = sample_key[2].replace("_", "-")
-        sampletype = sample_key[3].replace("_", "-")
-        libprep = sample_key[4].replace("_", "-")
-        seqplatform = sample_key[5].replace("_", "-")
-        lane = entries[0][6].replace("_", "-")
-        seqbc = entries[0][7].replace("_", "-")
+        ruid = sample_key[RUN_ID].replace("_", "-")
+        sampleid = sample_key[SAMPLE_ID].replace("_", "-")
+        sampleanno = sample_key[SAMPLE_ANNO].replace("_", "-")
+        sampletype = sample_key[SAMPLE_TYPE].replace("_", "-")
+        libprep = sample_key[LIB_PREP].replace("_", "-")
+        seqplatform = sample_key[SEQ_PLATFORM].replace("_", "-")
+        lane = entries[0][LANE].replace("_", "-")
+        seqbc = entries[0][SEQBC_ID].replace("_", "-")
         
         # RU_sampleid_seqbc_lane(always 0 in this script output)
         new_sample_id = f"{sampleid}-{seqplatform}-{libprep}-{sampletype}-{sampleanno}"
+        sample_name = f"{ruid}_{new_sample_id}"
         sample_prefix = f"{ruid}_{new_sample_id}_{seqbc}_0"
         staged_sample_path = os.path.join(stage_target, sample_prefix)
         os.makedirs(staged_sample_path, exist_ok=True)
@@ -129,7 +145,7 @@ def parse_and_validate_tsv(input_file, stage_target):
         if is_multi_lane:
             merged_r1 = os.path.join(staged_sample_path, f"{sample_prefix}_merged_R1.fastq.gz")
             merged_r2 = os.path.join(staged_sample_path, f"{sample_prefix}_merged_R2.fastq.gz")
-            r1_files, r2_files = zip(*[(e[9], e[10]) for e in entries])
+            r1_files, r2_files = zip(*[(e[R1_FQ], e[R2_FQ]) for e in entries])
 
             for f in r1_files + r2_files:
                 check_file_exists(f)
@@ -159,38 +175,114 @@ def parse_and_validate_tsv(input_file, stage_target):
             for tmp_file in tmp_r1_files + tmp_r2_files:
                 os.remove(tmp_file)
 
-            rows.append([
-                sample_prefix, sample_prefix, sample_prefix, seqbc, ruid, new_sample_id,
-                "0", merged_r1, merged_r2, determine_sex(int(entries[0][16]), int(entries[0][17])), "na",
-                validate_and_stage_concordance_dir(entries[0][8], stage_target, sample_prefix),
-                entries[0][14], entries[0][15], sampletype, "merge", sampleid,
-                seqplatform, libprep, "19", validate_subsample_pct(entries[0][13])
-            ])
+            units_rows.append({
+                "sample": sample_name,
+                "unit": sample_prefix,
+                "run_id": ruid,
+                "experiment_id": new_sample_id,
+                "lane": "0",
+                "seqbc_id": seqbc,
+                "r1_path": merged_r1,
+                "r2_path": merged_r2,
+                "seq_platform": seqplatform,
+                "lib_prep": libprep,
+                "sample_type": sampletype,
+                "merge_strategy": "merge",
+                "stage_directive": entries[0][STAGE_DIRECTIVE],
+                "stage_target": entries[0][STAGE_TARGET],
+            })
+            concordance_dir = validate_and_stage_concordance_dir(entries[0][PATH_TO_CONCORDANCE], stage_target, sample_prefix)
+            sex = determine_sex(int(entries[0][N_X]), int(entries[0][N_Y]))
         else:
             entry = entries[0]
-            staged_r1 = os.path.join(staged_sample_path, os.path.basename(entry[9]))
-            staged_r2 = os.path.join(staged_sample_path, os.path.basename(entry[10]))
+            staged_r1 = os.path.join(staged_sample_path, os.path.basename(entry[R1_FQ]))
+            staged_r2 = os.path.join(staged_sample_path, os.path.basename(entry[R2_FQ]))
             log_info(f"Processing single-lane sample: {sample_prefix} with R1: {staged_r1} and R2: {staged_r2}")
-            copy_files_to_target(entry[9], staged_r1, entry[11] == "link_data")
-            copy_files_to_target(entry[10], staged_r2, entry[11] == "link_data")
+            copy_files_to_target(entry[R1_FQ], staged_r1, entry[STAGE_DIRECTIVE] == "link_data")
+            copy_files_to_target(entry[R2_FQ], staged_r2, entry[STAGE_DIRECTIVE] == "link_data")
 
-            rows.append([
-                sample_prefix, sample_prefix, sample_prefix, seqbc, ruid, new_sample_id,
-                lane, staged_r1, staged_r2, determine_sex(int(entries[0][16]), int(entries[0][17])), "na",
-                validate_and_stage_concordance_dir(entries[0][8], stage_target, sample_prefix),
-                entries[0][14], entries[0][15], sampletype, "merge", sampleid,
-                seqplatform, libprep, "19", validate_subsample_pct(entries[0][13])
-            ])
+            units_rows.append({
+                "sample": sample_name,
+                "unit": sample_prefix,
+                "run_id": ruid,
+                "experiment_id": new_sample_id,
+                "lane": lane,
+                "seqbc_id": seqbc,
+                "r1_path": staged_r1,
+                "r2_path": staged_r2,
+                "seq_platform": seqplatform,
+                "lib_prep": libprep,
+                "sample_type": sampletype,
+                "merge_strategy": "single",
+                "stage_directive": entry[STAGE_DIRECTIVE],
+                "stage_target": entry[STAGE_TARGET],
+            })
+            concordance_dir = validate_and_stage_concordance_dir(entry[PATH_TO_CONCORDANCE], stage_target, sample_prefix)
+            sex = determine_sex(int(entries[0][N_X]), int(entries[0][N_Y]))
 
-    manifest_file = os.path.join(stage_target, "analysis_manifest.csv")
-    tmp_manifest = manifest_file + ".tmp"
-    log_warn(f"Creating manifest tmp file: {tmp_manifest}")
-    generate_analysis_manifest(tmp_manifest, rows)
-    log_info(f"Manifest created, renaming from {tmp_manifest}, to {manifest_file}")
-    os.rename(tmp_manifest, manifest_file)
+        subsample_pct = validate_subsample_pct(entries[0][SUBSAMPLE_PCT])
+        sample_metadata = {
+            "sample": sample_name,
+            "run_id": ruid,
+            "sample_id": sampleid,
+            "sample_annotation": sampleanno,
+            "experiment_id": new_sample_id,
+            "biological_sex": sex,
+            "iddna_uid": "na",
+            "concordance_control_path": concordance_dir,
+            "is_positive_control": entries[0][IS_POS_CTRL],
+            "is_negative_control": entries[0][IS_NEG_CTRL],
+            "sample_type": sampletype,
+            "tum_nrm_sampleid_match": sampleid,
+            "external_sample_id": "na",
+            "instrument": seqplatform,
+            "lib_prep": libprep,
+            "bwa_kmer": "19",
+            "subsample_pct": subsample_pct,
+            "stage_target": entries[0][STAGE_TARGET],
+        }
 
-    log_info(f"Manifest created: {manifest_file}")
-    log_info(f"Use this manifest: \n\tcp {manifest_file} config/analysis_manifest.csv")
+        existing_sample = samples_rows.get(sample_name)
+        if existing_sample and existing_sample != sample_metadata:
+            log_error(
+                f"Conflicting metadata for sample {sample_name}:\nExisting: {existing_sample}\nNew: {sample_metadata}"
+            )
+        samples_rows[sample_name] = sample_metadata
+    samples_tsv_path = os.path.join(stage_target, "samples.tsv")
+    units_tsv_path = os.path.join(stage_target, "units.tsv")
+
+    log_warn(f"Writing config samples file: {samples_tsv_path}")
+    if samples_rows:
+        samples_header = list(next(iter(samples_rows.values())).keys())
+        samples_data = list(samples_rows.values())
+    else:
+        samples_header = ["sample"]
+        samples_data = []
+    write_tsv(samples_tsv_path, samples_header, samples_data)
+
+    log_warn(f"Writing config units file: {units_tsv_path}")
+    units_header = [
+        "sample",
+        "unit",
+        "run_id",
+        "experiment_id",
+        "lane",
+        "seqbc_id",
+        "r1_path",
+        "r2_path",
+        "seq_platform",
+        "lib_prep",
+        "sample_type",
+        "merge_strategy",
+        "stage_directive",
+        "stage_target",
+    ]
+    write_tsv(units_tsv_path, units_header, units_rows)
+
+    log_info(f"Config files created: {samples_tsv_path}, {units_tsv_path}")
+    log_info(
+        "Use these config files:\n\tcp {samples_tsv_path} config/samples.tsv\n\tcp {units_tsv_path} config/units.tsv"
+    )
 
 
 def check_aws_credentials():
