@@ -1035,20 +1035,47 @@ AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text  --pr
 # Get AWS caller identity
 caller_identity_arn=$(aws sts get-caller-identity --query 'Arn' --output text --region "$region"  --profile $AWS_PROFILE )
 
-# Check if the policy is attached to the user
-DY_POLICY_NAME="DaylilyEClusterPolicy"
-if aws iam list-user-policies --user-name "$AWS_CLI_USER" | jq -e --arg policy "$DY_POLICY_NAME" '.PolicyNames[] | select(. == $policy)' > /dev/null; then
-    echo "Policy $DY_POLICY_NAME is attached to the user. Proceeding..."
-else
-    echo "WARNING: The policy '$DY_POLICY_NAME' is not attached to the user '$AWS_CLI_USER'."
-    echo "Please see the README 'Inline Policies' section for instructions on attaching the policy."
+# Check if the required managed policies are attached to the user
+DY_GLOBAL_POLICY_NAME="DaylilyGlobalEClusterPolicy"
+DY_REGION_POLICY_NAME="DaylilyRegionalEClusterPolicy-${region}"
+
+check_managed_policy_attached() {
+    local user_name="$1" policy_name="$2"
+    local count
+    count=$(aws iam list-attached-user-policies --user-name "$user_name" --profile $AWS_PROFILE \
+        --query "AttachedPolicies[?PolicyName=='${policy_name}'] | length(@)" --output text 2>/dev/null || echo "0")
+    [[ "$count" != "0" ]]
+}
+
+missing_policies=()
+missing_global=0
+missing_region=0
+
+if ! check_managed_policy_attached "$AWS_CLI_USER" "$DY_GLOBAL_POLICY_NAME"; then
+    missing_policies+=("${DY_GLOBAL_POLICY_NAME} (global)")
+    missing_global=1
+fi
+
+if ! check_managed_policy_attached "$AWS_CLI_USER" "$DY_REGION_POLICY_NAME"; then
+    missing_policies+=("${DY_REGION_POLICY_NAME} (region)")
+    missing_region=1
+fi
+
+if (( ${#missing_policies[@]} )); then
+    echo "WARNING: The following Daylily managed policies are not attached to IAM user '$AWS_CLI_USER':"
+    for policy in "${missing_policies[@]}"; do
+        echo "  - $policy"
+    done
     echo ""
-    echo """An admin user can run: bin/admin/daylily_ephemeral_cluster_bootstrap.sh \
-  --region us-west-2 \
-  --profile <admin_user_profile> \
-  --user daylily-service. """
-    echo "... and can add --emit-json to get a JSON policy document to attach manually if desired."
-    echo "Do you want to proceed without attaching the policy (maybe you rolled your own)?"
+    echo "An admin can attach them by running:"
+    if (( missing_global )); then
+        echo "  bin/admin/daylily_ephemeral_cluster_bootstrap_global.sh --profile <admin_user_profile> --user $AWS_CLI_USER"
+    fi
+    if (( missing_region )); then
+        echo "  bin/admin/daylily_ephemeral_cluster_bootstrap_region.sh --region $region --profile <admin_user_profile> --user $AWS_CLI_USER"
+    fi
+    echo ""
+    echo "Do you want to proceed without the missing policies (for example, if you created custom equivalents)?"
     echo "1) Proceed anyway"
     echo "2) Exit"
     echo -n "Enter your choice (1 or 2): "
@@ -1062,6 +1089,8 @@ else
         echo "❌ Invalid choice. Exiting."
         exit 3 2>/dev/null || exit 3
     fi
+else
+    echo "✅ Daylily managed policies are attached to user $AWS_CLI_USER."
 fi
 
 # AWS Quota Check Function
