@@ -77,7 +77,12 @@ OPS_POLICY_DOC=$(cat <<JSON
         "spot.amazonaws.com","fsx.amazonaws.com","s3.data-source.lustre.fsx.amazonaws.com",
         "imagebuilder.amazonaws.com","ec2.amazonaws.com","lambda.amazonaws.com"
       ] } } },
-    { "Effect": "Allow", "Action": ["lambda:*"], "Resource": "*" },
+    { "Effect": "Allow", "Action": [
+      "iam:List*","iam:Get*","iam:SimulatePrincipalPolicy","iam:Create*",
+      "iam:DeleteInstanceProfile","iam:AddRoleToInstanceProfile","iam:RemoveRoleFromInstanceProfile",
+      "iam:AttachRolePolicy","iam:DetachRolePolicy",
+      "iam:TagRole","iam:UntagRole",
+      "iam:PutRolePolicy","iam:DeleteRole*", "lambda:*"], "Resource": "*" },
     { "Effect": "Allow", "Action": "cloudformation:*", "Resource": "*" },
     { "Effect": "Allow", "Action": ["fsx:*"], "Resource": "*" },
     { "Effect": "Allow", "Action": ["dynamodb:*"], "Resource": "arn:aws:dynamodb:*:${ACCOUNT_ID}:table/parallelcluster-*" },
