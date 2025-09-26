@@ -77,11 +77,7 @@ ADJUST_POLICY_DOC=$(cat <<JSON
     {
       "Effect": "Allow",
       "Action": [ "iam:AttachRolePolicy", "iam:DetachRolePolicy" ],
-      "Resource": [
-        "arn:aws:iam::${ACCOUNT_ID}:role/*-RoleHeadNode-*",
-        "arn:aws:iam::${ACCOUNT_ID}:role/*-RoleComputeFleet-*",
-        "arn:aws:iam::${ACCOUNT_ID}:role/*-RoleLoginNode-*"
-      ]
+      "Resource": "*"
     }
   ]
 }
