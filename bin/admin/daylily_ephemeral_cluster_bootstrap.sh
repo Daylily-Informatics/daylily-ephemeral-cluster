@@ -78,6 +78,10 @@ OPS_POLICY_DOC=$(cat <<JSON
         "imagebuilder.amazonaws.com","ec2.amazonaws.com","lambda.amazonaws.com"
       ] } } },
     { "Effect": "Allow", "Action": [
+      "iam:DeleteServiceLinkedRole",
+      "iam:GetServiceLinkedRoleDeletionStatus"
+      ], "Resource": "arn:aws:iam::*:role/aws-service-role/*" },
+    { "Effect": "Allow", "Action": [
       "iam:List*","iam:Get*","iam:SimulatePrincipalPolicy","iam:Create*",
       "iam:DeleteInstanceProfile","iam:AddRoleToInstanceProfile","iam:RemoveRoleFromInstanceProfile",
       "iam:AttachRolePolicy","iam:DetachRolePolicy",
