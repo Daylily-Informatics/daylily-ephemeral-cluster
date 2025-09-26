@@ -155,6 +155,104 @@ declare -a CONFIG_KEYS=()
 
 INIT_TEMPLATE_FILE=""
 
+# Track yq implementation details so we can issue compatible commands.
+YQ_FLAVOR=""
+
+detect_yq_flavor() {
+    if [[ -n "$YQ_FLAVOR" ]]; then
+        return
+    fi
+    if ! command -v yq >/dev/null 2>&1; then
+        YQ_FLAVOR="none"
+        return
+    fi
+
+    local version
+    version=$(yq --version 2>/dev/null || true)
+    if [[ "$version" == *"kislyuk"* || "$version" == *"jq wrapper"* ]]; then
+        YQ_FLAVOR="python"
+        return
+    elif [[ "$version" == *"mikefarah"* || "$version" == *"https://github.com/mikefarah/yq"* ]]; then
+        YQ_FLAVOR="go"
+        return
+    fi
+
+    if yq --help 2>&1 | grep -qi 'jq wrapper'; then
+        YQ_FLAVOR="python"
+    elif yq --help 2>&1 | grep -qi 'https://github.com/mikefarah/yq'; then
+        YQ_FLAVOR="go"
+    else
+        YQ_FLAVOR="unknown"
+    fi
+}
+
+detect_yq_flavor
+
+yq_eval_pretty_yaml() {
+    # $1: input JSON file, $2: output YAML file
+    detect_yq_flavor
+    local input="$1"
+    local output="$2"
+
+    if [[ "$YQ_FLAVOR" == "go" ]]; then
+        yq eval -P '.' "$input" >"$output"
+        return $?
+    elif [[ "$YQ_FLAVOR" == "python" ]]; then
+        yq -y '.' "$input" >"$output"
+        return $?
+    fi
+
+    if yq -P '.' "$input" >"$output" 2>/dev/null; then
+        return 0
+    fi
+    if yq eval -P '.' "$input" >"$output" 2>/dev/null; then
+        return 0
+    fi
+    if yq -y '.' "$input" >"$output" 2>/dev/null; then
+        return 0
+    fi
+
+    return 1
+}
+
+yq_yaml_to_json() {
+    # $1: input YAML file, $2: output JSON file
+    detect_yq_flavor
+    local input="$1"
+    local output="$2"
+
+    if [[ "$YQ_FLAVOR" == "go" ]]; then
+        yq eval -o=json '.' "$input" >"$output"
+        return $?
+    elif [[ "$YQ_FLAVOR" == "python" ]]; then
+        yq '.' "$input" >"$output"
+        return $?
+    fi
+
+    if yq -o=json '.' "$input" >"$output" 2>/dev/null; then
+        return 0
+    fi
+
+    return 1
+}
+
+yq_inplace_triplet_update() {
+    # $1: file, $2: key, $3: action, $4: default, $5: value
+    detect_yq_flavor
+    local file="$1" key="$2" action="$3" default_val="$4" value="$5"
+    local expr='.ephemeral_cluster.config[$key] = [$action, $default, $value]'
+
+    if [[ "$YQ_FLAVOR" == "go" ]]; then
+        yq eval -i "$expr" --arg key "$key" --arg action "$action" --arg default "$default_val" --arg value "$value" "$file"
+        return $?
+    elif [[ "$YQ_FLAVOR" == "python" ]]; then
+        yq --in-place --arg key "$key" --arg action "$action" --arg default "$default_val" --arg value "$value" "$expr" "$file"
+        return $?
+    fi
+
+    yq -i "$expr" --arg key "$key" --arg action "$action" --arg default "$default_val" --arg value "$value" "$file"
+}
+
 REQUIRED_CONFIG_KEYS=(
     "auto_delete_fsx"
     "budget_amount"
@@ -170,6 +268,7 @@ REQUIRED_CONFIG_KEYS=(
     "headnode_instance_type"
     "heartbeat_email"
     "heartbeat_schedule"
+    "heartbeat_scheduler_role_arn"
     "iam_policy_arn"
     "max_count_128I"
     "max_count_192I"
@@ -233,7 +332,15 @@ ensure_config_key() {
 # ----- Config v2 (triplets) helpers -----
 yaml_node_json() {
   local key="$1"
-  yq -o=json ".ephemeral_cluster.config.$key // null" "$CONFIG_FILE" 2>/dev/null
+  detect_yq_flavor
+  local expr='.ephemeral_cluster.config[$key] // null'
+  if [[ "$YQ_FLAVOR" == "go" ]]; then
+    yq eval -o=json --arg key "$key" "$expr" "$CONFIG_FILE" 2>/dev/null
+  elif [[ "$YQ_FLAVOR" == "python" ]]; then
+    yq --arg key "$key" "$expr" "$CONFIG_FILE" 2>/dev/null
+  else
+    yq -o=json --arg key "$key" "$expr" "$CONFIG_FILE" 2>/dev/null
+  fi
 }
 
 parse_triplet_for_key() {
@@ -400,7 +507,12 @@ if error_notes:
 Path(json_path).write_text(json.dumps(payload), encoding='utf-8')
 PY
 
-    yq -P '.' "$json_tmp" >"$snapshot_file"
+    if ! yq_eval_pretty_yaml "$json_tmp" "$snapshot_file"; then
+        echo "⚠️ Unable to render configuration snapshot as YAML (yq incompatibility?). Skipping snapshot export."
+        rm -f "$values_tmp" "$errors_tmp" "$json_tmp"
+        FINAL_CONFIG_SNAPSHOT=""
+        return
+    fi
 
     rm -f "$values_tmp" "$errors_tmp" "$json_tmp"
     echo "✅ Saved configuration snapshot to: $snapshot_file"
@@ -435,7 +547,7 @@ write_cli_config_copy() {
         printf '%s\t%s\n' "$key" "$value" >>"$values_tmp"
     done
 
-    if ! yq -o=json '.' "$CONFIG_FILE" >"$json_tmp"; then
+    if ! yq_yaml_to_json "$CONFIG_FILE" "$json_tmp"; then
         echo "⚠️ Unable to serialize configuration file '$CONFIG_FILE'; skipping CLI config export."
         rm -f "$values_tmp" "$json_tmp"
         return
@@ -499,7 +611,7 @@ PY
         return
     fi
 
-    if ! yq -P '.' "$json_tmp" >"$resolved_file"; then
+    if ! yq_eval_pretty_yaml "$json_tmp" "$resolved_file"; then
         echo "⚠️ Unable to render CLI configuration YAML; skipping CLI config export."
         rm -f "$values_tmp" "$json_tmp"
         return
@@ -587,7 +699,7 @@ with open(json_path, 'w', encoding='utf-8') as handle:
     json.dump(payload, handle)
 PY
 
-    if ! yq -P '.' "$json_tmp" >"$output_path"; then
+    if ! yq_eval_pretty_yaml "$json_tmp" "$output_path"; then
         echo "❌ Error: Failed to render initialization template YAML to $output_path" >&2
         rm -f "$config_tmp" "$defaults_tmp" "$json_tmp"
         return 1
@@ -610,9 +722,9 @@ write_next_run_triplet_template() {
     fi
     local dval="${CONFIG_DEFAULTS[$key]:-}"
     local sval="${FINAL_CONFIG_VALUES[$key]:-}"
-    ACTION="$next_action" DEFAULT="$dval" VALUE="$sval" \
-      yq -i '.ephemeral_cluster.config[strenv(key)] = [strenv(ACTION), strenv(DEFAULT), strenv(VALUE)]' \
-      --arg key "$key" "$out"
+    if ! yq_inplace_triplet_update "$out" "$key" "$next_action" "$dval" "$sval"; then
+      echo "⚠️ Unable to update triplet template for '$key' (yq not compatible)."
+    fi
   done
   echo "✅ Next-run triplet template written to: $out"
   NEXT_RUN_TEMPLATE="$out"
@@ -782,6 +894,7 @@ CONFIG_DELETE_LOCAL_ROOT="$(get_action_set_or_empty "delete_local_root")"
 CONFIG_AUTO_DELETE_FSX="$(get_action_set_or_empty "auto_delete_fsx")"
 CONFIG_HEARTBEAT_EMAIL="$(get_action_set_or_empty "heartbeat_email")"
 CONFIG_HEARTBEAT_SCHEDULE="$(get_action_set_or_empty "heartbeat_schedule")"
+CONFIG_HEARTBEAT_SCHEDULER_ROLE_ARN="$(get_action_set_or_empty "heartbeat_scheduler_role_arn")"
 CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY="$(get_action_set_or_empty "spot_instance_allocation_strategy")"
 
 # Numeric prompts with triplet defaults
@@ -1714,6 +1827,7 @@ echo ""
 # Heartbeat email/schedule
 heartbeat_email="${CONFIG_HEARTBEAT_EMAIL:-}"
 heartbeat_schedule=""
+heartbeat_scheduler_role_arn="${CONFIG_HEARTBEAT_SCHEDULER_ROLE_ARN:-}"
 if [[ -z "$heartbeat_email" ]]; then
     read -r -p "Enter an email to receive heartbeat notifications (leave blank to skip): " heartbeat_email
 fi
@@ -1731,16 +1845,34 @@ if [[ -n "$heartbeat_email" ]]; then
         read -r -p "Enter EventBridge schedule [${default_schedule}]: " heartbeat_schedule
         [[ -z "$heartbeat_schedule" ]] && heartbeat_schedule="$default_schedule"
     fi
-    while [[ ! "$heartbeat_schedule" =~ ^(rate|cron)\(.+\)$ ]]; do
+    while [[ -n "$heartbeat_schedule" && ! "$heartbeat_schedule" =~ ^(rate|cron)\(.+\)$ ]]; do
         echo "Invalid schedule. Examples: rate(60 minutes), rate(4 hours), cron(0 12 * * ? *)"
-        read -r -p "Enter a valid EventBridge schedule: " heartbeat_schedule
+        read -r -p "Enter a valid EventBridge schedule [${default_schedule}]: " heartbeat_schedule
+        [[ -z "$heartbeat_schedule" ]] && heartbeat_schedule="$default_schedule"
+    done
+    if [[ -z "$heartbeat_scheduler_role_arn" ]]; then
+        if [[ -n "${DAY_HEARTBEAT_SCHEDULER_ROLE_ARN:-}" ]]; then
+            heartbeat_scheduler_role_arn="$DAY_HEARTBEAT_SCHEDULER_ROLE_ARN"
+        elif [[ -n "${DAYLILY_HEARTBEAT_SCHEDULER_ROLE_ARN:-}" ]]; then
+            heartbeat_scheduler_role_arn="$DAYLILY_HEARTBEAT_SCHEDULER_ROLE_ARN"
+        elif [[ -n "${DAY_HEARTBEAT_ROLE_ARN:-}" ]]; then
+            heartbeat_scheduler_role_arn="$DAY_HEARTBEAT_ROLE_ARN"
+        fi
+    fi
+    while [[ -z "$heartbeat_scheduler_role_arn" ]]; do
+        read -r -p "Enter IAM role ARN for EventBridge Scheduler to publish to SNS (required): " heartbeat_scheduler_role_arn
+        if [[ -z "$heartbeat_scheduler_role_arn" ]]; then
+            echo "Role ARN is required when heartbeat notifications are enabled."
+        fi
     done
     echo "✅ Heartbeat notifications to $heartbeat_email with '$heartbeat_schedule'"
 else
+    heartbeat_scheduler_role_arn=""
     echo "ℹ️ Heartbeat notifications skipped."
 fi
 set_final_config_value "heartbeat_email" "${heartbeat_email:-}"
 set_final_config_value "heartbeat_schedule" "${heartbeat_schedule:-}"
+set_final_config_value "heartbeat_scheduler_role_arn" "${heartbeat_scheduler_role_arn:-}"
 
 # Spot allocation strategy
 # Spot allocation strategy
@@ -1861,6 +1993,7 @@ declare -A REG_SUBSTITUTIONS=(
   ["REGSUB_HEADNODE_INSTANCE_TYPE"]="$sel_headnode_type"
   ["REGSUB_HEARTBEAT_EMAIL"]="$heartbeat_email"
   ["REGSUB_HEARTBEAT_SCHEDULE"]="$heartbeat_schedule"
+  ["REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN"]="$heartbeat_scheduler_role_arn"
 )
 
 subs_tmp=$(mktemp)
@@ -1957,6 +2090,7 @@ if [[ -n "$heartbeat_email" ]]; then
         --region "$region" \
         --email "$heartbeat_email" \
         --schedule "$heartbeat_schedule" \
+        --scheduler-role-arn "$heartbeat_scheduler_role_arn" \
         --profile "$AWS_PROFILE"
     if [[ $? -ne 0 ]]; then
         echo "❌ Failed to configure heartbeat notifications. Review logs; configure manually if desired."

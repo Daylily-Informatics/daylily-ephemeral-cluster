@@ -1,5 +1,8 @@
 #!/usr/bin/env python3
 import argparse, os, sys, time, json, subprocess
+from dataclasses import dataclass
+from typing import Optional
+
 import boto3
 from botocore.exceptions import ClientError
 
@@ -10,11 +13,13 @@ def parse_args():
     p.add_argument("--email", required=True)
     p.add_argument("--schedule", required=True, help="rate(...) or cron(...) in UTC")
     p.add_argument("--profile", help="AWS profile (defaults to AWS_PROFILE)")
-    p.add_argument("--scheduler-role-arn", required=True,
-                   help="IAM role ARN that EventBridge Scheduler can assume to publish to SNS")
+    p.add_argument(
+        "--scheduler-role-arn",
+        help="IAM role ARN that EventBridge Scheduler can assume to publish to SNS",
+    )
     return p.parse_args()
 
-def resolve_profile(profile):
+def resolve_aws_profile(profile: Optional[str]) -> str:
     prof = profile or os.environ.get("AWS_PROFILE")
     if not prof:
         print("Error: set AWS_PROFILE or pass --profile", file=sys.stderr); sys.exit(1)
@@ -28,6 +33,35 @@ def resolve_profile(profile):
     os.environ["AWS_PROFILE"] = prof
     return prof
 
+resolve_profile = resolve_aws_profile  # Backwards compatibility for importers.
+
+
+@dataclass(frozen=True)
+class HeartbeatNames:
+    cluster_name: str
+
+    @property
+    def topic_name(self) -> str:
+        return f"daylily-{self.cluster_name}-heartbeat"
+
+    @property
+    def schedule_name(self) -> str:
+        # Scheduler names are limited to 64 characters.
+        return f"daylily-{self.cluster_name}-heartbeat"[:64]
+
+    @property
+    def function_name(self) -> str:
+        # Legacy lambda wiring used this naming pattern; retained for teardown compatibility.
+        return f"daylily-{self.cluster_name}-heartbeat"
+
+    def topic_arn(self, account_id: str, region: str) -> str:
+        return f"arn:aws:sns:{region}:{account_id}:{self.topic_name}"
+
+
+def derive_names(cluster_name: str) -> HeartbeatNames:
+    return HeartbeatNames(cluster_name=cluster_name)
+
+
 def ensure_topic_and_sub(sns, topic_name, email):
     topic_arn = sns.create_topic(Name=topic_name)["TopicArn"]
     # subscribe email if not already subscribed
@@ -35,6 +69,59 @@ def ensure_topic_and_sub(sns, topic_name, email):
     if not any(s.get("Protocol")=="email" and s.get("Endpoint")==email for s in subs):
         sns.subscribe(TopicArn=topic_arn, Protocol="email", Endpoint=email)
     return topic_arn
+
+
+ROLE_ENV_VARS = (
+    "DAY_HEARTBEAT_SCHEDULER_ROLE_ARN",
+    "DAYLILY_HEARTBEAT_SCHEDULER_ROLE_ARN",
+    "DAY_HEARTBEAT_ROLE_ARN",
+    "DAYLILY_SCHEDULER_ROLE_ARN",
+)
+
+DEFAULT_ROLE_NAMES = (
+    "eventbridge-scheduler-to-sns",
+    "daylily-eventbridge-scheduler",
+)
+
+
+def resolve_scheduler_role_arn(session: boto3.Session, explicit: Optional[str], account_id: str) -> str:
+    if explicit:
+        return explicit
+
+    for env_var in ROLE_ENV_VARS:
+        value = os.environ.get(env_var)
+        if value:
+            print(f"ℹ️ Using scheduler role ARN from ${env_var}.")
+            return value
+
+    iam = session.client("iam")
+    for role_name in DEFAULT_ROLE_NAMES:
+        arn = f"arn:aws:iam::{account_id}:role/{role_name}"
+        try:
+            iam.get_role(RoleName=role_name)
+        except ClientError as error:
+            code = error.response.get("Error", {}).get("Code", "")
+            if code == "NoSuchEntity":
+                continue
+            if code == "AccessDenied":
+                print(
+                    "⚠️ Access denied when checking IAM role '" + role_name + "'.",
+                    "Provide --scheduler-role-arn explicitly or set one of the DAY_HEARTBEAT_* environment variables.",
+                    file=sys.stderr,
+                )
+                break
+            raise
+        else:
+            print(f"ℹ️ Using IAM role {arn} (auto-detected).")
+            return arn
+
+    print(
+        "Error: Unable to determine EventBridge Scheduler role ARN. "
+        "Pass --scheduler-role-arn or set DAY_HEARTBEAT_SCHEDULER_ROLE_ARN.",
+        file=sys.stderr,
+    )
+    sys.exit(2)
+
 
 def create_or_update_schedule(scheduler, name, expr, role_arn, topic_arn, message, timezone=None):
     target = {
@@ -62,22 +149,24 @@ def create_or_update_schedule(scheduler, name, expr, role_arn, topic_arn, messag
 
 def main():
     a = parse_args()
-    resolve_profile(a.profile)
+    profile = resolve_aws_profile(a.profile)
 
-    sess = boto3.Session(profile_name=os.environ["AWS_PROFILE"], region_name=a.region)
+    sess = boto3.Session(profile_name=profile, region_name=a.region)
     sns = sess.client("sns")
     sch = sess.client("scheduler")
     sts = sess.client("sts")
 
+    names = derive_names(a.cluster_name)
     acct = sts.get_caller_identity()["Account"]
-    topic_name = f"daylily-{a.cluster_name}-heartbeat"
-    topic_arn = ensure_topic_and_sub(sns, topic_name, a.email)
+    role_arn = resolve_scheduler_role_arn(sess, a.scheduler_role_arn, acct)
+
+    topic_arn = ensure_topic_and_sub(sns, names.topic_name, a.email)
 
     message = f"Heartbeat for cluster '{a.cluster_name}' at {int(time.time())} (epoch). Region: {a.region}."
-    schedule_name = f"daylily-{a.cluster_name}-heartbeat"[:64]  # Scheduler name limit
+    schedule_name = names.schedule_name
 
     create_or_update_schedule(
-        sch, schedule_name, a.schedule, a.scheduler_role_arn, topic_arn, message
+        sch, schedule_name, a.schedule, role_arn, topic_arn, message
     )
 
     print("✅ Heartbeat schedule configured (direct to SNS).")
