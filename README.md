@@ -860,6 +860,12 @@ From your remote terminal that you created the cluster with, run the following c
 conda activate DAY-EC
 
 ./bin/daylily-cfg-headnode $PATH_TO_PEM $CLUSTER_AWS_REGION $AWS_PROFILE
+
+# This script now installs Miniconda and initializes the DAY-EC environment on the
+# headnode after cloning `daylily-ephemeral-cluster` to `~/projects/`. If you need
+# to re-run that setup manually from the headnode, run:
+#   cd ~/projects/daylily-ephemeral-cluster
+#   ./bin/install_miniconda && ./bin/init_dayec
 ```
 
 > If the problem persists, ssh into the headnode, and attempt to run the commands as the ubuntu user which are being attempted by the `daylily-cfg-headnode` script.

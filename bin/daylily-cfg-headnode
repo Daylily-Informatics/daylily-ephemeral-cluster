@@ -131,6 +131,10 @@ echo "Installing head node tooling from the cloned repository..."
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
     "source ~/.bashrc && cd ~/projects/daylily-ephemeral-cluster && ./bin/install-daylily-headnode-tools"
 
+echo "Installing Miniconda and initializing the DAY-EC environment on the head node..."
+ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+    "source ~/.bashrc && cd ~/projects/daylily-ephemeral-cluster && ./bin/install_miniconda && ./bin/init_dayec"
+
 echo "day-clone is now available on the head node. Use it to clone analysis repositories such as daylily-omics-analysis."
 
 # Provide final instructions for SSH access to the head node
@@ -139,6 +143,8 @@ echo "        ssh -i $pem_file ubuntu@$cluster_ip_address"
 echo " "
 echo "Once logged in, as the 'ubuntu' user, run the following commands:"
 echo "  cd ~/projects/daylily-ephemeral-cluster"
+echo "  ./bin/install_miniconda"
+echo "  ./bin/init_dayec"
 echo "  ./bin/day-clone --list"
 echo "  day-clone -d <analysis_name> [--repository <repo-key>]"
 echo " "
