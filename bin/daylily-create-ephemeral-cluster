@@ -246,6 +246,9 @@ detect_yq_flavor() {
     elif [[ "$version" == *"mikefarah"* || "$version" == *"https://github.com/mikefarah/yq"* ]]; then
         YQ_FLAVOR="go"
         return
+    elif [[ "$version" =~ ^yq[[:space:]][0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        YQ_FLAVOR="python"
+        return
     fi
 
     if yq --help 2>&1 | grep -qi 'jq wrapper'; then
@@ -313,15 +316,38 @@ yq_inplace_triplet_update() {
     local file="$1" key="$2" action="$3" default_val="$4" value="$5"
     local expr='.ephemeral_cluster.config[$key] = [$action, $default, $value]'
 
+    local -a yq_args=(
+        --arg key "$key"
+        --arg action "$action"
+        --arg default "$default_val"
+        --arg value "$value"
+    )
+
     if [[ "$YQ_FLAVOR" == "go" ]]; then
-        yq eval -i "$expr" --arg key "$key" --arg action "$action" --arg default "$default_val" --arg value "$value" "$file"
+        yq eval -i "$expr" "${yq_args[@]}" "$file"
         return $?
     elif [[ "$YQ_FLAVOR" == "python" ]]; then
-        yq --in-place --arg key "$key" --arg action "$action" --arg default "$default_val" --arg value "$value" "$expr" "$file"
+        yq --in-place "${yq_args[@]}" "$expr" "$file"
         return $?
     fi
 
-    yq -i "$expr" --arg key "$key" --arg action "$action" --arg default "$default_val" --arg value "$value" "$file"
+    if yq eval -i "$expr" "${yq_args[@]}" "$file" 2>/dev/null; then
+        return 0
+    fi
+    if yq --in-place "${yq_args[@]}" "$expr" "$file" 2>/dev/null; then
+        return 0
+    fi
+    if yq --in-place -y "${yq_args[@]}" "$expr" "$file" 2>/dev/null; then
+        return 0
+    fi
+    if yq -i "$expr" "${yq_args[@]}" "$file" 2>/dev/null; then
+        return 0
+    fi
+    if yq -i -y "$expr" "${yq_args[@]}" "$file" 2>/dev/null; then
+        return 0
+    fi
+
+    return 1
 }
 
 REQUIRED_CONFIG_KEYS=(
