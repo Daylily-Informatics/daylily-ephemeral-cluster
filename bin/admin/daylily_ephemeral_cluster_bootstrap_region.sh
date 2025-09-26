@@ -101,6 +101,27 @@ create_or_update_policy() {
             --query Policy.Arn --output text)"
   else
     >&2 echo "Updating policy ${name}"
+    mapfile -t OLD_VERSIONS < <(
+      "${AWS[@]}" iam list-policy-versions \
+        --policy-arn "${arn}" \
+        --query 'Versions[?IsDefaultVersion==`false`]|sort_by(@,&CreateDate)[].VersionId' \
+        --output text | tr '\t' '\n' | sed '/^$/d'
+    )
+
+    while (( ${#OLD_VERSIONS[@]} >= 4 )); do
+      OLDEST_VERSION="${OLD_VERSIONS[0]}"
+      >&2 echo "Deleting oldest non-default version ${OLDEST_VERSION} for ${name}"
+      "${AWS[@]}" iam delete-policy-version \
+        --policy-arn "${arn}" \
+        --version-id "${OLDEST_VERSION}"
+      mapfile -t OLD_VERSIONS < <(
+        "${AWS[@]}" iam list-policy-versions \
+          --policy-arn "${arn}" \
+          --query 'Versions[?IsDefaultVersion==`false`]|sort_by(@,&CreateDate)[].VersionId' \
+          --output text | tr '\t' '\n' | sed '/^$/d'
+      )
+    done
+
     "${AWS[@]}" iam create-policy-version \
       --policy-arn "${arn}" \
       --policy-document "file://${tmp_json}" \
