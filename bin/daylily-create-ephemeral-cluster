@@ -1112,17 +1112,19 @@ check_quota() {
     tot_vcpu=$(( (CONFIG_MAX_COUNT_8I * 8) + (CONFIG_MAX_COUNT_128I * 128) + (CONFIG_MAX_COUNT_192I * 192) ))
 
     # Check if the requested vCPUs exceed the quota
-    if [[ "$quota_code" == "L-34B43A08" && "$tot_vcpu" -ge "$quota_value" ]]; then
-        echo "Your requested instance types total vCPUs ($tot_vcpu) exceed the quota ($quota_value) for $quota_code in region $region."
-        echo "This will cause the cluster to fail to allocate spot instances."
-        echo "You must request a quota increase of at least $tot_vcpu or adjust downwards the instance type max in config/daylily_ephemeral_cluster.yaml."
-        echo "It is not advised to skip this warning, but you may by pressing enter, all other keys will exis"
-        read -r -p "Press enter to continue, any other key to exit: " confirmq
-        if [[ "$confirmq" != "" ]]; then
-            echo "Exiting..."
-            exit 3
+    if [[ "$quota_code" == "L-34B43A08" ]]; then
+        if (( $(echo "$tot_vcpu >= $quota_value" | bc -l) )); then
+            echo "Your requested instance types total vCPUs ($tot_vcpu) exceed the quota ($quota_value) for $quota_code in region $region."
+            echo "This will cause the cluster to fail to allocate spot instances."
+            echo "You must request a quota increase of at least $tot_vcpu or adjust downwards the instance type max in config/daylily_ephemeral_cluster.yaml."
+            echo "It is not advised to skip this warning, but you may by pressing enter, all other keys will exis"
+            read -r -p "Press enter to continue, any other key to exit: " confirmq
+            if [[ "$confirmq" != "" ]]; then
+                echo "Exiting..."
+                exit 3
+            fi
+            echo "There be dragons..."
         fi
-        echo "There be dragons..."
     fi
 
     if (( $(echo "$quota_value < $recommended_count" | bc -l) )); then
