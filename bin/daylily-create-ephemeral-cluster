@@ -580,7 +580,7 @@ save_final_config_snapshot() {
     local json_tmp
     json_tmp=$(mktemp)
 
-    python <<'PY' "$values_tmp" "$errors_tmp" "$json_tmp"
+    python - <<'PY' "$values_tmp" "$errors_tmp" "$json_tmp"
 import sys
 from pathlib import Path
 import json
@@ -658,7 +658,7 @@ write_cli_config_copy() {
         return
     fi
 
-    if ! python <<'PY' "$json_tmp" "$values_tmp"; then
+    if ! python - <<'PY' "$json_tmp" "$values_tmp"; then
 import json
 import sys
 
@@ -753,7 +753,7 @@ OLDwrite_init_template_yaml() {
         printf '%s\t%s\n' "$key" "${TEMPLATE_DEFAULTS[$key]}" >>"$defaults_tmp"
     done
 
-    python <<'PY' "$substitutions_file" "$config_tmp" "$defaults_tmp" "$CONFIG_FILE" "$json_tmp"
+    python - <<'PY' "$substitutions_file" "$config_tmp" "$defaults_tmp" "$CONFIG_FILE" "$json_tmp"
 import json
 import os
 import sys
