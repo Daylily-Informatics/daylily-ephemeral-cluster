@@ -992,7 +992,14 @@ fi
 
 # Activate or create the Daylily CLI conda environment
 if conda env list | grep -q "^DAY-EC "; then
-    echo "Conda environment 'DAY-EC' already exists. Activating it."
+    if [[ "$CONDA_DEFAULT_ENV" == "DAY-EC" ]]; then
+        echo "Conda environment 'DAY-EC' already exists and is already active."
+    else
+        echo "Conda environment 'DAY-EC' already exists. Activating it."
+        # Ensure the conda shell functions are available before attempting to activate.
+        eval "$(conda shell.bash hook)"
+        conda activate DAY-EC
+    fi
 else
     echo "Creating 'DAY-EC' environment."
     source bin/init_dayec
@@ -1000,8 +1007,12 @@ else
         echo "❌ Error: Failed to create the 'DAY-EC' environment. Exiting."
         exit 3
     fi
+    # init_dayec is sourced above, so the environment should now be available for activation.
+    if [[ "$CONDA_DEFAULT_ENV" != "DAY-EC" ]]; then
+        eval "$(conda shell.bash hook)"
+        conda activate DAY-EC
+    fi
 fi
-conda activate DAY-EC
 
 AWS_CLI_USER=$(aws sts get-caller-identity --region $region --profile $AWS_PROFILE --query "Arn" --output text | awk -F '/' '{print $2}')
 
