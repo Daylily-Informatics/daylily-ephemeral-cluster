@@ -20,6 +20,77 @@ pass_on_warn=0  # Default for warnings causing failures
 
 EMAIL_REGEX='^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
 
+HEARTBEAT_ROLE_ENV_VARS=(
+    "DAY_HEARTBEAT_SCHEDULER_ROLE_ARN"
+    "DAYLILY_HEARTBEAT_SCHEDULER_ROLE_ARN"
+    "DAY_HEARTBEAT_ROLE_ARN"
+    "DAYLILY_SCHEDULER_ROLE_ARN"
+)
+
+HEARTBEAT_DEFAULT_ROLE_NAMES=(
+    "eventbridge-scheduler-to-sns"
+    "daylily-eventbridge-scheduler"
+)
+
+resolve_or_create_heartbeat_role() {
+    local region="$1"
+    local preconfigured="${2:-}"
+
+    if [[ -n "$preconfigured" ]]; then
+        echo "$preconfigured"
+        return 0
+    fi
+
+    local env_var
+    for env_var in "${HEARTBEAT_ROLE_ENV_VARS[@]}"; do
+        local value="${!env_var:-}"
+        if [[ -n "$value" ]]; then
+            echo "$value"
+            return 0
+        fi
+    done
+
+    local aws_cli=(aws)
+    if [[ -n "${AWS_PROFILE:-}" ]]; then
+        aws_cli+=(--profile "$AWS_PROFILE")
+    fi
+    if [[ -n "$region" ]]; then
+        aws_cli+=(--region "$region")
+    fi
+
+    local role_name=""
+    local role_arn=""
+    for role_name in "${HEARTBEAT_DEFAULT_ROLE_NAMES[@]}"; do
+        if role_arn=$("${aws_cli[@]}" iam get-role --role-name "$role_name" --query 'Role.Arn' --output text 2>/dev/null); then
+            if [[ -n "$role_arn" && "$role_arn" != "None" ]]; then
+                echo "$role_arn"
+                return 0
+            fi
+        fi
+    done
+
+    if [[ -x "bin/admin/create_scheduler_role_for_sns.sh" ]]; then
+        local create_cmd=("bin/admin/create_scheduler_role_for_sns.sh" "--region" "$region")
+        if [[ -n "${AWS_PROFILE:-}" ]]; then
+            create_cmd+=("--profile" "$AWS_PROFILE")
+        fi
+
+        local output=""
+        if output=$("${create_cmd[@]}" 2>&1); then
+            echo "$output" >&2
+            role_arn=$(echo "$output" | awk '/ROLE ARN:/ {print $3}' | tail -n1)
+            if [[ -n "$role_arn" ]]; then
+                echo "$role_arn"
+                return 0
+            fi
+        else
+            echo "$output" >&2
+        fi
+    fi
+
+    return 1
+}
+
 suppress_pkg_resources_warning() {
     local filter="ignore:pkg_resources is deprecated as an API:UserWarning"
     if [[ -z "${PYTHONWARNINGS:-}" ]]; then
@@ -1892,21 +1963,14 @@ if [[ -n "$heartbeat_email" ]]; then
         read -r -p "Enter a valid EventBridge schedule [${default_schedule}]: " heartbeat_schedule
         [[ -z "$heartbeat_schedule" ]] && heartbeat_schedule="$default_schedule"
     done
-    if [[ -z "$heartbeat_scheduler_role_arn" ]]; then
-        if [[ -n "${DAY_HEARTBEAT_SCHEDULER_ROLE_ARN:-}" ]]; then
-            heartbeat_scheduler_role_arn="$DAY_HEARTBEAT_SCHEDULER_ROLE_ARN"
-        elif [[ -n "${DAYLILY_HEARTBEAT_SCHEDULER_ROLE_ARN:-}" ]]; then
-            heartbeat_scheduler_role_arn="$DAYLILY_HEARTBEAT_SCHEDULER_ROLE_ARN"
-        elif [[ -n "${DAY_HEARTBEAT_ROLE_ARN:-}" ]]; then
-            heartbeat_scheduler_role_arn="$DAY_HEARTBEAT_ROLE_ARN"
-        fi
+    resolved_role=""
+    if ! resolved_role=$(resolve_or_create_heartbeat_role "$region" "$heartbeat_scheduler_role_arn"); then
+        echo "❌ Unable to automatically determine or create an IAM role for EventBridge Scheduler." >&2
+        echo "   Ensure you have IAM permissions or run bin/admin/create_scheduler_role_for_sns.sh --region $region." >&2
+        exit 3
     fi
-    while [[ -z "$heartbeat_scheduler_role_arn" ]]; do
-        read -r -p "Enter IAM role ARN for EventBridge Scheduler to publish to SNS (required): " heartbeat_scheduler_role_arn
-        if [[ -z "$heartbeat_scheduler_role_arn" ]]; then
-            echo "Role ARN is required when heartbeat notifications are enabled."
-        fi
-    done
+    heartbeat_scheduler_role_arn="$resolved_role"
+    echo "ℹ️ Using EventBridge Scheduler role ARN: $heartbeat_scheduler_role_arn"
     echo "✅ Heartbeat notifications to $heartbeat_email with '$heartbeat_schedule'"
 else
     heartbeat_scheduler_role_arn=""
