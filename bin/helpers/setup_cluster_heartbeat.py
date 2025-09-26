@@ -62,12 +62,48 @@ def derive_names(cluster_name: str) -> HeartbeatNames:
     return HeartbeatNames(cluster_name=cluster_name)
 
 
-def ensure_topic_and_sub(sns, topic_name, email):
-    topic_arn = sns.create_topic(Name=topic_name)["TopicArn"]
+def ensure_topic_and_sub(sns, topic_name, email, region, account_id):
+    try:
+        topic_arn = sns.create_topic(Name=topic_name)["TopicArn"]
+    except ClientError as error:
+        err_code = error.response.get("Error", {}).get("Code", "")
+        if err_code != "AuthorizationError":
+            raise
+
+        # Fall back to an existing topic when creation is forbidden.  This
+        # happens in least-privilege environments where the topic is created
+        # out-of-band (for example via Terraform) and the operator is only
+        # allowed to publish/subscribe.
+        topic_arn = f"arn:aws:sns:{region}:{account_id}:{topic_name}"
+        try:
+            sns.get_topic_attributes(TopicArn=topic_arn)
+        except ClientError:
+            raise RuntimeError(
+                "SNS topic creation is forbidden and an existing topic "
+                f"named '{topic_name}' was not found. Create the topic "
+                "manually or grant SNS:CreateTopic permissions."
+            ) from error
+
+        print(
+            "⚠️ SNS:CreateTopic not permitted; using existing topic "
+            f"{topic_arn}.",
+            file=sys.stderr,
+        )
+
     # subscribe email if not already subscribed
     subs = sns.list_subscriptions_by_topic(TopicArn=topic_arn).get("Subscriptions", [])
-    if not any(s.get("Protocol")=="email" and s.get("Endpoint")==email for s in subs):
-        sns.subscribe(TopicArn=topic_arn, Protocol="email", Endpoint=email)
+    if not any(s.get("Protocol") == "email" and s.get("Endpoint") == email for s in subs):
+        try:
+            sns.subscribe(TopicArn=topic_arn, Protocol="email", Endpoint=email)
+        except ClientError as error:
+            err_code = error.response.get("Error", {}).get("Code", "")
+            if err_code == "AuthorizationError":
+                raise RuntimeError(
+                    "SNS subscription permissions are insufficient. "
+                    "Confirm the topic has an email subscription for "
+                    f"{email} or grant SNS:Subscribe."
+                ) from error
+            raise
     return topic_arn
 
 
@@ -160,7 +196,7 @@ def main():
     acct = sts.get_caller_identity()["Account"]
     role_arn = resolve_scheduler_role_arn(sess, a.scheduler_role_arn, acct)
 
-    topic_arn = ensure_topic_and_sub(sns, names.topic_name, a.email)
+    topic_arn = ensure_topic_and_sub(sns, names.topic_name, a.email, a.region, acct)
 
     message = f"Heartbeat for cluster '{a.cluster_name}' at {int(time.time())} (epoch). Region: {a.region}."
     schedule_name = names.schedule_name
