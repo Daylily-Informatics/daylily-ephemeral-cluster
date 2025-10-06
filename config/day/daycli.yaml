@@ -18,7 +18,7 @@ dependencies:
   - nodejs
   - pip
   - pip:
-      - aws-parallelcluster[cli]==3.13.2
+      - aws-parallelcluster==3.13.2
       - attrs==23.2.0
       - click==8.3.0
       - connexion==2.13.1
