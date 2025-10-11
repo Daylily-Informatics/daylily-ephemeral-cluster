@@ -167,7 +167,7 @@ export DAY_AWS_REGION="$region"
 export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
 if [[ -z "$AWS_ACCOUNT_ID" ]]; then
     echo "Error: Unable to retrieve AWS Account ID."
-    echo " ... have you run `aws configure --profile <profile-name>` to set up your AWS credentials?"
+    echo " ... have you run 'aws configure --profile <$AWS_PROFILE>' to set up your AWS credentials?"
     return 3
 fi
 
