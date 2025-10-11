@@ -1,0 +1,326 @@
+#!/usr/bin/env bash
+
+# dyinit: Initialize the Daylily environment
+# This script must be sourced, not executed directly.
+
+# Ensure the script is sourced
+if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    echo "Error: This script must be sourced, not executed directly."
+    echo "Usage: source $0 [--project <project_name>] [--skip-project-check]"
+    return 3
+fi
+
+
+# Set default contact email if not already set
+export DAY_CONTACT_EMAIL="${DAY_CONTACT_EMAIL:-john@daylilyinformatics.com}"
+
+# Source AWS ParallelCluster configuration to get the region
+if [[ -f "/etc/parallelcluster/cfnconfig" ]]; then
+    source "/etc/parallelcluster/cfnconfig"
+    region="$cfn_region"
+else
+    echo "Error: AWS ParallelCluster config not found at /etc/parallelcluster/cfnconfig"
+fi
+
+# Check if region is set
+if [[ -z "$region" ]]; then
+    echo "Error: cfn_region is not set or is empty."
+
+fi
+
+# Function to display usage
+usage() {
+    echo "This script initializes the Day CLI (commands aliased to dy-* )."
+    echo "Region is autodetected as $region"
+    echo "Usage: source $0 [--project <project_name>] [--skip-project-check]"
+    echo "If --project is not specified, the default budget for the region is used: daylily-omics-analysis-${region}."
+    echo "Valid projects/budgets and authorized users:"
+    if [[ -f "/fsx/data/budget_tags/pcluster-project-budget-tags.tsv" ]]; then
+        cat "/fsx/data/budget_tags/pcluster-project-budget-tags.tsv"
+    else
+        echo "Budget tags file not found."
+    fi
+    echo ""
+    echo "Valid regions: Use a valid AWS region (e.g., us-east-1, us-west-2)."
+    return 3
+}
+
+# Function to check if a command exists
+command_exists() {
+    command -v "$1" &> /dev/null
+}
+
+# Ensure AWS CLI is installed
+if ! command_exists aws; then
+    echo "Error: AWS CLI is not installed. Please install it first."
+    return 3
+fi
+
+# Parse input arguments
+SKIP_PROJECT_CHECK=false
+DEACTIVATE=false
+while [[ "$#" -gt 0 ]]; do
+    case "$1" in
+        --project)
+            PROJECT="$2"
+            shift 2
+            ;;
+        --skip-project-check)
+            SKIP_PROJECT_CHECK=true
+            shift
+            ;;
+        --deactivate)
+            DEACTIVATE=true
+            shift
+            ;;          
+        -h|--help|help)
+            usage
+            return 0
+            ;;
+        *)
+            echo "Unknown parameter passed: $1"
+            usage
+            return 3
+            ;;
+    esac
+done
+
+
+# Check if DEACTIVATE flag is set
+if [[ "$DEACTIVATE" == true ]]; then
+    echo "Deactivating existing environments..."
+    source bin/day_deactivate &> /dev/null || {
+        echo "Error during environment deactivation."
+        return 4
+    }
+    echo "Environment deactivated successfully."
+fi
+
+
+# Set default project name if not provided
+if [[ -z "$PROJECT" ]]; then
+    if [[ -f "/opt/parallelcluster/shared/cluster-config.yaml" ]]; then
+        PROJECT=$(awk '/Key: aws-parallelcluster-project/ {getline; print $2}' /opt/parallelcluster/shared/cluster-config.yaml)
+        echo "Notice: --project not set. Using default project name: $PROJECT"
+    else
+        echo "Error: Cluster config file not found at /opt/parallelcluster/shared/cluster-config.yaml"
+
+    fi
+fi
+
+# Display the parsed values
+echo "Project: $PROJECT"
+echo "Skip Project Check: $SKIP_PROJECT_CHECK"
+
+# Export environment variables
+export DAY_PROJECT="$PROJECT"
+export DAY_AWS_REGION="$region"
+
+
+# Get AWS Account ID
+export AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+if [[ -z "$AWS_ACCOUNT_ID" ]]; then
+    echo "Error: Unable to retrieve AWS Account ID."
+    return 3
+fi
+
+# Skip project check if the flag is provided
+if [[ "$SKIP_PROJECT_CHECK" == false ]]; then
+    # Path to the budget file
+    budget_file="/fsx/data/budget_tags/pcluster-project-budget-tags.tsv"
+
+    # Ensure the budget file exists
+    if [[ ! -f "$budget_file" ]]; then
+        echo "Error: Budget file '$budget_file' not found."
+        return 3
+    fi
+
+    # Validate the project for the current user
+    USER_PROJECTS=$(awk -F'\t' -v user="$USER" '$2 ~ user {print $1}' "$budget_file" | tr '\n' ',' | sed 's/,$//')
+    if [[ ! ",$USER_PROJECTS," =~ ",$PROJECT," ]]; then
+        echo "Error: Project '$PROJECT' is not valid for user '$USER'."
+        echo "Valid projects for '$USER': $USER_PROJECTS"
+        PROJECT="daylily-global"
+        echo ""
+        echo "DEFAULTING TO PROJECT=daylily-global"
+        echo ""
+    fi
+else
+    echo "Skipping project validation as --skip-project-check was passed."
+fi
+
+# Function to create a new AWS budget
+create_budget() {
+    echo "To create a budget, please exit and run the following command:"
+    echo "bash bin/create_budget.sh --help"
+    echo "Then append the new project/budget name to /fsx/data/budget_tags/pcluster-project-budget-tags.tsv."
+    echo "Note: /fsx/data is read-only; update the file via S3."
+
+}
+
+# Query AWS budgets
+BUDGETS=$(aws budgets describe-budgets --account-id "$AWS_ACCOUNT_ID" --region "$region" 2>/dev/null)
+
+if [[ -z "$BUDGETS" && "$SKIP_PROJECT_CHECK" != "true" ]]; then
+    echo "Error: Unable to retrieve any budgets from AWS. Please check your AWS permissions or configuration."
+
+fi
+
+# Check if the specified project budget exists
+MATCHING_BUDGET=$(echo "$BUDGETS" | jq -r ".Budgets[] | select(.BudgetName==\"$PROJECT\")")
+
+if [[ -z "$MATCHING_BUDGET" && "$SKIP_PROJECT_CHECK" != "true" ]]; then
+    echo "No matching AWS budget found for project '$PROJECT' in region '$region'."
+    echo "Available AWS Budgets (specify with the --project flag):"
+    echo "$BUDGETS" | jq -r '.Budgets[].BudgetName'
+
+    read -p "Would you like to create a new budget? (y/n): " RESPONSE
+    if [[ "$RESPONSE" =~ ^[Yy]$ ]]; then
+        create_budget
+    else
+        echo "Exiting without creating a budget."
+        return 3
+    fi
+fi
+
+# Extract budget details
+export TOTAL_BUDGET=$(echo "$MATCHING_BUDGET" | jq -r ".BudgetLimit.Amount")
+export USED_BUDGET=$(echo "$MATCHING_BUDGET" | jq -r ".CalculatedSpend.ActualSpend.Amount")
+
+if [[ (-z "$TOTAL_BUDGET" || -z "$USED_BUDGET") && "$SKIP_PROJECT_CHECK" != "true" ]]; then
+    echo "Error: Unable to calculate budget details for project '$PROJECT'."
+    return 3
+fi
+
+# Calculate usage percentage
+export PERCENT_USED=$(awk "BEGIN {print ($USED_BUDGET / $TOTAL_BUDGET) * 100}")
+
+# Display budget information
+echo ""
+echo "________________________________________________________"
+echo "AWS Budget for project '$PROJECT' in region '$region':"
+echo "  Total: $TOTAL_BUDGET USD"
+echo "  Used: $USED_BUDGET USD"
+echo "  Percent Used: $PERCENT_USED%"
+echo "________________________________________________________"
+
+# Check if the budget is exhausted
+if (( $(echo "$PERCENT_USED >= 100" | bc -l) )); then
+    echo "Warning: Budget for project '$PROJECT' is exhausted!"
+fi
+
+# Set environment variables
+export APPTAINER_HOME="/fsx/resources/environments/containers/$USER/$(hostname)/"
+export DAY_BIOME="AWSPC"
+export DAY_ROOT="$PWD"
+
+# Increase file descriptor limit
+ulimit -n 16384
+
+# Set Sentieon variables
+##export SENTIEON_TMPDIR='/fsx/scratch/'
+##export SENTIEON_LICENSE='/fsx/data/cached_envs/Rare_Cancer_Research_Foundation_eval.lic'
+##export SENTIEON_INSTALL_DIR='/fsx/data/cached_envs/sentieon-genomics-202308.03'
+##export PATH="$PATH:$SENTIEON_INSTALL_DIR/bin/"
+
+# Backup original PATH and PS1 if not already set
+export ORIG_PATH="${ORIG_PATH:-$PATH}"
+export ORIG_PS1="${ORIG_PS1:-$PS1}"
+
+# Source color themes
+if [[ -f "config/cli/colr_themes.sh" ]]; then
+    source "config/cli/colr_themes.sh"
+else
+    echo "Warning: Color themes file not found at config/cli/colr_themes.sh"
+fi
+
+# Warn if shell is not bash
+if [[ "$SHELL" != *"bash"* ]]; then
+    echo "Warning: This script has only been tested with bash."
+    sleep 10
+fi
+
+# Update PATH
+export PATH="$PATH:$PWD/bin"
+
+# Source tab completion script
+if [[ -f "bin/tabcomp.bash" ]]; then
+    source "bin/tabcomp.bash"
+else
+    echo "Warning: Tab completion script not found at bin/tabcomp.bash"
+fi
+
+# Define aliases
+alias day-activate="source bin/day_activate"
+alias day-deactivate="source bin/day_deactivate"
+alias day-build="source bin/day_build"
+alias day-run="bin/day_run"
+alias dy-a="source bin/day_activate"
+alias dy-b="source bin/day_build"
+alias dy-d="source bin/day_deactivate"
+alias dy-r="bin/day_run"
+alias dy-h="echo hello"
+alias day-set-genome-build="source bin/day_set_genome_build"
+alias dy-g="source bin/day_set_genome_build"
+
+
+# Display help if requested
+if [[ "$1" =~ ^(-h|--help|help)$ ]]; then
+    if [[ -f "docs/markdown/cli_help_brief.md" ]]; then
+        hlp=$(cat docs/markdown/cli_help_brief.md)
+        if command_exists colr; then
+            colr """$hlp""" "floralwhite" "midnightblue" "b"
+        else
+            echo "$hlp"
+        fi
+    else
+        echo "Help file not found at docs/markdown/cli_help_brief.md"
+    fi
+    return 0
+fi
+
+# Define 'sq' alias for squeue with specific output format
+sq_cmd='squeue -o "%i  %P  %C  %t  %N  %c  %T  %m  %M  %D  %j"'
+sq() {
+    if [ $# -eq 0 ]; then
+        eval "$sq_cmd"
+    else
+        eval "$sq_cmd -j \"$(echo "$@" | tr ' ' ',')\""
+    fi
+}
+alias sq=sq
+
+echo "squeue helper alias 'sq' activated"
+
+# Final message
+echo "Day CLI initialized for project '$PROJECT' in region '$region'."
+echo -e "The Daylily CLI is now available."
+echo -e "Available commands (tab completion is enabled for all):"
+echo  " "
+echo -e "\t(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment."
+echo -e "\t                           "
+echo -e "\t{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment."
+echo -e "\t                           "
+echo -e "\t(day-run / dy-r)          - Run a command in the current environment."
+echo -e "\t                           <tab> for exposed targets, -<tab> for all command line flags."
+echo -e "\t                           "
+echo -e "\t(day-deactivate / dy-d)   - Deactivate the current environment."
+echo -e "\t                           Use 'dy-d reset' to hard reset the environment."
+echo -e "\t                           "
+echo -e "\t(day-build / dy-b)        - Build a new environment (run once per head node user)."
+
+echo -e "\t                           "
+echo -e "\t                           "
+echo -e "\t                           "
+echo -e "\t(example): ACTIVATE AN ANALYSIS ENV\n"
+echo -e "\n"
+echo -e "\t\tdy-a slurm hg38 # or hg38_broad or b37\n"
+
+echo -e "\t(example): RUN ALIGNMENT\n"
+echo -e "\t\tcp .test_data/data/0.01xwgs_HG002_hg38.samplesheet.csv config/analysis_manifest.csv\n"
+
+echo -e "\t\texport DAY_CONTAINERIZED=true # true to use pre-built container of all analysis envs. false will create each conda env as needed\n"
+
+echo -e "\t\tdy-r produce_snv_concordances -p -k -j 2 --config aligners=[\"bwa2a\"] dedupers=[\"dppl\"]  snv_callers=[\"deep\"] -n # remove -n to quit dry-run\n"
+
+return 0

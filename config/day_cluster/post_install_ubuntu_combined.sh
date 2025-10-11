@@ -148,6 +148,8 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   systemctl restart slurmctld
   touch /tmp/$(hostname).postslurmcfg
 
+  echo ". ~/projects/daylily-ephemeral-cluster/dyinit" >> ~/.bashrc
+  
 fi
 
 # Tagging and Budget Bits
