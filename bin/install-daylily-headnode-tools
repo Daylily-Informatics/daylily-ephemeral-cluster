@@ -25,3 +25,27 @@ USER_BIN_DIR="$HOME/.local/bin"
 mkdir -p "$USER_BIN_DIR"
 install -m 0755 "$REPO_ROOT/bin/day-clone" "$USER_BIN_DIR/day-clone"
 echo "day-clone installed to $USER_BIN_DIR/day-clone. Ensure $USER_BIN_DIR is on your PATH."
+DYINIT_PATH="$REPO_ROOT/dyinit"
+if [[ -f "$DYINIT_PATH" ]]; then
+    BASHRC="$HOME/.bashrc"
+    mkdir -p "$(dirname "$BASHRC")"
+    if [[ ! -f "$BASHRC" ]]; then
+        touch "$BASHRC"
+    fi
+
+    DYINIT_SNIPPET='source "$HOME/projects/daylily-ephemeral-cluster/dyinit" --skip-project-check'
+    if ! grep -Fq "$DYINIT_SNIPPET" "$BASHRC"; then
+        {
+            echo ""
+            echo "# Added by daylily-ephemeral-cluster to initialize the Day CLI"
+            echo "if [ -f \"$HOME/projects/daylily-ephemeral-cluster/dyinit\" ]; then"
+            echo "    source \"$HOME/projects/daylily-ephemeral-cluster/dyinit\" --skip-project-check"
+            echo "fi"
+        } >> "$BASHRC"
+        echo "Configured ~/.bashrc to source dyinit on login."
+    else
+        echo "~/.bashrc already configured to source dyinit on login."
+    fi
+else
+    echo "Warning: dyinit script not found at $DYINIT_PATH; skipping shell initialization update." >&2
+fi

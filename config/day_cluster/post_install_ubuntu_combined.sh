@@ -147,8 +147,6 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   # Restart SLURM Controller
   systemctl restart slurmctld
   touch /tmp/$(hostname).postslurmcfg
-
-  echo ". ~/projects/daylily-ephemeral-cluster/dyinit" >> ~/.bashrc
   
 fi
 
