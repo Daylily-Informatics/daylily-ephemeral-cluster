@@ -49,3 +49,5 @@ if [[ -f "$DYINIT_PATH" ]]; then
 else
     echo "Warning: dyinit script not found at $DYINIT_PATH; skipping shell initialization update." >&2
 fi
+
+echo ". ~/projects/daylily-ephemral-cluster/dyinit" >> ~/.bashrc
