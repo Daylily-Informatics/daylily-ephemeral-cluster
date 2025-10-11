@@ -1,5 +1,28 @@
 #!/usr/bin/env bash
 
+# Ensure AWS_PROFILE is defined and valid before proceeding
+if [[ -z "${AWS_PROFILE:-}" ]]; then
+  echo "ERROR: AWS_PROFILE environment variable is not set. Please set AWS_PROFILE before running this script."
+  exit 1
+fi
+
+PROFILE_FOUND=false
+if [[ -f "$HOME/.aws/credentials" ]] && grep -Fqx "[$AWS_PROFILE]" "$HOME/.aws/credentials"; then
+  PROFILE_FOUND=true
+fi
+
+if [[ -f "$HOME/.aws/config" ]]; then
+  if grep -Fqx "[profile $AWS_PROFILE]" "$HOME/.aws/config" || grep -Fqx "[$AWS_PROFILE]" "$HOME/.aws/config"; then
+    PROFILE_FOUND=true
+  fi
+fi
+
+if [[ "$PROFILE_FOUND" == false ]]; then
+  echo "ERROR: AWS profile '$AWS_PROFILE' was not found in $HOME/.aws/credentials or $HOME/.aws/config."
+  echo "Please run 'aws configure --profile $AWS_PROFILE' to create the profile and try again."
+  exit 1
+fi
+
 # Function to display usage information
 print_help() {
   echo "Usage: $0 -p <project_name> -a <amount> -r <region> -e <email> -t <thresholds> -c <cluster_name> [-h]"
