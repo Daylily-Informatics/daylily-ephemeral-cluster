@@ -45,9 +45,55 @@ usage() {
     return 3
 }
 
+# Email validation regex reused from cluster creation script
+EMAIL_REGEX='^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+
 # Function to check if a command exists
 command_exists() {
     command -v "$1" &> /dev/null
+}
+
+is_valid_email() {
+    local email="$1"
+    [[ -n "$email" ]] || return 1
+    [[ $email =~ $EMAIL_REGEX ]]
+}
+
+prompt_for_valid_email() {
+    local __resultvar="$1"
+    local __prompt="$2"
+    local __input=""
+
+    while true; do
+        read -r -p "$__prompt" __input
+        if [[ -z "$__input" ]]; then
+            echo "Email cannot be empty. Please try again."
+            continue
+        fi
+
+        if is_valid_email "$__input"; then
+            printf -v "$__resultvar" '%s' "$__input"
+            break
+        else
+            echo "Invalid email format. Please use string@string.string format."
+        fi
+    done
+}
+
+prompt_with_default() {
+    local __resultvar="$1"
+    local __prompt="$2"
+    local __default="$3"
+    local __input=""
+
+    if [[ -n "$__default" ]]; then
+        read -r -p "$__prompt [${__default}]: " __input
+        __input="${__input:-$__default}"
+    else
+        read -r -p "$__prompt" __input
+    fi
+
+    printf -v "$__resultvar" '%s' "$__input"
 }
 
 # Ensure AWS CLI is installed
@@ -149,13 +195,111 @@ else
     echo "Skipping project validation as --skip-project-check was passed."
 fi
 
-# Function to create a new AWS budget
-create_budget() {
-    echo "To create a budget, please exit and run the following command:"
-    echo "bash bin/create_budget.sh --help"
-    echo "Then append the new project/budget name to /fsx/data/budget_tags/pcluster-project-budget-tags.tsv."
-    echo "Note: /fsx/data is read-only; update the file via S3."
+derive_region_az_and_cluster_name() {
+    local project_name="$1"
+    local __region_az_var="$2"
+    local __cluster_name_var="$3"
 
+    local region_az_guess=""
+    local cluster_name_guess=""
+
+    if [[ "$project_name" =~ ^da-([^-]+-[^-]+-[^-]+)-(.*)$ ]]; then
+        region_az_guess="${BASH_REMATCH[1]}"
+        cluster_name_guess="${BASH_REMATCH[2]}"
+    fi
+
+    if [[ -n "$__region_az_var" ]]; then
+        printf -v "$__region_az_var" '%s' "$region_az_guess"
+    fi
+    if [[ -n "$__cluster_name_var" ]]; then
+        printf -v "$__cluster_name_var" '%s' "$cluster_name_guess"
+    fi
+}
+
+derive_bucket_url() {
+    local __resultvar="$1"
+    local cluster_config="/opt/parallelcluster/shared/cluster-config.yaml"
+    local bucket_url_guess=""
+
+    if [[ -f "$cluster_config" ]]; then
+        bucket_url_guess=$(awk '/ImportPath:/ {print $2; exit}' "$cluster_config")
+        if [[ -n "$bucket_url_guess" ]]; then
+            bucket_url_guess="${bucket_url_guess%/data/}"
+            bucket_url_guess="${bucket_url_guess%/}"
+        fi
+    fi
+
+    if [[ -z "$bucket_url_guess" ]]; then
+        read -r -p "Enter S3 bucket URL (e.g., s3://example-bucket): " bucket_url_guess
+    fi
+
+    printf -v "$__resultvar" '%s' "$bucket_url_guess"
+}
+
+ensure_global_budget() {
+    local region="$1"
+    local region_az="$2"
+    local cluster_name="$3"
+    local bucket_url="$4"
+    local budget_email="$5"
+    local budgets_json="$6"
+
+    local global_budget_name="daylily-global"
+    local global_budget_exists
+    if [[ -z "$budgets_json" ]]; then
+        budgets_json='{"Budgets":[]}'
+    fi
+    global_budget_exists=$(echo "$budgets_json" | jq -r ".Budgets[] | select(.BudgetName==\"$global_budget_name\") | .BudgetName")
+
+    if [[ -n "$global_budget_exists" && "$global_budget_exists" != "None" ]]; then
+        echo "✅ Default budget '$global_budget_name' exists. Proceeding"
+        return 0
+    fi
+
+    echo "Budget '$global_budget_name' not found."
+
+    local gallowed_users=""
+    prompt_with_default gallowed_users "Enter csv of allowed user names for global budget (ubuntu is allowed for all budgets)" ""
+    gallowed_users="${gallowed_users//[[:space:]]/}"
+
+    local default_global_budget_amount="200"
+    local gamount=""
+    prompt_with_default gamount "Enter global budget amount" "$default_global_budget_amount"
+
+    echo "Creating the budget..."
+    echo "bin/create_budget.sh -p $global_budget_name -r $region -t 25,50,75,99 -e $budget_email -a $gamount -c $cluster_name -z $region_az -b $bucket_url -u $gallowed_users"
+    if ! bin/create_budget.sh -p "$global_budget_name" -r "$region" -t 25,50,75,99 -e "$budget_email" -a "$gamount" -c "$cluster_name" -z "$region_az" -b "$bucket_url" -u "$gallowed_users"; then
+        echo "❌ Error: Failed to create the global budget."
+        return 1
+    fi
+
+    echo "✅  Budget '$global_budget_name' created successfully."
+}
+
+create_project_budget() {
+    local project="$1"
+    local region="$2"
+    local region_az="$3"
+    local cluster_name="$4"
+    local bucket_url="$5"
+    local budget_email="$6"
+
+    local allowed_users=""
+    prompt_with_default allowed_users "Enter csv string of allowed user names for cluster budget (ubuntu is allowed for all budgets)" ""
+    allowed_users="${allowed_users//[[:space:]]/}"
+
+    local default_budget_amount="200"
+    local amount=""
+    prompt_with_default amount "Enter cluster budget amount" "$default_budget_amount"
+
+    echo "Creating the budget..."
+    echo "bin/create_budget.sh -p $project -r $region -t 75 -e $budget_email -a $amount -c $cluster_name -z $region_az -b $bucket_url -u $allowed_users"
+    if ! bin/create_budget.sh -p "$project" -r "$region" -t 75 -e "$budget_email" -a "$amount" -c "$cluster_name" -z "$region_az" -b "$bucket_url" -u "$allowed_users"; then
+        echo "❌ Error: Failed to create the budget."
+        return 1
+    fi
+
+    echo "✅ Budget '$project' created successfully."
 }
 
 # Query AWS budgets
@@ -176,7 +320,56 @@ if [[ -z "$MATCHING_BUDGET" && "$SKIP_PROJECT_CHECK" != "true" ]]; then
 
     read -p "Would you like to create a new budget? (y/n): " RESPONSE
     if [[ "$RESPONSE" =~ ^[Yy]$ ]]; then
-        create_budget
+        echo "Starting budget creation flow..."
+
+        local_region_az=""
+        local_cluster_name=""
+        derive_region_az_and_cluster_name "$PROJECT" local_region_az local_cluster_name
+
+        if [[ -z "$local_region_az" ]]; then
+            prompt_with_default local_region_az "Enter the region+AZ for the budget (e.g., us-west-2d)" ""
+        fi
+
+        if [[ -z "$local_cluster_name" ]]; then
+            prompt_with_default local_cluster_name "Enter the cluster name for budget tagging" ""
+        fi
+
+        if [[ -z "$local_region_az" || -z "$local_cluster_name" ]]; then
+            echo "❌ Error: Unable to determine region AZ or cluster name for budget creation."
+            return 3
+        fi
+
+        bucket_url=""
+        derive_bucket_url bucket_url
+        if [[ -z "$bucket_url" ]]; then
+            echo "❌ Error: Unable to determine bucket URL for budget creation."
+            return 3
+        fi
+
+        budget_email="${DAY_CONTACT_EMAIL:-}"
+        if [[ -z "$budget_email" ]]; then
+            prompt_for_valid_email budget_email "Enter an email for budget alerts: "
+        elif ! is_valid_email "$budget_email"; then
+            echo "Contact email '$budget_email' is not a valid email format."
+            prompt_for_valid_email budget_email "Enter an email for budget alerts: "
+        else
+            echo "Using budget email: $budget_email"
+        fi
+
+        if ! ensure_global_budget "$region" "$local_region_az" "$local_cluster_name" "$bucket_url" "$budget_email" "$BUDGETS"; then
+            return 3
+        fi
+
+        if ! create_project_budget "$PROJECT" "$region" "$local_region_az" "$local_cluster_name" "$bucket_url" "$budget_email"; then
+            return 3
+        fi
+
+        BUDGETS=$(aws budgets describe-budgets --account-id "$AWS_ACCOUNT_ID" --region "$region" 2>/dev/null)
+        MATCHING_BUDGET=$(echo "$BUDGETS" | jq -r ".Budgets[] | select(.BudgetName==\"$PROJECT\")")
+        if [[ -z "$MATCHING_BUDGET" ]]; then
+            echo "❌ Error: Budget creation reported success but the budget is still not visible via AWS CLI."
+            return 3
+        fi
     else
         echo "Exiting without creating a budget."
         return 3
