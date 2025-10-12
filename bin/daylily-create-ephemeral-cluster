@@ -17,6 +17,7 @@ echo "Shell: ${CURR_SHELL}"
 
 # Default configuration
 pass_on_warn=0  # Default for warnings causing failures
+cluster_status_watcher_warning_count=0
 
 EMAIL_REGEX='^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
 
@@ -2253,9 +2254,20 @@ echo ""
 
 # ----- Monitor cluster creation -----
 echo "Monitoring cluster creation... this may take 15–60 minutes."
-python bin/helpers/watch_cluster_status.py "$region" "$cluster_name" || {
-  echo "⚠️ Cluster status watcher exited with non-zero status. Continuing."
-}
+while true; do
+  if python bin/helpers/watch_cluster_status.py "$region" "$cluster_name"; then
+    break
+  fi
+
+  cluster_status_watcher_warning_count=$((cluster_status_watcher_warning_count + 1))
+  if [[ $cluster_status_watcher_warning_count -ge 5 ]]; then
+    echo "❌ Cluster status watcher exited with non-zero status $cluster_status_watcher_warning_count times in a row. Halting."
+    exit 3
+  fi
+
+  echo "⚠️ Cluster status watcher exited with non-zero status. Continuing. (warning ${cluster_status_watcher_warning_count}/5)"
+  sleep 5
+done
 echo ""
 
 # ----- Configure head node -----
