@@ -38,8 +38,6 @@ def _get_cluster_status(region: str, cluster_name: Optional[str]) -> Optional[st
             region,
             "--query",
             "clusterStatus",
-            "--output",
-            "text",
         ]
         proc = subprocess.run(describe_cmd, capture_output=True, text=True)
         if proc.returncode != 0:
