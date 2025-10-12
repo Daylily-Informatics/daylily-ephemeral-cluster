@@ -2008,8 +2008,23 @@ echo ""
 heartbeat_email="${CONFIG_HEARTBEAT_EMAIL:-}"
 heartbeat_schedule=""
 heartbeat_scheduler_role_arn="${CONFIG_HEARTBEAT_SCHEDULER_ROLE_ARN:-}"
+
+if [[ -z "$heartbeat_email" && -n "$budget_email" ]]; then
+    heartbeat_email="$budget_email"
+    echo "ℹ️ Defaulting heartbeat email to budget email: $heartbeat_email"
+fi
+
 if [[ -z "$heartbeat_email" ]]; then
     read -r -p "Enter an email to receive heartbeat notifications (leave blank to skip): " heartbeat_email
+else
+    read -r -p "Enter an email to receive heartbeat notifications [${heartbeat_email}] (leave blank to keep, type 'skip' to disable): " heartbeat_email_input
+    if [[ -z "$heartbeat_email_input" ]]; then
+        heartbeat_email="$heartbeat_email"
+    elif [[ "$heartbeat_email_input" == "skip" ]]; then
+        heartbeat_email=""
+    else
+        heartbeat_email="$heartbeat_email_input"
+    fi
 fi
 if [[ -n "$heartbeat_email" ]]; then
     while ! is_valid_email "$heartbeat_email"; do
