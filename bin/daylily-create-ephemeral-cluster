@@ -1858,13 +1858,24 @@ enforce_budget_opt="${CONFIG_ENFORCE_BUDGET:-}"
 if [[ "$enforce_budget_opt" != "enforce" && "$enforce_budget_opt" != "skip" ]]; then
     echo "Enforce budget for the cluster? (1) No (2) Yes:"
     echo "If enforced, new jobs are blocked when budget exceeded; cluster stays up until you stop it."
-    select enforce_budget in "No" "Yes"; do
-        if [[ "$enforce_budget" == "Yes" ]]; then
-            enforce_budget_opt="enforce"
-        else
-            enforce_budget_opt="skip"
-        fi
-        break
+    echo "1) No (default)"
+    echo "2) Yes"
+    while true; do
+        read -r -p "Select option [1]: " enforce_choice
+        enforce_choice=${enforce_choice:-1}
+        case "$enforce_choice" in
+            1)
+                enforce_budget_opt="skip"
+                break
+                ;;
+            2)
+                enforce_budget_opt="enforce"
+                break
+                ;;
+            *)
+                echo "Please enter 1 or 2."
+                ;;
+        esac
     done
     echo ""
 fi
@@ -1891,11 +1902,22 @@ echo ""
 # Headnode instance type
 sel_headnode_type="$CONFIG_HEADNODE_INSTANCE_TYPE"
 if [[ -z "$sel_headnode_type" ]]; then
-    headnode_options="r7i.2xlarge r7i.4xlarge r7i.8xlarge r7i.16xlarge"
-    select headnode_type in $headnode_options; do
-        sel_headnode_type=$(echo $headnode_type | awk '{print $1}')
-        echo "You selected headnode instance type: $sel_headnode_type"
-        break
+    echo "Choose headnode instance type"
+    echo "1) r7i.2xlarge (default)"
+    echo "2) r7i.4xlarge"
+    echo "3) r7i.8xlarge"
+    echo "4) r7i.16xlarge"
+    headnode_options=("r7i.2xlarge" "r7i.4xlarge" "r7i.8xlarge" "r7i.16xlarge")
+    while true; do
+        read -r -p "Select option [1]: " headnode_choice
+        headnode_choice=${headnode_choice:-1}
+        if [[ "$headnode_choice" =~ ^[1-4]$ ]]; then
+            sel_headnode_type="${headnode_options[$((headnode_choice-1))]}"
+            echo "You selected headnode instance type: $sel_headnode_type"
+            break
+        else
+            echo "Please enter a number between 1 and 4."
+        fi
     done
 fi
 set_final_config_value "headnode_instance_type" "$sel_headnode_type"
@@ -1920,13 +1942,24 @@ act_detailed_monitoring="$CONFIG_ENABLE_DETAILED_MONITORING"
 if [[ "$act_detailed_monitoring" != "true" && "$act_detailed_monitoring" != "false" ]]; then
     default_dm=$(get_effective_default "enable_detailed_monitoring" "false")
     echo "Enable detailed monitoring (adds cost)? (1) No (2) Yes) [default=${default_dm}]"
-    select detailed_monitoring in "No" "Yes"; do
-        if [[ "$detailed_monitoring" == "Yes" ]]; then
-            act_detailed_monitoring="true"
-        else
-            act_detailed_monitoring="false"
-        fi
-        break
+    echo "1) No (default)"
+    echo "2) Yes"
+    while true; do
+        read -r -p "Select option [1]: " detailed_monitoring_choice
+        detailed_monitoring_choice=${detailed_monitoring_choice:-1}
+        case "$detailed_monitoring_choice" in
+            1)
+                act_detailed_monitoring="false"
+                break
+                ;;
+            2)
+                act_detailed_monitoring="true"
+                break
+                ;;
+            *)
+                echo "Please enter 1 or 2."
+                ;;
+        esac
     done
 fi
 set_final_config_value "enable_detailed_monitoring" "$act_detailed_monitoring"
