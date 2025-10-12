@@ -76,35 +76,42 @@ def main() -> int:
 
         elapsed = _format_elapsed(start_time)
 
-        if ret_val != "CREATE_IN_PROGRESS":
-            if last_length:
-                sys.stdout.write("\r" + " " * last_length + "\r")
-            if ret_val == "CREATE_COMPLETE":
-                color = "32;1"
-                status_text = _colorize(f"Cluster Creation: {ret_val}", color)
-                print(f"{status_text} (elapsed {elapsed})")
-                return 0
+        if ret_val == "CREATE_IN_PROGRESS":
+            frame = spinner_frames[frame_index % len(spinner_frames)]
+            status_line = f"{_colorize(frame, '34;1')} Cluster creating… elapsed {elapsed}"
 
-            color = "31;1"
-            if ret_val is None:
-                status = "UNKNOWN (cluster not found)"
-            else:
-                status = ret_val
+            sys.stdout.write("\r" + status_line + " " * max(0, last_length - len(status_line)))
+            sys.stdout.flush()
+            last_length = len(status_line)
+            frame_index += 1
+            time.sleep(5)
+            continue
+
+        if last_length:
+            sys.stdout.write("\r" + " " * last_length + "\r")
+            last_length = 0
+
+        if ret_val is None:
+            color = "33;1"
+            status = "UNKNOWN (cluster not found)"
             status_text = _colorize(f"Cluster Creation: {status}", color)
             print(f"{status_text} (elapsed {elapsed})")
+            time.sleep(5)
+            continue
 
-            # Non-success statuses signal an error so the caller can stop
-            # further configuration steps.
-            return 1
+        if ret_val == "CREATE_COMPLETE":
+            color = "32;1"
+            status_text = _colorize(f"Cluster Creation: {ret_val}", color)
+            print(f"{status_text} (elapsed {elapsed})")
+            return 0
 
-        frame = spinner_frames[frame_index % len(spinner_frames)]
-        status_line = f"{_colorize(frame, '34;1')} Cluster creating… elapsed {elapsed}"
+        color = "31;1"
+        status_text = _colorize(f"Cluster Creation: {ret_val}", color)
+        print(f"{status_text} (elapsed {elapsed})")
 
-        sys.stdout.write("\r" + status_line + " " * max(0, last_length - len(status_line)))
-        sys.stdout.flush()
-        last_length = len(status_line)
-        frame_index += 1
-        time.sleep(5)
+        # Non-success statuses signal an error so the caller can stop
+        # further configuration steps.
+        return 1
 
 
 if __name__ == "__main__":
