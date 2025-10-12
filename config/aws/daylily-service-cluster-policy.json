@@ -139,9 +139,8 @@
 			"Action": [
 				"sns:*"
 			],
-			"Resource": [
-				"arn:aws:sns:*:<AWS_ACCOUNT_ID>:ParallelClusterImage-*"
-			]
+			"Resource": "*"
+			
 		},
 		{
 			"Effect": "Allow",
