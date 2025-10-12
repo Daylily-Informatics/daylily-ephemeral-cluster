@@ -2205,7 +2205,7 @@ echo ""
 
 # ----- Monitor cluster creation -----
 echo "Monitoring cluster creation... this may take 15–60 minutes."
-python bin/helpers/watch_cluster_status.py "$region" || {
+python bin/helpers/watch_cluster_status.py "$region" "$cluster_name" || {
   echo "⚠️ Cluster status watcher exited with non-zero status. Continuing."
 }
 echo ""
