@@ -650,7 +650,12 @@ write_cli_config_copy() {
         if [[ -z "${value+x}" ]]; then
             value=""
         fi
-        printf '%s\t%s\n' "$key" "$value" >>"$values_tmp"
+        if [[ "$value" == "PROMPTUSER" ]]; then
+            value=""
+        fi
+        local action="${CONFIG_ACTIONS[$key]:-PROMPTUSER}"
+        local default_val="${CONFIG_DEFAULTS[$key]:-}"
+        printf '%s\t%s\t%s\t%s\n' "$key" "$action" "$default_val" "$value" >>"$values_tmp"
     done
 
     if ! yq_yaml_to_json "$CONFIG_FILE" "$json_tmp"; then
@@ -704,10 +709,16 @@ with open(values_path, 'r', encoding='utf-8') as handle:
         line = line.rstrip('\n')
         if not line:
             continue
-        key, value = line.split('\t', 1)
-        if value == 'PROMPTUSER':
+        parts = line.split('\t', 3)
+        if len(parts) != 4:
             continue
-        config_section[key] = convert_value(value)
+        key, action, default_value, set_value = parts
+        resolved_action = action or 'PROMPTUSER'
+        resolved_set = convert_value(set_value)
+        # Default to the final value when present; otherwise fall back to any
+        # existing default from the originating configuration.
+        resolved_default = convert_value(set_value if set_value else default_value)
+        config_section[key] = [resolved_action, resolved_default, resolved_set]
 
 with open(json_path, 'w', encoding='utf-8') as handle:
     json.dump(data, handle)
