@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 import sys
@@ -44,7 +45,9 @@ def _get_cluster_status(region: str, cluster_name: Optional[str]) -> Optional[st
             # ``None`` signals that the cluster no longer exists or could not
             # be described (for example, it was deleted mid-creation).
             return None
-        return proc.stdout.strip()
+        # ``describe-cluster`` returns a JSON encoded string. Parse it so we
+        # can compare against the raw status values without surrounding quotes.
+        return json.loads(proc.stdout)
 
     # Fall back to the legacy behaviour of reading the first cluster status
     # when a name was not provided.
