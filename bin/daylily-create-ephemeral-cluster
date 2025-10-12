@@ -1823,7 +1823,7 @@ budget_exists=$(aws budgets describe-budgets \
 if [[ -z "$budget_exists" || "$budget_exists" == "None" ]]; then
     echo "Budget '$budget_name' not found."
     if [[ -z "$CONFIG_ALLOWED_BUDGET_USERS" ]]; then
-        echo -n "Enter csv string of allowed user names for cluster budget (ubuntu is allowed for all budgets): "
+        echo -n "Enter csv string of allowed user names for cluster budget (ubuntu - default): "
         read allowed_users
     else
         allowed_users="$CONFIG_ALLOWED_BUDGET_USERS"
