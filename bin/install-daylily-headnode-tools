@@ -50,4 +50,10 @@ else
     echo "Warning: dyinit script not found at $DYINIT_PATH; skipping shell initialization update." >&2
 fi
 
-echo ". ~/projects/daylily-ephemral-cluster/dyinit" >> ~/.bashrc
+# Add initialization of dyinit  to automatically happen for ubuntu user
+
+echo "" >> ~/.bashrc
+echo ". ~/projects/daylily-ephemeral-cluster/dyinit" >> ~/.bashrc
+
+echo "" >> ~/.bash_profile
+echo ". ~/projects/daylily-ephemeral-cluster/dyinit" >> ~/.bash_profile

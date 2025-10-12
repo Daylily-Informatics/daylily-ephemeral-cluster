@@ -12,7 +12,7 @@ if SCRIPTS_DIR.exists():
 
 setup(
     name="daylily-ephemeral-cluster",
-    version="0.7.344",
+    version="0.7.345",
     packages=find_packages(),
     include_package_data=True,
     scripts=script_files,
