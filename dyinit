@@ -435,6 +435,8 @@ export PATH="$PATH:$PWD/bin"
 
 # Define aliases
 alias dy-h="echo hello"
+alias dy-b="bin/init_dayec"
+alias day-build-env="bin/init_dayec"
 
 # Display help if requested
 if [[ "$1" =~ ^(-h|--help|help)$ ]]; then
@@ -470,12 +472,12 @@ echo -e "The Daylily CLI is now available."
 echo -e "Available commands :"
 echo -e "\t                           "
 echo -e "\t                           "
+echo -e "\t  day-build-env : initialize the DAY-EC conda environment (same as dy-b)"
+echo -e "\t "
 echo -e "\t  day-clone --help : clone an analysis repo"
 echo -e "\t  day-clone --list : list available analysis repos"
 echo -e "\t "
-echo -e "\t  daylily-stage-analysis-samples-headnode <analysis_samples.tsv> [stage_target] : generate /fsx staging directories and config/{samples.tsv,units.tsv} from an analysis_samples TSV (!!!  soon deprecated in lieu of daylily-stage-analysis-samples  !!!)"
-echo -e "\t                           "
-echo -e "\t  daylily-stage-analysis-samples <analysis_samples.tsv> [stage_target] : generate /fsx staging directories and config/{samples.tsv,units.tsv} from an analysis_samples TSV"
+echo -e "\t  daylily-stage-analysis-samples-headnode <analysis_samples.tsv> [stage_target] : generate /fsx staging directories and config/{samples.tsv,units.tsv} from an analysis_samples TSV !! NOTE, you will have to run aws configure on the headnode to run this script, this is the only command this is needed for. Use the same profile as the one used to create the cluster."
 echo -e "\t                           "
 echo -e "\t  daylily-export-fsx-to-s3 : export FSx data to S3, if this fails, use the AWS Fsx Filesystem console! *and* this might only be runnable from your local workstation not the headnode if aws configure was not run."
 echo -e "\t                           "

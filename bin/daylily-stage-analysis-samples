@@ -185,8 +185,7 @@ echo "Target cluster: $cluster_name"
 echo "SSH key: $pem_file"
 echo "Stage target: $stage_target"
 
-cluster_ip=$(AWS_PROFILE="$aws_profile" pcluster describe-cluster-instances -n "$cluster_name" --region "$region" --output json \
-    | python3 -c 'import json,sys; data=json.load(sys.stdin); print(next((i["publicIpAddress"] for i in data["instances"] if i.get("nodeType")=="HeadNode"), "")) )')
+cluster_ip=$(AWS_PROFILE="$aws_profile" pcluster describe-cluster-instances -n "$cluster_name" --region "$region" --output json     | python3 -c 'import json,sys; data=json.load(sys.stdin); print(next((i["publicIpAddress"] for i in data["instances"] if i.get("nodeType")=="HeadNode"), ""))' )
 
 if [[ -z "$cluster_ip" ]]; then
     echo "Error: Failed to resolve head node IP for cluster $cluster_name" >&2
