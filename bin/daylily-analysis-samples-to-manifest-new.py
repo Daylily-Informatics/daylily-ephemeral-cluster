@@ -357,7 +357,7 @@ def parse_and_validate_tsv(input_file, stage_target):
                 f"Conflicting metadata for sample {sample_name}:\nExisting: {existing_sample}\nNew: {samples_row}"
             )
         samples_rows[sample_name] = samples_row
-    output_dir = "/fsx/staged_data"
+    output_dir = "/fsx/staged_sample_data"
     os.makedirs(output_dir, exist_ok=True)
 
     if len(run_ids) == 1:
