@@ -991,12 +991,7 @@ echo ""
 
 echo "If you wish to override the above values, edit $CONFIG_FILE. These defaults are for a low-quota account; boost CONFIG_MAX_COUNT_*I if you have higher Spot quotas."
 echo ""
-echo "Please confirm these values are correct and press Enter to continue, or any other key to exit."
-read -r -p "Press Enter to continue, any other key to exit: " confirm
-if [[ "$confirm" != "" ]]; then
-    echo "Exiting..."
-    exit 3
-fi
+echo "Proceeding with these configuration values."
 
 # ---- Resolve initial values from triplets (USESETVALUE wins unless DAY_DISABLE_AUTO_SELECT=1) ----
 CONFIG_MAX_COUNT_8I="$(get_action_set_or_empty "max_count_8I")"
