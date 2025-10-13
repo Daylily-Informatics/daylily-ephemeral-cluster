@@ -16,8 +16,8 @@ ephemeral_cluster:
     headnode_instance_type: [PROMPTUSER, "r7i.2xlarge", ""]
     fsx_fs_size: [PROMPTUSER, "4800", ""]
     enable_detailed_monitoring: [PROMPTUSER, "false", ""]
-    delete_local_root: [PROMPTUSER, "false", ""] # false or true
-    auto_delete_fsx: [PROMPTUSER, "Retain", ""] # Delete or Retain
+    delete_local_root: [PROMPTUSER, "true", ""] # false or true
+    auto_delete_fsx: [PROMPTUSER, "Delete", ""] # Delete or Retain
     heartbeat_email: [PROMPTUSER, "", ""]
     heartbeat_schedule: [PROMPTUSER, "rate(60 minutes)", ""]
     heartbeat_scheduler_role_arn: [PROMPTUSER, "", ""]
