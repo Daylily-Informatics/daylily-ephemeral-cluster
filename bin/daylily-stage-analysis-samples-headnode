@@ -10,7 +10,7 @@ The optional stage_target defaults to /fsx/staged_sample_data.
 
 EXAMPLE <analysis_samples.tsv> can be found in ./etc/analysis_samples_template.tsv , you will need to replace <REF-BUCKET-NAME> with your actual S3 reference bucket name. However, in production you can use any s3 bucket you have read access to.
 
-sed -i 's|<REF-BUCKET-NAME>|$reference_bucket|g'  ./etc/analysis_samples_template.tsv
+sed -i \"s|<REF-BUCKET-NAME>|$reference_bucket|g\"  ./etc/analysis_samples_template.tsv
 
 
 USAGE

@@ -26,7 +26,7 @@ bin/install_miniconda
 bin/init_dayec
 
 reference_bucket=$(awk '/^[[:space:]]*Script: s3:/{match($0,/s3:\/\/([^/]+)/,a); print a[1]; exit}' /opt/parallelcluster/shared/cluster-config.yaml)
-sed -i \"s|<REF-BUCKET-NAME>|$reference_bucket|g\"  ./etc/analysis_samples_template.tsv
+sed -i "s|<REF-BUCKET-NAME>|$reference_bucket|g"  ./etc/analysis_samples_template.tsv
 
 
 USER_BIN_DIR="$HOME/.local/bin"
