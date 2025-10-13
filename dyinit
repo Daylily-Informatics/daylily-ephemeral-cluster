@@ -437,26 +437,10 @@ fi
 # Update PATH
 export PATH="$PATH:$PWD/bin"
 
-# Source tab completion script
-if [[ -f "bin/tabcomp.bash" ]]; then
-    source "bin/tabcomp.bash"
-else
-    echo "Warning: Tab completion script not found at bin/tabcomp.bash"
-fi
-
 # Define aliases
-alias day-activate="source bin/day_activate"
-alias day-deactivate="source bin/day_deactivate"
 alias day-build="source bin/day_build"
-alias day-run="bin/day_run"
-alias dy-a="source bin/day_activate"
 alias dy-b="source bin/day_build"
-alias dy-d="source bin/day_deactivate"
-alias dy-r="bin/day_run"
 alias dy-h="echo hello"
-alias day-set-genome-build="source bin/day_set_genome_build"
-alias dy-g="source bin/day_set_genome_build"
-
 
 # Display help if requested
 if [[ "$1" =~ ^(-h|--help|help)$ ]]; then
@@ -489,32 +473,16 @@ echo "squeue helper alias 'sq' activated"
 # Final message
 echo "Day CLI initialized for project '$PROJECT' in region '$region'."
 echo -e "The Daylily CLI is now available."
-echo -e "Available commands (tab completion is enabled for all):"
-echo  " "
-echo -e "\t(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment."
-echo -e "\t                           "
-echo -e "\t{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment."
-echo -e "\t                           "
-echo -e "\t(day-run / dy-r)          - Run a command in the current environment."
-echo -e "\t                           <tab> for exposed targets, -<tab> for all command line flags."
-echo -e "\t                           "
-echo -e "\t(day-deactivate / dy-d)   - Deactivate the current environment."
-echo -e "\t                           Use 'dy-d reset' to hard reset the environment."
-echo -e "\t                           "
-echo -e "\t(day-build / dy-b)        - Build a new environment (run once per head node user)."
-
+echo -e "Available commands :"
 echo -e "\t                           "
 echo -e "\t                           "
+echo -e "\t  day-clone --help : clone an analysis repo"
+echo -e "\t  day-clone --list : list available analysis repos"
+echo -e "\t "
+echo -e "\t  daylily-stage-analysis-samples-headnode <analysis_samples.tsv> [stage_target] : generate /fsx staging directories and config/{samples.tsv,units.tsv} from an analysis_samples TSV (!!!  soon deprecated in lieu of daylily-stage-analysis-samples  !!!)"
 echo -e "\t                           "
-echo -e "\t(example): ACTIVATE AN ANALYSIS ENV\n"
-echo -e "\n"
-echo -e "\t\tdy-a slurm hg38 # or hg38_broad or b37\n"
-
-echo -e "\t(example): RUN ALIGNMENT\n"
-echo -e "\t\tcp .test_data/data/0.01xwgs_HG002_hg38.samplesheet.csv config/analysis_manifest.csv\n"
-
-echo -e "\t\texport DAY_CONTAINERIZED=true # true to use pre-built container of all analysis envs. false will create each conda env as needed\n"
-
-echo -e "\t\tdy-r produce_snv_concordances -p -k -j 2 --config aligners=[\"bwa2a\"] dedupers=[\"dppl\"]  snv_callers=[\"deep\"] -n # remove -n to quit dry-run\n"
+echo -e "\t  daylily-stage-analysis-samples <analysis_samples.tsv> [stage_target] : generate /fsx staging directories and config/{samples.tsv,units.tsv} from an analysis_samples TSV"
+echo -e "\t                           "
+echo -e "\t  daylily-export-fsx-to-s3 : export FSx data to S3, if this fails, use the AWS Fsx Filesystem console!"
 
 return 0
