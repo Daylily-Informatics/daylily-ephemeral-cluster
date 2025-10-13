@@ -469,13 +469,44 @@ echo "squeue helper alias 'sq' activated"
 
 reference_bucket=$(awk '/^[[:space:]]*Script: s3:/{match($0,/s3:\/\/([^/]+)/,a); print a[1]; exit}' /opt/parallelcluster/shared/cluster-config.yaml)
 
+
+# --- Ensure DAY-EC conda env exists and activate it ---
+if command -v conda >/dev/null 2>&1; then
+    # Load conda shell hook so "conda activate" works in sourced scripts
+    __conda_base="$(conda info --base 2>/dev/null)"
+    if [[ -n "$__conda_base" && -f "$__conda_base/etc/profile.d/conda.sh" ]]; then
+        # shellcheck source=/dev/null
+        source "$__conda_base/etc/profile.d/conda.sh"
+    fi
+
+    # Does DAY-EC exist?
+    if ! conda env list 2>/dev/null | awk '{print $1}' | grep -qx "DAY-EC"; then
+        echo "Conda env 'DAY-EC' not found; bootstrapping via bin/init_dayec ..."
+        pushd "$HOME/projects/daylily-ephemeral-cluster" >/dev/null || {
+            echo "Error: directory ~/projects/daylily-ephemeral-cluster not found."; return 3; }
+        if ! bin/init_dayec; then
+            echo "Error: bin/init_dayec failed."; popd >/dev/null; return 3
+        fi
+        popd >/dev/null
+    fi
+
+    # Activate DAY-EC (either newly created or pre-existing)
+    if ! conda activate DAY-EC; then
+        echo "Error: failed to activate conda env DAY-EC."; return 3
+    fi
+else
+    echo "Warning: conda not found on PATH; skipping DAY-EC activation."
+fi
+# --- end DAY-EC ensure/activate ---
+
+
 # Final message
 echo "Day CLI initialized for project '$PROJECT' in region '$region'."
 echo -e "The Daylily CLI is now available."
 echo -e "Available commands :"
 echo -e "\t                           "
 echo -e "\t                           "
-echo -e "\t  day-build-env : initialize the DAY-EC conda environment (same as dy-b)"
+echo -e "\t  day-build-env : initialize the DAY-EC conda environment (same as dy-b), MUST be run from ~/projects/daylily-ephemeral-cluster/"
 echo -e "\t "
 echo -e "\t  day-clone --help : clone an analysis repo"
 echo -e "\t  day-clone --list : list available analysis repos"
