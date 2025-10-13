@@ -241,5 +241,5 @@ gtxt = Text(f"Grand total (clusters) TOTAL {args.metric}: {grand_total:.2f} {cur
 console.print(gtxt)
 console.print(Text(f"Window: {user_start.isoformat()} → {end.isoformat()} (CE end exclusive) | tag-region: {args.region} | CE/Budgets: us-east-1", style="dim"))
 
-gtxt = Text(f"WARNING: resources can lag by up to a day before appearing in this report!" ,style="bold")
+gtxt = Text(f"WARNING: resources can lag by up to a day before appearing -OR- dissappearing from this report!" ,style="bold")
 console.print(gtxt)
