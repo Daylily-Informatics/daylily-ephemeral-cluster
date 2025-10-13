@@ -619,7 +619,7 @@ pcluster list-clusters --region $REGION
 Every resource created by daylily is tagged to allow in real time monitoring of costs, to whatever level of granularity you desire. This is intended as a tool for not only managing costs, but as a very important metric to track in assessing various tools utility moving ahead (are the costs of a tool worth the value of the data produced by it, and how does this tool compare with others in the same class?)
 
 
-## Regulating Usage via Budgets
+## Regulating Usage via Budgets (experimental)
 During setup of each ephemeral cluster, each cluster can be configured to enforce budgets. Meaning, job submission will be blocked if the budget specifiecd has been exceeded.
   
 
@@ -697,7 +697,7 @@ To find the PCUI url, visit the `Outputs` tab of the `parallelcluster-ui` stack 
 
 > The PCUI stuff is not required, but very VERY awesome.
 
-> AND, it seems there is a permissions problem with the `daylily-service` user, as it is setup right now... the stack is failing.  Permissions are likely missing...
+> **When you use the SSM web browser `shell` via PCUI, you will need to run the following command: `sudo su - ubuntu` to move to the user setup to run the various pipelines.**
 
 ### Adding `inline policies` To The PCUI IAM Roles To Allow Access To Parallel Cluster Ref Buckets
 Go to the `IAM Dashboard`, and under roles, search for the role `ParallelClusterUIUserRole-*` and the role `ParallelClusterLambdaRole-*`. For each, add an in line json policy as follows (_you will need to enumerate all reference buckets you wish to be able to edit with PCUI_). Name it something like `pcui-additional-s3-access`. *you may be restricted to only editing clusters w/in the same region the PCUI was started even with these changes*
@@ -913,6 +913,61 @@ drwxrwxrwx 3 root root 33K Sep 26 08:35 resources
 
 ### Run A Local Test Workflow
 
+#### `day-clone`
+
+The `day-clone` script will be available to the ubuntu user on the headnode. This script wraps up the fetching and creating of various approved runnable workflows/pipelines.
+
+##### help output
+```bash
+day-clone --help
+usage: day-clone [-h] [-d DESTINATION] [-t GIT_TAG] [-r GIT_REPO] [-c CLONE_ROOT]
+                 [-u USER_NAME] [-w {https,ssh}] [--repository REPOSITORY] [--list]
+
+Clone Daylily analysis repositories into the FSx analysis workspace.
+
+options:
+  -h, --help            show this help message and exit
+  -d, --destination DESTINATION
+                        Name of the analysis workspace directory to create under the user-
+                        specific root.
+  -t, --git-tag GIT_TAG
+                        Git branch or tag to clone. Defaults to the repository's configured
+                        default.
+  -r, --git-repo GIT_REPO
+                        Override the git repository URL to clone. Overrides --repository.
+  -c, --clone-root CLONE_ROOT
+                        Root directory where analysis workspaces are created. Defaults to the
+                        configured analysis_root.
+  -u, --user-name USER_NAME
+                        User directory to create within the clone root. Defaults to the
+                        current user.
+  -w, --which-one {https,ssh}
+                        Clone using https or ssh (default: https).
+  --repository REPOSITORY
+                        Key of the repository defined in daylily_available_repositories.yaml
+                        to clone.
+  --list                List available repositories and exit.
+```
+
+##### clone daylily-omics-analysis
+
+```bash
+day-clone-d dayoa --repository daylily-omics-analysis -w https
+cd /fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis
+```
+
+Output looks like:
+```text
+Great success! Daylily repository cloned.
+Repository: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
+Reference : 0.7.333
+Location  : /fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis
+
+To get started:
+  cd /fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis
+  # initialize and run the analysis repository per its documentation
+```
+
 ---
 > Please see the testing section of the [daylily-omics-analysis README](https://github.com/Daylily-Informatics/daylily-omics-analysis).
 ---
@@ -1053,7 +1108,7 @@ pcluster delete-cluster -n <cluster-name> --region us-west-2
 
 `bin/daylily-ssh-into-headnode`
 
-_alias it for your shell:_ `alias goday="source ~/git_repos/daylily/bin/daylily-ssh-into-headnode"`
+_alias it for your shell:_ `alias goday="source ~/git_repos/daylily-ephemeral-cluster/bin/daylily-ssh-into-headnode"`
 
 
 ---
@@ -1264,7 +1319,7 @@ _example from the daylily-omics-analysis repo_
 
 # Versioning
 
-Daylily uses [Semantic Versioning](https://semver.org/). For the versions available, see the [tags on this repository](https://github.com/Daylily-Informatics/daylily/tags).
+Daylily uses [Semantic Versioning](https://semver.org/). For the versions available, see the [tags on this repository](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/tags).
 
 # Known Issues
 
