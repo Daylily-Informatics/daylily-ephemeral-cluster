@@ -66,7 +66,6 @@ Daylily’s workflow helpers bridge the gap between local manifests and remote e
 
 These tools make it straightforward to stage data once, reuse it across pipelines, and keep critical control material co-located with sample inputs.
 
-<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff00ff><img src="docs/images/000000.png" valign="bottom" ></a></p>
 
 ## Cost Monitoring & Budget Enforcement
 Daylily integrates with AWS Budgets and Cost Allocation Tags to provide per-sample and per-project cost visibility:
@@ -74,6 +73,12 @@ Daylily integrates with AWS Budgets and Cost Allocation Tags to provide per-samp
 - **AWS Budgets**: Set up budgets for your projects and receive alerts when you approach your spending limits.
 - **Cost Allocation Tags**: Use tags to categorize and track costs associated with specific samples, projects, or workflows.
 - **Budget Enforcement**: Optionally enforce budgets by configuring spot instance termination when a budget threshold is reached, helping to prevent unexpected costs.
+
+
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff00ff><img src="docs/images/000000.png" valign="bottom" ></a></p>
+
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff00ff><img src="docs/images/000000.png" valign="bottom" ></a></p>
+
 
 # Installation -- Quickest Start
 _only useful if you have already installed daylily previously and have all of the AWS account configurations in place_
