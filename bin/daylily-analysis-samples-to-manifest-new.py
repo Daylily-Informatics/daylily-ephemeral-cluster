@@ -161,6 +161,7 @@ def parse_and_validate_tsv(input_file, stage_target):
             samples[key].append(cols)
 
     samples_rows = {}
+    sampleid_to_entry = {}
     units_rows = []
     run_ids = set()
     for sample_key, entries in samples.items():
@@ -320,6 +321,21 @@ def parse_and_validate_tsv(input_file, stage_target):
                 f"Conflicting metadata for sample {sample_name}:\nExisting: {existing_sample}\nNew: {samples_row}"
             )
         samples_rows[sample_name] = samples_row
+
+        existing_sampleid_entry = sampleid_to_entry.get(sampleid)
+        if existing_sampleid_entry:
+            existing_name, existing_row = existing_sampleid_entry
+            if existing_row != samples_row:
+                log_error(
+                    "Duplicate SAMPLEID detected with conflicting metadata: "
+                    f"{sampleid}\nExisting entry from {existing_name}: {existing_row}\n"
+                    f"New entry from {sample_name}: {samples_row}"
+                )
+            log_error(
+                "Duplicate SAMPLEID detected; each SAMPLEID must appear only once in "
+                f"the samples TSV. Duplicate SAMPLEID: {sampleid}"
+            )
+        sampleid_to_entry[sampleid] = (sample_name, samples_row)
     output_dir = "/fsx/staged_sample_data"
     os.makedirs(output_dir, exist_ok=True)
 
@@ -343,6 +359,10 @@ def parse_and_validate_tsv(input_file, stage_target):
 
     log_warn(f"Writing config samples file: {samples_tsv_path}")
     samples_data = list(samples_rows.values())
+
+    unique_rows = {tuple(row.items()) for row in samples_data}
+    if len(unique_rows) != len(samples_data):
+        log_error("Duplicate rows detected in samples TSV data; each row must be unique.")
     write_tsv(samples_tsv_path, SAMPLES_HEADER, samples_data)
 
     log_warn(f"Writing config units file: {units_tsv_path}")
