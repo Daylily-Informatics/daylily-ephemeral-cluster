@@ -22,11 +22,11 @@ if command -v sudo >/dev/null 2>&1; then
 fi
 
 cd "$REPO_ROOT" || echo "Failed to cd to $REPO_ROOT" >&2
-bin/install_miniconda
-bin/init_dayec
+bin/install_miniconda || echo "failed to install miniconda"
+bin/init_dayec || echo "failed to install day-ec"
 
-reference_bucket=$(awk '/^[[:space:]]*Script: s3:/{match($0,/s3:\/\/([^/]+)/,a); print a[1]; exit}' /opt/parallelcluster/shared/cluster-config.yaml)
-sed -i "s|<REF-BUCKET-NAME>|$reference_bucket|g"  ./etc/analysis_samples_template.tsv
+reference_bucket=$(awk '/^[[:space:]]*Script: s3:/{match($0,/s3:\/\/([^/]+)/,a); print a[1]; exit}' /opt/parallelcluster/shared/cluster-config.yaml) || echo "failed to set ref bucket"
+sed -i "s|<REF-BUCKET-NAME>|$reference_bucket|g"  ./etc/analysis_samples_template.tsv || echo "failed to regsub anasamptemp.tsv"
 
 
 USER_BIN_DIR="$HOME/.local/bin"
