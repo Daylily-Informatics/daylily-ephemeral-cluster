@@ -216,13 +216,15 @@ for cluster in sorted(by_cluster.keys()):
     if others > 0:
         act_str += f", others:{others:.2f}"
 
-    cost_txt = Text(f"{total_cost:.2f} {currency or ''}")
-    if total_cost >= 10000: cost_txt.stylize("red bold")
-    elif total_cost >= 2000: cost_txt.stylize("yellow")
-    else: cost_txt.stylize("green")
+    cost_styles = []
+    if total_cost >= 10000: cost_styles.append("red bold")
+    elif total_cost >= 2000: cost_styles.append("yellow")
+    else: cost_styles.append("green")
 
     if not is_active:
-        cost_txt.stylize("on #d3d3d3")
+        cost_styles.append("on darkgray")
+
+    cost_txt = Text(f"{total_cost:.2f} {currency or ''}", style=" ".join(cost_styles))
 
     table.add_row(cluster, str(len(by_cluster[cluster])), disc_str, act_str, cost_txt)
     grand_total += total_cost
