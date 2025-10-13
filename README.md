@@ -1271,12 +1271,24 @@ _named in honor of Margaret Oakley Dahoff_
  
  
  
- 
- 
- 
-Z
-a
-A
+ # OTHER
+
+ ## Cluster Meta Report
+ To create a terminal report of all currently tagged AWS resources with `cluster name`.
+
+ ### One Time, Create Policy
+ ```bash
+export AWS_PROFILE=YOURADMINUSERPROFILE
+aws iam create-policy \\n  --policy-name DaylilyCostRead \\n  --policy-document file://config/aws/generate_cluster_report.json
+export AWS_PROFILE=<daylily-service>
+ ```
+
+ ### Per User (ie: daylily-service)
+ ```bash
+export AWS_PROFILE=YOURADMINUSERPROFILE
+aws iam attach-user-policy \\n  --user-name daylily-service \\n  --policy-arn arn:aws:iam::108782052779:policy/DaylilyCostRead
+export AWS_PROFILE=<daylily-service>
+ ```
  
  
  
