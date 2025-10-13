@@ -11,7 +11,7 @@ from collections import defaultdict
 
 RUN_ID = 0
 SAMPLE_ID = 1
-SAMPLE_ANNO = 2
+EXPERIMENT_ID = 2
 SAMPLE_TYPE = 3
 LIB_PREP = 4
 SEQ_VENDOR = 5
@@ -174,15 +174,15 @@ def parse_and_validate_tsv(input_file, stage_target):
 
         if any("_" in part for part in sample_key + (entries[0][LANE], entries[0][SEQBC_ID])):
             log_warn(f"UNDERSCORES '_' FOUND AND WILL BE REPLACED WITH '-' IN: {sample_key}")
-            log_warn(f"RUN_ID, SAMPLE_ID, SAMPLE_ANNO, SAMPLE_TYPE, LIB_PREP, SEQ_PLATFORM, LANE, SEQBC_ID must not contain underscores: {sample_key} .. {entries}\n\n")
+            log_warn(f"RUN_ID, SAMPLE_ID, EXPERIMENTID, SAMPLE_TYPE, LIB_PREP, SEQ_PLATFORM, LANE, SEQBC_ID must not contain underscores: {sample_key} .. {entries}\n\n")
             log_warn(" UNDERSCORES '_' WILL BE REPLACED WITH HYPHENS '-' \n")
             log_warn("...")
-            #log_error(f"RUN_ID  SAMPLE_ID  SAMPLE_ANNO     SAMPLE_TYPE     LIB_PREP        SEQ_PLATFORM    LANE    SEQBC_ID must not contain underscores: {sample_key} .. {entries}\n")
-            #raise Exception(f"RUN_ID  SAMPLE_ID  SAMPLE_ANNO     SAMPLE_TYPE     LIB_PREP        SEQ_PLATFORM    LANE    SEQBC_ID  must not contain underscores: {sample_key} .. {entries}\n")
+            #log_error(f"RUN_ID  SAMPLE_ID  EXPERIMENTID     SAMPLE_TYPE     LIB_PREP        SEQ_PLATFORM    LANE    SEQBC_ID must not contain underscores: {sample_key} .. {entries}\n")
+            #raise Exception(f"RUN_ID  SAMPLE_ID  EXPERIMENTID     SAMPLE_TYPE     LIB_PREP        SEQ_PLATFORM    LANE    SEQBC_ID  must not contain underscores: {sample_key} .. {entries}\n")
             
         ruid = sample_key[RUN_ID].replace("_", "-")
         sampleid = sample_key[SAMPLE_ID].replace("_", "-")
-        sampleanno = sample_key[SAMPLE_ANNO].replace("_", "-")
+        experiment_id = sample_key[EXPERIMENT_ID].replace("_", "-")
         sampletype = sample_key[SAMPLE_TYPE].replace("_", "-")
         libprep = sample_key[LIB_PREP].replace("_", "-")
         vendor_value = sample_key[SEQ_VENDOR].replace("_", "-")
@@ -191,9 +191,9 @@ def parse_and_validate_tsv(input_file, stage_target):
         lane = entries[0][LANE].replace("_", "-")
         seqbc = entries[0][SEQBC_ID].replace("_", "-")
 
-        new_sample_id = f"{sampleid}-{seqplatform}-{libprep}-{sampletype}-{sampleanno}"
-        sample_name = f"{ruid}_{new_sample_id}"
-        sample_prefix = f"{ruid}_{new_sample_id}_{seqbc}_0"
+        composite_sample_id = f"{sampleid}-{seqplatform}-{libprep}-{sampletype}-{experiment_id}"
+        sample_name = f"{ruid}_{composite_sample_id}"
+        sample_prefix = f"{ruid}_{composite_sample_id}_{seqbc}_0"
         staged_sample_path = os.path.join(stage_target, sample_prefix)
         os.makedirs(staged_sample_path, exist_ok=True)
 
@@ -255,7 +255,7 @@ def parse_and_validate_tsv(input_file, stage_target):
         units_row = {
             "RUNID": ruid,
             "SAMPLEID": sampleid,
-            "EXPERIMENTID": new_sample_id,
+            "EXPERIMENTID": experiment_id,
             "LANEID": lane_id,
             "BARCODEID": seqbc,
             "LIBPREP": libprep,
