@@ -25,6 +25,10 @@ cd "$REPO_ROOT" || echo "Failed to cd to $REPO_ROOT" >&2
 bin/install_miniconda
 bin/init_dayec
 
+reference_bucket=$(awk '/^[[:space:]]*Script: s3:/{match($0,/s3:\/\/([^/]+)/,a); print a[1]; exit}' /opt/parallelcluster/shared/cluster-config.yaml)
+sed -i \"s|<REF-BUCKET-NAME>|$reference_bucket|g\"  ./etc/analysis_samples_template.tsv
+
+
 USER_BIN_DIR="$HOME/.local/bin"
 mkdir -p "$USER_BIN_DIR"
 install -m 0755 "$REPO_ROOT/bin/day-clone" "$USER_BIN_DIR/day-clone"

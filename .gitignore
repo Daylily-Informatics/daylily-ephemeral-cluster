@@ -5,3 +5,4 @@ __pycache__/
 .vscode/
 etc/about_me.yaml
 
+./etc/analysis_samples_template.tsv
