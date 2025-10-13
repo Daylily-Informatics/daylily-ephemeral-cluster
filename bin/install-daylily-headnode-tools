@@ -21,6 +21,10 @@ if command -v sudo >/dev/null 2>&1; then
     fi
 fi
 
+cd "$REPO_ROOT" || echo "Failed to cd to $REPO_ROOT" >&2
+bin/install_miniconda
+bin/init_dayec
+
 USER_BIN_DIR="$HOME/.local/bin"
 mkdir -p "$USER_BIN_DIR"
 install -m 0755 "$REPO_ROOT/bin/day-clone" "$USER_BIN_DIR/day-clone"

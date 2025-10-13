@@ -486,7 +486,9 @@ else
         exit 1
     fi
 fi
-
+conda activate DAY-EC || {
+    echo "Error: Failed to activate 'DAY-EC' environment."
+}
 
 # Final message
 echo "Day CLI initialized for project '$PROJECT' in region '$region'."
