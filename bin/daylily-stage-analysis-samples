@@ -16,6 +16,7 @@ Options:
   --config-dir PATH       Local directory to place downloaded config files (default: <tsv_dir>)
   --output PATH           Alias for --config-dir (deprecated)
   --no-download           Skip downloading the config files back to the local machine
+  --debug                 Enable debug mode (print command traces)
   -h, --help              Show this help message and exit
 USAGE
 }
@@ -64,6 +65,7 @@ remote_tmp="/tmp"
 download_config="true"
 local_config_dir=""
 ts_path=""
+debug_mode=0
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -107,6 +109,10 @@ while [[ $# -gt 0 ]]; do
             download_config="false"
             shift
             ;;
+        --debug)
+            debug_mode=1
+            shift
+            ;;
         -h|--help)
             usage
             exit 0
@@ -132,6 +138,11 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+if [[ "$debug_mode" == "1" ]]; then
+    echo "ℹ️ Debug mode enabled. Command traces will be printed."
+    set -x
+fi
 
 if [[ -z "$ts_path" ]]; then
     echo "Error: analysis_samples TSV path is required" >&2
