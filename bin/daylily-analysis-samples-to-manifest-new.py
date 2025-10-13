@@ -380,7 +380,7 @@ def parse_and_validate_tsv(input_file, stage_target):
             "IS_POSITIVE_CONTROL": get_entry_value(primary_entry, IS_POS_CTRL),
             "IS_NEGATIVE_CONTROL": get_entry_value(primary_entry, IS_NEG_CTRL),
             "SAMPLE_TYPE": sampletype,
-            "TUM_NRM_SAMPLEID_MATCH": sampleid,
+            "TUM_NRM_SAMPLEID_MATCH": "na",
             "EXTERNAL_SAMPLE_ID": get_entry_value(primary_entry, EXTERNAL_SAMPLE_ID) or "na",
             "N_X": get_entry_value(primary_entry, N_X),
             "N_Y": get_entry_value(primary_entry, N_Y),
