@@ -38,6 +38,7 @@ UNITS_HEADER = [
     "LIBPREP",
     "SEQ_VENDOR",
     "SEQ_PLATFORM",
+    "analysis_unit_uid",
     "ILMN_R1_PATH",
     "ILMN_R2_PATH",
     "PACBIO_R1_PATH",
@@ -50,7 +51,15 @@ UNITS_HEADER = [
 ]
 
 SAMPLES_HEADER = [
+    "RUNID",
     "SAMPLEID",
+    "EXPERIMENTID",
+    "LANEID",
+    "BARCODEID",
+    "LIBPREP",
+    "SEQ_VENDOR",
+    "SEQ_PLATFORM",
+    "analysis_unit_uid",
     "SAMPLESOURCE",
     "SAMPLECLASS",
     "SAMPLEUSE",
@@ -252,6 +261,19 @@ def parse_and_validate_tsv(input_file, stage_target):
         )
         sex = determine_sex(int(primary_entry[N_X]), int(primary_entry[N_Y]))
 
+        analysis_unit_uid = "-".join(
+            [
+                ruid,
+                sampleid,
+                experiment_id,
+                lane_id,
+                seqbc,
+                libprep,
+                vendor,
+                seqplatform,
+            ]
+        )
+
         units_row = {
             "RUNID": ruid,
             "SAMPLEID": sampleid,
@@ -261,6 +283,7 @@ def parse_and_validate_tsv(input_file, stage_target):
             "LIBPREP": libprep,
             "SEQ_VENDOR": vendor,
             "SEQ_PLATFORM": seqplatform,
+            "analysis_unit_uid": analysis_unit_uid,
             "ILMN_R1_PATH": "",
             "ILMN_R2_PATH": "",
             "PACBIO_R1_PATH": "",
@@ -291,7 +314,15 @@ def parse_and_validate_tsv(input_file, stage_target):
         merge_single = "merge" if is_multi_lane else "single"
 
         samples_row = {
+            "RUNID": ruid,
             "SAMPLEID": sampleid,
+            "EXPERIMENTID": experiment_id,
+            "LANEID": lane_id,
+            "BARCODEID": seqbc,
+            "LIBPREP": libprep,
+            "SEQ_VENDOR": vendor,
+            "SEQ_PLATFORM": seqplatform,
+            "analysis_unit_uid": analysis_unit_uid,
             "SAMPLESOURCE": sampletype,
             "SAMPLECLASS": "research",
             "SAMPLEUSE": sample_use,
