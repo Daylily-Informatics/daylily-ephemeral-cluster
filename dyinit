@@ -223,7 +223,7 @@ derive_bucket_url() {
     local bucket_url_guess=""
 
     if [[ -f "$cluster_config" ]]; then
-        bucket_url_guess=$(awk '/ImportPath:/ {print $2; return}' "$cluster_config")
+        bucket_url_guess=$(awk '/ImportPath:/ {print $2; exit}' "$cluster_config")
         if [[ -n "$bucket_url_guess" ]]; then
             bucket_url_guess="${bucket_url_guess%/data/}"
             bucket_url_guess="${bucket_url_guess%/}"
@@ -467,7 +467,7 @@ alias sq=sq
 echo "squeue helper alias 'sq' activated"
 
 
-reference_bucket=$(awk '/^[[:space:]]*Script: s3:/{match($0,/s3:\/\/([^/]+)/,a); print a[1]; return}' /opt/parallelcluster/shared/cluster-config.yaml)
+reference_bucket=$(awk '/^[[:space:]]*Script: s3:/{match($0,/s3:\/\/([^/]+)/,a); print a[1]; exit}' /opt/parallelcluster/shared/cluster-config.yaml)
 
 
 # Activate or create the Daylily CLI conda environment
@@ -483,7 +483,7 @@ else
     bin/init_dayec
     if [ $? -ne 0 ]; then
         echo "Error: Failed to create 'DAY-EC' environment."
-        return 2
+        return 
     fi
 fi
 conda activate DAY-EC || {
