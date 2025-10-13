@@ -195,17 +195,14 @@ echo "Using region: $region"
 echo "Target cluster: $cluster_name"
 echo "SSH key: $pem_file"
 echo "Stage target: $stage_target"
-
+ 
+echo "Remote repo: $remote_repo"
 cluster_ip=$(
-  AWS_PROFILE="$aws_profile" aws ec2 describe-instances \
+  AWS_PROFILE="$aws_profile" pcluster describe-cluster \
     --region "$region" \
-    --filters "Name=tag:parallelcluster:cluster-name,Values=$cluster_name" \
-              "Name=tag:parallelcluster:node-type,Values=HeadNode" \
-              "Name=instance-state-name,Values=running" \
-    --query 'Reservations[].Instances[].PublicIpAddress' 
-	  )
+    -n "$cluster_name"| grep publicIpAddress | perl -pe 's/(.*)( \")(.*)(\"\,.*)/$3/g;')
 
-#$(AWS_PROFILE="$aws_profile" pcluster describe-cluster-instances -n "$cluster_name" --region "$region" --output json     | python3 -c 'import json,sys; data=json.load(sys.stdin); print(next((i["publicIpAddress"] for i in data["instances"] if i.get("nodeType")=="HeadNode"), ""))' )
+echo "Resolved head node IP: $cluster_ip"
 
 if [[ -z "$cluster_ip" ]]; then
     echo "Error: Failed to resolve head node IP for cluster $cluster_name" >&2
@@ -226,10 +223,59 @@ ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" "mkdir -p '$remote_tmp'"
 echo "Uploading TSV to head node..."
 scp "${ssh_opts[@]}" "$ts_path" "ubuntu@${cluster_ip}:${remote_tsv}"
 
-remote_repo_remote=${remote_repo/#\~/$'\\$HOME'}
+remote_repo_remote="${remote_repo/#\~//home/ubuntu}"
 
 echo "Running remote staging script..."
-ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" "cd $remote_repo_remote && AWS_PROFILE='$aws_profile' python3 ./bin/daylily-analysis-samples-to-manifest-new.py '$remote_tsv' '$stage_target'"
+
+# Ensure ~ → /home/ubuntu expansion is clean
+remote_repo_remote="${remote_repo/#\~//home/ubuntu}"
+
+ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" \
+  "REMOTE_REPO='$remote_repo_remote' REMOTE_TSV='$remote_tsv' STAGE_TARGET='$stage_target' AWS_PROFILE='$aws_profile' bash -s" <<'REMOTE'
+set -euo pipefail
+
+# --- locate and load conda hook ---
+if [[ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then
+  source "$HOME/miniconda3/etc/profile.d/conda.sh"
+elif [[ -f "/opt/conda/etc/profile.d/conda.sh" ]]; then
+  source "/opt/conda/etc/profile.d/conda.sh"
+elif command -v conda >/dev/null 2>&1; then
+  eval "$(conda shell.bash hook)"
+elif [[ -x "$HOME/miniconda3/bin/conda" ]]; then
+  eval "$("$HOME/miniconda3/bin/conda" shell.bash hook)"
+else
+  echo "Conda not found; attempting bootstrap via bin/init_dayec..." >&2
+  cd "$REMOTE_REPO"
+  if [[ -x bin/init_dayec ]]; then
+    bin/init_dayec
+  else
+    echo "Error: bin/init_dayec not found or not executable" >&2
+    exit 2
+  fi
+  # try again after bootstrap
+  if [[ -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then
+    source "$HOME/miniconda3/etc/profile.d/conda.sh"
+  elif command -v conda >/dev/null 2>&1; then
+    eval "$(conda shell.bash hook)"
+  else
+    echo "Error: conda still not available after bootstrap" >&2
+    exit 3
+  fi
+fi
+
+# --- ensure DAY-EC exists ---
+if ! conda env list | awk '{print $1}' | grep -qx DAY-EC; then
+  echo "DAY-EC env missing; creating via bin/init_dayec..."
+  cd "$REMOTE_REPO"
+  bin/init_dayec
+fi
+
+# --- activate + run ---
+conda activate DAY-EC
+cd "$REMOTE_REPO"
+AWS_PROFILE="$AWS_PROFILE" python3 ./bin/daylily-analysis-samples-to-manifest-new.py "$REMOTE_TSV" "$STAGE_TARGET"
+REMOTE
+
 
 echo "Remote staging complete. Config files located at $stage_target/{samples,units}.tsv"
 
