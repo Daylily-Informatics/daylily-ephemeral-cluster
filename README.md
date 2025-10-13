@@ -1,59 +1,79 @@
 # Daylily Ephemeral Cluster
-_(stable tagged release to use --> 0.7.348)_
+_(stable tagged **beta release** release to use --> 0.7.348)_
 
-**beta release**
-
-`Daylily Ephemeral Cluster` is an infrastructure as code project to spin up arbitrary self-scaling compute clusters which are pre-configured for bioinformatics multiomics analyses, with the primary aim to allow predictable and reproducible compute performance of bioinformatics analyses (importantly, by extension, *cost*). The core technologies leveraged are AWS Parallel Cluster (which manages creating and running the self-scaling slurm cluster), AWS Parallel Cluster UI (which allows nearly all `pcui` cli operations via a dashboard GUI), FSXlustre + mirrored S3 (which allows up to thousands of spot instances to work on the same shared filesystem, with core reference data mounted through an S3 link to FSx- results desired to be persisted can be reflected back through FSX to S3). The ephemeral cluster can be [easily configured](config/day_cluster/prod_cluster.yaml) to suit your needs. You can run any commands able to be run via the instance types you define in your cluster partitions.
-
-> This compute framework has been optimized to run a set of WGS analyses foramlized in the [daylily-omics-analysis](https://github.com/Daylily-Informatics/daylily-omics-analysis) repository. The core analysis workflows include short, long and hybrid alignment, variant calling, qc, etc. This is written in `snakemake`, but all workflow orchestrators which support running with a slurm executor (so, all of them: Nextflow, Cromwell, ...) will play well with this slurm cluster.  There is a toy [Cromwell integration example]() for the curious (I do not reccomend Cromwell). _note_: The version of snakemake used is a fork with some extra bits added to allow clear and universal monitoring of each jobs EC2 costs.
+> Infrastructure-as-code for spinning up ephemeral (transient) **AWS ParallelCluster's** that are tuned for bioinformatics and multi-omics analysis, but can run any slurm based or linux derived worflows. The project assembles the networking, storage, authentication, and head-node tooling required to launch, monitor, and tear down self-scaling Slurm clusters with predictable performance and cost transparency. Workflows themselves live in separate repositories, may be in any framework that supports slurm (snakemake, nextflow, cromwell, etc) and can be plugged in on demand and executed on your ephemeral resources.
 
 
 <p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
 
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
+## Highlights
 
+- **Rapid, reproducible cluster bring-up** built on AWS ParallelCluster with optional PCUI for browser-based terminal and multi-cluster management. 
+- **Cost-aware infrastructure** with scripts that inspect spot-market capacity, calculate per-sample spend, and tag workloads for downstream budget reporting. _<small>(using [daylily-omics-analysis](https://github.com/Daylily-Informatics/daylily-omics-analysis) WGS analysis workflows, can run `fastq`->aligned deduped CRAM->snv+sv VCFs in ~1hr for as little as $5/genome)</small>_
+- **Shared FSx for Lustre file system** that mirrors to S3 so hundreds or thousands of spot instances can safely collaborate on the same dataset while persisting results. Final results may then be automagically mirrored back to `s3`. 
+- **Pluggable analysis catalog** governed by YAML, enabling one-click cloning of approved pipelines or custom repositories for development work. 
+- **Remote data staging & pipeline launch helpers** that transform sample manifests, materialize canned control datasets, and kick off workflows from your workstation into tmux sessions on the head node. 
+- **Curated & standardized reference data** for `hg38` and `b37`, and extensible to any arbitrary genome reference datasets via [daylily-omics-references](https://github.com/Daylily-Informatics/daylily-omics-references).
+- **Bundled concordance data** via `daylily-omics-references` available to quickly and easily benchmark various pipleines. Datasets include ILMN, PacBio, ONT & Ultima.
+- **Region-scoped references bucket** tooling to hydrate FSx with curated reference bundles and optional licensed assets. 
 
+ 
+## Architecture at a Glance 
 
+Daylily composes several AWS building blocks so you can stand up a full featured HPC environment quickly:
 
+1. **AWS ParallelCluster** AWS ParallelCluster (v3) is the core of the compute fabric, orchestrating spot and on-demand instances into Slurm partitions. 
+2. **FSx for Lustre** mounted at `/fsx` with an S3 mirror so reference data, staged inputs, and pipeline outputs survive node turnover. 
+3. **Automatic Load Scaling EC2 Instances** with a mix of spot and on-demand instances, tuned for high-throughput genomics workloads.
+5. **VPC, subnets, and security groups** sized for high-throughput genomics compute.
+6. **Daylily CLI** installed on the head node to provide helpers for data staging, pipeline cloning, and remote execution.
+7. **s3 references bucket** with reference genomes, resource bundles, and canned control datasets for benchmarking and concordance.
+8. **AWS CloudFormation** templates to orchestrate the above components and manage lifecycle.
+9. **AWS CloudWatch** alarms to notify on spot instance interruptions and FSx storage capacity, dashboards to monitor CPU, memory, and network utilization.
+10. **Parallel Cluster UI (PCUI)** deployment to provide a web console for job management and interactive shells. 
+11. **Project level cost tagging & telemetry** layered on top of AWS Budgets and cost allocation tags to preserve per-sample and per-project visibility. _(experimental: budget enforcement via spot instance termination)_.
 
-# What's It All About?
+---
 
-## Comprehensive Cost Transparency & Predictability ::: 30x FASTQ->VCF in ~1hr for ~$5 (modulo spot market variability, and a bit cheaper still if using sentieon ) ::: You Can Achieve This Cost and Runtime Performance Out Of The Box
+## Pluggable Analysis Workflows
+The Daylily head node ships with a registry of vetted repositories defined in [`config/daylily_available_repositories.yaml`](config/daylily_available_repositories.yaml). Each entry specifies a friendly name, description, Git endpoints, default revision, and checkout location, allowing operators to:
 
-> 30x FASTQ->VCF, in 1hr, for <img src="docs/images/000000.png" valign="bottom" width=2 >~$3 - $4<img src="docs/images/000000.png" valign="bottom" width=2 > @ F-score 0.99xx
+- Clone approved pipelines (e.g., whole-genome, RNA-seq) in a single command using `day-clone` or standard `git` from the head node.
+- Override the registry to test forks, feature branches, or entirely new repositories during development.
+- Mix and match pipelines per project without rebuilding the cluster.
 
-> Be up and running in 1 or 2 hours from reading this sentence. 
-> - Have your first GIAB 30x Fastq->VCF (both snv and sv) ~60min later. 
-> - The (_onetime_) cost of staging data is ~$20, analysis will be ` ~$3.00 to $5.00 ` (pricing is established dynamically at cluster creation, and you can inspect the max bound on spot prices which are possible, this sets your upper bound... as does complexity of pipeline, but more on that latter).
+Because the compute layer is generic Slurm, any orchestrator that speaks Slurm (Snakemake, Nextflow, Cromwell, custom Bash, etc.) can be scheduled once the repository is present. Daylily’s helper `bin/daylily-run-ephemeral-cluster-remote-tests` demonstrates how to bootstrap a workflow remotely: it clones the configured repository at the requested tag, enters the Daylily environment, and launches a Snakemake target inside a tmux session, making it easy to kick off pipelines from your laptop. 
 
-**Time to result, Cost of analysis, Accuracy && Integrated Concordance/Comparison**: These are key elements required in making solid analysis decisions, and in setting the stage for analysis decisions which can improve in tandem as the field advances. 
+---
 
-**Cost Optimization & Predictability**:  With benchmarked, reproducible analysis on stable and reproducible computing platforms, it is possible to optimze for the most beneficial compute locale && to predict expected (and bound highest) per-sample cost to analyze.
+## Reference Data & Canned Controls
+High-throughput analyses rely on predictable reference data access. Daylily provides automation to:
 
-**Cost Transparency & Management**:  IRT views into what is being spent, and where.  Not just compute, but data transfer, sroage, and other _ALL_ other costs. No specialized hardware investment needed, no contracts, pay for what you use. 
+- **Clone reference bundles** into a region-scoped S3 bucket (`<prefix>-daylily-omics-analysis-<region>`) using `./bin/create_daylily_omics_analysis_s3.sh`, optionally layering in licensed assets such as Sentieon. 
+- **Automated mounting of the bucket via FSx** so all compute nodes see `/fsx/data`, `/fsx/resources`, and `/fsx/analysis_results` with low latency. 
+- **Stage canned control datasets** when generating pipeline manifests: `bin/daylily-analysis-samples-to-manifest-new.py` accepts concordance directories from S3/HTTP/local paths and copies them alongside samples, while tagging each run as positive or negative control for downstream QC. 
 
-**Pro Open Source**: All out of the box functionality here is open source, and does not require any investment in software liscneces, etc. This is important for both future proof reproducibility and ongoing cost management. This said, daylily is not hostile to s/w that requires liscences (if selection of closed s/w is made understanding tradeoffs, if any, in long term reproducibility), but you will need to purchase those separately.
+---
 
-- https://github.com/aws/aws-parallelcluster makes the cluster creation/management possible.
-- snakemake
-- all the tools!
+## Remote Data Staging & Pipeline Execution
+Daylily’s workflow helpers bridge the gap between local manifests and remote execution:
+
+1. Use `bin/daylily-stage-analysis-samples` from your workstation to pick a cluster, upload an `analysis_samples.tsv`, and invoke the head-node staging utility. The script downloads data from S3/HTTP/local paths, merges multi-lane FASTQs, and writes canonical `config/samples.tsv` and `config/units.tsv` files to your chosen staging directory. 
+2. The staging utility automatically validates AWS credentials, materializes concordance/control payloads, normalizes metadata, and reports where to copy the generated configs. 
+3. When you are ready to launch a workflow, `bin/daylily-run-ephemeral-cluster-remote-tests` can log into the head node, clone the selected pipeline (as configured in the YAML registry), and start the run in a tmux session for detached execution. 
+
+These tools make it straightforward to stage data once, reuse it across pipelines, and keep critical control material co-located with sample inputs.
 
 <p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff00ff><img src="docs/images/000000.png" valign="bottom" ></a></p>
 
-<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
-# Self Funded Science
-
-> Daylily development has been under development for a number of years & is self-funded work (both time, and AWS costs).
-> - [I am available for consulting](https://www.dyly.bio) engagements if you are interested in extending the work here. My areas of expertise also include cllical diagnostics operations, regulatory and compliance.
-
-<hr>
 
 # Installation -- Quickest Start
-_most useful if you have already installed daylily previously_
+_only useful if you have already installed daylily previously and have all of the AWS account configurations in place_
 
 - [Can be found here](docs/quickest_start.md).
-
 
 # Installation -- Detailed
 
@@ -172,7 +192,7 @@ _key pairs are region specific, be sure you create a key pair in the region you 
 
 - Navigate to the `EC2 dashboard`, in the left hand menu under `Network & Security`, click on `Key Pairs`. 
 - CLick `Create Key Pair`.
-- Give it a name, which must include the string `-omics-analysis`. So, _ie:_ `username-omics-analysis-region`. 
+- Give it a name, which must include the string `-omics-analysis-<region>`. So, _ie:_ `username-omics-analysis-us-west-2`. 
 - Choose `Key pair type` of `ed25519`.
 - Choose `.pem` as the file format.
 - Click `Create key pair`.
@@ -185,7 +205,7 @@ mkdir -p ~/.ssh
 chmod 700 ~/.ssh
 
 mv ~/Downloads/<yourkey>.pem  ~/.ssh/<yourkey>.pem 
-chmod 400 ~/.ssh/<yourkey>.pem`
+chmod 400 ~/.ssh/<yourkey>.pem
 ```
 
 ## Default Region `us-west-2`
@@ -193,7 +213,6 @@ You may run in any region or AZ you wish to try. This said, the majority of test
 
 
 ---
-
 
 ## Prerequisites (On Your Local Machine) 
 Local machine development has been carried out exclusively on a mac using the `zsh` shell. `bash` should work as well (if you have issues with conda w/mac+bash, confirm that after miniconda install and conda init, the correct `.bashrc` and `.bash_profile` files were updated by `conda init`).
@@ -204,13 +223,13 @@ Very good odds this will work on any mac and most Linux distros (ubuntu 22.04 ar
 
 ### System Packages
 Install with `brew` or `apt-get`:
-- `python3`, tested with `3.11.0
+- `python3`, tested with `3.11.0`
 - `git`, tested with `2.46.0`
 - `wget`, tested with `1.25.0`
 - `tmux` (optional, but suggested)
 - `emacs` (optional, I guess, but I'm not sure how to live without it)
 
-#### Check if your prereq's meet the min versions required
+#### Check if your prereq's meet the min versions required by running this script
 ```bash
 ./bin/check_prereq_sw.sh 
 ```
@@ -232,7 +251,7 @@ chmod 600 ~/.aws/config
 
 Edit `~/.aws/config`, which should look like:
 
-```yaml
+```ini
 [default]
 region = us-west-2
 output = json
@@ -266,8 +285,8 @@ region = <REGION>
 ### Clone stable release of `daylily` Git Repository
 
 ```bash
-git clone -b $(yq -r '.daylily.git_tag' "config/daylily/daylily_cli_global.yaml") https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git  # or, if you have set ssh keys with github and intend to make changes:  git clone git@github.com:Daylily-Informatics/daylily.git
-cd daylily
+git clone -b $(yq -r '.daylily.git_tag' "config/daylily/daylily_cli_global.yaml") https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git  # or, if you have set ssh keys with github and intend to make changes:  git clone git@github.com:Daylily-Informatics/daylily-ephemeral-cluster.git
+cd daylily-ephemeral-cluster
 ```
 
 #### stable `daylily` release
@@ -845,8 +864,6 @@ dy-a local hg38 # activates the local config using reference hg38, the other bui
 
 > if `. dyinit` works, but `dy-a local` fails, try `dy-b BUILD`
 
-
-
 This should produce a magenta `WORKFLOW SUCCESS` message and `RETURN CODE: 0` at the end of the output.  If so, you are set. If not, see the next section.
 
 ### (if) Headnode Confiugration Incomplete
@@ -1184,8 +1201,8 @@ ode/rule is distributed to a suitable EC2 spot(or on demand if you prefer) insta
 
 
 
-
 ### Daylily Framework, Cont.
+_example from the daylily-omics-analysis repo_
 
 #### [Batch QC HTML Summary Report](http://daylilyinformatics.com:8082/reports/DAY_final_multiqc.html)
 
@@ -1259,16 +1276,6 @@ All tools involved in `daylily-ephemeral-cluster` can be managed in such a way t
 
 <p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
 
-# [DAY](https://en.wikipedia.org/wiki/Margaret_Oakley_Dayhoff)![](https://placehold.co/60x35/ff03f3/fcf2fb?text=LILLY)
-
-_named in honor of Margaret Oakley Dahoff_ 
- 
- 
- 
- 
- 
- 
- 
  
  
  # OTHER
@@ -1293,8 +1300,9 @@ export AWS_PROFILE=<daylily-service>
  ```
  
  
- 
- 
- 
+
+# [DAY](https://en.wikipedia.org/wiki/Margaret_Oakley_Dayhoff)![](https://placehold.co/60x35/ff03f3/fcf2fb?text=LILLY)
+
+_named in honor of Margaret Oakley Dahoff_ 
  
  
