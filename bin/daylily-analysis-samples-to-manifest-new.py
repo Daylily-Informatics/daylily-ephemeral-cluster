@@ -28,6 +28,7 @@ IS_POS_CTRL = 15
 IS_NEG_CTRL = 16
 N_X = 17
 N_Y = 18
+EXTERNAL_SAMPLE_ID = 19
 
 UNITS_HEADER = [
     "RUNID",
@@ -48,7 +49,6 @@ UNITS_HEADER = [
     "UG_R2_PATH",
     "SUBSAMPLE_PCT",
     "SAMPLEUSE",
-    "MERGE_SINGLE",
     "BWA_KMER",
     "DEEP_MODEL",
     "ULTIMA_CRAM",
@@ -270,7 +270,6 @@ def parse_and_validate_tsv(input_file, stage_target):
             "UG_R2_PATH": "",
             "SUBSAMPLE_PCT": subsample_pct,
             "SAMPLEUSE": "posControl" if primary_entry[IS_POS_CTRL].strip().lower() == "true" else "sample",
-            "MERGE_SINGLE": "merge" if is_multi_lane else "single",
             "BWA_KMER": "19",
             "DEEP_MODEL": "",
             "ULTIMA_CRAM": "",
@@ -309,7 +308,7 @@ def parse_and_validate_tsv(input_file, stage_target):
             "IS_NEGATIVE_CONTROL": primary_entry[IS_NEG_CTRL],
             "SAMPLE_TYPE": sampletype,
             "TUM_NRM_SAMPLEID_MATCH": sampleid,
-            "EXTERNAL_SAMPLE_ID": "na",
+            "EXTERNAL_SAMPLE_ID": primary_entry[EXTERNAL_SAMPLE_ID] if len(primary_entry) > EXTERNAL_SAMPLE_ID else "na",
             "N_X": primary_entry[N_X],
             "N_Y": primary_entry[N_Y],
             "TRUTH_DATA_DIR": concordance_dir,
