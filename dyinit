@@ -483,7 +483,7 @@ else
     bin/init_dayec
     if [ $? -ne 0 ]; then
         echo "Error: Failed to create 'DAY-EC' environment."
-        exit 1
+        return 2
     fi
 fi
 conda activate DAY-EC || {
