@@ -14,19 +14,70 @@ SAMPLE_ID = 1
 SAMPLE_ANNO = 2
 SAMPLE_TYPE = 3
 LIB_PREP = 4
-SEQ_PLATFORM = 5
-LANE = 6
-SEQBC_ID = 7
-PATH_TO_CONCORDANCE = 8
-R1_FQ = 9
-R2_FQ = 10
-STAGE_DIRECTIVE = 11
-STAGE_TARGET = 12
-SUBSAMPLE_PCT = 13
-IS_POS_CTRL = 14
-IS_NEG_CTRL = 15
-N_X = 16
-N_Y = 17
+SEQ_VENDOR = 5
+SEQ_PLATFORM = 6
+LANE = 7
+SEQBC_ID = 8
+PATH_TO_CONCORDANCE = 9
+R1_FQ = 10
+R2_FQ = 11
+STAGE_DIRECTIVE = 12
+STAGE_TARGET = 13
+SUBSAMPLE_PCT = 14
+IS_POS_CTRL = 15
+IS_NEG_CTRL = 16
+N_X = 17
+N_Y = 18
+
+UNITS_HEADER = [
+    "RUNID",
+    "SAMPLEID",
+    "EXPERIMENTID",
+    "LANEID",
+    "BARCODEID",
+    "LIBPREP",
+    "SEQ_VENDOR",
+    "SEQ_PLATFORM",
+    "ILMN_R1_PATH",
+    "ILMN_R2_PATH",
+    "PACBIO_R1_PATH",
+    "PACBIO_R2_PATH",
+    "ONT_R1_PATH",
+    "ONT_R2_PATH",
+    "UG_R1_PATH",
+    "UG_R2_PATH",
+    "SUBSAMPLE_PCT",
+]
+
+SAMPLES_HEADER = [
+    "SAMPLEID",
+    "SAMPLESOURCE",
+    "SAMPLECLASS",
+    "SAMPLEUSE",
+    "BIOLOGICAL_SEX",
+    "IDDNA_UID",
+    "CONCORDANCE_CONTROL_PATH",
+    "IS_POSITIVE_CONTROL",
+    "IS_NEGATIVE_CONTROL",
+    "SAMPLE_TYPE",
+    "MERGE_SINGLE",
+    "TUM_NRM_SAMPLEID_MATCH",
+    "EXTERNAL_SAMPLE_ID",
+    "N_X",
+    "N_Y",
+    "TRUTH_DATA_DIR",
+    "BWA_KMER",
+    "DEEP_MODEL",
+    "ULTIMA_CRAM",
+    "ULTIMA_CRAM_ALIGNER",
+    "ULTIMA_CRAM_SNV_CALLER",
+    "ONT_CRAM",
+    "ONT_CRAM_ALIGNER",
+    "ONT_CRAM_SNV_CALLER",
+    "PB_BAM",
+    "PB_BAM_ALIGNER",
+    "PB_BAM_SNV_CALLER",
+]
 
 def log_info(message):
     print(f"[INFO] {message}")
@@ -134,11 +185,12 @@ def parse_and_validate_tsv(input_file, stage_target):
         sampleanno = sample_key[SAMPLE_ANNO].replace("_", "-")
         sampletype = sample_key[SAMPLE_TYPE].replace("_", "-")
         libprep = sample_key[LIB_PREP].replace("_", "-")
+        vendor_value = sample_key[SEQ_VENDOR].replace("_", "-")
+        vendor = vendor_value.strip().upper()
         seqplatform = sample_key[SEQ_PLATFORM].replace("_", "-")
         lane = entries[0][LANE].replace("_", "-")
         seqbc = entries[0][SEQBC_ID].replace("_", "-")
-        
-        # RU_sampleid_seqbc_lane(always 0 in this script output)
+
         new_sample_id = f"{sampleid}-{seqplatform}-{libprep}-{sampletype}-{sampleanno}"
         sample_name = f"{ruid}_{new_sample_id}"
         sample_prefix = f"{ruid}_{new_sample_id}_{seqbc}_0"
@@ -146,6 +198,11 @@ def parse_and_validate_tsv(input_file, stage_target):
         os.makedirs(staged_sample_path, exist_ok=True)
 
         run_ids.add(ruid)
+
+        primary_entry = entries[0]
+        stage_target_value = primary_entry[STAGE_TARGET]
+        subsample_raw = validate_subsample_pct(primary_entry[SUBSAMPLE_PCT])
+        subsample_pct = f"{subsample_raw}" if isinstance(subsample_raw, float) else subsample_raw
 
         if is_multi_lane:
             merged_r1 = os.path.join(staged_sample_path, f"{sample_prefix}_merged_R1.fastq.gz")
@@ -159,7 +216,6 @@ def parse_and_validate_tsv(input_file, stage_target):
             tmp_r2_files = []
 
             log_info(f"Processing multi-lane sample: {sample_prefix} with R1 files: {r1_files} and R2 files: {r2_files}")
-            # Download S3 files locally first if they're from S3
             for idx, (r1, r2) in enumerate(zip(r1_files, r2_files)):
                 log_info(f"Downloading R1: {r1}, R2: {r2} for sample {sample_prefix}")
                 local_r1 = os.path.join(staged_sample_path, f"tmp_{idx}_R1.fastq.gz")
@@ -170,89 +226,106 @@ def parse_and_validate_tsv(input_file, stage_target):
                 tmp_r2_files.append(local_r2)
 
             log_info(f"Concatenating R1 files: {tmp_r1_files} into {merged_r1}")
-            # Concatenate the downloaded local files
             subprocess.run(f"cat {' '.join(tmp_r1_files)} > {merged_r1}", shell=True, check=True)
-            
+
             log_info(f"Concatenating R2 files: {tmp_r2_files} into {merged_r2}")
             subprocess.run(f"cat {' '.join(tmp_r2_files)} > {merged_r2}", shell=True, check=True)
 
-            # Clean up temporary files
             for tmp_file in tmp_r1_files + tmp_r2_files:
                 os.remove(tmp_file)
 
-            units_rows.append({
-                "sample": sample_name,
-                "unit": sample_prefix,
-                "run_id": ruid,
-                "experiment_id": new_sample_id,
-                "lane": "0",
-                "seqbc_id": seqbc,
-                "r1_path": merged_r1,
-                "r2_path": merged_r2,
-                "seq_platform": seqplatform,
-                "lib_prep": libprep,
-                "sample_type": sampletype,
-                "merge_strategy": "merge",
-                "stage_directive": entries[0][STAGE_DIRECTIVE],
-                "stage_target": entries[0][STAGE_TARGET],
-            })
-            concordance_dir = validate_and_stage_concordance_dir(entries[0][PATH_TO_CONCORDANCE], stage_target, sample_prefix)
-            sex = determine_sex(int(entries[0][N_X]), int(entries[0][N_Y]))
+            final_r1 = merged_r1
+            final_r2 = merged_r2
+            lane_id = "0"
         else:
-            entry = entries[0]
-            staged_r1 = os.path.join(staged_sample_path, os.path.basename(entry[R1_FQ]))
-            staged_r2 = os.path.join(staged_sample_path, os.path.basename(entry[R2_FQ]))
+            staged_r1 = os.path.join(staged_sample_path, os.path.basename(primary_entry[R1_FQ]))
+            staged_r2 = os.path.join(staged_sample_path, os.path.basename(primary_entry[R2_FQ]))
             log_info(f"Processing single-lane sample: {sample_prefix} with R1: {staged_r1} and R2: {staged_r2}")
-            copy_files_to_target(entry[R1_FQ], staged_r1, entry[STAGE_DIRECTIVE] == "link_data")
-            copy_files_to_target(entry[R2_FQ], staged_r2, entry[STAGE_DIRECTIVE] == "link_data")
+            copy_files_to_target(primary_entry[R1_FQ], staged_r1, primary_entry[STAGE_DIRECTIVE] == "link_data")
+            copy_files_to_target(primary_entry[R2_FQ], staged_r2, primary_entry[STAGE_DIRECTIVE] == "link_data")
+            final_r1 = staged_r1
+            final_r2 = staged_r2
+            lane_id = lane
 
-            units_rows.append({
-                "sample": sample_name,
-                "unit": sample_prefix,
-                "run_id": ruid,
-                "experiment_id": new_sample_id,
-                "lane": lane,
-                "seqbc_id": seqbc,
-                "r1_path": staged_r1,
-                "r2_path": staged_r2,
-                "seq_platform": seqplatform,
-                "lib_prep": libprep,
-                "sample_type": sampletype,
-                "merge_strategy": "single",
-                "stage_directive": entry[STAGE_DIRECTIVE],
-                "stage_target": entry[STAGE_TARGET],
-            })
-            concordance_dir = validate_and_stage_concordance_dir(entry[PATH_TO_CONCORDANCE], stage_target, sample_prefix)
-            sex = determine_sex(int(entries[0][N_X]), int(entries[0][N_Y]))
+        concordance_dir = validate_and_stage_concordance_dir(
+            primary_entry[PATH_TO_CONCORDANCE], stage_target_value, sample_prefix
+        )
+        sex = determine_sex(int(primary_entry[N_X]), int(primary_entry[N_Y]))
 
-        subsample_pct = validate_subsample_pct(entries[0][SUBSAMPLE_PCT])
-        sample_metadata = {
-            "sample": sample_name,
-            "run_id": ruid,
-            "sample_id": sampleid,
-            "sample_annotation": sampleanno,
-            "experiment_id": new_sample_id,
-            "biological_sex": sex,
-            "iddna_uid": "na",
-            "concordance_control_path": concordance_dir,
-            "is_positive_control": entries[0][IS_POS_CTRL],
-            "is_negative_control": entries[0][IS_NEG_CTRL],
-            "sample_type": sampletype,
-            "tum_nrm_sampleid_match": sampleid,
-            "external_sample_id": "na",
-            "instrument": seqplatform,
-            "lib_prep": libprep,
-            "bwa_kmer": "19",
-            "subsample_pct": subsample_pct,
-            "stage_target": entries[0][STAGE_TARGET],
+        units_row = {
+            "RUNID": ruid,
+            "SAMPLEID": sampleid,
+            "EXPERIMENTID": new_sample_id,
+            "LANEID": lane_id,
+            "BARCODEID": seqbc,
+            "LIBPREP": libprep,
+            "SEQ_VENDOR": vendor,
+            "SEQ_PLATFORM": seqplatform,
+            "ILMN_R1_PATH": "",
+            "ILMN_R2_PATH": "",
+            "PACBIO_R1_PATH": "",
+            "PACBIO_R2_PATH": "",
+            "ONT_R1_PATH": "",
+            "ONT_R2_PATH": "",
+            "UG_R1_PATH": "",
+            "UG_R2_PATH": "",
+            "SUBSAMPLE_PCT": subsample_pct,
+        }
+
+        if vendor == "ILMN":
+            units_row["ILMN_R1_PATH"] = final_r1
+            units_row["ILMN_R2_PATH"] = final_r2
+        elif vendor == "ONT":
+            units_row["ONT_R1_PATH"] = final_r1
+            units_row["ONT_R2_PATH"] = final_r2
+        elif vendor == "PACBIO":
+            units_row["PACBIO_R1_PATH"] = final_r1
+            units_row["PACBIO_R2_PATH"] = final_r2
+        elif vendor == "UG":
+            units_row["UG_R1_PATH"] = final_r1
+            units_row["UG_R2_PATH"] = final_r2
+
+        units_rows.append(units_row)
+
+        sample_use = "posControl" if primary_entry[IS_POS_CTRL].strip().lower() == "true" else "sample"
+        merge_single = "merge" if is_multi_lane else "single"
+
+        samples_row = {
+            "SAMPLEID": sampleid,
+            "SAMPLESOURCE": sampletype,
+            "SAMPLECLASS": "research",
+            "SAMPLEUSE": sample_use,
+            "BIOLOGICAL_SEX": sex,
+            "IDDNA_UID": "na",
+            "CONCORDANCE_CONTROL_PATH": concordance_dir,
+            "IS_POSITIVE_CONTROL": primary_entry[IS_POS_CTRL],
+            "IS_NEGATIVE_CONTROL": primary_entry[IS_NEG_CTRL],
+            "SAMPLE_TYPE": sampletype,
+            "MERGE_SINGLE": merge_single,
+            "TUM_NRM_SAMPLEID_MATCH": sampleid,
+            "EXTERNAL_SAMPLE_ID": "na",
+            "N_X": primary_entry[N_X],
+            "N_Y": primary_entry[N_Y],
+            "TRUTH_DATA_DIR": concordance_dir,
+            "BWA_KMER": "19",
+            "DEEP_MODEL": "",
+            "ULTIMA_CRAM": "",
+            "ULTIMA_CRAM_ALIGNER": "",
+            "ULTIMA_CRAM_SNV_CALLER": "",
+            "ONT_CRAM": "",
+            "ONT_CRAM_ALIGNER": "",
+            "ONT_CRAM_SNV_CALLER": "",
+            "PB_BAM": "",
+            "PB_BAM_ALIGNER": "",
+            "PB_BAM_SNV_CALLER": "",
         }
 
         existing_sample = samples_rows.get(sample_name)
-        if existing_sample and existing_sample != sample_metadata:
+        if existing_sample and existing_sample != samples_row:
             log_error(
-                f"Conflicting metadata for sample {sample_name}:\nExisting: {existing_sample}\nNew: {sample_metadata}"
+                f"Conflicting metadata for sample {sample_name}:\nExisting: {existing_sample}\nNew: {samples_row}"
             )
-        samples_rows[sample_name] = sample_metadata
+        samples_rows[sample_name] = samples_row
     output_dir = "/fsx/staged_data"
     os.makedirs(output_dir, exist_ok=True)
 
@@ -275,32 +348,11 @@ def parse_and_validate_tsv(input_file, stage_target):
     units_tsv_path = os.path.join(output_dir, units_filename)
 
     log_warn(f"Writing config samples file: {samples_tsv_path}")
-    if samples_rows:
-        samples_header = list(next(iter(samples_rows.values())).keys())
-        samples_data = list(samples_rows.values())
-    else:
-        samples_header = ["sample"]
-        samples_data = []
-    write_tsv(samples_tsv_path, samples_header, samples_data)
+    samples_data = list(samples_rows.values())
+    write_tsv(samples_tsv_path, SAMPLES_HEADER, samples_data)
 
     log_warn(f"Writing config units file: {units_tsv_path}")
-    units_header = [
-        "sample",
-        "unit",
-        "run_id",
-        "experiment_id",
-        "lane",
-        "seqbc_id",
-        "r1_path",
-        "r2_path",
-        "seq_platform",
-        "lib_prep",
-        "sample_type",
-        "merge_strategy",
-        "stage_directive",
-        "stage_target",
-    ]
-    write_tsv(units_tsv_path, units_header, units_rows)
+    write_tsv(units_tsv_path, UNITS_HEADER, units_rows)
 
     log_info(f"Config files created: {samples_tsv_path}, {units_tsv_path}")
     log_info(
