@@ -282,7 +282,7 @@ def parse_and_validate_tsv(input_file, stage_target):
 
     log_info(f"Config files created: {samples_tsv_path}, {units_tsv_path}")
     log_info(
-        "Use these config files:\n\tcp {samples_tsv_path} config/samples.tsv\n\tcp {units_tsv_path} config/units.tsv"
+        f"Use these config files:\n\tcp {samples_tsv_path} config/samples.tsv\n\tcp {units_tsv_path} config/units.tsv"
     )
 
 
