@@ -4,31 +4,64 @@ import sys
 import csv
 import subprocess
 from datetime import datetime
-import requests
-import boto3
-from botocore.exceptions import NoCredentialsError
 from collections import defaultdict
 
-RUN_ID = 0
-SAMPLE_ID = 1
-EXPERIMENT_ID = 2
-SAMPLE_TYPE = 3
-LIB_PREP = 4
-SEQ_VENDOR = 5
-SEQ_PLATFORM = 6
-LANE = 7
-SEQBC_ID = 8
-PATH_TO_CONCORDANCE = 9
-R1_FQ = 10
-R2_FQ = 11
-STAGE_DIRECTIVE = 12
-STAGE_TARGET = 13
-SUBSAMPLE_PCT = 14
-IS_POS_CTRL = 15
-IS_NEG_CTRL = 16
-N_X = 17
-N_Y = 18
-EXTERNAL_SAMPLE_ID = 19
+import boto3
+import requests
+from botocore.exceptions import NoCredentialsError
+
+RUN_ID = "RUN_ID"
+SAMPLE_ID = "SAMPLE_ID"
+EXPERIMENT_ID = "EXPERIMENTID"
+SAMPLE_TYPE = "SAMPLE_TYPE"
+LIB_PREP = "LIB_PREP"
+SEQ_VENDOR = "SEQ_VENDOR"
+SEQ_PLATFORM = "SEQ_PLATFORM"
+LANE = "LANE"
+SEQBC_ID = "SEQBC_ID"
+PATH_TO_CONCORDANCE = "PATH_TO_CONCORDANCE_DATA_DIR"
+R1_FQ = "R1_FQ"
+R2_FQ = "R2_FQ"
+STAGE_DIRECTIVE = "STAGE_DIRECTIVE"
+STAGE_TARGET = "STAGE_TARGET"
+SUBSAMPLE_PCT = "SUBSAMPLE_PCT"
+IS_POS_CTRL = "IS_POS_CTRL"
+IS_NEG_CTRL = "IS_NEG_CTRL"
+N_X = "N_X"
+N_Y = "N_Y"
+EXTERNAL_SAMPLE_ID = "EXTERNAL_SAMPLE_ID"
+
+KEY_FIELDS = [
+    RUN_ID,
+    SAMPLE_ID,
+    EXPERIMENT_ID,
+    SAMPLE_TYPE,
+    LIB_PREP,
+    SEQ_VENDOR,
+    SEQ_PLATFORM,
+]
+
+DERIVED_UNITS_FIELDS = {
+    "RUNID",
+    "SAMPLEID",
+    "EXPERIMENTID",
+    "LANEID",
+    "BARCODEID",
+    "LIBPREP",
+    "SEQ_VENDOR",
+    "SEQ_PLATFORM",
+    "ILMN_R1_PATH",
+    "ILMN_R2_PATH",
+    "PACBIO_R1_PATH",
+    "PACBIO_R2_PATH",
+    "ONT_R1_PATH",
+    "ONT_R2_PATH",
+    "UG_R1_PATH",
+    "UG_R2_PATH",
+    "SUBSAMPLE_PCT",
+    "SAMPLEUSE",
+    "BWA_KMER",
+}
 
 UNITS_HEADER = [
     "RUNID",
@@ -106,6 +139,17 @@ def check_file_exists(file_path):
         if not os.path.exists(file_path):
             log_error(f"Local file not found: {file_path}")
 
+
+def get_entry_value(entry, field, default=""):
+    return (entry.get(field, default) or default).strip()
+
+
+def safe_int(value, default=0):
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
 def determine_sex(n_x, n_y):
     if n_x == 2 and n_y == 0:
         return "female"
@@ -153,12 +197,26 @@ def copy_files_to_target(src, dst, link=False):
 
 def parse_and_validate_tsv(input_file, stage_target):
     samples = defaultdict(list)
-    with open(input_file) as ff:
-        next(ff)
-        for line in ff:
-            cols = line.strip().split("\t")
-            key = tuple(cols[:SEQ_PLATFORM + 1])
-            samples[key].append(cols)
+    with open(input_file, newline="") as ff:
+        reader = csv.DictReader(ff, delimiter="\t")
+        if reader.fieldnames is None:
+            log_error("Input TSV is missing a header row")
+
+        header_fields = [field for field in reader.fieldnames if field]
+        missing_fields = [field for field in KEY_FIELDS + [LANE, SEQBC_ID, R1_FQ, R2_FQ] if field not in header_fields]
+        if missing_fields:
+            log_error(f"Missing required columns in TSV: {', '.join(missing_fields)}")
+
+        for row in reader:
+            if not row:
+                continue
+
+            normalized_row = {k: (v or "").strip() for k, v in row.items() if k}
+            if not any(normalized_row.values()):
+                continue
+
+            key = tuple(normalized_row[field] for field in KEY_FIELDS)
+            samples[key].append(normalized_row)
 
     samples_rows = {}
     units_rows = []
@@ -171,24 +229,35 @@ def parse_and_validate_tsv(input_file, stage_target):
             log_error(f"Invalid LANE=0 for multi-lane sample: {sample_key}")
 
 
-        if any("_" in part for part in sample_key + (entries[0][LANE], entries[0][SEQBC_ID])):
+        first_entry = entries[0]
+        if any("_" in part for part in sample_key + (first_entry[LANE], first_entry[SEQBC_ID])):
             log_warn(f"UNDERSCORES '_' FOUND AND WILL BE REPLACED WITH '-' IN: {sample_key}")
             log_warn(f"RUN_ID, SAMPLE_ID, EXPERIMENTID, SAMPLE_TYPE, LIB_PREP, SEQ_PLATFORM, LANE, SEQBC_ID must not contain underscores: {sample_key} .. {entries}\n\n")
             log_warn(" UNDERSCORES '_' WILL BE REPLACED WITH HYPHENS '-' \n")
             log_warn("...")
             #log_error(f"RUN_ID  SAMPLE_ID  EXPERIMENTID     SAMPLE_TYPE     LIB_PREP        SEQ_PLATFORM    LANE    SEQBC_ID must not contain underscores: {sample_key} .. {entries}\n")
             #raise Exception(f"RUN_ID  SAMPLE_ID  EXPERIMENTID     SAMPLE_TYPE     LIB_PREP        SEQ_PLATFORM    LANE    SEQBC_ID  must not contain underscores: {sample_key} .. {entries}\n")
-            
-        ruid = sample_key[RUN_ID].replace("_", "-")
-        sampleid = sample_key[SAMPLE_ID].replace("_", "-")
-        experiment_id = sample_key[EXPERIMENT_ID].replace("_", "-")
-        sampletype = sample_key[SAMPLE_TYPE].replace("_", "-")
-        libprep = sample_key[LIB_PREP].replace("_", "-")
-        vendor_value = sample_key[SEQ_VENDOR].replace("_", "-")
+
+        (
+            raw_run_id,
+            raw_sample_id,
+            raw_experiment_id,
+            raw_sample_type,
+            raw_libprep,
+            raw_vendor,
+            raw_seqplatform,
+        ) = sample_key
+
+        ruid = raw_run_id.replace("_", "-")
+        sampleid = raw_sample_id.replace("_", "-")
+        experiment_id = raw_experiment_id.replace("_", "-")
+        sampletype = raw_sample_type.replace("_", "-")
+        libprep = raw_libprep.replace("_", "-")
+        vendor_value = raw_vendor.replace("_", "-")
         vendor = vendor_value.strip().upper()
-        seqplatform = sample_key[SEQ_PLATFORM].replace("_", "-")
-        lane = entries[0][LANE].replace("_", "-")
-        seqbc = entries[0][SEQBC_ID].replace("_", "-")
+        seqplatform = raw_seqplatform.replace("_", "-")
+        lane = first_entry[LANE].replace("_", "-")
+        seqbc = first_entry[SEQBC_ID].replace("_", "-")
 
         composite_sample_id = f"{sampleid}-{seqplatform}-{libprep}-{sampletype}-{experiment_id}"
         sample_name = f"{ruid}_{composite_sample_id}"
@@ -199,17 +268,23 @@ def parse_and_validate_tsv(input_file, stage_target):
         run_ids.add(ruid)
 
         primary_entry = entries[0]
-        stage_target_value = primary_entry[STAGE_TARGET]
-        subsample_raw = validate_subsample_pct(primary_entry[SUBSAMPLE_PCT])
+        stage_target_value = get_entry_value(primary_entry, STAGE_TARGET, stage_target) or stage_target
+        subsample_raw = validate_subsample_pct(get_entry_value(primary_entry, SUBSAMPLE_PCT, "na"))
         subsample_pct = f"{subsample_raw}" if isinstance(subsample_raw, float) else subsample_raw
 
         if is_multi_lane:
             merged_r1 = os.path.join(staged_sample_path, f"{sample_prefix}_merged_R1.fastq.gz")
             merged_r2 = os.path.join(staged_sample_path, f"{sample_prefix}_merged_R2.fastq.gz")
-            r1_files, r2_files = zip(*[(e[R1_FQ], e[R2_FQ]) for e in entries])
+            r1_files, r2_files = zip(
+                *[
+                    (get_entry_value(e, R1_FQ), get_entry_value(e, R2_FQ))
+                    for e in entries
+                ]
+            )
 
             for f in r1_files + r2_files:
-                check_file_exists(f)
+                if f and f.lower() != "na":
+                    check_file_exists(f)
 
             tmp_r1_files = []
             tmp_r2_files = []
@@ -237,51 +312,48 @@ def parse_and_validate_tsv(input_file, stage_target):
             final_r2 = merged_r2
             lane_id = "0"
         else:
-            staged_r1 = os.path.join(staged_sample_path, os.path.basename(primary_entry[R1_FQ]))
-            staged_r2 = os.path.join(staged_sample_path, os.path.basename(primary_entry[R2_FQ]))
+            primary_r1 = get_entry_value(primary_entry, R1_FQ)
+            primary_r2 = get_entry_value(primary_entry, R2_FQ)
+            staged_r1 = os.path.join(staged_sample_path, os.path.basename(primary_r1))
+            staged_r2 = os.path.join(staged_sample_path, os.path.basename(primary_r2))
             log_info(f"Processing single-lane sample: {sample_prefix} with R1: {staged_r1} and R2: {staged_r2}")
-            copy_files_to_target(primary_entry[R1_FQ], staged_r1, primary_entry[STAGE_DIRECTIVE] == "link_data")
-            copy_files_to_target(primary_entry[R2_FQ], staged_r2, primary_entry[STAGE_DIRECTIVE] == "link_data")
+            stage_directive = get_entry_value(primary_entry, STAGE_DIRECTIVE)
+            copy_files_to_target(primary_r1, staged_r1, stage_directive == "link_data")
+            copy_files_to_target(primary_r2, staged_r2, stage_directive == "link_data")
             final_r1 = staged_r1
             final_r2 = staged_r2
             lane_id = lane
 
         concordance_dir = validate_and_stage_concordance_dir(
-            primary_entry[PATH_TO_CONCORDANCE], stage_target_value, sample_prefix
+            get_entry_value(primary_entry, PATH_TO_CONCORDANCE, "na"), stage_target_value, sample_prefix
         )
-        sex = determine_sex(int(primary_entry[N_X]), int(primary_entry[N_Y]))
+        sex = determine_sex(safe_int(primary_entry.get(N_X)), safe_int(primary_entry.get(N_Y)))
 
-        units_row = {
-            "RUNID": ruid,
-            "SAMPLEID": sampleid,
-            "EXPERIMENTID": experiment_id,
-            "LANEID": lane_id,
-            "BARCODEID": seqbc,
-            "LIBPREP": libprep,
-            "SEQ_VENDOR": vendor,
-            "SEQ_PLATFORM": seqplatform,
-            "ILMN_R1_PATH": "",
-            "ILMN_R2_PATH": "",
-            "PACBIO_R1_PATH": "",
-            "PACBIO_R2_PATH": "",
-            "ONT_R1_PATH": "",
-            "ONT_R2_PATH": "",
-            "UG_R1_PATH": "",
-            "UG_R2_PATH": "",
-            "SUBSAMPLE_PCT": subsample_pct,
-            "SAMPLEUSE": "posControl" if primary_entry[IS_POS_CTRL].strip().lower() == "true" else "sample",
-            "BWA_KMER": "19",
-            "DEEP_MODEL": "",
-            "ULTIMA_CRAM": "",
-            "ULTIMA_CRAM_ALIGNER": "",
-            "ULTIMA_CRAM_SNV_CALLER": "",
-            "ONT_CRAM": "",
-            "ONT_CRAM_ALIGNER": "",
-            "ONT_CRAM_SNV_CALLER": "",
-            "PB_BAM": "",
-            "PB_BAM_ALIGNER": "",
-            "PB_BAM_SNV_CALLER": "",
-        }
+        units_row = {column: "" for column in UNITS_HEADER}
+        units_row.update(
+            {
+                "RUNID": ruid,
+                "SAMPLEID": sampleid,
+                "EXPERIMENTID": experiment_id,
+                "LANEID": lane_id,
+                "BARCODEID": seqbc,
+                "LIBPREP": libprep,
+                "SEQ_VENDOR": vendor,
+                "SEQ_PLATFORM": seqplatform,
+                "SUBSAMPLE_PCT": subsample_pct,
+            }
+        )
+
+        is_pos_ctrl = get_entry_value(primary_entry, IS_POS_CTRL).lower() == "true"
+        units_row["SAMPLEUSE"] = get_entry_value(primary_entry, "SAMPLEUSE") or ("posControl" if is_pos_ctrl else "sample")
+        units_row["BWA_KMER"] = get_entry_value(primary_entry, "BWA_KMER") or "19"
+
+        for field in set(primary_entry.keys()).intersection(UNITS_HEADER):
+            if field in DERIVED_UNITS_FIELDS:
+                continue
+            value = get_entry_value(primary_entry, field)
+            if value:
+                units_row[field] = value
 
         if vendor == "ILMN":
             units_row["ILMN_R1_PATH"] = final_r1
@@ -304,13 +376,13 @@ def parse_and_validate_tsv(input_file, stage_target):
             "SAMPLECLASS": "research",
             "BIOLOGICAL_SEX": sex,
             "CONCORDANCE_CONTROL_PATH": concordance_dir,
-            "IS_POSITIVE_CONTROL": primary_entry[IS_POS_CTRL],
-            "IS_NEGATIVE_CONTROL": primary_entry[IS_NEG_CTRL],
+            "IS_POSITIVE_CONTROL": get_entry_value(primary_entry, IS_POS_CTRL),
+            "IS_NEGATIVE_CONTROL": get_entry_value(primary_entry, IS_NEG_CTRL),
             "SAMPLE_TYPE": sampletype,
             "TUM_NRM_SAMPLEID_MATCH": sampleid,
-            "EXTERNAL_SAMPLE_ID": primary_entry[EXTERNAL_SAMPLE_ID] if len(primary_entry) > EXTERNAL_SAMPLE_ID else "na",
-            "N_X": primary_entry[N_X],
-            "N_Y": primary_entry[N_Y],
+            "EXTERNAL_SAMPLE_ID": get_entry_value(primary_entry, EXTERNAL_SAMPLE_ID) or "na",
+            "N_X": get_entry_value(primary_entry, N_X),
+            "N_Y": get_entry_value(primary_entry, N_Y),
             "TRUTH_DATA_DIR": concordance_dir,
         }
 
