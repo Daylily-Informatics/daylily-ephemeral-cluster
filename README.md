@@ -1273,8 +1273,10 @@ _named in honor of Margaret Oakley Dahoff_
  
  # OTHER
 
- ## Cluster Meta Report
+ ## Cluster Tagged Resources Report
  To create a terminal report of all currently tagged AWS resources with `cluster name`.
+
+![Cluster tagged resources report](docs/images/cluster_tagged_resources.png)
 
  ### One Time, Create Policy
  ```bash
