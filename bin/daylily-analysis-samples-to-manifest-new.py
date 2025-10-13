@@ -48,33 +48,8 @@ UNITS_HEADER = [
     "UG_R1_PATH",
     "UG_R2_PATH",
     "SUBSAMPLE_PCT",
-]
-
-SAMPLES_HEADER = [
-    "RUNID",
-    "SAMPLEID",
-    "EXPERIMENTID",
-    "LANEID",
-    "BARCODEID",
-    "LIBPREP",
-    "SEQ_VENDOR",
-    "SEQ_PLATFORM",
-    "analysis_unit_uid",
-    "SAMPLESOURCE",
-    "SAMPLECLASS",
     "SAMPLEUSE",
-    "BIOLOGICAL_SEX",
-    "IDDNA_UID",
-    "CONCORDANCE_CONTROL_PATH",
-    "IS_POSITIVE_CONTROL",
-    "IS_NEGATIVE_CONTROL",
-    "SAMPLE_TYPE",
     "MERGE_SINGLE",
-    "TUM_NRM_SAMPLEID_MATCH",
-    "EXTERNAL_SAMPLE_ID",
-    "N_X",
-    "N_Y",
-    "TRUTH_DATA_DIR",
     "BWA_KMER",
     "DEEP_MODEL",
     "ULTIMA_CRAM",
@@ -86,6 +61,23 @@ SAMPLES_HEADER = [
     "PB_BAM",
     "PB_BAM_ALIGNER",
     "PB_BAM_SNV_CALLER",
+]
+
+SAMPLES_HEADER = [
+    "SAMPLEID",
+    "analysis_unit_uid",
+    "SAMPLESOURCE",
+    "SAMPLECLASS",
+    "BIOLOGICAL_SEX",
+    "CONCORDANCE_CONTROL_PATH",
+    "IS_POSITIVE_CONTROL",
+    "IS_NEGATIVE_CONTROL",
+    "SAMPLE_TYPE",
+    "TUM_NRM_SAMPLEID_MATCH",
+    "EXTERNAL_SAMPLE_ID",
+    "N_X",
+    "N_Y",
+    "TRUTH_DATA_DIR",
 ]
 
 def log_info(message):
@@ -293,6 +285,19 @@ def parse_and_validate_tsv(input_file, stage_target):
             "UG_R1_PATH": "",
             "UG_R2_PATH": "",
             "SUBSAMPLE_PCT": subsample_pct,
+            "SAMPLEUSE": "posControl" if primary_entry[IS_POS_CTRL].strip().lower() == "true" else "sample",
+            "MERGE_SINGLE": "merge" if is_multi_lane else "single",
+            "BWA_KMER": "19",
+            "DEEP_MODEL": "",
+            "ULTIMA_CRAM": "",
+            "ULTIMA_CRAM_ALIGNER": "",
+            "ULTIMA_CRAM_SNV_CALLER": "",
+            "ONT_CRAM": "",
+            "ONT_CRAM_ALIGNER": "",
+            "ONT_CRAM_SNV_CALLER": "",
+            "PB_BAM": "",
+            "PB_BAM_ALIGNER": "",
+            "PB_BAM_SNV_CALLER": "",
         }
 
         if vendor == "ILMN":
@@ -310,45 +315,21 @@ def parse_and_validate_tsv(input_file, stage_target):
 
         units_rows.append(units_row)
 
-        sample_use = "posControl" if primary_entry[IS_POS_CTRL].strip().lower() == "true" else "sample"
-        merge_single = "merge" if is_multi_lane else "single"
-
         samples_row = {
-            "RUNID": ruid,
             "SAMPLEID": sampleid,
-            "EXPERIMENTID": experiment_id,
-            "LANEID": lane_id,
-            "BARCODEID": seqbc,
-            "LIBPREP": libprep,
-            "SEQ_VENDOR": vendor,
-            "SEQ_PLATFORM": seqplatform,
             "analysis_unit_uid": analysis_unit_uid,
             "SAMPLESOURCE": sampletype,
             "SAMPLECLASS": "research",
-            "SAMPLEUSE": sample_use,
             "BIOLOGICAL_SEX": sex,
-            "IDDNA_UID": "na",
             "CONCORDANCE_CONTROL_PATH": concordance_dir,
             "IS_POSITIVE_CONTROL": primary_entry[IS_POS_CTRL],
             "IS_NEGATIVE_CONTROL": primary_entry[IS_NEG_CTRL],
             "SAMPLE_TYPE": sampletype,
-            "MERGE_SINGLE": merge_single,
             "TUM_NRM_SAMPLEID_MATCH": sampleid,
             "EXTERNAL_SAMPLE_ID": "na",
             "N_X": primary_entry[N_X],
             "N_Y": primary_entry[N_Y],
             "TRUTH_DATA_DIR": concordance_dir,
-            "BWA_KMER": "19",
-            "DEEP_MODEL": "",
-            "ULTIMA_CRAM": "",
-            "ULTIMA_CRAM_ALIGNER": "",
-            "ULTIMA_CRAM_SNV_CALLER": "",
-            "ONT_CRAM": "",
-            "ONT_CRAM_ALIGNER": "",
-            "ONT_CRAM_SNV_CALLER": "",
-            "PB_BAM": "",
-            "PB_BAM_ALIGNER": "",
-            "PB_BAM_SNV_CALLER": "",
         }
 
         existing_sample = samples_rows.get(sample_name)
