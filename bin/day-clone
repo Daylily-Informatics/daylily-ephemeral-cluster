@@ -194,7 +194,7 @@ def main(argv: List[str]) -> int:
         "--which-one",
         choices=["https", "ssh"],
         default="https",
-        help="Clone using https or ssh (default: https). TO USE SSH, you must copy ~/.ssh/id_rsa.pub contents into your github gpg/ssh keys.",
+        help="Clone using https or ssh (default: https). TO USE SSH, you must copy ~/.ssh/id_rsa.pub contents into your github settings gpg/ssh keys.",
     )
     parser.add_argument(
         "--repository",
