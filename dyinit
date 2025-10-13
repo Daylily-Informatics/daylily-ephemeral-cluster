@@ -466,6 +466,9 @@ alias sq=sq
 
 echo "squeue helper alias 'sq' activated"
 
+
+reference_bucket=$(awk '/^[[:space:]]*Script: s3:/{match($0,/s3:\/\/([^/]+)/,a); print a[1]; exit}' /opt/parallelcluster/shared/cluster-config.yaml)
+
 # Final message
 echo "Day CLI initialized for project '$PROJECT' in region '$region'."
 echo -e "The Daylily CLI is now available."
@@ -483,5 +486,9 @@ echo -e "\t  daylily-export-fsx-to-s3 : export FSx data to S3, if this fails, us
 echo -e "\t                           "
 echo -e "\t  sq : an alias to `squeue` with a useful default output format for monitoring running jobs. "
 echo -e "\t  \$sq_cmd : show all jobs, include '\$' to see the command output."
+echo -e "\t                           "
+echo -e "\t  "
+echo -e "\t The reference S3 bucket is set to: \$reference_bucket ($reference_bucket)"
+echo -e "\t  "
 
 return 0
