@@ -195,11 +195,11 @@ for cluster in sorted(by_cluster.keys()):
     # Apply include/exclude
     inv_counts = Counter({k: v for k, v in inv_counts.items() if allowed_service(k)})
 
+    non_cw_services = {k for k in inv_counts.keys() if k != "cloudwatch"}
+    is_active = bool(non_cw_services)
     # --only-show-active: skip clusters with only 'cloudwatch' services (or empty after filters)
-    if args.only_show_active:
-        non_cw = {k for k in inv_counts.keys() if k != "cloudwatch"}
-        if not non_cw:
-            continue
+    if args.only_show_active and not is_active:
+        continue
 
     # Active services/spend (CE)
     total_cost, ce_svc_map, currency = ce_total_for_tag(args.tag_key, cluster)
@@ -220,6 +220,9 @@ for cluster in sorted(by_cluster.keys()):
     if total_cost >= 10000: cost_txt.stylize("red bold")
     elif total_cost >= 2000: cost_txt.stylize("yellow")
     else: cost_txt.stylize("green")
+
+    if not is_active:
+        cost_txt.stylize("on #d3d3d3")
 
     table.add_row(cluster, str(len(by_cluster[cluster])), disc_str, act_str, cost_txt)
     grand_total += total_cost
