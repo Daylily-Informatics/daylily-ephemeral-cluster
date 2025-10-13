@@ -13,6 +13,7 @@ Options:
   --pem FILE              SSH PEM key for the cluster head node (prompted if omitted)
   --remote-repo PATH      Remote path to the daylily-ephemeral-cluster checkout (default: ~/projects/daylily-ephemeral-cluster)
   --remote-tmp PATH       Remote directory for uploading the TSV (default: /tmp)
+  --ref-bucket NAME       REQUIRED. S3 bucket name for references, used to fill analysis_samples_template.tsv
   --config-dir PATH       Local directory to place downloaded config files (default: <tsv_dir>)
   --output PATH           Alias for --config-dir (deprecated)
   --no-download           Skip downloading the config files back to the local machine
@@ -66,6 +67,8 @@ download_config="true"
 local_config_dir=""
 ts_path=""
 debug_mode=0
+reference_bucket=""
+
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
@@ -75,6 +78,10 @@ while [[ $# -gt 0 ]]; do
             ;;
         --region)
             region="$2"
+            shift 2
+            ;;
+        --ref-bucket)
+            reference_bucket="$2"
             shift 2
             ;;
         --profile)
@@ -144,6 +151,15 @@ if [[ "$debug_mode" == "1" ]]; then
     set -x
 fi
 
+
+if [[ -z "$reference_bucket" ]]; then
+    echo "Error: --ref-bucket is required." >&2
+    usage
+    exit 1
+fi
+
+
+
 if [[ -z "$ts_path" ]]; then
     echo "Error: analysis_samples TSV path is required" >&2
     usage
@@ -211,9 +227,27 @@ fi
 
 echo "Head node IP: $cluster_ip"
 
-remote_basename="$(basename "$ts_path")"
+
+# --- Fill ./etc/analysis_samples_template.tsv with the provided ref bucket ---
+og_template_path="./etc/analysis_samples_template.tsv"
+template_path="./ana_samp.tsv"
+cp "$og_template_path" "$template_path"
+if [[ ! -f "$template_path" ]]; then
+    echo "Error: template not found: $template_path" >&2
+    exit 1
+fi
+
+echo "Injecting reference bucket into $template_path ..."
+tmpfile="$(mktemp)"
+sed "s|<REF-BUCKET-NAME>|$reference_bucket|g" "$template_path" > "$tmpfile" && mv "$tmpfile" "$template_path"
+
+
+# Timestamp once for all remote uploads
 remote_timestamp="$(date +%s)"
+remote_basename="$(basename "$ts_path")"
 remote_tsv="$remote_tmp/${remote_basename%.tsv}_$remote_timestamp.tsv"
+# Name the remote template coherently
+remote_template="$remote_tmp/ana_samp_$remote_timestamp.tsv"
 
 ssh_opts=(-i "$pem_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null)
 
@@ -222,7 +256,9 @@ ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" "mkdir -p '$remote_tmp'"
 
 echo "Uploading TSV to head node..."
 scp "${ssh_opts[@]}" "$ts_path" "ubuntu@${cluster_ip}:${remote_tsv}"
-
+echo "Uploading filled template to head node..."
+scp "${ssh_opts[@]}" "$template_path" "ubuntu@${cluster_ip}:${remote_template}"
+ 
 remote_repo_remote="${remote_repo/#\~//home/ubuntu}"
 
 echo "Running remote staging script..."
@@ -231,7 +267,7 @@ echo "Running remote staging script..."
 remote_repo_remote="${remote_repo/#\~//home/ubuntu}"
 
 ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" \
-  "REMOTE_REPO='$remote_repo_remote' REMOTE_TSV='$remote_tsv' STAGE_TARGET='$stage_target' AWS_PROFILE='$aws_profile' bash -s" <<'REMOTE'
+ "REMOTE_REPO='$remote_repo_remote' REMOTE_TSV='$remote_template' TEMPLATE_TSV='$remote_template' STAGE_TARGET='$stage_target' AWS_PROFILE='$aws_profile' bash -s" <<'REMOTE'
 set -euo pipefail
 
 # --- locate and load conda hook ---
@@ -273,7 +309,14 @@ fi
 # --- activate + run ---
 conda activate DAY-EC
 cd "$REMOTE_REPO"
-AWS_PROFILE="$AWS_PROFILE" python3 ./bin/daylily-analysis-samples-to-manifest-new.py "$REMOTE_TSV" "$STAGE_TARGET"
+# Prefer a dedicated headnode helper if present; otherwise fall back to Python,
+# passing TEMPLATE_TSV via env so the script can use it if supported.
+if [[ -x ./bin/stage-analysis-samples-headnode ]]; then
+  AWS_PROFILE="$AWS_PROFILE" ./bin/stage-analysis-samples-headnode "$REMOTE_TSV" "$STAGE_TARGET" "$TEMPLATE_TSV"
+else
+  AWS_PROFILE="$AWS_PROFILE" TEMPLATE_TSV="$TEMPLATE_TSV" \
+    python3 ./bin/daylily-analysis-samples-to-manifest-new.py "$REMOTE_TSV" "$STAGE_TARGET"
+fi
 REMOTE
 
 
@@ -309,6 +352,6 @@ if [[ "$download_config" == "true" ]]; then
 fi
 
 echo "Cleaning up remote TSV..."
-ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" "rm -f '$remote_tsv'"
+ssh "${ssh_opts[@]}" ubuntu@"$cluster_ip" "rm -f '$remote_tsv' '$remote_template'"
 
 echo "Done."
