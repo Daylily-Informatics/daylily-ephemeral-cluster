@@ -195,7 +195,7 @@ def copy_files_to_target(src, dst, link=False):
         else:
             subprocess.run(["cp", src, dst], check=True)
 
-def parse_and_validate_tsv(input_file, stage_target):
+def parse_and_validate_tsv(input_file, stage_target, timestamp):
     samples = defaultdict(list)
     with open(input_file, newline="") as ff:
         reader = csv.DictReader(ff, delimiter="\t")
@@ -410,7 +410,7 @@ def parse_and_validate_tsv(input_file, stage_target):
         else:
             samples_rows[sample_name] = samples_row
             sampleid_to_entry[sampleid] = (sample_name, samples_row)
-    output_dir = "/fsx/staged_sample_data"
+    output_dir = stage_target
     os.makedirs(output_dir, exist_ok=True)
 
     if len(run_ids) == 1:
@@ -424,7 +424,6 @@ def parse_and_validate_tsv(input_file, stage_target):
         run_id_for_filename = "no_run_id"
         log_warn("No run IDs detected; using 'no_run_id' as the filename prefix.")
 
-    timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
     samples_filename = f"{run_id_for_filename}_{timestamp}_samples.tsv"
     units_filename = f"{run_id_for_filename}_{timestamp}_units.tsv"
 
@@ -467,11 +466,16 @@ def main():
         log_error("Usage: script.py <input_tsv> <stage_target>")
 
     check_aws_credentials()
-    
-    input_file = sys.argv[1]
-    stage_target = sys.argv[2]
 
-    parse_and_validate_tsv(input_file, stage_target)
+    input_file = sys.argv[1]
+    stage_target_base = sys.argv[2]
+
+    timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+    stage_target = os.path.join(stage_target_base, timestamp)
+    os.makedirs(stage_target, exist_ok=True)
+    log_info(f"Staging run data under: {stage_target}")
+
+    parse_and_validate_tsv(input_file, stage_target, timestamp)
 
 if __name__ == "__main__":
     main()
