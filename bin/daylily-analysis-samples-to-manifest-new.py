@@ -387,13 +387,6 @@ def parse_and_validate_tsv(input_file, stage_target):
             "TRUTH_DATA_DIR": concordance_dir,
         }
 
-        existing_sample = samples_rows.get(sample_name)
-        if existing_sample and existing_sample != samples_row:
-            log_error(
-                f"Conflicting metadata for sample {sample_name}:\nExisting: {existing_sample}\nNew: {samples_row}"
-            )
-        samples_rows[sample_name] = samples_row
-
         existing_sampleid_entry = sampleid_to_entry.get(sampleid)
         if existing_sampleid_entry:
             existing_name, existing_row = existing_sampleid_entry
@@ -403,11 +396,20 @@ def parse_and_validate_tsv(input_file, stage_target):
                     f"{sampleid}\nExisting entry from {existing_name}: {existing_row}\n"
                     f"New entry from {sample_name}: {samples_row}"
                 )
+        existing_sample = samples_rows.get(sample_name)
+        if existing_sample and existing_sample != samples_row:
             log_error(
-                "Duplicate SAMPLEID detected; each SAMPLEID must appear only once in "
-                f"the samples TSV. Duplicate SAMPLEID: {sampleid}"
+                f"Conflicting metadata for sample {sample_name}:\nExisting: {existing_sample}\nNew: {samples_row}"
             )
-        sampleid_to_entry[sampleid] = (sample_name, samples_row)
+
+        if existing_sampleid_entry and existing_sampleid_entry[1] == samples_row:
+            log_warn(
+                "Duplicate SAMPLEID detected with identical metadata; "
+                f"skipping additional samples TSV entry for {sampleid}."
+            )
+        else:
+            samples_rows[sample_name] = samples_row
+            sampleid_to_entry[sampleid] = (sample_name, samples_row)
     output_dir = "/fsx/staged_sample_data"
     os.makedirs(output_dir, exist_ok=True)
 
