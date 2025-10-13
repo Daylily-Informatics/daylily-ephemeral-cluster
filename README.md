@@ -1,5 +1,5 @@
 # Daylily Ephemeral Cluster
-_(stable tagged **beta release** release to use --> 0.7.354)_
+_(stable tagged **beta release** release to use --> 0.7.355)_
 
 > Infrastructure-as-code for spinning up ephemeral (transient) **AWS ParallelCluster's** that are tuned for bioinformatics and multi-omics analysis, but can run any slurm based or linux derived worflows. The project assembles the networking, storage, authentication, and head-node tooling required to launch, monitor, and tear down self-scaling Slurm clusters with predictable performance and cost transparency. Workflows themselves live in separate repositories, may be in any framework that supports slurm (snakemake, nextflow, cromwell, etc) and can be plugged in on demand and executed on your ephemeral resources.
 

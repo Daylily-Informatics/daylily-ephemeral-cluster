@@ -6,7 +6,7 @@ repositories:
     description: "Primary whole genome and multiomics workflows."
     https_url: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
     ssh_url: git@github.com:Daylily-Informatics/daylily-omics-analysis.git
-    default_ref: 0.7.343
+    default_ref: 0.7.355
     relative_path: daylily-omics-analysis
   rna-seq-star-deseq2:
     display_name: "RNA-seq STAR + DESeq2"
