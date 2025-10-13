@@ -3,6 +3,7 @@ import os
 import sys
 import csv
 import subprocess
+from datetime import datetime
 import requests
 import boto3
 from botocore.exceptions import NoCredentialsError
@@ -111,6 +112,7 @@ def parse_and_validate_tsv(input_file, stage_target):
 
     samples_rows = {}
     units_rows = []
+    run_ids = set()
     for sample_key, entries in samples.items():
         is_multi_lane = len(entries) > 1
         print(f"Processing sample: {sample_key} with {len(entries)} entries")
@@ -142,6 +144,8 @@ def parse_and_validate_tsv(input_file, stage_target):
         sample_prefix = f"{ruid}_{new_sample_id}_{seqbc}_0"
         staged_sample_path = os.path.join(stage_target, sample_prefix)
         os.makedirs(staged_sample_path, exist_ok=True)
+
+        run_ids.add(ruid)
 
         if is_multi_lane:
             merged_r1 = os.path.join(staged_sample_path, f"{sample_prefix}_merged_R1.fastq.gz")
@@ -249,8 +253,26 @@ def parse_and_validate_tsv(input_file, stage_target):
                 f"Conflicting metadata for sample {sample_name}:\nExisting: {existing_sample}\nNew: {sample_metadata}"
             )
         samples_rows[sample_name] = sample_metadata
-    samples_tsv_path = os.path.join(stage_target, "samples.tsv")
-    units_tsv_path = os.path.join(stage_target, "units.tsv")
+    output_dir = "/fsx/staged_data"
+    os.makedirs(output_dir, exist_ok=True)
+
+    if len(run_ids) == 1:
+        run_id_for_filename = next(iter(run_ids))
+    elif len(run_ids) > 1:
+        run_id_for_filename = "multi_run"
+        log_warn(
+            "Multiple run IDs detected in input; using 'multi_run' as the filename prefix."
+        )
+    else:
+        run_id_for_filename = "no_run_id"
+        log_warn("No run IDs detected; using 'no_run_id' as the filename prefix.")
+
+    timestamp = datetime.now().strftime("%Y%m%dT%H%M%S")
+    samples_filename = f"{run_id_for_filename}_{timestamp}_samples.tsv"
+    units_filename = f"{run_id_for_filename}_{timestamp}_units.tsv"
+
+    samples_tsv_path = os.path.join(output_dir, samples_filename)
+    units_tsv_path = os.path.join(output_dir, units_filename)
 
     log_warn(f"Writing config samples file: {samples_tsv_path}")
     if samples_rows:
@@ -282,7 +304,9 @@ def parse_and_validate_tsv(input_file, stage_target):
 
     log_info(f"Config files created: {samples_tsv_path}, {units_tsv_path}")
     log_info(
-        f"Use these config files:\n\tcp {samples_tsv_path} config/samples.tsv\n\tcp {units_tsv_path} config/units.tsv"
+        "Use these config files:\n"
+        f"\tcp {samples_tsv_path} config/samples.tsv\n"
+        f"\tcp {units_tsv_path} config/units.tsv"
     )
 
 
