@@ -113,6 +113,7 @@ def parse_and_validate_tsv(input_file, stage_target):
     units_rows = []
     for sample_key, entries in samples.items():
         is_multi_lane = len(entries) > 1
+        print(f"Processing sample: {sample_key} with {len(entries)} entries")
         lanes = [e[LANE] for e in entries]
         if is_multi_lane and "0" in lanes:
             log_error(f"Invalid LANE=0 for multi-lane sample: {sample_key}")
