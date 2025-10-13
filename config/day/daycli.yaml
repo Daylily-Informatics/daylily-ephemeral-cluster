@@ -32,4 +32,5 @@ dependencies:
       - werkzeug==2.3.8
       - colr
       - docopt
+      - rich
       - daylily-omics-references @ git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.1.14
