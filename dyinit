@@ -412,10 +412,6 @@ export DAY_ROOT="$PWD"
 ulimit -n 16384
 
 # Set Sentieon variables
-##export SENTIEON_TMPDIR='/fsx/scratch/'
-##export SENTIEON_LICENSE='/fsx/data/cached_envs/Rare_Cancer_Research_Foundation_eval.lic'
-##export SENTIEON_INSTALL_DIR='/fsx/data/cached_envs/sentieon-genomics-202308.03'
-##export PATH="$PATH:$SENTIEON_INSTALL_DIR/bin/"
 
 # Backup original PATH and PS1 if not already set
 export ORIG_PATH="${ORIG_PATH:-$PATH}"
@@ -438,8 +434,6 @@ fi
 export PATH="$PATH:$PWD/bin"
 
 # Define aliases
-alias day-build="source bin/day_build"
-alias dy-b="source bin/day_build"
 alias dy-h="echo hello"
 
 # Display help if requested
@@ -484,5 +478,8 @@ echo -e "\t                           "
 echo -e "\t  daylily-stage-analysis-samples <analysis_samples.tsv> [stage_target] : generate /fsx staging directories and config/{samples.tsv,units.tsv} from an analysis_samples TSV"
 echo -e "\t                           "
 echo -e "\t  daylily-export-fsx-to-s3 : export FSx data to S3, if this fails, use the AWS Fsx Filesystem console!"
+echo -e "\t                           "
+echo -e "\t  sq : an alias to `squeue` with a useful default output format for monitoring running jobs. "
+echo -e "\t  \$sq_cmd : show all jobs, include '\$' to see the command output."
 
 return 0
