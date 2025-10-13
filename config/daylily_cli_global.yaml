@@ -1,12 +1,12 @@
 ---
 daylily:
-  git_tag: 0.7.348
+  git_tag: 0.7.349
   git_repo: https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git
   git_repo_ssh: git@github.com:Daylily-Informatics/daylily-ephemeral-cluster.git
   git_analysis_repo_tag: 0.7.34
   git_analysis_repo: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
   git_analysis_repo_ssh: git@github.com:Daylily-Informatics/daylily-omics-analysis.git
-  git_ephemeral_cluster_repo_tag: 0.7.348
+  git_ephemeral_cluster_repo_tag: 0.7.349
   git_ephemeral_cluster_repo: https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git
   git_ephemeral_cluster_repo_ssh: git@github.com:/Daylily-Informatics/daylily-ephemeral-cluster.git
   analysis_root: /fsx/analysis_results/
