@@ -21,6 +21,7 @@ ephemeral_cluster:
     heartbeat_email: [PROMPTUSER, "", ""]
     heartbeat_schedule: [PROMPTUSER, "rate(60 minutes)", ""]
     heartbeat_scheduler_role_arn: [PROMPTUSER, "", ""]
+    heartbeat_lambda_role_arn: [PROMPTUSER, "", ""]
     spot_instance_allocation_strategy: [PROMPTUSER, "price-capacity-optimized", ""]
     max_count_8I: [PROMPTUSER, "1", ""]
     max_count_128I: [PROMPTUSER, "1", ""]

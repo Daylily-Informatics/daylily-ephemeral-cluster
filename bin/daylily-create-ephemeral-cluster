@@ -1023,6 +1023,7 @@ CONFIG_AUTO_DELETE_FSX="$(get_action_set_or_empty "auto_delete_fsx")"
 CONFIG_HEARTBEAT_EMAIL="$(get_action_set_or_empty "heartbeat_email")"
 CONFIG_HEARTBEAT_SCHEDULE="$(get_action_set_or_empty "heartbeat_schedule")"
 CONFIG_HEARTBEAT_SCHEDULER_ROLE_ARN="$(get_action_set_or_empty "heartbeat_scheduler_role_arn")"
+CONFIG_HEARTBEAT_LAMBDA_ROLE_ARN="$(get_action_set_or_empty "heartbeat_lambda_role_arn")"
 CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY="$(get_action_set_or_empty "spot_instance_allocation_strategy")"
 
 # Numeric prompts with triplet defaults
@@ -2031,6 +2032,10 @@ echo ""
 heartbeat_email="${CONFIG_HEARTBEAT_EMAIL:-}"
 heartbeat_schedule=""
 heartbeat_scheduler_role_arn="${CONFIG_HEARTBEAT_SCHEDULER_ROLE_ARN:-}"
+heartbeat_lambda_role_arn="${CONFIG_HEARTBEAT_LAMBDA_ROLE_ARN:-}"
+if [[ -z "$heartbeat_lambda_role_arn" && -n "${DAY_HEARTBEAT_LAMBDA_ROLE_ARN:-}" ]]; then
+    heartbeat_lambda_role_arn="$DAY_HEARTBEAT_LAMBDA_ROLE_ARN"
+fi
 
 if [[ -z "$heartbeat_email" && -n "$budget_email" ]]; then
     heartbeat_email="$budget_email"
@@ -2076,14 +2081,23 @@ if [[ -n "$heartbeat_email" ]]; then
     fi
     heartbeat_scheduler_role_arn="$resolved_role"
     echo "ℹ️ Using EventBridge Scheduler role ARN: $heartbeat_scheduler_role_arn"
+    if [[ -z "$heartbeat_lambda_role_arn" ]]; then
+        read -r -p "Enter the IAM role ARN for the heartbeat Lambda execution (required): " heartbeat_lambda_role_arn
+    fi
+    while [[ -z "$heartbeat_lambda_role_arn" ]]; do
+        echo "A Lambda execution role ARN is required when enabling heartbeat notifications."
+        read -r -p "Enter the IAM role ARN for the heartbeat Lambda execution: " heartbeat_lambda_role_arn
+    done
     echo "✅ Heartbeat notifications to $heartbeat_email with '$heartbeat_schedule'"
 else
     heartbeat_scheduler_role_arn=""
+    heartbeat_lambda_role_arn=""
     echo "ℹ️ Heartbeat notifications skipped."
 fi
 set_final_config_value "heartbeat_email" "${heartbeat_email:-}"
 set_final_config_value "heartbeat_schedule" "${heartbeat_schedule:-}"
 set_final_config_value "heartbeat_scheduler_role_arn" "${heartbeat_scheduler_role_arn:-}"
+set_final_config_value "heartbeat_lambda_role_arn" "${heartbeat_lambda_role_arn:-}"
 
 # Spot allocation strategy
 # Spot allocation strategy
@@ -2205,6 +2219,7 @@ declare -A REG_SUBSTITUTIONS=(
   ["REGSUB_HEARTBEAT_EMAIL"]="$heartbeat_email"
   ["REGSUB_HEARTBEAT_SCHEDULE"]="$heartbeat_schedule"
   ["REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN"]="$heartbeat_scheduler_role_arn"
+  ["REGSUB_HEARTBEAT_LAMBDA_ROLE_ARN"]="$heartbeat_lambda_role_arn"
 )
 
 subs_tmp=$(mktemp)
@@ -2313,6 +2328,7 @@ if [[ -n "$heartbeat_email" ]]; then
         --email "$heartbeat_email" \
         --schedule "$heartbeat_schedule" \
         --scheduler-role-arn "$heartbeat_scheduler_role_arn" \
+        --lambda-role-arn "$heartbeat_lambda_role_arn" \
         --profile "$AWS_PROFILE"
     if [[ $? -ne 0 ]]; then
         echo "❌ Failed to configure heartbeat notifications. Review logs; configure manually if desired."

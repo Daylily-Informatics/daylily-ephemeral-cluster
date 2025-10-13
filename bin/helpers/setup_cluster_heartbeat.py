@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
-import argparse, os, sys, time, json, subprocess
+import argparse
+import io
+import json
+import os
+import subprocess
+import sys
+import textwrap
+import time
+import zipfile
 from dataclasses import dataclass
-from typing import Optional
+from typing import Dict, Optional
 
 import boto3
 from botocore.exceptions import ClientError
@@ -16,6 +24,10 @@ def parse_args():
     p.add_argument(
         "--scheduler-role-arn",
         help="IAM role ARN that EventBridge Scheduler can assume to publish to SNS",
+    )
+    p.add_argument(
+        "--lambda-role-arn",
+        help="IAM role ARN for the heartbeat Lambda function (requires SNS/Budgets permissions)",
     )
     return p.parse_args()
 
@@ -119,6 +131,176 @@ DEFAULT_ROLE_NAMES = (
     "daylily-eventbridge-scheduler",
 )
 
+LAMBDA_ROLE_ENV_VARS = (
+    "DAY_HEARTBEAT_LAMBDA_ROLE_ARN",
+    "DAYLILY_HEARTBEAT_LAMBDA_ROLE_ARN",
+)
+
+LAMBDA_SOURCE = textwrap.dedent(
+    """
+    import json
+    import os
+    from collections import Counter
+    from datetime import datetime, timezone
+    from decimal import Decimal, InvalidOperation
+
+    import boto3
+    from botocore.exceptions import ClientError
+
+
+    def _fmt_duration(delta):
+        total_seconds = int(delta.total_seconds())
+        if total_seconds < 0:
+            total_seconds = 0
+        days, remainder = divmod(total_seconds, 86400)
+        hours, remainder = divmod(remainder, 3600)
+        minutes, seconds = divmod(remainder, 60)
+        parts = []
+        if days:
+            parts.append(f"{days}d")
+        if hours:
+            parts.append(f"{hours}h")
+        if minutes:
+            parts.append(f"{minutes}m")
+        if not parts:
+            parts.append(f"{seconds}s")
+        return " ".join(parts)
+
+
+    def _safe_decimal(value):
+        if value is None:
+            return None
+        try:
+            return Decimal(str(value))
+        except (InvalidOperation, ValueError):
+            return None
+
+
+    def _gather_tagged_resources(tag_client, cluster_name):
+        resources = []
+        paginator = tag_client.get_paginator("get_resources")
+        for page in paginator.paginate(
+            TagFilters=[{"Key": "parallelcluster:cluster-name", "Values": [cluster_name]}]
+        ):
+            resources.extend(page.get("ResourceTagMappingList", []))
+        return resources
+
+
+    def _extract_tag(resources, key):
+        for resource in resources:
+            for tag in resource.get("Tags", []):
+                if tag.get("Key") == key:
+                    return tag.get("Value")
+        return None
+
+
+    def _summarize_resources(resources):
+        counts = Counter()
+        for resource in resources:
+            rtype = resource.get("ResourceType", "unknown")
+            counts[rtype] += 1
+        return counts
+
+
+    def handler(event, _context):
+        region = os.environ["CLUSTER_REGION"]
+        cluster_name = os.environ["CLUSTER_NAME"]
+        topic_arn = os.environ["TOPIC_ARN"]
+        budget_region = os.environ.get("BUDGET_REGION", region)
+
+        session = boto3.Session(region_name=region)
+        tag_client = session.client("resourcegroupstaggingapi")
+        cloudformation = session.client("cloudformation")
+        sns = session.client("sns")
+        sts = session.client("sts")
+
+        resources = _gather_tagged_resources(tag_client, cluster_name)
+        owner = _extract_tag(resources, "aws-parallelcluster-username") or "unknown"
+        project = _extract_tag(resources, "aws-parallelcluster-project")
+
+        stack_name = f"parallelcluster-{cluster_name}"
+        stack_status = "UNKNOWN"
+        created = None
+        try:
+            stack = cloudformation.describe_stacks(StackName=stack_name)["Stacks"][0]
+        except ClientError:
+            stack = None
+        if stack:
+            stack_status = stack.get("StackStatus", "UNKNOWN")
+            created = stack.get("CreationTime")
+
+        uptime_line = "Uptime: unavailable"
+        if created:
+            now = datetime.now(timezone.utc)
+            uptime_line = f"Uptime: {_fmt_duration(now - created)} (since {created.isoformat()})"
+
+        counts = _summarize_resources(resources)
+        resource_lines = []
+        if resources:
+            resource_lines.append("Tagged resources still present (parallelcluster:cluster-name):")
+            for resource in resources[:10]:
+                rtype = resource.get("ResourceType", "unknown")
+                arn = resource.get("ResourceARN", "")
+                resource_lines.append(f"  - {rtype}: {arn}")
+            remaining = len(resources) - min(len(resources), 10)
+            if remaining:
+                resource_lines.append(f"  ... plus {remaining} more resource(s).")
+        else:
+            resource_lines.append("No tagged resources found. Cluster appears fully torn down.")
+
+        budget_lines = ["Budget: unavailable"]
+        if project:
+            account_id = sts.get_caller_identity()["Account"]
+            budgets = boto3.client("budgets", region_name=budget_region)
+            try:
+                budget_resp = budgets.describe_budget(AccountId=account_id, BudgetName=project)
+            except budgets.exceptions.NotFoundException:  # type: ignore[attr-defined]
+                budget_resp = None
+            except ClientError:
+                budget_resp = None
+            if budget_resp:
+                budget = budget_resp.get("Budget", {})
+                limit = _safe_decimal(budget.get("BudgetLimit", {}).get("Amount"))
+                actual = _safe_decimal(
+                    budget.get("CalculatedSpend", {}).get("ActualSpend", {}).get("Amount")
+                )
+                forecast = _safe_decimal(
+                    budget.get("CalculatedSpend", {}).get("ForecastedSpend", {}).get("Amount")
+                )
+                percent = None
+                if limit and limit > 0 and actual is not None:
+                    percent = (actual / limit) * 100
+                parts = [f"Budget '{project}':"]
+                if limit is not None:
+                    parts.append(f"  Limit: ${limit:.2f}")
+                if actual is not None:
+                    parts.append(f"  Actual spend: ${actual:.2f}")
+                if forecast is not None:
+                    parts.append(f"  Forecast: ${forecast:.2f}")
+                if percent is not None:
+                    parts.append(f"  Usage: {percent:.1f}% of limit")
+                budget_lines = parts
+
+        summary_lines = [
+            f"Cluster: {cluster_name} ({region})",
+            f"Stack status: {stack_status}",
+            uptime_line,
+            f"Owner: {owner}",
+            f"Tagged resource count: {sum(counts.values())} across {len(counts)} service(s)",
+        ]
+
+        message_lines = summary_lines + [""] + budget_lines + [""] + resource_lines
+
+        sns.publish(
+            TopicArn=topic_arn,
+            Subject=f"Daylily heartbeat for {cluster_name}",
+            Message="\n".join(message_lines),
+        )
+
+        return {"status": "ok", "resources": len(resources), "stack_status": stack_status}
+    """
+)
+
 
 def resolve_scheduler_role_arn(session: boto3.Session, explicit: Optional[str], account_id: str) -> str:
     if explicit:
@@ -159,12 +341,71 @@ def resolve_scheduler_role_arn(session: boto3.Session, explicit: Optional[str], 
     sys.exit(2)
 
 
-def create_or_update_schedule(scheduler, name, expr, role_arn, topic_arn, message, timezone=None):
+def resolve_lambda_role_arn(explicit: Optional[str]) -> str:
+    if explicit:
+        return explicit
+
+    for env_var in LAMBDA_ROLE_ENV_VARS:
+        value = os.environ.get(env_var)
+        if value:
+            print(f"ℹ️ Using heartbeat Lambda role ARN from ${env_var}.")
+            return value
+
+    print(
+        "Error: Unable to determine heartbeat Lambda execution role ARN. "
+        "Pass --lambda-role-arn or set DAY_HEARTBEAT_LAMBDA_ROLE_ARN.",
+        file=sys.stderr,
+    )
+    sys.exit(2)
+
+
+def build_lambda_package() -> bytes:
+    buffer = io.BytesIO()
+    with zipfile.ZipFile(buffer, "w") as zf:
+        zf.writestr("lambda_function.py", LAMBDA_SOURCE)
+    return buffer.getvalue()
+
+
+def ensure_lambda_function(lambda_client, function_name: str, role_arn: str, env: Dict[str, str]):
+    package = build_lambda_package()
+    try:
+        resp = lambda_client.get_function(FunctionName=function_name)
+    except ClientError as error:
+        if error.response["Error"].get("Code") != "ResourceNotFoundException":
+            raise
+        print(f"ℹ️ Creating heartbeat Lambda function {function_name}.")
+        created = lambda_client.create_function(
+            FunctionName=function_name,
+            Runtime="python3.11",
+            Role=role_arn,
+            Handler="lambda_function.handler",
+            Code={"ZipFile": package},
+            Description="Publishes detailed Daylily heartbeat data to SNS.",
+            Timeout=60,
+            MemorySize=256,
+            Publish=True,
+            Environment={"Variables": env},
+            Architectures=["x86_64"],
+        )
+        return created["FunctionArn"]
+
+    print(f"ℹ️ Updating heartbeat Lambda function {function_name}.")
+    lambda_client.update_function_code(FunctionName=function_name, ZipFile=package, Publish=True)
+    lambda_client.update_function_configuration(
+        FunctionName=function_name,
+        Role=role_arn,
+        Environment={"Variables": env},
+        Timeout=60,
+        MemorySize=256,
+    )
+    return resp["Configuration"]["FunctionArn"]
+
+
+def create_or_update_schedule(scheduler, name, expr, role_arn, target_arn, target_input, timezone=None):
     target = {
-        "Arn": topic_arn,
+        "Arn": target_arn,
         "RoleArn": role_arn,
-        # EventBridge Scheduler delivers this to SNS as the message
-        "Input": json.dumps({"default": message}),  # SNS will use 'default' field as message if no structure
+        "Input": json.dumps(target_input),
     }
     kwargs = dict(
         Name=name,
@@ -191,22 +432,37 @@ def main():
     sns = sess.client("sns")
     sch = sess.client("scheduler")
     sts = sess.client("sts")
+    lambda_client = sess.client("lambda")
 
     names = derive_names(a.cluster_name)
     acct = sts.get_caller_identity()["Account"]
     role_arn = resolve_scheduler_role_arn(sess, a.scheduler_role_arn, acct)
+    lambda_role_arn = resolve_lambda_role_arn(a.lambda_role_arn)
 
     topic_arn = ensure_topic_and_sub(sns, names.topic_name, a.email, a.region, acct)
-
-    message = f"Heartbeat for cluster '{a.cluster_name}' at {int(time.time())} (epoch). Region: {a.region}."
-    schedule_name = names.schedule_name
-
-    create_or_update_schedule(
-        sch, schedule_name, a.schedule, role_arn, topic_arn, message
+    lambda_env = {
+        "CLUSTER_NAME": a.cluster_name,
+        "CLUSTER_REGION": a.region,
+        "TOPIC_ARN": topic_arn,
+        "BUDGET_REGION": a.region,
+    }
+    function_arn = ensure_lambda_function(
+        lambda_client, names.function_name, lambda_role_arn, lambda_env
     )
 
-    print("✅ Heartbeat schedule configured (direct to SNS).")
+    schedule_name = names.schedule_name
+    schedule_input = {
+        "cluster": a.cluster_name,
+        "invoked_at": int(time.time()),
+    }
+
+    create_or_update_schedule(
+        sch, schedule_name, a.schedule, role_arn, function_arn, schedule_input
+    )
+
+    print("✅ Heartbeat schedule configured (via Lambda to SNS).")
     print(f"   SNS topic: {topic_arn}")
+    print(f"   Lambda: {function_arn}")
     print(f"   Schedule: arn:aws:scheduler:{a.region}:{acct}:schedule/default/{schedule_name} -> {a.schedule}")
     print("   Reminder: confirm the SNS email subscription if you haven’t.")
 
