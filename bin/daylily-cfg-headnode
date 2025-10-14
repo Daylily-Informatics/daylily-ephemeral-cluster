@@ -112,7 +112,10 @@ ssh -i "$pem_file" ubuntu@"$cluster_ip_address"   -o StrictHostKeyChecking=no   
 # Display the public key and instruct the user to add it to GitHub
 echo "You must have a GitHub account and access to the Daylily repository."
 echo "Please add the following public SSH key to GitHub:"
-ssh -i "$pem_file"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null ubuntu@"$cluster_ip_address" "cat ~/.ssh/id_rsa.pub"
+git_key_log=$(ssh -i "$pem_file"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null ubuntu@"$cluster_ip_address" "cat ~/.ssh/id_rsa.pub")
+echo $git_key_log
+mkdir -p logs
+echo "$git_key_log" >> logs/$cluster_ip_address_pubkey.txt
 
 echo " "
 echo "(optional) save this SSH key in GitHub to your settings->ssh/gpg keys, which will allow you to push changes back to github if you make any. You can always add this key latter too, find it in you ~/.ssh/id_rsa.pub.\n\n\tSleeping for 15s then proceeding."

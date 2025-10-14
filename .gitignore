@@ -4,5 +4,5 @@ __pycache__/
 *$py.class
 .vscode/
 etc/about_me.yaml
-
+logs/
 ./etc/analysis_samples_template.tsv
