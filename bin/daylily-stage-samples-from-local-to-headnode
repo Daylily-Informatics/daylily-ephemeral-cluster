@@ -151,7 +151,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("analysis_samples", help="Path to analysis_samples.tsv")
     parser.add_argument(
         "--stage-target",
-        default="/fsx/data/staged_sample_data",
+        default="/data/staged_sample_data",
         help="FSx staging base directory (default: %(default)s)",
     )
     parser.add_argument(
@@ -202,9 +202,9 @@ def parse_s3_uri(uri: str) -> Tuple[str, str]:
 
 def normalise_stage_target(stage_target: str) -> str:
     stage_target = stage_target.strip()
-    if not stage_target.startswith("/fsx"):
+    if not stage_target.startswith("/data"):
         raise CommandError(
-            "Stage target must be an FSx path (expected to start with /fsx)."
+            "Stage target must be an FSx path (expected to start with /data)."
         )
     return stage_target.rstrip("/")
 
