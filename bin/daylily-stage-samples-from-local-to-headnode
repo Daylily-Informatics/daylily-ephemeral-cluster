@@ -1,73 +1,260 @@
 #!/usr/bin/env python3
-"""Stage analysis samples on a head node from the local workstation.
+"""Stage analysis samples on a head node from the developer workstation.
 
-This helper mirrors ``bin/daylily-stage-analysis-samples-headnode`` but can be
-invoked from the same laptop (or bastion) that created the ephemeral cluster.
-It uploads the provided ``analysis_samples.tsv`` to the head node, executes the
-standard staging workflow there, and (optionally) downloads the resulting
-``samples.tsv`` and ``units.tsv`` tables back next to the original TSV.
+This helper reads an ``analysis_samples.tsv`` file, validates the referenced
+inputs, stages the data into the FSx-backed staging directory via the AWS CLI,
+and generates ``samples.tsv``/``units.tsv`` manifests that match the head node
+workflow.  The staging directory created on FSx follows the pattern
+``/fsx/data/staged_sample_data/remote_stage_<timestamp>/``.
 """
 
 from __future__ import annotations
 
 import argparse
-import json
+import csv
+import datetime as dt
 import os
-import shlex
+import shutil
 import subprocess
 import sys
+import tempfile
+from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Iterable, List, Optional, Tuple
+from typing import Dict, Iterable, List, Optional, Sequence, Tuple
 
 
-SSH_OPTIONS: Tuple[str, ...] = (
-    "-o",
-    "StrictHostKeyChecking=no",
-    "-o",
-    "UserKnownHostsFile=/dev/null",
-)
+RUN_ID = "RUN_ID"
+SAMPLE_ID = "SAMPLE_ID"
+EXPERIMENT_ID = "EXPERIMENTID"
+SAMPLE_TYPE = "SAMPLE_TYPE"
+LIB_PREP = "LIB_PREP"
+SEQ_VENDOR = "SEQ_VENDOR"
+SEQ_PLATFORM = "SEQ_PLATFORM"
+LANE = "LANE"
+SEQBC_ID = "SEQBC_ID"
+PATH_TO_CONCORDANCE = "PATH_TO_CONCORDANCE_DATA_DIR"
+R1_FQ = "R1_FQ"
+R2_FQ = "R2_FQ"
+STAGE_DIRECTIVE = "STAGE_DIRECTIVE"
+STAGE_TARGET = "STAGE_TARGET"
+SUBSAMPLE_PCT = "SUBSAMPLE_PCT"
+IS_POS_CTRL = "IS_POS_CTRL"
+IS_NEG_CTRL = "IS_NEG_CTRL"
+N_X = "N_X"
+N_Y = "N_Y"
+EXTERNAL_SAMPLE_ID = "EXTERNAL_SAMPLE_ID"
+
+KEY_FIELDS = [
+    RUN_ID,
+    SAMPLE_ID,
+    EXPERIMENT_ID,
+    SAMPLE_TYPE,
+    LIB_PREP,
+    SEQ_VENDOR,
+    SEQ_PLATFORM,
+]
+
+DERIVED_UNITS_FIELDS = {
+    "RUNID",
+    "SAMPLEID",
+    "EXPERIMENTID",
+    "LANEID",
+    "BARCODEID",
+    "LIBPREP",
+    "SEQ_VENDOR",
+    "SEQ_PLATFORM",
+    "ILMN_R1_PATH",
+    "ILMN_R2_PATH",
+    "PACBIO_R1_PATH",
+    "PACBIO_R2_PATH",
+    "ONT_R1_PATH",
+    "ONT_R2_PATH",
+    "UG_R1_PATH",
+    "UG_R2_PATH",
+    "SUBSAMPLE_PCT",
+    "SAMPLEUSE",
+    "BWA_KMER",
+}
+
+UNITS_HEADER = [
+    "RUNID",
+    "SAMPLEID",
+    "EXPERIMENTID",
+    "LANEID",
+    "BARCODEID",
+    "LIBPREP",
+    "SEQ_VENDOR",
+    "SEQ_PLATFORM",
+    "ILMN_R1_PATH",
+    "ILMN_R2_PATH",
+    "PACBIO_R1_PATH",
+    "PACBIO_R2_PATH",
+    "ONT_R1_PATH",
+    "ONT_R2_PATH",
+    "UG_R1_PATH",
+    "UG_R2_PATH",
+    "SUBSAMPLE_PCT",
+    "SAMPLEUSE",
+    "BWA_KMER",
+    "DEEP_MODEL",
+    "ULTIMA_CRAM",
+    "ULTIMA_CRAM_ALIGNER",
+    "ULTIMA_CRAM_SNV_CALLER",
+    "ONT_CRAM",
+    "ONT_CRAM_ALIGNER",
+    "ONT_CRAM_SNV_CALLER",
+    "PB_BAM",
+    "PB_BAM_ALIGNER",
+    "PB_BAM_SNV_CALLER",
+]
+
+SAMPLES_HEADER = [
+    "SAMPLEID",
+    "SAMPLESOURCE",
+    "SAMPLECLASS",
+    "BIOLOGICAL_SEX",
+    "CONCORDANCE_CONTROL_PATH",
+    "IS_POSITIVE_CONTROL",
+    "IS_NEGATIVE_CONTROL",
+    "SAMPLE_TYPE",
+    "TUM_NRM_SAMPLEID_MATCH",
+    "EXTERNAL_SAMPLE_ID",
+    "N_X",
+    "N_Y",
+    "TRUTH_DATA_DIR",
+]
 
 
 class CommandError(RuntimeError):
     """Raised when an external command fails."""
 
 
+@dataclass(frozen=True)
+class AwsConfig:
+    profile: str
+    region: Optional[str]
+
+
 @dataclass
-class RemoteConfig:
-    stage_dir: str
-    samples_path: str
-    units_path: str
+class StagePaths:
+    remote_fsx_root: str
+    remote_stage_name: str
+    remote_fsx_stage: str
+    remote_s3_stage: str
 
 
-def normalize_remote_path(path: str) -> str:
-    """Expand a leading ``~/`` for the remote ubuntu user."""
+def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(
+        description="Stage analysis samples into FSx from the local workstation.",
+    )
+    parser.add_argument("analysis_samples", help="Path to analysis_samples.tsv")
+    parser.add_argument(
+        "--stage-target",
+        default="/fsx/data/staged_sample_data",
+        help="FSx staging base directory (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--reference-bucket",
+        required=True,
+        help="S3 URI (s3://bucket[/prefix]) mapped to the FSx data repository",
+    )
+    parser.add_argument(
+        "--config-dir",
+        help="Directory to place generated samples.tsv/units.tsv (default: TSV dir)",
+    )
+    parser.add_argument(
+        "--profile",
+        default=os.environ.get("AWS_PROFILE"),
+        help="AWS CLI profile to use (default: $AWS_PROFILE)",
+    )
+    parser.add_argument(
+        "--region",
+        default=os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION"),
+        help="AWS region to use for CLI commands (defaults to environment)",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Print AWS CLI commands before execution",
+    )
+    return parser.parse_args(argv)
 
-    if path.startswith("~/"):
-        return path.replace("~/", "/home/ubuntu/", 1)
-    if path == "~":
-        return "/home/ubuntu"
-    return path
+
+def ensure_profile(profile: Optional[str]) -> str:
+    if not profile:
+        raise CommandError(
+            "AWS profile is required. Set AWS_PROFILE or pass --profile."
+        )
+    return profile
+
+
+def parse_s3_uri(uri: str) -> Tuple[str, str]:
+    if not uri.startswith("s3://"):
+        raise CommandError(f"Expected an s3:// URI, received: {uri}")
+    without_scheme = uri[5:]
+    if "/" in without_scheme:
+        bucket, key = without_scheme.split("/", 1)
+    else:
+        bucket, key = without_scheme, ""
+    return bucket, key
+
+
+def normalise_stage_target(stage_target: str) -> str:
+    stage_target = stage_target.strip()
+    if not stage_target.startswith("/fsx"):
+        raise CommandError(
+            "Stage target must be an FSx path (expected to start with /fsx)."
+        )
+    return stage_target.rstrip("/")
+
+
+def build_stage_paths(stage_target: str, bucket_uri: str) -> StagePaths:
+    stage_target = normalise_stage_target(stage_target)
+    timestamp = dt.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    remote_stage_name = f"remote_stage_{timestamp}"
+    remote_fsx_stage = f"{stage_target}/{remote_stage_name}"
+
+    bucket, prefix = parse_s3_uri(bucket_uri.rstrip("/"))
+    prefix = prefix.rstrip("/")
+    fsx_relative = stage_target.lstrip("/")
+    if prefix:
+        remote_s3_stage = f"s3://{bucket}/{prefix}/{fsx_relative}/{remote_stage_name}"
+    else:
+        remote_s3_stage = f"s3://{bucket}/{fsx_relative}/{remote_stage_name}"
+    return StagePaths(
+        remote_fsx_root=stage_target,
+        remote_stage_name=remote_stage_name,
+        remote_fsx_stage=remote_fsx_stage,
+        remote_s3_stage=remote_s3_stage,
+    )
+
+
+def build_aws_env(config: AwsConfig) -> Dict[str, str]:
+    env = dict(os.environ)
+    env["AWS_PROFILE"] = config.profile
+    if config.region:
+        env["AWS_REGION"] = config.region
+        env.setdefault("AWS_DEFAULT_REGION", config.region)
+    return env
 
 
 def run_command(
-    command: Iterable[str],
+    command: Sequence[str],
     *,
-    capture_output: bool = False,
-    env: Optional[dict] = None,
+    env: Optional[Dict[str, str]] = None,
     check: bool = True,
+    capture_output: bool = False,
 ) -> subprocess.CompletedProcess:
-    """Execute *command* and return the completed process."""
-
     try:
-        result = subprocess.run(  # type: ignore[call-arg]
+        return subprocess.run(  # type: ignore[arg-type]
             list(command),
-            check=check,
-            capture_output=capture_output,
-            text=True,
             env=env,
+            check=check,
+            text=True,
+            capture_output=capture_output,
         )
-    except subprocess.CalledProcessError as exc:  # pragma: no cover - interactive helper
+    except subprocess.CalledProcessError as exc:  # pragma: no cover - runtime path
         stdout = exc.stdout or ""
         stderr = exc.stderr or ""
         message = f"Command failed ({exc.returncode}): {' '.join(command)}"
@@ -76,364 +263,450 @@ def run_command(
         if stderr:
             message += f"\nSTDERR:\n{stderr.strip()}"
         raise CommandError(message) from exc
-    return result
-def choose_from(prompt: str, options: List[str]) -> str:
-    """Prompt the user to select one value from *options*."""
 
-    if not options:
-        raise CommandError(f"No options available for: {prompt}")
-    if len(options) == 1:
-        return options[0]
 
-    print(f"{prompt}")
-    for idx, value in enumerate(options, start=1):
-        print(f"  {idx}) {value}")
-    while True:
-        try:
-            selection = int(input("Select an option: "))
-        except ValueError:
-            print("Please enter a number.")
+def aws_command(
+    args: Sequence[str],
+    *,
+    aws_env: Dict[str, str],
+    debug: bool = False,
+    capture_output: bool = False,
+) -> subprocess.CompletedProcess:
+    command = ["aws", *args]
+    if debug:
+        print("[DEBUG]", " ".join(command))
+    return run_command(command, env=aws_env, capture_output=capture_output)
+
+
+def check_local_path(path: str) -> None:
+    if not os.path.exists(path):
+        raise CommandError(f"Local path not found: {path}")
+
+
+def check_s3_path(uri: str, *, aws_env: Dict[str, str], debug: bool) -> None:
+    args = ["s3", "ls", uri]
+    result = aws_command(args, aws_env=aws_env, debug=debug, capture_output=True)
+    if not result.stdout.strip():
+        raise CommandError(f"S3 object or prefix not accessible: {uri}")
+
+
+def validate_subsample_pct(value: str) -> str:
+    if not value:
+        return "na"
+    try:
+        pct = float(value)
+    except ValueError:
+        return "na"
+    return value if 0.0 < pct < 1.0 else "na"
+
+
+def validate_sources(
+    sources: Iterable[str],
+    *,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> None:
+    for src in sources:
+        if not src or src.lower() == "na":
             continue
-        if 1 <= selection <= len(options):
-            return options[selection - 1]
-        print("Selection out of range; try again.")
-
-
-def resolve_region(profile: str) -> str:
-    """Return the AWS region, prompting if necessary."""
-
-    env = {**os.environ, "AWS_PROFILE": profile} if profile else None
-    result = run_command(
-        [
-            "aws",
-            "ec2",
-            "describe-regions",
-            "--output",
-            "json",
-        ],
-        capture_output=True,
-        env=env,
-    )
-    data = json.loads(result.stdout)
-    regions = sorted(entry["RegionName"] for entry in data.get("Regions", []))
-    if not regions:
-        raise CommandError("Unable to retrieve AWS regions. Check your AWS credentials.")
-    default_region = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
-    if default_region and default_region in regions:
-        return default_region
-    return choose_from("Select AWS region:", regions)
-
-
-def resolve_cluster(profile: str, region: str) -> str:
-    """Select a ParallelCluster cluster."""
-
-    env = {**os.environ, "AWS_PROFILE": profile} if profile else None
-    result = run_command(
-        [
-            "pcluster",
-            "list-clusters",
-            "--region",
-            region,
-            "--output",
-            "json",
-        ],
-        capture_output=True,
-        env=env,
-    )
-    data = json.loads(result.stdout or "{}")
-    clusters = [entry.get("clusterName") for entry in data.get("clusters", [])]
-    clusters = [name for name in clusters if name]
-    if not clusters:
-        raise CommandError(
-            f"No ParallelCluster clusters found in region {region!r}."
-        )
-    return choose_from("Select cluster:", sorted(clusters))
-
-
-def resolve_pem_file(path: Optional[str]) -> str:
-    """Ensure a PEM file is selected."""
-
-    if path:
-        expanded = os.path.expanduser(path)
-        if not os.path.exists(expanded):
-            raise CommandError(f"PEM file not found: {expanded}")
-        return expanded
-
-    pem_candidates = sorted(Path.home().glob(".ssh/*.pem"))
-    if not pem_candidates:
-        raise CommandError(
-            "No PEM files found under ~/.ssh. Provide one with --pem."
-        )
-    selection = choose_from(
-        "Select SSH PEM key:", [str(path) for path in pem_candidates]
-    )
-    return selection
-
-
-def fetch_headnode_ip(profile: str, region: str, cluster_name: str) -> str:
-    """Return the public IP for the cluster head node."""
-
-    env = {**os.environ, "AWS_PROFILE": profile} if profile else None
-    cmd = [
-        "pcluster",
-        "describe-cluster",
-        "--region",
-        region,
-        "--cluster-name",
-        cluster_name,
-        "--output",
-        "json",
-    ]
-    try:
-        result = run_command(cmd, capture_output=True, env=env)
-        payload = json.loads(result.stdout)
-        head_node = payload.get("cluster", {}).get("headNode") or payload.get("headNode", {})
-        ip_address = head_node.get("publicIpAddress") or head_node.get("publicIp")
-        if not ip_address:
-            raise KeyError("publicIpAddress")
-        return ip_address
-    except (CommandError, json.JSONDecodeError, KeyError):  # pragma: no cover - runtime safety
-        # Fall back to text parsing for older pcluster CLI versions.
-        result = run_command(
-            [
-                "pcluster",
-                "describe-cluster",
-                "--region",
-                region,
-                "--cluster-name",
-                cluster_name,
-            ],
-            capture_output=True,
-            env=env,
-        )
-        for line in (result.stdout or "").splitlines():
-            if "publicIpAddress" in line or "publicIp" in line:
-                parts = line.replace("\"", "").replace(",", "").split(":", 1)
-                if len(parts) == 2 and parts[1].strip():
-                    return parts[1].strip()
-        raise CommandError(
-            "Unable to determine head node IP address from ParallelCluster output."
-        )
-
-
-def scp_to_remote(pem: str, host: str, local_path: str, remote_path: str) -> None:
-    run_command(
-        [
-            "scp",
-            "-i",
-            pem,
-            *SSH_OPTIONS,
-            local_path,
-            f"ubuntu@{host}:{remote_path}",
-        ]
-    )
-
-
-def scp_from_remote(pem: str, host: str, remote_path: str, local_path: str) -> None:
-    run_command(
-        [
-            "scp",
-            "-i",
-            pem,
-            *SSH_OPTIONS,
-            f"ubuntu@{host}:{remote_path}",
-            local_path,
-        ]
-    )
-
-
-def run_remote_script(pem: str, host: str, script: str) -> subprocess.CompletedProcess:
-    remote_cmd = f"bash -lc {shlex.quote(script)}"
-    return run_command(
-        [
-            "ssh",
-            "-i",
-            pem,
-            *SSH_OPTIONS,
-            f"ubuntu@{host}",
-            remote_cmd,
-        ],
-        capture_output=True,
-    )
-
-
-def parse_remote_config(stdout: str) -> RemoteConfig:
-    stage_dir = samples_path = units_path = None
-    for line in stdout.splitlines():
-        if line.startswith("__DAYLILY_STAGE_DIR__="):
-            stage_dir = line.split("=", 1)[1].strip()
-        elif line.startswith("__DAYLILY_STAGE_SAMPLES__="):
-            samples_path = line.split("=", 1)[1].strip()
-        elif line.startswith("__DAYLILY_STAGE_UNITS__="):
-            units_path = line.split("=", 1)[1].strip()
-        elif line.startswith("__DAYLILY_ERROR__="):
-            code = line.split("=", 1)[1]
-            raise CommandError(f"Remote staging failed: {code}")
-    if not (stage_dir and samples_path and units_path):
-        raise CommandError(
-            "Remote staging completed but config file locations were not reported."
-        )
-    return RemoteConfig(stage_dir=stage_dir, samples_path=samples_path, units_path=units_path)
-
-
-def build_arg_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Stage analysis samples from the local machine on the head node.",
-    )
-    parser.add_argument("analysis_samples", help="Path to analysis_samples.tsv")
-    parser.add_argument(
-        "--stage-target",
-        default="/fsx/staged_sample_data",
-        help="Remote staging directory on the head node (default: %(default)s)",
-    )
-    parser.add_argument(
-        "--region",
-        help="AWS region that hosts the cluster. Defaults to AWS_REGION/AWS_DEFAULT_REGION or prompts.",
-    )
-    parser.add_argument(
-        "--profile",
-        default=os.environ.get("AWS_PROFILE"),
-        help="AWS CLI profile to use (default: $AWS_PROFILE)",
-    )
-    parser.add_argument("--cluster", help="ParallelCluster name. Prompted if omitted.")
-    parser.add_argument(
-        "--pem",
-        help="Path to the SSH PEM key for the head node. Prompted if omitted.",
-    )
-    parser.add_argument(
-        "--remote-repo",
-        default="~/projects/daylily-ephemeral-cluster",
-        help="Path to the daylily-ephemeral-cluster checkout on the head node.",
-    )
-    parser.add_argument(
-        "--remote-tmp",
-        default="/tmp",
-        help="Directory on the head node for uploading the TSV (default: %(default)s)",
-    )
-    parser.add_argument(
-        "--config-dir",
-        help="Local directory where samples.tsv and units.tsv should be downloaded. Defaults to the TSV directory.",
-    )
-    parser.add_argument(
-        "--no-download",
-        action="store_true",
-        help="Skip downloading config files back to the local machine.",
-    )
-    parser.add_argument(
-        "--debug",
-        action="store_true",
-        help="Enable verbose command logging.",
-    )
-    return parser
-
-
-def main(argv: Optional[List[str]] = None) -> int:
-    parser = build_arg_parser()
-    args = parser.parse_args(argv)
-
-    if args.debug:
-        os.environ["PYTHONWARNINGS"] = "default"
-
-    if not os.path.exists(args.analysis_samples):
-        raise CommandError(
-            f"Analysis samples TSV not found: {args.analysis_samples}"
-        )
-
-    aws_profile = args.profile
-    if not aws_profile:
-        raise CommandError(
-            "AWS profile is required. Set AWS_PROFILE or pass --profile."
-        )
-
-    region = args.region or resolve_region(aws_profile)
-    cluster_name = args.cluster or resolve_cluster(aws_profile, region)
-    pem_file = resolve_pem_file(args.pem)
-
-    headnode_ip = fetch_headnode_ip(aws_profile, region, cluster_name)
-
-    if args.debug:
-        print(f"Resolved head node IP: {headnode_ip}")
-
-    local_tsv = os.path.abspath(args.analysis_samples)
-    remote_tmp = normalize_remote_path(args.remote_tmp.rstrip("/"))
-    remote_basename = Path(local_tsv).name
-    remote_tsv = f"{remote_tmp}/{remote_basename}.{os.getpid()}"
-
-    # Ensure the remote temporary directory exists before upload.
-    run_remote_script(
-        pem_file,
-        headnode_ip,
-        f"mkdir -p {shlex.quote(remote_tmp)}",
-    )
-
-    scp_to_remote(pem_file, headnode_ip, local_tsv, remote_tsv)
-
-    remote_repo = normalize_remote_path(args.remote_repo)
-    stage_target = normalize_remote_path(args.stage_target.rstrip("/"))
-
-    remote_script = f"""
-set -euo pipefail
-REMOTE_REPO={shlex.quote(remote_repo)}
-REMOTE_TSV={shlex.quote(remote_tsv)}
-STAGE_TARGET={shlex.quote(stage_target)}
-if [[ ! -d "$REMOTE_REPO" ]]; then
-  echo "__DAYLILY_ERROR__=missing_repo"
-  exit 2
-fi
-cd "$REMOTE_REPO"
-./bin/daylily-stage-analysis-samples-headnode "$REMOTE_TSV" "$STAGE_TARGET"
-latest_dir=$(ls -1dt "$STAGE_TARGET"/*/ 2>/dev/null | head -n 1)
-if [[ -z "$latest_dir" ]]; then
-  echo "__DAYLILY_ERROR__=no_stage_dir"
-  exit 5
-fi
-samples_file=$(ls -1 "$latest_dir"/*_samples.tsv 2>/dev/null | head -n 1)
-units_file=$(ls -1 "$latest_dir"/*_units.tsv 2>/dev/null | head -n 1)
-if [[ -z "$samples_file" || -z "$units_file" ]]; then
-  echo "__DAYLILY_ERROR__=missing_config"
-  exit 6
-fi
-echo "__DAYLILY_STAGE_DIR__=$latest_dir"
-echo "__DAYLILY_STAGE_SAMPLES__=$samples_file"
-echo "__DAYLILY_STAGE_UNITS__=$units_file"
-"""
-
-    try:
-        result = run_remote_script(pem_file, headnode_ip, remote_script)
-    finally:
-        # Clean up the uploaded TSV regardless of success or failure.
-        run_remote_script(
-            pem_file,
-            headnode_ip,
-            f"rm -f {shlex.quote(remote_tsv)}",
-        )
-
-    if result.stdout:
-        print(result.stdout, end="")
-    if result.stderr:
-        print(result.stderr, file=sys.stderr, end="")
-
-    remote_cfg = parse_remote_config(result.stdout)
-
-    if not args.no_download:
-        if args.config_dir:
-            local_config_dir = os.path.abspath(os.path.expanduser(args.config_dir))
+        if src.startswith("s3://"):
+            check_s3_path(src, aws_env=aws_env, debug=debug)
         else:
-            local_config_dir = str(Path(local_tsv).parent)
-        Path(local_config_dir).mkdir(parents=True, exist_ok=True)
+            check_local_path(os.path.expanduser(src))
 
-        local_samples = os.path.join(local_config_dir, "samples.tsv")
-        local_units = os.path.join(local_config_dir, "units.tsv")
-        scp_from_remote(pem_file, headnode_ip, remote_cfg.samples_path, local_samples)
-        scp_from_remote(pem_file, headnode_ip, remote_cfg.units_path, local_units)
-        print("Downloaded config files:")
-        print(f"  samples.tsv -> {local_samples}")
-        print(f"  units.tsv   -> {local_units}")
+
+def ensure_remote_stage_writable(stage: StagePaths, *, aws_env: Dict[str, str], debug: bool) -> None:
+    with tempfile.NamedTemporaryFile("w", delete=False) as handle:
+        handle.write("daylily staging write test\n")
+        handle.flush()
+        temp_path = handle.name
+    dest = f"{stage.remote_s3_stage}/_write_test.txt"
+    try:
+        aws_command(["s3", "cp", temp_path, dest], aws_env=aws_env, debug=debug)
+    finally:
+        os.unlink(temp_path)
+    aws_command(["s3", "rm", dest], aws_env=aws_env, debug=debug)
+
+
+def safe_int(value: str, default: int = 0) -> int:
+    try:
+        return int(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def determine_sex(n_x: int, n_y: int) -> str:
+    if n_x == 2 and n_y == 0:
+        return "female"
+    if n_x == 1 and n_y == 1:
+        return "male"
+    return "na"
+
+
+def get_entry_value(entry: Dict[str, str], field: str, default: str = "") -> str:
+    return (entry.get(field, default) or default).strip()
+
+
+def normalise_identifier(value: str) -> str:
+    return value.replace("_", "-")
+
+
+def aws_copy(
+    source: str,
+    destination: str,
+    *,
+    aws_env: Dict[str, str],
+    debug: bool,
+    recursive: bool = False,
+) -> None:
+    args = ["s3", "cp", source, destination]
+    if recursive:
+        args.append("--recursive")
+    aws_command(args, aws_env=aws_env, debug=debug)
+
+
+def copy_to_local_temp(
+    source: str,
+    *,
+    temp_dir: Path,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> Path:
+    target = temp_dir / Path(source).name
+    if source.startswith("s3://"):
+        aws_copy(source, str(target), aws_env=aws_env, debug=debug)
     else:
-        print("Skipping download of config tables (--no-download supplied).")
+        shutil.copy2(os.path.expanduser(source), target)
+    return target
+
+
+def merge_fastqs(sources: Sequence[Path], destination: Path) -> None:
+    with destination.open("wb") as out_handle:
+        for source in sources:
+            with source.open("rb") as in_handle:
+                shutil.copyfileobj(in_handle, out_handle)
+
+
+def stage_concordance(
+    source: str,
+    dest_fsx: str,
+    dest_s3: str,
+    *,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> str:
+    if source.lower() == "na" or source.startswith("/fsx/data"):
+        return source
+    if source.startswith("s3://"):
+        aws_copy(source, dest_s3, aws_env=aws_env, debug=debug, recursive=True)
+    else:
+        expanded = os.path.expanduser(source)
+        if os.path.isdir(expanded):
+            aws_copy(expanded, dest_s3, aws_env=aws_env, debug=debug, recursive=True)
+        else:
+            aws_copy(expanded, dest_s3, aws_env=aws_env, debug=debug)
+    return dest_fsx
+
+
+def stage_single_lane(
+    r1: str,
+    r2: str,
+    dest_fsx_dir: str,
+    dest_s3_dir: str,
+    *,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> Tuple[str, str]:
+    r1_name = os.path.basename(r1)
+    r2_name = os.path.basename(r2)
+    remote_r1_fsx = f"{dest_fsx_dir}/{r1_name}"
+    remote_r2_fsx = f"{dest_fsx_dir}/{r2_name}"
+    remote_r1_s3 = f"{dest_s3_dir}/{r1_name}"
+    remote_r2_s3 = f"{dest_s3_dir}/{r2_name}"
+    aws_copy(r1, remote_r1_s3, aws_env=aws_env, debug=debug)
+    aws_copy(r2, remote_r2_s3, aws_env=aws_env, debug=debug)
+    return remote_r1_fsx, remote_r2_fsx
+
+
+def stage_multi_lane(
+    r1_files: Sequence[str],
+    r2_files: Sequence[str],
+    sample_prefix: str,
+    dest_fsx_dir: str,
+    dest_s3_dir: str,
+    *,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> Tuple[str, str]:
+    with tempfile.TemporaryDirectory(prefix=f"daylily-{sample_prefix}-") as temp_root:
+        temp_dir = Path(temp_root)
+        local_r1_parts = []
+        local_r2_parts = []
+        for idx, (r1, r2) in enumerate(zip(r1_files, r2_files)):
+            local_r1 = copy_to_local_temp(r1, temp_dir=temp_dir, aws_env=aws_env, debug=debug)
+            local_r2 = copy_to_local_temp(r2, temp_dir=temp_dir, aws_env=aws_env, debug=debug)
+            local_r1_parts.append(local_r1)
+            local_r2_parts.append(local_r2)
+
+        merged_r1 = temp_dir / f"{sample_prefix}_merged_R1.fastq.gz"
+        merged_r2 = temp_dir / f"{sample_prefix}_merged_R2.fastq.gz"
+        merge_fastqs(local_r1_parts, merged_r1)
+        merge_fastqs(local_r2_parts, merged_r2)
+
+        remote_r1_s3 = f"{dest_s3_dir}/{merged_r1.name}"
+        remote_r2_s3 = f"{dest_s3_dir}/{merged_r2.name}"
+        aws_copy(str(merged_r1), remote_r1_s3, aws_env=aws_env, debug=debug)
+        aws_copy(str(merged_r2), remote_r2_s3, aws_env=aws_env, debug=debug)
+
+    remote_r1_fsx = f"{dest_fsx_dir}/{merged_r1.name}"
+    remote_r2_fsx = f"{dest_fsx_dir}/{merged_r2.name}"
+    return remote_r1_fsx, remote_r2_fsx
+
+
+def write_tsv(path: Path, header: Sequence[str], rows: Sequence[Dict[str, str]]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=header, delimiter="\t")
+        writer.writeheader()
+        writer.writerows(rows)
+
+
+def process_samples(
+    analysis_samples: Path,
+    stage: StagePaths,
+    *,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> Tuple[List[Dict[str, str]], List[Dict[str, str]], List[str], List[str]]:
+    with analysis_samples.open(newline="") as ff:
+        reader = csv.DictReader(ff, delimiter="\t")
+        if reader.fieldnames is None:
+            raise CommandError("Input TSV is missing a header row")
+        missing = [field for field in KEY_FIELDS + [LANE, SEQBC_ID, R1_FQ, R2_FQ] if field not in reader.fieldnames]
+        if missing:
+            raise CommandError(f"Missing required columns: {', '.join(missing)}")
+
+        grouped: Dict[Tuple[str, ...], List[Dict[str, str]]] = defaultdict(list)
+        sources_to_validate: List[str] = []
+        for row in reader:
+            if not row:
+                continue
+            normalized = {k: (v or "").strip() for k, v in row.items() if k}
+            if not any(normalized.values()):
+                continue
+            grouped[tuple(normalized[field] for field in KEY_FIELDS)].append(normalized)
+            sources_to_validate.extend(
+                [
+                    normalized.get(R1_FQ, ""),
+                    normalized.get(R2_FQ, ""),
+                    normalized.get(PATH_TO_CONCORDANCE, ""),
+                ]
+            )
+
+    validate_sources(sources_to_validate, aws_env=aws_env, debug=debug)
+
+    samples_rows: Dict[str, Dict[str, str]] = {}
+    sampleid_to_entry: Dict[str, Tuple[str, Dict[str, str]]] = {}
+    units_rows: List[Dict[str, str]] = []
+    created_files: List[str] = []
+    run_ids: set[str] = set()
+
+    for key, entries in grouped.items():
+        first = entries[0]
+        ruid = normalise_identifier(key[0])
+        sampleid = normalise_identifier(key[1])
+        experiment_id = normalise_identifier(key[2])
+        sample_type = normalise_identifier(key[3])
+        libprep = normalise_identifier(key[4])
+        vendor_value = normalise_identifier(key[5])
+        vendor = vendor_value.upper()
+        seq_platform = normalise_identifier(key[6])
+        lane = normalise_identifier(first[LANE])
+        seqbc = normalise_identifier(first[SEQBC_ID])
+
+        composite_sample_id = f"{sampleid}-{seq_platform}-{libprep}-{sample_type}-{experiment_id}"
+        sample_name = f"{ruid}_{composite_sample_id}"
+        sample_prefix = f"{ruid}_{composite_sample_id}_{seqbc}_0"
+        dest_fsx_dir = f"{stage.remote_fsx_stage}/{sample_prefix}"
+        dest_s3_dir = f"{stage.remote_s3_stage}/{sample_prefix}"
+
+        subsample_pct = validate_subsample_pct(get_entry_value(first, SUBSAMPLE_PCT, "na"))
+
+        is_multi_lane = len(entries) > 1
+        if is_multi_lane and lane == "0":
+            raise CommandError(
+                f"Invalid LANE=0 for multi-lane sample: {sample_name}"
+            )
+
+        if is_multi_lane:
+            r1_files = [get_entry_value(entry, R1_FQ) for entry in entries]
+            r2_files = [get_entry_value(entry, R2_FQ) for entry in entries]
+            remote_r1, remote_r2 = stage_multi_lane(
+                r1_files,
+                r2_files,
+                sample_prefix,
+                dest_fsx_dir,
+                dest_s3_dir,
+                aws_env=aws_env,
+                debug=debug,
+            )
+            lane_id = "0"
+        else:
+            r1 = get_entry_value(first, R1_FQ)
+            r2 = get_entry_value(first, R2_FQ)
+            remote_r1, remote_r2 = stage_single_lane(
+                r1,
+                r2,
+                dest_fsx_dir,
+                dest_s3_dir,
+                aws_env=aws_env,
+                debug=debug,
+            )
+            lane_id = lane
+
+        created_files.extend([remote_r1, remote_r2])
+
+        concordance_source = get_entry_value(first, PATH_TO_CONCORDANCE, "na")
+        concordance_fsx = dest_fsx_dir + "/concordance_data"
+        concordance_s3 = dest_s3_dir + "/concordance_data"
+        concordance_path = stage_concordance(
+            concordance_source,
+            concordance_fsx,
+            concordance_s3,
+            aws_env=aws_env,
+            debug=debug,
+        )
+        if concordance_path.startswith(stage.remote_fsx_root):
+            created_files.append(concordance_path)
+
+        units_row = {column: "" for column in UNITS_HEADER}
+        units_row.update(
+            {
+                "RUNID": ruid,
+                "SAMPLEID": sampleid,
+                "EXPERIMENTID": experiment_id,
+                "LANEID": lane_id,
+                "BARCODEID": seqbc,
+                "LIBPREP": libprep,
+                "SEQ_VENDOR": vendor,
+                "SEQ_PLATFORM": seq_platform,
+                "SUBSAMPLE_PCT": subsample_pct,
+            }
+        )
+
+        is_pos_ctrl = get_entry_value(first, IS_POS_CTRL).lower() == "true"
+        units_row["SAMPLEUSE"] = get_entry_value(first, "SAMPLEUSE") or ("posControl" if is_pos_ctrl else "sample")
+        units_row["BWA_KMER"] = get_entry_value(first, "BWA_KMER") or "19"
+
+        if vendor == "ILMN":
+            units_row["ILMN_R1_PATH"] = remote_r1
+            units_row["ILMN_R2_PATH"] = remote_r2
+        elif vendor == "ONT":
+            units_row["ONT_R1_PATH"] = remote_r1
+            units_row["ONT_R2_PATH"] = remote_r2
+        elif vendor == "PACBIO":
+            units_row["PACBIO_R1_PATH"] = remote_r1
+            units_row["PACBIO_R2_PATH"] = remote_r2
+        elif vendor == "UG":
+            units_row["UG_R1_PATH"] = remote_r1
+            units_row["UG_R2_PATH"] = remote_r2
+
+        for field in set(first.keys()).intersection(UNITS_HEADER):
+            if field in DERIVED_UNITS_FIELDS:
+                continue
+            value = get_entry_value(first, field)
+            if value:
+                units_row[field] = value
+
+        units_rows.append(units_row)
+
+        sex = determine_sex(
+            safe_int(get_entry_value(first, N_X)),
+            safe_int(get_entry_value(first, N_Y)),
+        )
+        samples_row = {
+            "SAMPLEID": sampleid,
+            "SAMPLESOURCE": sample_type,
+            "SAMPLECLASS": "research",
+            "BIOLOGICAL_SEX": sex,
+            "CONCORDANCE_CONTROL_PATH": concordance_path,
+            "IS_POSITIVE_CONTROL": get_entry_value(first, IS_POS_CTRL),
+            "IS_NEGATIVE_CONTROL": get_entry_value(first, IS_NEG_CTRL),
+            "SAMPLE_TYPE": sample_type,
+            "TUM_NRM_SAMPLEID_MATCH": "na",
+            "EXTERNAL_SAMPLE_ID": get_entry_value(first, EXTERNAL_SAMPLE_ID) or "na",
+            "N_X": get_entry_value(first, N_X),
+            "N_Y": get_entry_value(first, N_Y),
+            "TRUTH_DATA_DIR": concordance_path,
+        }
+
+        existing = samples_rows.get(sample_name)
+        if existing and existing != samples_row:
+            raise CommandError(
+                f"Conflicting metadata for sample {sample_name}."
+            )
+        sampleid_entry = sampleid_to_entry.get(sampleid)
+        if sampleid_entry and sampleid_entry[1] != samples_row:
+            raise CommandError(
+                f"Duplicate SAMPLEID with conflicting metadata: {sampleid}"
+            )
+        samples_rows[sample_name] = samples_row
+        sampleid_to_entry[sampleid] = (sample_name, samples_row)
+
+        run_ids.add(ruid)
+
+    sorted_samples = [samples_rows[name] for name in sorted(samples_rows.keys())]
+    return sorted_samples, units_rows, sorted(created_files), sorted(run_ids)
+
+
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    args = parse_args(argv)
+    analysis_samples = Path(args.analysis_samples).expanduser().resolve()
+    if not analysis_samples.exists():
+        raise CommandError(f"Analysis samples TSV not found: {analysis_samples}")
+
+    aws_config = AwsConfig(profile=ensure_profile(args.profile), region=args.region)
+    aws_env = build_aws_env(aws_config)
+
+    stage = build_stage_paths(args.stage_target, args.reference_bucket)
+    ensure_remote_stage_writable(stage, aws_env=aws_env, debug=args.debug)
+
+    samples_rows, units_rows, created_files, run_ids = process_samples(
+        analysis_samples,
+        stage,
+        aws_env=aws_env,
+        debug=args.debug,
+    )
+
+    if len(run_ids) == 1:
+        run_id_for_filename = run_ids[0]
+    elif run_ids:
+        run_id_for_filename = "multi_run"
+    else:
+        run_id_for_filename = "no_run_id"
+
+    timestamp = stage.remote_stage_name.replace("remote_stage_", "")
+    samples_filename = f"{run_id_for_filename}_{timestamp}_samples.tsv"
+    units_filename = f"{run_id_for_filename}_{timestamp}_units.tsv"
+
+    if args.config_dir:
+        config_dir = Path(args.config_dir).expanduser()
+    else:
+        config_dir = analysis_samples.parent
+
+    samples_path = config_dir / samples_filename
+    units_path = config_dir / units_filename
+    write_tsv(samples_path, SAMPLES_HEADER, samples_rows)
+    write_tsv(units_path, UNITS_HEADER, units_rows)
 
     print("Remote staging completed successfully.")
-    print(f"Latest staging directory: {remote_cfg.stage_dir}")
+    print(f"Remote FSx stage directory: {stage.remote_fsx_stage}")
+    print(f"Staged files ({len(created_files)}):")
+    for path in created_files:
+        print(f"  {path}")
+    print("Generated configuration files:")
+    print(f"  samples.tsv -> {samples_path}")
+    print(f"  units.tsv   -> {units_path}")
     return 0
 
 
