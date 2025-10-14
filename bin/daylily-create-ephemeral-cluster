@@ -2059,23 +2059,7 @@ if [[ "${CONFIG_ACTIONS[enable_detailed_monitoring]}" == "USESETVALUE" ]]; then
   esac
 else
   auto_val="$(get_action_set_or_empty "enable_detailed_monitoring")"
-fi
-
-if [[ -n "$auto_val" ]]; then
-  act_detailed_monitoring="$auto_val"
-elif [[ -n "$enable_detailed_monitoring" ]]; then
-  # optional: honor pre-exported shell var if you want
-  act_detailed_monitoring="$enable_detailed_monitoring"
-else
-  default="$(get_effective_default "enable_detailed_monitoring" "false")"  # "true"/"false"
-  echo "Enable detailed monitoring (adds cost)? (1) No (2) Yes) [default=${default}]"
-  echo "1) No (default)"; echo "2) Yes"
-  read -r -p "Select option [1]: " sel
-  case "${sel:-1}" in
-    1|n|N) act_detailed_monitoring="false" ;;
-    2|y|Y) act_detailed_monitoring="true" ;;
-    *)     act_detailed_monitoring="$default" ;;
-  esac
+  act_detailed_monitoring="${auto_val:-false}"
 fi
 
 # Guardrail
