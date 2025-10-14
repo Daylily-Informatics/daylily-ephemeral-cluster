@@ -2038,34 +2038,36 @@ set_final_config_value "fsx_fs_size" "$sel_fsx_size"
 echo "✅ FSX Lustre File System Size: $sel_fsx_size"
 echo ""
 
-# Enable detailed monitoring
-act_detailed_monitoring="$CONFIG_ENABLE_DETAILED_MONITORING"
-if [[ "$act_detailed_monitoring" != "true" && "$act_detailed_monitoring" != "false" ]]; then
-    default_dm=$(get_effective_default "enable_detailed_monitoring" "false")
-    echo "Enable detailed monitoring (adds cost)? (1) No (2) Yes) [default=${default_dm}]"
-    echo "1) No (default)"
-    echo "2) Yes"
-    while true; do
-        read -r -p "Select option [1]: " detailed_monitoring_choice
-        detailed_monitoring_choice=${detailed_monitoring_choice:-1}
-        case "$detailed_monitoring_choice" in
-            1)
-                act_detailed_monitoring="false"
-                break
-                ;;
-            2)
-                act_detailed_monitoring="true"
-                break
-                ;;
-            *)
-                echo "Please enter 1 or 2."
-                ;;
-        esac
-    done
+
+# Resolve value (config -> env var -> prompt), then persist once
+auto_val="$(get_action_set_or_empty "enable_detailed_monitoring")"   # "" or "true"/"false"
+if [[ -n "$auto_val" ]]; then
+  act_detailed_monitoring="$auto_val"
+elif [[ -n "$enable_detailed_monitoring" ]]; then
+  # optional: honor pre-exported shell var if you want
+  act_detailed_monitoring="$enable_detailed_monitoring"
+else
+  default="$(get_effective_default "enable_detailed_monitoring" "false")"  # "true"/"false"
+  echo "Enable detailed monitoring (adds cost)? (1) No (2) Yes) [default=${default}]"
+  echo "1) No (default)"; echo "2) Yes"
+  read -r -p "Select option [1]: " sel
+  case "${sel:-1}" in
+    1|n|N) act_detailed_monitoring="false" ;;
+    2|y|Y) act_detailed_monitoring="true" ;;
+    *)     act_detailed_monitoring="$default" ;;
+  esac
 fi
+
+# Guardrail
+if [[ "$act_detailed_monitoring" != "true" && "$act_detailed_monitoring" != "false" ]]; then
+  echo "fatal: enable_detailed_monitoring must be 'true' or 'false', got: '$act_detailed_monitoring'" >&2
+  exit 2
+fi
+
+# Persist exactly once, then log
 set_final_config_value "enable_detailed_monitoring" "$act_detailed_monitoring"
-echo "✅ Detailed monitoring enabled?: $act_detailed_monitoring"
-echo ""
+printf '✅ Detailed monitoring %s\n\n' "$([[ "$act_detailed_monitoring" == "true" ]] && echo "ENABLED" || echo "DISABLED")"
+
 
 # Prepare configuration
 mkdir -p "$HOME/.config/daylily"
