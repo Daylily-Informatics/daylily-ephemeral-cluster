@@ -694,18 +694,24 @@ write_cli_config_copy() {
     json_tmp=$(mktemp)
 
     for key in "${CONFIG_KEYS[@]}"; do
-        local value="${FINAL_CONFIG_VALUES[$key]}"
-        if [[ -z "${value+x}" ]]; then
-            value=""
-        fi
-        if [[ "$value" == "PROMPTUSER" ]]; then
-            value=""
-        fi
         local action="${CONFIG_ACTIONS[$key]:-PROMPTUSER}"
         if [[ "$action" == "PROMPTUSER" ]]; then
             action="USESETVALUE"
         fi
+
+        local value="${FINAL_CONFIG_VALUES[$key]}"
+        if [[ -z "${value+x}" || "$value" == "PROMPTUSER" || "$value" == "USESETVALUE" ]]; then
+            value="${CONFIG_SETVALS[$key]:-}"
+        fi
+        if [[ "$value" == "PROMPTUSER" || "$value" == "USESETVALUE" ]]; then
+            value=""
+        fi
+
         local default_val="${CONFIG_DEFAULTS[$key]:-}"
+        if [[ "$default_val" == "PROMPTUSER" || "$default_val" == "USESETVALUE" ]]; then
+            default_val=""
+        fi
+
         printf '%s\t%s\t%s\t%s\n' "$key" "$action" "$default_val" "$value" >>"$values_tmp"
     done
 
