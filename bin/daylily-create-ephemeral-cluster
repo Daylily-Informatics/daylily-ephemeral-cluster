@@ -400,6 +400,38 @@ is_auto_select_disabled() {
     [[ "${DAY_DISABLE_AUTO_SELECT:-}" == "1" ]]
 }
 
+normalize_config_component() {
+    local value="$1"
+    if [[ "$value" == "null" || "$value" == "None" ]]; then
+        value=""
+    fi
+    echo "$value"
+}
+
+has_effective_config_set_value() {
+    local setv="$1"
+    [[ -n "$setv" && "$setv" != "PROMPTUSER" ]]
+}
+
+should_auto_apply_config_value() {
+    local action="$1"
+    local setv="$2"
+
+    if is_auto_select_disabled; then
+        return 1
+    fi
+
+    if [[ "$action" == "USESETVALUE" && -n "$setv" ]]; then
+        return 0
+    fi
+
+    if has_effective_config_set_value "$setv"; then
+        return 0
+    fi
+
+    return 1
+}
+
 set_final_config_value() {
     local key="$1"
     local value="$2"
@@ -505,7 +537,7 @@ get_action_set_or_empty() {
   local key="$1"
   local action="${CONFIG_ACTIONS[$key]:-PROMPTUSER}"
   local setv="${CONFIG_SETVALS[$key]:-}"
-  if [[ "$action" == "USESETVALUE" && -n "$setv" && ! is_auto_select_disabled ]]; then
+  if should_auto_apply_config_value "$action" "$setv"; then
     echo "$setv"
   else
     echo ""
@@ -552,6 +584,8 @@ load_config_values() {
         line=$(parse_triplet_for_key "$key")
         action="${line%%$'\t'*}"; line="${line#*$'\t'}"
         def="${line%%$'\t'*}"; setv="${line#*$'\t'}"
+        def="$(normalize_config_component "$def")"
+        setv="$(normalize_config_component "$setv")"
         CONFIG_ACTIONS["$key"]="${action:-PROMPTUSER}"
         CONFIG_DEFAULTS["$key"]="${def:-}"
         CONFIG_SETVALS["$key"]="${setv:-}"
@@ -1371,10 +1405,16 @@ cfg_action_ssh="${CONFIG_ACTIONS["ssh_key_name"]}"
 cfg_default_ssh="${CONFIG_DEFAULTS["ssh_key_name"]}"
 cfg_set_ssh="${CONFIG_SETVALS["ssh_key_name"]}"
 
-if [[ -z "$selected_key" && -n "$cfg_set_ssh" && "$cfg_action_ssh" == "USESETVALUE" && ! is_auto_select_disabled ]]; then
-  if [[ -n "${KEY_PEM_PATH_MAP[$cfg_set_ssh]:-}" ]]; then
-    selected_key="$cfg_set_ssh"
-    echo "✅ Using SSH key from set_value: $selected_key"
+if [[ -z "$selected_key" ]]; then
+  if should_auto_apply_config_value "$cfg_action_ssh" "$cfg_set_ssh"; then
+    if [[ -n "${KEY_PEM_PATH_MAP[$cfg_set_ssh]:-}" ]]; then
+      selected_key="$cfg_set_ssh"
+      if [[ "$cfg_action_ssh" == "USESETVALUE" ]]; then
+        echo "✅ Using SSH key from set_value: $selected_key"
+      else
+        echo "✅ Using SSH key from configuration set_value: $selected_key"
+      fi
+    fi
   fi
 fi
 
@@ -1475,15 +1515,21 @@ cfg_action_s3="${CONFIG_ACTIONS["s3_bucket_name"]}"
 cfg_default_s3="${CONFIG_DEFAULTS["s3_bucket_name"]}"
 cfg_set_s3="${CONFIG_SETVALS["s3_bucket_name"]}"
 
-if [[ -z "$selected_bucket" && -n "$cfg_set_s3" && "$cfg_action_s3" == "USESETVALUE" && ! is_auto_select_disabled ]]; then
-  for entry in "${matching_buckets[@]}"; do
-    current_bucket=$(echo "$entry" | awk '{print $1}')
-    if [[ "$current_bucket" == "$cfg_set_s3" ]]; then
-      selected_bucket="$current_bucket"
-      echo "✅ Using S3 bucket from set_value: $selected_bucket"
-      break
-    fi
-  done
+if [[ -z "$selected_bucket" ]]; then
+  if should_auto_apply_config_value "$cfg_action_s3" "$cfg_set_s3"; then
+    for entry in "${matching_buckets[@]}"; do
+      current_bucket=$(echo "$entry" | awk '{print $1}')
+      if [[ "$current_bucket" == "$cfg_set_s3" ]]; then
+        selected_bucket="$current_bucket"
+        if [[ "$cfg_action_s3" == "USESETVALUE" ]]; then
+          echo "✅ Using S3 bucket from set_value: $selected_bucket"
+        else
+          echo "✅ Using S3 bucket from configuration set_value: $selected_bucket"
+        fi
+        break
+      fi
+    done
+  fi
 fi
 
 if [[ ${#matching_buckets[@]} -eq 1 && -z "$selected_bucket" ]]; then
@@ -1586,14 +1632,20 @@ echo ""
 public_subnet=""
 cfg_action_pub="${CONFIG_ACTIONS["public_subnet_id"]}"
 cfg_set_pub="${CONFIG_SETVALS["public_subnet_id"]}"
-if [[ -z "$public_subnet" && -n "$cfg_set_pub" && "$cfg_action_pub" == "USESETVALUE" && ! is_auto_select_disabled ]]; then
-  for idx in "${!public_subnet_ids[@]}"; do
-    if [[ "${public_subnet_ids[$idx]}" == "$cfg_set_pub" ]]; then
-      public_subnet="$cfg_set_pub"
-      echo "✅ Using public subnet from set_value: $public_subnet"
-      break
-    fi
-  done
+if [[ -z "$public_subnet" ]]; then
+  if should_auto_apply_config_value "$cfg_action_pub" "$cfg_set_pub"; then
+    for idx in "${!public_subnet_ids[@]}"; do
+      if [[ "${public_subnet_ids[$idx]}" == "$cfg_set_pub" ]]; then
+        public_subnet="$cfg_set_pub"
+        if [[ "$cfg_action_pub" == "USESETVALUE" ]]; then
+          echo "✅ Using public subnet from set_value: $public_subnet"
+        else
+          echo "✅ Using public subnet from configuration set_value: $public_subnet"
+        fi
+        break
+      fi
+    done
+  fi
 fi
 
 if [[ ${#public_subnet_choices[@]} -eq 1 && -z "$public_subnet" ]]; then
@@ -1640,14 +1692,20 @@ echo ""
 private_subnet=""
 cfg_action_priv="${CONFIG_ACTIONS["private_subnet_id"]}"
 cfg_set_priv="${CONFIG_SETVALS["private_subnet_id"]}"
-if [[ -n "$cfg_set_priv" && "$cfg_action_priv" == "USESETVALUE" && ! is_auto_select_disabled ]]; then
-  for idx in "${!private_subnet_ids[@]}"; do
-    if [[ "${private_subnet_ids[$idx]}" == "$cfg_set_priv" ]]; then
-      private_subnet="$cfg_set_priv"
-      echo "✅ Using private subnet from set_value: $private_subnet"
-      break
-    fi
-  done
+if [[ -z "$private_subnet" ]]; then
+  if should_auto_apply_config_value "$cfg_action_priv" "$cfg_set_priv"; then
+    for idx in "${!private_subnet_ids[@]}"; do
+      if [[ "${private_subnet_ids[$idx]}" == "$cfg_set_priv" ]]; then
+        private_subnet="$cfg_set_priv"
+        if [[ "$cfg_action_priv" == "USESETVALUE" ]]; then
+          echo "✅ Using private subnet from set_value: $private_subnet"
+        else
+          echo "✅ Using private subnet from configuration set_value: $private_subnet"
+        fi
+        break
+      fi
+    done
+  fi
 fi
 
 if [[ ${#private_subnet_choices[@]} -eq 1 && -z "$private_subnet" ]]; then
@@ -1687,14 +1745,20 @@ echo "Select an IAM policy ARN for 'pclusterTagsAndBudget':"
 arn_policy_id=""
 cfg_action_iam="${CONFIG_ACTIONS["iam_policy_arn"]}"
 cfg_set_iam="${CONFIG_SETVALS["iam_policy_arn"]}"
-if [[ -n "$cfg_set_iam" && "$cfg_action_iam" == "USESETVALUE" && ! is_auto_select_disabled ]]; then
-  for policy in "${policy_arns[@]}"; do
-    if [[ "$policy" == "$cfg_set_iam" ]]; then
-      arn_policy_id="$policy"
-      echo "✅ Using IAM policy ARN from set_value."
-      break
-    fi
-  done
+if [[ -z "$arn_policy_id" ]]; then
+  if should_auto_apply_config_value "$cfg_action_iam" "$cfg_set_iam"; then
+    for policy in "${policy_arns[@]}"; do
+      if [[ "$policy" == "$cfg_set_iam" ]]; then
+        arn_policy_id="$policy"
+        if [[ "$cfg_action_iam" == "USESETVALUE" ]]; then
+          echo "✅ Using IAM policy ARN from set_value."
+        else
+          echo "✅ Using IAM policy ARN from configuration set_value."
+        fi
+        break
+      fi
+    done
+  fi
 fi
 
 if [[ ${#policy_arns[@]} -eq 1 && -z "$arn_policy_id" ]]; then
@@ -1749,10 +1813,16 @@ cluster_name=""
 cfg_action_clu="${CONFIG_ACTIONS["cluster_name"]}"
 cfg_default_clu="$(get_effective_default "cluster_name" "")"
 cfg_set_clu="${CONFIG_SETVALS["cluster_name"]}"
-if [[ "$cfg_action_clu" == "USESETVALUE" && -n "$cfg_set_clu" && ! is_auto_select_disabled ]]; then
-  if validate_cluster_name "$cfg_set_clu"; then
-    cluster_name="$cfg_set_clu"
-    echo "✅ Using cluster name from set_value: $cluster_name"
+if [[ -z "$cluster_name" ]]; then
+  if should_auto_apply_config_value "$cfg_action_clu" "$cfg_set_clu"; then
+    if validate_cluster_name "$cfg_set_clu"; then
+      cluster_name="$cfg_set_clu"
+      if [[ "$cfg_action_clu" == "USESETVALUE" ]]; then
+        echo "✅ Using cluster name from set_value: $cluster_name"
+      else
+        echo "✅ Using cluster name from configuration set_value: $cluster_name"
+      fi
+    fi
   fi
 fi
 
@@ -1777,9 +1847,15 @@ budget_email=""
 cfg_action_bem="${CONFIG_ACTIONS["budget_email"]}"
 cfg_default_bem="$(get_effective_default "budget_email" "")"
 cfg_set_bem="${CONFIG_SETVALS["budget_email"]}"
-if [[ "$cfg_action_bem" == "USESETVALUE" && -n "$cfg_set_bem" && ! is_auto_select_disabled && $(is_valid_email "$cfg_set_bem"; echo $?) -eq 0 ]]; then
-  budget_email="$cfg_set_bem"
-  echo "✅ Using budget email from set_value: $budget_email"
+if [[ -z "$budget_email" ]]; then
+  if should_auto_apply_config_value "$cfg_action_bem" "$cfg_set_bem" && $(is_valid_email "$cfg_set_bem"; echo $?) -eq 0; then
+    budget_email="$cfg_set_bem"
+    if [[ "$cfg_action_bem" == "USESETVALUE" ]]; then
+      echo "✅ Using budget email from set_value: $budget_email"
+    else
+      echo "✅ Using budget email from configuration set_value: $budget_email"
+    fi
+  fi
 fi
 while [[ -z "$budget_email" ]]; do
   if [[ -n "$cfg_default_bem" ]]; then
