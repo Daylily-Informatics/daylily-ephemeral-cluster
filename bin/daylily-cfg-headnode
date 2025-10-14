@@ -9,6 +9,7 @@ aws_profile=$3
 requested_cluster_name=$4
 duser="ubuntu"
 
+dayec_name="daylily-ephemeral-cluster"
 
 CONFIG_FILE="config/daylily_cli_global.yaml"
 
@@ -121,19 +122,20 @@ echo "Building the Daylily container on the head node..."
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null  \
     " $daylily_image_cmd " 
 
-# Clone the daylily-ephemeral-cluster repository to the head node
-echo "Cloning daylily-ephemeral-cluster repository using https to the head node ~/projects"
+# Clone the $dayec_name repository to the head node
+echo "Cloning $dayec_name repository using https to the head node ~/projects"
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \
-    "mkdir -p ~/projects && cd ~/projects &&  git clone -b ${git_ephemeral_cluster_repo_tag} ${git_ephemeral_cluster_repo} daylily-ephemeral-cluster"
+    "mkdir -p ~/projects && cd ~/projects &&  git clone -b ${git_ephemeral_cluster_repo_tag} ${git_ephemeral_cluster_repo} $dayec_name && cd $dayec_name && bin/install_miniconda || echo "failed to install miniconda" && bin/init_dayec || echo "failed to install day-ec" &&
+. dyinit "
 
 # Install shared tooling from the repo (day-clone, config files, etc.)
 echo "Installing head node tooling from the cloned repository..."
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-    "source ~/.bashrc && cd ~/projects/daylily-ephemeral-cluster && ./bin/install-daylily-headnode-tools"
+    "source ~/.bashrc && cd ~/projects/$dayec_name && ./bin/install-daylily-headnode-tools"
 
 echo "Installing Miniconda and initializing the DAY-EC environment on the head node..."
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-    "source ~/.bashrc && cd ~/projects/daylily-ephemeral-cluster && ./bin/install_miniconda && ./bin/init_dayec"
+    "source ~/.bashrc && cd ~/projects/$dayec_name && ./bin/install_miniconda && ./bin/init_dayec"
 
 echo "day-clone is now available on the head node. Use it to clone analysis repositories such as daylily-omics-analysis."
 
@@ -142,7 +144,7 @@ echo "You can now SSH into the head node with the following command:"
 echo "        ssh -i $pem_file ubuntu@$cluster_ip_address"
 echo " "
 echo "Once logged in, as the 'ubuntu' user, run the following commands:"
-echo "  cd ~/projects/daylily-ephemeral-cluster"
+echo "  cd ~/projects/$dayec_name"
 echo "  ./bin/install_miniconda"
 echo "  ./bin/init_dayec"
 echo "  ./bin/day-clone --list"
