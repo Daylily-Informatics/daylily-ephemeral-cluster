@@ -702,6 +702,9 @@ write_cli_config_copy() {
             value=""
         fi
         local action="${CONFIG_ACTIONS[$key]:-PROMPTUSER}"
+        if [[ "$action" == "PROMPTUSER" ]]; then
+            action="USESETVALUE"
+        fi
         local default_val="${CONFIG_DEFAULTS[$key]:-}"
         printf '%s\t%s\t%s\t%s\n' "$key" "$action" "$default_val" "$value" >>"$values_tmp"
     done
@@ -762,6 +765,8 @@ with open(values_path, 'r', encoding='utf-8') as handle:
             continue
         key, action, default_value, set_value = parts
         resolved_action = action or 'PROMPTUSER'
+        if resolved_action == 'PROMPTUSER':
+            resolved_action = 'USESETVALUE'
         resolved_set = convert_value(set_value)
         # Default to the final value when present; otherwise fall back to any
         # existing default from the originating configuration.
