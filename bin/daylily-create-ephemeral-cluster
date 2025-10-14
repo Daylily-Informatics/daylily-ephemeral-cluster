@@ -404,6 +404,10 @@ normalize_config_component() {
     local value="$1"
     if [[ "$value" == "null" || "$value" == "None" ]]; then
         value=""
+    elif [[ "$value" == "True" || "$value" == "TRUE" ]]; then
+        value="true"
+    elif [[ "$value" == "False" || "$value" == "FALSE" ]]; then
+        value="false"
     fi
     echo "$value"
 }
@@ -1848,7 +1852,7 @@ cfg_action_bem="${CONFIG_ACTIONS["budget_email"]}"
 cfg_default_bem="$(get_effective_default "budget_email" "")"
 cfg_set_bem="${CONFIG_SETVALS["budget_email"]}"
 if [[ -z "$budget_email" ]]; then
-  if should_auto_apply_config_value "$cfg_action_bem" "$cfg_set_bem" && $(is_valid_email "$cfg_set_bem"; echo $?) -eq 0; then
+  if should_auto_apply_config_value "$cfg_action_bem" "$cfg_set_bem" && is_valid_email "$cfg_set_bem"; then
     budget_email="$cfg_set_bem"
     if [[ "$cfg_action_bem" == "USESETVALUE" ]]; then
       echo "✅ Using budget email from set_value: $budget_email"
@@ -2105,31 +2109,59 @@ echo ""
 heartbeat_email="${CONFIG_HEARTBEAT_EMAIL:-}"
 heartbeat_schedule=""
 heartbeat_scheduler_role_arn="${CONFIG_HEARTBEAT_SCHEDULER_ROLE_ARN:-}"
+heartbeat_email_from_config=0
 
-if [[ -z "$heartbeat_email" && -n "$budget_email" ]]; then
-    heartbeat_email="$budget_email"
-    echo "ℹ️ Defaulting heartbeat email to budget email: $heartbeat_email"
-fi
-
-if [[ -z "$heartbeat_email" ]]; then
-    read -r -p "Enter an email to receive heartbeat notifications (leave blank to skip): " heartbeat_email
-else
-    read -r -p "Enter an email to receive heartbeat notifications [${heartbeat_email}] (leave blank to keep, type 'skip' to disable): " heartbeat_email_input
-    if [[ -z "$heartbeat_email_input" ]]; then
-        heartbeat_email="$heartbeat_email"
-    elif [[ "$heartbeat_email_input" == "skip" ]]; then
-        heartbeat_email=""
+cfg_action_hb="${CONFIG_ACTIONS["heartbeat_email"]:-PROMPTUSER}"
+cfg_set_hb="${CONFIG_SETVALS["heartbeat_email"]:-}"
+if should_auto_apply_config_value "$cfg_action_hb" "$cfg_set_hb"; then
+    heartbeat_email="$cfg_set_hb"
+    heartbeat_email_from_config=1
+    if [[ -n "$heartbeat_email" ]]; then
+        if [[ "$cfg_action_hb" == "USESETVALUE" ]]; then
+            echo "✅ Using heartbeat email from set_value: $heartbeat_email"
+        else
+            echo "✅ Using heartbeat email from configuration set_value: $heartbeat_email"
+        fi
     else
-        heartbeat_email="$heartbeat_email_input"
+        echo "ℹ️ Heartbeat email disabled via configuration set_value."
     fi
 fi
-if [[ -n "$heartbeat_email" ]]; then
-    while ! is_valid_email "$heartbeat_email"; do
-        echo "Invalid email format."
-        read -r -p "Enter a valid email (or blank to skip): " heartbeat_email
-        [[ -z "$heartbeat_email" ]] && break
-    done
+
+if [[ $heartbeat_email_from_config -eq 0 ]]; then
+    if [[ -z "$heartbeat_email" && -n "$budget_email" ]]; then
+        heartbeat_email="$budget_email"
+        echo "ℹ️ Defaulting heartbeat email to budget email: $heartbeat_email"
+    fi
+
+    if [[ -z "$heartbeat_email" ]]; then
+        read -r -p "Enter an email to receive heartbeat notifications (leave blank to skip): " heartbeat_email
+    else
+        read -r -p "Enter an email to receive heartbeat notifications [${heartbeat_email}] (leave blank to keep, type 'skip' to disable): " heartbeat_email_input
+        if [[ -z "$heartbeat_email_input" ]]; then
+            heartbeat_email="$heartbeat_email"
+        elif [[ "$heartbeat_email_input" == "skip" ]]; then
+            heartbeat_email=""
+        else
+            heartbeat_email="$heartbeat_email_input"
+        fi
+    fi
 fi
+
+if [[ -n "$heartbeat_email" ]]; then
+    if [[ $heartbeat_email_from_config -eq 1 ]]; then
+        if ! is_valid_email "$heartbeat_email"; then
+            echo "❌ Heartbeat email from configuration is not a valid email format: $heartbeat_email"
+            exit 3
+        fi
+    else
+        while ! is_valid_email "$heartbeat_email"; do
+            echo "Invalid email format."
+            read -r -p "Enter a valid email (or blank to skip): " heartbeat_email
+            [[ -z "$heartbeat_email" ]] && break
+        done
+    fi
+fi
+
 if [[ -n "$heartbeat_email" ]]; then
     default_schedule="$(get_effective_default "heartbeat_schedule" "rate(60 minutes)")"
     heartbeat_schedule="${CONFIG_HEARTBEAT_SCHEDULE:-}"
