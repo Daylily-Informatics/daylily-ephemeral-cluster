@@ -300,19 +300,49 @@ def validate_subsample_pct(value: str) -> str:
     return value if 0.0 < pct < 1.0 else "na"
 
 
-def validate_sources(
-    sources: Iterable[str],
+def build_concordance_reference_uri(path: str, reference_bucket: str) -> str:
+    """Translate an FSx concordance path to the backing S3 URI."""
+
+    relative = path[len("/fsx/") :]
+    return f"{reference_bucket.rstrip('/')}/{relative.lstrip('/')}"
+
+
+def check_concordance_path(
+    path: str,
     *,
+    reference_bucket: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> None:
-    for src in sources:
+    if path.startswith("/fsx/"):
+        s3_uri = build_concordance_reference_uri(path, reference_bucket)
+        check_s3_path(s3_uri, aws_env=aws_env, debug=debug)
+    else:
+        check_local_path(os.path.expanduser(path))
+
+
+def validate_sources(
+    sources: Iterable[Tuple[str, bool]],
+    *,
+    reference_bucket: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> None:
+    for src, is_concordance in sources:
         if not src or src.lower() == "na":
             continue
         if src.startswith("s3://"):
             check_s3_path(src, aws_env=aws_env, debug=debug)
-        else:
-            check_local_path(os.path.expanduser(src))
+            continue
+        if is_concordance:
+            check_concordance_path(
+                src,
+                reference_bucket=reference_bucket,
+                aws_env=aws_env,
+                debug=debug,
+            )
+            continue
+        check_local_path(os.path.expanduser(src))
 
 
 def ensure_remote_stage_writable(stage: StagePaths, *, aws_env: Dict[str, str], debug: bool) -> None:
@@ -475,6 +505,7 @@ def process_samples(
     analysis_samples: Path,
     stage: StagePaths,
     *,
+    reference_bucket: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[List[Dict[str, str]], List[Dict[str, str]], List[str], List[str]]:
@@ -487,7 +518,7 @@ def process_samples(
             raise CommandError(f"Missing required columns: {', '.join(missing)}")
 
         grouped: Dict[Tuple[str, ...], List[Dict[str, str]]] = defaultdict(list)
-        sources_to_validate: List[str] = []
+        sources_to_validate: List[Tuple[str, bool]] = []
         for row in reader:
             if not row:
                 continue
@@ -497,13 +528,18 @@ def process_samples(
             grouped[tuple(normalized[field] for field in KEY_FIELDS)].append(normalized)
             sources_to_validate.extend(
                 [
-                    normalized.get(R1_FQ, ""),
-                    normalized.get(R2_FQ, ""),
-                    normalized.get(PATH_TO_CONCORDANCE, ""),
+                    (normalized.get(R1_FQ, ""), False),
+                    (normalized.get(R2_FQ, ""), False),
+                    (normalized.get(PATH_TO_CONCORDANCE, ""), True),
                 ]
             )
 
-    validate_sources(sources_to_validate, aws_env=aws_env, debug=debug)
+    validate_sources(
+        sources_to_validate,
+        reference_bucket=reference_bucket,
+        aws_env=aws_env,
+        debug=debug,
+    )
 
     samples_rows: Dict[str, Dict[str, str]] = {}
     sampleid_to_entry: Dict[str, Tuple[str, Dict[str, str]]] = {}
@@ -674,6 +710,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     samples_rows, units_rows, created_files, run_ids = process_samples(
         analysis_samples,
         stage,
+        reference_bucket=args.reference_bucket,
         aws_env=aws_env,
         debug=args.debug,
     )
