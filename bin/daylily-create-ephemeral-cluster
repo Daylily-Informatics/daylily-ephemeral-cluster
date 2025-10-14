@@ -164,6 +164,11 @@ usage() {
     echo "       --debug                 Print commands as they are executed"
     echo "       --profile  AWS profile to use (defaults to AWS_PROFILE environment variable)"
     echo " .     --config <path>       Path to the daylily-create-ephemeral-cluster config, default: config/daylily_ephemeral_cluster_template.yaml  )"
+    echo " .     --help                  Show this help message and exit"
+    echo " "
+    echo "Environment Variables:"
+    echo "   export DAY_CONTACT_EMAIL="you@email.com" -- will be used for email fields if not set in config."
+    echo "   unset DAY_DISABLE_AUTO_SELECT -- if set to 1, disables auto-selecting config values and always prompts. If not set or set to 0 will use the user specified config.yaml values (as found in the ~/.config/daylily/<clustername>_cli_cfg_<datetime>.yaml, which is created following this script exiting successfully && can be used to re-create teh exact same cluster again)."
 }
 
 validate_config_file() {
