@@ -1375,8 +1375,28 @@ aws iam attach-user-policy \\n  --user-name daylily-service \\n  --policy-arn ar
 export AWS_PROFILE=<daylily-service>
  ```
  
- 
+## STAGING DATA
 
+### From Your Local Machine To The Headnode
+- Must be run from your local machine used to create clusters.
+- Copies files from local paths or accessible s3 buckets to the headnode, and stages them into `/fsx/data/staged_sample_data/<timestamp>/`. Generates `samples.tsv` and `units.tsv` in the staging directory.
+- These files will appear in your S3 bucket as well under /data/staged_sample_data/<timestamp>/.
+- *NOTE* This script does not concatenate lane fastqs like the headnode version of this script.
+```bash
+bin/daylily-stage-samples-from-local-to-headnode --region us-west-2  --profile daylily-service --debug  --reference-bucket  s3://daylily-dayoa-omics-analysis-us-west-2 etc/analysis_samples_template.tsv # replace <BUCKET> with your bucket name
+```
+
+
+### From The Headnode
+- Must be run from the headnode of the cluster.
+- Requires that you run `aws configure --profile <aws_profile>` first to set up aws credentials on the headnode.
+- Copies files from local paths or accessible s3 buckets to the headnode, and stages them into `/fsx/staged_sample_data/<timestamp>/`. Generates `samples.tsv` and `units.tsv` in the staging directory.
+- Lane fastqs are concatenated into combined fastqs if desired.
+- These files are in the /fsx scratch space and will not be saved once the cluster is deleted, be sure to export them back to s3 if you wish to retain them.
+  
+```bash
+bin/daylily-stage-samples-from-headnode --region us-west-2  --profile daylily-service --debug  --reference-bucket  daylily-dayoa-omics-analysis-us-west-2 etc/analysis_samples_template.tsv # replace <BUCKET> with your bucket name
+```
 # [DAY](https://en.wikipedia.org/wiki/Margaret_Oakley_Dayhoff)![](https://placehold.co/60x35/ff03f3/fcf2fb?text=LILLY)
 
 _named in honor of Margaret Oakley Dahoff_ 
