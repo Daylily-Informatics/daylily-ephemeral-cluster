@@ -1,0 +1,445 @@
+#!/usr/bin/env python3
+"""Stage analysis samples on a head node from the local workstation.
+
+This helper mirrors ``bin/daylily-stage-analysis-samples-headnode`` but can be
+invoked from the same laptop (or bastion) that created the ephemeral cluster.
+It uploads the provided ``analysis_samples.tsv`` to the head node, executes the
+standard staging workflow there, and (optionally) downloads the resulting
+``samples.tsv`` and ``units.tsv`` tables back next to the original TSV.
+"""
+
+from __future__ import annotations
+
+import argparse
+import json
+import os
+import shlex
+import subprocess
+import sys
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterable, List, Optional, Tuple
+
+
+SSH_OPTIONS: Tuple[str, ...] = (
+    "-o",
+    "StrictHostKeyChecking=no",
+    "-o",
+    "UserKnownHostsFile=/dev/null",
+)
+
+
+class CommandError(RuntimeError):
+    """Raised when an external command fails."""
+
+
+@dataclass
+class RemoteConfig:
+    stage_dir: str
+    samples_path: str
+    units_path: str
+
+
+def normalize_remote_path(path: str) -> str:
+    """Expand a leading ``~/`` for the remote ubuntu user."""
+
+    if path.startswith("~/"):
+        return path.replace("~/", "/home/ubuntu/", 1)
+    if path == "~":
+        return "/home/ubuntu"
+    return path
+
+
+def run_command(
+    command: Iterable[str],
+    *,
+    capture_output: bool = False,
+    env: Optional[dict] = None,
+    check: bool = True,
+) -> subprocess.CompletedProcess:
+    """Execute *command* and return the completed process."""
+
+    try:
+        result = subprocess.run(  # type: ignore[call-arg]
+            list(command),
+            check=check,
+            capture_output=capture_output,
+            text=True,
+            env=env,
+        )
+    except subprocess.CalledProcessError as exc:  # pragma: no cover - interactive helper
+        stdout = exc.stdout or ""
+        stderr = exc.stderr or ""
+        message = f"Command failed ({exc.returncode}): {' '.join(command)}"
+        if stdout:
+            message += f"\nSTDOUT:\n{stdout.strip()}"
+        if stderr:
+            message += f"\nSTDERR:\n{stderr.strip()}"
+        raise CommandError(message) from exc
+    return result
+def choose_from(prompt: str, options: List[str]) -> str:
+    """Prompt the user to select one value from *options*."""
+
+    if not options:
+        raise CommandError(f"No options available for: {prompt}")
+    if len(options) == 1:
+        return options[0]
+
+    print(f"{prompt}")
+    for idx, value in enumerate(options, start=1):
+        print(f"  {idx}) {value}")
+    while True:
+        try:
+            selection = int(input("Select an option: "))
+        except ValueError:
+            print("Please enter a number.")
+            continue
+        if 1 <= selection <= len(options):
+            return options[selection - 1]
+        print("Selection out of range; try again.")
+
+
+def resolve_region(profile: str) -> str:
+    """Return the AWS region, prompting if necessary."""
+
+    env = {**os.environ, "AWS_PROFILE": profile} if profile else None
+    result = run_command(
+        [
+            "aws",
+            "ec2",
+            "describe-regions",
+            "--output",
+            "json",
+        ],
+        capture_output=True,
+        env=env,
+    )
+    data = json.loads(result.stdout)
+    regions = sorted(entry["RegionName"] for entry in data.get("Regions", []))
+    if not regions:
+        raise CommandError("Unable to retrieve AWS regions. Check your AWS credentials.")
+    default_region = os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
+    if default_region and default_region in regions:
+        return default_region
+    return choose_from("Select AWS region:", regions)
+
+
+def resolve_cluster(profile: str, region: str) -> str:
+    """Select a ParallelCluster cluster."""
+
+    env = {**os.environ, "AWS_PROFILE": profile} if profile else None
+    result = run_command(
+        [
+            "pcluster",
+            "list-clusters",
+            "--region",
+            region,
+            "--output",
+            "json",
+        ],
+        capture_output=True,
+        env=env,
+    )
+    data = json.loads(result.stdout or "{}")
+    clusters = [entry.get("clusterName") for entry in data.get("clusters", [])]
+    clusters = [name for name in clusters if name]
+    if not clusters:
+        raise CommandError(
+            f"No ParallelCluster clusters found in region {region!r}."
+        )
+    return choose_from("Select cluster:", sorted(clusters))
+
+
+def resolve_pem_file(path: Optional[str]) -> str:
+    """Ensure a PEM file is selected."""
+
+    if path:
+        expanded = os.path.expanduser(path)
+        if not os.path.exists(expanded):
+            raise CommandError(f"PEM file not found: {expanded}")
+        return expanded
+
+    pem_candidates = sorted(Path.home().glob(".ssh/*.pem"))
+    if not pem_candidates:
+        raise CommandError(
+            "No PEM files found under ~/.ssh. Provide one with --pem."
+        )
+    selection = choose_from(
+        "Select SSH PEM key:", [str(path) for path in pem_candidates]
+    )
+    return selection
+
+
+def fetch_headnode_ip(profile: str, region: str, cluster_name: str) -> str:
+    """Return the public IP for the cluster head node."""
+
+    env = {**os.environ, "AWS_PROFILE": profile} if profile else None
+    cmd = [
+        "pcluster",
+        "describe-cluster",
+        "--region",
+        region,
+        "--cluster-name",
+        cluster_name,
+        "--output",
+        "json",
+    ]
+    try:
+        result = run_command(cmd, capture_output=True, env=env)
+        payload = json.loads(result.stdout)
+        head_node = payload.get("cluster", {}).get("headNode") or payload.get("headNode", {})
+        ip_address = head_node.get("publicIpAddress") or head_node.get("publicIp")
+        if not ip_address:
+            raise KeyError("publicIpAddress")
+        return ip_address
+    except (CommandError, json.JSONDecodeError, KeyError):  # pragma: no cover - runtime safety
+        # Fall back to text parsing for older pcluster CLI versions.
+        result = run_command(
+            [
+                "pcluster",
+                "describe-cluster",
+                "--region",
+                region,
+                "--cluster-name",
+                cluster_name,
+            ],
+            capture_output=True,
+            env=env,
+        )
+        for line in (result.stdout or "").splitlines():
+            if "publicIpAddress" in line or "publicIp" in line:
+                parts = line.replace("\"", "").replace(",", "").split(":", 1)
+                if len(parts) == 2 and parts[1].strip():
+                    return parts[1].strip()
+        raise CommandError(
+            "Unable to determine head node IP address from ParallelCluster output."
+        )
+
+
+def scp_to_remote(pem: str, host: str, local_path: str, remote_path: str) -> None:
+    run_command(
+        [
+            "scp",
+            "-i",
+            pem,
+            *SSH_OPTIONS,
+            local_path,
+            f"ubuntu@{host}:{remote_path}",
+        ]
+    )
+
+
+def scp_from_remote(pem: str, host: str, remote_path: str, local_path: str) -> None:
+    run_command(
+        [
+            "scp",
+            "-i",
+            pem,
+            *SSH_OPTIONS,
+            f"ubuntu@{host}:{remote_path}",
+            local_path,
+        ]
+    )
+
+
+def run_remote_script(pem: str, host: str, script: str) -> subprocess.CompletedProcess:
+    remote_cmd = f"bash -lc {shlex.quote(script)}"
+    return run_command(
+        [
+            "ssh",
+            "-i",
+            pem,
+            *SSH_OPTIONS,
+            f"ubuntu@{host}",
+            remote_cmd,
+        ],
+        capture_output=True,
+    )
+
+
+def parse_remote_config(stdout: str) -> RemoteConfig:
+    stage_dir = samples_path = units_path = None
+    for line in stdout.splitlines():
+        if line.startswith("__DAYLILY_STAGE_DIR__="):
+            stage_dir = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_STAGE_SAMPLES__="):
+            samples_path = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_STAGE_UNITS__="):
+            units_path = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_ERROR__="):
+            code = line.split("=", 1)[1]
+            raise CommandError(f"Remote staging failed: {code}")
+    if not (stage_dir and samples_path and units_path):
+        raise CommandError(
+            "Remote staging completed but config file locations were not reported."
+        )
+    return RemoteConfig(stage_dir=stage_dir, samples_path=samples_path, units_path=units_path)
+
+
+def build_arg_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Stage analysis samples from the local machine on the head node.",
+    )
+    parser.add_argument("analysis_samples", help="Path to analysis_samples.tsv")
+    parser.add_argument(
+        "--stage-target",
+        default="/fsx/staged_sample_data",
+        help="Remote staging directory on the head node (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--region",
+        help="AWS region that hosts the cluster. Defaults to AWS_REGION/AWS_DEFAULT_REGION or prompts.",
+    )
+    parser.add_argument(
+        "--profile",
+        default=os.environ.get("AWS_PROFILE"),
+        help="AWS CLI profile to use (default: $AWS_PROFILE)",
+    )
+    parser.add_argument("--cluster", help="ParallelCluster name. Prompted if omitted.")
+    parser.add_argument(
+        "--pem",
+        help="Path to the SSH PEM key for the head node. Prompted if omitted.",
+    )
+    parser.add_argument(
+        "--remote-repo",
+        default="~/projects/daylily-ephemeral-cluster",
+        help="Path to the daylily-ephemeral-cluster checkout on the head node.",
+    )
+    parser.add_argument(
+        "--remote-tmp",
+        default="/tmp",
+        help="Directory on the head node for uploading the TSV (default: %(default)s)",
+    )
+    parser.add_argument(
+        "--config-dir",
+        help="Local directory where samples.tsv and units.tsv should be downloaded. Defaults to the TSV directory.",
+    )
+    parser.add_argument(
+        "--no-download",
+        action="store_true",
+        help="Skip downloading config files back to the local machine.",
+    )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Enable verbose command logging.",
+    )
+    return parser
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    parser = build_arg_parser()
+    args = parser.parse_args(argv)
+
+    if args.debug:
+        os.environ["PYTHONWARNINGS"] = "default"
+
+    if not os.path.exists(args.analysis_samples):
+        raise CommandError(
+            f"Analysis samples TSV not found: {args.analysis_samples}"
+        )
+
+    aws_profile = args.profile
+    if not aws_profile:
+        raise CommandError(
+            "AWS profile is required. Set AWS_PROFILE or pass --profile."
+        )
+
+    region = args.region or resolve_region(aws_profile)
+    cluster_name = args.cluster or resolve_cluster(aws_profile, region)
+    pem_file = resolve_pem_file(args.pem)
+
+    headnode_ip = fetch_headnode_ip(aws_profile, region, cluster_name)
+
+    if args.debug:
+        print(f"Resolved head node IP: {headnode_ip}")
+
+    local_tsv = os.path.abspath(args.analysis_samples)
+    remote_tmp = normalize_remote_path(args.remote_tmp.rstrip("/"))
+    remote_basename = Path(local_tsv).name
+    remote_tsv = f"{remote_tmp}/{remote_basename}.{os.getpid()}"
+
+    # Ensure the remote temporary directory exists before upload.
+    run_remote_script(
+        pem_file,
+        headnode_ip,
+        f"mkdir -p {shlex.quote(remote_tmp)}",
+    )
+
+    scp_to_remote(pem_file, headnode_ip, local_tsv, remote_tsv)
+
+    remote_repo = normalize_remote_path(args.remote_repo)
+    stage_target = normalize_remote_path(args.stage_target.rstrip("/"))
+
+    remote_script = f"""
+set -euo pipefail
+REMOTE_REPO={shlex.quote(remote_repo)}
+REMOTE_TSV={shlex.quote(remote_tsv)}
+STAGE_TARGET={shlex.quote(stage_target)}
+if [[ ! -d "$REMOTE_REPO" ]]; then
+  echo "__DAYLILY_ERROR__=missing_repo"
+  exit 2
+fi
+cd "$REMOTE_REPO"
+./bin/daylily-stage-analysis-samples-headnode "$REMOTE_TSV" "$STAGE_TARGET"
+latest_dir=$(ls -1dt "$STAGE_TARGET"/*/ 2>/dev/null | head -n 1)
+if [[ -z "$latest_dir" ]]; then
+  echo "__DAYLILY_ERROR__=no_stage_dir"
+  exit 5
+fi
+samples_file=$(ls -1 "$latest_dir"/*_samples.tsv 2>/dev/null | head -n 1)
+units_file=$(ls -1 "$latest_dir"/*_units.tsv 2>/dev/null | head -n 1)
+if [[ -z "$samples_file" || -z "$units_file" ]]; then
+  echo "__DAYLILY_ERROR__=missing_config"
+  exit 6
+fi
+echo "__DAYLILY_STAGE_DIR__=$latest_dir"
+echo "__DAYLILY_STAGE_SAMPLES__=$samples_file"
+echo "__DAYLILY_STAGE_UNITS__=$units_file"
+"""
+
+    try:
+        result = run_remote_script(pem_file, headnode_ip, remote_script)
+    finally:
+        # Clean up the uploaded TSV regardless of success or failure.
+        run_remote_script(
+            pem_file,
+            headnode_ip,
+            f"rm -f {shlex.quote(remote_tsv)}",
+        )
+
+    if result.stdout:
+        print(result.stdout, end="")
+    if result.stderr:
+        print(result.stderr, file=sys.stderr, end="")
+
+    remote_cfg = parse_remote_config(result.stdout)
+
+    if not args.no_download:
+        if args.config_dir:
+            local_config_dir = os.path.abspath(os.path.expanduser(args.config_dir))
+        else:
+            local_config_dir = str(Path(local_tsv).parent)
+        Path(local_config_dir).mkdir(parents=True, exist_ok=True)
+
+        local_samples = os.path.join(local_config_dir, "samples.tsv")
+        local_units = os.path.join(local_config_dir, "units.tsv")
+        scp_from_remote(pem_file, headnode_ip, remote_cfg.samples_path, local_samples)
+        scp_from_remote(pem_file, headnode_ip, remote_cfg.units_path, local_units)
+        print("Downloaded config files:")
+        print(f"  samples.tsv -> {local_samples}")
+        print(f"  units.tsv   -> {local_units}")
+    else:
+        print("Skipping download of config tables (--no-download supplied).")
+
+    print("Remote staging completed successfully.")
+    print(f"Latest staging directory: {remote_cfg.stage_dir}")
+    return 0
+
+
+if __name__ == "__main__":  # pragma: no cover - manual execution
+    try:
+        raise SystemExit(main())
+    except CommandError as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        raise SystemExit(1)
