@@ -33,4 +33,5 @@ dependencies:
       - colr
       - docopt
       - rich
+      - setuptools_scm
       - daylily-omics-references @ git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.1.14
