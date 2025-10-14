@@ -631,6 +631,35 @@ def write_tsv(path: Path, header: Sequence[str], rows: Sequence[Dict[str, str]])
         writer.writerows(rows)
 
 
+def deduplicate_rows(
+    rows: Sequence[Dict[str, str]], header: Sequence[str]
+) -> List[Dict[str, str]]:
+    """Return rows with duplicate data removed, preserving order."""
+
+    seen: set[Tuple[str, ...]] = set()
+    unique_rows: List[Dict[str, str]] = []
+    for row in rows:
+        key = tuple(row.get(column, "") for column in header)
+        if key in seen:
+            continue
+        seen.add(key)
+        unique_rows.append(row)
+    return unique_rows
+
+
+def normalise_units_paths(rows: Sequence[Dict[str, str]]) -> None:
+    """Ensure FSx paths include the /fsx prefix when required."""
+
+    for row in rows:
+        for field, value in list(row.items()):
+            if not isinstance(value, str):
+                continue
+            if value.startswith("/data/"):
+                row[field] = f"/fsx{value}"
+            elif value == "/data":
+                row[field] = "/fsx/data"
+
+
 def process_samples(
     analysis_samples: Path,
     stage: StagePaths,
@@ -856,7 +885,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     samples_path = config_dir / samples_filename
     units_path = config_dir / units_filename
-    write_tsv(samples_path, SAMPLES_HEADER, samples_rows)
+    unique_samples_rows = deduplicate_rows(samples_rows, SAMPLES_HEADER)
+    normalise_units_paths(units_rows)
+
+    write_tsv(samples_path, SAMPLES_HEADER, unique_samples_rows)
     write_tsv(units_path, UNITS_HEADER, units_rows)
 
     remote_samples_path = f"{stage.remote_s3_stage}/{samples_filename}"
