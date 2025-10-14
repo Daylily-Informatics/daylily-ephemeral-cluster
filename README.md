@@ -993,17 +993,28 @@ The helper defaults to `/fsx/staged_sample_data` and writes `samples.tsv` and `u
 ### Launch Staging From Your Laptop
 
 ```bash
-./bin/daylily-stage-analysis-samples --profile <aws_profile> --region <aws_region> \
+./bin/daylily-stage-samples-from-local-to-headnode --profile <aws_profile> --region <aws_region> \
     --pem ~/.ssh/<your-key>.pem --cluster <cluster-name> /path/to/analysis_samples.tsv
 ```
 
 When values such as the region, cluster name, or PEM file are omitted the script will prompt for them. The workflow is:
 
 1. Upload the TSV to the selected head node.
-2. Run `daylily-analysis-samples-to-manifest-new.py` remotely so data are staged into `/fsx/staged_sample_data/<sample_prefix>/`.
+2. Run `daylily-stage-analysis-samples-headnode` remotely so data are staged into `/fsx/staged_sample_data/<timestamp>/`.
 3. Download `samples.tsv` and `units.tsv` back next to the local TSV (disable with `--no-download`).
 
 This preserves the head node staging behaviour while allowing the process to be initiated during cluster provisioning.
+
+### Clone & Launch the Workflow From Your Laptop
+
+After staging samples you can kick off the default `daylily-omics-analysis` workflow from the same machine that created the cluster:
+
+```bash
+./bin/daylily-run-omics-analysis-headnode --profile <aws_profile> --region <aws_region> \
+    --pem ~/.ssh/<your-key>.pem --cluster <cluster-name>
+```
+
+The helper locates the most recent staging run (or a directory you specify with `--stage-dir`), clones the analysis repository via `day-clone`, copies the generated `config/samples.tsv` and `config/units.tsv`, and launches `dy-r` inside a tmux session on the head node. Attach with `tmux attach -t daylily-omics-analysis` after logging in via SSH to monitor progress. Use options such as `--target`, `--jobs`, or `--dy-command` to tailor the run.
 
 ## Slurm Monitoring
 
