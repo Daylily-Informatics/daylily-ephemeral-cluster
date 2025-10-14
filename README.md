@@ -1,8 +1,8 @@
 # Daylily Ephemeral Cluster
 ## Releases
-> _(stable tagged **beta release**)_  [![Latest release](https://img.shields.io/github/v/release/Daylily-Informatics/daylily-ephemeral-cluster?display_name=tag&sort=latest)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/releases)
+> _(stable tagged **beta release**)_  [![Latest release](https://img.shields.io/github/v/release/Daylily-Informatics/daylily-ephemeral-cluster?display_name=tag&sort=semver)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/releases)
 
-> _(latest **development release**)_ [![Latest tag](https://img.shields.io/github/v/tag/Daylily-Informatics/daylily-ephemeral-cluster?sort=latest)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/tags)
+> _(latest **development release**)_ [![Latest tag](https://img.shields.io/github/v/tag/Daylily-Informatics/daylily-ephemeral-cluster?sort=semver)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/tags)
 
  
 
