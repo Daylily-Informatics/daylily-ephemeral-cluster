@@ -715,16 +715,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         debug=args.debug,
     )
 
-    if len(run_ids) == 1:
-        run_id_for_filename = run_ids[0]
-    elif run_ids:
-        run_id_for_filename = "multi_run"
-    else:
-        run_id_for_filename = "no_run_id"
-
     timestamp = stage.remote_stage_name.replace("remote_stage_", "")
-    samples_filename = f"{run_id_for_filename}_{timestamp}_samples.tsv"
-    units_filename = f"{run_id_for_filename}_{timestamp}_units.tsv"
+    samples_filename = f"{timestamp}_samples.tsv"
+    units_filename = f"{timestamp}_units.tsv"
 
     if args.config_dir:
         config_dir = Path(args.config_dir).expanduser()
@@ -736,14 +729,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     write_tsv(samples_path, SAMPLES_HEADER, samples_rows)
     write_tsv(units_path, UNITS_HEADER, units_rows)
 
+    remote_samples_path = f"{stage.remote_s3_stage}/{samples_filename}"
+    remote_units_path = f"{stage.remote_s3_stage}/{units_filename}"
+
+    aws_copy(str(samples_path), remote_samples_path, aws_env=aws_env, debug=args.debug)
+    aws_copy(str(units_path), remote_units_path, aws_env=aws_env, debug=args.debug)
+
     print("Remote staging completed successfully.")
     print(f"Remote FSx stage directory: {stage.remote_fsx_stage}")
     print(f"Staged files ({len(created_files)}):")
     for path in created_files:
         print(f"  {path}")
     print("Generated configuration files:")
-    print(f"  samples.tsv -> {samples_path}")
-    print(f"  units.tsv   -> {units_path}")
+    print(f"  samples.tsv -> {remote_samples_path}")
+    print(f"  units.tsv   -> {remote_units_path}")
     return 0
 
 
