@@ -13,11 +13,12 @@ from __future__ import annotations
 import argparse
 import csv
 import datetime as dt
+import json
 import os
-import shutil
 import subprocess
 import sys
 import tempfile
+import uuid
 from collections import defaultdict
 from dataclasses import dataclass
 from pathlib import Path
@@ -395,26 +396,140 @@ def aws_copy(
     aws_command(args, aws_env=aws_env, debug=debug)
 
 
-def copy_to_local_temp(
-    source: str,
+def ensure_s3_objects(
+    sources: Sequence[str],
     *,
-    temp_dir: Path,
+    dest_s3_dir: str,
+    sample_prefix: str,
     aws_env: Dict[str, str],
     debug: bool,
-) -> Path:
-    target = temp_dir / Path(source).name
-    if source.startswith("s3://"):
-        aws_copy(source, str(target), aws_env=aws_env, debug=debug)
-    else:
-        shutil.copy2(os.path.expanduser(source), target)
-    return target
+) -> Tuple[List[str], List[str]]:
+    uploaded: List[str] = []
+    resolved: List[str] = []
+    try:
+        for idx, source in enumerate(sources, start=1):
+            if source.startswith("s3://"):
+                resolved.append(source)
+                continue
+            expanded = os.path.expanduser(source)
+            part_name = (
+                f"{sample_prefix}_part{idx}_{uuid.uuid4().hex}_{Path(expanded).name}"
+            )
+            remote = f"{dest_s3_dir}/_parts/{part_name}"
+            aws_copy(expanded, remote, aws_env=aws_env, debug=debug)
+            uploaded.append(remote)
+            resolved.append(remote)
+    except Exception:
+        cleanup_s3_objects(uploaded, aws_env=aws_env, debug=debug)
+        raise
+    return resolved, uploaded
 
 
-def merge_fastqs(sources: Sequence[Path], destination: Path) -> None:
-    with destination.open("wb") as out_handle:
-        for source in sources:
-            with source.open("rb") as in_handle:
-                shutil.copyfileobj(in_handle, out_handle)
+def cleanup_s3_objects(
+    uris: Sequence[str], *, aws_env: Dict[str, str], debug: bool
+) -> None:
+    for uri in uris:
+        try:
+            aws_command(["s3", "rm", uri], aws_env=aws_env, debug=debug)
+        except CommandError:
+            pass
+
+
+def multipart_concatenate(
+    sources: Sequence[str],
+    destination: str,
+    *,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> None:
+    if not sources:
+        raise CommandError("No sources provided for multipart concatenation")
+
+    bucket, key = parse_s3_uri(destination)
+    create = aws_command(
+        ["s3api", "create-multipart-upload", "--bucket", bucket, "--key", key],
+        aws_env=aws_env,
+        debug=debug,
+        capture_output=True,
+    )
+    upload_id = json.loads(create.stdout or "{}").get("UploadId")
+    if not upload_id:
+        raise CommandError(
+            f"Failed to initiate multipart upload for destination {destination}"
+        )
+
+    parts: List[Dict[str, str]] = []
+    try:
+        for idx, source in enumerate(sources, start=1):
+            src_bucket, src_key = parse_s3_uri(source)
+            copy_source = f"{src_bucket}/{src_key}"
+            result = aws_command(
+                [
+                    "s3api",
+                    "upload-part-copy",
+                    "--bucket",
+                    bucket,
+                    "--key",
+                    key,
+                    "--part-number",
+                    str(idx),
+                    "--upload-id",
+                    upload_id,
+                    "--copy-source",
+                    copy_source,
+                ],
+                aws_env=aws_env,
+                debug=debug,
+                capture_output=True,
+            )
+            payload = json.loads(result.stdout or "{}")
+            etag = (
+                payload.get("CopyPartResult", {}).get("ETag")
+                if isinstance(payload, dict)
+                else None
+            )
+            if not etag:
+                raise CommandError(
+                    f"Failed to copy part from {source} during multipart upload"
+                )
+            parts.append({"PartNumber": idx, "ETag": etag})
+
+        complete_body = json.dumps({"Parts": parts})
+        aws_command(
+            [
+                "s3api",
+                "complete-multipart-upload",
+                "--bucket",
+                bucket,
+                "--key",
+                key,
+                "--upload-id",
+                upload_id,
+                "--multipart-upload",
+                complete_body,
+            ],
+            aws_env=aws_env,
+            debug=debug,
+        )
+    except Exception:
+        try:
+            aws_command(
+                [
+                    "s3api",
+                    "abort-multipart-upload",
+                    "--bucket",
+                    bucket,
+                    "--key",
+                    key,
+                    "--upload-id",
+                    upload_id,
+                ],
+                aws_env=aws_env,
+                debug=debug,
+            )
+        except CommandError:
+            pass
+        raise
 
 
 def stage_concordance(
@@ -468,28 +583,43 @@ def stage_multi_lane(
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, str]:
-    with tempfile.TemporaryDirectory(prefix=f"daylily-{sample_prefix}-") as temp_root:
-        temp_dir = Path(temp_root)
-        local_r1_parts = []
-        local_r2_parts = []
-        for idx, (r1, r2) in enumerate(zip(r1_files, r2_files)):
-            local_r1 = copy_to_local_temp(r1, temp_dir=temp_dir, aws_env=aws_env, debug=debug)
-            local_r2 = copy_to_local_temp(r2, temp_dir=temp_dir, aws_env=aws_env, debug=debug)
-            local_r1_parts.append(local_r1)
-            local_r2_parts.append(local_r2)
+    merged_r1_name = f"{sample_prefix}_merged_R1.fastq.gz"
+    merged_r2_name = f"{sample_prefix}_merged_R2.fastq.gz"
+    remote_r1_s3 = f"{dest_s3_dir}/{merged_r1_name}"
+    remote_r2_s3 = f"{dest_s3_dir}/{merged_r2_name}"
 
-        merged_r1 = temp_dir / f"{sample_prefix}_merged_R1.fastq.gz"
-        merged_r2 = temp_dir / f"{sample_prefix}_merged_R2.fastq.gz"
-        merge_fastqs(local_r1_parts, merged_r1)
-        merge_fastqs(local_r2_parts, merged_r2)
+    r1_sources, r1_uploaded = ensure_s3_objects(
+        r1_files,
+        dest_s3_dir=dest_s3_dir,
+        sample_prefix=f"{sample_prefix}_R1",
+        aws_env=aws_env,
+        debug=debug,
+    )
+    try:
+        r2_sources, r2_uploaded = ensure_s3_objects(
+            r2_files,
+            dest_s3_dir=dest_s3_dir,
+            sample_prefix=f"{sample_prefix}_R2",
+            aws_env=aws_env,
+            debug=debug,
+        )
+    except Exception:
+        cleanup_s3_objects(r1_uploaded, aws_env=aws_env, debug=debug)
+        raise
 
-        remote_r1_s3 = f"{dest_s3_dir}/{merged_r1.name}"
-        remote_r2_s3 = f"{dest_s3_dir}/{merged_r2.name}"
-        aws_copy(str(merged_r1), remote_r1_s3, aws_env=aws_env, debug=debug)
-        aws_copy(str(merged_r2), remote_r2_s3, aws_env=aws_env, debug=debug)
+    try:
+        multipart_concatenate(
+            r1_sources, remote_r1_s3, aws_env=aws_env, debug=debug
+        )
+        multipart_concatenate(
+            r2_sources, remote_r2_s3, aws_env=aws_env, debug=debug
+        )
+    finally:
+        cleanup_s3_objects(r1_uploaded, aws_env=aws_env, debug=debug)
+        cleanup_s3_objects(r2_uploaded, aws_env=aws_env, debug=debug)
 
-    remote_r1_fsx = f"{dest_fsx_dir}/{merged_r1.name}"
-    remote_r2_fsx = f"{dest_fsx_dir}/{merged_r2.name}"
+    remote_r1_fsx = f"{dest_fsx_dir}/{merged_r1_name}"
+    remote_r2_fsx = f"{dest_fsx_dir}/{merged_r2_name}"
     return remote_r1_fsx, remote_r2_fsx
 
 
