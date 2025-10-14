@@ -12,7 +12,8 @@ if SCRIPTS_DIR.exists():
 
 setup(
     name="daylily-ephemeral-cluster",
-    version="0.7.361",
+    use_scm_version=True,            # derive from tags
+    setup_requires=["setuptools_scm"],
     packages=find_packages(),
     include_package_data=True,
     scripts=script_files,

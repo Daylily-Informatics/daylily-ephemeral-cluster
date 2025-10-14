@@ -1,0 +1,2 @@
+# Project
+Current version: **{{VERSION}}**

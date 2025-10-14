@@ -9,10 +9,10 @@ aws_profile=$3
 duser="ubuntu"
 
 
-CONFIG_FILE="config/daylily_cli_global.yaml"
+CONFIG_FILE="config/daylily_available_repositories.yaml"
 
-git_tag=$(yq -r '.daylily.git_analysis_repo_tag' "$CONFIG_FILE")
-git_repo=$(yq -r '.daylily.git_analysis_repo' "$CONFIG_FILE")
+git_tag=$(yq -r '.repositories.daylily-omics-analysi.default_ref' "$CONFIG_FILE")
+git_repo=$(yq -r '.repositories.daylily-omics-analysi.https_url' "$CONFIG_FILE")
 
 # Ensure both PEM file and region are provided
 if [[ -z "$pem_file" || -z "$region" || -z "$aws_profile" ]]; then

@@ -32,4 +32,5 @@ dependencies:
     - xmltodict
     - wrapt
     - tabulate
+    - setuptools_scm
     - ruamel.yaml

@@ -73,7 +73,7 @@ install_miniconda() {
     cp config/daylily_cli_global.yaml ~/.config/daylily/daylily_cli_global.yaml
 
     CONFIG_FILE=~/.config/daylily/daylily_cli_global.yaml
-    git_tag=$(yq -r '.daylily.git_tag' "$CONFIG_FILE")
+    git_tag=$(yq -r '.  git_ephemeral_cluster_repo_tag' "$CONFIG_FILE")
     touch ~/.config/daylily/$git_tag
 
     cp bin/day-clone ~/miniconda3/condabin/day-clone || (echo 'Failed to copy day-clone script' && return 1)
