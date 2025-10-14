@@ -2051,6 +2051,16 @@ echo ""
 
 # Resolve value (config -> env var -> prompt), then persist once
 auto_val="$(get_action_set_or_empty "enable_detailed_monitoring")"   # "" or "true"/"false"
+# quick fix: skip prompt if USESETVALUE and not explicitly true
+if [[ "${CONFIG_ACTIONS[enable_detailed_monitoring]}" == "USESETVALUE" ]]; then
+  case "${CONFIG_SETVALS[enable_detailed_monitoring]}" in
+    true|True|TRUE) act_detailed_monitoring="true" ;;
+    *) act_detailed_monitoring="false" ;;
+  esac
+else
+  auto_val="$(get_action_set_or_empty "enable_detailed_monitoring")"
+fi
+
 if [[ -n "$auto_val" ]]; then
   act_detailed_monitoring="$auto_val"
 elif [[ -n "$enable_detailed_monitoring" ]]; then

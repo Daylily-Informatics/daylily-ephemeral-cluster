@@ -1381,6 +1381,8 @@ export AWS_PROFILE=<daylily-service>
 - Must be run from your local machine used to create clusters.
 - Copies files from local paths or accessible s3 buckets to the headnode, and stages them into `/fsx/data/staged_sample_data/<timestamp>/`. Generates `samples.tsv` and `units.tsv` in the staging directory.
 - These files will appear in your S3 bucket as well under /data/staged_sample_data/<timestamp>/.
+  - ... meaning they will appear in any cluster mounting this reference bucket.
+  - The directory with these files should be moved to a non mounted dir in the bucket when not acively being used.
 - *NOTE* This script does not concatenate lane fastqs like the headnode version of this script.
 ```bash
 bin/daylily-stage-samples-from-local-to-headnode --region us-west-2  --profile daylily-service --debug  --reference-bucket  s3://daylily-dayoa-omics-analysis-us-west-2 etc/analysis_samples_template.tsv # replace <BUCKET> with your bucket name
