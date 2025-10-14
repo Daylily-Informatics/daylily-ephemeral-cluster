@@ -1,11 +1,10 @@
 # Daylily Ephemeral Cluster
 ## Releases
-<!-- Stable published release -->
-[![Latest release](https://img.shields.io/github/v/release/Daylily-Informatics/daylily-ephemeral-cluster?display_name=tag&sort=semver)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/releases)
+<!-- latest published release from YAML -->
+[![Latest release](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_release_tag&label=latest%20release&cacheSeconds=300)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/releases)
 
-<!-- Most recent tag by creation date -->
-[![Latest tag](https://img.shields.io/badge/dynamic/json?url=https%3A%2F%2Fapi.github.com%2Frepos%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Ftags%3Fper_page%3D1&query=%24%5B0%5D.name&label=latest%20tag&color=blue&cacheSeconds=300)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/tags)
-
+<!-- most recent tag from YAML -->
+[![Latest tag](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_tag&label=latest%20tag&cacheSeconds=300)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/tags)
 
 
 > Infrastructure-as-code for spinning up ephemeral (transient) **AWS ParallelCluster's** that are tuned for bioinformatics and multi-omics analysis, but can run any slurm based or linux derived worflows. The project assembles the networking, storage, authentication, and head-node tooling required to launch, monitor, and tear down self-scaling Slurm clusters with predictable performance and cost transparency. Workflows themselves live in separate repositories, may be in any framework that supports slurm (snakemake, nextflow, cromwell, etc) and can be plugged in on demand and executed on your ephemeral resources.
