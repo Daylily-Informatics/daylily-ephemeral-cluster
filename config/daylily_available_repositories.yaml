@@ -20,5 +20,5 @@ repositories:
     description: "sarek nf-core analysis workflows."
     https_url: https://github.com/sarek/sarek.git
     ssh_url: git@github.com:iamh2o/sarek/sarek.git
-    default_ref: 0.0.1d
+    default_ref: 0.0.2d
     relative_path: sarek
