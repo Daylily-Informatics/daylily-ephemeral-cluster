@@ -95,10 +95,8 @@ _plugin process under development, please open an issue or PR to add your own re
 **[daylily-omics-analysis : comprehensive WGS analysis](https://github.com/daylily-omics/daylily-omics-analysis)**
 
 **[rna-seq-star-deseq2](https://github.com/Daylily-Informatics/rna-seq-star-deseq2)**
- 
-## In Development
 
-  - **sarek-nf-core** port of `sarek` WGS pipeline _WIP_ [daylily-sarek](https://github.com/iamh2o/sarek).
+**sarek-nf-core** port of `sarek` WGS pipeline [daylily-sarek](https://github.com/iamh2o/sarek).
 
 ## Other
 
