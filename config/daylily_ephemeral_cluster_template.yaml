@@ -28,7 +28,7 @@ ephemeral_cluster:
   template_defaults:
     # keep as you had; these are fallbacks if default_value is empty
     headnode_instance_type: "r7i.2xlarge"
-    fsx_fs_size: "4800"
+    fsx_fs_size: "7200"
     enable_detailed_monitoring: "false"
     delete_local_root: "true"
     auto_delete_fsx: "Delete"

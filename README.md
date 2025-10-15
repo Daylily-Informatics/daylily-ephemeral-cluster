@@ -1352,12 +1352,44 @@ All tools involved in `daylily-ephemeral-cluster` can be managed in such a way t
 
 <p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
 
- 
- 
- # OTHER
 
- ## Cluster Tagged Resources Report
- To create a terminal report of all currently tagged AWS resources with `cluster name`.
+
+ # Super Helpful Stuff
+
+## Cluster Quick Build Approaches
+Assuming you have created a cluster with ``bin/daylily-create-ephemeral-cluster --profile $AWS_PROFILE --region-az <region-az>`, it will leave 3 artifact files in `~/.config/daylily/`:
+
+- `<cluster_name>_cli_cfg_<datetime>.yaml` # used by daylily-create-ephemeral-cluster script
+- `<cluster_name>_template.yaml`
+- `<cluster_name>_cluster.yaml` # used by pcluster and PCUI
+
+### (highly recommended) via `daylily-create-ephemeral-cluster` script
+Using `<cluster_name>_cluster.yaml` 
+
+> You should edit the cluster name in the config file to be unique before re-using it.
+
+```bash
+bin/daylily-create-ephemeral-cluster --profile $AWS_PROFILE --region-az <region-az> --config ~/.config/daylily/<cluster_name>_cli_cfg_<datetime>.yaml
+```
+
+### (less reccomended) via `pcluster` directly with `<cluster_name>_cluster.yaml` 
+
+> !!! This will not create budgets or sns monitoring....
+
+```bash
+pcuster create-cluster -n <cluster_name> --region <region> --cluster-template ~/.config/daylily/<cluster_name>_cluster.yaml
+```
+
+### (less recommended) via `PCUI`
+#### From a running cluster
+- Navigate to the `PCUI` console, select the region you wish to operate in. Choose 'create new cluster' and choose from a running or stopped cluster.
+
+#### From a cluster config file `<cluster_name>_cluster.yaml` 
+- Navigate to the `PCUI` console, select the region you wish to operate in. Choose 'create new cluster' and choose 'from cluster config file', and upload the `<cluster_name>_cluster.yaml` file.
+ 
+
+## Cluster Tagged Resources Report
+To create a terminal report of all currently tagged AWS resources with `cluster name`.
 
 ![Cluster tagged resources report](docs/images/cluster_tagged_resources.png)
 
