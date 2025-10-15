@@ -15,3 +15,10 @@ repositories:
     ssh_url: git@github.com:Daylily-Informatics/rna-seq-star-deseq2.git
     default_ref: main
     relative_path: rna-seq-star-deseq2
+  daylily-sarek:
+    display_name: "daylily-sarek"
+    description: "sarek nf-core analysis workflows."
+    https_url: https://github.com/sarek/sarek.git
+    ssh_url: git@github.com:iamh2o/sarek/sarek.git
+    default_ref: 0.0.1d
+    relative_path: sarek
