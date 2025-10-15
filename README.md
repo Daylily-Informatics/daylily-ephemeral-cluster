@@ -1436,8 +1436,11 @@ bin/daylily-stage-samples-from-headnode --region us-west-2  --profile daylily-se
 ## Monitor Cluster Costs
 Costs can be delayed by up to 24hrs from AWS.
 
+
 ### Via Cost Explorer Budgets
 Navigate to the `Budgets` section of the `AWS Cost Management` console.  You will see a budget named for your cluster. 
+
+![](docs/images/cost_budget.png)
 
 ### Command Line Report
 Pulls by tagged resources with the `cluster name` tag key. Good for looking for orphaned resources, or just getting a quick report of costs. 
@@ -1456,6 +1459,9 @@ usage: generate-report-of-aws-tagged-resources.py [-h] [--tag-key TAG_KEY] [--si
 
 ![](docs/images/cost_report.png)
 
+
+### PCUI
+![](docs/images/costs_pcui.png)
 
 ---
 
