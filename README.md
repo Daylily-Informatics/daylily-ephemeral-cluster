@@ -86,6 +86,29 @@ Daylily integrates with AWS Budgets and Cost Allocation Tags to provide per-samp
 
 <p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff00ff><img src="docs/images/000000.png" valign="bottom" ></a></p>
 
+# Analysis Pipeline Repositories
+_plugin process under development, please open an issue or PR to add your own repository_
+- Are controlled by the `config/daylily_available_repositories.yaml` file. You may add your own entries to this file, or override it with your own custom file when creating a cluster. To contribute a supported repository back to the mainline, please open a PR.
+
+## Supported Repositories
+
+**[daylily-omics-analysis : comprehensive WGS analysis](https://github.com/daylily-omics/daylily-omics-analysis)**
+
+**[rna-seq-star-deseq2](https://github.com/Daylily-Informatics/rna-seq-star-deseq2)**
+ 
+## In Development
+
+* port of `sarek` WGS pipeline.
+
+## Other
+
+**generic slurm via ubuntu**
+> The AWS ParallelCluster created uses `slurm` as the scheduler, so any slurm compatible workflow should work fine. See the AWS ParallelCluster docs for more info.
+
+The AWS Parallel Cluster port of `slurm` has been slightly tweaked in the following ways (but otherwise is a standard slurm install): 
+  -  to manage spinning up and down spot instances.
+  -  to track and enforce cost budgets by using the `--comment` flag on `sbatch` command.
+
 
 # Installation -- Quickest Start
 _only useful if you have already installed daylily previously and have all of the AWS account configurations in place_
