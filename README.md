@@ -1461,7 +1461,7 @@ usage: generate-report-of-aws-tagged-resources.py [-h] [--tag-key TAG_KEY] [--si
 
 
 ### PCUI
-![](docs/images/costs_pcui.png)
+![](docs/images/cost_pcui.png)
 
 ---
 
