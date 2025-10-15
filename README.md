@@ -11,7 +11,7 @@
 ## Highlights
 
 ### Single Command Cluster Creation
-```bash
+
 ```bash
 bin/daylily-create-ephemeral-cluster --profile $AWS_PROFILE --region-az <region-az> --config daylily_cluster_config.yaml
 ```
