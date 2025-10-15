@@ -10,6 +10,13 @@
 
 ## Highlights
 
+### Single Command Cluster Creation
+```bash
+```bash
+bin/daylily-create-ephemeral-cluster --profile $AWS_PROFILE --region-az <region-az> --config daylily_cluster_config.yaml
+```
+
+### Architecture & Features
 - **Rapid, reproducible cluster bring-up** built on AWS ParallelCluster with optional PCUI for browser-based terminal and multi-cluster management. 
 - **Cost-aware infrastructure** with scripts that inspect spot-market capacity, calculate per-sample spend, and tag workloads for downstream budget reporting. _<small>(using [daylily-omics-analysis](https://github.com/Daylily-Informatics/daylily-omics-analysis) WGS analysis workflows, can run `fastq`->aligned deduped CRAM->snv+sv VCFs in ~1hr for as little as $5/genome)</small>_
 - **Shared FSx for Lustre file system** that mirrors to S3 so hundreds or thousands of spot instances can safely collaborate on the same dataset while persisting results. Final results may then be automagically mirrored back to `s3`. 
