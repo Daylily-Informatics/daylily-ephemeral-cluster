@@ -98,7 +98,7 @@ _plugin process under development, please open an issue or PR to add your own re
  
 ## In Development
 
-* port of `sarek` WGS pipeline.
+  - **sarek-nf-core** port of `sarek` WGS pipeline _WIP_ [daylily-sarek](https://github.com/iamh2o/sarek).
 
 ## Other
 
