@@ -1099,8 +1099,19 @@ Run:
 - Under the `Data Repositories` tab, select the `fsx` filesystem and click `Export to S3`. Export can only currently be carried out back to the same s3 which was mounted to the fsx filesystem. 
 - Specify the export path as `analysis_results` (or be more specific to an `analysis_results/subdir`), the path you enter is named relative to the mountpoint of the fsx filesystem on the cluster head and compute nodes, which is `/fsx/`. Start the export. This can take 10+ min.  When complete, confirm the data is now visible in the s3 bucket which was exported to. Once you confirm the export was successful, you can delete the cluster (which will delete the fsx filesystem).
 
-#### Delete The Cluster, For Real
+#### Delete The Cluster
+Deleting the cluster will delete all resources created for the ephemeral cluster, including the fsx filesystem if not explicitly set to be saved during creation. You must export any analysis results created in `/fsx/analysis_results` from the `fsx` filesystem back to `s3` before deleting the cluster.
 
+> One exception when deleting the ephemeral cluster is the cloudwatch logs created for the cluster will persist after deletion for the number of days specified in the pcluster config. You may delete these manually if you wish to do so via the cloudwatch log group dashboard.
+
+##### via `bin/daylily-delete-ephemeral-cluster`
+This helper script will guide you through deleting the cluster, and will confirm you have exported data from the fsx filesystem before proceeding.
+
+```bash
+AWS_PROFILE=<daylily-service-profile>./bin/daylily-delete-ephemeral-cluster # then enter the region and cluster name
+```
+
+##### via pcluster CLI
 _note: this will not modify/delete the s3 bucket mounted to the fsx filesystem, nor will it delete the policyARN, or private/public subnets used to config the ephemeral cluster._
 
 **the headnode `/root` volume and the fsx filesystem will be deleted if not explicitly flagged to be saved -- be sure you have exported Fsx->S3 before deleting the cluster**
@@ -1111,6 +1122,10 @@ pcluster delete-cluster -n <cluster-name> --region us-west-2
 ```
 
 - You can monitor the status of the cluster deletion using `pcluster list-clusters --region us-west-2` and/or `pcluster describe-cluster -n <cluster-name> --region us-west-2`. Deletion can take ~10min depending on the complexity of resources created and fsx filesystem size.
+
+##### via PCUI
+- Navigate to the `Clusters` tab of the PCUI console.
+- Select the cluster you wish to delete, and click the `Delete` button.
 
 
 
