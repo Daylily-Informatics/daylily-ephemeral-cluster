@@ -18,7 +18,7 @@ repositories:
   daylily-sarek:
     display_name: "daylily-sarek"
     description: "sarek nf-core analysis workflows."
-    https_url: https://github.com/sarek/sarek.git
-    ssh_url: git@github.com:iamh2o/sarek/sarek.git
+    https_url: https://github.com/iamh2o/sarek.git
+    ssh_url: git@github.com:iamh2o/sarek.git
     default_ref: 0.0.2d
     relative_path: sarek
