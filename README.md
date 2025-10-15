@@ -1470,6 +1470,9 @@ usage: generate-report-of-aws-tagged-resources.py [-h] [--tag-key TAG_KEY] [--si
 ### PCUI
 ![](docs/images/cost_pcui.png)
 
+### SNS Notifications (cluster heartbeat - experimental)
+You can monitor the health of your cluster via SNS notifications.  These are created automatically when you create a cluster via the `daylily-create-ephemeral-cluster` script.  You can subscribe to the topic via email, sms, or other methods.  You will receive notifications while pricey tagged resources remain active (most importantly, FSx filesystems and EBS volumes which can be set not to delete upon cluster termination, and which can become expensive to sit idle).
+
 ---
 
 # [DAY](https://en.wikipedia.org/wiki/Margaret_Oakley_Dayhoff)![](https://placehold.co/60x35/ff03f3/fcf2fb?text=LILLY)
