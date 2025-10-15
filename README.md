@@ -1431,6 +1431,34 @@ bin/daylily-stage-samples-from-local-to-headnode --region us-west-2  --profile d
 ```bash
 bin/daylily-stage-samples-from-headnode --region us-west-2  --profile daylily-service --debug  --reference-bucket  daylily-dayoa-omics-analysis-us-west-2 etc/analysis_samples_template.tsv # replace <BUCKET> with your bucket name
 ```
+
+
+## Monitor Cluster Costs
+Costs can be delayed by up to 24hrs from AWS.
+
+### Via Cost Explorer Budgets
+Navigate to the `Budgets` section of the `AWS Cost Management` console.  You will see a budget named for your cluster. 
+
+### Command Line Report
+Pulls by tagged resources with the `cluster name` tag key. Good for looking for orphaned resources, or just getting a quick report of costs. 
+
+```bash
+AWS_PROFILE=daylily-service-lsmc bin/generate-report-of-aws-tagged-resources.py -h
+usage: generate-report-of-aws-tagged-resources.py [-h] [--tag-key TAG_KEY] [--since SINCE] [--until UNTIL]
+                                                  [--metric {AmortizedCost,UnblendedCost,NetAmortizedCost,NetUnblendedCost}] [--top-n TOP_N]
+                                                  [--budget-name BUDGET_NAME] [--profile PROFILE] [--region REGION]
+                                                  [--show-services SHOW_SERVICES] [--exclude-services EXCLUDE_SERVICES] [--only-show-active]
+```
+
+...
+
+`AWS_PROFILE=daylily-service-lsmc bin/generate-report-of-aws-tagged-resources.py --only-show-active`
+
+![](docs/images/cost_report.png)
+
+
+---
+
 # [DAY](https://en.wikipedia.org/wiki/Margaret_Oakley_Dayhoff)![](https://placehold.co/60x35/ff03f3/fcf2fb?text=LILLY)
 
 _named in honor of Margaret Oakley Dahoff_ 
