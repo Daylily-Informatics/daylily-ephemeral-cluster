@@ -12,6 +12,7 @@ import datetime as dt
 import json
 import logging
 import os
+import re
 import shutil
 import shlex
 import subprocess
@@ -46,6 +47,8 @@ DEFAULT_STAGE_SAMPLES_NAME = "stage_samples.tsv"
 WORK_YAML_NAME = "daylily_work.yaml"
 INFO_YAML_NAME = "daylily_info.yaml"
 SAMPLE_DATA_DIRNAME = "sample_data"
+PIPELINE_LOCATION_MARKER = ".daylily-monitor-location"
+PIPELINE_SESSION_MARKER = ".daylily-monitor-tmux-session"
 
 STATE_PRIORITIES = {
     "error": 0,
@@ -132,6 +135,9 @@ class PipelineOptions:
     ssh_identity_file: Optional[str] = None
     ssh_user: str = "ubuntu"
     ssh_extra_args: List[str] = dataclasses.field(default_factory=list)
+    login_shell_init: str = "source ~/.bashrc"
+    tmux_session_prefix: str = "daylily"
+    tmux_keepalive_shell: str = "bash"
 
 
 @dataclasses.dataclass
@@ -196,6 +202,7 @@ class WorksetMonitor:
             else None
         )
         self._headnode_ips: Dict[str, str] = {}
+        self._pipeline_locations: Dict[str, PurePosixPath] = {}
 
     # ------------------------------------------------------------------
     # Public entrypoints
@@ -392,7 +399,7 @@ class WorksetMonitor:
         cluster_name = self._ensure_cluster(work_yaml)
         LOGGER.info("Using cluster %s for workset %s", cluster_name, workset.name)
 
-        pipeline_dir = Path(self.config.pipeline.workdir) / workset.name
+        pipeline_dir = self._pipeline_state_dir(workset)
         completed_commands: set[str] = set()
         retry_attempted = False
         while True:
@@ -489,7 +496,7 @@ class WorksetMonitor:
                 workset.name,
             )
         else:
-            self._run_pipeline(cluster_name, pipeline_dir, run_suffix)
+            self._run_pipeline(workset, cluster_name, pipeline_dir, run_suffix)
             completed_commands.add(run_label)
 
         if target_export_uri:
@@ -502,6 +509,60 @@ class WorksetMonitor:
             else:
                 self._export_results(cluster_name, target_export_uri)
                 completed_commands.add(export_label)
+
+    def _pipeline_state_dir(self, workset: Workset) -> Path:
+        path = Path(self.config.pipeline.workdir) / workset.name
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def _record_pipeline_location(self, workset: Workset, location: PurePosixPath) -> None:
+        self._pipeline_locations[workset.name] = location
+        state_dir = self._pipeline_state_dir(workset)
+        marker = state_dir / PIPELINE_LOCATION_MARKER
+        marker.write_text(str(location), encoding="utf-8")
+
+    def _load_pipeline_location(self, workset: Workset) -> Optional[PurePosixPath]:
+        cached = self._pipeline_locations.get(workset.name)
+        if cached:
+            return cached
+        marker = self._pipeline_state_dir(workset) / PIPELINE_LOCATION_MARKER
+        if not marker.exists():
+            return None
+        text = marker.read_text(encoding="utf-8").strip()
+        if not text:
+            return None
+        location = PurePosixPath(text)
+        self._pipeline_locations[workset.name] = location
+        return location
+
+    def _parse_day_clone_location(self, output: bytes) -> Optional[PurePosixPath]:
+        text = output.decode("utf-8", errors="ignore")
+        for line in text.splitlines():
+            stripped = line.strip()
+            if not stripped:
+                continue
+            if stripped.lower().startswith("location"):
+                _, _, remainder = stripped.partition(":")
+                candidate = remainder.strip()
+                if candidate:
+                    return PurePosixPath(candidate)
+            if stripped.startswith("cd "):
+                parts = shlex.split(stripped)
+                if len(parts) >= 2:
+                    return PurePosixPath(parts[1])
+        return None
+
+    def _record_tmux_session(self, workset: Workset, session_name: str) -> None:
+        state_dir = self._pipeline_state_dir(workset)
+        marker = state_dir / PIPELINE_SESSION_MARKER
+        marker.write_text(session_name, encoding="utf-8")
+
+    def _generate_tmux_session_name(self, workset: Workset) -> str:
+        prefix = self.config.pipeline.tmux_session_prefix or "daylily"
+        safe_prefix = re.sub(r"[^A-Za-z0-9_-]", "_", prefix)
+        safe_name = re.sub(r"[^A-Za-z0-9_-]", "_", workset.name)
+        timestamp = int(time.time())
+        return f"{safe_prefix}_{safe_name}_{timestamp}"
 
     def _validate_stage_manifest(self, manifest_bytes: bytes, workset: Workset) -> None:
         lines = manifest_bytes.decode("utf-8").splitlines()
@@ -559,29 +620,44 @@ class WorksetMonitor:
         *,
         run_clone: bool = True,
     ) -> PurePosixPath:
-        workdir = PurePosixPath(self.config.pipeline.workdir) / workset.name
         if clone_args and run_clone:
             cmd = self.config.pipeline.clone_command.format(clone_args=clone_args)
-            LOGGER.info("Cloning pipeline into %s", workdir)
-            compound_cmd = (
-                f"mkdir -p {shlex.quote(str(workdir))} && cd {shlex.quote(str(workdir))} && {cmd}"
-            )
-            self._run_headnode_monitored_command(
+            LOGGER.info("Running pipeline clone command for %s: %s", workset.name, cmd)
+            result = self._run_headnode_monitored_command(
                 "clone_pipeline",
-                compound_cmd,
+                cmd,
                 cluster_name=cluster_name,
                 check=True,
                 shell=True,
             )
-        elif not clone_args:
-            ensure_cmd = f"mkdir -p {shlex.quote(str(workdir))}"
-            self._run_headnode_command(
-                cluster_name,
-                ensure_cmd,
-                check=True,
-                shell=True,
+            location = self._parse_day_clone_location(result.stdout)
+            if not location and result.stderr:
+                location = self._parse_day_clone_location(result.stderr)
+            if not location:
+                raise MonitorError(
+                    f"Unable to determine pipeline directory from day-clone output for {workset.name}"
+                )
+            LOGGER.info("day-clone reported pipeline directory %s for %s", location, workset.name)
+            self._record_pipeline_location(workset, location)
+            return location
+        if clone_args:
+            location = self._load_pipeline_location(workset)
+            if location:
+                LOGGER.info("Reusing recorded pipeline directory %s for %s", location, workset.name)
+                return location
+            raise MonitorError(
+                "Pipeline location unavailable for restart; rerun day-clone or remove cached state"
             )
-        return workdir
+        fallback = PurePosixPath(self.config.pipeline.workdir) / workset.name
+        ensure_cmd = f"mkdir -p {shlex.quote(str(fallback))}"
+        self._run_headnode_command(
+            cluster_name,
+            ensure_cmd,
+            check=True,
+            shell=True,
+        )
+        self._record_pipeline_location(workset, fallback)
+        return fallback
 
     def _push_stage_files_to_pipeline(
         self,
@@ -614,22 +690,43 @@ class WorksetMonitor:
 
     def _run_pipeline(
         self,
+        workset: Workset,
         cluster_name: str,
         pipeline_dir: PurePosixPath,
         run_suffix: Optional[str],
     ) -> None:
         if not run_suffix:
             raise MonitorError("Workset pipeline definition missing dy-r command suffix")
-        command = self.config.pipeline.run_prefix + run_suffix
-        LOGGER.info("Running pipeline: %s", command)
+        run_command = self.config.pipeline.run_prefix + run_suffix
+        session_name = self._generate_tmux_session_name(workset)
+        shell_steps = []
+        init_cmd = (self.config.pipeline.login_shell_init or "").strip()
+        if init_cmd:
+            shell_steps.append(init_cmd)
+        shell_steps.append(f"cd {shlex.quote(str(pipeline_dir))}")
+        shell_steps.append(run_command)
+        composite = " && ".join(shell_steps)
+        keepalive = (self.config.pipeline.tmux_keepalive_shell or "").strip()
+        if keepalive:
+            composite = f"{composite}; {keepalive}"
+        remote_command = (
+            f"tmux new-session -d -s {shlex.quote(session_name)} "
+            f"\"bash -c {shlex.quote(composite)}\""
+        )
+        LOGGER.info(
+            "Launching pipeline for %s in tmux session %s: %s",
+            workset.name,
+            session_name,
+            run_command,
+        )
+        self._record_tmux_session(workset, session_name)
         self._write_pipeline_sentinel(cluster_name, pipeline_dir, "START")
         try:
             self._run_headnode_monitored_command(
                 "run_pipeline",
-                command,
+                remote_command,
                 cluster_name=cluster_name,
                 check=True,
-                cwd=str(pipeline_dir),
                 shell=True,
             )
         finally:
