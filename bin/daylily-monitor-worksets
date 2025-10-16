@@ -1062,9 +1062,9 @@ class WorksetMonitor:
         else:
             cmd_display = " ".join(command) if not isinstance(command, str) else command
         LOGGER.debug("Executing command: %s", cmd_display)
-        if self.debug:
-            action = "DRY-RUN" if self.dry_run else "EXEC"
-            print(f"[{action}] {cmd_display}")
+        
+        action = "DRY-RUN" if self.dry_run else "EXEC"
+        print(f"[{action}] {cmd_display}")
         if self.dry_run:
             return subprocess.CompletedProcess(args=command, returncode=0, stdout=b"", stderr=b"")
         run_command = command
@@ -1270,14 +1270,13 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
-    configure_logging(args.verbose or args.debug)
+    configure_logging(args.verbose)
     config = MonitorConfig.load(args.config)
     if args.once:
         config.monitor.continuous = False
     monitor = WorksetMonitor(
         config,
         dry_run=args.dry_run,
-        debug=args.debug,
         process_directories=args.process_directories,
         attempt_restart=args.attempt_restart,
     )
