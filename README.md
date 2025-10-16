@@ -67,9 +67,11 @@ High-throughput analyses rely on predictable reference data access. Daylily prov
 ## Remote Data Staging & Pipeline Execution
 Daylily’s workflow helpers bridge the gap between local manifests and remote execution:
 
-1. Use `bin/daylily-stage-analysis-samples` from your workstation to pick a cluster, upload an `analysis_samples.tsv`, and invoke the head-node staging utility. The script downloads data from S3/HTTP/local paths, merges multi-lane FASTQs, and writes canonical `config/samples.tsv` and `config/units.tsv` files to your chosen staging directory. 
-2. The staging utility automatically validates AWS credentials, materializes concordance/control payloads, normalizes metadata, and reports where to copy the generated configs. 
-3. When you are ready to launch a workflow, `bin/daylily-run-ephemeral-cluster-remote-tests` can log into the head node, clone the selected pipeline (as configured in the YAML registry), and start the run in a tmux session for detached execution. 
+1. Use `bin/daylily-stage-analysis-samples` from your workstation to pick a cluster, upload an `analysis_samples.tsv`, and invoke the head-node staging utility. The script downloads data from S3/HTTP/local paths, merges multi-lane FASTQs, and writes canonical `config/samples.tsv` and `config/units.tsv` files to your chosen staging directory.
+2. The staging utility automatically validates AWS credentials, materializes concordance/control payloads, normalizes metadata, and reports where to copy the generated configs.
+3. When you are ready to launch a workflow, `bin/daylily-run-ephemeral-cluster-remote-tests` can log into the head node, clone the selected pipeline (as configured in the YAML registry), and start the run in a tmux session for detached execution.
+
+For fully automated operations, the repository now includes `bin/daylily-monitor-worksets`, a long-running daemon that watches an S3 prefix for ready worksets, acquires a cooperative lock via sentinel files, stages inputs, provisions clusters, launches the requested pipeline, and mirrors the finished run back to S3.  See [docs/workset-monitor.md](docs/workset-monitor.md) for configuration details.
 
 These tools make it straightforward to stage data once, reuse it across pipelines, and keep critical control material co-located with sample inputs.
 

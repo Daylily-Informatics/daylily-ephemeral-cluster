@@ -17,5 +17,8 @@ setup(
     packages=find_packages(),
     include_package_data=True,
     scripts=script_files,
-    install_requires=[],
+    install_requires=[
+        "boto3>=1.26",
+        "PyYAML>=6.0",
+    ],
 )
