@@ -13,7 +13,7 @@ cp "$CONFIG_SOURCE_DIR/daylily_available_repositories.yaml" "$TARGET_CONFIG_DIR/
 # Install day-clone into a system-wide location if possible, otherwise fall back to ~/.local/bin
 INSTALL_TARGET="/usr/local/bin/day-clone"
 if command -v sudo >/dev/null 2>&1; then
-    if sudo install -m 0755 "$REPO_ROOT/bin/day-clone" "$INSTALL_TARGET"; then
+    if sudo install -m 0755 "$REPO_ROOT/bin/headnode_utils/day-clone" "$INSTALL_TARGET"; then
         echo "day-clone installed to $INSTALL_TARGET"
  
     else
@@ -31,7 +31,7 @@ sed -i "s|<REF-BUCKET-NAME>|$reference_bucket|g"  ./etc/analysis_samples_templat
 
 USER_BIN_DIR="$HOME/.local/bin"
 mkdir -p "$USER_BIN_DIR"
-install -m 0755 "$REPO_ROOT/bin/day-clone" "$USER_BIN_DIR/day-clone"
+install -m 0755 "$REPO_ROOT/bin/headnode_utils/day-clone" "$USER_BIN_DIR/day-clone"
 echo "day-clone installed to $USER_BIN_DIR/day-clone. Ensure $USER_BIN_DIR is on your PATH."
 DYINIT_PATH="$REPO_ROOT/dyinit"
 if [[ -f "$DYINIT_PATH" ]]; then
