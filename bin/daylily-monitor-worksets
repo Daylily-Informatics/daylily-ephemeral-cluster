@@ -177,6 +177,7 @@ class WorksetMonitor:
         dry_run: bool = False,
         debug: bool = False,
         process_directories: Optional[Sequence[str]] = None,
+        attempt_restart: bool = False,
     ) -> None:
         self.config = config
         self.dry_run = dry_run
@@ -1062,6 +1063,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         dry_run=args.dry_run,
         debug=args.debug,
         process_directories=args.process_directories,
+        attempt_restart=args.attempt_restart,
     )
     if args.report:
         monitor.report(args.report)
