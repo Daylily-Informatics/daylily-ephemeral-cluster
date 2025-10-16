@@ -58,8 +58,8 @@ SAMPLE_DATA_DIRNAME = "sample_data"
 PIPELINE_LOCATION_MARKER = ".daylily-monitor-location"
 PIPELINE_SESSION_MARKER = ".daylily-monitor-tmux-session"
 PIPELINE_START_MARKER = ".daylily-monitor-pipeline-start"
-PIPELINE_SUCCESS_SENTINEL = "pipeline.success"
-PIPELINE_FAILURE_SENTINEL = "pipeline.fail"
+PIPELINE_SUCCESS_SENTINEL = "daylily.successful_run"
+PIPELINE_FAILURE_SENTINEL = "daylily.failed_run"
 FSX_EXPORT_STATUS_FILENAME = "fsx_export.yaml"
 CLUSTER_STATE_DIR = "_clusters"
 CLUSTER_IDLE_MARKER = "idle_since"
@@ -1219,7 +1219,7 @@ class WorksetMonitor:
             self._clear_tmux_session(workset)
             self._clear_pipeline_start(workset)
             raise MonitorError(
-                f"Pipeline previously failed for {workset.name}; investigate pipeline.fail"
+                f"Pipeline previously failed for {workset.name}; investigate {PIPELINE_FAILURE_SENTINEL}"
             )
 
         if existing_session and not self._tmux_session_exists(
@@ -1325,7 +1325,7 @@ class WorksetMonitor:
                 self._clear_tmux_session(workset)
                 self._clear_pipeline_start(workset)
                 raise MonitorError(
-                    f"Pipeline failed for {workset.name}; see pipeline.fail"
+                    f"Pipeline failed for {workset.name}; see {PIPELINE_FAILURE_SENTINEL}"
                 )
 
             if not self._tmux_session_exists(cluster_name, session_name):
@@ -1355,7 +1355,7 @@ class WorksetMonitor:
                         self._clear_tmux_session(workset)
                         self._clear_pipeline_start(workset)
                         raise MonitorError(
-                            f"Pipeline failed for {workset.name}; see pipeline.fail"
+                            f"Pipeline failed for {workset.name}; see {PIPELINE_FAILURE_SENTINEL}"
                         )
                     self._interrupt_tmux_session(cluster_name, session_name)
                     time.sleep(5)
