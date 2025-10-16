@@ -9,6 +9,8 @@ import contextlib
 import dataclasses
 import datetime as dt
 import logging
+import shutil
+import shlex
 import subprocess
 import sys
 import time
@@ -89,6 +91,8 @@ class PipelineOptions:
     clone_command: str
     run_prefix: str
     export_command: str
+    local_stage_root: Optional[str] = None
+    reference_bucket: Optional[str] = None
 
 
 @dataclasses.dataclass
@@ -283,6 +287,7 @@ class WorksetMonitor:
     def _process_workset(self, workset: Workset) -> None:
         manifest_bytes = self._read_required_object(workset.prefix, DEFAULT_STAGE_SAMPLES_NAME)
         manifest_path = self._write_temp_file(workset, DEFAULT_STAGE_SAMPLES_NAME, manifest_bytes)
+        manifest_path = self._copy_manifest_to_local(workset, manifest_path)
         work_yaml_bytes = self._read_required_object(workset.prefix, WORK_YAML_NAME)
         work_yaml = yaml.safe_load(work_yaml_bytes.decode("utf-8"))
 
@@ -338,11 +343,14 @@ class WorksetMonitor:
                     self._assert_sample_file_exists(workset, value)
 
     def _stage_samples(self, manifest_path: Path, cluster_name: str) -> None:
+        manifest_argument = self._relative_manifest_argument(manifest_path)
+        reference_bucket = self._stage_reference_bucket()
         cmd = self.config.pipeline.stage_command.format(
             profile=self.config.aws.profile,
             region=self.config.aws.region,
             cluster=cluster_name,
-            analysis_samples=str(manifest_path),
+            analysis_samples=manifest_argument,
+            reference_bucket=reference_bucket,
         )
         LOGGER.info("Staging samples for cluster %s with command: %s", cluster_name, cmd)
         self._run_command(cmd, check=True)
@@ -489,6 +497,39 @@ class WorksetMonitor:
         path.write_bytes(data)
         return path
 
+    def _copy_manifest_to_local(self, workset: Workset, manifest_path: Path) -> Path:
+        local_root = self._local_stage_root()
+        if not local_root:
+            return manifest_path
+        destination_dir = local_root / workset.name
+        destination_dir.mkdir(parents=True, exist_ok=True)
+        destination_path = destination_dir / manifest_path.name
+        shutil.copy2(manifest_path, destination_path)
+        LOGGER.info("Copied stage manifest for %s to %s", workset.name, destination_path)
+        return destination_path
+
+    def _local_stage_root(self) -> Optional[Path]:
+        root = self.config.pipeline.local_stage_root
+        if not root:
+            return None
+        path = Path(root).expanduser()
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def _relative_manifest_argument(self, manifest_path: Path) -> str:
+        try:
+            return str(manifest_path.relative_to(Path.cwd()))
+        except ValueError:
+            return str(manifest_path)
+
+    def _stage_reference_bucket(self) -> Optional[str]:
+        bucket = self.config.pipeline.reference_bucket
+        if not bucket and self.config.monitor.bucket:
+            bucket = f"s3://{self.config.monitor.bucket}"
+        if bucket and not bucket.endswith("/"):
+            bucket += "/"
+        return bucket or ""
+
     def _write_pipeline_sentinel(self, pipeline_dir: Path, label: str) -> None:
         marker = pipeline_dir / f".daylily-monitor-{label.lower()}"
         marker.write_text(f"{label}\t{dt.datetime.utcnow().isoformat()}Z\n")
@@ -504,11 +545,15 @@ class WorksetMonitor:
         LOGGER.debug("Executing command: %s", cmd_display)
         if self.dry_run:
             return subprocess.CompletedProcess(args=command, returncode=0, stdout=b"", stderr=b"")
+        run_command = command
+        run_shell = shell
+        if isinstance(command, str) and not shell:
+            run_command = shlex.split(command)
         result = subprocess.run(
-            command,
+            run_command,
             check=False,
             cwd=cwd,
-            shell=shell,
+            shell=run_shell,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
         )
