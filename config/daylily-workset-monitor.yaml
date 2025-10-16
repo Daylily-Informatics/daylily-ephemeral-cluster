@@ -42,7 +42,7 @@ pipeline:
   # Additional SSH/SCP options when connecting to the head node.
   ssh_extra_args: []
   # Command that prepares staging files on the headnode.  {analysis_samples} is replaced at runtime.
-  stage_command: ./bin/daylily-stage-samples-from-local-to-headnode --profile {profile} --region {region} --pem {pem} --cluster {cluster} --reference-bucket {reference_bucket} {analysis_samples}
+  stage_command: ./bin/daylily-stage-samples-from-local-to-headnode --profile {profile} --region {region} --reference-bucket {reference_bucket} {analysis_samples}
   # Command that creates the pipeline working tree before execution.  The day-clone output
   # is parsed to determine the working directory for subsequent commands.
   clone_command: echo cloning && day-clone {clone_args}
