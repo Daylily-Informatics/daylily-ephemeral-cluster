@@ -18,7 +18,6 @@ import shlex
 import subprocess
 import sys
 import time
-import textwrap
 from collections import defaultdict
 from pathlib import Path, PurePosixPath
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
@@ -64,14 +63,6 @@ PIPELINE_FAILURE_SENTINEL = "daylily.failed_run"
 FSX_EXPORT_STATUS_FILENAME = "fsx_export.yaml"
 CLUSTER_STATE_DIR = "_clusters"
 CLUSTER_IDLE_MARKER = "idle_since"
-WORKSET_METADATA_FILENAME = "metadata.json"
-REPORT_CACHE_FILENAME = "report-cache.json"
-CLUSTER_METADATA_FILENAME = "metadata.json"
-
-BYTES_PER_GB = 1024 ** 3
-S3_STANDARD_STORAGE_COST_PER_GB_MONTH = 0.023
-CROSS_REGION_TRANSFER_COST_PER_GB = 0.02
-INTERNET_TRANSFER_COST_PER_GB = 0.09
 
 STATE_PRIORITIES = {
     "error": 0,
@@ -91,8 +82,6 @@ STATE_COLORS = {
     "ignored": "\033[90m",
     "unknown": "\033[37m",
 }
-
-TERMINAL_STATES = {"complete", "error", "ignored"}
 
 
 class MonitorError(RuntimeError):
@@ -145,7 +134,6 @@ class ClusterOptions:
     idle_teardown_minutes: int = 20
     reuse_cluster_name: Optional[str] = None
     contact_email: Optional[str] = None
-    repo_tag: Optional[str] = None
 
 
 @dataclasses.dataclass
@@ -199,27 +187,6 @@ class WorksetReportRow:
     timestamp: Optional[str]
     detail: Optional[str]
     has_required_files: bool
-    cluster_name: Optional[str] = None
-    region_az: Optional[str] = None
-    budget_name: Optional[str] = None
-    runtime: Optional[str] = None
-    end_timestamp: Optional[str] = None
-    pipeline_command: Optional[str] = None
-    clone_command: Optional[str] = None
-    samples: Optional[int] = None
-    sample_libraries: Optional[int] = None
-    fastq_count: Optional[int] = None
-    fastq_size_gb: Optional[float] = None
-    cram_count: Optional[int] = None
-    cram_size_gb: Optional[float] = None
-    vcf_count: Optional[int] = None
-    vcf_size_gb: Optional[float] = None
-    results_size_gb: Optional[float] = None
-    s3_daily_cost_usd: Optional[float] = None
-    cram_transfer_cost_usd: Optional[str] = None
-    vcf_transfer_cost_usd: Optional[str] = None
-    ec2_cost_usd: Optional[float] = None
-
     display_state: Optional[str] = None
 
     @property
@@ -389,40 +356,6 @@ class WorksetMonitor:
             return clone_args.format(**mapping)
         except Exception:
             return clone_args
-
-    def _extract_budget(self, work_yaml: Dict[str, object]) -> Optional[str]:
-        value = work_yaml.get("budget")
-        if value is None:
-            return None
-        if isinstance(value, str):
-            budget = value.strip()
-        else:
-            budget = str(value).strip()
-        return budget or None
-
-    def _apply_budget_to_clone_args(
-        self, clone_args: str, budget: Optional[str]
-    ) -> str:
-        if not budget:
-            return clone_args
-        addition = f"--budget {shlex.quote(budget)}"
-        text = clone_args or ""
-        if text.strip():
-            if not text.endswith(" "):
-                text += " "
-            text += addition
-        else:
-            text = addition
-        return text
-
-    def _extract_cluster_name_from_yaml(
-        self, work_yaml: Dict[str, object]
-    ) -> Optional[str]:
-        for key in ("cluster_name", "cluster-name"):
-            value = work_yaml.get(key)
-            if isinstance(value, str) and value.strip():
-                return value.strip()
-        return None
 
     def _extract_dest_from_clone_args(self, clone_args: str) -> Optional[str]:
         if not clone_args:
@@ -597,26 +530,14 @@ class WorksetMonitor:
 
         clone_args_raw = self._yaml_get_str(
             work_yaml,
-            ["day_clone_args", "day-clone", "clone_args", "clone-args", "clone"],
+            ["day_clone_args", "day-clone", "clone_args", "clone-args", "clone"]
         ) or ""
         clone_args = self._format_clone_args(clone_args_raw, workset, work_yaml)
-
-        budget_name = self._extract_budget(work_yaml)
-        if budget_name:
-            self._update_workset_metadata(workset, budget=budget_name)
-        clone_args = self._apply_budget_to_clone_args(clone_args, budget_name)
-        if clone_args:
-            self._update_workset_metadata(workset, clone_args=clone_args)
 
         run_suffix = self._yaml_get_str(
             work_yaml,
             ["dy_r", "dy-r", "dy", "run", "run_suffix", "run-suffix", "run_cmd", "run-command"],
         )
-        if run_suffix:
-            pipeline_cmd = self.config.pipeline.run_prefix + run_suffix
-            self._update_workset_metadata(
-                workset, run_suffix=run_suffix, pipeline_command=pipeline_cmd
-            )
 
         target_export_uri = self._yaml_get_str(
             work_yaml, ["export_uri", "export-uri", "export"]
@@ -624,7 +545,6 @@ class WorksetMonitor:
 
         cluster_name = self._ensure_cluster(work_yaml)
         LOGGER.info("Using cluster %s for workset %s", cluster_name, workset.name)
-        self._update_workset_metadata(workset, cluster_name=cluster_name)
 
         completed_commands: Set[str] = set()
         if clone_args:
@@ -770,75 +690,6 @@ class WorksetMonitor:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def _workset_metadata_path(self, workset: Workset) -> Path:
-        return self._local_state_dir(workset) / WORKSET_METADATA_FILENAME
-
-    def _cluster_metadata_path(self, cluster_name: str) -> Path:
-        return self._cluster_state_dir(cluster_name) / CLUSTER_METADATA_FILENAME
-
-    def _report_cache_path(self, workset: Workset) -> Path:
-        return self._local_state_dir(workset) / REPORT_CACHE_FILENAME
-
-    def _load_json_file(self, path: Path) -> Dict[str, object]:
-        if not path.exists():
-            return {}
-        try:
-            return json.loads(path.read_text(encoding="utf-8"))
-        except Exception:
-            LOGGER.debug("Unable to read JSON from %s", path, exc_info=True)
-            return {}
-
-    def _load_workset_metadata(self, workset: Workset) -> Dict[str, object]:
-        return self._load_json_file(self._workset_metadata_path(workset))
-
-    def _load_cluster_metadata(self, cluster_name: str) -> Dict[str, object]:
-        return self._load_json_file(self._cluster_metadata_path(cluster_name))
-
-    def _update_workset_metadata(self, workset: Workset, **updates: object) -> None:
-        if not updates:
-            return
-        path = self._workset_metadata_path(workset)
-        data = self._load_workset_metadata(workset)
-        changed = False
-        for key, value in updates.items():
-            if value is None:
-                continue
-            if data.get(key) == value:
-                continue
-            data[key] = value
-            changed = True
-        if not changed:
-            return
-        path.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
-
-    def _update_cluster_metadata(self, cluster_name: str, **updates: object) -> None:
-        if not updates or not cluster_name:
-            return
-        path = self._cluster_metadata_path(cluster_name)
-        data = self._load_cluster_metadata(cluster_name)
-        changed = False
-        for key, value in updates.items():
-            if value is None:
-                continue
-            if data.get(key) == value:
-                continue
-            data[key] = value
-            changed = True
-        if not changed:
-            return
-        path.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
-
-    def _load_report_cache(self, workset: Workset) -> Dict[str, object]:
-        path = self._report_cache_path(workset)
-        return self._load_json_file(path)
-
-    def _write_report_cache(
-        self, workset: Workset, state: str, details: Dict[str, object]
-    ) -> None:
-        path = self._report_cache_path(workset)
-        payload = {"state": state, "details": details, "cached_at": dt.datetime.utcnow().isoformat()}
-        path.write_text(json.dumps(payload, indent=2, sort_keys=True), encoding="utf-8")
-
     def _cluster_idle_marker(self, cluster_name: str) -> Path:
         return self._cluster_state_dir(cluster_name) / CLUSTER_IDLE_MARKER
 
@@ -853,7 +704,6 @@ class WorksetMonitor:
         state_dir = self._local_state_dir(workset)
         marker = state_dir / PIPELINE_LOCATION_MARKER
         marker.write_text(str(location), encoding="utf-8")
-        self._update_workset_metadata(workset, pipeline_dir=str(location))
 
     def _load_pipeline_location(self, workset: Workset) -> Optional[PurePosixPath]:
         cached = self._pipeline_locations.get(workset.name)
@@ -1079,9 +929,6 @@ class WorksetMonitor:
         for attempt in range(60):
             details = self._describe_cluster(cluster_name)
             if details and self._cluster_is_ready(details):
-                zone = self._extract_cluster_zone(details)
-                if zone:
-                    self._update_cluster_metadata(cluster_name, region_az=zone)
                 LOGGER.debug(
                     "Cluster %s ready (checked %d times)", cluster_name, attempt + 1
                 )
@@ -1102,7 +949,6 @@ class WorksetMonitor:
             init = (self.config.pipeline.login_shell_init or "").strip()
             base = self.config.pipeline.clone_command.format(clone_args=clone_args)
             cmd = f"{init} && {base}" if init else base
-            self._update_workset_metadata(workset, clone_command=cmd)
             result = self._run_headnode_monitored_command(
                 "clone_pipeline",
                 cmd,
@@ -1134,7 +980,6 @@ class WorksetMonitor:
                     location,
                     workset.name,
                 )
-                self._update_workset_metadata(workset, pipeline_dir=str(location))
                 return location
             raise MonitorError(
                 "Pipeline location unavailable for restart; rerun day-clone or remove cached state"
@@ -1394,7 +1239,6 @@ class WorksetMonitor:
         session_name = existing_session
         if not session_name:
             run_command = self.config.pipeline.run_prefix + run_suffix
-            self._update_workset_metadata(workset, pipeline_command=run_command)
 
             steps: List[str] = []
             steps.append("echo go")
@@ -1868,23 +1712,6 @@ class WorksetMonitor:
             ) from exc
         return response["Body"].read()
 
-    def _load_work_yaml_safe(self, workset: Workset) -> Optional[Dict[str, object]]:
-        try:
-            work_yaml_bytes = self._read_required_object(workset.prefix, WORK_YAML_NAME)
-        except MonitorError:
-            return None
-        try:
-            loaded = yaml.safe_load(work_yaml_bytes.decode("utf-8"))
-        except Exception:
-            LOGGER.debug(
-                "Unable to parse %s for %s", WORK_YAML_NAME, workset.name, exc_info=True
-            )
-            return None
-        if isinstance(loaded, dict):
-            return loaded
-        LOGGER.debug("Unexpected structure in %s for %s", WORK_YAML_NAME, workset.name)
-        return None
-
     def _write_sentinel(self, workset: Workset, sentinel_name: str, value: str) -> None:
         bucket = self.config.monitor.bucket
         key = f"{workset.prefix}{sentinel_name}"
@@ -1958,462 +1785,14 @@ class WorksetMonitor:
             return True
         return workset.name in self._process_directories
 
-    def _generate_report_rows(
-        self, worksets: Sequence[Workset], *, minimal: bool
-    ) -> List[WorksetReportRow]:
-        rows: List[WorksetReportRow] = []
-        for workset in worksets:
-            if not self._should_process(workset):
-                continue
-            row = self._summarize_workset(workset)
-            if not minimal:
-                self._augment_report_row(workset, row)
-            rows.append(row)
+    def _generate_report_rows(self, worksets: Sequence[Workset]) -> List[WorksetReportRow]:
+        rows = [
+            self._summarize_workset(workset)
+            for workset in worksets
+            if self._should_process(workset)
+        ]
         rows.sort(key=self._report_sort_key)
         return rows
-
-    def _augment_report_row(self, workset: Workset, row: WorksetReportRow) -> None:
-        cache = self._load_report_cache(workset)
-        details: Dict[str, object] = {}
-        if (
-            cache
-            and isinstance(cache.get("details"), dict)
-            and cache.get("state") == row.state
-            and row.state in TERMINAL_STATES
-        ):
-            details = cache["details"]  # type: ignore[assignment]
-
-        if not details:
-            details = self._compute_report_details(workset, row)
-            if details and row.state in TERMINAL_STATES:
-                self._write_report_cache(workset, row.state, details)
-        elif row.state not in TERMINAL_STATES:
-            refreshed = self._compute_report_details(workset, row)
-            if refreshed:
-                details = refreshed
-
-        self._apply_report_details(row, details)
-
-    def _apply_report_details(self, row: WorksetReportRow, details: Dict[str, object]) -> None:
-        if not details:
-            return
-        start_ts = details.get("start_timestamp")
-        if isinstance(start_ts, str):
-            row.timestamp = start_ts
-        row.cluster_name = details.get("cluster_name") or row.cluster_name
-        row.region_az = details.get("region_az") or row.region_az
-        row.budget_name = details.get("budget_name") or row.budget_name
-        end_ts = details.get("end_timestamp")
-        if isinstance(end_ts, str):
-            row.end_timestamp = end_ts
-        runtime = details.get("runtime")
-        if isinstance(runtime, str):
-            row.runtime = runtime
-        row.pipeline_command = details.get("pipeline_command") or row.pipeline_command
-        row.clone_command = details.get("clone_command") or row.clone_command
-        for attr in ("samples", "sample_libraries", "fastq_count", "cram_count", "vcf_count"):
-            value = details.get(attr)
-            if isinstance(value, int):
-                setattr(row, attr, value)
-        for attr in (
-            "fastq_size_gb",
-            "cram_size_gb",
-            "vcf_size_gb",
-            "results_size_gb",
-            "s3_daily_cost_usd",
-            "ec2_cost_usd",
-        ):
-            value = details.get(attr)
-            if isinstance(value, (int, float)):
-                setattr(row, attr, float(value))
-        for attr in ("cram_transfer_cost_usd", "vcf_transfer_cost_usd"):
-            value = details.get(attr)
-            if isinstance(value, str):
-                setattr(row, attr, value)
-
-    def _compute_report_details(
-        self, workset: Workset, row: WorksetReportRow
-    ) -> Dict[str, object]:
-        details: Dict[str, object] = {}
-        metadata = self._load_workset_metadata(workset)
-        work_yaml = self._load_work_yaml_safe(workset)
-
-        budget_name = metadata.get("budget")
-        if not isinstance(budget_name, str):
-            budget_name = None
-        if not budget_name and work_yaml:
-            budget_name = self._extract_budget(work_yaml)
-            if budget_name:
-                self._update_workset_metadata(workset, budget=budget_name)
-        details["budget_name"] = budget_name
-
-        clone_args = metadata.get("clone_args") if isinstance(metadata.get("clone_args"), str) else None
-        if not clone_args and work_yaml:
-            clone_args_raw = self._yaml_get_str(
-                work_yaml,
-                ["day_clone_args", "day-clone", "clone_args", "clone-args", "clone"],
-            ) or ""
-            clone_args = self._format_clone_args(clone_args_raw, workset, work_yaml)
-            clone_args = self._apply_budget_to_clone_args(clone_args, budget_name)
-            if clone_args:
-                self._update_workset_metadata(workset, clone_args=clone_args)
-
-        cluster_name = metadata.get("cluster_name") if isinstance(metadata.get("cluster_name"), str) else None
-        if not cluster_name and work_yaml:
-            cluster_name = self._extract_cluster_name_from_yaml(work_yaml)
-        if not cluster_name:
-            cluster_name = self.config.cluster.reuse_cluster_name
-        if cluster_name:
-            self._update_workset_metadata(workset, cluster_name=cluster_name)
-        details["cluster_name"] = cluster_name
-
-        region_az = metadata.get("region_az") if isinstance(metadata.get("region_az"), str) else None
-        if cluster_name and not region_az:
-            cluster_meta = self._load_cluster_metadata(cluster_name)
-            region_az = cluster_meta.get("region_az") if isinstance(cluster_meta.get("region_az"), str) else None
-            if not region_az:
-                desc = self._describe_cluster(cluster_name)
-                if desc:
-                    region_az = self._extract_cluster_zone(desc)
-                    if region_az:
-                        self._update_cluster_metadata(cluster_name, region_az=region_az)
-        if region_az:
-            self._update_workset_metadata(workset, region_az=region_az)
-        details["region_az"] = region_az
-
-        pipeline_command = metadata.get("pipeline_command") if isinstance(metadata.get("pipeline_command"), str) else None
-        run_suffix = metadata.get("run_suffix") if isinstance(metadata.get("run_suffix"), str) else None
-        if not run_suffix and work_yaml:
-            run_suffix = self._yaml_get_str(
-                work_yaml,
-                [
-                    "dy_r",
-                    "dy-r",
-                    "dy",
-                    "run",
-                    "run_suffix",
-                    "run-suffix",
-                    "run_cmd",
-                    "run-command",
-                ],
-            )
-            if run_suffix:
-                self._update_workset_metadata(workset, run_suffix=run_suffix)
-        if not pipeline_command and run_suffix:
-            pipeline_command = self.config.pipeline.run_prefix + run_suffix
-            self._update_workset_metadata(workset, pipeline_command=pipeline_command)
-        details["pipeline_command"] = pipeline_command
-
-        clone_command = metadata.get("clone_command") if isinstance(metadata.get("clone_command"), str) else None
-        if not clone_command and clone_args is not None:
-            base = self.config.pipeline.clone_command.format(clone_args=clone_args)
-            init_cmd = (self.config.pipeline.login_shell_init or "").strip()
-            clone_command = f"{init_cmd} && {base}" if init_cmd else base
-            self._update_workset_metadata(workset, clone_command=clone_command)
-        details["clone_command"] = clone_command
-
-        pipeline_dir = metadata.get("pipeline_dir") if isinstance(metadata.get("pipeline_dir"), str) else None
-        if not pipeline_dir:
-            location = self._load_pipeline_location(workset)
-            if location:
-                pipeline_dir = str(location)
-            elif clone_args:
-                dest = self._extract_dest_from_clone_args(clone_args)
-                if dest:
-                    pipeline_dir = str(self._expected_pipeline_dir(dest))
-            if pipeline_dir:
-                self._update_workset_metadata(workset, pipeline_dir=pipeline_dir)
-
-        start_ts = self._derive_start_timestamp(workset)
-        end_ts = self._derive_end_timestamp(workset, row.state)
-        details["start_timestamp"] = start_ts or row.timestamp
-        details["end_timestamp"] = end_ts
-        details["runtime"] = self._calculate_runtime(details.get("start_timestamp"), end_ts)
-
-        metrics = self._collect_pipeline_metrics(workset, cluster_name, pipeline_dir)
-        if metrics:
-            for key in ("samples", "sample_libraries", "fastq_count", "cram_count", "vcf_count"):
-                if key in metrics and isinstance(metrics[key], int):
-                    details[key] = metrics[key]
-
-            def _bytes_to_gb(value: Optional[int]) -> Optional[float]:
-                if isinstance(value, (int, float)) and value >= 0:
-                    return float(value) / BYTES_PER_GB
-                return None
-
-            fastq_gb = _bytes_to_gb(metrics.get("fastq_size_bytes"))
-            cram_gb = _bytes_to_gb(metrics.get("cram_size_bytes"))
-            vcf_gb = _bytes_to_gb(metrics.get("vcf_size_bytes"))
-            results_gb = _bytes_to_gb(metrics.get("results_size_bytes"))
-            if fastq_gb is not None:
-                details["fastq_size_gb"] = fastq_gb
-            if cram_gb is not None:
-                details["cram_size_gb"] = cram_gb
-            if vcf_gb is not None:
-                details["vcf_size_gb"] = vcf_gb
-            if results_gb is not None:
-                details["results_size_gb"] = results_gb
-                daily_cost = results_gb * (S3_STANDARD_STORAGE_COST_PER_GB_MONTH / 30.0)
-                details["s3_daily_cost_usd"] = daily_cost
-            if cram_gb is not None:
-                details["cram_transfer_cost_usd"] = self._format_transfer_costs(cram_gb)
-            if vcf_gb is not None:
-                details["vcf_transfer_cost_usd"] = self._format_transfer_costs(vcf_gb)
-            ec2_cost = metrics.get("ec2_cost_usd")
-            if isinstance(ec2_cost, (int, float)):
-                details["ec2_cost_usd"] = float(ec2_cost)
-
-        return details
-
-    def _derive_start_timestamp(self, workset: Workset) -> Optional[str]:
-        for sentinel in (
-            SENTINEL_FILES["in_progress"],
-            SENTINEL_FILES["lock"],
-            SENTINEL_FILES["ready"],
-        ):
-            raw = workset.sentinels.get(sentinel)
-            if not raw:
-                continue
-            text = raw.strip()
-            if not text:
-                continue
-            timestamp = text.split("\t", 1)[0]
-            if timestamp:
-                return timestamp
-        return None
-
-    def _derive_end_timestamp(self, workset: Workset, state: str) -> Optional[str]:
-        sentinel_map = {
-            "complete": SENTINEL_FILES["complete"],
-            "error": SENTINEL_FILES["error"],
-            "ignored": SENTINEL_FILES["ignore"],
-        }
-        sentinel = sentinel_map.get(state)
-        if not sentinel:
-            return None
-        raw = workset.sentinels.get(sentinel)
-        if not raw:
-            return None
-        text = raw.strip()
-        if not text:
-            return None
-        return text.split("\t", 1)[0]
-
-    def _parse_timestamp(self, value: Optional[str]) -> Optional[dt.datetime]:
-        if not value:
-            return None
-        text = value.strip()
-        if not text:
-            return None
-        try:
-            return dt.datetime.fromisoformat(text.replace("Z", "+00:00"))
-        except ValueError:
-            return None
-
-    def _calculate_runtime(
-        self, start: Optional[str], end: Optional[str]
-    ) -> Optional[str]:
-        start_dt = self._parse_timestamp(start)
-        end_dt = self._parse_timestamp(end)
-        if not start_dt or not end_dt:
-            return None
-        delta = end_dt - start_dt
-        total_seconds = int(delta.total_seconds())
-        if total_seconds < 0:
-            return None
-        hours, remainder = divmod(total_seconds, 3600)
-        minutes, seconds = divmod(remainder, 60)
-        return f"{hours:02}:{minutes:02}:{seconds:02}"
-
-    def _format_transfer_costs(self, size_gb: float) -> str:
-        cross = size_gb * CROSS_REGION_TRANSFER_COST_PER_GB
-        internet = size_gb * INTERNET_TRANSFER_COST_PER_GB
-        return f"cross:{cross:.2f} internet:{internet:.2f}"
-
-    def _collect_pipeline_metrics(
-        self,
-        workset: Workset,
-        cluster_name: Optional[str],
-        pipeline_dir: Optional[str],
-    ) -> Dict[str, object]:
-        if not cluster_name or not pipeline_dir:
-            return {}
-        command = textwrap.dedent(
-            f"""
-            cd {shlex.quote(pipeline_dir)} && python3 - <<'PY'
-import csv
-import json
-from pathlib import Path
-
-root = Path('.')
-data = {
-    "samples": None,
-    "sample_libraries": None,
-    "fastq_count": None,
-    "fastq_size_bytes": None,
-    "cram_count": None,
-    "cram_size_bytes": None,
-    "vcf_count": None,
-    "vcf_size_bytes": None,
-    "results_size_bytes": None,
-    "ec2_cost_usd": None,
-}
-
-def count_rows(path):
-    try:
-        with path.open('r', encoding='utf-8') as handle:
-            return sum(1 for line in handle if line.strip())
-    except Exception:
-        return 0
-
-samples_path = root / 'config' / 'samples.tsv'
-if samples_path.exists():
-    rows = count_rows(samples_path)
-    data['samples'] = max(rows - 1, 0)
-
-units_path = root / 'config' / 'units.tsv'
-fastq_entries = []
-if units_path.exists():
-    try:
-        with units_path.open('r', encoding='utf-8') as handle:
-            reader = csv.DictReader(handle, delimiter='\t')
-            count = 0
-            for row in reader:
-                if not row:
-                    continue
-                count += 1
-                for value in row.values():
-                    if not value:
-                        continue
-                    val = value.strip()
-                    lower = val.lower()
-                    if lower.endswith(('.fastq', '.fastq.gz', '.fq', '.fq.gz')):
-                        fastq_entries.append(val)
-            data['sample_libraries'] = count
-    except Exception:
-        pass
-    data['fastq_count'] = len(fastq_entries)
-
-total_fastq_size = 0
-if fastq_entries:
-    seen = set()
-    for entry in fastq_entries:
-        raw = entry.strip()
-        if not raw:
-            continue
-        candidates = []
-        path = Path(raw)
-        if path.is_absolute():
-            candidates.append(path)
-        candidates.extend([
-            root / raw,
-            root / 'sample_data' / raw,
-            root / 'sample_data' / Path(raw).name,
-        ])
-        for candidate in candidates:
-            try:
-                resolved = candidate.resolve()
-            except Exception:
-                resolved = candidate
-            if resolved in seen or not resolved.exists():
-                continue
-            try:
-                total_fastq_size += resolved.stat().st_size
-                seen.add(resolved)
-                break
-            except Exception:
-                continue
-if fastq_entries:
-    data['fastq_size_bytes'] = total_fastq_size
-
-results_dir = root / 'results'
-total_results = 0
-cram_size = 0
-cram_count = 0
-vcf_size = 0
-vcf_count = 0
-if results_dir.exists():
-    for path in results_dir.rglob('*'):
-        if not path.is_file():
-            continue
-        try:
-            size = path.stat().st_size
-        except Exception:
-            continue
-        total_results += size
-        name = path.name.lower()
-        if name.endswith('.cram'):
-            cram_size += size
-            cram_count += 1
-        elif name.endswith('.vcf.gz'):
-            vcf_size += size
-            vcf_count += 1
-    data['results_size_bytes'] = total_results
-    data['cram_size_bytes'] = cram_size
-    data['cram_count'] = cram_count
-    data['vcf_size_bytes'] = vcf_size
-    data['vcf_count'] = vcf_count
-
-task_cost = 0.0
-if results_dir.exists():
-    benchmark_candidates = []
-    for path in results_dir.rglob('*'):
-        if path.name.lower().startswith('benchmarks') and path.is_file():
-            benchmark_candidates.append(path)
-        elif path.name.lower() == 'benchmarks' and path.is_dir():
-            for child in path.rglob('*'):
-                if child.is_file():
-                    benchmark_candidates.append(child)
-    for bench in benchmark_candidates:
-        try:
-            with bench.open('r', encoding='utf-8') as handle:
-                reader = csv.reader(handle, delimiter='\t')
-                headers = None
-                for row in reader:
-                    if not row:
-                        continue
-                    if headers is None:
-                        headers = row
-                        continue
-                    if row == headers:
-                        continue
-                    try:
-                        task_cost += float(row[-1])
-                    except Exception:
-                        continue
-        except Exception:
-            continue
-if task_cost:
-    data['ec2_cost_usd'] = task_cost
-
-print(json.dumps(data))
-PY
-"""
-        )
-        result = self._run_headnode_command(
-            cluster_name, command, check=False, shell=True
-        )
-        if result.returncode != 0:
-            LOGGER.debug(
-                "Failed to collect pipeline metrics for %s (exit %s): %s",
-                workset.name,
-                result.returncode,
-                result.stderr.decode(errors="ignore"),
-            )
-            return {}
-        text = result.stdout.decode("utf-8", errors="ignore").strip()
-        if not text:
-            return {}
-        try:
-            payload = json.loads(text)
-        except json.JSONDecodeError:
-            LOGGER.debug(
-                "Unexpected pipeline metrics payload for %s: %s", workset.name, text
-            )
-            return {}
-        if isinstance(payload, dict):
-            return payload
-        return {}
 
     def _summarize_workset(self, workset: Workset) -> WorksetReportRow:
         sentinels = workset.sentinels
@@ -2500,153 +1879,10 @@ PY
         priority = STATE_PRIORITIES.get(row.state, max(STATE_PRIORITIES.values()) + 1)
         return priority, row.name
 
-    def _format_timestamp(self, value: Optional[str]) -> str:
-        if not value:
-            return ""
-        text = value.strip()
-        if not text:
-            return ""
-        try:
-            parsed = dt.datetime.fromisoformat(text.replace("Z", "+00:00"))
-            return parsed.replace(microsecond=0).isoformat().replace("+00:00", "Z")
-        except ValueError:
-            if "." in text:
-                text = text.split(".", 1)[0]
-            return text
-
-    def _format_float(self, value: Optional[float]) -> str:
-        if value is None:
-            return ""
-        return f"{value:.2f}"
-
-    def _format_int(self, value: Optional[int]) -> str:
-        if value is None:
-            return ""
-        return str(value)
-
-    def _build_report_headers(self, minimal: bool) -> List[str]:
-        headers = ["Workset", "State", "StartDT", "Valid", "Detail"]
-        if not minimal:
-            headers.extend(
-                [
-                    "Cluster",
-                    "RegionAZ",
-                    "Budget",
-                    "RunTime",
-                    "EndDT",
-                    "PipelineCmd",
-                    "CloneCmd",
-                    "Samples",
-                    "SampleLibs",
-                    "Fastqs",
-                    "FastqGB",
-                    "CRAMs",
-                    "CRAM_GB",
-                    "VCFs",
-                    "VCF_GB",
-                    "Results_GB",
-                    "S3DailyUSD",
-                    "CRAM_XferUSD",
-                    "VCF_XferUSD",
-                    "EC2CostUSD",
-                ]
-            )
-        return headers
-
-    def _row_to_serialisable(
-        self, row: WorksetReportRow, *, minimal: bool
-    ) -> List[str]:
-        values = [
-            row.name,
-            row.state,
-            self._format_timestamp(row.timestamp),
-            "yes" if row.has_required_files else "no",
-            row.detail or "",
-        ]
-        if not minimal:
-            values.extend(
-                [
-                    row.cluster_name or "",
-                    row.region_az or "",
-                    row.budget_name or "",
-                    row.runtime or "",
-                    self._format_timestamp(row.end_timestamp),
-                    row.pipeline_command or "",
-                    row.clone_command or "",
-                    self._format_int(row.samples),
-                    self._format_int(row.sample_libraries),
-                    self._format_int(row.fastq_count),
-                    self._format_float(row.fastq_size_gb),
-                    self._format_int(row.cram_count),
-                    self._format_float(row.cram_size_gb),
-                    self._format_int(row.vcf_count),
-                    self._format_float(row.vcf_size_gb),
-                    self._format_float(row.results_size_gb),
-                    self._format_float(row.s3_daily_cost_usd),
-                    row.cram_transfer_cost_usd or "",
-                    row.vcf_transfer_cost_usd or "",
-                    self._format_float(row.ec2_cost_usd),
-                ]
-            )
-        return values
-
-    def _serialise_rows(
-        self, rows: Sequence[WorksetReportRow], *, minimal: bool
-    ) -> Tuple[List[str], List[List[str]]]:
-        headers = self._build_report_headers(minimal)
-        serialised = [self._row_to_serialisable(row, minimal=minimal) for row in rows]
-        return headers, serialised
-
-    def _render_term_report(
-        self, rows: Sequence[WorksetReportRow], *, minimal: bool
-    ) -> None:
+    def _render_term_report(self, rows: Sequence[WorksetReportRow]) -> None:
         if not rows:
             print("No worksets matched the selection.")
             return
-        headers, serialised_rows = self._serialise_rows(rows, minimal=minimal)
-        if not serialised_rows:
-            serialised_rows = [[] for _ in rows]
-        widths = [len(header) for header in headers]
-        for values in serialised_rows:
-            for idx, value in enumerate(values):
-                if idx >= len(widths):
-                    widths.append(len(value))
-                else:
-                    widths[idx] = max(widths[idx], len(value))
-
-        header_line = "  ".join(
-            header.ljust(widths[idx]) for idx, header in enumerate(headers)
-        )
-        print(header_line)
-        print("-" * len(header_line))
-        for row, values in zip(rows, serialised_rows):
-            formatted: List[str] = []
-            for idx, value in enumerate(values):
-                padded = value.ljust(widths[idx])
-                if idx == 1:  # State column
-                    color = STATE_COLORS.get(row.state, STATE_COLORS["unknown"])
-                    padded = f"{color}{padded}\033[0m"
-                elif idx == 3:  # Valid column
-                    if row.has_required_files:
-                        padded = padded
-                    else:
-                        padded = f"\033[31m{padded}\033[0m"
-                formatted.append(padded)
-            print("  ".join(formatted))
-
-    def _write_delimited_report(
-        self,
-        rows: Sequence[WorksetReportRow],
-        path: Path,
-        delimiter: str,
-        *,
-        minimal: bool,
-    ) -> None:
-        with path.open("w", encoding="utf-8", newline="") as handle:
-            writer = csv.writer(handle, delimiter=delimiter)
-            headers, serialised_rows = self._serialise_rows(rows, minimal=minimal)
-            writer.writerow(headers)
-            writer.writerows(serialised_rows)
         name_width = max(len("Workset"), max(len(row.name) for row in rows))
         state_width = max(len("State"), max(len(row.state_text) for row in rows))
         timestamp_width = max(len("Timestamp"), max(len(row.timestamp or "-") for row in rows))
@@ -2686,9 +1922,9 @@ PY
                     ]
                 )
 
-    def report(self, target: str, *, minimal: bool = False) -> None:
+    def report(self, target: str) -> None:
         worksets = list(self._discover_worksets())
-        rows = self._generate_report_rows(worksets, minimal=minimal)
+        rows = self._generate_report_rows(worksets)
         if self._process_directories:
             found = {row.name for row in rows}
             missing = sorted(self._process_directories - found)
@@ -2696,7 +1932,7 @@ PY
                 LOGGER.warning("Requested workset %s was not found", name)
 
         if target.lower() == "term":
-            self._render_term_report(rows, minimal=minimal)
+            self._render_term_report(rows)
             return
 
         # Buffer CSV/TSV once so we can write to S3 or local
@@ -2704,9 +1940,9 @@ PY
             from io import StringIO
             buf = StringIO()
             w = csv.writer(buf, delimiter=delim)
-            headers, serialized_rows = self._serialise_rows(rows, minimal=minimal)
-            w.writerow(headers)
-            w.writerows(serialized_rows)
+            w.writerow(["workset", "state", "timestamp", "detail", "has_required_files"])
+            for r in rows:
+                w.writerow([r.name, r.state, r.timestamp or "", r.detail or "", "yes" if r.has_required_files else "no"])
             return buf.getvalue().encode("utf-8")
 
         if target.startswith("s3://"):
@@ -2726,7 +1962,7 @@ PY
         delim = "\t" if suffix == ".tsv" else ","
         if path.parent and not path.parent.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
-        self._write_delimited_report(rows, path, delim, minimal=minimal)
+        self._write_delimited_report(rows, path, delim)
         LOGGER.info("Wrote report with %d entries to %s", len(rows), path)
 
     # ------------------------------------------------------------------
@@ -2979,13 +2215,6 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
             "a .tsv/.csv filename (local or s3://...)"
         ),
     )
-    parser.add_argument(
-        "--min-deets",
-        action="store_true",
-        help=(
-            "Limit --report output to the original summary columns (StartDT/State/Valid/Detail)"
-        ),
-    )
     args = parser.parse_args(argv)
     if args.report and args.report.lower() != "term":
         target = args.report
@@ -3013,7 +2242,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         attempt_restart=args.attempt_restart,
     )
     if args.report:
-        monitor.report(args.report, minimal=args.min_deets)
+        monitor.report(args.report)
         return 0
 
     monitor.run()
