@@ -747,6 +747,12 @@ class WorksetMonitor:
             cluster=cluster_name,
             analysis_samples=manifest_argument,
             reference_bucket=reference_bucket,
+            ssh_identity_file=self.config.pipeline.ssh_identity_file or "",
+            pem=self.config.pipeline.ssh_identity_file or "",
+            ssh_user=self.config.pipeline.ssh_user,
+            ssh_extra_args=" ".join(
+                shlex.quote(arg) for arg in self.config.pipeline.ssh_extra_args
+            ),
         )
         LOGGER.info(
             "Staging samples for cluster %s with command: %s", cluster_name, cmd
