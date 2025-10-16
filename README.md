@@ -977,6 +977,24 @@ options:
   --list                List available repositories and exit.
 ```
 
+```term
+
+(DAY-EC) ubuntu@ip-10-0-0-64:~$ day-clone --list
+Available repositories:
+
+- daylily-omics-analysis: Daylily Omics Analysis
+    Primary whole genome and multiomics workflows.
+    Default ref: 0.7.357
+
+- rna-seq-star-deseq2: RNA-seq STAR + DESeq2
+    RNA sequencing alignment and differential expression analysis workflows.
+    Default ref: main
+
+- daylily-sarek: daylily-sarek
+    sarek nf-core analysis workflows.
+    Default ref: 0.0.2d
+```
+
 ##### clone daylily-omics-analysis
 
 ```bash
