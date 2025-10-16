@@ -57,6 +57,12 @@ INFO_YAML_NAME = "daylily_info.yaml"
 SAMPLE_DATA_DIRNAME = "sample_data"
 PIPELINE_LOCATION_MARKER = ".daylily-monitor-location"
 PIPELINE_SESSION_MARKER = ".daylily-monitor-tmux-session"
+PIPELINE_START_MARKER = ".daylily-monitor-pipeline-start"
+PIPELINE_SUCCESS_SENTINEL = "pipeline.success"
+PIPELINE_FAILURE_SENTINEL = "pipeline.fail"
+FSX_EXPORT_STATUS_FILENAME = "fsx_export.yaml"
+CLUSTER_STATE_DIR = "_clusters"
+CLUSTER_IDLE_MARKER = "idle_since"
 
 STATE_PRIORITIES = {
     "error": 0,
@@ -137,6 +143,7 @@ class PipelineOptions:
     clone_command: str
     run_prefix: str
     export_command: str
+    pipeline_timeout_minutes: Optional[int] = None
     local_stage_root: Optional[str] = None
     reference_bucket: Optional[str] = None
     ssh_identity_file: Optional[str] = None
@@ -661,7 +668,7 @@ class WorksetMonitor:
                     "Skipping export for %s: command already completed", workset.name
                 )
             else:
-                self._export_results(cluster_name, target_export_uri)
+                self._export_results(workset, cluster_name, target_export_uri)
                 completed_commands.add(export_label)
 
         return pipeline_dir
@@ -671,6 +678,19 @@ class WorksetMonitor:
         path = Path(os.path.expanduser(root)) / workset.name
         path.mkdir(parents=True, exist_ok=True)
         return path
+
+    def _cluster_state_dir(self, cluster_name: str) -> Path:
+        root = self.config.pipeline.local_state_root or "~/.cache/daylily-monitor"
+        path = Path(os.path.expanduser(root)) / CLUSTER_STATE_DIR / cluster_name
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def _cluster_idle_marker(self, cluster_name: str) -> Path:
+        return self._cluster_state_dir(cluster_name) / CLUSTER_IDLE_MARKER
+
+    def _clear_cluster_idle(self, cluster_name: str) -> None:
+        with contextlib.suppress(FileNotFoundError):
+            self._cluster_idle_marker(cluster_name).unlink()
 
     def _record_pipeline_location(
         self, workset: Workset, location: PurePosixPath
@@ -722,6 +742,40 @@ class WorksetMonitor:
         safe_name = re.sub(r"[^A-Za-z0-9_-]", "_", workset.name)
         timestamp = int(time.time())
         return f"{safe_prefix}_{safe_name}_{timestamp}"
+
+    def _load_tmux_session(self, workset: Workset) -> Optional[str]:
+        marker = self._local_state_dir(workset) / PIPELINE_SESSION_MARKER
+        if not marker.exists():
+            return None
+        session_name = marker.read_text(encoding="utf-8").strip()
+        return session_name or None
+
+    def _clear_tmux_session(self, workset: Workset) -> None:
+        marker = self._local_state_dir(workset) / PIPELINE_SESSION_MARKER
+        with contextlib.suppress(FileNotFoundError):
+            marker.unlink()
+
+    def _pipeline_start_marker(self, workset: Workset) -> Path:
+        return self._local_state_dir(workset) / PIPELINE_START_MARKER
+
+    def _record_pipeline_start(self, workset: Workset, timestamp: dt.datetime) -> None:
+        marker = self._pipeline_start_marker(workset)
+        marker.write_text(timestamp.isoformat(), encoding="utf-8")
+
+    def _load_pipeline_start(self, workset: Workset) -> Optional[dt.datetime]:
+        marker = self._pipeline_start_marker(workset)
+        if not marker.exists():
+            return None
+        text = marker.read_text(encoding="utf-8").strip()
+        if not text:
+            return None
+        with contextlib.suppress(ValueError):
+            return dt.datetime.fromisoformat(text)
+        return None
+
+    def _clear_pipeline_start(self, workset: Workset) -> None:
+        with contextlib.suppress(FileNotFoundError):
+            self._pipeline_start_marker(workset).unlink()
 
     def _validate_stage_manifest(
         self, manifest_bytes: bytes, workset: Workset
@@ -1084,6 +1138,59 @@ class WorksetMonitor:
             return False
         return True
 
+    def _headnode_path_exists(
+        self, cluster_name: str, path: PurePosixPath
+    ) -> bool:
+        cmd = f"test -e {shlex.quote(str(path))}"
+        result = self._run_headnode_command(
+            cluster_name, cmd, check=False, shell=True
+        )
+        return result.returncode == 0
+
+    def _pipeline_sentinel_status(
+        self, cluster_name: str, pipeline_dir: PurePosixPath
+    ) -> str:
+        success = pipeline_dir / PIPELINE_SUCCESS_SENTINEL
+        failure = pipeline_dir / PIPELINE_FAILURE_SENTINEL
+        if self._headnode_path_exists(cluster_name, success):
+            return "success"
+        if self._headnode_path_exists(cluster_name, failure):
+            return "failure"
+        return "pending"
+
+    def _tmux_session_exists(self, cluster_name: str, session_name: str) -> bool:
+        result = self._run_headnode_command(
+            cluster_name,
+            ["tmux", "has-session", "-t", session_name],
+            check=False,
+            shell=False,
+        )
+        return result.returncode == 0
+
+    def _terminate_tmux_session(
+        self, cluster_name: str, session_name: Optional[str]
+    ) -> None:
+        if not session_name:
+            return
+        self._run_headnode_command(
+            cluster_name,
+            ["tmux", "kill-session", "-t", session_name],
+            check=False,
+            shell=False,
+        )
+
+    def _interrupt_tmux_session(
+        self, cluster_name: str, session_name: Optional[str]
+    ) -> None:
+        if not session_name:
+            return
+        self._run_headnode_command(
+            cluster_name,
+            ["tmux", "send-keys", "-t", session_name, "C-x"],
+            check=False,
+            shell=False,
+        )
+
     def _run_pipeline(
         self,
         workset: Workset,
@@ -1097,37 +1204,169 @@ class WorksetMonitor:
                 "Provide one of: dy-r, dy_r, dy, run, run_suffix, run-suffix, run_cmd."
             )
 
-        run_command = self.config.pipeline.run_prefix + run_suffix
-        session_name = self._generate_tmux_session_name(workset)
+        status = self._pipeline_sentinel_status(cluster_name, pipeline_dir)
+        existing_session = self._load_tmux_session(workset)
+        if status == "success":
+            LOGGER.info(
+                "Pipeline already marked successful for %s; skipping rerun", workset.name
+            )
+            self._terminate_tmux_session(cluster_name, existing_session)
+            self._clear_tmux_session(workset)
+            self._clear_pipeline_start(workset)
+            return
+        if status == "failure":
+            self._terminate_tmux_session(cluster_name, existing_session)
+            self._clear_tmux_session(workset)
+            self._clear_pipeline_start(workset)
+            raise MonitorError(
+                f"Pipeline previously failed for {workset.name}; investigate pipeline.fail"
+            )
 
-        # build: echo go && cd <fsx path> && (optional init) && run && (optional keepalive)
-        steps: List[str] = []
-        steps.append("echo go")
-        steps.append(f"cd {shlex.quote(str(pipeline_dir))}")
+        if existing_session and not self._tmux_session_exists(
+            cluster_name, existing_session
+        ):
+            self._clear_tmux_session(workset)
+            self._clear_pipeline_start(workset)
+            raise MonitorError(
+                f"Recorded tmux session {existing_session} for {workset.name} is not running and no sentinel was found"
+            )
 
-        init_cmd = (self.config.pipeline.login_shell_init or "").strip()
-        if init_cmd:
-            steps.append(init_cmd)
+        session_name = existing_session
+        if not session_name:
+            run_command = self.config.pipeline.run_prefix + run_suffix
 
-        steps.append(run_command)
+            steps: List[str] = []
+            steps.append("echo go")
+            steps.append(f"cd {shlex.quote(str(pipeline_dir))}")
 
-        keepalive = (self.config.pipeline.tmux_keepalive_shell or "").strip()
-        if keepalive:
-            steps.append(keepalive)
+            init_cmd = (self.config.pipeline.login_shell_init or "").strip()
+            if init_cmd:
+                steps.append(init_cmd)
 
-        composite = " && ".join(steps)
+            steps.append(run_command)
 
-        tmux_cmd = ["tmux", "new-session", "-d", "-s", session_name, "bash", "-lc", composite]
+            keepalive = (self.config.pipeline.tmux_keepalive_shell or "").strip()
+            if keepalive:
+                steps.append(keepalive)
 
-        LOGGER.info("Launching pipeline for %s in tmux session %s: %s",
-                    workset.name, session_name, run_command)
-        self._record_tmux_session(workset, session_name)
-        self._write_pipeline_sentinel(cluster_name, pipeline_dir, "START")
-        try:
-            self._run_headnode_monitored_command("run_pipeline", tmux_cmd, cluster_name=cluster_name, check=True, shell=False)
-            self._run_headnode_command(cluster_name, ["tmux", "has-session", "-t", session_name], check=True, shell=False)
-        finally:
-            self._write_pipeline_sentinel(cluster_name, pipeline_dir, "END")
+            composite = " && ".join(steps)
+
+            session_name = self._generate_tmux_session_name(workset)
+            tmux_cmd = [
+                "tmux",
+                "new-session",
+                "-d",
+                "-s",
+                session_name,
+                "bash",
+                "-lc",
+                composite,
+            ]
+
+            LOGGER.info(
+                "Launching pipeline for %s in tmux session %s: %s",
+                workset.name,
+                session_name,
+                run_command,
+            )
+            self._record_tmux_session(workset, session_name)
+            self._write_pipeline_sentinel(cluster_name, pipeline_dir, "START")
+            try:
+                self._run_headnode_monitored_command(
+                    "run_pipeline",
+                    tmux_cmd,
+                    cluster_name=cluster_name,
+                    check=True,
+                    shell=False,
+                )
+                self._run_headnode_command(
+                    cluster_name,
+                    ["tmux", "has-session", "-t", session_name],
+                    check=True,
+                    shell=False,
+                )
+                self._record_pipeline_start(workset, dt.datetime.utcnow())
+            except Exception:
+                self._clear_tmux_session(workset)
+                self._clear_pipeline_start(workset)
+                raise
+            finally:
+                self._write_pipeline_sentinel(cluster_name, pipeline_dir, "END")
+
+        self._monitor_pipeline_session(
+            workset, cluster_name, pipeline_dir, session_name
+        )
+
+    def _monitor_pipeline_session(
+        self,
+        workset: Workset,
+        cluster_name: str,
+        pipeline_dir: PurePosixPath,
+        session_name: str,
+    ) -> None:
+        poll_interval = max(10, min(60, self.config.monitor.poll_interval_seconds))
+        start_time = self._load_pipeline_start(workset)
+        if start_time is None:
+            start_time = dt.datetime.utcnow()
+            self._record_pipeline_start(workset, start_time)
+        timeout_minutes = self.config.pipeline.pipeline_timeout_minutes
+        timeout_seconds = (timeout_minutes or 0) * 60 if timeout_minutes else None
+
+        while True:
+            status = self._pipeline_sentinel_status(cluster_name, pipeline_dir)
+            if status == "success":
+                LOGGER.info("Pipeline completed successfully for %s", workset.name)
+                self._terminate_tmux_session(cluster_name, session_name)
+                self._clear_tmux_session(workset)
+                self._clear_pipeline_start(workset)
+                return
+            if status == "failure":
+                self._terminate_tmux_session(cluster_name, session_name)
+                self._clear_tmux_session(workset)
+                self._clear_pipeline_start(workset)
+                raise MonitorError(
+                    f"Pipeline failed for {workset.name}; see pipeline.fail"
+                )
+
+            if not self._tmux_session_exists(cluster_name, session_name):
+                self._clear_tmux_session(workset)
+                self._clear_pipeline_start(workset)
+                raise MonitorError(
+                    f"Pipeline session {session_name} exited without a sentinel for {workset.name}"
+                )
+
+            if timeout_seconds is not None:
+                elapsed = (dt.datetime.utcnow() - start_time).total_seconds()
+                if elapsed >= timeout_seconds:
+                    LOGGER.error(
+                        "Pipeline for %s exceeded timeout of %d minutes",
+                        workset.name,
+                        timeout_minutes,
+                    )
+                    status = self._pipeline_sentinel_status(cluster_name, pipeline_dir)
+                    if status == "success":
+                        LOGGER.info(
+                            "Pipeline for %s reported success sentinel during timeout handling",
+                            workset.name,
+                        )
+                        continue
+                    if status == "failure":
+                        self._terminate_tmux_session(cluster_name, session_name)
+                        self._clear_tmux_session(workset)
+                        self._clear_pipeline_start(workset)
+                        raise MonitorError(
+                            f"Pipeline failed for {workset.name}; see pipeline.fail"
+                        )
+                    self._interrupt_tmux_session(cluster_name, session_name)
+                    time.sleep(5)
+                    self._terminate_tmux_session(cluster_name, session_name)
+                    self._clear_tmux_session(workset)
+                    self._clear_pipeline_start(workset)
+                    raise MonitorError(
+                        f"Pipeline timed out after {timeout_minutes} minutes for {workset.name}"
+                    )
+
+            time.sleep(poll_interval)
 
     def _write_pipeline_sentinel(
         self,
@@ -1153,22 +1392,161 @@ class WorksetMonitor:
             shell=True,
         )
 
-    def _export_results(self, cluster_name: str, target_uri: str) -> None:
+    def _export_results(
+        self, workset: Workset, cluster_name: str, target_uri: str
+    ) -> None:
+        output_dir = self._local_state_dir(workset)
+        profile_value = self.config.aws.profile or ""
         command = self.config.pipeline.export_command.format(
-            cluster=cluster_name, target_uri=target_uri
+            cluster=shlex.quote(cluster_name),
+            target_uri=shlex.quote(target_uri),
+            region=shlex.quote(self.config.aws.region),
+            profile=shlex.quote(profile_value) if profile_value else "",
+            output_dir=shlex.quote(str(output_dir)),
         )
-        LOGGER.info("Exporting pipeline results to %s", target_uri)
-        self._run_headnode_monitored_command(
-            "export_results",
-            command,
-            cluster_name=cluster_name,
-            check=True,
-            shell=True,
+        LOGGER.info("Exporting pipeline results for %s to %s", workset.name, target_uri)
+        self._run_monitored_command(
+            "export_results", command, check=True, shell=True
         )
+
+        status_path = output_dir / FSX_EXPORT_STATUS_FILENAME
+        if not status_path.exists():
+            raise MonitorError(
+                f"Export command for {workset.name} did not produce {FSX_EXPORT_STATUS_FILENAME}"
+            )
+        try:
+            status_data = yaml.safe_load(status_path.read_text(encoding="utf-8"))
+        except yaml.YAMLError as exc:
+            raise MonitorError(
+                f"Unable to parse export status for {workset.name}: {exc}"
+            ) from exc
+        if not isinstance(status_data, dict) or "fsx_export" not in status_data:
+            raise MonitorError(
+                f"Export status for {workset.name} missing fsx_export block"
+            )
+        details = status_data.get("fsx_export")
+        if not isinstance(details, dict):
+            raise MonitorError(
+                f"Export status for {workset.name} has unexpected format"
+            )
+        status = str(details.get("status", "")).lower()
+        s3_uri = details.get("s3_uri")
+        if status != "success":
+            raise MonitorError(
+                f"Export command reported failure for {workset.name}: status={status or 'unknown'}"
+            )
+        LOGGER.info(
+            "Export completed for %s; results available at %s", workset.name, s3_uri
+        )
+        if self.config.cluster.auto_teardown:
+            self._maybe_shutdown_cluster(cluster_name)
 
     # ------------------------------------------------------------------
     # Cluster helpers
     # ------------------------------------------------------------------
+    def _cluster_has_tmux_sessions(self, cluster_name: str) -> bool:
+        result = self._run_headnode_command(
+            cluster_name, ["tmux", "list-sessions"], check=False, shell=False
+        )
+        if result.returncode != 0:
+            return False
+        output = result.stdout
+        if isinstance(output, (bytes, bytearray)):
+            text = output.decode("utf-8", errors="ignore")
+        else:
+            text = str(output)
+        return bool(text.strip())
+
+    def _cluster_job_count(self, cluster_name: str) -> Optional[int]:
+        cmd = "squeue | wc -l"
+        result = self._run_headnode_command(
+            cluster_name, ["bash", "-lc", cmd], check=False, shell=False
+        )
+        if result.returncode != 0:
+            LOGGER.warning(
+                "Unable to determine job count on %s (exit %s)",
+                cluster_name,
+                result.returncode,
+            )
+            return None
+        output = result.stdout
+        if isinstance(output, (bytes, bytearray)):
+            text = output.decode("utf-8", errors="ignore")
+        else:
+            text = str(output)
+        try:
+            return int(text.strip() or "0")
+        except ValueError:
+            LOGGER.warning(
+                "Unexpected job count output from %s: %s", cluster_name, text.strip()
+            )
+            return None
+
+    def _shutdown_cluster(self, cluster_name: str) -> None:
+        LOGGER.info("Shutting down cluster %s", cluster_name)
+        cmd = [
+            "pcluster",
+            "delete-cluster",
+            "--region",
+            self.config.aws.region,
+            "-n",
+            cluster_name,
+        ]
+        self._run_monitored_command(
+            "delete_cluster", cmd, check=True, env=self._pcluster_env()
+        )
+
+    def _maybe_shutdown_cluster(self, cluster_name: str) -> None:
+        if not self.config.cluster.auto_teardown:
+            return
+        if self._cluster_has_tmux_sessions(cluster_name):
+            LOGGER.info(
+                "Skipping shutdown of %s: tmux sessions remain active", cluster_name
+            )
+            self._clear_cluster_idle(cluster_name)
+            return
+        job_count = self._cluster_job_count(cluster_name)
+        if job_count is None:
+            LOGGER.info(
+                "Skipping shutdown of %s: unable to determine job queue", cluster_name
+            )
+            self._clear_cluster_idle(cluster_name)
+            return
+        if job_count > 1:
+            LOGGER.info(
+                "Skipping shutdown of %s: %d jobs still in queue", cluster_name, job_count - 1
+            )
+            self._clear_cluster_idle(cluster_name)
+            return
+
+        idle_marker = self._cluster_idle_marker(cluster_name)
+        now = dt.datetime.utcnow()
+        if idle_marker.exists():
+            text = idle_marker.read_text(encoding="utf-8").strip()
+            with contextlib.suppress(ValueError):
+                recorded = dt.datetime.fromisoformat(text)
+                elapsed = (now - recorded).total_seconds()
+                if elapsed >= 600:
+                    LOGGER.info(
+                        "Cluster %s idle for %.0f seconds; initiating shutdown",
+                        cluster_name,
+                        elapsed,
+                    )
+                    self._shutdown_cluster(cluster_name)
+                    self._clear_cluster_idle(cluster_name)
+                    return
+                LOGGER.info(
+                    "Cluster %s idle for %.0f seconds; waiting for 600 seconds",
+                    cluster_name,
+                    elapsed,
+                )
+                return
+        idle_marker.write_text(now.isoformat(), encoding="utf-8")
+        LOGGER.info(
+            "Cluster %s is idle; will shutdown after 600 seconds if still idle",
+            cluster_name,
+        )
+
     def _ensure_cluster(self, work_yaml: Dict[str, object]) -> str:
         if self.config.cluster.reuse_cluster_name:
             return self.config.cluster.reuse_cluster_name
