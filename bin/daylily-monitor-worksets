@@ -512,7 +512,7 @@ class WorksetMonitor:
 
     def _pipeline_state_dir(self, workset: Workset) -> Path:
         path = Path(self.config.pipeline.workdir) / workset.name
-        path.mkdir(parents=True, exist_ok=True)
+        #path.mkdir(parents=True, exist_ok=True)
         return path
 
     def _record_pipeline_location(self, workset: Workset, location: PurePosixPath) -> None:
