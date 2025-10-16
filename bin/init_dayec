@@ -87,3 +87,5 @@ else
     echo "Daylily CLI environment is ready. Run:"
     echo "    conda activate DAY-EC"
 fi
+
+printf 'will cite\n' | parallel --citation >/dev/null 2>&1 || echo nope
