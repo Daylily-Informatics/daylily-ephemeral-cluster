@@ -131,9 +131,10 @@ class MonitorConfig:
 
 
 class WorksetMonitor:
-    def __init__(self, config: MonitorConfig, *, dry_run: bool = False) -> None:
+    def __init__(self, config: MonitorConfig, *, dry_run: bool = False, debug: bool = False) -> None:
         self.config = config
         self.dry_run = dry_run
+        self.debug = debug
         self._session = boto3.session.Session(**config.aws.session_kwargs())
         self._s3 = self._session.client("s3")
         self._sts = self._session.client("sts")
@@ -655,6 +656,9 @@ class WorksetMonitor:
         else:
             cmd_display = " ".join(command) if not isinstance(command, str) else command
         LOGGER.debug("Executing command: %s", cmd_display)
+        if self.debug:
+            action = "DRY-RUN" if self.dry_run else "EXEC"
+            print(f"[{action}] {cmd_display}")
         if self.dry_run:
             return subprocess.CompletedProcess(args=command, returncode=0, stdout=b"", stderr=b"")
         run_command = command
@@ -699,18 +703,23 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Monitor S3 workset directories and launch Daylily pipelines")
     parser.add_argument("config", type=Path, help="Path to the YAML configuration file")
     parser.add_argument("--once", action="store_true", help="Run a single poll iteration and exit")
-    parser.add_argument("--dry-run", action="store_true", help="Do not mutate S3 or execute commands")
+    parser.add_argument("--dry-run", "--dryrun", dest="dry_run", action="store_true", help="Do not mutate S3 or execute commands")
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Print all commands executed (or expected when combined with --dry-run)",
+    )
     return parser.parse_args(argv)
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
-    configure_logging(args.verbose)
+    configure_logging(args.verbose or args.debug)
     config = MonitorConfig.load(args.config)
     if args.once:
         config.monitor.continuous = False
-    monitor = WorksetMonitor(config, dry_run=args.dry_run)
+    monitor = WorksetMonitor(config, dry_run=args.dry_run, debug=args.debug)
     monitor.run()
     return 0
 
