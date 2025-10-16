@@ -51,6 +51,15 @@ class MonitorError(RuntimeError):
     """Raised when a workset fails validation or processing."""
 
 
+class CommandFailedError(MonitorError):
+    """Raised when an external command fails."""
+
+    def __init__(self, command_label: str, command_display: str) -> None:
+        super().__init__(f"Command failed: {command_display}")
+        self.command_label = command_label
+        self.command_display = command_display
+
+
 @dataclasses.dataclass
 class AWSConfig:
     profile: str
@@ -131,10 +140,17 @@ class MonitorConfig:
 
 
 class WorksetMonitor:
-    def __init__(self, config: MonitorConfig, *, dry_run: bool = False, debug: bool = False) -> None:
+    def __init__(
+        self,
+        config: MonitorConfig,
+        *,
+        dry_run: bool = False,
+        attempt_restart: bool = False,
+    ) -> None:
         self.config = config
         self.dry_run = dry_run
-        self.debug = debug
+        self.attempt_restart = attempt_restart
+
         self._session = boto3.session.Session(**config.aws.session_kwargs())
         self._s3 = self._session.client("s3")
         self._sts = self._session.client("sts")
@@ -306,24 +322,116 @@ class WorksetMonitor:
         cluster_name = self._ensure_cluster(work_yaml)
         LOGGER.info("Using cluster %s for workset %s", cluster_name, workset.name)
 
+        pipeline_dir = Path(self.config.pipeline.workdir) / workset.name
+        completed_commands: set[str] = set()
+        retry_attempted = False
+        while True:
+            try:
+                self._execute_workset_commands(
+                    workset,
+                    manifest_path,
+                    cluster_name,
+                    clone_args,
+                    run_suffix,
+                    target_export_uri,
+                    pipeline_dir,
+                    completed_commands,
+                )
+                break
+            except CommandFailedError as exc:
+                if not self.attempt_restart or retry_attempted:
+                    raise
+                retry_attempted = True
+                LOGGER.warning(
+                    "Command %s failed for %s; attempting restart from this command",
+                    exc.command_label,
+                    workset.name,
+                )
+                continue
+
+    def _execute_workset_commands(
+        self,
+        workset: Workset,
+        manifest_path: Path,
+        cluster_name: str,
+        clone_args: str,
+        run_suffix: Optional[str],
+        target_export_uri: Optional[str],
+        pipeline_dir: Path,
+        completed_commands: set[str],
+    ) -> None:
+        stage_label = "stage_samples"
+        pipeline_dir.mkdir(parents=True, exist_ok=True)
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
-            stage_future = executor.submit(
-                self._stage_samples,
-                manifest_path,
-                cluster_name,
-            )
+            if stage_label in completed_commands:
+                LOGGER.info(
+                    "Skipping sample staging for %s: command already completed",
+                    workset.name,
+                )
+                stage_future = executor.submit(lambda: None)
+            else:
+                stage_future = executor.submit(
+                    self._stage_samples,
+                    manifest_path,
+                    cluster_name,
+                )
             cluster_future = executor.submit(
                 self._wait_for_cluster_ready,
                 cluster_name,
             )
             cluster_future.result()
-            stage_future.result()
+            try:
+                stage_future.result()
+            except CommandFailedError:
+                raise
+            completed_commands.add(stage_label)
 
-        pipeline_dir = self._prepare_pipeline_workspace(workset, cluster_name, clone_args)
-        self._push_stage_files_to_pipeline(pipeline_dir, manifest_path)
-        self._run_pipeline(cluster_name, pipeline_dir, run_suffix)
+        clone_label = "clone_pipeline"
+        clone_needed = bool(clone_args) and clone_label not in completed_commands
+        pipeline_dir = self._prepare_pipeline_workspace(
+            workset,
+            cluster_name,
+            clone_args,
+            run_clone=clone_needed,
+        )
+        if clone_needed:
+            completed_commands.add(clone_label)
+        elif clone_args:
+            LOGGER.info(
+                "Skipping pipeline clone for %s: command already completed",
+                workset.name,
+            )
+
+        push_label = "push_stage_files"
+        if push_label in completed_commands:
+            LOGGER.info(
+                "Skipping stage file push for %s: command already completed",
+                workset.name,
+            )
+        else:
+            self._push_stage_files_to_pipeline(pipeline_dir, manifest_path)
+            completed_commands.add(push_label)
+
+        run_label = "run_pipeline"
+        if run_label in completed_commands:
+            LOGGER.info(
+                "Skipping pipeline run for %s: command already completed",
+                workset.name,
+            )
+        else:
+            self._run_pipeline(cluster_name, pipeline_dir, run_suffix)
+            completed_commands.add(run_label)
+
         if target_export_uri:
-            self._export_results(cluster_name, target_export_uri)
+            export_label = "export_results"
+            if export_label in completed_commands:
+                LOGGER.info(
+                    "Skipping export for %s: command already completed",
+                    workset.name,
+                )
+            else:
+                self._export_results(cluster_name, target_export_uri)
+                completed_commands.add(export_label)
 
     def _validate_stage_manifest(self, manifest_bytes: bytes, workset: Workset) -> None:
         lines = manifest_bytes.decode("utf-8").splitlines()
@@ -360,7 +468,7 @@ class WorksetMonitor:
             reference_bucket=reference_bucket,
         )
         LOGGER.info("Staging samples for cluster %s with command: %s", cluster_name, cmd)
-        self._run_command(cmd, check=True)
+        self._run_monitored_command("stage_samples", cmd, check=True)
 
     def _wait_for_cluster_ready(self, cluster_name: str) -> None:
         LOGGER.info("Waiting for cluster %s to become ready", cluster_name)
@@ -373,13 +481,25 @@ class WorksetMonitor:
             time.sleep(30)
         raise MonitorError(f"Cluster {cluster_name} did not become ready in time")
 
-    def _prepare_pipeline_workspace(self, workset: Workset, cluster_name: str, clone_args: str) -> Path:
+    def _prepare_pipeline_workspace(
+        self,
+        workset: Workset,
+        cluster_name: str,
+        clone_args: str,
+        *,
+        run_clone: bool = True,
+    ) -> Path:
         workdir = Path(self.config.pipeline.workdir) / workset.name
         workdir.mkdir(parents=True, exist_ok=True)
-        if clone_args:
+        if clone_args and run_clone:
             cmd = self.config.pipeline.clone_command.format(clone_args=clone_args)
             LOGGER.info("Cloning pipeline into %s", workdir)
-            self._run_command(cmd, check=True, cwd=workdir)
+            self._run_monitored_command(
+                "clone_pipeline",
+                cmd,
+                check=True,
+                cwd=workdir,
+            )
         return workdir
 
     def _push_stage_files_to_pipeline(self, pipeline_dir: Path, manifest_path: Path) -> None:
@@ -400,14 +520,20 @@ class WorksetMonitor:
         LOGGER.info("Running pipeline: %s", command)
         self._write_pipeline_sentinel(pipeline_dir, "START")
         try:
-            self._run_command(command, check=True, cwd=pipeline_dir, shell=True)
+            self._run_monitored_command(
+                "run_pipeline",
+                command,
+                check=True,
+                cwd=pipeline_dir,
+                shell=True,
+            )
         finally:
             self._write_pipeline_sentinel(pipeline_dir, "END")
 
     def _export_results(self, cluster_name: str, target_uri: str) -> None:
         command = self.config.pipeline.export_command.format(cluster=cluster_name, target_uri=target_uri)
         LOGGER.info("Exporting pipeline results to %s", target_uri)
-        self._run_command(command, check=True)
+        self._run_monitored_command("export_results", command, check=True)
 
     # ------------------------------------------------------------------
     # Cluster helpers
@@ -642,6 +768,31 @@ class WorksetMonitor:
     # ------------------------------------------------------------------
     # Command helpers
     # ------------------------------------------------------------------
+    def _run_monitored_command(
+        self,
+        command_label: str,
+        command: Sequence[str] | str,
+        *,
+        check: bool,
+        cwd: Optional[Path] = None,
+        shell: bool = False,
+        env: Optional[Dict[str, str]] = None,
+    ) -> subprocess.CompletedProcess:
+        if isinstance(command, (str, bytes)) and not shell:
+            cmd_display = command
+        else:
+            cmd_display = " ".join(command) if not isinstance(command, str) else command
+        try:
+            return self._run_command(
+                command,
+                check=check,
+                cwd=cwd,
+                shell=shell,
+                env=env,
+            )
+        except MonitorError as exc:
+            raise CommandFailedError(command_label, str(cmd_display)) from exc
+
     def _run_command(
         self,
         command: Sequence[str] | str,
@@ -703,7 +854,13 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="Monitor S3 workset directories and launch Daylily pipelines")
     parser.add_argument("config", type=Path, help="Path to the YAML configuration file")
     parser.add_argument("--once", action="store_true", help="Run a single poll iteration and exit")
-    parser.add_argument("--dry-run", "--dryrun", dest="dry_run", action="store_true", help="Do not mutate S3 or execute commands")
+    parser.add_argument("--dry-run", action="store_true", help="Do not mutate S3 or execute commands")
+    parser.add_argument(
+        "--attempt-restart",
+        action="store_true",
+        help="Retry failed workset commands once starting from the failed command",
+    )
+
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
     parser.add_argument(
         "--debug",
@@ -719,7 +876,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     config = MonitorConfig.load(args.config)
     if args.once:
         config.monitor.continuous = False
-    monitor = WorksetMonitor(config, dry_run=args.dry_run, debug=args.debug)
+    monitor = WorksetMonitor(
+        config,
+        dry_run=args.dry_run,
+        attempt_restart=args.attempt_restart,
+    )
+
     monitor.run()
     return 0
 
