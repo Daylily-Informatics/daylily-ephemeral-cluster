@@ -1,0 +1,561 @@
+#!/usr/bin/env python3
+"""Monitor S3 workset directories and launch Daylily pipelines automatically."""
+
+from __future__ import annotations
+
+import argparse
+import concurrent.futures
+import contextlib
+import dataclasses
+import datetime as dt
+import logging
+import subprocess
+import sys
+import time
+from collections import defaultdict
+from pathlib import Path
+from typing import Dict, Iterable, List, Optional, Sequence
+
+import boto3
+from botocore.exceptions import ClientError
+import yaml
+
+LOGGER = logging.getLogger("daylily.workset_monitor")
+
+SENTINEL_FILES = {
+    "ready": "daylily.ready",
+    "lock": "daylily.lock",
+    "in_progress": "daylily.in_progress",
+    "error": "daylily.error",
+    "complete": "daylily.complete",
+    "ignore": "daylily.ignore",
+}
+
+OPTIONAL_SENTINELS = {SENTINEL_FILES["lock"], SENTINEL_FILES["in_progress"], SENTINEL_FILES["error"], SENTINEL_FILES["complete"], SENTINEL_FILES["ignore"]}
+SENTINEL_SUFFIX = tuple("daylily." + suffix for suffix in ("ready", "lock", "in_progress", "error", "complete", "ignore"))
+
+DEFAULT_STAGE_SAMPLES_NAME = "stage_samples.tsv"
+WORK_YAML_NAME = "daylily_work.yaml"
+INFO_YAML_NAME = "daylily_info.yaml"
+SAMPLE_DATA_DIRNAME = "sample_data"
+
+
+class MonitorError(RuntimeError):
+    """Raised when a workset fails validation or processing."""
+
+
+@dataclasses.dataclass
+class AWSConfig:
+    profile: str
+    region: str
+    session_duration_seconds: Optional[int] = None
+
+    def session_kwargs(self) -> Dict[str, str]:
+        kwargs: Dict[str, str] = {"region_name": self.region}
+        if self.profile:
+            kwargs["profile_name"] = self.profile
+        return kwargs
+
+
+@dataclasses.dataclass
+class MonitorOptions:
+    bucket: str
+    prefix: str
+    poll_interval_seconds: int = 60
+    ready_lock_backoff_seconds: int = 30
+    continuous: bool = True
+    sentinel_index_prefix: Optional[str] = None
+
+    def normalised_prefix(self) -> str:
+        prefix = self.prefix.lstrip("/")
+        if prefix and not prefix.endswith("/"):
+            prefix += "/"
+        return prefix
+
+
+@dataclasses.dataclass
+class ClusterOptions:
+    template_path: Optional[str] = None
+    preferred_availability_zone: Optional[str] = None
+    auto_teardown: bool = False
+    idle_teardown_minutes: int = 20
+    reuse_cluster_name: Optional[str] = None
+
+
+@dataclasses.dataclass
+class PipelineOptions:
+    workdir: str
+    stage_command: str
+    clone_command: str
+    run_prefix: str
+    export_command: str
+
+
+@dataclasses.dataclass
+class Workset:
+    name: str
+    prefix: str
+    sentinels: Dict[str, str]
+    has_required_files: bool = False
+
+    def sentinel_timestamp(self, sentinel: str) -> Optional[str]:
+        return self.sentinels.get(sentinel)
+
+
+@dataclasses.dataclass
+class MonitorConfig:
+    aws: AWSConfig
+    monitor: MonitorOptions
+    cluster: ClusterOptions
+    pipeline: PipelineOptions
+
+    @staticmethod
+    def load(path: Path) -> "MonitorConfig":
+        with path.open("r", encoding="utf-8") as handle:
+            data = yaml.safe_load(handle)
+        aws_cfg = AWSConfig(**data["aws"])
+        monitor_cfg = MonitorOptions(**data["monitor"])
+        cluster_cfg = ClusterOptions(**data.get("cluster", {}))
+        pipeline_cfg = PipelineOptions(**data["pipeline"])
+        return MonitorConfig(aws=aws_cfg, monitor=monitor_cfg, cluster=cluster_cfg, pipeline=pipeline_cfg)
+
+
+class WorksetMonitor:
+    def __init__(self, config: MonitorConfig, *, dry_run: bool = False) -> None:
+        self.config = config
+        self.dry_run = dry_run
+        self._session = boto3.session.Session(**config.aws.session_kwargs())
+        self._s3 = self._session.client("s3")
+        self._sts = self._session.client("sts")
+        self._sentinel_history: Dict[str, Dict[str, str]] = {}
+
+    # ------------------------------------------------------------------
+    # Public entrypoints
+    # ------------------------------------------------------------------
+    def run(self) -> None:
+        LOGGER.info("Starting Daylily workset monitor in %s", self.config.aws.region)
+        if self.config.aws.session_duration_seconds:
+            self._refresh_session()
+        while True:
+            start_time = time.time()
+            try:
+                worksets = list(self._discover_worksets())
+                self._update_sentinel_indexes(worksets)
+                for workset in worksets:
+                    self._handle_workset(workset)
+            except Exception:  # pragma: no cover - protective top-level catch
+                LOGGER.exception("Unexpected failure while monitoring worksets")
+            elapsed = time.time() - start_time
+            sleep_for = max(self.config.monitor.poll_interval_seconds - elapsed, 0)
+            if not self.config.monitor.continuous:
+                break
+            if sleep_for:
+                LOGGER.debug("Sleeping %.1fs before next poll", sleep_for)
+                time.sleep(sleep_for)
+
+    # ------------------------------------------------------------------
+    # Workset discovery
+    # ------------------------------------------------------------------
+    def _discover_worksets(self) -> Iterable[Workset]:
+        bucket = self.config.monitor.bucket
+        prefix = self.config.monitor.normalised_prefix()
+        paginator = self._s3.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=bucket, Prefix=prefix, Delimiter="/"):
+            for common_prefix in page.get("CommonPrefixes", []):
+                workset_prefix = common_prefix["Prefix"]
+                name = workset_prefix.rstrip("/").split("/")[-1]
+                sentinels = self._list_sentinels(workset_prefix)
+                has_required = self._verify_core_files(workset_prefix)
+                yield Workset(name=name, prefix=workset_prefix, sentinels=sentinels, has_required_files=has_required)
+
+    def _list_sentinels(self, workset_prefix: str) -> Dict[str, str]:
+        bucket = self.config.monitor.bucket
+        response = self._s3.list_objects_v2(Bucket=bucket, Prefix=workset_prefix)
+        sentinel_timestamps: Dict[str, str] = {}
+        for obj in response.get("Contents", []):
+            key = obj["Key"]
+            if not key.endswith(SENTINEL_SUFFIX):
+                continue
+            name = key.split("/")[-1]
+            with contextlib.suppress(KeyError):
+                sentinel_timestamps[name] = self._read_object_text(bucket, key)
+        return sentinel_timestamps
+
+    def _verify_core_files(self, workset_prefix: str) -> bool:
+        bucket = self.config.monitor.bucket
+        expected = [DEFAULT_STAGE_SAMPLES_NAME, WORK_YAML_NAME, INFO_YAML_NAME, SAMPLE_DATA_DIRNAME + "/"]
+        found = set()
+        paginator = self._s3.get_paginator("list_objects_v2")
+        for page in paginator.paginate(Bucket=bucket, Prefix=workset_prefix, Delimiter="/"):
+            for cp in page.get("CommonPrefixes", []):
+                if cp["Prefix"].endswith(SAMPLE_DATA_DIRNAME + "/"):
+                    found.add(SAMPLE_DATA_DIRNAME + "/")
+            for obj in page.get("Contents", []):
+                name = obj["Key"].split("/")[-1]
+                if name in (DEFAULT_STAGE_SAMPLES_NAME, WORK_YAML_NAME, INFO_YAML_NAME):
+                    found.add(name)
+        missing = set(expected) - found
+        if missing:
+            LOGGER.warning("Workset %s missing expected files: %s", workset_prefix, ", ".join(sorted(missing)))
+            return False
+        return True
+
+    # ------------------------------------------------------------------
+    # Sentinel logging
+    # ------------------------------------------------------------------
+    def _update_sentinel_indexes(self, worksets: Sequence[Workset]) -> None:
+        states: Dict[str, List[str]] = defaultdict(list)
+        for workset in worksets:
+            for sentinel, timestamp in workset.sentinels.items():
+                if sentinel in OPTIONAL_SENTINELS or sentinel == SENTINEL_FILES["ready"]:
+                    states[sentinel].append(f"{workset.name}\t{timestamp}")
+        if not self.config.monitor.sentinel_index_prefix:
+            return
+        bucket = self.config.monitor.bucket
+        base_prefix = self.config.monitor.sentinel_index_prefix
+        base_prefix = base_prefix.rstrip("/") + "/" if base_prefix else ""
+        for sentinel_name, rows in states.items():
+            key = f"{base_prefix}{sentinel_name}.log"
+            body = "\n".join(sorted(rows)).encode("utf-8")
+            LOGGER.debug("Updating sentinel index %s with %d entries", key, len(rows))
+            if self.dry_run:
+                continue
+            self._s3.put_object(Bucket=bucket, Key=key, Body=body)
+
+    # ------------------------------------------------------------------
+    # Workset state machine
+    # ------------------------------------------------------------------
+    def _handle_workset(self, workset: Workset) -> None:
+        sentinels = workset.sentinels
+        if not sentinels:
+            LOGGER.info("Skipping %s: no sentinel files present", workset.name)
+            return
+        if SENTINEL_FILES["ignore"] in sentinels:
+            LOGGER.info("Skipping %s: daylily.ignore present", workset.name)
+            return
+        if SENTINEL_FILES["complete"] in sentinels:
+            LOGGER.info("Skipping %s: already complete (at %s)", workset.name, sentinels[SENTINEL_FILES["complete"]])
+            return
+        if SENTINEL_FILES["error"] in sentinels:
+            LOGGER.info("Skipping %s: previously errored at %s", workset.name, sentinels[SENTINEL_FILES["error"]])
+            return
+        if SENTINEL_FILES["in_progress"] in sentinels:
+            LOGGER.info("Skipping %s: currently marked in-progress (since %s)", workset.name, sentinels[SENTINEL_FILES["in_progress"]])
+            return
+        if SENTINEL_FILES["ready"] not in sentinels:
+            LOGGER.info("Skipping %s: ready sentinel missing", workset.name)
+            return
+        if not workset.has_required_files:
+            LOGGER.warning("Skipping %s: required files missing", workset.name)
+            return
+        LOGGER.info("Attempting to acquire ready workset %s", workset.name)
+        acquired = self._attempt_acquire(workset)
+        if not acquired:
+            LOGGER.info("Workset %s lock attempt failed", workset.name)
+            return
+        try:
+            self._process_workset(workset)
+        except Exception as exc:
+            LOGGER.exception("Processing of %s failed", workset.name)
+            self._write_sentinel(workset, SENTINEL_FILES["error"], f"{dt.datetime.utcnow().isoformat()}Z\t{exc}")
+        else:
+            self._write_sentinel(workset, SENTINEL_FILES["complete"], f"{dt.datetime.utcnow().isoformat()}Z")
+
+    def _attempt_acquire(self, workset: Workset) -> bool:
+        initial_snapshot = dict(workset.sentinels)
+        timestamp = f"{dt.datetime.utcnow().isoformat()}Z"
+        self._write_sentinel(workset, SENTINEL_FILES["lock"], timestamp)
+        LOGGER.debug("Wrote lock sentinel for %s", workset.name)
+        time.sleep(self.config.monitor.ready_lock_backoff_seconds)
+        refreshed = self._list_sentinels(workset.prefix)
+        unexpected = set(refreshed) - set(initial_snapshot)
+        if unexpected - {SENTINEL_FILES["lock"]}:
+            LOGGER.warning("Detected competing sentinel update for %s: %s", workset.name, ", ".join(sorted(unexpected)))
+            self._write_sentinel(workset, SENTINEL_FILES["error"], f"{dt.datetime.utcnow().isoformat()}Z\tlock contention")
+            return False
+        LOGGER.info("Acquired workset %s", workset.name)
+        self._write_sentinel(workset, SENTINEL_FILES["in_progress"], f"{dt.datetime.utcnow().isoformat()}Z")
+        return True
+
+    # ------------------------------------------------------------------
+    # Workset processing pipeline
+    # ------------------------------------------------------------------
+    def _process_workset(self, workset: Workset) -> None:
+        manifest_bytes = self._read_required_object(workset.prefix, DEFAULT_STAGE_SAMPLES_NAME)
+        manifest_path = self._write_temp_file(workset, DEFAULT_STAGE_SAMPLES_NAME, manifest_bytes)
+        work_yaml_bytes = self._read_required_object(workset.prefix, WORK_YAML_NAME)
+        work_yaml = yaml.safe_load(work_yaml_bytes.decode("utf-8"))
+
+        self._validate_stage_manifest(manifest_bytes, workset)
+        clone_args = work_yaml.get("day_clone_args") or work_yaml.get("day-clone", "")
+        run_suffix = work_yaml.get("dy_r") or work_yaml.get("dy-r")
+        target_export_uri = work_yaml.get("export_uri")
+
+        cluster_name = self._ensure_cluster(work_yaml)
+        LOGGER.info("Using cluster %s for workset %s", cluster_name, workset.name)
+
+        with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
+            stage_future = executor.submit(
+                self._stage_samples,
+                manifest_path,
+                cluster_name,
+            )
+            cluster_future = executor.submit(
+                self._wait_for_cluster_ready,
+                cluster_name,
+            )
+            cluster_future.result()
+            stage_future.result()
+
+        pipeline_dir = self._prepare_pipeline_workspace(workset, cluster_name, clone_args)
+        self._push_stage_files_to_pipeline(pipeline_dir, manifest_path)
+        self._run_pipeline(cluster_name, pipeline_dir, run_suffix)
+        if target_export_uri:
+            self._export_results(cluster_name, target_export_uri)
+
+    def _validate_stage_manifest(self, manifest_bytes: bytes, workset: Workset) -> None:
+        lines = manifest_bytes.decode("utf-8").splitlines()
+        if not lines:
+            raise MonitorError(f"stage_samples.tsv for {workset.name} is empty")
+        header = lines[0].split("\t")
+        s3_columns = [idx for idx, name in enumerate(header) if name.lower().endswith("_uri") or name.lower().startswith("s3")]
+        sample_data_columns = [idx for idx, name in enumerate(header) if name.lower().startswith("path") or name.lower().endswith("_path")]
+        for line in lines[1:]:
+            if not line.strip():
+                continue
+            cells = line.split("\t")
+            for idx in s3_columns:
+                if idx >= len(cells):
+                    continue
+                value = cells[idx].strip()
+                if value:
+                    self._assert_s3_uri_exists(value)
+            for idx in sample_data_columns:
+                if idx >= len(cells):
+                    continue
+                value = cells[idx].strip()
+                if value:
+                    self._assert_sample_file_exists(workset, value)
+
+    def _stage_samples(self, manifest_path: Path, cluster_name: str) -> None:
+        cmd = self.config.pipeline.stage_command.format(
+            profile=self.config.aws.profile,
+            region=self.config.aws.region,
+            cluster=cluster_name,
+            analysis_samples=str(manifest_path),
+        )
+        LOGGER.info("Staging samples for cluster %s with command: %s", cluster_name, cmd)
+        self._run_command(cmd, check=True)
+
+    def _wait_for_cluster_ready(self, cluster_name: str) -> None:
+        LOGGER.info("Waiting for cluster %s to become ready", cluster_name)
+        # Placeholder: poll for cluster readiness. Here we rely on an external helper.
+        cmd = f"./bin/daylily-get-ephemperal-cluster-deets --cluster {cluster_name} --region {self.config.aws.region}"
+        for attempt in range(60):
+            result = self._run_command(cmd, check=False)
+            if result.returncode == 0:
+                LOGGER.debug("Cluster %s ready (checked %d times)", cluster_name, attempt + 1)
+                return
+            LOGGER.debug("Cluster %s not ready yet (%d)", cluster_name, attempt + 1)
+            time.sleep(30)
+        raise MonitorError(f"Cluster {cluster_name} did not become ready in time")
+
+    def _prepare_pipeline_workspace(self, workset: Workset, cluster_name: str, clone_args: str) -> Path:
+        workdir = Path(self.config.pipeline.workdir) / workset.name
+        workdir.mkdir(parents=True, exist_ok=True)
+        if clone_args:
+            cmd = self.config.pipeline.clone_command.format(clone_args=clone_args)
+            LOGGER.info("Cloning pipeline into %s", workdir)
+            self._run_command(cmd, check=True, cwd=workdir)
+        return workdir
+
+    def _push_stage_files_to_pipeline(self, pipeline_dir: Path, manifest_path: Path) -> None:
+        config_dir = pipeline_dir / "config"
+        config_dir.mkdir(exist_ok=True)
+        samples_target = config_dir / "samples.tsv"
+        units_target = config_dir / "units.tsv"
+        LOGGER.info("Copying staged manifest into %s", config_dir)
+        samples_target.write_bytes(manifest_path.read_bytes())
+        units_src = manifest_path.with_name("units.tsv")
+        if units_src.exists():
+            units_target.write_bytes(units_src.read_bytes())
+
+    def _run_pipeline(self, cluster_name: str, pipeline_dir: Path, run_suffix: Optional[str]) -> None:
+        if not run_suffix:
+            raise MonitorError("Workset pipeline definition missing dy-r command suffix")
+        command = self.config.pipeline.run_prefix + run_suffix
+        LOGGER.info("Running pipeline: %s", command)
+        self._write_pipeline_sentinel(pipeline_dir, "START")
+        try:
+            self._run_command(command, check=True, cwd=pipeline_dir, shell=True)
+        finally:
+            self._write_pipeline_sentinel(pipeline_dir, "END")
+
+    def _export_results(self, cluster_name: str, target_uri: str) -> None:
+        command = self.config.pipeline.export_command.format(cluster=cluster_name, target_uri=target_uri)
+        LOGGER.info("Exporting pipeline results to %s", target_uri)
+        self._run_command(command, check=True)
+
+    # ------------------------------------------------------------------
+    # Cluster helpers
+    # ------------------------------------------------------------------
+    def _ensure_cluster(self, work_yaml: Dict[str, object]) -> str:
+        if self.config.cluster.reuse_cluster_name:
+            return self.config.cluster.reuse_cluster_name
+        existing = self._find_existing_cluster()
+        if existing:
+            return existing
+        return self._create_cluster(work_yaml)
+
+    def _find_existing_cluster(self) -> Optional[str]:
+        LOGGER.debug("Checking for existing clusters in %s", self.config.aws.region)
+        cmd = [
+            "./bin/daylily-get-ephemperal-cluster-deets",
+            "--region",
+            self.config.aws.region,
+        ]
+        if self.config.cluster.preferred_availability_zone:
+            cmd.extend(["--availability-zone", self.config.cluster.preferred_availability_zone])
+        result = self._run_command(cmd, check=False)
+        if result.returncode == 0 and result.stdout:
+            for line in result.stdout.decode().splitlines():
+                if line.startswith("cluster_name:"):
+                    return line.split(":", 1)[1].strip()
+        return None
+
+    def _create_cluster(self, work_yaml: Dict[str, object]) -> str:
+        cluster_name = work_yaml.get("cluster_name") or f"daylily-{int(time.time())}"
+        LOGGER.info("Creating new ephemeral cluster %s", cluster_name)
+        cmd = [
+            "./bin/daylily-create-ephemeral-cluster",
+            "--cluster-name",
+            cluster_name,
+        ]
+        if self.config.cluster.template_path:
+            cmd.extend(["--cluster-config", self.config.cluster.template_path])
+        result = self._run_command(cmd, check=True)
+        LOGGER.debug("Cluster creation stdout: %s", result.stdout.decode(errors="ignore"))
+        return cluster_name
+
+    # ------------------------------------------------------------------
+    # File and S3 helpers
+    # ------------------------------------------------------------------
+    def _read_required_object(self, workset_prefix: str, filename: str) -> bytes:
+        bucket = self.config.monitor.bucket
+        key = f"{workset_prefix}{filename}"
+        try:
+            response = self._s3.get_object(Bucket=bucket, Key=key)
+        except ClientError as exc:  # pragma: no cover - network dependent
+            raise MonitorError(f"Missing required file {filename} in {workset_prefix}: {exc}") from exc
+        return response["Body"].read()
+
+    def _write_sentinel(self, workset: Workset, sentinel_name: str, value: str) -> None:
+        bucket = self.config.monitor.bucket
+        key = f"{workset.prefix}{sentinel_name}"
+        body = value.encode("utf-8")
+        LOGGER.debug("Writing sentinel %s for %s", sentinel_name, workset.name)
+        if self.dry_run:
+            return
+        self._s3.put_object(Bucket=bucket, Key=key, Body=body)
+
+    def _read_object_text(self, bucket: str, key: str) -> str:
+        response = self._s3.get_object(Bucket=bucket, Key=key)
+        return response["Body"].read().decode("utf-8")
+
+    def _assert_s3_uri_exists(self, uri: str) -> None:
+        if not uri.startswith("s3://"):
+            raise MonitorError(f"Invalid S3 URI: {uri}")
+        remainder = uri[5:]
+        parts = remainder.split("/", 1)
+        if len(parts) != 2:
+            raise MonitorError(f"Invalid S3 URI: {uri}")
+        bucket, key = parts
+        try:
+            self._s3.head_object(Bucket=bucket, Key=key)
+        except ClientError as exc:
+            raise MonitorError(f"Referenced S3 object not found: {uri}") from exc
+
+    def _assert_sample_file_exists(self, workset: Workset, relative_path: str) -> None:
+        key = f"{workset.prefix}{SAMPLE_DATA_DIRNAME}/{relative_path.lstrip('/')}"
+        try:
+            self._s3.head_object(Bucket=self.config.monitor.bucket, Key=key)
+        except ClientError as exc:
+            raise MonitorError(f"Sample data file missing for {workset.name}: {relative_path}") from exc
+
+    def _write_temp_file(self, workset: Workset, filename: str, data: bytes) -> Path:
+        temp_dir = Path("/tmp") / f"daylily-workset-{workset.name}"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        path = temp_dir / filename
+        path.write_bytes(data)
+        return path
+
+    def _write_pipeline_sentinel(self, pipeline_dir: Path, label: str) -> None:
+        marker = pipeline_dir / f".daylily-monitor-{label.lower()}"
+        marker.write_text(f"{label}\t{dt.datetime.utcnow().isoformat()}Z\n")
+
+    # ------------------------------------------------------------------
+    # Command helpers
+    # ------------------------------------------------------------------
+    def _run_command(self, command: Sequence[str] | str, *, check: bool, cwd: Optional[Path] = None, shell: bool = False) -> subprocess.CompletedProcess:
+        if isinstance(command, (str, bytes)) and not shell:
+            cmd_display = command
+        else:
+            cmd_display = " ".join(command) if not isinstance(command, str) else command
+        LOGGER.debug("Executing command: %s", cmd_display)
+        if self.dry_run:
+            return subprocess.CompletedProcess(args=command, returncode=0, stdout=b"", stderr=b"")
+        result = subprocess.run(
+            command,
+            check=False,
+            cwd=cwd,
+            shell=shell,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        if check and result.returncode != 0:
+            LOGGER.error("Command failed (%s): %s", result.returncode, result.stderr.decode(errors="ignore"))
+            raise MonitorError(f"Command failed: {cmd_display}")
+        return result
+
+    # ------------------------------------------------------------------
+    # Session helpers
+    # ------------------------------------------------------------------
+    def _refresh_session(self) -> None:
+        LOGGER.debug("Validating STS caller identity for profile %s", self.config.aws.profile)
+        try:
+            identity = self._sts.get_caller_identity()
+            LOGGER.info("Assumed identity: %s", identity.get("Arn"))
+        except ClientError as exc:  # pragma: no cover
+            LOGGER.warning("Unable to validate AWS credentials: %s", exc)
+
+
+def configure_logging(verbose: bool) -> None:
+    level = logging.DEBUG if verbose else logging.INFO
+    logging.basicConfig(
+        level=level,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+
+
+def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Monitor S3 workset directories and launch Daylily pipelines")
+    parser.add_argument("config", type=Path, help="Path to the YAML configuration file")
+    parser.add_argument("--once", action="store_true", help="Run a single poll iteration and exit")
+    parser.add_argument("--dry-run", action="store_true", help="Do not mutate S3 or execute commands")
+    parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
+    return parser.parse_args(argv)
+
+
+def main(argv: Optional[Sequence[str]] = None) -> int:
+    args = parse_args(argv)
+    configure_logging(args.verbose)
+    config = MonitorConfig.load(args.config)
+    if args.once:
+        config.monitor.continuous = False
+    monitor = WorksetMonitor(config, dry_run=args.dry_run)
+    monitor.run()
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())
