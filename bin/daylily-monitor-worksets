@@ -6,6 +6,7 @@ from __future__ import annotations
 import argparse
 import concurrent.futures
 import contextlib
+import csv
 import dataclasses
 import datetime as dt
 import json
@@ -18,7 +19,7 @@ import sys
 import time
 from collections import defaultdict
 from pathlib import Path
-from typing import Dict, Iterable, List, Optional, Sequence
+from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 import boto3
 from botocore.exceptions import ClientError
@@ -45,6 +46,26 @@ DEFAULT_STAGE_SAMPLES_NAME = "stage_samples.tsv"
 WORK_YAML_NAME = "daylily_work.yaml"
 INFO_YAML_NAME = "daylily_info.yaml"
 SAMPLE_DATA_DIRNAME = "sample_data"
+
+STATE_PRIORITIES = {
+    "error": 0,
+    "in-progress": 1,
+    "locked": 2,
+    "ready": 3,
+    "complete": 4,
+    "ignored": 5,
+    "unknown": 6,
+}
+
+STATE_COLORS = {
+    "error": "\033[31m",
+    "in-progress": "\033[33m",
+    "locked": "\033[36m",
+    "ready": "\033[34m",
+    "complete": "\033[32m",
+    "ignored": "\033[90m",
+    "unknown": "\033[37m",
+}
 
 
 class MonitorError(RuntimeError):
@@ -113,6 +134,15 @@ class Workset:
 
 
 @dataclasses.dataclass
+class WorksetReportRow:
+    name: str
+    state: str
+    timestamp: Optional[str]
+    detail: Optional[str]
+    has_required_files: bool
+
+
+@dataclasses.dataclass
 class MonitorConfig:
     aws: AWSConfig
     monitor: MonitorOptions
@@ -131,7 +161,14 @@ class MonitorConfig:
 
 
 class WorksetMonitor:
-    def __init__(self, config: MonitorConfig, *, dry_run: bool = False, debug: bool = False) -> None:
+    def __init__(
+        self,
+        config: MonitorConfig,
+        *,
+        dry_run: bool = False,
+        debug: bool = False,
+        process_directories: Optional[Sequence[str]] = None,
+    ) -> None:
         self.config = config
         self.dry_run = dry_run
         self.debug = debug
@@ -139,6 +176,11 @@ class WorksetMonitor:
         self._s3 = self._session.client("s3")
         self._sts = self._session.client("sts")
         self._sentinel_history: Dict[str, Dict[str, str]] = {}
+        self._process_directories: Optional[Set[str]] = (
+            {name.strip() for name in process_directories if name.strip()}
+            if process_directories
+            else None
+        )
 
     # ------------------------------------------------------------------
     # Public entrypoints
@@ -237,6 +279,9 @@ class WorksetMonitor:
     # Workset state machine
     # ------------------------------------------------------------------
     def _handle_workset(self, workset: Workset) -> None:
+        if not self._should_process(workset):
+            LOGGER.info("Skipping %s: not selected via --process-directory", workset.name)
+            return
         sentinels = workset.sentinels
         if not sentinels:
             LOGGER.info("Skipping %s: no sentinel files present", workset.name)
@@ -575,6 +620,107 @@ class WorksetMonitor:
         response = self._s3.get_object(Bucket=bucket, Key=key)
         return response["Body"].read().decode("utf-8")
 
+    def _should_process(self, workset: Workset) -> bool:
+        if not self._process_directories:
+            return True
+        return workset.name in self._process_directories
+
+    def _generate_report_rows(self, worksets: Sequence[Workset]) -> List[WorksetReportRow]:
+        rows = [self._summarize_workset(workset) for workset in worksets if self._should_process(workset)]
+        rows.sort(key=self._report_sort_key)
+        return rows
+
+    def _summarize_workset(self, workset: Workset) -> WorksetReportRow:
+        sentinels = workset.sentinels
+
+        def sentinel_parts(name: str) -> Tuple[Optional[str], Optional[str]]:
+            raw = sentinels.get(name)
+            if not raw:
+                return None, None
+            text = raw.strip()
+            if not text:
+                return None, None
+            if "\t" in text:
+                timestamp, detail = text.split("\t", 1)
+            else:
+                timestamp, detail = text, None
+            return timestamp or None, detail or None
+
+        ignore_ts, ignore_detail = sentinel_parts(SENTINEL_FILES["ignore"])
+        if ignore_ts:
+            return WorksetReportRow(workset.name, "ignored", ignore_ts, ignore_detail, workset.has_required_files)
+
+        error_ts, error_detail = sentinel_parts(SENTINEL_FILES["error"])
+        if error_ts:
+            return WorksetReportRow(workset.name, "error", error_ts, error_detail, workset.has_required_files)
+
+        complete_ts, _ = sentinel_parts(SENTINEL_FILES["complete"])
+        if complete_ts:
+            return WorksetReportRow(workset.name, "complete", complete_ts, None, workset.has_required_files)
+
+        in_progress_ts, _ = sentinel_parts(SENTINEL_FILES["in_progress"])
+        if in_progress_ts:
+            return WorksetReportRow(workset.name, "in-progress", in_progress_ts, None, workset.has_required_files)
+
+        lock_ts, _ = sentinel_parts(SENTINEL_FILES["lock"])
+        if lock_ts:
+            return WorksetReportRow(workset.name, "locked", lock_ts, None, workset.has_required_files)
+
+        ready_ts, _ = sentinel_parts(SENTINEL_FILES["ready"])
+        if ready_ts:
+            return WorksetReportRow(workset.name, "ready", ready_ts, None, workset.has_required_files)
+
+        return WorksetReportRow(workset.name, "unknown", None, None, workset.has_required_files)
+
+    def _report_sort_key(self, row: WorksetReportRow) -> Tuple[int, str]:
+        priority = STATE_PRIORITIES.get(row.state, max(STATE_PRIORITIES.values()) + 1)
+        return priority, row.name
+
+    def _render_term_report(self, rows: Sequence[WorksetReportRow]) -> None:
+        if not rows:
+            print("No worksets matched the selection.")
+            return
+        name_width = max(len("Workset"), max(len(row.name) for row in rows))
+        state_width = max(len("State"), max(len(row.state) for row in rows))
+        timestamp_width = max(len("Timestamp"), max(len(row.timestamp or "-") for row in rows))
+        required_header = "Required"
+        detail_header = "Detail"
+        header = (
+            f"{'Workset':<{name_width}}  {'State':<{state_width}}  {'Timestamp':<{timestamp_width}}  "
+            f"{required_header:<8}  {detail_header}"
+        )
+        print(header)
+        print("-" * len(header))
+        for row in rows:
+            state_color = STATE_COLORS.get(row.state, STATE_COLORS["unknown"])
+            reset = "\033[0m"
+            state_text = f"{state_color}{row.state:<{state_width}}{reset}"
+            timestamp_text = row.timestamp or "-"
+            if row.has_required_files:
+                required_text = f"{'yes':<8}"
+            else:
+                required_text = f"\033[31m{'NO':<8}\033[0m"
+            detail_text = row.detail or ""
+            print(
+                f"{row.name:<{name_width}}  {state_text}  {timestamp_text:<{timestamp_width}}  "
+                f"{required_text}  {detail_text}"
+            )
+
+    def _write_delimited_report(self, rows: Sequence[WorksetReportRow], path: Path, delimiter: str) -> None:
+        with path.open("w", encoding="utf-8", newline="") as handle:
+            writer = csv.writer(handle, delimiter=delimiter)
+            writer.writerow(["workset", "state", "timestamp", "detail", "has_required_files"])
+            for row in rows:
+                writer.writerow(
+                    [
+                        row.name,
+                        row.state,
+                        row.timestamp or "",
+                        row.detail or "",
+                        "yes" if row.has_required_files else "no",
+                    ]
+                )
+
     def _assert_s3_uri_exists(self, uri: str) -> None:
         if not uri.startswith("s3://"):
             raise MonitorError(f"Invalid S3 URI: {uri}")
@@ -638,6 +784,25 @@ class WorksetMonitor:
     def _write_pipeline_sentinel(self, pipeline_dir: Path, label: str) -> None:
         marker = pipeline_dir / f".daylily-monitor-{label.lower()}"
         marker.write_text(f"{label}\t{dt.datetime.utcnow().isoformat()}Z\n")
+
+    def report(self, target: str) -> None:
+        worksets = list(self._discover_worksets())
+        rows = self._generate_report_rows(worksets)
+        if self._process_directories:
+            found = {row.name for row in rows}
+            missing = sorted(self._process_directories - found)
+            for name in missing:
+                LOGGER.warning("Requested workset %s was not found", name)
+        if target.lower() == "term":
+            self._render_term_report(rows)
+            return
+        path = Path(target)
+        suffix = path.suffix.lower()
+        delimiter = "\t" if suffix == ".tsv" else ","
+        if path.parent and not path.parent.exists():
+            path.parent.mkdir(parents=True, exist_ok=True)
+        self._write_delimited_report(rows, path, delimiter)
+        LOGGER.info("Wrote report with %d entries to %s", len(rows), path)
 
     # ------------------------------------------------------------------
     # Command helpers
@@ -710,7 +875,29 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         action="store_true",
         help="Print all commands executed (or expected when combined with --dry-run)",
     )
-    return parser.parse_args(argv)
+    parser.add_argument(
+        "--process-directory",
+        dest="process_directories",
+        metavar="NAME",
+        nargs="+",
+        help="Only process the specified workset directory names",
+    )
+    parser.add_argument(
+        "--report",
+        nargs="?",
+        const="term",
+        help=(
+            "Generate a report of the monitored worksets. Use 'term' for a colorized table or provide a .tsv/.csv filename"
+        ),
+    )
+    args = parser.parse_args(argv)
+    if args.report:
+        if args.report.lower() == "term":
+            return args
+        suffix = Path(args.report).suffix.lower()
+        if suffix not in {".tsv", ".csv"}:
+            parser.error("--report expects 'term' or a path ending with .tsv or .csv")
+    return args
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -719,7 +906,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     config = MonitorConfig.load(args.config)
     if args.once:
         config.monitor.continuous = False
-    monitor = WorksetMonitor(config, dry_run=args.dry_run, debug=args.debug)
+    monitor = WorksetMonitor(
+        config,
+        dry_run=args.dry_run,
+        debug=args.debug,
+        process_directories=args.process_directories,
+    )
+    if args.report:
+        monitor.report(args.report)
+        return 0
     monitor.run()
     return 0
 
