@@ -307,6 +307,40 @@ class WorksetMonitor:
             )
             return False
         return True
+    def _write_pipeline_sentinel(
+        self,
+        cluster_name: str,
+        pipeline_dir: PurePosixPath,
+        label: str,
+    ) -> None:
+        marker = pipeline_dir / f".daylily-monitor-{label.lower()}"
+        content = f"{label}\t{dt.datetime.utcnow().isoformat()}Z\n"
+        cmd = f"printf '%s' {shlex.quote(content)} > {shlex.quote(str(marker))}"
+        try:
+            self._run_headnode_command(cluster_name, cmd, check=True, shell=True)
+        except MonitorError:
+            LOGGER.warning("Unable to write pipeline sentinel %s for %s", marker, cluster_name)
+
+    def _assert_s3_uri_exists(self, uri: str) -> None:
+        if not uri.startswith("s3://"):
+            raise MonitorError(f"Invalid S3 URI: {uri}")
+        rem = uri[5:]
+        parts = rem.split("/", 1)
+        if len(parts) != 2 or not parts[0] or not parts[1]:
+            raise MonitorError(f"Invalid S3 URI: {uri}")
+        bucket, key = parts
+        try:
+            self._s3.head_object(Bucket=bucket, Key=key)
+        except ClientError as exc:
+            raise MonitorError(f"Referenced S3 object not found: {uri}") from exc
+
+    def _assert_sample_file_exists(self, workset: Workset, relative_path: str) -> None:
+        key = f"{workset.prefix}{SAMPLE_DATA_DIRNAME}/{relative_path.lstrip('/')}"
+        try:
+            self._s3.head_object(Bucket=self.config.monitor.bucket, Key=key)
+        except ClientError as exc:
+            raise MonitorError(f"Sample data file missing for {workset.name}: {relative_path}") from exc
+
 
     # ------------------------------------------------------------------
     # Clone/run helpers (templating + FSx path fallback)
