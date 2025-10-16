@@ -304,8 +304,34 @@ class WorksetMonitor:
             LOGGER.info("Skipping %s: already complete (at %s)", workset.name, sentinels[SENTINEL_FILES["complete"]])
             return
         if SENTINEL_FILES["error"] in sentinels:
-            LOGGER.info("Skipping %s: previously errored at %s", workset.name, sentinels[SENTINEL_FILES["error"]])
-            return
+            if self.attempt_restart:
+                error_ts = sentinels[SENTINEL_FILES["error"]]
+                LOGGER.info(
+                    "Retrying %s: clearing error sentinel recorded at %s due to --attempt-restart",
+                    workset.name,
+                    error_ts,
+                )
+                self._delete_sentinel(workset, SENTINEL_FILES["error"])
+                sentinels.pop(SENTINEL_FILES["error"], None)
+                cleared: list[str] = []
+                for stale in (SENTINEL_FILES["lock"], SENTINEL_FILES["in_progress"]):
+                    if stale in sentinels:
+                        self._delete_sentinel(workset, stale)
+                        sentinels.pop(stale, None)
+                        cleared.append(stale)
+                if cleared:
+                    LOGGER.debug(
+                        "Removed stale sentinels for %s during restart: %s",
+                        workset.name,
+                        ", ".join(sorted(cleared)),
+                    )
+            else:
+                LOGGER.info(
+                    "Skipping %s: previously errored at %s",
+                    workset.name,
+                    sentinels[SENTINEL_FILES["error"]],
+                )
+                return
         if SENTINEL_FILES["in_progress"] in sentinels:
             LOGGER.info("Skipping %s: currently marked in-progress (since %s)", workset.name, sentinels[SENTINEL_FILES["in_progress"]])
             return
@@ -736,6 +762,15 @@ class WorksetMonitor:
         if self.dry_run:
             return
         self._s3.put_object(Bucket=bucket, Key=key, Body=body)
+
+    def _delete_sentinel(self, workset: Workset, sentinel_name: str) -> None:
+        bucket = self.config.monitor.bucket
+        key = f"{workset.prefix}{sentinel_name}"
+        LOGGER.debug("Deleting sentinel %s for %s", sentinel_name, workset.name)
+        if self.dry_run:
+            return
+        # S3 delete operations are idempotent; missing keys do not raise an error.
+        self._s3.delete_object(Bucket=bucket, Key=key)
 
     def _read_object_text(self, bucket: str, key: str) -> str:
         response = self._s3.get_object(Bucket=bucket, Key=key)
