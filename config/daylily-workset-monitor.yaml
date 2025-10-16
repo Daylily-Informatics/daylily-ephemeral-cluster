@@ -35,6 +35,12 @@ pipeline:
   local_stage_root: .
   # Optional explicit S3 bucket URI passed to staging commands.  Defaults to the monitor bucket when omitted.
   reference_bucket: s3://my-daylily-bucket/
+  # SSH identity file used when running commands on the head node.
+  ssh_identity_file: ~/.ssh/daylily-headnode.pem
+  # SSH user name for the head node connection.
+  ssh_user: ubuntu
+  # Additional SSH/SCP options when connecting to the head node.
+  ssh_extra_args: []
   # Command that prepares staging files on the headnode.  {analysis_samples} is replaced at runtime.
   stage_command: ./bin/daylily-stage-samples-from-local-to-headnode --profile {profile} --region {region} --pem ~/.ssh/daylily-headnode.pem --cluster {cluster} --reference-bucket {reference_bucket} {analysis_samples}
   # Command that creates the pipeline working tree before execution.
