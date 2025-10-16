@@ -883,6 +883,29 @@ class WorksetMonitor:
         finally:
             self._write_pipeline_sentinel(cluster_name, pipeline_dir, "END")
 
+    def _write_pipeline_sentinel(
+        self,
+        cluster_name: str,
+        pipeline_dir: PurePosixPath,
+        state: str,
+    ) -> None:
+        """
+        Append a one-line UTC timestamp + state to a local log on the headnode.
+        Idempotent and safe under re-runs.
+        """
+        # Quote everything carefully; run on headnode.
+        log_path = str(pipeline_dir / ".daylily-monitor-sentinel.log")
+        cmd = (
+            f'printf "%s\\t%s\\n" "$(date -u +%FT%TZ)" {shlex.quote(state)} '
+            f'>> {shlex.quote(log_path)}'
+        )
+        self._run_headnode_monitored_command(
+            "pipeline_sentinel",
+            cmd,
+            cluster_name=cluster_name,
+            check=True,
+            shell=True,
+        )
 
     def _export_results(self, cluster_name: str, target_uri: str) -> None:
         command = self.config.pipeline.export_command.format(
@@ -1027,6 +1050,28 @@ class WorksetMonitor:
     # ------------------------------------------------------------------
     # File and S3 helpers
     # ------------------------------------------------------------------
+    
+    def _assert_s3_uri_exists(self, uri: str) -> None:
+        """Verify that s3://bucket/key exists."""
+        if not uri.startswith("s3://"):
+            raise MonitorError(f"Invalid S3 URI: {uri}")
+        remainder = uri[5:]
+        parts = remainder.split("/", 1)
+        if len(parts) != 2 or not parts[0] or not parts[1]:
+            raise MonitorError(f"Invalid S3 URI: {uri}")
+        bucket, key = parts
+        try:
+            self._s3.head_object(Bucket=bucket, Key=key)
+        except ClientError as exc:
+            raise MonitorError(f"Referenced S3 object not found: {uri}") from exc
+
+    def _assert_sample_file_exists(self, workset: Workset, relative_path: str) -> None:
+        """Verify that a sample_data file exists inside the workset prefix."""
+        key = f"{workset.prefix}{SAMPLE_DATA_DIRNAME}/{relative_path.lstrip('/')}"
+        try:
+            self._s3.head_object(Bucket=self.config.monitor.bucket, Key=key)
+        except ClientError as exc:
+                raise MonitorError(f"Sample data file missing for {workset.name}: {relative_path}") from exc
     def _read_required_object(self, workset_prefix: str, filename: str) -> bytes:
         bucket = self.config.monitor.bucket
         key = f"{workset_prefix}{filename}"
@@ -1046,30 +1091,6 @@ class WorksetMonitor:
         if self.dry_run:
             return
         self._s3.put_object(Bucket=bucket, Key=key, Body=body)
-
-
-        def _assert_s3_uri_exists(self, uri: str) -> None:
-            """Verify that s3://bucket/key exists."""
-            if not uri.startswith("s3://"):
-                raise MonitorError(f"Invalid S3 URI: {uri}")
-            remainder = uri[5:]
-            parts = remainder.split("/", 1)
-            if len(parts) != 2 or not parts[0] or not parts[1]:
-                raise MonitorError(f"Invalid S3 URI: {uri}")
-            bucket, key = parts
-            try:
-                self._s3.head_object(Bucket=bucket, Key=key)
-            except ClientError as exc:
-                raise MonitorError(f"Referenced S3 object not found: {uri}") from exc
-
-        def _assert_sample_file_exists(self, workset: Workset, relative_path: str) -> None:
-            """Verify that a sample_data file exists inside the workset prefix."""
-            key = f"{workset.prefix}{SAMPLE_DATA_DIRNAME}/{relative_path.lstrip('/')}"
-            try:
-                self._s3.head_object(Bucket=self.config.monitor.bucket, Key=key)
-            except ClientError as exc:
-                raise MonitorError(f"Sample data file missing for {workset.name}: {relative_path}") from exc
-
 
     def _delete_sentinel(self, workset: Workset, sentinel_name: str) -> None:
         bucket = self.config.monitor.bucket
