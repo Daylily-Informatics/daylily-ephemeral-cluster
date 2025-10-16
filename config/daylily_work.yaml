@@ -2,7 +2,7 @@
 # cluster_name: "newcluex"
 
 # Clone the Daylily pipeline on the headnode (optional but recommended)
-day-clone: " -d 07381 -t 0.7.381  "
+day-clone: " -d {workdir_name} -t 0.7.380  "
 
 # Args only; your monitor YAML’s run_prefix already includes the dy-r/day_run command.
 dy-r: >

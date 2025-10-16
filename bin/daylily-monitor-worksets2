@@ -39,7 +39,6 @@ SENTINEL_FILES = {
     "complete": "daylily.complete",
     "ignore": "daylily.ignore",
 }
-
 OPTIONAL_SENTINELS = {
     SENTINEL_FILES["lock"],
     SENTINEL_FILES["in_progress"],
@@ -47,7 +46,10 @@ OPTIONAL_SENTINELS = {
     SENTINEL_FILES["complete"],
     SENTINEL_FILES["ignore"],
 }
-SENTINEL_SUFFIX = tuple("daylily." + suffix for suffix in ("ready", "lock", "in_progress", "error", "complete", "ignore"))
+SENTINEL_SUFFIX = tuple(
+    "daylily." + suffix
+    for suffix in ("ready", "lock", "in_progress", "error", "complete", "ignore")
+)
 
 DEFAULT_STAGE_SAMPLES_NAME = "stage_samples.tsv"
 WORK_YAML_NAME = "daylily_work.yaml"
@@ -65,7 +67,6 @@ STATE_PRIORITIES = {
     "ignored": 5,
     "unknown": 6,
 }
-
 STATE_COLORS = {
     "error": "\033[31m",
     "in-progress": "\033[33m",
@@ -144,8 +145,11 @@ class PipelineOptions:
     login_shell_init: str = "source ~/.bashrc"
     tmux_session_prefix: str = "daylily"
     tmux_keepalive_shell: str = "bash"
-    # NEW: where the monitor stores local metadata (markers, tmux name, etc.)
+    # Local monitor metadata (markers, tmux name) — never /fsx
     local_state_root: Optional[str] = "~/.cache/daylily-monitor"
+    # FSx clone base + repo dir name for fallback path computation
+    clone_dest_root: str = "/fsx/analysis_results/ubuntu"
+    repo_dir_name: str = "daylily-omics-analysis"
 
 
 @dataclasses.dataclass
@@ -183,7 +187,9 @@ class MonitorConfig:
         monitor_cfg = MonitorOptions(**data["monitor"])
         cluster_cfg = ClusterOptions(**data.get("cluster", {}))
         pipeline_cfg = PipelineOptions(**data["pipeline"])
-        return MonitorConfig(aws=aws_cfg, monitor=monitor_cfg, cluster=cluster_cfg, pipeline=pipeline_cfg)
+        return MonitorConfig(
+            aws=aws_cfg, monitor=monitor_cfg, cluster=cluster_cfg, pipeline=pipeline_cfg
+        )
 
 
 class WorksetMonitor:
@@ -227,7 +233,7 @@ class WorksetMonitor:
                 self._update_sentinel_indexes(worksets)
                 for workset in worksets:
                     self._handle_workset(workset)
-            except Exception:  # pragma: no cover - protective top-level catch
+            except Exception:
                 LOGGER.exception("Unexpected failure while monitoring worksets")
             elapsed = time.time() - start_time
             sleep_for = max(self.config.monitor.poll_interval_seconds - elapsed, 0)
@@ -250,7 +256,12 @@ class WorksetMonitor:
                 name = workset_prefix.rstrip("/").split("/")[-1]
                 sentinels = self._list_sentinels(workset_prefix)
                 has_required = self._verify_core_files(workset_prefix)
-                yield Workset(name=name, prefix=workset_prefix, sentinels=sentinels, has_required_files=has_required)
+                yield Workset(
+                    name=name,
+                    prefix=workset_prefix,
+                    sentinels=sentinels,
+                    has_required_files=has_required,
+                )
 
     def _list_sentinels(self, workset_prefix: str) -> Dict[str, str]:
         """List all sentinel files for a workset with pagination safety."""
@@ -269,10 +280,17 @@ class WorksetMonitor:
 
     def _verify_core_files(self, workset_prefix: str) -> bool:
         bucket = self.config.monitor.bucket
-        expected = [DEFAULT_STAGE_SAMPLES_NAME, WORK_YAML_NAME, INFO_YAML_NAME, SAMPLE_DATA_DIRNAME + "/"]
+        expected = [
+            DEFAULT_STAGE_SAMPLES_NAME,
+            WORK_YAML_NAME,
+            INFO_YAML_NAME,
+            SAMPLE_DATA_DIRNAME + "/",
+        ]
         found = set()
         paginator = self._s3.get_paginator("list_objects_v2")
-        for page in paginator.paginate(Bucket=bucket, Prefix=workset_prefix, Delimiter="/"):
+        for page in paginator.paginate(
+            Bucket=bucket, Prefix=workset_prefix, Delimiter="/"
+        ):
             for cp in page.get("CommonPrefixes", []) or []:
                 if cp["Prefix"].endswith(SAMPLE_DATA_DIRNAME + "/"):
                     found.add(SAMPLE_DATA_DIRNAME + "/")
@@ -282,9 +300,56 @@ class WorksetMonitor:
                     found.add(name)
         missing = set(expected) - found
         if missing:
-            LOGGER.warning("Workset %s missing expected files: %s", workset_prefix, ", ".join(sorted(missing)))
+            LOGGER.warning(
+                "Workset %s missing expected files: %s",
+                workset_prefix,
+                ", ".join(sorted(missing)),
+            )
             return False
         return True
+
+    # ------------------------------------------------------------------
+    # Clone/run helpers (templating + FSx path fallback)
+    # ------------------------------------------------------------------
+    def _sanitize_name(self, s: str) -> str:
+        return re.sub(r"[^A-Za-z0-9._-]", "_", s)
+
+    def _workdir_name(self, workset: Workset, work_yaml: Dict[str, object]) -> str:
+        wd = work_yaml.get("workdir_name")
+        if isinstance(wd, str) and wd.strip():
+            return self._sanitize_name(wd.strip())
+        return self._sanitize_name(workset.name)
+
+    def _format_clone_args(
+        self, clone_args: str, workset: Workset, work_yaml: Dict[str, object]
+    ) -> str:
+        if not clone_args:
+            return ""
+        mapping = {
+            "workset": workset.name,
+            "workdir_name": self._workdir_name(workset, work_yaml),
+        }
+        try:
+            return clone_args.format(**mapping)
+        except Exception:
+            return clone_args
+
+    def _extract_dest_from_clone_args(self, clone_args: str) -> Optional[str]:
+        if not clone_args:
+            return None
+        parts = shlex.split(clone_args)
+        for i, tok in enumerate(parts):
+            if tok in ("-d", "--dest", "--destination"):
+                if i + 1 < len(parts):
+                    return self._sanitize_name(parts[i + 1])
+            if tok.startswith("-d="):
+                return self._sanitize_name(tok.split("=", 1)[1])
+        return None
+
+    def _expected_pipeline_dir(self, dest_name: str) -> PurePosixPath:
+        root = self.config.pipeline.clone_dest_root.rstrip("/")
+        repo = self.config.pipeline.repo_dir_name.strip("/")
+        return PurePosixPath(f"{root}/{dest_name}/{repo}")
 
     # ------------------------------------------------------------------
     # Sentinel logging
@@ -303,7 +368,9 @@ class WorksetMonitor:
         for sentinel_name, rows in states.items():
             key = f"{base_prefix}{sentinel_name}.log"
             body = "\n".join(sorted(rows)).encode("utf-8")
-            LOGGER.debug("Updating sentinel index %s with %d entries", key, len(rows))
+            LOGGER.debug(
+                "Updating sentinel index %s with %d entries", key, len(rows)
+            )
             if self.dry_run:
                 continue
             self._s3.put_object(Bucket=bucket, Key=key, Body=body)
@@ -313,7 +380,9 @@ class WorksetMonitor:
     # ------------------------------------------------------------------
     def _handle_workset(self, workset: Workset) -> None:
         if not self._should_process(workset):
-            LOGGER.info("Skipping %s: not selected via --process-directory", workset.name)
+            LOGGER.info(
+                "Skipping %s: not selected via --process-directory", workset.name
+            )
             return
         sentinels = workset.sentinels
         if not sentinels:
@@ -323,7 +392,11 @@ class WorksetMonitor:
             LOGGER.info("Skipping %s: daylily.ignore present", workset.name)
             return
         if SENTINEL_FILES["complete"] in sentinels:
-            LOGGER.info("Skipping %s: already complete (at %s)", workset.name, sentinels[SENTINEL_FILES["complete"]])
+            LOGGER.info(
+                "Skipping %s: already complete (at %s)",
+                workset.name,
+                sentinels[SENTINEL_FILES["complete"]],
+            )
             return
         if SENTINEL_FILES["error"] in sentinels:
             if self.attempt_restart:
@@ -335,7 +408,7 @@ class WorksetMonitor:
                 )
                 self._delete_sentinel(workset, SENTINEL_FILES["error"])
                 sentinels.pop(SENTINEL_FILES["error"], None)
-                cleared: list[str] = []
+                cleared: List[str] = []
                 for stale in (SENTINEL_FILES["lock"], SENTINEL_FILES["in_progress"]):
                     if stale in sentinels:
                         self._delete_sentinel(workset, stale)
@@ -355,7 +428,11 @@ class WorksetMonitor:
                 )
                 return
         if SENTINEL_FILES["in_progress"] in sentinels:
-            LOGGER.info("Skipping %s: currently marked in-progress (since %s)", workset.name, sentinels[SENTINEL_FILES["in_progress"]])
+            LOGGER.info(
+                "Skipping %s: currently marked in-progress (since %s)",
+                workset.name,
+                sentinels[SENTINEL_FILES["in_progress"]],
+            )
             return
         if SENTINEL_FILES["ready"] not in sentinels:
             LOGGER.info("Skipping %s: ready sentinel missing", workset.name)
@@ -366,15 +443,26 @@ class WorksetMonitor:
         LOGGER.info("Attempting to acquire ready workset %s", workset.name)
         acquired = self._attempt_acquire(workset)
         if not acquired:
-            LOGGER.info("Workset %s lock attempt failed (contention or changed state)", workset.name)
+            LOGGER.info(
+                "Workset %s lock attempt failed (contention or changed state)",
+                workset.name,
+            )
             return
         try:
             self._process_workset(workset)
         except Exception as exc:
             LOGGER.exception("Processing of %s failed", workset.name)
-            self._write_sentinel(workset, SENTINEL_FILES["error"], f"{dt.datetime.utcnow().isoformat()}Z\t{exc}")
+            self._write_sentinel(
+                workset,
+                SENTINEL_FILES["error"],
+                f"{dt.datetime.utcnow().isoformat()}Z\t{exc}",
+            )
         else:
-            self._write_sentinel(workset, SENTINEL_FILES["complete"], f"{dt.datetime.utcnow().isoformat()}Z")
+            self._write_sentinel(
+                workset,
+                SENTINEL_FILES["complete"],
+                f"{dt.datetime.utcnow().isoformat()}Z",
+            )
 
     def _attempt_acquire(self, workset: Workset) -> bool:
         initial_snapshot = dict(workset.sentinels)
@@ -384,59 +472,70 @@ class WorksetMonitor:
         time.sleep(self.config.monitor.ready_lock_backoff_seconds)
         refreshed = self._list_sentinels(workset.prefix)
         unexpected = set(refreshed) - set(initial_snapshot)
-        # If anything else changed besides our lock, treat as contention and back off without poisoning the workset.
+        # If anything else changed besides our lock, treat as contention and back off (no error).
         if unexpected - {SENTINEL_FILES["lock"]}:
-            LOGGER.warning("Detected competing sentinel update for %s: %s", workset.name, ", ".join(sorted(unexpected)))
+            LOGGER.warning(
+                "Detected competing sentinel update for %s: %s",
+                workset.name,
+                ", ".join(sorted(unexpected)),
+            )
             self._delete_sentinel(workset, SENTINEL_FILES["lock"])
             return False
         LOGGER.info("Acquired workset %s", workset.name)
-        self._write_sentinel(workset, SENTINEL_FILES["in_progress"], f"{dt.datetime.utcnow().isoformat()}Z")
+        self._write_sentinel(
+            workset,
+            SENTINEL_FILES["in_progress"],
+            f"{dt.datetime.utcnow().isoformat()}Z",
+        )
         return True
 
     # ------------------------------------------------------------------
     # Workset processing pipeline
     # ------------------------------------------------------------------
     def _process_workset(self, workset: Workset) -> None:
-        manifest_bytes = self._read_required_object(workset.prefix, DEFAULT_STAGE_SAMPLES_NAME)
-        manifest_path = self._write_temp_file(workset, DEFAULT_STAGE_SAMPLES_NAME, manifest_bytes)
+        manifest_bytes = self._read_required_object(
+            workset.prefix, DEFAULT_STAGE_SAMPLES_NAME
+        )
+        manifest_path = self._write_temp_file(
+            workset, DEFAULT_STAGE_SAMPLES_NAME, manifest_bytes
+        )
         manifest_path = self._copy_manifest_to_local(workset, manifest_path)
         work_yaml_bytes = self._read_required_object(workset.prefix, WORK_YAML_NAME)
         work_yaml = yaml.safe_load(work_yaml_bytes.decode("utf-8"))
 
         self._validate_stage_manifest(manifest_bytes, workset)
-        clone_args = self._yaml_get_str(
+
+        clone_args_raw = self._yaml_get_str(
             work_yaml,
-            ["day_clone_args", "day-clone", "clone_args", "clone-args", "clone"]    
+            ["day_clone_args", "day-clone", "clone_args", "clone-args", "clone"]
         ) or ""
+        clone_args = self._format_clone_args(clone_args_raw, workset, work_yaml)
 
         run_suffix = self._yaml_get_str(
             work_yaml,
-            ["dy_r", "dy-r", "dy", "run", "run_suffix", "run-suffix", "run_cmd", "run-command"]
-            )
+            ["dy_r", "dy-r", "dy", "run", "run_suffix", "run-suffix", "run_cmd", "run-command"],
+        )
 
-        target_export_uri = self._yaml_get_str(work_yaml, ["export_uri", "export-uri", "export"])
+        target_export_uri = self._yaml_get_str(
+            work_yaml, ["export_uri", "export-uri", "export"]
+        )
 
         cluster_name = self._ensure_cluster(work_yaml)
         LOGGER.info("Using cluster %s for workset %s", cluster_name, workset.name)
 
-        completed_commands: set[str] = set()
+        completed_commands: Set[str] = set()
         if clone_args:
-            # Do the clone once up front and mark it complete
+            # Clone once up front
             pipeline_dir = self._prepare_pipeline_workspace(
-                workset,
-                cluster_name,
-                clone_args,
-                run_clone=True,
+                workset, cluster_name, clone_args, run_clone=True
             )
             completed_commands.add("clone_pipeline")
         else:
-            # No clone requested; ensure/record fallback dir on headnode
+            # No clone; ensure fallback dir on headnode
             pipeline_dir = self._prepare_pipeline_workspace(
-                workset,
-                cluster_name,
-                clone_args,
-                run_clone=False,
-            ) 
+                workset, cluster_name, clone_args, run_clone=False
+            )
+
         retry_attempted = False
         while True:
             try:
@@ -471,16 +570,23 @@ class WorksetMonitor:
         run_suffix: Optional[str],
         target_export_uri: Optional[str],
         pipeline_dir: PurePosixPath,
-        completed_commands: set[str],
+        completed_commands: Set[str],
     ) -> None:
         stage_label = "stage_samples"
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             if stage_label in completed_commands:
-                LOGGER.info("Skipping sample staging for %s: command already completed", workset.name)
+                LOGGER.info(
+                    "Skipping sample staging for %s: command already completed",
+                    workset.name,
+                )
                 stage_future = executor.submit(lambda: None)
             else:
-                stage_future = executor.submit(self._stage_samples, manifest_path, cluster_name)
-            cluster_future = executor.submit(self._wait_for_cluster_ready, cluster_name)
+                stage_future = executor.submit(
+                    self._stage_samples, manifest_path, cluster_name
+                )
+            cluster_future = executor.submit(
+                self._wait_for_cluster_ready, cluster_name
+            )
             cluster_future.result()
             try:
                 stage_future.result()
@@ -492,22 +598,34 @@ class WorksetMonitor:
         clone_needed = bool(clone_args) and clone_label not in completed_commands
         if clone_needed:
             LOGGER.info("Running pipeline clone for %s", workset.name)
-            # _prepare_pipeline_workspace does the actual clone when run_clone=True
-            pipeline_dir = self._prepare_pipeline_workspace(workset, cluster_name, clone_args, run_clone=True)
+            pipeline_dir = self._prepare_pipeline_workspace(
+                workset, cluster_name, clone_args, run_clone=True
+            )
             completed_commands.add(clone_label)
         elif clone_args:
-            LOGGER.info("Skipping pipeline clone for %s: command already completed", workset.name)
+            LOGGER.info(
+                "Skipping pipeline clone for %s: command already completed",
+                workset.name,
+            )
 
         push_label = "push_stage_files"
         if push_label in completed_commands:
-            LOGGER.info("Skipping stage file push for %s: command already completed", workset.name)
+            LOGGER.info(
+                "Skipping stage file push for %s: command already completed",
+                workset.name,
+            )
         else:
-            self._push_stage_files_to_pipeline(cluster_name, pipeline_dir, manifest_path)
+            self._push_stage_files_to_pipeline(
+                cluster_name, pipeline_dir, manifest_path
+            )
             completed_commands.add(push_label)
 
         run_label = "run_pipeline"
         if run_label in completed_commands:
-            LOGGER.info("Skipping pipeline run for %s: command already completed", workset.name)
+            LOGGER.info(
+                "Skipping pipeline run for %s: command already completed",
+                workset.name,
+            )
         else:
             self._run_pipeline(workset, cluster_name, pipeline_dir, run_suffix)
             completed_commands.add(run_label)
@@ -515,7 +633,9 @@ class WorksetMonitor:
         if target_export_uri:
             export_label = "export_results"
             if export_label in completed_commands:
-                LOGGER.info("Skipping export for %s: command already completed", workset.name)
+                LOGGER.info(
+                    "Skipping export for %s: command already completed", workset.name
+                )
             else:
                 self._export_results(cluster_name, target_export_uri)
                 completed_commands.add(export_label)
@@ -526,7 +646,9 @@ class WorksetMonitor:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
-    def _record_pipeline_location(self, workset: Workset, location: PurePosixPath) -> None:
+    def _record_pipeline_location(
+        self, workset: Workset, location: PurePosixPath
+    ) -> None:
         self._pipeline_locations[workset.name] = location
         state_dir = self._local_state_dir(workset)
         marker = state_dir / PIPELINE_LOCATION_MARKER
@@ -575,13 +697,23 @@ class WorksetMonitor:
         timestamp = int(time.time())
         return f"{safe_prefix}_{safe_name}_{timestamp}"
 
-    def _validate_stage_manifest(self, manifest_bytes: bytes, workset: Workset) -> None:
+    def _validate_stage_manifest(
+        self, manifest_bytes: bytes, workset: Workset
+    ) -> None:
         lines = manifest_bytes.decode("utf-8").splitlines()
         if not lines:
             raise MonitorError(f"stage_samples.tsv for {workset.name} is empty")
         header = lines[0].split("\t")
-        s3_columns = [idx for idx, name in enumerate(header) if name.lower().endswith("_uri") or name.lower().startswith("s3")]
-        sample_data_columns = [idx for idx, name in enumerate(header) if name.lower().startswith("path") or name.lower().endswith("_path")]
+        s3_columns = [
+            idx
+            for idx, name in enumerate(header)
+            if name.lower().endswith("_uri") or name.lower().startswith("s3")
+        ]
+        sample_data_columns = [
+            idx
+            for idx, name in enumerate(header)
+            if name.lower().startswith("path") or name.lower().endswith("_path")
+        ]
         for line in lines[1:]:
             if not line.strip():
                 continue
@@ -609,7 +741,9 @@ class WorksetMonitor:
             analysis_samples=manifest_argument,
             reference_bucket=reference_bucket,
         )
-        LOGGER.info("Staging samples for cluster %s with command: %s", cluster_name, cmd)
+        LOGGER.info(
+            "Staging samples for cluster %s with command: %s", cluster_name, cmd
+        )
         self._run_monitored_command("stage_samples", cmd, check=True)
 
     def _wait_for_cluster_ready(self, cluster_name: str) -> None:
@@ -617,7 +751,9 @@ class WorksetMonitor:
         for attempt in range(60):
             details = self._describe_cluster(cluster_name)
             if details and self._cluster_is_ready(details):
-                LOGGER.debug("Cluster %s ready (checked %d times)", cluster_name, attempt + 1)
+                LOGGER.debug(
+                    "Cluster %s ready (checked %d times)", cluster_name, attempt + 1
+                )
                 return
             LOGGER.debug("Cluster %s not ready yet (%d)", cluster_name, attempt + 1)
             time.sleep(30)
@@ -640,24 +776,36 @@ class WorksetMonitor:
                 cmd,
                 cluster_name=cluster_name,
                 check=True,
-                shell=True,  # keep this True
+                shell=True,  # pass as raw string to bash -lc
             )
             location = self._parse_day_clone_location(result.stdout)
             if not location and result.stderr:
                 location = self._parse_day_clone_location(result.stderr)
             if not location:
-                raise MonitorError(
-                    f"Unable to determine pipeline directory from day-clone output for {workset.name}"
+                dest = self._extract_dest_from_clone_args(clone_args) or self._sanitize_name(workset.name)
+                location = self._expected_pipeline_dir(dest)
+                LOGGER.info(
+                    "day-clone did not report Location; falling back to %s", location
                 )
-            LOGGER.info("day-clone reported pipeline directory %s for %s", location, workset.name)
+            LOGGER.info(
+                "day-clone reported pipeline directory %s for %s",
+                location,
+                workset.name,
+            )
             self._record_pipeline_location(workset, location)
             return location
         if clone_args:
             location = self._load_pipeline_location(workset)
             if location:
-                LOGGER.info("Reusing recorded pipeline directory %s for %s", location, workset.name)
+                LOGGER.info(
+                    "Reusing recorded pipeline directory %s for %s",
+                    location,
+                    workset.name,
+                )
                 return location
-            raise MonitorError("Pipeline location unavailable for restart; rerun day-clone or remove cached state")
+            raise MonitorError(
+                "Pipeline location unavailable for restart; rerun day-clone or remove cached state"
+            )
         # No clone requested; ensure fallback dir on headnode exists
         fallback = PurePosixPath(self.config.pipeline.workdir) / workset.name
         ensure_cmd = f"mkdir -p {shlex.quote(str(fallback))}"
@@ -698,37 +846,50 @@ class WorksetMonitor:
         run_suffix: Optional[str],
     ) -> None:
         if not run_suffix:
-            present = ", ".join(sorted(work_yaml.keys())) if isinstance(work_yaml, dict) else "<unreadable>"
             raise MonitorError(
                 "Missing pipeline run suffix in daylily_work.yaml. "
-                "Provide one of: dy-r, dy_r, dy, run, run_suffix, run-suffix, run_cmd. "
-                f"Present keys: {present}. Example:\n  dy-r: '--pipeline sarek --input config/samples.tsv --outdir ./out'"
+                "Provide one of: dy-r, dy_r, dy, run, run_suffix, run-suffix, run_cmd."
             )
+
         run_command = self.config.pipeline.run_prefix + run_suffix
         session_name = self._generate_tmux_session_name(workset)
-        shell_steps = []
+
+        steps: List[str] = []
         init_cmd = (self.config.pipeline.login_shell_init or "").strip()
         if init_cmd:
-            shell_steps.append(init_cmd)
-        shell_steps.append(f"cd {shlex.quote(str(pipeline_dir))}")
-        shell_steps.append(run_command)
-        composite = " && ".join(shell_steps)
+            steps.append(init_cmd)
+        steps.append(f"cd {shlex.quote(str(pipeline_dir))}")
+        steps.append(run_command)
         keepalive = (self.config.pipeline.tmux_keepalive_shell or "").strip()
         if keepalive:
-            composite = f"{composite}; {keepalive}"
-        remote_command = f"tmux new-session -d -s {shlex.quote(session_name)} \"bash -lc {shlex.quote(composite)}\""
+            steps.append(keepalive)
+        composite = " && ".join(steps)
+
+        tmux_cmd = ["tmux", "new-session", "-d", "-s", session_name, "bash", "-lc", composite]
+
         LOGGER.info("Launching pipeline for %s in tmux session %s: %s", workset.name, session_name, run_command)
         self._record_tmux_session(workset, session_name)
         self._write_pipeline_sentinel(cluster_name, pipeline_dir, "START")
         try:
-            self._run_headnode_monitored_command("run_pipeline", remote_command, cluster_name=cluster_name, check=True, shell=True)
+            self._run_headnode_monitored_command("run_pipeline", tmux_cmd, cluster_name=cluster_name, check=True, shell=False)
+            # verify it actually exists
+            self._run_headnode_command(cluster_name, ["tmux", "has-session", "-t", session_name], check=True, shell=False)
         finally:
             self._write_pipeline_sentinel(cluster_name, pipeline_dir, "END")
 
+
     def _export_results(self, cluster_name: str, target_uri: str) -> None:
-        command = self.config.pipeline.export_command.format(cluster=cluster_name, target_uri=target_uri)
+        command = self.config.pipeline.export_command.format(
+            cluster=cluster_name, target_uri=target_uri
+        )
         LOGGER.info("Exporting pipeline results to %s", target_uri)
-        self._run_headnode_monitored_command("export_results", command, cluster_name=cluster_name, check=True, shell=True)
+        self._run_headnode_monitored_command(
+            "export_results",
+            command,
+            cluster_name=cluster_name,
+            check=True,
+            shell=True,
+        )
 
     # ------------------------------------------------------------------
     # Cluster helpers
@@ -799,7 +960,11 @@ class WorksetMonitor:
         cmd = ["pcluster", "list-clusters", "--region", self.config.aws.region]
         result = self._run_command(cmd, check=False, env=self._pcluster_env())
         if result.returncode != 0:
-            LOGGER.debug("Unable to list clusters (exit %s): %s", result.returncode, result.stderr.decode(errors="ignore"))
+            LOGGER.debug(
+                "Unable to list clusters (exit %s): %s",
+                result.returncode,
+                result.stderr.decode(errors="ignore"),
+            )
             return None
         payload = self._load_pcluster_json(result.stdout)
         if not isinstance(payload, dict):
@@ -848,7 +1013,9 @@ class WorksetMonitor:
         env["DAY_CONTACT_EMAIL"] = contact_email
         env.pop("DAY_DISABLE_AUTO_SELECT", None)
         result = self._run_command(cmd, check=True, env=env)
-        LOGGER.debug("Cluster creation stdout: %s", result.stdout.decode(errors="ignore"))
+        LOGGER.debug(
+            "Cluster creation stdout: %s", result.stdout.decode(errors="ignore")
+        )
         return cluster_name
 
     # ------------------------------------------------------------------
@@ -859,8 +1026,10 @@ class WorksetMonitor:
         key = f"{workset_prefix}{filename}"
         try:
             response = self._s3.get_object(Bucket=bucket, Key=key)
-        except ClientError as exc:  # pragma: no cover - network dependent
-            raise MonitorError(f"Missing required file {filename} in {workset_prefix}: {exc}") from exc
+        except ClientError as exc:
+            raise MonitorError(
+                f"Missing required file {filename} in {workset_prefix}: {exc}"
+            ) from exc
         return response["Body"].read()
 
     def _write_sentinel(self, workset: Workset, sentinel_name: str, value: str) -> None:
@@ -872,6 +1041,30 @@ class WorksetMonitor:
             return
         self._s3.put_object(Bucket=bucket, Key=key, Body=body)
 
+
+        def _assert_s3_uri_exists(self, uri: str) -> None:
+            """Verify that s3://bucket/key exists."""
+            if not uri.startswith("s3://"):
+                raise MonitorError(f"Invalid S3 URI: {uri}")
+            remainder = uri[5:]
+            parts = remainder.split("/", 1)
+            if len(parts) != 2 or not parts[0] or not parts[1]:
+                raise MonitorError(f"Invalid S3 URI: {uri}")
+            bucket, key = parts
+            try:
+                self._s3.head_object(Bucket=bucket, Key=key)
+            except ClientError as exc:
+                raise MonitorError(f"Referenced S3 object not found: {uri}") from exc
+
+        def _assert_sample_file_exists(self, workset: Workset, relative_path: str) -> None:
+            """Verify that a sample_data file exists inside the workset prefix."""
+            key = f"{workset.prefix}{SAMPLE_DATA_DIRNAME}/{relative_path.lstrip('/')}"
+            try:
+                self._s3.head_object(Bucket=self.config.monitor.bucket, Key=key)
+            except ClientError as exc:
+                raise MonitorError(f"Sample data file missing for {workset.name}: {relative_path}") from exc
+
+
     def _delete_sentinel(self, workset: Workset, sentinel_name: str) -> None:
         bucket = self.config.monitor.bucket
         key = f"{workset.prefix}{sentinel_name}"
@@ -879,6 +1072,53 @@ class WorksetMonitor:
         if self.dry_run:
             return
         self._s3.delete_object(Bucket=bucket, Key=key)
+
+    def _write_temp_file(self, workset: Workset, filename: str, data: bytes) -> Path:
+        temp_dir = Path("/tmp") / f"daylily-workset-{workset.name}"
+        temp_dir.mkdir(parents=True, exist_ok=True)
+        path = temp_dir / filename
+        path.write_bytes(data)
+        return path
+
+    def _local_stage_root(self) -> Optional[Path]:
+        root = self.config.pipeline.local_stage_root
+        if not root:
+            return None
+        path = Path(root).expanduser()
+        path.mkdir(parents=True, exist_ok=True)
+        return path
+
+    def _copy_manifest_to_local(self, workset: Workset, manifest_path: Path) -> Path:
+        """Optional mirror of stage_samples.tsv to a local cache (for audit/inspection)."""
+        local_root = self._local_stage_root()
+        if not local_root:
+            return manifest_path
+        destination_dir = local_root / workset.name
+        destination_dir.mkdir(parents=True, exist_ok=True)
+        destination_path = destination_dir / manifest_path.name
+        shutil.copy2(manifest_path, destination_path)
+        LOGGER.info("Copied stage manifest for %s to %s", workset.name, destination_path)
+        return destination_path
+
+    def _relative_manifest_argument(self, manifest_path: Path) -> str:
+        """Prefer a relative path when possible, otherwise absolute."""
+        try:
+            return str(manifest_path.relative_to(Path.cwd()))
+        except ValueError:
+            return str(manifest_path)
+
+    def _stage_reference_bucket(self) -> str:
+        """
+        Return the S3 reference bucket to pass to the staging command.
+        Uses pipeline.reference_bucket if set; otherwise defaults to the monitor's bucket.
+        Always ends with a trailing '/'.
+        """
+        bucket = self.config.pipeline.reference_bucket
+        if not bucket:
+            bucket = f"s3://{self.config.monitor.bucket}"
+        if not bucket.endswith("/"):
+            bucket += "/"
+        return bucket
 
     def _read_object_text(self, bucket: str, key: str) -> str:
         response = self._s3.get_object(Bucket=bucket, Key=key)
@@ -890,7 +1130,11 @@ class WorksetMonitor:
         return workset.name in self._process_directories
 
     def _generate_report_rows(self, worksets: Sequence[Workset]) -> List[WorksetReportRow]:
-        rows = [self._summarize_workset(workset) for workset in worksets if self._should_process(workset)]
+        rows = [
+            self._summarize_workset(workset)
+            for workset in worksets
+            if self._should_process(workset)
+        ]
         rows.sort(key=self._report_sort_key)
         return rows
 
@@ -912,27 +1156,39 @@ class WorksetMonitor:
 
         ignore_ts, ignore_detail = sentinel_parts(SENTINEL_FILES["ignore"])
         if ignore_ts:
-            return WorksetReportRow(workset.name, "ignored", ignore_ts, ignore_detail, workset.has_required_files)
+            return WorksetReportRow(
+                workset.name, "ignored", ignore_ts, ignore_detail, workset.has_required_files
+            )
 
         error_ts, error_detail = sentinel_parts(SENTINEL_FILES["error"])
         if error_ts:
-            return WorksetReportRow(workset.name, "error", error_ts, error_detail, workset.has_required_files)
+            return WorksetReportRow(
+                workset.name, "error", error_ts, error_detail, workset.has_required_files
+            )
 
         complete_ts, _ = sentinel_parts(SENTINEL_FILES["complete"])
         if complete_ts:
-            return WorksetReportRow(workset.name, "complete", complete_ts, None, workset.has_required_files)
+            return WorksetReportRow(
+                workset.name, "complete", complete_ts, None, workset.has_required_files
+            )
 
         in_progress_ts, _ = sentinel_parts(SENTINEL_FILES["in_progress"])
         if in_progress_ts:
-            return WorksetReportRow(workset.name, "in-progress", in_progress_ts, None, workset.has_required_files)
+            return WorksetReportRow(
+                workset.name, "in-progress", in_progress_ts, None, workset.has_required_files
+            )
 
         lock_ts, _ = sentinel_parts(SENTINEL_FILES["lock"])
         if lock_ts:
-            return WorksetReportRow(workset.name, "locked", lock_ts, None, workset.has_required_files)
+            return WorksetReportRow(
+                workset.name, "locked", lock_ts, None, workset.has_required_files
+            )
 
         ready_ts, _ = sentinel_parts(SENTINEL_FILES["ready"])
         if ready_ts:
-            return WorksetReportRow(workset.name, "ready", ready_ts, None, workset.has_required_files)
+            return WorksetReportRow(
+                workset.name, "ready", ready_ts, None, workset.has_required_files
+            )
 
         return WorksetReportRow(workset.name, "unknown", None, None, workset.has_required_files)
 
@@ -982,75 +1238,6 @@ class WorksetMonitor:
                     ]
                 )
 
-    def _assert_s3_uri_exists(self, uri: str) -> None:
-        if not uri.startswith("s3://"):
-            raise MonitorError(f"Invalid S3 URI: {uri}")
-        remainder = uri[5:]
-        parts = remainder.split("/", 1)
-        if len(parts) != 2:
-            raise MonitorError(f"Invalid S3 URI: {uri}")
-        bucket, key = parts
-        try:
-            self._s3.head_object(Bucket=bucket, Key=key)
-        except ClientError as exc:
-            raise MonitorError(f"Referenced S3 object not found: {uri}") from exc
-
-    def _assert_sample_file_exists(self, workset: Workset, relative_path: str) -> None:
-        key = f"{workset.prefix}{SAMPLE_DATA_DIRNAME}/{relative_path.lstrip('/')}"
-        try:
-            self._s3.head_object(Bucket=self.config.monitor.bucket, Key=key)
-        except ClientError as exc:
-            raise MonitorError(f"Sample data file missing for {workset.name}: {relative_path}") from exc
-
-    def _write_temp_file(self, workset: Workset, filename: str, data: bytes) -> Path:
-        temp_dir = Path("/tmp") / f"daylily-workset-{workset.name}"
-        temp_dir.mkdir(parents=True, exist_ok=True)
-        path = temp_dir / filename
-        path.write_bytes(data)
-        return path
-
-    def _copy_manifest_to_local(self, workset: Workset, manifest_path: Path) -> Path:
-        local_root = self._local_stage_root()
-        if not local_root:
-            return manifest_path
-        destination_dir = local_root / workset.name
-        destination_dir.mkdir(parents=True, exist_ok=True)
-        destination_path = destination_dir / manifest_path.name
-        shutil.copy2(manifest_path, destination_path)
-        LOGGER.info("Copied stage manifest for %s to %s", workset.name, destination_path)
-        return destination_path
-
-    def _local_stage_root(self) -> Optional[Path]:
-        root = self.config.pipeline.local_stage_root
-        if not root:
-            return None
-        path = Path(root).expanduser()
-        path.mkdir(parents=True, exist_ok=True)
-        return path
-
-    def _relative_manifest_argument(self, manifest_path: Path) -> str:
-        try:
-            return str(manifest_path.relative_to(Path.cwd()))
-        except ValueError:
-            return str(manifest_path)
-
-    def _stage_reference_bucket(self) -> Optional[str]:
-        bucket = self.config.pipeline.reference_bucket
-        if not bucket and self.config.monitor.bucket:
-            bucket = f"s3://{self.config.monitor.bucket}"
-        if bucket and not bucket.endswith("/"):
-            bucket += "/"
-        return bucket or ""
-
-    def _write_pipeline_sentinel(self, cluster_name: str, pipeline_dir: PurePosixPath, label: str) -> None:
-        marker = pipeline_dir / f".daylily-monitor-{label.lower()}"
-        content = f"{label}\t{dt.datetime.utcnow().isoformat()}Z\n"
-        command = f"printf '%s' {shlex.quote(content)} > {shlex.quote(str(marker))}"
-        try:
-            self._run_headnode_command(cluster_name, command, check=True, shell=True)
-        except MonitorError:
-            LOGGER.warning("Unable to write pipeline sentinel %s for %s", marker, cluster_name)
-
     def report(self, target: str) -> None:
         worksets = list(self._discover_worksets())
         rows = self._generate_report_rows(worksets)
@@ -1064,14 +1251,14 @@ class WorksetMonitor:
             self._render_term_report(rows)
             return
 
-        # S3-aware write
-        def _serialize(rows, delim):
+        # Buffer CSV/TSV once so we can write to S3 or local
+        def _serialize(rows: Sequence[WorksetReportRow], delim: str) -> bytes:
             from io import StringIO
             buf = StringIO()
-            writer = csv.writer(buf, delimiter=delim)
-            writer.writerow(["workset", "state", "timestamp", "detail", "has_required_files"])
+            w = csv.writer(buf, delimiter=delim)
+            w.writerow(["workset", "state", "timestamp", "detail", "has_required_files"])
             for r in rows:
-                writer.writerow([r.name, r.state, r.timestamp or "", r.detail or "", "yes" if r.has_required_files else "no"])
+                w.writerow([r.name, r.state, r.timestamp or "", r.detail or "", "yes" if r.has_required_files else "no"])
             return buf.getvalue().encode("utf-8")
 
         if target.startswith("s3://"):
@@ -1085,7 +1272,7 @@ class WorksetMonitor:
             LOGGER.info("Wrote report with %d entries to %s", len(rows), target)
             return
 
-        # Local file path
+        # local file
         path = Path(target)
         suffix = path.suffix.lower()
         delim = "\t" if suffix == ".tsv" else ","
@@ -1112,7 +1299,9 @@ class WorksetMonitor:
         else:
             cmd_display = " ".join(command) if not isinstance(command, str) else command
         try:
-            return self._run_command(command, check=check, cwd=cwd, shell=shell, env=env)
+            return self._run_command(
+                command, check=check, cwd=cwd, shell=shell, env=env
+            )
         except MonitorError as exc:
             raise CommandFailedError(command_label, str(cmd_display)) from exc
 
@@ -1152,7 +1341,11 @@ class WorksetMonitor:
             env=env,
         )
         if check and result.returncode != 0:
-            LOGGER.error("Command failed (%s): %s", result.returncode, result.stderr.decode(errors="ignore"))
+            LOGGER.error(
+                "Command failed (%s): %s",
+                result.returncode,
+                result.stderr.decode(errors="ignore"),
+            )
             raise MonitorError(f"Command failed: {cmd_display}")
         return result
 
@@ -1202,13 +1395,11 @@ class WorksetMonitor:
         if isinstance(command, (list, tuple)):
             command_str = " ".join(shlex.quote(str(part)) for part in command)
         else:
-            if shell:
-                command_str = command
-            else:
-                command_str = " ".join(shlex.quote(part) for part in shlex.split(command))
+            command_str = command if shell else " ".join(shlex.quote(part) for part in shlex.split(command))
         if cwd:
-            command_str = f"cd {shlex.quote(cwd)} && echo ok && {command_str}"
-        return f" bash -lc {shlex.quote(command_str)}"
+            command_str = f"cd {shlex.quote(cwd)} && {command_str}"
+        return f"bash -lc {shlex.quote(command_str)}"
+
 
     def _build_ssh_command(
         self,
@@ -1270,10 +1461,8 @@ class WorksetMonitor:
         ssh_cmd = self._build_ssh_command(cluster_name, command, cwd=cwd, shell=shell)
         return self._run_monitored_command(command_label, ssh_cmd, check=check)
 
-
     def _yaml_get_str(self, data: Dict[str, object], keys: Sequence[str]) -> Optional[str]:
-        """Return first non-empty string value for any of the given keys.
-        If the value is a list, join with spaces. If dict with 'suffix' or 'args', use that."""
+        """Return first non-empty string for any of the given keys. If list, join; if dict, use suffix/args/cmd/command."""
         for k in keys:
             if k not in data:
                 continue
@@ -1297,11 +1486,13 @@ class WorksetMonitor:
     # Session helpers
     # ------------------------------------------------------------------
     def _refresh_session(self) -> None:
-        LOGGER.debug("Validating STS caller identity for profile %s", self.config.aws.profile)
+        LOGGER.debug(
+            "Validating STS caller identity for profile %s", self.config.aws.profile
+        )
         try:
             identity = self._sts.get_caller_identity()
             LOGGER.info("Assumed identity: %s", identity.get("Arn"))
-        except ClientError as exc:  # pragma: no cover
+        except ClientError as exc:
             LOGGER.warning("Unable to validate AWS credentials: %s", exc)
 
 
@@ -1311,7 +1502,9 @@ def configure_logging(verbose: bool) -> None:
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description="Monitor S3 workset directories and launch Daylily pipelines")
+    parser = argparse.ArgumentParser(
+        description="Monitor S3 workset directories and launch Daylily pipelines"
+    )
     parser.add_argument("config", type=Path, help="Path to the YAML configuration file")
     parser.add_argument("--once", action="store_true", help="Run a single poll iteration and exit")
     parser.add_argument("--dry-run", action="store_true", help="Do not mutate S3 or execute commands")
@@ -1333,11 +1526,13 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         "--report",
         nargs="?",
         const="term",
-        help=("Generate a report of the monitored worksets. Use 'term' for a colorized table or provide a .tsv/.csv filename (local or s3://...)"),
+        help=(
+            "Generate a report of the monitored worksets. Use 'term' for a colorized table or provide "
+            "a .tsv/.csv filename (local or s3://...)"
+        ),
     )
     args = parser.parse_args(argv)
     if args.report and args.report.lower() != "term":
-        # Accept s3://.../.csv|.tsv or local paths with .csv|.tsv
         target = args.report
         if target.startswith("s3://"):
             if not (target.lower().endswith(".csv") or target.lower().endswith(".tsv")):
