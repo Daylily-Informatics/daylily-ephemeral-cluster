@@ -187,6 +187,11 @@ class WorksetReportRow:
     timestamp: Optional[str]
     detail: Optional[str]
     has_required_files: bool
+    display_state: Optional[str] = None
+
+    @property
+    def state_text(self) -> str:
+        return self.display_state or self.state
 
 
 @dataclasses.dataclass
@@ -1805,37 +1810,64 @@ class WorksetMonitor:
                 timestamp, detail = text, None
             return timestamp or None, detail or None
 
-        ignore_ts, ignore_detail = sentinel_parts(SENTINEL_FILES["ignore"])
+        sentinel_cache: Dict[str, Tuple[Optional[str], Optional[str]]] = {}
+
+        def cached_sentinel_parts(name: str) -> Tuple[Optional[str], Optional[str]]:
+            if name not in sentinel_cache:
+                sentinel_cache[name] = sentinel_parts(name)
+            return sentinel_cache[name]
+
+        ignore_ts, ignore_detail = cached_sentinel_parts(SENTINEL_FILES["ignore"])
         if ignore_ts:
+            other_state: Optional[str] = None
+            for sentinel_name, state_name in [
+                ("error", "error"),
+                ("complete", "complete"),
+                ("in_progress", "in-progress"),
+                ("lock", "locked"),
+                ("ready", "ready"),
+            ]:
+                other_ts, _ = cached_sentinel_parts(SENTINEL_FILES[sentinel_name])
+                if other_ts:
+                    other_state = state_name
+                    break
+            display_state = "ignored"
+            if other_state:
+                display_state = f"ignored ({other_state})"
             return WorksetReportRow(
-                workset.name, "ignored", ignore_ts, ignore_detail, workset.has_required_files
+                workset.name,
+                "ignored",
+                ignore_ts,
+                ignore_detail,
+                workset.has_required_files,
+                display_state=display_state,
             )
 
-        error_ts, error_detail = sentinel_parts(SENTINEL_FILES["error"])
+        error_ts, error_detail = cached_sentinel_parts(SENTINEL_FILES["error"])
         if error_ts:
             return WorksetReportRow(
                 workset.name, "error", error_ts, error_detail, workset.has_required_files
             )
 
-        complete_ts, _ = sentinel_parts(SENTINEL_FILES["complete"])
+        complete_ts, _ = cached_sentinel_parts(SENTINEL_FILES["complete"])
         if complete_ts:
             return WorksetReportRow(
                 workset.name, "complete", complete_ts, None, workset.has_required_files
             )
 
-        in_progress_ts, _ = sentinel_parts(SENTINEL_FILES["in_progress"])
+        in_progress_ts, _ = cached_sentinel_parts(SENTINEL_FILES["in_progress"])
         if in_progress_ts:
             return WorksetReportRow(
                 workset.name, "in-progress", in_progress_ts, None, workset.has_required_files
             )
 
-        lock_ts, _ = sentinel_parts(SENTINEL_FILES["lock"])
+        lock_ts, _ = cached_sentinel_parts(SENTINEL_FILES["lock"])
         if lock_ts:
             return WorksetReportRow(
                 workset.name, "locked", lock_ts, None, workset.has_required_files
             )
 
-        ready_ts, _ = sentinel_parts(SENTINEL_FILES["ready"])
+        ready_ts, _ = cached_sentinel_parts(SENTINEL_FILES["ready"])
         if ready_ts:
             return WorksetReportRow(
                 workset.name, "ready", ready_ts, None, workset.has_required_files
@@ -1852,7 +1884,7 @@ class WorksetMonitor:
             print("No worksets matched the selection.")
             return
         name_width = max(len("Workset"), max(len(row.name) for row in rows))
-        state_width = max(len("State"), max(len(row.state) for row in rows))
+        state_width = max(len("State"), max(len(row.state_text) for row in rows))
         timestamp_width = max(len("Timestamp"), max(len(row.timestamp or "-") for row in rows))
         required_header = "Required"
         detail_header = "Detail"
@@ -1865,7 +1897,8 @@ class WorksetMonitor:
         for row in rows:
             state_color = STATE_COLORS.get(row.state, STATE_COLORS["unknown"])
             reset = "\033[0m"
-            state_text = f"{state_color}{row.state:<{state_width}}{reset}"
+            display_state = row.state_text
+            state_text = f"{state_color}{display_state:<{state_width}}{reset}"
             timestamp_text = row.timestamp or "-"
             required_text = f"{'yes':<8}" if row.has_required_files else f"\033[31m{'NO':<8}\033[0m"
             detail_text = row.detail or ""
@@ -1882,7 +1915,7 @@ class WorksetMonitor:
                 writer.writerow(
                     [
                         row.name,
-                        row.state,
+                        row.state_text,
                         row.timestamp or "",
                         row.detail or "",
                         "yes" if row.has_required_files else "no",
