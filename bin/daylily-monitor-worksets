@@ -153,6 +153,16 @@ class PipelineOptions:
 
 
 @dataclasses.dataclass
+class StageArtifacts:
+    """Details about staged sample files and manifests."""
+
+    fsx_stage_dir: PurePosixPath
+    staged_files: List[PurePosixPath]
+    samples_manifest: Optional[PurePosixPath]
+    units_manifest: Optional[PurePosixPath]
+
+
+@dataclasses.dataclass
 class Workset:
     name: str
     prefix: str
@@ -218,6 +228,7 @@ class WorksetMonitor:
         )
         self._headnode_ips: Dict[str, str] = {}
         self._pipeline_locations: Dict[str, PurePosixPath] = {}
+        self._stage_artifacts: Dict[str, StageArtifacts] = {}
 
     # ------------------------------------------------------------------
     # Public entrypoints
@@ -575,20 +586,28 @@ class WorksetMonitor:
                     "Skipping sample staging for %s: command already completed",
                     workset.name,
                 )
-                stage_future = executor.submit(lambda: None)
+                stage_future = executor.submit(
+                    lambda: self._stage_artifacts.get(workset.name)
+                )
             else:
                 stage_future = executor.submit(
-                    self._stage_samples, manifest_path, cluster_name
+                    self._stage_samples, workset, manifest_path, cluster_name
                 )
             cluster_future = executor.submit(
                 self._wait_for_cluster_ready, cluster_name
             )
             cluster_future.result()
             try:
-                stage_future.result()
+                stage_artifacts = stage_future.result()
             except CommandFailedError:
                 raise
-            completed_commands.add(stage_label)
+        if stage_artifacts is None:
+            stage_artifacts = self._stage_artifacts.get(workset.name)
+        if stage_artifacts is None:
+            raise MonitorError(
+                f"Stage samples output unavailable for {workset.name}; rerun staging"
+            )
+        completed_commands.add(stage_label)
 
         clone_label = "clone_pipeline"
         clone_needed = bool(clone_args) and clone_label not in completed_commands
@@ -621,7 +640,7 @@ class WorksetMonitor:
             )
         else:
             self._push_stage_files_to_pipeline(
-                cluster_name, pipeline_dir, manifest_path
+                cluster_name, pipeline_dir, manifest_path, stage_artifacts
             )
             completed_commands.add(push_label)
 
@@ -738,7 +757,9 @@ class WorksetMonitor:
                 if value:
                     self._assert_sample_file_exists(workset, value)
 
-    def _stage_samples(self, manifest_path: Path, cluster_name: str) -> None:
+    def _stage_samples(
+        self, workset: Workset, manifest_path: Path, cluster_name: str
+    ) -> StageArtifacts:
         manifest_argument = self._relative_manifest_argument(manifest_path)
         reference_bucket = self._stage_reference_bucket()
         cmd = self.config.pipeline.stage_command.format(
@@ -757,7 +778,92 @@ class WorksetMonitor:
         LOGGER.info(
             "Staging samples for cluster %s with command: %s", cluster_name, cmd
         )
-        self._run_monitored_command("stage_samples", cmd, check=True)
+        result = self._run_monitored_command("stage_samples", cmd, check=True)
+        artifacts = self._parse_stage_samples_output(result)
+        self._stage_artifacts[workset.name] = artifacts
+        LOGGER.info(
+            "Recorded %d staged files for %s under %s",
+            len(artifacts.staged_files),
+            workset.name,
+            artifacts.fsx_stage_dir,
+        )
+        return artifacts
+
+    def _parse_stage_samples_output(
+        self, result: subprocess.CompletedProcess
+    ) -> StageArtifacts:
+        outputs: List[str] = []
+        if isinstance(result.stdout, (bytes, bytearray)):
+            outputs.append(result.stdout.decode("utf-8", errors="ignore"))
+        elif isinstance(result.stdout, str):
+            outputs.append(result.stdout)
+        if isinstance(result.stderr, (bytes, bytearray)):
+            outputs.append(result.stderr.decode("utf-8", errors="ignore"))
+        elif isinstance(result.stderr, str):
+            outputs.append(result.stderr)
+
+        combined = "\n".join(filter(None, outputs)).strip()
+        if not combined:
+            raise MonitorError("Stage command produced no output to parse")
+
+        fsx_stage_dir: Optional[PurePosixPath] = None
+        staged_files: List[PurePosixPath] = []
+        collecting_files = False
+
+        for raw_line in combined.splitlines():
+            line = raw_line.strip()
+            if not line:
+                if collecting_files:
+                    collecting_files = False
+                continue
+
+            if line.startswith("Remote FSx stage directory:"):
+                _, value = raw_line.split(":", 1)
+                path_str = value.strip()
+                if not path_str:
+                    raise MonitorError(
+                        "Stage command did not report an FSx stage directory"
+                    )
+                fsx_stage_dir = PurePosixPath("/fsx") / path_str.lstrip("/")
+                continue
+
+            if line.startswith("Staged files"):
+                collecting_files = True
+                continue
+
+            if collecting_files:
+                if raw_line.startswith(" ") or raw_line.startswith("\t"):
+                    path_candidate = line
+                    if path_candidate:
+                        fsx_path = PurePosixPath("/fsx") / path_candidate.lstrip("/")
+                        staged_files.append(fsx_path)
+                    continue
+                collecting_files = False
+
+        if fsx_stage_dir is None:
+            raise MonitorError(
+                "Unable to determine remote FSx stage directory from stage command output"
+            )
+
+        # Remove duplicates while preserving order
+        unique_files: List[PurePosixPath] = []
+        seen: Set[PurePosixPath] = set()
+        for path in staged_files:
+            if path not in seen:
+                unique_files.append(path)
+                seen.add(path)
+
+        stage_dir_name = fsx_stage_dir.name
+        timestamp = stage_dir_name.replace("remote_stage_", "")
+        samples_manifest = fsx_stage_dir / f"{timestamp}_samples.tsv"
+        units_manifest = fsx_stage_dir / f"{timestamp}_units.tsv"
+
+        return StageArtifacts(
+            fsx_stage_dir=fsx_stage_dir,
+            staged_files=unique_files,
+            samples_manifest=samples_manifest,
+            units_manifest=units_manifest,
+        )
 
     def _wait_for_cluster_ready(self, cluster_name: str) -> None:
         LOGGER.info("Waiting for cluster %s to become ready", cluster_name)
@@ -831,6 +937,7 @@ class WorksetMonitor:
         cluster_name: str,
         pipeline_dir: PurePosixPath,
         manifest_path: Path,
+        stage_artifacts: StageArtifacts,
     ) -> None:
         config_dir = pipeline_dir / "config"
         mkdir_cmd = f"mkdir -p {shlex.quote(str(config_dir))}"
@@ -841,15 +948,141 @@ class WorksetMonitor:
             check=True,
             shell=True,
         )
-        LOGGER.info("Copying staged manifest into %s", config_dir)
+        LOGGER.info("Copying staged artifacts into %s", pipeline_dir)
+        self._copy_stage_artifacts_to_pipeline(
+            cluster_name, pipeline_dir, stage_artifacts, manifest_path
+        )
+
+    def _copy_stage_artifacts_to_pipeline(
+        self,
+        cluster_name: str,
+        pipeline_dir: PurePosixPath,
+        stage_artifacts: StageArtifacts,
+        manifest_path: Path,
+    ) -> None:
+        sample_data_root = pipeline_dir / SAMPLE_DATA_DIRNAME
+        mkdir_data = f"mkdir -p {shlex.quote(str(sample_data_root))}"
+        self._run_headnode_monitored_command(
+            "push_stage_files",
+            mkdir_data,
+            cluster_name=cluster_name,
+            check=True,
+            shell=True,
+        )
+
+        for staged_file in stage_artifacts.staged_files:
+            try:
+                relative_path = staged_file.relative_to(stage_artifacts.fsx_stage_dir)
+            except ValueError:
+                LOGGER.warning(
+                    "Staged file %s is not within %s; skipping copy",
+                    staged_file,
+                    stage_artifacts.fsx_stage_dir,
+                )
+                continue
+            destination = sample_data_root / relative_path
+            copy_cmd = (
+                f"mkdir -p {shlex.quote(str(destination.parent))} && "
+                f"cp -p {shlex.quote(str(staged_file))} {shlex.quote(str(destination))}"
+            )
+            self._run_headnode_monitored_command(
+                "push_stage_files",
+                copy_cmd,
+                cluster_name=cluster_name,
+                check=True,
+                shell=True,
+            )
+
+        config_dir = pipeline_dir / "config"
         samples_target = config_dir / "samples.tsv"
         units_target = config_dir / "units.tsv"
-        scp_samples = self._build_scp_command(cluster_name, manifest_path, samples_target)
-        self._run_monitored_command("push_stage_files", scp_samples, check=True)
+
+        copied_samples = False
+        if stage_artifacts.samples_manifest:
+            copied_samples = self._copy_file_on_headnode(
+                cluster_name,
+                stage_artifacts.samples_manifest,
+                samples_target,
+                label="push_stage_files",
+                check=False,
+            )
+        copied_units = False
+        if stage_artifacts.units_manifest:
+            copied_units = self._copy_file_on_headnode(
+                cluster_name,
+                stage_artifacts.units_manifest,
+                units_target,
+                label="push_stage_files",
+                check=False,
+            )
+
+        if not copied_samples:
+            LOGGER.info(
+                "Falling back to SCP for samples manifest from %s", manifest_path
+            )
+            scp_samples = self._build_scp_command(
+                cluster_name, manifest_path, samples_target
+            )
+            self._run_monitored_command("push_stage_files", scp_samples, check=True)
+
         units_src = manifest_path.with_name("units.tsv")
-        if units_src.exists():
-            scp_units = self._build_scp_command(cluster_name, units_src, units_target)
+        need_units_fallback = (
+            (stage_artifacts.units_manifest is None or not copied_units)
+            and units_src.exists()
+        )
+        if need_units_fallback:
+            LOGGER.info(
+                "Falling back to SCP for units manifest from %s", units_src
+            )
+            scp_units = self._build_scp_command(
+                cluster_name, units_src, units_target
+            )
             self._run_monitored_command("push_stage_files", scp_units, check=True)
+        elif not copied_units and stage_artifacts.units_manifest is not None:
+            LOGGER.warning(
+                "Units manifest %s was not copied to %s and no fallback was available",
+                stage_artifacts.units_manifest,
+                units_target,
+            )
+        elif stage_artifacts.units_manifest is None and not units_src.exists():
+            LOGGER.warning(
+                "Units manifest missing: expected local fallback at %s",
+                units_src,
+            )
+
+    def _copy_file_on_headnode(
+        self,
+        cluster_name: str,
+        source: PurePosixPath,
+        destination: PurePosixPath,
+        *,
+        label: str,
+        check: bool,
+    ) -> bool:
+        quoted_source = shlex.quote(str(source))
+        quoted_dest = shlex.quote(str(destination))
+        quoted_parent = shlex.quote(str(destination.parent))
+        command = (
+            f"mkdir -p {quoted_parent} && cp -p {quoted_source} {quoted_dest}"
+        )
+        result = self._run_headnode_monitored_command(
+            label,
+            command,
+            cluster_name=cluster_name,
+            check=check,
+            shell=True,
+        )
+        if check:
+            return True
+        if result.returncode != 0:
+            LOGGER.debug(
+                "Headnode copy command exited %s for %s -> %s",
+                result.returncode,
+                source,
+                destination,
+            )
+            return False
+        return True
 
     def _run_pipeline(
         self,
