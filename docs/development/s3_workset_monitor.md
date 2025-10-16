@@ -94,6 +94,11 @@ Once a workset is acquired the monitor performs the following steps:
      inspection after the workflow finishes.
    * Monitor command exit status.  Failure raises an exception that ends in
      `daylily.error`.
+   * The pipeline itself writes the sentinel files
+     `<working-directory>/daylily.successful_run` and
+     `<working-directory>/daylily.failed_run` on the head node.  The monitor
+     watches these sentinels to determine whether a run has finished
+     successfully or encountered an error.
 6. **Export**
    * When an `export_uri` is defined in `daylily_work.yaml`, run
      `./bin/daylily-export-fsx-to-s3` to publish the results back to S3.
