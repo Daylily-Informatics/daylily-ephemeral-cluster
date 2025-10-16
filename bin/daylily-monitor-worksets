@@ -1,0 +1,66 @@
+#!/usr/bin/env python3
+"""Monitor S3 workset directories and launch Daylily pipelines automatically."""
+
+from __future__ import annotations
+
+import argparse
+import logging
+from pathlib import Path
+from typing import Optional
+
+from daylib.workset_monitor import S3Location, S3WorksetMonitor
+
+
+def _configure_logging(level: str, log_file: Optional[Path]) -> None:
+    log_level = getattr(logging, level.upper(), logging.INFO)
+    handlers = [logging.StreamHandler()]
+    if log_file:
+        log_file.parent.mkdir(parents=True, exist_ok=True)
+        handlers.append(logging.FileHandler(log_file))
+
+    logging.basicConfig(
+        level=log_level,
+        format="%(asctime)s %(levelname)s %(name)s: %(message)s",
+        handlers=handlers,
+    )
+
+
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("s3_root", help="Root S3 URI (e.g. s3://bucket/worksets)")
+    parser.add_argument("--aws-profile", dest="aws_profile", help="AWS profile name", default=None)
+    parser.add_argument("--aws-region", dest="aws_region", help="AWS region", default=None)
+    parser.add_argument("--poll-seconds", type=int, default=60, help="Polling interval in seconds")
+    parser.add_argument("--local-root", type=Path, help="Local directory for staging worksets")
+    parser.add_argument("--log-level", default="INFO", help="Logging level (default: INFO)")
+    parser.add_argument("--log-file", type=Path, help="Optional log file path")
+    parser.add_argument(
+        "--run-once",
+        action="store_true",
+        help="Process currently ready worksets once and exit instead of looping",
+    )
+    return parser.parse_args()
+
+
+def main() -> None:
+    args = parse_args()
+    _configure_logging(args.log_level, args.log_file)
+
+    location = S3Location.parse(args.s3_root)
+    monitor = S3WorksetMonitor(
+        root=location,
+        aws_profile=args.aws_profile,
+        aws_region=args.aws_region,
+        poll_seconds=args.poll_seconds,
+        local_root=args.local_root,
+    )
+
+    if args.run_once:
+        logging.getLogger(__name__).info("Processing ready worksets once")
+        monitor.process_ready_once()
+    else:
+        monitor.run_forever()
+
+
+if __name__ == "__main__":
+    main()
