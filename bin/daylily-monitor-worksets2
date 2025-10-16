@@ -854,25 +854,31 @@ class WorksetMonitor:
         run_command = self.config.pipeline.run_prefix + run_suffix
         session_name = self._generate_tmux_session_name(workset)
 
+        # build: echo go && cd <fsx path> && (optional init) && run && (optional keepalive)
         steps: List[str] = []
+        steps.append("echo go")
+        steps.append(f"cd {shlex.quote(str(pipeline_dir))}")
+
         init_cmd = (self.config.pipeline.login_shell_init or "").strip()
         if init_cmd:
             steps.append(init_cmd)
-        steps.append(f"cd {shlex.quote(str(pipeline_dir))}")
+
         steps.append(run_command)
+
         keepalive = (self.config.pipeline.tmux_keepalive_shell or "").strip()
         if keepalive:
             steps.append(keepalive)
+
         composite = " && ".join(steps)
 
         tmux_cmd = ["tmux", "new-session", "-d", "-s", session_name, "bash", "-lc", composite]
 
-        LOGGER.info("Launching pipeline for %s in tmux session %s: %s", workset.name, session_name, run_command)
+        LOGGER.info("Launching pipeline for %s in tmux session %s: %s",
+                    workset.name, session_name, run_command)
         self._record_tmux_session(workset, session_name)
         self._write_pipeline_sentinel(cluster_name, pipeline_dir, "START")
         try:
             self._run_headnode_monitored_command("run_pipeline", tmux_cmd, cluster_name=cluster_name, check=True, shell=False)
-            # verify it actually exists
             self._run_headnode_command(cluster_name, ["tmux", "has-session", "-t", session_name], check=True, shell=False)
         finally:
             self._write_pipeline_sentinel(cluster_name, pipeline_dir, "END")
