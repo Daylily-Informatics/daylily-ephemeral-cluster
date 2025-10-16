@@ -20,6 +20,7 @@ monitor:
 cluster:
   # Reuse an existing cluster when available, otherwise create from this template.
   template_path: config/cluster-configs/example.yaml
+  repo_tag: main
   # Contact email exported for cluster creation when not present in template overrides.
   contact_email: you@email.com
   preferred_availability_zone: us-east-1a
