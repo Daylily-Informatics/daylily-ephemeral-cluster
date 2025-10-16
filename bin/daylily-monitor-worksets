@@ -8,7 +8,9 @@ import concurrent.futures
 import contextlib
 import dataclasses
 import datetime as dt
+import json
 import logging
+import os
 import shutil
 import shlex
 import subprocess
@@ -23,6 +25,9 @@ from botocore.exceptions import ClientError
 import yaml
 
 LOGGER = logging.getLogger("daylily.workset_monitor")
+
+READY_CLUSTER_STATUSES = {"CREATE_COMPLETE", "UPDATE_COMPLETE"}
+READY_COMPUTE_FLEET_STATUSES = {"RUNNING", "ENABLED", "STARTED"}
 
 SENTINEL_FILES = {
     "ready": "daylily.ready",
@@ -357,11 +362,9 @@ class WorksetMonitor:
 
     def _wait_for_cluster_ready(self, cluster_name: str) -> None:
         LOGGER.info("Waiting for cluster %s to become ready", cluster_name)
-        # Placeholder: poll for cluster readiness. Here we rely on an external helper.
-        cmd = f"./bin/daylily-get-ephemperal-cluster-deets --cluster {cluster_name} --region {self.config.aws.region}"
         for attempt in range(60):
-            result = self._run_command(cmd, check=False)
-            if result.returncode == 0:
+            details = self._describe_cluster(cluster_name)
+            if details and self._cluster_is_ready(details):
                 LOGGER.debug("Cluster %s ready (checked %d times)", cluster_name, attempt + 1)
                 return
             LOGGER.debug("Cluster %s not ready yet (%d)", cluster_name, attempt + 1)
@@ -415,20 +418,116 @@ class WorksetMonitor:
             return existing
         return self._create_cluster(work_yaml)
 
+    def _pcluster_env(self) -> Dict[str, str]:
+        env = os.environ.copy()
+        if self.config.aws.profile:
+            env["AWS_PROFILE"] = self.config.aws.profile
+        return env
+
+    def _load_pcluster_json(self, raw: bytes) -> Optional[object]:
+        text = raw.decode("utf-8", errors="ignore").strip()
+        if not text:
+            return None
+        brace_positions = [pos for pos in (text.find("{"), text.find("[")) if pos != -1]
+        if brace_positions:
+            text = text[min(brace_positions):]
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError as exc:
+            LOGGER.debug("Failed to decode pcluster output as JSON: %s", exc)
+            return None
+
+    def _describe_cluster(self, cluster_name: str) -> Optional[Dict[str, object]]:
+        cmd = [
+            "pcluster",
+            "describe-cluster",
+            "--region",
+            self.config.aws.region,
+            "-n",
+            cluster_name,
+        ]
+        result = self._run_command(cmd, check=False, env=self._pcluster_env())
+        if result.returncode != 0:
+            LOGGER.debug(
+                "Unable to describe cluster %s (exit %s): %s",
+                cluster_name,
+                result.returncode,
+                result.stderr.decode(errors="ignore"),
+            )
+            return None
+        payload = self._load_pcluster_json(result.stdout)
+        if isinstance(payload, dict):
+            return payload
+        LOGGER.debug("Unexpected describe-cluster output for %s", cluster_name)
+        return None
+
+    def _cluster_is_ready(self, details: Dict[str, object]) -> bool:
+        cluster_status = str(details.get("clusterStatus", "")).upper()
+        compute_status = str(details.get("computeFleetStatus", "")).upper()
+        if cluster_status not in READY_CLUSTER_STATUSES:
+            return False
+        if compute_status and compute_status not in READY_COMPUTE_FLEET_STATUSES:
+            return False
+        return True
+
+    def _extract_cluster_zone(self, details: Dict[str, object]) -> Optional[str]:
+        head_node = details.get("headNode")
+        if isinstance(head_node, dict):
+            zone = head_node.get("availabilityZone") or head_node.get("AvailabilityZone")
+            if isinstance(zone, str):
+                return zone
+        return None
+
     def _find_existing_cluster(self) -> Optional[str]:
         LOGGER.debug("Checking for existing clusters in %s", self.config.aws.region)
         cmd = [
-            "./bin/daylily-get-ephemperal-cluster-deets",
+            "pcluster",
+            "list-clusters",
             "--region",
             self.config.aws.region,
         ]
-        if self.config.cluster.preferred_availability_zone:
-            cmd.extend(["--availability-zone", self.config.cluster.preferred_availability_zone])
-        result = self._run_command(cmd, check=False)
-        if result.returncode == 0 and result.stdout:
-            for line in result.stdout.decode().splitlines():
-                if line.startswith("cluster_name:"):
-                    return line.split(":", 1)[1].strip()
+        result = self._run_command(cmd, check=False, env=self._pcluster_env())
+        if result.returncode != 0:
+            LOGGER.debug(
+                "Unable to list clusters (exit %s): %s",
+                result.returncode,
+                result.stderr.decode(errors="ignore"),
+            )
+            return None
+        payload = self._load_pcluster_json(result.stdout)
+        if not isinstance(payload, dict):
+            LOGGER.debug("Unexpected list-clusters output: %s", result.stdout.decode(errors="ignore"))
+            return None
+        clusters = payload.get("clusters")
+        if not isinstance(clusters, list):
+            return None
+        preferred_zone = self.config.cluster.preferred_availability_zone
+        for cluster in clusters:
+            if not isinstance(cluster, dict):
+                continue
+            name = cluster.get("clusterName")
+            if not name:
+                continue
+            details = self._describe_cluster(name)
+            if not details:
+                continue
+            if preferred_zone:
+                cluster_zone = self._extract_cluster_zone(details)
+                if cluster_zone and cluster_zone != preferred_zone:
+                    LOGGER.debug(
+                        "Skipping cluster %s due to availability zone mismatch (%s != %s)",
+                        name,
+                        cluster_zone,
+                        preferred_zone,
+                    )
+                    continue
+                if not cluster_zone:
+                    LOGGER.debug(
+                        "Cluster %s missing availability zone information; unable to enforce preference",
+                        name,
+                    )
+            if self._cluster_is_ready(details):
+                return name
         return None
 
     def _create_cluster(self, work_yaml: Dict[str, object]) -> str:
@@ -537,7 +636,15 @@ class WorksetMonitor:
     # ------------------------------------------------------------------
     # Command helpers
     # ------------------------------------------------------------------
-    def _run_command(self, command: Sequence[str] | str, *, check: bool, cwd: Optional[Path] = None, shell: bool = False) -> subprocess.CompletedProcess:
+    def _run_command(
+        self,
+        command: Sequence[str] | str,
+        *,
+        check: bool,
+        cwd: Optional[Path] = None,
+        shell: bool = False,
+        env: Optional[Dict[str, str]] = None,
+    ) -> subprocess.CompletedProcess:
         if isinstance(command, (str, bytes)) and not shell:
             cmd_display = command
         else:
@@ -556,6 +663,7 @@ class WorksetMonitor:
             shell=run_shell,
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
+            env=env,
         )
         if check and result.returncode != 0:
             LOGGER.error("Command failed (%s): %s", result.returncode, result.stderr.decode(errors="ignore"))
