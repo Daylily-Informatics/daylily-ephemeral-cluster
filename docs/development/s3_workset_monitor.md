@@ -80,13 +80,18 @@ Once a workset is acquired the monitor performs the following steps:
      targeting the chosen cluster.
    * Poll for cluster readiness with `bin/daylily-get-ephemperal-cluster-deets`.
 4. **Pipeline preparation**
-   * Run `day-clone` with the arguments from `daylily_work.yaml` and create a
-     working directory under `/fsx/data/worksets/<workset>`.
-   * Copy the staged `stage_samples.tsv` and optional `units.tsv` into
-     `<workdir>/config/`.
+   * Run `day-clone` with the arguments from `daylily_work.yaml` as the
+     `ubuntu` user. The monitor launches the command within a login bash shell
+     and parses the `Location` line in the output to discover the working
+     directory that Daylily created.
+   * Copy the staged `stage_samples.tsv` and optional `units.tsv` into the
+     `<working-directory>/config/` folder reported by `day-clone`.
 5. **Pipeline execution**
-   * Execute the Daylily command sequence `. dyoinit && dy-a slurm hg38 &&
-     dy-r <rest from yaml>`.
+   * Launch a detached tmux session on the head node that runs `source
+     ~/.bashrc && cd <working-directory> && source dyinit && source
+     bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=true ./bin/day_run
+     <rest from yaml>; bash`.  The trailing `bash` keeps the session alive for
+     inspection after the workflow finishes.
    * Monitor command exit status.  Failure raises an exception that ends in
      `daylily.error`.
 6. **Export**
