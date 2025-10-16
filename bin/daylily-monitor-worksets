@@ -431,7 +431,7 @@ class WorksetMonitor:
         completed_commands: set[str],
     ) -> None:
         stage_label = "stage_samples"
-        pipeline_dir.mkdir(parents=True, exist_ok=True)
+        #pipeline_dir.mkdir(parents=True, exist_ok=True)
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             if stage_label in completed_commands:
                 LOGGER.info(
