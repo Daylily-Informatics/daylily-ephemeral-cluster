@@ -525,11 +525,7 @@ class WorksetMonitor:
 
         completed_commands: Set[str] = set()
         if clone_args:
-            # Clone once up front
-            pipeline_dir = self._prepare_pipeline_workspace(
-                workset, cluster_name, clone_args, run_clone=True
-            )
-            completed_commands.add("clone_pipeline")
+            pipeline_dir: Optional[PurePosixPath] = None
         else:
             # No clone; ensure fallback dir on headnode
             pipeline_dir = self._prepare_pipeline_workspace(
@@ -539,7 +535,7 @@ class WorksetMonitor:
         retry_attempted = False
         while True:
             try:
-                self._execute_workset_commands(
+                pipeline_dir = self._execute_workset_commands(
                     workset,
                     manifest_path,
                     cluster_name,
@@ -569,9 +565,9 @@ class WorksetMonitor:
         clone_args: str,
         run_suffix: Optional[str],
         target_export_uri: Optional[str],
-        pipeline_dir: PurePosixPath,
+        pipeline_dir: Optional[PurePosixPath],
         completed_commands: Set[str],
-    ) -> None:
+    ) -> PurePosixPath:
         stage_label = "stage_samples"
         with concurrent.futures.ThreadPoolExecutor(max_workers=2) as executor:
             if stage_label in completed_commands:
@@ -607,6 +603,15 @@ class WorksetMonitor:
                 "Skipping pipeline clone for %s: command already completed",
                 workset.name,
             )
+            if pipeline_dir is None:
+                pipeline_dir = self._prepare_pipeline_workspace(
+                    workset, cluster_name, clone_args, run_clone=False
+                )
+
+        if pipeline_dir is None:
+            raise MonitorError(
+                "Pipeline directory unavailable; rerun day-clone or remove cached state"
+            )
 
         push_label = "push_stage_files"
         if push_label in completed_commands:
@@ -639,6 +644,8 @@ class WorksetMonitor:
             else:
                 self._export_results(cluster_name, target_export_uri)
                 completed_commands.add(export_label)
+
+        return pipeline_dir
 
     def _local_state_dir(self, workset: Workset) -> Path:
         root = self.config.pipeline.local_state_root or "~/.cache/daylily-monitor"
