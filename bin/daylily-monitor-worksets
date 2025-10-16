@@ -18,7 +18,7 @@ import subprocess
 import sys
 import time
 from collections import defaultdict
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 import boto3
@@ -129,6 +129,9 @@ class PipelineOptions:
     export_command: str
     local_stage_root: Optional[str] = None
     reference_bucket: Optional[str] = None
+    ssh_identity_file: Optional[str] = None
+    ssh_user: str = "ubuntu"
+    ssh_extra_args: List[str] = dataclasses.field(default_factory=list)
 
 
 @dataclasses.dataclass
@@ -192,6 +195,7 @@ class WorksetMonitor:
             if process_directories
             else None
         )
+        self._headnode_ips: Dict[str, str] = {}
 
     # ------------------------------------------------------------------
     # Public entrypoints
@@ -475,7 +479,7 @@ class WorksetMonitor:
                 workset.name,
             )
         else:
-            self._push_stage_files_to_pipeline(pipeline_dir, manifest_path)
+            self._push_stage_files_to_pipeline(cluster_name, pipeline_dir, manifest_path)
             completed_commands.add(push_label)
 
         run_label = "run_pipeline"
@@ -554,52 +558,93 @@ class WorksetMonitor:
         clone_args: str,
         *,
         run_clone: bool = True,
-    ) -> Path:
-        workdir = Path(self.config.pipeline.workdir) / workset.name
-        workdir.mkdir(parents=True, exist_ok=True)
+    ) -> PurePosixPath:
+        workdir = PurePosixPath(self.config.pipeline.workdir) / workset.name
         if clone_args and run_clone:
             cmd = self.config.pipeline.clone_command.format(clone_args=clone_args)
             LOGGER.info("Cloning pipeline into %s", workdir)
-            self._run_monitored_command(
+            compound_cmd = (
+                f"mkdir -p {shlex.quote(str(workdir))} && cd {shlex.quote(str(workdir))} && {cmd}"
+            )
+            self._run_headnode_monitored_command(
                 "clone_pipeline",
-                cmd,
+                compound_cmd,
+                cluster_name=cluster_name,
                 check=True,
-                cwd=workdir,
+                shell=True,
+            )
+        elif not clone_args:
+            ensure_cmd = f"mkdir -p {shlex.quote(str(workdir))}"
+            self._run_headnode_command(
+                cluster_name,
+                ensure_cmd,
+                check=True,
+                shell=True,
             )
         return workdir
 
-    def _push_stage_files_to_pipeline(self, pipeline_dir: Path, manifest_path: Path) -> None:
+    def _push_stage_files_to_pipeline(
+        self,
+        cluster_name: str,
+        pipeline_dir: PurePosixPath,
+        manifest_path: Path,
+    ) -> None:
         config_dir = pipeline_dir / "config"
-        config_dir.mkdir(exist_ok=True)
+        mkdir_cmd = f"mkdir -p {shlex.quote(str(config_dir))}"
+        self._run_headnode_monitored_command(
+            "push_stage_files",
+            mkdir_cmd,
+            cluster_name=cluster_name,
+            check=True,
+            shell=True,
+        )
+        LOGGER.info("Copying staged manifest into %s", config_dir)
         samples_target = config_dir / "samples.tsv"
         units_target = config_dir / "units.tsv"
-        LOGGER.info("Copying staged manifest into %s", config_dir)
-        samples_target.write_bytes(manifest_path.read_bytes())
+        scp_samples = self._build_scp_command(
+            cluster_name,
+            manifest_path,
+            samples_target,
+        )
+        self._run_monitored_command("push_stage_files", scp_samples, check=True)
         units_src = manifest_path.with_name("units.tsv")
         if units_src.exists():
-            units_target.write_bytes(units_src.read_bytes())
+            scp_units = self._build_scp_command(cluster_name, units_src, units_target)
+            self._run_monitored_command("push_stage_files", scp_units, check=True)
 
-    def _run_pipeline(self, cluster_name: str, pipeline_dir: Path, run_suffix: Optional[str]) -> None:
+    def _run_pipeline(
+        self,
+        cluster_name: str,
+        pipeline_dir: PurePosixPath,
+        run_suffix: Optional[str],
+    ) -> None:
         if not run_suffix:
             raise MonitorError("Workset pipeline definition missing dy-r command suffix")
         command = self.config.pipeline.run_prefix + run_suffix
         LOGGER.info("Running pipeline: %s", command)
-        self._write_pipeline_sentinel(pipeline_dir, "START")
+        self._write_pipeline_sentinel(cluster_name, pipeline_dir, "START")
         try:
-            self._run_monitored_command(
+            self._run_headnode_monitored_command(
                 "run_pipeline",
                 command,
+                cluster_name=cluster_name,
                 check=True,
-                cwd=pipeline_dir,
+                cwd=str(pipeline_dir),
                 shell=True,
             )
         finally:
-            self._write_pipeline_sentinel(pipeline_dir, "END")
+            self._write_pipeline_sentinel(cluster_name, pipeline_dir, "END")
 
     def _export_results(self, cluster_name: str, target_uri: str) -> None:
         command = self.config.pipeline.export_command.format(cluster=cluster_name, target_uri=target_uri)
         LOGGER.info("Exporting pipeline results to %s", target_uri)
-        self._run_monitored_command("export_results", command, check=True)
+        self._run_headnode_monitored_command(
+            "export_results",
+            command,
+            cluster_name=cluster_name,
+            check=True,
+            shell=True,
+        )
 
     # ------------------------------------------------------------------
     # Cluster helpers
@@ -937,9 +982,24 @@ class WorksetMonitor:
             bucket += "/"
         return bucket or ""
 
-    def _write_pipeline_sentinel(self, pipeline_dir: Path, label: str) -> None:
+    def _write_pipeline_sentinel(
+        self,
+        cluster_name: str,
+        pipeline_dir: PurePosixPath,
+        label: str,
+    ) -> None:
         marker = pipeline_dir / f".daylily-monitor-{label.lower()}"
-        marker.write_text(f"{label}\t{dt.datetime.utcnow().isoformat()}Z\n")
+        content = f"{label}\t{dt.datetime.utcnow().isoformat()}Z\n"
+        command = f"printf '%s' {shlex.quote(content)} > {shlex.quote(str(marker))}"
+        try:
+            self._run_headnode_command(
+                cluster_name,
+                command,
+                check=True,
+                shell=True,
+            )
+        except MonitorError:
+            LOGGER.warning("Unable to write pipeline sentinel %s for %s", marker, cluster_name)
 
     def report(self, target: str) -> None:
         worksets = list(self._discover_worksets())
@@ -1024,6 +1084,127 @@ class WorksetMonitor:
             LOGGER.error("Command failed (%s): %s", result.returncode, result.stderr.decode(errors="ignore"))
             raise MonitorError(f"Command failed: {cmd_display}")
         return result
+
+    def _ssh_identity(self) -> Optional[str]:
+        identity = self.config.pipeline.ssh_identity_file
+        if not identity:
+            return None
+        return str(Path(identity).expanduser())
+
+    def _ssh_user(self) -> str:
+        return self.config.pipeline.ssh_user or "ubuntu"
+
+    def _ssh_options(self) -> List[str]:
+        options = ["-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null"]
+        if self.config.pipeline.ssh_extra_args:
+            options.extend(self.config.pipeline.ssh_extra_args)
+        return options
+
+    def _headnode_ip(self, cluster_name: str) -> str:
+        cached = self._headnode_ips.get(cluster_name)
+        if cached:
+            return cached
+        cmd = [
+            "pcluster",
+            "describe-cluster-instances",
+            "--region",
+            self.config.aws.region,
+            "-n",
+            cluster_name,
+        ]
+        result = self._run_command(cmd, check=True, env=self._pcluster_env())
+        payload = self._load_pcluster_json(result.stdout)
+        if isinstance(payload, dict):
+            instances = payload.get("instances")
+            if isinstance(instances, list):
+                for instance in instances:
+                    if not isinstance(instance, dict):
+                        continue
+                    node_type = instance.get("nodeType") or instance.get("NodeType")
+                    if isinstance(node_type, str) and node_type.lower() == "headnode":
+                        ip = instance.get("publicIpAddress") or instance.get("PublicIpAddress")
+                        if isinstance(ip, str) and ip:
+                            self._headnode_ips[cluster_name] = ip
+                            return ip
+        raise MonitorError(f"Unable to determine head node address for {cluster_name}")
+
+    def _build_remote_command(
+        self,
+        command: Sequence[str] | str,
+        *,
+        cwd: Optional[str] = None,
+        shell: bool = False,
+    ) -> str:
+        if isinstance(command, (list, tuple)):
+            command_str = " ".join(shlex.quote(str(part)) for part in command)
+        else:
+            if shell:
+                command_str = command
+            else:
+                command_str = " ".join(shlex.quote(part) for part in shlex.split(command))
+        if cwd:
+            command_str = f"cd {shlex.quote(cwd)} && {command_str}"
+        return f"bash -lc {shlex.quote(command_str)}"
+
+    def _build_ssh_command(
+        self,
+        cluster_name: str,
+        command: Sequence[str] | str,
+        *,
+        cwd: Optional[str] = None,
+        shell: bool = False,
+    ) -> List[str]:
+        remote_command = self._build_remote_command(command, cwd=cwd, shell=shell)
+        headnode = self._headnode_ip(cluster_name)
+        ssh_cmd: List[str] = ["ssh"]
+        identity = self._ssh_identity()
+        if identity:
+            ssh_cmd.extend(["-i", identity])
+        ssh_cmd.extend(self._ssh_options())
+        ssh_cmd.append(f"{self._ssh_user()}@{headnode}")
+        ssh_cmd.append(remote_command)
+        return ssh_cmd
+
+    def _build_scp_command(
+        self,
+        cluster_name: str,
+        local_path: Path,
+        remote_path: PurePosixPath,
+    ) -> List[str]:
+        headnode = self._headnode_ip(cluster_name)
+        scp_cmd: List[str] = ["scp"]
+        identity = self._ssh_identity()
+        if identity:
+            scp_cmd.extend(["-i", identity])
+        scp_cmd.extend(self._ssh_options())
+        remote_target = f"{self._ssh_user()}@{headnode}:{remote_path}"
+        scp_cmd.extend([str(local_path), remote_target])
+        return scp_cmd
+
+    def _run_headnode_command(
+        self,
+        cluster_name: str,
+        command: Sequence[str] | str,
+        *,
+        check: bool,
+        cwd: Optional[str] = None,
+        shell: bool = False,
+    ) -> subprocess.CompletedProcess:
+        ssh_cmd = self._build_ssh_command(cluster_name, command, cwd=cwd, shell=shell)
+        return self._run_command(ssh_cmd, check=check)
+
+    def _run_headnode_monitored_command(
+        self,
+        command_label: str,
+        command: Sequence[str] | str,
+        *,
+        cluster_name: str,
+        check: bool,
+        cwd: Optional[str] = None,
+        shell: bool = False,
+    ) -> subprocess.CompletedProcess:
+        ssh_cmd = self._build_ssh_command(cluster_name, command, cwd=cwd, shell=shell)
+        return self._run_monitored_command(command_label, ssh_cmd, check=check)
 
     # ------------------------------------------------------------------
     # Session helpers
