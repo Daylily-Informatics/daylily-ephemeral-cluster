@@ -454,15 +454,15 @@ if [[ "$1" =~ ^(-h|--help|help)$ ]]; then
 fi
 
 # Define 'sq' alias for squeue with specific output format
-sq_cmd='squeue -o "%i  %P  %C  %t  %N  %c  %T  %m  %M  %D  %j"'
-sq() {
+sq_cmd="squeue -o '%i  %P  %C  %t  %N  %c  %T  %m  %M  %D  %j'"
+sqq() {
     if [ $# -eq 0 ]; then
         eval "$sq_cmd"
     else
         eval "$sq_cmd -j \"$(echo "$@" | tr ' ' ',')\""
     fi
 }
-alias sq=sq
+alias sq=sqq
 
 echo "squeue helper alias 'sq' activated"
 
@@ -505,9 +505,10 @@ echo -e "\t  AWS_PROFILE=<<your_aws_profile_used_to_create_cluster>> daylily-sta
 echo -e "\t                           "
 echo -e "\t  daylily-export-fsx-to-s3 : export FSx data to S3, if this fails, use the AWS Fsx Filesystem console! *and* this might only be runnable from your local workstation not the headnode if aws configure was not run."
 echo -e "\t                           "
-echo -e "\t  sq : an alias to `squeue` with a useful default output format for monitoring running jobs. "
-echo -e "\t  \$sq_cmd : show all jobs, include '\$' to see the command output."
-echo -e "\t                           "
+echo -e '\t  sq : an alias to `squeue` with a useful default output format for monitoring running jobs. '
+echo -e "\t "
+echo -e "\t\t  $(sqq | head -n 8 ) "
+echo -e "\t\t\t... first 7 jobs                           "
 echo -e "\t  "
 echo -e "\t The reference S3 bucket is set to: \$reference_bucket ($reference_bucket)"
 echo -e "\t  "
