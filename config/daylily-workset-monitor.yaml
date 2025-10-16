@@ -48,7 +48,7 @@ pipeline:
   clone_command: echo cloning && day-clone {clone_args}
   # Command prefix that initialises the analysis environment.  The dy-r suffix from the workset yaml
   # is appended to the end of this string.
-  run_prefix: "source dyoainit && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=0 ./bin/day_run "
+  run_prefix: "source dyoainit && source bin/day_activate slurm hg38  && DAY_CONTAINERIZED=0 ./bin/day_run "
   # Command that exports results back to S3 after completion.
   export_command: ./bin/daylily-export-fsx-to-s3 --cluster {cluster} --target-uri {target_uri}
   # Command executed before entering the pipeline directory on the head node.
