@@ -87,6 +87,7 @@ class ClusterOptions:
     auto_teardown: bool = False
     idle_teardown_minutes: int = 20
     reuse_cluster_name: Optional[str] = None
+    contact_email: Optional[str] = None
 
 
 @dataclasses.dataclass
@@ -539,8 +540,12 @@ class WorksetMonitor:
             cluster_name,
         ]
         if self.config.cluster.template_path:
-            cmd.extend(["--cluster-config", self.config.cluster.template_path])
-        result = self._run_command(cmd, check=True)
+            cmd.extend(["--config", self.config.cluster.template_path])
+        env = os.environ.copy()
+        contact_email = self.config.cluster.contact_email or "you@email.com"
+        env["DAY_CONTACT_EMAIL"] = contact_email
+        env.pop("DAY_DISABLE_AUTO_SELECT", None)
+        result = self._run_command(cmd, check=True, env=env)
         LOGGER.debug("Cluster creation stdout: %s", result.stdout.decode(errors="ignore"))
         return cluster_name
 
