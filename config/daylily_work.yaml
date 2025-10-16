@@ -1,0 +1,15 @@
+# (optional) Keep or drop. If present, the monitor won’t try to create/use a different one.
+# cluster_name: "newcluex"
+
+# Clone the Daylily pipeline on the headnode (optional but recommended)
+day-clone: "-d blahhh ""
+
+# Args only; your monitor YAML’s run_prefix already includes the dy-r/day_run command.
+dy-r: >
+  help
+
+# Export results after completion
+export_uri: "s3://lsmc-dayoa-omics-analysis-us-west-2/monitoring/worksets/runme14/results/"
+
+# (ignored by script; for you)
+notes: "Daylily Snakemake; hg38; slurm profile; 192 jobs; rerun-incomplete."

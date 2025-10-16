@@ -48,7 +48,7 @@ pipeline:
   clone_command: day-clone {clone_args}
   # Command prefix that initialises the analysis environment.  The dy-r suffix from the workset yaml
   # is appended to the end of this string.
-  run_prefix: "source dyinit && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=true ./bin/day_run "
+  run_prefix: "source dyinit && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=0 ./bin/day_run "
   # Command that exports results back to S3 after completion.
   export_command: ./bin/daylily-export-fsx-to-s3 --cluster {cluster} --target-uri {target_uri}
   # Command executed before entering the pipeline directory on the head node.
@@ -57,3 +57,14 @@ pipeline:
   tmux_session_prefix: daylily
   # Shell invoked at the end of the tmux command to keep the session alive for inspection.
   tmux_keepalive_shell: bash
+
+
+# optional if you want the monitor to fetch your repo/branch on the headnode
+day-clone: "--repo Daylily-Informatics/daylily-omics-analysis --branch main"
+
+# required: appended to run_prefix
+dy-r: "--name runme14 --samples config/samples.tsv --outdir results/runme14 --profile slurm --jobs 192 --rerun-incomplete"
+
+# optional export
+export_uri: "s3://my-daylily-bucket/monitoring/worksets/runme14/results/"
+
