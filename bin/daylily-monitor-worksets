@@ -1424,7 +1424,7 @@ class WorksetMonitor:
         else:
             command_str = command if shell else " ".join(shlex.quote(part) for part in shlex.split(command))
         if cwd:
-            command_str = f"cd {shlex.quote(cwd)} && echo ok && {command_str}"
+            command_str = f"cd {shlex.quote(cwd)} && {command_str}"
         return f"bash -lc {shlex.quote(command_str)}"
 
 

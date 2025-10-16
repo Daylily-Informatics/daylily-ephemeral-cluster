@@ -42,17 +42,17 @@ pipeline:
   # Additional SSH/SCP options when connecting to the head node.
   ssh_extra_args: []
   # Command that prepares staging files on the headnode.  {analysis_samples} is replaced at runtime.
-  stage_command: ./bin/daylily-stage-samples-from-local-to-headnode --profile {profile} --region {region} --pem ~/.ssh/daylily-headnode.pem --cluster {cluster} --reference-bucket {reference_bucket} {analysis_samples}
+  stage_command: ./bin/daylily-stage-samples-from-local-to-headnode --profile {profile} --region {region} --pem {pem} --cluster {cluster} --reference-bucket {reference_bucket} {analysis_samples}
   # Command that creates the pipeline working tree before execution.  The day-clone output
   # is parsed to determine the working directory for subsequent commands.
-  clone_command: day-clone {clone_args}
+  clone_command: echo cloning && day-clone {clone_args}
   # Command prefix that initialises the analysis environment.  The dy-r suffix from the workset yaml
   # is appended to the end of this string.
-  run_prefix: "source dyinit && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=0 ./bin/day_run "
+  run_prefix: "source dyoainit && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=0 ./bin/day_run "
   # Command that exports results back to S3 after completion.
   export_command: ./bin/daylily-export-fsx-to-s3 --cluster {cluster} --target-uri {target_uri}
   # Command executed before entering the pipeline directory on the head node.
-  login_shell_init: source ~/.bashrc
+  login_shell_init: source ~/.bashrc && echo "Ready to run"
   # Prefix used when generating tmux session names for launched pipelines.
   tmux_session_prefix: daylily
   # Shell invoked at the end of the tmux command to keep the session alive for inspection.
