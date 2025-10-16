@@ -1,0 +1,20 @@
+#!/usr/bin/env python3
+"""Compatibility wrapper for the daylily workset monitor."""
+
+from __future__ import annotations
+
+import os
+import sys
+from pathlib import Path
+
+
+def main() -> None:
+    """Exec the v1 monitor implementation with the provided arguments."""
+    target = Path(__file__).with_name("daylily-monitor-worksets").resolve()
+    if not target.exists():
+        raise SystemExit(f"Unable to locate monitor implementation at {target}")
+    os.execv(str(target), [str(target)] + sys.argv[1:])
+
+
+if __name__ == "__main__":
+    main()
