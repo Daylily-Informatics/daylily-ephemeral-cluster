@@ -257,6 +257,7 @@ class WorksetMonitor:
         self._pipeline_locations: Dict[str, PurePosixPath] = {}
         self._stage_artifacts: Dict[str, StageArtifacts] = {}
         self._workset_metrics: Dict[str, Dict[str, Any]] = {}
+        self._workdir_names: Dict[str, str] = {}
         self._metrics_script_cache: Optional[str] = None
 
     # ------------------------------------------------------------------
@@ -375,6 +376,35 @@ class WorksetMonitor:
         if isinstance(wd, str) and wd.strip():
             return self._sanitize_name(wd.strip())
         return self._sanitize_name(workset.name)
+
+    def _resolve_workdir_name(self, workset: Workset) -> str:
+        cached = self._workdir_names.get(workset.name)
+        if cached:
+            return cached
+
+        metrics = self._load_metrics(workset)
+        stored = metrics.get("workdir_name") if isinstance(metrics, dict) else None
+        if isinstance(stored, str) and stored.strip():
+            resolved = self._sanitize_name(stored.strip())
+            self._workdir_names[workset.name] = resolved
+            return resolved
+
+        location = self._load_pipeline_location(workset)
+        if location:
+            repo_dir = self.config.pipeline.repo_dir_name.strip("/")
+            candidate: Optional[str]
+            if repo_dir and location.name == repo_dir:
+                candidate = location.parent.name if location.parent != location else None
+            else:
+                candidate = location.name
+            if candidate:
+                resolved = self._sanitize_name(candidate)
+                self._workdir_names[workset.name] = resolved
+                return resolved
+
+        resolved = self._sanitize_name(workset.name)
+        self._workdir_names[workset.name] = resolved
+        return resolved
 
     def _format_clone_args(
         self, clone_args: str, workset: Workset, work_yaml: Dict[str, object]
@@ -558,6 +588,9 @@ class WorksetMonitor:
         manifest_path = self._copy_manifest_to_local(workset, manifest_path)
         work_yaml_bytes = self._read_required_object(workset.prefix, WORK_YAML_NAME)
         work_yaml = yaml.safe_load(work_yaml_bytes.decode("utf-8"))
+        workdir_name = self._workdir_name(workset, work_yaml)
+        self._workdir_names[workset.name] = workdir_name
+        self._update_metrics(workset, {"workdir_name": workdir_name})
 
         self._validate_stage_manifest(manifest_bytes, workset)
 
@@ -1930,6 +1963,7 @@ class WorksetMonitor:
             region=shlex.quote(self.config.aws.region),
             profile=shlex.quote(profile_value) if profile_value else "",
             output_dir=shlex.quote(str(output_dir)),
+            workdir_name=self._resolve_workdir_name(workset),
         )
         LOGGER.info("Exporting pipeline results for %s to %s", workset.name, target_uri)
         self._run_monitored_command(
