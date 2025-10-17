@@ -22,6 +22,7 @@ cluster:
   template_path: config/cluster-configs/example.yaml
   # Contact email exported for cluster creation when not present in template overrides.
   contact_email: you@email.com
+  repo_tag: main
   preferred_availability_zone: us-east-1a
   auto_teardown: false
   idle_teardown_minutes: 20

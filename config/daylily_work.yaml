@@ -4,9 +4,12 @@
 # Clone the Daylily pipeline on the headnode (optional but recommended)
 day-clone: " -d {workdir_name} -t main  "
 
+# Optional budget name appended to the day-clone command
+# budget: "daylily-omics-analysis-us-west-2"
+
 # Args only; your monitor YAML’s run_prefix already includes the dy-r/day_run command.
 dy-r: >
-  -p help  
+  -p help
 
 # Export results after completion
 export_uri: "s3://lsmc-dayoa-omics-analysis-us-west-2/monitoring/worksets/runme14/results/"

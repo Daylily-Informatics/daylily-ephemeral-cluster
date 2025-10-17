@@ -9,6 +9,7 @@ import contextlib
 import csv
 import dataclasses
 import datetime as dt
+import importlib.resources as resources
 import json
 import logging
 import os
@@ -20,7 +21,7 @@ import sys
 import time
 from collections import defaultdict
 from pathlib import Path, PurePosixPath
-from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 import boto3
 from botocore.exceptions import ClientError
@@ -134,6 +135,7 @@ class ClusterOptions:
     idle_teardown_minutes: int = 20
     reuse_cluster_name: Optional[str] = None
     contact_email: Optional[str] = None
+    repo_tag: Optional[str] = None
 
 
 @dataclasses.dataclass
@@ -188,6 +190,7 @@ class WorksetReportRow:
     detail: Optional[str]
     has_required_files: bool
     display_state: Optional[str] = None
+    metrics: Dict[str, Any] = dataclasses.field(default_factory=dict)
 
     @property
     def state_text(self) -> str:
@@ -241,6 +244,8 @@ class WorksetMonitor:
         self._headnode_ips: Dict[str, str] = {}
         self._pipeline_locations: Dict[str, PurePosixPath] = {}
         self._stage_artifacts: Dict[str, StageArtifacts] = {}
+        self._workset_metrics: Dict[str, Dict[str, Any]] = {}
+        self._metrics_script_cache: Optional[str] = None
 
     # ------------------------------------------------------------------
     # Public entrypoints
@@ -528,11 +533,19 @@ class WorksetMonitor:
 
         self._validate_stage_manifest(manifest_bytes, workset)
 
+        budget_name_raw = work_yaml.get("budget")
+        budget_name = budget_name_raw.strip() if isinstance(budget_name_raw, str) else None
+        if budget_name:
+            self._update_metrics(workset, {"budget": budget_name})
+
         clone_args_raw = self._yaml_get_str(
             work_yaml,
             ["day_clone_args", "day-clone", "clone_args", "clone-args", "clone"]
         ) or ""
         clone_args = self._format_clone_args(clone_args_raw, workset, work_yaml)
+        if budget_name:
+            append = f" --budget {shlex.quote(budget_name)}"
+            clone_args = (clone_args + append).strip()
 
         run_suffix = self._yaml_get_str(
             work_yaml,
@@ -545,6 +558,7 @@ class WorksetMonitor:
 
         cluster_name = self._ensure_cluster(work_yaml)
         LOGGER.info("Using cluster %s for workset %s", cluster_name, workset.name)
+        self._update_metrics(workset, {"cluster_name": cluster_name})
 
         completed_commands: Set[str] = set()
         if clone_args:
@@ -608,7 +622,11 @@ class WorksetMonitor:
             cluster_future = executor.submit(
                 self._wait_for_cluster_ready, cluster_name
             )
-            cluster_future.result()
+            cluster_details = cluster_future.result()
+            if cluster_details:
+                zone = self._extract_cluster_zone(cluster_details)
+                if zone:
+                    self._update_metrics(workset, {"region_az": zone})
             try:
                 stage_artifacts = stage_future.result()
             except CommandFailedError:
@@ -684,6 +702,454 @@ class WorksetMonitor:
         path.mkdir(parents=True, exist_ok=True)
         return path
 
+    def _metrics_file(self, workset: Workset) -> Path:
+        return self._local_state_dir(workset) / "report_metrics.json"
+
+    def _load_metrics(self, workset: Workset) -> Dict[str, Any]:
+        cached = self._workset_metrics.get(workset.name)
+        if cached is not None:
+            return cached
+        path = self._metrics_file(workset)
+        if path.exists():
+            try:
+                data = json.loads(path.read_text(encoding="utf-8"))
+            except Exception:
+                data = {}
+        else:
+            data = {}
+        self._workset_metrics[workset.name] = data
+        return data
+
+    def _save_metrics(self, workset: Workset, data: Dict[str, Any]) -> None:
+        path = self._metrics_file(workset)
+        path.write_text(json.dumps(data, indent=2, sort_keys=True), encoding="utf-8")
+        self._workset_metrics[workset.name] = data
+
+    def _update_metrics(self, workset: Workset, updates: Dict[str, Any]) -> Dict[str, Any]:
+        data = self._load_metrics(workset)
+        changed = False
+        for key, value in updates.items():
+            if value is None:
+                continue
+            if data.get(key) != value:
+                data[key] = value
+                changed = True
+        if changed:
+            self._save_metrics(workset, data)
+        return data
+
+    def _parse_timestamp(self, value: Optional[str]) -> Optional[dt.datetime]:
+        if not value:
+            return None
+        text = value.strip()
+        if not text:
+            return None
+        if text.endswith("Z") and not text.endswith("+00:00"):
+            text = text[:-1] + "+00:00"
+        try:
+            return dt.datetime.fromisoformat(text)
+        except ValueError:
+            return None
+
+    def _normalise_timestamp(self, value: Optional[str]) -> Optional[str]:
+        parsed = self._parse_timestamp(value)
+        if not parsed:
+            return value
+        if parsed.tzinfo is None:
+            parsed = parsed.replace(tzinfo=dt.timezone.utc)
+        else:
+            parsed = parsed.astimezone(dt.timezone.utc)
+        parsed = parsed.replace(microsecond=0)
+        return parsed.isoformat().replace("+00:00", "Z")
+
+    def _update_runtime_metric(
+        self,
+        workset: Workset,
+        metrics: Dict[str, Any],
+        *,
+        end_timestamp: Optional[str] = None,
+    ) -> None:
+        start_value = metrics.get("start_dt")
+        end_value = end_timestamp or metrics.get("end_dt")
+        if not start_value or not end_value:
+            return
+        start_dt = self._parse_timestamp(start_value)
+        end_dt = self._parse_timestamp(end_value)
+        if not start_dt or not end_dt:
+            return
+        if start_dt.tzinfo is None:
+            start_dt = start_dt.replace(tzinfo=dt.timezone.utc)
+        else:
+            start_dt = start_dt.astimezone(dt.timezone.utc)
+        if end_dt.tzinfo is None:
+            end_dt = end_dt.replace(tzinfo=dt.timezone.utc)
+        else:
+            end_dt = end_dt.astimezone(dt.timezone.utc)
+        runtime = max(0.0, (end_dt - start_dt).total_seconds())
+        if metrics.get("runtime_seconds") != runtime:
+            metrics["runtime_seconds"] = runtime
+            self._save_metrics(workset, metrics)
+
+    def _record_terminal_metrics(
+        self, workset: Workset, sentinel_name: str, value: str
+    ) -> None:
+        terminal_map = {
+            SENTINEL_FILES["complete"]: "complete",
+            SENTINEL_FILES["error"]: "error",
+            SENTINEL_FILES["ignore"]: "ignored",
+        }
+        state = terminal_map.get(sentinel_name)
+        if not state:
+            return
+        timestamp, _, *_ = value.partition("\t")
+        normalised = self._normalise_timestamp(timestamp.strip()) or timestamp.strip()
+        metrics = self._update_metrics(
+            workset,
+            {
+                "end_dt": normalised,
+                "terminal_state": state,
+            },
+        )
+        self._update_runtime_metric(workset, metrics, end_timestamp=normalised)
+
+    def _metrics_script_text(self) -> str:
+        if self._metrics_script_cache is not None:
+            return self._metrics_script_cache
+        try:
+            script_path = resources.files("daylib").joinpath("workset_metrics.py")
+            with script_path.open("r", encoding="utf-8") as handle:
+                self._metrics_script_cache = handle.read()
+        except (FileNotFoundError, AttributeError):
+            self._metrics_script_cache = ""
+        return self._metrics_script_cache
+
+    def _should_refresh_remote_metrics(
+        self, metrics: Dict[str, Any], *, is_terminal: bool
+    ) -> bool:
+        if is_terminal and metrics.get("terminal_cached"):
+            return False
+        timestamp = metrics.get("remote_metrics_timestamp")
+        if not timestamp:
+            return True
+        parsed = self._parse_timestamp(timestamp)
+        if not parsed:
+            return True
+        if parsed.tzinfo is not None:
+            parsed = parsed.astimezone(dt.timezone.utc)
+        else:
+            parsed = parsed.replace(tzinfo=dt.timezone.utc)
+        now = dt.datetime.utcnow().replace(tzinfo=dt.timezone.utc)
+        age = (now - parsed).total_seconds()
+        if is_terminal:
+            return not metrics.get("terminal_cached")
+        return age >= 300
+
+    def _fetch_remote_metrics(
+        self,
+        workset: Workset,
+        *,
+        cluster_name: str,
+        pipeline_dir: PurePosixPath,
+    ) -> Optional[Dict[str, Any]]:
+        script = self._metrics_script_text()
+        if not script:
+            LOGGER.debug("Metrics script unavailable; skipping remote metrics for %s", workset.name)
+            return None
+        command = (
+            "python3 - <<'PY'\n"
+            f"{script}\n"
+            "if __name__ == '__main__':\n"
+            f"    main([{json.dumps(str(pipeline_dir))}])\n"
+            "PY"
+        )
+        result = self._run_headnode_command(
+            cluster_name,
+            command,
+            check=False,
+            shell=True,
+        )
+        if result.returncode != 0:
+            stderr = result.stderr.decode("utf-8", errors="ignore").strip()
+            LOGGER.debug(
+                "Remote metrics command exited %s for %s: %s",
+                result.returncode,
+                workset.name,
+                stderr,
+            )
+            return None
+        stdout = result.stdout.decode("utf-8", errors="ignore").strip()
+        data: Optional[Dict[str, Any]] = None
+        for line in reversed(stdout.splitlines() or [stdout]):
+            line = line.strip()
+            if not line:
+                continue
+            try:
+                candidate = json.loads(line)
+            except json.JSONDecodeError:
+                continue
+            if isinstance(candidate, dict):
+                data = candidate
+                break
+        if not data:
+            LOGGER.debug("Unable to parse remote metrics output for %s: %s", workset.name, stdout)
+            return None
+        refreshed = self._normalise_timestamp(dt.datetime.utcnow().isoformat())
+        if refreshed:
+            data["remote_metrics_timestamp"] = refreshed
+        return data
+
+    def _gather_workset_metrics(
+        self, workset: Workset, row: WorksetReportRow
+    ) -> Dict[str, Any]:
+        metrics = self._load_metrics(workset)
+        updated = False
+
+        if row.timestamp and not metrics.get("start_dt"):
+            normalised = self._normalise_timestamp(row.timestamp)
+            if normalised:
+                metrics["start_dt"] = normalised
+                updated = True
+
+        pipeline_dir_str = metrics.get("pipeline_dir")
+        if not pipeline_dir_str:
+            location = self._load_pipeline_location(workset)
+            if location:
+                metrics["pipeline_dir"] = str(location)
+                pipeline_dir_str = str(location)
+                updated = True
+
+        cluster_name = metrics.get("cluster_name")
+        is_terminal = row.state in {"complete", "error", "ignored"}
+
+        remote_required_keys = [
+            "samples_count",
+            "sample_library_count",
+            "fastq_count",
+            "fastq_size_bytes",
+            "cram_count",
+            "cram_size_bytes",
+            "vcf_count",
+            "vcf_size_bytes",
+            "results_size_bytes",
+            "s3_daily_cost_usd",
+            "cram_transfer_cross_region_cost",
+            "cram_transfer_internet_cost",
+            "vcf_transfer_cross_region_cost",
+            "vcf_transfer_internet_cost",
+            "ec2_cost_usd",
+        ]
+
+        need_remote = any(key not in metrics for key in remote_required_keys)
+        should_refresh = False
+        if cluster_name and pipeline_dir_str:
+            should_refresh = need_remote or self._should_refresh_remote_metrics(
+                metrics, is_terminal=is_terminal
+            )
+        if should_refresh and pipeline_dir_str:
+            remote = self._fetch_remote_metrics(
+                workset,
+                cluster_name=cluster_name,
+                pipeline_dir=PurePosixPath(pipeline_dir_str),
+            )
+            if remote:
+                for key, value in remote.items():
+                    if metrics.get(key) != value:
+                        metrics[key] = value
+                        updated = True
+                if is_terminal and metrics.get("terminal_cached") is not True:
+                    metrics["terminal_cached"] = True
+                    updated = True
+            elif not is_terminal:
+                if metrics.pop("remote_metrics_timestamp", None) is not None:
+                    updated = True
+
+        if not is_terminal and metrics.get("terminal_cached"):
+            metrics.pop("terminal_cached", None)
+            updated = True
+
+        if metrics.get("start_dt") and metrics.get("end_dt"):
+            self._update_runtime_metric(workset, metrics)
+
+        if updated:
+            self._save_metrics(workset, metrics)
+        return metrics
+
+    def _format_timestamp_for_display(self, value: Optional[str]) -> str:
+        normalised = self._normalise_timestamp(value)
+        return normalised or ""
+
+    def _format_runtime(self, seconds: Optional[float]) -> str:
+        if seconds is None:
+            return ""
+        try:
+            total = int(max(0, float(seconds)))
+        except (TypeError, ValueError):
+            return ""
+        return str(dt.timedelta(seconds=total))
+
+    def _format_size_gb(self, value: Optional[Any]) -> str:
+        if value in (None, ""):
+            return ""
+        try:
+            gb = float(value) / (1024 ** 3)
+        except (TypeError, ValueError):
+            return ""
+        return f"{gb:.2f} GB"
+
+    def _format_currency(self, value: Optional[Any]) -> str:
+        if value in (None, ""):
+            return ""
+        try:
+            amount = float(value)
+        except (TypeError, ValueError):
+            return ""
+        return f"${amount:.2f}"
+
+    def _format_transfer_cost(
+        self, cross_region: Optional[Any], internet: Optional[Any]
+    ) -> str:
+        if cross_region in (None, "") and internet in (None, ""):
+            return ""
+        return " / ".join(
+            filter(
+                None,
+                (
+                    self._format_currency(cross_region),
+                    self._format_currency(internet),
+                ),
+            )
+        )
+
+    def _string_or_empty(self, value: Any) -> str:
+        if value is None:
+            return ""
+        return str(value)
+
+    def _calculate_runtime_seconds(
+        self, metrics: Dict[str, Any], state: str
+    ) -> Optional[float]:
+        terminal_states = {"complete", "error", "ignored"}
+        if state in terminal_states and metrics.get("runtime_seconds") is not None:
+            try:
+                return float(metrics["runtime_seconds"])
+            except (TypeError, ValueError):
+                return None
+        start = self._parse_timestamp(metrics.get("start_dt"))
+        if not start:
+            return None
+        if start.tzinfo is None:
+            start = start.replace(tzinfo=dt.timezone.utc)
+        else:
+            start = start.astimezone(dt.timezone.utc)
+        end_value = metrics.get("end_dt") if state in terminal_states else None
+        if end_value:
+            end = self._parse_timestamp(end_value)
+        else:
+            end = None
+        if end:
+            if end.tzinfo is None:
+                end = end.replace(tzinfo=dt.timezone.utc)
+            else:
+                end = end.astimezone(dt.timezone.utc)
+        else:
+            end = dt.datetime.utcnow().replace(tzinfo=dt.timezone.utc)
+        runtime = (end - start).total_seconds()
+        return max(0.0, runtime)
+
+    def _prepare_report_table(
+        self, rows: Sequence[WorksetReportRow], *, min_details: bool
+    ) -> Tuple[List[str], List[List[str]]]:
+        table_rows: List[List[str]] = []
+        if min_details:
+            headers = ["Workset", "State", "StartDT", "Valid", "Detail"]
+        else:
+            headers = [
+                "Workset",
+                "State",
+                "StartDT",
+                "EndDT",
+                "RunTime",
+                "Valid",
+                "Cluster",
+                "RegionAZ",
+                "Budget",
+                "PipelineCmd",
+                "CloneCmd",
+                "NumSamps",
+                "NumSampLibs",
+                "NumFASTQs",
+                "FASTQSize",
+                "NumCRAMs",
+                "CRAMSize",
+                "NumVCFs",
+                "VCFSize",
+                "ResultsSize",
+                "S3DailyCost",
+                "CRAMTransferCost",
+                "VCFTransferCost",
+                "EC2Cost",
+                "Detail",
+            ]
+
+        for row in rows:
+            metrics = row.metrics or {}
+            start_dt = metrics.get("start_dt") or row.timestamp
+            start_text = self._format_timestamp_for_display(start_dt)
+            valid_text = "yes" if row.has_required_files else "no"
+            detail_text = row.detail or ""
+            if min_details:
+                table_rows.append(
+                    [
+                        row.name,
+                        row.state_text,
+                        start_text,
+                        valid_text,
+                        detail_text,
+                    ]
+                )
+                continue
+
+            end_text = self._format_timestamp_for_display(metrics.get("end_dt"))
+            runtime_seconds = self._calculate_runtime_seconds(metrics, row.state)
+            runtime_text = self._format_runtime(runtime_seconds)
+            table_rows.append(
+                [
+                    row.name,
+                    row.state_text,
+                    start_text,
+                    end_text,
+                    runtime_text,
+                    valid_text,
+                    self._string_or_empty(metrics.get("cluster_name")),
+                    self._string_or_empty(metrics.get("region_az")),
+                    self._string_or_empty(metrics.get("budget")),
+                    self._string_or_empty(metrics.get("pipeline_command")),
+                    self._string_or_empty(metrics.get("clone_command")),
+                    self._string_or_empty(metrics.get("samples_count")),
+                    self._string_or_empty(metrics.get("sample_library_count")),
+                    self._string_or_empty(metrics.get("fastq_count")),
+                    self._format_size_gb(metrics.get("fastq_size_bytes")),
+                    self._string_or_empty(metrics.get("cram_count")),
+                    self._format_size_gb(metrics.get("cram_size_bytes")),
+                    self._string_or_empty(metrics.get("vcf_count")),
+                    self._format_size_gb(metrics.get("vcf_size_bytes")),
+                    self._format_size_gb(metrics.get("results_size_bytes")),
+                    self._format_currency(metrics.get("s3_daily_cost_usd")),
+                    self._format_transfer_cost(
+                        metrics.get("cram_transfer_cross_region_cost"),
+                        metrics.get("cram_transfer_internet_cost"),
+                    ),
+                    self._format_transfer_cost(
+                        metrics.get("vcf_transfer_cross_region_cost"),
+                        metrics.get("vcf_transfer_internet_cost"),
+                    ),
+                    self._format_currency(metrics.get("ec2_cost_usd")),
+                    detail_text,
+                ]
+            )
+
+        return headers, table_rows
+
     def _cluster_state_dir(self, cluster_name: str) -> Path:
         root = self.config.pipeline.local_state_root or "~/.cache/daylily-monitor"
         path = Path(os.path.expanduser(root)) / CLUSTER_STATE_DIR / cluster_name
@@ -704,6 +1170,7 @@ class WorksetMonitor:
         state_dir = self._local_state_dir(workset)
         marker = state_dir / PIPELINE_LOCATION_MARKER
         marker.write_text(str(location), encoding="utf-8")
+        self._update_metrics(workset, {"pipeline_dir": str(location)})
 
     def _load_pipeline_location(self, workset: Workset) -> Optional[PurePosixPath]:
         cached = self._pipeline_locations.get(workset.name)
@@ -765,7 +1232,10 @@ class WorksetMonitor:
 
     def _record_pipeline_start(self, workset: Workset, timestamp: dt.datetime) -> None:
         marker = self._pipeline_start_marker(workset)
-        marker.write_text(timestamp.isoformat(), encoding="utf-8")
+        cleaned = timestamp.replace(microsecond=0).isoformat()
+        normalised = self._normalise_timestamp(cleaned) or cleaned
+        marker.write_text(normalised, encoding="utf-8")
+        self._update_metrics(workset, {"start_dt": normalised})
 
     def _load_pipeline_start(self, workset: Workset) -> Optional[dt.datetime]:
         marker = self._pipeline_start_marker(workset)
@@ -774,8 +1244,12 @@ class WorksetMonitor:
         text = marker.read_text(encoding="utf-8").strip()
         if not text:
             return None
-        with contextlib.suppress(ValueError):
-            return dt.datetime.fromisoformat(text)
+        parsed = self._parse_timestamp(text)
+        if not parsed:
+            return None
+        if parsed.tzinfo is not None:
+            parsed = parsed.astimezone(dt.timezone.utc).replace(tzinfo=None)
+        return parsed
         return None
 
     def _clear_pipeline_start(self, workset: Workset) -> None:
@@ -924,7 +1398,7 @@ class WorksetMonitor:
             units_manifest=units_manifest,
         )
 
-    def _wait_for_cluster_ready(self, cluster_name: str) -> None:
+    def _wait_for_cluster_ready(self, cluster_name: str) -> Optional[Dict[str, object]]:
         LOGGER.info("Waiting for cluster %s to become ready", cluster_name)
         for attempt in range(60):
             details = self._describe_cluster(cluster_name)
@@ -932,7 +1406,7 @@ class WorksetMonitor:
                 LOGGER.debug(
                     "Cluster %s ready (checked %d times)", cluster_name, attempt + 1
                 )
-                return
+                return details
             LOGGER.debug("Cluster %s not ready yet (%d)", cluster_name, attempt + 1)
             time.sleep(30)
         raise MonitorError(f"Cluster {cluster_name} did not become ready in time")
@@ -949,6 +1423,7 @@ class WorksetMonitor:
             init = (self.config.pipeline.login_shell_init or "").strip()
             base = self.config.pipeline.clone_command.format(clone_args=clone_args)
             cmd = f"{init} && {base}" if init else base
+            self._update_metrics(workset, {"clone_command": cmd, "clone_args": clone_args})
             result = self._run_headnode_monitored_command(
                 "clone_pipeline",
                 cmd,
@@ -1239,6 +1714,7 @@ class WorksetMonitor:
         session_name = existing_session
         if not session_name:
             run_command = self.config.pipeline.run_prefix + run_suffix
+            self._update_metrics(workset, {"pipeline_command": run_command.strip()})
 
             steps: List[str] = []
             steps.append("echo go")
@@ -1720,6 +2196,7 @@ class WorksetMonitor:
         if self.dry_run:
             return
         self._s3.put_object(Bucket=bucket, Key=key, Body=body)
+        self._record_terminal_metrics(workset, sentinel_name, value)
 
     def _delete_sentinel(self, workset: Workset, sentinel_name: str) -> None:
         bucket = self.config.monitor.bucket
@@ -1786,11 +2263,16 @@ class WorksetMonitor:
         return workset.name in self._process_directories
 
     def _generate_report_rows(self, worksets: Sequence[Workset]) -> List[WorksetReportRow]:
-        rows = [
-            self._summarize_workset(workset)
-            for workset in worksets
-            if self._should_process(workset)
-        ]
+        rows: List[WorksetReportRow] = []
+        for workset in worksets:
+            if not self._should_process(workset):
+                continue
+            row = self._summarize_workset(workset)
+            try:
+                row.metrics = self._gather_workset_metrics(workset, row)
+            except Exception:
+                LOGGER.debug("Failed to gather metrics for %s", workset.name, exc_info=True)
+            rows.append(row)
         rows.sort(key=self._report_sort_key)
         return rows
 
@@ -1879,50 +2361,58 @@ class WorksetMonitor:
         priority = STATE_PRIORITIES.get(row.state, max(STATE_PRIORITIES.values()) + 1)
         return priority, row.name
 
-    def _render_term_report(self, rows: Sequence[WorksetReportRow]) -> None:
+    def _render_term_report(
+        self, rows: Sequence[WorksetReportRow], *, min_details: bool
+    ) -> None:
         if not rows:
             print("No worksets matched the selection.")
             return
-        name_width = max(len("Workset"), max(len(row.name) for row in rows))
-        state_width = max(len("State"), max(len(row.state_text) for row in rows))
-        timestamp_width = max(len("Timestamp"), max(len(row.timestamp or "-") for row in rows))
-        required_header = "Required"
-        detail_header = "Detail"
-        header = (
-            f"{'Workset':<{name_width}}  {'State':<{state_width}}  {'Timestamp':<{timestamp_width}}  "
-            f"{required_header:<8}  {detail_header}"
-        )
-        print(header)
-        print("-" * len(header))
-        for row in rows:
-            state_color = STATE_COLORS.get(row.state, STATE_COLORS["unknown"])
-            reset = "\033[0m"
-            display_state = row.state_text
-            state_text = f"{state_color}{display_state:<{state_width}}{reset}"
-            timestamp_text = row.timestamp or "-"
-            required_text = f"{'yes':<8}" if row.has_required_files else f"\033[31m{'NO':<8}\033[0m"
-            detail_text = row.detail or ""
-            print(
-                f"{row.name:<{name_width}}  {state_text}  {timestamp_text:<{timestamp_width}}  "
-                f"{required_text}  {detail_text}"
-            )
+        headers, table_rows = self._prepare_report_table(rows, min_details=min_details)
+        col_widths: List[int] = []
+        for idx, header in enumerate(headers):
+            values = [header] + [row[idx] for row in table_rows]
+            col_widths.append(max(len(value) for value in values))
 
-    def _write_delimited_report(self, rows: Sequence[WorksetReportRow], path: Path, delimiter: str) -> None:
+        header_line = "  ".join(
+            f"{headers[i]:<{col_widths[i]}}" for i in range(len(headers))
+        )
+        print(header_line)
+        print("-" * len(header_line))
+
+        state_index = headers.index("State")
+        valid_index = headers.index("Valid")
+        reset = "\033[0m"
+        for source_row, data_row in zip(rows, table_rows):
+            formatted_parts: List[str] = []
+            for idx, value in enumerate(data_row):
+                text = value
+                padding = f"{{:<{col_widths[idx]}}}".format
+                if idx == state_index:
+                    color = STATE_COLORS.get(source_row.state, STATE_COLORS["unknown"])
+                    text = f"{color}{padding(value)}{reset}"
+                elif idx == valid_index and not source_row.has_required_files:
+                    text = f"\033[31m{padding(value)}{reset}"
+                else:
+                    text = padding(value)
+                formatted_parts.append(text)
+            print("  ".join(formatted_parts))
+
+    def _write_delimited_report(
+        self,
+        rows: Sequence[WorksetReportRow],
+        path: Path,
+        delimiter: str,
+        *,
+        min_details: bool,
+    ) -> None:
+        headers, table_rows = self._prepare_report_table(rows, min_details=min_details)
         with path.open("w", encoding="utf-8", newline="") as handle:
             writer = csv.writer(handle, delimiter=delimiter)
-            writer.writerow(["workset", "state", "timestamp", "detail", "has_required_files"])
-            for row in rows:
-                writer.writerow(
-                    [
-                        row.name,
-                        row.state_text,
-                        row.timestamp or "",
-                        row.detail or "",
-                        "yes" if row.has_required_files else "no",
-                    ]
-                )
+            writer.writerow(headers)
+            for data_row in table_rows:
+                writer.writerow(data_row)
 
-    def report(self, target: str) -> None:
+    def report(self, target: str, *, min_details: bool = False) -> None:
         worksets = list(self._discover_worksets())
         rows = self._generate_report_rows(worksets)
         if self._process_directories:
@@ -1932,17 +2422,21 @@ class WorksetMonitor:
                 LOGGER.warning("Requested workset %s was not found", name)
 
         if target.lower() == "term":
-            self._render_term_report(rows)
+            self._render_term_report(rows, min_details=min_details)
             return
 
         # Buffer CSV/TSV once so we can write to S3 or local
         def _serialize(rows: Sequence[WorksetReportRow], delim: str) -> bytes:
             from io import StringIO
+
+            headers, table_rows = self._prepare_report_table(
+                rows, min_details=min_details
+            )
             buf = StringIO()
             w = csv.writer(buf, delimiter=delim)
-            w.writerow(["workset", "state", "timestamp", "detail", "has_required_files"])
-            for r in rows:
-                w.writerow([r.name, r.state, r.timestamp or "", r.detail or "", "yes" if r.has_required_files else "no"])
+            w.writerow(headers)
+            for data_row in table_rows:
+                w.writerow(data_row)
             return buf.getvalue().encode("utf-8")
 
         if target.startswith("s3://"):
@@ -1962,7 +2456,7 @@ class WorksetMonitor:
         delim = "\t" if suffix == ".tsv" else ","
         if path.parent and not path.parent.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
-        self._write_delimited_report(rows, path, delim)
+        self._write_delimited_report(rows, path, delim, min_details=min_details)
         LOGGER.info("Wrote report with %d entries to %s", len(rows), path)
 
     # ------------------------------------------------------------------
@@ -2215,6 +2709,13 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
             "a .tsv/.csv filename (local or s3://...)"
         ),
     )
+    parser.add_argument(
+        "--min-deets",
+        "-min-deets",
+        action="store_true",
+        dest="min_deets",
+        help="Limit reports to the legacy summary columns",
+    )
     args = parser.parse_args(argv)
     if args.report and args.report.lower() != "term":
         target = args.report
@@ -2242,7 +2743,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         attempt_restart=args.attempt_restart,
     )
     if args.report:
-        monitor.report(args.report)
+        monitor.report(args.report, min_details=args.min_deets)
         return 0
 
     monitor.run()

@@ -1,0 +1,13 @@
+#!/usr/bin/env python3
+"""CLI helper to gather workset metrics on a Daylily head node."""
+
+import sys
+from pathlib import Path
+
+if __package__ in {None, ""}:
+    sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
+from daylib.workset_metrics import main
+
+if __name__ == "__main__":
+    main()
