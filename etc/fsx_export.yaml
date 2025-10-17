@@ -1,0 +1,3 @@
+fsx_export:
+  status: success
+  s3_uri: s3://lsmc-dayoa-omics-analysis-us-west-2/FSxLustre20251015T090232Z/analysis_results/ubuntu/test_help
