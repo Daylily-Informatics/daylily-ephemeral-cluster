@@ -5,6 +5,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import logging
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional, Tuple
 
@@ -14,6 +15,17 @@ DATA_TRANSFER_CROSS_REGION_PER_GB = 0.02
 DATA_TRANSFER_INTERNET_PER_GB = 0.09
 
 FASTQ_SUFFIXES = (".fastq", ".fastq.gz", ".fq", ".fq.gz")
+
+
+LOGGER = logging.getLogger("daylib.workset_metrics")
+
+
+def _debug_command(debug: bool, metric: str, command: str) -> None:
+    """Emit a debug log describing the action used to compute a metric."""
+
+    if not debug:
+        return
+    LOGGER.debug("Gathering %s using: %s", metric, command)
 
 
 def _count_rows(path: Path) -> int:
@@ -57,7 +69,9 @@ def _resolve_fastq_path(
     return None
 
 
-def _gather_fastq_stats(units_path: Path, pipeline_dir: Path) -> Tuple[int, int]:
+def _gather_fastq_stats(
+    units_path: Path, pipeline_dir: Path, *, debug: bool = False
+) -> Tuple[int, int]:
     if not units_path.exists():
         return 0, 0
     count = 0
@@ -79,13 +93,19 @@ def _gather_fastq_stats(units_path: Path, pipeline_dir: Path) -> Tuple[int, int]
                     resolved = _resolve_fastq_path(candidate, units_path, pipeline_dir)
                     if resolved and resolved.exists():
                         try:
+                            if debug:
+                                LOGGER.debug(
+                                    "Resolved FASTQ %s for metric fastq_size_bytes", resolved
+                                )
                             total_size += resolved.stat().st_size
                         except OSError:
                             continue
     return count, total_size
 
 
-def _gather_pattern_stats(root: Path, pattern: str) -> Tuple[int, int]:
+def _gather_pattern_stats(
+    root: Path, pattern: str, *, debug: bool = False
+) -> Tuple[int, int]:
     if not root.exists():
         return 0, 0
     import fnmatch
@@ -101,10 +121,14 @@ def _gather_pattern_stats(root: Path, pattern: str) -> Tuple[int, int]:
                     total += full_path.stat().st_size
                 except OSError:
                     continue
+                if debug:
+                    LOGGER.debug(
+                        "Matched %s while searching for pattern %s", full_path, pattern
+                    )
     return count, total
 
 
-def _total_dir_size(root: Path) -> int:
+def _total_dir_size(root: Path, *, debug: bool = False) -> int:
     if not root.exists():
         return 0
     total = 0
@@ -115,10 +139,12 @@ def _total_dir_size(root: Path) -> int:
                 total += full_path.stat().st_size
             except OSError:
                 continue
+            if debug:
+                LOGGER.debug("Counting size for %s", full_path)
     return total
 
 
-def _parse_benchmark_costs(results_dir: Path) -> float:
+def _parse_benchmark_costs(results_dir: Path, *, debug: bool = False) -> float:
     if not results_dir.exists():
         return 0.0
     total = 0.0
@@ -137,12 +163,14 @@ def _parse_benchmark_costs(results_dir: Path) -> float:
                     continue
                 try:
                     total += float(parts[-1])
+                    if debug:
+                        LOGGER.debug("Read benchmark cost %.2f from %s", float(parts[-1]), path)
                 except ValueError:
                     continue
     return total
 
 
-def gather_metrics(pipeline_dir: Path) -> Dict[str, object]:
+def gather_metrics(pipeline_dir: Path, *, debug: bool = False) -> Dict[str, object]:
     pipeline_dir = pipeline_dir.resolve()
     config_dir = pipeline_dir / "config"
     samples_path = config_dir / "samples.tsv"
@@ -150,21 +178,33 @@ def gather_metrics(pipeline_dir: Path) -> Dict[str, object]:
     results_dir = pipeline_dir / "results"
 
     metrics: Dict[str, object] = {}
+    _debug_command(debug, "samples_count", f"count_rows {samples_path}")
     metrics["samples_count"] = _count_rows(samples_path)
+    _debug_command(debug, "sample_library_count", f"count_rows {units_path}")
     metrics["sample_library_count"] = _count_rows(units_path)
-    fastq_count, fastq_size = _gather_fastq_stats(units_path, pipeline_dir)
+    _debug_command(debug, "fastq_count", f"scan FASTQ paths from {units_path}")
+    fastq_count, fastq_size = _gather_fastq_stats(
+        units_path, pipeline_dir, debug=debug
+    )
     metrics["fastq_count"] = fastq_count
     metrics["fastq_size_bytes"] = fastq_size
 
-    cram_count, cram_size = _gather_pattern_stats(results_dir, "*.cram")
+    _debug_command(debug, "cram_count", f"find {results_dir} pattern *.cram")
+    cram_count, cram_size = _gather_pattern_stats(
+        results_dir, "*.cram", debug=debug
+    )
     metrics["cram_count"] = cram_count
     metrics["cram_size_bytes"] = cram_size
 
-    vcf_count, vcf_size = _gather_pattern_stats(results_dir, "*.vcf.gz")
+    _debug_command(debug, "vcf_count", f"find {results_dir} pattern *.vcf.gz")
+    vcf_count, vcf_size = _gather_pattern_stats(
+        results_dir, "*.vcf.gz", debug=debug
+    )
     metrics["vcf_count"] = vcf_count
     metrics["vcf_size_bytes"] = vcf_size
 
-    results_size = _total_dir_size(results_dir)
+    _debug_command(debug, "results_size_bytes", f"du -sb {results_dir}")
+    results_size = _total_dir_size(results_dir, debug=debug)
     metrics["results_size_bytes"] = results_size
 
     if results_size:
@@ -174,6 +214,7 @@ def gather_metrics(pipeline_dir: Path) -> Dict[str, object]:
     else:
         metrics["s3_daily_cost_usd"] = 0.0
 
+    _debug_command(debug, "s3_daily_cost_usd", "calculate from results_size_bytes")
     metrics["cram_transfer_cross_region_cost"] = (
         cram_size / BYTES_PER_GIB * DATA_TRANSFER_CROSS_REGION_PER_GB
         if cram_size
@@ -194,7 +235,8 @@ def gather_metrics(pipeline_dir: Path) -> Dict[str, object]:
         if vcf_size
         else 0.0
     )
-    metrics["ec2_cost_usd"] = _parse_benchmark_costs(results_dir)
+    _debug_command(debug, "transfer_costs", "derive from cram/vcf sizes")
+    metrics["ec2_cost_usd"] = _parse_benchmark_costs(results_dir, debug=debug)
     return metrics
 
 
@@ -206,8 +248,17 @@ def main(argv: Optional[List[str]] = None) -> None:
     parser.add_argument(
         "--json", action="store_true", help="Emit metrics as JSON (default)"
     )
+    parser.add_argument(
+        "--debug",
+        action="store_true",
+        help="Print commands executed to compute each metric",
+    )
     args = parser.parse_args(argv)
-    metrics = gather_metrics(Path(args.pipeline_dir))
+    logging.basicConfig(
+        level=logging.DEBUG if args.debug else logging.WARNING,
+        format="%(asctime)s [%(levelname)s] %(name)s: %(message)s",
+    )
+    metrics = gather_metrics(Path(args.pipeline_dir), debug=args.debug)
     print(json.dumps(metrics))
 
 

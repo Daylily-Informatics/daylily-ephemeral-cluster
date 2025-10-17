@@ -236,11 +236,13 @@ class WorksetMonitor:
         debug: bool = False,
         process_directories: Optional[Sequence[str]] = None,
         attempt_restart: bool = False,
+        force_recalculate_metrics: bool = False,
     ) -> None:
         self.config = config
         self.dry_run = dry_run
         self.debug = debug
         self.attempt_restart = attempt_restart
+        self.force_recalculate_metrics = force_recalculate_metrics
 
         self._session = boto3.session.Session(**config.aws.session_kwargs())
         self._s3 = self._session.client("s3")
@@ -849,6 +851,13 @@ class WorksetMonitor:
             self._metrics_script_cache = ""
         return self._metrics_script_cache
 
+    def _metrics_args(self, pipeline_dir: PurePosixPath) -> List[str]:
+        args: List[str] = []
+        if self.debug:
+            args.append("--debug")
+        args.append(str(pipeline_dir))
+        return args
+
     def _should_refresh_remote_metrics(
         self, metrics: Dict[str, Any], *, is_terminal: bool
     ) -> bool:
@@ -885,7 +894,7 @@ class WorksetMonitor:
             "python3 - <<'PY'\n"
             f"{script}\n"
             "if __name__ == '__main__':\n"
-            f"    main([{json.dumps(str(pipeline_dir))}])\n"
+            f"    main([{', '.join(json.dumps(arg) for arg in self._metrics_args(pipeline_dir))}])\n"
             "PY"
         )
         result = self._run_headnode_command(
@@ -966,11 +975,16 @@ class WorksetMonitor:
         ]
 
         need_remote = any(key not in metrics for key in remote_required_keys)
+        if self.force_recalculate_metrics:
+            need_remote = True
         should_refresh = False
         if cluster_name and pipeline_dir_str:
-            should_refresh = need_remote or self._should_refresh_remote_metrics(
-                metrics, is_terminal=is_terminal
-            )
+            if self.force_recalculate_metrics:
+                should_refresh = True
+            else:
+                should_refresh = need_remote or self._should_refresh_remote_metrics(
+                    metrics, is_terminal=is_terminal
+                )
         if should_refresh and pipeline_dir_str:
             remote = self._fetch_remote_metrics(
                 workset,
@@ -979,9 +993,16 @@ class WorksetMonitor:
             )
             if remote:
                 for key, value in remote.items():
-                    if metrics.get(key) != value:
+                    if self.force_recalculate_metrics:
+                        if value is None:
+                            continue
+                        if metrics.get(key) != value or key not in metrics:
+                            updated = True
                         metrics[key] = value
-                        updated = True
+                    else:
+                        if metrics.get(key) != value:
+                            metrics[key] = value
+                            updated = True
                 if is_terminal and metrics.get("terminal_cached") is not True:
                     metrics["terminal_cached"] = True
                     updated = True
@@ -2727,6 +2748,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("--verbose", action="store_true", help="Enable debug logging")
     parser.add_argument("--debug", action="store_true", help="Print all commands executed (and in dry-run)")
     parser.add_argument(
+        "--force-recalculate",
+        action="store_true",
+        help="Recalculate all remote workset metrics regardless of cache",
+    )
+    parser.add_argument(
         "--process-directory",
         dest="process_directories",
         metavar="NAME",
@@ -2780,6 +2806,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         debug=args.debug,
         process_directories=args.process_directories,
         attempt_restart=args.attempt_restart,
+        force_recalculate_metrics=args.force_recalculate,
     )
     if args.report:
         monitor.report(
