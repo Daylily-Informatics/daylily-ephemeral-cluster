@@ -2262,13 +2262,28 @@ class WorksetMonitor:
         if include_details and metrics.cluster_name:
             pipeline_dir = self._load_pipeline_location(workset)
             if pipeline_dir is not None:
-                script = workset_metrics.remote_metrics_script()
-                remote_cmd = (
-                    f"cd {shlex.quote(str(pipeline_dir))} && python3 - <<'PY'\n{script}\nPY"
+                metrics_cmd = (
+                    "cd "
+                    + shlex.quote(str(pipeline_dir))
+                    + " && ./bin/daylily-workset-metrics --json ."
                 )
                 result = self._run_headnode_command(
-                    metrics.cluster_name, remote_cmd, check=False, shell=True
+                    metrics.cluster_name, metrics_cmd, check=False, shell=True
                 )
+                if result.returncode != 0:
+                    LOGGER.debug(
+                        "Metrics command for %s exited %s: %s",
+                        workset.name,
+                        result.returncode,
+                        result.stderr.decode("utf-8", errors="ignore"),
+                    )
+                    script = workset_metrics.remote_metrics_script()
+                    fallback_cmd = (
+                        f"cd {shlex.quote(str(pipeline_dir))} && python3 - <<'PY'\n{script}\nPY"
+                    )
+                    result = self._run_headnode_command(
+                        metrics.cluster_name, fallback_cmd, check=False, shell=True
+                    )
                 if result.returncode == 0:
                     payload = result.stdout.decode("utf-8", errors="ignore").strip()
                     try:
@@ -2308,7 +2323,7 @@ class WorksetMonitor:
                         metrics.ec2_cost = float(
                             data.get("ec2_cost", metrics.ec2_cost or 0.0)
                         )
-                else:
+                elif result.returncode != 0:
                     LOGGER.debug(
                         "Metrics command for %s exited %s: %s",
                         workset.name,
