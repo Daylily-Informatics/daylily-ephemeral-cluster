@@ -19,8 +19,9 @@ import subprocess
 import sys
 import time
 from collections import defaultdict
+import textwrap
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
+from typing import Any, Callable, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 import boto3
 from botocore.exceptions import ClientError
@@ -254,6 +255,14 @@ class WorksetReportMetrics:
 
 
 @dataclasses.dataclass
+class ReportColumn:
+    title: str
+    value_func: Callable[[WorksetReportRow], object]
+    formatter: Optional[Callable[[str, WorksetReportRow], str]] = None
+    min_width: int = 0
+
+
+@dataclasses.dataclass
 class MonitorConfig:
     aws: AWSConfig
     monitor: MonitorOptions
@@ -282,11 +291,13 @@ class WorksetMonitor:
         debug: bool = False,
         process_directories: Optional[Sequence[str]] = None,
         attempt_restart: bool = False,
+        wrap_char: int = 100,
     ) -> None:
         self.config = config
         self.dry_run = dry_run
         self.debug = debug
         self.attempt_restart = attempt_restart
+        self._wrap_char = wrap_char
 
         self._session = boto3.session.Session(**config.aws.session_kwargs())
         self._s3 = self._session.client("s3")
@@ -2325,6 +2336,43 @@ class WorksetMonitor:
         priority = STATE_PRIORITIES.get(row.state, max(STATE_PRIORITIES.values()) + 1)
         return priority, row.name
 
+    def _wrap_cell_lines(self, value: object) -> List[str]:
+        text = "" if value is None else str(value)
+        if text == "":
+            return [""]
+        width = max(self._wrap_char, 1)
+        lines: List[str] = []
+        for segment in text.splitlines() or [""]:
+            if not segment:
+                lines.append("")
+                continue
+            if width <= 0:
+                lines.append(segment)
+                continue
+            wrapped = textwrap.wrap(
+                segment,
+                width=width,
+                break_long_words=True,
+                break_on_hyphens=False,
+                replace_whitespace=False,
+                drop_whitespace=False,
+            )
+            if not wrapped:
+                lines.append("")
+            else:
+                lines.extend(wrapped)
+        return lines or [""]
+
+    def _format_state_cell(self, text: str, row: WorksetReportRow) -> str:
+        state_color = STATE_COLORS.get(row.state, STATE_COLORS["unknown"])
+        reset = "\033[0m"
+        return f"{state_color}{text}{reset}"
+
+    def _format_valid_cell(self, text: str, row: WorksetReportRow) -> str:
+        if row.has_required_files:
+            return text
+        return f"\033[31m{text}\033[0m"
+
     def _render_term_report(
         self, rows: Sequence[WorksetReportRow], *, minimal: bool
     ) -> None:
@@ -2333,162 +2381,179 @@ class WorksetMonitor:
             return
 
         if minimal:
-            name_width = max(len("Workset"), max(len(row.name) for row in rows))
-            state_width = max(len("State"), max(len(row.state_text) for row in rows))
-            start_width = max(
-                len("StartDT"), max(len(row.start_display or "-") for row in rows)
-            )
-            header = (
-                f"{'Workset':<{name_width}}  {'State':<{state_width}}  {'StartDT':<{start_width}}  "
-                f"{'Valid':<8}  Detail"
-            )
-            print(header)
-            print("-" * len(header))
-            for row in rows:
-                state_color = STATE_COLORS.get(row.state, STATE_COLORS["unknown"])
-                reset = "\033[0m"
-                state_text = f"{state_color}{row.state_text:<{state_width}}{reset}"
-                start_text = row.start_display or "-"
-                valid_text = (
-                    f"{'yes':<8}"
-                    if row.has_required_files
-                    else f"\033[31m{'NO':<8}\033[0m"
-                )
-                print(
-                    f"{row.name:<{name_width}}  {state_text}  {start_text:<{start_width}}  "
-                    f"{valid_text}  {row.detail or ''}"
-                )
-            return
+            columns = [
+                ReportColumn("Workset", lambda r: r.name),
+                ReportColumn("State", lambda r: r.state_text, formatter=self._format_state_cell),
+                ReportColumn("StartDT", lambda r: r.start_display or "-"),
+                ReportColumn(
+                    "Valid",
+                    lambda r: "yes" if r.has_required_files else "NO",
+                    formatter=self._format_valid_cell,
+                    min_width=8,
+                ),
+                ReportColumn("Detail", lambda r: r.detail or ""),
+            ]
+        else:
+            columns = [
+                ReportColumn("Workset", lambda r: r.name),
+                ReportColumn("State", lambda r: r.state_text, formatter=self._format_state_cell),
+                ReportColumn("StartDT", lambda r: r.start_display or "-"),
+                ReportColumn(
+                    "EndDT",
+                    lambda r: self._format_timestamp(r.metrics.end_dt)
+                    if r.metrics and r.metrics.end_dt
+                    else "-",
+                ),
+                ReportColumn(
+                    "RunTime",
+                    lambda r: self._format_runtime(r.metrics.run_seconds)
+                    if r.metrics
+                    else "-",
+                ),
+                ReportColumn(
+                    "Valid",
+                    lambda r: "yes" if r.has_required_files else "NO",
+                    formatter=self._format_valid_cell,
+                ),
+                ReportColumn(
+                    "Cluster",
+                    lambda r: r.metrics.cluster_name
+                    if r.metrics and r.metrics.cluster_name
+                    else "-",
+                ),
+                ReportColumn(
+                    "RegionAZ",
+                    lambda r: r.metrics.region_az
+                    if r.metrics and r.metrics.region_az
+                    else "-",
+                ),
+                ReportColumn(
+                    "Budget",
+                    lambda r: r.metrics.budget_name
+                    if r.metrics and r.metrics.budget_name
+                    else "-",
+                ),
+                ReportColumn(
+                    "PipelineCmd",
+                    lambda r: r.metrics.pipeline_command
+                    if r.metrics and r.metrics.pipeline_command
+                    else "-",
+                ),
+                ReportColumn(
+                    "CloneCmd",
+                    lambda r: r.metrics.clone_command
+                    if r.metrics and r.metrics.clone_command
+                    else "-",
+                ),
+                ReportColumn(
+                    "Samps",
+                    lambda r: self._format_integer(r.metrics.samples)
+                    if r.metrics
+                    else "-",
+                ),
+                ReportColumn(
+                    "SampLibs",
+                    lambda r: self._format_integer(r.metrics.sample_libraries)
+                    if r.metrics
+                    else "-",
+                ),
+                ReportColumn(
+                    "Fastqs",
+                    lambda r: self._format_count_size(
+                        r.metrics.fastq_files, r.metrics.fastq_bytes
+                    )
+                    if r.metrics
+                    else "-",
+                ),
+                ReportColumn(
+                    "CRAMs",
+                    lambda r: self._format_count_size(
+                        r.metrics.cram_files, r.metrics.cram_bytes
+                    )
+                    if r.metrics
+                    else "-",
+                ),
+                ReportColumn(
+                    "VCFs",
+                    lambda r: self._format_count_size(
+                        r.metrics.vcf_files, r.metrics.vcf_bytes
+                    )
+                    if r.metrics
+                    else "-",
+                ),
+                ReportColumn(
+                    "Results",
+                    lambda r: self._format_size(r.metrics.results_bytes)
+                    if r.metrics
+                    else "-",
+                ),
+                ReportColumn(
+                    "S3DailyCost",
+                    lambda r: self._format_currency_value(r.metrics.s3_daily_cost)
+                    if r.metrics
+                    else "-",
+                ),
+                ReportColumn(
+                    "CRAM Xfer",
+                    lambda r: self._format_transfer(
+                        r.metrics.cram_region_cost, r.metrics.cram_internet_cost
+                    )
+                    if r.metrics
+                    else "-",
+                ),
+                ReportColumn(
+                    "VCF Xfer",
+                    lambda r: self._format_transfer(
+                        r.metrics.vcf_region_cost, r.metrics.vcf_internet_cost
+                    )
+                    if r.metrics
+                    else "-",
+                ),
+                ReportColumn(
+                    "EC2Cost",
+                    lambda r: self._format_currency_value(r.metrics.ec2_cost)
+                    if r.metrics
+                    else "-",
+                ),
+                ReportColumn("Detail", lambda r: r.detail or ""),
+            ]
 
-        columns = [
-            ("Workset", lambda r: r.name),
-            ("State", lambda r: r.state_text),
-            ("StartDT", lambda r: r.start_display or "-"),
-            (
-                "EndDT",
-                lambda r: self._format_timestamp(r.metrics.end_dt)
-                if r.metrics and r.metrics.end_dt
-                else "-",
-            ),
-            (
-                "RunTime",
-                lambda r: self._format_runtime(r.metrics.run_seconds)
-                if r.metrics
-                else "-",
-            ),
-            ("Valid", lambda r: "yes" if r.has_required_files else "NO"),
-            (
-                "Cluster",
-                lambda r: r.metrics.cluster_name if r.metrics and r.metrics.cluster_name else "-",
-            ),
-            (
-                "RegionAZ",
-                lambda r: r.metrics.region_az if r.metrics and r.metrics.region_az else "-",
-            ),
-            (
-                "Budget",
-                lambda r: r.metrics.budget_name if r.metrics and r.metrics.budget_name else "-",
-            ),
-            (
-                "PipelineCmd",
-                lambda r: r.metrics.pipeline_command if r.metrics and r.metrics.pipeline_command else "-",
-            ),
-            (
-                "CloneCmd",
-                lambda r: r.metrics.clone_command if r.metrics and r.metrics.clone_command else "-",
-            ),
-            (
-                "Samps",
-                lambda r: self._format_integer(r.metrics.samples) if r.metrics else "-",
-            ),
-            (
-                "SampLibs",
-                lambda r: self._format_integer(r.metrics.sample_libraries)
-                if r.metrics
-                else "-",
-            ),
-            (
-                "Fastqs",
-                lambda r: self._format_count_size(
-                    r.metrics.fastq_files, r.metrics.fastq_bytes
-                )
-                if r.metrics
-                else "-",
-            ),
-            (
-                "CRAMs",
-                lambda r: self._format_count_size(
-                    r.metrics.cram_files, r.metrics.cram_bytes
-                )
-                if r.metrics
-                else "-",
-            ),
-            (
-                "VCFs",
-                lambda r: self._format_count_size(
-                    r.metrics.vcf_files, r.metrics.vcf_bytes
-                )
-                if r.metrics
-                else "-",
-            ),
-            (
-                "Results",
-                lambda r: self._format_size(r.metrics.results_bytes)
-                if r.metrics
-                else "-",
-            ),
-            (
-                "S3DailyCost",
-                lambda r: self._format_currency_value(r.metrics.s3_daily_cost)
-                if r.metrics
-                else "-",
-            ),
-            (
-                "CRAM Xfer",
-                lambda r: self._format_transfer(
-                    r.metrics.cram_region_cost, r.metrics.cram_internet_cost
-                )
-                if r.metrics
-                else "-",
-            ),
-            (
-                "VCF Xfer",
-                lambda r: self._format_transfer(
-                    r.metrics.vcf_region_cost, r.metrics.vcf_internet_cost
-                )
-                if r.metrics
-                else "-",
-            ),
-            (
-                "EC2Cost",
-                lambda r: self._format_currency_value(r.metrics.ec2_cost)
-                if r.metrics
-                else "-",
-            ),
-            ("Detail", lambda r: r.detail or ""),
+        wrapped_rows: List[List[List[str]]] = []
+        for row in rows:
+            row_lines: List[List[str]] = []
+            for column in columns:
+                row_lines.append(self._wrap_cell_lines(column.value_func(row)))
+            wrapped_rows.append(row_lines)
+
+        widths: List[int] = []
+        for index, column in enumerate(columns):
+            max_len = len(column.title)
+            for row_lines in wrapped_rows:
+                for line in row_lines[index]:
+                    max_len = max(max_len, len(line))
+            if column.min_width:
+                max_len = max(max_len, column.min_width)
+            widths.append(max_len)
+
+        header_cells = [
+            f"{column.title:<{widths[idx]}}" for idx, column in enumerate(columns)
         ]
-
-        widths = [max(len(title), max(len(func(row)) for row in rows)) for title, func in columns]
-        header = "  ".join(f"{title:<{width}}" for width, (title, _) in zip(widths, columns))
+        header = "  ".join(header_cells)
         print(header)
         print("-" * len(header))
-        for row in rows:
-            formatted: List[str] = []
-            for width, (_, func) in zip(widths, columns):
-                value = func(row)
-                if func is columns[1][1]:
-                    state_color = STATE_COLORS.get(row.state, STATE_COLORS["unknown"])
-                    reset = "\033[0m"
-                    value = f"{state_color}{value:<{width}}{reset}"
-                    formatted.append(value)
-                elif func is columns[5][1]:
-                    if row.has_required_files:
-                        formatted.append(f"{value:<{width}}")
-                    else:
-                        formatted.append(f"\033[31m{value:<{width}}\033[0m")
-                else:
-                    formatted.append(f"{value:<{width}}")
-            print("  ".join(formatted))
+
+        for row, row_lines in zip(rows, wrapped_rows):
+            max_lines = max(len(lines) for lines in row_lines)
+            for line_index in range(max_lines):
+                parts: List[str] = []
+                for col_index, column in enumerate(columns):
+                    lines = row_lines[col_index]
+                    line_text = lines[line_index] if line_index < len(lines) else ""
+                    padded = f"{line_text:<{widths[col_index]}}"
+                    if column.formatter:
+                        padded = column.formatter(padded, row)
+                    parts.append(padded)
+                print("  ".join(parts))
 
     def _write_delimited_report(
         self, rows: Sequence[WorksetReportRow], path: Path, delimiter: str, *, minimal: bool
@@ -2930,7 +2995,15 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         action="store_true",
         help="When reporting, limit the output to the legacy column set",
     )
+    parser.add_argument(
+        "--wrap-char",
+        type=int,
+        default=100,
+        help="When reporting to term, wrap column contents at this width",
+    )
     args = parser.parse_args(argv)
+    if args.wrap_char < 1:
+        parser.error("--wrap-char must be a positive integer")
     if args.report and args.report.lower() != "term":
         target = args.report
         if target.startswith("s3://"):
@@ -2957,6 +3030,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         debug=args.debug,
         process_directories=args.process_directories,
         attempt_restart=args.attempt_restart,
+        wrap_char=args.wrap_char,
     )
     if args.report:
         monitor.report(args.report, minimal=args.min_deets)
