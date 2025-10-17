@@ -1276,7 +1276,6 @@ class WorksetMonitor:
         if parsed.tzinfo is not None:
             parsed = parsed.astimezone(dt.timezone.utc).replace(tzinfo=None)
         return parsed
-        return None
 
     def _clear_pipeline_start(self, workset: Workset) -> None:
         with contextlib.suppress(FileNotFoundError):
@@ -2202,7 +2201,7 @@ class WorksetMonitor:
         try:
             self._s3.head_object(Bucket=self.config.monitor.bucket, Key=key)
         except ClientError as exc:
-                raise MonitorError(f"Sample data file missing for {workset.name}: {relative_path}") from exc
+            raise MonitorError(f"Sample data file missing for {workset.name}: {relative_path}") from exc
     def _read_required_object(self, workset_prefix: str, filename: str) -> bytes:
         bucket = self.config.monitor.bucket
         key = f"{workset_prefix}{filename}"
