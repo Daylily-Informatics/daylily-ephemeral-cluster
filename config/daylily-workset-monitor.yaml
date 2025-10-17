@@ -1,5 +1,6 @@
 # Example configuration for the daylily workset monitor tool.
 # Copy and edit this file before running bin/daylily-monitor-worksets.
+# Use --wrap-char when generating --report term output to control column wrapping (default 100).
 
 aws:
   profile: default
