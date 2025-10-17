@@ -54,7 +54,7 @@ pipeline:
   # Maximum time (in minutes) to wait for the pipeline success sentinel before aborting.
   pipeline_timeout_minutes: 240
   # Command that exports results back to S3 after completion.
-  export_command: ./bin/daylily-export-fsx-to-s3-from-local --cluster {cluster} --target-uri {target_uri} --region {region} --profile {profile} --output-dir {output_dir}
+  export_command: ./bin/daylily-export-fsx-to-s3-from-local --cluster {cluster} --target-uri analysis_results/ubuntu/{workdir_name} --region {region} --profile {profile} --output-dir ./etc --verbose
   # Command executed before entering the pipeline directory on the head node.
   login_shell_init: source ~/.bashrc && echo "Ready to run"
   # Prefix used when generating tmux session names for launched pipelines.
