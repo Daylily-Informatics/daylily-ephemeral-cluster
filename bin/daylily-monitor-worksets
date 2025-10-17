@@ -2440,9 +2440,13 @@ class WorksetMonitor:
             for data_row in table_rows:
                 writer.writerow(data_row)
 
-    def report(self, target: str, *, min_details: bool = False) -> None:
-        worksets = list(self._discover_worksets())
-    def report(self, target: str, *, include_archive: bool = False) -> None:
+    def report(
+        self,
+        target: str,
+        *,
+        min_details: bool = False,
+        include_archive: bool = False,
+    ) -> None:
         worksets = list(self._discover_worksets(include_archive=include_archive))
         rows = self._generate_report_rows(worksets)
         if self._process_directories:
@@ -2745,10 +2749,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         action="store_true",
         dest="min_deets",
         help="Limit reports to the legacy summary columns",
+    )
+    parser.add_argument(
         "--include-archive",
         action="store_true",
+        dest="include_archive",
         help="Include archived worksets when generating reports",
-
     )
     args = parser.parse_args(argv)
     if args.report and args.report.lower() != "term":
@@ -2777,7 +2783,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         attempt_restart=args.attempt_restart,
     )
     if args.report:
-        monitor.report(args.report, min_details=args.min_deets)
+        monitor.report(
+            args.report,
+            min_details=args.min_deets,
+            include_archive=args.include_archive,
+        )
 
         return 0
 
