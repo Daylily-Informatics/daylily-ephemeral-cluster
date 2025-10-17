@@ -76,7 +76,7 @@ install_miniconda() {
     git_tag=$(yq -r '.  git_ephemeral_cluster_repo_tag' "$CONFIG_FILE")
     touch ~/.config/daylily/$git_tag
 
-    cp bin/day-clone ~/miniconda3/condabin/day-clone || (echo 'Failed to copy day-clone script' && return 1)
+    cp bin/headnode_utils/day-clone ~/miniconda3/condabin/day-clone || (echo 'Failed to copy day-clone script' && return 1)
 }
 
 # Detect or install conda
@@ -112,7 +112,7 @@ if conda env list | grep -q "^$DY_ENVNAME\s"; then
     return 0
 else
     conda install -y -n base -c conda-forge yq || echo 'Failed to install yq'
-    cp bin/day-clone ~/miniconda3/condabin/day-clone || echo 'Failed to copy day-clone script to ~/minconda3/condabin'
+    cp bin/headnode_utils/day-clone ~/miniconda3/condabin/day-clone || echo 'Failed to copy day-clone script to ~/minconda3/condabin'
     echo "Installing DAYOA environment..."
     # Create the DAYOA environment
     if conda env create -n "$DY_ENVNAME" -f "$SCRIPT_DIR/day.yaml"; then

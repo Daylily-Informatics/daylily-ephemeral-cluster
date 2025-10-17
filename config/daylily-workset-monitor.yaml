@@ -9,13 +9,14 @@ aws:
 
 monitor:
   bucket: my-daylily-bucket
-  prefix: monitoring/worksets/
+  prefix: daylily_monitoring/active_worksets/
+  archive_prefix: daylily_monitoring/archived_worksets/
   poll_interval_seconds: 60
   ready_lock_backoff_seconds: 30
   # Set to true to keep looping forever.  When false the monitor performs one scan and exits.
   continuous: true
   # Where to mirror sentinel state listings (in the same bucket/prefix).
-  sentinel_index_prefix: monitoring/
+  sentinel_index_prefix: daylily_monitoring/
 
 cluster:
   # Reuse an existing cluster when available, otherwise create from this template.
@@ -69,5 +70,5 @@ day-clone: "--repo Daylily-Informatics/daylily-omics-analysis --branch main"
 dy-r: "--name runme14 --samples config/samples.tsv --outdir results/runme14 --profile slurm --jobs 192 --rerun-incomplete"
 
 # optional export
-export_uri: "s3://my-daylily-bucket/monitoring/worksets/runme14/results/"
+export_uri: "s3://my-daylily-bucket/daylily_monitoring/active_worksets/runme14/results/"
 

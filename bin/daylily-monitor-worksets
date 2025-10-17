@@ -119,9 +119,18 @@ class MonitorOptions:
     ready_lock_backoff_seconds: int = 30
     continuous: bool = True
     sentinel_index_prefix: Optional[str] = None
+    archive_prefix: Optional[str] = None
 
     def normalised_prefix(self) -> str:
         prefix = self.prefix.lstrip("/")
+        if prefix and not prefix.endswith("/"):
+            prefix += "/"
+        return prefix
+
+    def normalised_archive_prefix(self) -> Optional[str]:
+        if not self.archive_prefix:
+            return None
+        prefix = self.archive_prefix.lstrip("/")
         if prefix and not prefix.endswith("/"):
             prefix += "/"
         return prefix
@@ -177,6 +186,7 @@ class Workset:
     prefix: str
     sentinels: Dict[str, str]
     has_required_files: bool = False
+    is_archived: bool = False
 
     def sentinel_timestamp(self, sentinel: str) -> Optional[str]:
         return self.sentinels.get(sentinel)
@@ -274,9 +284,24 @@ class WorksetMonitor:
     # ------------------------------------------------------------------
     # Workset discovery
     # ------------------------------------------------------------------
-    def _discover_worksets(self) -> Iterable[Workset]:
+    def _discover_worksets(
+        self, *, include_archive: bool = False
+    ) -> Iterable[Workset]:
+        yield from self._discover_worksets_for_prefix(
+            self.config.monitor.normalised_prefix(), is_archived=False
+        )
+        if not include_archive:
+            return
+        archive_prefix = self.config.monitor.normalised_archive_prefix()
+        if archive_prefix:
+            yield from self._discover_worksets_for_prefix(
+                archive_prefix, is_archived=True
+            )
+
+    def _discover_worksets_for_prefix(
+        self, prefix: str, *, is_archived: bool
+    ) -> Iterable[Workset]:
         bucket = self.config.monitor.bucket
-        prefix = self.config.monitor.normalised_prefix()
         paginator = self._s3.get_paginator("list_objects_v2")
         for page in paginator.paginate(Bucket=bucket, Prefix=prefix, Delimiter="/"):
             for common_prefix in page.get("CommonPrefixes", []):
@@ -289,6 +314,7 @@ class WorksetMonitor:
                     prefix=workset_prefix,
                     sentinels=sentinels,
                     has_required_files=has_required,
+                    is_archived=is_archived,
                 )
 
     def _list_sentinels(self, workset_prefix: str) -> Dict[str, str]:
@@ -2272,6 +2298,8 @@ class WorksetMonitor:
                 row.metrics = self._gather_workset_metrics(workset, row)
             except Exception:
                 LOGGER.debug("Failed to gather metrics for %s", workset.name, exc_info=True)
+            if workset.is_archived:
+                row.display_state = f"{row.state_text} (archived)"
             rows.append(row)
         rows.sort(key=self._report_sort_key)
         return rows
@@ -2414,6 +2442,8 @@ class WorksetMonitor:
 
     def report(self, target: str, *, min_details: bool = False) -> None:
         worksets = list(self._discover_worksets())
+    def report(self, target: str, *, include_archive: bool = False) -> None:
+        worksets = list(self._discover_worksets(include_archive=include_archive))
         rows = self._generate_report_rows(worksets)
         if self._process_directories:
             found = {row.name for row in rows}
@@ -2715,6 +2745,10 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         action="store_true",
         dest="min_deets",
         help="Limit reports to the legacy summary columns",
+        "--include-archive",
+        action="store_true",
+        help="Include archived worksets when generating reports",
+
     )
     args = parser.parse_args(argv)
     if args.report and args.report.lower() != "term":
@@ -2744,6 +2778,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     )
     if args.report:
         monitor.report(args.report, min_details=args.min_deets)
+
         return 0
 
     monitor.run()
