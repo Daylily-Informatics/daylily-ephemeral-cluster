@@ -9,7 +9,7 @@ dy-r: >
   -p help  
 
 # Export results after completion
-export_uri: "s3://lsmc-dayoa-omics-analysis-us-west-2/monitoring/worksets/runme14/results/"
+export_uri: "s3://lsmc-dayoa-omics-analysis-us-west-2/daylily_monitoring/active_worksets/runme14/results/"
 
 # (ignored by script; for you)
 notes: "Daylily Snakemake; hg38; slurm profile; 192 jobs; rerun-incomplete."
