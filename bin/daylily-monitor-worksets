@@ -292,12 +292,14 @@ class WorksetMonitor:
         process_directories: Optional[Sequence[str]] = None,
         attempt_restart: bool = False,
         wrap_char: int = 100,
+        force_metrics: bool = False,
     ) -> None:
         self.config = config
         self.dry_run = dry_run
         self.debug = debug
         self.attempt_restart = attempt_restart
         self._wrap_char = wrap_char
+        self._force_metrics = force_metrics
 
         self._session = boto3.session.Session(**config.aws.session_kwargs())
         self._s3 = self._session.client("s3")
@@ -2085,13 +2087,14 @@ class WorksetMonitor:
                 workset.has_required_files,
                 display_state=display_state,
             )
-            if include_details:
+            if include_details or self._force_metrics:
                 row.metrics = self._collect_report_metrics(
                     workset,
                     state="ignored",
                     start_dt=start_dt,
                     end_ts=ignore_ts,
-                    include_details=True,
+                    include_details=include_details or self._force_metrics,
+                    force_metrics=self._force_metrics,
                 )
             return row
 
@@ -2104,13 +2107,14 @@ class WorksetMonitor:
                 error_detail,
                 workset.has_required_files,
             )
-            if include_details:
+            if include_details or self._force_metrics:
                 row.metrics = self._collect_report_metrics(
                     workset,
                     state="error",
                     start_dt=start_dt,
                     end_ts=error_ts,
-                    include_details=True,
+                    include_details=include_details or self._force_metrics,
+                    force_metrics=self._force_metrics,
                 )
             return row
 
@@ -2123,13 +2127,14 @@ class WorksetMonitor:
                 None,
                 workset.has_required_files,
             )
-            if include_details:
+            if include_details or self._force_metrics:
                 row.metrics = self._collect_report_metrics(
                     workset,
                     state="complete",
                     start_dt=start_dt,
                     end_ts=complete_ts,
-                    include_details=True,
+                    include_details=include_details or self._force_metrics,
+                    force_metrics=self._force_metrics,
                 )
             return row
 
@@ -2142,19 +2147,20 @@ class WorksetMonitor:
                 None,
                 workset.has_required_files,
             )
-            if include_details:
+            if include_details or self._force_metrics:
                 row.metrics = self._collect_report_metrics(
                     workset,
                     state="in-progress",
                     start_dt=start_dt,
                     end_ts=None,
-                    include_details=False,
+                    include_details=self._force_metrics,
+                    force_metrics=self._force_metrics,
                 )
             return row
 
         if lock_ts:
             start_dt, start_display = self._normalise_timestamp(lock_ts)
-            return WorksetReportRow(
+            row = WorksetReportRow(
                 workset.name,
                 "locked",
                 start_dt,
@@ -2162,10 +2168,20 @@ class WorksetMonitor:
                 None,
                 workset.has_required_files,
             )
+            if self._force_metrics:
+                row.metrics = self._collect_report_metrics(
+                    workset,
+                    state="locked",
+                    start_dt=start_dt,
+                    end_ts=None,
+                    include_details=True,
+                    force_metrics=True,
+                )
+            return row
 
         if ready_ts:
             start_dt, start_display = self._normalise_timestamp(ready_ts)
-            return WorksetReportRow(
+            row = WorksetReportRow(
                 workset.name,
                 "ready",
                 start_dt,
@@ -2173,8 +2189,18 @@ class WorksetMonitor:
                 None,
                 workset.has_required_files,
             )
+            if self._force_metrics:
+                row.metrics = self._collect_report_metrics(
+                    workset,
+                    state="ready",
+                    start_dt=start_dt,
+                    end_ts=None,
+                    include_details=True,
+                    force_metrics=True,
+                )
+            return row
 
-        return WorksetReportRow(
+        row = WorksetReportRow(
             workset.name,
             "unknown",
             None,
@@ -2182,6 +2208,16 @@ class WorksetMonitor:
             None,
             workset.has_required_files,
         )
+        if self._force_metrics:
+            row.metrics = self._collect_report_metrics(
+                workset,
+                state="unknown",
+                start_dt=None,
+                end_ts=None,
+                include_details=True,
+                force_metrics=True,
+            )
+        return row
 
     def _collect_report_metrics(
         self,
@@ -2191,11 +2227,12 @@ class WorksetMonitor:
         start_dt: Optional[dt.datetime],
         end_ts: Optional[str],
         include_details: bool,
+        force_metrics: bool = False,
     ) -> WorksetReportMetrics:
         terminal_states = {"complete", "error", "ignored"}
         end_dt, _ = self._normalise_timestamp(end_ts)
         cached: Optional[WorksetReportMetrics] = None
-        if state in terminal_states:
+        if force_metrics or state in terminal_states:
             cached = self._load_report_cache(workset)
         metrics = dataclasses.replace(cached) if cached else WorksetReportMetrics()
         if end_dt:
@@ -2259,6 +2296,8 @@ class WorksetMonitor:
         if start_seconds is not None:
             metrics.run_seconds = start_seconds
 
+        metrics_updated = False
+
         if include_details and metrics.cluster_name:
             pipeline_dir = self._load_pipeline_location(workset)
             if pipeline_dir is not None:
@@ -2295,6 +2334,7 @@ class WorksetMonitor:
                             payload,
                         )
                     else:
+                        metrics_updated = bool(data)
                         metrics.samples = int(data.get("samples", metrics.samples or 0))
                         metrics.sample_libraries = int(
                             data.get("sample_libraries", metrics.sample_libraries or 0)
@@ -2343,6 +2383,8 @@ class WorksetMonitor:
             metrics.vcf_internet_cost = internet_cost
 
         if state in terminal_states and include_details:
+            self._save_report_cache(workset, metrics)
+        elif force_metrics and include_details and metrics_updated:
             self._save_report_cache(workset, metrics)
 
         return metrics
@@ -3016,6 +3058,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         default=100,
         help="When reporting to term, wrap column contents at this width",
     )
+    parser.add_argument(
+        "--force-metrics",
+        action="store_true",
+        help="Fetch and cache report metrics for every workset regardless of state",
+    )
     args = parser.parse_args(argv)
     if args.wrap_char < 1:
         parser.error("--wrap-char must be a positive integer")
@@ -3046,6 +3093,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         process_directories=args.process_directories,
         attempt_restart=args.attempt_restart,
         wrap_char=args.wrap_char,
+        force_metrics=args.force_metrics,
     )
     if args.report:
         monitor.report(args.report, minimal=args.min_deets)
