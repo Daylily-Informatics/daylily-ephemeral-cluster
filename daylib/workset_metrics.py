@@ -262,7 +262,7 @@ def remote_metrics_script() -> str:
             return count, total
 
         def _scan_results(results_dir, suffix):
-            return _sum_sizes(p for p in results_dir.rglob(f"*{suffix}") if p.is_file())
+            return _sum_sizes(p for p in results_dir.rglob(f"*{{suffix}}") if p.is_file())
 
         def _sum_directory_bytes(results_dir):
             total = 0
@@ -311,7 +311,7 @@ def remote_metrics_script() -> str:
 
         print(
             json.dumps(
-                {
+                {{
                     'samples': samples,
                     'sample_libraries': sample_libraries,
                     'fastq_files': fastq_count,
@@ -322,7 +322,7 @@ def remote_metrics_script() -> str:
                     'vcf_bytes': vcf_bytes,
                     'results_bytes': results_bytes,
                     'ec2_cost': ec2_cost,
-                }
+                }}
             )
         )
         """
