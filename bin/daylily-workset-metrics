@@ -1,0 +1,12 @@
+#!/usr/bin/env python3
+"""CLI helper for inspecting workset metrics locally."""
+
+from __future__ import annotations
+
+import sys
+
+from daylib.workset_metrics import main as metrics_main
+
+
+if __name__ == "__main__":
+    sys.exit(metrics_main())

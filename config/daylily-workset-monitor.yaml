@@ -27,6 +27,8 @@ cluster:
   idle_teardown_minutes: 20
   # Optional pre-existing cluster name.  When empty a new cluster is created as required.
   reuse_cluster_name: ""
+  # Optional repo tag passed to the cluster creation helper.
+  repo_tag: main
 
 pipeline:
   # Directory on the headnode where worksets will be staged.

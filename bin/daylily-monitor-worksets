@@ -20,11 +20,13 @@ import sys
 import time
 from collections import defaultdict
 from pathlib import Path, PurePosixPath
-from typing import Dict, Iterable, List, Optional, Sequence, Set, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
 
 import boto3
 from botocore.exceptions import ClientError
 import yaml
+
+from daylib import workset_metrics
 
 LOGGER = logging.getLogger("daylily.workset_monitor")
 
@@ -63,6 +65,8 @@ PIPELINE_FAILURE_SENTINEL = "daylily.failed_run"
 FSX_EXPORT_STATUS_FILENAME = "fsx_export.yaml"
 CLUSTER_STATE_DIR = "_clusters"
 CLUSTER_IDLE_MARKER = "idle_since"
+WORKSET_CLUSTER_MARKER = ".daylily-monitor-cluster"
+REPORT_CACHE_FILENAME = "report_metrics.json"
 
 STATE_PRIORITIES = {
     "error": 0,
@@ -134,6 +138,7 @@ class ClusterOptions:
     idle_teardown_minutes: int = 20
     reuse_cluster_name: Optional[str] = None
     contact_email: Optional[str] = None
+    repo_tag: Optional[str] = None
 
 
 @dataclasses.dataclass
@@ -184,14 +189,68 @@ class Workset:
 class WorksetReportRow:
     name: str
     state: str
-    timestamp: Optional[str]
+    start_dt: Optional[dt.datetime]
+    start_display: Optional[str]
     detail: Optional[str]
     has_required_files: bool
     display_state: Optional[str] = None
+    metrics: Optional["WorksetReportMetrics"] = None
 
     @property
     def state_text(self) -> str:
         return self.display_state or self.state
+
+
+@dataclasses.dataclass
+class WorksetReportMetrics:
+    cluster_name: Optional[str] = None
+    region_az: Optional[str] = None
+    budget_name: Optional[str] = None
+    run_seconds: Optional[float] = None
+    end_dt: Optional[dt.datetime] = None
+    pipeline_command: Optional[str] = None
+    clone_command: Optional[str] = None
+    samples: Optional[int] = None
+    sample_libraries: Optional[int] = None
+    fastq_files: Optional[int] = None
+    fastq_bytes: Optional[int] = None
+    cram_files: Optional[int] = None
+    cram_bytes: Optional[int] = None
+    vcf_files: Optional[int] = None
+    vcf_bytes: Optional[int] = None
+    results_bytes: Optional[int] = None
+    s3_daily_cost: Optional[float] = None
+    cram_region_cost: Optional[float] = None
+    cram_internet_cost: Optional[float] = None
+    vcf_region_cost: Optional[float] = None
+    vcf_internet_cost: Optional[float] = None
+    ec2_cost: Optional[float] = None
+
+    def as_dict(self) -> Dict[str, Optional[object]]:
+        return {
+            "cluster_name": self.cluster_name,
+            "region_az": self.region_az,
+            "budget_name": self.budget_name,
+            "run_seconds": self.run_seconds,
+            "end_dt": self.end_dt.isoformat() if self.end_dt else None,
+            "pipeline_command": self.pipeline_command,
+            "clone_command": self.clone_command,
+            "samples": self.samples,
+            "sample_libraries": self.sample_libraries,
+            "fastq_files": self.fastq_files,
+            "fastq_bytes": self.fastq_bytes,
+            "cram_files": self.cram_files,
+            "cram_bytes": self.cram_bytes,
+            "vcf_files": self.vcf_files,
+            "vcf_bytes": self.vcf_bytes,
+            "results_bytes": self.results_bytes,
+            "s3_daily_cost": self.s3_daily_cost,
+            "cram_region_cost": self.cram_region_cost,
+            "cram_internet_cost": self.cram_internet_cost,
+            "vcf_region_cost": self.vcf_region_cost,
+            "vcf_internet_cost": self.vcf_internet_cost,
+            "ec2_cost": self.ec2_cost,
+        }
 
 
 @dataclasses.dataclass
@@ -241,6 +300,9 @@ class WorksetMonitor:
         self._headnode_ips: Dict[str, str] = {}
         self._pipeline_locations: Dict[str, PurePosixPath] = {}
         self._stage_artifacts: Dict[str, StageArtifacts] = {}
+        self._workset_clusters: Dict[str, str] = {}
+        self._work_yaml_cache: Dict[str, Dict[str, object]] = {}
+        self._report_cache: Dict[str, WorksetReportMetrics] = {}
 
     # ------------------------------------------------------------------
     # Public entrypoints
@@ -356,6 +418,23 @@ class WorksetMonitor:
             return clone_args.format(**mapping)
         except Exception:
             return clone_args
+
+    def _apply_budget_argument(
+        self, clone_args: str, work_yaml: Dict[str, object]
+    ) -> str:
+        budget = work_yaml.get("budget")
+        if budget is None:
+            return clone_args
+        if isinstance(budget, str):
+            budget_value = budget.strip()
+        else:
+            budget_value = str(budget).strip()
+        if not budget_value:
+            return clone_args
+        quoted = shlex.quote(budget_value)
+        if clone_args.strip():
+            return f"{clone_args.strip()} --budget {quoted}"
+        return f"--budget {quoted}"
 
     def _extract_dest_from_clone_args(self, clone_args: str) -> Optional[str]:
         if not clone_args:
@@ -533,6 +612,7 @@ class WorksetMonitor:
             ["day_clone_args", "day-clone", "clone_args", "clone-args", "clone"]
         ) or ""
         clone_args = self._format_clone_args(clone_args_raw, workset, work_yaml)
+        clone_args = self._apply_budget_argument(clone_args, work_yaml)
 
         run_suffix = self._yaml_get_str(
             work_yaml,
@@ -544,6 +624,7 @@ class WorksetMonitor:
         )
 
         cluster_name = self._ensure_cluster(work_yaml)
+        self._record_workset_cluster(workset, cluster_name)
         LOGGER.info("Using cluster %s for workset %s", cluster_name, workset.name)
 
         completed_commands: Set[str] = set()
@@ -718,6 +799,76 @@ class WorksetMonitor:
         location = PurePosixPath(text)
         self._pipeline_locations[workset.name] = location
         return location
+
+    def _record_workset_cluster(self, workset: Workset, cluster_name: str) -> None:
+        self._workset_clusters[workset.name] = cluster_name
+        marker = self._local_state_dir(workset) / WORKSET_CLUSTER_MARKER
+        marker.write_text(cluster_name, encoding="utf-8")
+
+    def _load_workset_cluster(self, workset: Workset) -> Optional[str]:
+        cached = self._workset_clusters.get(workset.name)
+        if cached:
+            return cached
+        marker = self._local_state_dir(workset) / WORKSET_CLUSTER_MARKER
+        if not marker.exists():
+            return None
+        text = marker.read_text(encoding="utf-8").strip()
+        if not text:
+            return None
+        self._workset_clusters[workset.name] = text
+        return text
+
+    def _report_cache_path(self, workset: Workset) -> Path:
+        return self._local_state_dir(workset) / REPORT_CACHE_FILENAME
+
+    def _load_report_cache(self, workset: Workset) -> Optional[WorksetReportMetrics]:
+        cached = self._report_cache.get(workset.name)
+        if cached:
+            return cached
+        path = self._report_cache_path(workset)
+        if not path.exists():
+            return None
+        try:
+            raw = json.loads(path.read_text(encoding="utf-8"))
+        except (OSError, json.JSONDecodeError):
+            return None
+        if not isinstance(raw, dict):
+            return None
+        metrics = WorksetReportMetrics(
+            cluster_name=raw.get("cluster_name"),
+            region_az=raw.get("region_az"),
+            budget_name=raw.get("budget_name"),
+            run_seconds=raw.get("run_seconds"),
+            end_dt=self._parse_timestamp(raw.get("end_dt")),
+            pipeline_command=raw.get("pipeline_command"),
+            clone_command=raw.get("clone_command"),
+            samples=raw.get("samples"),
+            sample_libraries=raw.get("sample_libraries"),
+            fastq_files=raw.get("fastq_files"),
+            fastq_bytes=raw.get("fastq_bytes"),
+            cram_files=raw.get("cram_files"),
+            cram_bytes=raw.get("cram_bytes"),
+            vcf_files=raw.get("vcf_files"),
+            vcf_bytes=raw.get("vcf_bytes"),
+            results_bytes=raw.get("results_bytes"),
+            s3_daily_cost=raw.get("s3_daily_cost"),
+            cram_region_cost=raw.get("cram_region_cost"),
+            cram_internet_cost=raw.get("cram_internet_cost"),
+            vcf_region_cost=raw.get("vcf_region_cost"),
+            vcf_internet_cost=raw.get("vcf_internet_cost"),
+            ec2_cost=raw.get("ec2_cost"),
+        )
+        self._report_cache[workset.name] = metrics
+        return metrics
+
+    def _save_report_cache(self, workset: Workset, metrics: WorksetReportMetrics) -> None:
+        path = self._report_cache_path(workset)
+        try:
+            path.write_text(json.dumps(metrics.as_dict()), encoding="utf-8")
+        except OSError:
+            LOGGER.debug("Unable to persist report cache for %s", workset.name)
+        else:
+            self._report_cache[workset.name] = metrics
 
     def _parse_day_clone_location(self, output: bytes) -> Optional[PurePosixPath]:
         text = output.decode("utf-8", errors="ignore")
@@ -1666,6 +1817,8 @@ class WorksetMonitor:
         cmd = ["./bin/daylily-create-ephemeral-cluster", "--cluster-name", cluster_name]
         if self.config.cluster.template_path:
             cmd.extend(["--config", self.config.cluster.template_path])
+        if self.config.cluster.repo_tag:
+            cmd.extend(["--repo-tag", self.config.cluster.repo_tag])
         env = os.environ.copy()
         contact_email = self.config.cluster.contact_email or "you@email.com"
         env["DAY_CONTACT_EMAIL"] = contact_email
@@ -1711,6 +1864,24 @@ class WorksetMonitor:
                 f"Missing required file {filename} in {workset_prefix}: {exc}"
             ) from exc
         return response["Body"].read()
+
+    def _load_work_yaml(self, workset: Workset) -> Optional[Dict[str, object]]:
+        cached = self._work_yaml_cache.get(workset.name)
+        if cached is not None:
+            return cached
+        try:
+            data_bytes = self._read_required_object(workset.prefix, WORK_YAML_NAME)
+        except MonitorError:
+            return None
+        try:
+            data = yaml.safe_load(data_bytes.decode("utf-8"))
+        except yaml.YAMLError as exc:
+            LOGGER.warning("Unable to parse %s for %s: %s", WORK_YAML_NAME, workset.name, exc)
+            return None
+        if isinstance(data, dict):
+            self._work_yaml_cache[workset.name] = data
+            return data
+        return None
 
     def _write_sentinel(self, workset: Workset, sentinel_name: str, value: str) -> None:
         bucket = self.config.monitor.bucket
@@ -1785,16 +1956,60 @@ class WorksetMonitor:
             return True
         return workset.name in self._process_directories
 
-    def _generate_report_rows(self, worksets: Sequence[Workset]) -> List[WorksetReportRow]:
+    def _generate_report_rows(
+        self, worksets: Sequence[Workset], *, include_details: bool
+    ) -> List[WorksetReportRow]:
         rows = [
-            self._summarize_workset(workset)
+            self._summarize_workset(workset, include_details=include_details)
             for workset in worksets
             if self._should_process(workset)
         ]
         rows.sort(key=self._report_sort_key)
         return rows
 
-    def _summarize_workset(self, workset: Workset) -> WorksetReportRow:
+    def _normalise_timestamp(
+        self, value: Optional[str]
+    ) -> Tuple[Optional[dt.datetime], Optional[str]]:
+        if not value:
+            return None, None
+        text = value.strip()
+        if not text:
+            return None, None
+        parsed = self._parse_timestamp(text)
+        if parsed:
+            display = self._format_timestamp(parsed)
+            return parsed, display
+        return None, self._trim_timestamp_text(text)
+
+    def _trim_timestamp_text(self, text: str) -> str:
+        if "." in text:
+            prefix, _, suffix = text.partition(".")
+            if "Z" in suffix:
+                return prefix + "Z"
+            return prefix
+        return text
+
+    def _parse_timestamp(self, text: Optional[str]) -> Optional[dt.datetime]:
+        if not text:
+            return None
+        candidate = text.strip()
+        if not candidate:
+            return None
+        if candidate.endswith("Z"):
+            candidate = candidate[:-1] + "+00:00"
+        try:
+            return dt.datetime.fromisoformat(candidate)
+        except ValueError:
+            return None
+
+    def _format_timestamp(self, value: dt.datetime) -> str:
+        if value.tzinfo:
+            value = value.astimezone(dt.timezone.utc)
+        return value.replace(microsecond=0).isoformat().replace("+00:00", "Z")
+
+    def _summarize_workset(
+        self, workset: Workset, *, include_details: bool
+    ) -> WorksetReportRow:
         sentinels = workset.sentinels
 
         def sentinel_parts(name: str) -> Tuple[Optional[str], Optional[str]]:
@@ -1818,6 +2033,22 @@ class WorksetMonitor:
             return sentinel_cache[name]
 
         ignore_ts, ignore_detail = cached_sentinel_parts(SENTINEL_FILES["ignore"])
+        complete_ts, _ = cached_sentinel_parts(SENTINEL_FILES["complete"])
+        error_ts, error_detail = cached_sentinel_parts(SENTINEL_FILES["error"])
+        in_progress_ts, _ = cached_sentinel_parts(SENTINEL_FILES["in_progress"])
+        lock_ts, _ = cached_sentinel_parts(SENTINEL_FILES["lock"])
+        ready_ts, _ = cached_sentinel_parts(SENTINEL_FILES["ready"])
+
+        start_source = (
+            in_progress_ts
+            or lock_ts
+            or ready_ts
+            or complete_ts
+            or error_ts
+            or ignore_ts
+        )
+        start_dt, start_display = self._normalise_timestamp(start_source)
+
         if ignore_ts:
             other_state: Optional[str] = None
             for sentinel_name, state_name in [
@@ -1834,97 +2065,571 @@ class WorksetMonitor:
             display_state = "ignored"
             if other_state:
                 display_state = f"ignored ({other_state})"
-            return WorksetReportRow(
+            row = WorksetReportRow(
                 workset.name,
                 "ignored",
-                ignore_ts,
+                start_dt,
+                start_display,
                 ignore_detail,
                 workset.has_required_files,
                 display_state=display_state,
             )
+            if include_details:
+                row.metrics = self._collect_report_metrics(
+                    workset,
+                    state="ignored",
+                    start_dt=start_dt,
+                    end_ts=ignore_ts,
+                    include_details=True,
+                )
+            return row
 
-        error_ts, error_detail = cached_sentinel_parts(SENTINEL_FILES["error"])
         if error_ts:
-            return WorksetReportRow(
-                workset.name, "error", error_ts, error_detail, workset.has_required_files
+            row = WorksetReportRow(
+                workset.name,
+                "error",
+                start_dt,
+                start_display,
+                error_detail,
+                workset.has_required_files,
             )
+            if include_details:
+                row.metrics = self._collect_report_metrics(
+                    workset,
+                    state="error",
+                    start_dt=start_dt,
+                    end_ts=error_ts,
+                    include_details=True,
+                )
+            return row
 
-        complete_ts, _ = cached_sentinel_parts(SENTINEL_FILES["complete"])
         if complete_ts:
-            return WorksetReportRow(
-                workset.name, "complete", complete_ts, None, workset.has_required_files
+            row = WorksetReportRow(
+                workset.name,
+                "complete",
+                start_dt,
+                start_display,
+                None,
+                workset.has_required_files,
             )
+            if include_details:
+                row.metrics = self._collect_report_metrics(
+                    workset,
+                    state="complete",
+                    start_dt=start_dt,
+                    end_ts=complete_ts,
+                    include_details=True,
+                )
+            return row
 
-        in_progress_ts, _ = cached_sentinel_parts(SENTINEL_FILES["in_progress"])
         if in_progress_ts:
-            return WorksetReportRow(
-                workset.name, "in-progress", in_progress_ts, None, workset.has_required_files
+            row = WorksetReportRow(
+                workset.name,
+                "in-progress",
+                start_dt,
+                start_display,
+                None,
+                workset.has_required_files,
             )
+            if include_details:
+                row.metrics = self._collect_report_metrics(
+                    workset,
+                    state="in-progress",
+                    start_dt=start_dt,
+                    end_ts=None,
+                    include_details=False,
+                )
+            return row
 
-        lock_ts, _ = cached_sentinel_parts(SENTINEL_FILES["lock"])
         if lock_ts:
+            start_dt, start_display = self._normalise_timestamp(lock_ts)
             return WorksetReportRow(
-                workset.name, "locked", lock_ts, None, workset.has_required_files
+                workset.name,
+                "locked",
+                start_dt,
+                start_display,
+                None,
+                workset.has_required_files,
             )
 
-        ready_ts, _ = cached_sentinel_parts(SENTINEL_FILES["ready"])
         if ready_ts:
+            start_dt, start_display = self._normalise_timestamp(ready_ts)
             return WorksetReportRow(
-                workset.name, "ready", ready_ts, None, workset.has_required_files
+                workset.name,
+                "ready",
+                start_dt,
+                start_display,
+                None,
+                workset.has_required_files,
             )
 
-        return WorksetReportRow(workset.name, "unknown", None, None, workset.has_required_files)
+        return WorksetReportRow(
+            workset.name,
+            "unknown",
+            None,
+            None,
+            None,
+            workset.has_required_files,
+        )
+
+    def _collect_report_metrics(
+        self,
+        workset: Workset,
+        *,
+        state: str,
+        start_dt: Optional[dt.datetime],
+        end_ts: Optional[str],
+        include_details: bool,
+    ) -> WorksetReportMetrics:
+        terminal_states = {"complete", "error", "ignored"}
+        end_dt, _ = self._normalise_timestamp(end_ts)
+        cached: Optional[WorksetReportMetrics] = None
+        if state in terminal_states:
+            cached = self._load_report_cache(workset)
+        metrics = dataclasses.replace(cached) if cached else WorksetReportMetrics()
+        if end_dt:
+            metrics.end_dt = end_dt
+
+        work_yaml = self._load_work_yaml(workset) or {}
+        budget_value = work_yaml.get("budget")
+        if isinstance(budget_value, str):
+            budget_value = budget_value.strip() or None
+        elif budget_value is not None:
+            budget_value = str(budget_value)
+        if budget_value:
+            metrics.budget_name = budget_value
+
+        clone_args_raw = self._yaml_get_str(
+            work_yaml,
+            ["day_clone_args", "day-clone", "clone_args", "clone-args", "clone"],
+        ) or ""
+        clone_args = self._format_clone_args(clone_args_raw, workset, work_yaml)
+        clone_args = self._apply_budget_argument(clone_args, work_yaml)
+        clone_command_template = self.config.pipeline.clone_command
+        metrics.clone_command = clone_command_template.format(clone_args=clone_args).strip()
+
+        run_suffix = self._yaml_get_str(
+            work_yaml,
+            ["dy_r", "dy-r", "dy", "run", "run_suffix", "run-suffix", "run_cmd", "run-command"],
+        )
+        if run_suffix:
+            metrics.pipeline_command = (self.config.pipeline.run_prefix or "") + run_suffix
+
+        cluster_name = self._load_workset_cluster(workset) or metrics.cluster_name
+        if not cluster_name:
+            fallback_cluster = work_yaml.get("cluster_name") or self.config.cluster.reuse_cluster_name
+            if isinstance(fallback_cluster, str) and fallback_cluster.strip():
+                cluster_name = fallback_cluster.strip()
+        if cluster_name:
+            metrics.cluster_name = cluster_name
+
+        if metrics.region_az is None and include_details and metrics.cluster_name:
+            details = self._describe_cluster(metrics.cluster_name)
+            if details:
+                zone = self._extract_cluster_zone(details)
+                if zone:
+                    metrics.region_az = zone
+
+        start_seconds = None
+        start_aware: Optional[dt.datetime] = None
+        if start_dt:
+            start_aware = start_dt
+            if start_aware.tzinfo is None:
+                start_aware = start_aware.replace(tzinfo=dt.timezone.utc)
+        if start_aware:
+            if metrics.end_dt:
+                end_aware = metrics.end_dt
+                if end_aware.tzinfo is None:
+                    end_aware = end_aware.replace(tzinfo=dt.timezone.utc)
+                start_seconds = max((end_aware - start_aware).total_seconds(), 0.0)
+            else:
+                now = dt.datetime.utcnow().replace(tzinfo=dt.timezone.utc)
+                start_seconds = max((now - start_aware).total_seconds(), 0.0)
+        if start_seconds is not None:
+            metrics.run_seconds = start_seconds
+
+        if include_details and metrics.cluster_name:
+            pipeline_dir = self._load_pipeline_location(workset)
+            if pipeline_dir is not None:
+                script = workset_metrics.remote_metrics_script()
+                remote_cmd = (
+                    f"cd {shlex.quote(str(pipeline_dir))} && python3 - <<'PY'\n{script}\nPY"
+                )
+                result = self._run_headnode_command(
+                    metrics.cluster_name, remote_cmd, check=False, shell=True
+                )
+                if result.returncode == 0:
+                    payload = result.stdout.decode("utf-8", errors="ignore").strip()
+                    try:
+                        data = json.loads(payload)
+                    except json.JSONDecodeError:
+                        LOGGER.debug(
+                            "Unable to decode metrics output for %s: %s",
+                            workset.name,
+                            payload,
+                        )
+                    else:
+                        metrics.samples = int(data.get("samples", metrics.samples or 0))
+                        metrics.sample_libraries = int(
+                            data.get("sample_libraries", metrics.sample_libraries or 0)
+                        )
+                        metrics.fastq_files = int(
+                            data.get("fastq_files", metrics.fastq_files or 0)
+                        )
+                        metrics.fastq_bytes = int(
+                            data.get("fastq_bytes", metrics.fastq_bytes or 0)
+                        )
+                        metrics.cram_files = int(
+                            data.get("cram_files", metrics.cram_files or 0)
+                        )
+                        metrics.cram_bytes = int(
+                            data.get("cram_bytes", metrics.cram_bytes or 0)
+                        )
+                        metrics.vcf_files = int(
+                            data.get("vcf_files", metrics.vcf_files or 0)
+                        )
+                        metrics.vcf_bytes = int(
+                            data.get("vcf_bytes", metrics.vcf_bytes or 0)
+                        )
+                        metrics.results_bytes = int(
+                            data.get("results_bytes", metrics.results_bytes or 0)
+                        )
+                        metrics.ec2_cost = float(
+                            data.get("ec2_cost", metrics.ec2_cost or 0.0)
+                        )
+                else:
+                    LOGGER.debug(
+                        "Metrics command for %s exited %s: %s",
+                        workset.name,
+                        result.returncode,
+                        result.stderr.decode("utf-8", errors="ignore"),
+                    )
+
+        if metrics.results_bytes:
+            metrics.s3_daily_cost = workset_metrics.storage_daily_cost(metrics.results_bytes)
+        if metrics.cram_bytes:
+            region_cost, internet_cost = workset_metrics.transfer_costs(metrics.cram_bytes)
+            metrics.cram_region_cost = region_cost
+            metrics.cram_internet_cost = internet_cost
+        if metrics.vcf_bytes:
+            region_cost, internet_cost = workset_metrics.transfer_costs(metrics.vcf_bytes)
+            metrics.vcf_region_cost = region_cost
+            metrics.vcf_internet_cost = internet_cost
+
+        if state in terminal_states and include_details:
+            self._save_report_cache(workset, metrics)
+
+        return metrics
 
     def _report_sort_key(self, row: WorksetReportRow) -> Tuple[int, str]:
         priority = STATE_PRIORITIES.get(row.state, max(STATE_PRIORITIES.values()) + 1)
         return priority, row.name
 
-    def _render_term_report(self, rows: Sequence[WorksetReportRow]) -> None:
+    def _render_term_report(
+        self, rows: Sequence[WorksetReportRow], *, minimal: bool
+    ) -> None:
         if not rows:
             print("No worksets matched the selection.")
             return
-        name_width = max(len("Workset"), max(len(row.name) for row in rows))
-        state_width = max(len("State"), max(len(row.state_text) for row in rows))
-        timestamp_width = max(len("Timestamp"), max(len(row.timestamp or "-") for row in rows))
-        required_header = "Required"
-        detail_header = "Detail"
-        header = (
-            f"{'Workset':<{name_width}}  {'State':<{state_width}}  {'Timestamp':<{timestamp_width}}  "
-            f"{required_header:<8}  {detail_header}"
-        )
+
+        if minimal:
+            name_width = max(len("Workset"), max(len(row.name) for row in rows))
+            state_width = max(len("State"), max(len(row.state_text) for row in rows))
+            start_width = max(
+                len("StartDT"), max(len(row.start_display or "-") for row in rows)
+            )
+            header = (
+                f"{'Workset':<{name_width}}  {'State':<{state_width}}  {'StartDT':<{start_width}}  "
+                f"{'Valid':<8}  Detail"
+            )
+            print(header)
+            print("-" * len(header))
+            for row in rows:
+                state_color = STATE_COLORS.get(row.state, STATE_COLORS["unknown"])
+                reset = "\033[0m"
+                state_text = f"{state_color}{row.state_text:<{state_width}}{reset}"
+                start_text = row.start_display or "-"
+                valid_text = (
+                    f"{'yes':<8}"
+                    if row.has_required_files
+                    else f"\033[31m{'NO':<8}\033[0m"
+                )
+                print(
+                    f"{row.name:<{name_width}}  {state_text}  {start_text:<{start_width}}  "
+                    f"{valid_text}  {row.detail or ''}"
+                )
+            return
+
+        columns = [
+            ("Workset", lambda r: r.name),
+            ("State", lambda r: r.state_text),
+            ("StartDT", lambda r: r.start_display or "-"),
+            (
+                "EndDT",
+                lambda r: self._format_timestamp(r.metrics.end_dt)
+                if r.metrics and r.metrics.end_dt
+                else "-",
+            ),
+            (
+                "RunTime",
+                lambda r: self._format_runtime(r.metrics.run_seconds)
+                if r.metrics
+                else "-",
+            ),
+            ("Valid", lambda r: "yes" if r.has_required_files else "NO"),
+            (
+                "Cluster",
+                lambda r: r.metrics.cluster_name if r.metrics and r.metrics.cluster_name else "-",
+            ),
+            (
+                "RegionAZ",
+                lambda r: r.metrics.region_az if r.metrics and r.metrics.region_az else "-",
+            ),
+            (
+                "Budget",
+                lambda r: r.metrics.budget_name if r.metrics and r.metrics.budget_name else "-",
+            ),
+            (
+                "PipelineCmd",
+                lambda r: r.metrics.pipeline_command if r.metrics and r.metrics.pipeline_command else "-",
+            ),
+            (
+                "CloneCmd",
+                lambda r: r.metrics.clone_command if r.metrics and r.metrics.clone_command else "-",
+            ),
+            (
+                "Samps",
+                lambda r: self._format_integer(r.metrics.samples) if r.metrics else "-",
+            ),
+            (
+                "SampLibs",
+                lambda r: self._format_integer(r.metrics.sample_libraries)
+                if r.metrics
+                else "-",
+            ),
+            (
+                "Fastqs",
+                lambda r: self._format_count_size(
+                    r.metrics.fastq_files, r.metrics.fastq_bytes
+                )
+                if r.metrics
+                else "-",
+            ),
+            (
+                "CRAMs",
+                lambda r: self._format_count_size(
+                    r.metrics.cram_files, r.metrics.cram_bytes
+                )
+                if r.metrics
+                else "-",
+            ),
+            (
+                "VCFs",
+                lambda r: self._format_count_size(
+                    r.metrics.vcf_files, r.metrics.vcf_bytes
+                )
+                if r.metrics
+                else "-",
+            ),
+            (
+                "Results",
+                lambda r: self._format_size(r.metrics.results_bytes)
+                if r.metrics
+                else "-",
+            ),
+            (
+                "S3DailyCost",
+                lambda r: self._format_currency_value(r.metrics.s3_daily_cost)
+                if r.metrics
+                else "-",
+            ),
+            (
+                "CRAM Xfer",
+                lambda r: self._format_transfer(
+                    r.metrics.cram_region_cost, r.metrics.cram_internet_cost
+                )
+                if r.metrics
+                else "-",
+            ),
+            (
+                "VCF Xfer",
+                lambda r: self._format_transfer(
+                    r.metrics.vcf_region_cost, r.metrics.vcf_internet_cost
+                )
+                if r.metrics
+                else "-",
+            ),
+            (
+                "EC2Cost",
+                lambda r: self._format_currency_value(r.metrics.ec2_cost)
+                if r.metrics
+                else "-",
+            ),
+            ("Detail", lambda r: r.detail or ""),
+        ]
+
+        widths = [max(len(title), max(len(func(row)) for row in rows)) for title, func in columns]
+        header = "  ".join(f"{title:<{width}}" for width, (title, _) in zip(widths, columns))
         print(header)
         print("-" * len(header))
         for row in rows:
-            state_color = STATE_COLORS.get(row.state, STATE_COLORS["unknown"])
-            reset = "\033[0m"
-            display_state = row.state_text
-            state_text = f"{state_color}{display_state:<{state_width}}{reset}"
-            timestamp_text = row.timestamp or "-"
-            required_text = f"{'yes':<8}" if row.has_required_files else f"\033[31m{'NO':<8}\033[0m"
-            detail_text = row.detail or ""
-            print(
-                f"{row.name:<{name_width}}  {state_text}  {timestamp_text:<{timestamp_width}}  "
-                f"{required_text}  {detail_text}"
-            )
+            formatted: List[str] = []
+            for width, (_, func) in zip(widths, columns):
+                value = func(row)
+                if func is columns[1][1]:
+                    state_color = STATE_COLORS.get(row.state, STATE_COLORS["unknown"])
+                    reset = "\033[0m"
+                    value = f"{state_color}{value:<{width}}{reset}"
+                    formatted.append(value)
+                elif func is columns[5][1]:
+                    if row.has_required_files:
+                        formatted.append(f"{value:<{width}}")
+                    else:
+                        formatted.append(f"\033[31m{value:<{width}}\033[0m")
+                else:
+                    formatted.append(f"{value:<{width}}")
+            print("  ".join(formatted))
 
-    def _write_delimited_report(self, rows: Sequence[WorksetReportRow], path: Path, delimiter: str) -> None:
+    def _write_delimited_report(
+        self, rows: Sequence[WorksetReportRow], path: Path, delimiter: str, *, minimal: bool
+    ) -> None:
         with path.open("w", encoding="utf-8", newline="") as handle:
             writer = csv.writer(handle, delimiter=delimiter)
-            writer.writerow(["workset", "state", "timestamp", "detail", "has_required_files"])
+            self._write_rows(writer, rows, minimal)
+
+    def _write_rows(
+        self, writer: csv.writer, rows: Sequence[WorksetReportRow], minimal: bool
+    ) -> None:
+        if minimal:
+            writer.writerow(["workset", "state", "start_dt", "detail", "valid"])
             for row in rows:
                 writer.writerow(
                     [
                         row.name,
                         row.state_text,
-                        row.timestamp or "",
+                        row.start_display or "",
                         row.detail or "",
                         "yes" if row.has_required_files else "no",
                     ]
                 )
+            return
 
-    def report(self, target: str) -> None:
+        writer.writerow(
+            [
+                "workset",
+                "state",
+                "start_dt",
+                "end_dt",
+                "run_seconds",
+                "detail",
+                "valid",
+                "cluster_name",
+                "region_az",
+                "budget_name",
+                "pipeline_command",
+                "clone_command",
+                "samples",
+                "sample_libraries",
+                "fastq_files",
+                "fastq_bytes",
+                "cram_files",
+                "cram_bytes",
+                "vcf_files",
+                "vcf_bytes",
+                "results_bytes",
+                "s3_daily_cost",
+                "cram_region_cost",
+                "cram_internet_cost",
+                "vcf_region_cost",
+                "vcf_internet_cost",
+                "ec2_cost",
+            ]
+        )
+        for row in rows:
+            metrics = row.metrics or WorksetReportMetrics()
+            writer.writerow(
+                [
+                    row.name,
+                    row.state_text,
+                    row.start_display or "",
+                    self._format_timestamp(metrics.end_dt) if metrics.end_dt else "",
+                    f"{metrics.run_seconds:.0f}" if metrics.run_seconds is not None else "",
+                    row.detail or "",
+                    "yes" if row.has_required_files else "no",
+                    metrics.cluster_name or "",
+                    metrics.region_az or "",
+                    metrics.budget_name or "",
+                    metrics.pipeline_command or "",
+                    metrics.clone_command or "",
+                    metrics.samples if metrics.samples is not None else "",
+                    metrics.sample_libraries if metrics.sample_libraries is not None else "",
+                    metrics.fastq_files if metrics.fastq_files is not None else "",
+                    metrics.fastq_bytes if metrics.fastq_bytes is not None else "",
+                    metrics.cram_files if metrics.cram_files is not None else "",
+                    metrics.cram_bytes if metrics.cram_bytes is not None else "",
+                    metrics.vcf_files if metrics.vcf_files is not None else "",
+                    metrics.vcf_bytes if metrics.vcf_bytes is not None else "",
+                    metrics.results_bytes if metrics.results_bytes is not None else "",
+                    metrics.s3_daily_cost if metrics.s3_daily_cost is not None else "",
+                    metrics.cram_region_cost if metrics.cram_region_cost is not None else "",
+                    metrics.cram_internet_cost if metrics.cram_internet_cost is not None else "",
+                    metrics.vcf_region_cost if metrics.vcf_region_cost is not None else "",
+                    metrics.vcf_internet_cost if metrics.vcf_internet_cost is not None else "",
+                    metrics.ec2_cost if metrics.ec2_cost is not None else "",
+                ]
+            )
+
+    def _format_runtime(self, seconds: Optional[float]) -> str:
+        if seconds is None:
+            return "-"
+        duration = dt.timedelta(seconds=int(seconds))
+        text = str(duration)
+        if duration < dt.timedelta(days=1):
+            # Ensure HH:MM:SS format
+            total_seconds = int(seconds)
+            hours, remainder = divmod(total_seconds, 3600)
+            minutes, seconds = divmod(remainder, 60)
+            text = f"{hours:02d}:{minutes:02d}:{int(seconds):02d}"
+        return text
+
+    def _format_integer(self, value: Optional[int]) -> str:
+        if value is None:
+            return "-"
+        return str(value)
+
+    def _format_size(self, value: Optional[int]) -> str:
+        if not value:
+            return "-"
+        return workset_metrics.format_gib(value)
+
+    def _format_currency_value(self, value: Optional[float]) -> str:
+        if value is None:
+            return "-"
+        return workset_metrics.format_currency(value)
+
+    def _format_count_size(
+        self, count: Optional[int], size_bytes: Optional[int]
+    ) -> str:
+        if count is None and size_bytes is None:
+            return "-"
+        count_text = self._format_integer(count) if count is not None else "0"
+        size_text = self._format_size(size_bytes)
+        if size_text == "-":
+            size_text = "0.00 GB"
+        return f"{count_text} ({size_text})"
+
+    def _format_transfer(
+        self, region_cost: Optional[float], internet_cost: Optional[float]
+    ) -> str:
+        if region_cost is None and internet_cost is None:
+            return "-"
+        region = self._format_currency_value(region_cost)
+        internet = self._format_currency_value(internet_cost)
+        return f"region {region} / internet {internet}"
+
+    def report(self, target: str, *, minimal: bool) -> None:
         worksets = list(self._discover_worksets())
-        rows = self._generate_report_rows(worksets)
+        rows = self._generate_report_rows(worksets, include_details=not minimal)
         if self._process_directories:
             found = {row.name for row in rows}
             missing = sorted(self._process_directories - found)
@@ -1932,17 +2637,16 @@ class WorksetMonitor:
                 LOGGER.warning("Requested workset %s was not found", name)
 
         if target.lower() == "term":
-            self._render_term_report(rows)
+            self._render_term_report(rows, minimal=minimal)
             return
 
         # Buffer CSV/TSV once so we can write to S3 or local
         def _serialize(rows: Sequence[WorksetReportRow], delim: str) -> bytes:
             from io import StringIO
+
             buf = StringIO()
-            w = csv.writer(buf, delimiter=delim)
-            w.writerow(["workset", "state", "timestamp", "detail", "has_required_files"])
-            for r in rows:
-                w.writerow([r.name, r.state, r.timestamp or "", r.detail or "", "yes" if r.has_required_files else "no"])
+            writer = csv.writer(buf, delimiter=delim)
+            self._write_rows(writer, rows, minimal)
             return buf.getvalue().encode("utf-8")
 
         if target.startswith("s3://"):
@@ -1962,7 +2666,7 @@ class WorksetMonitor:
         delim = "\t" if suffix == ".tsv" else ","
         if path.parent and not path.parent.exists():
             path.parent.mkdir(parents=True, exist_ok=True)
-        self._write_delimited_report(rows, path, delim)
+        self._write_delimited_report(rows, path, delim, minimal=minimal)
         LOGGER.info("Wrote report with %d entries to %s", len(rows), path)
 
     # ------------------------------------------------------------------
@@ -2189,7 +2893,13 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Monitor S3 workset directories and launch Daylily pipelines"
     )
-    parser.add_argument("config", type=Path, help="Path to the YAML configuration file")
+    parser.add_argument(
+        "config",
+        nargs="?",
+        default=Path("daylily-workset-monitor.yaml"),
+        type=Path,
+        help="Path to the YAML configuration file",
+    )
     parser.add_argument("--once", action="store_true", help="Run a single poll iteration and exit")
     parser.add_argument("--dry-run", action="store_true", help="Do not mutate S3 or execute commands")
     parser.add_argument(
@@ -2215,6 +2925,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
             "a .tsv/.csv filename (local or s3://...)"
         ),
     )
+    parser.add_argument(
+        "--min-deets",
+        action="store_true",
+        help="When reporting, limit the output to the legacy column set",
+    )
     args = parser.parse_args(argv)
     if args.report and args.report.lower() != "term":
         target = args.report
@@ -2225,6 +2940,8 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
             suffix = Path(target).suffix.lower()
             if suffix not in {".tsv", ".csv"}:
                 parser.error("--report expects 'term' or a path ending with .tsv or .csv")
+    if args.min_deets and not args.report:
+        parser.error("--min-deets requires --report")
     return args
 
 
@@ -2242,7 +2959,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         attempt_restart=args.attempt_restart,
     )
     if args.report:
-        monitor.report(args.report)
+        monitor.report(args.report, minimal=args.min_deets)
         return 0
 
     monitor.run()
