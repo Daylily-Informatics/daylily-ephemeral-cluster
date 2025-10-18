@@ -752,7 +752,9 @@ class WorksetMonitor:
                     "Skipping export for %s: command already completed", workset.name
                 )
             else:
-                self._export_results(workset, cluster_name, target_export_uri)
+                self._export_results(
+                    workset, cluster_name, target_export_uri, pipeline_dir
+                )
                 completed_commands.add(export_label)
 
         return pipeline_dir
@@ -1953,7 +1955,11 @@ class WorksetMonitor:
         )
 
     def _export_results(
-        self, workset: Workset, cluster_name: str, target_uri: str
+        self,
+        workset: Workset,
+        cluster_name: str,
+        target_uri: str,
+        pipeline_dir: PurePosixPath,
     ) -> None:
         output_dir = self._local_state_dir(workset)
         profile_value = self.config.aws.profile or ""
@@ -1964,6 +1970,9 @@ class WorksetMonitor:
             profile=shlex.quote(profile_value) if profile_value else "",
             output_dir=shlex.quote(str(output_dir)),
             workdir_name=self._resolve_workdir_name(workset),
+            workset_dir=shlex.quote(str(pipeline_dir)),
+            pipeline_dir=shlex.quote(str(pipeline_dir)),
+            workset=shlex.quote(workset.name),
         )
         LOGGER.info("Exporting pipeline results for %s to %s", workset.name, target_uri)
         self._run_monitored_command(
