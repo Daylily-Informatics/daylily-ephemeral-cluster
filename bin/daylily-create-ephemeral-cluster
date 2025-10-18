@@ -2081,10 +2081,10 @@ printf '✅ Detailed monitoring %s\n\n' "$([[ "$act_detailed_monitoring" == "tru
 
 # Prepare configuration
 mkdir -p "$HOME/.config/daylily"
-target_conf="$HOME/.config/daylily/${cluster_name}_cluster.yaml.init"
-target_conf_fin="$HOME/.config/daylily/${cluster_name}_cluster.yaml"
-init_template_timestamp=$(date '+%Y%m%d%H%M%S')
-INIT_TEMPLATE_FILE="$HOME/.config/daylily/${cluster_name}_init_template_${init_template_timestamp}.yaml"
+config_timestamp=$(date '+%Y%m%d%H%M%S')
+target_conf="$HOME/.config/daylily/${cluster_name}_cluster_${config_timestamp}.yaml.init"
+target_conf_fin="$HOME/.config/daylily/${cluster_name}_cluster_${config_timestamp}.yaml"
+INIT_TEMPLATE_FILE="$HOME/.config/daylily/${cluster_name}_init_template_${config_timestamp}.yaml"
 
 cp "$cluster_yaml" "$target_conf"
 pem_name=$(basename "$pem_file" | cut -d '.' -f 1)
