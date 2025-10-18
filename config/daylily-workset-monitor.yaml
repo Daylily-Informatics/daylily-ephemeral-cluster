@@ -58,7 +58,7 @@ pipeline:
   # {workdir_name}, {workset_dir}, {pipeline_dir}, and {workset}.
   export_command: ./bin/daylily-export-fsx-to-s3-from-local --cluster {cluster} --target-uri analysis_results/ubuntu/{workdir_name} --region {region} --profile {profile} --output-dir ./etc --verbose
   # Command executed before entering the pipeline directory on the head node.
-  login_shell_init: source ~/.bashrc && echo "Ready to run"
+  login_shell_init: echo Ready2run 
   # Prefix used when generating tmux session names for launched pipelines.
   tmux_session_prefix: daylily
   # Shell invoked at the end of the tmux command to keep the session alive for inspection.
