@@ -53,7 +53,9 @@ pipeline:
   run_prefix: "source dyoainit && source bin/day_activate slurm hg38  && DAY_CONTAINERIZED=0 ./bin/day_run "
   # Maximum time (in minutes) to wait for the pipeline success sentinel before aborting.
   pipeline_timeout_minutes: 240
-  # Command that exports results back to S3 after completion.
+  # Command that exports results back to S3 after completion.  The template may
+  # reference {cluster}, {target_uri}, {region}, {profile}, {output_dir},
+  # {workdir_name}, {workset_dir}, {pipeline_dir}, and {workset}.
   export_command: ./bin/daylily-export-fsx-to-s3-from-local --cluster {cluster} --target-uri analysis_results/ubuntu/{workdir_name} --region {region} --profile {profile} --output-dir ./etc --verbose
   # Command executed before entering the pipeline directory on the head node.
   login_shell_init: source ~/.bashrc && echo "Ready to run"
