@@ -23,6 +23,9 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Monitor S3 workset directories and launch Daylily pipelines",
     )
+    supported_actions = ", ".join(
+        WorksetMonitor.DEFAULT_ACTION_SEQUENCE + WorksetMonitor.OPTIONAL_ACTIONS
+    )
     parser.add_argument("config", type=Path, help="Path to the YAML configuration file")
     parser.add_argument(
         "--once",
@@ -60,7 +63,10 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         dest="actions",
         action="append",
         metavar="NAME",
-        help="Execute a specific monitor action instead of running the continuous monitor",
+        help=(
+            "Execute a specific monitor action instead of running the continuous monitor. "
+            f"Supported actions: {supported_actions}"
+        ),
     )
     return parser.parse_args(argv)
 
