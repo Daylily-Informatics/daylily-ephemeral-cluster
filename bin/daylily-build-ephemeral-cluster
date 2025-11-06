@@ -1,0 +1,252 @@
+#!/usr/bin/env python3
+"""Build a Daylily ephemeral cluster using AWS native tooling.
+
+This command stitches together the AWS utilities that Daylily
+expects operators to install: the AWS CLI, AWS ParallelCluster
+(`pcluster`) and Finch.  The legacy helper mixed ad-hoc shell and
+Python utilities for provisioning networking stacks, building custom
+images and finally creating the cluster.  The refactored helper keeps
+those steps but leans on the AWS maintained CLIs as much as possible
+so that the behaviour matches what operators would see in the AWS
+console.
+
+The workflow is split into three phases:
+
+1. Ensure that the required commands are available.
+2. Optionally deploy (or update) the networking and IAM resources via
+   CloudFormation.  This reuses the repository's
+   ``config/day_cluster/pcluster_env.yml`` template by default.
+3. Optionally build a container image using Finch, then create the
+   cluster with `pcluster`.  When ``--dry-run`` is passed the script
+   simply prints the commands that would be executed which keeps the
+   workflow safe for experimentation.
+
+Each phase can be skipped independently which keeps the command safe
+for repeated use and allows operators to plug in existing
+infrastructure.
+"""
+from __future__ import annotations
+
+import argparse
+import os
+import shlex
+import shutil
+import subprocess
+import sys
+from pathlib import Path
+from typing import Iterable, List, Optional
+
+
+class CommandError(RuntimeError):
+    """Raised when an external command fails."""
+
+
+def ensure_command(name: str) -> None:
+    """Ensure that *name* is available on ``PATH``.
+
+    Parameters
+    ----------
+    name:
+        The command to look for.
+
+    Raises
+    ------
+    SystemExit
+        If the command is missing.
+    """
+
+    if shutil.which(name) is None:
+        print(f"❌ Required command '{name}' is not available on PATH.", file=sys.stderr)
+        raise SystemExit(3)
+
+
+def run_command(cmd: Iterable[str], *, env: Optional[dict] = None, dry_run: bool = False) -> None:
+    """Execute *cmd* while echoing it to stdout.
+
+    The function captures the common logging logic for the AWS CLI,
+    Finch and ParallelCluster invocations.  When ``dry_run`` is true the
+    command is only printed which keeps the helper safe for rehearsals
+    and CI validation.
+    """
+
+    printable = " ".join(shlex.quote(part) for part in cmd)
+    print(f"➡️  {printable}")
+    if dry_run:
+        print("   (dry run) skipping execution")
+        return
+
+    completed = subprocess.run(list(cmd), env=env, check=False)
+    if completed.returncode != 0:
+        raise CommandError(f"Command failed with exit code {completed.returncode}: {printable}")
+
+
+def build_argument_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(
+        description="Provision Daylily ephemeral clusters using AWS native tooling.",
+        formatter_class=argparse.ArgumentDefaultsHelpFormatter,
+    )
+    parser.add_argument("--region", required=True, help="AWS region for both the stack and cluster")
+    parser.add_argument("--profile", help="AWS named profile to use for all AWS CLI commands")
+    parser.add_argument(
+        "--stack-name",
+        default="daylily-ephemeral-cluster-env",
+        help="Name of the CloudFormation stack that contains networking prerequisites",
+    )
+    parser.add_argument(
+        "--template",
+        type=Path,
+        default=Path("config/day_cluster/pcluster_env.yml"),
+        help="CloudFormation template that defines the VPC, subnets and IAM policies",
+    )
+    parser.add_argument(
+        "--parameter",
+        action="append",
+        dest="parameters",
+        metavar="KEY=VALUE",
+        default=[],
+        help="CloudFormation parameter override (can be specified multiple times)",
+    )
+    parser.add_argument(
+        "--skip-stack",
+        action="store_true",
+        help="Skip the CloudFormation deployment step",
+    )
+    parser.add_argument(
+        "--cluster-config",
+        type=Path,
+        required=True,
+        help="ParallelCluster configuration YAML",
+    )
+    parser.add_argument(
+        "--cluster-name",
+        required=True,
+        help="Name of the ParallelCluster to create",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Print the commands without executing them",
+    )
+    parser.add_argument(
+        "--skip-finch",
+        action="store_true",
+        help="Skip Finch image builds even if a Finchfile is present",
+    )
+    parser.add_argument(
+        "--finchfile",
+        type=Path,
+        help="Path to a Finchfile that should be built prior to cluster creation",
+    )
+    parser.add_argument(
+        "--finch-tag",
+        default="daylily/ephemeral-cluster:latest",
+        help="Image tag to use for the Finch build",
+    )
+    parser.add_argument(
+        "--pcluster-args",
+        action="append",
+        default=[],
+        metavar="ARG",
+        help="Extra arguments to pass through to `pcluster create-cluster`",
+    )
+    return parser
+
+
+def format_parameter_overrides(parameters: Iterable[str]) -> List[str]:
+    overrides: List[str] = []
+    for raw in parameters:
+        if "=" not in raw:
+            raise SystemExit(f"Invalid --parameter value '{raw}'. Expected KEY=VALUE format.")
+        overrides.append(raw)
+    return overrides
+
+
+def deploy_stack(args: argparse.Namespace) -> None:
+    template = args.template
+    if not template.exists():
+        raise SystemExit(f"Template file not found: {template}")
+
+    cmd = ["aws", "cloudformation", "deploy", "--stack-name", args.stack_name, "--template-file", str(template), "--region", args.region, "--capabilities", "CAPABILITY_NAMED_IAM", "--no-fail-on-empty-changeset"]
+    parameter_overrides = format_parameter_overrides(args.parameters)
+    if parameter_overrides:
+        cmd.extend(["--parameter-overrides", *parameter_overrides])
+    if args.profile:
+        cmd.extend(["--profile", args.profile])
+
+    run_command(cmd, dry_run=args.dry_run)
+
+
+def build_finch_image(args: argparse.Namespace) -> None:
+    if args.skip_finch:
+        print("ℹ️  Finch build skipped (--skip-finch provided).")
+        return
+    if args.finchfile is None:
+        # No Finchfile provided; nothing to do.
+        return
+    if not args.finchfile.exists():
+        raise SystemExit(f"Finchfile not found: {args.finchfile}")
+
+    ensure_command("finch")
+
+    cmd = [
+        "finch",
+        "build",
+        "--file",
+        str(args.finchfile),
+        "--tag",
+        args.finch_tag,
+        str(args.finchfile.parent or Path(".")),
+    ]
+    run_command(cmd, dry_run=args.dry_run)
+
+
+def create_cluster(args: argparse.Namespace) -> None:
+    config = args.cluster_config
+    if not config.exists():
+        raise SystemExit(f"Cluster configuration not found: {config}")
+
+    ensure_command("pcluster")
+
+    cmd = [
+        "pcluster",
+        "create-cluster",
+        "--cluster-configuration",
+        str(config),
+        "--region",
+        args.region,
+        "--cluster-name",
+        args.cluster_name,
+    ]
+    cmd.extend(args.pcluster_args)
+
+    env = os.environ.copy()
+    if args.profile:
+        env["AWS_PROFILE"] = args.profile
+
+    run_command(cmd, env=env, dry_run=args.dry_run)
+
+
+def main(argv: Optional[Iterable[str]] = None) -> int:
+    parser = build_argument_parser()
+    args = parser.parse_args(argv)
+
+    ensure_command("aws")
+
+    if not args.skip_stack:
+        deploy_stack(args)
+    else:
+        print("ℹ️  CloudFormation deployment skipped (--skip-stack provided).")
+
+    build_finch_image(args)
+    create_cluster(args)
+
+    print("✅ Daylily ephemeral cluster workflow complete.")
+    return 0
+
+
+if __name__ == "__main__":
+    try:
+        raise SystemExit(main())
+    except CommandError as exc:
+        print(f"❌ {exc}", file=sys.stderr)
+        raise SystemExit(1)

@@ -16,6 +16,22 @@
 bin/daylily-create-ephemeral-cluster --profile $AWS_PROFILE --region-az <region-az> --config daylily_cluster_config.yaml
 ```
 
+Prefer to stay entirely within AWS managed tooling?  The refactored
+`bin/daylily-build-ephemeral-cluster` helper wraps the same workflow
+with [`aws cloudformation`](https://docs.aws.amazon.com/cli/latest/reference/cloudformation/deploy.html),
+[`finch`](https://github.com/runfinch/finch) and
+[`pcluster`](https://docs.aws.amazon.com/parallelcluster/latest/ug/cli-command-reference.html):
+
+```bash
+bin/daylily-build-ephemeral-cluster --profile $AWS_PROFILE --region <region> \
+  --stack-name daylily-env --cluster-config ~/.config/daylily/<cluster>.yaml \
+  --cluster-name <cluster>
+```
+
+Pass `--dry-run` to print the AWS-native commands without executing
+them, or `--skip-stack` / `--skip-finch` to reuse existing
+infrastructure and container images.
+
 ### Architecture & Features
 - **Rapid, reproducible cluster bring-up** built on AWS ParallelCluster with optional PCUI for browser-based terminal and multi-cluster management. 
 - **Cost-aware infrastructure** with scripts that inspect spot-market capacity, calculate per-sample spend, and tag workloads for downstream budget reporting. _<small>(using [daylily-omics-analysis](https://github.com/Daylily-Informatics/daylily-omics-analysis) WGS analysis workflows, can run `fastq`->aligned deduped CRAM->snv+sv VCFs in ~1hr for as little as $5/genome)</small>_
