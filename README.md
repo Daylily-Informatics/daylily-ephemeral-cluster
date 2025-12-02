@@ -56,7 +56,7 @@ Because the compute layer is generic Slurm, any orchestrator that speaks Slurm (
 ---
 
 ## Reference Data & Canned Controls
-High-throughput analyses rely on predictable reference data access. Daylily provides automation to manage reference and control data via [daylily-omics-references]():
+High-throughput analyses rely on predictable reference data access. Daylily provides automation to manage reference and control data via [daylily-omics-references](https://github.com/Daylily-Informatics/daylily-omics-references):
 
 - **verify your reference bucket exists**
   ```bash
@@ -401,6 +401,33 @@ colr  'did it work?' 0,100,255 255,100,0
 <p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
 # Ephemeral Cluster Creation
+
+## Clone Reference Bucket (only needs to be done once per region, or anytime it is missing)
+_`daylily-create-ephemeral-cluster` will fail if the expected reference bucket is not detected in the region you run in._
+- _DRY RUN_ clone :
+```bash
+export AWS_PROFILE=<profile>
+daylily-omics-references \
+    --profile $AWS_PROFILE \
+    --region us-west-2 \
+    clone \
+    --bucket <yourprefix>-daylily \
+    --use-acceleration \
+    --region us-west-2
+```
+
+- _LIVE RUN_ clone (this will take one to several hours depending on acceleration, if copying w/in or cross regions, etc):
+```bash
+daylily-omics-references \
+    --profile $AWS_PROFILE \
+    --region us-west-2 \
+    clone \
+    --bucket <yourprefix>-daylily \
+    --use-acceleration \
+    --region us-west-2 \
+    --execute
+```
+  - note: if the command fails b/c, try again w/out `--acceleration` and see if this works. You will probably need to go delete the newly creaetd bucket first.
 
 ## [daylily-references-public](#daylily-references-public-bucket-contents) Reference Bucket
 
