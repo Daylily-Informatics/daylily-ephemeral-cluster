@@ -889,7 +889,7 @@ bin/daylily-ssh-into-headnode
 
 <p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
-# From The Epheemeral Cluster Headnode
+# From The Ephemeral Cluster Headnode
 
 ## Confirm Headnode Configuration Is Complete (using the `daylily-omics-analysis` repo)
 
