@@ -106,12 +106,12 @@ suppress_pkg_resources_warning() {
 }
 
 ensure_reference_cli() {
-    if ! command -v daylily-omics-references >/dev/null 2>&1; then
+    if ! command -v daylily-omics-references.sh >/dev/null 2>&1; then
         cat <<'ERR'
 ❌ Error: Required command 'daylily-omics-references' is not available.
 Activate the DAY-EC conda environment or install version 0.1.0 manually with:
 
-    pip install "git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.1.0"
+    pip install "git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.2.1"
 
 ERR
         exit 3
@@ -1591,7 +1591,7 @@ set_final_config_value "s3_bucket_name" "$selected_bucket"
 ## TODO: parameterize what verification flags are used here
 echo "Validating reference bucket contents for: $selected_bucket"
 ensure_reference_cli
-if daylily-omics-references --profile "$AWS_PROFILE" --region "$region" \
+if daylily-omics-references.sh --profile "$AWS_PROFILE" --region "$region" \
     verify --bucket "$selected_bucket"  --exclude-b37 ; then
     echo "✅ Reference bucket $selected_bucket passed verification."
 else
