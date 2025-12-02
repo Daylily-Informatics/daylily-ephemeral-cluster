@@ -1466,7 +1466,7 @@ if [[ -z "$selected_key" ]]; then
 fi
 
 if [[ -z "$selected_key" ]]; then
-  echo "❌ No valid SSH key selected."
+  echo "❌ No valid SSH key selected. ONLY pem files in the region named '-omics-analysis-<region>' will be visible "
   exit 3
 fi
 
