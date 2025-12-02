@@ -56,9 +56,37 @@ Because the compute layer is generic Slurm, any orchestrator that speaks Slurm (
 ---
 
 ## Reference Data & Canned Controls
-High-throughput analyses rely on predictable reference data access. Daylily provides automation to:
+High-throughput analyses rely on predictable reference data access. Daylily provides automation to manage reference and control data via [daylily-omics-references]():
 
-- **Clone reference bundles** into a region-scoped S3 bucket (`<prefix>-daylily-omics-analysis-<region>`) using `./bin/create_daylily_omics_analysis_s3.sh`, optionally layering in licensed assets such as Sentieon. 
+- **verify your reference bucket exists**
+  ```bash
+  daylily-omics-references --profile $AWS_PROFILE --region us-west-2 verify --help
+  usage: daylily-omics-references verify [-h] --bucket BUCKET [--version {0.7.131c}] [--exclude-hg38] [--exclude-b37] [--exclude-giab]
+  options:
+  -h, --help            show this help message and exit
+  --bucket BUCKET       Name of the bucket to verify
+  ```
+
+- **Clone reference bundles** into a region-scoped S3 bucket (`<prefix>-daylily-omics-analysis-<region>`) using
+```
+daylily-omics-references --profile $AWS_PROFILE --region us-west-2 clone -h 
+usage: daylily-omics-references clone [-h] --bucket-prefix BUCKET_PREFIX [--region REGION] [--version {0.7.131c}] [--execute] [--exclude-hg38] [--exclude-b37] [--exclude-giab] [--use-acceleration]
+                                      [--log-file LOG_FILE]
+
+options:
+  -h, --help            show this help message and exit
+  --bucket-prefix BUCKET_PREFIX
+                        Prefix for the new bucket
+  --region REGION       AWS region for the new bucket
+  --version {0.7.131c}  Reference data version to clone
+  --execute             Execute the copy instead of performing a dry-run
+  --exclude-hg38        Exclude hg38 references and annotations
+  --exclude-b37         Exclude b37 references and annotations
+  --exclude-giab        Exclude GIAB concordance reads
+  --use-acceleration    Use the S3 accelerate endpoint during copy operations
+  --log-file LOG_FILE   Optional path to capture AWS CLI output
+```
+
 - **Automated mounting of the bucket via FSx** so all compute nodes see `/fsx/data`, `/fsx/resources`, and `/fsx/analysis_results` with low latency. 
 - **Stage canned control datasets** when generating pipeline manifests: `bin/daylily-analysis-samples-to-manifest-new.py` accepts concordance directories from S3/HTTP/local paths and copies them alongside samples, while tagging each run as positive or negative control for downstream QC. 
 
