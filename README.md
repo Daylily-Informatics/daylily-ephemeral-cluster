@@ -704,6 +704,8 @@ I suggest:
 
 
 # PCUI (technically optional, but you will be missing out)
+_*it will be easier to first create your first cluster so you have the appropriate VPC/subnets pre-built*_
+
 [Install instructions here](https://docs.aws.amazon.com/parallelcluster/latest/ug/install-pcui-v3.html#install-pcui-steps-v3), launch it using the public subnet created in your cluster, and the vpcID this public net belongs to. These go in the `ImageBuilderVpcId` and `ImageBuilderSubnetId` respectively.
 
 You should be sure to enable SSM which allows remote access to the nodes from the PCUI console. https://docs.aws.amazon.com/systems-manager/latest/userguide/session-manager-getting-started-ssm-user-permissions.html
