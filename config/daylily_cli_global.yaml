@@ -1,7 +1,7 @@
 ---
 daylily:
-  git_ephemeral_cluster_repo_tag: 0.7.400
-  git_ephemeral_cluster_repo_release_tag: 0.7.400
+  git_ephemeral_cluster_repo_tag: 0.7.401
+  git_ephemeral_cluster_repo_release_tag: 0.7.401
   git_ephemeral_cluster_repo: https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git
   git_ephemeral_cluster_repo_ssh: git@github.com:/Daylily-Informatics/daylily-ephemeral-cluster.git
   analysis_root: /fsx/analysis_results/

@@ -7,8 +7,10 @@ if [[ -z "${BASH_VERSINFO:-}" || "${BASH_VERSINFO[0]}" -lt 4 ]]; then
     exec "${CONDA_PREFIX}/bin/bash" "$0" "$@"
   fi
   echo "❌ Bash >= 4 required. On macOS:"
-  echo "   conda:     conda install -n DAY-EC -c conda-forge bash"
-  echo "   homebrew:  brew install bash  (then re-run with /opt/homebrew/bin/bash)"
+  echo " "
+  echo "   Have you installed the DAY-EC conda env?"
+  echo "   "
+  echo "   bin/init_dayec  "
   exit 3
 fi
 
