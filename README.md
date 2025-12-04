@@ -235,6 +235,19 @@ The tags to activate are:
 #### A Note On Budgets
 - The access necesary to *view* budgets is beyond the scope of this config, please work with your admin to set that up. If you are able to create clusters and whatnot, then the budgeting infrastructure should be working.
 
+##### Cost Tags
+Cost tags need to be activated for the budget features to work.  HOWEVER, you need to wait for the tags to be used once and sit for a day. Once the tags are visible, you only need to activate them one time per account. The cost tags can be found here: `https://us-east-1.console.aws.amazon.com/costmanagement/home?region=us-west-2#/tags`.
+
+```text
+aws-parallelcluster-clustername	
+aws-parallelcluster-jobid	
+aws-parallelcluster-project	
+aws-parallelcluster-username	
+cost-center	
+parallelcluster:cluster-name	
+parallelcluster:compute-resource-name	
+parallelcluster:node-type	
+```
 
 ### AWS `daylily-service` User Account
 - Login to the AWS console as the `daylily-service` user using the console URL captured above.
