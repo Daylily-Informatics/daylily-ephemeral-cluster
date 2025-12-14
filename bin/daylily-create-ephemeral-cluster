@@ -2462,6 +2462,9 @@ fi
 
 echo "✅ ✅ ✅ ....fin!"
 
+echo ""
+echo "to login to the headnode: ssh -i $pem_file ubuntu@$cluster_ip_address"
+
 command -v say >/dev/null 2>&1 && say "onward to daylily" | echo "onward to daylily"
 
 unset AWS_PROFILE
