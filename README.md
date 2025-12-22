@@ -61,6 +61,7 @@ High-throughput analyses rely on predictable reference data access. Daylily prov
 - **verify your reference bucket exists**
   ```bash
   daylily-omics-references --profile $AWS_PROFILE --region us-west-2 verify --help
+  
   usage: daylily-omics-references verify [-h] --bucket BUCKET [--version {0.7.131c}] [--exclude-hg38] [--exclude-b37] [--exclude-giab]
   options:
   -h, --help            show this help message and exit
@@ -69,7 +70,8 @@ High-throughput analyses rely on predictable reference data access. Daylily prov
 
 - **Clone reference bundles** into a region-scoped S3 bucket (`<prefix>-daylily-omics-analysis-<region>`) using
 ```
-daylily-omics-references --profile $AWS_PROFILE --region us-west-2 clone -h 
+daylily-omics-references --profile $AWS_PROFILE --region us-west-2 clone -h
+
 usage: daylily-omics-references clone [-h] --bucket-prefix BUCKET_PREFIX [--region REGION] [--version {0.7.131c}] [--execute] [--exclude-hg38] [--exclude-b37] [--exclude-giab] [--use-acceleration]
                                       [--log-file LOG_FILE]
 
@@ -86,6 +88,32 @@ options:
   --use-acceleration    Use the S3 accelerate endpoint during copy operations
   --log-file LOG_FILE   Optional path to capture AWS CLI output
 ```
+
+Example Call
+
+```bash
+echo DRYRUN
+
+daylily-omics-references \
+    --profile $AWS_PROFILE \
+    --region us-west-2 \
+      clone
+          --bucket-prefix <someprefix> \
+          --region us-west-2 \
+          --use-acceleration
+
+echo 'Actually run it'
+
+daylily-omics-references \
+    --profile $AWS_PROFILE \
+    --region us-west-2 \
+      clone
+          --bucket-prefix <someprefix> \
+          --region us-west-2 \
+          --use-acceleration \
+		  --execute
+```
+
 
 - **Automated mounting of the bucket via FSx** so all compute nodes see `/fsx/data`, `/fsx/resources`, and `/fsx/analysis_results` with low latency. 
 - **Stage canned control datasets** when generating pipeline manifests: `bin/daylily-analysis-samples-to-manifest-new.py` accepts concordance directories from S3/HTTP/local paths and copies them alongside samples, while tagging each run as positive or negative control for downstream QC. 
