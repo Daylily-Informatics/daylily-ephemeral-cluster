@@ -2,7 +2,75 @@
 requires = ["setuptools>=64", "setuptools_scm>=8"]
 build-backend = "setuptools.build_meta"
 
+[project]
+name = "daylily-ephemeral-cluster"
+dynamic = ["version"]
+description = "Infrastructure-as-code for ephemeral AWS ParallelCluster environments for bioinformatics"
+readme = "README.md"
+requires-python = ">=3.9"
+license = {text = "MIT"}
+authors = [
+    {name = "Daylily Informatics", email = "daylily@daylilyinformatics.com"}
+]
+dependencies = [
+    "boto3>=1.26.0",
+    "pyyaml>=6.0",
+    "fastapi>=0.104.0",
+    "uvicorn[standard]>=0.24.0",
+    "pydantic>=2.0.0",
+    "pydantic[email]>=2.0.0",
+    "python-multipart>=0.0.6",
+    "jinja2>=3.1.0",
+    "httpx>=0.25.0",
+    "jsonschema>=4.17.0",
+]
+
+[project.optional-dependencies]
+# Authentication support (optional)
+auth = [
+    "python-jose[cryptography]>=3.3.0",
+    "passlib[bcrypt]>=1.7.4",
+]
+
+# Development dependencies
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "moto>=4.2.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.5.0",
+    "boto3-stubs[dynamodb,s3,sns,cloudwatch]>=1.28.0",
+]
+
 [tool.setuptools_scm]
 version_scheme = "guess-next-dev"
 local_scheme = "node-and-date"
 fallback_version = "0.0.0"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v"
+
+[tool.black]
+line-length = 100
+target-version = ['py39', 'py310', 'py311']
+
+[tool.ruff]
+line-length = 100
+target-version = "py39"
+
+[tool.mypy]
+python_version = "3.9"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = false
+
+# Conda Environment Configuration
+# Preferred environment: DAY-EC
+# To activate: conda activate DAY-EC
+# The DAY-EC environment should include all dependencies listed above
