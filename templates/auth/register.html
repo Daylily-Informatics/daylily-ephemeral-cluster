@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+{% set hide_header = true %}
+{% set hide_footer = true %}
+
+{% block title %}Create Account - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card" style="max-width: 550px;">
+        <div class="auth-header">
+            <div class="auth-logo">🌸 Daylily</div>
+            <h1 class="auth-title">Create your account</h1>
+            <p class="auth-subtitle">Get started with genomics processing in minutes</p>
+        </div>
+        
+        {% if error %}
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+        
+        {% if success %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <div>
+                <strong>Account Created!</strong>
+                <p class="mb-0" style="font-size: 0.875rem;">{{ success }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        <form method="POST" action="/portal/register" id="register-form">
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label for="customer_name" class="form-label required">Organization Name</label>
+                    <input type="text" id="customer_name" name="customer_name" class="form-control" 
+                           placeholder="Acme Genomics Lab" required>
+                </div>
+                
+                <div class="form-group">
+                    <label for="email" class="form-label required">Email Address</label>
+                    <input type="email" id="email" name="email" class="form-control" 
+                           placeholder="admin@company.com" required autocomplete="email">
+                </div>
+            </div>
+            
+            {% if auth_enabled %}
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label for="password" class="form-label required">Password</label>
+                    <input type="password" id="password" name="password" class="form-control" 
+                           placeholder="Min 8 characters" required minlength="8">
+                    <p class="form-text">At least 8 characters with uppercase, lowercase, and number</p>
+                </div>
+                
+                <div class="form-group">
+                    <label for="password_confirm" class="form-label required">Confirm Password</label>
+                    <input type="password" id="password_confirm" name="password_confirm" class="form-control" 
+                           placeholder="Confirm password" required>
+                </div>
+            </div>
+            {% endif %}
+            
+            <hr style="margin: var(--spacing-lg) 0; border-color: var(--color-gray-200);">
+            
+            <h4 style="margin-bottom: var(--spacing-md);">Resource Limits</h4>
+            
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label for="max_concurrent_worksets" class="form-label">Max Concurrent Worksets</label>
+                    <select id="max_concurrent_worksets" name="max_concurrent_worksets" class="form-control form-select">
+                        <option value="5">5 worksets (Starter)</option>
+                        <option value="10" selected>10 worksets (Standard)</option>
+                        <option value="25">25 worksets (Professional)</option>
+                        <option value="50">50 worksets (Enterprise)</option>
+                    </select>
+                </div>
+                
+                <div class="form-group">
+                    <label for="max_storage_gb" class="form-label">Max Storage</label>
+                    <select id="max_storage_gb" name="max_storage_gb" class="form-control form-select">
+                        <option value="100">100 GB (Starter)</option>
+                        <option value="500" selected>500 GB (Standard)</option>
+                        <option value="2000">2 TB (Professional)</option>
+                        <option value="10000">10 TB (Enterprise)</option>
+                    </select>
+                </div>
+            </div>
+            
+            <h4 style="margin-bottom: var(--spacing-md);">Billing Information (Optional)</h4>
+            
+            <div class="grid grid-2">
+                <div class="form-group">
+                    <label for="billing_account_id" class="form-label">AWS Billing Account ID</label>
+                    <input type="text" id="billing_account_id" name="billing_account_id" class="form-control" 
+                           placeholder="123456789012">
+                </div>
+                
+                <div class="form-group">
+                    <label for="cost_center" class="form-label">Cost Center</label>
+                    <input type="text" id="cost_center" name="cost_center" class="form-control" 
+                           placeholder="e.g., GENOMICS-001">
+                </div>
+            </div>
+            
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="terms" id="terms" required>
+                    <span>I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a></span>
+                </label>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block btn-lg">
+                <i class="fas fa-user-plus"></i>
+                Create Account
+            </button>
+            
+            <div class="alert alert-info mt-lg">
+                <i class="fas fa-cloud"></i>
+                <div>
+                    <strong>S3 Bucket Provisioning</strong>
+                    <p class="mb-0" style="font-size: 0.875rem;">
+                        An S3 bucket will be automatically created for your data uploads and results.
+                    </p>
+                </div>
+            </div>
+        </form>
+        
+        <div class="auth-footer">
+            <p>Already have an account? <a href="/portal/login">Sign in</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+.checkbox-label {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+}
+.checkbox-label input {
+    width: 18px;
+    height: 18px;
+    margin-top: 2px;
+    accent-color: var(--color-accent);
+}
+</style>
+{% endblock %}
+

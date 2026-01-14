@@ -1,0 +1,247 @@
+# Nmap 7.95 scan initiated Sat Oct 18 04:42:22 2025 as: nmap -p 80,443,554,8000,8080,8554,5000,7001 --open -sV -oN cameras_ports.txt 192.168.1.0/24
+Nmap scan report for 192.168.1.1
+Host is up (0.0033s latency).
+Not shown: 6 filtered tcp ports (no-response), 1 closed tcp port (reset)
+Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
+PORT   STATE SERVICE VERSION
+80/tcp open  http    Golang net/http server
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+SF-Port80-TCP:V=7.95%I=7%D=10/18%Time=68F37D33%P=arm-apple-darwin23.4.0%r(
+SF:GetRequest,151B,"HTTP/1\.0\x20200\x20OK\r\nDate:\x20Sat,\x2018\x20Oct\x
+SF:202025\x2011:42:43\x20GMT\r\nContent-Type:\x20text/html;\x20charset=utf
+SF:-8\r\n\r\n<!doctype\x20html>\r\n<html>\r\n<head>\r\n\t<meta\x20http-equ
+SF:iv=\"Content-Type\"\x20content=\"text/html;\x20charset=utf-8\"\x20/>\r\
+SF:n\t<link\x20rel=\"shortcut\x20icon\"\x20href=\"static/favicon\.ico\">\r
+SF:\n\t<title>Starlink</title>\r\n\r\n\x20\x20\x20\x20<link\x20rel=\"style
+SF:sheet\"\x20type=\"text/css\"\x20href=\"static/css/layout\.css\"\x20medi
+SF:a=\"screen\">\r\n\r\n\x20\x20\x20\x20<meta\x20name=\"viewport\"\x20cont
+SF:ent=\"width=device-width,\x20maximum-scale=1\.0,\x20user-scalable=1\">\
+SF:r\n\x20\x20\x20\x20<style>\r\n\x20\x20\x20\x20\x20\x20\x20\x20\.button-
+SF:link,\x20\.button-link:visited\x20{\r\n\x20\x20\x20\x20\x20\x20\x20\x20
+SF:\x20\x20\x20\x20display:\x20inline-block;\r\n\x20\x20\x20\x20\x20\x20\x
+SF:20\x20\x20\x20\x20\x20padding:\x2010px\x2020px;\r\n\x20\x20\x20\x20\x20
+SF:\x20\x20\x20\x20\x20\x20\x20font-size:\x2016px;\r\n\x20\x20\x20\x20\x20
+SF:\x20\x20\x20\x20\x20\x20\x20color:\x20black;\r\n\x20\x20\x20\x20\x20\x2
+SF:0\x20\x20\x20\x20\x20\x20background-color:\x20white;\r\n\x20\x20\x20\x2
+SF:0\x20\x20\x20\x20\x20\x20\x20\x20text-decoration:\x20none;\r\n\x20\x20\
+SF:x20\x20\x20\x20\x20\x20\x20\x20\x20\x20border-radius:\x205px;\r\n\x20\x
+SF:20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20text-align:\x20center;\r\n\x2
+SF:0\x20\x20\x20\x20\x20\x20\x20}\r\n\r\n\x20\x20\x20\x20\x20\x20\x20\x20\
+SF:.button-link:hover\x20{\r\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20
+SF:\x20color:\x20black;\r\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x2
+SF:0background-color:\x20#CCC;\r\n")%r(HTTPOptions,151B,"HTTP/1\.0\x20200\
+SF:x20OK\r\nDate:\x20Sat,\x2018\x20Oct\x202025\x2011:42:43\x20GMT\r\nConte
+SF:nt-Type:\x20text/html;\x20charset=utf-8\r\n\r\n<!doctype\x20html>\r\n<h
+SF:tml>\r\n<head>\r\n\t<meta\x20http-equiv=\"Content-Type\"\x20content=\"t
+SF:ext/html;\x20charset=utf-8\"\x20/>\r\n\t<link\x20rel=\"shortcut\x20icon
+SF:\"\x20href=\"static/favicon\.ico\">\r\n\t<title>Starlink</title>\r\n\r\
+SF:n\x20\x20\x20\x20<link\x20rel=\"stylesheet\"\x20type=\"text/css\"\x20hr
+SF:ef=\"static/css/layout\.css\"\x20media=\"screen\">\r\n\r\n\x20\x20\x20\
+SF:x20<meta\x20name=\"viewport\"\x20content=\"width=device-width,\x20maxim
+SF:um-scale=1\.0,\x20user-scalable=1\">\r\n\x20\x20\x20\x20<style>\r\n\x20
+SF:\x20\x20\x20\x20\x20\x20\x20\.button-link,\x20\.button-link:visited\x20
+SF:{\r\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20display:\x20inline
+SF:-block;\r\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20padding:\x20
+SF:10px\x2020px;\r\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20font-s
+SF:ize:\x2016px;\r\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20color:
+SF:\x20black;\r\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20backgroun
+SF:d-color:\x20white;\r\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20t
+SF:ext-decoration:\x20none;\r\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20\x2
+SF:0\x20border-radius:\x205px;\r\n\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20
+SF:\x20\x20text-align:\x20center;\r\n\x20\x20\x20\x20\x20\x20\x20\x20}\r\n
+SF:\r\n\x20\x20\x20\x20\x20\x20\x20\x20\.button-link:hover\x20{\r\n\x20\x2
+SF:0\x20\x20\x20\x20\x20\x20\x20\x20\x20\x20color:\x20black;\r\n\x20\x20\x
+SF:20\x20\x20\x20\x20\x20\x20\x20\x20\x20background-color:\x20#CCC;\r\n");
+MAC Address: 74:24:9F:B8:C2:31 (Tibro)
+
+Nmap scan report for 192.168.1.23
+Host is up (0.034s latency).
+Not shown: 7 closed tcp ports (reset)
+PORT     STATE SERVICE VERSION
+5000/tcp open  upnp?
+MAC Address: 22:53:60:A3:41:AD (Unknown)
+
+Nmap scan report for 192.168.1.55
+Host is up (0.029s latency).
+Not shown: 5 closed tcp ports (reset)
+PORT     STATE SERVICE        VERSION
+80/tcp   open  soap           gSOAP 2.7
+443/tcp  open  ssl/tcpwrapped
+8080/tcp open  soap           gSOAP 2.7
+MAC Address: 44:1C:A8:69:71:F9 (Hon Hai Precision Ind.)
+
+Nmap scan report for 192.168.1.107
+Host is up (0.051s latency).
+Not shown: 7 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+80/tcp open  http    Mongoose/6.7
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+SF-Port80-TCP:V=7.95%I=7%D=10/18%Time=68F37D34%P=arm-apple-darwin23.4.0%r(
+SF:GetRequest,10E0,"HTTP/1\.1\x20200\x20OK\r\nServer:\x20Mongoose/6\.7\r\n
+SF:content-encoding:\x20gzip\r\nContent-Length:\x206557\r\n\r\n\x1f\x8b\x0
+SF:8\x08\x8cb\[c\0\x0bindex\.html\0\xec=\]s\xe3Fr\xcfLU\xfe\xc3,6>\x92\^\x
+SF:f1\x9b\xd47\x19\xcb\+\xc9\xabxw\xadZ\xc9>_\xb9\\\[CbH\xe2\x04\x02\x0c\0
+SF:\x8a\x92\xf7\xf4\x96\xca\xfd\x82\xbc\xe4\)\x7f\x20\x95\x87\xfc\xa6\\\xf
+SF:232=\x1f\xc0`0\0Ai\xd7{\xae:\xae-\x913\xdd=\xdd===\xdd=\x03\xea\xf8\xd9
+SF:\xe9w/\xaf\xffpy\x86\xe6\xd1\xc2\x1d\xfd\xfd\xdf\x1d\xc3o\xe4bo6\xb4\x8
+SF:8g\xb1\x16\x82m\xfa\x1b\xd1\xd7\xf1\x82D\x18M\xe68\x08I4\xb4\xbe\xbf>o\
+SF:xec\[\xa9>\x0f/\xc8\xd0\xbau\xc8z\xe9\x07\x91\x85&\xbe\x17\x11\x8f\xc2\
+SF:xae\x1d;\x9a\x0fmr\xebLH\x83}\xd8A\x8e\xe7D\x0ev\x1b\xe1\x04\xbbd\xd8\x
+SF:89\)EN\xe4\x92\xd1\)\x83E\xbf'\xe3\xe3\x16o\x11\xddat\xcf>\xf0\x8f\xf0\
+SF:xfa\x12}H>\xc0\xab\xb1&\xe3\x1b'j\x8c\xfd\xbbF\xe8\xfc\xe2x\xb3C4\xf6\x
+SF:03\x9b\x04\xd0t\xa4\x01/\xfc_\xcaAn\x04zP\xb9\x1a\xfb\xf6\xbd\xce\xd8\x
+SF:d2\x0f\xa9\xcc\xbew\x88\x02\xe2\xe2\xc8\xb9%\xda\x10\xbf4\x1c\xcf&w\x87
+SF:\xa8\xa3u,p0s\(\^\[k\x9fR\r7\xa6x\xe1\xb8\xf7\x87\xa8\xfa\xdd\x92x\xe8\
+SF:n{au\x07\x9d\x04T\xb9;\xe8\x15qoI\xe4L\xf0\x0e\xebh\x84\$p\xa6;\xe8\x07
+SF:\x12\xd8\xd8\xa3\x8d\xd7x\xee/\xe8o\xd6\xae\x0b\x8c'7\xb3\xc0_y\xf6a\xa
+SF:cS\xd7\xf1\x08\x0e\x1a\xb3\0\xdb\x0e\x9d\xdaZ\x7f`\x93\xd9\x0ez>8\xfb\x
+SF:bas\xd6\xa1o\xf6\xf7\xf6\xdbg{\xf5#\xd4\xfa\x92\x8e8\xc5\x81\x83\x06\xc
+SF:d\x0ej\xa0\xddf\x1b}\xd9\*\x18\xc1\xdf\x8e8\x156\xc0\xa8\xd3a\xc4;\xddM
+SF:\xd4a\x9a\xb7\xa2\x7f\xee\x04d\xea\xdf\xa1\^s\x17\x06\x18\x14\x92\xdf\x
+SF:8a\xf2_\xfe\xe3\xcf\xff\xf3\xe7\x7f\xfd\xdf\x7f\xff\x97\xff\xfb\xaf\xff
+SF:\xfc\xcb\x7f\xff\[\x8ap\xca\x86\x9a\xb0\x800%\x1d\xe8\x96\xb4\xc0w\|\x1
+SF:d\x1d\xa2\xddv{\xa9\x9b\xaa4\x97\x1e\xedBx\x15\xf9\xecG\x9e\xa9>_\xf86,
+SF:\xc4\xb9\xbf\xce\xb7\xd8\xa9sGlm\x98\xc8_fM\xd2%\xd3\(\xdbj;\xe1\xd2\xc
+SF:5\xd4H=\xdf\xd3\xad\^\x08\xd2i\xb7\xbf\xd0z\xe6\xc4\x99\xcd#cW\xa2\xfd\
+SF:xc6\xc4w\xfd\x80\xae\xa9\xd9\x18\xd7\xda;H\xfc\xd7\xdc\xaf\x97\x10\xb8\
+SF:xabK\xec\xdf\x92`\xea\xfa\xebC4wl\x9bxf\^\xfb\x19~\xa4\xca;m\xa9s\r`\x8
+SF:9m\x9b\xf9\x8e\.\0\x0c\xb2\x93\x96\x95\xe89!\xba\xae\xb8\xe3\xa1\xc3P\x
+SF:1a\xa1\xef:vF\xecn\xdd\x88\xd2\0\xd3\\\x85\xd4\^\xb2\x03\x83c\x9bc\x1b\
+SF:x84n\xa3\x1e\xa5\|@\xff\xd7\xe9\x0e4u\xca\xb7_-\x88\xed`\x14N\x02B\xbd\
+SF:x0f\xf6lTS\xacsow\x7fyW\xd7\x95\\4\x01\x8a\x96\xf73Z\xce\(R\xeb\x7f\xc8
+SF:\[IS\xdf\x8fL\xcb\x08&\xad\xc1\xec\xb8\x97\xb7\x8c\xa8\x97\x8f\"\x7fa\x
+SF:84\xc87\xdd\x88\xdcE\r\xec:3j\x13\x13\xea\x12H`r\xddt\?!\x14\xbd\x97!,-
+SF:\xc0>\x80\x7fy\x86<u\x88k\xd3\xddX\x97KZ\x89\xbe\nc\xd5u\x06\x9b\x845\(
+SF:W");
+MAC Address: A8:48:FA:78:21:C8 (Espressif)
+
+Nmap scan report for 192.168.1.130
+Host is up (0.012s latency).
+Not shown: 7 filtered tcp ports (no-response)
+Some closed ports may be reported as filtered due to --defeat-rst-ratelimit
+PORT   STATE SERVICE VERSION
+80/tcp open  http
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+SF-Port80-TCP:V=7.95%I=7%D=10/18%Time=68F37D33%P=arm-apple-darwin23.4.0%r(
+SF:GetRequest,239,"HTTP/1\.1\x20200\x20OK\r\nConnection:\x20close\r\nX-Fra
+SF:me-Options:\x20SAMEORIGIN\r\nX-XSS-Protection:\x201;\x20mode=block\r\nX
+SF:-Content-Type-Options:\x20nosniff\r\nContent-Type:\x20text/html\r\nCach
+SF:e-Control:\x20no-cache\r\nExpires:\x20-1\r\n\r\n<html>\n<head>\n<title>
+SF:Redirect\x20to\x20Login</title>\n<meta\x20http-equiv=\"Content-Type\"\x
+SF:20content=\"text/html;\x20charset=UTF-8\">\n<link\x20rel=\"stylesheet\"
+SF:\x20type=\"text/css\"\x20href=\"/style\.css\?z8\">\n<script\x20type=\"t
+SF:ext/javascript\"\x20language=\"JavaScript\">\nfunction\x20RedirectToLog
+SF:inPage\(\)\n{\n\ttop\.location\.href\x20=\x20\"/login\.cgi\";\n}\n</scr
+SF:ipt>\n</head>\n<body\x20onload=\"RedirectToLoginPage\(\);\">\n</body>\n
+SF:</html>\n")%r(FourOhFourRequest,239,"HTTP/1\.1\x20200\x20OK\r\nConnecti
+SF:on:\x20close\r\nX-Frame-Options:\x20SAMEORIGIN\r\nX-XSS-Protection:\x20
+SF:1;\x20mode=block\r\nX-Content-Type-Options:\x20nosniff\r\nContent-Type:
+SF:\x20text/html\r\nCache-Control:\x20no-cache\r\nExpires:\x20-1\r\n\r\n<h
+SF:tml>\n<head>\n<title>Redirect\x20to\x20Login</title>\n<meta\x20http-equ
+SF:iv=\"Content-Type\"\x20content=\"text/html;\x20charset=UTF-8\">\n<link\
+SF:x20rel=\"stylesheet\"\x20type=\"text/css\"\x20href=\"/style\.css\?z8\">
+SF:\n<script\x20type=\"text/javascript\"\x20language=\"JavaScript\">\nfunc
+SF:tion\x20RedirectToLoginPage\(\)\n{\n\ttop\.location\.href\x20=\x20\"/lo
+SF:gin\.cgi\";\n}\n</script>\n</head>\n<body\x20onload=\"RedirectToLoginPa
+SF:ge\(\);\">\n</body>\n</html>\n");
+MAC Address: 94:18:65:6F:C6:57 (Netgear)
+
+Nmap scan report for 192.168.1.151
+Host is up (0.0094s latency).
+Not shown: 7 closed tcp ports (reset)
+PORT     STATE SERVICE VERSION
+5000/tcp open  rtsp
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+SF-Port5000-TCP:V=7.95%I=7%D=10/18%Time=68F37D33%P=arm-apple-darwin23.4.0%
+SF:r(GetRequest,92,"HTTP/1\.1\x20404\x20Not\x20Found\r\nContent-Length:\x2
+SF:00\r\nServer:\x20AirTunes/870\.14\.1\r\nX-Apple-ProcessingTime:\x2013\r
+SF:\nX-Apple-RequestReceivedTimestamp:\x201999822981\r\n\r\n")%r(RTSPReque
+SF:st,11F,"RTSP/1\.0\x20200\x20OK\r\nDate:\x20Sat,\x2018\x20Oct\x202025\x2
+SF:011:42:43\x20GMT\r\nContent-Length:\x200\r\nPublic:\x20ANNOUNCE,\x20SET
+SF:UP,\x20RECORD,\x20PAUSE,\x20FLUSH,\x20TEARDOWN,\x20OPTIONS,\x20GET_PARA
+SF:METER,\x20SET_PARAMETER,\x20POST,\x20GET,\x20PUT\r\nServer:\x20AirTunes
+SF:/870\.14\.1\r\nX-Apple-ProcessingTime:\x205\r\nX-Apple-RequestReceivedT
+SF:imestamp:\x201999823011\r\n\r\n")%r(HTTPOptions,11F,"HTTP/1\.1\x20200\x
+SF:20OK\r\nDate:\x20Sat,\x2018\x20Oct\x202025\x2011:42:48\x20GMT\r\nConten
+SF:t-Length:\x200\r\nPublic:\x20ANNOUNCE,\x20SETUP,\x20RECORD,\x20PAUSE,\x
+SF:20FLUSH,\x20TEARDOWN,\x20OPTIONS,\x20GET_PARAMETER,\x20SET_PARAMETER,\x
+SF:20POST,\x20GET,\x20PUT\r\nServer:\x20AirTunes/870\.14\.1\r\nX-Apple-Pro
+SF:cessingTime:\x204\r\nX-Apple-RequestReceivedTimestamp:\x201999828021\r\
+SF:n\r\n")%r(FourOhFourRequest,91,"HTTP/1\.1\x20404\x20Not\x20Found\r\nCon
+SF:tent-Length:\x200\r\nServer:\x20AirTunes/870\.14\.1\r\nX-Apple-Processi
+SF:ngTime:\x203\r\nX-Apple-RequestReceivedTimestamp:\x201999828115\r\n\r\n
+SF:")%r(SIPOptions,131,"RTSP/1\.0\x20200\x20OK\r\nDate:\x20Sat,\x2018\x20O
+SF:ct\x202025\x2011:42:48\x20GMT\r\nContent-Length:\x200\r\nPublic:\x20ANN
+SF:OUNCE,\x20SETUP,\x20RECORD,\x20PAUSE,\x20FLUSH,\x20TEARDOWN,\x20OPTIONS
+SF:,\x20GET_PARAMETER,\x20SET_PARAMETER,\x20POST,\x20GET,\x20PUT\r\nServer
+SF::\x20AirTunes/870\.14\.1\r\nCSeq:\x2042\x20OPTIONS\r\nX-Apple-Processin
+SF:gTime:\x204\r\nX-Apple-RequestReceivedTimestamp:\x201999828140\r\n\r\n"
+SF:);
+MAC Address: 94:EA:32:9C:8A:2E (Apple)
+
+Nmap scan report for 192.168.1.153
+Host is up (0.032s latency).
+Not shown: 6 closed tcp ports (reset)
+PORT     STATE SERVICE VERSION
+80/tcp   open  http    Yamaha AV device httpd (model: RX-A750)
+5000/tcp open  rtsp    Apple AirTunes rtspd 211.1 (Apple TV)
+MAC Address: D4:F5:13:1D:71:0A (Texas Instruments)
+Service Info: OS: Mac OS X; Device: media device; CPE: cpe:/o:apple:mac_os_x
+
+Nmap scan report for 192.168.1.167
+Host is up (0.0077s latency).
+Not shown: 7 closed tcp ports (reset)
+PORT     STATE SERVICE VERSION
+5000/tcp open  rtsp
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+SF-Port5000-TCP:V=7.95%I=7%D=10/18%Time=68F37D33%P=arm-apple-darwin23.4.0%
+SF:r(GetRequest,91,"HTTP/1\.1\x20403\x20Forbidden\r\nContent-Length:\x200\
+SF:r\nServer:\x20AirTunes/870\.14\.1\r\nX-Apple-ProcessingTime:\x202\r\nX-
+SF:Apple-RequestReceivedTimestamp:\x201999851372\r\n\r\n")%r(RTSPRequest,9
+SF:1,"RTSP/1\.0\x20403\x20Forbidden\r\nContent-Length:\x200\r\nServer:\x20
+SF:AirTunes/870\.14\.1\r\nX-Apple-ProcessingTime:\x202\r\nX-Apple-RequestR
+SF:eceivedTimestamp:\x201999851400\r\n\r\n")%r(HTTPOptions,91,"HTTP/1\.1\x
+SF:20403\x20Forbidden\r\nContent-Length:\x200\r\nServer:\x20AirTunes/870\.
+SF:14\.1\r\nX-Apple-ProcessingTime:\x202\r\nX-Apple-RequestReceivedTimesta
+SF:mp:\x201999856409\r\n\r\n")%r(FourOhFourRequest,91,"HTTP/1\.1\x20403\x2
+SF:0Forbidden\r\nContent-Length:\x200\r\nServer:\x20AirTunes/870\.14\.1\r\
+SF:nX-Apple-ProcessingTime:\x202\r\nX-Apple-RequestReceivedTimestamp:\x201
+SF:999856431\r\n\r\n")%r(SIPOptions,A3,"RTSP/1\.0\x20403\x20Forbidden\r\nC
+SF:ontent-Length:\x200\r\nServer:\x20AirTunes/870\.14\.1\r\nCSeq:\x2042\x2
+SF:0OPTIONS\r\nX-Apple-ProcessingTime:\x201\r\nX-Apple-RequestReceivedTime
+SF:stamp:\x201999856457\r\n\r\n");
+MAC Address: C0:95:6D:4D:A2:B6 (Apple)
+
+Nmap scan report for 192.168.1.199
+Host is up (0.0029s latency).
+Not shown: 7 closed tcp ports (reset)
+PORT   STATE SERVICE VERSION
+80/tcp open  http    Tenda WAP http admin
+MAC Address: D8:32:14:47:9C:60 (Tenda Technology,Ltd.Dongguan branch)
+Service Info: Device: WAP
+
+Nmap scan report for 192.168.1.156
+Host is up (0.000082s latency).
+Not shown: 7 closed tcp ports (reset)
+PORT     STATE SERVICE VERSION
+5000/tcp open  rtsp
+1 service unrecognized despite returning data. If you know the service/version, please submit the following fingerprint at https://nmap.org/cgi-bin/submit.cgi?new-service :
+SF-Port5000-TCP:V=7.95%I=7%D=10/18%Time=68F37DC4%P=arm-apple-darwin23.4.0%
+SF:r(GetRequest,90,"HTTP/1\.1\x20403\x20Forbidden\r\nContent-Length:\x200\
+SF:r\nServer:\x20AirTunes/850\.19\.1\r\nX-Apple-ProcessingTime:\x204\r\nX-
+SF:Apple-RequestReceivedTimestamp:\x20858585642\r\n\r\n")%r(RTSPRequest,90
+SF:,"RTSP/1\.0\x20403\x20Forbidden\r\nContent-Length:\x200\r\nServer:\x20A
+SF:irTunes/850\.19\.1\r\nX-Apple-ProcessingTime:\x200\r\nX-Apple-RequestRe
+SF:ceivedTimestamp:\x20858585680\r\n\r\n")%r(HTTPOptions,90,"HTTP/1\.1\x20
+SF:403\x20Forbidden\r\nContent-Length:\x200\r\nServer:\x20AirTunes/850\.19
+SF:\.1\r\nX-Apple-ProcessingTime:\x201\r\nX-Apple-RequestReceivedTimestamp
+SF::\x20858590683\r\n\r\n")%r(FourOhFourRequest,90,"HTTP/1\.1\x20403\x20Fo
+SF:rbidden\r\nContent-Length:\x200\r\nServer:\x20AirTunes/850\.19\.1\r\nX-
+SF:Apple-ProcessingTime:\x200\r\nX-Apple-RequestReceivedTimestamp:\x208585
+SF:90686\r\n\r\n")%r(SIPOptions,A2,"RTSP/1\.0\x20403\x20Forbidden\r\nConte
+SF:nt-Length:\x200\r\nServer:\x20AirTunes/850\.19\.1\r\nCSeq:\x2042\x20OPT
+SF:IONS\r\nX-Apple-ProcessingTime:\x201\r\nX-Apple-RequestReceivedTimestam
+SF:p:\x20858590690\r\n\r\n");
+
+Service detection performed. Please report any incorrect results at https://nmap.org/submit/ .
+# Nmap done at Sat Oct 18 04:45:21 2025 -- 256 IP addresses (18 hosts up) scanned in 179.08 seconds

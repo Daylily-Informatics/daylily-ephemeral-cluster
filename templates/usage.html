@@ -1,0 +1,210 @@
+{% extends "base.html" %}
+{% set active_page = 'usage' %}
+
+{% block title %}Usage & Billing - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-between align-center flex-wrap gap-lg">
+        <div>
+            <h1 class="page-title">Usage & Billing</h1>
+            <p class="page-subtitle">Monitor your resource consumption and costs</p>
+        </div>
+        <div class="page-actions" style="margin-top: 0;">
+            <select class="form-control form-select" id="period-select" onchange="changePeriod()" style="width: auto;">
+                <option value="current">Current Month</option>
+                <option value="last">Last Month</option>
+                <option value="quarter">Last 3 Months</option>
+                <option value="year">Last 12 Months</option>
+            </select>
+            <button class="btn btn-outline" onclick="exportUsageReport()">
+                <i class="fas fa-download"></i> Export Report
+            </button>
+        </div>
+    </div>
+    
+    <!-- Summary Stats -->
+    <div class="grid grid-4 mb-xl">
+        <div class="stat-card">
+            <div class="card-icon primary">
+                <i class="fas fa-dollar-sign"></i>
+            </div>
+            <div>
+                <div class="stat-value">${{ "%.2f"|format(usage.total_cost | default(0)) }}</div>
+                <div class="stat-label">Total Cost</div>
+                <div class="stat-change {{ 'negative' if (usage.cost_change | default(0)) > 0 else 'positive' }}">
+                    <i class="fas fa-{{ 'arrow-up' if (usage.cost_change | default(0)) > 0 else 'arrow-down' }}"></i>
+                    {{ usage.cost_change | default(0) }}% vs previous
+                </div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="card-icon success">
+                <i class="fas fa-microchip"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ usage.vcpu_hours | default(0) }}</div>
+                <div class="stat-label">vCPU Hours</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="card-icon warning">
+                <i class="fas fa-memory"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ usage.memory_gb_hours | default(0) }}</div>
+                <div class="stat-label">Memory GB-Hours</div>
+            </div>
+        </div>
+        
+        <div class="stat-card">
+            <div class="card-icon error">
+                <i class="fas fa-database"></i>
+            </div>
+            <div>
+                <div class="stat-value">{{ "%.1f"|format(usage.storage_gb | default(0)) }}</div>
+                <div class="stat-label">Storage (GB)</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Charts Row -->
+    <div class="grid grid-2 mb-xl">
+        <!-- Cost Over Time -->
+        <div class="card">
+            <h3 class="card-title">Cost Over Time</h3>
+            <div class="chart-container">
+                <canvas id="cost-chart"></canvas>
+            </div>
+        </div>
+        
+        <!-- Cost Breakdown -->
+        <div class="card">
+            <h3 class="card-title">Cost Breakdown</h3>
+            <div class="chart-container">
+                <canvas id="breakdown-chart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Detailed Usage Table -->
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Detailed Usage</h3>
+            <div class="d-flex gap-md">
+                <select class="form-control form-select" id="usage-filter" style="width: auto;">
+                    <option value="all">All Resources</option>
+                    <option value="compute">Compute</option>
+                    <option value="storage">Storage</option>
+                    <option value="transfer">Data Transfer</option>
+                </select>
+            </div>
+        </div>
+        
+        <div class="table-container" style="box-shadow: none;">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Date</th>
+                        <th>Resource Type</th>
+                        <th>Workset</th>
+                        <th>Quantity</th>
+                        <th>Unit</th>
+                        <th>Cost</th>
+                    </tr>
+                </thead>
+                <tbody id="usage-tbody">
+                    {% if usage_details %}
+                    {% for item in usage_details %}
+                    <tr>
+                        <td>{{ item.date }}</td>
+                        <td>
+                            <span class="badge badge-{{ item.type | lower }}">{{ item.type }}</span>
+                        </td>
+                        <td>
+                            {% if item.workset_id %}
+                            <a href="/portal/worksets/{{ item.workset_id }}">{{ item.workset_id[:12] }}...</a>
+                            {% else %}
+                            -
+                            {% endif %}
+                        </td>
+                        <td>{{ item.quantity }}</td>
+                        <td>{{ item.unit }}</td>
+                        <td>${{ "%.4f"|format(item.cost) }}</td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="6" class="text-center text-muted p-xl">
+                            No usage data for this period
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    
+    <!-- Billing Info -->
+    <div class="grid grid-2 mt-xl">
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-credit-card"></i> Billing Information</h3>
+            <dl style="margin: 0;">
+                <div class="d-flex justify-between mb-md">
+                    <dt class="text-muted">Billing Account</dt>
+                    <dd>{{ customer.billing_account_id | default('Not configured') }}</dd>
+                </div>
+                <div class="d-flex justify-between mb-md">
+                    <dt class="text-muted">Cost Center</dt>
+                    <dd>{{ customer.cost_center | default('N/A') }}</dd>
+                </div>
+                <div class="d-flex justify-between mb-md">
+                    <dt class="text-muted">Billing Cycle</dt>
+                    <dd>Monthly</dd>
+                </div>
+                <div class="d-flex justify-between">
+                    <dt class="text-muted">Next Invoice</dt>
+                    <dd>{{ next_invoice_date | default('1st of next month') }}</dd>
+                </div>
+            </dl>
+        </div>
+        
+        <div class="card">
+            <h3 class="card-title"><i class="fas fa-chart-line"></i> Usage Limits</h3>
+            <div class="mb-lg">
+                <div class="d-flex justify-between mb-sm">
+                    <span>Concurrent Worksets</span>
+                    <span>{{ usage.active_worksets | default(0) }} / {{ customer.max_concurrent_worksets | default(10) }}</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar primary" style="width: {{ (usage.active_worksets | default(0)) / (customer.max_concurrent_worksets | default(10)) * 100 }}%"></div>
+                </div>
+            </div>
+            <div>
+                <div class="d-flex justify-between mb-sm">
+                    <span>Storage</span>
+                    <span>{{ "%.1f"|format(usage.storage_gb | default(0)) }} / {{ customer.max_storage_gb | default(500) }} GB</span>
+                </div>
+                <div class="progress">
+                    <div class="progress-bar {{ 'warning' if (usage.storage_gb | default(0)) / (customer.max_storage_gb | default(500)) > 0.8 else 'primary' }}" 
+                         style="width: {{ (usage.storage_gb | default(0)) / (customer.max_storage_gb | default(500)) * 100 }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/charts.js"></script>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    initCostChart('cost-chart');
+    initBreakdownChart('breakdown-chart');
+});
+</script>
+{% endblock %}
+
