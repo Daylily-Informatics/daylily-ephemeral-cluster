@@ -96,7 +96,8 @@
                     <div class="mt-lg">
                         <p class="text-muted" style="font-size: 0.875rem;">
                             <i class="fas fa-info-circle"></i>
-                            Click the folder icon to browse your S3 bucket, or import from CSV
+                            Click the folder icon to browse your S3 bucket, or import from CSV.
+                            Supported naming patterns: <code>sample_R1.fastq.gz</code> or <code>sample.R1.fastq.gz</code>
                         </p>
                         <input type="file" id="csv-upload" accept=".csv" class="d-none" onchange="loadSamplesFromCSV(this)">
                         <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('csv-upload').click()">

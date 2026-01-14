@@ -57,8 +57,12 @@
                                 {{ (user.email[0] if user and user.email else 'U')|upper }}
                             </div>
                             <div class="dropdown-menu" id="user-dropdown">
-                                <a href="/portal/account" class="dropdown-item">Account Settings</a>
-                                <a href="/portal/logout" class="dropdown-item">Sign Out</a>
+                                <a href="/portal/account" class="dropdown-item">
+                                    <i class="fas fa-cog"></i> Account Settings
+                                </a>
+                                <a href="/portal/logout" class="dropdown-item">
+                                    <i class="fas fa-sign-out-alt"></i> Sign Out
+                                </a>
                             </div>
                         </div>
                         {% else %}

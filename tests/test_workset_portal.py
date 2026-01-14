@@ -53,6 +53,16 @@ def client(mock_state_db):
     return TestClient(app)
 
 
+@pytest.fixture
+def authenticated_client(mock_state_db):
+    """Create test client with authenticated session."""
+    app = create_app(state_db=mock_state_db, enable_auth=False)
+    client = TestClient(app)
+    # Perform login to set session
+    client.post("/portal/login", data={"email": "test@example.com", "password": "testpass"})
+    return client
+
+
 class TestPortalRoutes:
     """Test portal HTML routes."""
 
@@ -64,9 +74,9 @@ class TestPortalRoutes:
         assert data["status"] == "healthy"
         assert data["service"] == "daylily-workset-monitor"
 
-    def test_portal_dashboard(self, client):
-        """Test dashboard page loads."""
-        response = client.get("/portal")
+    def test_portal_dashboard(self, authenticated_client):
+        """Test dashboard page loads (requires auth)."""
+        response = authenticated_client.get("/portal")
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
         assert b"Dashboard" in response.content or b"dashboard" in response.content.lower()
@@ -85,53 +95,59 @@ class TestPortalRoutes:
         assert "text/html" in response.headers["content-type"]
         assert b"Create" in response.content or b"register" in response.content.lower()
 
-    def test_portal_worksets_list(self, client):
-        """Test worksets list page loads."""
-        response = client.get("/portal/worksets")
+    def test_portal_worksets_list(self, authenticated_client):
+        """Test worksets list page loads (requires auth)."""
+        response = authenticated_client.get("/portal/worksets")
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
         assert b"Workset" in response.content
 
-    def test_portal_worksets_new(self, client):
-        """Test new workset page loads."""
-        response = client.get("/portal/worksets/new")
+    def test_portal_worksets_new(self, authenticated_client):
+        """Test new workset page loads (requires auth)."""
+        response = authenticated_client.get("/portal/worksets/new")
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
         assert b"Submit" in response.content or b"New" in response.content
 
-    def test_portal_workset_detail(self, client, mock_state_db):
-        """Test workset detail page loads."""
-        response = client.get("/portal/worksets/test-workset-001")
+    def test_portal_workset_detail(self, authenticated_client, mock_state_db):
+        """Test workset detail page loads (requires auth)."""
+        response = authenticated_client.get("/portal/worksets/test-workset-001")
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
         mock_state_db.get_workset.assert_called_with("test-workset-001")
 
-    def test_portal_workset_detail_not_found(self, client, mock_state_db):
-        """Test workset detail page returns 404 for missing workset."""
+    def test_portal_workset_detail_not_found(self, authenticated_client, mock_state_db):
+        """Test workset detail page returns 404 for missing workset (requires auth)."""
         mock_state_db.get_workset.return_value = None
-        response = client.get("/portal/worksets/nonexistent")
+        response = authenticated_client.get("/portal/worksets/nonexistent")
         assert response.status_code == 404
 
-    def test_portal_yaml_generator(self, client):
-        """Test YAML generator page loads."""
-        response = client.get("/portal/yaml-generator")
+    def test_portal_yaml_generator(self, authenticated_client):
+        """Test YAML generator page loads (requires auth)."""
+        response = authenticated_client.get("/portal/yaml-generator")
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
         assert b"YAML" in response.content
 
-    def test_portal_files(self, client):
-        """Test files page loads."""
-        response = client.get("/portal/files")
+    def test_portal_files(self, authenticated_client):
+        """Test files page loads (requires auth)."""
+        response = authenticated_client.get("/portal/files")
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
         assert b"File" in response.content
 
-    def test_portal_usage(self, client):
-        """Test usage page loads."""
-        response = client.get("/portal/usage")
+    def test_portal_usage(self, authenticated_client):
+        """Test usage page loads (requires auth)."""
+        response = authenticated_client.get("/portal/usage")
         assert response.status_code == 200
         assert "text/html" in response.headers["content-type"]
         assert b"Usage" in response.content or b"Billing" in response.content
+
+    def test_unauthenticated_redirect(self, client):
+        """Test that unauthenticated users are redirected to login."""
+        response = client.get("/portal/worksets", follow_redirects=False)
+        assert response.status_code == 302
+        assert "/portal/login" in response.headers["location"]
 
 
 class TestAPIEndpoints:

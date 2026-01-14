@@ -19,6 +19,7 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, EmailStr
+from starlette.middleware.sessions import SessionMiddleware
 
 from daylib.workset_state_db import ErrorCategory, WorksetPriority, WorksetState, WorksetStateDB
 from daylib.workset_scheduler import WorksetScheduler
@@ -244,6 +245,11 @@ def create_app(
         allow_methods=["*"],
         allow_headers=["*"],
     )
+
+    # Add session middleware for portal authentication
+    # In production, use a secure secret key from environment
+    session_secret = os.getenv("SESSION_SECRET_KEY", "daylily-dev-secret-change-in-production")
+    app.add_middleware(SessionMiddleware, secret_key=session_secret)
 
     # Setup authentication dependency if enabled
     if enable_auth:
@@ -1356,12 +1362,31 @@ def create_app(
             # If customer is passed, also set customer_id for convenience
             if "customer" in kwargs and kwargs["customer"]:
                 context["customer_id"] = kwargs["customer"].customer_id
+            # Add user info from session if available
+            if hasattr(request, "session") and request.session.get("user_email"):
+                context["user_email"] = request.session.get("user_email")
+                context["user_authenticated"] = True
             return context
+
+        def require_portal_auth(request: Request) -> Optional[RedirectResponse]:
+            """Check if user is authenticated for portal access.
+
+            Returns RedirectResponse to login if not authenticated, None if authenticated.
+            """
+            if not hasattr(request, "session"):
+                return RedirectResponse(url="/portal/login", status_code=302)
+            if not request.session.get("user_email"):
+                return RedirectResponse(url="/portal/login?error=Please+log+in+to+continue", status_code=302)
+            return None
 
         @app.get("/portal", response_class=HTMLResponse, tags=["portal"])
         async def portal_dashboard(request: Request):
             """Customer portal dashboard."""
-            # Get customer from session/auth (simplified for now)
+            # Check authentication
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
             customer = None
             worksets = []
             stats = {
@@ -1419,15 +1444,24 @@ def create_app(
             password: str = Form(...),
         ):
             """Handle login form submission."""
-            # For now, just redirect to dashboard (real auth would validate with Cognito)
-            # In production, you would:
-            # 1. Call cognito_auth.authenticate(email, password)
-            # 2. Set session cookie with JWT token
-            # 3. Redirect to dashboard
+            # In production, validate with Cognito:
+            # if cognito_auth:
+            #     try:
+            #         tokens = cognito_auth.authenticate(email, password)
+            #         request.session["access_token"] = tokens["access_token"]
+            #     except Exception as e:
+            #         return RedirectResponse(
+            #             url=f"/portal/login?error=Invalid+credentials",
+            #             status_code=302
+            #         )
 
-            # Simplified: just redirect to dashboard for demo purposes
-            # TODO: Implement actual Cognito authentication
-            return RedirectResponse(url="/portal/", status_code=302)
+            # For demo: accept any login and set session
+            # In production, remove this and use Cognito validation above
+            request.session["user_email"] = email
+            request.session["user_authenticated"] = True
+
+            response = RedirectResponse(url="/portal/", status_code=302)
+            return response
 
         @app.get("/portal/register", response_class=HTMLResponse, tags=["portal"])
         async def portal_register(request: Request, error: Optional[str] = None, success: Optional[str] = None):
@@ -1481,6 +1515,10 @@ def create_app(
         @app.get("/portal/worksets", response_class=HTMLResponse, tags=["portal"])
         async def portal_worksets(request: Request, page: int = 1):
             """Worksets list page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
             worksets = []
             for ws_state in WorksetState:
                 batch = state_db.list_worksets_by_state(ws_state, limit=100)
@@ -1507,6 +1545,10 @@ def create_app(
         @app.get("/portal/worksets/new", response_class=HTMLResponse, tags=["portal"])
         async def portal_worksets_new(request: Request):
             """New workset submission page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
             customer = None
             if customer_manager:
                 customers = customer_manager.list_customers()
@@ -1522,6 +1564,10 @@ def create_app(
         @app.get("/portal/worksets/{workset_id}", response_class=HTMLResponse, tags=["portal"])
         async def portal_workset_detail(request: Request, workset_id: str):
             """Workset detail page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
             workset = state_db.get_workset(workset_id)
             if not workset:
                 raise HTTPException(status_code=404, detail="Workset not found")
@@ -1535,6 +1581,10 @@ def create_app(
         @app.get("/portal/yaml-generator", response_class=HTMLResponse, tags=["portal"])
         async def portal_yaml_generator(request: Request):
             """YAML generator page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
             customer = None
             if customer_manager:
                 customers = customer_manager.list_customers()
@@ -1550,6 +1600,10 @@ def create_app(
         @app.get("/portal/files", response_class=HTMLResponse, tags=["portal"])
         async def portal_files(request: Request, prefix: str = ""):
             """File manager page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
             customer = None
             files = []
             storage = {"used_gb": 0, "max_gb": 500, "percent": 0}
@@ -1629,6 +1683,10 @@ def create_app(
         @app.get("/portal/usage", response_class=HTMLResponse, tags=["portal"])
         async def portal_usage(request: Request):
             """Usage and billing page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
             customer = None
             usage = {
                 "total_cost": 0,
@@ -1663,6 +1721,10 @@ def create_app(
         @app.get("/portal/account", response_class=HTMLResponse, tags=["portal"])
         async def portal_account(request: Request):
             """Account settings page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
             customer = None
             if customer_manager:
                 customers = customer_manager.list_customers()
@@ -1678,8 +1740,9 @@ def create_app(
         @app.get("/portal/logout", response_class=RedirectResponse, tags=["portal"])
         async def portal_logout(request: Request):
             """Logout and redirect to login page."""
-            # In a real implementation, you would clear session/cookies here
-            return RedirectResponse(url="/portal/login", status_code=302)
+            # Clear session data
+            request.session.clear()
+            return RedirectResponse(url="/portal/login?success=You+have+been+logged+out", status_code=302)
 
     return app
 
