@@ -84,19 +84,15 @@ manager.create_customer_table_if_not_exists()
 ### 2. Setup Cognito Authentication
 
 ```python
+
 from daylib.workset_auth import CognitoAuth
 
-auth = CognitoAuth(
-    region="us-west-2",
-    user_pool_id="us-west-2_XXXXXXXXX",
-    app_client_id="XXXXXXXXXXXXXXXXXXXXXXXXXX",
-)
+# This creates both the user pool and app client automatically
+auth = CognitoAuth.create_with_new_pool(region="us-west-2")
 
-# Create user pool (first time only)
-pool_id = auth.create_user_pool_if_not_exists("daylily-workset-users")
+print(f"Pool ID: {auth.user_pool_id}")
+print(f"Client ID: {auth.app_client_id}")
 
-# Create app client
-client_id = auth.create_app_client("daylily-workset-api")
 ```
 
 ### 3. Start API with Authentication
@@ -273,7 +269,7 @@ Each customer bucket is tagged for cost allocation:
     "CostCenter": "CC-GENOMICS"
 }
 ```
-
+ 
 ### Lifecycle Policies
 
 Automatic cost management:

@@ -179,6 +179,104 @@ Multi-channel notification system:
 
 ---
 
+### 7. Multi-Region Support
+
+**Module**: `daylib/workset_multi_region.py`
+
+Global deployment with DynamoDB Global Tables:
+
+- **DynamoDB Global Tables**: Automatic replication across regions
+- **Region health tracking**: Monitor region availability and latency
+- **Automatic failover**: Route to healthy regions on failure
+- **Latency-based routing**: Route to nearest healthy region
+- **Cross-region consistency**: Eventually consistent reads across regions
+
+**Key Classes**:
+- `WorksetMultiRegionDB`: Multi-region state database
+- `RegionHealth`: Region health status tracking
+
+**Supported Regions**:
+- us-west-2 (primary)
+- us-east-1
+- eu-west-1
+
+**Benefits**:
+- High availability across regions
+- Disaster recovery capability
+- Lower latency for global users
+- Automatic failover on region outages
+
+---
+
+### 8. Enhanced Error Diagnostics
+
+**Module**: `daylib/workset_diagnostics.py`
+
+Structured error codes and remediation suggestions:
+
+- **Error code system**: Structured codes (e.g., WS-RES-001)
+- **Severity levels**: Critical, Error, Warning, Info
+- **Error categories**: Resource, Network, Data, Config, AWS, Pipeline, Cluster
+- **Pattern matching**: Automatic error classification from logs
+- **Remediation suggestions**: Actionable fix recommendations
+
+**Error Categories**:
+- `RESOURCE`: Memory, CPU, disk issues (WS-RES-xxx)
+- `NETWORK`: Connectivity, timeout issues (WS-NET-xxx)
+- `DATA`: Input data quality issues (WS-DAT-xxx)
+- `CONFIG`: Configuration errors (WS-CFG-xxx)
+- `AWS`: AWS service errors (WS-AWS-xxx)
+- `PIPELINE`: Bioinformatics pipeline errors (WS-PIP-xxx)
+- `CLUSTER`: HPC cluster issues (WS-CLU-xxx)
+
+**Key Functions**:
+- `classify_error()`: Classify error text
+- `get_remediation_for_error()`: Get fix suggestions
+- `is_retryable()`: Check if error is retryable
+- `format_diagnostic_report()`: Generate human-readable report
+
+**Benefits**:
+- Faster troubleshooting
+- Consistent error handling
+- Actionable remediation steps
+- Automatic retry decisions
+
+---
+
+### 9. Customer Web Portal
+
+**Module**: `daylib/workset_api.py` (enhanced with Jinja2 templates)
+
+Full-featured web portal for customer self-service:
+
+- **Dashboard**: Usage statistics, workset overview, cost tracking
+- **Workset management**: Submit, view, cancel worksets
+- **YAML generator**: Interactive form for creating daylily_work.yaml
+- **File browser**: Browse S3 files and results
+- **Authentication**: Login/register with Cognito integration
+
+**Portal Pages**:
+- `/portal/` - Dashboard with statistics
+- `/portal/worksets` - Workset list and management
+- `/portal/worksets/new` - Submit new workset
+- `/portal/yaml-generator` - Interactive YAML builder
+- `/portal/files` - S3 file browser
+- `/portal/usage` - Usage and billing
+
+**Styling**:
+- Matches LSMC website design
+- Responsive layout
+- Dark/light theme support
+- Interactive charts
+
+**Benefits**:
+- Self-service workset submission
+- Real-time status monitoring
+- Cost visibility
+- Simplified configuration
+
+---
+
 ## Database Schema Enhancements
 
 ### New DynamoDB Attributes
@@ -208,14 +306,19 @@ Multi-channel notification system:
 
 ## Testing
 
-### New Test Files
+### Test Files
 
 1. **test_workset_concurrent_processor.py**: Tests for concurrent processing
 2. **test_workset_validation.py**: Tests for validation logic
 3. **test_workset_customer.py**: Tests for customer management
 4. **test_workset_state_db.py**: Enhanced with retry/recovery tests
+5. **test_workset_multi_region.py**: Tests for multi-region support
+6. **test_workset_diagnostics.py**: Tests for error diagnostics
+7. **test_workset_portal.py**: Tests for web portal routes
+8. **test_workset_notifications.py**: Tests for notification system
+9. **test_integration.py**: End-to-end integration tests
 
-### Test Coverage
+### Test Coverage (121+ tests)
 
 - Concurrent processing at capacity
 - Concurrent processing with available slots
@@ -225,6 +328,13 @@ Multi-channel notification system:
 - Error categorization
 - Cluster affinity
 - Resource estimation
+- Multi-region failover
+- Region health tracking
+- Error code classification
+- Remediation suggestions
+- Portal routes and templates
+- API endpoints
+- Integration workflows
 
 ---
 

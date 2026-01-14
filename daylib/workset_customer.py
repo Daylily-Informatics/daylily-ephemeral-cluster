@@ -195,18 +195,19 @@ class CustomerManager:
             )
 
             # Set lifecycle policy to manage costs
+            # Note: boto3 requires "ID" (uppercase), not "Id"
             lifecycle_policy = {
                 "Rules": [
                     {
-                        "Id": "DeleteOldWorksets",
+                        "ID": "DeleteOldWorksets",
                         "Status": "Enabled",
-                        "Prefix": "worksets/",
+                        "Filter": {"Prefix": "worksets/"},
                         "Expiration": {"Days": 90},
                     },
                     {
-                        "Id": "TransitionToIA",
+                        "ID": "TransitionToIA",
                         "Status": "Enabled",
-                        "Prefix": "results/",
+                        "Filter": {"Prefix": "results/"},
                         "Transitions": [
                             {"Days": 30, "StorageClass": "STANDARD_IA"},
                         ],
@@ -358,13 +359,16 @@ class CustomerManager:
             LOGGER.warning("Failed to get storage metrics: %s", e)
             storage_gb = 0
 
+        # Convert Decimal to float for calculations (DynamoDB returns Decimals)
+        max_storage_gb = float(config.max_storage_gb) if config.max_storage_gb else 0
+
         return {
             "customer_id": customer_id,
             "storage_gb": round(storage_gb, 2),
-            "max_storage_gb": config.max_storage_gb,
+            "max_storage_gb": max_storage_gb,
             "storage_utilization_percent": round(
-                (storage_gb / config.max_storage_gb) * 100, 2
-            ) if config.max_storage_gb > 0 else 0,
+                (storage_gb / max_storage_gb) * 100, 2
+            ) if max_storage_gb > 0 else 0,
         }
 
 

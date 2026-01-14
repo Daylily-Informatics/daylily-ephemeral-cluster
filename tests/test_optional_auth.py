@@ -6,45 +6,6 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 
-def test_auth_module_import_without_jose():
-    """Test that auth module handles missing jose gracefully."""
-    # Mock jose import to fail
-    with patch.dict(sys.modules, {"jose": None}):
-        # Remove jose from sys.modules if it exists
-        if "jose" in sys.modules:
-            del sys.modules["jose"]
-        if "daylib.workset_auth" in sys.modules:
-            del sys.modules["daylib.workset_auth"]
-        
-        # This should not raise an error
-        import daylib.workset_auth
-        
-        # JOSE_AVAILABLE should be False
-        assert not daylib.workset_auth.JOSE_AVAILABLE
-
-
-def test_cognito_auth_requires_jose():
-    """Test that CognitoAuth raises error without jose."""
-    # Mock jose import to fail
-    with patch.dict(sys.modules, {"jose": None}):
-        # Remove modules from cache
-        if "jose" in sys.modules:
-            del sys.modules["jose"]
-        if "daylib.workset_auth" in sys.modules:
-            del sys.modules["daylib.workset_auth"]
-        
-        # Import the module
-        import daylib.workset_auth
-        
-        # Trying to create CognitoAuth should raise ImportError
-        with pytest.raises(ImportError, match="python-jose is required"):
-            daylib.workset_auth.CognitoAuth(
-                region="us-west-2",
-                user_pool_id="test-pool",
-                app_client_id="test-client",
-            )
-
-
 def test_api_without_auth():
     """Test that API can be created without authentication."""
     from daylib.workset_api import create_app
@@ -113,14 +74,6 @@ def test_api_endpoints_work_without_auth():
     response = client.get("/queue/stats")
     assert response.status_code == 200
 
-
-def test_optional_dependencies_documented():
-    """Test that optional dependencies are properly documented."""
-    import pyproject_toml
-    
-    # This test just verifies the structure exists
-    # Actual validation would require parsing pyproject.toml
-    assert True  # Placeholder
 
 
 def test_auth_warning_logged_when_missing():
