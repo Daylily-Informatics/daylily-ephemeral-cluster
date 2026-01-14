@@ -1,0 +1,149 @@
+# =============================================================================
+# Daylily Workset Monitor Configuration Template
+# =============================================================================
+# This is a template configuration file for the daylily-workset-monitor tool.
+# Copy this file and customize the values for your environment.
+#
+# Usage:
+#   cp config/workset-monitor-config.template.yaml config/my-monitor-config.yaml
+#   # Edit my-monitor-config.yaml with your settings
+#   bin/daylily-workset-monitor config/my-monitor-config.yaml --enable-dynamodb
+#
+# For DynamoDB integration (recommended for portal UI):
+#   bin/daylily-workset-monitor config/my-monitor-config.yaml \
+#     --enable-dynamodb \
+#     --dynamodb-table daylily-worksets \
+#     --enable-notifications \
+#     --sns-topic-arn arn:aws:sns:us-west-2:123456789:daylily-alerts
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# AWS Configuration
+# -----------------------------------------------------------------------------
+aws:
+  # AWS profile name from ~/.aws/credentials (use "default" if not using profiles)
+  profile: daylily-service-lsmc
+  
+  # AWS region for S3, DynamoDB, and other services
+  region: us-west-2
+  
+  # Optional: Session duration for profile authentication (in seconds)
+  # Useful when using assumed roles with limited session duration
+  session_duration_seconds: 3600
+
+# -----------------------------------------------------------------------------
+# Monitor Configuration
+# -----------------------------------------------------------------------------
+monitor:
+  # S3 bucket where worksets are stored
+  bucket: lsmc-dayoa-omics-analysis-us-west-2
+  
+  # S3 prefix for active worksets (must end with /)
+  prefix: daylily_monitoring/active_worksets/
+  
+  # S3 prefix for archived/completed worksets (optional)
+  archive_prefix: daylily_monitoring/archived_worksets/
+  
+  # How often to poll for new worksets (in seconds)
+  poll_interval_seconds: 60
+  
+  # Backoff time when a workset is locked by another monitor (in seconds)
+  ready_lock_backoff_seconds: 30
+  
+  # Run continuously (true) or single scan and exit (false)
+  continuous: true
+  
+  # S3 prefix for sentinel index files (state tracking)
+  sentinel_index_prefix: daylily_monitoring/
+
+# -----------------------------------------------------------------------------
+# Cluster Configuration
+# -----------------------------------------------------------------------------
+cluster:
+  # Path to ParallelCluster template YAML file
+  template_path: cluex.yaml
+  
+  # Contact email for cluster notifications
+  contact_email: johnm@lsmc.com
+  
+  # Git tag/branch for the daylily-omics-analysis repo
+  repo_tag: main
+  
+  # Preferred AWS availability zone for cluster creation
+  preferred_availability_zone: us-west-2d
+  
+  # Automatically shut down idle clusters
+  auto_teardown: false
+  
+  # Minutes of idle time before cluster teardown (if auto_teardown is true)
+  idle_teardown_minutes: 20
+  
+  # Optional: Reuse an existing cluster instead of creating new ones
+  # Leave empty ("") to create clusters dynamically
+  reuse_cluster_name: "lfg-usw2d"
+
+# -----------------------------------------------------------------------------
+# Pipeline Configuration
+# -----------------------------------------------------------------------------
+pipeline:
+  # Directory on the headnode where worksets will be staged
+  workdir: /fsx/data/worksets
+  
+  # Local directory for staging manifests before transfer
+  local_stage_root: .
+  
+  # S3 bucket URI for reference data (defaults to monitor bucket if omitted)
+  reference_bucket: s3://lsmc-dayoa-omics-analysis-us-west-2/
+  
+  # SSH identity file for headnode connection
+  ssh_identity_file: ~/.ssh/lsmc-omics-us-west-2.pem 
+  
+  # SSH user for headnode connection
+  ssh_user: ubuntu
+  
+  # Additional SSH options (optional)
+  ssh_extra_args: []
+  
+  # Command to stage samples to the headnode
+  # Available variables: {profile}, {region}, {reference_bucket}, {analysis_samples}
+  stage_command: ./bin/daylily-stage-samples-from-local-to-headnode --profile {profile} --region {region} --reference-bucket {reference_bucket} {analysis_samples}
+  
+  # Command to clone the pipeline repository
+  # Available variables: {clone_args}
+  clone_command: echo cloning && day-clone {clone_args}
+  
+  # Command prefix for running the pipeline
+  # The dy-r suffix from workset YAML is appended to this
+  run_prefix: "source dyoainit && source bin/day_activate slurm hg38 && DAY_CONTAINERIZED=0 ./bin/day_run "
+  
+  # Maximum pipeline execution time (in minutes) before timeout
+  pipeline_timeout_minutes: 880
+  
+  # Command to export results back to S3
+  # Available variables: {cluster}, {target_uri}, {region}, {profile}, {output_dir}, 
+  #                      {workdir_name}, {workset_dir}, {pipeline_dir}, {workset}
+  export_command: ./bin/daylily-export-fsx-to-s3-from-local --cluster {cluster} --target-uri analysis_results/ubuntu/{workdir_name} --region {region} --profile {profile} --output-dir ./etc --verbose
+  
+  # Shell initialization command run before entering pipeline directory
+  login_shell_init: source ~/.bashrc
+  
+  # Prefix for tmux session names
+  tmux_session_prefix: daylily
+  
+  # Shell to keep tmux session alive after pipeline completion
+  tmux_keepalive_shell: bash
+
+# -----------------------------------------------------------------------------
+# Workset-Specific Overrides (Optional)
+# -----------------------------------------------------------------------------
+# These can be overridden per-workset in daylily_work.yaml
+
+# Clone arguments for day-clone command
+day-clone: "--repo Daylily-Informatics/daylily-omics-analysis --branch main"
+
+# Run arguments appended to run_prefix
+dy-r: "--name my-analysis --samples config/samples.tsv --outdir results/my-analysis --profile slurm --jobs 192 --rerun-incomplete"
+
+# Optional: S3 URI for exporting results
+export_uri: "s3://daylily-customer-johnm-8cef133c/"
+
