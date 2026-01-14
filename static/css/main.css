@@ -1073,3 +1073,94 @@ p { margin-bottom: var(--spacing-md); }
     margin-top: var(--spacing-lg);
 }
 
+/* ========== Cost Estimation Styles ========== */
+.cost-estimate-grid {
+    padding: var(--spacing-md);
+}
+
+.cost-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) 0;
+}
+
+.cost-item.cost-total {
+    background: linear-gradient(135deg, var(--color-primary), var(--color-accent));
+    color: var(--color-white);
+    padding: var(--spacing-lg);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+    flex-direction: column;
+    text-align: center;
+}
+
+.cost-item.cost-total .cost-label {
+    font-size: 0.875rem;
+    opacity: 0.9;
+    margin-bottom: var(--spacing-xs);
+}
+
+.cost-item.cost-total .cost-value {
+    font-size: 2rem;
+    font-weight: 700;
+}
+
+.cost-breakdown {
+    background: var(--color-gray-100);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+}
+
+.cost-breakdown .cost-item {
+    border-bottom: 1px solid var(--color-gray-200);
+}
+
+.cost-breakdown .cost-item:last-child {
+    border-bottom: none;
+}
+
+.cost-breakdown .cost-label {
+    color: var(--color-gray-700);
+    font-size: 0.875rem;
+}
+
+.cost-breakdown .cost-label i {
+    width: 20px;
+    margin-right: var(--spacing-sm);
+    color: var(--color-accent);
+}
+
+.cost-breakdown .cost-value {
+    font-weight: 600;
+    color: var(--color-gray-800);
+}
+
+.cost-details {
+    border-top: 1px solid var(--color-gray-200);
+    padding-top: var(--spacing-md);
+}
+
+.cost-details .detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: var(--spacing-xs) 0;
+    font-size: 0.875rem;
+    color: var(--color-gray-600);
+}
+
+.cost-details .detail-row span:last-child {
+    font-weight: 500;
+    color: var(--color-gray-800);
+}
+
+.cost-notes {
+    border-top: 1px solid var(--color-gray-200);
+    padding-top: var(--spacing-md);
+}
+
+.cost-notes p {
+    margin: 0;
+    line-height: 1.5;
+}
+

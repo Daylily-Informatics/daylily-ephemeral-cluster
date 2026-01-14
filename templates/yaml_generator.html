@@ -141,11 +141,27 @@
                             
                             <div class="form-group">
                                 <label for="custom_params" class="form-label">Custom Parameters (YAML)</label>
-                                <textarea id="custom_params" name="custom_params" class="form-control" 
+                                <textarea id="custom_params" name="custom_params" class="form-control"
                                           rows="4" placeholder="# Add custom parameters here" oninput="updatePreview()"></textarea>
                             </div>
                         </div>
                     </details>
+                </div>
+
+                <!-- Cost Estimation -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-calculator"></i> Cost Estimate</h3>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="refreshCostEstimate()">
+                            <i class="fas fa-sync-alt"></i> Refresh
+                        </button>
+                    </div>
+                    <div id="cost-estimate-content">
+                        <div class="text-center text-muted p-lg">
+                            <i class="fas fa-info-circle"></i>
+                            <p class="mt-sm">Configure your workset to see cost estimate</p>
+                        </div>
+                    </div>
                 </div>
             </form>
         </div>

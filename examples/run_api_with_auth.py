@@ -6,22 +6,32 @@ Requires python-jose to be installed and AWS Cognito to be configured.
 
 Prerequisites:
     pip install 'python-jose[cryptography]'
-    
+
     AWS Cognito User Pool and App Client must be created.
 
 Usage:
     # Set environment variables
     export COGNITO_USER_POOL_ID=us-west-2_XXXXXXXXX
     export COGNITO_APP_CLIENT_ID=XXXXXXXXXXXXXXXXXXXXXXXXXX
-    
-    # Run the server
+
+    # Run the server (HTTP)
     python examples/run_api_with_auth.py
 
+    # Run with custom port
+    python examples/run_api_with_auth.py --port 8443
+
+    # Run with HTTPS
+    python examples/run_api_with_auth.py --https --cert /path/to/cert.pem --key /path/to/key.pem
+
+    # Run with HTTPS on custom port
+    python examples/run_api_with_auth.py --https --port 8443 --cert cert.pem --key key.pem
+
 Then access the API at:
-    http://localhost:8000
+    http://localhost:8000  (or https:// if --https is used)
     http://localhost:8000/docs  (Swagger UI with authentication)
 """
 
+import argparse
 import logging
 import os
 import sys
@@ -55,45 +65,113 @@ logging.basicConfig(
 LOGGER = logging.getLogger(__name__)
 
 
+def parse_args():
+    """Parse command line arguments."""
+    parser = argparse.ArgumentParser(
+        description="Run Workset Monitor API with authentication",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+    # Run on default port (8000) with HTTP
+    python run_api_with_auth.py
+
+    # Run on custom port
+    python run_api_with_auth.py --port 8443
+
+    # Run with HTTPS (requires cert and key files)
+    python run_api_with_auth.py --https --cert cert.pem --key key.pem
+
+    # Run HTTPS on custom port
+    python run_api_with_auth.py --https --port 8443 --cert /etc/ssl/cert.pem --key /etc/ssl/key.pem
+
+    # Generate self-signed certificate for testing:
+    openssl req -x509 -newkey rsa:4096 -keyout key.pem -out cert.pem -days 365 -nodes
+        """,
+    )
+    parser.add_argument(
+        "--port", "-p",
+        type=int,
+        default=8000,
+        help="Port to run the server on (default: 8000)",
+    )
+    parser.add_argument(
+        "--https",
+        action="store_true",
+        help="Enable HTTPS (requires --cert and --key)",
+    )
+    parser.add_argument(
+        "--cert",
+        type=str,
+        help="Path to SSL certificate file (PEM format)",
+    )
+    parser.add_argument(
+        "--key",
+        type=str,
+        help="Path to SSL private key file (PEM format)",
+    )
+    parser.add_argument(
+        "--host",
+        type=str,
+        default="0.0.0.0",
+        help="Host to bind to (default: 0.0.0.0)",
+    )
+    return parser.parse_args()
+
+
 def main():
     """Run the API server with authentication."""
-    
+    args = parse_args()
+
+    # Validate HTTPS configuration
+    if args.https:
+        if not args.cert or not args.key:
+            LOGGER.error("HTTPS requires both --cert and --key options")
+            sys.exit(1)
+        cert_path = Path(args.cert)
+        key_path = Path(args.key)
+        if not cert_path.exists():
+            LOGGER.error(f"Certificate file not found: {args.cert}")
+            sys.exit(1)
+        if not key_path.exists():
+            LOGGER.error(f"Key file not found: {args.key}")
+            sys.exit(1)
+
     # Configuration from environment
     REGION = os.getenv("AWS_REGION", "us-west-2")
     WORKSET_TABLE = os.getenv("WORKSET_TABLE_NAME", "daylily-worksets")
     USER_POOL_ID = os.getenv("COGNITO_USER_POOL_ID")
     APP_CLIENT_ID = os.getenv("COGNITO_APP_CLIENT_ID")
-    
+
     # Validate required configuration
     if not USER_POOL_ID:
         LOGGER.error("COGNITO_USER_POOL_ID environment variable not set")
         sys.exit(1)
-    
+
     if not APP_CLIENT_ID:
         LOGGER.error("COGNITO_APP_CLIENT_ID environment variable not set")
         sys.exit(1)
-    
+
     LOGGER.info("Initializing Workset Monitor API (with authentication)")
-    
+
     # Initialize state database
     LOGGER.info(f"Connecting to DynamoDB table: {WORKSET_TABLE}")
     state_db = WorksetStateDB(
         table_name=WORKSET_TABLE,
         region=REGION,
     )
-    
+
     # Initialize scheduler (optional)
     LOGGER.info("Initializing workset scheduler")
     scheduler = WorksetScheduler(state_db)
-    
+
     # Initialize validator (optional)
     LOGGER.info("Initializing workset validator")
     validator = WorksetValidator(region=REGION)
-    
+
     # Initialize customer manager (optional)
     LOGGER.info("Initializing customer manager")
     customer_manager = CustomerManager(region=REGION)
-    
+
     # Initialize Cognito authentication
     LOGGER.info("Initializing AWS Cognito authentication")
     cognito_auth = CognitoAuth(
@@ -101,7 +179,7 @@ def main():
         user_pool_id=USER_POOL_ID,
         app_client_id=APP_CLIENT_ID,
     )
-    
+
     # Create FastAPI app WITH authentication
     LOGGER.info("Creating FastAPI application (authentication enabled)")
     app = create_app(
@@ -112,31 +190,45 @@ def main():
         validator=validator,
         enable_auth=True,  # Enable authentication
     )
-    
+
+    # Determine protocol and URL
+    protocol = "https" if args.https else "http"
+    base_url = f"{protocol}://{args.host}:{args.port}"
+
     LOGGER.info("=" * 60)
     LOGGER.info("Workset Monitor API Server")
     LOGGER.info("=" * 60)
     LOGGER.info("Authentication: ENABLED (AWS Cognito)")
+    LOGGER.info("Protocol: %s", protocol.upper())
     LOGGER.info("Region: %s", REGION)
     LOGGER.info("DynamoDB Table: %s", WORKSET_TABLE)
     LOGGER.info("User Pool ID: %s", USER_POOL_ID)
     LOGGER.info("App Client ID: %s", APP_CLIENT_ID)
+    if args.https:
+        LOGGER.info("SSL Certificate: %s", args.cert)
+        LOGGER.info("SSL Key: %s", args.key)
     LOGGER.info("")
-    LOGGER.info("Starting server on http://0.0.0.0:8000")
-    LOGGER.info("API Documentation: http://localhost:8000/docs")
+    LOGGER.info("Starting server on %s", base_url)
+    LOGGER.info("API Documentation: %s/docs", base_url)
     LOGGER.info("")
     LOGGER.info("NOTE: All API requests require a valid JWT token")
     LOGGER.info("Include token in Authorization header: Bearer <token>")
     LOGGER.info("=" * 60)
-    
+
     # Run the server
     import uvicorn
-    uvicorn.run(
-        app,
-        host="0.0.0.0",
-        port=8000,
-        log_level="info",
-    )
+    uvicorn_kwargs = {
+        "app": app,
+        "host": args.host,
+        "port": args.port,
+        "log_level": "info",
+    }
+
+    if args.https:
+        uvicorn_kwargs["ssl_certfile"] = args.cert
+        uvicorn_kwargs["ssl_keyfile"] = args.key
+
+    uvicorn.run(**uvicorn_kwargs)
 
 
 if __name__ == "__main__":

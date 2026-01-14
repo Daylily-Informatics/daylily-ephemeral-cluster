@@ -5,9 +5,10 @@ from __future__ import annotations
 
 import argparse
 import logging
+import os
 import sys
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Any, Optional, Sequence
 
 from daylib.workset_monitor import (
     MonitorConfig,
@@ -68,7 +69,100 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
             f"Supported actions: {supported_actions}"
         ),
     )
+    # Integration layer options
+    parser.add_argument(
+        "--enable-dynamodb",
+        action="store_true",
+        help="Enable DynamoDB state tracking integration",
+    )
+    parser.add_argument(
+        "--dynamodb-table",
+        default=os.environ.get("DAYLILY_DYNAMODB_TABLE", "daylily-worksets"),
+        help="DynamoDB table name for workset state (default: daylily-worksets)",
+    )
+    parser.add_argument(
+        "--enable-notifications",
+        action="store_true",
+        help="Enable SNS notifications for workset events",
+    )
+    parser.add_argument(
+        "--sns-topic-arn",
+        default=os.environ.get("DAYLILY_SNS_TOPIC_ARN"),
+        help="SNS topic ARN for notifications",
+    )
     return parser.parse_args(argv)
+
+
+def setup_integration_components(
+    config: MonitorConfig, args: argparse.Namespace
+) -> dict[str, Any]:
+    """Initialize optional integration components.
+
+    Returns dict with state_db, integration, and notification_manager keys.
+    """
+    components: dict[str, Any] = {
+        "state_db": None,
+        "integration": None,
+        "notification_manager": None,
+    }
+
+    # Setup DynamoDB state tracking
+    if args.enable_dynamodb:
+        try:
+            from daylib.workset_state_db import WorksetStateDB
+
+            state_db = WorksetStateDB(
+                table_name=args.dynamodb_table,
+                region=config.aws.region,
+                profile=config.aws.profile if config.aws.profile else None,
+            )
+            components["state_db"] = state_db
+            LOGGER.info("DynamoDB state tracking enabled (table: %s)", args.dynamodb_table)
+        except ImportError:
+            LOGGER.warning("DynamoDB integration requested but workset_state_db module not available")
+        except Exception as e:
+            LOGGER.warning("Failed to initialize DynamoDB state tracking: %s", e)
+
+    # Setup notifications
+    if args.enable_notifications and args.sns_topic_arn:
+        try:
+            from daylib.workset_notifications import NotificationManager, SNSNotificationChannel
+
+            notification_manager = NotificationManager()
+            sns_channel = SNSNotificationChannel(
+                topic_arn=args.sns_topic_arn,
+                region=config.aws.region,
+                profile=config.aws.profile if config.aws.profile else None,
+            )
+            notification_manager.add_channel(sns_channel)
+            components["notification_manager"] = notification_manager
+            LOGGER.info("SNS notifications enabled (topic: %s)", args.sns_topic_arn)
+        except ImportError:
+            LOGGER.warning("Notifications requested but workset_notifications module not available")
+        except Exception as e:
+            LOGGER.warning("Failed to initialize notifications: %s", e)
+
+    # Setup integration layer if DynamoDB is enabled
+    if components["state_db"]:
+        try:
+            from daylib.workset_integration import WorksetIntegration
+
+            integration = WorksetIntegration(
+                state_db=components["state_db"],
+                bucket=config.monitor.bucket,
+                prefix=config.monitor.normalised_prefix(),
+                notification_manager=components["notification_manager"],
+                region=config.aws.region,
+                profile=config.aws.profile if config.aws.profile else None,
+            )
+            components["integration"] = integration
+            LOGGER.info("Integration layer initialized")
+        except ImportError:
+            LOGGER.warning("Integration layer requested but workset_integration module not available")
+        except Exception as e:
+            LOGGER.warning("Failed to initialize integration layer: %s", e)
+
+    return components
 
 
 def main(argv: Optional[Sequence[str]] = None) -> int:
@@ -79,6 +173,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.once and not args.actions:
         config.monitor.continuous = False
 
+    # Initialize integration components
+    components = setup_integration_components(config, args)
+
     monitor = WorksetMonitor(
         config,
         dry_run=args.dry_run,
@@ -86,6 +183,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         process_directories=args.process_directories,
         attempt_restart=args.attempt_restart,
         force_recalculate_metrics=args.force_recalculate,
+        state_db=components["state_db"],
+        integration=components["integration"],
+        notification_manager=components["notification_manager"],
     )
 
     if args.actions:

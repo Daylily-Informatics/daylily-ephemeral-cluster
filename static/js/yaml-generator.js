@@ -322,9 +322,135 @@ function selectFile(key) {
     }
 }
 
+// ========== Cost Estimation Functions ==========
+
+let costEstimateDebounceTimer = null;
+
+// Refresh cost estimate from API
+async function refreshCostEstimate() {
+    const container = document.getElementById('cost-estimate-content');
+    if (!container) return;
+
+    // Get current form values
+    const pipeline = document.getElementById('pipeline')?.value || 'germline';
+    const reference = document.getElementById('reference')?.value || 'GRCh38';
+    const sampleCount = document.querySelectorAll('.sample-row').length || 1;
+
+    // Show loading state
+    container.innerHTML = `
+        <div class="text-center text-muted p-lg">
+            <i class="fas fa-spinner fa-spin"></i>
+            <p class="mt-sm">Calculating estimate...</p>
+        </div>
+    `;
+
+    try {
+        const response = await fetch('/api/estimate-cost', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+                pipeline_type: pipeline,
+                reference_genome: reference,
+                sample_count: sampleCount,
+                estimated_coverage: 30.0,
+                priority: 'normal',
+                data_size_gb: 0,  // Let API estimate
+            }),
+        });
+
+        if (!response.ok) {
+            throw new Error('Failed to get cost estimate');
+        }
+
+        const estimate = await response.json();
+        displayCostEstimate(estimate);
+    } catch (error) {
+        console.error('Cost estimation error:', error);
+        container.innerHTML = `
+            <div class="text-center text-muted p-lg">
+                <i class="fas fa-exclamation-triangle text-warning"></i>
+                <p class="mt-sm">Unable to calculate estimate</p>
+                <p class="text-sm">Cost estimation service unavailable</p>
+            </div>
+        `;
+    }
+}
+
+// Display cost estimate in the UI
+function displayCostEstimate(estimate) {
+    const container = document.getElementById('cost-estimate-content');
+    if (!container) return;
+
+    container.innerHTML = `
+        <div class="cost-estimate-grid">
+            <div class="cost-item cost-total">
+                <div class="cost-label">Estimated Total</div>
+                <div class="cost-value">$${estimate.estimated_cost_usd.toFixed(2)}</div>
+            </div>
+            <div class="cost-breakdown">
+                <div class="cost-item">
+                    <span class="cost-label"><i class="fas fa-microchip"></i> Compute</span>
+                    <span class="cost-value">${estimate.cost_breakdown.compute}</span>
+                </div>
+                <div class="cost-item">
+                    <span class="cost-label"><i class="fas fa-database"></i> Storage</span>
+                    <span class="cost-value">${estimate.cost_breakdown.storage}</span>
+                </div>
+                <div class="cost-item">
+                    <span class="cost-label"><i class="fas fa-hdd"></i> FSx Lustre</span>
+                    <span class="cost-value">${estimate.cost_breakdown.fsx}</span>
+                </div>
+                <div class="cost-item">
+                    <span class="cost-label"><i class="fas fa-exchange-alt"></i> Transfer</span>
+                    <span class="cost-value">${estimate.cost_breakdown.transfer}</span>
+                </div>
+            </div>
+            <div class="cost-details mt-md">
+                <div class="detail-row">
+                    <span><i class="fas fa-clock"></i> Est. Duration</span>
+                    <span>${estimate.estimated_duration_hours.toFixed(1)} hours</span>
+                </div>
+                <div class="detail-row">
+                    <span><i class="fas fa-server"></i> vCPU Hours</span>
+                    <span>${estimate.vcpu_hours.toFixed(1)}</span>
+                </div>
+                <div class="detail-row">
+                    <span><i class="fas fa-file"></i> Data Size</span>
+                    <span>${estimate.data_size_gb.toFixed(1)} GB</span>
+                </div>
+            </div>
+            <div class="cost-notes mt-md">
+                <p class="text-sm text-muted">
+                    <i class="fas fa-info-circle"></i>
+                    ${estimate.notes[0]}
+                </p>
+            </div>
+        </div>
+    `;
+}
+
+// Debounced cost estimate update
+function debouncedCostEstimate() {
+    if (costEstimateDebounceTimer) {
+        clearTimeout(costEstimateDebounceTimer);
+    }
+    costEstimateDebounceTimer = setTimeout(refreshCostEstimate, 1000);
+}
+
+// Override updatePreview to also trigger cost estimate
+const originalUpdatePreview = updatePreview;
+updatePreview = function() {
+    originalUpdatePreview();
+    debouncedCostEstimate();
+};
+
 // Initialize on page load
 document.addEventListener('DOMContentLoaded', function() {
     updatePreview();
     updateRemoveButtons();
+    // Initial cost estimate after a short delay
+    setTimeout(refreshCostEstimate, 500);
 });
 

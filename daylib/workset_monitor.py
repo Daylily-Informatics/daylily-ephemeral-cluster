@@ -261,12 +261,33 @@ class WorksetMonitor:
         process_directories: Optional[Sequence[str]] = None,
         attempt_restart: bool = False,
         force_recalculate_metrics: bool = False,
+        state_db: Optional[Any] = None,
+        integration: Optional[Any] = None,
+        notification_manager: Optional[Any] = None,
     ) -> None:
+        """Initialize the workset monitor.
+
+        Args:
+            config: Monitor configuration
+            dry_run: If True, don't mutate S3 or execute commands
+            debug: Enable debug output
+            process_directories: Only process specific workset directories
+            attempt_restart: Retry failed worksets
+            force_recalculate_metrics: Recalculate all metrics
+            state_db: Optional DynamoDB state database for unified state tracking
+            integration: Optional WorksetIntegration for unified state operations
+            notification_manager: Optional notification manager for alerts
+        """
         self.config = config
         self.dry_run = dry_run
         self.debug = debug
         self.attempt_restart = attempt_restart
         self.force_recalculate_metrics = force_recalculate_metrics
+
+        # Integration layer components
+        self.state_db = state_db
+        self.integration = integration
+        self.notification_manager = notification_manager
 
         self._session = boto3.session.Session(**config.aws.session_kwargs())
         self._s3 = self._session.client("s3")
@@ -498,9 +519,20 @@ class WorksetMonitor:
     def _discover_worksets(
         self, *, include_archive: bool = False
     ) -> Iterable[Workset]:
-        yield from self._discover_worksets_for_prefix(
+        # Track yielded worksets to avoid duplicates
+        yielded_names: Set[str] = set()
+
+        # First, discover from S3 (traditional method)
+        for workset in self._discover_worksets_for_prefix(
             self.config.monitor.normalised_prefix(), is_archived=False
-        )
+        ):
+            yielded_names.add(workset.name)
+            yield workset
+
+        # Also discover from DynamoDB if available (new UI-submitted worksets)
+        if self.state_db:
+            yield from self._discover_worksets_from_dynamodb(yielded_names)
+
         if not include_archive:
             return
         archive_prefix = self.config.monitor.normalised_archive_prefix()
@@ -508,6 +540,65 @@ class WorksetMonitor:
             yield from self._discover_worksets_for_prefix(
                 archive_prefix, is_archived=True
             )
+
+    def _discover_worksets_from_dynamodb(
+        self, already_yielded: Set[str]
+    ) -> Iterable[Workset]:
+        """Discover worksets registered in DynamoDB that aren't in S3 yet.
+
+        This enables worksets submitted via the UI to be discovered by the monitor.
+
+        Args:
+            already_yielded: Set of workset names already discovered from S3
+        """
+        if not self.state_db:
+            return
+
+        try:
+            ready_worksets = self.state_db.get_ready_worksets_prioritized(limit=100)
+        except Exception as e:
+            LOGGER.warning("Failed to query DynamoDB for worksets: %s", e)
+            return
+
+        for db_workset in ready_worksets:
+            workset_id = db_workset.get("workset_id", "")
+            if workset_id in already_yielded:
+                continue
+
+            # Convert DynamoDB record to Workset object
+            bucket = db_workset.get("bucket", self.config.monitor.bucket)
+            prefix = db_workset.get("prefix", f"{self.config.monitor.normalised_prefix()}{workset_id}/")
+            state = db_workset.get("state", "ready")
+
+            # Build sentinels dict from DynamoDB state
+            sentinels: Dict[str, str] = {}
+            created_at = db_workset.get("created_at", "")
+            if state == "ready":
+                sentinels[SENTINEL_FILES["ready"]] = created_at
+            elif state == "locked":
+                sentinels[SENTINEL_FILES["lock"]] = created_at
+            elif state == "in_progress":
+                sentinels[SENTINEL_FILES["in_progress"]] = created_at
+
+            # Sync to S3 if integration layer is available
+            if self.integration and bucket:
+                try:
+                    self.integration.sync_dynamodb_to_s3(workset_id)
+                    LOGGER.info("Synced DynamoDB workset %s to S3", workset_id)
+                except Exception as e:
+                    LOGGER.warning("Failed to sync workset %s to S3: %s", workset_id, e)
+
+            # Check for required files (may not exist yet for new UI submissions)
+            has_required = self._verify_core_files(prefix) if bucket == self.config.monitor.bucket else False
+
+            yield Workset(
+                name=workset_id,
+                prefix=prefix,
+                sentinels=sentinels,
+                has_required_files=has_required,
+                is_archived=False,
+            )
+            already_yielded.add(workset_id)
 
     def _discover_worksets_for_prefix(
         self, prefix: str, *, is_archived: bool
@@ -757,10 +848,19 @@ class WorksetMonitor:
             self._process_workset(workset)
         except Exception as exc:
             LOGGER.exception("Processing of %s failed", workset.name)
+            error_msg = f"{dt.datetime.utcnow().isoformat()}Z\t{exc}"
             self._write_sentinel(
                 workset,
                 SENTINEL_FILES["error"],
-                f"{dt.datetime.utcnow().isoformat()}Z\t{exc}",
+                error_msg,
+            )
+            # Send notification on failure
+            self._notify_workset_event(
+                workset.name,
+                event_type="error",
+                state="error",
+                message=f"Workset {workset.name} processing failed",
+                error_details=str(exc),
             )
         else:
             self._write_sentinel(
@@ -768,6 +868,47 @@ class WorksetMonitor:
                 SENTINEL_FILES["complete"],
                 f"{dt.datetime.utcnow().isoformat()}Z",
             )
+            # Send notification on completion
+            self._notify_workset_event(
+                workset.name,
+                event_type="completion",
+                state="complete",
+                message=f"Workset {workset.name} completed successfully",
+            )
+
+    def _notify_workset_event(
+        self,
+        workset_id: str,
+        event_type: str,
+        state: str,
+        message: str,
+        error_details: Optional[str] = None,
+    ) -> None:
+        """Send notification for workset event.
+
+        Args:
+            workset_id: Workset identifier
+            event_type: Type of event (state_change, error, completion)
+            state: Current workset state
+            message: Event message
+            error_details: Error details if applicable
+        """
+        if not self.notification_manager:
+            return
+
+        try:
+            from daylib.workset_notifications import NotificationEvent
+
+            event = NotificationEvent(
+                workset_id=workset_id,
+                event_type=event_type,
+                state=state,
+                message=message,
+                error_details=error_details,
+            )
+            self.notification_manager.notify(event)
+        except Exception as e:
+            LOGGER.warning("Failed to send notification for %s: %s", workset_id, e)
 
     def _attempt_acquire(self, workset: Workset) -> bool:
         initial_snapshot = dict(workset.sentinels)
@@ -2565,6 +2706,48 @@ class WorksetMonitor:
             return
         self._s3.put_object(Bucket=bucket, Key=key, Body=body)
         self._record_terminal_metrics(workset, sentinel_name, value)
+
+        # Also update DynamoDB state if integration layer is available
+        self._sync_sentinel_to_dynamodb(workset.name, sentinel_name, value)
+
+    def _sync_sentinel_to_dynamodb(
+        self, workset_id: str, sentinel_name: str, value: str
+    ) -> None:
+        """Sync sentinel state change to DynamoDB.
+
+        Args:
+            workset_id: Workset identifier
+            sentinel_name: Name of sentinel file written
+            value: Timestamp/content of sentinel
+        """
+        if not self.state_db:
+            return
+
+        # Map sentinel names to DynamoDB states
+        sentinel_to_state = {
+            SENTINEL_FILES["ready"]: "ready",
+            SENTINEL_FILES["lock"]: "locked",
+            SENTINEL_FILES["in_progress"]: "in_progress",
+            SENTINEL_FILES["error"]: "error",
+            SENTINEL_FILES["complete"]: "complete",
+            SENTINEL_FILES["ignore"]: "ignored",
+        }
+
+        new_state = sentinel_to_state.get(sentinel_name)
+        if not new_state:
+            return
+
+        try:
+            from daylib.workset_state_db import WorksetState
+            ws_state = WorksetState(new_state)
+            self.state_db.update_state(
+                workset_id=workset_id,
+                new_state=ws_state,
+                reason=f"Sentinel {sentinel_name} written by monitor",
+            )
+            LOGGER.debug("Synced sentinel %s to DynamoDB state %s", sentinel_name, new_state)
+        except Exception as e:
+            LOGGER.warning("Failed to sync sentinel to DynamoDB for %s: %s", workset_id, e)
 
     def _delete_sentinel(self, workset: Workset, sentinel_name: str) -> None:
         bucket = self.config.monitor.bucket

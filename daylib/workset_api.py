@@ -35,6 +35,14 @@ except ImportError:
 from daylib.workset_customer import CustomerManager, CustomerConfig
 from daylib.workset_validation import WorksetValidator
 
+# Optional integration layer import
+try:
+    from daylib.workset_integration import WorksetIntegration
+    INTEGRATION_AVAILABLE = True
+except ImportError:
+    INTEGRATION_AVAILABLE = False
+    WorksetIntegration = None
+
 LOGGER = logging.getLogger("daylily.workset_api")
 
 
@@ -205,6 +213,7 @@ def create_app(
     cognito_auth: Optional[CognitoAuth] = None,
     customer_manager: Optional[CustomerManager] = None,
     validator: Optional[WorksetValidator] = None,
+    integration: Optional["WorksetIntegration"] = None,
     enable_auth: bool = False,
 ) -> FastAPI:
     """Create FastAPI application.
@@ -215,6 +224,7 @@ def create_app(
         cognito_auth: Optional Cognito authentication
         customer_manager: Optional customer manager
         validator: Optional workset validator
+        integration: Optional integration layer for S3 sync
         enable_auth: Enable authentication (requires cognito_auth)
 
     Returns:
@@ -414,6 +424,110 @@ def create_app(
             return None
 
         return WorksetResponse(**next_workset)
+
+    # ========== Cost Estimation Endpoints ==========
+
+    @app.post("/api/estimate-cost", tags=["utilities"])
+    async def estimate_workset_cost(
+        pipeline_type: str = Body(..., embed=True),
+        reference_genome: str = Body("GRCh38", embed=True),
+        sample_count: int = Body(1, embed=True),
+        estimated_coverage: float = Body(30.0, embed=True),
+        priority: str = Body("normal", embed=True),
+        data_size_gb: float = Body(0.0, embed=True),
+    ):
+        """Estimate cost for a workset based on parameters.
+
+        Uses pipeline type, sample count, and coverage to estimate:
+        - vCPU hours required
+        - Estimated duration
+        - Cost in USD (based on current spot pricing)
+
+        Note: These are estimates. Actual costs depend on data complexity,
+        spot market conditions, and cluster utilization.
+        """
+        # Base vCPU-hours per sample by pipeline type
+        base_vcpu_hours_per_sample = {
+            "germline": 4.0,
+            "somatic": 8.0,
+            "rnaseq": 2.0,
+            "wgs": 12.0,
+            "wes": 3.0,
+        }
+
+        base_hours = base_vcpu_hours_per_sample.get(pipeline_type, 4.0)
+
+        # Adjust for coverage (30x is baseline)
+        coverage_factor = estimated_coverage / 30.0
+
+        # Calculate total vCPU hours
+        vcpu_hours = base_hours * sample_count * coverage_factor
+
+        # Estimate duration assuming 16 vCPU instance average
+        avg_vcpus = 16
+        duration_hours = vcpu_hours / avg_vcpus
+
+        # Base cost per vCPU-hour (typical spot pricing)
+        cost_per_vcpu_hour = {
+            "urgent": 0.08,  # On-demand pricing
+            "high": 0.08,
+            "normal": 0.03,  # Spot pricing
+            "low": 0.015,    # Interruptible spot
+        }
+
+        base_cost = cost_per_vcpu_hour.get(priority, 0.03)
+
+        # Calculate compute cost
+        compute_cost = vcpu_hours * base_cost
+
+        # Storage cost estimate ($0.023/GB-month, estimate 1 week)
+        # Data size = sample_count * 50GB average per sample if not provided
+        if data_size_gb <= 0:
+            data_size_gb = sample_count * 50.0
+        storage_cost = data_size_gb * 0.023 / 4  # ~1 week
+
+        # FSx Lustre cost (if applicable) - $0.14/GB-month
+        fsx_cost = data_size_gb * 0.14 / 4  # ~1 week
+
+        # Data transfer cost (estimate 10% of data out at $0.09/GB)
+        transfer_cost = data_size_gb * 0.10 * 0.09
+
+        # Total estimated cost
+        total_cost = compute_cost + storage_cost + fsx_cost + transfer_cost
+
+        # Priority multipliers
+        priority_multiplier = {
+            "urgent": 2.0,
+            "high": 1.5,
+            "normal": 1.0,
+            "low": 0.6,
+        }
+        multiplier = priority_multiplier.get(priority, 1.0)
+
+        return {
+            "estimated_cost_usd": round(total_cost * multiplier, 2),
+            "compute_cost_usd": round(compute_cost * multiplier, 2),
+            "storage_cost_usd": round(storage_cost + fsx_cost, 2),
+            "transfer_cost_usd": round(transfer_cost, 2),
+            "vcpu_hours": round(vcpu_hours, 1),
+            "estimated_duration_hours": round(duration_hours, 1),
+            "estimated_duration_minutes": int(duration_hours * 60),
+            "data_size_gb": round(data_size_gb, 1),
+            "pipeline_type": pipeline_type,
+            "sample_count": sample_count,
+            "priority": priority,
+            "cost_breakdown": {
+                "compute": f"${compute_cost * multiplier:.2f}",
+                "storage": f"${storage_cost:.2f}",
+                "fsx": f"${fsx_cost:.2f}",
+                "transfer": f"${transfer_cost:.2f}",
+            },
+            "notes": [
+                "Costs are estimates based on typical workloads",
+                f"Priority '{priority}' applies {multiplier}x multiplier",
+                "Actual costs depend on spot market and data complexity",
+            ],
+        }
 
     # ========== Customer Management Endpoints ==========
 
@@ -985,7 +1099,11 @@ def create_app(
             archive_results: bool = Body(True, embed=True),
             s3_bucket: Optional[str] = Body(None, embed=True),
         ):
-            """Create a new workset for a customer from the portal form."""
+            """Create a new workset for a customer from the portal form.
+
+            This endpoint registers the workset in both DynamoDB (for UI state tracking)
+            and writes S3 sentinel files (for processing engine discovery).
+            """
             import uuid
 
             if not customer_manager:
@@ -1009,11 +1127,6 @@ def create_app(
             bucket = s3_bucket or config.s3_bucket
             prefix = s3_prefix or f"worksets/{workset_id}/"
 
-            try:
-                ws_priority = WorksetPriority(priority)
-            except ValueError:
-                ws_priority = WorksetPriority.NORMAL
-
             # Store additional metadata from the form
             metadata = {
                 "workset_name": workset_name,
@@ -1023,15 +1136,34 @@ def create_app(
                 "enable_qc": enable_qc,
                 "archive_results": archive_results,
                 "submitted_by": customer_id,
+                "priority": priority,
             }
 
-            success = state_db.register_workset(
-                workset_id=workset_id,
-                bucket=bucket,
-                prefix=prefix,
-                priority=ws_priority,
-                metadata=metadata,
-            )
+            # Use integration layer if available for unified registration
+            if integration:
+                success = integration.register_workset(
+                    workset_id=workset_id,
+                    bucket=bucket,
+                    prefix=prefix,
+                    priority=priority,
+                    metadata=metadata,
+                    write_s3=True,
+                    write_dynamodb=True,
+                )
+            else:
+                # Fallback to DynamoDB-only registration
+                try:
+                    ws_priority = WorksetPriority(priority)
+                except ValueError:
+                    ws_priority = WorksetPriority.NORMAL
+
+                success = state_db.register_workset(
+                    workset_id=workset_id,
+                    bucket=bucket,
+                    prefix=prefix,
+                    priority=ws_priority,
+                    metadata=metadata,
+                )
 
             if not success:
                 raise HTTPException(
