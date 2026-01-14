@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Daylily Genomics - Customer Portal for managing genomics workloads">
+    <title>{% block title %}Daylily Customer Portal{% endblock %}</title>
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    
+    <!-- Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <!-- Main Styles -->
+    <link rel="stylesheet" href="/static/css/main.css">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Header -->
+    {% if not hide_header %}
+    <header class="header">
+        <div class="container">
+            <div class="header-content">
+                <a href="/portal" class="logo">
+                    <svg class="logo-icon" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="18" stroke="currentColor" stroke-width="2"/>
+                        <path d="M12 20C12 15.6 15.6 12 20 12" stroke="#00d9a6" stroke-width="2" stroke-linecap="round"/>
+                        <path d="M28 20C28 24.4 24.4 28 20 28" stroke="#e94560" stroke-width="2" stroke-linecap="round"/>
+                        <circle cx="20" cy="20" r="4" fill="currentColor"/>
+                    </svg>
+                    <span>Daylily</span>
+                </a>
+                
+                <nav class="nav">
+                    <button class="menu-toggle" aria-label="Toggle menu">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    
+                    <ul class="nav-links" id="nav-links">
+                        <li><a href="/portal" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">Dashboard</a></li>
+                        <li><a href="/portal/worksets" class="nav-link {% if active_page == 'worksets' %}active{% endif %}">Worksets</a></li>
+                        <li><a href="/portal/yaml-generator" class="nav-link {% if active_page == 'yaml' %}active{% endif %}">YAML Generator</a></li>
+                        <li><a href="/portal/files" class="nav-link {% if active_page == 'files' %}active{% endif %}">Files</a></li>
+                        <li><a href="/portal/usage" class="nav-link {% if active_page == 'usage' %}active{% endif %}">Usage</a></li>
+                    </ul>
+                    
+                    <div class="nav-user">
+                        {% if auth_enabled %}
+                        <div class="user-menu">
+                            <div class="user-avatar" id="user-avatar" title="{{ user.email if user else 'User' }}">
+                                {{ (user.email[0] if user and user.email else 'U')|upper }}
+                            </div>
+                            <div class="dropdown-menu" id="user-dropdown">
+                                <a href="/portal/account" class="dropdown-item">Account Settings</a>
+                                <a href="/portal/logout" class="dropdown-item">Sign Out</a>
+                            </div>
+                        </div>
+                        {% else %}
+                        <span class="text-muted" style="font-size: 0.875rem;">
+                            <i class="fas fa-unlock"></i> No Auth Mode
+                        </span>
+                        {% endif %}
+                    </div>
+                </nav>
+            </div>
+        </div>
+    </header>
+    {% endif %}
+    
+    <!-- Toast Container -->
+    <div class="toast-container" id="toast-container"></div>
+    
+    <!-- Main Content -->
+    <main class="main">
+        {% block content %}{% endblock %}
+    </main>
+    
+    <!-- Footer -->
+    {% if not hide_footer %}
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-content">
+                <div class="footer-brand">
+                    <div class="footer-logo">🌸 Daylily Informatics</div>
+                    <p>High-performance genomics processing platform for researchers and clinicians.</p>
+                </div>
+                <div>
+                    <h4 class="footer-title">Platform</h4>
+                    <ul class="footer-links">
+                        <li><a href="/portal">Dashboard</a></li>
+                        <li><a href="/portal/worksets">Worksets</a></li>
+                        <li><a href="/portal/yaml-generator">YAML Generator</a></li>
+                        <li><a href="/docs">API Documentation</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <h4 class="footer-title">Support</h4>
+                    <ul class="footer-links">
+                        <li><a href="https://github.com/Daylily-Informatics" target="_blank">GitHub</a></li>
+                        <li><a href="mailto:support@daylily.io">Contact Support</a></li>
+                        <li><a href="/portal/docs">Documentation</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                <p>&copy; {{ current_year }} Daylily Informatics. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+    {% endif %}
+    
+    <!-- Loading Overlay -->
+    <div class="loading-overlay d-none" id="loading-overlay">
+        <div class="spinner loading-spinner"></div>
+        <p class="mt-md">Loading...</p>
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        // Global configuration
+        window.DaylilyConfig = {
+            apiBase: '{{ api_base | default("") }}',
+            authEnabled: {{ 'true' if auth_enabled else 'false' }},
+            customerId: '{{ customer_id | default(customer.customer_id if customer else "") }}',
+            csrfToken: '{{ csrf_token | default("") }}'
+        };
+    </script>
+    <script src="/static/js/api.js"></script>
+    <script src="/static/js/main.js"></script>
+    {% block extra_js %}{% endblock %}
+</body>
+</html>
+

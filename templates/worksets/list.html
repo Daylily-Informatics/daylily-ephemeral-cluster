@@ -1,0 +1,184 @@
+{% extends "base.html" %}
+{% set active_page = 'worksets' %}
+
+{% block title %}Worksets - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-between align-center flex-wrap gap-lg">
+        <div>
+            <h1 class="page-title">Worksets</h1>
+            <p class="page-subtitle">Manage your genomics processing jobs</p>
+        </div>
+        <div class="page-actions" style="margin-top: 0;">
+            <a href="/portal/worksets/new" class="btn btn-primary">
+                <i class="fas fa-plus"></i> New Workset
+            </a>
+            <button class="btn btn-outline" onclick="refreshWorksets()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+    
+    <!-- Filters -->
+    <div class="card mb-lg">
+        <div class="d-flex flex-wrap gap-md align-center">
+            <div class="form-group mb-0" style="min-width: 200px;">
+                <select class="form-control form-select" id="filter-status" onchange="filterWorksets()">
+                    <option value="">All Statuses</option>
+                    <option value="ready">Ready</option>
+                    <option value="in_progress">In Progress</option>
+                    <option value="completed">Completed</option>
+                    <option value="error">Error</option>
+                </select>
+            </div>
+            <div class="form-group mb-0" style="flex: 1; min-width: 250px;">
+                <input type="text" class="form-control" id="search-worksets" 
+                       placeholder="Search worksets..." onkeyup="filterWorksets()">
+            </div>
+            <div class="form-group mb-0">
+                <select class="form-control form-select" id="filter-sort" onchange="filterWorksets()">
+                    <option value="created_desc">Newest First</option>
+                    <option value="created_asc">Oldest First</option>
+                    <option value="status">By Status</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Worksets Table -->
+    <div class="table-container">
+        <table class="table" id="worksets-table">
+            <thead>
+                <tr>
+                    <th>
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="select-all" onchange="toggleSelectAll()">
+                        </label>
+                    </th>
+                    <th>Workset ID</th>
+                    <th>Status</th>
+                    <th>Pipeline</th>
+                    <th>Samples</th>
+                    <th>Progress</th>
+                    <th>Created</th>
+                    <th>Cost</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="worksets-tbody">
+                {% if worksets %}
+                {% for ws in worksets %}
+                <tr data-workset-id="{{ ws.workset_id }}" data-status="{{ ws.state | lower }}">
+                    <td>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="workset-checkbox" value="{{ ws.workset_id }}">
+                        </label>
+                    </td>
+                    <td>
+                        <a href="/portal/worksets/{{ ws.workset_id }}" class="text-accent">
+                            {{ ws.workset_id[:16] }}...
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ ws.state | lower | replace('_', '-') }}">
+                            {{ ws.state }}
+                        </span>
+                    </td>
+                    <td>{{ ws.pipeline_type | default('germline') }}</td>
+                    <td>{{ ws.sample_count | default(0) }}</td>
+                    <td style="min-width: 120px;">
+                        {% if ws.state == 'in_progress' %}
+                        <div class="progress" style="height: 6px;">
+                            <div class="progress-bar primary" style="width: {{ ws.progress | default(0) }}%"></div>
+                        </div>
+                        <small class="text-muted">{{ ws.progress | default(0) }}%</small>
+                        {% elif ws.state == 'completed' %}
+                        <span class="text-success"><i class="fas fa-check"></i> Done</span>
+                        {% elif ws.state == 'error' %}
+                        <span class="text-error"><i class="fas fa-times"></i> Failed</span>
+                        {% else %}
+                        <span class="text-muted">Pending</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ ws.created_at | default('N/A') }}</td>
+                    <td>${{ "%.2f"|format(ws.cost_usd | default(0)) }}</td>
+                    <td>
+                        <div class="d-flex gap-sm">
+                            <a href="/portal/worksets/{{ ws.workset_id }}" class="btn btn-outline btn-sm" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            {% if ws.state == 'in_progress' %}
+                            <button class="btn btn-outline btn-sm" onclick="cancelWorkset('{{ ws.workset_id }}')" title="Cancel">
+                                <i class="fas fa-stop"></i>
+                            </button>
+                            {% elif ws.state == 'error' %}
+                            <button class="btn btn-outline btn-sm" onclick="retryWorkset('{{ ws.workset_id }}')" title="Retry">
+                                <i class="fas fa-redo"></i>
+                            </button>
+                            {% endif %}
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr id="empty-row">
+                    <td colspan="9">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
+                            <h4 class="empty-state-title">No worksets yet</h4>
+                            <p class="empty-state-text">Create your first workset to start processing genomics data</p>
+                            <a href="/portal/worksets/new" class="btn btn-primary">
+                                <i class="fas fa-plus"></i> Create Workset
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Bulk Actions -->
+    <div class="card mt-lg d-none" id="bulk-actions">
+        <div class="d-flex align-center gap-lg">
+            <span><strong id="selected-count">0</strong> worksets selected</span>
+            <button class="btn btn-outline btn-sm" onclick="bulkCancel()">
+                <i class="fas fa-stop"></i> Cancel Selected
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="bulkRetry()">
+                <i class="fas fa-redo"></i> Retry Failed
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="clearSelection()">
+                Clear Selection
+            </button>
+        </div>
+    </div>
+    
+    <!-- Pagination -->
+    {% if total_pages and total_pages > 1 %}
+    <div class="d-flex justify-center mt-xl">
+        <nav class="pagination">
+            {% if current_page > 1 %}
+            <a href="?page={{ current_page - 1 }}" class="btn btn-outline btn-sm">Previous</a>
+            {% endif %}
+            <span class="p-md">Page {{ current_page }} of {{ total_pages }}</span>
+            {% if current_page < total_pages %}
+            <a href="?page={{ current_page + 1 }}" class="btn btn-outline btn-sm">Next</a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<style>
+.checkbox-label { display: flex; align-items: center; cursor: pointer; }
+.checkbox-label input { width: 16px; height: 16px; accent-color: var(--color-accent); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/worksets.js"></script>
+{% endblock %}
+

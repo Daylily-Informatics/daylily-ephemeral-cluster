@@ -1,0 +1,122 @@
+{% extends "base.html" %}
+{% set hide_header = true %}
+{% set hide_footer = true %}
+
+{% block title %}Sign In - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <div class="auth-card">
+        <div class="auth-header">
+            <div class="auth-logo">🌸 Daylily</div>
+            <h1 class="auth-title">Welcome back</h1>
+            <p class="auth-subtitle">Sign in to access your genomics dashboard</p>
+        </div>
+        
+        {% if success %}
+        <div class="alert alert-success">
+            <i class="fas fa-check-circle"></i>
+            <span>{{ success }}</span>
+        </div>
+        {% endif %}
+
+        {% if error %}
+        <div class="alert alert-error">
+            <i class="fas fa-exclamation-circle"></i>
+            <span>{{ error }}</span>
+        </div>
+        {% endif %}
+
+        {% if not auth_enabled %}
+        <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>Authentication Disabled</strong>
+                <p class="mb-0" style="font-size: 0.875rem;">
+                    The portal is running in no-auth mode. Click below to continue.
+                </p>
+            </div>
+        </div>
+        <a href="/portal" class="btn btn-primary btn-block btn-lg">
+            <i class="fas fa-arrow-right"></i>
+            Continue to Dashboard
+        </a>
+        {% else %}
+        <form method="POST" action="/portal/login" id="login-form">
+            <div class="form-group">
+                <label for="email" class="form-label required">Email Address</label>
+                <input type="email" id="email" name="email" class="form-control" 
+                       placeholder="you@company.com" required autocomplete="email">
+            </div>
+            
+            <div class="form-group">
+                <label for="password" class="form-label required">Password</label>
+                <div style="position: relative;">
+                    <input type="password" id="password" name="password" class="form-control" 
+                           placeholder="Enter your password" required autocomplete="current-password">
+                    <button type="button" class="btn-toggle-password" onclick="togglePassword('password')">
+                        <i class="fas fa-eye"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="form-group d-flex justify-between align-center">
+                <label class="checkbox-label">
+                    <input type="checkbox" name="remember" id="remember">
+                    <span>Remember me</span>
+                </label>
+                <a href="/portal/forgot-password" class="text-accent">Forgot password?</a>
+            </div>
+            
+            <button type="submit" class="btn btn-primary btn-block btn-lg">
+                <i class="fas fa-sign-in-alt"></i>
+                Sign In
+            </button>
+        </form>
+        {% endif %}
+        
+        <div class="auth-footer">
+            <p>Don't have an account? <a href="/portal/register">Create one now</a></p>
+        </div>
+    </div>
+</div>
+
+<style>
+.btn-toggle-password {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    background: none;
+    border: none;
+    color: var(--color-gray-500);
+    cursor: pointer;
+}
+.checkbox-label {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    cursor: pointer;
+}
+.checkbox-label input {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--color-accent);
+}
+</style>
+
+<script>
+function togglePassword(inputId) {
+    const input = document.getElementById(inputId);
+    const icon = input.parentElement.querySelector('i');
+    if (input.type === 'password') {
+        input.type = 'text';
+        icon.classList.replace('fa-eye', 'fa-eye-slash');
+    } else {
+        input.type = 'password';
+        icon.classList.replace('fa-eye-slash', 'fa-eye');
+    }
+}
+</script>
+{% endblock %}
+

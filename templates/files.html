@@ -1,0 +1,197 @@
+{% extends "base.html" %}
+{% set active_page = 'files' %}
+
+{% block title %}Files - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-between align-center flex-wrap gap-lg">
+        <div>
+            <h1 class="page-title">File Manager</h1>
+            <p class="page-subtitle">
+                Browse and manage files in your S3 bucket: 
+                <code>{{ customer.s3_bucket | default('your-bucket') }}</code>
+            </p>
+        </div>
+        <div class="page-actions" style="margin-top: 0;">
+            <button class="btn btn-primary" onclick="showUploadModal()">
+                <i class="fas fa-upload"></i> Upload Files
+            </button>
+            <button class="btn btn-outline" onclick="createFolder()">
+                <i class="fas fa-folder-plus"></i> New Folder
+            </button>
+        </div>
+    </div>
+    
+    <!-- Breadcrumb -->
+    <div class="card mb-lg">
+        <nav class="breadcrumb" id="file-breadcrumb">
+            <a href="#" onclick="navigateTo('')" class="breadcrumb-item">
+                <i class="fas fa-home"></i> Root
+            </a>
+            {% for crumb in breadcrumbs %}
+            <span class="breadcrumb-separator">/</span>
+            <a href="#" onclick="navigateTo('{{ crumb.path }}')" class="breadcrumb-item">
+                {{ crumb.name }}
+            </a>
+            {% endfor %}
+        </nav>
+    </div>
+    
+    <!-- Storage Usage -->
+    <div class="card mb-lg">
+        <div class="d-flex justify-between align-center">
+            <div>
+                <span class="text-muted">Storage Used:</span>
+                <strong>{{ "%.1f"|format(storage.used_gb | default(0)) }} GB</strong>
+                of {{ storage.max_gb | default(500) }} GB
+            </div>
+            <div style="width: 300px;">
+                <div class="progress">
+                    <div class="progress-bar {{ 'warning' if (storage.percent | default(0)) > 80 else 'primary' }}" 
+                         style="width: {{ storage.percent | default(0) }}%"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- File Browser -->
+    <div class="table-container">
+        <table class="table" id="files-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="select-all-files" onchange="toggleSelectAllFiles()">
+                        </label>
+                    </th>
+                    <th>Name</th>
+                    <th>Size</th>
+                    <th>Modified</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="files-tbody">
+                {% if files %}
+                {% for file in files %}
+                <tr data-key="{{ file.key }}" data-type="{{ file.type }}">
+                    <td>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="file-checkbox" value="{{ file.key }}">
+                        </label>
+                    </td>
+                    <td>
+                        {% if file.type == 'folder' %}
+                        <a href="#" onclick="navigateTo('{{ file.key }}')" class="d-flex align-center gap-sm">
+                            <i class="fas fa-folder text-warning"></i>
+                            {{ file.name }}
+                        </a>
+                        {% else %}
+                        <span class="d-flex align-center gap-sm">
+                            <i class="fas fa-{{ file.icon | default('file') }} text-muted"></i>
+                            {{ file.name }}
+                        </span>
+                        {% endif %}
+                    </td>
+                    <td>{{ file.size_formatted | default('-') }}</td>
+                    <td>{{ file.modified | default('-') }}</td>
+                    <td>
+                        <div class="d-flex gap-sm">
+                            {% if file.type != 'folder' %}
+                            <button class="btn btn-outline btn-sm" onclick="downloadFile('{{ file.key }}')" title="Download">
+                                <i class="fas fa-download"></i>
+                            </button>
+                            <button class="btn btn-outline btn-sm" onclick="previewFile('{{ file.key }}')" title="Preview">
+                                <i class="fas fa-eye"></i>
+                            </button>
+                            {% endif %}
+                            <button class="btn btn-outline btn-sm" onclick="deleteFile('{{ file.key }}')" title="Delete">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr id="empty-files-row">
+                    <td colspan="5">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
+                            <h4 class="empty-state-title">This folder is empty</h4>
+                            <p class="empty-state-text">Upload files or create a new folder to get started</p>
+                            <button class="btn btn-primary" onclick="showUploadModal()">
+                                <i class="fas fa-upload"></i> Upload Files
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Bulk Actions -->
+    <div class="card mt-lg d-none" id="file-bulk-actions">
+        <div class="d-flex align-center gap-lg">
+            <span><strong id="selected-files-count">0</strong> files selected</span>
+            <button class="btn btn-outline btn-sm" onclick="bulkDownload()">
+                <i class="fas fa-download"></i> Download
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="bulkDelete()">
+                <i class="fas fa-trash"></i> Delete
+            </button>
+            <button class="btn btn-outline btn-sm" onclick="clearFileSelection()">
+                Clear Selection
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Upload Modal -->
+<div class="modal-overlay" id="upload-modal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3>Upload Files</h3>
+            <button class="modal-close" onclick="hideUploadModal()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="file-upload" id="upload-dropzone">
+                <div class="file-upload-icon"><i class="fas fa-cloud-upload-alt"></i></div>
+                <p class="file-upload-text">
+                    <strong>Drag and drop</strong> files here, or <strong>click to browse</strong>
+                </p>
+                <input type="file" id="upload-input" class="file-upload-input" multiple>
+            </div>
+            <div id="upload-progress" class="mt-lg d-none">
+                <h4>Uploading...</h4>
+                <div id="upload-items"></div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="hideUploadModal()">Cancel</button>
+            <button class="btn btn-primary" id="start-upload-btn" onclick="startUpload()" disabled>
+                <i class="fas fa-upload"></i> Upload
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: var(--spacing-xs); }
+.breadcrumb-item { color: var(--color-accent); }
+.breadcrumb-separator { color: var(--color-gray-400); }
+.checkbox-label { display: flex; align-items: center; cursor: pointer; }
+.checkbox-label input { width: 16px; height: 16px; accent-color: var(--color-accent); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Set current prefix for file operations (customerId is set in base.html)
+window.DaylilyConfig = window.DaylilyConfig || {};
+window.DaylilyConfig.currentPrefix = '{{ prefix | default("") }}';
+</script>
+<script src="/static/js/files.js"></script>
+{% endblock %}
+

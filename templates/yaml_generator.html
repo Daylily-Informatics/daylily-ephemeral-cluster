@@ -1,0 +1,263 @@
+{% extends "base.html" %}
+{% set active_page = 'yaml' %}
+
+{% block title %}YAML Generator - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">YAML Configuration Generator</h1>
+        <p class="page-subtitle">Create a daylily_work.yaml configuration file for your workset</p>
+    </div>
+    
+    <div class="grid" style="grid-template-columns: 1fr 1fr; gap: var(--spacing-xl);">
+        <!-- Form Column -->
+        <div>
+            <form id="yaml-form" onsubmit="generateYaml(event)">
+                <!-- Basic Settings -->
+                <div class="card">
+                    <h3 class="card-title">Basic Settings</h3>
+                    
+                    <div class="form-group">
+                        <label for="workset_name" class="form-label required">Workset Name</label>
+                        <input type="text" id="workset_name" name="workset_name" class="form-control" 
+                               placeholder="my-analysis-2024" required oninput="updatePreview()">
+                    </div>
+                    
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label for="pipeline" class="form-label required">Pipeline</label>
+                            <select id="pipeline" name="pipeline" class="form-control form-select" 
+                                    required onchange="updatePreview()">
+                                <option value="germline">Germline</option>
+                                <option value="somatic">Somatic</option>
+                                <option value="rnaseq">RNA-Seq</option>
+                            </select>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="reference" class="form-label required">Reference</label>
+                            <select id="reference" name="reference" class="form-control form-select" 
+                                    required onchange="updatePreview()">
+                                <option value="GRCh38">GRCh38 (hg38)</option>
+                                <option value="GRCh37">GRCh37 (hg19)</option>
+                                <option value="T2T-CHM13">T2T-CHM13</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Samples -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">Samples</h3>
+                        <button type="button" class="btn btn-outline btn-sm" onclick="addSample()">
+                            <i class="fas fa-plus"></i> Add Sample
+                        </button>
+                    </div>
+
+                    <div id="samples-container">
+                        <div class="sample-row" data-index="0">
+                            <div class="grid gap-md" style="grid-template-columns: 1fr 2fr 2fr;">
+                                <div class="form-group mb-0">
+                                    <label class="form-label">Sample ID</label>
+                                    <input type="text" name="sample_id_0" class="form-control sample-id"
+                                           placeholder="SAMPLE001" oninput="updatePreview()">
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label class="form-label">R1 File</label>
+                                    <div class="input-group">
+                                        <input type="text" name="r1_0" class="form-control sample-r1"
+                                               placeholder="sample_R1.fastq.gz" oninput="updatePreview()">
+                                        <button type="button" class="btn btn-outline" onclick="openFileBrowser(this, 'r1')" title="Browse files">
+                                            <i class="fas fa-folder-open"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="form-group mb-0">
+                                    <label class="form-label">R2 File</label>
+                                    <div class="input-group">
+                                        <input type="text" name="r2_0" class="form-control sample-r2"
+                                               placeholder="sample_R2.fastq.gz" oninput="updatePreview()">
+                                        <button type="button" class="btn btn-outline" onclick="openFileBrowser(this, 'r2')" title="Browse files">
+                                            <i class="fas fa-folder-open"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            <button type="button" class="btn btn-outline btn-sm mt-sm remove-sample d-none"
+                                    onclick="removeSample(this)">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mt-lg">
+                        <p class="text-muted" style="font-size: 0.875rem;">
+                            <i class="fas fa-info-circle"></i>
+                            Click the folder icon to browse your S3 bucket, or import from CSV
+                        </p>
+                        <input type="file" id="csv-upload" accept=".csv" class="d-none" onchange="loadSamplesFromCSV(this)">
+                        <button type="button" class="btn btn-outline btn-sm" onclick="document.getElementById('csv-upload').click()">
+                            <i class="fas fa-file-csv"></i> Import from CSV
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- Advanced Options -->
+                <div class="card">
+                    <details>
+                        <summary class="card-title" style="cursor: pointer;">
+                            <i class="fas fa-cog"></i> Advanced Options
+                        </summary>
+                        <div class="mt-lg">
+                            <div class="grid grid-2">
+                                <div class="form-group">
+                                    <label for="threads" class="form-label">Threads per Sample</label>
+                                    <input type="number" id="threads" name="threads" class="form-control" 
+                                           value="8" min="1" max="96" oninput="updatePreview()">
+                                </div>
+                                <div class="form-group">
+                                    <label for="memory" class="form-label">Memory (GB)</label>
+                                    <input type="number" id="memory" name="memory" class="form-control" 
+                                           value="32" min="4" max="512" oninput="updatePreview()">
+                                </div>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="enable_qc" name="enable_qc" checked onchange="updatePreview()">
+                                    <span>Enable QC Reports</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label class="checkbox-label">
+                                    <input type="checkbox" id="keep_intermediates" name="keep_intermediates" onchange="updatePreview()">
+                                    <span>Keep Intermediate Files</span>
+                                </label>
+                            </div>
+                            
+                            <div class="form-group">
+                                <label for="custom_params" class="form-label">Custom Parameters (YAML)</label>
+                                <textarea id="custom_params" name="custom_params" class="form-control" 
+                                          rows="4" placeholder="# Add custom parameters here" oninput="updatePreview()"></textarea>
+                            </div>
+                        </div>
+                    </details>
+                </div>
+            </form>
+        </div>
+        
+        <!-- Preview Column -->
+        <div>
+            <div class="card" style="position: sticky; top: 90px;">
+                <div class="card-header">
+                    <h3 class="card-title">YAML Preview</h3>
+                    <div class="d-flex gap-sm">
+                        <button class="btn btn-outline btn-sm" onclick="copyYaml()">
+                            <i class="fas fa-copy"></i> Copy
+                        </button>
+                        <button class="btn btn-primary btn-sm" onclick="downloadYaml()">
+                            <i class="fas fa-download"></i> Download
+                        </button>
+                    </div>
+                </div>
+                <div class="code-block" style="max-height: 600px; overflow-y: auto;">
+                    <pre id="yaml-preview"># Configure your workset above to see the YAML preview</pre>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- File Browser Modal -->
+<div class="modal-overlay" id="file-browser-modal">
+    <div class="modal" style="max-width: 800px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-folder-open"></i> Select File from S3</h3>
+            <button class="modal-close" onclick="closeFileBrowser()">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="mb-md">
+                <nav class="breadcrumb" id="browser-breadcrumb">
+                    <a href="#" onclick="browseFolder('')" class="breadcrumb-item">
+                        <i class="fas fa-home"></i> Root
+                    </a>
+                </nav>
+            </div>
+            <div class="file-list" id="browser-file-list" style="max-height: 400px; overflow-y: auto;">
+                <div class="text-center text-muted p-xl">
+                    <i class="fas fa-spinner fa-spin fa-2x"></i>
+                    <p class="mt-md">Loading files...</p>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeFileBrowser()">Cancel</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.sample-row {
+    padding: var(--spacing-md);
+    background: var(--color-gray-100);
+    border-radius: var(--radius-md);
+    margin-bottom: var(--spacing-md);
+}
+.sample-row:last-child { margin-bottom: 0; }
+details summary::-webkit-details-marker { display: none; }
+details summary { list-style: none; }
+.input-group {
+    display: flex;
+    gap: 0;
+}
+.input-group .form-control {
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+}
+.input-group .btn {
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left: none;
+}
+.file-list-item {
+    display: flex;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: 1px solid var(--color-gray-200);
+    cursor: pointer;
+    transition: background-color 0.15s;
+}
+.file-list-item:hover {
+    background-color: var(--color-gray-100);
+}
+.file-list-item i {
+    margin-right: var(--spacing-sm);
+    width: 20px;
+    text-align: center;
+}
+.file-list-item.folder i { color: var(--color-warning); }
+.file-list-item.file i { color: var(--color-gray-500); }
+.file-list-item .file-size {
+    margin-left: auto;
+    color: var(--color-gray-500);
+    font-size: 0.875rem;
+}
+.breadcrumb { display: flex; align-items: center; flex-wrap: wrap; gap: var(--spacing-xs); }
+.breadcrumb-item { color: var(--color-accent); cursor: pointer; }
+.breadcrumb-separator { color: var(--color-gray-400); margin: 0 var(--spacing-xs); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Customer ID for file browsing
+window.DaylilyConfig = window.DaylilyConfig || {};
+window.DaylilyConfig.customerId = '{{ customer.customer_id | default("") }}';
+</script>
+<script src="/static/js/yaml-generator.js"></script>
+{% endblock %}
+

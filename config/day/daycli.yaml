@@ -12,6 +12,7 @@ dependencies:
   - yamllint
   - fd-find
   - ipython
+  - pytest
   - yaml
   - setuptools<81
   - awscli==2.22.4
@@ -31,7 +32,13 @@ dependencies:
       - typeguard==2.13.3
       - werkzeug==2.3.8
       - colr
+      - uvicorn
+      - fastapi
+      - python-jose
       - docopt
       - rich
       - setuptools_scm
+      - email-validator
+      - python-multipart
+      - httpx
       - daylily-omics-references @ git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.3.1
