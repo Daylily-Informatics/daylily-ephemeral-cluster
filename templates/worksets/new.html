@@ -137,14 +137,20 @@
                 </div>
                 <div class="form-group">
                     <label for="s3_prefix" class="form-label">S3 Prefix (Path)</label>
-                    <input type="text" id="s3_prefix" name="s3_prefix" class="form-control"
-                           placeholder="worksets/my-workset/">
-                    <p class="form-text">Path to the folder containing your FASTQ files. Example: <code>projects/study-001/samples/</code></p>
+                    <div class="input-group">
+                        <input type="text" id="s3_prefix" name="s3_prefix" class="form-control"
+                               placeholder="worksets/my-workset/">
+                        <button type="button" id="discover-s3-samples" class="btn btn-outline" title="Discover samples from S3">
+                            <i class="fas fa-search"></i> Discover
+                        </button>
+                    </div>
+                    <p class="form-text">Path to the folder containing your FASTQ files. Click <strong>Discover</strong> to auto-detect samples.</p>
                 </div>
-                <div class="alert alert-warning mt-lg" style="background: #3d2e0a; border: 1px solid var(--color-warning); border-radius: var(--radius-md); padding: var(--spacing-md); color: #e8d4a8;">
-                    <i class="fas fa-exclamation-triangle text-warning"></i>
-                    <strong style="color: #ffc107;">Required:</strong> Your S3 folder must contain a <code style="background: #4d3a0d; padding: 2px 6px; border-radius: 3px;">daylily_work.yaml</code> configuration file.
-                    <a href="/portal/yaml-generator" class="text-accent">Generate one here</a> if needed.
+                <div id="s3-samples-preview"></div>
+                <div class="alert alert-info mt-lg" style="background: #0d3344; border: 1px solid var(--color-info); border-radius: var(--radius-md); padding: var(--spacing-md); color: #b8d4e8;">
+                    <i class="fas fa-lightbulb text-warning"></i>
+                    <strong style="color: #fff;">Tip:</strong> Click <strong>Discover</strong> to automatically find FASTQ files and <code style="background: #1a4a5e; padding: 2px 6px; border-radius: 3px;">daylily_work.yaml</code> in your S3 path.
+                    If no config file exists, <a href="/portal/yaml-generator" class="text-accent">generate one here</a>.
                 </div>
             </div>
 
@@ -269,7 +275,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/worksets.js"></script>
-<script src="/static/js/file-upload.js"></script>
+<script src="/static/js/worksets.js?v={{ cache_bust | default('1') }}"></script>
+<script src="/static/js/file-upload.js?v={{ cache_bust | default('1') }}"></script>
 {% endblock %}
 

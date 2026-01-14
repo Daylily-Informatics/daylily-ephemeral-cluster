@@ -134,16 +134,16 @@ async function bulkCancel() {
 // Submit new workset
 async function submitWorkset(event) {
     event.preventDefault();
-    
+
     const customerId = window.DaylilyConfig?.customerId;
     if (!customerId) {
         showToast('error', 'Error', 'Customer ID not found');
         return;
     }
-    
+
     const form = document.getElementById('workset-form');
     const formData = new FormData(form);
-    
+
     const data = {
         workset_name: formData.get('workset_name'),
         pipeline_type: formData.get('pipeline_type'),
@@ -155,9 +155,19 @@ async function submitWorkset(event) {
         enable_qc: formData.get('enable_qc') === 'on',
         archive_results: formData.get('archive_results') === 'on',
     };
-    
+
+    // Include samples from global worksetSamples array (populated by file upload or YAML)
+    if (window.worksetSamples && window.worksetSamples.length > 0) {
+        data.samples = window.worksetSamples;
+    }
+
+    // Include YAML content if uploaded
+    if (window.worksetYamlContent) {
+        data.yaml_content = window.worksetYamlContent;
+    }
+
     showLoading('Submitting workset...');
-    
+
     try {
         const result = await DaylilyAPI.worksets.create(customerId, data);
         showToast('success', 'Workset Submitted', 'Your workset has been queued for processing');

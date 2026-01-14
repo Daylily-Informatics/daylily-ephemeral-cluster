@@ -16,6 +16,11 @@ The workset monitor requires permissions to:
 ### Option 1: Using AWS CLI
 
 ```bash
+
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text  --profile $AWS_PROFILE )
+
+
+
 # 1. Create the IAM policy
 aws iam create-policy \
     --policy-name DaylilyWorksetMonitorPolicy \
@@ -29,10 +34,10 @@ aws iam attach-role-policy \
 
 # 3. Or attach to existing user
 aws iam attach-user-policy \
-    --user-name YOUR_MONITOR_USER \
-    --policy-arn arn:aws:iam::YOUR_ACCOUNT_ID:policy/DaylilyWorksetMonitorPolicy
+    --user-name daylily-service \
+    --policy-arn arn:aws:iam::${AWS_ACCOUNT_ID}:policy/DaylilyWorksetMonitorPolicy
 ```
-
+ 
 ### Option 2: Using AWS Console
 
 1. Go to **IAM Console** → **Policies** → **Create Policy**

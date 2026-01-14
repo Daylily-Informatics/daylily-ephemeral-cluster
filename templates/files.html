@@ -192,6 +192,6 @@
 window.DaylilyConfig = window.DaylilyConfig || {};
 window.DaylilyConfig.currentPrefix = '{{ prefix | default("") }}';
 </script>
-<script src="/static/js/files.js"></script>
+<script src="/static/js/files.js?v={{ cache_bust | default('1') }}"></script>
 {% endblock %}
 

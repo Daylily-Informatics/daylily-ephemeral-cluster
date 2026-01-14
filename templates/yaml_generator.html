@@ -275,6 +275,6 @@ details summary { list-style: none; }
 window.DaylilyConfig = window.DaylilyConfig || {};
 window.DaylilyConfig.customerId = '{{ customer.customer_id | default("") }}';
 </script>
-<script src="/static/js/yaml-generator.js"></script>
+<script src="/static/js/yaml-generator.js?v={{ cache_bust | default('1') }}"></script>
 {% endblock %}
 

@@ -239,7 +239,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/worksets.js"></script>
+<script src="/static/js/worksets.js?v={{ cache_bust | default('1') }}"></script>
 <script>
 // Auto-refresh for in-progress worksets
 {% if workset.state == 'in_progress' %}

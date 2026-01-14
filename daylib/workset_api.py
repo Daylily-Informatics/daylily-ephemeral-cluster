@@ -1104,13 +1104,18 @@ def create_app(
             enable_qc: bool = Body(True, embed=True),
             archive_results: bool = Body(True, embed=True),
             s3_bucket: Optional[str] = Body(None, embed=True),
+            samples: Optional[List[Dict[str, Any]]] = Body(None, embed=True),
+            yaml_content: Optional[str] = Body(None, embed=True),
         ):
             """Create a new workset for a customer from the portal form.
 
             This endpoint registers the workset in both DynamoDB (for UI state tracking)
             and writes S3 sentinel files (for processing engine discovery).
+
+            Samples can be provided directly as a list, or extracted from yaml_content.
             """
             import uuid
+            import yaml as pyyaml
 
             if not customer_manager:
                 raise HTTPException(
@@ -1133,6 +1138,28 @@ def create_app(
             bucket = s3_bucket or config.s3_bucket
             prefix = s3_prefix or f"worksets/{workset_id}/"
 
+            # Process samples from YAML content if provided
+            workset_samples = samples or []
+            if yaml_content and not workset_samples:
+                try:
+                    yaml_data = pyyaml.safe_load(yaml_content)
+                    if yaml_data and isinstance(yaml_data.get("samples"), list):
+                        workset_samples = yaml_data["samples"]
+                except Exception as e:
+                    LOGGER.warning("Failed to parse YAML content: %s", e)
+
+            # Normalize sample format and add default status
+            normalized_samples = []
+            for sample in workset_samples:
+                if isinstance(sample, dict):
+                    normalized = {
+                        "sample_id": sample.get("sample_id") or sample.get("id") or sample.get("name", "unknown"),
+                        "r1_file": sample.get("r1_file") or sample.get("r1") or sample.get("fq1", ""),
+                        "r2_file": sample.get("r2_file") or sample.get("r2") or sample.get("fq2", ""),
+                        "status": sample.get("status", "pending"),
+                    }
+                    normalized_samples.append(normalized)
+
             # Store additional metadata from the form
             metadata = {
                 "workset_name": workset_name,
@@ -1143,6 +1170,8 @@ def create_app(
                 "archive_results": archive_results,
                 "submitted_by": customer_id,
                 "priority": priority,
+                "samples": normalized_samples,
+                "sample_count": len(normalized_samples),
             }
 
             # Use integration layer if available for unified registration
@@ -1338,6 +1367,122 @@ def create_app(
             "config": work_config,
         }
 
+    # ========== S3 Discovery Endpoint ==========
+
+    @app.post("/api/s3/discover-samples", tags=["utilities"])
+    async def discover_samples_from_s3(
+        bucket: str = Body(..., embed=True),
+        prefix: str = Body(..., embed=True),
+        current_user: Optional[Dict] = Depends(get_current_user),
+    ):
+        """Discover FASTQ samples from an S3 path.
+
+        Lists files in the given S3 location and automatically pairs R1/R2 files
+        into samples. Also attempts to parse daylily_work.yaml if present.
+        """
+        import re
+        import yaml as pyyaml
+
+        samples = []
+        yaml_content = None
+        files_found = []
+
+        try:
+            session = boto3.Session()
+            s3_client = session.client("s3")
+
+            # Normalize prefix
+            normalized_prefix = prefix.strip("/")
+            if normalized_prefix:
+                normalized_prefix += "/"
+
+            # List objects in the S3 path
+            paginator = s3_client.get_paginator("list_objects_v2")
+
+            for page in paginator.paginate(Bucket=bucket, Prefix=normalized_prefix):
+                for obj in page.get("Contents", []):
+                    key = obj["Key"]
+                    filename = key.split("/")[-1]
+
+                    # Check for daylily_work.yaml
+                    if filename == "daylily_work.yaml":
+                        try:
+                            response = s3_client.get_object(Bucket=bucket, Key=key)
+                            yaml_content = response["Body"].read().decode("utf-8")
+                        except Exception as e:
+                            LOGGER.warning("Failed to read daylily_work.yaml: %s", e)
+
+                    # Check for FASTQ files
+                    if any(filename.lower().endswith(ext) for ext in [".fastq", ".fq", ".fastq.gz", ".fq.gz"]):
+                        files_found.append({
+                            "key": key,
+                            "filename": filename,
+                            "size": obj.get("Size", 0),
+                        })
+
+            # If we found a daylily_work.yaml, parse samples from it
+            if yaml_content:
+                try:
+                    yaml_data = pyyaml.safe_load(yaml_content)
+                    if yaml_data and isinstance(yaml_data.get("samples"), list):
+                        for sample in yaml_data["samples"]:
+                            if isinstance(sample, dict):
+                                samples.append({
+                                    "sample_id": sample.get("sample_id") or sample.get("id") or sample.get("name", "unknown"),
+                                    "r1_file": sample.get("r1_file") or sample.get("r1") or sample.get("fq1", ""),
+                                    "r2_file": sample.get("r2_file") or sample.get("r2") or sample.get("fq2", ""),
+                                    "status": "pending",
+                                })
+                except Exception as e:
+                    LOGGER.warning("Failed to parse daylily_work.yaml: %s", e)
+
+            # If no samples from YAML, try to pair FASTQ files
+            if not samples and files_found:
+                # Pattern matching for R1/R2 pairs
+                # Supports: sample_R1.fastq.gz, sample.R1.fastq.gz, sample_1.fastq.gz
+                r1_pattern = re.compile(r"(.+?)[._](R1|1)[._]?(.*?)\.(fastq|fq)(\.gz)?$", re.IGNORECASE)
+                r2_pattern = re.compile(r"(.+?)[._](R2|2)[._]?(.*?)\.(fastq|fq)(\.gz)?$", re.IGNORECASE)
+
+                r1_files = {}
+                r2_files = {}
+
+                for f in files_found:
+                    filename = f["filename"]
+                    r1_match = r1_pattern.match(filename)
+                    r2_match = r2_pattern.match(filename)
+
+                    if r1_match:
+                        sample_name = r1_match.group(1)
+                        r1_files[sample_name] = f["key"]
+                    elif r2_match:
+                        sample_name = r2_match.group(1)
+                        r2_files[sample_name] = f["key"]
+
+                # Pair R1 and R2 files
+                all_samples = set(r1_files.keys()) | set(r2_files.keys())
+                for sample_name in sorted(all_samples):
+                    samples.append({
+                        "sample_id": sample_name,
+                        "r1_file": r1_files.get(sample_name, ""),
+                        "r2_file": r2_files.get(sample_name, ""),
+                        "status": "pending",
+                    })
+
+            return {
+                "samples": samples,
+                "yaml_content": yaml_content,
+                "files_found": len(files_found),
+                "bucket": bucket,
+                "prefix": prefix,
+            }
+
+        except Exception as e:
+            LOGGER.error("Failed to discover samples from S3: %s", e)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to discover samples: {str(e)}",
+            )
+
     # ========== Customer Portal Routes ==========
 
     # Setup templates directory
@@ -1353,10 +1498,13 @@ def create_app(
 
         def get_template_context(request: Request, **kwargs) -> Dict[str, Any]:
             """Build common template context."""
+            # Generate cache bust timestamp to force JS/CSS refresh
+            cache_bust = str(int(datetime.now().timestamp()))
             context = {
                 "request": request,
                 "auth_enabled": enable_auth,
                 "current_year": datetime.now().year,
+                "cache_bust": cache_bust,
                 **kwargs,
             }
             # If customer is passed, also set customer_id for convenience
@@ -1524,6 +1672,16 @@ def create_app(
                 batch = state_db.list_worksets_by_state(ws_state, limit=100)
                 worksets.extend(batch)
 
+            # Extract sample_count from metadata for template access
+            for ws in worksets:
+                metadata = ws.get("metadata", {})
+                if isinstance(metadata, dict):
+                    ws["sample_count"] = metadata.get("sample_count", 0)
+                    ws["pipeline_type"] = metadata.get("pipeline_type", "germline")
+                else:
+                    ws["sample_count"] = 0
+                    ws["pipeline_type"] = "germline"
+
             # Pagination
             per_page = 20
             total_pages = (len(worksets) + per_page - 1) // per_page
@@ -1571,6 +1729,18 @@ def create_app(
             workset = state_db.get_workset(workset_id)
             if not workset:
                 raise HTTPException(status_code=404, detail="Workset not found")
+
+            # Flatten metadata fields to top level for template access
+            metadata = workset.get("metadata", {})
+            if metadata:
+                # Copy samples to top level if present in metadata
+                if "samples" in metadata and "samples" not in workset:
+                    workset["samples"] = metadata["samples"]
+                # Copy other useful fields
+                for field in ["workset_name", "pipeline_type", "reference_genome",
+                              "notification_email", "enable_qc", "archive_results", "sample_count"]:
+                    if field in metadata and field not in workset:
+                        workset[field] = metadata[field]
 
             return templates.TemplateResponse(
                 request,

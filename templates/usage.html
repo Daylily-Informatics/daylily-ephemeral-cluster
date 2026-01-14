@@ -199,7 +199,7 @@
 {% endblock %}
 
 {% block extra_js %}
-<script src="/static/js/charts.js"></script>
+<script src="/static/js/charts.js?v={{ cache_bust | default('1') }}"></script>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
     initCostChart('cost-chart');
