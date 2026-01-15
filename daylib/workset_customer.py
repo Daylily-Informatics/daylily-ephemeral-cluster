@@ -382,10 +382,11 @@ class CustomerManager:
                 try:
                     self.create_customer_table_if_not_exists()
                 except Exception as create_err:  # pragma: no cover - defensive logging
+                    # Avoid logging the raw exception object to prevent deepcopy recursion issues
                     LOGGER.error(
                         "Failed to create customer table %s after ResourceNotFoundException: %s",
                         self.customer_table_name,
-                        create_err,
+                        str(create_err),
                     )
                 # No customers yet; return empty list
                 return []

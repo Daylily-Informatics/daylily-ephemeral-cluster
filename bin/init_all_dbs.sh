@@ -22,3 +22,6 @@ cm = CustomerManager(region="us-west-2")
 cm.create_customer_table_if_not_exists()
 print("✓ customer table created (", cm.customer_table_name, ")")
 EOF
+
+
+python examples/run_api_with_auth.py    

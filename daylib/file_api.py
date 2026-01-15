@@ -691,13 +691,15 @@ def create_file_api_router(
                 linked_at=linked_bucket.linked_at,
             )
         except Exception as e:
-            LOGGER.error("Failed to link bucket: %s", e, exc_info=True)
+            # Don't use exc_info=True or log the raw exception object; this can trigger
+            # deepcopy recursion issues when boto3 objects are attached to the exception.
+            LOGGER.error("Failed to link bucket: %s", str(e))
             # Include more detail in the error message for debugging
             error_detail = str(e)
             if "ResourceNotFoundException" in error_detail:
                 error_detail = (
-                    f"DynamoDB table not found. The linked buckets table may need to be created. "
-                    f"Original error: {e}"
+                    "DynamoDB table not found. The linked buckets table may need to be created. "
+                    f"Original error: {str(e)}"
                 )
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
