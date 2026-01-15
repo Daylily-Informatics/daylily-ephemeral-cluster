@@ -229,6 +229,22 @@ def test_get_ready_worksets_prioritized(state_db, mock_dynamodb):
     assert worksets[1]["workset_id"] == "normal-1"
 
 
+def test_list_worksets_by_state_disallows_tablename(state_db, mock_dynamodb):
+    """Ensure TableName is not passed to resource Table.query."""
+    mock_table = mock_dynamodb["table"]
+
+    def query_checker(**kwargs):
+        assert "TableName" not in kwargs
+        return {"Items": []}
+
+    mock_table.query.side_effect = query_checker
+
+    worksets = state_db.list_worksets_by_state(WorksetState.READY)
+
+    assert worksets == []
+    mock_table.query.assert_called_once()
+
+
 def test_serialize_metadata(state_db):
     """Test metadata serialization for DynamoDB."""
     data = {

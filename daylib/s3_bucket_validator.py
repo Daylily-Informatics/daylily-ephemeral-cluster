@@ -689,11 +689,16 @@ class LinkedBucketManager:
     def list_customer_buckets(self, customer_id: str) -> List[LinkedBucket]:
         """List all linked buckets for a customer."""
         try:
-            response = self.table.query(
-                IndexName="customer-id-index",
-                KeyConditionExpression="customer_id = :cid",
-                ExpressionAttributeValues={":cid": customer_id},
+            query_kwargs = {
+                "IndexName": "customer-id-index",
+                "KeyConditionExpression": "customer_id = :cid",
+                "ExpressionAttributeValues": {":cid": customer_id},
+            }
+            query_kwargs.pop("TableName", None)
+            assert "TableName" not in query_kwargs, (
+                "TableName must not be passed to DynamoDB Table.query"
             )
+            response = self.table.query(**query_kwargs)
             return [self._item_to_linked_bucket(item) for item in response.get("Items", [])]
         except ClientError as e:
             LOGGER.error("Failed to list buckets for customer %s: %s", customer_id, str(e))

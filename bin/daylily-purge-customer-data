@@ -36,13 +36,21 @@ def get_all_worksets(state_db: WorksetStateDB) -> list:
     all_worksets = []
     try:
         # DynamoDB scan with pagination
-        response = state_db.table.scan()
+        scan_kwargs = {}
+        scan_kwargs.pop("TableName", None)
+        assert "TableName" not in scan_kwargs, (
+            "TableName must not be passed to DynamoDB Table.scan"
+        )
+        response = state_db.table.scan(**scan_kwargs)
         all_worksets.extend(response.get("Items", []))
         
         while "LastEvaluatedKey" in response:
-            response = state_db.table.scan(
-                ExclusiveStartKey=response["LastEvaluatedKey"]
+            scan_kwargs = {"ExclusiveStartKey": response["LastEvaluatedKey"]}
+            scan_kwargs.pop("TableName", None)
+            assert "TableName" not in scan_kwargs, (
+                "TableName must not be passed to DynamoDB Table.scan"
             )
+            response = state_db.table.scan(**scan_kwargs)
             all_worksets.extend(response.get("Items", []))
     except ClientError as e:
         LOGGER.error("Failed to scan worksets: %s", e)
