@@ -362,16 +362,25 @@ class CognitoAuth:
 
     def get_current_user(
         self,
-        credentials: HTTPAuthorizationCredentials = Depends(security),
+        credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
     ) -> Dict:
         """FastAPI dependency to get current authenticated user.
 
         Args:
-            credentials: HTTP bearer credentials
+            credentials: HTTP bearer credentials (may be None if not provided)
 
         Returns:
             User claims dict
+
+        Raises:
+            HTTPException: If credentials are not provided or invalid
         """
+        if credentials is None:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         token = credentials.credentials
         return self.verify_token(token)
 
@@ -438,18 +447,27 @@ class CognitoAuth:
             return False
 
 
-def create_auth_dependency(cognito_auth: CognitoAuth):
+def create_auth_dependency(cognito_auth: CognitoAuth, optional: bool = False):
     """Create FastAPI dependency for authentication.
 
     Args:
         cognito_auth: CognitoAuth instance
+        optional: If True, returns None when no credentials provided instead of raising error
 
     Returns:
         Dependency function
     """
     def get_current_user(
-        credentials: HTTPAuthorizationCredentials = Depends(security),
-    ) -> Dict:
+        credentials: Optional[HTTPAuthorizationCredentials] = Depends(security),
+    ) -> Optional[Dict]:
+        if credentials is None:
+            if optional:
+                return None
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
         return cognito_auth.get_current_user(credentials)
 
     return get_current_user

@@ -28,6 +28,7 @@ class CustomerConfig:
     max_storage_gb: int = 1000
     billing_account_id: Optional[str] = None
     cost_center: Optional[str] = None
+    is_admin: bool = False
 
 
 class CustomerManager:
@@ -92,6 +93,7 @@ class CustomerManager:
         max_storage_gb: int = 1000,
         billing_account_id: Optional[str] = None,
         cost_center: Optional[str] = None,
+        custom_s3_bucket: Optional[str] = None,
     ) -> CustomerConfig:
         """Onboard a new customer with provisioned resources.
 
@@ -102,6 +104,7 @@ class CustomerManager:
             max_storage_gb: Max storage in GB
             billing_account_id: Optional billing account ID
             cost_center: Optional cost center code
+            custom_s3_bucket: Optional customer-provided S3 bucket (BYOB)
 
         Returns:
             CustomerConfig with provisioned resources
@@ -109,9 +112,18 @@ class CustomerManager:
         # Generate unique customer ID
         customer_id = self._generate_customer_id(customer_name)
 
-        # Create S3 bucket
-        bucket_name = f"{self.bucket_prefix}-{customer_id}"
-        self._create_customer_bucket(bucket_name, customer_id, cost_center)
+        # Use custom bucket or create new one
+        if custom_s3_bucket:
+            bucket_name = custom_s3_bucket
+            LOGGER.info(
+                "Using customer-provided S3 bucket: %s for customer %s",
+                bucket_name,
+                customer_id,
+            )
+        else:
+            # Create S3 bucket
+            bucket_name = f"{self.bucket_prefix}-{customer_id}"
+            self._create_customer_bucket(bucket_name, customer_id, cost_center)
 
         # Create customer record
         config = CustomerConfig(
@@ -128,10 +140,11 @@ class CustomerManager:
         self._save_customer_config(config)
 
         LOGGER.info(
-            "Onboarded customer %s (ID: %s, bucket: %s)",
+            "Onboarded customer %s (ID: %s, bucket: %s, byob: %s)",
             customer_name,
             customer_id,
             bucket_name,
+            bool(custom_s3_bucket),
         )
 
         return config
@@ -244,6 +257,7 @@ class CustomerManager:
             "s3_bucket": config.s3_bucket,
             "max_concurrent_worksets": config.max_concurrent_worksets,
             "max_storage_gb": config.max_storage_gb,
+            "is_admin": config.is_admin,
         }
 
         if config.billing_account_id:
@@ -281,11 +295,50 @@ class CustomerManager:
                 max_storage_gb=item.get("max_storage_gb", 1000),
                 billing_account_id=item.get("billing_account_id"),
                 cost_center=item.get("cost_center"),
+                is_admin=item.get("is_admin", False),
             )
 
         except ClientError as e:
             LOGGER.error("Failed to get customer config: %s", e)
             return None
+
+    def get_customer_by_email(self, email: str) -> Optional[CustomerConfig]:
+        """Get customer configuration by email.
+
+        Args:
+            email: Customer email
+
+        Returns:
+            CustomerConfig or None if not found
+        """
+        # Scan for customer with matching email
+        # In production, consider adding a GSI on email
+        customers = self.list_customers()
+        for customer in customers:
+            if customer.email.lower() == email.lower():
+                return customer
+        return None
+
+    def set_admin_status(self, email: str, is_admin: bool) -> bool:
+        """Set admin status for a customer by email.
+
+        Args:
+            email: Customer email
+            is_admin: Whether user should be admin
+
+        Returns:
+            True if successful, False otherwise
+        """
+        customer = self.get_customer_by_email(email)
+        if not customer:
+            LOGGER.error("Customer with email %s not found", email)
+            return False
+
+        # Update the config
+        customer.is_admin = is_admin
+        self._save_customer_config(customer)
+        LOGGER.info("Set admin status for %s (%s) to %s", customer.customer_name, email, is_admin)
+        return True
 
     def list_customers(self) -> List[CustomerConfig]:
         """List all customers.
@@ -311,6 +364,7 @@ class CustomerManager:
                         max_storage_gb=item.get("max_storage_gb", 1000),
                         billing_account_id=item.get("billing_account_id"),
                         cost_center=item.get("cost_center"),
+                        is_admin=item.get("is_admin", False),
                     )
                 )
 
@@ -335,9 +389,14 @@ class CustomerManager:
 
         # Get S3 bucket size
         try:
+            import datetime as dt
             cloudwatch = boto3.client("cloudwatch", region_name=self.region)
 
             # Get bucket size metric (this is updated daily by AWS)
+            # Use dynamic date range: last 7 days to today
+            end_time = dt.datetime.utcnow()
+            start_time = end_time - dt.timedelta(days=7)
+
             response = cloudwatch.get_metric_statistics(
                 Namespace="AWS/S3",
                 MetricName="BucketSizeBytes",
@@ -345,8 +404,8 @@ class CustomerManager:
                     {"Name": "BucketName", "Value": config.s3_bucket},
                     {"Name": "StorageType", "Value": "StandardStorage"},
                 ],
-                StartTime="2024-01-01",
-                EndTime="2026-12-31",
+                StartTime=start_time.isoformat(),
+                EndTime=end_time.isoformat(),
                 Period=86400,
                 Statistics=["Average"],
             )

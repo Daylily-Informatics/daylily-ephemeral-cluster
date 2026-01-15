@@ -2,6 +2,8 @@
 
 This guide explains how to run the Workset Monitor API with or without authentication.
 
+Pool ID: us-west-2_ipMpPcnrm
+Client ID: 3ff96u2ern8thsiv9cq1j2s87p
 ## Overview
 
 The Workset Monitor API supports two modes:

@@ -45,16 +45,21 @@
                     <ul class="nav-links" id="nav-links">
                         <li><a href="/portal" class="nav-link {% if active_page == 'dashboard' %}active{% endif %}">Dashboard</a></li>
                         <li><a href="/portal/worksets" class="nav-link {% if active_page == 'worksets' %}active{% endif %}">Worksets</a></li>
-                        <li><a href="/portal/yaml-generator" class="nav-link {% if active_page == 'yaml' %}active{% endif %}">YAML Generator</a></li>
+                        <li><a href="/portal/manifest-generator" class="nav-link {% if active_page == 'manifest' %}active{% endif %}">Manifest Generator</a></li>
                         <li><a href="/portal/files" class="nav-link {% if active_page == 'files' %}active{% endif %}">Files</a></li>
                         <li><a href="/portal/usage" class="nav-link {% if active_page == 'usage' %}active{% endif %}">Usage</a></li>
                     </ul>
                     
                     <div class="nav-user">
                         {% if auth_enabled %}
-                        <div class="user-menu">
-                            <div class="user-avatar" id="user-avatar" title="{{ user.email if user else 'User' }}">
-                                {{ (user.email[0] if user and user.email else 'U')|upper }}
+                        <div class="user-menu d-flex align-center gap-sm">
+                            {% if is_admin %}
+                            <span class="badge" style="background: #f59e0b; color: #000; font-size: 0.7rem; padding: 0.2rem 0.5rem;">
+                                <i class="fas fa-shield-alt"></i> ADMIN
+                            </span>
+                            {% endif %}
+                            <div class="user-avatar" id="user-avatar" title="{{ user_email if user_email else 'User' }}">
+                                {{ (user_email[0] if user_email else 'U')|upper }}
                             </div>
                             <div class="dropdown-menu" id="user-dropdown">
                                 <a href="/portal/account" class="dropdown-item">
@@ -99,7 +104,7 @@
                     <ul class="footer-links">
                         <li><a href="/portal">Dashboard</a></li>
                         <li><a href="/portal/worksets">Worksets</a></li>
-                        <li><a href="/portal/yaml-generator">YAML Generator</a></li>
+                        <li><a href="/portal/manifest-generator">Manifest Generator</a></li>
                         <li><a href="/docs">API Documentation</a></li>
                     </ul>
                 </div>

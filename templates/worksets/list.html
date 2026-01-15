@@ -15,6 +15,9 @@
             <a href="/portal/worksets/new" class="btn btn-primary">
                 <i class="fas fa-plus"></i> New Workset
             </a>
+            <a href="/portal/worksets/archived" class="btn btn-outline">
+                <i class="fas fa-archive"></i> Archived
+            </a>
             <button class="btn btn-outline" onclick="refreshWorksets()">
                 <i class="fas fa-sync-alt"></i> Refresh
             </button>
@@ -58,6 +61,7 @@
                         </label>
                     </th>
                     <th>Workset ID</th>
+                    <th>Customer</th>
                     <th>Status</th>
                     <th>Pipeline</th>
                     <th>Samples</th>
@@ -80,6 +84,11 @@
                         <a href="/portal/worksets/{{ ws.workset_id }}" class="text-accent">
                             {{ ws.workset_id[:16] }}...
                         </a>
+                    </td>
+                    <td>
+                        <span class="text-muted" title="{{ ws.customer_id | default('Unknown') }}">
+                            {{ ws.customer_id | default('Unknown') | truncate(12, True, '...') }}
+                        </span>
                     </td>
                     <td>
                         <span class="badge badge-{{ ws.state | lower | replace('_', '-') }}">
@@ -124,7 +133,7 @@
                 {% endfor %}
                 {% else %}
                 <tr id="empty-row">
-                    <td colspan="9">
+                    <td colspan="10">
                         <div class="empty-state">
                             <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
                             <h4 class="empty-state-title">No worksets yet</h4>
@@ -142,17 +151,25 @@
     
     <!-- Bulk Actions -->
     <div class="card mt-lg d-none" id="bulk-actions">
-        <div class="d-flex align-center gap-lg">
+        <div class="d-flex align-center gap-lg flex-wrap">
             <span><strong id="selected-count">0</strong> worksets selected</span>
-            <button class="btn btn-outline btn-sm" onclick="bulkCancel()">
-                <i class="fas fa-stop"></i> Cancel Selected
-            </button>
-            <button class="btn btn-outline btn-sm" onclick="bulkRetry()">
-                <i class="fas fa-redo"></i> Retry Failed
-            </button>
-            <button class="btn btn-outline btn-sm" onclick="clearSelection()">
-                Clear Selection
-            </button>
+            <div class="d-flex gap-sm flex-wrap">
+                <button class="btn btn-outline btn-sm" onclick="bulkCancel()">
+                    <i class="fas fa-stop"></i> Cancel Selected
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="bulkRetry()">
+                    <i class="fas fa-redo"></i> Retry Failed
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="bulkArchive()">
+                    <i class="fas fa-archive"></i> Archive Selected
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="bulkDelete()" style="color: #ef4444; border-color: #ef4444;">
+                    <i class="fas fa-trash"></i> Delete Selected
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="clearSelection()">
+                    <i class="fas fa-times"></i> Clear
+                </button>
+            </div>
         </div>
     </div>
     

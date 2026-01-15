@@ -104,27 +104,60 @@
                 </div>
             </div>
             
+            <h4 style="margin-bottom: var(--spacing-md);">S3 Storage Configuration</h4>
+
+            <div class="form-group">
+                <label class="form-label">Storage Option</label>
+                <div class="radio-group">
+                    <label class="radio-label">
+                        <input type="radio" name="s3_option" value="auto" checked onchange="toggleBucketInput()">
+                        <span><strong>Auto-provision</strong> - We'll create an S3 bucket for you</span>
+                    </label>
+                    <label class="radio-label">
+                        <input type="radio" name="s3_option" value="byob" onchange="toggleBucketInput()">
+                        <span><strong>Bring Your Own Bucket</strong> - Use your existing S3 bucket</span>
+                    </label>
+                </div>
+            </div>
+
+            <div id="byob-section" style="display: none;">
+                <div class="form-group">
+                    <label for="custom_s3_bucket" class="form-label">Your S3 Bucket Name</label>
+                    <div class="input-group">
+                        <input type="text" id="custom_s3_bucket" name="custom_s3_bucket" class="form-control"
+                               placeholder="my-genomics-bucket">
+                        <button type="button" class="btn btn-secondary" onclick="validateBucket()">
+                            <i class="fas fa-check-circle"></i> Validate
+                        </button>
+                    </div>
+                    <p class="form-text">Enter your bucket name and click Validate to check permissions</p>
+                </div>
+
+                <div id="bucket-validation-result" style="display: none;"></div>
+
+                <div class="alert alert-warning" style="font-size: 0.85rem;">
+                    <i class="fas fa-info-circle"></i>
+                    <div>
+                        <strong>Cross-Account Access Required</strong>
+                        <p class="mb-0">Your bucket needs a policy allowing Daylily to read/write data.
+                        Click Validate to check permissions and get setup instructions.</p>
+                    </div>
+                </div>
+            </div>
+
+            <hr style="margin: var(--spacing-lg) 0; border-color: var(--color-gray-200);">
+
             <div class="form-group">
                 <label class="checkbox-label">
                     <input type="checkbox" name="terms" id="terms" required>
                     <span>I agree to the <a href="/terms" target="_blank">Terms of Service</a> and <a href="/privacy" target="_blank">Privacy Policy</a></span>
                 </label>
             </div>
-            
+
             <button type="submit" class="btn btn-primary btn-block btn-lg">
                 <i class="fas fa-user-plus"></i>
                 Create Account
             </button>
-            
-            <div class="alert alert-info mt-lg">
-                <i class="fas fa-cloud"></i>
-                <div>
-                    <strong>S3 Bucket Provisioning</strong>
-                    <p class="mb-0" style="font-size: 0.875rem;">
-                        An S3 bucket will be automatically created for your data uploads and results.
-                    </p>
-                </div>
-            </div>
         </form>
         
         <div class="auth-footer">
@@ -134,18 +167,169 @@
 </div>
 
 <style>
-.checkbox-label {
+.checkbox-label, .radio-label {
     display: flex;
     align-items: flex-start;
     gap: var(--spacing-sm);
     cursor: pointer;
 }
-.checkbox-label input {
+.checkbox-label input, .radio-label input {
     width: 18px;
     height: 18px;
     margin-top: 2px;
     accent-color: var(--color-accent);
 }
+.radio-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--spacing-sm);
+}
+.input-group {
+    display: flex;
+    gap: var(--spacing-sm);
+}
+.input-group .form-control {
+    flex: 1;
+}
+#bucket-validation-result {
+    margin-bottom: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-radius: var(--radius-md);
+}
+#bucket-validation-result.success {
+    background: rgba(16, 185, 129, 0.1);
+    border: 1px solid var(--color-success);
+}
+#bucket-validation-result.error {
+    background: rgba(239, 68, 68, 0.1);
+    border: 1px solid var(--color-error);
+}
+#bucket-validation-result.warning {
+    background: rgba(245, 158, 11, 0.1);
+    border: 1px solid var(--color-warning);
+}
+.validation-item {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    margin: var(--spacing-xs) 0;
+}
+.validation-item i.fa-check { color: var(--color-success); }
+.validation-item i.fa-times { color: var(--color-error); }
+.validation-item i.fa-exclamation-triangle { color: var(--color-warning); }
 </style>
+
+<script>
+function toggleBucketInput() {
+    const byobSection = document.getElementById('byob-section');
+    const byobRadio = document.querySelector('input[name="s3_option"][value="byob"]');
+    byobSection.style.display = byobRadio.checked ? 'block' : 'none';
+}
+
+async function validateBucket() {
+    const bucketInput = document.getElementById('custom_s3_bucket');
+    const resultDiv = document.getElementById('bucket-validation-result');
+    const bucket = bucketInput.value.trim();
+
+    if (!bucket) {
+        resultDiv.style.display = 'block';
+        resultDiv.className = 'error';
+        resultDiv.innerHTML = '<i class="fas fa-exclamation-circle"></i> Please enter a bucket name';
+        return;
+    }
+
+    resultDiv.style.display = 'block';
+    resultDiv.className = '';
+    resultDiv.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Validating bucket...';
+
+    try {
+        const response = await fetch('/api/s3/validate-bucket', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ bucket })
+        });
+
+        const result = await response.json();
+
+        let html = '<div class="validation-results">';
+
+        // Status items
+        html += `<div class="validation-item">
+            <i class="fas ${result.exists ? 'fa-check' : 'fa-times'}"></i>
+            <span>Bucket exists</span>
+        </div>`;
+        html += `<div class="validation-item">
+            <i class="fas ${result.accessible ? 'fa-check' : 'fa-times'}"></i>
+            <span>Bucket accessible</span>
+        </div>`;
+        html += `<div class="validation-item">
+            <i class="fas ${result.can_list ? 'fa-check' : 'fa-times'}"></i>
+            <span>Can list contents</span>
+        </div>`;
+        html += `<div class="validation-item">
+            <i class="fas ${result.can_read ? 'fa-check' : 'fa-times'}"></i>
+            <span>Can read objects</span>
+        </div>`;
+        html += `<div class="validation-item">
+            <i class="fas ${result.can_write ? 'fa-check' : 'fa-exclamation-triangle'}"></i>
+            <span>Can write results ${result.can_write ? '' : '(optional but recommended)'}</span>
+        </div>`;
+
+        // Errors
+        if (result.errors && result.errors.length > 0) {
+            html += '<div style="margin-top: var(--spacing-sm); color: var(--color-error);">';
+            result.errors.forEach(err => {
+                html += `<div><i class="fas fa-times-circle"></i> ${err}</div>`;
+            });
+            html += '</div>';
+        }
+
+        // Warnings
+        if (result.warnings && result.warnings.length > 0) {
+            html += '<div style="margin-top: var(--spacing-sm); color: var(--color-warning);">';
+            result.warnings.forEach(warn => {
+                html += `<div><i class="fas fa-exclamation-triangle"></i> ${warn}</div>`;
+            });
+            html += '</div>';
+        }
+
+        html += '</div>';
+
+        resultDiv.className = result.fully_configured ? 'success' : (result.valid ? 'warning' : 'error');
+        resultDiv.innerHTML = html;
+
+        // Show setup instructions link if not fully configured
+        if (!result.fully_configured && result.setup_instructions) {
+            const instructionsBtn = document.createElement('button');
+            instructionsBtn.type = 'button';
+            instructionsBtn.className = 'btn btn-sm btn-secondary mt-sm';
+            instructionsBtn.innerHTML = '<i class="fas fa-book"></i> View Setup Instructions';
+            instructionsBtn.onclick = () => {
+                const modal = document.createElement('div');
+                modal.className = 'modal-overlay';
+                modal.innerHTML = `
+                    <div class="modal" style="max-width: 700px; max-height: 80vh; overflow-y: auto;">
+                        <div class="modal-header">
+                            <h3>S3 Bucket Setup Instructions</h3>
+                            <button class="btn btn-ghost" onclick="this.closest('.modal-overlay').remove()">
+                                <i class="fas fa-times"></i>
+                            </button>
+                        </div>
+                        <div class="modal-body" style="white-space: pre-wrap; font-family: monospace; font-size: 0.85rem;">
+                            ${result.setup_instructions}
+                        </div>
+                    </div>
+                `;
+                document.body.appendChild(modal);
+            };
+            resultDiv.appendChild(instructionsBtn);
+        }
+
+    } catch (error) {
+        resultDiv.className = 'error';
+        resultDiv.innerHTML = `<i class="fas fa-exclamation-circle"></i> Validation failed: ${error.message}`;
+    }
+}
+</script>
 {% endblock %}
 

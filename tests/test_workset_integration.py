@@ -283,53 +283,54 @@ class TestGetReadyWorksets:
 
 
 class TestBuildWorkYaml:
-    """Test work YAML generation from metadata."""
+    """Test work YAML generation from template."""
 
-    def test_build_work_yaml_basic(self, integration):
-        """Test building basic work YAML."""
+    def test_build_work_yaml_uses_template(self, integration):
+        """Test that work YAML uses the template file structure."""
         metadata = {
-            "samples": [
-                {
-                    "sample_id": "S1",
-                    "fastq_r1": "s3://bucket/S1_R1.fq.gz",
-                    "fastq_r2": "s3://bucket/S1_R2.fq.gz",
-                }
-            ],
+            "samples": [{"sample_id": "S1", "fastq_r1": "s3://bucket/S1_R1.fq.gz"}],
             "reference_genome": "GRCh38",
-            "pipeline_type": "germline",
-            "workset_name": "test-ws",
         }
 
-        work_yaml = integration._build_work_yaml("test-ws", metadata)
+        # Returns string now, not dict
+        work_yaml_content = integration._build_work_yaml("test-ws", metadata, "test-bucket", "worksets/test-ws/")
 
-        assert work_yaml["workset_name"] == "test-ws"
-        assert work_yaml["workdir_name"] == "test-ws"
-        assert work_yaml["reference_genome"] == "GRCh38"
-        assert work_yaml["pipeline_type"] == "germline"
+        # Should be a string (YAML content)
+        assert isinstance(work_yaml_content, str)
+
+        # Should contain template structure elements
+        assert "day-clone:" in work_yaml_content
+        assert "dy-r:" in work_yaml_content
+        assert "export_uri:" in work_yaml_content
+
+        # Should have {workdir_name} replaced with workset_id
+        assert "test-ws" in work_yaml_content
+        assert "{workdir_name}" not in work_yaml_content
 
     def test_build_work_yaml_with_export_uri(self, integration):
-        """Test building work YAML with export URI."""
+        """Test building work YAML with custom export URI."""
         metadata = {
             "samples": [{"sample_id": "S1", "fastq_r1": "s3://bucket/S1_R1.fq.gz"}],
             "reference_genome": "hg38",
             "export_uri": "s3://export-bucket/results/",
         }
 
-        work_yaml = integration._build_work_yaml("test-ws", metadata)
+        work_yaml_content = integration._build_work_yaml("test-ws", metadata, "test-bucket", "worksets/test-ws/")
 
-        assert work_yaml["target_export_uri"] == "s3://export-bucket/results/"
+        # Should contain the custom export_uri
+        assert 's3://export-bucket/results/' in work_yaml_content
 
-    def test_build_work_yaml_with_notification_email(self, integration):
-        """Test building work YAML with notification email."""
+    def test_build_work_yaml_default_export_uri(self, integration):
+        """Test that default export URI uses customer bucket."""
         metadata = {
             "samples": [{"sample_id": "S1", "fastq_r1": "s3://bucket/S1_R1.fq.gz"}],
             "reference_genome": "GRCh38",
-            "notification_email": "user@example.com",
         }
 
-        work_yaml = integration._build_work_yaml("test-ws", metadata)
+        work_yaml_content = integration._build_work_yaml("test-ws", metadata, "customer-bucket", "worksets/test-ws/")
 
-        assert work_yaml["notification_email"] == "user@example.com"
+        # Should contain the default export_uri with customer bucket
+        assert 's3://customer-bucket/worksets/test-ws/results/' in work_yaml_content
 
 
 class TestSyncDynamoDBToS3:

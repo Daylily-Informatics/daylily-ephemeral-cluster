@@ -5,6 +5,7 @@ from decimal import Decimal
 from unittest.mock import MagicMock, Mock, patch
 
 import pytest
+from botocore.exceptions import ClientError
 
 from daylib.workset_state_db import (
     ErrorCategory,
@@ -413,4 +414,213 @@ def test_can_start_new_workset_at_limit(state_db, mock_dynamodb):
     can_start = state_db.can_start_new_workset(max_concurrent=5)
 
     assert can_start is False
+
+
+# ==================== Archive/Delete/Restore Tests ====================
+
+
+def test_archive_workset_success(state_db, mock_dynamodb):
+    """Test successful workset archiving."""
+    mock_table = mock_dynamodb["table"]
+    mock_table.get_item.return_value = {
+        "Item": {
+            "workset_id": "test-ws-001",
+            "state": WorksetState.COMPLETE.value,
+            "state_history": [],
+        }
+    }
+    mock_table.update_item.return_value = {}
+
+    result = state_db.archive_workset(
+        workset_id="test-ws-001",
+        archived_by="test-user",
+        archive_reason="No longer needed",
+    )
+
+    assert result is True
+    mock_table.update_item.assert_called_once()
+
+    call_args = mock_table.update_item.call_args
+    assert call_args.kwargs["Key"] == {"workset_id": "test-ws-001"}
+    # Check that state is set to ARCHIVED
+    expr_values = call_args.kwargs["ExpressionAttributeValues"]
+    assert expr_values[":state"] == WorksetState.ARCHIVED.value
+    assert expr_values[":archived_by"] == "test-user"
+    assert expr_values[":reason"] == "No longer needed"
+
+
+def test_archive_workset_dynamodb_error(state_db, mock_dynamodb):
+    """Test archiving fails on DynamoDB error."""
+    mock_table = mock_dynamodb["table"]
+    mock_table.update_item.side_effect = ClientError(
+        {"Error": {"Code": "ConditionalCheckFailedException"}},
+        "UpdateItem"
+    )
+
+    result = state_db.archive_workset(workset_id="nonexistent-ws")
+
+    assert result is False
+
+
+def test_delete_workset_soft_delete_success(state_db, mock_dynamodb):
+    """Test successful soft delete of a workset."""
+    mock_table = mock_dynamodb["table"]
+    mock_table.get_item.return_value = {
+        "Item": {
+            "workset_id": "test-ws-001",
+            "state": WorksetState.COMPLETE.value,
+            "state_history": [],
+        }
+    }
+    mock_table.update_item.return_value = {}
+
+    result = state_db.delete_workset(
+        workset_id="test-ws-001",
+        deleted_by="test-user",
+        delete_reason="Cleaning up old data",
+        hard_delete=False,
+    )
+
+    assert result is True
+    mock_table.update_item.assert_called_once()
+    mock_table.delete_item.assert_not_called()
+
+    call_args = mock_table.update_item.call_args
+    expr_values = call_args.kwargs["ExpressionAttributeValues"]
+    assert expr_values[":state"] == WorksetState.DELETED.value
+
+
+def test_delete_workset_hard_delete_success(state_db, mock_dynamodb):
+    """Test successful hard delete of a workset."""
+    mock_table = mock_dynamodb["table"]
+    mock_table.get_item.return_value = {
+        "Item": {
+            "workset_id": "test-ws-001",
+            "state": WorksetState.COMPLETE.value,
+        }
+    }
+    mock_table.delete_item.return_value = {}
+
+    result = state_db.delete_workset(
+        workset_id="test-ws-001",
+        deleted_by="test-user",
+        hard_delete=True,
+    )
+
+    assert result is True
+    mock_table.delete_item.assert_called_once()
+    call_args = mock_table.delete_item.call_args
+    assert call_args.kwargs["Key"] == {"workset_id": "test-ws-001"}
+
+
+def test_delete_workset_dynamodb_error(state_db, mock_dynamodb):
+    """Test deleting fails on DynamoDB error."""
+    mock_table = mock_dynamodb["table"]
+    mock_table.update_item.side_effect = ClientError(
+        {"Error": {"Code": "InternalServerError"}},
+        "UpdateItem"
+    )
+
+    result = state_db.delete_workset(workset_id="test-ws-001", hard_delete=False)
+
+    assert result is False
+
+
+def test_delete_workset_hard_delete_error(state_db, mock_dynamodb):
+    """Test hard delete fails on DynamoDB error."""
+    mock_table = mock_dynamodb["table"]
+    mock_table.delete_item.side_effect = ClientError(
+        {"Error": {"Code": "InternalServerError"}},
+        "DeleteItem"
+    )
+
+    result = state_db.delete_workset(workset_id="test-ws-001", hard_delete=True)
+
+    assert result is False
+
+
+def test_restore_workset_success(state_db, mock_dynamodb):
+    """Test successful restoration of an archived workset."""
+    mock_table = mock_dynamodb["table"]
+    mock_table.update_item.return_value = {}
+
+    result = state_db.restore_workset(
+        workset_id="test-ws-001",
+        restored_by="test-user",
+    )
+
+    assert result is True
+    mock_table.update_item.assert_called_once()
+
+    call_args = mock_table.update_item.call_args
+    expr_values = call_args.kwargs["ExpressionAttributeValues"]
+    assert expr_values[":state"] == WorksetState.READY.value
+    # restore_workset has a ConditionExpression that requires state == archived
+    assert expr_values[":archived"] == WorksetState.ARCHIVED.value
+
+
+def test_restore_workset_not_archived_fails(state_db, mock_dynamodb):
+    """Test restoring a non-archived workset fails due to condition check."""
+    mock_table = mock_dynamodb["table"]
+    # DynamoDB returns ConditionalCheckFailedException when condition not met
+    mock_table.update_item.side_effect = ClientError(
+        {"Error": {"Code": "ConditionalCheckFailedException"}},
+        "UpdateItem"
+    )
+
+    result = state_db.restore_workset(workset_id="test-ws-001")
+
+    assert result is False
+
+
+def test_list_archived_worksets(state_db, mock_dynamodb):
+    """Test listing archived worksets."""
+    mock_table = mock_dynamodb["table"]
+    mock_table.query.return_value = {
+        "Items": [
+            {"workset_id": "ws-001", "state": WorksetState.ARCHIVED.value},
+            {"workset_id": "ws-002", "state": WorksetState.ARCHIVED.value},
+        ]
+    }
+
+    result = state_db.list_archived_worksets(limit=50)
+
+    assert len(result) == 2
+    assert result[0]["workset_id"] == "ws-001"
+    mock_table.query.assert_called_once()
+
+
+def test_archive_workset_with_reason(state_db, mock_dynamodb):
+    """Test archiving a workset with a reason."""
+    mock_table = mock_dynamodb["table"]
+    mock_table.update_item.return_value = {}
+
+    result = state_db.archive_workset(
+        workset_id="test-ws-001",
+        archived_by="admin",
+        archive_reason="Data retention policy"
+    )
+
+    assert result is True
+    call_args = mock_table.update_item.call_args
+    expr_values = call_args.kwargs["ExpressionAttributeValues"]
+    assert expr_values[":reason"] == "Data retention policy"
+
+
+def test_delete_workset_with_reason(state_db, mock_dynamodb):
+    """Test soft deleting a workset with a reason."""
+    mock_table = mock_dynamodb["table"]
+    mock_table.update_item.return_value = {}
+
+    result = state_db.delete_workset(
+        workset_id="test-ws-001",
+        deleted_by="admin",
+        delete_reason="Customer request",
+        hard_delete=False
+    )
+
+    assert result is True
+    call_args = mock_table.update_item.call_args
+    expr_values = call_args.kwargs["ExpressionAttributeValues"]
+    assert expr_values[":reason"] == "Customer request"
 

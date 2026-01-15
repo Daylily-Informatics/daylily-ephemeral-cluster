@@ -231,7 +231,7 @@ function parseFastqFilesToSamples() {
     updateSamplesPreview();
 
     if (window.worksetSamples.length > 0) {
-        showToast('info', 'Samples Detected', `Found ${window.worksetSamples.length} sample(s) from uploaded files`);
+        showToast('info', 'Analysis Inputs Detected', `Found ${window.worksetSamples.length} analysis input(s) from uploaded files`);
     }
 }
 
@@ -305,7 +305,7 @@ function parseYamlSamples(content) {
         if (samples.length > 0) {
             window.worksetSamples = samples;
             updateSamplesPreview();
-            showToast('info', 'Samples Parsed', `Found ${samples.length} sample(s) in YAML`);
+            showToast('info', 'Analysis Inputs Parsed', `Found ${samples.length} analysis input(s) in YAML`);
         }
     } catch (e) {
         console.error('Failed to parse YAML samples:', e);
@@ -327,7 +327,7 @@ async function discoverS3Samples() {
         return;
     }
 
-    showLoading('Discovering samples from S3...');
+    showLoading('Discovering analysis inputs from S3...');
 
     try {
         const response = await fetch('/api/s3/discover-samples', {
@@ -337,7 +337,7 @@ async function discoverS3Samples() {
         });
 
         if (!response.ok) {
-            throw new Error('Failed to discover samples');
+            throw new Error('Failed to discover analysis inputs');
         }
 
         const result = await response.json();
@@ -345,9 +345,9 @@ async function discoverS3Samples() {
         if (result.samples && result.samples.length > 0) {
             window.worksetSamples = result.samples;
             updateSamplesPreview();
-            showToast('success', 'Samples Found', `Discovered ${result.samples.length} sample(s) from S3`);
+            showToast('success', 'Analysis Inputs Found', `Discovered ${result.samples.length} analysis input(s) from S3`);
         } else if (result.files_found > 0) {
-            showToast('warning', 'No Samples Paired', `Found ${result.files_found} file(s) but could not pair them into samples`);
+            showToast('warning', 'No Inputs Paired', `Found ${result.files_found} file(s) but could not pair them into analysis inputs`);
         } else {
             showToast('warning', 'No Files Found', 'No FASTQ files found at the specified S3 path');
         }
@@ -398,17 +398,17 @@ function updateSamplesPreview() {
         return;
     }
 
-    // Build samples preview table
+    // Build analysis inputs preview table
     let html = `
         <div class="card" style="background: #0d2633; border: 1px solid var(--color-accent);">
             <h4 style="margin-top: 0; color: var(--color-accent);">
-                <i class="fas fa-vials"></i> Detected Samples (${window.worksetSamples.length})
+                <i class="fas fa-dna"></i> Detected Analysis Inputs (${window.worksetSamples.length})
             </h4>
             <div class="table-container" style="box-shadow: none; max-height: 300px; overflow-y: auto;">
                 <table class="table" style="font-size: 0.85rem;">
                     <thead>
                         <tr>
-                            <th>Sample ID</th>
+                            <th>Input ID</th>
                             <th>R1 File</th>
                             <th>R2 File</th>
                         </tr>
@@ -437,4 +437,74 @@ function updateSamplesPreview() {
 
     previewContainer.innerHTML = html;
 }
+
+/**
+ * Upload selected FASTQ files to S3 and update sample paths with full S3 URIs.
+ * Call this before workset submission.
+ *
+ * @param {string} customerId - Customer ID for S3 bucket lookup
+ * @param {string} worksetPrefix - S3 prefix for this workset (e.g., "worksets/my-workset-abc123/")
+ * @returns {Promise<{success: boolean, bucket: string, uploadedFiles: string[]}>}
+ */
+async function uploadFilesToS3(customerId, worksetPrefix) {
+    if (!selectedFiles || selectedFiles.length === 0) {
+        // No files to upload - samples may reference existing S3 paths
+        return { success: true, bucket: '', uploadedFiles: [] };
+    }
+
+    const uploadedFiles = [];
+    const filePrefix = worksetPrefix.endsWith('/') ? worksetPrefix : worksetPrefix + '/';
+    let bucket = '';
+
+    for (let i = 0; i < selectedFiles.length; i++) {
+        const file = selectedFiles[i];
+        try {
+            const result = await DaylilyAPI.files.upload(customerId, file, filePrefix);
+            if (result.success) {
+                uploadedFiles.push(result.key);
+                bucket = result.bucket; // Capture customer's bucket from response
+            } else {
+                throw new Error(`Upload failed for ${file.name}`);
+            }
+        } catch (error) {
+            console.error(`Failed to upload ${file.name}:`, error);
+            throw new Error(`Failed to upload ${file.name}: ${error.message}`);
+        }
+    }
+
+    // Update sample paths with full S3 URIs
+    if (bucket && window.worksetSamples) {
+        window.worksetSamples = window.worksetSamples.map(sample => {
+            const updatedSample = { ...sample };
+
+            // Update R1 path if it's a local filename (not already an S3 URI)
+            if (sample.r1_file && !sample.r1_file.startsWith('s3://')) {
+                const r1Key = uploadedFiles.find(key => key.endsWith(sample.r1_file));
+                if (r1Key) {
+                    updatedSample.r1_file = `s3://${bucket}/${r1Key}`;
+                }
+            }
+
+            // Update R2 path if it's a local filename (not already an S3 URI)
+            if (sample.r2_file && !sample.r2_file.startsWith('s3://')) {
+                const r2Key = uploadedFiles.find(key => key.endsWith(sample.r2_file));
+                if (r2Key) {
+                    updatedSample.r2_file = `s3://${bucket}/${r2Key}`;
+                }
+            }
+
+            return updatedSample;
+        });
+
+        // Update the preview to show the new S3 paths
+        updateSamplesPreview();
+    }
+
+    return { success: true, bucket, uploadedFiles };
+}
+
+// Export for use in worksets.js
+window.uploadFilesToS3 = uploadFilesToS3;
+// Export selectedFiles for checking if there are files to upload
+window.getSelectedFiles = () => selectedFiles;
 

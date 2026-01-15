@@ -588,8 +588,8 @@ class WorksetMonitor:
                 except Exception as e:
                     LOGGER.warning("Failed to sync workset %s to S3: %s", workset_id, e)
 
-            # Check for required files (may not exist yet for new UI submissions)
-            has_required = self._verify_core_files(prefix) if bucket == self.config.monitor.bucket else False
+            # Check for required files - pass the correct bucket for customer worksets
+            has_required = self._verify_core_files(prefix, bucket=bucket)
 
             yield Workset(
                 name=workset_id,
@@ -634,8 +634,17 @@ class WorksetMonitor:
                     sentinel_timestamps[name] = self._read_object_text(bucket, key)
         return sentinel_timestamps
 
-    def _verify_core_files(self, workset_prefix: str) -> bool:
-        bucket = self.config.monitor.bucket
+    def _verify_core_files(self, workset_prefix: str, bucket: str = None) -> bool:
+        """Verify that a workset directory has all required files.
+
+        Args:
+            workset_prefix: S3 prefix for the workset
+            bucket: S3 bucket name (defaults to monitor bucket)
+
+        Returns:
+            True if all required files are present
+        """
+        bucket = bucket or self.config.monitor.bucket
         expected = [
             DEFAULT_STAGE_SAMPLES_NAME,
             WORK_YAML_NAME,
@@ -643,25 +652,54 @@ class WorksetMonitor:
             SAMPLE_DATA_DIRNAME + "/",
         ]
         found = set()
+        all_keys_found = []  # For debugging
+
+        # Normalize prefix to ensure it ends with /
+        normalized_prefix = workset_prefix.rstrip("/") + "/" if workset_prefix else ""
+
+        LOGGER.debug(
+            "Verifying core files in bucket=%s prefix=%s (normalized from %s)",
+            bucket, normalized_prefix, workset_prefix
+        )
+
         paginator = self._s3.get_paginator("list_objects_v2")
-        for page in paginator.paginate(
-            Bucket=bucket, Prefix=workset_prefix, Delimiter="/"
-        ):
-            for cp in page.get("CommonPrefixes", []) or []:
-                if cp["Prefix"].endswith(SAMPLE_DATA_DIRNAME + "/"):
-                    found.add(SAMPLE_DATA_DIRNAME + "/")
-            for obj in page.get("Contents", []) or []:
-                name = obj["Key"].split("/")[-1]
-                if name in (DEFAULT_STAGE_SAMPLES_NAME, WORK_YAML_NAME, INFO_YAML_NAME):
-                    found.add(name)
+        try:
+            for page in paginator.paginate(
+                Bucket=bucket, Prefix=normalized_prefix, Delimiter="/"
+            ):
+                # Check for sample_data/ directory
+                for cp in page.get("CommonPrefixes", []) or []:
+                    prefix_name = cp["Prefix"]
+                    LOGGER.debug("Found common prefix: %s", prefix_name)
+                    if prefix_name.endswith(SAMPLE_DATA_DIRNAME + "/"):
+                        found.add(SAMPLE_DATA_DIRNAME + "/")
+
+                # Check for required files
+                for obj in page.get("Contents", []) or []:
+                    key = obj["Key"]
+                    name = key.split("/")[-1]
+                    all_keys_found.append(name)
+                    if name in (DEFAULT_STAGE_SAMPLES_NAME, WORK_YAML_NAME, INFO_YAML_NAME):
+                        found.add(name)
+                        LOGGER.debug("Found required file: %s", name)
+        except Exception as e:
+            LOGGER.error(
+                "Error listing S3 objects for workset %s: %s", workset_prefix, e
+            )
+            return False
+
         missing = set(expected) - found
         if missing:
             LOGGER.warning(
-                "Workset %s missing expected files: %s",
+                "Workset %s missing expected files: %s (found: %s, all files: %s)",
                 workset_prefix,
                 ", ".join(sorted(missing)),
+                ", ".join(sorted(found)) if found else "none",
+                ", ".join(sorted(all_keys_found)[:10]) if all_keys_found else "none",
             )
             return False
+
+        LOGGER.debug("Workset %s has all required files: %s", workset_prefix, ", ".join(sorted(found)))
         return True
 
     # ------------------------------------------------------------------

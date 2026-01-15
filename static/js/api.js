@@ -105,6 +105,18 @@ const DaylilyAPI = {
         async getLogs(customerId, worksetId) {
             return DaylilyAPI.get(`/api/customers/${customerId}/worksets/${worksetId}/logs`);
         },
+        async archive(customerId, worksetId, reason) {
+            return DaylilyAPI.post(`/api/customers/${customerId}/worksets/${worksetId}/archive`, { reason });
+        },
+        async delete(customerId, worksetId, hardDelete, reason) {
+            return DaylilyAPI.post(`/api/customers/${customerId}/worksets/${worksetId}/delete`, { hard_delete: hardDelete, reason });
+        },
+        async restore(customerId, worksetId) {
+            return DaylilyAPI.post(`/api/customers/${customerId}/worksets/${worksetId}/restore`);
+        },
+        async listArchived(customerId) {
+            return DaylilyAPI.get(`/api/customers/${customerId}/worksets/archived`);
+        },
     },
     
     // === File Endpoints ===

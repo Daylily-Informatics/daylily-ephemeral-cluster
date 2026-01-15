@@ -93,35 +93,37 @@ class WorksetIntegration:
         prefix: Optional[str] = None,
         priority: str = "normal",
         metadata: Optional[Dict[str, Any]] = None,
+        customer_id: Optional[str] = None,
         *,
         write_s3: bool = True,
         write_dynamodb: bool = True,
     ) -> bool:
         """Register a new workset in both DynamoDB and S3.
-        
+
         Args:
             workset_id: Unique workset identifier
             bucket: S3 bucket (uses default if not provided)
             prefix: S3 prefix for this workset
             priority: Execution priority (urgent, normal, low)
             metadata: Additional workset metadata
+            customer_id: Customer ID who owns this workset
             write_s3: Whether to write S3 sentinel files
             write_dynamodb: Whether to write DynamoDB record
-            
+
         Returns:
             True if registration successful
         """
         target_bucket = bucket or self.bucket
         if not target_bucket:
             raise ValueError("Bucket must be specified")
-        
+
         workset_prefix = prefix or f"{self.prefix}{workset_id}/"
         if not workset_prefix.endswith("/"):
             workset_prefix += "/"
-        
+
         now = dt.datetime.utcnow().isoformat() + "Z"
         success = True
-        
+
         # Write to DynamoDB first (if enabled and available)
         if write_dynamodb and self.state_db:
             from daylib.workset_state_db import WorksetPriority
@@ -129,13 +131,14 @@ class WorksetIntegration:
                 ws_priority = WorksetPriority(priority)
             except ValueError:
                 ws_priority = WorksetPriority.NORMAL
-            
+
             db_success = self.state_db.register_workset(
                 workset_id=workset_id,
                 bucket=target_bucket,
                 prefix=workset_prefix,
                 priority=ws_priority,
                 metadata=metadata,
+                customer_id=customer_id,
             )
             if not db_success:
                 LOGGER.warning("DynamoDB registration failed for %s", workset_id)
@@ -453,24 +456,50 @@ class WorksetIntegration:
         if not prefix.endswith("/"):
             prefix += "/"
 
-        # Build daylily_work.yaml from metadata
-        work_yaml = self._build_work_yaml(workset_id, metadata)
+        # Build daylily_work.yaml from template (returns string, not dict)
+        work_yaml_content = self._build_work_yaml(workset_id, metadata, bucket, prefix)
         work_key = f"{prefix}{WORK_YAML_NAME}"
         self._s3.put_object(
             Bucket=bucket,
             Key=work_key,
-            Body=yaml.dump(work_yaml, default_flow_style=False).encode("utf-8"),
+            Body=work_yaml_content.encode("utf-8"),
             ContentType="text/yaml",
         )
         LOGGER.debug("Wrote %s to s3://%s/%s", WORK_YAML_NAME, bucket, work_key)
 
-        # Build daylily_info.yaml
+        # Build daylily_info.yaml - metadata about the workset submission
+        # This file is for tracking/auditing and is not processed by the pipeline
+        samples = metadata.get("samples", [])
         info_yaml = {
+            # Identification
             "workset_id": workset_id,
+            "workset_name": metadata.get("workset_name", workset_id),
+            "customer_id": metadata.get("submitted_by", "unknown"),
+
+            # Timestamps
             "created_at": timestamp,
-            "submitted_by": metadata.get("submitted_by", "unknown"),
+            "submitted_at": timestamp,
+
+            # Pipeline configuration
             "pipeline_type": metadata.get("pipeline_type", "germline"),
             "reference_genome": metadata.get("reference_genome", "GRCh38"),
+            "priority": metadata.get("priority", "normal"),
+
+            # Sample summary
+            "sample_count": len(samples),
+            "sample_ids": [s.get("sample_id", "") for s in samples] if samples else [],
+
+            # Processing options
+            "enable_qc": metadata.get("enable_qc", True),
+            "archive_results": metadata.get("archive_results", True),
+
+            # Notification
+            "notification_email": metadata.get("notification_email"),
+
+            # Location
+            "s3_bucket": bucket,
+            "s3_prefix": prefix.rstrip("/"),
+            "export_uri": metadata.get("export_uri") or f"s3://{bucket}/{prefix.rstrip('/')}/results/",
         }
         info_key = f"{prefix}{INFO_YAML_NAME}"
         self._s3.put_object(
@@ -481,46 +510,140 @@ class WorksetIntegration:
         )
         LOGGER.debug("Wrote %s to s3://%s/%s", INFO_YAML_NAME, bucket, info_key)
 
+        # Build stage_samples.tsv from samples in metadata
+        # (samples already extracted above for info_yaml)
+        if samples:
+            # Use analysis_samples_template.tsv format with 20 columns
+            # See etc/analysis_samples_template.tsv for column definitions
+            header_cols = [
+                "RUN_ID", "SAMPLE_ID", "EXPERIMENTID", "SAMPLE_TYPE", "LIB_PREP",
+                "SEQ_VENDOR", "SEQ_PLATFORM", "LANE", "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR", "R1_FQ", "R2_FQ",
+                "STAGE_DIRECTIVE", "STAGE_TARGET", "SUBSAMPLE_PCT",
+                "IS_POS_CTRL", "IS_NEG_CTRL", "N_X", "N_Y", "EXTERNAL_SAMPLE_ID"
+            ]
+            tsv_lines = ["\t".join(header_cols)]
+
+            for sample in samples:
+                sample_id = sample.get("sample_id", "")
+                r1 = sample.get("r1_file", "")
+                r2 = sample.get("r2_file", "")
+                if sample_id:
+                    # Build row with defaults for optional columns
+                    row = {
+                        "RUN_ID": workset_id,
+                        "SAMPLE_ID": sample_id,
+                        "EXPERIMENTID": sample.get("experiment_id", sample_id),
+                        "SAMPLE_TYPE": sample.get("sample_type", "WGS"),
+                        "LIB_PREP": sample.get("lib_prep", "ILLUMINA"),
+                        "SEQ_VENDOR": sample.get("seq_vendor", "ILLUMINA"),
+                        "SEQ_PLATFORM": sample.get("seq_platform", "NOVASEQ"),
+                        "LANE": sample.get("lane", "1"),
+                        "SEQBC_ID": sample.get("seqbc_id", ""),
+                        "PATH_TO_CONCORDANCE_DATA_DIR": sample.get("concordance_dir", ""),
+                        "R1_FQ": r1,
+                        "R2_FQ": r2,
+                        "STAGE_DIRECTIVE": sample.get("stage_directive", "STAGE"),
+                        "STAGE_TARGET": sample.get("stage_target", ""),
+                        "SUBSAMPLE_PCT": sample.get("subsample_pct", "100"),
+                        "IS_POS_CTRL": sample.get("is_pos_ctrl", "FALSE"),
+                        "IS_NEG_CTRL": sample.get("is_neg_ctrl", "FALSE"),
+                        "N_X": sample.get("n_x", ""),
+                        "N_Y": sample.get("n_y", ""),
+                        "EXTERNAL_SAMPLE_ID": sample.get("external_sample_id", sample_id),
+                    }
+                    tsv_lines.append("\t".join(str(row[col]) for col in header_cols))
+
+            tsv_key = f"{prefix}{STAGE_SAMPLES_NAME}"
+            self._s3.put_object(
+                Bucket=bucket,
+                Key=tsv_key,
+                Body="\n".join(tsv_lines).encode("utf-8"),
+                ContentType="text/tab-separated-values",
+            )
+            LOGGER.debug("Wrote %s to s3://%s/%s with %d samples", STAGE_SAMPLES_NAME, bucket, tsv_key, len(samples))
+
+            # Create sample_data/ directory marker if samples reference external files
+            # This allows the monitor to detect the workset is ready
+            sample_data_key = f"{prefix}sample_data/.keep"
+            self._s3.put_object(
+                Bucket=bucket,
+                Key=sample_data_key,
+                Body=b"placeholder for external sample data references",
+                ContentType="text/plain",
+            )
+            LOGGER.debug("Created sample_data/ marker at s3://%s/%s", bucket, sample_data_key)
+
         # Write ready sentinel
         self._write_sentinel(bucket, prefix, "ready", timestamp)
 
     def _build_work_yaml(
-        self, workset_id: str, metadata: Dict[str, Any]
-    ) -> Dict[str, Any]:
-        """Build daylily_work.yaml content from metadata."""
-        pipeline_type = metadata.get("pipeline_type", "germline")
-        reference = metadata.get("reference_genome", "GRCh38")
+        self, workset_id: str, metadata: Dict[str, Any], bucket: str, prefix: str
+    ) -> str:
+        """Build daylily_work.yaml content using the template file.
 
-        # Map pipeline type to run command suffix
-        run_suffix_map = {
-            "germline": "dy-r GERMLINE",
-            "somatic": "dy-r SOMATIC",
-            "rnaseq": "dy-r RNASEQ",
-            "wgs": "dy-r WGS",
-            "wes": "dy-r WES",
-        }
-        run_suffix = run_suffix_map.get(pipeline_type, "dy-r GERMLINE")
+        The template at config/daylily_work.yaml is used as-is, with only the
+        export_uri field replaced with the customer's S3 bucket URI.
 
-        work_yaml = {
-            "workset_name": metadata.get("workset_name", workset_id),
-            "workdir_name": workset_id,
-            "reference_genome": reference,
-            "pipeline_type": pipeline_type,
-            "dy-r": run_suffix,
-            "enable_qc": metadata.get("enable_qc", True),
-            "archive_results": metadata.get("archive_results", True),
-            "priority": metadata.get("priority", "normal"),
-        }
+        Returns the YAML content as a string (not a dict) to preserve template
+        structure including comments.
+        """
+        import os
 
-        # Add notification email if provided
-        if metadata.get("notification_email"):
-            work_yaml["notification_email"] = metadata["notification_email"]
+        # Load the template file
+        template_path = os.path.join(
+            os.path.dirname(os.path.dirname(__file__)),
+            "config",
+            "daylily_work.yaml"
+        )
 
-        # Add export URI if configured
-        if metadata.get("export_uri"):
-            work_yaml["target_export_uri"] = metadata["export_uri"]
+        try:
+            with open(template_path, "r") as f:
+                template_content = f.read()
+        except FileNotFoundError:
+            LOGGER.warning("Template config/daylily_work.yaml not found, using defaults")
+            template_content = self._get_default_work_yaml_template()
 
-        return work_yaml
+        # Build export URI using customer's bucket and workset prefix
+        export_prefix = prefix.rstrip("/")
+        customer_export_uri = metadata.get("export_uri") or f"s3://{bucket}/{export_prefix}/results/"
+
+        # Replace only the export_uri line in the template
+        # Preserve everything else including comments and structure
+        import re
+        template_content = re.sub(
+            r'^export_uri:.*$',
+            f'export_uri: "{customer_export_uri}"',
+            template_content,
+            flags=re.MULTILINE
+        )
+
+        # Optionally replace {workdir_name} placeholder if present
+        template_content = template_content.replace("{workdir_name}", workset_id)
+
+        return template_content
+
+    def _get_default_work_yaml_template(self) -> str:
+        """Return default work YAML template if file not found."""
+        return '''# (optional) Keep or drop. If present, the monitor won't try to create/use a different one.
+# cluster_name: "newcluex"
+
+# Clone the Daylily pipeline on the headnode (optional but recommended)
+day-clone: " -d {workdir_name} -t main  "
+
+# Optional budget name appended to the day-clone command
+# budget: "daylily-omics-analysis-us-west-2"
+
+# Args only; your monitor YAML's run_prefix already includes the dy-r/day_run command.
+dy-r: >
+  -p help
+
+# Export results after completion
+export_uri: "s3://PLACEHOLDER/results/"
+
+# (ignored by script; for you)
+notes: "Daylily Snakemake; hg38; slurm profile; 192 jobs; rerun-incomplete."
+'''
 
     def _write_sentinel(
         self,

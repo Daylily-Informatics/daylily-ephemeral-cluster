@@ -56,6 +56,14 @@ except ImportError:
     print("Install with: pip install 'python-jose[cryptography]'")
     sys.exit(1)
 
+# Try to import file management (optional)
+try:
+    from daylib.file_registry import FileRegistry
+    FILE_MANAGEMENT_AVAILABLE = True
+except ImportError:
+    FILE_MANAGEMENT_AVAILABLE = False
+    FileRegistry = None
+
 # Configure logging
 logging.basicConfig(
     level=logging.INFO,
@@ -180,6 +188,21 @@ def main():
         app_client_id=APP_CLIENT_ID,
     )
 
+    # Initialize file registry (optional)
+    file_registry = None
+    if FILE_MANAGEMENT_AVAILABLE:
+        LOGGER.info("Initializing file registry")
+        try:
+            import boto3
+            dynamodb = boto3.resource('dynamodb', region_name=REGION)
+            file_registry = FileRegistry(dynamodb)
+            LOGGER.info("File registry initialized - file management endpoints will be available")
+        except Exception as e:
+            LOGGER.warning("Failed to initialize file registry: %s", e)
+            LOGGER.warning("File management endpoints will not be available")
+    else:
+        LOGGER.info("File management not available - install file management modules to enable")
+
     # Create FastAPI app WITH authentication
     LOGGER.info("Creating FastAPI application (authentication enabled)")
     app = create_app(
@@ -188,6 +211,7 @@ def main():
         cognito_auth=cognito_auth,
         customer_manager=customer_manager,
         validator=validator,
+        file_registry=file_registry,
         enable_auth=True,  # Enable authentication
     )
 

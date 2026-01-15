@@ -26,8 +26,10 @@ class WorksetState(str, Enum):
     COMPLETE = "complete"
     ERROR = "error"
     IGNORED = "ignored"
-    RETRYING = "retrying"  # New state for retry logic
+    RETRYING = "retrying"  # Retry logic state
     FAILED = "failed"  # Permanent failure after max retries
+    ARCHIVED = "archived"  # Moved to archive storage
+    DELETED = "deleted"  # Hard deleted from S3
 
 
 class WorksetPriority(str, Enum):
@@ -150,6 +152,7 @@ class WorksetStateDB:
         prefix: str,
         priority: WorksetPriority = WorksetPriority.NORMAL,
         metadata: Optional[Dict[str, Any]] = None,
+        customer_id: Optional[str] = None,
     ) -> bool:
         """Register a new workset in the database.
 
@@ -159,6 +162,7 @@ class WorksetStateDB:
             prefix: S3 prefix for workset files
             priority: Execution priority
             metadata: Additional workset metadata
+            customer_id: Customer ID who owns this workset
 
         Returns:
             True if registered, False if already exists
@@ -180,6 +184,10 @@ class WorksetStateDB:
                 }
             ],
         }
+
+        # Add customer_id as a top-level field if provided
+        if customer_id:
+            item["customer_id"] = customer_id
 
         if metadata:
             item["metadata"] = self._serialize_metadata(metadata)
@@ -801,4 +809,145 @@ class WorksetStateDB:
             return ready_worksets[0]
 
         return None
+
+    def archive_workset(
+        self,
+        workset_id: str,
+        archived_by: str = "system",
+        archive_reason: Optional[str] = None,
+    ) -> bool:
+        """Archive a workset.
+
+        Updates state to ARCHIVED and records archival metadata.
+
+        Args:
+            workset_id: Workset identifier
+            archived_by: User or system that archived the workset
+            archive_reason: Optional reason for archiving
+
+        Returns:
+            True if successful
+        """
+        now = dt.datetime.utcnow().isoformat() + "Z"
+        update_expr = "SET #state = :state, archived_at = :archived_at, archived_by = :archived_by"
+        expr_values = {
+            ":state": WorksetState.ARCHIVED.value,
+            ":archived_at": now,
+            ":archived_by": archived_by,
+        }
+        expr_names = {"#state": "state"}
+
+        if archive_reason:
+            update_expr += ", archive_reason = :reason"
+            expr_values[":reason"] = archive_reason
+
+        try:
+            self.table.update_item(
+                Key={"workset_id": workset_id},
+                UpdateExpression=update_expr,
+                ExpressionAttributeNames=expr_names,
+                ExpressionAttributeValues=expr_values,
+            )
+            LOGGER.info("Archived workset %s by %s", workset_id, archived_by)
+            return True
+        except ClientError as e:
+            LOGGER.error("Failed to archive workset %s: %s", workset_id, e)
+            return False
+
+    def delete_workset(
+        self,
+        workset_id: str,
+        deleted_by: str = "system",
+        delete_reason: Optional[str] = None,
+        hard_delete: bool = False,
+    ) -> bool:
+        """Delete a workset.
+
+        Either marks as DELETED state or completely removes from DynamoDB.
+
+        Args:
+            workset_id: Workset identifier
+            deleted_by: User or system that deleted the workset
+            delete_reason: Optional reason for deletion
+            hard_delete: If True, remove from DynamoDB entirely
+
+        Returns:
+            True if successful
+        """
+        try:
+            if hard_delete:
+                # Completely remove from DynamoDB
+                self.table.delete_item(Key={"workset_id": workset_id})
+                LOGGER.info("Hard deleted workset %s from DynamoDB by %s", workset_id, deleted_by)
+            else:
+                # Soft delete - mark as deleted
+                now = dt.datetime.utcnow().isoformat() + "Z"
+                update_expr = "SET #state = :state, deleted_at = :deleted_at, deleted_by = :deleted_by"
+                expr_values = {
+                    ":state": WorksetState.DELETED.value,
+                    ":deleted_at": now,
+                    ":deleted_by": deleted_by,
+                }
+                expr_names = {"#state": "state"}
+
+                if delete_reason:
+                    update_expr += ", delete_reason = :reason"
+                    expr_values[":reason"] = delete_reason
+
+                self.table.update_item(
+                    Key={"workset_id": workset_id},
+                    UpdateExpression=update_expr,
+                    ExpressionAttributeNames=expr_names,
+                    ExpressionAttributeValues=expr_values,
+                )
+                LOGGER.info("Soft deleted workset %s by %s", workset_id, deleted_by)
+            return True
+        except ClientError as e:
+            LOGGER.error("Failed to delete workset %s: %s", workset_id, e)
+            return False
+
+    def restore_workset(
+        self,
+        workset_id: str,
+        restored_by: str = "system",
+    ) -> bool:
+        """Restore an archived workset back to ready state.
+
+        Args:
+            workset_id: Workset identifier
+            restored_by: User or system restoring the workset
+
+        Returns:
+            True if successful
+        """
+        now = dt.datetime.utcnow().isoformat() + "Z"
+        try:
+            self.table.update_item(
+                Key={"workset_id": workset_id},
+                UpdateExpression="SET #state = :state, restored_at = :restored_at, restored_by = :restored_by REMOVE archived_at, archived_by, archive_reason",
+                ExpressionAttributeNames={"#state": "state"},
+                ConditionExpression="attribute_exists(workset_id) AND #state = :archived",
+                ExpressionAttributeValues={
+                    ":state": WorksetState.READY.value,
+                    ":restored_at": now,
+                    ":restored_by": restored_by,
+                    ":archived": WorksetState.ARCHIVED.value,
+                },
+            )
+            LOGGER.info("Restored workset %s by %s", workset_id, restored_by)
+            return True
+        except ClientError as e:
+            LOGGER.error("Failed to restore workset %s: %s", workset_id, e)
+            return False
+
+    def list_archived_worksets(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """List all archived worksets.
+
+        Args:
+            limit: Maximum number of results
+
+        Returns:
+            List of archived workset dicts
+        """
+        return self.list_worksets_by_state(WorksetState.ARCHIVED, limit=limit)
 

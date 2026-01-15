@@ -44,6 +44,16 @@ except ImportError:
     INTEGRATION_AVAILABLE = False
     WorksetIntegration = None
 
+# File management imports
+try:
+    from daylib.file_api import create_file_api_router
+    from daylib.file_registry import FileRegistry
+    FILE_MANAGEMENT_AVAILABLE = True
+except ImportError:
+    FILE_MANAGEMENT_AVAILABLE = False
+    create_file_api_router = None
+    FileRegistry = None
+
 LOGGER = logging.getLogger("daylily.workset_api")
 
 
@@ -215,6 +225,7 @@ def create_app(
     customer_manager: Optional[CustomerManager] = None,
     validator: Optional[WorksetValidator] = None,
     integration: Optional["WorksetIntegration"] = None,
+    file_registry: Optional["FileRegistry"] = None,
     enable_auth: bool = False,
 ) -> FastAPI:
     """Create FastAPI application.
@@ -226,6 +237,7 @@ def create_app(
         customer_manager: Optional customer manager
         validator: Optional workset validator
         integration: Optional integration layer for S3 sync
+        file_registry: Optional file registry for file management
         enable_auth: Enable authentication (requires cognito_auth)
 
     Returns:
@@ -1057,6 +1069,29 @@ def create_app(
 
             return {"worksets": customer_worksets[:limit]}
 
+        @app.get("/api/customers/{customer_id}/worksets/archived", tags=["customer-worksets"])
+        async def list_archived_worksets(customer_id: str):
+            """List all archived worksets for a customer."""
+            if not customer_manager:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Customer management not configured",
+                )
+
+            config = customer_manager.get_customer_config(customer_id)
+            if not config:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Customer {customer_id} not found",
+                )
+
+            # Get all archived worksets and filter by customer's bucket
+            all_archived = state_db.list_archived_worksets(limit=500)
+            customer_archived = [
+                w for w in all_archived if w.get("bucket") == config.s3_bucket
+            ]
+            return customer_archived
+
         @app.get("/api/customers/{customer_id}/worksets/{workset_id}", tags=["customer-worksets"])
         async def get_customer_workset(
             customer_id: str,
@@ -1123,6 +1158,13 @@ def create_app(
                     detail="Customer management not configured",
                 )
 
+            # Validate customer_id - reject null, empty, or 'Unknown'
+            if not customer_id or customer_id.strip() == "" or customer_id == "Unknown":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Valid customer ID is required. Please log in with a registered account.",
+                )
+
             config = customer_manager.get_customer_config(customer_id)
             if not config:
                 raise HTTPException(
@@ -1134,9 +1176,20 @@ def create_app(
             safe_name = workset_name.replace(" ", "-").lower()[:30]
             workset_id = f"{safe_name}-{uuid.uuid4().hex[:8]}"
 
-            # Use customer's bucket if not provided
-            bucket = s3_bucket or config.s3_bucket
-            prefix = s3_prefix or f"worksets/{workset_id}/"
+            # Use customer's bucket - always use the customer's designated bucket
+            bucket = config.s3_bucket
+            if not bucket:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Customer has no S3 bucket configured",
+                )
+
+            # Use provided prefix or generate one based on workset ID
+            prefix = s3_prefix.strip() if s3_prefix else ""
+            if not prefix:
+                prefix = f"worksets/{workset_id}/"
+            if not prefix.endswith("/"):
+                prefix += "/"
 
             # Process samples from YAML content if provided
             workset_samples = samples or []
@@ -1160,6 +1213,13 @@ def create_app(
                     }
                     normalized_samples.append(normalized)
 
+            # Issue 4: Validate that workset has at least one sample
+            if len(normalized_samples) == 0:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Workset must contain at least one sample. Please upload files, specify an S3 path with samples, or provide a YAML configuration with samples.",
+                )
+
             # Store additional metadata from the form
             metadata = {
                 "workset_name": workset_name,
@@ -1182,6 +1242,7 @@ def create_app(
                     prefix=prefix,
                     priority=priority,
                     metadata=metadata,
+                    customer_id=customer_id,
                     write_s3=True,
                     write_dynamodb=True,
                 )
@@ -1198,6 +1259,7 @@ def create_app(
                     prefix=prefix,
                     priority=ws_priority,
                     metadata=metadata,
+                    customer_id=customer_id,
                 )
 
             if not success:
@@ -1241,7 +1303,7 @@ def create_app(
                     detail="Workset does not belong to this customer",
                 )
 
-            state_db.update_state(workset_id, WorksetState.CANCELLED, "Cancelled by user")
+            state_db.update_state(workset_id, WorksetState.ERROR, "Cancelled by user")
             updated = state_db.get_workset(workset_id)
             return updated
 
@@ -1277,10 +1339,226 @@ def create_app(
                     detail="Workset does not belong to this customer",
                 )
 
-            # Reset to pending state for retry
-            state_db.update_state(workset_id, WorksetState.PENDING, "Retry requested by user")
+            # Reset to ready state for retry
+            state_db.update_state(workset_id, WorksetState.READY, "Retry requested by user")
             updated = state_db.get_workset(workset_id)
             return updated
+
+        @app.post("/api/customers/{customer_id}/worksets/{workset_id}/archive", tags=["customer-worksets"])
+        async def archive_customer_workset(
+            request: Request,
+            customer_id: str,
+            workset_id: str,
+            reason: Optional[str] = Body(None, embed=True),
+        ):
+            """Archive a customer's workset.
+
+            Moves workset to archived state. Archived worksets can be restored.
+            Admins can archive any workset.
+            """
+            if not customer_manager:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Customer management not configured",
+                )
+
+            config = customer_manager.get_customer_config(customer_id)
+            if not config:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Customer {customer_id} not found",
+                )
+
+            workset = state_db.get_workset(workset_id)
+            if not workset:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Workset {workset_id} not found",
+                )
+
+            # Check if user is admin (can archive any workset) or owns the workset
+            is_admin = getattr(request, "session", {}).get("is_admin", False)
+            if not is_admin and workset.get("bucket") != config.s3_bucket:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Workset does not belong to this customer",
+                )
+
+            # Archive the workset
+            success = state_db.archive_workset(
+                workset_id, archived_by=customer_id, archive_reason=reason
+            )
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to archive workset",
+                )
+
+            # Optionally move S3 files to archive prefix
+            bucket = workset.get("bucket")
+            prefix = workset.get("prefix", "").rstrip("/")
+            if bucket and prefix and integration:
+                try:
+                    archive_prefix = f"archived/{prefix.split('/')[-1]}/"
+                    s3 = boto3.client("s3")
+                    # Copy files to archive location
+                    paginator = s3.get_paginator("list_objects_v2")
+                    for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
+                        for obj in page.get("Contents", []):
+                            old_key = obj["Key"]
+                            new_key = old_key.replace(prefix, archive_prefix.rstrip("/"), 1)
+                            s3.copy_object(
+                                Bucket=bucket,
+                                CopySource={"Bucket": bucket, "Key": old_key},
+                                Key=new_key,
+                            )
+                            s3.delete_object(Bucket=bucket, Key=old_key)
+                    LOGGER.info("Moved workset %s files to archive: %s", workset_id, archive_prefix)
+                except Exception as e:
+                    LOGGER.warning("Failed to move workset files to archive: %s", e)
+
+            return state_db.get_workset(workset_id)
+
+        @app.post("/api/customers/{customer_id}/worksets/{workset_id}/delete", tags=["customer-worksets"])
+        async def delete_customer_workset(
+            request: Request,
+            customer_id: str,
+            workset_id: str,
+            hard_delete: bool = Body(False, embed=True),
+            reason: Optional[str] = Body(None, embed=True),
+        ):
+            """Delete a customer's workset.
+
+            Args:
+                hard_delete: If True, permanently removes all S3 data and DynamoDB record.
+                            If False (default), marks as deleted but preserves data.
+
+            Admins can delete any workset.
+            """
+            if not customer_manager:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Customer management not configured",
+                )
+
+            config = customer_manager.get_customer_config(customer_id)
+            if not config:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Customer {customer_id} not found",
+                )
+
+            workset = state_db.get_workset(workset_id)
+            if not workset:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Workset {workset_id} not found",
+                )
+
+            # Check if user is admin (can delete any workset) or owns the workset
+            is_admin = getattr(request, "session", {}).get("is_admin", False)
+            if not is_admin and workset.get("bucket") != config.s3_bucket:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Workset does not belong to this customer",
+                )
+
+            # If hard delete, remove S3 files first
+            if hard_delete:
+                bucket = workset.get("bucket")
+                prefix = workset.get("prefix", "").rstrip("/") + "/"
+                if bucket and prefix:
+                    try:
+                        s3 = boto3.client("s3")
+                        paginator = s3.get_paginator("list_objects_v2")
+                        objects_to_delete = []
+                        for page in paginator.paginate(Bucket=bucket, Prefix=prefix):
+                            for obj in page.get("Contents", []):
+                                objects_to_delete.append({"Key": obj["Key"]})
+
+                        if objects_to_delete:
+                            # Delete in batches of 1000 (S3 limit)
+                            for i in range(0, len(objects_to_delete), 1000):
+                                batch = objects_to_delete[i:i + 1000]
+                                s3.delete_objects(
+                                    Bucket=bucket,
+                                    Delete={"Objects": batch},
+                                )
+                            LOGGER.info(
+                                "Deleted %d S3 objects for workset %s",
+                                len(objects_to_delete),
+                                workset_id,
+                            )
+                    except Exception as e:
+                        LOGGER.error("Failed to delete S3 objects for workset %s: %s", workset_id, e)
+                        raise HTTPException(
+                            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                            detail=f"Failed to delete S3 data: {str(e)}",
+                        )
+
+            # Update DynamoDB state
+            success = state_db.delete_workset(
+                workset_id,
+                deleted_by=customer_id,
+                delete_reason=reason,
+                hard_delete=hard_delete,
+            )
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to delete workset from database",
+                )
+
+            if hard_delete:
+                return {"status": "deleted", "workset_id": workset_id, "hard_delete": True}
+            return state_db.get_workset(workset_id)
+
+        @app.post("/api/customers/{customer_id}/worksets/{workset_id}/restore", tags=["customer-worksets"])
+        async def restore_customer_workset(
+            customer_id: str,
+            workset_id: str,
+        ):
+            """Restore an archived workset back to ready state."""
+            if not customer_manager:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Customer management not configured",
+                )
+
+            config = customer_manager.get_customer_config(customer_id)
+            if not config:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Customer {customer_id} not found",
+                )
+
+            workset = state_db.get_workset(workset_id)
+            if not workset:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Workset {workset_id} not found",
+                )
+
+            if workset.get("bucket") != config.s3_bucket:
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="Workset does not belong to this customer",
+                )
+
+            if workset.get("state") != "archived":
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Only archived worksets can be restored",
+                )
+
+            success = state_db.restore_workset(workset_id, restored_by=customer_id)
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail="Failed to restore workset",
+                )
+
+            return state_db.get_workset(workset_id)
 
         @app.get("/api/customers/{customer_id}/worksets/{workset_id}/logs", tags=["customer-worksets"])
         async def get_customer_workset_logs(
@@ -1314,8 +1592,8 @@ def create_app(
                     detail="Workset does not belong to this customer",
                 )
 
-            # Return workset history as logs
-            history = workset.get("history", [])
+            # Return workset state_history as logs
+            history = workset.get("state_history", [])
             return {"logs": history, "workset_id": workset_id}
 
     # ========== Workset Validation Endpoints ==========
@@ -1386,39 +1664,69 @@ def create_app(
         samples = []
         yaml_content = None
         files_found = []
+        all_keys_found = []  # For debugging
+
+        LOGGER.info("S3 Discovery: Starting discovery for bucket=%s, prefix=%s", bucket, prefix)
 
         try:
-            session = boto3.Session()
+            # Create boto3 session using environment variables if set
+            # AWS_DEFAULT_REGION, AWS_PROFILE, or IAM role credentials
+            session_kwargs = {}
+            if os.getenv("AWS_DEFAULT_REGION"):
+                session_kwargs["region_name"] = os.getenv("AWS_DEFAULT_REGION")
+            if os.getenv("AWS_PROFILE"):
+                session_kwargs["profile_name"] = os.getenv("AWS_PROFILE")
+            session = boto3.Session(**session_kwargs)
             s3_client = session.client("s3")
 
-            # Normalize prefix
-            normalized_prefix = prefix.strip("/")
+            # Normalize prefix - handle various input formats
+            # Strip whitespace and handle both with/without trailing slash
+            normalized_prefix = prefix.strip()
             if normalized_prefix:
-                normalized_prefix += "/"
+                # Remove leading slash if present
+                normalized_prefix = normalized_prefix.lstrip("/")
+                # Ensure trailing slash for listing
+                if not normalized_prefix.endswith("/"):
+                    normalized_prefix += "/"
+
+            LOGGER.info("S3 Discovery: Using normalized prefix: '%s'", normalized_prefix)
 
             # List objects in the S3 path
             paginator = s3_client.get_paginator("list_objects_v2")
+            total_objects = 0
 
             for page in paginator.paginate(Bucket=bucket, Prefix=normalized_prefix):
                 for obj in page.get("Contents", []):
+                    total_objects += 1
                     key = obj["Key"]
                     filename = key.split("/")[-1]
+                    all_keys_found.append(key)
 
-                    # Check for daylily_work.yaml
-                    if filename == "daylily_work.yaml":
+                    # Skip directory markers (empty keys ending with /)
+                    if not filename:
+                        continue
+
+                    # Check for daylily_work.yaml (case-insensitive)
+                    if filename.lower() == "daylily_work.yaml":
+                        LOGGER.info("S3 Discovery: Found daylily_work.yaml at %s", key)
                         try:
                             response = s3_client.get_object(Bucket=bucket, Key=key)
                             yaml_content = response["Body"].read().decode("utf-8")
+                            LOGGER.info("S3 Discovery: Successfully read daylily_work.yaml")
                         except Exception as e:
-                            LOGGER.warning("Failed to read daylily_work.yaml: %s", e)
+                            LOGGER.warning("S3 Discovery: Failed to read daylily_work.yaml: %s", e)
 
-                    # Check for FASTQ files
-                    if any(filename.lower().endswith(ext) for ext in [".fastq", ".fq", ".fastq.gz", ".fq.gz"]):
+                    # Check for FASTQ files - extended patterns
+                    fastq_extensions = [".fastq", ".fq", ".fastq.gz", ".fq.gz", ".fastq.bz2", ".fq.bz2"]
+                    if any(filename.lower().endswith(ext) for ext in fastq_extensions):
+                        LOGGER.debug("S3 Discovery: Found FASTQ file: %s", filename)
                         files_found.append({
                             "key": key,
                             "filename": filename,
                             "size": obj.get("Size", 0),
                         })
+
+            LOGGER.info("S3 Discovery: Found %d total objects, %d FASTQ files", total_objects, len(files_found))
 
             # If we found a daylily_work.yaml, parse samples from it
             if yaml_content:
@@ -1433,34 +1741,64 @@ def create_app(
                                     "r2_file": sample.get("r2_file") or sample.get("r2") or sample.get("fq2", ""),
                                     "status": "pending",
                                 })
+                        LOGGER.info("S3 Discovery: Parsed %d samples from YAML", len(samples))
                 except Exception as e:
-                    LOGGER.warning("Failed to parse daylily_work.yaml: %s", e)
+                    LOGGER.warning("S3 Discovery: Failed to parse daylily_work.yaml: %s", e)
 
             # If no samples from YAML, try to pair FASTQ files
             if not samples and files_found:
-                # Pattern matching for R1/R2 pairs
-                # Supports: sample_R1.fastq.gz, sample.R1.fastq.gz, sample_1.fastq.gz
-                r1_pattern = re.compile(r"(.+?)[._](R1|1)[._]?(.*?)\.(fastq|fq)(\.gz)?$", re.IGNORECASE)
-                r2_pattern = re.compile(r"(.+?)[._](R2|2)[._]?(.*?)\.(fastq|fq)(\.gz)?$", re.IGNORECASE)
+                LOGGER.info("S3 Discovery: No YAML samples, attempting to pair %d FASTQ files", len(files_found))
+
+                # Pattern matching for R1/R2 pairs - more flexible patterns
+                # Supports: sample_R1.fastq.gz, sample.R1.fastq.gz, sample_1.fastq.gz,
+                #           sample_R1_001.fastq.gz, sample_S1_L001_R1_001.fastq.gz (Illumina)
+                r1_patterns = [
+                    # Standard patterns: sample_R1.fastq.gz, sample.R1.fastq.gz
+                    re.compile(r"^(.+?)[._](R1|r1)[._]?.*\.(fastq|fq)(\.gz|\.bz2)?$", re.IGNORECASE),
+                    # Numeric patterns: sample_1.fastq.gz
+                    re.compile(r"^(.+?)[._]1[._]?.*\.(fastq|fq)(\.gz|\.bz2)?$", re.IGNORECASE),
+                    # Illumina patterns: sample_S1_L001_R1_001.fastq.gz
+                    re.compile(r"^(.+?)_S\d+_L\d+_R1_\d+\.(fastq|fq)(\.gz|\.bz2)?$", re.IGNORECASE),
+                ]
+                r2_patterns = [
+                    re.compile(r"^(.+?)[._](R2|r2)[._]?.*\.(fastq|fq)(\.gz|\.bz2)?$", re.IGNORECASE),
+                    re.compile(r"^(.+?)[._]2[._]?.*\.(fastq|fq)(\.gz|\.bz2)?$", re.IGNORECASE),
+                    re.compile(r"^(.+?)_S\d+_L\d+_R2_\d+\.(fastq|fq)(\.gz|\.bz2)?$", re.IGNORECASE),
+                ]
 
                 r1_files = {}
                 r2_files = {}
 
                 for f in files_found:
                     filename = f["filename"]
-                    r1_match = r1_pattern.match(filename)
-                    r2_match = r2_pattern.match(filename)
+                    matched = False
 
-                    if r1_match:
-                        sample_name = r1_match.group(1)
-                        r1_files[sample_name] = f["key"]
-                    elif r2_match:
-                        sample_name = r2_match.group(1)
-                        r2_files[sample_name] = f["key"]
+                    # Try R1 patterns
+                    for pattern in r1_patterns:
+                        match = pattern.match(filename)
+                        if match:
+                            sample_name = match.group(1)
+                            r1_files[sample_name] = f["key"]
+                            LOGGER.debug("S3 Discovery: Matched R1 file %s -> sample %s", filename, sample_name)
+                            matched = True
+                            break
+
+                    if not matched:
+                        # Try R2 patterns
+                        for pattern in r2_patterns:
+                            match = pattern.match(filename)
+                            if match:
+                                sample_name = match.group(1)
+                                r2_files[sample_name] = f["key"]
+                                LOGGER.debug("S3 Discovery: Matched R2 file %s -> sample %s", filename, sample_name)
+                                break
 
                 # Pair R1 and R2 files
-                all_samples = set(r1_files.keys()) | set(r2_files.keys())
-                for sample_name in sorted(all_samples):
+                all_sample_names = set(r1_files.keys()) | set(r2_files.keys())
+                LOGGER.info("S3 Discovery: Found %d R1 files, %d R2 files, %d unique sample names",
+                           len(r1_files), len(r2_files), len(all_sample_names))
+
+                for sample_name in sorted(all_sample_names):
                     samples.append({
                         "sample_id": sample_name,
                         "r1_file": r1_files.get(sample_name, ""),
@@ -1468,20 +1806,139 @@ def create_app(
                         "status": "pending",
                     })
 
+            LOGGER.info("S3 Discovery: Returning %d samples, %d files found", len(samples), len(files_found))
+
             return {
                 "samples": samples,
                 "yaml_content": yaml_content,
                 "files_found": len(files_found),
                 "bucket": bucket,
                 "prefix": prefix,
+                "normalized_prefix": normalized_prefix,
+                "total_objects_scanned": total_objects,
             }
 
-        except Exception as e:
-            LOGGER.error("Failed to discover samples from S3: %s", e)
+        except s3_client.exceptions.NoSuchBucket if 's3_client' in dir() else Exception as e:
+            if "NoSuchBucket" in str(type(e).__name__):
+                LOGGER.error("S3 Discovery: Bucket '%s' does not exist", bucket)
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"S3 bucket '{bucket}' not found",
+                )
+            LOGGER.error("S3 Discovery: Failed to discover samples from S3: %s", e)
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to discover samples: {str(e)}",
             )
+        except Exception as e:
+            LOGGER.error("S3 Discovery: Failed to discover samples from S3: %s", e)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to discover samples: {str(e)}",
+            )
+
+    # ========== S3 Bucket Validation Endpoint ==========
+
+    @app.post("/api/s3/validate-bucket", tags=["utilities"])
+    async def validate_s3_bucket(
+        bucket: str = Body(..., embed=True),
+        current_user: Optional[Dict] = Depends(get_current_user),
+    ):
+        """Validate an S3 bucket for Daylily use.
+
+        Checks:
+        - Bucket exists and is accessible
+        - Read permissions (list and get objects)
+        - Write permissions (put objects to worksets/ prefix)
+
+        Returns validation result with setup instructions if needed.
+        """
+        from daylib.s3_bucket_validator import S3BucketValidator
+
+        try:
+            validator = S3BucketValidator(region=region, profile=profile)
+            result = validator.validate_bucket(bucket)
+
+            # Generate setup instructions if not fully configured
+            instructions = None
+            if not result.is_fully_configured:
+                instructions = validator.get_setup_instructions(
+                    bucket, result, daylily_account_id="108782052779"
+                )
+
+            return {
+                "bucket": bucket,
+                "valid": result.is_valid,
+                "fully_configured": result.is_fully_configured,
+                "exists": result.exists,
+                "accessible": result.accessible,
+                "can_read": result.can_read,
+                "can_write": result.can_write,
+                "can_list": result.can_list,
+                "region": result.region,
+                "errors": result.errors,
+                "warnings": result.warnings,
+                "setup_instructions": instructions,
+            }
+        except Exception as e:
+            LOGGER.error("S3 Validation: Failed to validate bucket '%s': %s", bucket, e)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to validate bucket: {str(e)}",
+            )
+
+    @app.get("/api/s3/iam-policy/{bucket_name}", tags=["utilities"])
+    async def get_iam_policy_for_bucket(
+        bucket_name: str,
+        read_only: bool = False,
+        current_user: Optional[Dict] = Depends(get_current_user),
+    ):
+        """Generate IAM policy for accessing a customer S3 bucket.
+
+        Args:
+            bucket_name: S3 bucket name
+            read_only: If True, generate read-only policy
+
+        Returns:
+            IAM policy document that can be attached to a role/user.
+        """
+        from daylib.s3_bucket_validator import S3BucketValidator
+
+        validator = S3BucketValidator(region=region, profile=profile)
+        policy = validator.generate_iam_policy_for_bucket(bucket_name, read_only=read_only)
+
+        return {
+            "bucket": bucket_name,
+            "read_only": read_only,
+            "policy": policy,
+        }
+
+    @app.get("/api/s3/bucket-policy/{bucket_name}", tags=["utilities"])
+    async def get_bucket_policy_for_daylily(
+        bucket_name: str,
+        daylily_account_id: str = "108782052779",
+        current_user: Optional[Dict] = Depends(get_current_user),
+    ):
+        """Generate S3 bucket policy for cross-account Daylily access.
+
+        Args:
+            bucket_name: Customer's S3 bucket name
+            daylily_account_id: Daylily service account ID
+
+        Returns:
+            S3 bucket policy document to apply to customer bucket.
+        """
+        from daylib.s3_bucket_validator import S3BucketValidator
+
+        validator = S3BucketValidator(region=region, profile=profile)
+        policy = validator.generate_customer_bucket_policy(bucket_name, daylily_account_id)
+
+        return {
+            "bucket": bucket_name,
+            "daylily_account_id": daylily_account_id,
+            "policy": policy,
+            "apply_command": f"aws s3api put-bucket-policy --bucket {bucket_name} --policy file://bucket-policy.json",
+        }
 
     # ========== Customer Portal Routes ==========
 
@@ -1495,6 +1952,31 @@ def create_app(
         # Mount static files
         if static_dir.exists():
             app.mount("/static", StaticFiles(directory=str(static_dir)), name="static")
+
+        def get_customer_for_session(request: Request):
+            """Get the customer for the currently logged-in user.
+
+            Looks up the customer by the user's email from the session.
+            Returns (customer, customer_config) tuple or (None, None) if not found.
+            """
+            if not customer_manager:
+                return None, None
+
+            user_email = None
+            if hasattr(request, "session"):
+                user_email = request.session.get("user_email")
+
+            if not user_email:
+                return None, None
+
+            # Look up customer by email
+            customer_config = customer_manager.get_customer_by_email(user_email)
+            if customer_config:
+                return _convert_customer_for_template(customer_config), customer_config
+
+            # Fallback: if no customer found for this email, return None
+            # This handles the case where a user is logged in but not registered as a customer
+            return None, None
 
         def get_template_context(request: Request, **kwargs) -> Dict[str, Any]:
             """Build common template context."""
@@ -1514,6 +1996,7 @@ def create_app(
             if hasattr(request, "session") and request.session.get("user_email"):
                 context["user_email"] = request.session.get("user_email")
                 context["user_authenticated"] = True
+                context["is_admin"] = request.session.get("is_admin", False)
             return context
 
         def require_portal_auth(request: Request) -> Optional[RedirectResponse]:
@@ -1608,6 +2091,14 @@ def create_app(
             request.session["user_email"] = email
             request.session["user_authenticated"] = True
 
+            # Check if user is admin
+            is_admin = False
+            if customer_manager:
+                customer = customer_manager.get_customer_by_email(email)
+                if customer:
+                    is_admin = customer.is_admin
+            request.session["is_admin"] = is_admin
+
             response = RedirectResponse(url="/portal/", status_code=302)
             return response
 
@@ -1629,6 +2120,8 @@ def create_app(
             max_storage_gb: int = Form(500),
             billing_account_id: Optional[str] = Form(None),
             cost_center: Optional[str] = Form(None),
+            s3_option: str = Form("auto"),
+            custom_s3_bucket: Optional[str] = Form(None),
         ):
             """Handle registration form submission."""
             if not customer_manager:
@@ -1639,6 +2132,24 @@ def create_app(
                 )
 
             try:
+                # Validate custom bucket if BYOB option selected
+                custom_bucket = None
+                if s3_option == "byob" and custom_s3_bucket:
+                    custom_bucket = custom_s3_bucket.strip()
+                    if custom_bucket:
+                        # Validate the bucket before registration
+                        from daylib.s3_bucket_validator import S3BucketValidator
+                        validator = S3BucketValidator(region=region, profile=profile)
+                        result = validator.validate_bucket(custom_bucket)
+
+                        if not result.is_valid:
+                            error_msg = f"S3 bucket validation failed: {'; '.join(result.errors)}"
+                            return templates.TemplateResponse(
+                                request,
+                                "auth/register.html",
+                                get_template_context(request, error=error_msg),
+                            )
+
                 config = customer_manager.onboard_customer(
                     customer_name=customer_name,
                     email=email,
@@ -1646,9 +2157,11 @@ def create_app(
                     max_storage_gb=max_storage_gb,
                     billing_account_id=billing_account_id,
                     cost_center=cost_center,
+                    custom_s3_bucket=custom_bucket,
                 )
                 # Redirect to login page with success message
-                success_msg = f"Account created successfully! Your customer ID is: {config.customer_id}. Please log in."
+                bucket_info = f" Your S3 bucket: {config.s3_bucket}." if config.s3_bucket else ""
+                success_msg = f"Account created successfully! Your customer ID is: {config.customer_id}.{bucket_info} Please log in."
                 return RedirectResponse(
                     url=f"/portal/login?success={success_msg}",
                     status_code=302,
@@ -1666,6 +2179,13 @@ def create_app(
             auth_redirect = require_portal_auth(request)
             if auth_redirect:
                 return auth_redirect
+
+            # Get customer for context
+            customer = None
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
 
             worksets = []
             for ws_state in WorksetState:
@@ -1693,6 +2213,7 @@ def create_app(
                 "worksets/list.html",
                 get_template_context(
                     request,
+                    customer=customer,
                     worksets=worksets,
                     current_page=page,
                     total_pages=total_pages,
@@ -1707,16 +2228,46 @@ def create_app(
             if auth_redirect:
                 return auth_redirect
 
-            customer = None
-            if customer_manager:
-                customers = customer_manager.list_customers()
-                if customers:
-                    customer = _convert_customer_for_template(customers[0])
+            # Get customer for the logged-in user
+            customer, _ = get_customer_for_session(request)
 
             return templates.TemplateResponse(
                 request,
                 "worksets/new.html",
                 get_template_context(request, customer=customer, active_page="worksets"),
+            )
+
+        @app.get("/portal/worksets/archived", response_class=HTMLResponse, tags=["portal"])
+        async def portal_worksets_archived(request: Request):
+            """Archived worksets page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            customer = None
+            archived_worksets = []
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+                    # Get archived worksets for this customer
+                    all_archived = state_db.list_archived_worksets(limit=500)
+                    customer_config = customer_manager.get_customer_config(customers[0].customer_id)
+                    if customer_config:
+                        archived_worksets = [
+                            w for w in all_archived
+                            if w.get("bucket") == customer_config.s3_bucket
+                        ]
+
+            return templates.TemplateResponse(
+                request,
+                "worksets/archived.html",
+                get_template_context(
+                    request,
+                    customer=customer,
+                    worksets=archived_worksets,
+                    active_page="worksets",
+                ),
             )
 
         @app.get("/portal/worksets/{workset_id}", response_class=HTMLResponse, tags=["portal"])
@@ -1729,6 +2280,13 @@ def create_app(
             workset = state_db.get_workset(workset_id)
             if not workset:
                 raise HTTPException(status_code=404, detail="Workset not found")
+
+            # Get customer for context
+            customer = None
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
 
             # Flatten metadata fields to top level for template access
             metadata = workset.get("metadata", {})
@@ -1745,12 +2303,121 @@ def create_app(
             return templates.TemplateResponse(
                 request,
                 "worksets/detail.html",
-                get_template_context(request, workset=workset, active_page="worksets"),
+                get_template_context(request, customer=customer, workset=workset, active_page="worksets"),
             )
+
+        @app.get("/portal/worksets/{workset_id}/download", tags=["portal"])
+        async def portal_workset_download(request: Request, workset_id: str):
+            """Download workset results as a presigned URL redirect.
+
+            Generates presigned URLs for completed workset result files
+            and provides them as a downloadable ZIP or redirect.
+            """
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            workset = state_db.get_workset(workset_id)
+            if not workset:
+                raise HTTPException(status_code=404, detail="Workset not found")
+
+            if workset.get("state") != "complete":
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Workset is not complete (current state: {workset.get('state')})"
+                )
+
+            # Get bucket and prefix from workset
+            bucket = workset.get("bucket")
+            prefix = workset.get("prefix", "").rstrip("/")
+            if not bucket or not prefix:
+                raise HTTPException(
+                    status_code=500,
+                    detail="Workset missing bucket or prefix configuration"
+                )
+
+            try:
+                s3 = boto3.client("s3")
+                # Look for result files in the workset directory
+                results_prefix = f"{prefix}/results/"
+
+                # List result files
+                response = s3.list_objects_v2(
+                    Bucket=bucket,
+                    Prefix=results_prefix,
+                    MaxKeys=100
+                )
+
+                files = response.get("Contents", [])
+                if not files:
+                    # Try alternative location: direct in workset folder
+                    response = s3.list_objects_v2(
+                        Bucket=bucket,
+                        Prefix=prefix + "/",
+                        MaxKeys=100
+                    )
+                    files = [f for f in response.get("Contents", [])
+                             if any(f["Key"].endswith(ext) for ext in
+                                   [".vcf", ".vcf.gz", ".bam", ".cram", ".html", ".pdf", ".tsv", ".csv"])]
+
+                if not files:
+                    raise HTTPException(
+                        status_code=404,
+                        detail="No result files found for this workset"
+                    )
+
+                # If single file, redirect to presigned URL
+                if len(files) == 1:
+                    url = s3.generate_presigned_url(
+                        "get_object",
+                        Params={"Bucket": bucket, "Key": files[0]["Key"]},
+                        ExpiresIn=3600,
+                    )
+                    return RedirectResponse(url=url)
+
+                # Multiple files - return a page with download links
+                file_urls = []
+                for f in files[:20]:  # Limit to 20 files
+                    url = s3.generate_presigned_url(
+                        "get_object",
+                        Params={"Bucket": bucket, "Key": f["Key"]},
+                        ExpiresIn=3600,
+                    )
+                    file_urls.append({
+                        "name": f["Key"].split("/")[-1],
+                        "url": url,
+                        "size": f.get("Size", 0)
+                    })
+
+                return templates.TemplateResponse(
+                    request,
+                    "worksets/download.html",
+                    get_template_context(
+                        request,
+                        workset=workset,
+                        files=file_urls,
+                        active_page="worksets"
+                    ),
+                )
+
+            except HTTPException:
+                raise
+            except Exception as e:
+                LOGGER.error("Failed to generate download URLs for workset %s: %s", workset_id, e)
+                raise HTTPException(
+                    status_code=500,
+                    detail=f"Failed to generate download URLs: {str(e)}"
+                )
 
         @app.get("/portal/yaml-generator", response_class=HTMLResponse, tags=["portal"])
         async def portal_yaml_generator(request: Request):
-            """YAML generator page."""
+            """YAML generator page (legacy - redirects to manifest generator)."""
+            from starlette.responses import RedirectResponse
+            return RedirectResponse(url="/portal/manifest-generator", status_code=302)
+
+        @app.get("/portal/manifest-generator", response_class=HTMLResponse, tags=["portal"])
+        async def portal_manifest_generator(request: Request):
+            """Analysis Manifest Generator page for creating stage_samples.tsv."""
             auth_redirect = require_portal_auth(request)
             if auth_redirect:
                 return auth_redirect
@@ -1763,8 +2430,8 @@ def create_app(
 
             return templates.TemplateResponse(
                 request,
-                "yaml_generator.html",
-                get_template_context(request, customer=customer, active_page="yaml"),
+                "manifest_generator.html",
+                get_template_context(request, customer=customer, active_page="manifest"),
             )
 
         @app.get("/portal/files", response_class=HTMLResponse, tags=["portal"])
@@ -1913,6 +2580,28 @@ def create_app(
             # Clear session data
             request.session.clear()
             return RedirectResponse(url="/portal/login?success=You+have+been+logged+out", status_code=302)
+
+    # ========== File Management API Integration ==========
+
+    if file_registry and FILE_MANAGEMENT_AVAILABLE:
+        LOGGER.info("Integrating file management API endpoints")
+        try:
+            # Pass auth dependency if authentication is enabled
+            auth_dep = get_current_user if enable_auth else None
+            file_router = create_file_api_router(file_registry, auth_dependency=auth_dep)
+            app.include_router(file_router)
+            auth_status = "with authentication" if enable_auth else "without authentication"
+            LOGGER.info(f"File management API endpoints registered at /api/files/* ({auth_status})")
+        except Exception as e:
+            LOGGER.error("Failed to integrate file management API: %s", e)
+            LOGGER.warning("File management endpoints will not be available")
+    elif file_registry and not FILE_MANAGEMENT_AVAILABLE:
+        LOGGER.warning(
+            "FileRegistry provided but file management modules not available. "
+            "File management endpoints will not be registered."
+        )
+    else:
+        LOGGER.info("File management not configured - file API endpoints not registered")
 
     return app
 
