@@ -222,6 +222,46 @@ class WorkYamlGenerateRequest(BaseModel):
     estimated_coverage: float = 30.0
 
 
+# ========== Portal File Registration Models ==========
+
+
+class PortalFileAutoRegisterRequest(BaseModel):
+    """Request model for auto-registering discovered files from the portal.
+
+    Notes:
+    - `customer_id` is intentionally omitted; the server derives it from the
+      authenticated portal session to prevent cross-customer registration.
+    - Either `bucket_id` (preferred) or `bucket_name` must be provided.
+    """
+
+    bucket_id: Optional[str] = Field(None, description="Linked bucket ID")
+    bucket_name: Optional[str] = Field(None, description="S3 bucket name (fallback if bucket_id not provided)")
+
+    prefix: str = Field("", description="Prefix to scan")
+    file_formats: Optional[List[str]] = Field(None, description="Filter by formats (e.g. fastq,bam,vcf)")
+    selected_keys: Optional[List[str]] = Field(
+        None,
+        description="Optional list of S3 object keys to register (subset of discovered files)",
+    )
+    max_files: int = Field(1000, ge=1, le=10000, description="Maximum files to scan in the bucket")
+
+    biosample_id: str = Field(..., min_length=1, description="Biosample ID to apply to all registered files")
+    subject_id: str = Field(..., min_length=1, description="Subject ID to apply to all registered files")
+    sequencing_platform: str = Field(
+        "NOVASEQX",
+        description="Sequencing platform (prefer SequencingPlatform enum values like NOVASEQX, NOVASEQ6000)",
+    )
+
+
+class PortalFileAutoRegisterResponse(BaseModel):
+    """Response model for portal auto-registration."""
+
+    registered_count: int
+    skipped_count: int
+    errors: List[str]
+    missing_selected_keys: Optional[List[str]] = None
+
+
 def create_app(
     state_db: WorksetStateDB,
     scheduler: Optional[WorksetScheduler] = None,
@@ -264,8 +304,11 @@ def create_app(
     region = os.getenv("AWS_DEFAULT_REGION", "us-west-2")
     profile = os.getenv("AWS_PROFILE", None)
 
+
     # Initialize LinkedBucketManager early so portal routes can use it
     linked_bucket_manager = None
+    # BucketFileDiscovery is optional; keep a stable binding for portal routes
+    bucket_file_discovery = None
     if FILE_MANAGEMENT_AVAILABLE and LinkedBucketManager:
         try:
             linked_bucket_manager = LinkedBucketManager(
@@ -2635,6 +2678,7 @@ def create_app(
                 ),
             )
 
+
         @app.get("/portal/files/register", response_class=HTMLResponse, tags=["portal"])
         async def portal_files_register(request: Request):
             """File registration page."""
@@ -2642,13 +2686,8 @@ def create_app(
             if auth_redirect:
                 return auth_redirect
 
-            customer = None
+            customer, _customer_config = get_customer_for_session(request)
             buckets = []
-
-            if customer_manager:
-                customers = customer_manager.list_customers()
-                if customers:
-                    customer = _convert_customer_for_template(customers[0])
 
             if FILE_MANAGEMENT_AVAILABLE and linked_bucket_manager:
                 try:
@@ -2664,7 +2703,9 @@ def create_app(
                                 "is_validated": b.is_validated,
                                 "can_read": b.can_read,
                                 "can_write": b.can_write,
+                                "can_list": b.can_list,
                                 "read_only": b.read_only,
+                                "prefix_restriction": b.prefix_restriction,
                             }
                             for b in linked_buckets
                         ]
@@ -2680,6 +2721,108 @@ def create_app(
                     buckets=buckets,
                     active_page="files",
                 ),
+            )
+
+        @app.post(
+            "/portal/files/register",
+            response_model=PortalFileAutoRegisterResponse,
+            tags=["portal"],
+        )
+        async def portal_files_register_submit(request: Request, payload: PortalFileAutoRegisterRequest):
+            """Register selected discovered files from a linked bucket.
+
+            Used by the portal UI (auto-discover flow). `customer_id` is derived from
+            the authenticated session.
+            """
+
+            # For JSON endpoints, prefer explicit 401 over a redirect
+            user_email = request.session.get("user_email")
+            if not user_email:
+                raise HTTPException(status_code=401, detail="Not authenticated")
+
+            if not (FILE_MANAGEMENT_AVAILABLE and file_registry and BucketFileDiscovery):
+                raise HTTPException(status_code=501, detail="File management is not configured")
+            if not linked_bucket_manager:
+                raise HTTPException(status_code=501, detail="LinkedBucketManager is not configured")
+            if not customer_manager:
+                raise HTTPException(status_code=501, detail="Customer manager is not configured")
+
+            customer_config = customer_manager.get_customer_by_email(user_email)
+            if not customer_config:
+                raise HTTPException(status_code=403, detail="Customer not found for current session")
+            customer_id = customer_config.customer_id
+
+            # Resolve bucket and enforce that it belongs to the session customer
+            bucket = None
+            if payload.bucket_id:
+                bucket = linked_bucket_manager.get_bucket(payload.bucket_id)
+                if not bucket:
+                    raise HTTPException(status_code=404, detail="Linked bucket not found")
+                if bucket.customer_id != customer_id:
+                    raise HTTPException(status_code=403, detail="Bucket does not belong to current customer")
+            elif payload.bucket_name:
+                # Fallback: ensure the bucket_name is among customer's linked buckets
+                linked_buckets = linked_bucket_manager.list_customer_buckets(customer_id)
+                for b in linked_buckets:
+                    if b.bucket_name == payload.bucket_name:
+                        bucket = b
+                        break
+                if not bucket:
+                    raise HTTPException(status_code=404, detail="Bucket name is not linked to current customer")
+            else:
+                raise HTTPException(status_code=422, detail="Either bucket_id or bucket_name is required")
+
+            bucket_name = bucket.bucket_name
+            effective_prefix = payload.prefix or ""
+            if bucket.prefix_restriction:
+                if not effective_prefix:
+                    effective_prefix = bucket.prefix_restriction
+                elif not effective_prefix.startswith(bucket.prefix_restriction):
+                    raise HTTPException(
+                        status_code=400,
+                        detail="Prefix is outside of this bucket's allowed prefix restriction",
+                    )
+
+            # Discover files and optionally filter to selected keys
+            bfd = BucketFileDiscovery(region=region, profile=profile)
+            discovered = bfd.discover_files(
+                bucket_name=bucket_name,
+                prefix=effective_prefix,
+                file_formats=payload.file_formats,
+                max_files=payload.max_files,
+            )
+
+            missing_selected = None
+            if payload.selected_keys is not None:
+                selected_set = set(payload.selected_keys)
+                discovered_key_set = {df.key for df in discovered}
+                missing_selected = sorted(selected_set - discovered_key_set)
+                discovered = [df for df in discovered if df.key in selected_set]
+
+            if not discovered:
+                return PortalFileAutoRegisterResponse(
+                    registered_count=0,
+                    skipped_count=0,
+                    errors=["No matching files found to register"],
+                    missing_selected_keys=missing_selected,
+                )
+
+            # Mark existing registrations (idempotent)
+            discovered = bfd.check_registration_status(discovered, file_registry, customer_id)
+            registered_count, skipped_count, errors = bfd.auto_register_files(
+                discovered,
+                file_registry,
+                customer_id,
+                biosample_id=payload.biosample_id,
+                subject_id=payload.subject_id,
+                sequencing_platform=payload.sequencing_platform,
+            )
+
+            return PortalFileAutoRegisterResponse(
+                registered_count=registered_count,
+                skipped_count=skipped_count,
+                errors=errors,
+                missing_selected_keys=missing_selected,
             )
 
         @app.get("/portal/files/upload", response_class=HTMLResponse, tags=["portal"])
