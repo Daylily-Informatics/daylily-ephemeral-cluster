@@ -14,6 +14,7 @@ import logging
 import re
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
+from pathlib import PurePosixPath
 from typing import Any, Dict, List, Optional, Tuple
 
 import boto3
@@ -42,6 +43,11 @@ class FileMetadata:
     md5_checksum: Optional[str] = None
     file_format: str = "fastq"  # fastq, bam, vcf, etc.
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+
+    @property
+    def filename(self) -> str:
+        """Extract filename from S3 URI."""
+        return PurePosixPath(self.s3_uri).name
 
 
 @dataclass
@@ -1081,4 +1087,3 @@ class BucketFileDiscovery:
             registered, skipped, len(errors)
         )
         return registered, skipped, errors
-
