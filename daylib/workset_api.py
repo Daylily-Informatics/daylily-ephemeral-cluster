@@ -2593,7 +2593,7 @@ def create_app(
                                 "file_id": f.file_id,
                                 "customer_id": f.customer_id,
                                 "s3_uri": f.file_metadata.s3_uri,
-                                "filename": f.file_metadata.filename,
+                                "filename": f.file_metadata.s3_uri.split("/")[-1],  # Extract filename from S3 URI
                                 "file_format": f.file_metadata.file_format,
                                 "file_size_bytes": f.file_metadata.file_size_bytes,
                                 "subject_id": f.biosample_metadata.subject_id,
