@@ -369,8 +369,11 @@ def create_app(
     region = os.getenv("AWS_DEFAULT_REGION", "us-west-2")
     profile = os.getenv("AWS_PROFILE", None)
 
+
     # Initialize LinkedBucketManager early so portal routes can use it
     linked_bucket_manager = None
+    # BucketFileDiscovery is optional; keep a stable binding for portal routes
+    bucket_file_discovery = None
     if FILE_MANAGEMENT_AVAILABLE and LinkedBucketManager:
         try:
             linked_bucket_manager = LinkedBucketManager(
@@ -2740,6 +2743,7 @@ def create_app(
                 ),
             )
 
+
         @app.get("/portal/files/register", response_class=HTMLResponse, tags=["portal"])
         async def portal_files_register(request: Request):
             """File registration page."""
@@ -2747,13 +2751,8 @@ def create_app(
             if auth_redirect:
                 return auth_redirect
 
-            customer = None
+            customer, _customer_config = get_customer_for_session(request)
             buckets = []
-
-            if customer_manager:
-                customers = customer_manager.list_customers()
-                if customers:
-                    customer = _convert_customer_for_template(customers[0])
 
             if FILE_MANAGEMENT_AVAILABLE and linked_bucket_manager:
                 try:
@@ -2769,7 +2768,9 @@ def create_app(
                                 "is_validated": b.is_validated,
                                 "can_read": b.can_read,
                                 "can_write": b.can_write,
+                                "can_list": b.can_list,
                                 "read_only": b.read_only,
+                                "prefix_restriction": b.prefix_restriction,
                             }
                             for b in linked_buckets
                         ]
