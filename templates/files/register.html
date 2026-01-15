@@ -37,17 +37,32 @@
             <!-- File Selection -->
             <div class="card mb-lg">
                 <h3 class="card-title"><i class="fas fa-file"></i> File Selection</h3>
-                
-                <div class="grid grid-2 gap-lg">
+
+                <!-- File Source Toggle -->
+                <div class="form-group mb-lg">
+                    <label class="form-label">File Source</label>
+                    <div class="btn-group">
+                        <button type="button" class="btn btn-outline active" id="source-s3-btn" onclick="toggleFileSource('s3')">
+                            <i class="fas fa-cloud"></i> S3 URI
+                        </button>
+                        <button type="button" class="btn btn-outline" id="source-upload-btn" onclick="toggleFileSource('upload')">
+                            <i class="fas fa-upload"></i> Upload File
+                        </button>
+                    </div>
+                </div>
+
+                <!-- S3 URI Input -->
+                <div id="file-source-s3" class="grid grid-2 gap-lg">
                     <div class="form-group">
                         <label class="form-label required">S3 URI</label>
                         <div class="input-group">
-                            <input type="text" class="form-control" id="single-s3-uri" 
-                                   placeholder="s3://bucket-name/path/to/file.fastq.gz" required>
+                            <input type="text" class="form-control" id="single-s3-uri"
+                                   placeholder="s3://bucket-name/path/to/file.fastq.gz">
                             <button type="button" class="btn btn-outline" onclick="browseS3()">
                                 <i class="fas fa-folder-open"></i> Browse
                             </button>
                         </div>
+                        <div id="single-s3-uri-status" class="form-hint mt-sm"></div>
                     </div>
                     <div class="form-group">
                         <label class="form-label">File Format</label>
@@ -58,6 +73,49 @@
                             <option value="cram">CRAM</option>
                             <option value="vcf">VCF</option>
                         </select>
+                    </div>
+                </div>
+
+                <!-- Local File Upload -->
+                <div id="file-source-upload" class="grid grid-2 gap-lg" style="display: none;">
+                    <div class="form-group">
+                        <label class="form-label required">Select File</label>
+                        <div class="file-upload-zone" id="file-drop-zone">
+                            <input type="file" id="single-file-input" class="file-input"
+                                   accept=".fastq,.fastq.gz,.fq,.fq.gz,.bam,.cram,.vcf,.vcf.gz"
+                                   onchange="handleFileSelect(event)">
+                            <div class="file-upload-content">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-muted mb-md"></i>
+                                <p class="mb-sm">Drag and drop your file here, or</p>
+                                <button type="button" class="btn btn-outline" onclick="document.getElementById('single-file-input').click()">
+                                    <i class="fas fa-folder-open"></i> Browse Files
+                                </button>
+                            </div>
+                            <div class="file-selected-info" id="file-selected-info" style="display: none;">
+                                <i class="fas fa-file fa-2x text-primary"></i>
+                                <div class="file-info-details">
+                                    <span class="file-name" id="selected-file-name"></span>
+                                    <span class="file-size text-muted" id="selected-file-size"></span>
+                                </div>
+                                <button type="button" class="btn btn-sm btn-outline" onclick="clearSelectedFile()">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                        <div id="upload-progress" class="progress-container mt-sm" style="display: none;">
+                            <div class="progress-bar">
+                                <div class="progress-fill" id="upload-progress-fill" style="width: 0%"></div>
+                            </div>
+                            <span class="progress-text" id="upload-progress-text">0%</span>
+                        </div>
+                        <div id="upload-status" class="form-hint mt-sm"></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label required">Target Bucket</label>
+                        <select class="form-control form-select" id="upload-target-bucket" onchange="updateUploadPath()">
+                            <option value="">Select a linked bucket...</option>
+                        </select>
+                        <div class="form-hint mt-sm">File will be uploaded to: <code id="upload-target-path">-</code></div>
                     </div>
                 </div>
                 
@@ -285,7 +343,7 @@
                 </div>
                 <div class="d-flex justify-end gap-md mt-lg">
                     <button class="btn btn-outline" onclick="cancelBulkImport()">Cancel</button>
-                    <button class="btn btn-primary" onclick="executeBulkImport()">
+                    <button id="bulk-import-btn" class="btn btn-primary" onclick="executeBulkImport()">
                         <i class="fas fa-upload"></i> Import Files
                     </button>
                 </div>

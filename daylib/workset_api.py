@@ -141,6 +141,69 @@ def _convert_customer_for_template(customer_config):
     return TemplateCustomer(customer_config)
 
 
+def _convert_file_for_template(file_registration):
+    """Convert FileRegistration with nested structures to a flat dict for templates.
+
+    The FileRegistration dataclass has nested file_metadata, biosample_metadata, and
+    sequencing_metadata objects. This flattens them to a simple dict for Jinja2 templates.
+    """
+    if not file_registration:
+        return None
+
+    # Extract filename from S3 URI
+    s3_uri = file_registration.file_metadata.s3_uri
+    filename = s3_uri.split("/")[-1] if s3_uri else "Unknown"
+
+    return {
+        # Core identifiers
+        "file_id": file_registration.file_id,
+        "customer_id": file_registration.customer_id,
+
+        # File metadata (flattened)
+        "s3_uri": file_registration.file_metadata.s3_uri,
+        "filename": filename,
+        "file_format": file_registration.file_metadata.file_format,
+        "file_size_bytes": file_registration.file_metadata.file_size_bytes,
+        "md5_checksum": file_registration.file_metadata.md5_checksum,
+
+        # Biosample metadata (flattened)
+        "biosample_id": file_registration.biosample_metadata.biosample_id,
+        "subject_id": file_registration.biosample_metadata.subject_id,
+        "sample_type": file_registration.biosample_metadata.sample_type,
+        "tissue_type": file_registration.biosample_metadata.tissue_type,
+        "collection_date": file_registration.biosample_metadata.collection_date,
+        "preservation_method": file_registration.biosample_metadata.preservation_method,
+        "tumor_fraction": file_registration.biosample_metadata.tumor_fraction,
+
+        # Sequencing metadata (flattened)
+        "platform": file_registration.sequencing_metadata.platform,
+        "vendor": file_registration.sequencing_metadata.vendor,
+        "run_id": file_registration.sequencing_metadata.run_id,
+        "lane": file_registration.sequencing_metadata.lane,
+        "barcode_id": file_registration.sequencing_metadata.barcode_id,
+        "flowcell_id": file_registration.sequencing_metadata.flowcell_id,
+        "run_date": file_registration.sequencing_metadata.run_date,
+
+        # Pairing and read info
+        "paired_with": file_registration.paired_with,
+        "paired_file_id": file_registration.paired_with,  # Alias for template
+        "read_number": file_registration.read_number,
+
+        # QC and analysis
+        "quality_score": file_registration.quality_score,
+        "percent_q30": file_registration.percent_q30,
+        "concordance_vcf_path": file_registration.concordance_vcf_path,
+        "snv_vcf_path": file_registration.concordance_vcf_path,  # Alias for template
+        "is_positive_control": file_registration.is_positive_control,
+        "is_negative_control": file_registration.is_negative_control,
+
+        # Tags and timestamps
+        "tags": file_registration.tags or [],
+        "registered_at": file_registration.registered_at,
+        "updated_at": file_registration.updated_at,
+    }
+
+
 # Pydantic models for API
 class WorksetCreate(BaseModel):
     """Request model for creating a workset."""
@@ -2944,7 +3007,7 @@ def create_app(
                 return auth_redirect
 
             customer = None
-            file = None
+            file_data = None
             workset_history = []
 
             if customer_manager:
@@ -2954,14 +3017,16 @@ def create_app(
 
             if FILE_MANAGEMENT_AVAILABLE and file_registry:
                 try:
-                    file = file_registry.get_file(file_id)
-                    if file:
+                    file_registration = file_registry.get_file(file_id)
+                    if file_registration:
+                        # Convert to flat dict for template
+                        file_data = _convert_file_for_template(file_registration)
                         # Get workset history
                         workset_history = file_registry.get_file_workset_history(file_id)
                 except Exception as e:
                     LOGGER.warning("Failed to load file: %s", str(e))
 
-            if not file:
+            if not file_data:
                 raise HTTPException(status_code=404, detail="File not found")
 
             return templates.TemplateResponse(
@@ -2970,7 +3035,7 @@ def create_app(
                 get_template_context(
                     request,
                     customer=customer,
-                    file=file,
+                    file=file_data,
                     workset_history=workset_history,
                     active_page="files",
                 ),

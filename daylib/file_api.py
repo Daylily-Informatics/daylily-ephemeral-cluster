@@ -185,6 +185,19 @@ class BucketValidationResponse(BaseModel):
     remediation_steps: List[str]
 
 
+class S3UriValidationResponse(BaseModel):
+    """Response model for S3 URI validation."""
+    s3_uri: str
+    exists: bool
+    accessible: bool
+    file_size_bytes: Optional[int] = None
+    content_type: Optional[str] = None
+    last_modified: Optional[str] = None
+    etag: Optional[str] = None
+    detected_format: Optional[str] = None
+    error: Optional[str] = None
+
+
 class DiscoveredFileResponse(BaseModel):
     """Response model for discovered file."""
     s3_uri: str
@@ -820,6 +833,108 @@ def create_file_api_router(
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to validate bucket: {str(e)}",
+            )
+
+    @router.get("/validate-s3-uri", response_model=S3UriValidationResponse)
+    async def validate_s3_uri(
+        s3_uri: str = Query(..., description="Full S3 URI to validate (s3://bucket/key)"),
+        current_user: Optional[Dict] = Depends(auth_dependency),
+    ):
+        """Validate an S3 URI by checking if the file exists and is accessible.
+
+        Returns file metadata if the file exists and is accessible.
+        """
+        if not s3_uri.startswith("s3://"):
+            return S3UriValidationResponse(
+                s3_uri=s3_uri,
+                exists=False,
+                accessible=False,
+                error="Invalid S3 URI format. Must start with s3://",
+            )
+
+        try:
+            # Parse S3 URI
+            uri_parts = s3_uri[5:].split("/", 1)
+            if len(uri_parts) < 2:
+                return S3UriValidationResponse(
+                    s3_uri=s3_uri,
+                    exists=False,
+                    accessible=False,
+                    error="Invalid S3 URI format. Must include bucket and key.",
+                )
+
+            bucket_name = uri_parts[0]
+            object_key = uri_parts[1]
+
+            # Use S3 head_object to check file existence
+            import boto3
+            s3_client = boto3.client("s3")
+
+            try:
+                response = s3_client.head_object(Bucket=bucket_name, Key=object_key)
+
+                # Detect format from key
+                detected_format = "unknown"
+                key_lower = object_key.lower()
+                if ".fastq" in key_lower or ".fq" in key_lower:
+                    detected_format = "fastq"
+                elif key_lower.endswith(".bam"):
+                    detected_format = "bam"
+                elif key_lower.endswith(".cram"):
+                    detected_format = "cram"
+                elif ".vcf" in key_lower:
+                    detected_format = "vcf"
+
+                last_modified = response.get("LastModified")
+                last_modified_str = last_modified.isoformat() if last_modified else None
+
+                return S3UriValidationResponse(
+                    s3_uri=s3_uri,
+                    exists=True,
+                    accessible=True,
+                    file_size_bytes=response.get("ContentLength"),
+                    content_type=response.get("ContentType"),
+                    last_modified=last_modified_str,
+                    etag=response.get("ETag", "").strip('"'),
+                    detected_format=detected_format,
+                )
+            except s3_client.exceptions.NoSuchKey:
+                return S3UriValidationResponse(
+                    s3_uri=s3_uri,
+                    exists=False,
+                    accessible=True,  # Bucket is accessible, file doesn't exist
+                    error="File not found in S3",
+                )
+            except s3_client.exceptions.ClientError as e:
+                error_code = e.response.get("Error", {}).get("Code", "Unknown")
+                if error_code == "403":
+                    return S3UriValidationResponse(
+                        s3_uri=s3_uri,
+                        exists=False,
+                        accessible=False,
+                        error="Access denied. Check bucket permissions.",
+                    )
+                elif error_code == "404":
+                    return S3UriValidationResponse(
+                        s3_uri=s3_uri,
+                        exists=False,
+                        accessible=True,
+                        error="File not found in S3",
+                    )
+                else:
+                    return S3UriValidationResponse(
+                        s3_uri=s3_uri,
+                        exists=False,
+                        accessible=False,
+                        error=f"S3 error: {error_code}",
+                    )
+        except Exception as e:
+            LOGGER.error("Failed to validate S3 URI: %s", str(e))
+            return S3UriValidationResponse(
+                s3_uri=s3_uri,
+                exists=False,
+                accessible=False,
+                error=f"Validation failed: {str(e)}",
             )
 
     @router.post("/buckets/{bucket_id}/unlink")

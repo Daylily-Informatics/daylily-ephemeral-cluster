@@ -958,6 +958,96 @@ p { margin-bottom: var(--spacing-md); }
     display: none;
 }
 
+/* File Upload Zone (enhanced) */
+.file-upload-zone {
+    border: 2px dashed var(--color-gray-300);
+    border-radius: var(--radius-lg);
+    padding: var(--spacing-xl);
+    text-align: center;
+    transition: all var(--transition-fast);
+    background: var(--color-gray-50);
+    position: relative;
+}
+
+.file-upload-zone:hover {
+    border-color: var(--color-accent);
+    background: rgba(15, 52, 96, 0.02);
+}
+
+.file-upload-zone.drag-over {
+    border-color: var(--color-accent);
+    background: rgba(15, 52, 96, 0.05);
+}
+
+.file-upload-zone .file-input {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.file-upload-content {
+    pointer-events: none;
+}
+
+.file-selected-info {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    background: var(--color-white);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-gray-200);
+}
+
+.file-selected-info .file-info-details {
+    flex: 1;
+    text-align: left;
+}
+
+.file-selected-info .file-name {
+    display: block;
+    font-weight: 500;
+    color: var(--color-gray-800);
+}
+
+.file-selected-info .file-size {
+    font-size: 0.875rem;
+}
+
+/* Progress Container */
+.progress-container {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+}
+
+.progress-container .progress-bar {
+    flex: 1;
+    height: 8px;
+    background: var(--color-gray-200);
+    border-radius: var(--radius-full);
+    overflow: hidden;
+}
+
+.progress-container .progress-fill {
+    height: 100%;
+    background: var(--color-accent);
+    border-radius: var(--radius-full);
+    transition: width 0.3s ease;
+}
+
+.progress-container .progress-text {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--color-gray-600);
+    min-width: 40px;
+    text-align: right;
+}
+
 /* Tabs */
 .tabs {
     border-bottom: 2px solid var(--color-gray-200);
@@ -990,7 +1080,7 @@ p { margin-bottom: var(--spacing-md); }
 }
 
 .tab-content {
-    display: none;
+    display: block;
 }
 
 .tab-content.active {
