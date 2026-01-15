@@ -94,7 +94,7 @@ def main():
         try:
             import boto3
             dynamodb = boto3.resource('dynamodb', region_name=REGION)
-            file_registry = FileRegistry(dynamodb)
+            file_registry = FileRegistry()
             LOGGER.info("File registry initialized - file management endpoints will be available")
         except Exception as e:
             LOGGER.warning("Failed to initialize file registry: %s", e)
