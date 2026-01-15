@@ -1,0 +1,111 @@
+#!/usr/bin/env python3
+"""Grant or revoke admin privileges for a Daylily customer by email.
+
+Usage:
+    daylily-grant-admin <email>              # Grant admin to user
+    daylily-grant-admin --revoke <email>     # Revoke admin from user
+    daylily-grant-admin --list               # List all admins
+"""
+
+import argparse
+import sys
+import os
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from daylib.workset_customer import CustomerManager
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Grant or revoke admin privileges for a Daylily customer"
+    )
+    parser.add_argument(
+        "email",
+        nargs="?",
+        help="Email address of the customer to grant/revoke admin privileges",
+    )
+    parser.add_argument(
+        "--revoke",
+        action="store_true",
+        help="Revoke admin privileges instead of granting",
+    )
+    parser.add_argument(
+        "--list",
+        action="store_true",
+        help="List all admin users",
+    )
+    parser.add_argument(
+        "--region",
+        default=os.environ.get("AWS_REGION", "us-west-2"),
+        help="AWS region (default: us-west-2 or AWS_REGION env var)",
+    )
+    parser.add_argument(
+        "--profile",
+        default=os.environ.get("AWS_PROFILE"),
+        help="AWS profile name (default: AWS_PROFILE env var)",
+    )
+
+    args = parser.parse_args()
+
+    if not args.list and not args.email:
+        parser.error("Email is required unless using --list")
+
+    try:
+        manager = CustomerManager(region=args.region, profile=args.profile)
+    except Exception as e:
+        print(f"Error: Failed to initialize CustomerManager: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    if args.list:
+        # List all admin users
+        customers = manager.list_customers()
+        admins = [c for c in customers if c.is_admin]
+        
+        if not admins:
+            print("No admin users found.")
+        else:
+            print(f"Admin users ({len(admins)}):")
+            print("-" * 60)
+            for admin in admins:
+                print(f"  {admin.email:<30} ({admin.customer_name})")
+        return
+
+    # Grant or revoke admin
+    action = "Revoking" if args.revoke else "Granting"
+    is_admin = not args.revoke
+
+    print(f"{action} admin privileges for: {args.email}")
+
+    # Check if customer exists
+    customer = manager.get_customer_by_email(args.email)
+    if not customer:
+        print(f"Error: No customer found with email '{args.email}'", file=sys.stderr)
+        print("\nRegistered customers:", file=sys.stderr)
+        for c in manager.list_customers():
+            print(f"  - {c.email} ({c.customer_name})", file=sys.stderr)
+        sys.exit(1)
+
+    # Check current status
+    if customer.is_admin == is_admin:
+        status = "already an admin" if is_admin else "not an admin"
+        print(f"Customer '{args.email}' is {status}. No changes made.")
+        return
+
+    # Update admin status
+    success = manager.set_admin_status(args.email, is_admin)
+    
+    if success:
+        action_past = "revoked from" if args.revoke else "granted to"
+        print(f"✓ Admin privileges {action_past} {args.email}")
+        print(f"  Customer ID: {customer.customer_id}")
+        print(f"  Customer Name: {customer.customer_name}")
+    else:
+        print(f"Error: Failed to update admin status", file=sys.stderr)
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
+

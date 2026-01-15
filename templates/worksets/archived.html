@@ -1,0 +1,111 @@
+{% extends "base.html" %}
+{% set active_page = 'worksets' %}
+
+{% block title %}Archived Worksets - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-between align-center flex-wrap gap-lg">
+        <div>
+            <h1 class="page-title"><i class="fas fa-archive"></i> Archived Worksets</h1>
+            <p class="page-subtitle">View and restore archived worksets</p>
+        </div>
+        <div class="page-actions" style="margin-top: 0;">
+            <a href="/portal/worksets" class="btn btn-outline">
+                <i class="fas fa-arrow-left"></i> Back to Worksets
+            </a>
+            <button class="btn btn-outline" onclick="window.location.reload()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+    
+    <!-- Archived Worksets Table -->
+    <div class="table-container">
+        <table class="table" id="archived-table">
+            <thead>
+                <tr>
+                    <th>Workset ID</th>
+                    <th>Customer</th>
+                    <th>Original Status</th>
+                    <th>Pipeline</th>
+                    <th>Samples</th>
+                    <th>Archived Date</th>
+                    <th>Archived By</th>
+                    <th>Reason</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% if worksets %}
+                {% for ws in worksets %}
+                <tr data-workset-id="{{ ws.workset_id }}">
+                    <td>
+                        <a href="/portal/worksets/{{ ws.workset_id }}" class="text-accent">
+                            {{ ws.workset_id[:16] }}...
+                        </a>
+                    </td>
+                    <td>
+                        <span class="text-muted" title="{{ ws.customer_id | default('Unknown') }}">
+                            {{ ws.customer_id | default('Unknown') | truncate(12, True, '...') }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="badge badge-{{ ws.original_state | default('unknown') | lower | replace('_', '-') }}">
+                            {{ ws.original_state | default('Unknown') }}
+                        </span>
+                    </td>
+                    <td>{{ ws.pipeline_type | default('germline') }}</td>
+                    <td>{{ ws.sample_count | default(0) }}</td>
+                    <td>{{ ws.archived_at | default('N/A') }}</td>
+                    <td>{{ ws.archived_by | default('System') }}</td>
+                    <td>{{ ws.archive_reason | default('—') }}</td>
+                    <td>
+                        <div class="d-flex gap-sm">
+                            <button class="btn btn-primary btn-sm" onclick="restoreWorkset('{{ ws.workset_id }}')" title="Restore">
+                                <i class="fas fa-undo"></i> Restore
+                            </button>
+                            <button class="btn btn-outline btn-sm text-error" onclick="deleteWorkset('{{ ws.workset_id }}')" title="Delete Permanently">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr id="empty-row">
+                    <td colspan="9">
+                        <div class="empty-state p-xl">
+                            <i class="fas fa-archive fa-3x text-muted mb-lg"></i>
+                            <h4 class="empty-state-title">No archived worksets</h4>
+                            <p class="empty-state-text">Archived worksets will appear here</p>
+                            <a href="/portal/worksets" class="btn btn-outline">
+                                <i class="fas fa-arrow-left"></i> Back to Worksets
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+    
+    <!-- Info Card -->
+    <div class="card mt-lg">
+        <div class="alert alert-info mb-0">
+            <i class="fas fa-info-circle"></i>
+            <div>
+                <strong>About Archived Worksets</strong>
+                <p class="mb-0">Archived worksets are moved to cold storage and won't appear in your active worksets list. 
+                You can restore them at any time to make them active again, or permanently delete them to free up storage.</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/worksets.js?v={{ cache_bust | default('1') }}"></script>
+{% endblock %}
+

@@ -1,0 +1,265 @@
+#!/usr/bin/env python3
+"""Purge workset records from DynamoDB for a specified customer.
+
+Usage:
+    daylily-purge-customer-data <customer_id>    # Purge worksets for a specific customer
+    daylily-purge-customer-data --unknown        # Purge worksets with null/empty/Unknown customer_id
+    daylily-purge-customer-data --all            # Purge ALL workset records (dangerous!)
+    daylily-purge-customer-data --dry-run <id>   # Preview what would be deleted
+
+Examples:
+    daylily-purge-customer-data cust_12345
+    daylily-purge-customer-data --unknown --dry-run
+    daylily-purge-customer-data --all --region us-east-1
+"""
+
+import argparse
+import sys
+import os
+import logging
+
+# Add parent directory to path for imports
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from daylib.workset_state_db import WorksetStateDB, WorksetState
+from botocore.exceptions import ClientError
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s"
+)
+LOGGER = logging.getLogger(__name__)
+
+
+def get_all_worksets(state_db: WorksetStateDB) -> list:
+    """Scan and retrieve all worksets from the database."""
+    all_worksets = []
+    try:
+        # DynamoDB scan with pagination
+        response = state_db.table.scan()
+        all_worksets.extend(response.get("Items", []))
+        
+        while "LastEvaluatedKey" in response:
+            response = state_db.table.scan(
+                ExclusiveStartKey=response["LastEvaluatedKey"]
+            )
+            all_worksets.extend(response.get("Items", []))
+    except ClientError as e:
+        LOGGER.error("Failed to scan worksets: %s", e)
+        raise
+    
+    return all_worksets
+
+
+def filter_worksets_by_customer(worksets: list, customer_id: str, include_unknown: bool = False) -> list:
+    """Filter worksets by customer_id.
+    
+    Args:
+        worksets: List of workset records
+        customer_id: Customer ID to filter for (ignored if include_unknown is True)
+        include_unknown: If True, filter for null/empty/Unknown customer_ids
+    
+    Returns:
+        Filtered list of worksets
+    """
+    filtered = []
+    for ws in worksets:
+        ws_customer = ws.get("customer_id")
+        
+        if include_unknown:
+            # Match null, empty string, or 'Unknown'
+            if ws_customer is None or ws_customer == "" or ws_customer == "Unknown":
+                filtered.append(ws)
+        else:
+            if ws_customer == customer_id:
+                filtered.append(ws)
+    
+    return filtered
+
+
+def display_worksets(worksets: list, max_display: int = 20) -> None:
+    """Display workset details."""
+    print(f"\nWorksets to be deleted ({len(worksets)} total):")
+    print("-" * 80)
+    print(f"{'Workset ID':<40} {'State':<15} {'Customer ID':<20}")
+    print("-" * 80)
+    
+    for i, ws in enumerate(worksets[:max_display]):
+        workset_id = ws.get("workset_id", "N/A")[:38]
+        state = ws.get("state", "N/A")
+        customer = ws.get("customer_id") or "(empty/null)"
+        if customer == "Unknown":
+            customer = "Unknown"
+        print(f"{workset_id:<40} {state:<15} {customer:<20}")
+    
+    if len(worksets) > max_display:
+        print(f"... and {len(worksets) - max_display} more records")
+    print("-" * 80)
+
+
+def confirm_deletion(count: int, target_description: str) -> bool:
+    """Request explicit confirmation before deletion."""
+    print(f"\n⚠️  WARNING: You are about to permanently delete {count} workset record(s)")
+    print(f"   Target: {target_description}")
+    print(f"\n   This action CANNOT be undone!")
+    print(f"\n   Type 'DELETE' (all caps) to confirm: ", end="")
+    
+    try:
+        confirmation = input().strip()
+    except (EOFError, KeyboardInterrupt):
+        print("\nAborted.")
+        return False
+    
+    return confirmation == "DELETE"
+
+
+def main():
+    parser = argparse.ArgumentParser(
+        description="Purge workset records from DynamoDB for a specified customer",
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+        epilog="""
+Examples:
+  %(prog)s cust_12345              # Delete worksets for customer 'cust_12345'
+  %(prog)s --unknown               # Delete worksets with null/empty/Unknown customer_id
+  %(prog)s --all                   # Delete ALL worksets (dangerous!)
+  %(prog)s --dry-run cust_12345    # Preview without deleting
+"""
+    )
+    parser.add_argument(
+        "customer_id",
+        nargs="?",
+        help="Customer ID whose worksets should be purged",
+    )
+    parser.add_argument(
+        "--unknown",
+        action="store_true",
+        help="Purge worksets with null, empty, or 'Unknown' customer_id",
+    )
+    parser.add_argument(
+        "--all",
+        action="store_true",
+        help="Purge ALL workset records (use with extreme caution!)",
+    )
+    parser.add_argument(
+        "--dry-run",
+        action="store_true",
+        help="Preview what would be deleted without actually deleting",
+    )
+    parser.add_argument(
+        "--table",
+        default=os.environ.get("DAYLILY_WORKSET_TABLE", "daylily-worksets"),
+        help="DynamoDB table name (default: daylily-worksets or DAYLILY_WORKSET_TABLE env var)",
+    )
+    parser.add_argument(
+        "--region",
+        default=os.environ.get("AWS_REGION", "us-west-2"),
+        help="AWS region (default: us-west-2 or AWS_REGION env var)",
+    )
+    parser.add_argument(
+        "--profile",
+        default=os.environ.get("AWS_PROFILE"),
+        help="AWS profile name (default: AWS_PROFILE env var)",
+    )
+    parser.add_argument(
+        "-y", "--yes",
+        action="store_true",
+        help="Skip confirmation prompt (use with caution!)",
+    )
+
+    args = parser.parse_args()
+
+    # Validate arguments
+    if not args.customer_id and not args.unknown and not args.all:
+        parser.error("Must specify a customer_id, --unknown, or --all")
+
+    if sum([bool(args.customer_id), args.unknown, args.all]) > 1:
+        parser.error("Cannot combine customer_id, --unknown, and --all. Choose one.")
+
+    # Initialize the state database
+    try:
+        state_db = WorksetStateDB(
+            table_name=args.table,
+            region=args.region,
+            profile=args.profile,
+        )
+        LOGGER.info("Connected to DynamoDB table: %s in %s", args.table, args.region)
+    except Exception as e:
+        print(f"Error: Failed to connect to DynamoDB: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    # Scan all worksets
+    print(f"Scanning worksets from table '{args.table}'...")
+    try:
+        all_worksets = get_all_worksets(state_db)
+    except Exception as e:
+        print(f"Error: Failed to scan worksets: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    print(f"Found {len(all_worksets)} total workset(s) in the database.")
+
+    # Filter based on arguments
+    if args.all:
+        target_worksets = all_worksets
+        target_description = "ALL worksets in the database"
+    elif args.unknown:
+        target_worksets = filter_worksets_by_customer(all_worksets, "", include_unknown=True)
+        target_description = "worksets with null/empty/Unknown customer_id"
+    else:
+        target_worksets = filter_worksets_by_customer(all_worksets, args.customer_id)
+        target_description = f"worksets for customer '{args.customer_id}'"
+
+    if not target_worksets:
+        print(f"\nNo worksets found matching: {target_description}")
+        sys.exit(0)
+
+    # Display worksets to be deleted
+    display_worksets(target_worksets)
+
+    if args.dry_run:
+        print("\n🔍 DRY RUN - No records were deleted.")
+        print(f"   Would delete {len(target_worksets)} record(s).")
+        sys.exit(0)
+
+    # Confirm deletion
+    if not args.yes:
+        if not confirm_deletion(len(target_worksets), target_description):
+            print("\nAborted. No records were deleted.")
+            sys.exit(0)
+
+    # Perform deletion
+    print(f"\nDeleting {len(target_worksets)} workset record(s)...")
+    deleted_count = 0
+    failed_count = 0
+
+    for ws in target_worksets:
+        workset_id = ws.get("workset_id")
+        if not workset_id:
+            LOGGER.warning("Skipping record with no workset_id")
+            failed_count += 1
+            continue
+
+        try:
+            # Use hard delete to completely remove from DynamoDB
+            success = state_db.delete_workset(workset_id, deleted_by="purge-script", hard_delete=True)
+            if success:
+                deleted_count += 1
+                if deleted_count % 50 == 0:
+                    print(f"  Deleted {deleted_count}/{len(target_worksets)} records...")
+            else:
+                failed_count += 1
+                LOGGER.warning("Failed to delete workset: %s", workset_id)
+        except Exception as e:
+            failed_count += 1
+            LOGGER.error("Error deleting workset %s: %s", workset_id, e)
+
+    # Summary
+    print(f"\n✓ Deletion complete!")
+    print(f"  Successfully deleted: {deleted_count}")
+    if failed_count > 0:
+        print(f"  Failed: {failed_count}")
+        sys.exit(1)
+
+
+if __name__ == "__main__":
+    main()
+

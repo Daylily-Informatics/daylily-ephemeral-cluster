@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+{% set active_page = 'worksets' %}
+
+{% block title %}Download Results - {{ workset.workset_id }}{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">Download Results</h1>
+        <p class="page-subtitle">Workset: {{ workset.workset_id }}</p>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h3 class="card-title">Available Files ({{ files | length }})</h3>
+            <a href="/portal/worksets/{{ workset.workset_id }}" class="btn btn-outline btn-sm">
+                <i class="fas fa-arrow-left"></i> Back to Workset
+            </a>
+        </div>
+        
+        <div class="alert alert-info mb-md">
+            <i class="fas fa-info-circle"></i>
+            Download links are valid for 1 hour. Right-click and "Save Link As" to download.
+        </div>
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>File Name</th>
+                    <th>Size</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for file in files %}
+                <tr>
+                    <td>
+                        <i class="fas fa-file text-muted"></i>
+                        {{ file.name }}
+                    </td>
+                    <td>{{ "%.2f"|format(file.size / 1024 / 1024) }} MB</td>
+                    <td>
+                        <a href="{{ file.url }}" class="btn btn-primary btn-sm" download>
+                            <i class="fas fa-download"></i> Download
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
