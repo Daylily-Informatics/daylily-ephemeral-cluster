@@ -288,6 +288,21 @@
                     </div>
                 </div>
                 <div class="discover-file-list" id="discover-file-list"></div>
+
+                <!-- Registration metadata inputs -->
+                <div class="mt-lg" id="discover-metadata" style="display: none;">
+                    <h4>Registration Metadata</h4>
+                    <div class="form-row">
+                        <div class="form-group">
+                            <label for="discover-subject-id">Subject ID *</label>
+                            <input type="text" id="discover-subject-id" class="form-control" placeholder="e.g., HG002" required>
+                        </div>
+                        <div class="form-group">
+                            <label for="discover-biosample-id">Biosample ID *</label>
+                            <input type="text" id="discover-biosample-id" class="form-control" placeholder="e.g., SAMPLE-001" required>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <div class="modal-footer" id="discover-footer">
@@ -475,15 +490,21 @@ async function discoverFiles(bucketId) {
 
             const fileList = document.getElementById('discover-file-list');
             if (result.files && result.files.length > 0) {
+                // Store discovered files data for later use
+                window.discoveredFiles = result.files;
+
                 fileList.innerHTML = result.files.map(f => `
                     <div class="discover-file-item ${f.is_registered ? 'registered' : 'unregistered'}">
-                        <input type="checkbox" ${f.is_registered ? 'disabled' : 'checked'} value="${f.s3_uri}" data-key="${f.key}">
+                        <input type="checkbox" ${f.is_registered ? 'disabled' : 'checked'} value="${f.s3_uri}" data-key="${f.key}" data-format="${f.detected_format}" data-size="${f.file_size_bytes}" data-etag="${f.etag || ''}" data-modified="${f.last_modified || ''}" onchange="updateDiscoverSelection()">
                         <span class="file-key" title="${f.s3_uri}">${f.key}</span>
                         <span class="file-format badge badge-outline">${f.detected_format}</span>
                         <span class="file-size text-muted">${formatFileSize(f.file_size_bytes)}</span>
                         ${f.is_registered ? '<span class="badge badge-success">Registered</span>' : ''}
                     </div>
                 `).join('');
+
+                // Show metadata inputs if there are unregistered files
+                updateDiscoverSelection();
             } else {
                 fileList.innerHTML = '<p class="text-muted text-center p-lg">No genomics files found in this bucket</p>';
             }
@@ -500,6 +521,19 @@ async function discoverFiles(bucketId) {
     }
 }
 
+// Update discover selection state
+function updateDiscoverSelection() {
+    const checkboxes = document.querySelectorAll('#discover-file-list input[type="checkbox"]:not(:disabled)');
+    const checkedBoxes = document.querySelectorAll('#discover-file-list input[type="checkbox"]:checked:not(:disabled)');
+    const metadataDiv = document.getElementById('discover-metadata');
+
+    if (checkedBoxes.length > 0) {
+        metadataDiv.style.display = 'block';
+    } else {
+        metadataDiv.style.display = 'none';
+    }
+}
+
 // Auto-register selected discovered files
 async function autoRegisterDiscovered() {
     const checkboxes = document.querySelectorAll('#discover-file-list input[type="checkbox"]:checked:not(:disabled)');
@@ -507,11 +541,90 @@ async function autoRegisterDiscovered() {
         showToast('No files selected for registration', 'warning');
         return;
     }
-    // Redirect to register page with the bucket pre-selected
-    showToast(`${checkboxes.length} files ready for registration. Redirecting to register page...`, 'info');
-    setTimeout(() => {
-        window.location.href = '/portal/files/register';
-    }, 1000);
+
+    const subjectId = document.getElementById('discover-subject-id').value.trim();
+    const biosampleId = document.getElementById('discover-biosample-id').value.trim();
+
+    if (!subjectId || !biosampleId) {
+        showToast('Subject ID and Biosample ID are required', 'error');
+        return;
+    }
+
+    const registerBtn = document.querySelector('#discover-footer .btn-primary');
+    if (registerBtn) {
+        registerBtn.disabled = true;
+        registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+    }
+
+    // Prepare files data
+    const files = Array.from(checkboxes).map(cb => {
+        const s3Uri = cb.value;
+        const key = cb.dataset.key;
+        const format = cb.dataset.format;
+        const size = parseInt(cb.dataset.size) || 0;
+        const etag = cb.dataset.etag;
+        const modified = cb.dataset.modified;
+
+        // Detect read number from filename
+        let readNumber = 1;
+        if (key && (key.includes('_R2') || key.includes('_2.fastq') || key.includes('_2.fq'))) {
+            readNumber = 2;
+        }
+
+        return {
+            s3_uri: s3Uri,
+            key: key,
+            file_size_bytes: size,
+            detected_format: format,
+            last_modified: modified,
+            etag: etag,
+            read_number: readNumber
+        };
+    });
+
+    try {
+        const response = await fetch('/portal/files/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                files: files,
+                biosample_id: biosampleId,
+                subject_id: subjectId,
+                sequencing_platform: 'ILLUMINA_NOVASEQ_X',
+                customer_id: CUSTOMER_ID
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            const registeredCount = result.registered?.length || 0;
+            const skippedCount = result.skipped?.length || 0;
+            const errorCount = result.errors?.length || 0;
+
+            if (errorCount > 0) {
+                showToast(`Registered ${registeredCount}, skipped ${skippedCount}, errors ${errorCount}`, 'warning');
+            } else {
+                showToast(`Successfully registered ${registeredCount} files, skipped ${skippedCount}`, 'success');
+            }
+
+            // Close modal and refresh the page
+            closeModal('discover-modal');
+            setTimeout(() => {
+                window.location.reload();
+            }, 1000);
+        } else {
+            const error = await response.json();
+            showToast(error.detail || 'Failed to register selected files', 'error');
+        }
+    } catch (error) {
+        console.error('Register selected files error:', error);
+        showToast('Failed to register selected files', 'error');
+    } finally {
+        if (registerBtn) {
+            registerBtn.disabled = false;
+            registerBtn.innerHTML = '<i class="fas fa-plus"></i> Register Selected';
+        }
+    }
 }
 
 // Edit bucket

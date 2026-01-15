@@ -47,7 +47,16 @@ except ImportError:
 # File management imports
 try:
     from daylib.file_api import create_file_api_router
-    from daylib.file_registry import FileRegistry, BucketFileDiscovery
+    from daylib.file_registry import (
+        BiosampleMetadata,
+        BucketFileDiscovery,
+        FileMetadata,
+        FileRegistration,
+        FileRegistry,
+        SequencingMetadata,
+        detect_file_format,
+        generate_file_id,
+    )
     from daylib.s3_bucket_validator import S3BucketValidator, LinkedBucketManager
     FILE_MANAGEMENT_AVAILABLE = True
 except ImportError:
@@ -55,6 +64,12 @@ except ImportError:
     create_file_api_router = None
     FileRegistry = None
     BucketFileDiscovery = None
+    FileRegistration = None
+    FileMetadata = None
+    SequencingMetadata = None
+    BiosampleMetadata = None
+    detect_file_format = None
+    generate_file_id = None
     S3BucketValidator = None
     LinkedBucketManager = None
 
@@ -124,6 +139,69 @@ def _convert_customer_for_template(customer_config):
             self.cost_center = config.cost_center
 
     return TemplateCustomer(customer_config)
+
+
+def _convert_file_for_template(file_registration):
+    """Convert FileRegistration with nested structures to a flat dict for templates.
+
+    The FileRegistration dataclass has nested file_metadata, biosample_metadata, and
+    sequencing_metadata objects. This flattens them to a simple dict for Jinja2 templates.
+    """
+    if not file_registration:
+        return None
+
+    # Extract filename from S3 URI
+    s3_uri = file_registration.file_metadata.s3_uri
+    filename = s3_uri.split("/")[-1] if s3_uri else "Unknown"
+
+    return {
+        # Core identifiers
+        "file_id": file_registration.file_id,
+        "customer_id": file_registration.customer_id,
+
+        # File metadata (flattened)
+        "s3_uri": file_registration.file_metadata.s3_uri,
+        "filename": filename,
+        "file_format": file_registration.file_metadata.file_format,
+        "file_size_bytes": file_registration.file_metadata.file_size_bytes,
+        "md5_checksum": file_registration.file_metadata.md5_checksum,
+
+        # Biosample metadata (flattened)
+        "biosample_id": file_registration.biosample_metadata.biosample_id,
+        "subject_id": file_registration.biosample_metadata.subject_id,
+        "sample_type": file_registration.biosample_metadata.sample_type,
+        "tissue_type": file_registration.biosample_metadata.tissue_type,
+        "collection_date": file_registration.biosample_metadata.collection_date,
+        "preservation_method": file_registration.biosample_metadata.preservation_method,
+        "tumor_fraction": file_registration.biosample_metadata.tumor_fraction,
+
+        # Sequencing metadata (flattened)
+        "platform": file_registration.sequencing_metadata.platform,
+        "vendor": file_registration.sequencing_metadata.vendor,
+        "run_id": file_registration.sequencing_metadata.run_id,
+        "lane": file_registration.sequencing_metadata.lane,
+        "barcode_id": file_registration.sequencing_metadata.barcode_id,
+        "flowcell_id": file_registration.sequencing_metadata.flowcell_id,
+        "run_date": file_registration.sequencing_metadata.run_date,
+
+        # Pairing and read info
+        "paired_with": file_registration.paired_with,
+        "paired_file_id": file_registration.paired_with,  # Alias for template
+        "read_number": file_registration.read_number,
+
+        # QC and analysis
+        "quality_score": file_registration.quality_score,
+        "percent_q30": file_registration.percent_q30,
+        "concordance_vcf_path": file_registration.concordance_vcf_path,
+        "snv_vcf_path": file_registration.concordance_vcf_path,  # Alias for template
+        "is_positive_control": file_registration.is_positive_control,
+        "is_negative_control": file_registration.is_negative_control,
+
+        # Tags and timestamps
+        "tags": file_registration.tags or [],
+        "registered_at": file_registration.registered_at,
+        "updated_at": file_registration.updated_at,
+    }
 
 
 # Pydantic models for API
@@ -222,44 +300,31 @@ class WorkYamlGenerateRequest(BaseModel):
     estimated_coverage: float = 30.0
 
 
-# ========== Portal File Registration Models ==========
+class PortalDiscoveredFile(BaseModel):
+    """Request model for selected discovered files."""
+    s3_uri: str
+    key: Optional[str] = None
+    file_size_bytes: int = 0
+    detected_format: Optional[str] = None
+    last_modified: Optional[str] = None
+    etag: Optional[str] = None
+    read_number: Optional[int] = None
 
 
-class PortalFileAutoRegisterRequest(BaseModel):
-    """Request model for auto-registering discovered files from the portal.
-
-    Notes:
-    - `customer_id` is intentionally omitted; the server derives it from the
-      authenticated portal session to prevent cross-customer registration.
-    - Either `bucket_id` (preferred) or `bucket_name` must be provided.
-    """
-
-    bucket_id: Optional[str] = Field(None, description="Linked bucket ID")
-    bucket_name: Optional[str] = Field(None, description="S3 bucket name (fallback if bucket_id not provided)")
-
-    prefix: str = Field("", description="Prefix to scan")
-    file_formats: Optional[List[str]] = Field(None, description="Filter by formats (e.g. fastq,bam,vcf)")
-    selected_keys: Optional[List[str]] = Field(
-        None,
-        description="Optional list of S3 object keys to register (subset of discovered files)",
-    )
-    max_files: int = Field(1000, ge=1, le=10000, description="Maximum files to scan in the bucket")
-
-    biosample_id: str = Field(..., min_length=1, description="Biosample ID to apply to all registered files")
-    subject_id: str = Field(..., min_length=1, description="Subject ID to apply to all registered files")
-    sequencing_platform: str = Field(
-        "NOVASEQX",
-        description="Sequencing platform (prefer SequencingPlatform enum values like NOVASEQX, NOVASEQ6000)",
-    )
+class PortalRegisterDiscoveredFilesRequest(BaseModel):
+    """Request model for registering selected discovered files."""
+    files: List[PortalDiscoveredFile]
+    biosample_id: str = Field(..., description="Biosample ID for selected files")
+    subject_id: str = Field(..., description="Subject ID for selected files")
+    sequencing_platform: str = Field("ILLUMINA_NOVASEQ_X", description="Sequencing platform")
+    customer_id: Optional[str] = Field(None, description="Customer ID override")
 
 
-class PortalFileAutoRegisterResponse(BaseModel):
-    """Response model for portal auto-registration."""
-
-    registered_count: int
-    skipped_count: int
+class PortalRegisterDiscoveredFilesResponse(BaseModel):
+    """Response model for registering selected discovered files."""
+    registered: List[str]
+    skipped: List[str]
     errors: List[str]
-    missing_selected_keys: Optional[List[str]] = None
 
 
 def create_app(
@@ -2594,7 +2659,7 @@ def create_app(
                                 "file_id": f.file_id,
                                 "customer_id": f.customer_id,
                                 "s3_uri": f.file_metadata.s3_uri,
-                                "filename": f.file_metadata.filename,
+                                "filename": f.file_metadata.s3_uri.split("/")[-1],  # Extract filename from S3 URI
                                 "file_format": f.file_metadata.file_format,
                                 "file_size_bytes": f.file_metadata.file_size_bytes,
                                 "subject_id": f.biosample_metadata.subject_id,
@@ -2725,104 +2790,80 @@ def create_app(
 
         @app.post(
             "/portal/files/register",
-            response_model=PortalFileAutoRegisterResponse,
+            response_model=PortalRegisterDiscoveredFilesResponse,
             tags=["portal"],
         )
-        async def portal_files_register_submit(request: Request, payload: PortalFileAutoRegisterRequest):
-            """Register selected discovered files from a linked bucket.
+        async def portal_register_discovered_files(
+            request: Request,
+            payload: PortalRegisterDiscoveredFilesRequest = Body(...),
+        ):
+            """Register selected discovered files."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
 
-            Used by the portal UI (auto-discover flow). `customer_id` is derived from
-            the authenticated session.
-            """
-
-            # For JSON endpoints, prefer explicit 401 over a redirect
-            user_email = request.session.get("user_email")
-            if not user_email:
-                raise HTTPException(status_code=401, detail="Not authenticated")
-
-            if not (FILE_MANAGEMENT_AVAILABLE and file_registry and BucketFileDiscovery):
-                raise HTTPException(status_code=501, detail="File management is not configured")
-            if not linked_bucket_manager:
-                raise HTTPException(status_code=501, detail="LinkedBucketManager is not configured")
-            if not customer_manager:
-                raise HTTPException(status_code=501, detail="Customer manager is not configured")
-
-            customer_config = customer_manager.get_customer_by_email(user_email)
-            if not customer_config:
-                raise HTTPException(status_code=403, detail="Customer not found for current session")
-            customer_id = customer_config.customer_id
-
-            # Resolve bucket and enforce that it belongs to the session customer
-            bucket = None
-            if payload.bucket_id:
-                bucket = linked_bucket_manager.get_bucket(payload.bucket_id)
-                if not bucket:
-                    raise HTTPException(status_code=404, detail="Linked bucket not found")
-                if bucket.customer_id != customer_id:
-                    raise HTTPException(status_code=403, detail="Bucket does not belong to current customer")
-            elif payload.bucket_name:
-                # Fallback: ensure the bucket_name is among customer's linked buckets
-                linked_buckets = linked_bucket_manager.list_customer_buckets(customer_id)
-                for b in linked_buckets:
-                    if b.bucket_name == payload.bucket_name:
-                        bucket = b
-                        break
-                if not bucket:
-                    raise HTTPException(status_code=404, detail="Bucket name is not linked to current customer")
-            else:
-                raise HTTPException(status_code=422, detail="Either bucket_id or bucket_name is required")
-
-            bucket_name = bucket.bucket_name
-            effective_prefix = payload.prefix or ""
-            if bucket.prefix_restriction:
-                if not effective_prefix:
-                    effective_prefix = bucket.prefix_restriction
-                elif not effective_prefix.startswith(bucket.prefix_restriction):
-                    raise HTTPException(
-                        status_code=400,
-                        detail="Prefix is outside of this bucket's allowed prefix restriction",
-                    )
-
-            # Discover files and optionally filter to selected keys
-            bfd = BucketFileDiscovery(region=region, profile=profile)
-            discovered = bfd.discover_files(
-                bucket_name=bucket_name,
-                prefix=effective_prefix,
-                file_formats=payload.file_formats,
-                max_files=payload.max_files,
-            )
-
-            missing_selected = None
-            if payload.selected_keys is not None:
-                selected_set = set(payload.selected_keys)
-                discovered_key_set = {df.key for df in discovered}
-                missing_selected = sorted(selected_set - discovered_key_set)
-                discovered = [df for df in discovered if df.key in selected_set]
-
-            if not discovered:
-                return PortalFileAutoRegisterResponse(
-                    registered_count=0,
-                    skipped_count=0,
-                    errors=["No matching files found to register"],
-                    missing_selected_keys=missing_selected,
+            if not FILE_MANAGEMENT_AVAILABLE or not file_registry:
+                raise HTTPException(
+                    status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                    detail="File registry not configured",
                 )
 
-            # Mark existing registrations (idempotent)
-            discovered = bfd.check_registration_status(discovered, file_registry, customer_id)
-            registered_count, skipped_count, errors = bfd.auto_register_files(
-                discovered,
-                file_registry,
-                customer_id,
-                biosample_id=payload.biosample_id,
-                subject_id=payload.subject_id,
-                sequencing_platform=payload.sequencing_platform,
-            )
+            customer = None
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
 
-            return PortalFileAutoRegisterResponse(
-                registered_count=registered_count,
-                skipped_count=skipped_count,
+            customer_id = payload.customer_id or (customer.customer_id if customer else None) or "default-customer"
+
+            registered: List[str] = []
+            skipped: List[str] = []
+            errors: List[str] = []
+
+            for discovered in payload.files:
+                try:
+                    file_key = discovered.key or discovered.s3_uri.split("/", 3)[-1]
+                    detected_format = discovered.detected_format
+                    if not detected_format and detect_file_format:
+                        detected_format = detect_file_format(file_key)
+
+                    read_number = discovered.read_number or 1
+                    if discovered.read_number is None and file_key:
+                        if "_R2" in file_key or "_2.fastq" in file_key or "_2.fq" in file_key:
+                            read_number = 2
+
+                    file_id = generate_file_id(discovered.s3_uri, customer_id)
+                    registration = FileRegistration(
+                        file_id=file_id,
+                        customer_id=customer_id,
+                        file_metadata=FileMetadata(
+                            file_id=file_id,
+                            s3_uri=discovered.s3_uri,
+                            file_size_bytes=discovered.file_size_bytes,
+                            md5_checksum=discovered.etag,
+                            file_format=detected_format or "fastq",
+                        ),
+                        sequencing_metadata=SequencingMetadata(
+                            platform=payload.sequencing_platform,
+                        ),
+                        biosample_metadata=BiosampleMetadata(
+                            biosample_id=payload.biosample_id,
+                            subject_id=payload.subject_id,
+                        ),
+                        read_number=read_number,
+                    )
+
+                    if file_registry.register_file(registration):
+                        registered.append(discovered.s3_uri)
+                    else:
+                        skipped.append(discovered.s3_uri)
+                except Exception as e:
+                    errors.append(f"{discovered.s3_uri}: {str(e)}")
+
+            return PortalRegisterDiscoveredFilesResponse(
+                registered=registered,
+                skipped=skipped,
                 errors=errors,
-                missing_selected_keys=missing_selected,
             )
 
         @app.get("/portal/files/upload", response_class=HTMLResponse, tags=["portal"])
@@ -2967,7 +3008,7 @@ def create_app(
                 return auth_redirect
 
             customer = None
-            file = None
+            file_data = None
             workset_history = []
 
             if customer_manager:
@@ -2977,14 +3018,16 @@ def create_app(
 
             if FILE_MANAGEMENT_AVAILABLE and file_registry:
                 try:
-                    file = file_registry.get_file(file_id)
-                    if file:
+                    file_registration = file_registry.get_file(file_id)
+                    if file_registration:
+                        # Convert to flat dict for template
+                        file_data = _convert_file_for_template(file_registration)
                         # Get workset history
                         workset_history = file_registry.get_file_workset_history(file_id)
                 except Exception as e:
                     LOGGER.warning("Failed to load file: %s", str(e))
 
-            if not file:
+            if not file_data:
                 raise HTTPException(status_code=404, detail="File not found")
 
             return templates.TemplateResponse(
@@ -2993,7 +3036,7 @@ def create_app(
                 get_template_context(
                     request,
                     customer=customer,
-                    file=file,
+                    file=file_data,
                     workset_history=workset_history,
                     active_page="files",
                 ),
@@ -3198,4 +3241,3 @@ def create_app(
         LOGGER.info("File management not configured - file API endpoints not registered")
 
     return app
-
