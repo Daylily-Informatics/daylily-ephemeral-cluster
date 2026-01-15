@@ -382,6 +382,7 @@ class FileRegistry:
             assert "TableName" not in query_kwargs, (
                 "TableName must not be passed to DynamoDB Table.query"
             )
+            query_kwargs.pop("TableName", None)
             response = self.files_table.query(**query_kwargs)
 
             # Fail-fast: if any item cannot be converted, surface the error
