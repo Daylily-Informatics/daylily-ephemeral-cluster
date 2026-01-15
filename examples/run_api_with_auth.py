@@ -194,6 +194,13 @@ def main():
         LOGGER.info("Initializing file registry")
         try:
             import boto3
+            import logging
+
+            logging.basicConfig(level=logging.DEBUG)
+
+            logging.getLogger("botocore").setLevel(logging.DEBUG)
+            logging.getLogger("boto3").setLevel(logging.DEBUG)
+            logging.getLogger("botocore.hooks").setLevel(logging.DEBUG)
             dynamodb = boto3.resource('dynamodb', region_name=REGION)
             file_registry = FileRegistry(dynamodb)
             LOGGER.info("File registry initialized - file management endpoints will be available")

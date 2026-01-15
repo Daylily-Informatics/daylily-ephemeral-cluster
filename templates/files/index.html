@@ -1,0 +1,321 @@
+{% extends "base.html" %}
+{% set active_page = 'files' %}
+
+{% block title %}File Registry - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-between align-center flex-wrap gap-lg">
+        <div>
+            <h1 class="page-title">File Registry</h1>
+            <p class="page-subtitle">Register, search, and manage files for analysis</p>
+        </div>
+        <div class="page-actions" style="margin-top: 0;">
+            <a href="/portal/files/register" class="btn btn-primary">
+                <i class="fas fa-plus"></i> Register Files
+            </a>
+            <a href="/portal/files/upload" class="btn btn-outline">
+                <i class="fas fa-upload"></i> Upload Files
+            </a>
+            <a href="/portal/files/buckets" class="btn btn-outline">
+                <i class="fas fa-database"></i> Manage Buckets
+            </a>
+            <a href="/portal/files/filesets" class="btn btn-outline">
+                <i class="fas fa-layer-group"></i> File Sets
+            </a>
+        </div>
+    </div>
+    
+    <!-- Quick Stats -->
+    <div class="grid grid-4 gap-lg mb-xl">
+        <div class="card stat-card">
+            <div class="stat-icon"><i class="fas fa-file-alt"></i></div>
+            <div class="stat-content">
+                <div class="stat-value" id="stat-total-files">{{ stats.total_files | default(0) }}</div>
+                <div class="stat-label">Total Files</div>
+            </div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-icon"><i class="fas fa-layer-group"></i></div>
+            <div class="stat-content">
+                <div class="stat-value" id="stat-filesets">{{ stats.total_filesets | default(0) }}</div>
+                <div class="stat-label">File Sets</div>
+            </div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-icon"><i class="fas fa-database"></i></div>
+            <div class="stat-content">
+                <div class="stat-value" id="stat-buckets">{{ stats.linked_buckets | default(0) }}</div>
+                <div class="stat-label">Linked Buckets</div>
+            </div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-icon"><i class="fas fa-dna"></i></div>
+            <div class="stat-content">
+                <div class="stat-value" id="stat-subjects">{{ stats.unique_subjects | default(0) }}</div>
+                <div class="stat-label">Unique Subjects</div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Search & Filters -->
+    <div class="card mb-lg">
+        <div class="card-title d-flex justify-between align-center">
+            <span><i class="fas fa-search"></i> Search Files</span>
+            <button class="btn btn-sm btn-outline" onclick="toggleAdvancedSearch()">
+                <i class="fas fa-sliders-h"></i> Advanced
+            </button>
+        </div>
+        <div class="d-flex flex-wrap gap-md align-center">
+            <div class="form-group mb-0" style="flex: 2; min-width: 300px;">
+                <input type="text" class="form-control" id="search-query" 
+                       placeholder="Search by filename, sample ID, subject ID, or tags..."
+                       onkeyup="debounceSearch()">
+            </div>
+            <div class="form-group mb-0" style="min-width: 150px;">
+                <select class="form-control form-select" id="filter-format" onchange="searchFiles()">
+                    <option value="">All Formats</option>
+                    <option value="fastq">FASTQ</option>
+                    <option value="bam">BAM</option>
+                    <option value="cram">CRAM</option>
+                    <option value="vcf">VCF</option>
+                </select>
+            </div>
+            <div class="form-group mb-0" style="min-width: 150px;">
+                <select class="form-control form-select" id="filter-sample-type" onchange="searchFiles()">
+                    <option value="">All Sample Types</option>
+                    <option value="blood">Blood</option>
+                    <option value="saliva">Saliva</option>
+                    <option value="buccal">Buccal</option>
+                    <option value="tissue">Tissue</option>
+                    <option value="tumor">Tumor</option>
+                    <option value="ffpe">FFPE</option>
+                </select>
+            </div>
+            <button class="btn btn-primary" onclick="searchFiles()">
+                <i class="fas fa-search"></i> Search
+            </button>
+        </div>
+        
+        <!-- Advanced Search (hidden by default) -->
+        <div id="advanced-search" class="mt-lg d-none">
+            <hr class="mb-lg">
+            <div class="grid grid-3 gap-md">
+                <div class="form-group mb-0">
+                    <label class="form-label">Subject ID</label>
+                    <input type="text" class="form-control" id="filter-subject-id" 
+                           placeholder="e.g., HG002, PATIENT-001">
+                </div>
+                <div class="form-group mb-0">
+                    <label class="form-label">Biosample ID</label>
+                    <input type="text" class="form-control" id="filter-biosample-id"
+                           placeholder="e.g., SAMPLE-001">
+                </div>
+                <div class="form-group mb-0">
+                    <label class="form-label">Tags</label>
+                    <input type="text" class="form-control" id="filter-tags"
+                           placeholder="Comma-separated tags">
+                </div>
+                <div class="form-group mb-0">
+                    <label class="form-label">Sequencing Platform</label>
+                    <select class="form-control form-select" id="filter-platform">
+                        <option value="">Any Platform</option>
+                        <option value="illumina">Illumina</option>
+                        <option value="ont">Oxford Nanopore</option>
+                        <option value="pacbio">PacBio</option>
+                        <option value="element">Element</option>
+                        <option value="ultima">Ultima</option>
+                    </select>
+                </div>
+                <div class="form-group mb-0">
+                    <label class="form-label">Has Control VCFs</label>
+                    <select class="form-control form-select" id="filter-has-controls">
+                        <option value="">Any</option>
+                        <option value="true">Yes</option>
+                        <option value="false">No</option>
+                    </select>
+                </div>
+                <div class="form-group mb-0">
+                    <label class="form-label">Registered After</label>
+                    <input type="date" class="form-control" id="filter-date-from">
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Files Table -->
+    <div class="table-container">
+        <table class="table" id="files-table">
+            <thead>
+                <tr>
+                    <th style="width: 40px;">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="select-all-files" onchange="toggleSelectAllFiles()">
+                        </label>
+                    </th>
+                    <th>Filename</th>
+                    <th>Subject</th>
+                    <th>Biosample</th>
+                    <th>Format</th>
+                    <th>Sample Type</th>
+                    <th>Size</th>
+                    <th>Worksets</th>
+                    <th>Registered</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="files-tbody">
+                {% if files %}
+                {% for file in files %}
+                <tr data-file-id="{{ file.file_id }}">
+                    <td>
+                        <label class="checkbox-label">
+                            <input type="checkbox" class="file-checkbox" value="{{ file.file_id }}">
+                        </label>
+                    </td>
+                    <td>
+                        <a href="/portal/files/{{ file.file_id }}" class="d-flex align-center gap-sm">
+                            <i class="fas fa-{{ 'file-code' if file.file_format in ['fastq', 'fq'] else 'file-medical' if file.file_format in ['bam', 'cram'] else 'file-alt' }} text-accent"></i>
+                            <span title="{{ file.filename }}">{{ file.filename | truncate(35, True, '...') }}</span>
+                        </a>
+                    </td>
+                    <td>
+                        <span class="badge badge-outline" title="{{ file.subject_id }}">
+                            {{ file.subject_id | truncate(12, True, '...') }}
+                        </span>
+                    </td>
+                    <td>{{ file.biosample_id | truncate(15, True, '...') }}</td>
+                    <td><span class="badge badge-info">{{ file.file_format | upper }}</span></td>
+                    <td>{{ file.sample_type | default('-') }}</td>
+                    <td>{{ file.file_size_bytes | filesizeformat if file.file_size_bytes else '-' }}</td>
+                    <td>
+                        {% if file.workset_count %}
+                        <a href="/portal/files/{{ file.file_id }}#worksets" class="text-accent">
+                            {{ file.workset_count }} workset{{ 's' if file.workset_count > 1 else '' }}
+                        </a>
+                        {% else %}
+                        <span class="text-muted">-</span>
+                        {% endif %}
+                    </td>
+                    <td>{{ file.registered_at | default('N/A') }}</td>
+                    <td>
+                        <div class="d-flex gap-sm">
+                            <a href="/portal/files/{{ file.file_id }}" class="btn btn-outline btn-sm" title="View Details">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <button class="btn btn-outline btn-sm" onclick="addToFileset('{{ file.file_id }}')" title="Add to File Set">
+                                <i class="fas fa-folder-plus"></i>
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+                {% else %}
+                <tr id="empty-row">
+                    <td colspan="10">
+                        <div class="empty-state">
+                            <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
+                            <h4 class="empty-state-title">No files registered</h4>
+                            <p class="empty-state-text">Register files from your S3 buckets or upload new files to get started</p>
+                            <div class="d-flex gap-md justify-center">
+                                <a href="/portal/files/register" class="btn btn-primary">
+                                    <i class="fas fa-plus"></i> Register Files
+                                </a>
+                                <a href="/portal/files/buckets" class="btn btn-outline">
+                                    <i class="fas fa-database"></i> Link Bucket
+                                </a>
+                            </div>
+                        </div>
+                    </td>
+                </tr>
+                {% endif %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Bulk Actions -->
+    <div class="card mt-lg d-none" id="bulk-actions">
+        <div class="d-flex align-center gap-lg flex-wrap">
+            <span><strong id="selected-count">0</strong> files selected</span>
+            <div class="d-flex gap-sm flex-wrap">
+                <button class="btn btn-outline btn-sm" onclick="createFilesetFromSelection()">
+                    <i class="fas fa-layer-group"></i> Create File Set
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="addSelectionToFileset()">
+                    <i class="fas fa-folder-plus"></i> Add to File Set
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="bulkAddTags()">
+                    <i class="fas fa-tags"></i> Add Tags
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="generateManifest()">
+                    <i class="fas fa-file-export"></i> Generate Manifest
+                </button>
+                <button class="btn btn-outline btn-sm" onclick="clearFileSelection()">
+                    <i class="fas fa-times"></i> Clear
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Pagination -->
+    {% if total_pages and total_pages > 1 %}
+    <div class="d-flex justify-center mt-xl">
+        <nav class="pagination">
+            {% if current_page > 1 %}
+            <a href="?page={{ current_page - 1 }}" class="btn btn-outline btn-sm">Previous</a>
+            {% endif %}
+            <span class="p-md">Page {{ current_page }} of {{ total_pages }}</span>
+            {% if current_page < total_pages %}
+            <a href="?page={{ current_page + 1 }}" class="btn btn-outline btn-sm">Next</a>
+            {% endif %}
+        </nav>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add to Fileset Modal -->
+<div class="modal" id="add-to-fileset-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add to File Set</h3>
+            <button class="modal-close" onclick="closeModal('add-to-fileset-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Select File Set</label>
+                <select class="form-control form-select" id="target-fileset">
+                    <option value="">-- Select a file set --</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Or Create New</label>
+                <input type="text" class="form-control" id="new-fileset-name" placeholder="New file set name">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('add-to-fileset-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="confirmAddToFileset()">Add Files</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-card { display: flex; align-items: center; gap: var(--spacing-lg); }
+.stat-icon { font-size: 2rem; color: var(--color-accent); opacity: 0.8; }
+.stat-value { font-size: 1.75rem; font-weight: 700; color: var(--color-primary); }
+.stat-label { color: var(--color-gray-600); font-size: 0.875rem; }
+.checkbox-label { display: flex; align-items: center; cursor: pointer; }
+.checkbox-label input { width: 16px; height: 16px; accent-color: var(--color-accent); }
+.badge-outline { background: transparent; border: 1px solid var(--color-gray-400); color: var(--color-gray-700); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.DaylilyConfig = window.DaylilyConfig || {};
+window.DaylilyConfig.customerId = '{{ customer.customer_id | default("") }}';
+</script>
+<script src="/static/js/file-registry.js?v={{ cache_bust | default('1') }}"></script>
+{% endblock %}
+

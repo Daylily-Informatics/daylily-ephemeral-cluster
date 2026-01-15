@@ -1,0 +1,219 @@
+{% extends "base.html" %}
+{% set active_page = 'files' %}
+
+{% block title %}File Sets - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <a href="/portal/files" class="text-muted mb-md d-block">
+        <i class="fas fa-arrow-left"></i> Back to File Registry
+    </a>
+    
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-between align-center flex-wrap gap-lg">
+        <div>
+            <h1 class="page-title">File Sets</h1>
+            <p class="page-subtitle">Group files together for batch processing and manifest generation</p>
+        </div>
+        <div class="page-actions" style="margin-top: 0;">
+            <button class="btn btn-primary" onclick="showCreateFilesetModal()">
+                <i class="fas fa-plus"></i> Create File Set
+            </button>
+        </div>
+    </div>
+    
+    <!-- File Sets Grid -->
+    {% if filesets %}
+    <div class="fileset-grid">
+        {% for fs in filesets %}
+        <div class="fileset-card" data-fileset-id="{{ fs.fileset_id }}">
+            <div class="fileset-header">
+                <div class="fileset-icon">
+                    <i class="fas fa-layer-group"></i>
+                </div>
+                <div class="fileset-info">
+                    <h4 class="fileset-name">
+                        <a href="/portal/files/filesets/{{ fs.fileset_id }}">{{ fs.name }}</a>
+                    </h4>
+                    <span class="fileset-id text-muted">{{ fs.fileset_id[:12] }}...</span>
+                </div>
+                <div class="fileset-actions">
+                    <button class="btn btn-sm btn-outline" onclick="editFileset('{{ fs.fileset_id }}')" title="Edit">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline" onclick="cloneFileset('{{ fs.fileset_id }}')" title="Clone">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline text-error" onclick="deleteFileset('{{ fs.fileset_id }}')" title="Delete">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="fileset-body">
+                {% if fs.description %}
+                <p class="fileset-description">{{ fs.description }}</p>
+                {% endif %}
+                
+                <div class="fileset-stats">
+                    <div class="stat">
+                        <span class="stat-value">{{ fs.file_count | default(0) }}</span>
+                        <span class="stat-label">Files</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ fs.total_size | filesizeformat if fs.total_size else '0 B' }}</span>
+                        <span class="stat-label">Total Size</span>
+                    </div>
+                    <div class="stat">
+                        <span class="stat-value">{{ fs.unique_subjects | default(0) }}</span>
+                        <span class="stat-label">Subjects</span>
+                    </div>
+                </div>
+                
+                <!-- Tags -->
+                {% if fs.tags %}
+                <div class="fileset-tags">
+                    {% for tag in fs.tags[:3] %}
+                    <span class="tag">{{ tag }}</span>
+                    {% endfor %}
+                    {% if fs.tags | length > 3 %}
+                    <span class="tag tag-more">+{{ fs.tags | length - 3 }} more</span>
+                    {% endif %}
+                </div>
+                {% endif %}
+            </div>
+            
+            <div class="fileset-footer">
+                <span class="text-muted text-sm">Created {{ fs.created_at }}</span>
+                <div class="fileset-quick-actions">
+                    <button class="btn btn-sm btn-outline" onclick="generateManifestFromFileset('{{ fs.fileset_id }}')" title="Generate Manifest">
+                        <i class="fas fa-file-export"></i>
+                    </button>
+                    <a href="/portal/files/filesets/{{ fs.fileset_id }}" class="btn btn-sm btn-outline" title="View Files">
+                        <i class="fas fa-eye"></i>
+                    </a>
+                </div>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-layer-group"></i></div>
+            <h4 class="empty-state-title">No file sets yet</h4>
+            <p class="empty-state-text">Create file sets to group files for batch processing and manifest generation</p>
+            <button class="btn btn-primary" onclick="showCreateFilesetModal()">
+                <i class="fas fa-plus"></i> Create First File Set
+            </button>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Create File Set Modal -->
+<div class="modal" id="create-fileset-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Create File Set</h3>
+            <button class="modal-close" onclick="closeModal('create-fileset-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label required">Name</label>
+                <input type="text" class="form-control" id="fileset-name" 
+                       placeholder="e.g., Cohort A - WGS Samples" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" id="fileset-description" rows="2"
+                          placeholder="Brief description of this file set"></textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tags</label>
+                <input type="text" class="form-control" id="fileset-tags"
+                       placeholder="Comma-separated tags">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Initial Files (optional)</label>
+                <p class="text-muted text-sm">You can add files after creation</p>
+                <div id="initial-files-list" class="file-select-list"></div>
+                <button type="button" class="btn btn-sm btn-outline mt-sm" onclick="showFileSelector()">
+                    <i class="fas fa-plus"></i> Select Files
+                </button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('create-fileset-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="createFileset()">
+                <i class="fas fa-plus"></i> Create File Set
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- File Selector Modal -->
+<div class="modal" id="file-selector-modal">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3>Select Files</h3>
+            <button class="modal-close" onclick="closeModal('file-selector-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group mb-lg">
+                <input type="text" class="form-control" id="file-selector-search"
+                       placeholder="Search files..." onkeyup="filterFileSelectorResults()">
+            </div>
+            <div class="file-selector-list" id="file-selector-list">
+                <!-- Files will be loaded here -->
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="text-muted"><span id="selected-file-count">0</span> files selected</span>
+            <button class="btn btn-outline" onclick="closeModal('file-selector-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="confirmFileSelection()">Add Selected</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.fileset-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); gap: var(--spacing-lg); }
+.fileset-card { background: var(--color-white); border: 1px solid var(--color-gray-300); border-radius: var(--radius-lg); overflow: hidden; transition: all 0.2s; }
+.fileset-card:hover { box-shadow: var(--shadow-md); border-color: var(--color-accent); }
+.fileset-header { display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-lg); border-bottom: 1px solid var(--color-gray-200); }
+.fileset-icon { width: 48px; height: 48px; background: var(--color-gray-100); border-radius: var(--radius-md); display: flex; align-items: center; justify-content: center; color: var(--color-accent); font-size: 1.25rem; }
+.fileset-info { flex: 1; }
+.fileset-name { margin: 0; font-size: 1.1rem; }
+.fileset-name a { color: var(--color-primary); }
+.fileset-name a:hover { color: var(--color-accent); }
+.fileset-id { font-size: 0.75rem; font-family: var(--font-mono); }
+.fileset-actions { display: flex; gap: var(--spacing-xs); }
+.fileset-body { padding: var(--spacing-lg); }
+.fileset-description { margin: 0 0 var(--spacing-md); color: var(--color-gray-600); font-size: 0.9rem; }
+.fileset-stats { display: flex; gap: var(--spacing-xl); margin-bottom: var(--spacing-md); }
+.fileset-stats .stat { text-align: center; }
+.fileset-stats .stat-value { display: block; font-size: 1.25rem; font-weight: 600; color: var(--color-primary); }
+.fileset-stats .stat-label { font-size: 0.75rem; color: var(--color-gray-500); text-transform: uppercase; }
+.fileset-tags { display: flex; flex-wrap: wrap; gap: var(--spacing-xs); }
+.fileset-footer { display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-md) var(--spacing-lg); background: var(--color-gray-100); }
+.fileset-quick-actions { display: flex; gap: var(--spacing-xs); }
+.tag { display: inline-flex; align-items: center; background: var(--color-gray-200); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: 0.8rem; }
+.tag-more { background: var(--color-accent); color: white; }
+.text-sm { font-size: 0.85rem; }
+.required::after { content: ' *'; color: var(--color-error); }
+.file-select-list { border: 1px solid var(--color-gray-300); border-radius: var(--radius-md); max-height: 150px; overflow-y: auto; }
+.file-select-item { display: flex; align-items: center; gap: var(--spacing-sm); padding: var(--spacing-sm); border-bottom: 1px solid var(--color-gray-200); }
+.file-select-item:last-child { border-bottom: none; }
+.file-selector-list { max-height: 400px; overflow-y: auto; border: 1px solid var(--color-gray-300); border-radius: var(--radius-md); }
+.file-selector-item { display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); border-bottom: 1px solid var(--color-gray-200); cursor: pointer; }
+.file-selector-item:hover { background: var(--color-gray-100); }
+.file-selector-item.selected { background: #e3f2fd; }
+.file-selector-item input { width: 18px; height: 18px; accent-color: var(--color-accent); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/file-registry.js?v={{ cache_bust | default('1') }}"></script>
+{% endblock %}
+

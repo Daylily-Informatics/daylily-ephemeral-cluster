@@ -164,6 +164,17 @@ class FileRegistry:
         self.filesets_table = self.dynamodb.Table(filesets_table_name)
         self.file_workset_usage_table = self.dynamodb.Table(file_workset_usage_table_name)
 
+        # Sanity logging/guards so mis-bound DynamoDB resources surface immediately
+        LOGGER.info(
+            "FileRegistry bound to tables: files=%s, filesets=%s, file_workset_usage=%s",
+            self.files_table.table_name,
+            self.filesets_table.table_name,
+            self.file_workset_usage_table.table_name,
+        )
+        assert hasattr(self.files_table, "table_name")
+        assert hasattr(self.filesets_table, "table_name")
+        assert hasattr(self.file_workset_usage_table, "table_name")
+
     def create_tables_if_not_exist(self) -> None:
         """Create DynamoDB tables for file registry."""
         self._create_files_table()

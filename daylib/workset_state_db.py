@@ -99,7 +99,15 @@ class WorksetStateDB:
         self.table_name = table_name
         self.lock_timeout_seconds = lock_timeout_seconds
         self.cloudwatch = session.client("cloudwatch")
-        
+
+        # Sanity logging/guards so mis-bound DynamoDB resources surface immediately
+        LOGGER.info(
+            "WorksetStateDB bound to table: %s (region=%s)",
+            self.table.table_name,
+            region,
+        )
+        assert hasattr(self.table, "table_name")
+	        
     def create_table_if_not_exists(self) -> None:
         """Create the DynamoDB table with appropriate schema."""
         try:

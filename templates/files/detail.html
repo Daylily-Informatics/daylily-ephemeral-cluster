@@ -1,0 +1,368 @@
+{% extends "base.html" %}
+{% set active_page = 'files' %}
+
+{% block title %}{{ file.filename | default('File Details') }} - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <a href="/portal/files" class="text-muted mb-md d-block">
+        <i class="fas fa-arrow-left"></i> Back to File Registry
+    </a>
+    
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-between align-center flex-wrap gap-lg">
+        <div>
+            <h1 class="page-title">
+                <i class="fas fa-{{ 'file-code' if file.file_format in ['fastq', 'fq'] else 'file-medical' if file.file_format in ['bam', 'cram'] else 'file-alt' }} text-accent"></i>
+                {{ file.filename | default('File Details') }}
+            </h1>
+            <p class="page-subtitle">
+                <code class="text-muted">{{ file.file_id }}</code>
+                <button class="btn btn-outline btn-sm ml-sm" onclick="copyToClipboard('{{ file.file_id }}')">
+                    <i class="fas fa-copy"></i>
+                </button>
+            </p>
+        </div>
+        <div class="page-actions" style="margin-top: 0;">
+            <button class="btn btn-outline" onclick="downloadFile('{{ file.s3_uri }}')">
+                <i class="fas fa-download"></i> Download
+            </button>
+            <button class="btn btn-outline" onclick="addToFileset('{{ file.file_id }}')">
+                <i class="fas fa-folder-plus"></i> Add to File Set
+            </button>
+            <button class="btn btn-primary" onclick="useInManifest('{{ file.file_id }}')">
+                <i class="fas fa-file-export"></i> Use in Manifest
+            </button>
+        </div>
+    </div>
+    
+    <!-- Main Grid -->
+    <div class="grid" style="grid-template-columns: 2fr 1fr; gap: var(--spacing-xl);">
+        <!-- Left Column -->
+        <div>
+            <!-- File Information -->
+            <div class="card mb-lg">
+                <h3 class="card-title"><i class="fas fa-file-alt"></i> File Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">S3 URI</span>
+                        <span class="info-value">
+                            <code>{{ file.s3_uri }}</code>
+                            <button class="btn btn-outline btn-xs" onclick="copyToClipboard('{{ file.s3_uri }}')">
+                                <i class="fas fa-copy"></i>
+                            </button>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Format</span>
+                        <span class="info-value">
+                            <span class="badge badge-info">{{ file.file_format | upper }}</span>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">File Size</span>
+                        <span class="info-value">{{ file.file_size_bytes | filesizeformat if file.file_size_bytes else 'Unknown' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">MD5 Checksum</span>
+                        <span class="info-value"><code>{{ file.md5_checksum | default('Not computed') }}</code></span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Read Number</span>
+                        <span class="info-value">{{ 'Read ' ~ file.read_number if file.read_number else 'N/A' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Paired File</span>
+                        <span class="info-value">
+                            {% if file.paired_file_id %}
+                            <a href="/portal/files/{{ file.paired_file_id }}">{{ file.paired_filename | default(file.paired_file_id) }}</a>
+                            {% else %}
+                            <span class="text-muted">None</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Registered</span>
+                        <span class="info-value">{{ file.registered_at | default('N/A') }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Last Updated</span>
+                        <span class="info-value">{{ file.updated_at | default('N/A') }}</span>
+                    </div>
+                </div>
+                
+                <!-- Tags -->
+                <div class="mt-lg">
+                    <span class="info-label">Tags</span>
+                    <div class="tag-list mt-sm">
+                        {% if file.tags %}
+                        {% for tag in file.tags %}
+                        <span class="tag">{{ tag }} <button class="tag-remove" onclick="removeTag('{{ tag }}')">&times;</button></span>
+                        {% endfor %}
+                        {% endif %}
+                        <button class="btn btn-xs btn-outline" onclick="showAddTagModal()">
+                            <i class="fas fa-plus"></i> Add Tag
+                        </button>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Subject Information -->
+            <div class="card mb-lg">
+                <h3 class="card-title"><i class="fas fa-user"></i> Subject Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Subject ID</span>
+                        <span class="info-value">
+                            <a href="/portal/files?subject_id={{ file.subject_id }}">{{ file.subject_id | default('N/A') }}</a>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Biological Sex</span>
+                        <span class="info-value">{{ file.bio_sex | default('Unknown') | capitalize }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Date of Birth</span>
+                        <span class="info-value">{{ file.dob | default('Not recorded') }}</span>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Biosample Information -->
+            <div class="card mb-lg">
+                <h3 class="card-title"><i class="fas fa-vial"></i> Biosample Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Biosample ID</span>
+                        <span class="info-value">
+                            <a href="/portal/files?biosample_id={{ file.biosample_id }}">{{ file.biosample_id | default('N/A') }}</a>
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Sample Type</span>
+                        <span class="info-value">{{ file.sample_type | default('N/A') | capitalize }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tissue Type</span>
+                        <span class="info-value">{{ file.tissue_type | default('N/A') }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Collection Date</span>
+                        <span class="info-value">{{ file.collection_date | default('Not recorded') }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Preservation</span>
+                        <span class="info-value">{{ file.preservation_method | default('Fresh/None') | capitalize }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Tumor Fraction</span>
+                        <span class="info-value">{{ (file.tumor_fraction ~ '%') if file.tumor_fraction else 'N/A' }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Sequencing Information -->
+            <div class="card mb-lg">
+                <h3 class="card-title"><i class="fas fa-dna"></i> Sequencing Information</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">Platform</span>
+                        <span class="info-value">{{ file.platform | default('N/A') | capitalize }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Instrument</span>
+                        <span class="info-value">{{ file.instrument_model | default('N/A') }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Library Prep</span>
+                        <span class="info-value">{{ file.library_prep | default('N/A') | capitalize }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Read Length</span>
+                        <span class="info-value">{{ (file.read_length ~ ' bp') if file.read_length else 'N/A' }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Flowcell ID</span>
+                        <span class="info-value">{{ file.flowcell_id | default('N/A') }}</span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">Run Date</span>
+                        <span class="info-value">{{ file.run_date | default('N/A') }}</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Control VCFs -->
+            {% if file.snv_vcf_path or file.sv_vcf_path %}
+            <div class="card mb-lg">
+                <h3 class="card-title"><i class="fas fa-check-double"></i> Control/Reference VCFs</h3>
+                <div class="info-grid">
+                    <div class="info-item">
+                        <span class="info-label">SNV Control VCF</span>
+                        <span class="info-value">
+                            {% if file.snv_vcf_path %}
+                            <code>{{ file.snv_vcf_path }}</code>
+                            {% else %}
+                            <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="info-item">
+                        <span class="info-label">SV Control VCF</span>
+                        <span class="info-value">
+                            {% if file.sv_vcf_path %}
+                            <code>{{ file.sv_vcf_path }}</code>
+                            {% else %}
+                            <span class="text-muted">Not specified</span>
+                            {% endif %}
+                        </span>
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column (Sidebar) -->
+        <div>
+            <!-- Quick Actions -->
+            <div class="card mb-lg">
+                <h3 class="card-title">Quick Actions</h3>
+                <div class="quick-actions">
+                    <button class="btn btn-block btn-outline" onclick="editFileMetadata('{{ file.file_id }}')">
+                        <i class="fas fa-edit"></i> Edit Metadata
+                    </button>
+                    <button class="btn btn-block btn-outline" onclick="findSimilarFiles('{{ file.file_id }}')">
+                        <i class="fas fa-search"></i> Find Similar Files
+                    </button>
+                    <button class="btn btn-block btn-outline" onclick="viewSubjectFiles('{{ file.subject_id }}')">
+                        <i class="fas fa-user"></i> View Subject's Files
+                    </button>
+                </div>
+            </div>
+
+            <!-- File Sets -->
+            <div class="card mb-lg">
+                <h3 class="card-title"><i class="fas fa-layer-group"></i> File Sets</h3>
+                {% if file.filesets %}
+                <ul class="fileset-list">
+                    {% for fs in file.filesets %}
+                    <li>
+                        <a href="/portal/files/filesets/{{ fs.fileset_id }}">
+                            <i class="fas fa-folder"></i> {{ fs.name }}
+                        </a>
+                        <small class="text-muted">{{ fs.file_count }} files</small>
+                    </li>
+                    {% endfor %}
+                </ul>
+                {% else %}
+                <p class="text-muted">Not in any file sets</p>
+                {% endif %}
+                <button class="btn btn-sm btn-outline mt-md" onclick="addToFileset('{{ file.file_id }}')">
+                    <i class="fas fa-plus"></i> Add to File Set
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Workset History Section -->
+    <div class="card mt-xl" id="worksets">
+        <div class="d-flex justify-between align-center mb-lg">
+            <h3 class="card-title mb-0"><i class="fas fa-history"></i> Workset History</h3>
+            <span class="text-muted">{{ workset_history | length | default(0) }} workset{{ 's' if (workset_history | length | default(0)) != 1 else '' }}</span>
+        </div>
+
+        {% if workset_history %}
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Workset ID</th>
+                        <th>Usage Type</th>
+                        <th>State</th>
+                        <th>Added</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for usage in workset_history %}
+                    <tr>
+                        <td>
+                            <a href="/portal/worksets/{{ usage.workset_id }}" class="text-accent">
+                                {{ usage.workset_id[:16] }}...
+                            </a>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ 'info' if usage.usage_type == 'input' else 'success' if usage.usage_type == 'output' else 'outline' }}">
+                                {{ usage.usage_type | capitalize }}
+                            </span>
+                        </td>
+                        <td>
+                            <span class="badge badge-{{ usage.workset_state | lower | replace('_', '-') if usage.workset_state else 'outline' }}">
+                                {{ usage.workset_state | default('Unknown') }}
+                            </span>
+                        </td>
+                        <td>{{ usage.added_at | default('N/A') }}</td>
+                        <td>
+                            <a href="/portal/worksets/{{ usage.workset_id }}" class="btn btn-outline btn-sm">
+                                <i class="fas fa-eye"></i> View
+                            </a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state-inline">
+            <i class="fas fa-folder-open text-muted"></i>
+            <p class="text-muted mb-0">This file hasn't been used in any worksets yet</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Add Tag Modal -->
+<div class="modal" id="add-tag-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3>Add Tag</h3>
+            <button class="modal-close" onclick="closeModal('add-tag-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Tag Name</label>
+                <input type="text" class="form-control" id="new-tag-input" placeholder="Enter tag name">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('add-tag-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="addTag()">Add Tag</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.info-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: var(--spacing-md); }
+.info-item { display: flex; flex-direction: column; gap: var(--spacing-xs); }
+.info-label { font-size: 0.75rem; text-transform: uppercase; color: var(--color-gray-500); font-weight: 600; }
+.info-value { font-size: 0.95rem; }
+.info-value code { font-size: 0.85rem; word-break: break-all; }
+.tag-list { display: flex; flex-wrap: wrap; gap: var(--spacing-sm); }
+.tag { display: inline-flex; align-items: center; gap: var(--spacing-xs); background: var(--color-gray-200); padding: var(--spacing-xs) var(--spacing-sm); border-radius: var(--radius-sm); font-size: 0.85rem; }
+.tag-remove { background: none; border: none; cursor: pointer; color: var(--color-gray-500); padding: 0 2px; }
+.tag-remove:hover { color: var(--color-error); }
+.quick-actions { display: flex; flex-direction: column; gap: var(--spacing-sm); }
+.btn-block { width: 100%; justify-content: flex-start; }
+.fileset-list { list-style: none; padding: 0; margin: 0; }
+.fileset-list li { display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-sm) 0; border-bottom: 1px solid var(--color-gray-200); }
+.fileset-list li:last-child { border-bottom: none; }
+.empty-state-inline { display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-lg); background: var(--color-gray-100); border-radius: var(--radius-md); }
+.btn-xs { padding: var(--spacing-xs) var(--spacing-sm); font-size: 0.75rem; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script src="/static/js/file-registry.js?v={{ cache_bust | default('1') }}"></script>
+{% endblock %}
+

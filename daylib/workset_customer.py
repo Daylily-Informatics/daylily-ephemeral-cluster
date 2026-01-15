@@ -59,6 +59,15 @@ class CustomerManager:
 
         # Customer table for tracking
         self.customer_table_name = "daylily-customers"
+        self.customer_table = self.dynamodb.Table(self.customer_table_name)
+
+        # Sanity logging/guards so mis-bound DynamoDB resources surface immediately
+        LOGGER.info(
+            "CustomerManager bound to table: %s (region=%s)",
+            self.customer_table.table_name,
+            self.region,
+        )
+        assert hasattr(self.customer_table, "table_name")
 
     def create_customer_table_if_not_exists(self) -> None:
         """Create DynamoDB table for customer tracking."""

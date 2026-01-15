@@ -1,0 +1,614 @@
+{% extends "base.html" %}
+{% set active_page = 'files' %}
+
+{% block title %}Manage S3 Buckets - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <a href="/portal/files" class="text-muted mb-md d-block">
+        <i class="fas fa-arrow-left"></i> Back to File Registry
+    </a>
+    
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-between align-center flex-wrap gap-lg">
+        <div>
+            <h1 class="page-title">S3 Bucket Management</h1>
+            <p class="page-subtitle">Link and validate S3 buckets for file storage and analysis</p>
+        </div>
+        <div class="page-actions" style="margin-top: 0;">
+            <button class="btn btn-primary" onclick="showLinkBucketModal()">
+                <i class="fas fa-plus"></i> Link New Bucket
+            </button>
+        </div>
+    </div>
+    
+    <!-- Info Alert -->
+    <div class="alert alert-info mb-xl">
+        <i class="fas fa-info-circle"></i>
+        <div>
+            <strong>About S3 Bucket Linking</strong>
+            <p class="mb-0">Link your S3 buckets to register files for analysis. Daylily validates read/write permissions and provides remediation steps if access is not configured correctly.</p>
+        </div>
+    </div>
+    
+    <!-- Linked Buckets -->
+    <div class="card mb-xl">
+        <h3 class="card-title"><i class="fas fa-database"></i> Linked Buckets</h3>
+        
+        {% if buckets %}
+        <div class="bucket-list">
+            {% for bucket in buckets %}
+            <div class="bucket-card {% if bucket.is_validated %}bucket-valid{% else %}bucket-invalid{% endif %}">
+                <div class="bucket-header">
+                    <div class="bucket-info">
+                        <div class="bucket-name">
+                            <i class="fab fa-aws"></i>
+                            <strong>{{ bucket.display_name or bucket.bucket_name }}</strong>
+                        </div>
+                        <span class="badge badge-{{ 'success' if bucket.is_validated else 'error' }}">
+                            {{ 'Valid' if bucket.is_validated else 'Invalid' }}
+                        </span>
+                        <span class="badge badge-outline">{{ bucket.bucket_type }}</span>
+                        {% if bucket.read_only %}
+                        <span class="badge badge-warning">Read-only</span>
+                        {% endif %}
+                    </div>
+                    <div class="bucket-actions">
+                        <button class="btn btn-sm btn-outline" onclick="revalidateBucket('{{ bucket.bucket_id }}')" title="Revalidate">
+                            <i class="fas fa-sync-alt"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="discoverFiles('{{ bucket.bucket_id }}')" title="Discover Files">
+                            <i class="fas fa-search"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline" onclick="editBucket('{{ bucket.bucket_id }}')" title="Edit">
+                            <i class="fas fa-edit"></i>
+                        </button>
+                        <button class="btn btn-sm btn-outline text-error" onclick="unlinkBucket('{{ bucket.bucket_id }}')" title="Unlink">
+                            <i class="fas fa-unlink"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="bucket-details">
+                    <div class="bucket-meta">
+                        <span><i class="fab fa-aws"></i> <code>{{ bucket.bucket_name }}</code></span>
+                        {% if bucket.region %}
+                        <span><i class="fas fa-globe"></i> {{ bucket.region }}</span>
+                        {% endif %}
+                        <span><i class="fas fa-clock"></i> Linked: {{ bucket.linked_at[:10] if bucket.linked_at else 'Unknown' }}</span>
+                    </div>
+                    
+                    {% if bucket.description %}
+                    <p class="bucket-description">{{ bucket.description }}</p>
+                    {% endif %}
+                    
+                    <!-- Validation Status -->
+                    <div class="validation-status mt-md">
+                        <div class="validation-checks">
+                            <span class="check-item {% if bucket.can_read %}check-pass{% else %}check-fail{% endif %}">
+                                <i class="fas fa-{{ 'check' if bucket.can_read else 'times' }}"></i> Read
+                            </span>
+                            <span class="check-item {% if bucket.can_write %}check-pass{% else %}check-fail{% endif %}">
+                                <i class="fas fa-{{ 'check' if bucket.can_write else 'times' }}"></i> Write
+                            </span>
+                            <span class="check-item {% if bucket.can_list %}check-pass{% else %}check-fail{% endif %}">
+                                <i class="fas fa-{{ 'check' if bucket.can_list else 'times' }}"></i> List
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Remediation Steps (if invalid) -->
+                    {% if not bucket.is_validated and bucket.remediation_steps %}
+                    <div class="remediation-box mt-md">
+                        <div class="remediation-header">
+                            <i class="fas fa-wrench"></i> How to fix:
+                        </div>
+                        <ol class="remediation-steps">
+                            {% for step in bucket.remediation_steps %}
+                            <li>{{ step }}</li>
+                            {% endfor %}
+                        </ol>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-database"></i></div>
+            <h4 class="empty-state-title">No buckets linked</h4>
+            <p class="empty-state-text">Link an S3 bucket to start registering files for analysis</p>
+            <button class="btn btn-primary" onclick="showLinkBucketModal()">
+                <i class="fas fa-plus"></i> Link First Bucket
+            </button>
+        </div>
+        {% endif %}
+    </div>
+    
+    <!-- Bucket Policy Templates -->
+    <div class="card">
+        <h3 class="card-title"><i class="fas fa-shield-alt"></i> IAM Policy Templates</h3>
+        <p class="text-muted">Use these policy templates to configure access for Daylily:</p>
+        
+        <div class="accordion">
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Read-Only Access Policy</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                    <pre class="code-block"><code id="policy-read-only">{
+    "Version": "2012-10-17",
+    "Statement": [{
+        "Effect": "Allow",
+        "Action": ["s3:GetObject", "s3:ListBucket", "s3:GetBucketLocation"],
+        "Resource": ["arn:aws:s3:::YOUR-BUCKET-NAME", "arn:aws:s3:::YOUR-BUCKET-NAME/*"]
+    }]
+}</code></pre>
+                    <button class="btn btn-sm btn-outline mt-md" onclick="copyPolicy('read-only')">
+                        <i class="fas fa-copy"></i> Copy Policy
+                    </button>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <button class="accordion-header" onclick="toggleAccordion(this)">
+                    <span>Read/Write Access Policy (Recommended)</span>
+                    <i class="fas fa-chevron-down"></i>
+                </button>
+                <div class="accordion-content">
+                    <pre class="code-block"><code id="policy-read-write">{
+    "Version": "2012-10-17",
+    "Statement": [{
+        "Effect": "Allow",
+        "Action": ["s3:GetObject", "s3:PutObject", "s3:DeleteObject", "s3:ListBucket", "s3:GetBucketLocation"],
+        "Resource": ["arn:aws:s3:::YOUR-BUCKET-NAME", "arn:aws:s3:::YOUR-BUCKET-NAME/*"]
+    }]
+}</code></pre>
+                    <button class="btn btn-sm btn-outline mt-md" onclick="copyPolicy('read-write')">
+                        <i class="fas fa-copy"></i> Copy Policy
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Link Bucket Modal -->
+<div class="modal" id="link-bucket-modal">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3>Link S3 Bucket</h3>
+            <button class="modal-close" onclick="closeModal('link-bucket-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="link-bucket-form" onsubmit="event.preventDefault(); linkBucket();">
+                <div class="form-group">
+                    <label class="form-label required">Bucket Name</label>
+                    <div class="input-with-button">
+                        <input type="text" class="form-control" id="bucket-name"
+                               placeholder="my-genomics-bucket" required>
+                        <button type="button" class="btn btn-outline" onclick="validateBucketBeforeLink()">
+                            <i class="fas fa-check-circle"></i> Validate
+                        </button>
+                    </div>
+                    <small class="form-text">The name of your S3 bucket (without s3://)</small>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Bucket Type</label>
+                        <select class="form-control form-select" id="bucket-type">
+                            <option value="secondary">Secondary (additional storage)</option>
+                            <option value="primary">Primary (main data storage)</option>
+                            <option value="archive">Archive (long-term storage)</option>
+                            <option value="shared">Shared (multi-user access)</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Display Name</label>
+                        <input type="text" class="form-control" id="bucket-display-name"
+                               placeholder="Friendly name for this bucket">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Prefix Restriction</label>
+                    <input type="text" class="form-control" id="bucket-prefix"
+                           placeholder="data/fastq/">
+                    <small class="form-text">Optional: Restrict access to a specific prefix within the bucket</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="bucket-description" rows="2"
+                              placeholder="Description of this bucket's purpose"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="bucket-read-only">
+                        <span class="ml-sm">Read-only access (prevent writes to this bucket)</span>
+                    </label>
+                </div>
+
+                <!-- Validation Results (shown after validation) -->
+                <div id="bucket-validation-results" class="validation-results-box d-none mt-lg">
+                    <hr>
+                    <h4><i class="fas fa-clipboard-check"></i> Validation Results</h4>
+                    <div id="validation-content"></div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('link-bucket-modal')">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="linkBucket()">
+                <i class="fas fa-link"></i> Link Bucket
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Discover Files Modal -->
+<div class="modal" id="discover-modal">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3><i class="fas fa-search"></i> Discover Files</h3>
+            <button class="modal-close" onclick="closeModal('discover-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div id="discover-loading" class="text-center p-xl">
+                <div class="spinner"></div>
+                <p class="mt-md">Scanning bucket for genomics files...</p>
+                <p class="text-muted">Looking for FASTQ(.gz), BAM, CRAM, VCF, and BED files</p>
+            </div>
+            <div id="discover-error" class="d-none">
+                <div class="alert alert-error">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <span id="discover-error-msg">Failed to discover files</span>
+                </div>
+            </div>
+            <div id="discover-results" class="d-none">
+                <div class="discover-summary mb-lg">
+                    <div class="summary-stats">
+                        <div class="stat-item">
+                            <span class="stat-value" id="discover-count">0</span>
+                            <span class="stat-label">Total Files</span>
+                        </div>
+                        <div class="stat-item text-success">
+                            <span class="stat-value" id="discover-registered">0</span>
+                            <span class="stat-label">Registered</span>
+                        </div>
+                        <div class="stat-item text-warning">
+                            <span class="stat-value" id="discover-unregistered">0</span>
+                            <span class="stat-label">Unregistered</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="discover-file-list" id="discover-file-list"></div>
+            </div>
+        </div>
+        <div class="modal-footer" id="discover-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('discover-modal')">Close</button>
+            <button type="button" class="btn btn-primary" onclick="autoRegisterDiscovered()">
+                <i class="fas fa-plus"></i> Register Selected
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Bucket Modal -->
+<div class="modal" id="edit-bucket-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Edit Bucket</h3>
+            <button class="modal-close" onclick="closeModal('edit-bucket-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="edit-bucket-form" onsubmit="event.preventDefault(); saveBucketEdit();">
+                <div class="form-group">
+                    <label class="form-label">Bucket Name</label>
+                    <div class="form-static" id="edit-bucket-name">-</div>
+                    <small class="form-text">Bucket name cannot be changed</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Display Name</label>
+                    <input type="text" class="form-control" id="edit-display-name"
+                           placeholder="Friendly name for this bucket">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Bucket Type</label>
+                    <select class="form-control form-select" id="edit-bucket-type">
+                        <option value="secondary">Secondary (additional storage)</option>
+                        <option value="primary">Primary (main data storage)</option>
+                        <option value="archive">Archive (long-term storage)</option>
+                        <option value="shared">Shared (multi-user access)</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Prefix Restriction</label>
+                    <input type="text" class="form-control" id="edit-bucket-prefix"
+                           placeholder="data/fastq/">
+                    <small class="form-text">Optional: Restrict access to a specific prefix within the bucket</small>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description</label>
+                    <textarea class="form-control" id="edit-bucket-description" rows="2"
+                              placeholder="Description of this bucket's purpose"></textarea>
+                </div>
+
+                <div class="form-group">
+                    <label class="checkbox-label">
+                        <input type="checkbox" id="edit-bucket-read-only">
+                        <span class="ml-sm">Read-only access (prevent writes to this bucket)</span>
+                    </label>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('edit-bucket-modal')">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="saveBucketEdit()">
+                <i class="fas fa-save"></i> Save Changes
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.bucket-list { display: flex; flex-direction: column; gap: var(--spacing-lg); }
+.bucket-card { border: 1px solid var(--color-gray-300); border-radius: var(--radius-lg); padding: var(--spacing-lg); }
+.bucket-card.bucket-valid { border-left: 4px solid var(--color-success); }
+.bucket-card.bucket-invalid { border-left: 4px solid var(--color-error); }
+.bucket-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: var(--spacing-md); }
+.bucket-info { display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; }
+.bucket-name { display: flex; align-items: center; gap: var(--spacing-sm); font-size: 1.125rem; }
+.bucket-name i { color: #ff9900; }
+.bucket-actions { display: flex; gap: var(--spacing-sm); }
+.bucket-meta { display: flex; gap: var(--spacing-xl); flex-wrap: wrap; color: var(--color-gray-600); font-size: 0.875rem; }
+.bucket-meta span { display: flex; align-items: center; gap: var(--spacing-xs); }
+.validation-checks { display: flex; gap: var(--spacing-lg); }
+.check-item { display: flex; align-items: center; gap: var(--spacing-xs); font-size: 0.875rem; }
+.check-pass { color: var(--color-success); }
+.check-fail { color: var(--color-error); }
+.remediation-box { background: #fff3cd; border: 1px solid #ffc107; border-radius: var(--radius-md); padding: var(--spacing-md); }
+.remediation-header { font-weight: 600; margin-bottom: var(--spacing-sm); color: #856404; }
+.remediation-steps { margin: 0; padding-left: var(--spacing-lg); color: #856404; }
+.remediation-steps li { margin-bottom: var(--spacing-xs); }
+.accordion-item { border: 1px solid var(--color-gray-300); border-radius: var(--radius-md); margin-bottom: var(--spacing-sm); }
+.accordion-header { width: 100%; display: flex; justify-content: space-between; align-items: center; padding: var(--spacing-md); background: none; border: none; cursor: pointer; font-size: 1rem; }
+.accordion-content { display: none; padding: var(--spacing-md); border-top: 1px solid var(--color-gray-300); }
+.accordion-item.active .accordion-content { display: block; }
+.accordion-item.active .accordion-header i { transform: rotate(180deg); }
+.code-block { background: var(--color-gray-900); color: #e9ecef; padding: var(--spacing-md); border-radius: var(--radius-md); overflow-x: auto; font-family: var(--font-mono); font-size: 0.85rem; }
+.spinner { width: 40px; height: 40px; border: 3px solid var(--color-gray-300); border-top-color: var(--color-accent); border-radius: 50%; animation: spin 1s linear infinite; margin: 0 auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* Input with button */
+.input-with-button { display: flex; gap: var(--spacing-sm); }
+.input-with-button .form-control { flex: 1; }
+.form-row { display: grid; grid-template-columns: repeat(2, 1fr); gap: var(--spacing-md); }
+
+/* Validation results box */
+.validation-results-box { background: var(--color-gray-100); border-radius: var(--radius-md); padding: var(--spacing-md); }
+.validation-results-box h4 { margin-bottom: var(--spacing-md); }
+.validation-summary { margin-bottom: var(--spacing-md); }
+.validation-details { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: var(--spacing-sm); }
+.validation-item { display: flex; justify-content: space-between; padding: var(--spacing-xs) var(--spacing-sm); background: white; border-radius: var(--radius-sm); }
+.validation-item .label { color: var(--color-gray-600); }
+.error-list, .warning-list { margin: var(--spacing-sm) 0 0 var(--spacing-lg); padding: 0; }
+.error-list li { color: var(--color-error); }
+.warning-list li { color: var(--color-warning); }
+.remediation-list { margin: var(--spacing-sm) 0 0 var(--spacing-lg); padding: 0; }
+.remediation-list li { margin-bottom: var(--spacing-xs); }
+
+/* Discover modal styles */
+.discover-summary { background: var(--color-gray-100); border-radius: var(--radius-md); padding: var(--spacing-md); }
+.summary-stats { display: flex; justify-content: space-around; text-align: center; }
+.stat-item { display: flex; flex-direction: column; }
+.stat-value { font-size: 1.5rem; font-weight: 600; }
+.stat-label { font-size: 0.75rem; color: var(--color-gray-600); text-transform: uppercase; }
+.discover-file-list { max-height: 400px; overflow-y: auto; border: 1px solid var(--color-gray-300); border-radius: var(--radius-md); }
+.discover-file-item { display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-sm) var(--spacing-md); border-bottom: 1px solid var(--color-gray-200); }
+.discover-file-item:last-child { border-bottom: none; }
+.discover-file-item.registered { background: var(--color-gray-100); opacity: 0.7; }
+.discover-file-item .file-key { flex: 1; font-family: var(--font-mono); font-size: 0.85rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.discover-file-item .file-size { min-width: 70px; text-align: right; }
+.discover-file-item .file-format { min-width: 60px; text-align: center; }
+
+/* Edit form static text */
+.form-static { padding: var(--spacing-sm) var(--spacing-md); background: var(--color-gray-100); border-radius: var(--radius-md); font-family: var(--font-mono); color: var(--color-gray-700); }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Set customer ID for API calls
+window.CUSTOMER_ID = '{{ customer.customer_id if customer else "default-customer" }}';
+
+// Accordion toggle function
+function toggleAccordion(header) {
+    const item = header.parentElement;
+    item.classList.toggle('active');
+}
+
+// Copy policy to clipboard
+function copyPolicy(type) {
+    const codeEl = document.getElementById('policy-' + type);
+    if (codeEl) {
+        navigator.clipboard.writeText(codeEl.textContent).then(() => {
+            showToast('Policy copied to clipboard', 'success');
+        });
+    }
+}
+
+// Store current bucket being edited/discovered
+window.currentBucketId = null;
+
+// Discover files in bucket
+async function discoverFiles(bucketId) {
+    window.currentBucketId = bucketId;
+    showModal('discover-modal');
+    document.getElementById('discover-loading').classList.remove('d-none');
+    document.getElementById('discover-results').classList.add('d-none');
+    document.getElementById('discover-error').classList.add('d-none');
+
+    try {
+        const response = await fetch(`${FILE_API_BASE}/buckets/${bucketId}/discover?customer_id=${encodeURIComponent(CUSTOMER_ID)}&file_formats=fastq,fastq.gz,fq,fq.gz,bam,cram,vcf,bed`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        document.getElementById('discover-loading').classList.add('d-none');
+
+        if (response.ok) {
+            const result = await response.json();
+            document.getElementById('discover-results').classList.remove('d-none');
+            document.getElementById('discover-count').textContent = result.total_files || 0;
+            document.getElementById('discover-registered').textContent = result.registered_count || 0;
+            document.getElementById('discover-unregistered').textContent = result.unregistered_count || 0;
+
+            const fileList = document.getElementById('discover-file-list');
+            if (result.files && result.files.length > 0) {
+                fileList.innerHTML = result.files.map(f => `
+                    <div class="discover-file-item ${f.is_registered ? 'registered' : 'unregistered'}">
+                        <input type="checkbox" ${f.is_registered ? 'disabled' : 'checked'} value="${f.s3_uri}" data-key="${f.key}">
+                        <span class="file-key" title="${f.s3_uri}">${f.key}</span>
+                        <span class="file-format badge badge-outline">${f.detected_format}</span>
+                        <span class="file-size text-muted">${formatFileSize(f.file_size_bytes)}</span>
+                        ${f.is_registered ? '<span class="badge badge-success">Registered</span>' : ''}
+                    </div>
+                `).join('');
+            } else {
+                fileList.innerHTML = '<p class="text-muted text-center p-lg">No genomics files found in this bucket</p>';
+            }
+        } else {
+            const err = await response.json().catch(() => ({}));
+            document.getElementById('discover-error').classList.remove('d-none');
+            document.getElementById('discover-error-msg').textContent = err.detail || 'Failed to discover files';
+        }
+    } catch (error) {
+        console.error('Discover error:', error);
+        document.getElementById('discover-loading').classList.add('d-none');
+        document.getElementById('discover-error').classList.remove('d-none');
+        document.getElementById('discover-error-msg').textContent = error.message || 'Failed to discover files';
+    }
+}
+
+// Auto-register selected discovered files
+async function autoRegisterDiscovered() {
+    const checkboxes = document.querySelectorAll('#discover-file-list input[type="checkbox"]:checked:not(:disabled)');
+    if (checkboxes.length === 0) {
+        showToast('No files selected for registration', 'warning');
+        return;
+    }
+    // Redirect to register page with the bucket pre-selected
+    showToast(`${checkboxes.length} files ready for registration. Redirecting to register page...`, 'info');
+    setTimeout(() => {
+        window.location.href = '/portal/files/register';
+    }, 1000);
+}
+
+// Edit bucket
+async function editBucket(bucketId) {
+    try {
+        // First get the bucket details
+        const response = await fetch(`${FILE_API_BASE}/buckets/${bucketId}`, {
+            method: 'GET',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+            const bucket = await response.json();
+            window.currentBucketId = bucketId;
+
+            // Populate the edit form
+            document.getElementById('edit-bucket-name').textContent = bucket.bucket_name;
+            document.getElementById('edit-display-name').value = bucket.display_name || '';
+            document.getElementById('edit-bucket-type').value = bucket.bucket_type || 'secondary';
+            document.getElementById('edit-bucket-prefix').value = bucket.prefix_restriction || '';
+            document.getElementById('edit-bucket-description').value = bucket.description || '';
+            document.getElementById('edit-bucket-read-only').checked = bucket.read_only || false;
+
+            showModal('edit-bucket-modal');
+        } else {
+            showToast('Failed to load bucket details', 'error');
+        }
+    } catch (error) {
+        console.error('Edit bucket error:', error);
+        showToast('Failed to load bucket details', 'error');
+    }
+}
+
+// Save bucket edits
+async function saveBucketEdit() {
+    const bucketId = window.currentBucketId;
+    if (!bucketId) {
+        showToast('No bucket selected', 'error');
+        return;
+    }
+
+    const data = {
+        display_name: document.getElementById('edit-display-name').value || null,
+        description: document.getElementById('edit-bucket-description').value || null,
+        bucket_type: document.getElementById('edit-bucket-type').value,
+        prefix_restriction: document.getElementById('edit-bucket-prefix').value || null,
+        read_only: document.getElementById('edit-bucket-read-only').checked,
+    };
+
+    try {
+        const response = await fetch(`${FILE_API_BASE}/buckets/${bucketId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data)
+        });
+
+        if (response.ok) {
+            showToast('Bucket updated successfully', 'success');
+            closeModal('edit-bucket-modal');
+            // Reload the page to show updated data
+            setTimeout(() => location.reload(), 500);
+        } else {
+            const err = await response.json().catch(() => ({}));
+            showToast(err.detail || 'Failed to update bucket', 'error');
+        }
+    } catch (error) {
+        console.error('Save bucket error:', error);
+        showToast('Failed to update bucket', 'error');
+    }
+}
+
+// Unlink bucket
+async function unlinkBucket(bucketId) {
+    if (!confirm('Are you sure you want to unlink this bucket?\n\nFiles will remain in the bucket but will no longer be accessible through Daylily.')) {
+        return;
+    }
+
+    try {
+        const response = await fetch(`${FILE_API_BASE}/buckets/${bucketId}/unlink`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' }
+        });
+
+        if (response.ok) {
+            showToast('Bucket unlinked successfully', 'success');
+            // Reload the page to show updated list
+            setTimeout(() => location.reload(), 500);
+        } else {
+            const err = await response.json().catch(() => ({}));
+            showToast(err.detail || 'Failed to unlink bucket', 'error');
+        }
+    } catch (error) {
+        console.error('Unlink bucket error:', error);
+        showToast('Failed to unlink bucket', 'error');
+    }
+}
+</script>
+<script src="/static/js/file-registry.js?v={{ cache_bust | default('1') }}"></script>
+{% endblock %}
+

@@ -476,6 +476,14 @@ class LinkedBucketManager:
         self.region = region
         self.profile = profile
 
+        # Sanity logging/guards so mis-bound DynamoDB resources surface immediately
+        LOGGER.info(
+            "LinkedBucketManager bound to table: %s (region=%s)",
+            self.table.table_name,
+            self.region,
+        )
+        assert hasattr(self.table, "table_name")
+
         # Auto-create table if requested
         if auto_create_table:
             self.create_table_if_not_exists()
