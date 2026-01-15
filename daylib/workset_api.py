@@ -1300,12 +1300,16 @@ def create_app(
             safe_name = workset_name.replace(" ", "-").lower()[:30]
             workset_id = f"{safe_name}-{uuid.uuid4().hex[:8]}"
 
-            # Use customer's bucket - always use the customer's designated bucket
-            bucket = config.s3_bucket
+            # Use control-plane bucket (monitor bucket) for workset registration
+            bucket = None
+            if integration and integration.bucket:
+                bucket = integration.bucket
+            if not bucket:
+                bucket = os.getenv("DAYLILY_CONTROL_BUCKET") or os.getenv("DAYLILY_MONITOR_BUCKET")
             if not bucket:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Customer has no S3 bucket configured",
+                    detail="Control bucket is not configured for workset registration",
                 )
 
             # Use provided prefix or generate one based on workset ID
@@ -1356,6 +1360,8 @@ def create_app(
                 "priority": priority,
                 "samples": normalized_samples,
                 "sample_count": len(normalized_samples),
+                "data_bucket": config.s3_bucket,
+                "data_buckets": [config.s3_bucket] if config.s3_bucket else [],
             }
 
             # Use integration layer if available for unified registration
@@ -3198,4 +3204,3 @@ def create_app(
         LOGGER.info("File management not configured - file API endpoints not registered")
 
     return app
-

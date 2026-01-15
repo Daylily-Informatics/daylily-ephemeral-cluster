@@ -13,6 +13,7 @@ from typing import Any, Dict, List, Optional, Tuple
 from enum import Enum
 
 import boto3
+from boto3.dynamodb.conditions import Attr
 from botocore.exceptions import ClientError
 
 LOGGER = logging.getLogger("daylily.workset_state_db")
@@ -21,7 +22,7 @@ LOGGER = logging.getLogger("daylily.workset_state_db")
 class WorksetState(str, Enum):
     """Workset lifecycle states."""
     READY = "ready"
-    LOCKED = "locked"
+    LOCKED = "locked"  # Deprecated: lock ownership is tracked via lock_owner attributes.
     IN_PROGRESS = "in_progress"
     COMPLETE = "complete"
     ERROR = "error"
@@ -52,11 +53,10 @@ STATE_PRIORITY_ORDER = {
     WorksetState.ERROR: 0,
     WorksetState.RETRYING: 1,
     WorksetState.IN_PROGRESS: 2,
-    WorksetState.LOCKED: 3,
-    WorksetState.READY: 4,
-    WorksetState.COMPLETE: 5,
-    WorksetState.FAILED: 6,
-    WorksetState.IGNORED: 7,
+    WorksetState.READY: 3,
+    WorksetState.COMPLETE: 4,
+    WorksetState.FAILED: 5,
+    WorksetState.IGNORED: 6,
 }
 
 EXECUTION_PRIORITY_ORDER = {
@@ -237,7 +237,7 @@ class WorksetStateDB:
         now_iso = now.isoformat() + "Z"
 
         try:
-            # First, check current state
+            # First, check current state and lock metadata
             response = self.table.get_item(Key={"workset_id": workset_id})
             if "Item" not in response:
                 LOGGER.warning("Workset %s not found", workset_id)
@@ -246,8 +246,8 @@ class WorksetStateDB:
             item = response["Item"]
             current_state = item.get("state")
 
-            # Check if workset is in a lockable state
-            if current_state not in [WorksetState.READY.value, WorksetState.LOCKED.value]:
+            # Only allow locking ready worksets unless force is set
+            if not force and current_state != WorksetState.READY.value:
                 LOGGER.info(
                     "Workset %s in state %s, cannot acquire lock",
                     workset_id,
@@ -255,16 +255,15 @@ class WorksetStateDB:
                 )
                 return False
 
-            # Check for stale lock
-            if current_state == WorksetState.LOCKED.value:
-                lock_acquired_at = item.get("lock_acquired_at")
-                lock_owner = item.get("lock_owner")
+            lock_owner = item.get("lock_owner")
+            lock_acquired_at = item.get("lock_acquired_at")
+            lock_is_stale = False
 
-                if lock_acquired_at and not force:
+            if lock_owner:
+                if lock_acquired_at:
                     lock_time = dt.datetime.fromisoformat(lock_acquired_at.rstrip("Z"))
                     elapsed = (now - lock_time).total_seconds()
-
-                    if elapsed < self.lock_timeout_seconds:
+                    if elapsed < self.lock_timeout_seconds and not force:
                         LOGGER.info(
                             "Workset %s locked by %s (%.0f seconds ago)",
                             workset_id,
@@ -272,46 +271,45 @@ class WorksetStateDB:
                             elapsed,
                         )
                         return False
-
+                    lock_is_stale = True
                     LOGGER.warning(
                         "Releasing stale lock on %s (held by %s for %.0f seconds)",
                         workset_id,
                         lock_owner,
                         elapsed,
                     )
+                elif not force:
+                    LOGGER.info(
+                        "Workset %s locked by %s (timestamp missing)",
+                        workset_id,
+                        lock_owner,
+                    )
+                    return False
 
             # Attempt to acquire lock
-            condition = "attribute_exists(workset_id)"
-            if not force and current_state == WorksetState.LOCKED.value:
-                # Only acquire if lock is stale or from same owner
-                condition += " AND (attribute_not_exists(lock_owner) OR lock_owner = :owner)"
+            condition = "attribute_exists(workset_id) AND (attribute_not_exists(lock_owner) OR lock_owner = :owner"
+            if lock_is_stale:
+                condition += " OR lock_acquired_at = :stale_at"
+            condition += ")"
 
             update_expr = (
-                "SET #state = :locked, "
-                "lock_owner = :owner, "
+                "SET lock_owner = :owner, "
                 "lock_acquired_at = :now, "
-                "updated_at = :now, "
-                "state_history = list_append(if_not_exists(state_history, :empty_list), :history)"
+                "updated_at = :now"
             )
+
+            expression_values = {
+                ":owner": owner_id,
+                ":now": now_iso,
+            }
+            if lock_is_stale and lock_acquired_at:
+                expression_values[":stale_at"] = lock_acquired_at
 
             self.table.update_item(
                 Key={"workset_id": workset_id},
                 UpdateExpression=update_expr,
                 ConditionExpression=condition,
-                ExpressionAttributeNames={"#state": "state"},
-                ExpressionAttributeValues={
-                    ":locked": WorksetState.LOCKED.value,
-                    ":owner": owner_id,
-                    ":now": now_iso,
-                    ":empty_list": [],
-                    ":history": [
-                        {
-                            "state": WorksetState.LOCKED.value,
-                            "timestamp": now_iso,
-                            "reason": f"Locked by {owner_id}",
-                        }
-                    ],
-                },
+                ExpressionAttributeValues=expression_values,
             )
 
             self._emit_metric("LockAcquired", 1.0)
@@ -340,24 +338,13 @@ class WorksetStateDB:
             self.table.update_item(
                 Key={"workset_id": workset_id},
                 UpdateExpression=(
-                    "SET #state = :ready, "
-                    "updated_at = :now, "
-                    "state_history = list_append(state_history, :history) "
+                    "SET updated_at = :now "
                     "REMOVE lock_owner, lock_acquired_at"
                 ),
                 ConditionExpression="lock_owner = :owner",
-                ExpressionAttributeNames={"#state": "state"},
                 ExpressionAttributeValues={
-                    ":ready": WorksetState.READY.value,
                     ":owner": owner_id,
                     ":now": now_iso,
-                    ":history": [
-                        {
-                            "state": WorksetState.READY.value,
-                            "timestamp": now_iso,
-                            "reason": f"Lock released by {owner_id}",
-                        }
-                    ],
                 },
             )
             LOGGER.info("Released lock on workset %s", workset_id)
@@ -483,6 +470,34 @@ class WorksetStateDB:
         except ClientError as e:
             LOGGER.error("Failed to list worksets: %s", str(e))
             return []
+
+    def list_locked_worksets(self, limit: int = 100) -> List[Dict[str, Any]]:
+        """List worksets that currently have a lock owner.
+
+        Args:
+            limit: Maximum number of results
+
+        Returns:
+            List of workset records with lock_owner set
+        """
+        items: List[Dict[str, Any]] = []
+        scan_kwargs = {
+            "FilterExpression": Attr("lock_owner").exists(),
+            "Limit": limit,
+        }
+        try:
+            while True:
+                response = self.table.scan(**scan_kwargs)
+                items.extend(response.get("Items", []))
+                if len(items) >= limit or "LastEvaluatedKey" not in response:
+                    break
+                scan_kwargs["ExclusiveStartKey"] = response["LastEvaluatedKey"]
+                scan_kwargs["Limit"] = limit - len(items)
+        except ClientError as e:
+            LOGGER.error("Failed to list locked worksets: %s", str(e))
+            return []
+
+        return [self._deserialize_item(item) for item in items[:limit]]
 
     def get_ready_worksets_prioritized(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Get ready worksets ordered by priority (urgent first).
@@ -765,10 +780,10 @@ class WorksetStateDB:
         """Get count of worksets currently in progress.
 
         Returns:
-            Number of worksets in IN_PROGRESS or LOCKED state
+            Number of worksets in IN_PROGRESS plus locked worksets
         """
         in_progress = len(self.list_worksets_by_state(WorksetState.IN_PROGRESS, limit=1000))
-        locked = len(self.list_worksets_by_state(WorksetState.LOCKED, limit=1000))
+        locked = len(self.list_locked_worksets(limit=1000))
         return in_progress + locked
 
     def can_start_new_workset(self, max_concurrent: int) -> bool:
@@ -958,4 +973,3 @@ class WorksetStateDB:
             List of archived workset dicts
         """
         return self.list_worksets_by_state(WorksetState.ARCHIVED, limit=limit)
-

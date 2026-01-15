@@ -13,6 +13,7 @@ import logging
 import os
 import re
 import shutil
+import socket
 import shlex
 import subprocess
 import time
@@ -292,6 +293,7 @@ class WorksetMonitor:
         self._session = boto3.session.Session(**config.aws.session_kwargs())
         self._s3 = self._session.client("s3")
         self._sts = self._session.client("sts")
+        self.lock_owner_id = f"{socket.gethostname()}-{os.getpid()}"
         self._sentinel_history: Dict[str, Dict[str, str]] = {}
         self._process_directories: Optional[Set[str]] = (
             {name.strip() for name in process_directories if name.strip()}
@@ -512,6 +514,37 @@ class WorksetMonitor:
                 self._shutdown_cluster(cluster_name)
                 cluster_name = None
 
+    def build_workset(
+        self,
+        workset_id: str,
+        *,
+        prefix: Optional[str] = None,
+        sentinels: Optional[Dict[str, str]] = None,
+        has_required_files: bool = True,
+        is_archived: bool = False,
+    ) -> Workset:
+        """Create a Workset object for direct processing."""
+        normalized_prefix = prefix or f"{self.config.monitor.normalised_prefix()}{workset_id}/"
+        return Workset(
+            name=workset_id,
+            prefix=normalized_prefix,
+            sentinels=sentinels or {},
+            has_required_files=has_required_files,
+            is_archived=is_archived,
+        )
+
+    def write_sentinel(self, workset: Workset, sentinel_name: str, value: str) -> None:
+        """Public wrapper for writing a sentinel file."""
+        self._write_sentinel(workset, sentinel_name, value)
+
+    def load_workset_metrics(self, workset: Workset) -> Dict[str, Any]:
+        """Return cached metrics for a workset."""
+        return self._load_metrics(workset)
+
+    def process_workset(self, workset: Workset) -> None:
+        """Process a workset directly, bypassing S3 sentinel checks."""
+        self._process_workset(workset)
+
 
     # ------------------------------------------------------------------
     # Workset discovery
@@ -569,16 +602,19 @@ class WorksetMonitor:
             bucket = db_workset.get("bucket", self.config.monitor.bucket)
             prefix = db_workset.get("prefix", f"{self.config.monitor.normalised_prefix()}{workset_id}/")
             state = db_workset.get("state", "ready")
+            lock_owner = db_workset.get("lock_owner")
+            lock_acquired_at = db_workset.get("lock_acquired_at")
 
             # Build sentinels dict from DynamoDB state
             sentinels: Dict[str, str] = {}
             created_at = db_workset.get("created_at", "")
             if state == "ready":
                 sentinels[SENTINEL_FILES["ready"]] = created_at
-            elif state == "locked":
-                sentinels[SENTINEL_FILES["lock"]] = created_at
             elif state == "in_progress":
                 sentinels[SENTINEL_FILES["in_progress"]] = created_at
+
+            if lock_owner:
+                sentinels[SENTINEL_FILES["lock"]] = lock_acquired_at or created_at
 
             # Sync to S3 if integration layer is available
             if self.integration and bucket:
@@ -951,6 +987,22 @@ class WorksetMonitor:
     def _attempt_acquire(self, workset: Workset) -> bool:
         initial_snapshot = dict(workset.sentinels)
         timestamp = f"{dt.datetime.utcnow().isoformat()}Z"
+        if self.state_db:
+            try:
+                acquired = self.state_db.acquire_lock(workset.name, self.lock_owner_id)
+            except Exception as exc:
+                LOGGER.warning(
+                    "Failed to acquire DynamoDB lock for %s: %s",
+                    workset.name,
+                    str(exc),
+                )
+                return False
+            if not acquired:
+                LOGGER.info(
+                    "DynamoDB lock already held for %s; skipping S3 lock sentinel",
+                    workset.name,
+                )
+                return False
         self._write_sentinel(workset, SENTINEL_FILES["lock"], timestamp)
         workset.sentinels[SENTINEL_FILES["lock"]] = timestamp
         LOGGER.debug("Wrote lock sentinel for %s", workset.name)
@@ -965,6 +1017,8 @@ class WorksetMonitor:
                 ", ".join(sorted(unexpected)),
             )
             self._delete_sentinel(workset, SENTINEL_FILES["lock"])
+            if self.state_db:
+                self.state_db.release_lock(workset.name, self.lock_owner_id)
             return False
         LOGGER.info("Acquired workset %s", workset.name)
         in_progress_value = f"{dt.datetime.utcnow().isoformat()}Z"
@@ -2764,7 +2818,6 @@ class WorksetMonitor:
         # Map sentinel names to DynamoDB states
         sentinel_to_state = {
             SENTINEL_FILES["ready"]: "ready",
-            SENTINEL_FILES["lock"]: "locked",
             SENTINEL_FILES["in_progress"]: "in_progress",
             SENTINEL_FILES["error"]: "error",
             SENTINEL_FILES["complete"]: "complete",
