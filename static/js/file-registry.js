@@ -458,6 +458,9 @@ function cancelBulkImport() {
 // Auto-Discovery
 // ============================================================================
 
+let discoveredFiles = [];
+let discoveredFilesByS3 = new Map();
+
 async function startDiscovery() {
     const bucket = document.getElementById('discover-bucket').value;
     if (!bucket) {
@@ -467,6 +470,7 @@ async function startDiscovery() {
 
     const prefix = document.getElementById('discover-prefix').value;
     const types = Array.from(document.querySelectorAll('.discover-type:checked')).map(cb => cb.value);
+    const customerId = getCustomerId();
 
     const resultsDiv = document.getElementById('discover-results');
     const contentDiv = document.getElementById('discover-results-content');
@@ -475,15 +479,19 @@ async function startDiscovery() {
     contentDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Scanning bucket...</div>';
 
     try {
-        const response = await fetch(`${FILE_API_BASE}/buckets/${bucket}/discover`, {
+        const params = new URLSearchParams({
+            customer_id: customerId,
+            prefix: prefix || '',
+            file_formats: types.join(','),
+        });
+        const response = await fetch(`${FILE_API_BASE}/buckets/${bucket}/discover?${params.toString()}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prefix, file_types: types })
+            headers: { 'Content-Type': 'application/json' }
         });
 
         if (response.ok) {
             const result = await response.json();
-            renderDiscoveryResults(result.files);
+            renderDiscoveryResults(result.files || []);
         } else {
             const error = await response.json();
             contentDiv.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i> ${error.detail}</div>`;
@@ -497,6 +505,9 @@ async function startDiscovery() {
 function renderDiscoveryResults(files) {
     const contentDiv = document.getElementById('discover-results-content');
 
+    discoveredFiles = files || [];
+    discoveredFilesByS3 = new Map(discoveredFiles.map(file => [file.s3_uri, file]));
+
     if (!files || files.length === 0) {
         contentDiv.innerHTML = '<div class="empty-state"><i class="fas fa-folder-open"></i><p>No files found</p></div>';
         return;
@@ -505,20 +516,113 @@ function renderDiscoveryResults(files) {
     contentDiv.innerHTML = `
         <div class="d-flex justify-between align-center mb-lg">
             <span><strong>${files.length}</strong> files discovered</span>
-            <button class="btn btn-primary" onclick="registerDiscoveredFiles()">
-                <i class="fas fa-plus"></i> Register All
+            <button class="btn btn-primary" id="discover-register-btn" onclick="registerSelectedDiscoveredFiles()" disabled>
+                <i class="fas fa-plus"></i> Register Selected Files
             </button>
         </div>
+        <div class="text-muted mb-md">Selected: <span id="discover-selected-count">0</span></div>
         <div class="discovered-files-list">
             ${files.map(f => `
-                <div class="discovered-file">
-                    <input type="checkbox" class="discover-select" value="${f.key}" checked>
+                <div class="discovered-file ${f.is_registered ? 'registered' : ''}">
+                    <input type="checkbox" class="discover-select" value="${f.s3_uri}" data-key="${f.key}"
+                        ${f.is_registered ? 'disabled' : ''} onchange="updateDiscoverSelectionState()">
                     <span class="file-key">${f.key}</span>
-                    <span class="file-size text-muted">${formatFileSize(f.size)}</span>
+                    <span class="file-format badge badge-outline">${f.detected_format}</span>
+                    <span class="file-size text-muted">${formatFileSize(f.file_size_bytes)}</span>
+                    ${f.is_registered ? '<span class="badge badge-success">Registered</span>' : ''}
                 </div>
             `).join('')}
         </div>
     `;
+
+    updateDiscoverSelectionState();
+}
+
+function updateDiscoverSelectionState() {
+    const selected = document.querySelectorAll('.discover-select:checked:not(:disabled)');
+    const registerBtn = document.getElementById('discover-register-btn');
+    const selectedCount = document.getElementById('discover-selected-count');
+
+    if (registerBtn) {
+        registerBtn.disabled = selected.length === 0;
+    }
+    if (selectedCount) {
+        selectedCount.textContent = selected.length;
+    }
+}
+
+async function registerSelectedDiscoveredFiles() {
+    const selected = Array.from(document.querySelectorAll('.discover-select:checked:not(:disabled)'));
+    if (selected.length === 0) {
+        showToast('No files selected for registration', 'warning');
+        return;
+    }
+
+    const subjectId = document.getElementById('discover-subject-id')?.value?.trim();
+    const biosampleId = document.getElementById('discover-biosample-id')?.value?.trim();
+
+    if (!subjectId || !biosampleId) {
+        showToast('Subject ID and Biosample ID are required', 'error');
+        return;
+    }
+
+    const registerBtn = document.getElementById('discover-register-btn');
+    if (registerBtn) {
+        registerBtn.disabled = true;
+        registerBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+    }
+
+    const files = selected.map(cb => {
+        const s3Uri = cb.value;
+        const file = discoveredFilesByS3.get(s3Uri);
+        return {
+            s3_uri: s3Uri,
+            key: file?.key || cb.dataset.key || null,
+            file_size_bytes: file?.file_size_bytes || 0,
+            detected_format: file?.detected_format || null,
+            last_modified: file?.last_modified || null,
+            etag: file?.etag || null,
+            read_number: file?.read_number || null,
+        };
+    });
+
+    try {
+        const response = await fetch('/portal/files/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                customer_id: getCustomerId(),
+                subject_id: subjectId,
+                biosample_id: biosampleId,
+                files: files,
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            const registeredCount = result.registered?.length || 0;
+            const skippedCount = result.skipped?.length || 0;
+            const errorCount = result.errors?.length || 0;
+
+            if (errorCount > 0) {
+                showToast(`Registered ${registeredCount}, skipped ${skippedCount}, errors ${errorCount}`, 'warning');
+            } else {
+                showToast(`Registered ${registeredCount}, skipped ${skippedCount}`, 'success');
+            }
+            startDiscovery();
+        } else {
+            const error = await response.json();
+            showToast(error.detail || 'Failed to register selected files', 'error');
+        }
+    } catch (error) {
+        console.error('Register selected files error:', error);
+        showToast('Failed to register selected files', 'error');
+    } finally {
+        if (registerBtn) {
+            registerBtn.innerHTML = '<i class="fas fa-plus"></i> Register Selected Files';
+            updateDiscoverSelectionState();
+        }
+    }
 }
 
 // ============================================================================
@@ -971,4 +1075,3 @@ document.addEventListener('DOMContentLoaded', () => {
         document.head.appendChild(style);
     }
 });
-

@@ -47,7 +47,16 @@ except ImportError:
 # File management imports
 try:
     from daylib.file_api import create_file_api_router
-    from daylib.file_registry import FileRegistry, BucketFileDiscovery
+    from daylib.file_registry import (
+        BiosampleMetadata,
+        BucketFileDiscovery,
+        FileMetadata,
+        FileRegistration,
+        FileRegistry,
+        SequencingMetadata,
+        detect_file_format,
+        generate_file_id,
+    )
     from daylib.s3_bucket_validator import S3BucketValidator, LinkedBucketManager
     FILE_MANAGEMENT_AVAILABLE = True
 except ImportError:
@@ -55,6 +64,12 @@ except ImportError:
     create_file_api_router = None
     FileRegistry = None
     BucketFileDiscovery = None
+    FileRegistration = None
+    FileMetadata = None
+    SequencingMetadata = None
+    BiosampleMetadata = None
+    detect_file_format = None
+    generate_file_id = None
     S3BucketValidator = None
     LinkedBucketManager = None
 
@@ -220,6 +235,33 @@ class WorkYamlGenerateRequest(BaseModel):
     priority: str = "normal"
     max_retries: int = 3
     estimated_coverage: float = 30.0
+
+
+class PortalDiscoveredFile(BaseModel):
+    """Request model for selected discovered files."""
+    s3_uri: str
+    key: Optional[str] = None
+    file_size_bytes: int = 0
+    detected_format: Optional[str] = None
+    last_modified: Optional[str] = None
+    etag: Optional[str] = None
+    read_number: Optional[int] = None
+
+
+class PortalRegisterDiscoveredFilesRequest(BaseModel):
+    """Request model for registering selected discovered files."""
+    files: List[PortalDiscoveredFile]
+    biosample_id: str = Field(..., description="Biosample ID for selected files")
+    subject_id: str = Field(..., description="Subject ID for selected files")
+    sequencing_platform: str = Field("ILLUMINA_NOVASEQ_X", description="Sequencing platform")
+    customer_id: Optional[str] = Field(None, description="Customer ID override")
+
+
+class PortalRegisterDiscoveredFilesResponse(BaseModel):
+    """Response model for registering selected discovered files."""
+    registered: List[str]
+    skipped: List[str]
+    errors: List[str]
 
 
 def create_app(
@@ -2682,6 +2724,84 @@ def create_app(
                 ),
             )
 
+        @app.post(
+            "/portal/files/register",
+            response_model=PortalRegisterDiscoveredFilesResponse,
+            tags=["portal"],
+        )
+        async def portal_register_discovered_files(
+            request: Request,
+            payload: PortalRegisterDiscoveredFilesRequest = Body(...),
+        ):
+            """Register selected discovered files."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            if not FILE_MANAGEMENT_AVAILABLE or not file_registry:
+                raise HTTPException(
+                    status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                    detail="File registry not configured",
+                )
+
+            customer = None
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+
+            customer_id = payload.customer_id or (customer.customer_id if customer else None) or "default-customer"
+
+            registered: List[str] = []
+            skipped: List[str] = []
+            errors: List[str] = []
+
+            for discovered in payload.files:
+                try:
+                    file_key = discovered.key or discovered.s3_uri.split("/", 3)[-1]
+                    detected_format = discovered.detected_format
+                    if not detected_format and detect_file_format:
+                        detected_format = detect_file_format(file_key)
+
+                    read_number = discovered.read_number or 1
+                    if discovered.read_number is None and file_key:
+                        if "_R2" in file_key or "_2.fastq" in file_key or "_2.fq" in file_key:
+                            read_number = 2
+
+                    file_id = generate_file_id(discovered.s3_uri, customer_id)
+                    registration = FileRegistration(
+                        file_id=file_id,
+                        customer_id=customer_id,
+                        file_metadata=FileMetadata(
+                            file_id=file_id,
+                            s3_uri=discovered.s3_uri,
+                            file_size_bytes=discovered.file_size_bytes,
+                            md5_checksum=discovered.etag,
+                            file_format=detected_format or "fastq",
+                        ),
+                        sequencing_metadata=SequencingMetadata(
+                            platform=payload.sequencing_platform,
+                        ),
+                        biosample_metadata=BiosampleMetadata(
+                            biosample_id=payload.biosample_id,
+                            subject_id=payload.subject_id,
+                        ),
+                        read_number=read_number,
+                    )
+
+                    if file_registry.register_file(registration):
+                        registered.append(discovered.s3_uri)
+                    else:
+                        skipped.append(discovered.s3_uri)
+                except Exception as e:
+                    errors.append(f"{discovered.s3_uri}: {str(e)}")
+
+            return PortalRegisterDiscoveredFilesResponse(
+                registered=registered,
+                skipped=skipped,
+                errors=errors,
+            )
+
         @app.get("/portal/files/upload", response_class=HTMLResponse, tags=["portal"])
         async def portal_files_upload(request: Request):
             """File upload page."""
@@ -3055,4 +3175,3 @@ def create_app(
         LOGGER.info("File management not configured - file API endpoints not registered")
 
     return app
-

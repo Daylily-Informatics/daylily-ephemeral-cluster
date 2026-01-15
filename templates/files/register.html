@@ -297,7 +297,7 @@
     <div id="tab-discover" class="tab-content d-none">
         <div class="card mb-lg">
             <h3 class="card-title"><i class="fas fa-search"></i> Auto-Discover Files</h3>
-            <p class="text-muted mb-lg">Scan a linked bucket to discover and register files automatically</p>
+            <p class="text-muted mb-lg">Scan a linked bucket to discover files and select which ones to register</p>
 
             <div class="grid grid-2 gap-lg">
                 <div class="form-group">
@@ -331,6 +331,19 @@
                     <label class="checkbox-label">
                         <input type="checkbox" class="discover-type" value="vcf"> VCF
                     </label>
+                </div>
+            </div>
+
+            <div class="grid grid-2 gap-lg">
+                <div class="form-group">
+                    <label class="form-label required">Subject ID</label>
+                    <input type="text" class="form-control" id="discover-subject-id"
+                           placeholder="e.g., HG002, PATIENT-001">
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Biosample ID</label>
+                    <input type="text" class="form-control" id="discover-biosample-id"
+                           placeholder="e.g., SAMPLE-001">
                 </div>
             </div>
 
@@ -383,4 +396,3 @@ function browseS3() {
 </script>
 <script src="/static/js/file-registry.js?v={{ cache_bust | default('1') }}"></script>
 {% endblock %}
-
