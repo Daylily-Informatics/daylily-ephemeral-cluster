@@ -12,6 +12,7 @@ from daylib.file_registry import (
     FileRegistration,
     FileRegistry,
     FileSet,
+    FileWorksetUsage,
     SequencingMetadata,
 )
 
@@ -31,9 +32,11 @@ def file_registry(mock_dynamodb):
     registry = FileRegistry(
         files_table_name="test-files",
         filesets_table_name="test-filesets",
+        file_workset_usage_table_name="test-file-workset-usage",
     )
     registry.files_table = MagicMock()
     registry.filesets_table = MagicMock()
+    registry.file_workset_usage_table = MagicMock()
     return registry
 
 
@@ -351,10 +354,104 @@ class TestFileRegistryListCustomerFiles:
         ]
         
         file_registry.files_table.query.return_value = {"Items": items}
-        
+
         results = file_registry.list_customer_files("cust-001")
-        
+
         assert len(results) == 1
         assert results[0].file_id == "file-001"
         assert results[0].customer_id == "cust-001"
 
+
+class TestFileWorksetUsage:
+    """Test FileWorksetUsage dataclass."""
+
+    def test_create_file_workset_usage(self):
+        """Test creating file-workset usage record."""
+        usage = FileWorksetUsage(
+            file_id="file-001",
+            workset_id="ws-001",
+            customer_id="cust-001",
+            usage_type="input",
+            workset_state="RUNNING",
+            notes="Test usage",
+        )
+
+        assert usage.file_id == "file-001"
+        assert usage.workset_id == "ws-001"
+        assert usage.customer_id == "cust-001"
+        assert usage.usage_type == "input"
+        assert usage.workset_state == "RUNNING"
+        assert usage.notes == "Test usage"
+
+
+class TestFileRegistryWorksetUsage:
+    """Test file-workset usage tracking methods."""
+
+    def test_record_file_workset_usage(self, file_registry):
+        """Test recording file-workset usage."""
+        result = file_registry.record_file_workset_usage(
+            file_id="file-001",
+            workset_id="ws-001",
+            customer_id="cust-001",
+            usage_type="input",
+            workset_state="READY",
+        )
+
+        assert result is True
+        file_registry.file_workset_usage_table.put_item.assert_called_once()
+
+    def test_get_file_workset_history(self, file_registry):
+        """Test getting file workset history."""
+        items = [
+            {
+                "file_id": "file-001",
+                "workset_id": "ws-001",
+                "customer_id": "cust-001",
+                "usage_type": "input",
+                "added_at": "2024-01-15T00:00:00Z",
+                "workset_state": "COMPLETED",
+            },
+            {
+                "file_id": "file-001",
+                "workset_id": "ws-002",
+                "customer_id": "cust-001",
+                "usage_type": "input",
+                "added_at": "2024-01-16T00:00:00Z",
+                "workset_state": "RUNNING",
+            },
+        ]
+
+        file_registry.file_workset_usage_table.query.return_value = {"Items": items}
+
+        results = file_registry.get_file_workset_history("file-001")
+
+        assert len(results) == 2
+        assert results[0].workset_id == "ws-001"
+        assert results[1].workset_id == "ws-002"
+
+    def test_get_workset_files(self, file_registry):
+        """Test getting files used in a workset."""
+        items = [
+            {
+                "file_id": "file-001",
+                "workset_id": "ws-001",
+                "customer_id": "cust-001",
+                "usage_type": "input",
+                "added_at": "2024-01-15T00:00:00Z",
+            },
+            {
+                "file_id": "file-002",
+                "workset_id": "ws-001",
+                "customer_id": "cust-001",
+                "usage_type": "input",
+                "added_at": "2024-01-15T00:00:00Z",
+            },
+        ]
+
+        file_registry.file_workset_usage_table.query.return_value = {"Items": items}
+
+        results = file_registry.get_workset_files("ws-001")
+
+        assert len(results) == 2
+        assert results[0].file_id == "file-001"
+        assert results[1].file_id == "file-002"

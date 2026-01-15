@@ -557,7 +557,7 @@ class WorksetMonitor:
         try:
             ready_worksets = self.state_db.get_ready_worksets_prioritized(limit=100)
         except Exception as e:
-            LOGGER.warning("Failed to query DynamoDB for worksets: %s", e)
+            LOGGER.warning("Failed to query DynamoDB for worksets: %s", str(e))
             return
 
         for db_workset in ready_worksets:
@@ -586,7 +586,7 @@ class WorksetMonitor:
                     self.integration.sync_dynamodb_to_s3(workset_id)
                     LOGGER.info("Synced DynamoDB workset %s to S3", workset_id)
                 except Exception as e:
-                    LOGGER.warning("Failed to sync workset %s to S3: %s", workset_id, e)
+                    LOGGER.warning("Failed to sync workset %s to S3: %s", workset_id, str(e))
 
             # Check for required files - pass the correct bucket for customer worksets
             has_required = self._verify_core_files(prefix, bucket=bucket)
@@ -946,7 +946,7 @@ class WorksetMonitor:
             )
             self.notification_manager.notify(event)
         except Exception as e:
-            LOGGER.warning("Failed to send notification for %s: %s", workset_id, e)
+            LOGGER.warning("Failed to send notification for %s: %s", workset_id, str(e))
 
     def _attempt_acquire(self, workset: Workset) -> bool:
         initial_snapshot = dict(workset.sentinels)
@@ -2785,7 +2785,7 @@ class WorksetMonitor:
             )
             LOGGER.debug("Synced sentinel %s to DynamoDB state %s", sentinel_name, new_state)
         except Exception as e:
-            LOGGER.warning("Failed to sync sentinel to DynamoDB for %s: %s", workset_id, e)
+            LOGGER.warning("Failed to sync sentinel to DynamoDB for %s: %s", workset_id, str(e))
 
     def _delete_sentinel(self, workset: Workset, sentinel_name: str) -> None:
         bucket = self.config.monitor.bucket

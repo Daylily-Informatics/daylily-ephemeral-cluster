@@ -2,21 +2,35 @@
 File Registry - DynamoDB-backed file registration system with GA4GH metadata.
 
 Manages file registration, metadata capture, and file set grouping for the
-Daylily portal's file management system.
+Daylily portal's file management system. Integrates with linked bucket management
+for customer S3 bucket discovery and file tracking.
 """
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
+import re
 from dataclasses import asdict, dataclass, field
 from datetime import datetime
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, Tuple
 
 import boto3
 from botocore.exceptions import ClientError
+from boto3.dynamodb.conditions import Key
 
 LOGGER = logging.getLogger("daylily.file_registry")
+
+# File format detection patterns
+FILE_FORMAT_PATTERNS = {
+    "fastq": [r"\.fastq(\.gz)?$", r"\.fq(\.gz)?$"],
+    "bam": [r"\.bam$"],
+    "cram": [r"\.cram$"],
+    "vcf": [r"\.vcf(\.gz)?$", r"\.gvcf(\.gz)?$"],
+    "bed": [r"\.bed(\.gz)?$"],
+    "fasta": [r"\.fa(sta)?(\.gz)?$", r"\.fna(\.gz)?$"],
+}
 
 
 @dataclass
@@ -89,52 +103,72 @@ class FileSet:
     customer_id: str
     name: str
     description: Optional[str] = None
-    
+
     # Shared metadata
     biosample_metadata: Optional[BiosampleMetadata] = None
     sequencing_metadata: Optional[SequencingMetadata] = None
-    
+
     # File membership
     file_ids: List[str] = field(default_factory=list)
-    
+
+    # Tags for organization
+    tags: List[str] = field(default_factory=list)
+
     # Timestamps
     created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
     updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
 
 
+@dataclass
+class FileWorksetUsage:
+    """Track file usage in worksets for bidirectional relationships."""
+    file_id: str
+    workset_id: str
+    customer_id: str
+    usage_type: str = "input"  # input, output, reference
+    added_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    workset_state: Optional[str] = None  # Track workset state at time of use
+    notes: Optional[str] = None
+
+
 class FileRegistry:
     """DynamoDB-backed file registry for GA4GH-compliant metadata storage."""
-    
+
     def __init__(
         self,
         files_table_name: str = "daylily-files",
         filesets_table_name: str = "daylily-filesets",
+        file_workset_usage_table_name: str = "daylily-file-workset-usage",
         region: str = "us-west-2",
         profile: Optional[str] = None,
     ):
         """Initialize file registry.
-        
+
         Args:
             files_table_name: DynamoDB table for file registrations
             filesets_table_name: DynamoDB table for file sets
+            file_workset_usage_table_name: DynamoDB table for file-workset relationships
             region: AWS region
             profile: AWS profile name
         """
         session_kwargs = {"region_name": region}
         if profile:
             session_kwargs["profile_name"] = profile
-        
+
         session = boto3.Session(**session_kwargs)
         self.dynamodb = session.resource("dynamodb")
         self.files_table_name = files_table_name
         self.filesets_table_name = filesets_table_name
+        self.file_workset_usage_table_name = file_workset_usage_table_name
         self.files_table = self.dynamodb.Table(files_table_name)
         self.filesets_table = self.dynamodb.Table(filesets_table_name)
-    
+        self.file_workset_usage_table = self.dynamodb.Table(file_workset_usage_table_name)
+
     def create_tables_if_not_exist(self) -> None:
         """Create DynamoDB tables for file registry."""
         self._create_files_table()
         self._create_filesets_table()
+        self._create_file_workset_usage_table()
     
     def _create_files_table(self) -> None:
         """Create files registration table."""
@@ -205,7 +239,50 @@ class FileRegistry:
         )
         table.wait_until_exists()
         LOGGER.info("FileSet table created successfully")
-    
+
+    def _create_file_workset_usage_table(self) -> None:
+        """Create file-workset usage tracking table."""
+        try:
+            self.file_workset_usage_table.load()
+            LOGGER.info("File-workset usage table %s already exists", self.file_workset_usage_table_name)
+            return
+        except ClientError as e:
+            if e.response["Error"]["Code"] != "ResourceNotFoundException":
+                raise
+
+        LOGGER.info("Creating file-workset usage table %s", self.file_workset_usage_table_name)
+        table = self.dynamodb.create_table(
+            TableName=self.file_workset_usage_table_name,
+            KeySchema=[
+                {"AttributeName": "file_id", "KeyType": "HASH"},
+                {"AttributeName": "workset_id", "KeyType": "RANGE"},
+            ],
+            AttributeDefinitions=[
+                {"AttributeName": "file_id", "AttributeType": "S"},
+                {"AttributeName": "workset_id", "AttributeType": "S"},
+                {"AttributeName": "customer_id", "AttributeType": "S"},
+            ],
+            GlobalSecondaryIndexes=[
+                {
+                    "IndexName": "workset-id-index",
+                    "KeySchema": [
+                        {"AttributeName": "workset_id", "KeyType": "HASH"},
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                },
+                {
+                    "IndexName": "customer-id-index",
+                    "KeySchema": [
+                        {"AttributeName": "customer_id", "KeyType": "HASH"},
+                    ],
+                    "Projection": {"ProjectionType": "ALL"},
+                },
+            ],
+            BillingMode="PAY_PER_REQUEST",
+        )
+        table.wait_until_exists()
+        LOGGER.info("File-workset usage table created successfully")
+
     def register_file(self, registration: FileRegistration) -> bool:
         """Register a file with metadata.
         
@@ -253,15 +330,33 @@ class FileRegistry:
     
     def get_file(self, file_id: str) -> Optional[FileRegistration]:
         """Retrieve a file registration by ID."""
+        LOGGER.debug(f"get_file: Attempting to get file_id={file_id}")
+        LOGGER.debug(f"get_file: files_table={self.files_table_name}")
+
         try:
             response = self.files_table.get_item(Key={"file_id": file_id})
+            LOGGER.debug(f"get_file: DynamoDB response received, has Item: {'Item' in response}")
+
             if "Item" not in response:
+                LOGGER.debug(f"get_file: File {file_id} not found in registry")
                 return None
-            
+
             item = response["Item"]
-            return self._item_to_registration(item)
+            LOGGER.debug(f"get_file: Converting item to FileRegistration")
+            result = self._item_to_registration(item)
+            LOGGER.debug(f"get_file: Successfully converted item to FileRegistration")
+            return result
         except ClientError as e:
-            LOGGER.error("Failed to get file %s: %s", file_id, e)
+            error_code = e.response.get("Error", {}).get("Code", "Unknown")
+            if error_code == "ResourceNotFoundException":
+                LOGGER.warning(f"get_file: Table {self.files_table_name} does not exist")
+                return None
+            # Don't use exc_info=True as it causes deepcopy issues with boto3 objects
+            LOGGER.error("Failed to get file %s: %s", file_id, str(e))
+            return None
+        except Exception as e:
+            # Don't use exc_info=True as it causes deepcopy issues with boto3 objects
+            LOGGER.error("Unexpected error in get_file(%s): %s", file_id, str(e))
             return None
     
     def list_customer_files(self, customer_id: str, limit: int = 100) -> List[FileRegistration]:
@@ -269,31 +364,50 @@ class FileRegistry:
         try:
             response = self.files_table.query(
                 IndexName="customer-id-index",
-                KeyConditionExpression="customer_id = :cid",
-                ExpressionAttributeValues={":cid": customer_id},
+                KeyConditionExpression=Key("customer_id").eq(customer_id),
                 Limit=limit,
             )
-            
-            registrations = []
-            for item in response.get("Items", []):
-                registrations.append(self._item_to_registration(item))
-            return registrations
+
+            # Fail-fast: if any item cannot be converted, surface the error
+            return [
+                self._item_to_registration(item)
+                for item in response.get("Items", [])
+            ]
         except ClientError as e:
-            LOGGER.error("Failed to list files for customer %s: %s", customer_id, e)
-            return []
+            LOGGER.error("Failed to list files for customer %s: %s", customer_id, str(e))
+            raise
     
     def _item_to_registration(self, item: Dict[str, Any]) -> FileRegistration:
         """Convert DynamoDB item to FileRegistration."""
+        LOGGER.debug(
+            f"_item_to_registration: Starting conversion for file_id={item.get('file_id')}"
+        )
+
+        LOGGER.debug("_item_to_registration: Parsing file_metadata")
         file_meta = json.loads(item.get("file_metadata", "{}"))
+
+        LOGGER.debug("_item_to_registration: Parsing sequencing_metadata")
         seq_meta = json.loads(item.get("sequencing_metadata", "{}"))
+
+        LOGGER.debug("_item_to_registration: Parsing biosample_metadata")
         bio_meta = json.loads(item.get("biosample_metadata", "{}"))
-        
-        return FileRegistration(
+
+        LOGGER.debug("_item_to_registration: Creating FileMetadata")
+        file_metadata_obj = FileMetadata(**file_meta)
+
+        LOGGER.debug("_item_to_registration: Creating SequencingMetadata")
+        seq_metadata_obj = SequencingMetadata(**seq_meta)
+
+        LOGGER.debug("_item_to_registration: Creating BiosampleMetadata")
+        bio_metadata_obj = BiosampleMetadata(**bio_meta)
+
+        LOGGER.debug("_item_to_registration: Creating FileRegistration object")
+        result = FileRegistration(
             file_id=item["file_id"],
             customer_id=item["customer_id"],
-            file_metadata=FileMetadata(**file_meta),
-            sequencing_metadata=SequencingMetadata(**seq_meta),
-            biosample_metadata=BiosampleMetadata(**bio_meta),
+            file_metadata=file_metadata_obj,
+            sequencing_metadata=seq_metadata_obj,
+            biosample_metadata=bio_metadata_obj,
             paired_with=item.get("paired_with") or None,
             read_number=item.get("read_number", 1),
             quality_score=item.get("quality_score"),
@@ -305,6 +419,8 @@ class FileRegistry:
             registered_at=item.get("registered_at", ""),
             updated_at=item.get("updated_at", ""),
         )
+        LOGGER.debug("_item_to_registration: Successfully created FileRegistration")
+        return result
     
     def create_fileset(self, fileset: FileSet) -> bool:
         """Create a file set grouping files with shared metadata."""
@@ -364,7 +480,7 @@ class FileRegistry:
                 updated_at=item.get("updated_at", ""),
             )
         except ClientError as e:
-            LOGGER.error("Failed to get fileset %s: %s", fileset_id, e)
+            LOGGER.error("Failed to get fileset %s: %s", fileset_id, str(e))
             return None
     
     def list_customer_filesets(self, customer_id: str) -> List[FileSet]:
@@ -372,8 +488,7 @@ class FileRegistry:
         try:
             response = self.filesets_table.query(
                 IndexName="customer-id-index",
-                KeyConditionExpression="customer_id = :cid",
-                ExpressionAttributeValues={":cid": customer_id},
+                KeyConditionExpression=Key("customer_id").eq(customer_id),
             )
             
             filesets = []
@@ -399,6 +514,560 @@ class FileRegistry:
                 ))
             return filesets
         except ClientError as e:
-            LOGGER.error("Failed to list filesets for customer %s: %s", customer_id, e)
+            LOGGER.error("Failed to list filesets for customer %s: %s", customer_id, str(e))
             return []
+
+    def add_files_to_fileset(self, fileset_id: str, file_ids: List[str]) -> bool:
+        """Add files to an existing file set."""
+        try:
+            self.filesets_table.update_item(
+                Key={"fileset_id": fileset_id},
+                UpdateExpression="SET file_ids = list_append(if_not_exists(file_ids, :empty), :fids), updated_at = :ts",
+                ExpressionAttributeValues={
+                    ":fids": file_ids,
+                    ":empty": [],
+                    ":ts": datetime.utcnow().isoformat() + "Z",
+                },
+            )
+            LOGGER.info("Added %d files to fileset %s", len(file_ids), fileset_id)
+            return True
+        except ClientError as e:
+            LOGGER.error("Failed to add files to fileset %s: %s", fileset_id, str(e))
+            return False
+
+    def remove_files_from_fileset(self, fileset_id: str, file_ids: List[str]) -> bool:
+        """Remove files from a file set."""
+        try:
+            fileset = self.get_fileset(fileset_id)
+            if not fileset:
+                return False
+
+            # Remove specified files
+            updated_file_ids = [fid for fid in fileset.file_ids if fid not in file_ids]
+
+            self.filesets_table.update_item(
+                Key={"fileset_id": fileset_id},
+                UpdateExpression="SET file_ids = :fids, updated_at = :ts",
+                ExpressionAttributeValues={
+                    ":fids": updated_file_ids,
+                    ":ts": datetime.utcnow().isoformat() + "Z",
+                },
+            )
+            LOGGER.info("Removed %d files from fileset %s", len(file_ids), fileset_id)
+            return True
+        except ClientError as e:
+            LOGGER.error("Failed to remove files from fileset %s: %s", fileset_id, str(e))
+            return False
+
+    def update_fileset_metadata(
+        self,
+        fileset_id: str,
+        name: Optional[str] = None,
+        description: Optional[str] = None,
+        biosample_metadata: Optional[BiosampleMetadata] = None,
+        sequencing_metadata: Optional[SequencingMetadata] = None,
+    ) -> bool:
+        """Update file set metadata."""
+        try:
+            update_expr_parts = ["updated_at = :ts"]
+            expr_values = {":ts": datetime.utcnow().isoformat() + "Z"}
+
+            if name is not None:
+                update_expr_parts.append("name = :name")
+                expr_values[":name"] = name
+
+            if description is not None:
+                update_expr_parts.append("description = :desc")
+                expr_values[":desc"] = description
+
+            if biosample_metadata is not None:
+                update_expr_parts.append("biosample_metadata = :bio")
+                expr_values[":bio"] = {
+                    "biosample_id": biosample_metadata.biosample_id,
+                    "subject_id": biosample_metadata.subject_id,
+                    "sample_type": biosample_metadata.sample_type,
+                    "tissue_type": biosample_metadata.tissue_type,
+                    "collection_date": biosample_metadata.collection_date,
+                    "preservation_method": biosample_metadata.preservation_method,
+                    "tumor_fraction": biosample_metadata.tumor_fraction,
+                }
+
+            if sequencing_metadata is not None:
+                update_expr_parts.append("sequencing_metadata = :seq")
+                expr_values[":seq"] = {
+                    "platform": sequencing_metadata.platform,
+                    "vendor": sequencing_metadata.vendor,
+                    "run_id": sequencing_metadata.run_id,
+                    "lane": sequencing_metadata.lane,
+                    "barcode_id": sequencing_metadata.barcode_id,
+                    "flowcell_id": sequencing_metadata.flowcell_id,
+                    "run_date": sequencing_metadata.run_date,
+                }
+
+            self.filesets_table.update_item(
+                Key={"fileset_id": fileset_id},
+                UpdateExpression="SET " + ", ".join(update_expr_parts),
+                ExpressionAttributeValues=expr_values,
+            )
+            LOGGER.info("Updated metadata for fileset %s", fileset_id)
+            return True
+        except ClientError as e:
+            LOGGER.error("Failed to update fileset %s: %s", fileset_id, str(e))
+            return False
+
+    def delete_fileset(self, fileset_id: str) -> bool:
+        """Delete a file set (does not delete the files themselves)."""
+        try:
+            self.filesets_table.delete_item(Key={"fileset_id": fileset_id})
+            LOGGER.info("Deleted fileset %s", fileset_id)
+            return True
+        except ClientError as e:
+            LOGGER.error("Failed to delete fileset %s: %s", fileset_id, str(e))
+            return False
+
+    def clone_fileset(self, fileset_id: str, new_name: str, new_fileset_id: Optional[str] = None) -> Optional[FileSet]:
+        """Clone a file set with a new name."""
+        try:
+            original = self.get_fileset(fileset_id)
+            if not original:
+                return None
+
+            new_id = new_fileset_id or str(uuid.uuid4())
+            cloned = FileSet(
+                fileset_id=new_id,
+                customer_id=original.customer_id,
+                name=new_name,
+                description=f"Cloned from {original.name}",
+                biosample_metadata=original.biosample_metadata,
+                sequencing_metadata=original.sequencing_metadata,
+                file_ids=original.file_ids.copy(),
+                tags=original.tags.copy(),
+            )
+
+            if self.create_fileset(cloned):
+                return cloned
+            return None
+        except Exception as e:
+            LOGGER.error("Failed to clone fileset %s: %s", fileset_id, str(e))
+            return None
+
+    def get_fileset_files(self, fileset_id: str) -> List[FileRegistration]:
+        """Get all files in a file set."""
+        fileset = self.get_fileset(fileset_id)
+        if not fileset:
+            return []
+
+        files = []
+        for file_id in fileset.file_ids:
+            f = self.get_file(file_id)
+            if f:
+                files.append(f)
+        return files
+
+    def update_file_tags(self, file_id: str, tags: List[str]) -> bool:
+        """Update tags for a file."""
+        try:
+            self.files_table.update_item(
+                Key={"file_id": file_id},
+                UpdateExpression="SET tags = :tags, updated_at = :ts",
+                ExpressionAttributeValues={
+                    ":tags": tags,
+                    ":ts": datetime.utcnow().isoformat() + "Z",
+                },
+            )
+            return True
+        except ClientError as e:
+            LOGGER.error("Failed to update tags for file %s: %s", file_id, str(e))
+            return False
+
+    def search_files_by_tag(self, customer_id: str, tag: str) -> List[FileRegistration]:
+        """Search files by tag within a customer's files."""
+        # Note: This is a scan operation - for production, consider a GSI on tags
+        files = self.list_customer_files(customer_id, limit=1000)
+        return [f for f in files if tag in f.tags]
+
+    def search_files_by_biosample(self, customer_id: str, biosample_id: str) -> List[FileRegistration]:
+        """Search files by biosample ID."""
+        files = self.list_customer_files(customer_id, limit=1000)
+        return [f for f in files if f.biosample_metadata.biosample_id == biosample_id]
+
+    # ========== File-Workset Usage Tracking ==========
+
+    def record_file_workset_usage(
+        self,
+        file_id: str,
+        workset_id: str,
+        customer_id: str,
+        usage_type: str = "input",
+        workset_state: Optional[str] = None,
+        notes: Optional[str] = None,
+    ) -> bool:
+        """Record that a file is used in a workset.
+
+        Args:
+            file_id: File identifier
+            workset_id: Workset identifier
+            customer_id: Customer identifier
+            usage_type: Type of usage (input, output, reference)
+            workset_state: Current state of the workset
+            notes: Optional notes about the usage
+
+        Returns:
+            True if recorded successfully
+        """
+        try:
+            item = {
+                "file_id": file_id,
+                "workset_id": workset_id,
+                "customer_id": customer_id,
+                "usage_type": usage_type,
+                "added_at": datetime.utcnow().isoformat() + "Z",
+            }
+            if workset_state:
+                item["workset_state"] = workset_state
+            if notes:
+                item["notes"] = notes
+
+            self.file_workset_usage_table.put_item(Item=item)
+            LOGGER.info("Recorded file %s usage in workset %s", file_id, workset_id)
+            return True
+        except ClientError as e:
+            LOGGER.error("Failed to record file-workset usage: %s", str(e))
+            return False
+
+    def get_file_workset_history(self, file_id: str) -> List[FileWorksetUsage]:
+        """Get all worksets that have used a file.
+
+        Args:
+            file_id: File identifier
+
+        Returns:
+            List of FileWorksetUsage records
+        """
+        try:
+            response = self.file_workset_usage_table.query(
+                KeyConditionExpression="file_id = :fid",
+                ExpressionAttributeValues={":fid": file_id},
+            )
+
+            usages = []
+            for item in response.get("Items", []):
+                usages.append(FileWorksetUsage(
+                    file_id=item["file_id"],
+                    workset_id=item["workset_id"],
+                    customer_id=item["customer_id"],
+                    usage_type=item.get("usage_type", "input"),
+                    added_at=item.get("added_at", ""),
+                    workset_state=item.get("workset_state"),
+                    notes=item.get("notes"),
+                ))
+            return usages
+        except ClientError as e:
+            LOGGER.error("Failed to get file workset history: %s", str(e))
+            return []
+
+    def get_workset_files(self, workset_id: str) -> List[FileWorksetUsage]:
+        """Get all files used in a workset.
+
+        Args:
+            workset_id: Workset identifier
+
+        Returns:
+            List of FileWorksetUsage records
+        """
+        try:
+            response = self.file_workset_usage_table.query(
+                IndexName="workset-id-index",
+                KeyConditionExpression="workset_id = :wid",
+                ExpressionAttributeValues={":wid": workset_id},
+            )
+
+            usages = []
+            for item in response.get("Items", []):
+                usages.append(FileWorksetUsage(
+                    file_id=item["file_id"],
+                    workset_id=item["workset_id"],
+                    customer_id=item["customer_id"],
+                    usage_type=item.get("usage_type", "input"),
+                    added_at=item.get("added_at", ""),
+                    workset_state=item.get("workset_state"),
+                    notes=item.get("notes"),
+                ))
+            return usages
+        except ClientError as e:
+            LOGGER.error("Failed to get workset files: %s", str(e))
+            return []
+
+    def update_workset_usage_state(self, workset_id: str, new_state: str) -> int:
+        """Update the workset state for all file usages in a workset.
+
+        Args:
+            workset_id: Workset identifier
+            new_state: New workset state
+
+        Returns:
+            Number of records updated
+        """
+        usages = self.get_workset_files(workset_id)
+        updated = 0
+
+        for usage in usages:
+            try:
+                self.file_workset_usage_table.update_item(
+                    Key={"file_id": usage.file_id, "workset_id": workset_id},
+                    UpdateExpression="SET workset_state = :state",
+                    ExpressionAttributeValues={":state": new_state},
+                )
+                updated += 1
+            except ClientError as e:
+                LOGGER.error("Failed to update usage state: %s", str(e))
+
+        return updated
+
+    def get_files_for_workset_recreation(self, workset_id: str) -> List[FileRegistration]:
+        """Get all input files needed to recreate a workset.
+
+        Args:
+            workset_id: Workset identifier
+
+        Returns:
+            List of FileRegistration objects for input files
+        """
+        usages = self.get_workset_files(workset_id)
+        input_usages = [u for u in usages if u.usage_type == "input"]
+
+        files = []
+        for usage in input_usages:
+            f = self.get_file(usage.file_id)
+            if f:
+                files.append(f)
+        return files
+
+
+def detect_file_format(filename: str) -> str:
+    """Detect file format from filename."""
+    filename_lower = filename.lower()
+    for format_name, patterns in FILE_FORMAT_PATTERNS.items():
+        for pattern in patterns:
+            if re.search(pattern, filename_lower):
+                return format_name
+    return "unknown"
+
+
+def generate_file_id(s3_uri: str, customer_id: str) -> str:
+    """Generate a unique file ID from S3 URI and customer ID."""
+    hash_input = f"{customer_id}:{s3_uri}"
+    return f"file-{hashlib.sha256(hash_input.encode()).hexdigest()[:16]}"
+
+
+@dataclass
+class DiscoveredFile:
+    """A file discovered from S3 bucket scanning."""
+    s3_uri: str
+    bucket_name: str
+    key: str
+    file_size_bytes: int
+    last_modified: str
+    etag: str
+    detected_format: str
+    is_registered: bool = False
+    file_id: Optional[str] = None
+
+
+class BucketFileDiscovery:
+    """Discover and scan files in linked S3 buckets."""
+
+    def __init__(
+        self,
+        region: str = "us-west-2",
+        profile: Optional[str] = None,
+    ):
+        """Initialize bucket file discovery.
+
+        Args:
+            region: AWS region
+            profile: AWS profile name
+        """
+        session_kwargs = {"region_name": region}
+        if profile:
+            session_kwargs["profile_name"] = profile
+
+        session = boto3.Session(**session_kwargs)
+        self.s3 = session.client("s3")
+        self.region = region
+
+    def discover_files(
+        self,
+        bucket_name: str,
+        prefix: str = "",
+        file_formats: Optional[List[str]] = None,
+        max_files: int = 1000,
+    ) -> List[DiscoveredFile]:
+        """Discover files in an S3 bucket.
+
+        Args:
+            bucket_name: S3 bucket name
+            prefix: Optional prefix to filter files
+            file_formats: Optional list of formats to filter (e.g., ["fastq", "bam"])
+            max_files: Maximum number of files to return
+
+        Returns:
+            List of discovered files
+        """
+        LOGGER.debug(f"discover_files: Starting discovery in bucket={bucket_name}, prefix={prefix}, formats={file_formats}, max_files={max_files}")
+        discovered = []
+        paginator = self.s3.get_paginator("list_objects_v2")
+
+        try:
+            for page in paginator.paginate(Bucket=bucket_name, Prefix=prefix):
+                for obj in page.get("Contents", []):
+                    key = obj["Key"]
+
+                    # Skip directories
+                    if key.endswith("/"):
+                        continue
+
+                    detected_format = detect_file_format(key)
+                    LOGGER.debug(f"discover_files: Found file {key}, detected_format={detected_format}")
+
+                    # Filter by format if specified
+                    if file_formats and detected_format not in file_formats:
+                        LOGGER.debug(f"discover_files: Skipping {key} (format {detected_format} not in {file_formats})")
+                        continue
+
+                    s3_uri = f"s3://{bucket_name}/{key}"
+                    discovered.append(DiscoveredFile(
+                        s3_uri=s3_uri,
+                        bucket_name=bucket_name,
+                        key=key,
+                        file_size_bytes=obj["Size"],
+                        last_modified=obj["LastModified"].isoformat(),
+                        etag=obj["ETag"].strip('"'),
+                        detected_format=detected_format,
+                    ))
+
+                    if len(discovered) >= max_files:
+                        LOGGER.info("Reached max files limit (%d)", max_files)
+                        return discovered
+
+        except ClientError as e:
+            LOGGER.error("Failed to discover files in %s: %s", bucket_name, str(e))
+
+        LOGGER.info("Discovered %d files in s3://%s/%s", len(discovered), bucket_name, prefix)
+        return discovered
+
+    def check_registration_status(
+        self,
+        discovered_files: List[DiscoveredFile],
+        registry: FileRegistry,
+        customer_id: str,
+    ) -> List[DiscoveredFile]:
+        """Check which discovered files are already registered.
+
+        Args:
+            discovered_files: List of discovered files
+            registry: FileRegistry instance
+            customer_id: Customer ID
+
+        Returns:
+            Updated list with registration status
+        """
+        LOGGER.debug(f"check_registration_status: Starting with {len(discovered_files)} files")
+        LOGGER.debug(f"check_registration_status: customer_id={customer_id}")
+        LOGGER.debug(f"check_registration_status: registry is FileRegistry instance")
+
+        for i, df in enumerate(discovered_files):
+            try:
+                LOGGER.debug(f"check_registration_status: Processing file {i+1}/{len(discovered_files)}: {df.key}")
+                file_id = generate_file_id(df.s3_uri, customer_id)
+                LOGGER.debug(f"check_registration_status: Generated file_id={file_id}")
+
+                LOGGER.debug(f"check_registration_status: Calling registry.get_file({file_id})")
+                existing = registry.get_file(file_id)
+                LOGGER.debug(f"check_registration_status: get_file returned: {existing is not None}")
+
+                if existing:
+                    df.is_registered = True
+                    df.file_id = file_id
+                    LOGGER.debug(f"check_registration_status: File {df.key} is registered")
+            except Exception as e:
+                # Log error but continue processing other files
+                LOGGER.warning(f"check_registration_status: Error processing file {df.key}: {str(e)}")
+
+        LOGGER.debug(f"check_registration_status: Completed successfully")
+        return discovered_files
+
+    def auto_register_files(
+        self,
+        discovered_files: List[DiscoveredFile],
+        registry: FileRegistry,
+        customer_id: str,
+        biosample_id: str,
+        subject_id: str,
+        sequencing_platform: str = "ILLUMINA_NOVASEQ_X",
+    ) -> Tuple[int, int, List[str]]:
+        """Auto-register discovered files with default metadata.
+
+        Args:
+            discovered_files: List of discovered files
+            registry: FileRegistry instance
+            customer_id: Customer ID
+            biosample_id: Default biosample ID
+            subject_id: Default subject ID
+            sequencing_platform: Sequencing platform
+
+        Returns:
+            Tuple of (registered_count, skipped_count, error_messages)
+        """
+        registered = 0
+        skipped = 0
+        errors = []
+
+        for df in discovered_files:
+            if df.is_registered:
+                skipped += 1
+                continue
+
+            file_id = generate_file_id(df.s3_uri, customer_id)
+
+            # Detect read number from filename
+            read_number = 1
+            if "_R2" in df.key or "_2.fastq" in df.key or "_2.fq" in df.key:
+                read_number = 2
+
+            registration = FileRegistration(
+                file_id=file_id,
+                customer_id=customer_id,
+                file_metadata=FileMetadata(
+                    file_id=file_id,
+                    s3_uri=df.s3_uri,
+                    file_size_bytes=df.file_size_bytes,
+                    md5_checksum=df.etag,  # ETag is often MD5 for single-part uploads
+                    file_format=df.detected_format,
+                ),
+                sequencing_metadata=SequencingMetadata(
+                    platform=sequencing_platform,
+                ),
+                biosample_metadata=BiosampleMetadata(
+                    biosample_id=biosample_id,
+                    subject_id=subject_id,
+                ),
+                read_number=read_number,
+            )
+
+            try:
+                if registry.register_file(registration):
+                    registered += 1
+                    df.is_registered = True
+                    df.file_id = file_id
+                else:
+                    skipped += 1
+            except Exception as e:
+                errors.append(f"Failed to register {df.s3_uri}: {str(e)}")
+
+        LOGGER.info(
+            "Auto-registration complete: %d registered, %d skipped, %d errors",
+            registered, skipped, len(errors)
+        )
+        return registered, skipped, errors
 

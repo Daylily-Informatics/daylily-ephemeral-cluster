@@ -196,7 +196,7 @@ class ConcurrentWorksetProcessor:
             return True
 
         except Exception as e:
-            LOGGER.error("Validation error for %s: %s", workset_id, e)
+            LOGGER.error("Validation error for %s: %s", workset_id, str(e))
             return False
 
     def _process_worksets_parallel(self, worksets_and_decisions: List) -> None:

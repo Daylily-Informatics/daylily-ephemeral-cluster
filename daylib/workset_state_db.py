@@ -438,7 +438,7 @@ class WorksetStateDB:
                 return self._deserialize_item(response["Item"])
             return None
         except ClientError as e:
-            LOGGER.error("Failed to get workset %s: %s", workset_id, e)
+            LOGGER.error("Failed to get workset %s: %s", workset_id, str(e))
             return None
 
     def list_worksets_by_state(
@@ -473,7 +473,7 @@ class WorksetStateDB:
             response = self.table.query(**query_kwargs)
             return [self._deserialize_item(item) for item in response.get("Items", [])]
         except ClientError as e:
-            LOGGER.error("Failed to list worksets: %s", e)
+            LOGGER.error("Failed to list worksets: %s", str(e))
             return []
 
     def get_ready_worksets_prioritized(self, limit: int = 100) -> List[Dict[str, Any]]:
@@ -561,7 +561,7 @@ class WorksetStateDB:
                 ],
             )
         except Exception as e:
-            LOGGER.debug("Failed to emit metric %s: %s", metric_name, e)
+            LOGGER.debug("Failed to emit metric %s: %s", metric_name, str(e))
 
     # ========== Retry and Recovery Methods ==========
 
@@ -655,7 +655,7 @@ class WorksetStateDB:
             return should_retry
 
         except ClientError as e:
-            LOGGER.error("Failed to record failure for %s: %s", workset_id, e)
+            LOGGER.error("Failed to record failure for %s: %s", workset_id, str(e))
             return False
 
     def get_retryable_worksets(self) -> List[Dict[str, Any]]:
@@ -731,7 +731,7 @@ class WorksetStateDB:
             )
             return True
         except ClientError as e:
-            LOGGER.error("Failed to set cluster affinity: %s", e)
+            LOGGER.error("Failed to set cluster affinity: %s", str(e))
             return False
 
     def get_worksets_by_cluster(self, cluster_name: str) -> List[Dict[str, Any]]:
@@ -750,7 +750,7 @@ class WorksetStateDB:
             )
             return [self._deserialize_item(item) for item in response.get("Items", [])]
         except ClientError as e:
-            LOGGER.error("Failed to get worksets for cluster %s: %s", cluster_name, e)
+            LOGGER.error("Failed to get worksets for cluster %s: %s", cluster_name, str(e))
             return []
 
     def get_concurrent_worksets_count(self) -> int:
@@ -851,7 +851,7 @@ class WorksetStateDB:
             LOGGER.info("Archived workset %s by %s", workset_id, archived_by)
             return True
         except ClientError as e:
-            LOGGER.error("Failed to archive workset %s: %s", workset_id, e)
+            LOGGER.error("Failed to archive workset %s: %s", workset_id, str(e))
             return False
 
     def delete_workset(
@@ -903,7 +903,7 @@ class WorksetStateDB:
                 LOGGER.info("Soft deleted workset %s by %s", workset_id, deleted_by)
             return True
         except ClientError as e:
-            LOGGER.error("Failed to delete workset %s: %s", workset_id, e)
+            LOGGER.error("Failed to delete workset %s: %s", workset_id, str(e))
             return False
 
     def restore_workset(
@@ -937,7 +937,7 @@ class WorksetStateDB:
             LOGGER.info("Restored workset %s by %s", workset_id, restored_by)
             return True
         except ClientError as e:
-            LOGGER.error("Failed to restore workset %s: %s", workset_id, e)
+            LOGGER.error("Failed to restore workset %s: %s", workset_id, str(e))
             return False
 
     def list_archived_worksets(self, limit: int = 100) -> List[Dict[str, Any]]:

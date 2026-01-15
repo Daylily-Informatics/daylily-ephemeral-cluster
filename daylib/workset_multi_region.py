@@ -85,7 +85,7 @@ class WorksetMultiRegionDB:
                 )
                 LOGGER.info("Initialized connection to region %s", region)
             except Exception as e:
-                LOGGER.error("Failed to initialize region %s: %s", region, e)
+                LOGGER.error("Failed to initialize region %s: %s", region, str(e))
                 self._region_health[region].status = RegionStatus.UNHEALTHY
                 self._region_health[region].last_error = str(e)
         
@@ -129,7 +129,7 @@ class WorksetMultiRegionDB:
                 try:
                     self._check_region_health(region)
                 except Exception as e:
-                    LOGGER.error("Health check failed for %s: %s", region, e)
+                    LOGGER.error("Health check failed for %s: %s", region, str(e))
 
             # Update active region based on health
             self._update_active_region()
@@ -239,7 +239,7 @@ class WorksetMultiRegionDB:
             self._connections[region] = conn
             return conn
         except Exception as e:
-            LOGGER.error("Failed to connect to region %s: %s", region, e)
+            LOGGER.error("Failed to connect to region %s: %s", region, str(e))
             return None
 
     def _with_retry(
@@ -284,7 +284,7 @@ class WorksetMultiRegionDB:
             except (ClientError, EndpointConnectionError) as e:
                 self._error_count[region] = self._error_count.get(region, 0) + 1
                 last_error = e
-                LOGGER.warning("Operation failed in region %s: %s", region, e)
+                LOGGER.warning("Operation failed in region %s: %s", region, str(e))
                 continue
 
         raise last_error or RuntimeError("No regions available")
@@ -401,7 +401,7 @@ class WorksetMultiRegionDB:
             LOGGER.info("Ensured table exists in primary region %s",
                        self.config.primary_region)
         except Exception as e:
-            LOGGER.error("Failed to create table in primary: %s", e)
+            LOGGER.error("Failed to create table in primary: %s", str(e))
             return False
 
         # Create Global Table with replicas
@@ -457,7 +457,7 @@ class WorksetMultiRegionDB:
             if e.response["Error"]["Code"] == "GlobalTableAlreadyExistsException":
                 LOGGER.info("Global Table already exists")
                 return True
-            LOGGER.error("Failed to create Global Table: %s", e)
+            LOGGER.error("Failed to create Global Table: %s", str(e))
             return False
 
     def _wait_for_replicas(
@@ -529,7 +529,7 @@ class WorksetMultiRegionDB:
             return True
 
         except ClientError as e:
-            LOGGER.error("Failed to remove replica %s: %s", region, e)
+            LOGGER.error("Failed to remove replica %s: %s", region, str(e))
             return False
 
     # ========== Status & Metrics ==========
@@ -613,6 +613,6 @@ class WorksetMultiRegionDB:
             }
 
         except ClientError as e:
-            LOGGER.error("Failed to get replication status: %s", e)
+            LOGGER.error("Failed to get replication status: %s", str(e))
             return {"error": str(e)}
 

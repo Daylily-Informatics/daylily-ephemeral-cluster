@@ -48,7 +48,6 @@ def test_generate_customer_id(customer_manager):
 def test_onboard_customer(customer_manager, mock_aws):
     """Test customer onboarding."""
     mock_table = mock_aws["table"]
-    mock_table.load.side_effect = Exception("Table not found")
 
     config = customer_manager.onboard_customer(
         customer_name="Test Customer",

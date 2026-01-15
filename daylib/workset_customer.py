@@ -239,7 +239,7 @@ class CustomerManager:
             if e.response["Error"]["Code"] == "BucketAlreadyExists":
                 LOGGER.warning("Bucket %s already exists", bucket_name)
             else:
-                LOGGER.error("Failed to create bucket %s: %s", bucket_name, e)
+                LOGGER.error("Failed to create bucket %s: %s", bucket_name, str(e))
                 raise
 
     def _save_customer_config(self, config: CustomerConfig) -> None:
@@ -248,6 +248,8 @@ class CustomerManager:
         Args:
             config: Customer configuration
         """
+        # Ensure the customer table exists before saving
+        self.create_customer_table_if_not_exists()
         table = self.dynamodb.Table(self.customer_table_name)
 
         item = {
@@ -299,7 +301,7 @@ class CustomerManager:
             )
 
         except ClientError as e:
-            LOGGER.error("Failed to get customer config: %s", e)
+            LOGGER.error("Failed to get customer config: %s", str(e))
             return None
 
     def get_customer_by_email(self, email: str) -> Optional[CustomerConfig]:
@@ -371,7 +373,24 @@ class CustomerManager:
             return customers
 
         except ClientError as e:
-            LOGGER.error("Failed to list customers: %s", e)
+            error_code = e.response.get("Error", {}).get("Code")
+            if error_code == "ResourceNotFoundException":
+                LOGGER.warning(
+                    "Customer table %s not found when listing customers; attempting to create it",
+                    self.customer_table_name,
+                )
+                try:
+                    self.create_customer_table_if_not_exists()
+                except Exception as create_err:  # pragma: no cover - defensive logging
+                    LOGGER.error(
+                        "Failed to create customer table %s after ResourceNotFoundException: %s",
+                        self.customer_table_name,
+                        create_err,
+                    )
+                # No customers yet; return empty list
+                return []
+
+            LOGGER.error("Failed to list customers: %s", str(e))
             return []
 
     def get_customer_usage(self, customer_id: str) -> Dict:
@@ -415,7 +434,7 @@ class CustomerManager:
             storage_gb = storage_bytes / (1024 ** 3)
 
         except Exception as e:
-            LOGGER.warning("Failed to get storage metrics: %s", e)
+            LOGGER.warning("Failed to get storage metrics: %s", str(e))
             storage_gb = 0
 
         # Convert Decimal to float for calculations (DynamoDB returns Decimals)

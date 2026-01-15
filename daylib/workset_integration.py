@@ -155,7 +155,7 @@ class WorksetIntegration:
                     timestamp=now,
                 )
             except Exception as e:
-                LOGGER.error("S3 sentinel write failed for %s: %s", workset_id, e)
+                LOGGER.error("S3 sentinel write failed for %s: %s", workset_id, str(e))
                 success = False
         
         if success:
@@ -215,7 +215,7 @@ class WorksetIntegration:
                     metrics=metrics,
                 )
             except Exception as e:
-                LOGGER.error("DynamoDB state update failed for %s: %s", workset_id, e)
+                LOGGER.error("DynamoDB state update failed for %s: %s", workset_id, str(e))
                 success = False
 
         # Update S3 sentinel
@@ -229,7 +229,7 @@ class WorksetIntegration:
                     content=reason,
                 )
             except Exception as e:
-                LOGGER.error("S3 sentinel update failed for %s: %s", workset_id, e)
+                LOGGER.error("S3 sentinel update failed for %s: %s", workset_id, str(e))
                 success = False
 
         if success:
@@ -342,7 +342,7 @@ class WorksetIntegration:
             return True
 
         except Exception as e:
-            LOGGER.error("Failed to sync workset %s to S3: %s", workset_id, e)
+            LOGGER.error("Failed to sync workset %s to S3: %s", workset_id, str(e))
             return False
 
     def get_ready_worksets(self, limit: int = 100) -> List[Dict[str, Any]]:
@@ -399,7 +399,7 @@ class WorksetIntegration:
                     content=f"Locked by {owner_id}",
                 )
             except Exception as e:
-                LOGGER.warning("Failed to write S3 lock sentinel: %s", e)
+                LOGGER.warning("Failed to write S3 lock sentinel: %s", str(e))
 
         return True
 
@@ -435,7 +435,7 @@ class WorksetIntegration:
                 lock_key = f"{workset_prefix}{SENTINEL_FILES['lock']}"
                 self._s3.delete_object(Bucket=target_bucket, Key=lock_key)
             except Exception as e:
-                LOGGER.warning("Failed to delete S3 lock sentinel: %s", e)
+                LOGGER.warning("Failed to delete S3 lock sentinel: %s", str(e))
 
         return True
 
@@ -750,7 +750,7 @@ notes: "Daylily Snakemake; hg38; slurm profile; 192 jobs; rerun-incomplete."
         except ClientError:
             return None
         except yaml.YAMLError as e:
-            LOGGER.warning("Failed to parse %s: %s", key, e)
+            LOGGER.warning("Failed to parse %s: %s", key, str(e))
             return None
 
     def _notify_state_change(
@@ -784,5 +784,5 @@ notes: "Daylily Snakemake; hg38; slurm profile; 192 jobs; rerun-incomplete."
         try:
             self.notification_manager.notify(event)
         except Exception as e:
-            LOGGER.warning("Failed to send notification for %s: %s", workset_id, e)
+            LOGGER.warning("Failed to send notification for %s: %s", workset_id, str(e))
 

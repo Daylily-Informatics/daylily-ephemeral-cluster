@@ -16,7 +16,13 @@ from daylib.file_api import (
     SequencingMetadataRequest,
     create_file_api_router,
 )
-from daylib.file_registry import FileRegistry
+from daylib.file_registry import FileRegistry, BucketFileDiscovery
+from daylib.s3_bucket_validator import (
+    S3BucketValidator,
+    LinkedBucketManager,
+    BucketValidationResult,
+    LinkedBucket,
+)
 
 
 @pytest.fixture
@@ -274,4 +280,312 @@ class TestBulkImportEndpoint:
         assert data["imported_count"] == 1
         assert data["failed_count"] == 1
         assert len(data["errors"]) == 1
+
+
+class TestBucketValidationEndpoint:
+    """Test bucket validation endpoints."""
+
+    @pytest.fixture
+    def mock_s3_validator(self):
+        """Mock S3BucketValidator."""
+        validator = MagicMock(spec=S3BucketValidator)
+        validator.validate_bucket.return_value = BucketValidationResult(
+            bucket_name="test-bucket",
+            exists=True,
+            accessible=True,
+            can_read=True,
+            can_write=True,
+            can_list=True,
+            region="us-west-2",
+        )
+        return validator
+
+    @pytest.fixture
+    def mock_linked_bucket_manager(self):
+        """Mock LinkedBucketManager."""
+        manager = MagicMock(spec=LinkedBucketManager)
+        manager.link_bucket.return_value = (
+            LinkedBucket(
+                bucket_id="bucket-abc123",
+                customer_id="cust-001",
+                bucket_name="test-bucket",
+                bucket_type="secondary",
+                display_name="Test Bucket",
+                is_validated=True,
+                can_read=True,
+                can_write=True,
+                can_list=True,
+                region="us-west-2",
+                linked_at="2024-01-15T00:00:00Z",
+            ),
+            BucketValidationResult(
+                bucket_name="test-bucket",
+                exists=True,
+                accessible=True,
+                can_read=True,
+                can_write=True,
+                can_list=True,
+                region="us-west-2",
+            ),
+        )
+        manager.list_customer_buckets.return_value = []
+        return manager
+
+    @pytest.fixture
+    def app_with_bucket_validation(self, mock_file_registry, mock_s3_validator, mock_linked_bucket_manager):
+        """Create FastAPI app with bucket validation enabled."""
+        app = FastAPI()
+        router = create_file_api_router(
+            mock_file_registry,
+            s3_bucket_validator=mock_s3_validator,
+            linked_bucket_manager=mock_linked_bucket_manager,
+        )
+        app.include_router(router)
+        return app
+
+    @pytest.fixture
+    def client_with_validation(self, app_with_bucket_validation):
+        """FastAPI test client with bucket validation."""
+        return TestClient(app_with_bucket_validation)
+
+    def test_validate_bucket_success(self, client_with_validation, mock_s3_validator):
+        """Test successful bucket validation."""
+        response = client_with_validation.post(
+            "/api/files/buckets/validate?bucket_name=test-bucket"
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["bucket_name"] == "test-bucket"
+        assert data["exists"] is True
+        assert data["accessible"] is True
+        assert data["can_read"] is True
+        assert data["can_write"] is True
+        assert data["can_list"] is True
+        assert data["is_valid"] is True
+        mock_s3_validator.validate_bucket.assert_called_once_with("test-bucket")
+
+    def test_validate_bucket_not_found(self, client_with_validation, mock_s3_validator):
+        """Test validation of non-existent bucket."""
+        mock_s3_validator.validate_bucket.return_value = BucketValidationResult(
+            bucket_name="nonexistent-bucket",
+            exists=False,
+            accessible=False,
+            errors=["Bucket 'nonexistent-bucket' does not exist"],
+        )
+
+        response = client_with_validation.post(
+            "/api/files/buckets/validate?bucket_name=nonexistent-bucket"
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["exists"] is False
+        assert data["is_valid"] is False
+        assert len(data["errors"]) > 0
+
+    def test_validate_bucket_access_denied(self, client_with_validation, mock_s3_validator):
+        """Test validation of bucket with access denied."""
+        mock_s3_validator.validate_bucket.return_value = BucketValidationResult(
+            bucket_name="private-bucket",
+            exists=True,
+            accessible=False,
+            errors=["Access denied to bucket 'private-bucket'"],
+        )
+
+        response = client_with_validation.post(
+            "/api/files/buckets/validate?bucket_name=private-bucket"
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["exists"] is True
+        assert data["accessible"] is False
+        assert data["is_valid"] is False
+
+    def test_validate_bucket_without_validator_returns_501(self, client, mock_file_registry):
+        """Test that validation without validator returns 501."""
+        # client fixture uses app without s3_bucket_validator
+        response = client.post(
+            "/api/files/buckets/validate?bucket_name=test-bucket"
+        )
+
+        assert response.status_code == 501
+        data = response.json()
+        assert "not configured" in data["detail"].lower()
+
+
+class TestLinkBucketEndpoint:
+    """Test bucket linking endpoints."""
+
+    @pytest.fixture
+    def mock_s3_validator(self):
+        """Mock S3BucketValidator."""
+        validator = MagicMock(spec=S3BucketValidator)
+        return validator
+
+    @pytest.fixture
+    def mock_linked_bucket_manager(self):
+        """Mock LinkedBucketManager."""
+        manager = MagicMock(spec=LinkedBucketManager)
+        manager.link_bucket.return_value = (
+            LinkedBucket(
+                bucket_id="bucket-abc123",
+                customer_id="cust-001",
+                bucket_name="my-bucket",
+                bucket_type="secondary",
+                display_name="My Bucket",
+                is_validated=True,
+                can_read=True,
+                can_write=True,
+                can_list=True,
+                region="us-west-2",
+                linked_at="2024-01-15T00:00:00Z",
+            ),
+            BucketValidationResult(
+                bucket_name="my-bucket",
+                exists=True,
+                accessible=True,
+                can_read=True,
+                can_write=True,
+                can_list=True,
+                region="us-west-2",
+            ),
+        )
+        manager.list_customer_buckets.return_value = [
+            LinkedBucket(
+                bucket_id="bucket-abc123",
+                customer_id="cust-001",
+                bucket_name="my-bucket",
+                bucket_type="secondary",
+                display_name="My Bucket",
+                is_validated=True,
+                can_read=True,
+                can_write=True,
+                can_list=True,
+                region="us-west-2",
+                linked_at="2024-01-15T00:00:00Z",
+            )
+        ]
+        return manager
+
+    @pytest.fixture
+    def app_with_bucket_linking(self, mock_file_registry, mock_s3_validator, mock_linked_bucket_manager):
+        """Create FastAPI app with bucket linking enabled."""
+        app = FastAPI()
+        router = create_file_api_router(
+            mock_file_registry,
+            s3_bucket_validator=mock_s3_validator,
+            linked_bucket_manager=mock_linked_bucket_manager,
+        )
+        app.include_router(router)
+        return app
+
+    @pytest.fixture
+    def client_with_linking(self, app_with_bucket_linking):
+        """FastAPI test client with bucket linking."""
+        return TestClient(app_with_bucket_linking)
+
+    def test_link_bucket_success(self, client_with_linking, mock_linked_bucket_manager):
+        """Test successful bucket linking."""
+        response = client_with_linking.post(
+            "/api/files/buckets/link?customer_id=cust-001",
+            json={
+                "bucket_name": "my-bucket",
+                "bucket_type": "secondary",
+                "display_name": "My Bucket",
+                "description": "Test bucket",
+                "validate": True,
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["bucket_id"] == "bucket-abc123"
+        assert data["bucket_name"] == "my-bucket"
+        assert data["is_validated"] is True
+        assert data["can_read"] is True
+        assert data["can_write"] is True
+        mock_linked_bucket_manager.link_bucket.assert_called_once()
+
+    def test_link_bucket_without_manager_returns_501(self, client, mock_file_registry):
+        """Test that linking without manager returns 501."""
+        response = client.post(
+            "/api/files/buckets/link?customer_id=cust-001",
+            json={
+                "bucket_name": "my-bucket",
+            },
+        )
+
+        assert response.status_code == 501
+        data = response.json()
+        assert "not configured" in data["detail"].lower()
+
+    def test_list_linked_buckets(self, client_with_linking, mock_linked_bucket_manager):
+        """Test listing linked buckets."""
+        response = client_with_linking.get(
+            "/api/files/buckets/list?customer_id=cust-001"
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "buckets" in data
+        assert len(data["buckets"]) == 1
+        assert data["buckets"][0]["bucket_name"] == "my-bucket"
+        mock_linked_bucket_manager.list_customer_buckets.assert_called_once_with("cust-001")
+
+    def test_list_linked_buckets_empty(self, client_with_linking, mock_linked_bucket_manager):
+        """Test listing linked buckets when none exist."""
+        mock_linked_bucket_manager.list_customer_buckets.return_value = []
+
+        response = client_with_linking.get(
+            "/api/files/buckets/list?customer_id=cust-002"
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["buckets"] == []
+
+    def test_link_bucket_dynamodb_error(self, client_with_linking, mock_linked_bucket_manager):
+        """Test error handling when DynamoDB operation fails."""
+        from botocore.exceptions import ClientError
+
+        # Simulate ResourceNotFoundException
+        error_response = {
+            "Error": {
+                "Code": "ResourceNotFoundException",
+                "Message": "Requested resource not found",
+            }
+        }
+        mock_linked_bucket_manager.link_bucket.side_effect = ClientError(
+            error_response, "PutItem"
+        )
+
+        response = client_with_linking.post(
+            "/api/files/buckets/link?customer_id=cust-001",
+            json={
+                "bucket_name": "my-bucket",
+                "bucket_type": "secondary",
+            },
+        )
+
+        assert response.status_code == 500
+        data = response.json()
+        assert "ResourceNotFoundException" in data["detail"] or "table" in data["detail"].lower()
+
+    def test_link_bucket_generic_error(self, client_with_linking, mock_linked_bucket_manager):
+        """Test error handling for generic exceptions."""
+        mock_linked_bucket_manager.link_bucket.side_effect = ValueError("Invalid bucket name")
+
+        response = client_with_linking.post(
+            "/api/files/buckets/link?customer_id=cust-001",
+            json={
+                "bucket_name": "my-bucket",
+                "bucket_type": "secondary",
+            },
+        )
+
+        assert response.status_code == 500
+        data = response.json()
+        assert "Invalid bucket name" in data["detail"]
 

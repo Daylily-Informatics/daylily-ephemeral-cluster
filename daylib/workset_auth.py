@@ -203,7 +203,7 @@ class CognitoAuth:
             return pool_id
 
         except ClientError as e:
-            LOGGER.error("Failed to create user pool: %s", e)
+            LOGGER.error("Failed to create user pool: %s", str(e))
             raise
 
     def _update_jwks_url(self) -> None:
@@ -266,7 +266,7 @@ class CognitoAuth:
             return client_id
 
         except ClientError as e:
-            LOGGER.error("Failed to create app client: %s", e)
+            LOGGER.error("Failed to create app client: %s", str(e))
             raise
 
     def create_customer_user(
@@ -309,7 +309,7 @@ class CognitoAuth:
             if e.response["Error"]["Code"] == "UsernameExistsException":
                 LOGGER.warning("User %s already exists", email)
                 raise ValueError(f"User {email} already exists")
-            LOGGER.error("Failed to create user: %s", e)
+            LOGGER.error("Failed to create user: %s", str(e))
             raise
 
     def verify_token(self, token: str) -> Dict:
@@ -354,7 +354,7 @@ class CognitoAuth:
             return claims
 
         except JWTError as e:
-            LOGGER.error("JWT validation error: %s", e)
+            LOGGER.error("JWT validation error: %s", str(e))
             raise HTTPException(
                 status_code=status.HTTP_401_UNAUTHORIZED,
                 detail="Invalid authentication token",
@@ -422,7 +422,7 @@ class CognitoAuth:
             return response.get("Users", [])
 
         except ClientError as e:
-            LOGGER.error("Failed to list users for customer %s: %s", customer_id, e)
+            LOGGER.error("Failed to list users for customer %s: %s", customer_id, str(e))
             return []
 
     def delete_user(self, email: str) -> bool:
@@ -443,7 +443,7 @@ class CognitoAuth:
             return True
 
         except ClientError as e:
-            LOGGER.error("Failed to delete user %s: %s", email, e)
+            LOGGER.error("Failed to delete user %s: %s", email, str(e))
             return False
 
 

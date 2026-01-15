@@ -341,7 +341,7 @@ class WorksetValidator:
             )
 
         except Exception as e:
-            LOGGER.warning("Failed to estimate resources: %s", e)
+            LOGGER.warning("Failed to estimate resources: %s", str(e))
 
         return estimates
 

@@ -118,7 +118,7 @@ class SNSNotificationChannel(NotificationChannel):
             LOGGER.info("Sent SNS notification for workset %s", event.workset_id)
             return True
         except ClientError as e:
-            LOGGER.error("Failed to send SNS notification: %s", e)
+            LOGGER.error("Failed to send SNS notification: %s", str(e))
             return False
 
 
@@ -233,7 +233,7 @@ class LinearNotificationChannel(NotificationChannel):
                     LOGGER.error("Linear API returned failure: %s", data)
                     return False
         except Exception as e:
-            LOGGER.error("Failed to create Linear issue: %s", e)
+            LOGGER.error("Failed to create Linear issue: %s", str(e))
             return False
 
 

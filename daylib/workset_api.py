@@ -47,12 +47,16 @@ except ImportError:
 # File management imports
 try:
     from daylib.file_api import create_file_api_router
-    from daylib.file_registry import FileRegistry
+    from daylib.file_registry import FileRegistry, BucketFileDiscovery
+    from daylib.s3_bucket_validator import S3BucketValidator, LinkedBucketManager
     FILE_MANAGEMENT_AVAILABLE = True
 except ImportError:
     FILE_MANAGEMENT_AVAILABLE = False
     create_file_api_router = None
     FileRegistry = None
+    BucketFileDiscovery = None
+    S3BucketValidator = None
+    LinkedBucketManager = None
 
 LOGGER = logging.getLogger("daylily.workset_api")
 
@@ -243,6 +247,36 @@ def create_app(
     Returns:
         FastAPI application instance
     """
+    # Configure logging with verbose output for file management
+    logging.basicConfig(
+        level=logging.DEBUG,
+        format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+    )
+
+    # Set specific loggers to DEBUG for file management
+    logging.getLogger("daylily.file_api").setLevel(logging.DEBUG)
+    logging.getLogger("daylily.file_registry").setLevel(logging.DEBUG)
+    logging.getLogger("daylily.s3_bucket_validator").setLevel(logging.DEBUG)
+
+    LOGGER.info("Creating Daylily application with verbose logging enabled")
+
+    # AWS configuration from environment variables
+    region = os.getenv("AWS_DEFAULT_REGION", "us-west-2")
+    profile = os.getenv("AWS_PROFILE", None)
+
+    # Initialize LinkedBucketManager early so portal routes can use it
+    linked_bucket_manager = None
+    if FILE_MANAGEMENT_AVAILABLE and LinkedBucketManager:
+        try:
+            linked_bucket_manager = LinkedBucketManager(
+                table_name="daylily-linked-buckets",
+                region=region,
+                profile=profile,
+            )
+            LOGGER.info("LinkedBucketManager initialized for portal and file API")
+        except Exception as e:
+            LOGGER.warning("Failed to create LinkedBucketManager: %s", str(e))
+
     app = FastAPI(
         title="Daylily Workset Monitor API",
         description="REST API for workset monitoring and management with multi-tenant support",
@@ -277,13 +311,60 @@ def create_app(
             )
         if not cognito_auth:
             raise ValueError("enable_auth=True requires cognito_auth parameter")
-        get_current_user = create_auth_dependency(cognito_auth)
-        LOGGER.info("Authentication enabled - API endpoints will require valid JWT tokens")
+        # Create JWT auth as optional - we'll also accept session auth
+        jwt_auth_dependency = create_auth_dependency(cognito_auth, optional=True)
+        LOGGER.info("Authentication enabled - API endpoints will accept session or JWT auth")
     else:
-        # Create a dummy dependency that always returns None
-        async def get_current_user() -> Optional[Dict]:
-            return None
+        jwt_auth_dependency = None
         LOGGER.info("Authentication disabled - API endpoints will not require authentication")
+
+    # Create a combined auth dependency that accepts either:
+    # 1. Session-based auth from portal (user_email in session)
+    # 2. JWT token auth from API calls (Authorization header)
+    def get_current_user(request: Request) -> Optional[Dict]:
+        """Combined auth dependency for portal session and API JWT auth."""
+        # First try session-based auth (portal)
+        if hasattr(request, "session"):
+            user_email = request.session.get("user_email")
+            if user_email:
+                return {
+                    "email": user_email,
+                    "auth_type": "session",
+                    "authenticated": True,
+                }
+
+        # Then try JWT auth if available (check Authorization header)
+        if jwt_auth_dependency and cognito_auth:
+            auth_header = request.headers.get("Authorization", "")
+            if auth_header.startswith("Bearer "):
+                try:
+                    from fastapi.security import HTTPAuthorizationCredentials
+                    token = auth_header[7:]  # Remove "Bearer " prefix
+                    credentials = HTTPAuthorizationCredentials(scheme="Bearer", credentials=token)
+                    user = cognito_auth.get_current_user(credentials)
+                    if user:
+                        user["auth_type"] = "jwt"
+                        return user
+                except HTTPException:
+                    # JWT auth failed, but that's ok - we already checked session
+                    pass
+                except Exception as e:
+                    LOGGER.debug("JWT auth check failed: %s", str(e))
+
+        # No valid authentication found
+        if enable_auth:
+            # For API endpoints that require auth, raise an error
+            # But only for non-portal routes (portal uses session redirects)
+            if not request.url.path.startswith("/portal"):
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authentication required - provide session cookie or Bearer token",
+                    headers={"WWW-Authenticate": "Bearer"},
+                )
+
+        return None
+
+    LOGGER.info("Combined session/JWT authentication configured")
     
     @app.get("/", tags=["health"])
     async def root():
@@ -708,7 +789,7 @@ def create_app(
                 return {"files": files, "prefix": prefix, "bucket": config.s3_bucket}
 
             except Exception as e:
-                LOGGER.error("Failed to list files: %s", e)
+                LOGGER.error("Failed to list files: %s", str(e))
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=str(e),
@@ -756,7 +837,7 @@ def create_app(
                 return {"success": True, "key": key, "bucket": config.s3_bucket}
 
             except Exception as e:
-                LOGGER.error("Failed to upload file: %s", e)
+                LOGGER.error("Failed to upload file: %s", str(e))
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=str(e),
@@ -794,7 +875,7 @@ def create_app(
                 return {"success": True, "folder": folder_key}
 
             except Exception as e:
-                LOGGER.error("Failed to create folder: %s", e)
+                LOGGER.error("Failed to create folder: %s", str(e))
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=str(e),
@@ -942,7 +1023,7 @@ def create_app(
                     detail=f"File not found: {file_key}",
                 )
             except Exception as e:
-                LOGGER.error("Failed to preview file: %s", e)
+                LOGGER.error("Failed to preview file: %s", str(e))
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=str(e),
@@ -981,7 +1062,7 @@ def create_app(
                 return {"url": url}
 
             except Exception as e:
-                LOGGER.error("Failed to generate download URL: %s", e)
+                LOGGER.error("Failed to generate download URL: %s", str(e))
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=str(e),
@@ -1016,7 +1097,7 @@ def create_app(
                 return {"success": True, "deleted": file_key}
 
             except Exception as e:
-                LOGGER.error("Failed to delete file: %s", e)
+                LOGGER.error("Failed to delete file: %s", str(e))
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                     detail=str(e),
@@ -1199,7 +1280,7 @@ def create_app(
                     if yaml_data and isinstance(yaml_data.get("samples"), list):
                         workset_samples = yaml_data["samples"]
                 except Exception as e:
-                    LOGGER.warning("Failed to parse YAML content: %s", e)
+                    LOGGER.warning("Failed to parse YAML content: %s", str(e))
 
             # Normalize sample format and add default status
             normalized_samples = []
@@ -1415,7 +1496,7 @@ def create_app(
                             s3.delete_object(Bucket=bucket, Key=old_key)
                     LOGGER.info("Moved workset %s files to archive: %s", workset_id, archive_prefix)
                 except Exception as e:
-                    LOGGER.warning("Failed to move workset files to archive: %s", e)
+                    LOGGER.warning("Failed to move workset files to archive: %s", str(e))
 
             return state_db.get_workset(workset_id)
 
@@ -1490,7 +1571,7 @@ def create_app(
                                 workset_id,
                             )
                     except Exception as e:
-                        LOGGER.error("Failed to delete S3 objects for workset %s: %s", workset_id, e)
+                        LOGGER.error("Failed to delete S3 objects for workset %s: %s", workset_id, str(e))
                         raise HTTPException(
                             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                             detail=f"Failed to delete S3 data: {str(e)}",
@@ -1714,7 +1795,7 @@ def create_app(
                             yaml_content = response["Body"].read().decode("utf-8")
                             LOGGER.info("S3 Discovery: Successfully read daylily_work.yaml")
                         except Exception as e:
-                            LOGGER.warning("S3 Discovery: Failed to read daylily_work.yaml: %s", e)
+                            LOGGER.warning("S3 Discovery: Failed to read daylily_work.yaml: %s", str(e))
 
                     # Check for FASTQ files - extended patterns
                     fastq_extensions = [".fastq", ".fq", ".fastq.gz", ".fq.gz", ".fastq.bz2", ".fq.bz2"]
@@ -1743,7 +1824,7 @@ def create_app(
                                 })
                         LOGGER.info("S3 Discovery: Parsed %d samples from YAML", len(samples))
                 except Exception as e:
-                    LOGGER.warning("S3 Discovery: Failed to parse daylily_work.yaml: %s", e)
+                    LOGGER.warning("S3 Discovery: Failed to parse daylily_work.yaml: %s", str(e))
 
             # If no samples from YAML, try to pair FASTQ files
             if not samples and files_found:
@@ -1825,13 +1906,13 @@ def create_app(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"S3 bucket '{bucket}' not found",
                 )
-            LOGGER.error("S3 Discovery: Failed to discover samples from S3: %s", e)
+            LOGGER.error("S3 Discovery: Failed to discover samples from S3: %s", str(e))
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to discover samples: {str(e)}",
             )
         except Exception as e:
-            LOGGER.error("S3 Discovery: Failed to discover samples from S3: %s", e)
+            LOGGER.error("S3 Discovery: Failed to discover samples from S3: %s", str(e))
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to discover samples: {str(e)}",
@@ -1881,7 +1962,7 @@ def create_app(
                 "setup_instructions": instructions,
             }
         except Exception as e:
-            LOGGER.error("S3 Validation: Failed to validate bucket '%s': %s", bucket, e)
+            LOGGER.error("S3 Validation: Failed to validate bucket '%s': %s", bucket, str(e))
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to validate bucket: {str(e)}",
@@ -2403,7 +2484,7 @@ def create_app(
             except HTTPException:
                 raise
             except Exception as e:
-                LOGGER.error("Failed to generate download URLs for workset %s: %s", workset_id, e)
+                LOGGER.error("Failed to generate download URLs for workset %s: %s", workset_id, str(e))
                 raise HTTPException(
                     status_code=500,
                     detail=f"Failed to generate download URLs: {str(e)}"
@@ -2435,8 +2516,350 @@ def create_app(
             )
 
         @app.get("/portal/files", response_class=HTMLResponse, tags=["portal"])
-        async def portal_files(request: Request, prefix: str = ""):
-            """File manager page."""
+        async def portal_files(request: Request, prefix: str = "", subject_id: str = "", biosample_id: str = ""):
+            """File registry page - main file management interface."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            customer = None
+            files = []
+            stats = {"total_files": 0, "total_size": 0, "unique_subjects": 0, "unique_biosamples": 0}
+            buckets = []
+
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+
+            # Use file registry if available - fail fast so template errors surface
+            if FILE_MANAGEMENT_AVAILABLE and file_registry:
+                # Get customer ID for querying files (customer is a TemplateCustomer object)
+                customer_id = customer.customer_id if customer else None
+
+                if customer_id:
+                    # Get files (with optional filters)
+                    if subject_id:
+                        files = file_registry.search_files_by_tag(customer_id, f"subject:{subject_id}")
+                    elif biosample_id:
+                        files = file_registry.search_files_by_tag(customer_id, f"biosample:{biosample_id}")
+                    else:
+                        file_registrations = file_registry.list_customer_files(customer_id, limit=100)
+                        # Convert FileRegistration objects to dicts for template
+                        files = [
+                            {
+                                "file_id": f.file_id,
+                                "customer_id": f.customer_id,
+                                "s3_uri": f.file_metadata.s3_uri,
+                                "filename": f.file_metadata.filename,
+                                "file_format": f.file_metadata.file_format,
+                                "file_size_bytes": f.file_metadata.file_size_bytes,
+                                "subject_id": f.biosample_metadata.subject_id,
+                                "biosample_id": f.biosample_metadata.biosample_id,
+                                "registered_at": f.registered_at,
+                            }
+                            for f in file_registrations
+                        ]
+
+                    # Calculate stats
+                    stats["total_files"] = len(files)
+                    stats["total_size"] = sum(f.get("file_size_bytes", 0) or 0 for f in files)
+                    stats["unique_subjects"] = len(set(f.get("subject_id") for f in files if f.get("subject_id")))
+                    stats["unique_biosamples"] = len(set(f.get("biosample_id") for f in files if f.get("biosample_id")))
+
+            return templates.TemplateResponse(
+                request,
+                "files/index.html",
+                get_template_context(
+                    request,
+                    customer=customer,
+                    files=files,
+                    stats=stats,
+                    buckets=buckets,
+                    subject_id=subject_id,
+                    biosample_id=biosample_id,
+                    active_page="files",
+                ),
+            )
+
+        @app.get("/portal/files/buckets", response_class=HTMLResponse, tags=["portal"])
+        async def portal_files_buckets(request: Request):
+            """Bucket management page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            customer = None
+            buckets = []
+
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+
+            if FILE_MANAGEMENT_AVAILABLE and linked_bucket_manager:
+                try:
+                    customer_id = customer.customer_id if customer else None
+                    if customer_id:
+                        linked_buckets = linked_bucket_manager.list_customer_buckets(customer_id)
+                        # Convert LinkedBucket objects to dicts for template
+                        buckets = [
+                            {
+                                "bucket_id": b.bucket_id,
+                                "bucket_name": b.bucket_name,
+                                "bucket_type": b.bucket_type,
+                                "display_name": b.display_name,
+                                "description": b.description,
+                                "is_validated": b.is_validated,
+                                "can_read": b.can_read,
+                                "can_write": b.can_write,
+                                "can_list": b.can_list,
+                                "region": b.region,
+                                "linked_at": b.linked_at,
+                                "read_only": b.read_only,
+                                "prefix_restriction": b.prefix_restriction,
+                            }
+                            for b in linked_buckets
+                        ]
+                except Exception as e:
+                    LOGGER.warning("Failed to load buckets: %s", str(e))
+
+            return templates.TemplateResponse(
+                request,
+                "files/buckets.html",
+                get_template_context(
+                    request,
+                    customer=customer,
+                    buckets=buckets,
+                    active_page="files",
+                ),
+            )
+
+        @app.get("/portal/files/register", response_class=HTMLResponse, tags=["portal"])
+        async def portal_files_register(request: Request):
+            """File registration page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            customer = None
+            buckets = []
+
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+
+            if FILE_MANAGEMENT_AVAILABLE and linked_bucket_manager:
+                try:
+                    customer_id = customer.customer_id if customer else None
+                    if customer_id:
+                        linked_buckets = linked_bucket_manager.list_customer_buckets(customer_id)
+                        buckets = [
+                            {
+                                "bucket_id": b.bucket_id,
+                                "bucket_name": b.bucket_name,
+                                "bucket_type": b.bucket_type,
+                                "display_name": b.display_name,
+                                "is_validated": b.is_validated,
+                                "can_read": b.can_read,
+                                "can_write": b.can_write,
+                                "read_only": b.read_only,
+                            }
+                            for b in linked_buckets
+                        ]
+                except Exception as e:
+                    LOGGER.warning("Failed to load buckets: %s", str(e))
+
+            return templates.TemplateResponse(
+                request,
+                "files/register.html",
+                get_template_context(
+                    request,
+                    customer=customer,
+                    buckets=buckets,
+                    active_page="files",
+                ),
+            )
+
+        @app.get("/portal/files/upload", response_class=HTMLResponse, tags=["portal"])
+        async def portal_files_upload(request: Request):
+            """File upload page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            customer = None
+            buckets = []
+
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+
+            if FILE_MANAGEMENT_AVAILABLE and linked_bucket_manager:
+                try:
+                    customer_id = customer.customer_id if customer else None
+                    if customer_id:
+                        linked_buckets = linked_bucket_manager.list_customer_buckets(customer_id)
+                        buckets = [
+                            {
+                                "bucket_id": b.bucket_id,
+                                "bucket_name": b.bucket_name,
+                                "bucket_type": b.bucket_type,
+                                "display_name": b.display_name,
+                                "is_validated": b.is_validated,
+                                "can_read": b.can_read,
+                                "can_write": b.can_write,
+                                "read_only": b.read_only,
+                            }
+                            for b in linked_buckets
+                        ]
+                except Exception as e:
+                    LOGGER.warning("Failed to load buckets: %s", str(e))
+
+            return templates.TemplateResponse(
+                request,
+                "files/upload.html",
+                get_template_context(
+                    request,
+                    customer=customer,
+                    buckets=buckets,
+                    active_page="files",
+                ),
+            )
+
+        @app.get("/portal/files/filesets", response_class=HTMLResponse, tags=["portal"])
+        async def portal_files_filesets(request: Request):
+            """File sets management page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            customer = None
+            filesets = []
+
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+
+            if FILE_MANAGEMENT_AVAILABLE and file_registry:
+                try:
+                    # customer is a TemplateCustomer object
+                    customer_id = customer.customer_id if customer else None
+                    if customer_id:
+                        fileset_objs = file_registry.list_customer_filesets(customer_id)
+                        # Convert FileSet objects to dicts for template
+                        filesets = [
+                            {
+                                "fileset_id": fs.fileset_id,
+                                "customer_id": fs.customer_id,
+                                "name": fs.name,
+                                "description": fs.description,
+                                "file_count": len(fs.file_ids),
+                                "created_at": fs.created_at,
+                                "updated_at": fs.updated_at,
+                            }
+                            for fs in fileset_objs
+                        ]
+                except Exception as e:
+                    LOGGER.warning("Failed to load filesets: %s", str(e))
+
+            return templates.TemplateResponse(
+                request,
+                "files/filesets.html",
+                get_template_context(
+                    request,
+                    customer=customer,
+                    filesets=filesets,
+                    active_page="files",
+                ),
+            )
+
+        @app.get("/portal/files/filesets/{fileset_id}", response_class=HTMLResponse, tags=["portal"])
+        async def portal_files_fileset_detail(request: Request, fileset_id: str):
+            """File set detail page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            customer = None
+            fileset = None
+            files = []
+
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+
+            if FILE_MANAGEMENT_AVAILABLE and file_registry:
+                try:
+                    fileset = file_registry.get_fileset(fileset_id)
+                    if fileset:
+                        files = file_registry.get_fileset_files(fileset_id)
+                except Exception as e:
+                    LOGGER.warning("Failed to load fileset: %s", str(e))
+
+            if not fileset:
+                raise HTTPException(status_code=404, detail="File set not found")
+
+            return templates.TemplateResponse(
+                request,
+                "files/filesets.html",  # Reuse filesets template with detail mode
+                get_template_context(
+                    request,
+                    customer=customer,
+                    fileset=fileset,
+                    files=files,
+                    active_page="files",
+                ),
+            )
+
+        @app.get("/portal/files/{file_id}", response_class=HTMLResponse, tags=["portal"])
+        async def portal_files_detail(request: Request, file_id: str):
+            """File detail page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            customer = None
+            file = None
+            workset_history = []
+
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+
+            if FILE_MANAGEMENT_AVAILABLE and file_registry:
+                try:
+                    file = file_registry.get_file(file_id)
+                    if file:
+                        # Get workset history
+                        workset_history = file_registry.get_file_workset_history(file_id)
+                except Exception as e:
+                    LOGGER.warning("Failed to load file: %s", str(e))
+
+            if not file:
+                raise HTTPException(status_code=404, detail="File not found")
+
+            return templates.TemplateResponse(
+                request,
+                "files/detail.html",
+                get_template_context(
+                    request,
+                    customer=customer,
+                    file=file,
+                    workset_history=workset_history,
+                    active_page="files",
+                ),
+            )
+
+        # Legacy file browser route (keep for backward compatibility)
+        @app.get("/portal/files/browser", response_class=HTMLResponse, tags=["portal"])
+        async def portal_files_browser(request: Request, prefix: str = ""):
+            """Legacy file browser page (S3 browser)."""
             auth_redirect = require_portal_auth(request)
             if auth_redirect:
                 return auth_redirect
@@ -2493,7 +2916,7 @@ def create_app(
                             })
 
                     except Exception as e:
-                        LOGGER.warning("Failed to list S3 files: %s", e)
+                        LOGGER.warning("Failed to list S3 files: %s", str(e))
 
             # Build breadcrumbs from prefix
             if prefix:
@@ -2586,14 +3009,42 @@ def create_app(
     if file_registry and FILE_MANAGEMENT_AVAILABLE:
         LOGGER.info("Integrating file management API endpoints")
         try:
-            # Pass auth dependency if authentication is enabled
-            auth_dep = get_current_user if enable_auth else None
-            file_router = create_file_api_router(file_registry, auth_dependency=auth_dep)
+            # Pass auth dependency - use combined session/JWT auth
+            auth_dep = get_current_user
+
+            # Create S3 bucket validator for validation endpoints
+            s3_bucket_validator = None
+            bucket_file_discovery = None
+
+            if S3BucketValidator:
+                try:
+                    s3_bucket_validator = S3BucketValidator(region=region, profile=profile)
+                    LOGGER.info("S3BucketValidator initialized for file API")
+                except Exception as e:
+                    LOGGER.warning("Failed to create LinkedBucketManager: %s", str(e))
+
+            if BucketFileDiscovery and s3_bucket_validator:
+                try:
+                    bucket_file_discovery = BucketFileDiscovery(
+                        region=region,
+                        profile=profile,
+                    )
+                    LOGGER.info("BucketFileDiscovery initialized for file API")
+                except Exception as e:
+                    LOGGER.warning("Failed to create BucketFileDiscovery: %s", str(e))
+
+            file_router = create_file_api_router(
+                file_registry,
+                auth_dependency=auth_dep,
+                s3_bucket_validator=s3_bucket_validator,
+                linked_bucket_manager=linked_bucket_manager,
+                bucket_file_discovery=bucket_file_discovery,
+            )
             app.include_router(file_router)
-            auth_status = "with authentication" if enable_auth else "without authentication"
+            auth_status = "with combined session/JWT authentication"
             LOGGER.info(f"File management API endpoints registered at /api/files/* ({auth_status})")
         except Exception as e:
-            LOGGER.error("Failed to integrate file management API: %s", e)
+            LOGGER.error("Failed to integrate file management API: %s", str(e))
             LOGGER.warning("File management endpoints will not be available")
     elif file_registry and not FILE_MANAGEMENT_AVAILABLE:
         LOGGER.warning(
