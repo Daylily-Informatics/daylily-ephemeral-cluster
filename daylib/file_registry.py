@@ -373,11 +373,16 @@ class FileRegistry:
     def list_customer_files(self, customer_id: str, limit: int = 100) -> List[FileRegistration]:
         """List all files for a customer."""
         try:
-            response = self.files_table.query(
-                IndexName="customer-id-index",
-                KeyConditionExpression=Key("customer_id").eq(customer_id),
-                Limit=limit,
+            query_kwargs = {
+                "IndexName": "customer-id-index",
+                "KeyConditionExpression": Key("customer_id").eq(customer_id),
+                "Limit": limit,
+            }
+            query_kwargs.pop("TableName", None)
+            assert "TableName" not in query_kwargs, (
+                "TableName must not be passed to DynamoDB Table.query"
             )
+            response = self.files_table.query(**query_kwargs)
 
             # Fail-fast: if any item cannot be converted, surface the error
             return [
@@ -497,10 +502,15 @@ class FileRegistry:
     def list_customer_filesets(self, customer_id: str) -> List[FileSet]:
         """List all file sets for a customer."""
         try:
-            response = self.filesets_table.query(
-                IndexName="customer-id-index",
-                KeyConditionExpression=Key("customer_id").eq(customer_id),
+            query_kwargs = {
+                "IndexName": "customer-id-index",
+                "KeyConditionExpression": Key("customer_id").eq(customer_id),
+            }
+            query_kwargs.pop("TableName", None)
+            assert "TableName" not in query_kwargs, (
+                "TableName must not be passed to DynamoDB Table.query"
             )
+            response = self.filesets_table.query(**query_kwargs)
             
             filesets = []
             for item in response.get("Items", []):
@@ -756,10 +766,15 @@ class FileRegistry:
             List of FileWorksetUsage records
         """
         try:
-            response = self.file_workset_usage_table.query(
-                KeyConditionExpression="file_id = :fid",
-                ExpressionAttributeValues={":fid": file_id},
+            query_kwargs = {
+                "KeyConditionExpression": "file_id = :fid",
+                "ExpressionAttributeValues": {":fid": file_id},
+            }
+            query_kwargs.pop("TableName", None)
+            assert "TableName" not in query_kwargs, (
+                "TableName must not be passed to DynamoDB Table.query"
             )
+            response = self.file_workset_usage_table.query(**query_kwargs)
 
             usages = []
             for item in response.get("Items", []):
@@ -787,11 +802,16 @@ class FileRegistry:
             List of FileWorksetUsage records
         """
         try:
-            response = self.file_workset_usage_table.query(
-                IndexName="workset-id-index",
-                KeyConditionExpression="workset_id = :wid",
-                ExpressionAttributeValues={":wid": workset_id},
+            query_kwargs = {
+                "IndexName": "workset-id-index",
+                "KeyConditionExpression": "workset_id = :wid",
+                "ExpressionAttributeValues": {":wid": workset_id},
+            }
+            query_kwargs.pop("TableName", None)
+            assert "TableName" not in query_kwargs, (
+                "TableName must not be passed to DynamoDB Table.query"
             )
+            response = self.file_workset_usage_table.query(**query_kwargs)
 
             usages = []
             for item in response.get("Items", []):

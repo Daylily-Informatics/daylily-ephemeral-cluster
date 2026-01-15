@@ -478,6 +478,10 @@ class WorksetStateDB:
             query_kwargs["ExpressionAttributeValues"][":priority"] = priority.value
 
         try:
+            query_kwargs.pop("TableName", None)
+            assert "TableName" not in query_kwargs, (
+                "TableName must not be passed to DynamoDB Table.query"
+            )
             response = self.table.query(**query_kwargs)
             return [self._deserialize_item(item) for item in response.get("Items", [])]
         except ClientError as e:
@@ -752,10 +756,15 @@ class WorksetStateDB:
             List of worksets
         """
         try:
-            response = self.table.scan(
-                FilterExpression="cluster_name = :cluster",
-                ExpressionAttributeValues={":cluster": cluster_name},
+            scan_kwargs = {
+                "FilterExpression": "cluster_name = :cluster",
+                "ExpressionAttributeValues": {":cluster": cluster_name},
+            }
+            scan_kwargs.pop("TableName", None)
+            assert "TableName" not in scan_kwargs, (
+                "TableName must not be passed to DynamoDB Table.scan"
             )
+            response = self.table.scan(**scan_kwargs)
             return [self._deserialize_item(item) for item in response.get("Items", [])]
         except ClientError as e:
             LOGGER.error("Failed to get worksets for cluster %s: %s", cluster_name, str(e))

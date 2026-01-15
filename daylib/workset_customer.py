@@ -360,7 +360,12 @@ class CustomerManager:
         table = self.dynamodb.Table(self.customer_table_name)
 
         try:
-            response = table.scan()
+            scan_kwargs = {}
+            scan_kwargs.pop("TableName", None)
+            assert "TableName" not in scan_kwargs, (
+                "TableName must not be passed to DynamoDB Table.scan"
+            )
+            response = table.scan(**scan_kwargs)
             items = response.get("Items", [])
 
             customers = []

@@ -91,7 +91,12 @@ def check_table(table_name: str, num_records: int = 5, profile: str = None, regi
         
         try:
             table = dynamodb.Table(table_name)
-            response = table.scan(Limit=num_records)
+            scan_kwargs = {"Limit": num_records}
+            scan_kwargs.pop("TableName", None)
+            assert "TableName" not in scan_kwargs, (
+                "TableName must not be passed to DynamoDB Table.scan"
+            )
+            response = table.scan(**scan_kwargs)
             items = response.get("Items", [])
             
             if not items:
