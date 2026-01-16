@@ -513,6 +513,79 @@ class CognitoAuth:
                 LOGGER.error("Authentication error for user %s: %s - %s", email, error_code, error_message)
                 raise
 
+    def forgot_password(self, email: str) -> None:
+        """Initiate forgot password flow for a user.
+
+        Sends a verification code to the user's email address.
+
+        Args:
+            email: User's email address
+
+        Raises:
+            ValueError: If the request fails
+        """
+        try:
+            self.cognito.forgot_password(
+                ClientId=self.app_client_id,
+                Username=email,
+            )
+            LOGGER.info(f"Password reset code sent to {email}")
+
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code")
+            error_message = e.response.get("Error", {}).get("Message", str(e))
+            LOGGER.error(f"Forgot password error for user {email}: {error_code} - {error_message}")
+
+            # Map AWS errors to user-friendly messages
+            if error_code == "UserNotFoundException":
+                # Don't reveal if user exists or not for security
+                LOGGER.warning(f"Password reset requested for non-existent user: {email}")
+                # Still return success to avoid user enumeration
+                return
+            elif error_code == "InvalidParameterException":
+                raise ValueError("Invalid request parameters")
+            elif error_code == "LimitExceededException":
+                raise ValueError("Too many requests. Please try again later")
+            else:
+                raise ValueError(f"Password reset failed: {error_message}")
+
+    def confirm_forgot_password(self, email: str, confirmation_code: str, new_password: str) -> None:
+        """Confirm forgot password with verification code and set new password.
+
+        Args:
+            email: User's email address
+            confirmation_code: Verification code sent to user's email
+            new_password: New password to set
+
+        Raises:
+            ValueError: If the confirmation fails
+        """
+        try:
+            self.cognito.confirm_forgot_password(
+                ClientId=self.app_client_id,
+                Username=email,
+                ConfirmationCode=confirmation_code,
+                Password=new_password,
+            )
+            LOGGER.info(f"Password reset successful for {email}")
+
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code")
+            error_message = e.response.get("Error", {}).get("Message", str(e))
+            LOGGER.error(f"Confirm forgot password error for user {email}: {error_code} - {error_message}")
+
+            # Map AWS errors to user-friendly messages
+            if error_code == "CodeMismatchException":
+                raise ValueError("Invalid verification code")
+            elif error_code == "ExpiredCodeException":
+                raise ValueError("Verification code has expired. Please request a new one")
+            elif error_code == "InvalidPasswordException":
+                raise ValueError("Password does not meet requirements")
+            elif error_code == "UserNotFoundException":
+                raise ValueError("User not found")
+            else:
+                raise ValueError(f"Password reset failed: {error_message}")
+
 
 def create_auth_dependency(cognito_auth: CognitoAuth, optional: bool = False):
     """Create FastAPI dependency for authentication.

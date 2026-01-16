@@ -2190,7 +2190,47 @@ def create_app(
             """Check if user is authenticated for portal access.
 
             Returns RedirectResponse to login if not authenticated, None if authenticated.
+
+            In no-auth mode (enable_auth=False), automatically creates a session with
+            the first available customer or a default demo customer.
             """
+            # If auth is disabled, set up a default session
+            if not enable_auth:
+                if not hasattr(request, "session"):
+                    return RedirectResponse(url="/portal/login", status_code=302)
+
+                # Check if session already has a user
+                if not request.session.get("user_email"):
+                    # Set up default customer session
+                    default_customer = None
+
+                    # Try to get first customer from database
+                    if customer_manager:
+                        try:
+                            customers = customer_manager.list_customers()
+                            if customers:
+                                default_customer = customers[0]
+                                LOGGER.info(f"No-auth mode: Using first customer {default_customer.customer_id} ({default_customer.email})")
+                        except Exception as e:
+                            LOGGER.warning(f"No-auth mode: Failed to get customers: {e}")
+
+                    # If no customers found, create a demo session
+                    if not default_customer:
+                        LOGGER.info("No-auth mode: No customers found, creating demo session")
+                        request.session["user_email"] = "demo@daylily.local"
+                        request.session["user_authenticated"] = True
+                        request.session["customer_id"] = "demo-customer"
+                        request.session["is_admin"] = True
+                    else:
+                        # Use the first customer
+                        request.session["user_email"] = default_customer.email
+                        request.session["user_authenticated"] = True
+                        request.session["customer_id"] = default_customer.customer_id
+                        request.session["is_admin"] = default_customer.is_admin
+
+                return None  # Allow access in no-auth mode
+
+            # Auth is enabled - require valid session
             if not hasattr(request, "session"):
                 return RedirectResponse(url="/portal/login", status_code=302)
             if not request.session.get("user_email"):
@@ -2323,6 +2363,105 @@ def create_app(
             LOGGER.info(f"portal_login_submit: Login successful for customer {customer.customer_id} ({email})")
             response = RedirectResponse(url="/portal/", status_code=302)
             return response
+
+        @app.get("/portal/forgot-password", response_class=HTMLResponse, tags=["portal"])
+        async def portal_forgot_password(request: Request, error: Optional[str] = None, success: Optional[str] = None):
+            """Forgot password page."""
+            return templates.TemplateResponse(
+                request,
+                "auth/forgot_password.html",
+                get_template_context(request, error=error, success=success),
+            )
+
+        @app.post("/portal/forgot-password", tags=["portal"])
+        async def portal_forgot_password_submit(
+            request: Request,
+            email: str = Form(...),
+        ):
+            """Handle forgot password form submission."""
+            if not cognito_auth:
+                return RedirectResponse(
+                    url="/portal/forgot-password?error=Password+reset+not+available",
+                    status_code=302,
+                )
+
+            try:
+                # Initiate password reset
+                cognito_auth.forgot_password(email)
+                LOGGER.info(f"Password reset initiated for {email}")
+                return RedirectResponse(
+                    url="/portal/reset-password?email=" + email,
+                    status_code=302,
+                )
+            except ValueError as e:
+                LOGGER.warning(f"Forgot password error for {email}: {e}")
+                return RedirectResponse(
+                    url=f"/portal/forgot-password?error={str(e)}",
+                    status_code=302,
+                )
+            except Exception as e:
+                LOGGER.error(f"Forgot password error for {email}: {e}")
+                return RedirectResponse(
+                    url="/portal/forgot-password?error=Password+reset+failed",
+                    status_code=302,
+                )
+
+        @app.get("/portal/reset-password", response_class=HTMLResponse, tags=["portal"])
+        async def portal_reset_password(
+            request: Request,
+            email: Optional[str] = None,
+            error: Optional[str] = None,
+            success: Optional[str] = None
+        ):
+            """Reset password page."""
+            return templates.TemplateResponse(
+                request,
+                "auth/reset_password.html",
+                get_template_context(request, email=email, error=error, success=success),
+            )
+
+        @app.post("/portal/reset-password", tags=["portal"])
+        async def portal_reset_password_submit(
+            request: Request,
+            email: str = Form(...),
+            code: str = Form(...),
+            password: str = Form(...),
+            confirm_password: str = Form(...),
+        ):
+            """Handle reset password form submission."""
+            if not cognito_auth:
+                return RedirectResponse(
+                    url="/portal/reset-password?error=Password+reset+not+available",
+                    status_code=302,
+                )
+
+            # Validate passwords match
+            if password != confirm_password:
+                return RedirectResponse(
+                    url=f"/portal/reset-password?email={email}&error=Passwords+do+not+match",
+                    status_code=302,
+                )
+
+            try:
+                # Confirm password reset
+                cognito_auth.confirm_forgot_password(email, code, password)
+                LOGGER.info(f"Password reset successful for {email}")
+                return RedirectResponse(
+                    url="/portal/login?success=Password+reset+successful.+Please+log+in",
+                    status_code=302,
+                )
+            except ValueError as e:
+                LOGGER.warning(f"Reset password error for {email}: {e}")
+                return RedirectResponse(
+                    url=f"/portal/reset-password?email={email}&error={str(e)}",
+                    status_code=302,
+                )
+            except Exception as e:
+                LOGGER.error(f"Reset password error for {email}: {e}")
+                return RedirectResponse(
+                    url=f"/portal/reset-password?email={email}&error=Password+reset+failed",
+                    status_code=302,
+                )
 
         @app.get("/portal/register", response_class=HTMLResponse, tags=["portal"])
         async def portal_register(request: Request, error: Optional[str] = None, success: Optional[str] = None):
