@@ -10,11 +10,8 @@ Usage:
 
 import os
 import sys
-
-# Add parent directory to path
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
-from daylib.workset_auth import CognitoAuth
+import boto3
+from botocore.exceptions import ClientError
 
 
 def main():
@@ -50,25 +47,49 @@ def main():
     print()
     
     try:
-        # Initialize CognitoAuth
-        auth = CognitoAuth(
-            region=region,
-            user_pool_id=user_pool_id,
-            app_client_id=app_client_id,
-            profile=profile,
+        # Initialize boto3 client
+        session_kwargs = {"region_name": region}
+        if profile:
+            session_kwargs["profile_name"] = profile
+
+        session = boto3.Session(**session_kwargs)
+        cognito = session.client("cognito-idp")
+
+        # Get current client configuration
+        print("Fetching current app client configuration...")
+        response = cognito.describe_user_pool_client(
+            UserPoolId=user_pool_id,
+            ClientId=app_client_id,
         )
-        
-        # Update the app client
-        print("Updating app client to enable ADMIN_USER_PASSWORD_AUTH...")
-        auth.update_app_client_auth_flows()
-        
+        client_config = response["UserPoolClient"]
+
+        print(f"Current auth flows: {client_config.get('ExplicitAuthFlows', [])}")
+
+        # Update with required auth flows
+        print("\nUpdating app client to enable ADMIN_USER_PASSWORD_AUTH...")
+        cognito.update_user_pool_client(
+            UserPoolId=user_pool_id,
+            ClientId=app_client_id,
+            ClientName=client_config["ClientName"],
+            ExplicitAuthFlows=[
+                "ALLOW_USER_PASSWORD_AUTH",
+                "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+                "ALLOW_REFRESH_TOKEN_AUTH",
+            ],
+            ReadAttributes=client_config.get("ReadAttributes", ["email", "custom:customer_id"]),
+            WriteAttributes=client_config.get("WriteAttributes", ["email"]),
+        )
+
         print("\n✅ SUCCESS! App client updated successfully.")
         print("\nThe following auth flows are now enabled:")
         print("  - ALLOW_USER_PASSWORD_AUTH")
         print("  - ALLOW_ADMIN_USER_PASSWORD_AUTH")
         print("  - ALLOW_REFRESH_TOKEN_AUTH")
         print("\nYou can now use admin_initiate_auth for login.")
-        
+
+    except ClientError as e:
+        print(f"\n❌ AWS ERROR: {e}")
+        sys.exit(1)
     except Exception as e:
         print(f"\n❌ ERROR: {e}")
         sys.exit(1)

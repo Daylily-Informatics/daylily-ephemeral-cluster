@@ -2662,7 +2662,11 @@ def create_app(
                 # Redirect to login page with success message
                 bucket_info = f" Your S3 bucket: {config.s3_bucket}." if config.s3_bucket else ""
                 if enable_auth and cognito_auth:
-                    success_msg = f"Account created successfully! Your customer ID is: {config.customer_id}.{bucket_info} Check your email for login credentials."
+                    success_msg = (
+                        f"✅ Account created! Customer ID: {config.customer_id}.{bucket_info} "
+                        f"📧 CHECK YOUR EMAIL (including spam folder) for your temporary password from no-reply@verificationemail.com. "
+                        f"Use it to log in below."
+                    )
                 else:
                     success_msg = f"Account created successfully! Your customer ID is: {config.customer_id}.{bucket_info} Please log in."
 
