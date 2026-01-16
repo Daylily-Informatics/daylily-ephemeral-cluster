@@ -253,6 +253,7 @@ class CognitoAuth:
                 GenerateSecret=False,
                 ExplicitAuthFlows=[
                     "ALLOW_USER_PASSWORD_AUTH",
+                    "ALLOW_ADMIN_USER_PASSWORD_AUTH",  # Required for admin_initiate_auth
                     "ALLOW_REFRESH_TOKEN_AUTH",
                 ],
                 ReadAttributes=["email", "custom:customer_id"],
@@ -267,6 +268,42 @@ class CognitoAuth:
 
         except ClientError as e:
             LOGGER.error("Failed to create app client: %s", str(e))
+            raise
+
+    def update_app_client_auth_flows(self) -> None:
+        """Update existing app client to enable required auth flows.
+
+        This is useful for fixing existing app clients that were created
+        without ALLOW_ADMIN_USER_PASSWORD_AUTH enabled.
+        """
+        if not self.user_pool_id or not self.app_client_id:
+            raise ValueError("user_pool_id and app_client_id must be set")
+
+        try:
+            # Get current client configuration
+            response = self.cognito.describe_user_pool_client(
+                UserPoolId=self.user_pool_id,
+                ClientId=self.app_client_id,
+            )
+            client_config = response["UserPoolClient"]
+
+            # Update with required auth flows
+            self.cognito.update_user_pool_client(
+                UserPoolId=self.user_pool_id,
+                ClientId=self.app_client_id,
+                ClientName=client_config["ClientName"],
+                ExplicitAuthFlows=[
+                    "ALLOW_USER_PASSWORD_AUTH",
+                    "ALLOW_ADMIN_USER_PASSWORD_AUTH",
+                    "ALLOW_REFRESH_TOKEN_AUTH",
+                ],
+                ReadAttributes=client_config.get("ReadAttributes", ["email", "custom:customer_id"]),
+                WriteAttributes=client_config.get("WriteAttributes", ["email"]),
+            )
+            LOGGER.info(f"Updated app client {self.app_client_id} with required auth flows")
+
+        except ClientError as e:
+            LOGGER.error(f"Failed to update app client: {e}")
             raise
 
     def create_customer_user(
