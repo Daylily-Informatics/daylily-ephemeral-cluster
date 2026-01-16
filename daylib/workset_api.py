@@ -2511,6 +2511,7 @@ def create_app(
                                 get_template_context(request, error=error_msg),
                             )
 
+                # Create customer record in DynamoDB
                 config = customer_manager.onboard_customer(
                     customer_name=customer_name,
                     email=email,
@@ -2520,14 +2521,38 @@ def create_app(
                     cost_center=cost_center,
                     custom_s3_bucket=custom_bucket,
                 )
+
+                # Create Cognito user if auth is enabled
+                if enable_auth and cognito_auth:
+                    try:
+                        LOGGER.info(f"Creating Cognito user for {email} (customer_id: {config.customer_id})")
+                        cognito_auth.create_customer_user(
+                            email=email,
+                            customer_id=config.customer_id,
+                            temporary_password=None,  # Cognito will generate and email it
+                        )
+                        LOGGER.info(f"Cognito user created successfully for {email}")
+                    except ValueError as e:
+                        # User already exists in Cognito - that's okay, continue
+                        LOGGER.warning(f"Cognito user creation skipped: {e}")
+                    except Exception as e:
+                        # Cognito user creation failed - log but don't fail registration
+                        LOGGER.error(f"Failed to create Cognito user for {email}: {e}")
+                        # Continue anyway - customer record is created
+
                 # Redirect to login page with success message
                 bucket_info = f" Your S3 bucket: {config.s3_bucket}." if config.s3_bucket else ""
-                success_msg = f"Account created successfully! Your customer ID is: {config.customer_id}.{bucket_info} Please log in."
+                if enable_auth and cognito_auth:
+                    success_msg = f"Account created successfully! Your customer ID is: {config.customer_id}.{bucket_info} Check your email for login credentials."
+                else:
+                    success_msg = f"Account created successfully! Your customer ID is: {config.customer_id}.{bucket_info} Please log in."
+
                 return RedirectResponse(
                     url=f"/portal/login?success={success_msg}",
                     status_code=302,
                 )
             except Exception as e:
+                LOGGER.error(f"Registration failed for {email}: {e}")
                 return templates.TemplateResponse(
                     request,
                     "auth/register.html",
