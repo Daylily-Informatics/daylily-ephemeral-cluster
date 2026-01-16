@@ -393,6 +393,67 @@ class FileRegistry:
         except ClientError as e:
             LOGGER.error("Failed to list files for customer %s: %s", customer_id, str(e))
             raise
+
+    def find_file_by_s3_uri(self, customer_id: str, s3_uri: str) -> Optional[FileRegistration]:
+        """Find a file registration for a customer by exact S3 URI.
+
+        This is used to enforce uniqueness of S3 URIs across registrations and to
+        support idempotent behavior when a user attempts to register the same S3
+        object multiple times.
+        """
+        LOGGER.debug("find_file_by_s3_uri: customer_id=%s, s3_uri=%s", customer_id, s3_uri)
+
+        try:
+            exclusive_start_key: Optional[Dict[str, Any]] = None
+
+            while True:
+                query_kwargs: Dict[str, Any] = {
+                    "IndexName": "customer-id-index",
+                    "KeyConditionExpression": Key("customer_id").eq(customer_id),
+                }
+                if exclusive_start_key is not None:
+                    query_kwargs["ExclusiveStartKey"] = exclusive_start_key
+
+                response = self.files_table.query(**query_kwargs)
+                items = response.get("Items", [])
+
+                for item in items:
+                    try:
+                        meta_raw = item.get("file_metadata")
+                        if not meta_raw:
+                            continue
+                        meta = json.loads(meta_raw)
+                        if meta.get("s3_uri") == s3_uri:
+                            LOGGER.debug(
+                                "find_file_by_s3_uri: Found existing registration for %s",
+                                s3_uri,
+                            )
+                            return self._item_to_registration(item)
+                    except Exception as inner_e:  # pragma: no cover - defensive logging
+                        LOGGER.error(
+                            "find_file_by_s3_uri: Failed to inspect item for %s: %s",
+                            s3_uri,
+                            str(inner_e),
+                        )
+
+                exclusive_start_key = response.get("LastEvaluatedKey")
+                if not exclusive_start_key:
+                    break
+
+            LOGGER.debug(
+                "find_file_by_s3_uri: No existing registration found for customer_id=%s, s3_uri=%s",
+                customer_id,
+                s3_uri,
+            )
+            return None
+        except ClientError as e:
+            LOGGER.error(
+                "Failed to find file by s3_uri %s for customer %s: %s",
+                s3_uri,
+                customer_id,
+                str(e),
+            )
+            raise
     
     def _item_to_registration(self, item: Dict[str, Any]) -> FileRegistration:
         """Convert DynamoDB item to FileRegistration."""

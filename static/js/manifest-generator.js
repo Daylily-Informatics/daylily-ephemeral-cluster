@@ -41,13 +41,143 @@ const COLUMN_DEFAULTS = {
 let analysisInputs = [];
 let inputIndex = 0;
 let currentEditIndex = null;
-let currentFileBrowserTarget = null;
+
+// File browser state
+const FILE_API_BASE = '/api/files';
+let currentFileBrowserTarget = null; // 'R1_FQ' or 'R2_FQ'
+let currentBucketId = null;
+let currentBucketName = null;
+let currentBrowserPrefix = '';
+let bucketsLoaded = false;
 
 // Initialize on load
 document.addEventListener('DOMContentLoaded', () => {
     addAnalysisInput(); // Start with one empty input
     updateManifestPreview();
+
+    // Load saved manifests list for this customer (if in portal context)
+    refreshSavedManifests?.();
 });
+
+function getCustomerId() {
+    return window.DaylilyConfig?.customerId;
+}
+
+function getSelectedSavedManifestId() {
+    return document.getElementById('saved-manifest-select')?.value;
+}
+
+function setSavedManifestOptions(manifests) {
+    const select = document.getElementById('saved-manifest-select');
+    if (!select) return;
+    select.innerHTML = '<option value="">(none)</option>';
+
+    (manifests || []).forEach(m => {
+        const opt = document.createElement('option');
+        opt.value = m.manifest_id;
+        const label = m.name ? `${m.name} (${m.manifest_id})` : m.manifest_id;
+        opt.textContent = label;
+        select.appendChild(opt);
+    });
+}
+
+/**
+ * Refresh the list of saved manifests for this customer.
+ */
+async function refreshSavedManifests() {
+    const customerId = getCustomerId();
+    if (!customerId) return;
+
+    try {
+        const resp = await fetch(`/api/customers/${customerId}/manifests`);
+        if (!resp.ok) throw new Error(`List failed (${resp.status})`);
+        const data = await resp.json();
+        setSavedManifestOptions(data.manifests || []);
+    } catch (err) {
+        console.error('Failed to refresh saved manifests:', err);
+        // Non-fatal; portal may not have manifest storage configured
+    }
+}
+
+/**
+ * Save current manifest TSV for later reuse.
+ */
+async function saveManifest() {
+    const customerId = getCustomerId();
+    if (!customerId) {
+        alert('Customer ID not configured');
+        return;
+    }
+
+    const tsv = generateManifestTSV();
+    const name = document.getElementById('manifest-save-name')?.value || null;
+
+    try {
+        const resp = await fetch(`/api/customers/${customerId}/manifests`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tsv_content: tsv, name }),
+        });
+
+        if (!resp.ok) {
+            const errText = await resp.text();
+            throw new Error(errText || `Save failed (${resp.status})`);
+        }
+
+        const data = await resp.json();
+        await refreshSavedManifests();
+        showToast?.('success', 'Saved', 'Manifest saved') || alert('Saved');
+
+        // Auto-select newly saved item
+        const select = document.getElementById('saved-manifest-select');
+        const savedId = data?.manifest?.manifest_id;
+        if (select && savedId) select.value = savedId;
+    } catch (err) {
+        console.error('Save manifest error:', err);
+        showToast?.('error', 'Save failed', String(err.message || err)) || alert('Save failed');
+    }
+}
+
+async function loadSelectedManifest() {
+    const customerId = getCustomerId();
+    const manifestId = getSelectedSavedManifestId();
+    if (!customerId) {
+        alert('Customer ID not configured');
+        return;
+    }
+    if (!manifestId) {
+        alert('Select a saved manifest first');
+        return;
+    }
+
+    try {
+        const resp = await fetch(`/api/customers/${customerId}/manifests/${manifestId}/download`);
+        if (!resp.ok) throw new Error(`Download failed (${resp.status})`);
+        const tsv = await resp.text();
+        loadInputsFromTSVContent(tsv);
+        showToast?.('success', 'Loaded', 'Manifest loaded into editor') || alert('Loaded');
+    } catch (err) {
+        console.error('Load manifest error:', err);
+        showToast?.('error', 'Load failed', String(err.message || err)) || alert('Load failed');
+    }
+}
+
+function downloadSelectedManifest() {
+    const customerId = getCustomerId();
+    const manifestId = getSelectedSavedManifestId();
+    if (!customerId) {
+        alert('Customer ID not configured');
+        return;
+    }
+    if (!manifestId) {
+        alert('Select a saved manifest first');
+        return;
+    }
+
+    const a = document.createElement('a');
+    a.href = `/api/customers/${customerId}/manifests/${manifestId}/download`;
+    a.click();
+}
 
 /**
  * Add a new analysis input row
@@ -422,35 +552,51 @@ function loadInputsFromTSV(fileInput) {
     const reader = new FileReader();
     reader.onload = (e) => {
         const content = e.target.result;
-        const lines = content.split(/\r?\n/).filter(l => l.trim());
-
-        if (lines.length < 2) {
-            alert('File must have a header row and at least one data row');
-            return;
-        }
-
-        const delimiter = content.includes('\t') ? '\t' : ',';
-        const headers = lines[0].split(delimiter).map(h => h.trim());
-
-        // Clear existing inputs
-        analysisInputs = [];
-        document.getElementById('inputs-container').innerHTML = '';
-        inputIndex = 0;
-
-        // Parse data rows
-        for (let i = 1; i < lines.length; i++) {
-            const values = lines[i].split(delimiter);
-            const data = {};
-            headers.forEach((h, idx) => {
-                data[h] = values[idx]?.trim() || '';
-            });
-            addAnalysisInput(data);
-        }
-
-        updateManifestPreview();
+        loadInputsFromTSVContent(content);
     };
     reader.readAsText(file);
     fileInput.value = '';
+}
+
+function loadInputsFromTSVContent(content) {
+    const lines = String(content || '').split(/\r?\n/).filter(l => l.trim());
+    if (lines.length < 2) {
+        alert('File must have a header row and at least one data row');
+        return;
+    }
+
+    const delimiter = content.includes('\t') ? '\t' : ',';
+    const headers = lines[0].split(delimiter).map(h => h.trim());
+
+    // Clear existing inputs
+    analysisInputs = [];
+    document.getElementById('inputs-container').innerHTML = '';
+    inputIndex = 0;
+
+    let firstRow = null;
+    for (let i = 1; i < lines.length; i++) {
+        const values = lines[i].split(delimiter);
+        const data = {};
+        headers.forEach((h, idx) => {
+            data[h] = values[idx]?.trim() || '';
+        });
+        if (!firstRow) firstRow = data;
+        addAnalysisInput(data);
+    }
+
+    // Populate top-level fields if present
+    if (firstRow) {
+        if (firstRow.RUN_ID) {
+            const runIdEl = document.getElementById('run_id');
+            if (runIdEl) runIdEl.value = firstRow.RUN_ID;
+        }
+        if (firstRow.STAGE_TARGET) {
+            const stageTargetEl = document.getElementById('stage_target');
+            if (stageTargetEl) stageTargetEl.value = firstRow.STAGE_TARGET;
+        }
+    }
+
+    updateManifestPreview();
 }
 
 /**
@@ -496,20 +642,210 @@ async function discoverFromS3() {
 
 // File browser functions
 function browseForFile(targetField) {
-    currentFileBrowserTarget = targetField;
-    document.getElementById('file-browser-modal')?.classList.add('active');
-    browseFolder('');
+	currentFileBrowserTarget = targetField;
+	const modal = document.getElementById('file-browser-modal');
+	if (!modal) return;
+	modal.classList.add('active');
+
+	// Lazy-load linked buckets on first open
+	loadLinkedBuckets().then(() => {
+		if (currentBucketId) {
+			browseFolder('');
+		}
+	});
 }
 
 function closeFileBrowser() {
-    document.getElementById('file-browser-modal')?.classList.remove('active');
-    currentFileBrowserTarget = null;
+	const modal = document.getElementById('file-browser-modal');
+	if (modal) modal.classList.remove('active');
+	currentFileBrowserTarget = null;
 }
 
-async function browseFolder(path) {
-    // Simplified - would need full implementation
-    const fileList = document.getElementById('browser-file-list');
-    fileList.innerHTML = '<div class="text-center text-muted p-xl">File browser not fully implemented</div>';
+async function loadLinkedBuckets() {
+	if (bucketsLoaded) return;
+	const select = document.getElementById('browser-bucket-select');
+	const customerId = getCustomerId();
+	if (!select || !customerId) return;
+
+	select.innerHTML = '<option value="">Loading linked buckets...</option>';
+
+	try {
+		const resp = await fetch(`${FILE_API_BASE}/buckets/list?customer_id=${encodeURIComponent(customerId)}`);
+		if (!resp.ok) {
+			throw new Error(`List failed (${resp.status})`);
+		}
+		const data = await resp.json();
+		const buckets = data.buckets || [];
+		if (!buckets.length) {
+			select.innerHTML = '<option value="">No linked buckets found. Use Manage Buckets to add one.</option>';
+			const fileList = document.getElementById('browser-file-list');
+			if (fileList) {
+				fileList.innerHTML = '<div class="text-center text-muted p-xl">No linked buckets are configured for this customer.</div>';
+			}
+			return;
+		}
+
+		select.innerHTML = '<option value="">Select a bucket...</option>';
+		let defaultId = null;
+		for (const b of buckets) {
+			// Only show buckets we can read from
+			if (!b.can_read) continue;
+			const opt = document.createElement('option');
+			opt.value = b.bucket_id;
+			opt.textContent = b.display_name || b.bucket_name;
+			select.appendChild(opt);
+			if (!defaultId) defaultId = b.bucket_id;
+		}
+
+		if (!defaultId) {
+			select.innerHTML = '<option value="">No readable buckets available</option>';
+			return;
+		}
+
+		currentBucketId = defaultId;
+		select.value = defaultId;
+		bucketsLoaded = true;
+	} catch (err) {
+		console.error('Failed to load linked buckets:', err);
+		const fileList = document.getElementById('browser-file-list');
+		if (fileList) {
+			fileList.innerHTML = `<div class="text-center text-muted p-xl"><i class="fas fa-exclamation-triangle text-warning"></i><p class="mt-md">Failed to load linked buckets: ${escapeHtml(err.message || String(err))}</p></div>`;
+		}
+		const select = document.getElementById('browser-bucket-select');
+		if (select) {
+			select.innerHTML = '<option value="">Failed to load linked buckets</option>';
+		}
+	}
+}
+
+function onBrowserBucketChange(selectEl) {
+	currentBucketId = selectEl.value || null;
+	if (currentBucketId) {
+		browseFolder('');
+	} else {
+		const fileList = document.getElementById('browser-file-list');
+		if (fileList) {
+			fileList.innerHTML = '<div class="text-center text-muted p-xl">Select a bucket to browse files.</div>';
+		}
+	}
+}
+
+async function browseFolder(prefix) {
+	const customerId = getCustomerId();
+	if (!customerId) {
+		alert('Customer ID not configured');
+		return;
+	}
+	if (!currentBucketId) {
+		const fileList = document.getElementById('browser-file-list');
+		if (fileList) {
+			fileList.innerHTML = '<div class="text-center text-muted p-xl">Select a linked bucket to begin browsing.</div>';
+		}
+		return;
+	}
+
+	currentBrowserPrefix = prefix || '';
+	const fileList = document.getElementById('browser-file-list');
+	if (fileList) {
+		fileList.innerHTML = `
+			<div class="text-center text-muted p-xl">
+				<i class="fas fa-spinner fa-spin fa-2x"></i>
+				<p class="mt-md">Loading files...</p>
+			</div>
+		`;
+	}
+
+	try {
+		const url = `${FILE_API_BASE}/buckets/${encodeURIComponent(currentBucketId)}/browse?customer_id=${encodeURIComponent(customerId)}&prefix=${encodeURIComponent(prefix || '')}`;
+		const resp = await fetch(url);
+		if (!resp.ok) {
+			throw new Error(`Browse failed (${resp.status})`);
+		}
+		const data = await resp.json();
+		currentBucketName = data.bucket_name;
+		currentBrowserPrefix = data.current_prefix || '';
+		updateBrowserBreadcrumbs(data.breadcrumbs || []);
+
+		const items = data.items || [];
+		if (!items.length) {
+			if (fileList) {
+				fileList.innerHTML = `
+					<div class="text-center text-muted p-xl">
+						<i class="fas fa-folder-open fa-2x"></i>
+						<p class="mt-md">This folder is empty</p>
+					</div>
+				`;
+			}
+			return;
+		}
+
+		let html = '';
+		for (const item of items) {
+			if (item.is_folder) {
+				html += `
+					<div class="file-list-item folder" onclick="browseFolder('${item.key}')">
+						<i class="fas fa-folder"></i>
+						<span>${escapeHtml(item.name)}</span>
+					</div>
+				`;
+			} else {
+				const isFastq = /\.(fastq|fq)(\.gz)?$/i.test(item.name || '');
+				const clickHandler = isFastq ? `onclick="selectFile('${item.key}')"` : '';
+				const className = isFastq ? 'file selectable' : 'file disabled';
+				html += `
+					<div class="file-list-item ${className}" ${clickHandler} style="${isFastq ? '' : 'opacity: 0.5; cursor: not-allowed;'}">
+						<i class="fas fa-${item.file_format === 'bam' || item.file_format === 'cram' ? 'file-medical' : 'file'}"></i>
+						<span>${escapeHtml(item.name)}</span>
+					</div>
+				`;
+			}
+		}
+
+		if (fileList) fileList.innerHTML = html;
+	} catch (err) {
+		console.error('Failed to browse bucket:', err);
+		if (fileList) {
+			fileList.innerHTML = `
+				<div class="text-center text-muted p-xl">
+					<i class="fas fa-exclamation-triangle fa-2x text-warning"></i>
+					<p class="mt-md">Failed to load files: ${escapeHtml(err.message || String(err))}</p>
+				</div>
+			`;
+		}
+	}
+}
+
+function updateBrowserBreadcrumbs(breadcrumbs) {
+	const breadcrumbEl = document.getElementById('browser-breadcrumb');
+	if (!breadcrumbEl) return;
+	if (!breadcrumbs || !breadcrumbs.length) {
+		breadcrumbEl.innerHTML = '<a href="#" onclick="browseFolder(\'\')" class="breadcrumb-item"><i class="fas fa-home"></i> Root</a>';
+		return;
+	}
+
+	let html = '';
+	breadcrumbs.forEach((crumb, idx) => {
+		if (idx > 0) {
+			html += '<span class="breadcrumb-separator">/</span>';
+		}
+		const name = escapeHtml(crumb.name || (idx === 0 ? 'Root' : ''));
+		const prefix = crumb.prefix || '';
+		html += `<a href="#" onclick="browseFolder('${prefix}')" class="breadcrumb-item">${idx === 0 ? '<i class=\"fas fa-home\"></i> ' : ''}${name}</a>`;
+	});
+
+	breadcrumbEl.innerHTML = html;
+}
+
+function selectFile(key) {
+	if (!currentFileBrowserTarget) return;
+	const inputId = `edit_${currentFileBrowserTarget}`;
+	const inputEl = document.getElementById(inputId);
+	if (!inputEl) return;
+	const prefix = currentBucketName ? `s3://${currentBucketName}/` : '';
+	inputEl.value = `${prefix}${key}`;
+	closeFileBrowser();
+	const shortName = key.split('/').pop();
+	showToast?.('success', 'File Selected', `Selected: ${shortName}`) || alert(`Selected: ${shortName}`);
 }
 
 function escapeHtml(str) {

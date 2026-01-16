@@ -106,6 +106,9 @@
                         <button class="btn btn-outline btn-sm" onclick="copyManifest()">
                             <i class="fas fa-copy"></i> Copy
                         </button>
+	                        <button class="btn btn-outline btn-sm" onclick="saveManifest()">
+	                            <i class="fas fa-save"></i> Save
+	                        </button>
                         <button class="btn btn-primary btn-sm" onclick="downloadManifest()">
                             <i class="fas fa-download"></i> Download
                         </button>
@@ -114,6 +117,33 @@
                 <div class="code-block" style="max-height: 500px; overflow: auto;">
                     <pre id="manifest-preview" style="white-space: pre; overflow-x: auto;"># Add analysis inputs to generate the manifest</pre>
                 </div>
+	                
+	                <!-- Saved Manifests -->
+	                <div class="p-md" style="border-top: 1px solid var(--color-gray-200);">
+	                    <div class="d-flex gap-sm" style="align-items: end;">
+	                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+	                            <label for="manifest-save-name" class="form-label">Save name (optional)</label>
+	                            <input id="manifest-save-name" class="form-control" placeholder="e.g. RUN001" />
+	                        </div>
+	                        <button class="btn btn-outline btn-sm" onclick="refreshSavedManifests()">
+	                            <i class="fas fa-sync"></i> Refresh
+	                        </button>
+	                    </div>
+	                    <div class="d-flex gap-sm mt-sm" style="align-items: end;">
+	                        <div class="form-group" style="flex: 1; margin-bottom: 0;">
+	                            <label for="saved-manifest-select" class="form-label">Load saved manifest</label>
+	                            <select id="saved-manifest-select" class="form-control">
+	                                <option value="">(none)</option>
+	                            </select>
+	                        </div>
+	                        <button class="btn btn-primary btn-sm" onclick="loadSelectedManifest()">
+	                            <i class="fas fa-upload"></i> Load
+	                        </button>
+	                        <button class="btn btn-outline btn-sm" onclick="downloadSelectedManifest()">
+	                            <i class="fas fa-download"></i> Download
+	                        </button>
+	                    </div>
+	                </div>
                 
                 <!-- Column Reference -->
                 <div class="mt-md p-md" style="background: var(--color-gray-100); border-radius: var(--radius-md); font-size: 0.8rem;">
@@ -142,33 +172,44 @@
     </div>
 </div>
 
-<!-- File Browser Modal -->
-<div class="modal-overlay" id="file-browser-modal">
-    <div class="modal" style="max-width: 800px;">
-        <div class="modal-header">
-            <h3><i class="fas fa-folder-open"></i> Select FASTQ from S3</h3>
-            <button class="modal-close" onclick="closeFileBrowser()">&times;</button>
-        </div>
-        <div class="modal-body">
-            <div class="mb-md">
-                <nav class="breadcrumb" id="browser-breadcrumb">
-                    <a href="#" onclick="browseFolder('')" class="breadcrumb-item">
-                        <i class="fas fa-home"></i> Root
-                    </a>
-                </nav>
+    <!-- File Browser Modal -->
+    <div class="modal-overlay" id="file-browser-modal">
+        <div class="modal" style="max-width: 900px;">
+            <div class="modal-header">
+                <h3><i class="fas fa-folder-open"></i> Select FASTQ from S3</h3>
+                <button class="modal-close" onclick="closeFileBrowser()">&times;</button>
             </div>
-            <div class="file-list" id="browser-file-list" style="max-height: 400px; overflow-y: auto;">
-                <div class="text-center text-muted p-xl">
-                    <i class="fas fa-spinner fa-spin fa-2x"></i>
-                    <p class="mt-md">Loading files...</p>
+            <div class="modal-body">
+                <div class="mb-md d-flex gap-sm" style="align-items: flex-end;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label class="form-label">Linked bucket</label>
+                        <select id="browser-bucket-select" class="form-control" onchange="onBrowserBucketChange(this)">
+                            <option value="">Loading linked buckets...</option>
+                        </select>
+                    </div>
+                    <a href="/portal/files/buckets" target="_blank" class="btn btn-outline btn-sm" title="Manage linked buckets">
+                        <i class="fas fa-external-link-alt"></i> Manage Buckets
+                    </a>
+                </div>
+                <div class="mb-md">
+                    <nav class="breadcrumb" id="browser-breadcrumb">
+                        <a href="#" onclick="browseFolder('')" class="breadcrumb-item">
+                            <i class="fas fa-home"></i> Root
+                        </a>
+                    </nav>
+                </div>
+                <div class="file-list" id="browser-file-list" style="max-height: 400px; overflow-y: auto;">
+                    <div class="text-center text-muted p-xl">
+                        <i class="fas fa-spinner fa-spin fa-2x"></i>
+                        <p class="mt-md">Loading files...</p>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="modal-footer">
-            <button class="btn btn-outline" onclick="closeFileBrowser()">Cancel</button>
+            <div class="modal-footer">
+                <button class="btn btn-outline" onclick="closeFileBrowser()">Cancel</button>
+            </div>
         </div>
     </div>
-</div>
 
 <style>
 .analysis-input-row {

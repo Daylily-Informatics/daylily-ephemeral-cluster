@@ -28,7 +28,7 @@
             <a href="/portal/files/{{ file.file_id }}/edit" class="btn btn-outline">
                 <i class="fas fa-edit"></i> Edit
             </a>
-            <button class="btn btn-outline" onclick="downloadFile('{{ file.s3_uri }}')">
+            <button class="btn btn-outline" onclick="downloadRegisteredFile('{{ file.file_id }}')">
                 <i class="fas fa-download"></i> Download
             </button>
             <button class="btn btn-outline" onclick="addToFileset('{{ file.file_id }}')">

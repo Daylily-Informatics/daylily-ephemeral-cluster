@@ -15,7 +15,7 @@ import boto3
 
 from fastapi import Body, Depends, FastAPI, File, Form, HTTPException, Query, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import HTMLResponse, RedirectResponse, Response
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, EmailStr
@@ -67,6 +67,15 @@ except ImportError:
     BIOSPECIMEN_AVAILABLE = False
     BiospecimenRegistry = None
     create_biospecimen_router = None
+
+# Manifest storage imports
+try:
+    from daylib.manifest_registry import ManifestRegistry, ManifestTooLargeError
+    MANIFEST_STORAGE_AVAILABLE = True
+except ImportError:
+    MANIFEST_STORAGE_AVAILABLE = False
+    ManifestRegistry = None
+    ManifestTooLargeError = None
 
 LOGGER = logging.getLogger("daylily.workset_api")
 
@@ -319,6 +328,7 @@ def create_app(
     validator: Optional[WorksetValidator] = None,
     integration: Optional["WorksetIntegration"] = None,
     file_registry: Optional["FileRegistry"] = None,
+    manifest_registry: Optional["ManifestRegistry"] = None,
     enable_auth: bool = False,
 ) -> FastAPI:
     """Create FastAPI application.
@@ -346,12 +356,28 @@ def create_app(
     logging.getLogger("daylily.file_api").setLevel(logging.DEBUG)
     logging.getLogger("daylily.file_registry").setLevel(logging.DEBUG)
     logging.getLogger("daylily.s3_bucket_validator").setLevel(logging.DEBUG)
+    logging.getLogger("daylily.manifest_registry").setLevel(logging.DEBUG)
 
     LOGGER.info("Creating Daylily application with verbose logging enabled")
 
     # AWS configuration from environment variables
     region = os.getenv("AWS_DEFAULT_REGION", "us-west-2")
     profile = os.getenv("AWS_PROFILE", None)
+
+
+    # Initialize manifest registry (optional but enabled by default when available)
+    if MANIFEST_STORAGE_AVAILABLE and manifest_registry is None and ManifestRegistry:
+        manifest_table = os.getenv("DAYLILY_MANIFEST_TABLE", "daylily-manifests")
+        try:
+            manifest_registry = ManifestRegistry(
+                table_name=manifest_table,
+                region=region,
+                profile=profile,
+            )
+            LOGGER.info("Manifest storage enabled (table: %s)", manifest_table)
+        except Exception as e:
+            LOGGER.warning("Failed to initialize ManifestRegistry: %s", str(e))
+            manifest_registry = None
 
 
     # Initialize LinkedBucketManager early so portal routes can use it
@@ -1201,6 +1227,145 @@ def create_app(
                     detail=str(e),
                 )
 
+
+        # ========== Customer Manifest Endpoints ==========
+
+        @app.get("/api/customers/{customer_id}/manifests", tags=["customer-manifests"])
+        async def list_customer_manifests(
+            customer_id: str,
+            limit: int = Query(200, ge=1, le=500),
+        ):
+            """List saved manifests for a customer (metadata only)."""
+            if not customer_manager:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Customer management not configured",
+                )
+            if not manifest_registry:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Manifest storage not configured",
+                )
+
+            config = customer_manager.get_customer_config(customer_id)
+            if not config:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Customer {customer_id} not found",
+                )
+
+            manifests = manifest_registry.list_customer_manifests(customer_id, limit=limit)
+            return {"manifests": manifests}
+
+        @app.post(
+            "/api/customers/{customer_id}/manifests",
+            tags=["customer-manifests"],
+            status_code=status.HTTP_201_CREATED,
+        )
+        async def save_customer_manifest(
+            customer_id: str,
+            tsv_content: str = Body(..., embed=True),
+            name: Optional[str] = Body(None, embed=True),
+            description: Optional[str] = Body(None, embed=True),
+        ):
+            """Save a stage_samples.tsv manifest for later reuse."""
+            if not customer_manager:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Customer management not configured",
+                )
+            if not manifest_registry:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Manifest storage not configured",
+                )
+
+            config = customer_manager.get_customer_config(customer_id)
+            if not config:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Customer {customer_id} not found",
+                )
+
+            try:
+                saved = manifest_registry.save_manifest(
+                    customer_id=customer_id,
+                    tsv_content=tsv_content,
+                    name=name,
+                    description=description,
+                )
+            except ManifestTooLargeError as e:
+                raise HTTPException(status_code=413, detail=str(e))
+            except ValueError as e:
+                raise HTTPException(status_code=400, detail=str(e))
+
+            download_url = f"/api/customers/{customer_id}/manifests/{saved.manifest_id}/download"
+            return {
+                "manifest": saved.to_metadata_dict(),
+                "download_url": download_url,
+            }
+
+        @app.get("/api/customers/{customer_id}/manifests/{manifest_id}", tags=["customer-manifests"])
+        async def get_customer_manifest_metadata(customer_id: str, manifest_id: str):
+            """Get saved manifest metadata (not content)."""
+            if not customer_manager:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Customer management not configured",
+                )
+            if not manifest_registry:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Manifest storage not configured",
+                )
+
+            config = customer_manager.get_customer_config(customer_id)
+            if not config:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Customer {customer_id} not found",
+                )
+
+            m = manifest_registry.get_manifest(customer_id=customer_id, manifest_id=manifest_id)
+            if not m:
+                raise HTTPException(status_code=404, detail="Manifest not found")
+            return {"manifest": m.to_metadata_dict()}
+
+        @app.get(
+            "/api/customers/{customer_id}/manifests/{manifest_id}/download",
+            tags=["customer-manifests"],
+        )
+        async def download_customer_manifest(customer_id: str, manifest_id: str):
+            """Download the saved stage_samples.tsv content."""
+            if not customer_manager:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Customer management not configured",
+                )
+            if not manifest_registry:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="Manifest storage not configured",
+                )
+
+            config = customer_manager.get_customer_config(customer_id)
+            if not config:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"Customer {customer_id} not found",
+                )
+
+            tsv = manifest_registry.get_manifest_tsv(customer_id=customer_id, manifest_id=manifest_id)
+            if tsv is None:
+                raise HTTPException(status_code=404, detail="Manifest not found")
+
+            filename = f"{manifest_id}.stage_samples.tsv"
+            return Response(
+                content=tsv,
+                media_type="text/tab-separated-values",
+                headers={"Content-Disposition": f"attachment; filename=\"{filename}\""},
+            )
+
         # ========== Customer Workset Endpoints ==========
 
         @app.get("/api/customers/{customer_id}/worksets", tags=["customer-worksets"])
@@ -1320,13 +1485,19 @@ def create_app(
             s3_bucket: Optional[str] = Body(None, embed=True),
             samples: Optional[List[Dict[str, Any]]] = Body(None, embed=True),
             yaml_content: Optional[str] = Body(None, embed=True),
+            manifest_id: Optional[str] = Body(None, embed=True),
+            manifest_tsv_content: Optional[str] = Body(None, embed=True),
         ):
             """Create a new workset for a customer from the portal form.
 
             This endpoint registers the workset in both DynamoDB (for UI state tracking)
             and writes S3 sentinel files (for processing engine discovery).
 
-            Samples can be provided directly as a list, or extracted from yaml_content.
+            Samples can be provided via:
+            - samples: Direct list of sample dicts
+            - yaml_content: YAML with samples array
+            - manifest_id: ID of a saved manifest (retrieves TSV from ManifestRegistry)
+            - manifest_tsv_content: Raw stage_samples.tsv content
             """
             import uuid
             import yaml as pyyaml
@@ -1389,8 +1560,37 @@ def create_app(
             if not prefix.endswith("/"):
                 prefix += "/"
 
-            # Process samples from YAML content if provided
+            # Process samples from various sources (priority: samples > manifest_id > manifest_tsv_content > yaml_content)
             workset_samples = samples or []
+            manifest_tsv_for_s3 = None  # Raw TSV content to write to S3
+
+            # Try manifest_id first (if no direct samples provided)
+            if manifest_id and not workset_samples:
+                if not manifest_registry:
+                    raise HTTPException(
+                        status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                        detail="Manifest storage not configured; cannot use manifest_id",
+                    )
+                tsv = manifest_registry.get_manifest_tsv(customer_id=customer_id, manifest_id=manifest_id)
+                if not tsv:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Manifest {manifest_id} not found for customer {customer_id}",
+                    )
+                # Import parse function
+                from daylib.manifest_registry import parse_tsv_to_samples
+                workset_samples = parse_tsv_to_samples(tsv)
+                manifest_tsv_for_s3 = tsv
+                LOGGER.info("Loaded %d samples from saved manifest %s", len(workset_samples), manifest_id)
+
+            # Try manifest_tsv_content next
+            if manifest_tsv_content and not workset_samples:
+                from daylib.manifest_registry import parse_tsv_to_samples
+                workset_samples = parse_tsv_to_samples(manifest_tsv_content)
+                manifest_tsv_for_s3 = manifest_tsv_content
+                LOGGER.info("Parsed %d samples from provided TSV content", len(workset_samples))
+
+            # Finally try YAML content
             if yaml_content and not workset_samples:
                 try:
                     yaml_data = pyyaml.safe_load(yaml_content)
@@ -1415,7 +1615,7 @@ def create_app(
             if len(normalized_samples) == 0:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Workset must contain at least one sample. Please upload files, specify an S3 path with samples, or provide a YAML configuration with samples.",
+                    detail="Workset must contain at least one sample. Please upload files, specify an S3 path with samples, provide a saved manifest ID, or upload a manifest TSV.",
                 )
 
             # Store additional metadata from the form
@@ -1433,6 +1633,10 @@ def create_app(
                 "data_bucket": config.s3_bucket,
                 "data_buckets": [config.s3_bucket] if config.s3_bucket else [],
             }
+
+            # If we have raw TSV content (from manifest), pass it for direct S3 write
+            if manifest_tsv_for_s3:
+                metadata["stage_samples_tsv"] = manifest_tsv_for_s3
 
             # Use integration layer if available for unified registration
             if integration:
@@ -2207,55 +2411,15 @@ def create_app(
             """Check if user is authenticated for portal access.
 
             Returns RedirectResponse to login if not authenticated, None if authenticated.
-
-            In no-auth mode (enable_auth=False), automatically creates a session with
-            the first available customer or a default demo customer.
             """
-            # If auth is disabled, set up a default session
-            if not enable_auth:
-                if not hasattr(request, "session"):
-                    return RedirectResponse(url="/portal/login", status_code=302)
-
-                # Check if session already has a user
-                if not request.session.get("user_email"):
-                    # Set up default customer session
-                    default_customer = None
-
-                    # Try to get first customer from database
-                    if customer_manager:
-                        try:
-                            customers = customer_manager.list_customers()
-                            if customers:
-                                default_customer = customers[0]
-                                LOGGER.info(f"No-auth mode: Using first customer {default_customer.customer_id} ({default_customer.email})")
-                        except Exception as e:
-                            LOGGER.warning(f"No-auth mode: Failed to get customers: {e}")
-
-                    # If no customers found, create a demo session
-                    if not default_customer:
-                        LOGGER.info("No-auth mode: No customers found, creating demo session")
-                        request.session["user_email"] = "demo@daylily.local"
-                        request.session["user_authenticated"] = True
-                        request.session["customer_id"] = "demo-customer"
-                        request.session["is_admin"] = True
-                    else:
-                        # Use the first customer
-                        request.session["user_email"] = default_customer.email
-                        request.session["user_authenticated"] = True
-                        request.session["customer_id"] = default_customer.customer_id
-                        request.session["is_admin"] = default_customer.is_admin
-
-                return None  # Allow access in no-auth mode
-
-            # Auth is enabled - require valid session
             if not hasattr(request, "session"):
                 return RedirectResponse(url="/portal/login", status_code=302)
             if not request.session.get("user_email"):
-                return RedirectResponse(url="/portal/login?error=Please+log+in+to+continue", status_code=302)
+                return RedirectResponse(url="/portal/login", status_code=302)
             # SAFEGUARD: Ensure customer_id is set (required for all portal operations)
             if not request.session.get("customer_id"):
                 LOGGER.warning(f"Session missing customer_id for user {request.session.get('user_email')}")
-                return RedirectResponse(url="/portal/login?error=Session+invalid+or+expired", status_code=302)
+                return RedirectResponse(url="/portal/login", status_code=302)
             return None
 
         @app.get("/portal", response_class=HTMLResponse, tags=["portal"])
@@ -2327,11 +2491,22 @@ def create_app(
 
             # SECURITY: First verify the user exists in the customer database
             if not customer_manager:
+                # Development / test mode: allow login without a customer database when
+                # API/JWT auth is disabled. This keeps the portal usable in local demos.
+                if not enable_auth:
+                    LOGGER.warning(
+                        "portal_login_submit: No customer manager configured; "
+                        "creating demo session for %s (enable_auth=False)",
+                        email,
+                    )
+                    request.session["user_email"] = email
+                    request.session["user_authenticated"] = True
+                    request.session["customer_id"] = "demo-customer"
+                    request.session["is_admin"] = True
+                    return RedirectResponse(url="/portal/", status_code=302)
+
                 LOGGER.error("portal_login_submit: Customer manager not configured")
-                return RedirectResponse(
-                    url="/portal/login?error=Authentication+not+configured",
-                    status_code=302,
-                )
+                return RedirectResponse(url="/portal/login?error=Authentication+not+configured", status_code=302)
 
             # SECURITY: Verify user is a registered customer
             customer = customer_manager.get_customer_by_email(email)

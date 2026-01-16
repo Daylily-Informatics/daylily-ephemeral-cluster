@@ -32,7 +32,61 @@ def mock_file_registry():
     registry.register_file.return_value = True
     registry.create_fileset.return_value = True
     registry.list_customer_files.return_value = []
+    # By default, pretend there is no existing registration for a given S3 URI so
+    # tests exercise the happy-path flow unless they override this behavior.
+    registry.find_file_by_s3_uri.return_value = None
     return registry
+
+
+@pytest.fixture
+def mock_file_registry_with_get():
+    """Mock FileRegistry with get_file support for update/download tests."""
+    registry = MagicMock(spec=FileRegistry)
+    registry.update_file.return_value = True
+
+    # Mock get_file to return a file registration with a valid S3 URI so that
+    # download and metadata update flows can exercise the happy path.
+    from daylib.file_registry import (
+        FileRegistration,
+        FileMetadata,
+        SequencingMetadata,
+        BiosampleMetadata,
+    )
+
+    file_reg = FileRegistration(
+        file_id="file-001",
+        customer_id="cust-001",
+        file_metadata=FileMetadata(
+            file_id="file-001",
+            s3_uri="s3://bucket/sample_R1.fastq.gz",
+            file_size_bytes=1024000,
+            md5_checksum="abc123",
+            file_format="fastq",
+        ),
+        sequencing_metadata=SequencingMetadata(
+            platform="ILLUMINA_NOVASEQ_X",
+            vendor="ILMN",
+            run_id="run-001",
+        ),
+        biosample_metadata=BiosampleMetadata(
+            biosample_id="bio-001",
+            subject_id="HG002",
+            sample_type="blood",
+        ),
+        read_number=1,
+        tags=["wgs"],
+    )
+    registry.get_file.return_value = file_reg
+    return registry
+
+
+@pytest.fixture
+def client_with_update(mock_file_registry_with_get):
+    """Create client with update/download capability using a registry with get."""
+    app = FastAPI()
+    router = create_file_api_router(mock_file_registry_with_get)
+    app.include_router(router)
+    return TestClient(app)
 
 
 @pytest.fixture
@@ -115,6 +169,42 @@ class TestFileRegistrationEndpoint:
         )
         
         assert response.status_code == 409
+
+    def test_register_file_conflict_existing_s3_uri(self, client, mock_file_registry):
+        """Test conflict when a file with the same S3 URI already exists.
+
+        This exercises the S3-URI-based uniqueness check that calls
+        FileRegistry.find_file_by_s3_uri before attempting registration.
+        """
+        # Simulate an existing registration returned from the registry
+        existing = MagicMock()
+        existing.file_id = "file-existing-1234"
+        mock_file_registry.find_file_by_s3_uri.return_value = existing
+
+        payload = {
+            "file_metadata": {
+                "s3_uri": "s3://bucket/sample_R1.fastq.gz",
+                "file_size_bytes": 1024000,
+            },
+            "sequencing_metadata": {
+                "platform": "ILLUMINA_NOVASEQ_X",
+                "vendor": "ILMN",
+            },
+            "biosample_metadata": {
+                "biosample_id": "bio-001",
+                "subject_id": "HG002",
+            },
+        }
+
+        response = client.post(
+            "/api/files/register?customer_id=cust-001",
+            json=payload,
+        )
+
+        assert response.status_code == 409
+        data = response.json()
+        # Ensure the error message references the existing file_id for clarity
+        assert "file-existing-1234" in data["detail"]
 
 
 class TestListFilesEndpoint:
@@ -826,49 +916,6 @@ class TestDeleteFileEndpoint:
 class TestUpdateFileMetadataEndpoint:
     """Test file metadata update endpoint - PATCH /api/files/{file_id}"""
 
-    @pytest.fixture
-    def mock_file_registry_with_get(self):
-        """Mock FileRegistry with get_file support."""
-        registry = MagicMock(spec=FileRegistry)
-        registry.update_file.return_value = True
-
-        # Mock get_file to return a file registration
-        from daylib.file_registry import FileRegistration, FileMetadata, SequencingMetadata, BiosampleMetadata
-
-        file_reg = FileRegistration(
-            file_id="file-001",
-            customer_id="cust-001",
-            file_metadata=FileMetadata(
-                file_id="file-001",
-                s3_uri="s3://bucket/sample_R1.fastq.gz",
-                file_size_bytes=1024000,
-                md5_checksum="abc123",
-                file_format="fastq",
-            ),
-            sequencing_metadata=SequencingMetadata(
-                platform="ILLUMINA_NOVASEQ_X",
-                vendor="ILMN",
-                run_id="run-001",
-            ),
-            biosample_metadata=BiosampleMetadata(
-                biosample_id="bio-001",
-                subject_id="HG002",
-                sample_type="blood",
-            ),
-            read_number=1,
-            tags=["wgs"],
-        )
-        registry.get_file.return_value = file_reg
-        return registry
-
-    @pytest.fixture
-    def client_with_update(self, mock_file_registry_with_get):
-        """Create client with update capability."""
-        app = FastAPI()
-        router = create_file_api_router(mock_file_registry_with_get)
-        app.include_router(router)
-        return TestClient(app)
-
     def test_update_file_metadata_md5_checksum(self, client_with_update, mock_file_registry_with_get):
         """Test updating MD5 checksum in file metadata."""
         payload = {
@@ -928,6 +975,192 @@ class TestUpdateFileMetadataEndpoint:
         call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
         assert call_kwargs["file_metadata"]["md5_checksum"] == "new_md5_hash"
         assert call_kwargs["file_metadata"]["file_format"] == "bam"
+
+
+class TestFileDownloadEndpoint:
+    """Tests for GET /api/files/{file_id}/download."""
+
+    def test_get_file_download_url_success(self, client_with_update, mock_file_registry_with_get):
+        """Return a presigned URL for an existing registered file."""
+
+        # The mock registry created in mock_file_registry_with_get already returns
+        # a FileRegistration with a valid s3://bucket/key URI.
+        with patch("daylib.file_api.boto3.client") as mock_boto_client:
+            mock_s3 = mock_boto_client.return_value
+            mock_s3.generate_presigned_url.return_value = "https://signed-url"
+
+            response = client_with_update.get("/api/files/file-001/download")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["url"] == "https://signed-url"
+
+        # Ensure we called S3 with the expected bucket and key components.
+        mock_s3.generate_presigned_url.assert_called_once()
+        args, kwargs = mock_s3.generate_presigned_url.call_args
+        assert args[0] == "get_object"
+        assert kwargs["Params"]["Bucket"] == "bucket"
+        assert kwargs["Params"]["Key"] == "sample_R1.fastq.gz"
+        # Default expiry should be 3600 seconds
+        assert kwargs["ExpiresIn"] == 3600
+
+    def test_get_file_download_url_not_found(self, client_with_update, mock_file_registry_with_get):
+        """Return 404 when the file_id is not registered."""
+
+        mock_file_registry_with_get.get_file.return_value = None
+
+        response = client_with_update.get("/api/files/unknown-file/download")
+
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"].lower()
+
+    def test_get_file_download_url_custom_expiry(self, client_with_update, mock_file_registry_with_get):
+        """Allow overriding URL expiry via query parameter."""
+
+        with patch("daylib.file_api.boto3.client") as mock_boto_client:
+            mock_s3 = mock_boto_client.return_value
+            mock_s3.generate_presigned_url.return_value = "https://signed-url"
+
+            response = client_with_update.get("/api/files/file-001/download?expires_in=600")
+
+        assert response.status_code == 200
+        mock_s3.generate_presigned_url.assert_called_once()
+        _, kwargs = mock_s3.generate_presigned_url.call_args
+        assert kwargs["ExpiresIn"] == 600
+
+    def test_get_file_download_url_invalid_expiry(self, client_with_update):
+        """Reject expiry values outside the allowed range."""
+
+        # Too short (< 60 seconds) should fail validation
+        response = client_with_update.get("/api/files/file-001/download?expires_in=10")
+        assert response.status_code == 422
+
+
+    def test_get_file_download_url_enforces_customer_ownership_mismatch(self, mock_file_registry_with_get):
+        """Return 403 when authenticated customer does not own the file."""
+
+        app = FastAPI()
+
+        async def fake_auth_mismatch():
+            # Authenticated user belongs to a different customer
+            return {"customer_id": "cust-OTHER"}
+
+        router = create_file_api_router(
+            mock_file_registry_with_get,
+            auth_dependency=fake_auth_mismatch,
+        )
+        app.include_router(router)
+        client = TestClient(app)
+
+        with patch("daylib.file_api.boto3.client") as mock_boto_client:
+            response = client.get("/api/files/file-001/download")
+
+        assert response.status_code == 403
+        assert "does not belong" in response.json()["detail"]
+        # Ownership check should fail before any S3 interaction
+        mock_boto_client.assert_not_called()
+
+
+    def test_get_file_download_url_allows_matching_customer_id(self, mock_file_registry_with_get):
+        """Allow download when authenticated customer_id matches the file's customer_id."""
+
+        app = FastAPI()
+
+        async def fake_auth_match():
+            return {"customer_id": "cust-001"}
+
+        router = create_file_api_router(
+            mock_file_registry_with_get,
+            auth_dependency=fake_auth_match,
+        )
+        app.include_router(router)
+        client = TestClient(app)
+
+        with patch("daylib.file_api.boto3.client") as mock_boto_client:
+            mock_s3 = mock_boto_client.return_value
+            mock_s3.generate_presigned_url.return_value = "https://signed-url"
+
+            response = client.get("/api/files/file-001/download")
+
+        assert response.status_code == 200
+        assert response.json()["url"] == "https://signed-url"
+
+
+    def test_get_file_download_url_allows_matching_custom_customer_claim(self, mock_file_registry_with_get):
+        """Support Cognito-style custom:customer_id claim for ownership checks."""
+
+        app = FastAPI()
+
+        async def fake_auth_custom_claim():
+            # Simulate CognitoAuth.get_current_user() style payload
+            return {"custom:customer_id": "cust-001"}
+
+        router = create_file_api_router(
+            mock_file_registry_with_get,
+            auth_dependency=fake_auth_custom_claim,
+        )
+        app.include_router(router)
+        client = TestClient(app)
+
+        with patch("daylib.file_api.boto3.client") as mock_boto_client:
+            mock_s3 = mock_boto_client.return_value
+            mock_s3.generate_presigned_url.return_value = "https://signed-url"
+
+            response = client.get("/api/files/file-001/download")
+
+        assert response.status_code == 200
+        assert response.json()["url"] == "https://signed-url"
+
+
+class TestAddFileToFilesetEndpoint:
+    """Tests for POST /api/files/{file_id}/add-to-fileset."""
+
+    def test_add_file_to_fileset_success(self, client, mock_file_registry):
+        """Successfully add a single file to a fileset."""
+
+        # Ensure the file exists and fileset update succeeds.
+        mock_file_registry.get_file.return_value = object()
+        mock_file_registry.add_files_to_fileset.return_value = True
+
+        response = client.post(
+            "/api/files/file-123/add-to-fileset",
+            json={"fileset_id": "fs-001"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["fileset_id"] == "fs-001"
+        assert data["file_id"] == "file-123"
+        assert data["status"] == "updated"
+
+        mock_file_registry.add_files_to_fileset.assert_called_once_with("fs-001", ["file-123"])
+
+    def test_add_file_to_fileset_file_not_found(self, client, mock_file_registry):
+        """Return 404 when the file_id does not exist."""
+
+        mock_file_registry.get_file.return_value = None
+
+        response = client.post(
+            "/api/files/missing-file/add-to-fileset",
+            json={"fileset_id": "fs-001"},
+        )
+
+        assert response.status_code == 404
+        assert "file" in response.json()["detail"].lower()
+
+    def test_add_file_to_fileset_fileset_not_found(self, client, mock_file_registry):
+        """Return 404 when the target fileset does not exist."""
+
+        mock_file_registry.get_file.return_value = object()
+        mock_file_registry.add_files_to_fileset.return_value = False
+
+        response = client.post(
+            "/api/files/file-123/add-to-fileset",
+            json={"fileset_id": "missing-fs"},
+        )
+
+        assert response.status_code == 404
+        assert "fileset" in response.json()["detail"].lower()
 
     def test_update_biosample_metadata_biosample_id(self, client_with_update, mock_file_registry_with_get):
         """Test updating biosample ID."""

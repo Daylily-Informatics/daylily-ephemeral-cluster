@@ -84,6 +84,12 @@ TABLES = [
     'daylily-filesets',
     'daylily-file-workset-usage',
     'daylily-linked-buckets',
+    # Biospecimen tables
+    'daylily-subjects',
+    'daylily-biosamples',
+    'daylily-libraries',
+    # Manifest storage table
+    'daylily-manifests',
 ]
 
 print("=" * 50)

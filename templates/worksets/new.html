@@ -194,10 +194,37 @@
             <div class="tab-content" id="tab-manifest">
                 <div class="alert alert-info mb-lg" style="background: #0d3344; border: 1px solid var(--color-info); border-radius: var(--radius-md); padding: var(--spacing-md); color: #b8d4e8;">
                     <i class="fas fa-info-circle text-info"></i>
-                    <strong style="color: #fff;">Best for:</strong> Advanced users with pre-configured sample sheets. Upload a <code style="background: #1a4a5e; padding: 2px 6px; border-radius: 3px;">stage_samples.tsv</code> manifest that defines your analysis inputs and metadata.
+                    <strong style="color: #fff;">Best for:</strong> Advanced users with pre-configured sample sheets. Choose a saved manifest or upload a <code style="background: #1a4a5e; padding: 2px 6px; border-radius: 3px;">stage_samples.tsv</code> that defines your analysis inputs and metadata.
                 </div>
+
+                <!-- Saved Manifests Section -->
                 <div class="form-group">
-                    <label for="manifest_file" class="form-label">Upload Manifest (TSV)</label>
+                    <label class="form-label">Use Saved Manifest</label>
+                    <div class="d-flex gap-md align-center">
+                        <select id="saved-manifest-select" class="form-control form-select" style="flex: 1;" onchange="onSavedManifestSelected()">
+                            <option value="">Choose a saved manifest...</option>
+                        </select>
+                        <button type="button" class="btn btn-outline" onclick="refreshSavedManifestsList()" title="Refresh list">
+                            <i class="fas fa-sync"></i>
+                        </button>
+                    </div>
+                    <p class="form-text">Select a previously saved manifest from your account.</p>
+                </div>
+
+                <div id="saved-manifest-preview" class="d-none mb-lg">
+                    <div class="card" style="background: #1a2a33; margin-top: var(--spacing-md);">
+                        <div class="d-flex justify-between align-center mb-md">
+                            <h4 style="margin: 0; color: #fff;"><i class="fas fa-file-alt text-accent"></i> <span id="saved-manifest-name">Manifest</span></h4>
+                            <span class="badge badge-info" id="saved-manifest-sample-count">0 samples</span>
+                        </div>
+                        <p id="saved-manifest-created" class="text-muted mb-md"></p>
+                    </div>
+                </div>
+
+                <hr style="border: none; border-top: 1px solid var(--color-gray-700); margin: var(--spacing-lg) 0;">
+
+                <div class="form-group">
+                    <label for="manifest_file" class="form-label">Or Upload New Manifest (TSV)</label>
                     <div class="file-upload" onclick="document.getElementById('manifest-input').click()">
                         <div class="file-upload-icon"><i class="fas fa-file-alt"></i></div>
                         <p class="file-upload-text">

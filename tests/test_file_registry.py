@@ -7,14 +7,15 @@ from datetime import datetime
 from unittest.mock import MagicMock, patch
 
 from daylib.file_registry import (
-    BiosampleMetadata,
-    FileMetadata,
-    FileRegistration,
-    FileRegistry,
-    FileSet,
-    FileWorksetUsage,
-    SequencingMetadata,
-)
+	    BiosampleMetadata,
+	    FileMetadata,
+	    FileRegistration,
+	    FileRegistry,
+	    FileSet,
+	    FileWorksetUsage,
+	    SequencingMetadata,
+	    generate_file_id,
+	)
 
 
 @pytest.fixture
@@ -59,6 +60,32 @@ class TestFileMetadata:
         assert metadata.md5_checksum == "abc123def456"
         assert metadata.file_format == "fastq"
         assert metadata.created_at is not None
+
+
+class TestGenerateFileId:
+    """Tests for generate_file_id helper."""
+
+    def test_generate_file_id_is_deterministic(self):
+        """Same customer_id + S3 URI should always yield the same file_id."""
+        customer_id = "cust-001"
+        s3_uri = "s3://bucket/path/sample_R1.fastq.gz"
+
+        fid1 = generate_file_id(s3_uri, customer_id)
+        fid2 = generate_file_id(s3_uri, customer_id)
+
+        assert fid1 == fid2
+        assert fid1.startswith("file-")
+
+    def test_generate_file_id_distinguishes_directories(self):
+        """Files with same name in different directories must get different IDs."""
+        customer_id = "cust-001"
+        s3_uri_1 = "s3://bucket/dir1/sample_R1.fastq.gz"
+        s3_uri_2 = "s3://bucket/dir2/sample_R1.fastq.gz"
+
+        fid1 = generate_file_id(s3_uri_1, customer_id)
+        fid2 = generate_file_id(s3_uri_2, customer_id)
+
+        assert fid1 != fid2
 
 
 class TestBiosampleMetadata:

@@ -15,6 +15,7 @@ python scripts/drop_daylily_tables.py --region us-west-2 --force
 
 python scripts/init_file_registry_tables.py --region us-west-2
 
+python scripts/init_biospecimen_tables.py --region us-west-2
 
 python3 << 'EOF'
 from daylib.workset_customer import CustomerManager
@@ -24,4 +25,4 @@ print("✓ customer table created (", cm.customer_table_name, ")")
 EOF
 
 
-python examples/run_api_with_auth.py    
+python examples/run_api_with_auth.py

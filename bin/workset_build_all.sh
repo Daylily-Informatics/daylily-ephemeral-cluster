@@ -102,6 +102,32 @@ else:
     print("  ✓ daylily-filesets")
     print("  ✓ daylily-file-workset-usage")
 
+    # Create biospecimen registry tables
+    from daylib.biospecimen import BiospecimenRegistry
+    print("  Creating biospecimen registry tables...")
+    br = BiospecimenRegistry(
+        subjects_table_name="daylily-subjects",
+        biosamples_table_name="daylily-biosamples",
+        libraries_table_name="daylily-libraries",
+        region=region,
+        profile=profile,
+    )
+    br.create_tables_if_not_exist()
+    print("  ✓ daylily-subjects")
+    print("  ✓ daylily-biosamples")
+    print("  ✓ daylily-libraries")
+
+    # Create manifest registry table
+    from daylib.manifest_registry import ManifestRegistry
+    print("  Creating manifest registry table...")
+    mr = ManifestRegistry(
+        table_name="daylily-manifests",
+        region=region,
+        profile=profile,
+    )
+    mr.create_table_if_not_exists()
+    print("  ✓ daylily-manifests")
+
 print()
 print("=" * 50)
 print("  STEP 2: Cognito User Pool")

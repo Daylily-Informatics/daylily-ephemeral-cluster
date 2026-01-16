@@ -29,6 +29,9 @@ def mock_file_registry():
     registry.register_file.return_value = True
     registry.create_fileset.return_value = True
     registry.list_customer_files.return_value = []
+    # By default, simulate no existing registrations for any S3 URI so
+    # integration tests exercise the successful registration path.
+    registry.find_file_by_s3_uri.return_value = None
     return registry
 
 

@@ -80,7 +80,7 @@ def parse_args():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-    # Run on default port (8000) with HTTP
+    # Run on default port (8001) with HTTP
     python run_api_with_auth.py
 
     # Run on custom port
@@ -99,8 +99,8 @@ Examples:
     parser.add_argument(
         "--port", "-p",
         type=int,
-        default=8000,
-        help="Port to run the server on (default: 8000)",
+        default=8001,
+        help="Port to run the server on (default: 8001)",
     )
     parser.add_argument(
         "--https",

@@ -512,7 +512,21 @@ class WorksetIntegration:
 
         # Build stage_samples.tsv from samples in metadata
         # (samples already extracted above for info_yaml)
-        if samples:
+        # If raw TSV content is provided (e.g., from a saved manifest), use it directly
+        raw_tsv_content = metadata.get("stage_samples_tsv")
+
+        if raw_tsv_content:
+            # Use provided TSV content directly (from saved manifest or uploaded TSV)
+            tsv_key = f"{prefix}{STAGE_SAMPLES_NAME}"
+            self._s3.put_object(
+                Bucket=bucket,
+                Key=tsv_key,
+                Body=raw_tsv_content.encode("utf-8"),
+                ContentType="text/tab-separated-values",
+            )
+            LOGGER.debug("Wrote raw %s to s3://%s/%s", STAGE_SAMPLES_NAME, bucket, tsv_key)
+        elif samples:
+            # Generate TSV from sample list
             # Use analysis_samples_template.tsv format with 20 columns
             # See etc/analysis_samples_template.tsv for column definitions
             header_cols = [

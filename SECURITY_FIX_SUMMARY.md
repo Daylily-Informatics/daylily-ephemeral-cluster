@@ -64,9 +64,9 @@ python examples/run_api_with_auth.py
 
 Now try logging in at http://localhost:8001/portal/login
 
-**Valid Login (should work):**
+**Valid Login (should work, or maybe not best to start w/out auth):**
 - Email: `john@dyly.bio`
-- Password: `C4un3y!!`
+- Password: `1234567`
 
 **Invalid Logins (should be rejected):**
 - Wrong email: `nonexistent@example.com` → "Invalid email or password"

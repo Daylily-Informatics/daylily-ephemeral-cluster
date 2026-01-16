@@ -12,6 +12,7 @@ import logging
 import uuid
 from typing import Any, Callable, Dict, List, Optional
 
+import boto3
 from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
 from pydantic import BaseModel, Field
 
@@ -50,6 +51,48 @@ from daylib.file_metadata import (
 )
 
 LOGGER = logging.getLogger("daylily.file_api")
+
+
+def _get_authenticated_customer_id(current_user: Optional[Dict]) -> Optional[str]:
+    """Extract customer_id for the authenticated user from auth context.
+
+    Supports both an explicit ``customer_id`` field and the Cognito
+    ``custom:customer_id`` claim used by :class:`~daylib.workset_auth.CognitoAuth`.
+
+    Returns ``None`` when no customer_id information is available so that
+    callers can decide whether to enforce ownership checks or operate in
+    legacy/no-auth modes.
+    """
+
+    if not current_user:
+        return None
+
+    # Preferred: explicit customer_id key
+    customer_id = current_user.get("customer_id")
+    if customer_id:
+        return customer_id
+
+    # Cognito custom attribute from JWT claims
+    customer_id = current_user.get("custom:customer_id")
+    if customer_id:
+        return customer_id
+
+    return None
+
+
+def verify_file_ownership(file: Optional[FileRegistration], customer_id: str) -> bool:
+    """Check if a file belongs to a customer by customer_id.
+
+    This mirrors :func:`daylib.workset_api.verify_workset_ownership` but for
+    :class:`~daylib.file_registry.FileRegistration` records. Ownership is
+    determined solely by the ``customer_id`` field, which is authoritative in
+    the control-plane design.
+    """
+
+    if not file or not customer_id:
+        return False
+
+    return getattr(file, "customer_id", None) == customer_id
 
 
 # Pydantic models for API requests/responses
@@ -132,6 +175,12 @@ class BulkImportRequest(BaseModel):
     files: List[FileRegistrationRequest]
     fileset_name: Optional[str] = None
     fileset_description: Optional[str] = None
+
+
+class AddFileToFilesetRequest(BaseModel):
+    """Request model to add a single file to an existing file set."""
+
+    fileset_id: str = Field(..., description="ID of the fileset to add the file to")
 
 
 class BulkImportResponse(BaseModel):
@@ -409,8 +458,26 @@ def create_file_api_router(
         Requires authentication if enabled. Customer ID must match authenticated user's customer.
         """
         try:
-            file_id = f"file-{uuid.uuid4().hex[:12]}"
-            
+            # Enforce S3 URI uniqueness per customer. If a file with the same
+            # S3 URI is already registered for this customer, treat this as a
+            # conflict and surface a clear error to the caller.
+            existing = file_registry.find_file_by_s3_uri(
+                customer_id=customer_id,
+                s3_uri=request.file_metadata.s3_uri,
+            )
+            if existing is not None:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail=(
+                        "File with this S3 URI is already registered "
+                        f"(file_id={existing.file_id})."
+                    ),
+                )
+
+            # Use deterministic file IDs derived from customer + S3 URI so that
+            # registration, discovery, and portal views all agree on identity.
+            file_id = generate_file_id(request.file_metadata.s3_uri, customer_id)
+
             file_meta = FileMetadata(
                 file_id=file_id,
                 s3_uri=request.file_metadata.s3_uri,
@@ -1326,6 +1393,86 @@ def create_file_api_router(
                 detail=f"Failed to update file tags: {str(e)}",
             )
 
+
+    @router.get("/{file_id}/download")
+    async def get_file_download_url(
+        file_id: str,
+        expires_in: int = Query(
+            3600,
+            ge=60,
+            le=86400,
+            description="Expiry in seconds for the presigned URL (60–86400).",
+        ),
+        current_user: Optional[Dict] = Depends(auth_dependency),
+    ):
+        """Get a presigned S3 download URL for a registered file.
+
+        The file must exist and have a valid ``s3://bucket/key`` URI.
+        """
+        try:
+            file = file_registry.get_file(file_id)
+            if not file:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"File {file_id} not found",
+                )
+
+            # Enforce customer-based ownership when we know who the
+            # authenticated customer is. This mirrors the
+            # verify_workset_ownership pattern in workset_api, using
+            # DynamoDB customer_id as the authoritative ownership field
+            # rather than any bucket-based comparison.
+            user_customer_id = _get_authenticated_customer_id(current_user)
+            if user_customer_id:
+                if not verify_file_ownership(file, user_customer_id):
+                    LOGGER.warning(
+                        "Download denied: file %s has customer_id=%s but user has customer_id=%s",
+                        file_id,
+                        getattr(file, "customer_id", None),
+                        user_customer_id,
+                    )
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="File does not belong to this customer",
+                    )
+
+            s3_uri = getattr(file.file_metadata, "s3_uri", None)
+            if not s3_uri or not isinstance(s3_uri, str) or not s3_uri.startswith("s3://"):
+                LOGGER.error("File %s has invalid s3_uri: %r", file_id, s3_uri)
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"File {file_id} does not have a valid s3_uri",
+                )
+
+            # Parse s3://bucket/key
+            without_scheme = s3_uri[5:]
+            if "/" not in without_scheme:
+                LOGGER.error("File %s s3_uri missing key segment: %r", file_id, s3_uri)
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"File {file_id} does not have a valid s3_uri",
+                )
+            bucket_name, object_key = without_scheme.split("/", 1)
+
+            s3_client = boto3.client("s3")
+            presigned_url = s3_client.generate_presigned_url(
+                "get_object",
+                Params={"Bucket": bucket_name, "Key": object_key},
+                ExpiresIn=expires_in,
+            )
+
+            return {"url": presigned_url}
+        except HTTPException:
+            raise
+        except Exception as e:
+            LOGGER.error(
+                "Failed to generate download URL for file %s: %s", file_id, str(e), exc_info=True
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to generate download URL for file {file_id}",
+            )
+
     @router.patch("/{file_id}")
     async def update_file_metadata(
         file_id: str,
@@ -1415,6 +1562,49 @@ def create_file_api_router(
             raise HTTPException(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to add files to fileset: {str(e)}",
+            )
+
+    @router.post("/{file_id}/add-to-fileset")
+    async def add_file_to_fileset(
+        file_id: str,
+        request: AddFileToFilesetRequest = Body(..., description="Fileset to add the file to"),
+        current_user: Optional[Dict] = Depends(auth_dependency),
+    ):
+        """Convenience endpoint to add a single file to an existing file set.
+
+        This mirrors the customer-level API the portal uses for individual files,
+        but operates on a *registered* file identified by ``file_id``.
+        """
+        try:
+            # Verify the file exists so we can return a clean 404 if not.
+            file = file_registry.get_file(file_id)
+            if not file:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"File {file_id} not found",
+                )
+
+            success = file_registry.add_files_to_fileset(request.fileset_id, [file_id])
+            if not success:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"FileSet {request.fileset_id} not found",
+                )
+
+            return {
+                "fileset_id": request.fileset_id,
+                "file_id": file_id,
+                "status": "updated",
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            LOGGER.error(
+                "Failed to add file %s to fileset %s: %s", file_id, request.fileset_id, str(e),
+            )
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to add file {file_id} to fileset {request.fileset_id}",
             )
 
     @router.post("/filesets/{fileset_id}/remove-files")

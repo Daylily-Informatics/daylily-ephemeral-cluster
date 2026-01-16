@@ -1228,17 +1228,25 @@ async function generateManifestFromFileset(filesetId) {
 // File Detail Page Functions
 // ============================================================================
 
-// Download file via presigned URL
-async function downloadFile(s3Uri) {
+// Download a registered file via presigned URL
+async function downloadRegisteredFile(fileId, expiresInSeconds = 3600) {
     try {
         showToast('Generating download link...', 'info');
-        const customerId = window.DaylilyConfig?.customerId || window.CUSTOMER_ID || '';
-        const response = await fetch(`${FILE_API_BASE}/download?s3_uri=${encodeURIComponent(s3Uri)}&customer_id=${encodeURIComponent(customerId)}`);
+
+        const params = new URLSearchParams();
+        if (expiresInSeconds) {
+            params.append('expires_in', String(expiresInSeconds));
+        }
+
+        const queryString = params.toString();
+        const url = `${FILE_API_BASE}/${encodeURIComponent(fileId)}/download${queryString ? `?${queryString}` : ''}`;
+
+        const response = await fetch(url);
 
         if (response.ok) {
             const data = await response.json();
-            if (data.presigned_url) {
-                window.open(data.presigned_url, '_blank');
+            if (data.url) {
+                window.open(data.url, '_blank');
                 showToast('Download started', 'success');
             } else {
                 showToast('Failed to generate download link', 'error');
