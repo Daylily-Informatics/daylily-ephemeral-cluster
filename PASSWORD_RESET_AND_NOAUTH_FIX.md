@@ -12,6 +12,11 @@
 
 **Solution**: Modified authentication logic to automatically create a session with a default customer when auth is disabled.
 
+### 3. Registration Not Creating Cognito Users ✅
+**Problem**: Registration UI created DynamoDB customer records but not Cognito users, causing "User does not exist" errors on login.
+
+**Solution**: Modified registration endpoint to create both DynamoDB customer record AND Cognito user when auth is enabled.
+
 ---
 
 ## Password Reset Implementation
@@ -133,7 +138,86 @@ def require_portal_auth(request: Request) -> Optional[RedirectResponse]:
 
 ---
 
+## Registration Fix
+
+### Problem Details
+
+When a user registered via `/portal/register`:
+1. ✅ DynamoDB customer record was created
+2. ❌ Cognito user was NOT created
+3. ❌ Login failed with "User does not exist"
+
+### Solution
+
+Modified `portal_register_submit()` in `daylib/workset_api.py`:
+
+```python
+# After creating customer in DynamoDB
+config = customer_manager.onboard_customer(...)
+
+# Now also create Cognito user if auth is enabled
+if enable_auth and cognito_auth:
+    cognito_auth.create_customer_user(
+        email=email,
+        customer_id=config.customer_id,
+        temporary_password=None,  # Cognito generates and emails it
+    )
+```
+
+### Behavior
+
+**With Auth Enabled:**
+- Creates DynamoDB customer record
+- Creates Cognito user with temporary password
+- Cognito emails temporary password to user
+- User must change password on first login (Cognito default)
+- Success message: "Check your email for login credentials"
+
+**Without Auth:**
+- Only creates DynamoDB customer record
+- No Cognito user needed
+- Success message: "Please log in"
+
+**Error Handling:**
+- If Cognito user already exists: Log warning, continue
+- If Cognito creation fails: Log error, continue (customer record still created)
+- Registration never fails due to Cognito errors
+
+---
+
 ## Testing Instructions
+
+### Test Registration (Auth Mode)
+
+1. **Start server with auth:**
+   ```bash
+   ./examples/run_api_with_new_cognito.sh
+   ```
+
+2. **Test registration:**
+   - Go to http://localhost:8000/portal/register
+   - Fill in form (use a real email you can access)
+   - Submit
+   - Should see: "Check your email for login credentials"
+
+3. **Check email:**
+   - You should receive email from Cognito with temporary password
+   - Subject: "Your temporary password"
+
+4. **Test first login:**
+   - Go to http://localhost:8000/portal/login
+   - Enter email and temporary password
+   - Cognito will require password change
+   - Set new password
+   - Should log in successfully!
+
+5. **Verify with AWS CLI:**
+   ```bash
+   aws cognito-idp admin-get-user \
+     --user-pool-id $COGNITO_USER_POOL_ID \
+     --username your-email@example.com \
+     --region us-west-2
+   ```
 
 ### Test Password Reset (Auth Mode)
 
@@ -145,7 +229,7 @@ def require_portal_auth(request: Request) -> Optional[RedirectResponse]:
 2. **Test forgot password:**
    - Go to http://localhost:8000/portal/login
    - Click "Forgot password?"
-   - Enter: `john@dyly.bio`
+   - Enter your email
    - Check email for 6-digit code
 
 3. **Test reset password:**
@@ -191,4 +275,19 @@ def require_portal_auth(request: Request) -> Optional[RedirectResponse]:
 ## Commits
 
 - `0d16c82d` - Add password reset functionality and fix no-auth mode
+- `6bd3cb8c` - Fix registration to create Cognito user
+
+## Summary
+
+All three issues are now fixed:
+
+1. ✅ **Password reset works** - Full forgot/reset password flow with Cognito
+2. ✅ **No-auth mode works** - Portal accessible without login when auth disabled
+3. ✅ **Registration creates Cognito users** - Users can actually log in after registering
+
+The registration flow now properly creates both:
+- DynamoDB customer record (for billing, limits, etc.)
+- Cognito user (for authentication)
+
+Users receive a temporary password via email and must change it on first login.
 
