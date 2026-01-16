@@ -510,14 +510,19 @@ class CognitoAuth:
 
             # Check if challenge is required (e.g., NEW_PASSWORD_REQUIRED)
             if "ChallengeName" in response:
+                challenge_name = response["ChallengeName"]
                 LOGGER.warning(
                     "Authentication challenge required for user %s: %s",
                     email,
-                    response["ChallengeName"],
+                    challenge_name,
                 )
-                raise ValueError(
-                    f"Authentication challenge required: {response['ChallengeName']}"
-                )
+
+                # Return challenge info so caller can handle it
+                return {
+                    "challenge": challenge_name,
+                    "session": response.get("Session"),
+                    "challenge_parameters": response.get("ChallengeParameters", {}),
+                }
 
             # Extract tokens
             auth_result = response.get("AuthenticationResult", {})
@@ -549,6 +554,64 @@ class CognitoAuth:
             else:
                 LOGGER.error("Authentication error for user %s: %s - %s", email, error_code, error_message)
                 raise
+
+    def respond_to_new_password_challenge(
+        self,
+        email: str,
+        new_password: str,
+        session: str
+    ) -> Dict:
+        """Respond to NEW_PASSWORD_REQUIRED challenge.
+
+        This is used when a user logs in with a temporary password and must
+        set a new password before continuing.
+
+        Args:
+            email: User email
+            new_password: New password to set
+            session: Session token from the challenge response
+
+        Returns:
+            Dict containing authentication tokens
+
+        Raises:
+            ValueError: If the challenge response fails
+        """
+        try:
+            response = self.cognito.admin_respond_to_auth_challenge(
+                UserPoolId=self.user_pool_id,
+                ClientId=self.app_client_id,
+                ChallengeName="NEW_PASSWORD_REQUIRED",
+                ChallengeResponses={
+                    "USERNAME": email,
+                    "NEW_PASSWORD": new_password,
+                },
+                Session=session,
+            )
+
+            # Extract tokens
+            auth_result = response.get("AuthenticationResult", {})
+            if not auth_result:
+                raise ValueError("Password change failed: No tokens returned")
+
+            LOGGER.info(f"User {email} successfully changed password and authenticated")
+            return {
+                "access_token": auth_result.get("AccessToken"),
+                "id_token": auth_result.get("IdToken"),
+                "refresh_token": auth_result.get("RefreshToken"),
+                "expires_in": auth_result.get("ExpiresIn"),
+                "token_type": auth_result.get("TokenType", "Bearer"),
+            }
+
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code")
+            error_message = e.response.get("Error", {}).get("Message", str(e))
+            LOGGER.error(f"Password change challenge failed for {email}: {error_code} - {error_message}")
+
+            if error_code == "InvalidPasswordException":
+                raise ValueError("Password does not meet requirements")
+            else:
+                raise ValueError(f"Password change failed: {error_message}")
 
     def forgot_password(self, email: str) -> None:
         """Initiate forgot password flow for a user.

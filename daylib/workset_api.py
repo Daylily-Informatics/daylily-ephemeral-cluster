@@ -2325,9 +2325,32 @@ def create_app(
             if cognito_auth:
                 try:
                     LOGGER.debug(f"portal_login_submit: Authenticating with Cognito for: {email}")
-                    tokens = cognito_auth.authenticate(email, password)
-                    request.session["access_token"] = tokens["access_token"]
-                    request.session["id_token"] = tokens["id_token"]
+                    auth_result = cognito_auth.authenticate(email, password)
+
+                    # Check if challenge is required (e.g., NEW_PASSWORD_REQUIRED)
+                    if "challenge" in auth_result:
+                        challenge_name = auth_result["challenge"]
+                        LOGGER.info(f"portal_login_submit: Challenge required for {email}: {challenge_name}")
+
+                        if challenge_name == "NEW_PASSWORD_REQUIRED":
+                            # Store session and redirect to password change page
+                            request.session["challenge_session"] = auth_result["session"]
+                            request.session["challenge_email"] = email
+                            return RedirectResponse(
+                                url="/portal/change-password?reason=temporary",
+                                status_code=302,
+                            )
+                        else:
+                            # Other challenges not supported yet
+                            LOGGER.error(f"portal_login_submit: Unsupported challenge: {challenge_name}")
+                            return RedirectResponse(
+                                url=f"/portal/login?error=Authentication+challenge+required:+{challenge_name}",
+                                status_code=302,
+                            )
+
+                    # Normal authentication successful
+                    request.session["access_token"] = auth_result["access_token"]
+                    request.session["id_token"] = auth_result["id_token"]
                     LOGGER.info(f"portal_login_submit: Cognito authentication successful for: {email}")
                 except ValueError as e:
                     # Invalid credentials
@@ -2460,6 +2483,102 @@ def create_app(
                 LOGGER.error(f"Reset password error for {email}: {e}")
                 return RedirectResponse(
                     url=f"/portal/reset-password?email={email}&error=Password+reset+failed",
+                    status_code=302,
+                )
+
+        @app.get("/portal/change-password", response_class=HTMLResponse, tags=["portal"])
+        async def portal_change_password(
+            request: Request,
+            reason: Optional[str] = None,
+            error: Optional[str] = None,
+            success: Optional[str] = None
+        ):
+            """Change password page (for NEW_PASSWORD_REQUIRED challenge)."""
+            # Check if user has a challenge session
+            if not request.session.get("challenge_session"):
+                return RedirectResponse(
+                    url="/portal/login?error=Session+expired.+Please+log+in+again",
+                    status_code=302,
+                )
+
+            email = request.session.get("challenge_email", "")
+            return templates.TemplateResponse(
+                request,
+                "auth/change_password.html",
+                get_template_context(request, email=email, reason=reason, error=error, success=success),
+            )
+
+        @app.post("/portal/change-password", tags=["portal"])
+        async def portal_change_password_submit(
+            request: Request,
+            new_password: str = Form(...),
+            confirm_password: str = Form(...),
+        ):
+            """Handle change password form submission (NEW_PASSWORD_REQUIRED challenge)."""
+            if not cognito_auth:
+                return RedirectResponse(
+                    url="/portal/login?error=Authentication+not+available",
+                    status_code=302,
+                )
+
+            # Get challenge session
+            session = request.session.get("challenge_session")
+            email = request.session.get("challenge_email")
+
+            if not session or not email:
+                return RedirectResponse(
+                    url="/portal/login?error=Session+expired.+Please+log+in+again",
+                    status_code=302,
+                )
+
+            # Validate passwords match
+            if new_password != confirm_password:
+                return RedirectResponse(
+                    url="/portal/change-password?error=Passwords+do+not+match",
+                    status_code=302,
+                )
+
+            try:
+                # Respond to challenge with new password
+                tokens = cognito_auth.respond_to_new_password_challenge(email, new_password, session)
+
+                # Clear challenge session
+                request.session.pop("challenge_session", None)
+                request.session.pop("challenge_email", None)
+
+                # Get customer info
+                customer = customer_manager.get_customer_by_email(email) if customer_manager else None
+                if not customer:
+                    LOGGER.error(f"Customer not found for {email} after password change")
+                    return RedirectResponse(
+                        url="/portal/login?error=Account+not+found",
+                        status_code=302,
+                    )
+
+                # Set session for authenticated user
+                request.session["access_token"] = tokens["access_token"]
+                request.session["id_token"] = tokens["id_token"]
+                request.session["user_email"] = email
+                request.session["user_authenticated"] = True
+                request.session["customer_id"] = customer.customer_id
+                request.session["is_admin"] = customer.is_admin
+
+                LOGGER.info(f"Password changed successfully for {email}, user logged in")
+                return RedirectResponse(
+                    url="/portal/?success=Password+changed+successfully",
+                    status_code=302,
+                )
+
+            except ValueError as e:
+                LOGGER.warning(f"Password change error for {email}: {e}")
+                return RedirectResponse(
+                    url=f"/portal/change-password?error={str(e)}",
+                    status_code=302,
+                )
+            except Exception as e:
+                LOGGER.error(f"Password change error for {email}: {e}")
+                return RedirectResponse(
+                    url="/portal/change-password?error=Password+change+failed",
                     status_code=302,
                 )
 
