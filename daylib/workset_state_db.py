@@ -225,6 +225,9 @@ class WorksetStateDB:
         Uses DynamoDB conditional writes for atomic lock acquisition.
         Automatically releases stale locks based on lock_timeout_seconds.
 
+        IMPORTANT: This method only sets lock_owner, lock_acquired_at, and lock_expires_at
+        attributes. It does NOT change the workset state. Locking is separate from state.
+
         Args:
             workset_id: Workset to lock
             owner_id: Identifier of the lock owner (e.g., monitor instance ID)
@@ -235,6 +238,7 @@ class WorksetStateDB:
         """
         now = dt.datetime.utcnow()
         now_iso = now.isoformat() + "Z"
+        expires_at = (now + dt.timedelta(seconds=self.lock_timeout_seconds)).isoformat() + "Z"
 
         try:
             # First, check current state and lock metadata
@@ -246,38 +250,69 @@ class WorksetStateDB:
             item = response["Item"]
             current_state = item.get("state")
 
-            # Only allow locking ready worksets unless force is set
-            if not force and current_state != WorksetState.READY.value:
+            # Allow locking READY worksets or RETRYING worksets (for retry logic)
+            # Also allow force=True to lock any workset
+            lockable_states = {WorksetState.READY.value, WorksetState.RETRYING.value}
+            if not force and current_state not in lockable_states:
                 LOGGER.info(
-                    "Workset %s in state %s, cannot acquire lock",
+                    "Workset %s in state %s, cannot acquire lock (lockable states: %s)",
                     workset_id,
                     current_state,
+                    ", ".join(lockable_states),
                 )
                 return False
 
             lock_owner = item.get("lock_owner")
             lock_acquired_at = item.get("lock_acquired_at")
+            lock_expires_at = item.get("lock_expires_at")
             lock_is_stale = False
 
             if lock_owner:
-                if lock_acquired_at:
-                    lock_time = dt.datetime.fromisoformat(lock_acquired_at.rstrip("Z"))
-                    elapsed = (now - lock_time).total_seconds()
-                    if elapsed < self.lock_timeout_seconds and not force:
-                        LOGGER.info(
-                            "Workset %s locked by %s (%.0f seconds ago)",
-                            workset_id,
-                            lock_owner,
-                            elapsed,
-                        )
-                        return False
-                    lock_is_stale = True
-                    LOGGER.warning(
-                        "Releasing stale lock on %s (held by %s for %.0f seconds)",
-                        workset_id,
-                        lock_owner,
-                        elapsed,
-                    )
+                # Check if lock has expired using lock_expires_at (preferred) or lock_acquired_at
+                if lock_expires_at:
+                    try:
+                        expires_time = dt.datetime.fromisoformat(lock_expires_at.rstrip("Z"))
+                        if now >= expires_time:
+                            lock_is_stale = True
+                            LOGGER.warning(
+                                "Lock on %s expired at %s (held by %s)",
+                                workset_id,
+                                lock_expires_at,
+                                lock_owner,
+                            )
+                        elif not force:
+                            LOGGER.info(
+                                "Workset %s locked by %s (expires at %s)",
+                                workset_id,
+                                lock_owner,
+                                lock_expires_at,
+                            )
+                            return False
+                    except ValueError:
+                        lock_is_stale = True  # Invalid timestamp, treat as stale
+                elif lock_acquired_at:
+                    # Fallback to lock_acquired_at for backward compatibility
+                    try:
+                        lock_time = dt.datetime.fromisoformat(lock_acquired_at.rstrip("Z"))
+                        elapsed = (now - lock_time).total_seconds()
+                        if elapsed >= self.lock_timeout_seconds:
+                            lock_is_stale = True
+                            LOGGER.warning(
+                                "Releasing stale lock on %s (held by %s for %.0f seconds)",
+                                workset_id,
+                                lock_owner,
+                                elapsed,
+                            )
+                        elif not force:
+                            LOGGER.info(
+                                "Workset %s locked by %s (%.0f seconds ago)",
+                                workset_id,
+                                lock_owner,
+                                elapsed,
+                            )
+                            return False
+                    except ValueError:
+                        lock_is_stale = True  # Invalid timestamp, treat as stale
                 elif not force:
                     LOGGER.info(
                         "Workset %s locked by %s (timestamp missing)",
@@ -285,8 +320,10 @@ class WorksetStateDB:
                         lock_owner,
                     )
                     return False
+                else:
+                    lock_is_stale = True  # No timestamp + force, treat as stale
 
-            # Attempt to acquire lock
+            # Attempt to acquire lock - only sets lock attributes, NOT state
             condition = "attribute_exists(workset_id) AND (attribute_not_exists(lock_owner) OR lock_owner = :owner"
             if lock_is_stale:
                 condition += " OR lock_acquired_at = :stale_at"
@@ -295,12 +332,14 @@ class WorksetStateDB:
             update_expr = (
                 "SET lock_owner = :owner, "
                 "lock_acquired_at = :now, "
+                "lock_expires_at = :expires, "
                 "updated_at = :now"
             )
 
             expression_values = {
                 ":owner": owner_id,
                 ":now": now_iso,
+                ":expires": expires_at,
             }
             if lock_is_stale and lock_acquired_at:
                 expression_values[":stale_at"] = lock_acquired_at
@@ -313,7 +352,12 @@ class WorksetStateDB:
             )
 
             self._emit_metric("LockAcquired", 1.0)
-            LOGGER.info("Acquired lock on workset %s for %s", workset_id, owner_id)
+            LOGGER.info(
+                "Acquired lock on workset %s for %s (expires at %s)",
+                workset_id,
+                owner_id,
+                expires_at,
+            )
             return True
 
         except ClientError as e:
@@ -324,6 +368,10 @@ class WorksetStateDB:
 
     def release_lock(self, workset_id: str, owner_id: str) -> bool:
         """Release a lock on a workset.
+
+        IMPORTANT: This method only clears lock_owner, lock_acquired_at, and lock_expires_at
+        attributes if the owner matches. It does NOT change the workset state.
+        Locking is separate from state - call update_state() separately if needed.
 
         Args:
             workset_id: Workset to unlock
@@ -339,7 +387,7 @@ class WorksetStateDB:
                 Key={"workset_id": workset_id},
                 UpdateExpression=(
                     "SET updated_at = :now "
-                    "REMOVE lock_owner, lock_acquired_at"
+                    "REMOVE lock_owner, lock_acquired_at, lock_expires_at"
                 ),
                 ConditionExpression="lock_owner = :owner",
                 ExpressionAttributeValues={
@@ -347,11 +395,65 @@ class WorksetStateDB:
                     ":now": now_iso,
                 },
             )
-            LOGGER.info("Released lock on workset %s", workset_id)
+            self._emit_metric("LockReleased", 1.0)
+            LOGGER.info("Released lock on workset %s by owner %s", workset_id, owner_id)
             return True
         except ClientError as e:
             if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
-                LOGGER.warning("Cannot release lock on %s (not owner)", workset_id)
+                LOGGER.warning(
+                    "Cannot release lock on %s (not owner: requested by %s)",
+                    workset_id,
+                    owner_id,
+                )
+                return False
+            raise
+
+    def refresh_lock(self, workset_id: str, owner_id: str) -> bool:
+        """Extend the lock expiration time for a workset.
+
+        This is useful for long-running worksets to prevent lock timeout.
+        Only the current lock owner can refresh the lock.
+
+        Args:
+            workset_id: Workset identifier
+            owner_id: Lock owner identifier (must match current owner)
+
+        Returns:
+            True if lock refreshed, False if not owned by this owner
+        """
+        now = dt.datetime.utcnow()
+        now_iso = now.isoformat() + "Z"
+        expires_at = (now + dt.timedelta(seconds=self.lock_timeout_seconds)).isoformat() + "Z"
+
+        try:
+            self.table.update_item(
+                Key={"workset_id": workset_id},
+                UpdateExpression=(
+                    "SET lock_acquired_at = :now, "
+                    "lock_expires_at = :expires, "
+                    "updated_at = :now"
+                ),
+                ConditionExpression="lock_owner = :owner",
+                ExpressionAttributeValues={
+                    ":owner": owner_id,
+                    ":now": now_iso,
+                    ":expires": expires_at,
+                },
+            )
+            LOGGER.debug(
+                "Refreshed lock on workset %s for %s (expires at %s)",
+                workset_id,
+                owner_id,
+                expires_at,
+            )
+            return True
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                LOGGER.warning(
+                    "Cannot refresh lock on %s (not owner: requested by %s)",
+                    workset_id,
+                    owner_id,
+                )
                 return False
             raise
 
@@ -417,6 +519,72 @@ class WorksetStateDB:
         self._emit_metric(f"WorksetState{new_state.value.title()}", 1.0)
 
         LOGGER.info("Updated workset %s to state %s: %s", workset_id, new_state.value, reason)
+
+    def update_progress(
+        self,
+        workset_id: str,
+        current_step: Optional[str] = None,
+        cluster_name: Optional[str] = None,
+        started_at: Optional[str] = None,
+        finished_at: Optional[str] = None,
+        metrics: Optional[Dict[str, Any]] = None,
+    ) -> None:
+        """Update workset progress without changing state.
+
+        This is used for incremental progress updates during processing,
+        allowing the UI to show real-time status.
+
+        Args:
+            workset_id: Workset identifier
+            current_step: Current processing step (e.g., 'staging', 'cloning', 'running')
+            cluster_name: Associated cluster name
+            started_at: ISO timestamp when processing started
+            finished_at: ISO timestamp when processing finished
+            metrics: Performance/cost metrics to merge
+        """
+        now_iso = dt.datetime.utcnow().isoformat() + "Z"
+
+        update_parts = ["updated_at = :now"]
+        expr_values: Dict[str, Any] = {":now": now_iso}
+        expr_names: Dict[str, str] = {}
+
+        if current_step is not None:
+            update_parts.append("current_step = :step")
+            expr_values[":step"] = current_step
+
+        if cluster_name is not None:
+            update_parts.append("cluster_name = :cluster")
+            expr_values[":cluster"] = cluster_name
+
+        if started_at is not None:
+            update_parts.append("started_at = :started")
+            expr_values[":started"] = started_at
+
+        if finished_at is not None:
+            update_parts.append("finished_at = :finished")
+            expr_values[":finished"] = finished_at
+
+        if metrics is not None:
+            update_parts.append("metrics = :metrics")
+            expr_values[":metrics"] = self._serialize_metadata(metrics)
+
+        update_expr = "SET " + ", ".join(update_parts)
+
+        try:
+            self.table.update_item(
+                Key={"workset_id": workset_id},
+                UpdateExpression=update_expr,
+                ExpressionAttributeValues=expr_values,
+                ExpressionAttributeNames=expr_names if expr_names else None,
+            )
+            LOGGER.debug(
+                "Updated progress for workset %s: step=%s, cluster=%s",
+                workset_id,
+                current_step,
+                cluster_name,
+            )
+        except ClientError as e:
+            LOGGER.warning("Failed to update progress for %s: %s", workset_id, str(e))
 
     def get_workset(self, workset_id: str) -> Optional[Dict[str, Any]]:
         """Retrieve workset details.

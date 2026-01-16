@@ -10,17 +10,29 @@ import socket
 import sys
 import time
 from pathlib import Path
-from typing import Optional, Sequence
+from typing import Any, Callable, Dict, Optional, Sequence
 
 from daylib.workset_monitor import (
     MonitorConfig,
     WorksetMonitor,
+    Workset,
     configure_logging,
     SENTINEL_FILES,
 )
 from daylib.workset_state_db import WorksetState, WorksetStateDB
 
 LOGGER = logging.getLogger("daylily.workset_worker")
+
+# Processing steps in order
+PROCESSING_STEPS = [
+    "initializing",
+    "stage_samples",
+    "clone_pipeline",
+    "push_stage_files",
+    "run_pipeline",
+    "export_results",
+    "finalizing",
+]
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -73,6 +85,64 @@ def build_worker_id() -> str:
     return f"worker-{socket.gethostname()}-{os.getpid()}"
 
 
+class ProgressTracker:
+    """Track and report workset processing progress to DynamoDB."""
+
+    def __init__(
+        self,
+        state_db: WorksetStateDB,
+        workset_id: str,
+        cluster_name: Optional[str] = None,
+    ):
+        self.state_db = state_db
+        self.workset_id = workset_id
+        self.cluster_name = cluster_name
+        self.started_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        self._current_step: Optional[str] = None
+
+    def update_step(self, step: str, metrics: Optional[Dict[str, Any]] = None) -> None:
+        """Update current processing step in DynamoDB."""
+        self._current_step = step
+        LOGGER.info("Workset %s: step=%s", self.workset_id, step)
+        try:
+            self.state_db.update_progress(
+                workset_id=self.workset_id,
+                current_step=step,
+                cluster_name=self.cluster_name,
+                started_at=self.started_at,
+                metrics=metrics,
+            )
+        except Exception as e:
+            LOGGER.warning(
+                "Failed to update progress for %s (step=%s): %s",
+                self.workset_id,
+                step,
+                str(e),
+            )
+
+    def set_cluster(self, cluster_name: str) -> None:
+        """Update cluster name."""
+        self.cluster_name = cluster_name
+        self.update_step(self._current_step or "initializing")
+
+    def finish(self, metrics: Optional[Dict[str, Any]] = None) -> None:
+        """Mark processing as finished."""
+        finished_at = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
+        try:
+            self.state_db.update_progress(
+                workset_id=self.workset_id,
+                current_step="complete",
+                finished_at=finished_at,
+                metrics=metrics,
+            )
+        except Exception as e:
+            LOGGER.warning(
+                "Failed to update finish progress for %s: %s",
+                self.workset_id,
+                str(e),
+            )
+
+
 def process_workset(
     monitor: WorksetMonitor,
     state_db: WorksetStateDB,
@@ -94,9 +164,14 @@ def process_workset(
     workset = monitor.build_workset(workset_id, prefix=prefix)
     timestamp = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
 
+    # Initialize progress tracker
+    progress = ProgressTracker(state_db, workset_id)
+    progress.update_step("initializing")
+
     try:
         if write_sentinels:
             monitor.write_sentinel(workset, SENTINEL_FILES["lock"], timestamp)
+
         state_db.update_state(
             workset_id=workset_id,
             new_state=WorksetState.IN_PROGRESS,
@@ -105,21 +180,32 @@ def process_workset(
         if write_sentinels:
             monitor.write_sentinel(workset, SENTINEL_FILES["in_progress"], timestamp)
 
+        # Process workset - the monitor will handle the pipeline steps
+        # We update progress to "processing" before handing off
+        progress.update_step("processing")
         monitor.process_workset(workset)
 
+        # Mark as finalizing while we gather metrics
+        progress.update_step("finalizing")
         metrics = monitor.load_workset_metrics(workset)
+
+        # Update final state with metrics
         state_db.update_state(
             workset_id=workset_id,
             new_state=WorksetState.COMPLETE,
             reason=f"Workset completed by {owner_id}",
             metrics=metrics,
         )
+        progress.finish(metrics)
+
         if write_sentinels:
             monitor.write_sentinel(
                 workset,
                 SENTINEL_FILES["complete"],
                 time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
             )
+        LOGGER.info("Workset %s completed successfully", workset_id)
+
     except Exception as exc:
         LOGGER.exception("Workset %s failed", workset_id)
         metrics = monitor.load_workset_metrics(workset)

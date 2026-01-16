@@ -144,27 +144,34 @@ def test_acquire_lock_already_locked(state_db, mock_dynamodb):
 
 
 def test_acquire_lock_stale_lock(state_db, mock_dynamodb):
-    """Test lock acquisition with stale lock (auto-release)."""
+    """Test lock acquisition with stale lock (auto-release).
+
+    Note: Locking is now separate from state. A workset with a stale lock
+    is identified by lock_owner/lock_acquired_at fields, not by state.
+    The state remains READY or RETRYING (lockable states).
+    """
     mock_table = mock_dynamodb["table"]
-    
-    # Mock get_item to return a locked workset with stale lock
+
+    # Mock get_item to return a READY workset with stale lock fields
     stale_time = dt.datetime.utcnow() - dt.timedelta(seconds=400)
+    stale_expires = (stale_time + dt.timedelta(seconds=300)).isoformat() + "Z"
     mock_table.get_item.return_value = {
         "Item": {
             "workset_id": "test-workset",
-            "state": WorksetState.LOCKED.value,
+            "state": WorksetState.READY.value,  # State is still lockable
             "lock_owner": "dead-monitor",
             "lock_acquired_at": stale_time.isoformat() + "Z",
+            "lock_expires_at": stale_expires,  # Already expired
         }
     }
-    
+
     mock_table.update_item.return_value = {}
-    
+
     result = state_db.acquire_lock(
         workset_id="test-workset",
         owner_id="monitor-instance-1",
     )
-    
+
     assert result is True
     mock_table.update_item.assert_called_once()
 
@@ -378,25 +385,38 @@ def test_set_cluster_affinity(state_db, mock_dynamodb):
 
 
 def test_get_concurrent_worksets_count(state_db, mock_dynamodb):
-    """Test getting concurrent worksets count."""
+    """Test getting concurrent worksets count.
+
+    Note: Concurrency count now includes:
+    - IN_PROGRESS worksets (via state GSI query)
+    - Worksets with lock_owner set (via scan) - these are locked but may not have
+      transitioned state yet
+    """
     mock_table = mock_dynamodb["table"]
-    mock_table.query.side_effect = [
-        {"Items": [{"workset_id": "ws-001"}, {"workset_id": "ws-002"}]},  # IN_PROGRESS
-        {"Items": [{"workset_id": "ws-003"}]},  # LOCKED
-    ]
+    # list_worksets_by_state uses query on state GSI
+    mock_table.query.return_value = {
+        "Items": [{"workset_id": "ws-001"}, {"workset_id": "ws-002"}]  # IN_PROGRESS
+    }
+    # list_locked_worksets uses scan with filter on lock_owner
+    mock_table.scan.return_value = {
+        "Items": [{"workset_id": "ws-003", "lock_owner": "monitor-1"}]  # locked
+    }
 
     count = state_db.get_concurrent_worksets_count()
 
+    # 2 IN_PROGRESS + 1 locked
     assert count == 3
 
 
 def test_can_start_new_workset(state_db, mock_dynamodb):
     """Test checking if new workset can start."""
     mock_table = mock_dynamodb["table"]
-    mock_table.query.side_effect = [
-        {"Items": [{"workset_id": "ws-001"}]},  # IN_PROGRESS
-        {"Items": []},  # LOCKED
-    ]
+    mock_table.query.return_value = {
+        "Items": [{"workset_id": "ws-001"}]  # IN_PROGRESS
+    }
+    mock_table.scan.return_value = {
+        "Items": []  # No locked worksets
+    }
 
     can_start = state_db.can_start_new_workset(max_concurrent=5)
 
@@ -406,10 +426,12 @@ def test_can_start_new_workset(state_db, mock_dynamodb):
 def test_can_start_new_workset_at_limit(state_db, mock_dynamodb):
     """Test checking if new workset can start when at limit."""
     mock_table = mock_dynamodb["table"]
-    mock_table.query.side_effect = [
-        {"Items": [{"workset_id": f"ws-{i}"} for i in range(5)]},  # IN_PROGRESS
-        {"Items": []},  # LOCKED
-    ]
+    mock_table.query.return_value = {
+        "Items": [{"workset_id": f"ws-{i}"} for i in range(5)]  # IN_PROGRESS
+    }
+    mock_table.scan.return_value = {
+        "Items": []  # No locked worksets
+    }
 
     can_start = state_db.can_start_new_workset(max_concurrent=5)
 

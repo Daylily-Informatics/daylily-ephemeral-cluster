@@ -70,10 +70,24 @@
         <div class="progress" style="height: 12px;">
             <div class="progress-bar primary" style="width: {{ workset.progress | default(0) }}%"></div>
         </div>
-        <p class="text-muted mt-md" style="font-size: 0.875rem;">
-            <i class="fas fa-clock"></i> 
-            Estimated time remaining: {{ workset.eta | default('Calculating...') }}
+        <div class="d-flex justify-between align-center mt-md" style="font-size: 0.875rem;">
+            <p class="text-muted mb-0">
+                <i class="fas fa-tasks"></i>
+                Current Step: <strong>{{ workset.current_step | default('initializing') | replace('_', ' ') | title }}</strong>
+            </p>
+            {% if workset.cluster_name %}
+            <p class="text-muted mb-0">
+                <i class="fas fa-server"></i>
+                Cluster: <code>{{ workset.cluster_name }}</code>
+            </p>
+            {% endif %}
+        </div>
+        {% if workset.started_at %}
+        <p class="text-muted mt-sm mb-0" style="font-size: 0.8rem;">
+            <i class="fas fa-clock"></i>
+            Started: {{ workset.started_at }}
         </p>
+        {% endif %}
     </div>
     {% endif %}
     
@@ -124,9 +138,33 @@
                         <label class="form-label text-muted">Priority</label>
                         <p class="mb-0">{{ workset.priority | default('normal') | title }}</p>
                     </div>
+                    {% if workset.cluster_name %}
+                    <div class="form-group">
+                        <label class="form-label text-muted">Cluster</label>
+                        <p class="mb-0"><code>{{ workset.cluster_name }}</code></p>
+                    </div>
+                    {% endif %}
+                    {% if workset.started_at %}
+                    <div class="form-group">
+                        <label class="form-label text-muted">Started</label>
+                        <p class="mb-0">{{ workset.started_at }}</p>
+                    </div>
+                    {% endif %}
+                    {% if workset.finished_at %}
+                    <div class="form-group">
+                        <label class="form-label text-muted">Finished</label>
+                        <p class="mb-0">{{ workset.finished_at }}</p>
+                    </div>
+                    {% endif %}
+                    {% if workset.lock_owner %}
+                    <div class="form-group">
+                        <label class="form-label text-muted">Lock Owner</label>
+                        <p class="mb-0"><code style="font-size: 0.75rem;">{{ workset.lock_owner }}</code></p>
+                    </div>
+                    {% endif %}
                 </div>
             </div>
-            
+
             <!-- Samples -->
             <div class="card">
                 <div class="card-header">
@@ -222,7 +260,39 @@
                     </div>
                 </dl>
             </div>
-            
+
+            <!-- DynamoDB Metrics (if available) -->
+            {% if workset.metrics %}
+            <div class="card">
+                <h3 class="card-title"><i class="fas fa-chart-line"></i> Processing Metrics</h3>
+                <dl style="margin: 0;">
+                    {% if workset.metrics.samples_processed is defined %}
+                    <div class="d-flex justify-between mb-sm">
+                        <dt class="text-muted">Samples Processed</dt>
+                        <dd>{{ workset.metrics.samples_processed }}</dd>
+                    </div>
+                    {% endif %}
+                    {% if workset.metrics.bytes_transferred is defined %}
+                    <div class="d-flex justify-between mb-sm">
+                        <dt class="text-muted">Data Transferred</dt>
+                        <dd>{{ "%.2f"|format(workset.metrics.bytes_transferred / 1073741824) }} GB</dd>
+                    </div>
+                    {% endif %}
+                    {% if workset.metrics.step_durations is defined %}
+                    <div class="mb-sm">
+                        <dt class="text-muted mb-sm">Step Durations</dt>
+                        {% for step, duration in workset.metrics.step_durations.items() %}
+                        <div class="d-flex justify-between" style="font-size: 0.85rem; padding-left: 1rem;">
+                            <span>{{ step | replace('_', ' ') | title }}</span>
+                            <span>{{ duration }}s</span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% endif %}
+                </dl>
+            </div>
+            {% endif %}
+
             <!-- Results (if completed) -->
             {% if workset.state == 'completed' %}
             <div class="card">

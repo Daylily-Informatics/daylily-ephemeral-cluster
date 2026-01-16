@@ -97,12 +97,15 @@
                     </td>
                     <td>{{ ws.pipeline_type | default('germline') }}</td>
                     <td>{{ ws.sample_count | default(0) }}</td>
-                    <td style="min-width: 120px;">
+                    <td style="min-width: 140px;">
                         {% if ws.state == 'in_progress' %}
                         <div class="progress" style="height: 6px;">
                             <div class="progress-bar primary" style="width: {{ ws.progress | default(0) }}%"></div>
                         </div>
                         <small class="text-muted">{{ ws.progress | default(0) }}%</small>
+                        {% if ws.current_step %}
+                        <br><small class="text-muted" title="Current processing step">{{ ws.current_step | replace('_', ' ') | title }}</small>
+                        {% endif %}
                         {% elif ws.state == 'completed' %}
                         <span class="text-success"><i class="fas fa-check"></i> Done</span>
                         {% elif ws.state == 'error' %}

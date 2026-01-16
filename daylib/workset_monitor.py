@@ -913,6 +913,35 @@ class WorksetMonitor:
             return False
         return True
 
+    def _release_workset_lock(self, workset: Workset) -> None:
+        """Release both DynamoDB lock and S3 lock sentinel.
+
+        This should be called after workset processing completes (success or error).
+        The lock sentinel is always removed; DynamoDB lock is released if state_db is configured.
+        """
+        # Delete the S3 lock sentinel
+        if SENTINEL_FILES["lock"] in workset.sentinels:
+            self._delete_sentinel(workset, SENTINEL_FILES["lock"])
+            workset.sentinels.pop(SENTINEL_FILES["lock"], None)
+            LOGGER.debug("Removed S3 lock sentinel for %s", workset.name)
+
+        # Release DynamoDB lock if configured
+        if self.state_db:
+            try:
+                released = self.state_db.release_lock(workset.name, self.lock_owner_id)
+                if released:
+                    LOGGER.info("Released DynamoDB lock for %s", workset.name)
+                else:
+                    LOGGER.warning(
+                        "DynamoDB lock for %s was not held by this owner (%s)",
+                        workset.name,
+                        self.lock_owner_id,
+                    )
+            except Exception as e:
+                LOGGER.warning(
+                    "Failed to release DynamoDB lock for %s: %s", workset.name, str(e)
+                )
+
     def _handle_workset(self, workset: Workset) -> None:
         if not self._check_workset_state(workset):
             return
@@ -949,6 +978,9 @@ class WorksetMonitor:
                 state="complete",
                 message=f"Workset {workset.name} completed successfully",
             )
+        finally:
+            # Always release the lock after processing (success or error)
+            self._release_workset_lock(workset)
 
     def _notify_workset_event(
         self,

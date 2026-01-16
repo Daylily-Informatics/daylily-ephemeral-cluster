@@ -126,6 +126,45 @@ def _convert_customer_for_template(customer_config):
     return TemplateCustomer(customer_config)
 
 
+def verify_workset_ownership(workset: Dict[str, Any], customer_id: str) -> bool:
+    """Check if a workset belongs to a customer.
+
+    Ownership is determined by the customer_id field in the workset record.
+    This replaces the legacy check that compared workset.bucket to customer.s3_bucket.
+
+    With the control-plane refactor, worksets are stored in the control bucket,
+    not the customer's data bucket, so bucket comparison no longer works.
+
+    Args:
+        workset: Workset record from DynamoDB
+        customer_id: Customer ID to verify ownership for
+
+    Returns:
+        True if workset belongs to customer, False otherwise
+    """
+    if not workset or not customer_id:
+        return False
+
+    # Primary check: customer_id field (authoritative)
+    ws_customer_id = workset.get("customer_id")
+    if ws_customer_id:
+        return ws_customer_id == customer_id
+
+    # Fallback: check metadata.submitted_by for older worksets
+    metadata = workset.get("metadata", {})
+    if isinstance(metadata, dict):
+        submitted_by = metadata.get("submitted_by")
+        if submitted_by:
+            return submitted_by == customer_id
+
+    # No customer_id found - ownership cannot be verified
+    LOGGER.warning(
+        "Workset %s has no customer_id field - ownership check failed",
+        workset.get("workset_id", "unknown"),
+    )
+    return False
+
+
 # Pydantic models for API
 class WorksetCreate(BaseModel):
     """Request model for creating a workset."""
@@ -1242,8 +1281,8 @@ def create_app(
                     detail=f"Workset {workset_id} not found",
                 )
 
-            # Verify workset belongs to this customer
-            if workset.get("bucket") != config.s3_bucket:
+            # Verify workset belongs to this customer (by customer_id, not bucket)
+            if not verify_workset_ownership(workset, customer_id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Workset does not belong to this customer",
@@ -1427,7 +1466,8 @@ def create_app(
                     detail=f"Workset {workset_id} not found",
                 )
 
-            if workset.get("bucket") != config.s3_bucket:
+            # Verify workset belongs to this customer (by customer_id, not bucket)
+            if not verify_workset_ownership(workset, customer_id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Workset does not belong to this customer",
@@ -1463,7 +1503,8 @@ def create_app(
                     detail=f"Workset {workset_id} not found",
                 )
 
-            if workset.get("bucket") != config.s3_bucket:
+            # Verify workset belongs to this customer (by customer_id, not bucket)
+            if not verify_workset_ownership(workset, customer_id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Workset does not belong to this customer",
@@ -1506,9 +1547,9 @@ def create_app(
                     detail=f"Workset {workset_id} not found",
                 )
 
-            # Check if user is admin (can archive any workset) or owns the workset
+            # Check if user is admin (can archive any workset) or owns the workset (by customer_id)
             is_admin = getattr(request, "session", {}).get("is_admin", False)
-            if not is_admin and workset.get("bucket") != config.s3_bucket:
+            if not is_admin and not verify_workset_ownership(workset, customer_id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Workset does not belong to this customer",
@@ -1585,9 +1626,9 @@ def create_app(
                     detail=f"Workset {workset_id} not found",
                 )
 
-            # Check if user is admin (can delete any workset) or owns the workset
+            # Check if user is admin (can delete any workset) or owns the workset (by customer_id)
             is_admin = getattr(request, "session", {}).get("is_admin", False)
-            if not is_admin and workset.get("bucket") != config.s3_bucket:
+            if not is_admin and not verify_workset_ownership(workset, customer_id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Workset does not belong to this customer",
@@ -1669,7 +1710,8 @@ def create_app(
                     detail=f"Workset {workset_id} not found",
                 )
 
-            if workset.get("bucket") != config.s3_bucket:
+            # Verify workset belongs to this customer (by customer_id, not bucket)
+            if not verify_workset_ownership(workset, customer_id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Workset does not belong to this customer",
@@ -1716,7 +1758,8 @@ def create_app(
                     detail=f"Workset {workset_id} not found",
                 )
 
-            if workset.get("bucket") != config.s3_bucket:
+            # Verify workset belongs to this customer (by customer_id, not bucket)
+            if not verify_workset_ownership(workset, customer_id):
                 raise HTTPException(
                     status_code=status.HTTP_403_FORBIDDEN,
                     detail="Workset does not belong to this customer",
