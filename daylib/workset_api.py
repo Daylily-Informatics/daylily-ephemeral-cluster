@@ -2235,6 +2235,10 @@ def create_app(
                 return RedirectResponse(url="/portal/login", status_code=302)
             if not request.session.get("user_email"):
                 return RedirectResponse(url="/portal/login?error=Please+log+in+to+continue", status_code=302)
+            # SAFEGUARD: Ensure customer_id is set (required for all portal operations)
+            if not request.session.get("customer_id"):
+                LOGGER.warning(f"Session missing customer_id for user {request.session.get('user_email')}")
+                return RedirectResponse(url="/portal/login?error=Session+invalid+or+expired", status_code=302)
             return None
 
         @app.get("/portal", response_class=HTMLResponse, tags=["portal"])
@@ -2659,21 +2663,33 @@ def create_app(
                         LOGGER.error(f"Failed to create Cognito user for {email}: {e}")
                         # Continue anyway - customer record is created
 
-                # Redirect to login page with success message
+                # Auto-login if auth is disabled, otherwise redirect to login
                 bucket_info = f" Your S3 bucket: {config.s3_bucket}." if config.s3_bucket else ""
-                if enable_auth and cognito_auth:
+
+                if not enable_auth:
+                    # Auto-login the user in no-auth mode
+                    LOGGER.info(f"Auto-logging in new customer {config.customer_id} ({email}) in no-auth mode")
+                    request.session["user_email"] = email
+                    request.session["user_authenticated"] = True
+                    request.session["customer_id"] = config.customer_id
+                    request.session["is_admin"] = False
+
+                    success_msg = f"✅ Account created! Customer ID: {config.customer_id}.{bucket_info} Welcome!"
+                    return RedirectResponse(
+                        url=f"/portal/?success={success_msg}",
+                        status_code=302,
+                    )
+                else:
+                    # Auth enabled - redirect to login with instructions
                     success_msg = (
                         f"✅ Account created! Customer ID: {config.customer_id}.{bucket_info} "
                         f"📧 CHECK YOUR EMAIL (including spam folder) for your temporary password from no-reply@verificationemail.com. "
                         f"Use it to log in below."
                     )
-                else:
-                    success_msg = f"Account created successfully! Your customer ID is: {config.customer_id}.{bucket_info} Please log in."
-
-                return RedirectResponse(
-                    url=f"/portal/login?success={success_msg}",
-                    status_code=302,
-                )
+                    return RedirectResponse(
+                        url=f"/portal/login?success={success_msg}",
+                        status_code=302,
+                    )
             except Exception as e:
                 LOGGER.error(f"Registration failed for {email}: {e}")
                 return templates.TemplateResponse(
@@ -3447,6 +3463,83 @@ def create_app(
                     active_page="files",
                 ),
             )
+
+        @app.post("/portal/files/upload", tags=["portal"])
+        async def portal_files_upload_submit(
+            request: Request,
+            bucket_id: str = Form(...),
+            prefix: str = Form(""),
+            file: UploadFile = File(...),
+        ):
+            """Handle file upload to S3 bucket.
+
+            Uploads file to the specified linked bucket with the given prefix.
+            """
+            # Check authentication
+            user_email = request.session.get("user_email")
+            customer_id = request.session.get("customer_id")
+
+            if not user_email or not customer_id:
+                raise HTTPException(status_code=401, detail="Not authenticated")
+
+            if not linked_bucket_manager:
+                raise HTTPException(
+                    status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+                    detail="File management not configured",
+                )
+
+            LOGGER.info(f"Upload request from {user_email}: {file.filename} to bucket {bucket_id}")
+
+            try:
+                # Get the linked bucket details
+                bucket = linked_bucket_manager.get_bucket(bucket_id)
+                if not bucket:
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail=f"Bucket {bucket_id} not found",
+                    )
+
+                # Verify customer owns this bucket
+                if bucket.customer_id != customer_id:
+                    raise HTTPException(
+                        status_code=status.HTTP_403_FORBIDDEN,
+                        detail="You do not have access to this bucket",
+                    )
+
+                # Build the S3 key
+                key = f"{prefix}{file.filename}" if prefix else file.filename
+
+                LOGGER.info(f"Reading file content for {file.filename}...")
+                # Read and upload file
+                content = await file.read()
+                LOGGER.info(f"Read {len(content)} bytes, uploading to S3...")
+
+                s3 = boto3.client("s3", region_name=region)
+                s3.put_object(
+                    Bucket=bucket.bucket_name,
+                    Key=key,
+                    Body=content,
+                    ContentType=file.content_type or "application/octet-stream",
+                )
+
+                LOGGER.info(f"User {user_email} uploaded {key} ({len(content)} bytes) to {bucket.bucket_name}")
+
+                return {
+                    "success": True,
+                    "bucket": bucket.bucket_name,
+                    "key": key,
+                    "size": len(content),
+                    "filename": file.filename,
+                }
+
+            except HTTPException:
+                raise
+            except Exception as e:
+                LOGGER.error(f"File upload failed for {file.filename}: {e}", exc_info=True)
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Upload failed: {str(e)}",
+                )
 
         @app.get("/portal/files/filesets", response_class=HTMLResponse, tags=["portal"])
         async def portal_files_filesets(request: Request):

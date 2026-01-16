@@ -171,6 +171,8 @@
 {% block extra_js %}
 <script src="/static/js/file-registry.js?v={{ cache_bust | default('1') }}"></script>
 <script>
+console.log('Upload page JavaScript loaded - v2');
+
 // Upload state
 let uploadQueue = [];
 let uploadInProgress = false;
@@ -279,25 +281,93 @@ async function startUpload() {
     document.getElementById('upload-progress-card').style.display = 'block';
     document.getElementById('progress-total').textContent = uploadQueue.length;
 
+    console.log(`Starting upload of ${uploadQueue.length} files`);
+
     // Upload files sequentially (could be parallelized)
     for (let i = 0; i < uploadQueue.length; i++) {
         currentUploadIndex = i;
         document.getElementById('progress-count').textContent = i + 1;
+        console.log(`Starting upload ${i + 1}/${uploadQueue.length}: ${uploadQueue[i].name}`);
         await uploadFile(uploadQueue[i], i);
+        console.log(`Completed upload ${i + 1}/${uploadQueue.length}: ${uploadQueue[i].name}`);
     }
 
     uploadInProgress = false;
+    console.log('All uploads complete');
     showUploadComplete();
 }
 
 async function uploadFile(file, idx) {
-    // This would call the presigned URL API and upload
-    // Simplified for demo
-    document.getElementById('progress-status').textContent = `Uploading ${file.name}...`;
-    document.getElementById('overall-progress-fill').style.width = `${((idx + 1) / uploadQueue.length) * 100}%`;
+    const bucketId = document.getElementById('upload-bucket').value;
+    const prefix = document.getElementById('upload-prefix').value || '';
 
-    // Simulate upload delay
-    await new Promise(resolve => setTimeout(resolve, 500));
+    const fileSizeMB = (file.size / (1024 * 1024)).toFixed(2);
+    document.getElementById('progress-status').textContent = `Uploading ${file.name} (${fileSizeMB} MB)...`;
+
+    try {
+        // Create FormData for multipart upload
+        const formData = new FormData();
+        formData.append('bucket_id', bucketId);
+        formData.append('prefix', prefix);
+        formData.append('file', file);
+
+        // Upload to server with timeout (5 minutes for large files)
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 min timeout
+
+        const response = await fetch('/portal/files/upload', {
+            method: 'POST',
+            body: formData,
+            signal: controller.signal,
+        });
+
+        clearTimeout(timeoutId);
+
+        if (!response.ok) {
+            let errorMsg = `Upload failed with status ${response.status}`;
+            try {
+                const error = await response.json();
+                errorMsg = error.detail || errorMsg;
+            } catch (e) {
+                // Response wasn't JSON
+            }
+            throw new Error(errorMsg);
+        }
+
+        const result = await response.json();
+
+        // Add to progress list
+        const progressList = document.getElementById('file-progress-list');
+        const progressItem = document.createElement('div');
+        progressItem.className = 'file-progress-item';
+        progressItem.innerHTML = `
+            <span class="file-progress-name">${file.name} (${fileSizeMB} MB)</span>
+            <span class="file-progress-status success">✓ Uploaded</span>
+        `;
+        progressList.appendChild(progressItem);
+
+        // Update overall progress
+        document.getElementById('overall-progress-fill').style.width = `${((idx + 1) / uploadQueue.length) * 100}%`;
+
+        console.log(`Uploaded ${file.name} to s3://${result.bucket}/${result.key}`);
+
+    } catch (error) {
+        const errorMsg = error.name === 'AbortError' ? 'Upload timeout (5 min)' : error.message;
+        console.error(`Upload failed for ${file.name}: ${errorMsg}`);
+
+        // Add error to progress list
+        const progressList = document.getElementById('file-progress-list');
+        const progressItem = document.createElement('div');
+        progressItem.className = 'file-progress-item';
+        progressItem.innerHTML = `
+            <span class="file-progress-name">${file.name} (${fileSizeMB} MB)</span>
+            <span class="file-progress-status error">✗ ${errorMsg}</span>
+        `;
+        progressList.appendChild(progressItem);
+
+        // Update overall progress even on error
+        document.getElementById('overall-progress-fill').style.width = `${((idx + 1) / uploadQueue.length) * 100}%`;
+    }
 }
 
 function showUploadComplete() {
