@@ -1,8 +1,13 @@
 #!/bin/bash
 # Run the API server with the newly created Cognito credentials
 
-export COGNITO_USER_POOL_ID=us-west-2_uKYbgcDW3
-export COGNITO_APP_CLIENT_ID=5leifnicigfa4pu4f47so6etkr
+# Unset any existing Cognito variables to avoid conflicts
+#unset COGNITO_USER_POOL_ID
+#unset COGNITO_APP_CLIENT_ID
+
+# Set the correct Cognito credentials
+#export COGNITO_USER_POOL_ID=us-west-2_uKYbgcDW3 ## GETTING FROM SHELL
+#export COGNITO_APP_CLIENT_ID=5leifnicigfa4pu4f47so6etkr ## GETTING FROM SHELL
 export AWS_REGION=us-west-2
 
 echo "Starting Daylily Portal API with Cognito authentication..."
