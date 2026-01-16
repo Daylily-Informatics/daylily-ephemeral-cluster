@@ -1,0 +1,313 @@
+{% extends "base.html" %}
+{% set active_page = 'files' %}
+
+{% block title %}Edit {{ file.filename | default('File') }} - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <a href="/portal/files/{{ file.file_id }}" class="text-muted mb-md d-block">
+        <i class="fas fa-arrow-left"></i> Back to File Details
+    </a>
+    
+    <!-- Page Header -->
+    <div class="page-header">
+        <h1 class="page-title">
+            <i class="fas fa-edit text-accent"></i> Edit File Metadata
+        </h1>
+        <p class="page-subtitle">
+            <code>{{ file.filename }}</code> &bull; <code class="text-muted">{{ file.file_id }}</code>
+        </p>
+    </div>
+
+    <form id="edit-file-form" onsubmit="saveFileMetadata(event)">
+        <input type="hidden" id="file-id" value="{{ file.file_id }}">
+        
+        <div class="grid grid-2 gap-xl">
+            <!-- Left Column -->
+            <div>
+                <!-- File Information (Read-only) -->
+                <div class="card mb-lg">
+                    <h3 class="card-title"><i class="fas fa-file-alt"></i> File Information</h3>
+                    <div class="form-group">
+                        <label class="form-label">S3 URI</label>
+                        <input type="text" class="form-control" value="{{ file.s3_uri }}" readonly>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label">File Format</label>
+                            <select id="file-format" class="form-control form-select">
+                                <option value="fastq" {% if file.file_format == 'fastq' %}selected{% endif %}>FASTQ</option>
+                                <option value="bam" {% if file.file_format == 'bam' %}selected{% endif %}>BAM</option>
+                                <option value="cram" {% if file.file_format == 'cram' %}selected{% endif %}>CRAM</option>
+                                <option value="vcf" {% if file.file_format == 'vcf' %}selected{% endif %}>VCF</option>
+                                <option value="bed" {% if file.file_format == 'bed' %}selected{% endif %}>BED</option>
+                                <option value="fasta" {% if file.file_format == 'fasta' %}selected{% endif %}>FASTA</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">File Size</label>
+                            <input type="text" class="form-control" value="{{ file.file_size_bytes | filesizeformat if file.file_size_bytes else 'Unknown' }}" readonly>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">MD5 Checksum</label>
+                        <input type="text" id="md5-checksum" class="form-control" value="{{ file.md5_checksum | default('') }}" placeholder="e.g., d41d8cd98f00b204e9800998ecf8427e">
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Read Number</label>
+                            <select id="read-number" class="form-control form-select">
+                                <option value="1" {% if file.read_number == 1 %}selected{% endif %}>Read 1 (R1)</option>
+                                <option value="2" {% if file.read_number == 2 %}selected{% endif %}>Read 2 (R2)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Paired With File ID</label>
+                            <input type="text" id="paired-with" class="form-control" value="{{ file.paired_with | default('') }}" placeholder="file-xxxxx">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Biosample Metadata -->
+                <div class="card mb-lg">
+                    <h3 class="card-title"><i class="fas fa-vial"></i> Biosample Metadata</h3>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label required">Biosample ID</label>
+                            <input type="text" id="biosample-id" class="form-control" value="{{ file.biosample_id | default('') }}" required>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label required">Subject ID</label>
+                            <input type="text" id="subject-id" class="form-control" value="{{ file.subject_id | default('') }}" required>
+                        </div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Sample Type</label>
+                            <select id="sample-type" class="form-control form-select">
+                                <option value="blood" {% if file.sample_type == 'blood' %}selected{% endif %}>Blood</option>
+                                <option value="tissue" {% if file.sample_type == 'tissue' %}selected{% endif %}>Tissue</option>
+                                <option value="saliva" {% if file.sample_type == 'saliva' %}selected{% endif %}>Saliva</option>
+                                <option value="tumor" {% if file.sample_type == 'tumor' %}selected{% endif %}>Tumor</option>
+                                <option value="normal" {% if file.sample_type == 'normal' %}selected{% endif %}>Normal</option>
+                                <option value="ffpe" {% if file.sample_type == 'ffpe' %}selected{% endif %}>FFPE</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Tissue Type</label>
+                            <input type="text" id="tissue-type" class="form-control" value="{{ file.tissue_type | default('') }}" placeholder="e.g., Whole Blood">
+                        </div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Collection Date</label>
+                            <input type="date" id="collection-date" class="form-control" value="{{ file.collection_date | default('') }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Preservation Method</label>
+                            <select id="preservation-method" class="form-control form-select">
+                                <option value="">Not specified</option>
+                                <option value="fresh" {% if file.preservation_method == 'fresh' %}selected{% endif %}>Fresh</option>
+                                <option value="frozen" {% if file.preservation_method == 'frozen' %}selected{% endif %}>Frozen</option>
+                                <option value="ffpe" {% if file.preservation_method == 'ffpe' %}selected{% endif %}>FFPE</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Tumor Fraction (%)</label>
+                        <input type="number" id="tumor-fraction" class="form-control" min="0" max="100" step="0.1" value="{{ (file.tumor_fraction * 100) | round(1) if file.tumor_fraction else '' }}" placeholder="0-100">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Column -->
+            <div>
+                <!-- Sequencing Metadata -->
+                <div class="card mb-lg">
+                    <h3 class="card-title"><i class="fas fa-dna"></i> Sequencing Metadata</h3>
+                    <div class="form-group">
+                        <label class="form-label">Platform</label>
+                        <select id="platform" class="form-control form-select">
+                            <option value="ILLUMINA_NOVASEQ_X" {% if file.platform == 'ILLUMINA_NOVASEQ_X' %}selected{% endif %}>Illumina NovaSeq X</option>
+                            <option value="ILLUMINA_NOVASEQ_6000" {% if file.platform == 'ILLUMINA_NOVASEQ_6000' %}selected{% endif %}>Illumina NovaSeq 6000</option>
+                            <option value="ILLUMINA_HISEQ_X" {% if file.platform == 'ILLUMINA_HISEQ_X' %}selected{% endif %}>Illumina HiSeq X</option>
+                            <option value="ILLUMINA_NEXTSEQ_2000" {% if file.platform == 'ILLUMINA_NEXTSEQ_2000' %}selected{% endif %}>Illumina NextSeq 2000</option>
+                            <option value="ELEMENT_AVITI" {% if file.platform == 'ELEMENT_AVITI' %}selected{% endif %}>Element AVITI</option>
+                            <option value="ULTIMA_UG100" {% if file.platform == 'ULTIMA_UG100' %}selected{% endif %}>Ultima UG100</option>
+                            <option value="PACBIO_REVIO" {% if file.platform == 'PACBIO_REVIO' %}selected{% endif %}>PacBio Revio</option>
+                            <option value="ONT_PROMETHION" {% if file.platform == 'ONT_PROMETHION' %}selected{% endif %}>ONT PromethION</option>
+                        </select>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Vendor</label>
+                            <input type="text" id="vendor" class="form-control" value="{{ file.vendor | default('ILMN') }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Run ID</label>
+                            <input type="text" id="run-id" class="form-control" value="{{ file.run_id | default('') }}" placeholder="e.g., 230501_A00123">
+                        </div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Lane</label>
+                            <input type="number" id="lane" class="form-control" min="1" max="8" value="{{ file.lane | default(1) }}">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Barcode ID</label>
+                            <input type="text" id="barcode-id" class="form-control" value="{{ file.barcode_id | default('S1') }}" placeholder="e.g., S1">
+                        </div>
+                    </div>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Flowcell ID</label>
+                            <input type="text" id="flowcell-id" class="form-control" value="{{ file.flowcell_id | default('') }}" placeholder="e.g., HXXXXXXXX">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Run Date</label>
+                            <input type="date" id="run-date" class="form-control" value="{{ file.run_date | default('') }}">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- QC Metrics -->
+                <div class="card mb-lg">
+                    <h3 class="card-title"><i class="fas fa-chart-line"></i> QC Metrics</h3>
+                    <div class="grid grid-2">
+                        <div class="form-group">
+                            <label class="form-label">Quality Score</label>
+                            <input type="number" id="quality-score" class="form-control" min="0" max="100" step="0.1" value="{{ file.quality_score | default('') }}" placeholder="0-100">
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Percent Q30 (%)</label>
+                            <input type="number" id="percent-q30" class="form-control" min="0" max="100" step="0.1" value="{{ file.percent_q30 | default('') }}" placeholder="0-100">
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Control Flags</label>
+                        <div class="d-flex gap-lg">
+                            <label class="d-flex align-center gap-sm">
+                                <input type="checkbox" id="is-positive-control" {% if file.is_positive_control %}checked{% endif %}>
+                                <span>Positive Control</span>
+                            </label>
+                            <label class="d-flex align-center gap-sm">
+                                <input type="checkbox" id="is-negative-control" {% if file.is_negative_control %}checked{% endif %}>
+                                <span>Negative Control</span>
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tags -->
+                <div class="card mb-lg">
+                    <h3 class="card-title"><i class="fas fa-tags"></i> Tags</h3>
+                    <div class="form-group">
+                        <label class="form-label">Tags (comma-separated)</label>
+                        <input type="text" id="tags" class="form-control" value="{{ file.tags | join(', ') if file.tags else '' }}" placeholder="e.g., wgs, production, batch-001">
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Form Actions -->
+        <div class="card">
+            <div class="d-flex justify-between align-center">
+                <a href="/portal/files/{{ file.file_id }}" class="btn btn-outline">
+                    <i class="fas fa-times"></i> Cancel
+                </a>
+                <button type="submit" class="btn btn-primary" id="save-btn">
+                    <i class="fas fa-save"></i> Save Changes
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+async function saveFileMetadata(event) {
+    event.preventDefault();
+
+    const fileId = document.getElementById('file-id').value;
+    const saveBtn = document.getElementById('save-btn');
+    saveBtn.disabled = true;
+    saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Saving...';
+
+    // Collect form data
+    const tagsInput = document.getElementById('tags').value;
+    const tags = tagsInput ? tagsInput.split(',').map(t => t.trim()).filter(t => t) : [];
+
+    const tumorFractionInput = document.getElementById('tumor-fraction').value;
+    const tumorFraction = tumorFractionInput ? parseFloat(tumorFractionInput) / 100 : null;
+
+    const payload = {
+        file_metadata: {
+            file_format: document.getElementById('file-format').value,
+            md5_checksum: document.getElementById('md5-checksum').value || null,
+        },
+        biosample_metadata: {
+            biosample_id: document.getElementById('biosample-id').value,
+            subject_id: document.getElementById('subject-id').value,
+            sample_type: document.getElementById('sample-type').value,
+            tissue_type: document.getElementById('tissue-type').value || null,
+            collection_date: document.getElementById('collection-date').value || null,
+            preservation_method: document.getElementById('preservation-method').value || null,
+            tumor_fraction: tumorFraction,
+        },
+        sequencing_metadata: {
+            platform: document.getElementById('platform').value,
+            vendor: document.getElementById('vendor').value,
+            run_id: document.getElementById('run-id').value || null,
+            lane: parseInt(document.getElementById('lane').value) || 1,
+            barcode_id: document.getElementById('barcode-id').value || 'S1',
+            flowcell_id: document.getElementById('flowcell-id').value || null,
+            run_date: document.getElementById('run-date').value || null,
+        },
+        tags: tags,
+        read_number: parseInt(document.getElementById('read-number').value),
+        paired_with: document.getElementById('paired-with').value || null,
+        quality_score: document.getElementById('quality-score').value ? parseFloat(document.getElementById('quality-score').value) : null,
+        percent_q30: document.getElementById('percent-q30').value ? parseFloat(document.getElementById('percent-q30').value) : null,
+        is_positive_control: document.getElementById('is-positive-control').checked,
+        is_negative_control: document.getElementById('is-negative-control').checked,
+    };
+
+    console.log('Saving file metadata for:', fileId);
+    console.log('Payload:', payload);
+
+    try {
+        const response = await fetch(`/api/v1/files/${fileId}`, {
+            method: 'PATCH',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        console.log('Response status:', response.status);
+
+        if (!response.ok) {
+            const error = await response.json();
+            console.error('Error response:', error);
+            throw new Error(error.detail || 'Failed to save changes');
+        }
+
+        const result = await response.json();
+        console.log('Success response:', result);
+
+        showToast('File metadata saved successfully', 'success');
+        setTimeout(() => {
+            window.location.href = `/portal/files/${fileId}`;
+        }, 1000);
+    } catch (error) {
+        console.error('Error saving file metadata:', error);
+        showToast(error.message, 'error');
+        saveBtn.disabled = false;
+        saveBtn.innerHTML = '<i class="fas fa-save"></i> Save Changes';
+    }
+}
+</script>
+{% endblock %}
+
