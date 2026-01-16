@@ -446,6 +446,73 @@ class CognitoAuth:
             LOGGER.error("Failed to delete user %s: %s", email, str(e))
             return False
 
+    def authenticate(self, email: str, password: str) -> Dict:
+        """Authenticate a user with email and password.
+
+        Args:
+            email: User email
+            password: User password
+
+        Returns:
+            Dict containing authentication tokens (AccessToken, IdToken, RefreshToken)
+
+        Raises:
+            ValueError: If authentication fails (invalid credentials)
+            ClientError: If there's an AWS API error
+        """
+        try:
+            response = self.cognito.admin_initiate_auth(
+                UserPoolId=self.user_pool_id,
+                ClientId=self.app_client_id,
+                AuthFlow="ADMIN_USER_PASSWORD_AUTH",
+                AuthParameters={
+                    "USERNAME": email,
+                    "PASSWORD": password,
+                },
+            )
+
+            # Check if challenge is required (e.g., NEW_PASSWORD_REQUIRED)
+            if "ChallengeName" in response:
+                LOGGER.warning(
+                    "Authentication challenge required for user %s: %s",
+                    email,
+                    response["ChallengeName"],
+                )
+                raise ValueError(
+                    f"Authentication challenge required: {response['ChallengeName']}"
+                )
+
+            # Extract tokens
+            auth_result = response.get("AuthenticationResult", {})
+            if not auth_result:
+                raise ValueError("Authentication failed: No tokens returned")
+
+            LOGGER.info("User %s authenticated successfully", email)
+            return {
+                "access_token": auth_result.get("AccessToken"),
+                "id_token": auth_result.get("IdToken"),
+                "refresh_token": auth_result.get("RefreshToken"),
+                "expires_in": auth_result.get("ExpiresIn"),
+                "token_type": auth_result.get("TokenType", "Bearer"),
+            }
+
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code")
+            error_message = e.response.get("Error", {}).get("Message", str(e))
+
+            if error_code == "NotAuthorizedException":
+                LOGGER.warning("Authentication failed for user %s: Invalid credentials", email)
+                raise ValueError("Invalid email or password")
+            elif error_code == "UserNotFoundException":
+                LOGGER.warning("Authentication failed for user %s: User not found", email)
+                raise ValueError("Invalid email or password")
+            elif error_code == "UserNotConfirmedException":
+                LOGGER.warning("Authentication failed for user %s: User not confirmed", email)
+                raise ValueError("User account not confirmed")
+            else:
+                LOGGER.error("Authentication error for user %s: %s - %s", email, error_code, error_message)
+                raise
+
 
 def create_auth_dependency(cognito_auth: CognitoAuth, optional: bool = False):
     """Create FastAPI dependency for authentication.

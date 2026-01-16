@@ -2261,36 +2261,66 @@ def create_app(
             email: str = Form(...),
             password: str = Form(...),
         ):
-            """Handle login form submission."""
-            # In production, validate with Cognito:
-            # if cognito_auth:
-            #     try:
-            #         tokens = cognito_auth.authenticate(email, password)
-            #         request.session["access_token"] = tokens["access_token"]
-            #     except Exception as e:
-            #         return RedirectResponse(
-            #             url=f"/portal/login?error=Invalid+credentials",
-            #             status_code=302
-            #         )
+            """Handle login form submission with proper authentication."""
+            LOGGER.debug(f"portal_login_submit: Login attempt for email: {email}")
 
-            # For demo: accept any login and set session
-            # In production, remove this and use Cognito validation above
-            LOGGER.debug(f"portal_login_submit: Setting session for email: {email}")
+            # SECURITY: First verify the user exists in the customer database
+            if not customer_manager:
+                LOGGER.error("portal_login_submit: Customer manager not configured")
+                return RedirectResponse(
+                    url="/portal/login?error=Authentication+not+configured",
+                    status_code=302,
+                )
+
+            # SECURITY: Verify user is a registered customer
+            customer = customer_manager.get_customer_by_email(email)
+            if not customer:
+                LOGGER.warning(f"portal_login_submit: Login attempt for non-existent customer: {email}")
+                return RedirectResponse(
+                    url="/portal/login?error=Invalid+email+or+password",
+                    status_code=302,
+                )
+
+            # SECURITY: Authenticate with Cognito if available
+            if cognito_auth:
+                try:
+                    LOGGER.debug(f"portal_login_submit: Authenticating with Cognito for: {email}")
+                    tokens = cognito_auth.authenticate(email, password)
+                    request.session["access_token"] = tokens["access_token"]
+                    request.session["id_token"] = tokens["id_token"]
+                    LOGGER.info(f"portal_login_submit: Cognito authentication successful for: {email}")
+                except ValueError as e:
+                    # Invalid credentials
+                    LOGGER.warning(f"portal_login_submit: Cognito authentication failed for {email}: {e}")
+                    return RedirectResponse(
+                        url="/portal/login?error=Invalid+email+or+password",
+                        status_code=302,
+                    )
+                except Exception as e:
+                    # Other errors (AWS API issues, etc.)
+                    LOGGER.error(f"portal_login_submit: Cognito authentication error for {email}: {e}")
+                    return RedirectResponse(
+                        url="/portal/login?error=Authentication+service+error",
+                        status_code=302,
+                    )
+            else:
+                # SECURITY WARNING: No Cognito auth available
+                # In this case, we only allow login for registered customers
+                # but we cannot validate the password
+                LOGGER.warning(
+                    "portal_login_submit: Cognito not configured - allowing login for registered customer %s "
+                    "WITHOUT password validation. This is INSECURE and should only be used for development!",
+                    email
+                )
+
+            # Set session for authenticated user
+            LOGGER.debug(f"portal_login_submit: Setting session for authenticated user: {email}")
             request.session["user_email"] = email
             request.session["user_authenticated"] = True
+            request.session["customer_id"] = customer.customer_id
+            request.session["is_admin"] = customer.is_admin
 
-            # Check if user is admin
-            is_admin = False
-            if customer_manager:
-                LOGGER.debug(f"portal_login_submit: Looking up customer by email: {email}")
-                customer = customer_manager.get_customer_by_email(email)
-                if customer:
-                    LOGGER.debug(f"portal_login_submit: Found customer {customer.customer_id}, is_admin={customer.is_admin}")
-                    is_admin = customer.is_admin
-                else:
-                    LOGGER.debug(f"portal_login_submit: Customer not found for email: {email}")
-            request.session["is_admin"] = is_admin
-
+            LOGGER.info(f"portal_login_submit: Login successful for customer {customer.customer_id} ({email})")
             response = RedirectResponse(url="/portal/", status_code=302)
             return response
 
@@ -2992,6 +3022,7 @@ def create_app(
 
             # For JSON endpoints, prefer explicit 401 over a redirect
             user_email = request.session.get("user_email")
+            LOGGER.debug(f"portal_files_register_submit: Session user_email: '{user_email}'")
             if not user_email:
                 raise HTTPException(status_code=401, detail="Not authenticated")
 
@@ -3002,11 +3033,11 @@ def create_app(
             if not customer_manager:
                 raise HTTPException(status_code=501, detail="Customer manager is not configured")
 
-            LOGGER.debug(f"portal_files_register_submit: Looking up customer by email: {user_email}")
+            LOGGER.debug(f"portal_files_register_submit: Looking up customer by email: '{user_email}'")
             customer_config = customer_manager.get_customer_by_email(user_email)
             if not customer_config:
-                LOGGER.error(f"portal_files_register_submit: Customer not found for email: {user_email}")
-                raise HTTPException(status_code=403, detail="Customer not found for current session")
+                LOGGER.error(f"portal_files_register_submit: Customer not found for email: '{user_email}'")
+                raise HTTPException(status_code=403, detail=f"Customer not found for email: {user_email}")
             customer_id = customer_config.customer_id
             LOGGER.debug(f"portal_files_register_submit: Found customer_id: {customer_id}")
 

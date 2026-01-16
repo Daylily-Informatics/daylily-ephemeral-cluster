@@ -324,15 +324,15 @@ class CustomerManager:
         """
         # Scan for customer with matching email
         # In production, consider adding a GSI on email
-        LOGGER.debug(f"get_customer_by_email: Looking for email: {email}")
+        LOGGER.debug(f"get_customer_by_email: Looking for email: '{email}'")
         customers = self.list_customers()
         LOGGER.debug(f"get_customer_by_email: Found {len(customers)} customers")
         for customer in customers:
-            LOGGER.debug(f"get_customer_by_email: Comparing {customer.email.lower()} with {email.lower()}")
+            LOGGER.debug(f"get_customer_by_email: Comparing customer.email='{customer.email}' (lower='{customer.email.lower()}') with search_email='{email}' (lower='{email.lower()}')")
             if customer.email.lower() == email.lower():
-                LOGGER.debug(f"get_customer_by_email: Found matching customer: {customer.customer_id}")
+                LOGGER.debug(f"get_customer_by_email: MATCH FOUND! customer_id={customer.customer_id}")
                 return customer
-        LOGGER.debug(f"get_customer_by_email: No matching customer found for email: {email}")
+        LOGGER.warning(f"get_customer_by_email: No matching customer found for email: '{email}'. Available emails: {[c.email for c in customers]}")
         return None
 
     def set_admin_status(self, email: str, is_admin: bool) -> bool:
