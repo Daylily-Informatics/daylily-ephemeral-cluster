@@ -25,6 +25,9 @@
             </p>
         </div>
         <div class="page-actions" style="margin-top: 0;">
+            <a href="/portal/files/{{ file.file_id }}/edit" class="btn btn-outline">
+                <i class="fas fa-edit"></i> Edit
+            </a>
             <button class="btn btn-outline" onclick="downloadFile('{{ file.s3_uri }}')">
                 <i class="fas fa-download"></i> Download
             </button>

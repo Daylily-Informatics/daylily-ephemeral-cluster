@@ -62,7 +62,7 @@ python examples/run_api_with_auth.py
 
 ### 2. Test Login
 
-Now try logging in at http://localhost:8000/portal/login
+Now try logging in at http://localhost:8001/portal/login
 
 **Valid Login (should work):**
 - Email: `john@dyly.bio`

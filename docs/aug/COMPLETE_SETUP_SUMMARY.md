@@ -75,10 +75,10 @@ db.create_table_if_not_exists()
 ./bin/daylily-workset-api \
     --table-name daylily-worksets \
     --region us-west-2 \
-    --port 8000
+    --port 8001
 ```
 
-**Access API docs**: http://localhost:8000/docs
+**Access API docs**: http://localhost:8001/docs
 
 ## 📊 Key Features
 
@@ -182,7 +182,7 @@ All tests pass:
 - **DynamoDB Billing**: Uses `PAY_PER_REQUEST` (on-demand) by default
 - **Lock Timeout**: Default 300 seconds (5 minutes)
 - **CloudWatch Metrics**: Published to `Daylily/Worksets` namespace
-- **API Port**: Default 8000 (configurable)
+- **API Port**: Default 8001 (configurable)
 
 ## 🔧 Troubleshooting
 

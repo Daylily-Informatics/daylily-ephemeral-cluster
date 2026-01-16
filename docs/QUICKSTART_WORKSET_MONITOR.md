@@ -79,24 +79,24 @@ print("✓ Workset registered successfully")
     --port 8000 \
     --verbose
 
-# The API will be available at http://localhost:8000
-# API docs at http://localhost:8000/docs
+# The API will be available at http://localhost:8001
+# API docs at http://localhost:8001/docs
 ```
 
 ### 4. Test the API
 
 ```bash
 # Check health
-curl http://localhost:8000/
+curl http://localhost:8001/
 
 # Get workset details
-curl http://localhost:8000/worksets/my-first-workset
+curl http://localhost:8001/worksets/my-first-workset
 
 # List all worksets
-curl http://localhost:8000/worksets
+curl http://localhost:8001/worksets
 
 # Get queue statistics
-curl http://localhost:8000/queue/stats
+curl http://localhost:8001/queue/stats
 ```
 
 ## Basic Usage Examples
@@ -194,19 +194,19 @@ manager.notify(event)
 ### Check Queue Status
 
 ```bash
-curl http://localhost:8000/queue/stats | jq
+curl http://localhost:8001/queue/stats | jq
 ```
 
 ### Get Next Workset to Process
 
 ```bash
-curl http://localhost:8000/worksets/next | jq
+curl http://localhost:8001/worksets/next | jq
 ```
 
 ### Update Workset State via API
 
 ```bash
-curl -X PUT http://localhost:8000/worksets/my-first-workset/state \
+curl -X PUT http://localhost:8001/worksets/my-first-workset/state \
   -H "Content-Type: application/json" \
   -d '{
     "state": "complete",
@@ -229,7 +229,7 @@ Check your AWS credentials and IAM permissions. See [WORKSET_MONITOR_ENHANCEMENT
 ### API won't start
 ```bash
 # Check if port is in use
-lsof -i :8000
+lsof -i :8001
 
 # Try a different port
 ./bin/daylily-workset-api --port 8080

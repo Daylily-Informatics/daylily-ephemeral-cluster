@@ -1326,6 +1326,73 @@ def create_file_api_router(
                 detail=f"Failed to update file tags: {str(e)}",
             )
 
+    @router.patch("/{file_id}")
+    async def update_file_metadata(
+        file_id: str,
+        payload: Dict = Body(..., description="File metadata updates"),
+        current_user: Optional[Dict] = Depends(auth_dependency),
+    ):
+        """Update file metadata.
+
+        All fields are optional - only provided fields will be updated.
+        """
+        try:
+            LOGGER.info("PATCH /files/%s - Received payload: %s", file_id, payload)
+
+            # Verify file exists
+            file = file_registry.get_file(file_id)
+            if not file:
+                LOGGER.warning("File %s not found", file_id)
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"File {file_id} not found",
+                )
+
+            LOGGER.info("Updating file %s with payload", file_id)
+            success = file_registry.update_file(
+                file_id=file_id,
+                file_metadata=payload.get("file_metadata"),
+                biosample_metadata=payload.get("biosample_metadata"),
+                sequencing_metadata=payload.get("sequencing_metadata"),
+                tags=payload.get("tags"),
+                read_number=payload.get("read_number"),
+                paired_with=payload.get("paired_with"),
+                quality_score=payload.get("quality_score"),
+                percent_q30=payload.get("percent_q30"),
+                is_positive_control=payload.get("is_positive_control"),
+                is_negative_control=payload.get("is_negative_control"),
+            )
+
+            if not success:
+                LOGGER.error("Failed to update file %s", file_id)
+                raise HTTPException(
+                    status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                    detail=f"Failed to update file {file_id}",
+                )
+
+            # Return updated file
+            updated_file = file_registry.get_file(file_id)
+            LOGGER.info("Successfully updated file %s", file_id)
+            return {
+                "file_id": file_id,
+                "status": "updated",
+                "file": {
+                    "file_id": updated_file.file_id,
+                    "s3_uri": updated_file.file_metadata.s3_uri,
+                    "biosample_id": updated_file.biosample_metadata.biosample_id,
+                    "subject_id": updated_file.biosample_metadata.subject_id,
+                    "updated_at": updated_file.updated_at,
+                } if updated_file else None,
+            }
+        except HTTPException:
+            raise
+        except Exception as e:
+            LOGGER.error("Failed to update file metadata: %s", str(e), exc_info=True)
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to update file metadata: {str(e)}",
+            )
+
     @router.post("/filesets/{fileset_id}/add-files")
     async def add_files_to_fileset(
         fileset_id: str,

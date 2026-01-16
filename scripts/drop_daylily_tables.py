@@ -39,7 +39,7 @@ def main():
     parser.add_argument(
         "--endpoint-url",
         default=None,
-        help="DynamoDB endpoint (e.g. http://localhost:8000 for DynamoDB Local)",
+        help="DynamoDB endpoint (e.g. http://localhost:8001 for DynamoDB Local)",
     )
     parser.add_argument(
         "--force",

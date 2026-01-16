@@ -1362,9 +1362,16 @@ def create_app(
             if not bucket:
                 bucket = os.getenv("DAYLILY_CONTROL_BUCKET") or os.getenv("DAYLILY_MONITOR_BUCKET")
             if not bucket:
+                error_detail = (
+                    "Control bucket is not configured for workset registration. "
+                    "Please set DAYLILY_CONTROL_BUCKET or DAYLILY_MONITOR_BUCKET environment variable, "
+                    "or pass --control-bucket to the API server. "
+                    "See CONTROL_BUCKET_CONFIGURATION_GUIDE.md for details."
+                )
+                LOGGER.error(error_detail)
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail="Control bucket is not configured for workset registration",
+                    detail=error_detail,
                 )
 
             # Use provided prefix or generate one based on workset ID
@@ -3686,6 +3693,41 @@ def create_app(
                 ),
             )
 
+        @app.get("/portal/files/{file_id}/edit", response_class=HTMLResponse, tags=["portal"])
+        async def portal_files_edit(request: Request, file_id: str):
+            """File metadata edit page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            customer = None
+            file = None
+
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+
+            if FILE_MANAGEMENT_AVAILABLE and file_registry:
+                try:
+                    file = file_registry.get_file(file_id)
+                except Exception as e:
+                    LOGGER.warning("Failed to load file for edit: %s", str(e))
+
+            if not file:
+                raise HTTPException(status_code=404, detail="File not found")
+
+            return templates.TemplateResponse(
+                request,
+                "files/edit_file.html",
+                get_template_context(
+                    request,
+                    customer=customer,
+                    file=file,
+                    active_page="files",
+                ),
+            )
+
         # Legacy file browser route (keep for backward compatibility)
         @app.get("/portal/files/browser", response_class=HTMLResponse, tags=["portal"])
         async def portal_files_browser(request: Request, prefix: str = ""):
@@ -3867,10 +3909,52 @@ def create_app(
                 if customers:
                     customer = _convert_customer_for_template(customers[0])
 
+            # Collect all environment variables used in the codebase
+            env_vars = {
+                # AWS Configuration
+                "AWS_PROFILE": os.getenv("AWS_PROFILE"),
+                "AWS_DEFAULT_REGION": os.getenv("AWS_DEFAULT_REGION"),
+                "AWS_REGION": os.getenv("AWS_REGION"),
+                "AWS_ACCESS_KEY_ID": "***" if os.getenv("AWS_ACCESS_KEY_ID") else None,
+                "AWS_SECRET_ACCESS_KEY": "***" if os.getenv("AWS_SECRET_ACCESS_KEY") else None,
+                "AWS_ACCOUNT_ID": os.getenv("AWS_ACCOUNT_ID"),
+                # Control Bucket
+                "DAYLILY_CONTROL_BUCKET": os.getenv("DAYLILY_CONTROL_BUCKET"),
+                "DAYLILY_MONITOR_BUCKET": os.getenv("DAYLILY_MONITOR_BUCKET"),
+                # DynamoDB
+                "WORKSET_TABLE_NAME": os.getenv("WORKSET_TABLE_NAME"),
+                "CUSTOMER_TABLE_NAME": os.getenv("CUSTOMER_TABLE_NAME"),
+                # Cognito Auth
+                "COGNITO_USER_POOL_ID": os.getenv("COGNITO_USER_POOL_ID"),
+                "COGNITO_APP_CLIENT_ID": os.getenv("COGNITO_APP_CLIENT_ID"),
+                # API Configuration
+                "API_HOST": os.getenv("API_HOST"),
+                "API_PORT": os.getenv("API_PORT"),
+                "ENABLE_AUTH": os.getenv("ENABLE_AUTH"),
+                "SESSION_SECRET_KEY": "***" if os.getenv("SESSION_SECRET_KEY") else None,
+                # S3 & Storage
+                "S3_BUCKET": os.getenv("S3_BUCKET"),
+                "S3_PREFIX": os.getenv("S3_PREFIX"),
+                # Notifications
+                "SNS_TOPIC_ARN": os.getenv("SNS_TOPIC_ARN"),
+                "DAYLILY_SNS_TOPIC_ARN": os.getenv("DAYLILY_SNS_TOPIC_ARN"),
+                "LINEAR_API_KEY": "***" if os.getenv("LINEAR_API_KEY") else None,
+                "LINEAR_TEAM_ID": os.getenv("LINEAR_TEAM_ID"),
+                # Other
+                "DAY_PROJECT": os.getenv("DAY_PROJECT"),
+                "DAY_AWS_REGION": os.getenv("DAY_AWS_REGION"),
+                "DAY_EX_CFG": os.getenv("DAY_EX_CFG"),
+                "DAYLILY_PRIMARY_REGION": os.getenv("DAYLILY_PRIMARY_REGION"),
+                "DAYLILY_MULTI_REGION": os.getenv("DAYLILY_MULTI_REGION"),
+                "APPTAINER_HOME": os.getenv("APPTAINER_HOME"),
+                "DAY_BIOME": os.getenv("DAY_BIOME"),
+                "DAY_ROOT": os.getenv("DAY_ROOT"),
+            }
+
             return templates.TemplateResponse(
                 request,
                 "account.html",
-                get_template_context(request, customer=customer, active_page="account"),
+                get_template_context(request, customer=customer, active_page="account", env_vars=env_vars),
             )
 
         @app.get("/portal/logout", response_class=RedirectResponse, tags=["portal"])

@@ -234,7 +234,7 @@ file_registry.register_file(registration)
 
 ### Register Single File
 ```bash
-curl -X POST http://localhost:8000/api/files/register?customer_id=cust-001 \
+curl -X POST http://localhost:8001/api/files/register?customer_id=cust-001 \
   -H "Content-Type: application/json" \
   -d '{
     "file_metadata": {
@@ -254,7 +254,7 @@ curl -X POST http://localhost:8000/api/files/register?customer_id=cust-001 \
 
 ### Bulk Import with FileSet
 ```bash
-curl -X POST http://localhost:8000/api/files/bulk-import?customer_id=cust-001 \
+curl -X POST http://localhost:8001/api/files/bulk-import?customer_id=cust-001 \
   -H "Content-Type: application/json" \
   -d '{
     "files": [...],

@@ -27,8 +27,8 @@ Usage:
     python examples/run_api_with_auth.py --https --port 8443 --cert cert.pem --key key.pem
 
 Then access the API at:
-    http://localhost:8000  (or https:// if --https is used)
-    http://localhost:8000/docs  (Swagger UI with authentication)
+    http://localhost:8001  (or https:// if --https is used)
+    http://localhost:8001/docs  (Swagger UI with authentication)
 """
 
 import argparse

@@ -11,7 +11,7 @@ python scripts/drop_daylily_tables.py --region us-west-2 --force
   --table-name daylily-worksets \
   --region us-west-2 \
   --create-table \
-  --port 8000
+  --port 8001
 
 python scripts/init_file_registry_tables.py --region us-west-2
 

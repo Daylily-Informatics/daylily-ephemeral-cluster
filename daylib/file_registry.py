@@ -697,6 +697,134 @@ class FileRegistry:
             LOGGER.error("Failed to update tags for file %s: %s", file_id, str(e))
             return False
 
+    def update_file(
+        self,
+        file_id: str,
+        file_metadata: Optional[Dict[str, Any]] = None,
+        biosample_metadata: Optional[Dict[str, Any]] = None,
+        sequencing_metadata: Optional[Dict[str, Any]] = None,
+        tags: Optional[List[str]] = None,
+        read_number: Optional[int] = None,
+        paired_with: Optional[str] = None,
+        quality_score: Optional[float] = None,
+        percent_q30: Optional[float] = None,
+        is_positive_control: Optional[bool] = None,
+        is_negative_control: Optional[bool] = None,
+    ) -> bool:
+        """Update file registration metadata.
+
+        Args:
+            file_id: File identifier
+            file_metadata: Dict with file metadata fields (md5_checksum, file_format, etc.)
+            biosample_metadata: Dict with biosample fields (biosample_id, subject_id, etc.)
+            sequencing_metadata: Dict with sequencing fields (platform, run_id, etc.)
+            tags: List of tags
+            read_number: Read number (1 or 2)
+            paired_with: File ID of paired file
+            quality_score: Quality score
+            percent_q30: Percentage of Q30 bases
+            is_positive_control: Flag for positive control
+            is_negative_control: Flag for negative control
+
+        Returns:
+            True if updated successfully, False otherwise
+        """
+        try:
+            update_parts = ["updated_at = :ts"]
+            expr_values: Dict[str, Any] = {":ts": datetime.utcnow().isoformat() + "Z"}
+
+            # File metadata fields
+            if file_metadata:
+                if "md5_checksum" in file_metadata:
+                    update_parts.append("md5_checksum = :md5")
+                    expr_values[":md5"] = file_metadata["md5_checksum"]
+                if "file_format" in file_metadata:
+                    update_parts.append("file_format = :fmt")
+                    expr_values[":fmt"] = file_metadata["file_format"]
+
+            # Biosample metadata (nested object)
+            if biosample_metadata:
+                update_parts.append("biosample_id = :bio_id")
+                update_parts.append("subject_id = :subj_id")
+                update_parts.append("sample_type = :stype")
+                expr_values[":bio_id"] = biosample_metadata.get("biosample_id", "")
+                expr_values[":subj_id"] = biosample_metadata.get("subject_id", "")
+                expr_values[":stype"] = biosample_metadata.get("sample_type", "blood")
+
+                if "tissue_type" in biosample_metadata:
+                    update_parts.append("tissue_type = :ttype")
+                    expr_values[":ttype"] = biosample_metadata["tissue_type"]
+                if "collection_date" in biosample_metadata:
+                    update_parts.append("collection_date = :cdate")
+                    expr_values[":cdate"] = biosample_metadata["collection_date"]
+                if "preservation_method" in biosample_metadata:
+                    update_parts.append("preservation_method = :pmethod")
+                    expr_values[":pmethod"] = biosample_metadata["preservation_method"]
+                if "tumor_fraction" in biosample_metadata:
+                    update_parts.append("tumor_fraction = :tfrac")
+                    expr_values[":tfrac"] = biosample_metadata["tumor_fraction"]
+
+            # Sequencing metadata (nested object)
+            if sequencing_metadata:
+                update_parts.append("platform = :plat")
+                update_parts.append("vendor = :vend")
+                expr_values[":plat"] = sequencing_metadata.get("platform", "ILLUMINA_NOVASEQ_X")
+                expr_values[":vend"] = sequencing_metadata.get("vendor", "ILMN")
+
+                if "run_id" in sequencing_metadata:
+                    update_parts.append("run_id = :runid")
+                    expr_values[":runid"] = sequencing_metadata["run_id"]
+                if "lane" in sequencing_metadata:
+                    update_parts.append("lane = :lane")
+                    expr_values[":lane"] = sequencing_metadata["lane"]
+                if "barcode_id" in sequencing_metadata:
+                    update_parts.append("barcode_id = :bcode")
+                    expr_values[":bcode"] = sequencing_metadata["barcode_id"]
+                if "flowcell_id" in sequencing_metadata:
+                    update_parts.append("flowcell_id = :fcid")
+                    expr_values[":fcid"] = sequencing_metadata["flowcell_id"]
+                if "run_date" in sequencing_metadata:
+                    update_parts.append("run_date = :rdate")
+                    expr_values[":rdate"] = sequencing_metadata["run_date"]
+
+            # Other fields
+            if tags is not None:
+                update_parts.append("tags = :tags")
+                expr_values[":tags"] = tags
+            if read_number is not None:
+                update_parts.append("read_number = :rnum")
+                expr_values[":rnum"] = read_number
+            if paired_with is not None:
+                update_parts.append("paired_with = :paired")
+                expr_values[":paired"] = paired_with
+            if quality_score is not None:
+                update_parts.append("quality_score = :qscore")
+                expr_values[":qscore"] = quality_score
+            if percent_q30 is not None:
+                update_parts.append("percent_q30 = :pq30")
+                expr_values[":pq30"] = percent_q30
+            if is_positive_control is not None:
+                update_parts.append("is_positive_control = :posctrl")
+                expr_values[":posctrl"] = is_positive_control
+            if is_negative_control is not None:
+                update_parts.append("is_negative_control = :negctrl")
+                expr_values[":negctrl"] = is_negative_control
+
+            self.files_table.update_item(
+                Key={"file_id": file_id},
+                UpdateExpression="SET " + ", ".join(update_parts),
+                ExpressionAttributeValues=expr_values,
+                ConditionExpression="attribute_exists(file_id)",
+            )
+            LOGGER.info("Updated file %s", file_id)
+            return True
+        except ClientError as e:
+            if e.response["Error"]["Code"] == "ConditionalCheckFailedException":
+                LOGGER.warning("File %s not found for update", file_id)
+                return False
+            LOGGER.error("Failed to update file %s: %s", file_id, str(e))
+            return False
+
     def search_files_by_tag(self, customer_id: str, tag: str) -> List[FileRegistration]:
         """Search files by tag within a customer's files."""
         # Note: This is a scan operation - for production, consider a GSI on tags

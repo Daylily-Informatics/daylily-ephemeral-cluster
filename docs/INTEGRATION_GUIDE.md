@@ -320,7 +320,7 @@ integration.sync_all_pending_to_s3()
 Ensure the `/api/estimate-cost` endpoint is reachable:
 
 ```bash
-curl -X POST http://localhost:8000/api/estimate-cost \
+curl -X POST http://localhost:8001/api/estimate-cost \
     -H "Content-Type: application/json" \
     -d '{
         "pipeline_type": "germline",

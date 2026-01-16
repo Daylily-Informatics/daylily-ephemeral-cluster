@@ -110,7 +110,7 @@ aws cognito-idp admin-delete-user \
 # Restart the API server
 ./examples/run_api_with_new_cognito.sh
 
-# Register again at http://localhost:8000/portal/register
+# Register again at http://localhost:8001/portal/register
 ```
 
 ### Step 3: Check Email (Including Spam!)
@@ -122,7 +122,7 @@ After registration, check your email for:
 
 ### Step 4: Login with Temporary Password
 
-1. Go to http://localhost:8000/portal/login
+1. Go to http://localhost:8001/portal/login
 2. Enter email and temporary password from email
 3. You'll be redirected to `/portal/change-password`
 4. Set a new password (8+ chars, upper, lower, number)
@@ -132,7 +132,7 @@ After registration, check your email for:
 
 Now that you have a permanent password, you can test forgot-password:
 
-1. Go to http://localhost:8000/portal/login
+1. Go to http://localhost:8001/portal/login
 2. Click "Forgot password?"
 3. Enter your email
 4. Check email for 6-digit code

@@ -139,7 +139,7 @@ pytest --cov=daylib tests/
 **Solution:**
 ```bash
 # Find process using port 8000
-lsof -i :8000
+lsof -i :8001
 
 # Kill the process
 kill -9 <PID>

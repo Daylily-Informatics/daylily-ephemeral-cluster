@@ -28,34 +28,34 @@ uvicorn daylib.workset_api:app --reload --host 0.0.0.0 --port 8000
 
 ```bash
 # Get queue statistics
-curl http://localhost:8000/queue/stats
+curl http://localhost:8001/queue/stats
 
 # Get scheduler statistics
-curl http://localhost:8000/scheduler/stats
+curl http://localhost:8001/scheduler/stats
 
 # Get next workset to execute
-curl http://localhost:8000/worksets/next
+curl http://localhost:8001/worksets/next
 ```
 
 ### Workset Operations
 
 ```bash
 # List all worksets
-curl http://localhost:8000/worksets
+curl http://localhost:8001/worksets
 
 # List worksets by state
-curl "http://localhost:8000/worksets?state=ready&limit=10"
+curl "http://localhost:8001/worksets?state=ready&limit=10"
 
 # Get specific workset
-curl http://localhost:8000/worksets/ws-001
+curl http://localhost:8001/worksets/ws-001
 
 # Update workset state
-curl -X PUT http://localhost:8000/worksets/ws-001/state \
+curl -X PUT http://localhost:8001/worksets/ws-001/state \
   -H "Content-Type: application/json" \
   -d '{"state": "in_progress"}'
 
 # Update workset priority
-curl -X PUT http://localhost:8000/worksets/ws-001/priority \
+curl -X PUT http://localhost:8001/worksets/ws-001/priority \
   -H "Content-Type: application/json" \
   -d '{"priority": "high"}'
 ```
@@ -64,17 +64,17 @@ curl -X PUT http://localhost:8000/worksets/ws-001/priority \
 
 ```bash
 # Validate workset configuration
-curl -X POST "http://localhost:8000/worksets/validate?bucket=my-bucket&prefix=worksets/ws-001/"
+curl -X POST "http://localhost:8001/worksets/validate?bucket=my-bucket&prefix=worksets/ws-001/"
 
 # Validate in dry-run mode (skip file checks)
-curl -X POST "http://localhost:8000/worksets/validate?bucket=my-bucket&prefix=worksets/ws-001/&dry_run=true"
+curl -X POST "http://localhost:8001/worksets/validate?bucket=my-bucket&prefix=worksets/ws-001/&dry_run=true"
 ```
 
 ### Customer Management
 
 ```bash
 # Create customer
-curl -X POST http://localhost:8000/customers \
+curl -X POST http://localhost:8001/customers \
   -H "Content-Type: application/json" \
   -d '{
     "customer_name": "Acme Genomics",
@@ -85,20 +85,20 @@ curl -X POST http://localhost:8000/customers \
   }'
 
 # Get customer details
-curl http://localhost:8000/customers/acme-genomics-a1b2c3d4
+curl http://localhost:8001/customers/acme-genomics-a1b2c3d4
 
 # List all customers
-curl http://localhost:8000/customers
+curl http://localhost:8001/customers
 
 # Get customer usage
-curl http://localhost:8000/customers/acme-genomics-a1b2c3d4/usage
+curl http://localhost:8001/customers/acme-genomics-a1b2c3d4/usage
 ```
 
 ### YAML Generator
 
 ```bash
 # Generate daylily_work.yaml
-curl -X POST http://localhost:8000/worksets/generate-yaml \
+curl -X POST http://localhost:8001/worksets/generate-yaml \
   -H "Content-Type: application/json" \
   -d '{
     "samples": [

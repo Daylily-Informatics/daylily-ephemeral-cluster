@@ -195,7 +195,7 @@ if enable_auth and cognito_auth:
    ```
 
 2. **Test registration:**
-   - Go to http://localhost:8000/portal/register
+   - Go to http://localhost:8001/portal/register
    - Fill in form (use a real email you can access)
    - Submit
    - Should see: "Check your email for login credentials"
@@ -205,7 +205,7 @@ if enable_auth and cognito_auth:
    - Subject: "Your temporary password"
 
 4. **Test first login:**
-   - Go to http://localhost:8000/portal/login
+   - Go to http://localhost:8001/portal/login
    - Enter email and temporary password
    - Cognito will require password change
    - Set new password
@@ -227,7 +227,7 @@ if enable_auth and cognito_auth:
    ```
 
 2. **Test forgot password:**
-   - Go to http://localhost:8000/portal/login
+   - Go to http://localhost:8001/portal/login
    - Click "Forgot password?"
    - Enter your email
    - Check email for 6-digit code
@@ -250,12 +250,12 @@ if enable_auth and cognito_auth:
    ```
 
 2. **Test direct access:**
-   - Go to http://localhost:8000/portal
+   - Go to http://localhost:8001/portal
    - Should automatically log you in
    - Should see dashboard with customer data
 
 3. **Test registration:**
-   - Go to http://localhost:8000/portal/register
+   - Go to http://localhost:8001/portal/register
    - Create a new customer
    - Should work and redirect to dashboard
 

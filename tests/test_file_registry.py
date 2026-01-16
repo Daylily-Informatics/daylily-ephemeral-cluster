@@ -384,6 +384,150 @@ class TestFileWorksetUsage:
         assert usage.notes == "Test usage"
 
 
+class TestFileRegistryUpdateFile:
+    """Test file update methods."""
+
+    def test_update_file_biosample_metadata(self, file_registry):
+        """Test updating biosample metadata on a file."""
+        file_registry.files_table.update_item.return_value = {}
+
+        result = file_registry.update_file(
+            file_id="file-001",
+            biosample_metadata={
+                "biosample_id": "bio-updated",
+                "subject_id": "HG003",
+                "sample_type": "tissue",
+            },
+        )
+
+        assert result is True
+        file_registry.files_table.update_item.assert_called_once()
+        call_args = file_registry.files_table.update_item.call_args
+        assert call_args[1]["Key"] == {"file_id": "file-001"}
+        assert ":bio_id" in call_args[1]["ExpressionAttributeValues"]
+        assert call_args[1]["ExpressionAttributeValues"][":bio_id"] == "bio-updated"
+
+    def test_update_file_sequencing_metadata(self, file_registry):
+        """Test updating sequencing metadata on a file."""
+        file_registry.files_table.update_item.return_value = {}
+
+        result = file_registry.update_file(
+            file_id="file-001",
+            sequencing_metadata={
+                "platform": "ELEMENT_AVITI",
+                "vendor": "ELEM",
+                "run_id": "RUN-2024-001",
+                "lane": 2,
+            },
+        )
+
+        assert result is True
+        call_args = file_registry.files_table.update_item.call_args
+        assert call_args[1]["ExpressionAttributeValues"][":plat"] == "ELEMENT_AVITI"
+        assert call_args[1]["ExpressionAttributeValues"][":runid"] == "RUN-2024-001"
+
+    def test_update_file_tags(self, file_registry):
+        """Test updating tags on a file."""
+        file_registry.files_table.update_item.return_value = {}
+
+        result = file_registry.update_file(
+            file_id="file-001",
+            tags=["wgs", "production", "batch-001"],
+        )
+
+        assert result is True
+        call_args = file_registry.files_table.update_item.call_args
+        assert call_args[1]["ExpressionAttributeValues"][":tags"] == ["wgs", "production", "batch-001"]
+
+    def test_update_file_qc_metrics(self, file_registry):
+        """Test updating QC metrics on a file."""
+        file_registry.files_table.update_item.return_value = {}
+
+        result = file_registry.update_file(
+            file_id="file-001",
+            quality_score=95.5,
+            percent_q30=89.2,
+            is_positive_control=True,
+        )
+
+        assert result is True
+        call_args = file_registry.files_table.update_item.call_args
+        assert call_args[1]["ExpressionAttributeValues"][":qscore"] == 95.5
+        assert call_args[1]["ExpressionAttributeValues"][":pq30"] == 89.2
+        assert call_args[1]["ExpressionAttributeValues"][":posctrl"] is True
+
+    def test_update_file_not_found(self, file_registry):
+        """Test updating a non-existent file."""
+        from botocore.exceptions import ClientError
+
+        error_response = {"Error": {"Code": "ConditionalCheckFailedException"}}
+        file_registry.files_table.update_item.side_effect = ClientError(error_response, "UpdateItem")
+
+        result = file_registry.update_file(
+            file_id="nonexistent",
+            tags=["test"],
+        )
+
+        assert result is False
+
+    def test_update_file_multiple_fields(self, file_registry):
+        """Test updating multiple fields at once."""
+        file_registry.files_table.update_item.return_value = {}
+
+        result = file_registry.update_file(
+            file_id="file-001",
+            file_metadata={"md5_checksum": "abc123", "file_format": "bam"},
+            biosample_metadata={"biosample_id": "bio-new", "subject_id": "subj-new", "sample_type": "blood"},
+            read_number=2,
+            paired_with="file-002",
+        )
+
+        assert result is True
+        call_args = file_registry.files_table.update_item.call_args
+        expr_values = call_args[1]["ExpressionAttributeValues"]
+        assert expr_values[":md5"] == "abc123"
+        assert expr_values[":fmt"] == "bam"
+        assert expr_values[":bio_id"] == "bio-new"
+        assert expr_values[":rnum"] == 2
+        assert expr_values[":paired"] == "file-002"
+
+
+class TestFileRegistryUpdateFileEdgeCases:
+    """Test edge cases for file update."""
+
+    def test_update_file_with_empty_strings(self, file_registry):
+        """Test updating file with empty string values (should be treated as None)."""
+        file_registry.files_table.update_item.return_value = {}
+
+        result = file_registry.update_file(
+            file_id="file-001",
+            paired_with="",  # Empty string
+            tags=[],  # Empty list
+        )
+
+        assert result is True
+        call_args = file_registry.files_table.update_item.call_args
+        # Empty string should still be passed to DynamoDB
+        assert call_args[1]["ExpressionAttributeValues"][":paired"] == ""
+        assert call_args[1]["ExpressionAttributeValues"][":tags"] == []
+
+    def test_update_file_with_none_values(self, file_registry):
+        """Test that None values are not included in update."""
+        file_registry.files_table.update_item.return_value = {}
+
+        result = file_registry.update_file(
+            file_id="file-001",
+            paired_with=None,
+            quality_score=None,
+        )
+
+        assert result is True
+        call_args = file_registry.files_table.update_item.call_args
+        # None values should not be in the expression values
+        assert ":paired" not in call_args[1]["ExpressionAttributeValues"]
+        assert ":qscore" not in call_args[1]["ExpressionAttributeValues"]
+
+
 class TestFileRegistryWorksetUsage:
     """Test file-workset usage tracking methods."""
 

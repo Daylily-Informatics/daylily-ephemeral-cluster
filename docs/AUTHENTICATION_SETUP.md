@@ -61,9 +61,9 @@ uvicorn.run(app, host="0.0.0.0", port=8000)
 
 ```bash
 # All endpoints work without authentication
-curl http://localhost:8000/worksets
-curl http://localhost:8000/queue/stats
-curl -X POST http://localhost:8000/customers \
+curl http://localhost:8001/worksets
+curl http://localhost:8001/queue/stats
+curl -X POST http://localhost:8001/customers \
   -H "Content-Type: application/json" \
   -d '{"customer_name": "Test", "email": "test@example.com"}'
 ```
@@ -177,10 +177,10 @@ Save the token for API requests.
 TOKEN="eyJraWQiOiJ..."
 
 # Make authenticated requests
-curl http://localhost:8000/worksets \
+curl http://localhost:8001/worksets \
   -H "Authorization: Bearer $TOKEN"
 
-curl -X POST http://localhost:8000/customers \
+curl -X POST http://localhost:8001/customers \
   -H "Authorization: Bearer $TOKEN" \
   -H "Content-Type: application/json" \
   -d '{"customer_name": "Test", "email": "test@example.com"}'

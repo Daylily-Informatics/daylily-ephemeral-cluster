@@ -822,3 +822,545 @@ class TestDeleteFileEndpoint:
 
         assert response.status_code == 403
 
+
+class TestUpdateFileMetadataEndpoint:
+    """Test file metadata update endpoint - PATCH /api/files/{file_id}"""
+
+    @pytest.fixture
+    def mock_file_registry_with_get(self):
+        """Mock FileRegistry with get_file support."""
+        registry = MagicMock(spec=FileRegistry)
+        registry.update_file.return_value = True
+
+        # Mock get_file to return a file registration
+        from daylib.file_registry import FileRegistration, FileMetadata, SequencingMetadata, BiosampleMetadata
+
+        file_reg = FileRegistration(
+            file_id="file-001",
+            customer_id="cust-001",
+            file_metadata=FileMetadata(
+                file_id="file-001",
+                s3_uri="s3://bucket/sample_R1.fastq.gz",
+                file_size_bytes=1024000,
+                md5_checksum="abc123",
+                file_format="fastq",
+            ),
+            sequencing_metadata=SequencingMetadata(
+                platform="ILLUMINA_NOVASEQ_X",
+                vendor="ILMN",
+                run_id="run-001",
+            ),
+            biosample_metadata=BiosampleMetadata(
+                biosample_id="bio-001",
+                subject_id="HG002",
+                sample_type="blood",
+            ),
+            read_number=1,
+            tags=["wgs"],
+        )
+        registry.get_file.return_value = file_reg
+        return registry
+
+    @pytest.fixture
+    def client_with_update(self, mock_file_registry_with_get):
+        """Create client with update capability."""
+        app = FastAPI()
+        router = create_file_api_router(mock_file_registry_with_get)
+        app.include_router(router)
+        return TestClient(app)
+
+    def test_update_file_metadata_md5_checksum(self, client_with_update, mock_file_registry_with_get):
+        """Test updating MD5 checksum in file metadata."""
+        payload = {
+            "file_metadata": {
+                "md5_checksum": "new_md5_hash_123456",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["file_id"] == "file-001"
+        assert data["status"] == "updated"
+
+        # Verify update_file was called with correct parameters
+        mock_file_registry_with_get.update_file.assert_called_once()
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["file_id"] == "file-001"
+        assert call_kwargs["file_metadata"]["md5_checksum"] == "new_md5_hash_123456"
+
+    def test_update_file_metadata_file_format(self, client_with_update, mock_file_registry_with_get):
+        """Test updating file format in file metadata."""
+        payload = {
+            "file_metadata": {
+                "file_format": "bam",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["file_metadata"]["file_format"] == "bam"
+
+    def test_update_file_metadata_multiple_fields(self, client_with_update, mock_file_registry_with_get):
+        """Test updating multiple file metadata fields at once."""
+        payload = {
+            "file_metadata": {
+                "md5_checksum": "new_md5_hash",
+                "file_format": "bam",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["file_metadata"]["md5_checksum"] == "new_md5_hash"
+        assert call_kwargs["file_metadata"]["file_format"] == "bam"
+
+    def test_update_biosample_metadata_biosample_id(self, client_with_update, mock_file_registry_with_get):
+        """Test updating biosample ID."""
+        payload = {
+            "biosample_metadata": {
+                "biosample_id": "bio-updated",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["biosample_metadata"]["biosample_id"] == "bio-updated"
+
+    def test_update_biosample_metadata_subject_id(self, client_with_update, mock_file_registry_with_get):
+        """Test updating subject ID."""
+        payload = {
+            "biosample_metadata": {
+                "subject_id": "HG003",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["biosample_metadata"]["subject_id"] == "HG003"
+
+    def test_update_biosample_metadata_sample_type(self, client_with_update, mock_file_registry_with_get):
+        """Test updating sample type."""
+        payload = {
+            "biosample_metadata": {
+                "sample_type": "tissue",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["biosample_metadata"]["sample_type"] == "tissue"
+
+    def test_update_biosample_metadata_all_fields(self, client_with_update, mock_file_registry_with_get):
+        """Test updating all biosample metadata fields."""
+        payload = {
+            "biosample_metadata": {
+                "biosample_id": "bio-new",
+                "subject_id": "HG004",
+                "sample_type": "saliva",
+                "tissue_type": "oral",
+                "collection_date": "2024-01-15",
+                "preservation_method": "frozen",
+                "tumor_fraction": 0.35,
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        bio_meta = call_kwargs["biosample_metadata"]
+        assert bio_meta["biosample_id"] == "bio-new"
+        assert bio_meta["subject_id"] == "HG004"
+        assert bio_meta["sample_type"] == "saliva"
+        assert bio_meta["tissue_type"] == "oral"
+        assert bio_meta["collection_date"] == "2024-01-15"
+        assert bio_meta["preservation_method"] == "frozen"
+        assert bio_meta["tumor_fraction"] == 0.35
+
+    def test_update_sequencing_metadata_platform(self, client_with_update, mock_file_registry_with_get):
+        """Test updating sequencing platform."""
+        payload = {
+            "sequencing_metadata": {
+                "platform": "ILLUMINA_HISEQ",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["sequencing_metadata"]["platform"] == "ILLUMINA_HISEQ"
+
+    def test_update_sequencing_metadata_vendor(self, client_with_update, mock_file_registry_with_get):
+        """Test updating sequencing vendor."""
+        payload = {
+            "sequencing_metadata": {
+                "vendor": "10X",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["sequencing_metadata"]["vendor"] == "10X"
+
+    def test_update_sequencing_metadata_run_id(self, client_with_update, mock_file_registry_with_get):
+        """Test updating run ID."""
+        payload = {
+            "sequencing_metadata": {
+                "run_id": "run-new-123",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["sequencing_metadata"]["run_id"] == "run-new-123"
+
+    def test_update_sequencing_metadata_lane(self, client_with_update, mock_file_registry_with_get):
+        """Test updating lane number."""
+        payload = {
+            "sequencing_metadata": {
+                "lane": 3,
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["sequencing_metadata"]["lane"] == 3
+
+    def test_update_sequencing_metadata_barcode_id(self, client_with_update, mock_file_registry_with_get):
+        """Test updating barcode ID."""
+        payload = {
+            "sequencing_metadata": {
+                "barcode_id": "S42",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["sequencing_metadata"]["barcode_id"] == "S42"
+
+    def test_update_sequencing_metadata_flowcell_id(self, client_with_update, mock_file_registry_with_get):
+        """Test updating flowcell ID."""
+        payload = {
+            "sequencing_metadata": {
+                "flowcell_id": "FLOWCELL123",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["sequencing_metadata"]["flowcell_id"] == "FLOWCELL123"
+
+    def test_update_sequencing_metadata_run_date(self, client_with_update, mock_file_registry_with_get):
+        """Test updating run date."""
+        payload = {
+            "sequencing_metadata": {
+                "run_date": "2024-01-15",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["sequencing_metadata"]["run_date"] == "2024-01-15"
+
+    def test_update_sequencing_metadata_all_fields(self, client_with_update, mock_file_registry_with_get):
+        """Test updating all sequencing metadata fields."""
+        payload = {
+            "sequencing_metadata": {
+                "platform": "ILLUMINA_HISEQ",
+                "vendor": "ILMN",
+                "run_id": "run-updated",
+                "lane": 2,
+                "barcode_id": "S99",
+                "flowcell_id": "FC123456",
+                "run_date": "2024-01-20",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        seq_meta = call_kwargs["sequencing_metadata"]
+        assert seq_meta["platform"] == "ILLUMINA_HISEQ"
+        assert seq_meta["vendor"] == "ILMN"
+        assert seq_meta["run_id"] == "run-updated"
+        assert seq_meta["lane"] == 2
+        assert seq_meta["barcode_id"] == "S99"
+        assert seq_meta["flowcell_id"] == "FC123456"
+        assert seq_meta["run_date"] == "2024-01-20"
+
+    def test_update_read_number(self, client_with_update, mock_file_registry_with_get):
+        """Test updating read number."""
+        payload = {
+            "read_number": 2,
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["read_number"] == 2
+
+    def test_update_paired_with(self, client_with_update, mock_file_registry_with_get):
+        """Test updating paired file reference."""
+        payload = {
+            "paired_with": "file-002",
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["paired_with"] == "file-002"
+
+    def test_update_quality_score(self, client_with_update, mock_file_registry_with_get):
+        """Test updating quality score."""
+        payload = {
+            "quality_score": 38.5,
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["quality_score"] == 38.5
+
+    def test_update_percent_q30(self, client_with_update, mock_file_registry_with_get):
+        """Test updating percent Q30."""
+        payload = {
+            "percent_q30": 92.5,
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["percent_q30"] == 92.5
+
+    def test_update_is_positive_control(self, client_with_update, mock_file_registry_with_get):
+        """Test updating positive control flag."""
+        payload = {
+            "is_positive_control": True,
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["is_positive_control"] is True
+
+    def test_update_is_negative_control(self, client_with_update, mock_file_registry_with_get):
+        """Test updating negative control flag."""
+        payload = {
+            "is_negative_control": True,
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["is_negative_control"] is True
+
+    def test_update_tags(self, client_with_update, mock_file_registry_with_get):
+        """Test updating tags."""
+        payload = {
+            "tags": ["wgs", "high-quality", "validated"],
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["tags"] == ["wgs", "high-quality", "validated"]
+
+    def test_update_all_fields_together(self, client_with_update, mock_file_registry_with_get):
+        """Test updating all metadata fields at once."""
+        payload = {
+            "file_metadata": {
+                "md5_checksum": "new_md5",
+                "file_format": "bam",
+            },
+            "biosample_metadata": {
+                "biosample_id": "bio-new",
+                "subject_id": "HG005",
+                "sample_type": "tissue",
+            },
+            "sequencing_metadata": {
+                "platform": "ILLUMINA_HISEQ",
+                "run_id": "run-new",
+                "lane": 4,
+            },
+            "read_number": 2,
+            "paired_with": "file-002",
+            "quality_score": 40.0,
+            "percent_q30": 95.0,
+            "is_positive_control": False,
+            "is_negative_control": False,
+            "tags": ["wgs", "validated"],
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+
+        # Verify all fields were passed
+        assert call_kwargs["file_id"] == "file-001"
+        assert call_kwargs["file_metadata"]["md5_checksum"] == "new_md5"
+        assert call_kwargs["file_metadata"]["file_format"] == "bam"
+        assert call_kwargs["biosample_metadata"]["biosample_id"] == "bio-new"
+        assert call_kwargs["biosample_metadata"]["subject_id"] == "HG005"
+        assert call_kwargs["sequencing_metadata"]["platform"] == "ILLUMINA_HISEQ"
+        assert call_kwargs["read_number"] == 2
+        assert call_kwargs["paired_with"] == "file-002"
+        assert call_kwargs["quality_score"] == 40.0
+        assert call_kwargs["percent_q30"] == 95.0
+        assert call_kwargs["is_positive_control"] is False
+        assert call_kwargs["is_negative_control"] is False
+        assert call_kwargs["tags"] == ["wgs", "validated"]
+
+    def test_update_file_not_found(self, client_with_update, mock_file_registry_with_get):
+        """Test updating a file that doesn't exist."""
+        mock_file_registry_with_get.get_file.return_value = None
+
+        payload = {
+            "file_metadata": {
+                "md5_checksum": "new_md5",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/nonexistent-file",
+            json=payload,
+        )
+
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"].lower()
+
+    def test_update_file_failure(self, client_with_update, mock_file_registry_with_get):
+        """Test handling of update failure."""
+        mock_file_registry_with_get.update_file.return_value = False
+
+        payload = {
+            "file_metadata": {
+                "md5_checksum": "new_md5",
+            }
+        }
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 500
+        assert "Failed to update" in response.json()["detail"]
+
+    def test_update_empty_payload(self, client_with_update, mock_file_registry_with_get):
+        """Test updating with empty payload (should still succeed)."""
+        payload = {}
+
+        response = client_with_update.patch(
+            "/api/files/file-001",
+            json=payload,
+        )
+
+        assert response.status_code == 200
+        # update_file should still be called with file_id
+        mock_file_registry_with_get.update_file.assert_called_once()
+        call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
+        assert call_kwargs["file_id"] == "file-001"
+
