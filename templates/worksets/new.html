@@ -83,20 +83,56 @@
 
             <div class="tabs">
                 <ul class="tab-list">
-                    <li class="tab-item active" onclick="switchTab('upload')">
+                    <li class="tab-item active" onclick="switchTab('fileset')">
+                        <i class="fas fa-layer-group"></i> File Set
+                    </li>
+                    <li class="tab-item" onclick="switchTab('upload')">
                         <i class="fas fa-upload"></i> Upload Files
                     </li>
                     <li class="tab-item" onclick="switchTab('s3')">
                         <i class="fab fa-aws"></i> S3 Path
                     </li>
-                    <li class="tab-item" onclick="switchTab('yaml')">
-                        <i class="fas fa-file-code"></i> Upload YAML
+                    <li class="tab-item" onclick="switchTab('manifest')">
+                        <i class="fas fa-file-alt"></i> Manifest
                     </li>
                 </ul>
             </div>
 
+            <!-- File Set Tab (NEW - Primary Input Method) -->
+            <div class="tab-content active" id="tab-fileset">
+                <div class="alert alert-info mb-lg" style="background: #0d3344; border: 1px solid var(--color-info); border-radius: var(--radius-md); padding: var(--spacing-md); color: #b8d4e8;">
+                    <i class="fas fa-star text-warning"></i>
+                    <strong style="color: #fff;">Recommended:</strong> Select a pre-configured file set containing your analysis inputs. File sets track metadata and can be reused across worksets.
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Select File Set</label>
+                    <select id="fileset-select" class="form-control form-select" onchange="loadFilesetPreview()">
+                        <option value="">Choose a file set...</option>
+                    </select>
+                </div>
+
+                <div id="fileset-preview" class="d-none">
+                    <div class="card" style="background: #1a2a33; margin-top: var(--spacing-md);">
+                        <div class="d-flex justify-between align-center mb-md">
+                            <h4 style="margin: 0; color: #fff;"><i class="fas fa-layer-group text-accent"></i> <span id="fileset-name">File Set</span></h4>
+                            <span class="badge badge-info" id="fileset-file-count">0 files</span>
+                        </div>
+                        <p id="fileset-description" class="text-muted mb-md"></p>
+                        <div id="fileset-files-preview" class="fileset-files-preview"></div>
+                    </div>
+                </div>
+
+                <div class="mt-lg text-center">
+                    <p class="text-muted mb-md">Don't have a file set yet?</p>
+                    <a href="/portal/files/filesets" class="btn btn-outline">
+                        <i class="fas fa-plus"></i> Create File Set
+                    </a>
+                </div>
+            </div>
+
             <!-- Upload Tab -->
-            <div class="tab-content active" id="tab-upload">
+            <div class="tab-content" id="tab-upload">
                 <div class="alert alert-info mb-lg" style="background: #0d3344; border: 1px solid var(--color-info); border-radius: var(--radius-md); padding: var(--spacing-md); color: #b8d4e8;">
                     <i class="fas fa-info-circle text-info"></i>
                     <strong style="color: #fff;">Best for:</strong> Small to medium datasets (&lt;50GB total). Files are uploaded to your S3 bucket and a workset configuration is auto-generated.
@@ -155,30 +191,34 @@
             </div>
 
             <!-- Manifest Tab -->
-            <div class="tab-content" id="tab-yaml">
+            <div class="tab-content" id="tab-manifest">
                 <div class="alert alert-info mb-lg" style="background: #0d3344; border: 1px solid var(--color-info); border-radius: var(--radius-md); padding: var(--spacing-md); color: #b8d4e8;">
                     <i class="fas fa-info-circle text-info"></i>
-                    <strong style="color: #fff;">Best for:</strong> Advanced users with pre-configured worksets. Upload an existing <code style="background: #1a4a5e; padding: 2px 6px; border-radius: 3px;">daylily_work.yaml</code> that defines your analysis inputs and parameters.
+                    <strong style="color: #fff;">Best for:</strong> Advanced users with pre-configured sample sheets. Upload a <code style="background: #1a4a5e; padding: 2px 6px; border-radius: 3px;">stage_samples.tsv</code> manifest that defines your analysis inputs and metadata.
                 </div>
                 <div class="form-group">
-                    <label for="yaml_file" class="form-label">Upload daylily_work.yaml</label>
-                    <div class="file-upload" onclick="document.getElementById('yaml-input').click()">
-                        <div class="file-upload-icon"><i class="fas fa-file-code"></i></div>
+                    <label for="manifest_file" class="form-label">Upload Manifest (TSV)</label>
+                    <div class="file-upload" onclick="document.getElementById('manifest-input').click()">
+                        <div class="file-upload-icon"><i class="fas fa-file-alt"></i></div>
                         <p class="file-upload-text">
-                            Click to upload your <code>daylily_work.yaml</code> configuration
+                            Click to upload your <code>stage_samples.tsv</code> manifest
                         </p>
-                        <input type="file" id="yaml-input" class="file-upload-input" accept=".yaml,.yml">
+                        <input type="file" id="manifest-input" class="file-upload-input" accept=".tsv,.csv,.txt" onchange="previewManifest(this)">
                     </div>
-                    <div id="yaml-preview" class="mt-lg d-none">
-                        <h4>YAML Preview</h4>
-                        <div class="code-block">
-                            <pre id="yaml-content"></pre>
+                    <div id="manifest-preview" class="mt-lg d-none">
+                        <h4>Manifest Preview</h4>
+                        <div class="table-container">
+                            <table class="table" id="manifest-table">
+                                <thead id="manifest-thead"></thead>
+                                <tbody id="manifest-tbody"></tbody>
+                            </table>
                         </div>
+                        <p class="text-muted mt-md"><span id="manifest-row-count">0</span> samples detected</p>
                     </div>
                 </div>
                 <div class="mt-lg" style="background: #1a2a33; border-radius: var(--radius-md); padding: var(--spacing-md); border: 1px solid #2a3a44;">
-                    <p class="mb-sm" style="color: #fff;"><strong>Need to create an analysis manifest?</strong></p>
-                    <p class="mb-md" style="color: #a8b8c8;">Use our Manifest Generator to create a <code>stage_samples.tsv</code> file. It captures analysis inputs, sequencing metadata, and QC settings.</p>
+                    <p class="mb-sm" style="color: #fff;"><strong>Need to create a manifest?</strong></p>
+                    <p class="mb-md" style="color: #a8b8c8;">Use our Manifest Generator to create a <code>stage_samples.tsv</code> file from your registered files.</p>
                     <a href="/portal/manifest-generator" class="btn btn-outline btn-sm">
                         <i class="fas fa-magic"></i> Open Manifest Generator
                     </a>
@@ -239,23 +279,58 @@
         <div class="card" id="cost-estimate">
             <h3 class="card-title"><i class="fas fa-calculator"></i> Cost Estimate</h3>
             <p class="text-muted mb-lg">Estimated costs based on your selected options. Actual costs may vary depending on data complexity and coverage depth.</p>
-            <div class="grid grid-3">
-                <div>
-                    <div class="stat-value text-accent" id="est-cost">$0.00</div>
-                    <div class="stat-label">Estimated Cost</div>
+
+            <div id="cost-loading" class="d-none text-center p-lg">
+                <i class="fas fa-spinner fa-spin fa-2x text-accent"></i>
+                <p class="text-muted mt-md">Calculating estimate...</p>
+            </div>
+
+            <div id="cost-details">
+                <div class="grid grid-4">
+                    <div>
+                        <div class="stat-value text-accent" id="est-cost">$0.00</div>
+                        <div class="stat-label">Estimated Cost</div>
+                    </div>
+                    <div>
+                        <div class="stat-value" id="est-time">0h</div>
+                        <div class="stat-label">Estimated Time</div>
+                    </div>
+                    <div>
+                        <div class="stat-value" id="est-vcpu">0</div>
+                        <div class="stat-label">vCPU Hours</div>
+                    </div>
+                    <div>
+                        <div class="stat-value" id="est-samples">0</div>
+                        <div class="stat-label">Samples</div>
+                    </div>
                 </div>
-                <div>
-                    <div class="stat-value" id="est-time">0h</div>
-                    <div class="stat-label">Estimated Time</div>
-                </div>
-                <div>
-                    <div class="stat-value" id="est-vcpu">0</div>
-                    <div class="stat-label">vCPU Hours</div>
+
+                <div class="mt-lg" id="cost-breakdown" style="background: #1a2a33; border-radius: var(--radius-md); padding: var(--spacing-md); border: 1px solid #2a3a44;">
+                    <h5 style="margin: 0 0 var(--spacing-sm) 0; color: #fff;">Cost Breakdown</h5>
+                    <div class="grid grid-2" style="gap: var(--spacing-sm);">
+                        <div class="d-flex justify-between">
+                            <span class="text-muted">Compute:</span>
+                            <span id="cost-compute">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-between">
+                            <span class="text-muted">Storage:</span>
+                            <span id="cost-storage">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-between">
+                            <span class="text-muted">Data Transfer:</span>
+                            <span id="cost-transfer">$0.00</span>
+                        </div>
+                        <div class="d-flex justify-between">
+                            <span class="text-muted">Priority Modifier:</span>
+                            <span id="cost-priority">1.0x</span>
+                        </div>
+                    </div>
                 </div>
             </div>
-            <div class="mt-lg" style="background: #1a2a33; border-radius: var(--radius-md); padding: var(--spacing-md); border: 1px solid #2a3a44;">
-                <p style="font-size: 0.875rem; margin: 0; color: #a8b8c8;">
-                    <i class="fas fa-info-circle" style="color: #5bc0de;"></i>
+
+            <div class="mt-lg" style="background: #0d3344; border-radius: var(--radius-md); padding: var(--spacing-md); border: 1px solid var(--color-info);">
+                <p style="font-size: 0.875rem; margin: 0; color: #b8d4e8;">
+                    <i class="fas fa-info-circle text-info"></i>
                     <strong style="color: #fff;">How costs are calculated:</strong> Base compute cost + storage + data transfer.
                     High priority adds a 2x multiplier. Low priority uses spot pricing (~50% savings but may be interrupted).
                     QC reports add ~5% to compute time. View <a href="/portal/usage" class="text-accent">detailed pricing</a>.

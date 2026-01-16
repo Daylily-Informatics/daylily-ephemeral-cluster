@@ -53,6 +53,23 @@ function closeModal(modalId) {
     document.getElementById(modalId).classList.remove('show');
 }
 
+// Toggle advanced search panel
+function toggleAdvancedSearch() {
+    const advancedPanel = document.getElementById('advanced-search');
+    if (advancedPanel) {
+        advancedPanel.classList.toggle('d-none');
+    }
+}
+
+// Debounce search input
+let debounceTimer = null;
+function debounceSearch() {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(() => {
+        searchFiles();
+    }, 300);
+}
+
 // ============================================================================
 // File Search & Filtering
 // ============================================================================
@@ -620,10 +637,11 @@ async function createFileset() {
     }
 
     try {
-        const response = await fetch(`${FILE_API_BASE}/filesets`, {
+        const customerId = getCustomerId();
+        const response = await fetch(`${FILE_API_BASE}/filesets?customer_id=${encodeURIComponent(customerId)}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, description, tags })
+            body: JSON.stringify({ name, description, tags, file_ids: [] })
         });
 
         if (response.ok) {
@@ -666,6 +684,172 @@ async function addToFileset(fileId) {
     showModal('fileset-selector-modal');
     // Load filesets
     loadFilesetsForSelector(fileId);
+}
+
+async function loadFilesetsForSelector(fileId) {
+    const list = document.getElementById('fileset-selector-list');
+    if (!list) return;
+
+    list.innerHTML = '<div class="text-center p-lg">Loading...</div>';
+
+    try {
+        const customerId = getCustomerId();
+        const response = await fetch(`${FILE_API_BASE}/filesets?customer_id=${encodeURIComponent(customerId)}`);
+        if (!response.ok) throw new Error('Failed to load filesets');
+
+        const filesets = await response.json();
+        if (filesets.length === 0) {
+            list.innerHTML = '<div class="text-center text-muted p-lg">No file sets. Create one first.</div>';
+            return;
+        }
+
+        list.innerHTML = filesets.map(fs => `
+            <div class="fileset-selector-item" onclick="addFileToSelectedFileset('${fileId}', '${fs.fileset_id}')">
+                <i class="fas fa-layer-group text-accent"></i>
+                <div>
+                    <div><strong>${fs.name}</strong></div>
+                    <div class="text-muted text-sm">${fs.file_count || 0} files</div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Load filesets error:', error);
+        list.innerHTML = '<div class="text-center text-error p-lg">Failed to load file sets</div>';
+    }
+}
+
+async function addFileToSelectedFileset(fileId, filesetId) {
+    try {
+        const response = await fetch(`${FILE_API_BASE}/filesets/${filesetId}/add-files`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify([fileId])
+        });
+
+        if (response.ok) {
+            showToast('File added to set', 'success');
+            closeModal('fileset-selector-modal');
+        } else {
+            showToast('Failed to add file to set', 'error');
+        }
+    } catch (error) {
+        console.error('Add to fileset error:', error);
+        showToast('Failed to add file to set', 'error');
+    }
+}
+
+function editFileset(filesetId) {
+    window.location.href = `/portal/files/filesets/${filesetId}`;
+}
+
+async function cloneFileset(filesetId) {
+    const currentName = event.target.closest('.fileset-card')?.querySelector('.fileset-name a')?.textContent || 'File Set';
+    const newName = prompt('Enter a name for the cloned file set:', `Copy of ${currentName}`);
+    if (!newName) return;
+
+    try {
+        const response = await fetch(`${FILE_API_BASE}/filesets/${filesetId}/clone`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ new_name: newName })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            showToast('File set cloned', 'success');
+            window.location.href = `/portal/files/filesets/${result.fileset_id}`;
+        } else {
+            showToast('Failed to clone file set', 'error');
+        }
+    } catch (error) {
+        console.error('Clone fileset error:', error);
+        showToast('Failed to clone file set', 'error');
+    }
+}
+
+let selectedFilesForFileset = new Set();
+
+function showFileSelector() {
+    selectedFilesForFileset.clear();
+    document.getElementById('selected-file-count').textContent = '0';
+    loadFilesForSelector();
+    showModal('file-selector-modal');
+}
+
+async function loadFilesForSelector() {
+    const list = document.getElementById('file-selector-list');
+    if (!list) return;
+
+    list.innerHTML = '<div class="text-center p-lg">Loading files...</div>';
+
+    try {
+        const response = await fetch(`${FILE_API_BASE}?limit=100`);
+        if (!response.ok) throw new Error('Failed to load files');
+
+        const files = await response.json();
+        if (files.length === 0) {
+            list.innerHTML = '<div class="text-center text-muted p-lg">No files registered yet</div>';
+            return;
+        }
+
+        list.innerHTML = files.map(f => `
+            <div class="file-selector-item" data-file-id="${f.file_id}" onclick="toggleFileSelection('${f.file_id}', this)">
+                <input type="checkbox">
+                <div style="flex:1;">
+                    <div><strong>${f.file_metadata?.file_name || f.file_id}</strong></div>
+                    <div class="text-muted text-sm">${f.biosample_metadata?.subject_id || '—'} / ${f.biosample_metadata?.sample_id || '—'}</div>
+                </div>
+            </div>
+        `).join('');
+    } catch (error) {
+        console.error('Load files error:', error);
+        list.innerHTML = '<div class="text-center text-error p-lg">Failed to load files</div>';
+    }
+}
+
+function toggleFileSelection(fileId, element) {
+    const checkbox = element.querySelector('input[type="checkbox"]');
+    if (selectedFilesForFileset.has(fileId)) {
+        selectedFilesForFileset.delete(fileId);
+        element.classList.remove('selected');
+        checkbox.checked = false;
+    } else {
+        selectedFilesForFileset.add(fileId);
+        element.classList.add('selected');
+        checkbox.checked = true;
+    }
+    document.getElementById('selected-file-count').textContent = selectedFilesForFileset.size;
+}
+
+function filterFileSelectorResults() {
+    const query = document.getElementById('file-selector-search').value.toLowerCase();
+    document.querySelectorAll('#file-selector-list .file-selector-item').forEach(item => {
+        const text = item.textContent.toLowerCase();
+        item.style.display = text.includes(query) ? '' : 'none';
+    });
+}
+
+function confirmFileSelection() {
+    const filesList = document.getElementById('initial-files-list');
+    if (!filesList) {
+        closeModal('file-selector-modal');
+        return;
+    }
+
+    selectedFilesForFileset.forEach(fileId => {
+        if (!filesList.querySelector(`[data-file-id="${fileId}"]`)) {
+            const item = document.createElement('div');
+            item.className = 'file-select-item';
+            item.dataset.fileId = fileId;
+            item.innerHTML = `<i class="fas fa-file"></i> <span>${fileId.substring(0, 30)}...</span>
+                <button type="button" class="btn btn-xs btn-outline" onclick="this.parentElement.remove()">
+                    <i class="fas fa-times"></i>
+                </button>`;
+            filesList.appendChild(item);
+        }
+    });
+
+    closeModal('file-selector-modal');
 }
 
 // ============================================================================
@@ -1038,6 +1222,135 @@ async function generateManifestFromFileset(filesetId) {
         console.error('Manifest generation error:', error);
         showToast('Failed to generate manifest', 'error');
     }
+}
+
+// ============================================================================
+// File Detail Page Functions
+// ============================================================================
+
+// Download file via presigned URL
+async function downloadFile(s3Uri) {
+    try {
+        showToast('Generating download link...', 'info');
+        const customerId = window.DaylilyConfig?.customerId || window.CUSTOMER_ID || '';
+        const response = await fetch(`${FILE_API_BASE}/download?s3_uri=${encodeURIComponent(s3Uri)}&customer_id=${encodeURIComponent(customerId)}`);
+
+        if (response.ok) {
+            const data = await response.json();
+            if (data.presigned_url) {
+                window.open(data.presigned_url, '_blank');
+                showToast('Download started', 'success');
+            } else {
+                showToast('Failed to generate download link', 'error');
+            }
+        } else {
+            const err = await response.json().catch(() => ({}));
+            showToast(err.detail || 'Failed to generate download link', 'error');
+        }
+    } catch (error) {
+        console.error('Download error:', error);
+        showToast('Failed to download file', 'error');
+    }
+}
+
+// Edit file metadata
+function editFileMetadata(fileId) {
+    // Redirect to edit page or show modal
+    window.location.href = `/portal/files/${fileId}/edit`;
+}
+
+// Show add tag modal
+function showAddTagModal() {
+    const modal = document.getElementById('add-tag-modal');
+    if (modal) {
+        modal.classList.add('show');
+        const input = document.getElementById('new-tag-input');
+        if (input) {
+            input.value = '';
+            input.focus();
+        }
+    }
+}
+
+// Add tag to file
+async function addTag() {
+    const input = document.getElementById('new-tag-input');
+    const tag = input?.value?.trim();
+    if (!tag) {
+        showToast('Please enter a tag name', 'error');
+        return;
+    }
+
+    // Get file ID from URL
+    const pathParts = window.location.pathname.split('/');
+    const fileId = pathParts[pathParts.length - 1];
+    const customerId = window.DaylilyConfig?.customerId || window.CUSTOMER_ID || '';
+
+    try {
+        const response = await fetch(`${FILE_API_BASE}/${fileId}/tags?customer_id=${encodeURIComponent(customerId)}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tag: tag })
+        });
+
+        if (response.ok) {
+            showToast(`Tag "${tag}" added`, 'success');
+            closeModal('add-tag-modal');
+            window.location.reload();
+        } else {
+            const err = await response.json().catch(() => ({}));
+            showToast(err.detail || 'Failed to add tag', 'error');
+        }
+    } catch (error) {
+        console.error('Add tag error:', error);
+        showToast('Failed to add tag', 'error');
+    }
+}
+
+// Remove tag from file
+async function removeTag(tag) {
+    if (!confirm(`Remove tag "${tag}"?`)) return;
+
+    // Get file ID from URL
+    const pathParts = window.location.pathname.split('/');
+    const fileId = pathParts[pathParts.length - 1];
+    const customerId = window.DaylilyConfig?.customerId || window.CUSTOMER_ID || '';
+
+    try {
+        const response = await fetch(`${FILE_API_BASE}/${fileId}/tags/${encodeURIComponent(tag)}?customer_id=${encodeURIComponent(customerId)}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            showToast(`Tag "${tag}" removed`, 'success');
+            window.location.reload();
+        } else {
+            const err = await response.json().catch(() => ({}));
+            showToast(err.detail || 'Failed to remove tag', 'error');
+        }
+    } catch (error) {
+        console.error('Remove tag error:', error);
+        showToast('Failed to remove tag', 'error');
+    }
+}
+
+// Find similar files
+function findSimilarFiles(fileId) {
+    window.location.href = `/portal/files?similar_to=${fileId}`;
+}
+
+// View subject's files
+function viewSubjectFiles(subjectId) {
+    if (subjectId) {
+        window.location.href = `/portal/files?subject_id=${encodeURIComponent(subjectId)}`;
+    } else {
+        showToast('No subject ID associated with this file', 'info');
+    }
+}
+
+// Use file in manifest
+function useInManifest(fileId) {
+    window.location.href = `/portal/worksets/create?file_id=${fileId}`;
 }
 
 // ============================================================================

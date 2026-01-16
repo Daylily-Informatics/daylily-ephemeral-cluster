@@ -58,6 +58,16 @@ except ImportError:
     S3BucketValidator = None
     LinkedBucketManager = None
 
+# Biospecimen layer imports
+try:
+    from daylib.biospecimen import BiospecimenRegistry
+    from daylib.biospecimen_api import create_biospecimen_router
+    BIOSPECIMEN_AVAILABLE = True
+except ImportError:
+    BIOSPECIMEN_AVAILABLE = False
+    BiospecimenRegistry = None
+    create_biospecimen_router = None
+
 LOGGER = logging.getLogger("daylily.workset_api")
 
 
@@ -3616,14 +3626,22 @@ def create_app(
             if not fileset:
                 raise HTTPException(status_code=404, detail="File set not found")
 
+            # Count unique subjects
+            unique_subjects = len(set(
+                f.biosample_metadata.subject_id
+                for f in files
+                if f.biosample_metadata and f.biosample_metadata.subject_id
+            ))
+
             return templates.TemplateResponse(
                 request,
-                "files/filesets.html",  # Reuse filesets template with detail mode
+                "files/fileset_detail.html",
                 get_template_context(
                     request,
                     customer=customer,
                     fileset=fileset,
                     files=files,
+                    unique_subjects=unique_subjects,
                     active_page="files",
                 ),
             )
@@ -3790,6 +3808,52 @@ def create_app(
                 ),
             )
 
+        # ========== Biospecimen Portal Routes ==========
+
+        @app.get("/portal/biospecimen", response_class=HTMLResponse, tags=["portal"])
+        @app.get("/portal/biospecimen/subjects", response_class=HTMLResponse, tags=["portal"])
+        async def portal_biospecimen_subjects(request: Request):
+            """Subjects management page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            customer_id = request.session.get("customer_id", "default-customer")
+            customer = None
+            subjects = []
+            stats = {"subjects": 0, "biosamples": 0, "libraries": 0}
+
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+
+            # Get biospecimen data if available
+            if BIOSPECIMEN_AVAILABLE:
+                try:
+                    bio_registry = BiospecimenRegistry(region=region, profile=profile)
+                    subjects = bio_registry.list_subjects(customer_id)
+                    stats = bio_registry.get_statistics(customer_id)
+
+                    # Add biosample counts to subjects
+                    for subj in subjects:
+                        biosamples = bio_registry.list_biosamples_for_subject(subj.subject_id)
+                        subj.biosample_count = len(biosamples)
+                except Exception as e:
+                    LOGGER.warning("Failed to load biospecimen data: %s", str(e))
+
+            return templates.TemplateResponse(
+                request,
+                "biospecimen/subjects.html",
+                get_template_context(
+                    request,
+                    customer=customer,
+                    subjects=subjects,
+                    stats=stats,
+                    active_page="biospecimen",
+                ),
+            )
+
         @app.get("/portal/account", response_class=HTMLResponse, tags=["portal"])
         async def portal_account(request: Request):
             """Account settings page."""
@@ -3815,6 +3879,44 @@ def create_app(
             # Clear session data
             request.session.clear()
             return RedirectResponse(url="/portal/login?success=You+have+been+logged+out", status_code=302)
+
+        @app.get("/portal/docs", response_class=HTMLResponse, tags=["portal"])
+        async def portal_docs(request: Request):
+            """Documentation page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            customer = None
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+
+            return templates.TemplateResponse(
+                request,
+                "docs.html",
+                get_template_context(request, customer=customer, active_page="docs"),
+            )
+
+        @app.get("/portal/support", response_class=HTMLResponse, tags=["portal"])
+        async def portal_support(request: Request):
+            """Support/Contact page."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            customer = None
+            if customer_manager:
+                customers = customer_manager.list_customers()
+                if customers:
+                    customer = _convert_customer_for_template(customers[0])
+
+            return templates.TemplateResponse(
+                request,
+                "support.html",
+                get_template_context(request, customer=customer, active_page="support"),
+            )
 
     # ========== File Management API Integration ==========
 
@@ -3865,5 +3967,30 @@ def create_app(
         )
     else:
         LOGGER.info("File management not configured - file API endpoints not registered")
+
+    # ========== Biospecimen API Integration ==========
+
+    if BIOSPECIMEN_AVAILABLE:
+        LOGGER.info("Integrating biospecimen API endpoints")
+        try:
+            biospecimen_registry = BiospecimenRegistry(region=region, profile=profile)
+
+            def get_customer_id_from_session():
+                """Get customer ID from current request session."""
+                # This will be called during request handling
+                # The actual session access happens via dependency injection
+                return getattr(get_customer_id_from_session, '_current_customer_id', 'default-customer')
+
+            biospecimen_router = create_biospecimen_router(
+                registry=biospecimen_registry,
+                get_customer_id=get_customer_id_from_session,
+            )
+            app.include_router(biospecimen_router)
+            LOGGER.info("Biospecimen API endpoints registered at /api/biospecimen/*")
+        except Exception as e:
+            LOGGER.error("Failed to integrate biospecimen API: %s", str(e))
+            LOGGER.warning("Biospecimen endpoints will not be available")
+    else:
+        LOGGER.info("Biospecimen module not available - biospecimen API endpoints not registered")
 
     return app

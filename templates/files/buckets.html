@@ -43,7 +43,10 @@
                 <div class="bucket-header">
                     <div class="bucket-info">
                         <div class="bucket-name">
-                            <i class="fab fa-aws"></i>
+                            <a href="https://s3.console.aws.amazon.com/s3/buckets/{{ bucket.bucket_name }}?region={{ bucket.region or 'us-east-1' }}"
+                               target="_blank" title="Open in AWS Console" class="aws-link">
+                                <i class="fab fa-aws"></i>
+                            </a>
                             <strong>{{ bucket.display_name or bucket.bucket_name }}</strong>
                         </div>
                         <span class="badge badge-{{ 'success' if bucket.is_validated else 'error' }}">
@@ -63,9 +66,9 @@
                         <button class="btn btn-sm btn-outline" onclick="revalidateBucket('{{ bucket.bucket_id }}')" title="Revalidate">
                             <i class="fas fa-sync-alt"></i>
                         </button>
-                        <button class="btn btn-sm btn-outline" onclick="discoverFiles('{{ bucket.bucket_id }}')" title="Discover Files">
+                        <a href="/portal/files/register?bucket_id={{ bucket.bucket_id }}&tab=discover" class="btn btn-sm btn-outline" title="Discover & Register Files">
                             <i class="fas fa-search"></i>
-                        </button>
+                        </a>
                         <button class="btn btn-sm btn-outline" onclick="editBucket('{{ bucket.bucket_id }}')" title="Edit">
                             <i class="fas fa-edit"></i>
                         </button>
@@ -374,6 +377,9 @@
 .bucket-info { display: flex; align-items: center; gap: var(--spacing-md); flex-wrap: wrap; }
 .bucket-name { display: flex; align-items: center; gap: var(--spacing-sm); font-size: 1.125rem; }
 .bucket-name i { color: #ff9900; }
+.bucket-name .aws-link { text-decoration: none; transition: transform 0.2s; display: inline-flex; }
+.bucket-name .aws-link:hover { transform: scale(1.2); }
+.bucket-name .aws-link:hover i { color: #ec7211; }
 .bucket-actions { display: flex; gap: var(--spacing-sm); }
 .bucket-meta { display: flex; gap: var(--spacing-xl); flex-wrap: wrap; color: var(--color-gray-600); font-size: 0.875rem; }
 .bucket-meta span { display: flex; align-items: center; gap: var(--spacing-xs); }

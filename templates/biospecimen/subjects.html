@@ -1,0 +1,225 @@
+{% extends "base.html" %}
+{% set active_page = 'biospecimen' %}
+
+{% block title %}Subjects - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-between align-center flex-wrap gap-lg">
+        <div>
+            <h1 class="page-title">Subjects</h1>
+            <p class="page-subtitle">Manage individuals/patients and their biosamples</p>
+        </div>
+        <div class="page-actions" style="margin-top: 0;">
+            <button class="btn btn-primary" onclick="showCreateSubjectModal()">
+                <i class="fas fa-plus"></i> Add Subject
+            </button>
+        </div>
+    </div>
+
+    <!-- Quick Stats -->
+    <div class="grid grid-3 gap-lg mb-xl">
+        <div class="card stat-card">
+            <div class="stat-icon"><i class="fas fa-users"></i></div>
+            <div class="stat-content">
+                <div class="stat-value">{{ stats.subjects | default(0) }}</div>
+                <div class="stat-label">Subjects</div>
+            </div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-icon"><i class="fas fa-vials"></i></div>
+            <div class="stat-content">
+                <div class="stat-value">{{ stats.biosamples | default(0) }}</div>
+                <div class="stat-label">Biosamples</div>
+            </div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-icon"><i class="fas fa-flask"></i></div>
+            <div class="stat-content">
+                <div class="stat-value">{{ stats.libraries | default(0) }}</div>
+                <div class="stat-label">Libraries</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Subjects Table -->
+    <div class="card">
+        <h3 class="card-title"><i class="fas fa-users"></i> All Subjects</h3>
+        <div class="table-container">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Subject ID</th>
+                        <th>Display Name</th>
+                        <th>Sex</th>
+                        <th>Cohort</th>
+                        <th>Biosamples</th>
+                        <th>Created</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="subjects-body">
+                    {% if subjects %}
+                    {% for subject in subjects %}
+                    <tr>
+                        <td>
+                            <a href="/portal/biospecimen/subjects/{{ subject.subject_id }}" class="text-accent">
+                                {{ subject.subject_id[:20] }}...
+                            </a>
+                        </td>
+                        <td>{{ subject.display_name | default('—') }}</td>
+                        <td>
+                            {% if subject.sex %}
+                            <span class="badge badge-outline">{{ subject.sex | capitalize }}</span>
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </td>
+                        <td>{{ subject.cohort | default('—') }}</td>
+                        <td>
+                            <span class="badge badge-info">{{ subject.biosample_count | default(0) }}</span>
+                        </td>
+                        <td>{{ subject.created_at[:10] if subject.created_at else '—' }}</td>
+                        <td>
+                            <div class="d-flex gap-sm">
+                                <a href="/portal/biospecimen/subjects/{{ subject.subject_id }}" 
+                                   class="btn btn-outline btn-sm" title="View">
+                                    <i class="fas fa-eye"></i>
+                                </a>
+                                <button class="btn btn-outline btn-sm" 
+                                        onclick="addBiosample('{{ subject.subject_id }}')" title="Add Biosample">
+                                    <i class="fas fa-vial"></i>
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr>
+                        <td colspan="7">
+                            <div class="empty-state">
+                                <div class="empty-state-icon"><i class="fas fa-users"></i></div>
+                                <h4 class="empty-state-title">No subjects yet</h4>
+                                <p class="empty-state-text">Add your first subject to start tracking biosamples</p>
+                                <button class="btn btn-primary" onclick="showCreateSubjectModal()">
+                                    <i class="fas fa-plus"></i> Add First Subject
+                                </button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<!-- Create Subject Modal -->
+<div class="modal" id="create-subject-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-user-plus"></i> Add New Subject</h3>
+            <button class="modal-close" onclick="closeModal('create-subject-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="create-subject-form" onsubmit="event.preventDefault(); createSubject();">
+                <div class="form-group">
+                    <label class="form-label required">Subject Identifier</label>
+                    <input type="text" class="form-control" id="subject-identifier" 
+                           placeholder="e.g., PATIENT-001, HG002" required>
+                    <small class="form-text">Unique identifier for this subject</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Display Name</label>
+                    <input type="text" class="form-control" id="subject-display-name" 
+                           placeholder="Optional display name">
+                </div>
+                <div class="grid grid-2 gap-md">
+                    <div class="form-group">
+                        <label class="form-label">Sex</label>
+                        <select class="form-control form-select" id="subject-sex">
+                            <option value="">Unknown</option>
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Cohort</label>
+                        <input type="text" class="form-control" id="subject-cohort" 
+                               placeholder="e.g., Study-A">
+                    </div>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('create-subject-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="createSubject()">
+                <i class="fas fa-plus"></i> Create Subject
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-card { display: flex; align-items: center; gap: var(--spacing-lg); }
+.stat-icon { font-size: 2rem; color: var(--color-accent); opacity: 0.8; }
+.stat-value { font-size: 1.75rem; font-weight: 700; color: var(--color-primary); }
+.stat-label { color: var(--color-gray-600); font-size: 0.875rem; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+window.CUSTOMER_ID = '{{ customer.customer_id if customer else "default-customer" }}';
+const BIOSPECIMEN_API = '/api/biospecimen';
+
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function showCreateSubjectModal() {
+    document.getElementById('create-subject-form').reset();
+    showModal('create-subject-modal');
+}
+
+async function createSubject() {
+    const identifier = document.getElementById('subject-identifier').value.trim();
+    if (!identifier) {
+        alert('Subject identifier is required');
+        return;
+    }
+
+    const data = {
+        identifier: identifier,
+        display_name: document.getElementById('subject-display-name').value.trim() || null,
+        sex: document.getElementById('subject-sex').value || null,
+        cohort: document.getElementById('subject-cohort').value.trim() || null,
+    };
+
+    try {
+        const response = await fetch(`${BIOSPECIMEN_API}/subjects`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(data),
+        });
+
+        if (response.ok) {
+            closeModal('create-subject-modal');
+            window.location.reload();
+        } else {
+            const err = await response.json().catch(() => ({}));
+            alert(err.detail || 'Failed to create subject');
+        }
+    } catch (error) {
+        console.error('Error:', error);
+        alert('Failed to create subject');
+    }
+}
+
+function addBiosample(subjectId) {
+    window.location.href = `/portal/biospecimen/subjects/${subjectId}?action=add-biosample`;
+}
+</script>
+{% endblock %}
+

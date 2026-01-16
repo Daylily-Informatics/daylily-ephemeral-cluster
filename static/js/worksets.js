@@ -356,9 +356,14 @@ async function submitWorkset(event) {
             data.samples = window.worksetSamples;
         }
 
-        // Include YAML content if uploaded
-        if (window.worksetYamlContent) {
-            data.yaml_content = window.worksetYamlContent;
+        // Include fileset if selected
+        if (window.selectedFileset) {
+            data.fileset_id = window.selectedFileset.fileset_id;
+        }
+
+        // Include manifest data if uploaded
+        if (window.manifestData) {
+            data.manifest = window.manifestData;
         }
 
         showLoading('Creating workset...');
@@ -473,5 +478,258 @@ document.addEventListener('DOMContentLoaded', function() {
     document.querySelectorAll('.workset-checkbox').forEach(cb => {
         cb.addEventListener('change', updateBulkActions);
     });
+
+    // Initialize fileset selector if on new workset page
+    if (document.getElementById('fileset-select')) {
+        loadFilesetOptions();
+    }
+
+    // Add cost calculation listeners
+    const costTriggers = ['pipeline_type', 'reference_genome', 'priority', 'enable_qc', 'fileset-select'];
+    costTriggers.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('change', calculateCostEstimate);
+        }
+    });
 });
+
+// Tab switching for workset creation
+function switchTab(tabName) {
+    // Hide all tab contents
+    document.querySelectorAll('.tab-content').forEach(tc => tc.classList.remove('active'));
+    // Deactivate all tab items
+    document.querySelectorAll('.tab-item').forEach(ti => ti.classList.remove('active'));
+
+    // Show selected tab content
+    const tabContent = document.getElementById(`tab-${tabName}`);
+    if (tabContent) tabContent.classList.add('active');
+
+    // Activate selected tab item
+    const tabItems = document.querySelectorAll('.tab-item');
+    tabItems.forEach(ti => {
+        if (ti.textContent.toLowerCase().includes(tabName.toLowerCase()) ||
+            ti.onclick?.toString().includes(`'${tabName}'`)) {
+            ti.classList.add('active');
+        }
+    });
+
+    // Store selected input method
+    window.selectedInputMethod = tabName;
+
+    // Recalculate cost
+    calculateCostEstimate();
+}
+
+// Load fileset options for selector
+async function loadFilesetOptions() {
+    const select = document.getElementById('fileset-select');
+    if (!select) return;
+
+    const customerId = window.DaylilyConfig?.customerId;
+    if (!customerId) return;
+
+    try {
+        const response = await fetch(`/api/v1/files/filesets?customer_id=${encodeURIComponent(customerId)}`);
+        if (!response.ok) throw new Error('Failed to load filesets');
+
+        const filesets = await response.json();
+
+        select.innerHTML = '<option value="">Choose a file set...</option>';
+        filesets.forEach(fs => {
+            const option = document.createElement('option');
+            option.value = fs.fileset_id;
+            option.textContent = `${fs.name} (${fs.file_count} files)`;
+            option.dataset.fileCount = fs.file_count;
+            option.dataset.description = fs.description || '';
+            select.appendChild(option);
+        });
+    } catch (error) {
+        console.error('Failed to load filesets:', error);
+        select.innerHTML = '<option value="">Error loading file sets</option>';
+    }
+}
+
+// Load fileset preview when selected
+async function loadFilesetPreview() {
+    const select = document.getElementById('fileset-select');
+    const preview = document.getElementById('fileset-preview');
+    if (!select || !preview) return;
+
+    const filesetId = select.value;
+    if (!filesetId) {
+        preview.classList.add('d-none');
+        window.selectedFileset = null;
+        calculateCostEstimate();
+        return;
+    }
+
+    try {
+        const response = await fetch(`/api/v1/files/filesets/${filesetId}`);
+        if (!response.ok) throw new Error('Failed to load fileset');
+
+        const fileset = await response.json();
+        window.selectedFileset = fileset;
+
+        document.getElementById('fileset-name').textContent = fileset.name;
+        document.getElementById('fileset-file-count').textContent = `${fileset.files?.length || 0} files`;
+        document.getElementById('fileset-description').textContent = fileset.description || 'No description';
+
+        // Show file preview (first 5 files)
+        const filesPreview = document.getElementById('fileset-files-preview');
+        if (filesPreview && fileset.files) {
+            const displayFiles = fileset.files.slice(0, 5);
+            filesPreview.innerHTML = displayFiles.map(f => `
+                <div class="d-flex align-center gap-sm" style="padding: var(--spacing-xs) 0; border-bottom: 1px solid #2a3a44;">
+                    <i class="fas fa-file text-muted"></i>
+                    <span class="text-sm">${f.filename || f.file_id}</span>
+                    <span class="text-muted text-sm ml-auto">${formatFileSize(f.file_size || 0)}</span>
+                </div>
+            `).join('');
+
+            if (fileset.files.length > 5) {
+                filesPreview.innerHTML += `<div class="text-muted text-sm mt-sm">...and ${fileset.files.length - 5} more files</div>`;
+            }
+        }
+
+        preview.classList.remove('d-none');
+        calculateCostEstimate();
+    } catch (error) {
+        console.error('Failed to load fileset preview:', error);
+        preview.classList.add('d-none');
+    }
+}
+
+// Preview manifest file
+function previewManifest(input) {
+    const file = input.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const content = e.target.result;
+        const lines = content.split('\n').filter(l => l.trim());
+
+        if (lines.length < 2) {
+            showToast('error', 'Invalid Manifest', 'Manifest must have a header row and at least one data row');
+            return;
+        }
+
+        const headers = lines[0].split('\t');
+        const rows = lines.slice(1).map(line => line.split('\t'));
+
+        // Build table
+        const thead = document.getElementById('manifest-thead');
+        const tbody = document.getElementById('manifest-tbody');
+
+        thead.innerHTML = '<tr>' + headers.map(h => `<th>${h}</th>`).join('') + '</tr>';
+        tbody.innerHTML = rows.slice(0, 10).map(row =>
+            '<tr>' + row.map(cell => `<td>${cell}</td>`).join('') + '</tr>'
+        ).join('');
+
+        document.getElementById('manifest-row-count').textContent = rows.length;
+        document.getElementById('manifest-preview').classList.remove('d-none');
+
+        // Store manifest data
+        window.manifestData = { headers, rows };
+        window.manifestSampleCount = rows.length;
+
+        calculateCostEstimate();
+    };
+    reader.readAsText(file);
+}
+
+// Calculate cost estimate
+function calculateCostEstimate() {
+    const pipeline = document.getElementById('pipeline_type')?.value;
+    const reference = document.getElementById('reference_genome')?.value;
+    const priority = document.getElementById('priority')?.value || 'normal';
+    const enableQc = document.getElementById('enable_qc')?.checked ?? true;
+
+    // Determine sample count based on input method
+    let sampleCount = 0;
+    let totalDataSize = 0; // in GB
+
+    if (window.selectedFileset) {
+        sampleCount = Math.ceil((window.selectedFileset.files?.length || 0) / 2); // Assume paired-end
+        totalDataSize = (window.selectedFileset.files || []).reduce((sum, f) => sum + (f.file_size || 0), 0) / (1024 * 1024 * 1024);
+    } else if (window.manifestSampleCount) {
+        sampleCount = window.manifestSampleCount;
+        totalDataSize = sampleCount * 30; // Estimate 30GB per sample
+    } else if (window.worksetSamples?.length) {
+        sampleCount = window.worksetSamples.length;
+        totalDataSize = sampleCount * 30;
+    }
+
+    if (!pipeline || sampleCount === 0) {
+        updateCostDisplay(0, 0, 0, 0, 0, 0, 0, 1.0);
+        return;
+    }
+
+    // Base costs per sample (in USD)
+    const pipelineCosts = {
+        'germline': { compute: 2.50, vcpuHours: 8, timeHours: 2 },
+        'somatic': { compute: 5.00, vcpuHours: 16, timeHours: 4 },
+        'rnaseq': { compute: 1.50, vcpuHours: 4, timeHours: 1.5 },
+        'wgs': { compute: 8.00, vcpuHours: 32, timeHours: 6 },
+        'wes': { compute: 3.00, vcpuHours: 12, timeHours: 2.5 }
+    };
+
+    const baseCost = pipelineCosts[pipeline] || pipelineCosts['germline'];
+
+    // Priority multipliers
+    const priorityMultipliers = {
+        'low': 0.5,
+        'normal': 1.0,
+        'high': 2.0
+    };
+    const priorityMult = priorityMultipliers[priority] || 1.0;
+
+    // Calculate costs
+    let computeCost = baseCost.compute * sampleCount;
+    let storageCost = totalDataSize * 0.023; // S3 standard pricing per GB/month
+    let transferCost = totalDataSize * 0.09; // Data transfer out
+
+    // QC adds 5% to compute
+    if (enableQc) {
+        computeCost *= 1.05;
+    }
+
+    // Apply priority multiplier to compute only
+    computeCost *= priorityMult;
+
+    const totalCost = computeCost + storageCost + transferCost;
+    const totalTime = baseCost.timeHours * sampleCount / 4; // Parallel processing
+    const totalVcpu = baseCost.vcpuHours * sampleCount;
+
+    updateCostDisplay(totalCost, totalTime, totalVcpu, sampleCount, computeCost, storageCost, transferCost, priorityMult);
+}
+
+// Update cost display
+function updateCostDisplay(total, time, vcpu, samples, compute, storage, transfer, priorityMult) {
+    document.getElementById('est-cost').textContent = `$${total.toFixed(2)}`;
+    document.getElementById('est-time').textContent = time > 0 ? `${time.toFixed(1)}h` : '0h';
+    document.getElementById('est-vcpu').textContent = vcpu.toFixed(0);
+    document.getElementById('est-samples').textContent = samples;
+
+    // Update breakdown if elements exist
+    const computeEl = document.getElementById('cost-compute');
+    const storageEl = document.getElementById('cost-storage');
+    const transferEl = document.getElementById('cost-transfer');
+    const priorityEl = document.getElementById('cost-priority');
+
+    if (computeEl) computeEl.textContent = `$${compute.toFixed(2)}`;
+    if (storageEl) storageEl.textContent = `$${storage.toFixed(2)}`;
+    if (transferEl) transferEl.textContent = `$${transfer.toFixed(2)}`;
+    if (priorityEl) priorityEl.textContent = `${priorityMult}x`;
+}
+
+// Format file size helper
+function formatFileSize(bytes) {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB', 'TB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 

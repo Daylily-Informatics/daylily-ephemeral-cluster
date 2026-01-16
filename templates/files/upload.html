@@ -171,12 +171,13 @@
 {% block extra_js %}
 <script src="/static/js/file-registry.js?v={{ cache_bust | default('1') }}"></script>
 <script>
-console.log('Upload page JavaScript loaded - v2');
+console.log('Upload page JavaScript loaded - v3');
 
 // Upload state
 let uploadQueue = [];
 let uploadInProgress = false;
 let currentUploadIndex = 0;
+let currentAbortController = null;  // Track the current upload's abort controller
 
 function updateDestinationPath() {
     const bucket = document.getElementById('upload-bucket');
@@ -285,6 +286,11 @@ async function startUpload() {
 
     // Upload files sequentially (could be parallelized)
     for (let i = 0; i < uploadQueue.length; i++) {
+        // Check if cancelled before starting next file
+        if (!uploadInProgress) {
+            console.log('Upload cancelled by user');
+            break;
+        }
         currentUploadIndex = i;
         document.getElementById('progress-count').textContent = i + 1;
         console.log(`Starting upload ${i + 1}/${uploadQueue.length}: ${uploadQueue[i].name}`);
@@ -292,9 +298,12 @@ async function startUpload() {
         console.log(`Completed upload ${i + 1}/${uploadQueue.length}: ${uploadQueue[i].name}`);
     }
 
-    uploadInProgress = false;
-    console.log('All uploads complete');
-    showUploadComplete();
+    // Only show complete if not cancelled
+    if (uploadInProgress) {
+        uploadInProgress = false;
+        console.log('All uploads complete');
+        showUploadComplete();
+    }
 }
 
 async function uploadFile(file, idx) {
@@ -312,16 +321,17 @@ async function uploadFile(file, idx) {
         formData.append('file', file);
 
         // Upload to server with timeout (5 minutes for large files)
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 300000); // 5 min timeout
+        currentAbortController = new AbortController();
+        const timeoutId = setTimeout(() => currentAbortController.abort(), 300000); // 5 min timeout
 
         const response = await fetch('/portal/files/upload', {
             method: 'POST',
             body: formData,
-            signal: controller.signal,
+            signal: currentAbortController.signal,
         });
 
         clearTimeout(timeoutId);
+        currentAbortController = null;
 
         if (!response.ok) {
             let errorMsg = `Upload failed with status ${response.status}`;
@@ -352,21 +362,29 @@ async function uploadFile(file, idx) {
         console.log(`Uploaded ${file.name} to s3://${result.bucket}/${result.key}`);
 
     } catch (error) {
-        const errorMsg = error.name === 'AbortError' ? 'Upload timeout (5 min)' : error.message;
+        // Check if cancelled by user vs timeout vs other error
+        let errorMsg;
+        if (error.name === 'AbortError') {
+            errorMsg = uploadInProgress ? 'Upload timeout (5 min)' : 'Cancelled';
+        } else {
+            errorMsg = error.message;
+        }
         console.error(`Upload failed for ${file.name}: ${errorMsg}`);
 
-        // Add error to progress list
-        const progressList = document.getElementById('file-progress-list');
-        const progressItem = document.createElement('div');
-        progressItem.className = 'file-progress-item';
-        progressItem.innerHTML = `
-            <span class="file-progress-name">${file.name} (${fileSizeMB} MB)</span>
-            <span class="file-progress-status error">✗ ${errorMsg}</span>
-        `;
-        progressList.appendChild(progressItem);
+        // Only add error to progress list if not a user cancel
+        if (uploadInProgress) {
+            const progressList = document.getElementById('file-progress-list');
+            const progressItem = document.createElement('div');
+            progressItem.className = 'file-progress-item';
+            progressItem.innerHTML = `
+                <span class="file-progress-name">${file.name} (${fileSizeMB} MB)</span>
+                <span class="file-progress-status error">✗ ${errorMsg}</span>
+            `;
+            progressList.appendChild(progressItem);
 
-        // Update overall progress even on error
-        document.getElementById('overall-progress-fill').style.width = `${((idx + 1) / uploadQueue.length) * 100}%`;
+            // Update overall progress even on error
+            document.getElementById('overall-progress-fill').style.width = `${((idx + 1) / uploadQueue.length) * 100}%`;
+        }
     }
 }
 
@@ -380,11 +398,34 @@ function resetUpload() {
     uploadQueue = [];
     document.getElementById('upload-complete-card').style.display = 'none';
     document.getElementById('file-queue-card').style.display = 'none';
+    document.getElementById('upload-progress-card').style.display = 'none';
+    document.getElementById('file-progress-list').innerHTML = '';
+    document.getElementById('overall-progress-fill').style.width = '0%';
+    document.getElementById('progress-status').textContent = 'Preparing...';
 }
 
 function cancelUpload() {
+    console.log('Cancel upload requested');
+
+    // Abort any in-progress upload
+    if (currentAbortController) {
+        currentAbortController.abort();
+        currentAbortController = null;
+        console.log('Aborted current upload');
+    }
+
+    // Stop the upload loop
     uploadInProgress = false;
+
+    // Reset UI
     resetUpload();
+
+    // Show toast notification
+    if (typeof showToast === 'function') {
+        showToast('Upload cancelled', 'info');
+    }
+
+    console.log('Upload cancelled successfully');
 }
 </script>
 {% endblock %}

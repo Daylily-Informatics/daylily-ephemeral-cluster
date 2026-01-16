@@ -579,7 +579,33 @@ def create_file_api_router(
                 status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
                 detail=f"Failed to create fileset: {str(e)}",
             )
-    
+
+    @router.get("/filesets")
+    async def list_filesets(
+        customer_id: str = Query(..., description="Customer ID"),
+        current_user: Optional[Dict] = Depends(auth_dependency),
+    ):
+        """List all file sets for a customer."""
+        try:
+            filesets = file_registry.list_customer_filesets(customer_id)
+            return [
+                {
+                    "fileset_id": fs.fileset_id,
+                    "name": fs.name,
+                    "description": fs.description,
+                    "file_count": len(fs.file_ids),
+                    "created_at": fs.created_at,
+                    "tags": fs.tags,
+                }
+                for fs in filesets
+            ]
+        except Exception as e:
+            LOGGER.error("Failed to list filesets: %s", str(e))
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to list filesets: {str(e)}",
+            )
+
     @router.post("/bulk-import", response_model=BulkImportResponse)
     async def bulk_import_files(
         customer_id: str = Query(..., description="Customer ID"),

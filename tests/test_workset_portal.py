@@ -143,6 +143,27 @@ class TestPortalRoutes:
         assert "text/html" in response.headers["content-type"]
         assert b"Usage" in response.content or b"Billing" in response.content
 
+    def test_portal_docs(self, authenticated_client):
+        """Test documentation page loads (requires auth)."""
+        response = authenticated_client.get("/portal/docs")
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
+        assert b"Documentation" in response.content or b"docs" in response.content.lower()
+
+    def test_portal_support(self, authenticated_client):
+        """Test support page loads (requires auth)."""
+        response = authenticated_client.get("/portal/support")
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
+        assert b"Support" in response.content or b"Contact" in response.content
+
+    def test_portal_account(self, authenticated_client):
+        """Test account page loads (requires auth)."""
+        response = authenticated_client.get("/portal/account")
+        assert response.status_code == 200
+        assert "text/html" in response.headers["content-type"]
+        assert b"Account" in response.content or b"Settings" in response.content
+
     def test_unauthenticated_redirect(self, client):
         """Test that unauthenticated users are redirected to login."""
         response = client.get("/portal/worksets", follow_redirects=False)

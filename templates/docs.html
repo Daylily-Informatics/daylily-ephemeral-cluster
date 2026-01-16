@@ -1,0 +1,132 @@
+{% extends "base.html" %}
+{% set active_page = 'docs' %}
+
+{% block title %}Documentation - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <div class="page-header">
+        <h1 class="page-title">Documentation</h1>
+        <p class="page-subtitle">Learn how to use the Daylily genomics processing platform</p>
+    </div>
+
+    <div class="grid" style="grid-template-columns: 250px 1fr; gap: var(--spacing-xl);">
+        <!-- Sidebar Navigation -->
+        <div class="docs-sidebar">
+            <nav class="docs-nav">
+                <h4>Getting Started</h4>
+                <ul>
+                    <li><a href="#overview" class="active">Overview</a></li>
+                    <li><a href="#quick-start">Quick Start Guide</a></li>
+                    <li><a href="#concepts">Key Concepts</a></li>
+                </ul>
+                <h4>Worksets</h4>
+                <ul>
+                    <li><a href="#creating-worksets">Creating Worksets</a></li>
+                    <li><a href="#monitoring">Monitoring Progress</a></li>
+                    <li><a href="#results">Accessing Results</a></li>
+                </ul>
+                <h4>File Management</h4>
+                <ul>
+                    <li><a href="#file-registry">File Registry</a></li>
+                    <li><a href="#filesets">File Sets</a></li>
+                    <li><a href="#manifests">Manifests</a></li>
+                </ul>
+                <h4>API Reference</h4>
+                <ul>
+                    <li><a href="/docs" target="_blank">OpenAPI Docs</a></li>
+                    <li><a href="#api-auth">Authentication</a></li>
+                </ul>
+            </nav>
+        </div>
+
+        <!-- Main Content -->
+        <div class="docs-content">
+            <section id="overview" class="docs-section">
+                <h2>Overview</h2>
+                <p>Daylily is a cloud-based genomics processing platform that enables you to run bioinformatics pipelines at scale. The platform handles:</p>
+                <ul>
+                    <li><strong>Workset Management</strong> - Submit, monitor, and manage analysis jobs</li>
+                    <li><strong>File Registry</strong> - Track and organize your sequencing data files</li>
+                    <li><strong>Pipeline Execution</strong> - Run germline, somatic, RNA-seq, and other analyses</li>
+                    <li><strong>Cost Tracking</strong> - Monitor compute and storage costs in real-time</li>
+                </ul>
+            </section>
+
+            <section id="quick-start" class="docs-section">
+                <h2>Quick Start Guide</h2>
+                <div class="card" style="background: linear-gradient(135deg, #1a3a4a, #0d2633);">
+                    <h4 style="color: #fff; margin-top: 0;">1. Register Your Files</h4>
+                    <p>Navigate to <a href="/portal/files" class="text-accent">Files</a> and link your S3 bucket or upload files directly.</p>
+                    
+                    <h4 style="color: #fff;">2. Create a File Set</h4>
+                    <p>Group related files (e.g., paired-end reads for a sample) into a <a href="/portal/files/filesets" class="text-accent">File Set</a>.</p>
+                    
+                    <h4 style="color: #fff;">3. Submit a Workset</h4>
+                    <p>Go to <a href="/portal/worksets/new" class="text-accent">Submit New Workset</a>, select your file set, choose a pipeline, and submit.</p>
+                    
+                    <h4 style="color: #fff;">4. Monitor Progress</h4>
+                    <p>Track your workset status on the <a href="/portal" class="text-accent">Dashboard</a> or <a href="/portal/worksets" class="text-accent">Worksets</a> page.</p>
+                </div>
+            </section>
+
+            <section id="concepts" class="docs-section">
+                <h2>Key Concepts</h2>
+                <div class="grid grid-2">
+                    <div class="card">
+                        <h4><i class="fas fa-folder-open text-accent"></i> Workset</h4>
+                        <p>A batch of analysis inputs processed together through a pipeline. Contains one or more samples.</p>
+                    </div>
+                    <div class="card">
+                        <h4><i class="fas fa-layer-group text-accent"></i> File Set</h4>
+                        <p>A logical grouping of files with shared metadata (e.g., all files for a biosample).</p>
+                    </div>
+                    <div class="card">
+                        <h4><i class="fas fa-file-alt text-accent"></i> Manifest</h4>
+                        <p>A TSV file (stage_samples.tsv) that defines sample metadata and file mappings.</p>
+                    </div>
+                    <div class="card">
+                        <h4><i class="fas fa-dna text-accent"></i> Pipeline</h4>
+                        <p>A bioinformatics workflow (germline, somatic, RNA-seq, etc.) that processes your data.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="creating-worksets" class="docs-section">
+                <h2>Creating Worksets</h2>
+                <p>There are several ways to create a workset:</p>
+                <ol>
+                    <li><strong>From File Set</strong> (Recommended) - Select a pre-configured file set</li>
+                    <li><strong>Upload Files</strong> - Upload FASTQ files directly</li>
+                    <li><strong>S3 Path</strong> - Point to existing data in S3</li>
+                    <li><strong>Manifest Upload</strong> - Upload a stage_samples.tsv file</li>
+                </ol>
+            </section>
+
+            <section id="api-auth" class="docs-section">
+                <h2>API Authentication</h2>
+                <p>The Daylily API supports two authentication methods:</p>
+                <div class="card">
+                    <h4>JWT Token (Recommended)</h4>
+                    <p>Include your JWT token in the Authorization header:</p>
+                    <pre style="background: #0d1a22; padding: var(--spacing-md); border-radius: var(--radius-md); overflow-x: auto;"><code>Authorization: Bearer &lt;your-jwt-token&gt;</code></pre>
+                </div>
+                <div class="card">
+                    <h4>API Key</h4>
+                    <p>Generate an API key from your <a href="/portal/account" class="text-accent">Account Settings</a> and include it in requests:</p>
+                    <pre style="background: #0d1a22; padding: var(--spacing-md); border-radius: var(--radius-md); overflow-x: auto;"><code>X-API-Key: &lt;your-api-key&gt;</code></pre>
+                </div>
+            </section>
+
+            <div class="card mt-xl" style="background: #1a2a33; text-align: center;">
+                <h3 style="margin-top: 0;">Need Help?</h3>
+                <p class="text-muted">Can't find what you're looking for? Contact our support team.</p>
+                <a href="/portal/support" class="btn btn-primary">
+                    <i class="fas fa-envelope"></i> Contact Support
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+

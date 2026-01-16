@@ -1,0 +1,377 @@
+{% extends "base.html" %}
+{% set active_page = 'files' %}
+
+{% block title %}{{ fileset.name if fileset else 'File Set' }} - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb -->
+    <a href="/portal/files/filesets" class="text-muted mb-md d-block">
+        <i class="fas fa-arrow-left"></i> Back to File Sets
+    </a>
+    
+    {% if fileset %}
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-between align-center flex-wrap gap-lg">
+        <div>
+            <h1 class="page-title">{{ fileset.name }}</h1>
+            <p class="page-subtitle">{{ fileset.description or 'No description' }}</p>
+        </div>
+        <div class="page-actions" style="margin-top: 0;">
+            <button class="btn btn-outline" onclick="editFileset('{{ fileset.fileset_id }}')">
+                <i class="fas fa-edit"></i> Edit
+            </button>
+            <button class="btn btn-outline" onclick="cloneFileset('{{ fileset.fileset_id }}')">
+                <i class="fas fa-copy"></i> Clone
+            </button>
+            <button class="btn btn-primary" onclick="showAddFilesModal()">
+                <i class="fas fa-plus"></i> Add Files
+            </button>
+        </div>
+    </div>
+
+    <!-- Stats Row -->
+    <div class="grid grid-4 gap-lg mb-xl">
+        <div class="card stat-card">
+            <div class="stat-value">{{ files|length }}</div>
+            <div class="stat-label">Files</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-value">{{ fileset.total_size | filesizeformat if fileset.total_size else '0 B' }}</div>
+            <div class="stat-label">Total Size</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-value">{{ unique_subjects | default(0) }}</div>
+            <div class="stat-label">Subjects</div>
+        </div>
+        <div class="card stat-card">
+            <div class="stat-value">{{ fileset.created_at[:10] if fileset.created_at else '—' }}</div>
+            <div class="stat-label">Created</div>
+        </div>
+    </div>
+
+    <!-- Actions Bar -->
+    <div class="card mb-lg">
+        <div class="d-flex justify-between align-center flex-wrap gap-md">
+            <div class="d-flex gap-sm">
+                <button class="btn btn-primary" onclick="generateManifestFromFileset('{{ fileset.fileset_id }}')">
+                    <i class="fas fa-file-export"></i> Generate Manifest
+                </button>
+                <button class="btn btn-outline" onclick="useInWorkset()">
+                    <i class="fas fa-play"></i> Use in Workset
+                </button>
+            </div>
+            <div class="d-flex gap-sm">
+                <input type="text" class="form-control" placeholder="Search files..." 
+                       id="file-search" onkeyup="filterFilesetFiles()" style="width: 250px;">
+                <button class="btn btn-outline btn-danger" onclick="removeSelectedFiles()" id="remove-selected-btn" disabled>
+                    <i class="fas fa-trash"></i> Remove Selected
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Files Table -->
+    <div class="card">
+        <h3 class="card-title"><i class="fas fa-file"></i> Files in Set ({{ files|length }})</h3>
+        <div class="table-container">
+            <table class="table" id="fileset-files-table">
+                <thead>
+                    <tr>
+                        <th style="width: 40px;"><input type="checkbox" id="select-all" onchange="toggleSelectAll()"></th>
+                        <th>File Name</th>
+                        <th>Subject ID</th>
+                        <th>Sample ID</th>
+                        <th>Size</th>
+                        <th>Type</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="files-tbody">
+                    {% if files %}
+                    {% for file in files %}
+                    <tr data-file-id="{{ file.file_id }}">
+                        <td><input type="checkbox" class="file-checkbox" value="{{ file.file_id }}" onchange="updateRemoveButton()"></td>
+                        <td>
+                            <a href="/portal/files/{{ file.file_id }}" class="text-accent">
+                                {{ file.file_metadata.file_name or file.file_id[:20] }}
+                            </a>
+                        </td>
+                        <td>{{ file.biosample_metadata.subject_id if file.biosample_metadata else '—' }}</td>
+                        <td>{{ file.biosample_metadata.sample_id if file.biosample_metadata else '—' }}</td>
+                        <td>{{ file.file_metadata.file_size | filesizeformat if file.file_metadata and file.file_metadata.file_size else '—' }}</td>
+                        <td><span class="badge badge-outline">{{ file.file_metadata.file_type or 'unknown' }}</span></td>
+                        <td>
+                            <div class="d-flex gap-xs">
+                                <a href="/portal/files/{{ file.file_id }}" class="btn btn-xs btn-outline" title="View"><i class="fas fa-eye"></i></a>
+                                <button class="btn btn-xs btn-outline text-error" onclick="removeFileFromSet('{{ file.file_id }}')" title="Remove"><i class="fas fa-times"></i></button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                    {% else %}
+                    <tr id="empty-row">
+                        <td colspan="7">
+                            <div class="empty-state-inline">
+                                <i class="fas fa-file text-muted"></i>
+                                <span>No files in this set yet</span>
+                                <button class="btn btn-sm btn-primary" onclick="showAddFilesModal()">Add Files</button>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% else %}
+    <div class="card">
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-exclamation-triangle"></i></div>
+            <h4 class="empty-state-title">File Set Not Found</h4>
+            <p class="empty-state-text">The requested file set could not be found.</p>
+            <a href="/portal/files/filesets" class="btn btn-primary">Back to File Sets</a>
+        </div>
+    </div>
+    {% endif %}
+</div>
+
+<!-- Add Files Modal -->
+<div class="modal" id="add-files-modal">
+    <div class="modal-content modal-lg">
+        <div class="modal-header">
+            <h3><i class="fas fa-plus"></i> Add Files to Set</h3>
+            <button class="modal-close" onclick="closeModal('add-files-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group mb-lg">
+                <input type="text" class="form-control" id="add-files-search"
+                       placeholder="Search files by name, subject, or sample..." onkeyup="searchFilesToAdd()">
+            </div>
+            <div class="file-selector-list" id="add-files-list">
+                <div class="text-center text-muted p-lg">Enter a search term to find files</div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <span class="text-muted"><span id="add-files-count">0</span> files selected</span>
+            <button class="btn btn-outline" onclick="closeModal('add-files-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="confirmAddFiles()">Add Selected Files</button>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Fileset Modal -->
+<div class="modal" id="edit-fileset-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Edit File Set</h3>
+            <button class="modal-close" onclick="closeModal('edit-fileset-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Name</label>
+                <input type="text" class="form-control" id="edit-fileset-name" value="{{ fileset.name if fileset else '' }}">
+            </div>
+            <div class="form-group">
+                <label class="form-label">Description</label>
+                <textarea class="form-control" id="edit-fileset-description" rows="3">{{ fileset.description if fileset else '' }}</textarea>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Tags</label>
+                <input type="text" class="form-control" id="edit-fileset-tags"
+                       value="{{ fileset.tags | join(', ') if fileset and fileset.tags else '' }}"
+                       placeholder="Comma-separated tags">
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('edit-fileset-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveFilesetEdits()">Save Changes</button>
+        </div>
+    </div>
+</div>
+
+<style>
+.stat-card { text-align: center; padding: var(--spacing-lg); }
+.stat-value { font-size: 1.5rem; font-weight: 700; color: var(--color-accent); }
+.stat-label { font-size: 0.85rem; color: var(--color-gray-600); }
+.empty-state-inline { display: flex; align-items: center; gap: var(--spacing-md); justify-content: center; padding: var(--spacing-xl); color: var(--color-gray-500); }
+.file-selector-list { max-height: 400px; overflow-y: auto; border: 1px solid var(--color-gray-300); border-radius: var(--radius-md); }
+.file-selector-item { display: flex; align-items: center; gap: var(--spacing-md); padding: var(--spacing-md); border-bottom: 1px solid var(--color-gray-200); cursor: pointer; }
+.file-selector-item:hover { background: var(--color-gray-100); }
+.file-selector-item.selected { background: #e3f2fd; }
+.file-selector-item input[type="checkbox"] { width: 18px; height: 18px; }
+.btn-xs { padding: 0.25rem 0.5rem; font-size: 0.75rem; }
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+const FILESET_ID = '{{ fileset.fileset_id if fileset else "" }}';
+const FILE_API_BASE = '/api/files';
+let selectedFilesToAdd = new Set();
+
+function showModal(id) { document.getElementById(id).classList.add('show'); }
+function closeModal(id) { document.getElementById(id).classList.remove('show'); }
+
+function showAddFilesModal() {
+    selectedFilesToAdd.clear();
+    document.getElementById('add-files-search').value = '';
+    document.getElementById('add-files-list').innerHTML = '<div class="text-center text-muted p-lg">Enter a search term to find files</div>';
+    document.getElementById('add-files-count').textContent = '0';
+    showModal('add-files-modal');
+}
+
+async function searchFilesToAdd() {
+    const query = document.getElementById('add-files-search').value.trim();
+    if (query.length < 2) return;
+
+    const response = await fetch(`${FILE_API_BASE}?search=${encodeURIComponent(query)}&limit=50`);
+    if (!response.ok) return;
+
+    const files = await response.json();
+    const list = document.getElementById('add-files-list');
+
+    if (files.length === 0) {
+        list.innerHTML = '<div class="text-center text-muted p-lg">No files found</div>';
+        return;
+    }
+
+    list.innerHTML = files.map(f => `
+        <div class="file-selector-item ${selectedFilesToAdd.has(f.file_id) ? 'selected' : ''}" onclick="toggleFileToAdd('${f.file_id}', this)">
+            <input type="checkbox" ${selectedFilesToAdd.has(f.file_id) ? 'checked' : ''}>
+            <div style="flex:1;">
+                <div><strong>${f.file_metadata?.file_name || f.file_id}</strong></div>
+                <div class="text-muted text-sm">${f.biosample_metadata?.subject_id || '—'} / ${f.biosample_metadata?.sample_id || '—'}</div>
+            </div>
+        </div>
+    `).join('');
+}
+
+function toggleFileToAdd(fileId, element) {
+    if (selectedFilesToAdd.has(fileId)) {
+        selectedFilesToAdd.delete(fileId);
+        element.classList.remove('selected');
+        element.querySelector('input').checked = false;
+    } else {
+        selectedFilesToAdd.add(fileId);
+        element.classList.add('selected');
+        element.querySelector('input').checked = true;
+    }
+    document.getElementById('add-files-count').textContent = selectedFilesToAdd.size;
+}
+
+async function confirmAddFiles() {
+    if (selectedFilesToAdd.size === 0) return;
+
+    const response = await fetch(`${FILE_API_BASE}/filesets/${FILESET_ID}/add-files`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(Array.from(selectedFilesToAdd))
+    });
+
+    if (response.ok) {
+        closeModal('add-files-modal');
+        location.reload();
+    } else {
+        alert('Failed to add files');
+    }
+}
+
+function editFileset(id) { showModal('edit-fileset-modal'); }
+
+async function saveFilesetEdits() {
+    const response = await fetch(`${FILE_API_BASE}/filesets/${FILESET_ID}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+            name: document.getElementById('edit-fileset-name').value,
+            description: document.getElementById('edit-fileset-description').value,
+            tags: document.getElementById('edit-fileset-tags').value.split(',').map(t => t.trim()).filter(t => t)
+        })
+    });
+
+    if (response.ok) {
+        closeModal('edit-fileset-modal');
+        location.reload();
+    } else {
+        alert('Failed to update file set');
+    }
+}
+
+async function cloneFileset(id) {
+    const newName = prompt('Enter a name for the cloned file set:', 'Copy of {{ fileset.name if fileset else "File Set" }}');
+    if (!newName) return;
+
+    const response = await fetch(`${FILE_API_BASE}/filesets/${id}/clone`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ new_name: newName })
+    });
+
+    if (response.ok) {
+        const result = await response.json();
+        window.location.href = `/portal/files/filesets/${result.fileset_id}`;
+    } else {
+        alert('Failed to clone file set');
+    }
+}
+
+async function removeFileFromSet(fileId) {
+    if (!confirm('Remove this file from the set?')) return;
+
+    const response = await fetch(`${FILE_API_BASE}/filesets/${FILESET_ID}/remove-files`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify([fileId])
+    });
+
+    if (response.ok) location.reload();
+    else alert('Failed to remove file');
+}
+
+function toggleSelectAll() {
+    const checked = document.getElementById('select-all').checked;
+    document.querySelectorAll('.file-checkbox').forEach(cb => cb.checked = checked);
+    updateRemoveButton();
+}
+
+function updateRemoveButton() {
+    const count = document.querySelectorAll('.file-checkbox:checked').length;
+    const btn = document.getElementById('remove-selected-btn');
+    btn.disabled = count === 0;
+    btn.innerHTML = count > 0 ? `<i class="fas fa-trash"></i> Remove (${count})` : '<i class="fas fa-trash"></i> Remove Selected';
+}
+
+async function removeSelectedFiles() {
+    const fileIds = Array.from(document.querySelectorAll('.file-checkbox:checked')).map(cb => cb.value);
+    if (fileIds.length === 0) return;
+    if (!confirm(`Remove ${fileIds.length} file(s) from the set?`)) return;
+
+    const response = await fetch(`${FILE_API_BASE}/filesets/${FILESET_ID}/remove-files`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fileIds)
+    });
+
+    if (response.ok) location.reload();
+    else alert('Failed to remove files');
+}
+
+function filterFilesetFiles() {
+    const query = document.getElementById('file-search').value.toLowerCase();
+    document.querySelectorAll('#files-tbody tr:not(#empty-row)').forEach(row => {
+        const text = row.textContent.toLowerCase();
+        row.style.display = text.includes(query) ? '' : 'none';
+    });
+}
+
+async function generateManifestFromFileset(id) {
+    window.location.href = `/portal/manifest-generator?fileset_id=${id}`;
+}
+
+function useInWorkset() {
+    window.location.href = `/portal/worksets/new?fileset_id=${FILESET_ID}`;
+}
+</script>
+{% endblock %}
+

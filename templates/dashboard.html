@@ -11,63 +11,68 @@
         <p class="page-subtitle">Here's an overview of your genomics processing activity</p>
     </div>
     
-    <!-- Stats Grid -->
-    <div class="grid grid-4 mb-xl">
-        <div class="stat-card">
+    <!-- Status Tiles Grid -->
+    <div class="grid grid-5 mb-xl">
+        <a href="/portal/worksets?status=in_progress" class="stat-card stat-card-clickable">
             <div class="card-icon primary">
-                <i class="fas fa-folder-open"></i>
+                <i class="fas fa-spinner fa-spin"></i>
             </div>
             <div>
-                <div class="stat-value" id="stat-active-worksets">{{ stats.active_worksets | default(0) }}</div>
-                <div class="stat-label">Active Worksets</div>
-                <div class="stat-change positive" id="stat-worksets-change">
-                    <i class="fas fa-arrow-up"></i> {{ stats.worksets_change | default(0) }} this week
-                </div>
+                <div class="stat-value" id="stat-in-progress">{{ stats.in_progress_worksets | default(0) }}</div>
+                <div class="stat-label">In Progress</div>
             </div>
-        </div>
-        
-        <div class="stat-card">
+        </a>
+
+        <a href="/portal/worksets?status=ready" class="stat-card stat-card-clickable">
+            <div class="card-icon info">
+                <i class="fas fa-clock"></i>
+            </div>
+            <div>
+                <div class="stat-value" id="stat-ready">{{ stats.ready_worksets | default(0) }}</div>
+                <div class="stat-label">Ready/Queued</div>
+            </div>
+        </a>
+
+        <a href="/portal/worksets?status=complete" class="stat-card stat-card-clickable">
             <div class="card-icon success">
                 <i class="fas fa-check-circle"></i>
             </div>
             <div>
                 <div class="stat-value" id="stat-completed">{{ stats.completed_worksets | default(0) }}</div>
                 <div class="stat-label">Completed</div>
-                <div class="stat-change positive">
-                    <i class="fas fa-arrow-up"></i> {{ stats.completed_change | default(0) }} this week
-                </div>
             </div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="card-icon warning">
-                <i class="fas fa-database"></i>
+        </a>
+
+        <a href="/portal/worksets?status=error" class="stat-card stat-card-clickable">
+            <div class="card-icon error">
+                <i class="fas fa-exclamation-triangle"></i>
             </div>
             <div>
-                <div class="stat-value" id="stat-storage">{{ "%.1f"|format(stats.storage_used_gb | default(0)) }}</div>
-                <div class="stat-label">GB Storage Used</div>
-                <div class="mt-sm">
-                    <div class="progress">
-                        <div class="progress-bar {{ 'warning' if (stats.storage_percent | default(0)) > 80 else 'primary' }}" 
-                             style="width: {{ stats.storage_percent | default(0) }}%"></div>
-                    </div>
-                    <small class="text-muted">{{ stats.storage_percent | default(0) }}% of {{ stats.max_storage_gb | default(500) }} GB</small>
-                </div>
+                <div class="stat-value" id="stat-error">{{ stats.error_worksets | default(0) }}</div>
+                <div class="stat-label">Errors</div>
             </div>
-        </div>
-        
-        <div class="stat-card">
-            <div class="card-icon error">
+        </a>
+
+        <a href="/portal/usage" class="stat-card stat-card-clickable">
+            <div class="card-icon warning">
                 <i class="fas fa-dollar-sign"></i>
             </div>
             <div>
                 <div class="stat-value">${{ "%.2f"|format(stats.cost_this_month | default(0)) }}</div>
-                <div class="stat-label">Cost This Month</div>
-                <div class="stat-change {{ 'negative' if (stats.cost_change | default(0)) > 0 else 'positive' }}">
-                    <i class="fas fa-{{ 'arrow-up' if (stats.cost_change | default(0)) > 0 else 'arrow-down' }}"></i>
-                    {{ stats.cost_change | default(0) }}% vs last month
-                </div>
+                <div class="stat-label">This Month</div>
             </div>
+        </a>
+    </div>
+
+    <!-- Storage Bar -->
+    <div class="card mb-xl" style="padding: var(--spacing-md);">
+        <div class="d-flex justify-between align-center mb-sm">
+            <span class="text-muted"><i class="fas fa-database"></i> Storage Usage</span>
+            <span><strong>{{ "%.1f"|format(stats.storage_used_gb | default(0)) }} GB</strong> of {{ stats.max_storage_gb | default(500) }} GB</span>
+        </div>
+        <div class="progress" style="height: 8px;">
+            <div class="progress-bar {{ 'error' if (stats.storage_percent | default(0)) > 90 else 'warning' if (stats.storage_percent | default(0)) > 80 else 'success' }}"
+                 style="width: {{ stats.storage_percent | default(0) }}%"></div>
         </div>
     </div>
     
@@ -140,8 +145,17 @@
             
             <!-- Account Info -->
             <div class="card">
-                <h3 class="card-title">Account Details</h3>
+                <div class="card-header" style="padding: 0 0 var(--spacing-md) 0;">
+                    <h3 class="card-title" style="margin: 0;">Account Details</h3>
+                    <button class="btn btn-outline btn-sm" onclick="showRenameModal()">
+                        <i class="fas fa-edit"></i> Rename
+                    </button>
+                </div>
                 <dl style="margin: 0;">
+                    <div class="d-flex justify-between mb-md">
+                        <dt class="text-muted">Display Name</dt>
+                        <dd id="customer-display-name"><strong>{{ customer.customer_name | default(customer.customer_id) }}</strong></dd>
+                    </div>
                     <div class="d-flex justify-between mb-md">
                         <dt class="text-muted">Customer ID</dt>
                         <dd><code>{{ customer.customer_id | default('N/A') }}</code></dd>
@@ -173,6 +187,31 @@
         </div>
     </div>
 </div>
+
+<!-- Rename Modal -->
+<div class="modal" id="rename-modal">
+    <div class="modal-content" style="max-width: 400px;">
+        <div class="modal-header">
+            <h3>Rename Account</h3>
+            <button class="modal-close" onclick="closeModal('rename-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="form-group">
+                <label class="form-label">Display Name</label>
+                <input type="text" id="new-display-name" class="form-control"
+                       value="{{ customer.customer_name | default(customer.customer_id) }}"
+                       placeholder="Enter display name">
+                <p class="form-text">This name will be shown in the portal header and reports.</p>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-outline" onclick="closeModal('rename-modal')">Cancel</button>
+            <button class="btn btn-primary" onclick="saveDisplayName()">
+                <i class="fas fa-save"></i> Save
+            </button>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
@@ -181,10 +220,50 @@
 document.addEventListener('DOMContentLoaded', function() {
     // Initialize activity chart
     initActivityChart('activity-chart');
-    
+
     // Refresh stats periodically
     setInterval(refreshDashboardStats, 60000);
 });
+
+function showRenameModal() {
+    showModal('rename-modal');
+    document.getElementById('new-display-name').focus();
+}
+
+async function saveDisplayName() {
+    const newName = document.getElementById('new-display-name').value.trim();
+    if (!newName) {
+        showToast('error', 'Error', 'Please enter a display name');
+        return;
+    }
+
+    const customerId = window.DaylilyConfig?.customerId;
+    if (!customerId) return;
+
+    try {
+        const response = await fetch(`/api/v1/customers/${customerId}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ customer_name: newName })
+        });
+
+        if (response.ok) {
+            document.getElementById('customer-display-name').innerHTML = `<strong>${newName}</strong>`;
+            // Update header if exists
+            const headerName = document.querySelector('.user-name');
+            if (headerName) headerName.textContent = newName;
+
+            closeModal('rename-modal');
+            showToast('success', 'Saved', 'Display name updated');
+        } else {
+            const error = await response.json();
+            showToast('error', 'Error', error.detail || 'Failed to update name');
+        }
+    } catch (error) {
+        console.error('Rename error:', error);
+        showToast('error', 'Error', 'Failed to update name');
+    }
+}
 </script>
 {% endblock %}
 

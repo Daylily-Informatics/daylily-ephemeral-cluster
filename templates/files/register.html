@@ -409,8 +409,35 @@ function switchTab(tabName) {
     document.querySelectorAll('.tab-content').forEach(t => t.classList.add('d-none'));
     document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
     document.getElementById('tab-' + tabName).classList.remove('d-none');
-    event.target.closest('.tab-btn').classList.add('active');
+    // Find the correct tab button and activate it
+    const tabBtns = document.querySelectorAll('.tab-btn');
+    tabBtns.forEach(btn => {
+        if (btn.textContent.toLowerCase().includes(tabName.toLowerCase()) ||
+            btn.getAttribute('onclick')?.includes(`'${tabName}'`)) {
+            btn.classList.add('active');
+        }
+    });
 }
+
+// Handle URL parameters on page load
+document.addEventListener('DOMContentLoaded', function() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const tab = urlParams.get('tab');
+    const bucketId = urlParams.get('bucket_id');
+
+    // Switch to specified tab
+    if (tab && ['single', 'bulk', 'discover'].includes(tab)) {
+        switchTab(tab);
+    }
+
+    // Pre-select bucket if specified
+    if (bucketId) {
+        const bucketSelect = document.getElementById('discover-bucket');
+        if (bucketSelect) {
+            bucketSelect.value = bucketId;
+        }
+    }
+});
 
 function browseS3() {
     // Try to get bucket from Auto-Discover tab first

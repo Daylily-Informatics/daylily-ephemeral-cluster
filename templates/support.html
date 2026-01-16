@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+{% set active_page = 'support' %}
+
+{% block title %}Contact Support - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container container-sm">
+    <div class="page-header text-center">
+        <h1 class="page-title">Contact Support</h1>
+        <p class="page-subtitle">We're here to help with any questions or issues</p>
+    </div>
+
+    <div class="card">
+        <form id="support-form" onsubmit="submitSupportRequest(event)">
+            <div class="form-group">
+                <label class="form-label required">Subject</label>
+                <select id="support-subject" class="form-control form-select" required>
+                    <option value="">Select a topic...</option>
+                    <option value="technical">Technical Issue</option>
+                    <option value="billing">Billing Question</option>
+                    <option value="feature">Feature Request</option>
+                    <option value="account">Account Help</option>
+                    <option value="other">Other</option>
+                </select>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Your Email</label>
+                <input type="email" id="support-email" class="form-control" 
+                       value="{{ customer.email | default('') }}" required
+                       placeholder="your@email.com">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Related Workset ID (optional)</label>
+                <input type="text" id="support-workset" class="form-control" 
+                       placeholder="e.g., ws-abc123">
+            </div>
+
+            <div class="form-group">
+                <label class="form-label required">Message</label>
+                <textarea id="support-message" class="form-control" rows="6" required
+                          placeholder="Please describe your issue or question in detail..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="checkbox-label">
+                    <input type="checkbox" id="support-include-logs">
+                    <span>Include system logs (helps with debugging)</span>
+                </label>
+            </div>
+
+            <button type="submit" class="btn btn-primary btn-block btn-lg">
+                <i class="fas fa-paper-plane"></i> Send Message
+            </button>
+        </form>
+    </div>
+
+    <div class="grid grid-3 mt-xl">
+        <div class="card text-center">
+            <div class="card-icon primary mx-auto mb-md">
+                <i class="fas fa-envelope"></i>
+            </div>
+            <h4>Email</h4>
+            <p class="text-muted">For general inquiries</p>
+            <a href="mailto:support@daylily.io" class="text-accent">support@daylily.io</a>
+        </div>
+
+        <div class="card text-center">
+            <div class="card-icon success mx-auto mb-md">
+                <i class="fab fa-github"></i>
+            </div>
+            <h4>GitHub</h4>
+            <p class="text-muted">Report bugs & issues</p>
+            <a href="https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/issues" 
+               target="_blank" class="text-accent">Open an Issue</a>
+        </div>
+
+        <div class="card text-center">
+            <div class="card-icon warning mx-auto mb-md">
+                <i class="fas fa-book"></i>
+            </div>
+            <h4>Documentation</h4>
+            <p class="text-muted">Self-service help</p>
+            <a href="/portal/docs" class="text-accent">View Docs</a>
+        </div>
+    </div>
+
+    <div class="card mt-xl" style="background: linear-gradient(135deg, #1a3a4a, #0d2633);">
+        <h4 style="color: #fff; margin-top: 0;"><i class="fas fa-clock text-warning"></i> Support Hours</h4>
+        <p style="color: #c8d4db;">Our support team is available Monday through Friday, 9 AM - 6 PM EST.</p>
+        <p style="color: #c8d4db; margin-bottom: 0;">For urgent production issues, please include "URGENT" in your subject line.</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+async function submitSupportRequest(event) {
+    event.preventDefault();
+    
+    const subject = document.getElementById('support-subject').value;
+    const email = document.getElementById('support-email').value;
+    const worksetId = document.getElementById('support-workset').value;
+    const message = document.getElementById('support-message').value;
+    const includeLogs = document.getElementById('support-include-logs').checked;
+    
+    // Build mailto link with pre-filled content
+    const subjectLine = `[${subject.toUpperCase()}] Support Request from ${email}`;
+    let body = `From: ${email}\n`;
+    if (worksetId) body += `Workset ID: ${worksetId}\n`;
+    body += `\n${message}`;
+    if (includeLogs) body += `\n\n[System logs will be attached by support team]`;
+    
+    const mailtoLink = `mailto:support@daylily.io?subject=${encodeURIComponent(subjectLine)}&body=${encodeURIComponent(body)}`;
+    
+    // Open email client
+    window.location.href = mailtoLink;
+    
+    showToast('success', 'Email Client Opened', 'Please send the email from your email client');
+}
+</script>
+{% endblock %}
+

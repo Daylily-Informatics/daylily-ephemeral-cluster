@@ -114,16 +114,216 @@
         </button>
     </div>
 </div>
+
+<!-- Change Password Modal -->
+<div class="modal" id="change-password-modal">
+    <div class="modal-content" style="max-width: 450px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-key"></i> Change Password</h3>
+            <button class="modal-close" onclick="closeModal('change-password-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="change-password-form" onsubmit="submitPasswordChange(event)">
+                <div class="form-group">
+                    <label class="form-label required">Current Password</label>
+                    <input type="password" id="current-password" class="form-control" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">New Password</label>
+                    <input type="password" id="new-password" class="form-control" required minlength="8">
+                    <small class="form-help">Min 8 chars, include uppercase, lowercase, number, symbol</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label required">Confirm New Password</label>
+                    <input type="password" id="confirm-password" class="form-control" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-block">
+                    <i class="fas fa-check"></i> Update Password
+                </button>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- API Tokens Modal -->
+<div class="modal" id="api-tokens-modal">
+    <div class="modal-content" style="max-width: 600px;">
+        <div class="modal-header">
+            <h3><i class="fas fa-code"></i> API Tokens</h3>
+            <button class="modal-close" onclick="closeModal('api-tokens-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <p class="text-muted mb-md">API tokens allow programmatic access to the Daylily API.</p>
+
+            <div id="api-tokens-list" class="mb-lg">
+                <div class="loading-spinner">Loading tokens...</div>
+            </div>
+
+            <div class="card" style="background: #1a2a33;">
+                <h4 class="mb-sm">Generate New Token</h4>
+                <div class="form-group">
+                    <label class="form-label">Token Name</label>
+                    <input type="text" id="new-token-name" class="form-control" placeholder="e.g., CI/CD Pipeline">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Expiration</label>
+                    <select id="new-token-expiry" class="form-control form-select">
+                        <option value="30">30 days</option>
+                        <option value="90">90 days</option>
+                        <option value="365">1 year</option>
+                        <option value="0">Never expires</option>
+                    </select>
+                </div>
+                <button class="btn btn-primary" onclick="generateApiToken()">
+                    <i class="fas fa-plus"></i> Generate Token
+                </button>
+            </div>
+
+            <div id="new-token-display" class="alert alert-success mt-md" style="display: none;">
+                <strong>New Token Generated!</strong>
+                <p class="text-sm mb-sm">Copy this token now. You won't be able to see it again.</p>
+                <div class="d-flex gap-sm">
+                    <input type="text" id="new-token-value" class="form-control" readonly style="font-family: monospace;">
+                    <button class="btn btn-outline" onclick="copyToken()">
+                        <i class="fas fa-copy"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
 <script>
 function showChangePassword() {
-    alert('Password change functionality coming soon. Please contact support.');
+    showModal('change-password-modal');
+    document.getElementById('current-password').focus();
+}
+
+async function submitPasswordChange(event) {
+    event.preventDefault();
+
+    const currentPassword = document.getElementById('current-password').value;
+    const newPassword = document.getElementById('new-password').value;
+    const confirmPassword = document.getElementById('confirm-password').value;
+
+    if (newPassword !== confirmPassword) {
+        showToast('error', 'Error', 'Passwords do not match');
+        return;
+    }
+
+    try {
+        const response = await fetch('/api/v1/auth/change-password', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                current_password: currentPassword,
+                new_password: newPassword
+            })
+        });
+
+        if (response.ok) {
+            closeModal('change-password-modal');
+            showToast('success', 'Success', 'Password updated successfully');
+            document.getElementById('change-password-form').reset();
+        } else {
+            const error = await response.json();
+            showToast('error', 'Error', error.detail || 'Failed to change password');
+        }
+    } catch (error) {
+        console.error('Password change error:', error);
+        showToast('error', 'Error', 'Failed to change password');
+    }
 }
 
 function showApiTokens() {
-    alert('API token management coming soon. Please contact support.');
+    showModal('api-tokens-modal');
+    loadApiTokens();
+}
+
+async function loadApiTokens() {
+    const container = document.getElementById('api-tokens-list');
+
+    try {
+        const response = await fetch('/api/v1/auth/tokens');
+        if (response.ok) {
+            const tokens = await response.json();
+            if (tokens.length === 0) {
+                container.innerHTML = '<p class="text-muted">No API tokens yet.</p>';
+            } else {
+                container.innerHTML = tokens.map(token => `
+                    <div class="d-flex justify-between align-center p-md mb-sm" style="background: #0d1a22; border-radius: var(--radius-md);">
+                        <div>
+                            <strong>${token.name}</strong>
+                            <span class="text-muted text-sm ml-sm">Created: ${new Date(token.created_at).toLocaleDateString()}</span>
+                            ${token.expires_at ? `<span class="text-muted text-sm ml-sm">Expires: ${new Date(token.expires_at).toLocaleDateString()}</span>` : ''}
+                        </div>
+                        <button class="btn btn-sm btn-danger" onclick="revokeToken('${token.id}')">
+                            <i class="fas fa-trash"></i>
+                        </button>
+                    </div>
+                `).join('');
+            }
+        } else {
+            container.innerHTML = '<p class="text-muted">Unable to load tokens.</p>';
+        }
+    } catch (error) {
+        container.innerHTML = '<p class="text-muted">Unable to load tokens.</p>';
+    }
+}
+
+async function generateApiToken() {
+    const name = document.getElementById('new-token-name').value || 'API Token';
+    const expiryDays = parseInt(document.getElementById('new-token-expiry').value);
+
+    try {
+        const response = await fetch('/api/v1/auth/tokens', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, expiry_days: expiryDays })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            document.getElementById('new-token-value').value = data.token;
+            document.getElementById('new-token-display').style.display = 'block';
+            document.getElementById('new-token-name').value = '';
+            loadApiTokens();
+        } else {
+            const error = await response.json();
+            showToast('error', 'Error', error.detail || 'Failed to generate token');
+        }
+    } catch (error) {
+        console.error('Token generation error:', error);
+        showToast('error', 'Error', 'Failed to generate token');
+    }
+}
+
+function copyToken() {
+    const tokenInput = document.getElementById('new-token-value');
+    tokenInput.select();
+    document.execCommand('copy');
+    showToast('success', 'Copied', 'Token copied to clipboard');
+}
+
+async function revokeToken(tokenId) {
+    if (!confirm('Are you sure you want to revoke this token?')) return;
+
+    try {
+        const response = await fetch(`/api/v1/auth/tokens/${tokenId}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            showToast('success', 'Revoked', 'Token has been revoked');
+            loadApiTokens();
+        } else {
+            showToast('error', 'Error', 'Failed to revoke token');
+        }
+    } catch (error) {
+        showToast('error', 'Error', 'Failed to revoke token');
+    }
 }
 
 function confirmDeleteAccount() {
