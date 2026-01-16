@@ -55,6 +55,11 @@
                         {% endif %}
                     </div>
                     <div class="bucket-actions">
+                        {% if bucket.can_list %}
+                        <a href="/portal/files/browse/{{ bucket.bucket_id }}" class="btn btn-sm btn-primary" title="Browse Files">
+                            <i class="fas fa-folder-open"></i> Browse
+                        </a>
+                        {% endif %}
                         <button class="btn btn-sm btn-outline" onclick="revalidateBucket('{{ bucket.bucket_id }}')" title="Revalidate">
                             <i class="fas fa-sync-alt"></i>
                         </button>
@@ -72,7 +77,7 @@
 
                 <div class="bucket-details">
                     <div class="bucket-meta">
-                        <span><i class="fab fa-aws"></i> <code>{{ bucket.bucket_name }}</code></span>
+                        <span><i class="fab fa-aws"></i> <code>s3://{{ bucket.bucket_name }}</code></span>
                         {% if bucket.region %}
                         <span><i class="fas fa-globe"></i> {{ bucket.region }}</span>
                         {% endif %}
@@ -189,12 +194,12 @@
                     <label class="form-label required">Bucket Name</label>
                     <div class="input-with-button">
                         <input type="text" class="form-control" id="bucket-name"
-                               placeholder="my-genomics-bucket" required>
+                               placeholder="s3://my-genomics-bucket" required>
                         <button type="button" class="btn btn-outline" onclick="validateBucketBeforeLink()">
                             <i class="fas fa-check-circle"></i> Validate
                         </button>
                     </div>
-                    <small class="form-text">The name of your S3 bucket (without s3://)</small>
+                    <small class="form-text">The S3 bucket URI (e.g., s3://my-genomics-bucket)</small>
                 </div>
 
                 <div class="form-row">

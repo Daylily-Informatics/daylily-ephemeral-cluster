@@ -130,14 +130,18 @@ class S3BucketValidator:
         test_prefix: str = "daylily-validation-test/",
     ) -> BucketValidationResult:
         """Validate an S3 bucket for Daylily use.
-        
+
         Args:
-            bucket_name: S3 bucket name
+            bucket_name: S3 bucket name (can include s3:// prefix)
             test_prefix: Prefix to use for write tests
-            
+
         Returns:
             BucketValidationResult with validation details
         """
+        # Strip s3:// prefix if provided
+        if bucket_name.startswith("s3://"):
+            bucket_name = bucket_name[5:]
+
         result = BucketValidationResult(bucket_name=bucket_name)
         
         # Check bucket exists
@@ -429,13 +433,17 @@ def validate_bucket_for_workset(
     """Convenience function to validate a bucket for workset submission.
 
     Args:
-        bucket_name: S3 bucket name
+        bucket_name: S3 bucket name (can include s3:// prefix)
         region: AWS region
         profile: AWS profile name
 
     Returns:
         Tuple of (is_valid, errors, warnings)
     """
+    # Strip s3:// prefix if provided
+    if bucket_name.startswith("s3://"):
+        bucket_name = bucket_name[5:]
+
     validator = S3BucketValidator(region=region, profile=profile)
     result = validator.validate_bucket(bucket_name)
     return result.is_valid, result.errors, result.warnings
@@ -542,7 +550,7 @@ class LinkedBucketManager:
 
         Args:
             customer_id: Customer ID
-            bucket_name: S3 bucket name
+            bucket_name: S3 bucket name (can include s3:// prefix)
             bucket_type: Type of bucket (primary, secondary, archive, shared)
             display_name: User-friendly display name
             description: Description of bucket purpose
@@ -553,6 +561,10 @@ class LinkedBucketManager:
         Returns:
             Tuple of (LinkedBucket, BucketValidationResult)
         """
+        # Strip s3:// prefix if provided
+        if bucket_name.startswith("s3://"):
+            bucket_name = bucket_name[5:]
+
         bucket_id = self._generate_bucket_id(customer_id, bucket_name)
 
         # Validate bucket if requested

@@ -27,7 +27,7 @@
                     <option value="">-- Select a linked bucket --</option>
                     {% for bucket in buckets %}
                     <option value="{{ bucket.bucket_id }}" data-bucket-name="{{ bucket.bucket_name }}">
-                        {{ bucket.bucket_name }}
+                        s3://{{ bucket.bucket_name }}
                     </option>
                     {% endfor %}
                 </select>

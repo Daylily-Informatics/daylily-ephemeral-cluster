@@ -234,6 +234,59 @@ class AutoRegisterResponse(BaseModel):
     errors: List[str]
 
 
+# ========== Bucket Browsing Models ==========
+
+
+class BrowseItem(BaseModel):
+    """A file or folder in the S3 bucket browse view."""
+    name: str = Field(..., description="File or folder name")
+    key: str = Field(..., description="Full S3 key/path")
+    is_folder: bool = Field(..., description="True if this is a folder (prefix)")
+    size_bytes: Optional[int] = Field(None, description="File size (None for folders)")
+    last_modified: Optional[str] = Field(None, description="Last modified timestamp")
+    file_format: Optional[str] = Field(None, description="Detected file format")
+    is_registered: bool = Field(False, description="True if file is registered in FileRegistry")
+    file_id: Optional[str] = Field(None, description="File ID if registered")
+
+
+class BrowseBucketResponse(BaseModel):
+    """Response model for bucket browsing."""
+    bucket_id: str
+    bucket_name: str
+    display_name: str
+    current_prefix: str
+    parent_prefix: Optional[str] = Field(None, description="Parent folder prefix")
+    breadcrumbs: List[Dict[str, str]] = Field(default_factory=list)
+    items: List[BrowseItem] = Field(default_factory=list)
+    can_write: bool = Field(False, description="Whether user can create/delete")
+    is_read_only: bool = Field(False, description="Whether bucket is read-only")
+    total_items: int = Field(0, description="Total items in current view")
+
+
+class CreateFolderRequest(BaseModel):
+    """Request model for creating a folder."""
+    folder_name: str = Field(..., min_length=1, max_length=255, description="New folder name")
+
+
+class CreateFolderResponse(BaseModel):
+    """Response model for folder creation."""
+    success: bool
+    folder_key: str = Field(..., description="Full S3 key of created folder")
+    message: str
+
+
+class DeleteFileRequest(BaseModel):
+    """Request model for deleting a file."""
+    file_key: str = Field(..., description="S3 key of file to delete")
+
+
+class DeleteFileResponse(BaseModel):
+    """Response model for file deletion."""
+    success: bool
+    deleted_key: str
+    message: str
+
+
 class FileSearchRequest(BaseModel):
     """Request model for file search."""
     tag: Optional[str] = Field(None, description="Search by tag")
@@ -1924,6 +1977,403 @@ def create_file_api_router(
             "seq_vendors": [e.value for e in SequencingVendor],
             "seq_platforms": [e.value for e in SequencingPlatform],
         }
+
+    # ========== Bucket Browsing Endpoints ==========
+
+    @router.get("/buckets/{bucket_id}/browse", response_model=BrowseBucketResponse)
+    async def browse_bucket(
+        bucket_id: str,
+        customer_id: str = Query(..., description="Customer ID"),
+        prefix: str = Query("", description="Current directory prefix"),
+        current_user: Optional[Dict] = Depends(auth_dependency),
+    ):
+        """Browse files and folders in a linked S3 bucket.
+
+        Returns a hierarchical view of files and folders at the specified prefix.
+        Files are checked against the FileRegistry to show registration status.
+        """
+        if linked_bucket_manager is None:
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail="Bucket management not configured",
+            )
+
+        # Get linked bucket and verify ownership
+        bucket = linked_bucket_manager.get_bucket(bucket_id)
+        if bucket is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Bucket not found",
+            )
+
+        if bucket.customer_id != customer_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Bucket belongs to a different customer",
+            )
+
+        if not bucket.can_list:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Cannot list objects in this bucket",
+            )
+
+        # Apply prefix restriction if set
+        effective_prefix = prefix
+        if bucket.prefix_restriction:
+            if not prefix:
+                effective_prefix = bucket.prefix_restriction
+            elif not prefix.startswith(bucket.prefix_restriction):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Prefix is outside allowed prefix restriction",
+                )
+
+        # Normalize prefix (ensure it ends with / if not empty)
+        if effective_prefix and not effective_prefix.endswith("/"):
+            effective_prefix += "/"
+        if effective_prefix == "/":
+            effective_prefix = ""
+
+        try:
+            import boto3
+            from botocore.exceptions import ClientError
+
+            session_kwargs = {"region_name": bucket.region or "us-west-2"}
+            s3 = boto3.Session(**session_kwargs).client("s3")
+
+            # List objects at the current prefix
+            items: List[BrowseItem] = []
+            folders_seen = set()
+
+            paginator = s3.get_paginator("list_objects_v2")
+            page_iterator = paginator.paginate(
+                Bucket=bucket.bucket_name,
+                Prefix=effective_prefix,
+                Delimiter="/",
+            )
+
+            for page in page_iterator:
+                # Add folders (common prefixes)
+                for cp in page.get("CommonPrefixes", []):
+                    folder_prefix = cp["Prefix"]
+                    folder_name = folder_prefix.rstrip("/").split("/")[-1]
+                    if folder_name and folder_prefix not in folders_seen:
+                        folders_seen.add(folder_prefix)
+                        items.append(BrowseItem(
+                            name=folder_name,
+                            key=folder_prefix,
+                            is_folder=True,
+                            size_bytes=None,
+                            last_modified=None,
+                            file_format=None,
+                            is_registered=False,
+                        ))
+
+                # Add files
+                for obj in page.get("Contents", []):
+                    key = obj["Key"]
+                    # Skip the prefix itself (directory placeholder)
+                    if key == effective_prefix or key.endswith("/"):
+                        continue
+
+                    file_name = key.split("/")[-1]
+                    detected_format = detect_file_format(key)
+
+                    # Check registration status
+                    is_registered = False
+                    file_id = None
+                    if file_registry is not None:
+                        s3_uri = f"s3://{bucket.bucket_name}/{key}"
+                        file_id = generate_file_id(s3_uri, customer_id)
+                        existing = file_registry.get_file(file_id)
+                        is_registered = existing is not None
+
+                    items.append(BrowseItem(
+                        name=file_name,
+                        key=key,
+                        is_folder=False,
+                        size_bytes=obj["Size"],
+                        last_modified=obj["LastModified"].isoformat() if obj.get("LastModified") else None,
+                        file_format=detected_format,
+                        is_registered=is_registered,
+                        file_id=file_id if is_registered else None,
+                    ))
+
+            # Sort: folders first, then files alphabetically
+            items.sort(key=lambda x: (not x.is_folder, x.name.lower()))
+
+            # Build breadcrumbs
+            breadcrumbs = [{"name": "Root", "prefix": ""}]
+            if effective_prefix:
+                parts = effective_prefix.rstrip("/").split("/")
+                accumulated = ""
+                for part in parts:
+                    accumulated = f"{accumulated}{part}/"
+                    breadcrumbs.append({"name": part, "prefix": accumulated})
+
+            # Calculate parent prefix
+            parent_prefix = None
+            if effective_prefix:
+                parts = effective_prefix.rstrip("/").split("/")
+                if len(parts) > 1:
+                    parent_prefix = "/".join(parts[:-1]) + "/"
+                else:
+                    parent_prefix = ""
+
+            return BrowseBucketResponse(
+                bucket_id=bucket_id,
+                bucket_name=bucket.bucket_name,
+                display_name=bucket.display_name or bucket.bucket_name,
+                current_prefix=effective_prefix,
+                parent_prefix=parent_prefix,
+                breadcrumbs=breadcrumbs,
+                items=items,
+                can_write=bucket.can_write and not bucket.read_only,
+                is_read_only=bucket.read_only,
+                total_items=len(items),
+            )
+
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code", "Unknown")
+            LOGGER.error("S3 error browsing bucket %s: %s", bucket_id, str(e))
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to browse bucket: {error_code}",
+            )
+        except Exception as e:
+            LOGGER.error("Error browsing bucket %s: %s", bucket_id, str(e))
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to browse bucket: {str(e)}",
+            )
+
+    @router.post("/buckets/{bucket_id}/folders", response_model=CreateFolderResponse)
+    async def create_folder(
+        bucket_id: str,
+        customer_id: str = Query(..., description="Customer ID"),
+        prefix: str = Query("", description="Parent directory prefix"),
+        request: CreateFolderRequest = Body(...),
+        current_user: Optional[Dict] = Depends(auth_dependency),
+    ):
+        """Create a new folder (prefix) in a linked S3 bucket.
+
+        Only available for buckets with write permissions and not marked read-only.
+        """
+        if linked_bucket_manager is None:
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail="Bucket management not configured",
+            )
+
+        bucket = linked_bucket_manager.get_bucket(bucket_id)
+        if bucket is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Bucket not found",
+            )
+
+        if bucket.customer_id != customer_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Bucket belongs to a different customer",
+            )
+
+        # Check write permissions
+        if bucket.read_only:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Bucket is marked as read-only",
+            )
+
+        if not bucket.can_write:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No write permission to this bucket",
+            )
+
+        # Validate folder name (S3 naming constraints)
+        folder_name = request.folder_name.strip()
+        if not folder_name:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail="Folder name cannot be empty",
+            )
+
+        # Disallow certain characters that are problematic in S3
+        invalid_chars = ["\\", "\x00", "\n", "\r"]
+        for char in invalid_chars:
+            if char in folder_name:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f"Folder name contains invalid character",
+                )
+
+        # Apply prefix restriction
+        effective_prefix = prefix
+        if bucket.prefix_restriction:
+            if not prefix:
+                effective_prefix = bucket.prefix_restriction
+            elif not prefix.startswith(bucket.prefix_restriction):
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail="Prefix is outside allowed prefix restriction",
+                )
+
+        # Normalize and build folder key
+        # Ensure prefix ends with / (but avoid double slashes)
+        if effective_prefix:
+            effective_prefix = effective_prefix.rstrip("/") + "/"
+        folder_key = f"{effective_prefix}{folder_name}/"
+
+        try:
+            import boto3
+            from botocore.exceptions import ClientError
+
+            session_kwargs = {"region_name": bucket.region or "us-west-2"}
+            s3 = boto3.Session(**session_kwargs).client("s3")
+
+            # Create folder by putting an empty object with trailing slash
+            s3.put_object(
+                Bucket=bucket.bucket_name,
+                Key=folder_key,
+                Body=b"",
+            )
+
+            # Also create a .hold file to prevent the folder from disappearing
+            # (S3 doesn't truly have folders, so an empty folder marker can disappear)
+            hold_file_key = folder_key.rstrip("/") + "/.hold"
+            s3.put_object(
+                Bucket=bucket.bucket_name,
+                Key=hold_file_key,
+                Body=b"",
+            )
+
+            LOGGER.info(
+                "Created folder %s in bucket %s for customer %s (with .hold file)",
+                folder_key, bucket.bucket_name, customer_id
+            )
+
+            return CreateFolderResponse(
+                success=True,
+                folder_key=folder_key,
+                message=f"Folder '{folder_name}' created successfully",
+            )
+
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code", "Unknown")
+            LOGGER.error("S3 error creating folder in %s: %s", bucket_id, str(e))
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to create folder: {error_code}",
+            )
+
+    @router.delete("/buckets/{bucket_id}/files", response_model=DeleteFileResponse)
+    async def delete_file(
+        bucket_id: str,
+        customer_id: str = Query(..., description="Customer ID"),
+        file_key: str = Query(..., description="S3 key of file to delete"),
+        current_user: Optional[Dict] = Depends(auth_dependency),
+    ):
+        """Delete a file from a linked S3 bucket.
+
+        Only available for:
+        - Buckets with write permissions
+        - Buckets not marked read-only
+        - Files that are NOT registered in the FileRegistry
+        """
+        if linked_bucket_manager is None:
+            raise HTTPException(
+                status_code=status.HTTP_501_NOT_IMPLEMENTED,
+                detail="Bucket management not configured",
+            )
+
+        bucket = linked_bucket_manager.get_bucket(bucket_id)
+        if bucket is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail="Bucket not found",
+            )
+
+        if bucket.customer_id != customer_id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Bucket belongs to a different customer",
+            )
+
+        # Check write permissions
+        if bucket.read_only:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Bucket is marked as read-only",
+            )
+
+        if not bucket.can_write:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No write permission to this bucket",
+            )
+
+        # Check prefix restriction
+        if bucket.prefix_restriction:
+            if not file_key.startswith(bucket.prefix_restriction):
+                raise HTTPException(
+                    status_code=status.HTTP_403_FORBIDDEN,
+                    detail="File is outside allowed prefix restriction",
+                )
+
+        # Check if file is registered - PREVENT deletion of registered files
+        if file_registry is not None:
+            s3_uri = f"s3://{bucket.bucket_name}/{file_key}"
+            file_id = generate_file_id(s3_uri, customer_id)
+            existing = file_registry.get_file(file_id)
+            if existing is not None:
+                raise HTTPException(
+                    status_code=status.HTTP_409_CONFLICT,
+                    detail="Cannot delete a registered file. Unregister the file first.",
+                )
+
+        try:
+            import boto3
+            from botocore.exceptions import ClientError
+
+            session_kwargs = {"region_name": bucket.region or "us-west-2"}
+            s3 = boto3.Session(**session_kwargs).client("s3")
+
+            # Check file exists before deleting
+            try:
+                s3.head_object(Bucket=bucket.bucket_name, Key=file_key)
+            except ClientError as e:
+                if e.response.get("Error", {}).get("Code") == "404":
+                    raise HTTPException(
+                        status_code=status.HTTP_404_NOT_FOUND,
+                        detail="File not found",
+                    )
+                raise
+
+            # Delete the file
+            s3.delete_object(Bucket=bucket.bucket_name, Key=file_key)
+
+            LOGGER.info(
+                "Deleted file %s from bucket %s for customer %s",
+                file_key, bucket.bucket_name, customer_id
+            )
+
+            return DeleteFileResponse(
+                success=True,
+                deleted_key=file_key,
+                message=f"File deleted successfully",
+            )
+
+        except HTTPException:
+            raise
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code", "Unknown")
+            LOGGER.error("S3 error deleting file from %s: %s", bucket_id, str(e))
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to delete file: {error_code}",
+            )
 
     return router
 

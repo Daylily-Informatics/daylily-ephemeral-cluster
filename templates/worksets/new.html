@@ -132,7 +132,7 @@
                 <div class="form-group">
                     <label for="s3_bucket" class="form-label">S3 Bucket</label>
                     <input type="text" id="s3_bucket" name="s3_bucket" class="form-control"
-                           placeholder="your-bucket-name" value="{{ customer.s3_bucket | default('') }}">
+                           placeholder="s3://your-bucket-name" value="{% if customer.s3_bucket %}s3://{{ customer.s3_bucket }}{% endif %}">
                     <p class="form-text">Your designated S3 bucket (pre-filled from your account settings)</p>
                 </div>
                 <div class="form-group">

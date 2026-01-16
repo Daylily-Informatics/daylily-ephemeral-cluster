@@ -324,10 +324,15 @@ class CustomerManager:
         """
         # Scan for customer with matching email
         # In production, consider adding a GSI on email
+        LOGGER.debug(f"get_customer_by_email: Looking for email: {email}")
         customers = self.list_customers()
+        LOGGER.debug(f"get_customer_by_email: Found {len(customers)} customers")
         for customer in customers:
+            LOGGER.debug(f"get_customer_by_email: Comparing {customer.email.lower()} with {email.lower()}")
             if customer.email.lower() == email.lower():
+                LOGGER.debug(f"get_customer_by_email: Found matching customer: {customer.customer_id}")
                 return customer
+        LOGGER.debug(f"get_customer_by_email: No matching customer found for email: {email}")
         return None
 
     def set_admin_status(self, email: str, is_admin: bool) -> bool:
@@ -362,9 +367,11 @@ class CustomerManager:
         try:
             response = table.scan()
             items = response.get("Items", [])
+            LOGGER.debug(f"list_customers: Scanned {len(items)} items from DynamoDB")
 
             customers = []
             for item in items:
+                LOGGER.debug(f"list_customers: Processing item with customer_id={item.get('customer_id')}, email={item.get('email')}")
                 customers.append(
                     CustomerConfig(
                         customer_id=item["customer_id"],
@@ -379,6 +386,7 @@ class CustomerManager:
                     )
                 )
 
+            LOGGER.debug(f"list_customers: Returning {len(customers)} customers")
             return customers
 
         except ClientError as e:

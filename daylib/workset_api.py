@@ -953,7 +953,13 @@ def create_app(
                 # S3 folders are just empty objects with trailing slash
                 folder_key = folder_path.rstrip("/") + "/"
                 s3.put_object(Bucket=config.s3_bucket, Key=folder_key, Body=b"")
-                LOGGER.info(f"Created folder {folder_key} in bucket {config.s3_bucket}")
+
+                # Also create a .hold file to prevent the folder from disappearing
+                # (S3 doesn't truly have folders, so an empty folder marker can disappear)
+                hold_file_key = folder_key.rstrip("/") + "/.hold"
+                s3.put_object(Bucket=config.s3_bucket, Key=hold_file_key, Body=b"")
+
+                LOGGER.info(f"Created folder {folder_key} in bucket {config.s3_bucket} (with .hold file)")
                 return {"success": True, "folder": folder_key}
 
             except Exception as e:
@@ -1353,6 +1359,14 @@ def create_app(
 
             # Use provided prefix or generate one based on workset ID
             prefix = s3_prefix.strip() if s3_prefix else ""
+            # Strip s3:// prefix from prefix if provided
+            if prefix.startswith("s3://"):
+                prefix = prefix[5:]
+                # Extract bucket and prefix if full S3 URI was provided
+                if "/" in prefix:
+                    parts = prefix.split("/", 1)
+                    # bucket = parts[0]  # Could use this if needed
+                    prefix = parts[1]
             if not prefix:
                 prefix = f"worksets/{workset_id}/"
             if not prefix.endswith("/"):
@@ -2261,15 +2275,20 @@ def create_app(
 
             # For demo: accept any login and set session
             # In production, remove this and use Cognito validation above
+            LOGGER.debug(f"portal_login_submit: Setting session for email: {email}")
             request.session["user_email"] = email
             request.session["user_authenticated"] = True
 
             # Check if user is admin
             is_admin = False
             if customer_manager:
+                LOGGER.debug(f"portal_login_submit: Looking up customer by email: {email}")
                 customer = customer_manager.get_customer_by_email(email)
                 if customer:
+                    LOGGER.debug(f"portal_login_submit: Found customer {customer.customer_id}, is_admin={customer.is_admin}")
                     is_admin = customer.is_admin
+                else:
+                    LOGGER.debug(f"portal_login_submit: Customer not found for email: {email}")
             request.session["is_admin"] = is_admin
 
             response = RedirectResponse(url="/portal/", status_code=302)
@@ -2727,6 +2746,185 @@ def create_app(
                 ),
             )
 
+        @app.get("/portal/files/browse/{bucket_id}", response_class=HTMLResponse, tags=["portal"])
+        async def portal_files_browse(request: Request, bucket_id: str, prefix: str = ""):
+            """Browse files and folders in a linked S3 bucket."""
+            auth_redirect = require_portal_auth(request)
+            if auth_redirect:
+                return auth_redirect
+
+            # Get customer - try session first, fallback to list_customers for dev/demo
+            customer = None
+            if customer_manager:
+                customer, _customer_config = get_customer_for_session(request)
+                if not customer:
+                    # Fallback: use first customer (for dev/demo environments)
+                    customers = customer_manager.list_customers()
+                    if customers:
+                        customer = _convert_customer_for_template(customers[0])
+
+            if not customer:
+                # Still no customer - redirect to login instead of raising HTTPException
+                return RedirectResponse(url="/portal/login?error=No+customer+account+found", status_code=302)
+
+            # Get bucket info
+            bucket = None
+            if FILE_MANAGEMENT_AVAILABLE and linked_bucket_manager:
+                bucket_obj = linked_bucket_manager.get_bucket(bucket_id)
+                if bucket_obj:
+                    # Verify ownership
+                    if bucket_obj.customer_id != customer.customer_id:
+                        # Redirect to buckets page with error instead of JSON
+                        return RedirectResponse(
+                            url="/portal/files/buckets?error=Access+denied+to+this+bucket",
+                            status_code=302
+                        )
+                    bucket = {
+                        "bucket_id": bucket_obj.bucket_id,
+                        "bucket_name": bucket_obj.bucket_name,
+                        "display_name": bucket_obj.display_name or bucket_obj.bucket_name,
+                        "bucket_type": bucket_obj.bucket_type,
+                        "can_read": bucket_obj.can_read,
+                        "can_write": bucket_obj.can_write,
+                        "can_list": bucket_obj.can_list,
+                        "read_only": bucket_obj.read_only,
+                        "prefix_restriction": bucket_obj.prefix_restriction,
+                        "region": bucket_obj.region,
+                    }
+
+            if not bucket:
+                # Redirect to buckets page with error instead of JSON
+                return RedirectResponse(
+                    url="/portal/files/buckets?error=Bucket+not+found",
+                    status_code=302
+                )
+
+            # Call the browse API to get items
+            items = []
+            breadcrumbs = [{"name": "Root", "prefix": ""}]
+            parent_prefix = None
+            current_prefix = prefix
+
+            try:
+                # Import here to avoid circular imports
+                import boto3
+                from botocore.exceptions import ClientError
+                from daylib.file_registry import detect_file_format, generate_file_id
+
+                # Apply prefix restriction
+                effective_prefix = prefix
+                if bucket.get("prefix_restriction"):
+                    if not prefix:
+                        effective_prefix = bucket["prefix_restriction"]
+                    elif not prefix.startswith(bucket["prefix_restriction"]):
+                        raise HTTPException(status_code=400, detail="Prefix outside allowed restriction")
+
+                # Normalize prefix
+                if effective_prefix and not effective_prefix.endswith("/"):
+                    effective_prefix += "/"
+                if effective_prefix == "/":
+                    effective_prefix = ""
+                current_prefix = effective_prefix
+
+                session_kwargs = {"region_name": bucket.get("region") or "us-west-2"}
+                s3 = boto3.Session(**session_kwargs).client("s3")
+
+                folders_seen = set()
+                paginator = s3.get_paginator("list_objects_v2")
+                page_iterator = paginator.paginate(
+                    Bucket=bucket["bucket_name"],
+                    Prefix=effective_prefix,
+                    Delimiter="/",
+                )
+
+                for page in page_iterator:
+                    # Add folders
+                    for cp in page.get("CommonPrefixes", []):
+                        folder_prefix = cp["Prefix"]
+                        folder_name = folder_prefix.rstrip("/").split("/")[-1]
+                        if folder_name and folder_prefix not in folders_seen:
+                            folders_seen.add(folder_prefix)
+                            items.append({
+                                "name": folder_name,
+                                "key": folder_prefix,
+                                "is_folder": True,
+                                "size_bytes": None,
+                                "last_modified": None,
+                                "file_format": None,
+                                "is_registered": False,
+                                "file_id": None,
+                            })
+
+                    # Add files
+                    for obj in page.get("Contents", []):
+                        key = obj["Key"]
+                        if key == effective_prefix or key.endswith("/"):
+                            continue
+                        file_name = key.split("/")[-1]
+                        detected_format = detect_file_format(key)
+
+                        # Check registration
+                        is_registered = False
+                        file_id = None
+                        if FILE_MANAGEMENT_AVAILABLE and file_registry:
+                            s3_uri = f"s3://{bucket['bucket_name']}/{key}"
+                            file_id = generate_file_id(s3_uri, customer.customer_id)
+                            existing = file_registry.get_file(file_id)
+                            is_registered = existing is not None
+
+                        items.append({
+                            "name": file_name,
+                            "key": key,
+                            "is_folder": False,
+                            "size_bytes": obj["Size"],
+                            "last_modified": obj["LastModified"].isoformat() if obj.get("LastModified") else None,
+                            "file_format": detected_format,
+                            "is_registered": is_registered,
+                            "file_id": file_id if is_registered else None,
+                        })
+
+                # Sort: folders first, then files
+                items.sort(key=lambda x: (not x["is_folder"], x["name"].lower()))
+
+                # Build breadcrumbs
+                if effective_prefix:
+                    parts = effective_prefix.rstrip("/").split("/")
+                    accumulated = ""
+                    for part in parts:
+                        accumulated = f"{accumulated}{part}/"
+                        breadcrumbs.append({"name": part, "prefix": accumulated})
+
+                # Calculate parent prefix
+                if effective_prefix:
+                    parts = effective_prefix.rstrip("/").split("/")
+                    if len(parts) > 1:
+                        parent_prefix = "/".join(parts[:-1]) + "/"
+                    else:
+                        parent_prefix = ""
+
+            except ClientError as e:
+                LOGGER.error("S3 error browsing bucket %s: %s", bucket_id, str(e))
+                raise HTTPException(status_code=500, detail="Failed to browse bucket")
+            except HTTPException:
+                raise
+            except Exception as e:
+                LOGGER.error("Error browsing bucket %s: %s", bucket_id, str(e))
+                raise HTTPException(status_code=500, detail=f"Failed to browse bucket: {str(e)}")
+
+            return templates.TemplateResponse(
+                request,
+                "files/browse.html",
+                get_template_context(
+                    request,
+                    customer=customer,
+                    bucket=bucket,
+                    items=items,
+                    breadcrumbs=breadcrumbs,
+                    current_prefix=current_prefix,
+                    parent_prefix=parent_prefix,
+                    active_page="files",
+                ),
+            )
 
         @app.get("/portal/files/register", response_class=HTMLResponse, tags=["portal"])
         async def portal_files_register(request: Request):
@@ -2741,8 +2939,16 @@ def create_app(
             if FILE_MANAGEMENT_AVAILABLE and linked_bucket_manager:
                 try:
                     customer_id = customer.customer_id if customer else None
+                    if not customer_id and customer_manager:
+                        # Fallback: use first customer (for dev/demo environments)
+                        customers = customer_manager.list_customers()
+                        if customers:
+                            customer_id = customers[0].customer_id
+                            customer = _convert_customer_for_template(customers[0])
+
                     if customer_id:
                         linked_buckets = linked_bucket_manager.list_customer_buckets(customer_id)
+                        LOGGER.debug(f"Found {len(linked_buckets)} linked buckets for customer {customer_id}")
                         buckets = [
                             {
                                 "bucket_id": b.bucket_id,
@@ -2796,10 +3002,13 @@ def create_app(
             if not customer_manager:
                 raise HTTPException(status_code=501, detail="Customer manager is not configured")
 
+            LOGGER.debug(f"portal_files_register_submit: Looking up customer by email: {user_email}")
             customer_config = customer_manager.get_customer_by_email(user_email)
             if not customer_config:
+                LOGGER.error(f"portal_files_register_submit: Customer not found for email: {user_email}")
                 raise HTTPException(status_code=403, detail="Customer not found for current session")
             customer_id = customer_config.customer_id
+            LOGGER.debug(f"portal_files_register_submit: Found customer_id: {customer_id}")
 
             # Resolve bucket and enforce that it belongs to the session customer
             bucket = None

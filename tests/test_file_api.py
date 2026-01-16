@@ -589,3 +589,236 @@ class TestLinkBucketEndpoint:
         data = response.json()
         assert "Invalid bucket name" in data["detail"]
 
+
+class TestBucketBrowseEndpoint:
+    """Test bucket browsing endpoint."""
+
+    @pytest.fixture
+    def mock_linked_bucket_manager_browse(self):
+        """Mock LinkedBucketManager for browse tests."""
+        manager = MagicMock(spec=LinkedBucketManager)
+        bucket = LinkedBucket(
+            bucket_id="bucket-123",
+            customer_id="cust-001",
+            bucket_name="test-bucket",
+            bucket_type="secondary",
+            display_name="Test Bucket",
+            is_validated=True,
+            can_read=True,
+            can_write=True,
+            can_list=True,
+            region="us-west-2",
+            linked_at="2024-01-01T00:00:00Z",
+            read_only=False,
+            prefix_restriction=None,
+        )
+        manager.get_bucket.return_value = bucket
+        return manager
+
+    @pytest.fixture
+    def client_with_browse(self, mock_file_registry, mock_linked_bucket_manager_browse):
+        """Create client with browse capability."""
+        app = FastAPI()
+        router = create_file_api_router(
+            mock_file_registry,
+            linked_bucket_manager=mock_linked_bucket_manager_browse,
+        )
+        app.include_router(router)
+        return TestClient(app)
+
+    @patch("boto3.Session")
+    def test_browse_bucket_success(self, mock_session, client_with_browse, mock_linked_bucket_manager_browse):
+        """Test successful bucket browsing."""
+        # Mock S3 client
+        mock_s3 = MagicMock()
+        mock_session.return_value.client.return_value = mock_s3
+
+        # Mock paginator
+        mock_paginator = MagicMock()
+        mock_s3.get_paginator.return_value = mock_paginator
+        mock_paginator.paginate.return_value = [
+            {
+                "CommonPrefixes": [{"Prefix": "folder1/"}],
+                "Contents": [
+                    {"Key": "file1.fastq.gz", "Size": 1024, "LastModified": MagicMock(isoformat=lambda: "2024-01-01T00:00:00Z")},
+                ],
+            }
+        ]
+
+        response = client_with_browse.get(
+            "/api/files/buckets/bucket-123/browse?customer_id=cust-001"
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["bucket_id"] == "bucket-123"
+        assert data["bucket_name"] == "test-bucket"
+        assert len(data["items"]) == 2  # 1 folder + 1 file
+
+    def test_browse_bucket_not_found(self, client_with_browse, mock_linked_bucket_manager_browse):
+        """Test browsing non-existent bucket."""
+        mock_linked_bucket_manager_browse.get_bucket.return_value = None
+
+        response = client_with_browse.get(
+            "/api/files/buckets/nonexistent/browse?customer_id=cust-001"
+        )
+
+        assert response.status_code == 404
+
+    def test_browse_bucket_wrong_customer(self, client_with_browse, mock_linked_bucket_manager_browse):
+        """Test browsing bucket belonging to different customer."""
+        response = client_with_browse.get(
+            "/api/files/buckets/bucket-123/browse?customer_id=other-customer"
+        )
+
+        assert response.status_code == 403
+
+
+class TestCreateFolderEndpoint:
+    """Test folder creation endpoint."""
+
+    @pytest.fixture
+    def mock_linked_bucket_manager_folder(self):
+        """Mock LinkedBucketManager for folder tests."""
+        manager = MagicMock(spec=LinkedBucketManager)
+        bucket = LinkedBucket(
+            bucket_id="bucket-123",
+            customer_id="cust-001",
+            bucket_name="test-bucket",
+            bucket_type="secondary",
+            display_name="Test Bucket",
+            is_validated=True,
+            can_read=True,
+            can_write=True,
+            can_list=True,
+            region="us-west-2",
+            linked_at="2024-01-01T00:00:00Z",
+            read_only=False,
+            prefix_restriction=None,
+        )
+        manager.get_bucket.return_value = bucket
+        return manager
+
+    @pytest.fixture
+    def client_with_folder(self, mock_file_registry, mock_linked_bucket_manager_folder):
+        """Create client with folder creation capability."""
+        app = FastAPI()
+        router = create_file_api_router(
+            mock_file_registry,
+            linked_bucket_manager=mock_linked_bucket_manager_folder,
+        )
+        app.include_router(router)
+        return TestClient(app)
+
+    @patch("boto3.Session")
+    def test_create_folder_success(self, mock_session, client_with_folder):
+        """Test successful folder creation."""
+        mock_s3 = MagicMock()
+        mock_session.return_value.client.return_value = mock_s3
+
+        response = client_with_folder.post(
+            "/api/files/buckets/bucket-123/folders?customer_id=cust-001&prefix=",
+            json={"folder_name": "new-folder"},
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+        assert "new-folder/" in data["folder_key"]
+
+    def test_create_folder_read_only_bucket(self, client_with_folder, mock_linked_bucket_manager_folder):
+        """Test folder creation on read-only bucket."""
+        bucket = mock_linked_bucket_manager_folder.get_bucket.return_value
+        bucket.read_only = True
+
+        response = client_with_folder.post(
+            "/api/files/buckets/bucket-123/folders?customer_id=cust-001",
+            json={"folder_name": "new-folder"},
+        )
+
+        assert response.status_code == 403
+
+    def test_create_folder_empty_name(self, client_with_folder):
+        """Test folder creation with empty name."""
+        response = client_with_folder.post(
+            "/api/files/buckets/bucket-123/folders?customer_id=cust-001",
+            json={"folder_name": ""},
+        )
+
+        # Pydantic validation should fail
+        assert response.status_code == 422
+
+
+class TestDeleteFileEndpoint:
+    """Test file deletion endpoint."""
+
+    @pytest.fixture
+    def mock_linked_bucket_manager_delete(self):
+        """Mock LinkedBucketManager for delete tests."""
+        manager = MagicMock(spec=LinkedBucketManager)
+        bucket = LinkedBucket(
+            bucket_id="bucket-123",
+            customer_id="cust-001",
+            bucket_name="test-bucket",
+            bucket_type="secondary",
+            display_name="Test Bucket",
+            is_validated=True,
+            can_read=True,
+            can_write=True,
+            can_list=True,
+            region="us-west-2",
+            linked_at="2024-01-01T00:00:00Z",
+            read_only=False,
+            prefix_restriction=None,
+        )
+        manager.get_bucket.return_value = bucket
+        return manager
+
+    @pytest.fixture
+    def client_with_delete(self, mock_file_registry, mock_linked_bucket_manager_delete):
+        """Create client with delete capability."""
+        app = FastAPI()
+        router = create_file_api_router(
+            mock_file_registry,
+            linked_bucket_manager=mock_linked_bucket_manager_delete,
+        )
+        app.include_router(router)
+        return TestClient(app)
+
+    @patch("boto3.Session")
+    def test_delete_file_success(self, mock_session, client_with_delete, mock_file_registry):
+        """Test successful file deletion."""
+        mock_s3 = MagicMock()
+        mock_session.return_value.client.return_value = mock_s3
+        mock_file_registry.get_file.return_value = None  # File not registered
+
+        response = client_with_delete.delete(
+            "/api/files/buckets/bucket-123/files?customer_id=cust-001&file_key=test-file.txt"
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["success"] is True
+
+    def test_delete_registered_file_blocked(self, client_with_delete, mock_file_registry):
+        """Test that registered files cannot be deleted."""
+        mock_file_registry.get_file.return_value = MagicMock()  # File is registered
+
+        response = client_with_delete.delete(
+            "/api/files/buckets/bucket-123/files?customer_id=cust-001&file_key=registered-file.fastq.gz"
+        )
+
+        assert response.status_code == 409
+        assert "registered" in response.json()["detail"].lower()
+
+    def test_delete_file_read_only_bucket(self, client_with_delete, mock_linked_bucket_manager_delete):
+        """Test file deletion on read-only bucket."""
+        bucket = mock_linked_bucket_manager_delete.get_bucket.return_value
+        bucket.read_only = True
+
+        response = client_with_delete.delete(
+            "/api/files/buckets/bucket-123/files?customer_id=cust-001&file_key=test-file.txt"
+        )
+
+        assert response.status_code == 403
+

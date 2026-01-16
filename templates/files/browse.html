@@ -1,0 +1,385 @@
+{% extends "base.html" %}
+{% set active_page = 'files' %}
+
+{% block title %}Browse {{ bucket.display_name }} - Daylily Customer Portal{% endblock %}
+
+{% block content %}
+<div class="container">
+    <!-- Breadcrumb Navigation -->
+    <a href="/portal/files/buckets" class="text-muted mb-md d-block">
+        <i class="fas fa-arrow-left"></i> Back to Bucket Management
+    </a>
+    
+    <!-- Page Header -->
+    <div class="page-header d-flex justify-between align-center flex-wrap gap-lg">
+        <div>
+            <h1 class="page-title">
+                <i class="fab fa-aws" style="color: #ff9900;"></i> 
+                {{ bucket.display_name }}
+            </h1>
+            <p class="page-subtitle">
+                <code>{{ bucket.bucket_name }}</code>
+                {% if bucket.read_only %}
+                <span class="badge badge-warning ml-md">Read-only</span>
+                {% endif %}
+                {% if not bucket.can_write %}
+                <span class="badge badge-outline ml-sm">No Write Access</span>
+                {% endif %}
+            </p>
+        </div>
+        <div class="page-actions" style="margin-top: 0;">
+            {% if bucket.can_write and not bucket.read_only %}
+            <button class="btn btn-primary" onclick="showNewFolderModal()">
+                <i class="fas fa-folder-plus"></i> New Folder
+            </button>
+            {% endif %}
+            <button class="btn btn-outline" onclick="refreshBrowse()">
+                <i class="fas fa-sync-alt"></i> Refresh
+            </button>
+        </div>
+    </div>
+    
+    <!-- Path Breadcrumbs -->
+    <div class="card mb-lg">
+        <div class="breadcrumb-path">
+            <i class="fas fa-folder-open"></i>
+            {% for crumb in breadcrumbs %}
+            {% if loop.last %}
+            <span class="breadcrumb-current">{{ crumb.name }}</span>
+            {% else %}
+            <a href="?prefix={{ crumb.prefix | urlencode }}" class="breadcrumb-link">{{ crumb.name }}</a>
+            <span class="breadcrumb-sep">/</span>
+            {% endif %}
+            {% endfor %}
+            <button class="btn btn-sm btn-outline ml-auto" onclick="copyPathToClipboard()" title="Copy full path">
+                <i class="fas fa-copy"></i> Copy Path
+            </button>
+        </div>
+    </div>
+    
+    <!-- File/Folder List -->
+    <div class="card">
+        <div class="browse-header d-flex justify-between align-center mb-md">
+            <span class="text-muted">{{ items | length }} items</span>
+            {% if bucket.can_write and not bucket.read_only %}
+            <span class="text-muted text-sm">
+                <i class="fas fa-info-circle"></i> 
+                Registered files cannot be deleted
+            </span>
+            {% endif %}
+        </div>
+        
+        {% if parent_prefix is not none %}
+        <div class="browse-item browse-folder" onclick="navigateTo('{{ parent_prefix }}')">
+            <div class="browse-icon"><i class="fas fa-level-up-alt"></i></div>
+            <div class="browse-name">..</div>
+            <div class="browse-meta text-muted">Parent Directory</div>
+        </div>
+        {% endif %}
+        
+        {% if items %}
+        {% for item in items %}
+        <div class="browse-item {% if item.is_folder %}browse-folder{% else %}browse-file{% endif %}" 
+             {% if item.is_folder %}onclick="navigateTo('{{ item.key }}')"{% endif %}>
+            <div class="browse-icon">
+                {% if item.is_folder %}
+                <i class="fas fa-folder" style="color: #ffc107;"></i>
+                {% elif item.file_format == 'fastq' %}
+                <i class="fas fa-dna" style="color: #28a745;"></i>
+                {% elif item.file_format == 'bam' %}
+                <i class="fas fa-align-left" style="color: #007bff;"></i>
+                {% elif item.file_format == 'vcf' %}
+                <i class="fas fa-list-alt" style="color: #6f42c1;"></i>
+                {% else %}
+                <i class="fas fa-file"></i>
+                {% endif %}
+            </div>
+            <div class="browse-name">
+                {{ item.name }}
+                {% if item.is_registered %}
+                <span class="badge badge-success badge-sm ml-sm">Registered</span>
+                {% endif %}
+            </div>
+            <div class="browse-format">
+                {% if item.file_format %}
+                <span class="badge badge-outline">{{ item.file_format | upper }}</span>
+                {% endif %}
+            </div>
+            <div class="browse-size">
+                {% if item.size_bytes is not none %}
+                {{ item.size_bytes | filesizeformat }}
+                {% else %}
+                --
+                {% endif %}
+            </div>
+            <div class="browse-modified">
+                {% if item.last_modified %}
+                {{ item.last_modified[:10] }}
+                {% else %}
+                --
+                {% endif %}
+            </div>
+            <div class="browse-actions">
+                {% if not item.is_folder and bucket.can_write and not bucket.read_only %}
+                    {% if item.is_registered %}
+                    <button class="btn btn-sm btn-outline" disabled title="Cannot delete registered files">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    {% else %}
+                    <button class="btn btn-sm btn-outline text-error" 
+                            onclick="event.stopPropagation(); confirmDelete('{{ item.key }}', '{{ item.name }}')"
+                            title="Delete file">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </div>
+        {% endfor %}
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>
+            <h4 class="empty-state-title">Empty folder</h4>
+            <p class="empty-state-text">No files or folders in this location</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<!-- New Folder Modal -->
+<div class="modal" id="new-folder-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-folder-plus"></i> Create New Folder</h3>
+            <button class="modal-close" onclick="closeModal('new-folder-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <form id="new-folder-form" onsubmit="event.preventDefault(); createFolder();">
+                <div class="form-group">
+                    <label class="form-label required">Folder Name</label>
+                    <input type="text" class="form-control" id="new-folder-name"
+                           placeholder="Enter folder name" required
+                           pattern="[^/\\:*?&quot;<>|]+"
+                           title="Folder name cannot contain / \ : * ? < > |">
+                    <small class="form-text">
+                        Folder will be created at: <code id="folder-path-preview">{{ current_prefix }}</code>
+                    </small>
+                </div>
+            </form>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('new-folder-modal')">Cancel</button>
+            <button type="button" class="btn btn-primary" onclick="createFolder()">
+                <i class="fas fa-folder-plus"></i> Create Folder
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal" id="delete-modal">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3><i class="fas fa-exclamation-triangle text-error"></i> Confirm Delete</h3>
+            <button class="modal-close" onclick="closeModal('delete-modal')">&times;</button>
+        </div>
+        <div class="modal-body">
+            <div class="alert alert-error mb-lg">
+                <i class="fas fa-exclamation-circle"></i>
+                <strong>Warning:</strong> This action cannot be undone!
+            </div>
+            <p>Are you sure you want to delete this file?</p>
+            <div class="delete-file-details">
+                <div class="detail-row">
+                    <span class="detail-label">File:</span>
+                    <span class="detail-value" id="delete-file-name">-</span>
+                </div>
+                <div class="detail-row">
+                    <span class="detail-label">Path:</span>
+                    <code class="detail-value" id="delete-file-key">-</code>
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-outline" onclick="closeModal('delete-modal')">Cancel</button>
+            <button type="button" class="btn btn-error" onclick="executeDelete()">
+                <i class="fas fa-trash"></i> Delete File
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+.breadcrumb-path {
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-sm);
+    padding: var(--spacing-sm) 0;
+    font-size: 0.95rem;
+    flex-wrap: wrap;
+}
+.breadcrumb-link {
+    color: var(--color-accent);
+    text-decoration: none;
+}
+.breadcrumb-link:hover { text-decoration: underline; }
+.breadcrumb-sep { color: var(--color-gray-400); }
+.breadcrumb-current { font-weight: 500; }
+.breadcrumb-path .btn { margin-left: auto; white-space: nowrap; }
+
+.browse-header { padding-bottom: var(--spacing-md); border-bottom: 1px solid var(--color-gray-200); }
+
+.browse-item {
+    display: grid;
+    grid-template-columns: 40px 1fr 100px 100px 100px 60px;
+    align-items: center;
+    gap: var(--spacing-md);
+    padding: var(--spacing-md);
+    border-bottom: 1px solid var(--color-gray-100);
+    transition: background 0.15s;
+}
+.browse-item:hover { background: var(--color-gray-50); }
+.browse-folder { cursor: pointer; }
+.browse-icon { text-align: center; font-size: 1.25rem; }
+.browse-name { font-weight: 500; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.browse-format, .browse-size, .browse-modified { text-align: right; color: var(--color-gray-600); font-size: 0.875rem; }
+.browse-actions { text-align: center; }
+
+.badge-sm { font-size: 0.7rem; padding: 2px 6px; }
+
+.delete-file-details {
+    background: var(--color-gray-100);
+    border-radius: var(--radius-md);
+    padding: var(--spacing-md);
+    margin-top: var(--spacing-md);
+}
+.detail-row { display: flex; gap: var(--spacing-md); margin-bottom: var(--spacing-xs); }
+.detail-row:last-child { margin-bottom: 0; }
+.detail-label { font-weight: 500; min-width: 60px; }
+.detail-value { color: var(--color-gray-700); word-break: break-all; }
+
+@media (max-width: 768px) {
+    .browse-item {
+        grid-template-columns: 30px 1fr 60px;
+    }
+    .browse-format, .browse-modified { display: none; }
+}
+</style>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+// Configuration
+const BUCKET_ID = '{{ bucket.bucket_id }}';
+const CUSTOMER_ID = '{{ customer.customer_id if customer else "default-customer" }}';
+const CURRENT_PREFIX = '{{ current_prefix }}';
+const FILE_API_BASE = '/api/files';
+
+// Store file to delete
+let pendingDeleteKey = null;
+
+// Navigate to a folder
+function navigateTo(prefix) {
+    window.location.href = `?prefix=${encodeURIComponent(prefix)}`;
+}
+
+// Refresh the browse view
+function refreshBrowse() {
+    window.location.reload();
+}
+
+// Show new folder modal
+function showNewFolderModal() {
+    document.getElementById('new-folder-name').value = '';
+    updateFolderPreview();
+    showModal('new-folder-modal');
+    document.getElementById('new-folder-name').focus();
+}
+
+// Update folder path preview
+function updateFolderPreview() {
+    const name = document.getElementById('new-folder-name').value || '[folder-name]';
+    document.getElementById('folder-path-preview').textContent = CURRENT_PREFIX + name + '/';
+}
+
+// Create folder
+async function createFolder() {
+    const folderName = document.getElementById('new-folder-name').value.trim();
+    if (!folderName) {
+        showToast('error', 'Validation Error', 'Please enter a folder name');
+        return;
+    }
+
+    try {
+        const response = await fetch(
+            `${FILE_API_BASE}/buckets/${BUCKET_ID}/folders?customer_id=${encodeURIComponent(CUSTOMER_ID)}&prefix=${encodeURIComponent(CURRENT_PREFIX)}`,
+            {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ folder_name: folderName })
+            }
+        );
+
+        if (response.ok) {
+            showToast('success', 'Folder Created', `Created folder: ${folderName}`);
+            closeModal('new-folder-modal');
+            refreshBrowse();
+        } else {
+            const err = await response.json().catch(() => ({}));
+            showToast('error', 'Creation Failed', err.detail || 'Failed to create folder');
+        }
+    } catch (error) {
+        console.error('Create folder error:', error);
+        showToast('error', 'Error', 'Failed to create folder');
+    }
+}
+
+// Confirm delete
+function confirmDelete(fileKey, fileName) {
+    pendingDeleteKey = fileKey;
+    document.getElementById('delete-file-name').textContent = fileName;
+    document.getElementById('delete-file-key').textContent = fileKey;
+    showModal('delete-modal');
+}
+
+// Execute delete
+async function executeDelete() {
+    if (!pendingDeleteKey) return;
+
+    try {
+        const response = await fetch(
+            `${FILE_API_BASE}/buckets/${BUCKET_ID}/files?customer_id=${encodeURIComponent(CUSTOMER_ID)}&file_key=${encodeURIComponent(pendingDeleteKey)}`,
+            { method: 'DELETE' }
+        );
+
+        if (response.ok) {
+            showToast('File deleted successfully', 'success');
+            closeModal('delete-modal');
+            refreshBrowse();
+        } else {
+            const err = await response.json().catch(() => ({}));
+            showToast(err.detail || 'Failed to delete file', 'error');
+        }
+    } catch (error) {
+        console.error('Delete file error:', error);
+        showToast('Failed to delete file', 'error');
+    }
+    pendingDeleteKey = null;
+}
+
+// Update folder preview on input
+document.getElementById('new-folder-name')?.addEventListener('input', updateFolderPreview);
+
+// Copy path to clipboard
+function copyPathToClipboard() {
+    const pathText = CURRENT_PREFIX;
+    navigator.clipboard.writeText(pathText).then(() => {
+        showToast('success', 'Copied', `Path copied to clipboard: ${pathText}`);
+    }).catch(err => {
+        console.error('Failed to copy path:', err);
+        showToast('error', 'Copy Failed', 'Failed to copy path to clipboard');
+    });
+}
+</script>
+{% endblock %}
+

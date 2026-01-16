@@ -990,6 +990,10 @@ p { margin-bottom: var(--spacing-md); }
 }
 
 .tab-content {
+    display: block;
+}
+
+.tab-content.d-none {
     display: none;
 }
 

@@ -461,12 +461,13 @@ function cancelBulkImport() {
 async function startDiscovery() {
     const bucket = document.getElementById('discover-bucket').value;
     if (!bucket) {
-        showToast('Please select a bucket', 'error');
+        showToast('error', 'Validation Error', 'Please select a bucket');
         return;
     }
 
-    const prefix = document.getElementById('discover-prefix').value;
+    const prefix = document.getElementById('discover-prefix').value || '';
     const types = Array.from(document.querySelectorAll('.discover-type:checked')).map(cb => cb.value);
+    const fileFormats = types.length > 0 ? types.join(',') : undefined;
 
     const resultsDiv = document.getElementById('discover-results');
     const contentDiv = document.getElementById('discover-results-content');
@@ -475,22 +476,34 @@ async function startDiscovery() {
     contentDiv.innerHTML = '<div class="loading"><i class="fas fa-spinner fa-spin"></i> Scanning bucket...</div>';
 
     try {
-        const response = await fetch(`${FILE_API_BASE}/buckets/${bucket}/discover`, {
+        // Build query parameters
+        const params = new URLSearchParams({
+            customer_id: window.CUSTOMER_ID || 'default-customer',
+            prefix: prefix,
+            max_files: 1000
+        });
+        if (fileFormats) {
+            params.append('file_formats', fileFormats);
+        }
+
+        const response = await fetch(`${FILE_API_BASE}/buckets/${bucket}/discover?${params.toString()}`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ prefix, file_types: types })
+            headers: { 'Content-Type': 'application/json' }
         });
 
         if (response.ok) {
             const result = await response.json();
             renderDiscoveryResults(result.files);
+            showToast('success', 'Discovery Complete', `Found ${result.total_files} files (${result.registered_count} registered, ${result.unregistered_count} unregistered)`);
         } else {
-            const error = await response.json();
-            contentDiv.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i> ${error.detail}</div>`;
+            const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            contentDiv.innerHTML = `<div class="error-state"><i class="fas fa-exclamation-triangle"></i> ${error.detail || 'Discovery failed'}</div>`;
+            showToast('error', 'Discovery Failed', error.detail || 'Failed to discover files');
         }
     } catch (error) {
         console.error('Discovery error:', error);
-        contentDiv.innerHTML = '<div class="error-state"><i class="fas fa-exclamation-triangle"></i> Discovery failed</div>';
+        contentDiv.innerHTML = '<div class="error-state"><i class="fas fa-exclamation-triangle"></i> Discovery failed: ' + error.message + '</div>';
+        showToast('error', 'Error', 'Discovery failed: ' + error.message);
     }
 }
 
@@ -514,11 +527,78 @@ function renderDiscoveryResults(files) {
                 <div class="discovered-file">
                     <input type="checkbox" class="discover-select" value="${f.key}" checked>
                     <span class="file-key">${f.key}</span>
-                    <span class="file-size text-muted">${formatFileSize(f.size)}</span>
+                    <span class="file-format text-muted">${f.detected_format ? f.detected_format.toUpperCase() : 'UNKNOWN'}</span>
+                    <span class="file-size text-muted">${formatFileSize(f.file_size_bytes || 0)}</span>
+                    ${f.is_registered ? '<span class="badge badge-success badge-sm">Registered</span>' : ''}
                 </div>
             `).join('')}
         </div>
     `;
+}
+
+async function registerDiscoveredFiles() {
+    const checkboxes = document.querySelectorAll('.discover-select:checked');
+    if (checkboxes.length === 0) {
+        showToast('error', 'No Files Selected', 'Please select at least one file to register');
+        return;
+    }
+
+    const selectedKeys = Array.from(checkboxes).map(cb => cb.value);
+    const bucket = document.getElementById('discover-bucket').value;
+    const prefix = document.getElementById('discover-prefix').value || '';
+    const biosampleId = document.getElementById('discover-biosample-id')?.value;
+    const subjectId = document.getElementById('discover-subject-id')?.value;
+
+    if (!biosampleId || !subjectId) {
+        showToast('error', 'Missing Required Fields', 'Please enter Biosample ID and Subject ID');
+        return;
+    }
+
+    // Find the button that was clicked
+    const submitBtn = document.querySelector('#discover-results-content .btn-primary');
+    if (submitBtn) {
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Registering...';
+    }
+
+    try {
+        const response = await fetch('/portal/files/register', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                bucket_id: bucket,
+                prefix: prefix,
+                selected_keys: selectedKeys,
+                biosample_id: biosampleId,
+                subject_id: subjectId,
+                sequencing_platform: document.getElementById('discover-platform')?.value || 'NOVASEQX',
+                max_files: selectedKeys.length
+            })
+        });
+
+        if (response.ok) {
+            const result = await response.json();
+            showToast('success', 'Registration Complete', `Registered ${result.registered_count} files`);
+            if (result.errors && result.errors.length > 0) {
+                showToast('warning', 'Some Errors', `${result.errors.length} files failed to register`);
+            }
+            // Refresh discovery results
+            setTimeout(() => {
+                startDiscovery();
+            }, 1500);
+        } else {
+            const error = await response.json().catch(() => ({ detail: 'Unknown error' }));
+            showToast('error', 'Registration Failed', error.detail || 'Failed to register files');
+        }
+    } catch (error) {
+        console.error('Registration error:', error);
+        showToast('error', 'Error', 'Failed to register files: ' + error.message);
+    } finally {
+        if (submitBtn) {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = '<i class="fas fa-plus"></i> Register All';
+        }
+    }
 }
 
 // ============================================================================
@@ -616,10 +696,15 @@ function showLinkBucketModal() {
 }
 
 async function validateBucketBeforeLink() {
-    const bucketName = document.getElementById('bucket-name').value;
+    let bucketName = document.getElementById('bucket-name').value;
     if (!bucketName) {
-        showToast('Please enter a bucket name', 'error');
+        showToast('error', 'Validation Error', 'Please enter a bucket name');
         return;
+    }
+
+    // Strip s3:// prefix if provided
+    if (bucketName.startsWith('s3://')) {
+        bucketName = bucketName.substring(5);
     }
 
     const validationResults = document.getElementById('bucket-validation-results');
@@ -741,7 +826,7 @@ function renderBucketValidationResults(result) {
 }
 
 async function linkBucket() {
-    const bucketName = document.getElementById('bucket-name').value;
+    let bucketName = document.getElementById('bucket-name').value;
     const bucketType = document.getElementById('bucket-type')?.value || 'secondary';
     const displayName = document.getElementById('bucket-display-name')?.value || '';
     const description = document.getElementById('bucket-description')?.value || '';
@@ -749,8 +834,13 @@ async function linkBucket() {
     const readOnly = document.getElementById('bucket-read-only')?.checked || false;
 
     if (!bucketName) {
-        showToast('Please enter a bucket name', 'error');
+        showToast('error', 'Validation Error', 'Please enter a bucket name');
         return;
+    }
+
+    // Strip s3:// prefix if provided
+    if (bucketName.startsWith('s3://')) {
+        bucketName = bucketName.substring(5);
     }
 
     const customerId = getCustomerId();
