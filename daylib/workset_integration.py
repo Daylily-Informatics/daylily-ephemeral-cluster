@@ -9,6 +9,8 @@ from __future__ import annotations
 import datetime as dt
 import json
 import logging
+import os
+import re
 from pathlib import PurePosixPath
 from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
@@ -602,8 +604,6 @@ class WorksetIntegration:
         Returns the YAML content as a string (not a dict) to preserve template
         structure including comments.
         """
-        import os
-
         # Load the template file
         template_path = os.path.join(
             os.path.dirname(os.path.dirname(__file__)),
@@ -624,7 +624,6 @@ class WorksetIntegration:
 
         # Replace only the export_uri line in the template
         # Preserve everything else including comments and structure
-        import re
         template_content = re.sub(
             r'^export_uri:.*$',
             f'export_uri: "{customer_export_uri}"',

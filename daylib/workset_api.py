@@ -5,13 +5,21 @@ Provides REST API and web dashboard for workset operations.
 
 from __future__ import annotations
 
+import gzip
+import hashlib
+import io
 import logging
 import os
+import re
+import tarfile
+import uuid
+import zipfile
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import boto3
+import yaml
 
 from fastapi import Body, Depends, FastAPI, File, Form, HTTPException, Query, Request, UploadFile, status
 from fastapi.middleware.cors import CORSMiddleware
@@ -1083,10 +1091,6 @@ def create_app(
             For text files, shows first N lines directly.
             For binary files, returns a message indicating preview is not available.
             """
-            import gzip
-            import tarfile
-            import io
-
             if not customer_manager:
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -1173,7 +1177,6 @@ def create_app(
 
                 elif is_zip:
                     # Handle .zip files - list contents
-                    import zipfile
                     file_type = "zip"
                     try:
                         with zipfile.ZipFile(io.BytesIO(body)) as zf:
@@ -1565,9 +1568,6 @@ def create_app(
             - manifest_id: ID of a saved manifest (retrieves TSV from ManifestRegistry)
             - manifest_tsv_content: Raw stage_samples.tsv content
             """
-            import uuid
-            import yaml as pyyaml
-
             if not customer_manager:
                 raise HTTPException(
                     status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
@@ -1659,7 +1659,7 @@ def create_app(
             # Finally try YAML content
             if yaml_content and not workset_samples:
                 try:
-                    yaml_data = pyyaml.safe_load(yaml_content)
+                    yaml_data = yaml.safe_load(yaml_content)
                     if yaml_data and isinstance(yaml_data.get("samples"), list):
                         workset_samples = yaml_data["samples"]
                 except Exception as e:
@@ -2101,8 +2101,6 @@ def create_app(
         current_user: Optional[Dict] = Depends(get_current_user),
     ):
         """Generate daylily_work.yaml from form data."""
-        import yaml
-
         work_config = {
             "samples": request.samples,
             "reference_genome": request.reference_genome,
@@ -2132,9 +2130,6 @@ def create_app(
         Lists files in the given S3 location and automatically pairs R1/R2 files
         into samples. Also attempts to parse daylily_work.yaml if present.
         """
-        import re
-        import yaml as pyyaml
-
         samples = []
         yaml_content = None
         files_found = []
@@ -2205,7 +2200,7 @@ def create_app(
             # If we found a daylily_work.yaml, parse samples from it
             if yaml_content:
                 try:
-                    yaml_data = pyyaml.safe_load(yaml_content)
+                    yaml_data = yaml.safe_load(yaml_content)
                     if yaml_data and isinstance(yaml_data.get("samples"), list):
                         for sample in yaml_data["samples"]:
                             if isinstance(sample, dict):

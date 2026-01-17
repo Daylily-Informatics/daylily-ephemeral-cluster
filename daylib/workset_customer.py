@@ -5,6 +5,7 @@ Handles customer provisioning, S3 bucket creation, and billing tags.
 
 from __future__ import annotations
 
+import hashlib
 import json
 import logging
 import secrets
@@ -514,8 +515,6 @@ class CustomerManager:
 
         Returns a dict with ``secret`` (token string) and ``token`` (metadata).
         """
-        import hashlib
-
         config = self.get_customer_config(customer_id)
         if not config:
             raise ValueError(f"Customer {customer_id} not found")
@@ -579,8 +578,6 @@ class CustomerManager:
         Looks up all customers for a matching token hash that is not revoked and
         (if set) not expired. Intended for low-volume administrative/API use.
         """
-        import hashlib
-
         if not api_key:
             return None
 
