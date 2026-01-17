@@ -15,8 +15,13 @@ import hashlib
 import json
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
+
+
+def _utc_now_iso() -> str:
+    """Return current UTC time in ISO format with Z suffix."""
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 import boto3
 from botocore.exceptions import ClientError
@@ -91,8 +96,8 @@ class LinkedBucket:
     read_only: bool = False  # If true, prevent writes
 
     # Timestamps
-    linked_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
-    updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    linked_at: str = field(default_factory=_utc_now_iso)
+    updated_at: str = field(default_factory=_utc_now_iso)
 
 
 class S3BucketValidator:
@@ -585,7 +590,7 @@ class LinkedBucketManager:
             display_name=display_name or bucket_name,
             description=description,
             is_validated=validation_result.is_valid,
-            validation_timestamp=datetime.utcnow().isoformat() + "Z" if validate else None,
+            validation_timestamp=_utc_now_iso() if validate else None,
             can_read=validation_result.can_read,
             can_write=validation_result.can_write if not read_only else False,
             can_list=validation_result.can_list,
@@ -656,7 +661,7 @@ class LinkedBucketManager:
             "prefix_restriction": linked_bucket.prefix_restriction or "",
             "read_only": linked_bucket.read_only,
             "linked_at": linked_bucket.linked_at,
-            "updated_at": datetime.utcnow().isoformat() + "Z",
+            "updated_at": _utc_now_iso(),
         }
 
         if LOGGER.isEnabledFor(logging.DEBUG):
@@ -747,7 +752,7 @@ class LinkedBucketManager:
 
         # Update status
         linked_bucket.is_validated = validation_result.is_valid
-        linked_bucket.validation_timestamp = datetime.utcnow().isoformat() + "Z"
+        linked_bucket.validation_timestamp = _utc_now_iso()
         linked_bucket.can_read = validation_result.can_read
         linked_bucket.can_write = validation_result.can_write if not linked_bucket.read_only else False
         linked_bucket.can_list = validation_result.can_list
@@ -827,7 +832,7 @@ class LinkedBucketManager:
 
         # Always update updated_at
         update_parts.append("updated_at = :ua")
-        expression_values[":ua"] = datetime.utcnow().isoformat() + "Z"
+        expression_values[":ua"] = _utc_now_iso()
 
         if not update_parts:
             LOGGER.debug("No updates to apply for bucket %s", bucket_id)

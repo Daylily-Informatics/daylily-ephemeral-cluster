@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 import os
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -120,6 +120,31 @@ def _get_file_icon(filename: str) -> str:
         "md": "file-alt",
     }
     return icon_map.get(ext, "file")
+
+
+def _calculate_cost_with_efficiency(total_size_gb: float) -> float:
+    """Calculate cost using efficiency formula: (total_size / (total_size - (total_size * 0.98))).
+
+    This formula represents the cost multiplier based on data efficiency.
+    The 0.98 factor represents 98% efficiency, so the denominator is 2% of total_size.
+
+    Args:
+        total_size_gb: Total data size in GB
+
+    Returns:
+        Cost multiplier based on efficiency
+    """
+    if total_size_gb <= 0:
+        return 0.0
+
+    # Formula: total_size / (total_size - (total_size * 0.98))
+    # Simplifies to: total_size / (total_size * 0.02) = 1 / 0.02 = 50
+    # But we'll keep the full formula for clarity
+    denominator = total_size_gb - (total_size_gb * 0.98)
+    if denominator <= 0:
+        return 0.0
+
+    return total_size_gb / denominator
 
 
 def _convert_customer_for_template(customer_config):
@@ -278,6 +303,21 @@ class WorkYamlGenerateRequest(BaseModel):
     priority: str = "normal"
     max_retries: int = 3
     estimated_coverage: float = 30.0
+
+
+class ChangePasswordRequest(BaseModel):
+    """Request model for changing the current user's password."""
+
+    current_password: str = Field(..., min_length=1)
+    new_password: str = Field(..., min_length=8)
+
+
+class APITokenCreateRequest(BaseModel):
+    """Request model for creating a new API token from the portal."""
+
+    name: str = Field(..., min_length=1, max_length=100)
+    # 0 means "no automatic expiry" (token is long-lived until revoked)
+    expiry_days: int = Field(0, ge=0, le=3650)
 
 
 # ========== Portal File Registration Models ==========
@@ -439,6 +479,7 @@ def create_app(
     # Create a combined auth dependency that accepts either:
     # 1. Session-based auth from portal (user_email in session)
     # 2. JWT token auth from API calls (Authorization header)
+    # 3. API key auth via X-API-Key header (resolved via CustomerManager)
     def get_current_user(request: Request) -> Optional[Dict]:
         """Combined auth dependency for portal session and API JWT auth."""
         # First try session-based auth (portal)
@@ -469,6 +510,24 @@ def create_app(
                 except Exception as e:
                     LOGGER.debug("JWT auth check failed: %s", str(e))
 
+        # Finally, try API key auth via X-API-Key header if customer_manager is available
+        if customer_manager:
+            api_key = request.headers.get("X-API-Key") or request.headers.get("x-api-key")
+            if api_key:
+                try:
+                    customer = customer_manager.get_customer_by_api_key(api_key)
+                except Exception as e:  # pragma: no cover - defensive logging
+                    LOGGER.warning("API key lookup failed: %s", str(e))
+                    customer = None
+
+                if customer:
+                    return {
+                        "email": customer.email,
+                        "customer_id": customer.customer_id,
+                        "auth_type": "api_key",
+                        "authenticated": True,
+                    }
+
         # No valid authentication found
         if enable_auth:
             # For API endpoints that require auth, raise an error
@@ -490,7 +549,7 @@ def create_app(
         return {
             "status": "healthy",
             "service": "daylily-workset-monitor",
-            "timestamp": datetime.utcnow().isoformat() + "Z",
+            "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
         }
     
     @app.post("/worksets", response_model=WorksetResponse, status_code=status.HTTP_201_CREATED, tags=["worksets"])
@@ -709,8 +768,13 @@ def create_app(
         # Data transfer cost (estimate 10% of data out at $0.09/GB)
         transfer_cost = data_size_gb * 0.10 * 0.09
 
+        # Apply efficiency formula to storage costs
+        # Formula: total_size / (total_size - (total_size * 0.98))
+        efficiency_multiplier = _calculate_cost_with_efficiency(data_size_gb)
+        adjusted_storage_cost = storage_cost * efficiency_multiplier if efficiency_multiplier > 0 else storage_cost
+
         # Total estimated cost
-        total_cost = compute_cost + storage_cost + fsx_cost + transfer_cost
+        total_cost = compute_cost + adjusted_storage_cost + fsx_cost + transfer_cost
 
         # Priority multipliers
         priority_multiplier = {
@@ -724,24 +788,26 @@ def create_app(
         return {
             "estimated_cost_usd": round(total_cost * multiplier, 2),
             "compute_cost_usd": round(compute_cost * multiplier, 2),
-            "storage_cost_usd": round(storage_cost + fsx_cost, 2),
+            "storage_cost_usd": round(adjusted_storage_cost + fsx_cost, 2),
             "transfer_cost_usd": round(transfer_cost, 2),
             "vcpu_hours": round(vcpu_hours, 1),
             "estimated_duration_hours": round(duration_hours, 1),
             "estimated_duration_minutes": int(duration_hours * 60),
             "data_size_gb": round(data_size_gb, 1),
+            "efficiency_multiplier": round(efficiency_multiplier, 2),
             "pipeline_type": pipeline_type,
             "sample_count": sample_count,
             "priority": priority,
             "cost_breakdown": {
                 "compute": f"${compute_cost * multiplier:.2f}",
-                "storage": f"${storage_cost:.2f}",
+                "storage": f"${adjusted_storage_cost:.2f}",
                 "fsx": f"${fsx_cost:.2f}",
                 "transfer": f"${transfer_cost:.2f}",
             },
             "notes": [
                 "Costs are estimates based on typical workloads",
                 f"Priority '{priority}' applies {multiplier}x multiplier",
+                f"Storage efficiency multiplier: {efficiency_multiplier:.2f}x",
                 "Actual costs depend on spot market and data complexity",
             ],
         }
@@ -2439,6 +2505,12 @@ def create_app(
                 "storage_percent": 0,
                 "max_storage_gb": 500,
                 "cost_this_month": 0,
+                "in_progress_worksets": 0,
+                "ready_worksets": 0,
+                "error_worksets": 0,
+                "registered_files": 0,
+                "total_file_size_gb": 0,
+                "total_file_size_bytes": 0,
             }
 
             if customer_manager:
@@ -2455,9 +2527,23 @@ def create_app(
                         all_worksets.extend(batch)
                     worksets = all_worksets[:10]
 
-                    # Calculate stats
-                    stats["active_worksets"] = len([w for w in all_worksets if w.get("state") == "in_progress"])
-                    stats["completed_worksets"] = len([w for w in all_worksets if w.get("state") == "completed"])
+                    # Calculate workset stats
+                    stats["in_progress_worksets"] = len([w for w in all_worksets if w.get("state") == "in_progress"])
+                    stats["ready_worksets"] = len([w for w in all_worksets if w.get("state") == "ready"])
+                    stats["completed_worksets"] = len([w for w in all_worksets if w.get("state") == "complete"])
+                    stats["error_worksets"] = len([w for w in all_worksets if w.get("state") == "error"])
+                    stats["active_worksets"] = stats["in_progress_worksets"]
+
+                    # Get file statistics
+                    if file_registry:
+                        try:
+                            customer_files = file_registry.list_customer_files(customer_id, limit=1000)
+                            stats["registered_files"] = len(customer_files)
+                            total_bytes = sum(f.file_metadata.file_size_bytes for f in customer_files if f.file_metadata)
+                            stats["total_file_size_bytes"] = total_bytes
+                            stats["total_file_size_gb"] = round(total_bytes / (1024**3), 2)
+                        except Exception as e:
+                            LOGGER.warning(f"Failed to get file statistics: {e}")
 
             return templates.TemplateResponse(
                 request,
@@ -3134,7 +3220,7 @@ def create_app(
 
         @app.get("/portal/manifest-generator", response_class=HTMLResponse, tags=["portal"])
         async def portal_manifest_generator(request: Request):
-            """Analysis Manifest Generator page for creating stage_samples.tsv."""
+            """Workset Manifest Generator page for creating stage_samples.tsv."""
             auth_redirect = require_portal_auth(request)
             if auth_redirect:
                 return auth_redirect

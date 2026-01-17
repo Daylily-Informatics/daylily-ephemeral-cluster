@@ -13,9 +13,14 @@ import json
 import logging
 import re
 from dataclasses import asdict, dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from pathlib import PurePosixPath
 from typing import Any, Dict, List, Optional, Tuple
+
+
+def _utc_now_iso() -> str:
+    """Return current UTC time in ISO format with Z suffix."""
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 import boto3
 from botocore.exceptions import ClientError
@@ -42,7 +47,7 @@ class FileMetadata:
     file_size_bytes: int
     md5_checksum: Optional[str] = None
     file_format: str = "fastq"  # fastq, bam, vcf, etc.
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    created_at: str = field(default_factory=_utc_now_iso)
 
     @property
     def filename(self) -> str:
@@ -96,10 +101,10 @@ class FileRegistration:
     
     # User tags
     tags: List[str] = field(default_factory=list)
-    
+
     # Timestamps
-    registered_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
-    updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    registered_at: str = field(default_factory=_utc_now_iso)
+    updated_at: str = field(default_factory=_utc_now_iso)
 
 
 @dataclass
@@ -121,8 +126,8 @@ class FileSet:
     tags: List[str] = field(default_factory=list)
 
     # Timestamps
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
-    updated_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    created_at: str = field(default_factory=_utc_now_iso)
+    updated_at: str = field(default_factory=_utc_now_iso)
 
 
 @dataclass
@@ -132,7 +137,7 @@ class FileWorksetUsage:
     workset_id: str
     customer_id: str
     usage_type: str = "input"  # input, output, reference
-    added_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    added_at: str = field(default_factory=_utc_now_iso)
     workset_state: Optional[str] = None  # Track workset state at time of use
     notes: Optional[str] = None
 
@@ -604,7 +609,7 @@ class FileRegistry:
                 ExpressionAttributeValues={
                     ":fids": file_ids,
                     ":empty": [],
-                    ":ts": datetime.utcnow().isoformat() + "Z",
+                    ":ts": _utc_now_iso(),
                 },
             )
             LOGGER.info("Added %d files to fileset %s", len(file_ids), fileset_id)
@@ -628,7 +633,7 @@ class FileRegistry:
                 UpdateExpression="SET file_ids = :fids, updated_at = :ts",
                 ExpressionAttributeValues={
                     ":fids": updated_file_ids,
-                    ":ts": datetime.utcnow().isoformat() + "Z",
+                    ":ts": _utc_now_iso(),
                 },
             )
             LOGGER.info("Removed %d files from fileset %s", len(file_ids), fileset_id)
@@ -648,7 +653,7 @@ class FileRegistry:
         """Update file set metadata."""
         try:
             update_expr_parts = ["updated_at = :ts"]
-            expr_values = {":ts": datetime.utcnow().isoformat() + "Z"}
+            expr_values = {":ts": _utc_now_iso()}
 
             if name is not None:
                 update_expr_parts.append("name = :name")
@@ -750,7 +755,7 @@ class FileRegistry:
                 UpdateExpression="SET tags = :tags, updated_at = :ts",
                 ExpressionAttributeValues={
                     ":tags": tags,
-                    ":ts": datetime.utcnow().isoformat() + "Z",
+                    ":ts": _utc_now_iso(),
                 },
             )
             return True
@@ -792,7 +797,7 @@ class FileRegistry:
         """
         try:
             update_parts = ["updated_at = :ts"]
-            expr_values: Dict[str, Any] = {":ts": datetime.utcnow().isoformat() + "Z"}
+            expr_values: Dict[str, Any] = {":ts": _utc_now_iso()}
 
             # File metadata fields
             if file_metadata:
@@ -927,7 +932,7 @@ class FileRegistry:
                 "workset_id": workset_id,
                 "customer_id": customer_id,
                 "usage_type": usage_type,
-                "added_at": datetime.utcnow().isoformat() + "Z",
+                "added_at": _utc_now_iso(),
             }
             if workset_state:
                 item["workset_state"] = workset_state

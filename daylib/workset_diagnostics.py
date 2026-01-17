@@ -366,7 +366,7 @@ class DiagnosticResult:
     matched_patterns: List[str] = field(default_factory=list)
     confidence: float = 0.0  # 0.0 to 1.0
     context: Dict[str, Any] = field(default_factory=dict)
-    timestamp: dt.datetime = field(default_factory=dt.datetime.utcnow)
+    timestamp: dt.datetime = field(default_factory=lambda: dt.datetime.now(dt.timezone.utc))
 
     def to_dict(self) -> Dict[str, Any]:
         """Convert to dictionary."""

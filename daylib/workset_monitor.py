@@ -951,7 +951,7 @@ class WorksetMonitor:
             self._process_workset(workset)
         except Exception as exc:
             LOGGER.exception("Processing of %s failed", workset.name)
-            error_msg = f"{dt.datetime.utcnow().isoformat()}Z\t{exc}"
+            error_msg = f"{dt.datetime.now(dt.timezone.utc).isoformat().replace('+00:00', 'Z')}\t{exc}"
             self._write_sentinel(
                 workset,
                 SENTINEL_FILES["error"],
@@ -969,7 +969,7 @@ class WorksetMonitor:
             self._write_sentinel(
                 workset,
                 SENTINEL_FILES["complete"],
-                f"{dt.datetime.utcnow().isoformat()}Z",
+                dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
             )
             # Send notification on completion
             self._notify_workset_event(
@@ -1018,7 +1018,7 @@ class WorksetMonitor:
 
     def _attempt_acquire(self, workset: Workset) -> bool:
         initial_snapshot = dict(workset.sentinels)
-        timestamp = f"{dt.datetime.utcnow().isoformat()}Z"
+        timestamp = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
         if self.state_db:
             try:
                 acquired = self.state_db.acquire_lock(workset.name, self.lock_owner_id)
@@ -1053,7 +1053,7 @@ class WorksetMonitor:
                 self.state_db.release_lock(workset.name, self.lock_owner_id)
             return False
         LOGGER.info("Acquired workset %s", workset.name)
-        in_progress_value = f"{dt.datetime.utcnow().isoformat()}Z"
+        in_progress_value = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
         self._write_sentinel(
             workset,
             SENTINEL_FILES["in_progress"],
@@ -1422,7 +1422,7 @@ class WorksetMonitor:
             parsed = parsed.astimezone(dt.timezone.utc)
         else:
             parsed = parsed.replace(tzinfo=dt.timezone.utc)
-        now = dt.datetime.utcnow().replace(tzinfo=dt.timezone.utc)
+        now = dt.datetime.now(dt.timezone.utc)
         age = (now - parsed).total_seconds()
         if is_terminal:
             return not metrics.get("terminal_cached")
@@ -1477,7 +1477,7 @@ class WorksetMonitor:
         if not data:
             LOGGER.debug("Unable to parse remote metrics output for %s: %s", workset.name, stdout)
             return None
-        refreshed = self._normalise_timestamp(dt.datetime.utcnow().isoformat())
+        refreshed = self._normalise_timestamp(dt.datetime.now(dt.timezone.utc).isoformat())
         if refreshed:
             data["remote_metrics_timestamp"] = refreshed
         return data
@@ -1648,7 +1648,7 @@ class WorksetMonitor:
             else:
                 end = end.astimezone(dt.timezone.utc)
         else:
-            end = dt.datetime.utcnow().replace(tzinfo=dt.timezone.utc)
+            end = dt.datetime.now(dt.timezone.utc)
         runtime = (end - start).total_seconds()
         return max(0.0, runtime)
 
@@ -2389,7 +2389,7 @@ class WorksetMonitor:
                     check=True,
                     shell=False,
                 )
-                self._record_pipeline_start(workset, dt.datetime.utcnow())
+                self._record_pipeline_start(workset, dt.datetime.now(dt.timezone.utc))
             except Exception:
                 self._clear_tmux_session(workset)
                 self._clear_pipeline_start(workset)
@@ -2413,7 +2413,7 @@ class WorksetMonitor:
         poll_interval = max(10, min(60, self.config.monitor.poll_interval_seconds))
         start_time = self._load_pipeline_start(workset)
         if start_time is None:
-            start_time = dt.datetime.utcnow()
+            start_time = dt.datetime.now(dt.timezone.utc)
             self._record_pipeline_start(workset, start_time)
         timeout_minutes = self.config.pipeline.pipeline_timeout_minutes
         timeout_seconds = (timeout_minutes or 0) * 60 if timeout_minutes else None
@@ -2442,7 +2442,7 @@ class WorksetMonitor:
                 )
 
             if timeout_seconds is not None:
-                elapsed = (dt.datetime.utcnow() - start_time).total_seconds()
+                elapsed = (dt.datetime.now(dt.timezone.utc) - start_time).total_seconds()
                 if elapsed >= timeout_seconds:
                     LOGGER.error(
                         "Pipeline for %s exceeded timeout of %d minutes",
@@ -2634,7 +2634,7 @@ class WorksetMonitor:
             return
 
         idle_marker = self._cluster_idle_marker(cluster_name)
-        now = dt.datetime.utcnow()
+        now = dt.datetime.now(dt.timezone.utc)
         if idle_marker.exists():
             text = idle_marker.read_text(encoding="utf-8").strip()
             with contextlib.suppress(ValueError):

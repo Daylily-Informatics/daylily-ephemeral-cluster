@@ -121,7 +121,7 @@ class WorksetIntegration:
         if not workset_prefix.endswith("/"):
             workset_prefix += "/"
 
-        now = dt.datetime.utcnow().isoformat() + "Z"
+        now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
         success = True
 
         # Write to DynamoDB first (if enabled and available)
@@ -198,7 +198,7 @@ class WorksetIntegration:
         target_bucket = bucket or self.bucket
         workset_prefix = prefix or f"{self.prefix}{workset_id}/"
 
-        now = dt.datetime.utcnow().isoformat() + "Z"
+        now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
         success = True
 
         # Update DynamoDB
@@ -317,7 +317,7 @@ class WorksetIntegration:
         state = workset.get("state", "ready")
         metadata = workset.get("metadata", {})
 
-        now = dt.datetime.utcnow().isoformat() + "Z"
+        now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
 
         try:
             # Write work yaml if metadata present
@@ -389,7 +389,7 @@ class WorksetIntegration:
 
         # Also write S3 lock sentinel for compatibility
         if target_bucket:
-            now = dt.datetime.utcnow().isoformat() + "Z"
+            now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
             try:
                 self._write_sentinel(
                     bucket=target_bucket,

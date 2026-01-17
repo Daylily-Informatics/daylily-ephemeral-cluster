@@ -267,7 +267,7 @@ class TestRegionStatus:
         """Test region status includes all fields."""
         multi_region_db._region_health["us-west-2"].status = RegionStatus.HEALTHY
         multi_region_db._region_health["us-west-2"].latency_ms = 50.0
-        multi_region_db._region_health["us-west-2"].last_check = dt.datetime.utcnow()
+        multi_region_db._region_health["us-west-2"].last_check = dt.datetime.now(dt.timezone.utc)
 
         status = multi_region_db.get_region_status()
 

@@ -122,9 +122,9 @@ def test_acquire_lock_success(state_db, mock_dynamodb):
 def test_acquire_lock_already_locked(state_db, mock_dynamodb):
     """Test lock acquisition when workset is already locked."""
     mock_table = mock_dynamodb["table"]
-    
+
     # Mock get_item to return a locked workset (recent lock)
-    now = dt.datetime.utcnow()
+    now = dt.datetime.now(dt.timezone.utc)
     mock_table.get_item.return_value = {
         "Item": {
             "workset_id": "test-workset",
@@ -153,8 +153,8 @@ def test_acquire_lock_stale_lock(state_db, mock_dynamodb):
     mock_table = mock_dynamodb["table"]
 
     # Mock get_item to return a READY workset with stale lock fields
-    stale_time = dt.datetime.utcnow() - dt.timedelta(seconds=400)
-    stale_expires = (stale_time + dt.timedelta(seconds=300)).isoformat() + "Z"
+    stale_time = dt.datetime.now(dt.timezone.utc) - dt.timedelta(seconds=400)
+    stale_expires = (stale_time + dt.timedelta(seconds=300)).isoformat().replace("+00:00", "Z")
     mock_table.get_item.return_value = {
         "Item": {
             "workset_id": "test-workset",

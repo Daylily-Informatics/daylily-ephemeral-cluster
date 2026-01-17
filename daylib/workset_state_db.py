@@ -175,7 +175,7 @@ class WorksetStateDB:
         Returns:
             True if registered, False if already exists
         """
-        now = dt.datetime.utcnow().isoformat() + "Z"
+        now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
         item = {
             "workset_id": workset_id,
             "state": WorksetState.READY.value,
@@ -236,9 +236,9 @@ class WorksetStateDB:
         Returns:
             True if lock acquired, False otherwise
         """
-        now = dt.datetime.utcnow()
-        now_iso = now.isoformat() + "Z"
-        expires_at = (now + dt.timedelta(seconds=self.lock_timeout_seconds)).isoformat() + "Z"
+        now = dt.datetime.now(dt.timezone.utc)
+        now_iso = now.isoformat().replace("+00:00", "Z")
+        expires_at = (now + dt.timedelta(seconds=self.lock_timeout_seconds)).isoformat().replace("+00:00", "Z")
 
         try:
             # First, check current state and lock metadata
@@ -271,7 +271,7 @@ class WorksetStateDB:
                 # Check if lock has expired using lock_expires_at (preferred) or lock_acquired_at
                 if lock_expires_at:
                     try:
-                        expires_time = dt.datetime.fromisoformat(lock_expires_at.rstrip("Z"))
+                        expires_time = dt.datetime.fromisoformat(lock_expires_at.rstrip("Z")).replace(tzinfo=dt.timezone.utc)
                         if now >= expires_time:
                             lock_is_stale = True
                             LOGGER.warning(
@@ -293,7 +293,7 @@ class WorksetStateDB:
                 elif lock_acquired_at:
                     # Fallback to lock_acquired_at for backward compatibility
                     try:
-                        lock_time = dt.datetime.fromisoformat(lock_acquired_at.rstrip("Z"))
+                        lock_time = dt.datetime.fromisoformat(lock_acquired_at.rstrip("Z")).replace(tzinfo=dt.timezone.utc)
                         elapsed = (now - lock_time).total_seconds()
                         if elapsed >= self.lock_timeout_seconds:
                             lock_is_stale = True
@@ -380,7 +380,7 @@ class WorksetStateDB:
         Returns:
             True if released, False if not owned by this owner
         """
-        now_iso = dt.datetime.utcnow().isoformat() + "Z"
+        now_iso = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
 
         try:
             self.table.update_item(
@@ -421,9 +421,9 @@ class WorksetStateDB:
         Returns:
             True if lock refreshed, False if not owned by this owner
         """
-        now = dt.datetime.utcnow()
-        now_iso = now.isoformat() + "Z"
-        expires_at = (now + dt.timedelta(seconds=self.lock_timeout_seconds)).isoformat() + "Z"
+        now = dt.datetime.now(dt.timezone.utc)
+        now_iso = now.isoformat().replace("+00:00", "Z")
+        expires_at = (now + dt.timedelta(seconds=self.lock_timeout_seconds)).isoformat().replace("+00:00", "Z")
 
         try:
             self.table.update_item(
@@ -476,7 +476,7 @@ class WorksetStateDB:
             cluster_name: Associated cluster name
             metrics: Performance/cost metrics
         """
-        now_iso = dt.datetime.utcnow().isoformat() + "Z"
+        now_iso = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
 
         update_expr = (
             "SET #state = :state, "
@@ -542,7 +542,7 @@ class WorksetStateDB:
             finished_at: ISO timestamp when processing finished
             metrics: Performance/cost metrics to merge
         """
-        now_iso = dt.datetime.utcnow().isoformat() + "Z"
+        now_iso = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
 
         update_parts = ["updated_at = :now"]
         expr_values: Dict[str, Any] = {":now": now_iso}
@@ -747,7 +747,7 @@ class WorksetStateDB:
                         "MetricName": metric_name,
                         "Value": value,
                         "Unit": "Count",
-                        "Timestamp": dt.datetime.utcnow(),
+                        "Timestamp": dt.datetime.now(dt.timezone.utc),
                     }
                 ],
             )
@@ -796,8 +796,8 @@ class WorksetStateDB:
                 DEFAULT_RETRY_BACKOFF_MAX,
             )
             retry_after = (
-                dt.datetime.utcnow() + dt.timedelta(seconds=backoff_seconds)
-            ).isoformat() + "Z"
+                dt.datetime.now(dt.timezone.utc) + dt.timedelta(seconds=backoff_seconds)
+            ).isoformat().replace("+00:00", "Z")
 
             new_state = WorksetState.RETRYING
             reason = f"Retry {retry_count + 1}/{max_retries} after {error_category.value} error"
@@ -807,7 +807,7 @@ class WorksetStateDB:
             retry_after = None
 
         # Update workset state
-        now = dt.datetime.utcnow().isoformat() + "Z"
+        now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
         try:
             self.table.update_item(
                 Key={"workset_id": workset_id},
@@ -856,7 +856,7 @@ class WorksetStateDB:
             List of worksets in RETRYING state where retry_after time has passed
         """
         worksets = self.list_worksets_by_state(WorksetState.RETRYING, limit=1000)
-        now = dt.datetime.utcnow().isoformat() + "Z"
+        now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
 
         retryable = []
         for workset in worksets:
@@ -911,7 +911,7 @@ class WorksetStateDB:
                 ExpressionAttributeValues={
                     ":cluster": cluster_name,
                     ":reason": affinity_reason,
-                    ":now": dt.datetime.utcnow().isoformat() + "Z",
+                    ":now": dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z"),
                 },
             )
             LOGGER.info(
@@ -1019,7 +1019,7 @@ class WorksetStateDB:
         Returns:
             True if successful
         """
-        now = dt.datetime.utcnow().isoformat() + "Z"
+        now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
         update_expr = "SET #state = :state, archived_at = :archived_at, archived_by = :archived_by"
         expr_values = {
             ":state": WorksetState.ARCHIVED.value,
@@ -1072,7 +1072,7 @@ class WorksetStateDB:
                 LOGGER.info("Hard deleted workset %s from DynamoDB by %s", workset_id, deleted_by)
             else:
                 # Soft delete - mark as deleted
-                now = dt.datetime.utcnow().isoformat() + "Z"
+                now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
                 update_expr = "SET #state = :state, deleted_at = :deleted_at, deleted_by = :deleted_by"
                 expr_values = {
                     ":state": WorksetState.DELETED.value,
@@ -1111,7 +1111,7 @@ class WorksetStateDB:
         Returns:
             True if successful
         """
-        now = dt.datetime.utcnow().isoformat() + "Z"
+        now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
         try:
             self.table.update_item(
                 Key={"workset_id": workset_id},

@@ -57,12 +57,12 @@ class SavedManifest:
 
 
 def _utc_now_iso() -> str:
-    return dt.datetime.utcnow().isoformat() + "Z"
+    return dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
 
 
 def _generate_manifest_id(now: Optional[dt.datetime] = None) -> str:
     """Generate a lexicographically time-sortable manifest id."""
-    now = now or dt.datetime.utcnow()
+    now = now or dt.datetime.now(dt.timezone.utc)
     ts = now.strftime("%Y%m%dT%H%M%S%fZ")
     return f"m-{ts}-{uuid.uuid4().hex[:10]}"
 

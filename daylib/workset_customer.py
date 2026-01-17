@@ -8,7 +8,8 @@ from __future__ import annotations
 import json
 import logging
 import secrets
-from dataclasses import dataclass
+import datetime as dt
+from dataclasses import dataclass, field
 from typing import Dict, List, Optional
 
 import boto3
@@ -20,6 +21,7 @@ LOGGER = logging.getLogger("daylily.workset_customer")
 @dataclass
 class CustomerConfig:
     """Customer configuration."""
+
     customer_id: str
     customer_name: str
     email: str
@@ -29,6 +31,9 @@ class CustomerConfig:
     billing_account_id: Optional[str] = None
     cost_center: Optional[str] = None
     is_admin: bool = False
+    # API tokens for this customer (stored as a list of maps in DynamoDB)
+    # Each token dict contains: id, name, token_hash, created_at, expires_at, revoked
+    api_tokens: List[Dict] = field(default_factory=list)
 
 
 class CustomerManager:
@@ -276,6 +281,10 @@ class CustomerManager:
         if config.cost_center:
             item["cost_center"] = config.cost_center
 
+        # Persist API tokens if present
+        if getattr(config, "api_tokens", None):
+            item["api_tokens"] = config.api_tokens
+
         table.put_item(Item=item)
         LOGGER.info("Saved customer config for %s", config.customer_id)
 
@@ -307,6 +316,7 @@ class CustomerManager:
                 billing_account_id=item.get("billing_account_id"),
                 cost_center=item.get("cost_center"),
                 is_admin=item.get("is_admin", False),
+                api_tokens=item.get("api_tokens", []),
             )
 
         except ClientError as e:
@@ -371,7 +381,11 @@ class CustomerManager:
 
             customers = []
             for item in items:
-                LOGGER.debug(f"list_customers: Processing item with customer_id={item.get('customer_id')}, email={item.get('email')}")
+                LOGGER.debug(
+                    "list_customers: Processing item with customer_id=%s, email=%s",
+                    item.get("customer_id"),
+                    item.get("email"),
+                )
                 customers.append(
                     CustomerConfig(
                         customer_id=item["customer_id"],
@@ -383,6 +397,7 @@ class CustomerManager:
                         billing_account_id=item.get("billing_account_id"),
                         cost_center=item.get("cost_center"),
                         is_admin=item.get("is_admin", False),
+                        api_tokens=item.get("api_tokens", []),
                     )
                 )
 
@@ -431,7 +446,7 @@ class CustomerManager:
 
             # Get bucket size metric (this is updated daily by AWS)
             # Use dynamic date range: last 7 days to today
-            end_time = dt.datetime.utcnow()
+            end_time = dt.datetime.now(dt.timezone.utc)
             start_time = end_time - dt.timedelta(days=7)
 
             response = cloudwatch.get_metric_statistics(
@@ -467,4 +482,127 @@ class CustomerManager:
             ) if max_storage_gb > 0 else 0,
         }
 
+    # ==================================================================
+    # API Token Management
+    # ==================================================================
 
+    def list_api_tokens(self, customer_id: str) -> List[Dict]:
+        """List API tokens for a customer.
+
+        Returns only metadata (no secret or token_hash).
+        """
+        config = self.get_customer_config(customer_id)
+        if not config:
+            return []
+
+        tokens = getattr(config, "api_tokens", []) or []
+        result: List[Dict] = []
+        for token in tokens:
+            result.append(
+                {
+                    "id": token.get("id"),
+                    "name": token.get("name"),
+                    "created_at": token.get("created_at"),
+                    "expires_at": token.get("expires_at"),
+                    "revoked": bool(token.get("revoked", False)),
+                }
+            )
+        return result
+
+    def add_api_token(self, customer_id: str, name: str, expiry_days: int) -> Dict:
+        """Create a new API token for a customer.
+
+        Returns a dict with ``secret`` (token string) and ``token`` (metadata).
+        """
+        import hashlib
+
+        config = self.get_customer_config(customer_id)
+        if not config:
+            raise ValueError(f"Customer {customer_id} not found")
+
+        now = dt.datetime.now(dt.timezone.utc)
+        created_at = now.isoformat().replace("+00:00", "Z")
+        expires_at: Optional[str] = None
+        if expiry_days and expiry_days > 0:
+            expires_at = (now + dt.timedelta(days=expiry_days)).isoformat() + "Z"
+
+        token_id = secrets.token_hex(8)
+        secret = secrets.token_urlsafe(32)
+        token_hash = hashlib.sha256(secret.encode("utf-8")).hexdigest()
+
+        token_record = {
+            "id": token_id,
+            "name": name,
+            "token_hash": token_hash,
+            "created_at": created_at,
+            "expires_at": expires_at,
+            "revoked": False,
+        }
+
+        tokens = list(getattr(config, "api_tokens", []) or [])
+        tokens.append(token_record)
+        config.api_tokens = tokens
+        self._save_customer_config(config)
+
+        public_token = {
+            "id": token_id,
+            "name": name,
+            "created_at": created_at,
+            "expires_at": expires_at,
+            "revoked": False,
+        }
+        return {"secret": secret, "token": public_token}
+
+    def revoke_api_token(self, customer_id: str, token_id: str) -> bool:
+        """Revoke an API token for a customer.
+
+        Marks the token as revoked but keeps it in the list for auditability.
+        """
+        config = self.get_customer_config(customer_id)
+        if not config or not getattr(config, "api_tokens", None):
+            return False
+
+        changed = False
+        for token in config.api_tokens:
+            if token.get("id") == token_id and not token.get("revoked", False):
+                token["revoked"] = True
+                changed = True
+
+        if changed:
+            self._save_customer_config(config)
+
+        return changed
+
+    def get_customer_by_api_key(self, api_key: str) -> Optional[CustomerConfig]:
+        """Resolve a customer by API key string.
+
+        Looks up all customers for a matching token hash that is not revoked and
+        (if set) not expired. Intended for low-volume administrative/API use.
+        """
+        import hashlib
+
+        if not api_key:
+            return None
+
+        token_hash = hashlib.sha256(api_key.encode("utf-8")).hexdigest()
+        now = dt.datetime.now(dt.timezone.utc)
+
+        for customer in self.list_customers():
+            tokens = getattr(customer, "api_tokens", []) or []
+            for token in tokens:
+                if token.get("revoked", False):
+                    continue
+                expires_at = token.get("expires_at")
+                if expires_at:
+                    try:
+                        exp_dt = dt.datetime.fromisoformat(expires_at.replace("Z", ""))
+                        if exp_dt < now:
+                            continue
+                    except Exception:
+                        # If we can't parse expiry, ignore it rather than failing auth
+                        pass
+
+                if token.get("token_hash") == token_hash:
+                    return customer
+
+        return None

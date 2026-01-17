@@ -153,7 +153,7 @@ class WorksetMultiRegionDB:
             latency = (time.monotonic() - start_time) * 1000
 
             health.latency_ms = latency
-            health.last_check = dt.datetime.utcnow()
+            health.last_check = dt.datetime.now(dt.timezone.utc)
             health.consecutive_failures = 0
             health.last_error = None
 
@@ -166,7 +166,7 @@ class WorksetMultiRegionDB:
         except (ClientError, EndpointConnectionError) as e:
             health.consecutive_failures += 1
             health.last_error = str(e)
-            health.last_check = dt.datetime.utcnow()
+            health.last_check = dt.datetime.now(dt.timezone.utc)
 
             if health.consecutive_failures >= self.config.failover_threshold:
                 health.status = RegionStatus.UNHEALTHY

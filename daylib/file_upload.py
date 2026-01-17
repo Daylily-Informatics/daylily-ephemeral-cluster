@@ -10,8 +10,13 @@ from __future__ import annotations
 import hashlib
 import logging
 from dataclasses import dataclass, field
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Any, Dict, List, Optional, Tuple
+
+
+def _utc_now_iso() -> str:
+    """Return current UTC time in ISO format with Z suffix."""
+    return datetime.now(timezone.utc).isoformat().replace("+00:00", "Z")
 
 import boto3
 from botocore.exceptions import ClientError
@@ -40,9 +45,9 @@ class UploadSession:
     # Checksums
     expected_md5: Optional[str] = None
     actual_md5: Optional[str] = None
-    
+
     # Timestamps
-    created_at: str = field(default_factory=lambda: datetime.utcnow().isoformat() + "Z")
+    created_at: str = field(default_factory=_utc_now_iso)
     completed_at: Optional[str] = None
 
 
@@ -380,7 +385,7 @@ def generate_upload_path(
         S3 object key path
     """
     if include_timestamp:
-        timestamp = datetime.utcnow().strftime("%Y/%m/%d")
+        timestamp = datetime.now(timezone.utc).strftime("%Y/%m/%d")
         return f"{prefix}/{customer_id}/{timestamp}/{filename}"
     return f"{prefix}/{customer_id}/{filename}"
 
