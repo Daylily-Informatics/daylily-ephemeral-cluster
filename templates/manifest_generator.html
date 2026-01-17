@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 {% set active_page = 'manifest' %}
 
-{% block title %}Analysis Manifest Generator - Daylily Customer Portal{% endblock %}
+{% block title %}Workset Manifest Generator - Daylily Customer Portal{% endblock %}
 
 {% block content %}
 <div class="container">
     <!-- Page Header -->
     <div class="page-header">
-        <h1 class="page-title">Analysis Manifest Generator</h1>
+        <h1 class="page-title">Workset Manifest Generator</h1>
         <p class="page-subtitle">Create a <code>stage_samples.tsv</code> file defining analysis inputs for your pipeline run</p>
     </div>
     
@@ -78,19 +78,81 @@
                             <dl>
                                 <dt><strong>Analysis Input (SAMPLE_ID)</strong></dt>
                                 <dd>Pipeline input identifier - uniquely identifies a sequencing library for analysis</dd>
-                                
+
                                 <dt><strong>Subject/Individual (EXTERNAL_SAMPLE_ID)</strong></dt>
                                 <dd>Source organism identifier (e.g., patient ID, HG002). Multiple libraries may come from one subject.</dd>
-                                
+
                                 <dt><strong>Biosample</strong></dt>
                                 <dd>Physical specimen (tissue type, collection info). Captured in SAMPLE_TYPE field.</dd>
-                                
+
                                 <dt><strong>Sequencing Library</strong></dt>
                                 <dd>Prepared DNA/RNA with specific protocol. Captured in LIB_PREP, SEQ_VENDOR, SEQ_PLATFORM.</dd>
-                                
+
                                 <dt><strong>FASTQ Files</strong></dt>
                                 <dd>Raw sequencing output files (R1_FQ, R2_FQ). Include full S3 paths.</dd>
                             </dl>
+                        </div>
+                    </details>
+                </div>
+
+                <!-- Column Mapping Help -->
+                <div class="card">
+                    <details>
+                        <summary class="card-title" style="cursor: pointer;">
+                            <i class="fas fa-columns"></i> Column Mapping Reference
+                        </summary>
+                        <div class="mt-lg">
+                            <table class="table table-sm" style="width: 100%; border-collapse: collapse;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid var(--color-gray-300);">
+                                        <th style="padding: var(--spacing-sm); text-align: left;">Column Name</th>
+                                        <th style="padding: var(--spacing-sm); text-align: left;">Description</th>
+                                        <th style="padding: var(--spacing-sm); text-align: left;">Example</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr style="border-bottom: 1px solid var(--color-gray-200);">
+                                        <td style="padding: var(--spacing-sm);"><code>SAMPLE_ID</code></td>
+                                        <td style="padding: var(--spacing-sm);">Unique identifier for this analysis input</td>
+                                        <td style="padding: var(--spacing-sm);">LIB001</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid var(--color-gray-200);">
+                                        <td style="padding: var(--spacing-sm);"><code>EXTERNAL_SAMPLE_ID</code></td>
+                                        <td style="padding: var(--spacing-sm);">Subject/individual ID (e.g., patient ID)</td>
+                                        <td style="padding: var(--spacing-sm);">SUBJ001</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid var(--color-gray-200);">
+                                        <td style="padding: var(--spacing-sm);"><code>SAMPLE_TYPE</code></td>
+                                        <td style="padding: var(--spacing-sm);">Type of biological sample</td>
+                                        <td style="padding: var(--spacing-sm);">Blood, Saliva, Tissue</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid var(--color-gray-200);">
+                                        <td style="padding: var(--spacing-sm);"><code>LIB_PREP</code></td>
+                                        <td style="padding: var(--spacing-sm);">Library preparation method</td>
+                                        <td style="padding: var(--spacing-sm);">PCR-free, Nextera</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid var(--color-gray-200);">
+                                        <td style="padding: var(--spacing-sm);"><code>SEQ_VENDOR</code></td>
+                                        <td style="padding: var(--spacing-sm);">Sequencing vendor/platform</td>
+                                        <td style="padding: var(--spacing-sm);">Illumina, PacBio</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid var(--color-gray-200);">
+                                        <td style="padding: var(--spacing-sm);"><code>SEQ_PLATFORM</code></td>
+                                        <td style="padding: var(--spacing-sm);">Specific sequencing platform</td>
+                                        <td style="padding: var(--spacing-sm);">NovaSeq, HiSeq</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid var(--color-gray-200);">
+                                        <td style="padding: var(--spacing-sm);"><code>R1_FQ</code></td>
+                                        <td style="padding: var(--spacing-sm);">S3 path to forward read FASTQ file</td>
+                                        <td style="padding: var(--spacing-sm);">s3://bucket/sample_R1.fastq.gz</td>
+                                    </tr>
+                                    <tr style="border-bottom: 1px solid var(--color-gray-200);">
+                                        <td style="padding: var(--spacing-sm);"><code>R2_FQ</code></td>
+                                        <td style="padding: var(--spacing-sm);">S3 path to reverse read FASTQ file (optional for single-end)</td>
+                                        <td style="padding: var(--spacing-sm);">s3://bucket/sample_R2.fastq.gz</td>
+                                    </tr>
+                                </tbody>
+                            </table>
                         </div>
                     </details>
                 </div>

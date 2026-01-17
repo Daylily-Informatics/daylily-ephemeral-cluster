@@ -1,5 +1,5 @@
 /**
- * Analysis Manifest Generator
+ * Workset Manifest Generator
  * Generates stage_samples.tsv files for Daylily pipeline analysis inputs
  * 
  * Uses GA4GH terminology:

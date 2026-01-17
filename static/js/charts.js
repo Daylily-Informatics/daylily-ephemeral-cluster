@@ -21,20 +21,22 @@ const chartColors = {
 function initActivityChart(canvasId) {
     const ctx = document.getElementById(canvasId);
     if (!ctx) return;
-    
+
     // Generate sample data for last 30 days
     const labels = [];
     const completedData = [];
     const submittedData = [];
-    
+    const failedData = [];
+
     for (let i = 29; i >= 0; i--) {
         const date = new Date();
         date.setDate(date.getDate() - i);
         labels.push(date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' }));
         completedData.push(Math.floor(Math.random() * 5));
         submittedData.push(Math.floor(Math.random() * 8));
+        failedData.push(Math.floor(Math.random() * 2));
     }
-    
+
     new Chart(ctx, {
         type: 'line',
         data: {
@@ -53,6 +55,14 @@ function initActivityChart(canvasId) {
                     data: completedData,
                     borderColor: chartColors.accent,
                     backgroundColor: 'rgba(0, 217, 166, 0.1)',
+                    fill: true,
+                    tension: 0.4,
+                },
+                {
+                    label: 'Failed',
+                    data: failedData,
+                    borderColor: chartColors.error,
+                    backgroundColor: 'rgba(233, 69, 96, 0.1)',
                     fill: true,
                     tension: 0.4,
                 },

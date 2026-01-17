@@ -340,6 +340,8 @@ p { margin-bottom: var(--spacing-md); }
 .card-icon.success { background: rgba(0, 217, 166, 0.1); color: var(--color-success); }
 .card-icon.warning { background: rgba(255, 193, 7, 0.1); color: var(--color-warning); }
 .card-icon.error { background: rgba(220, 53, 69, 0.1); color: var(--color-error); }
+.card-icon.info { background: rgba(23, 162, 184, 0.1); color: var(--color-info); }
+.card-icon.accent { background: rgba(233, 69, 96, 0.1); color: var(--color-highlight); }
 
 /* Buttons */
 .btn {
@@ -501,14 +503,16 @@ p { margin-bottom: var(--spacing-md); }
 .grid-2 { grid-template-columns: repeat(2, 1fr); }
 .grid-3 { grid-template-columns: repeat(3, 1fr); }
 .grid-4 { grid-template-columns: repeat(4, 1fr); }
+.grid-5 { grid-template-columns: repeat(5, 1fr); }
 
 @media (max-width: 1024px) {
+    .grid-5 { grid-template-columns: repeat(3, 1fr); }
     .grid-4 { grid-template-columns: repeat(2, 1fr); }
     .grid-3 { grid-template-columns: repeat(2, 1fr); }
 }
 
 @media (max-width: 640px) {
-    .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
+    .grid-5, .grid-4, .grid-3, .grid-2 { grid-template-columns: 1fr; }
 }
 
 /* Stats Cards */
@@ -532,6 +536,12 @@ p { margin-bottom: var(--spacing-md); }
 .stat-label {
     font-size: 0.875rem;
     color: var(--color-gray-600);
+    margin-top: var(--spacing-xs);
+}
+
+.stat-subtext {
+    font-size: 0.75rem;
+    color: var(--color-gray-500);
     margin-top: var(--spacing-xs);
 }
 

@@ -32,6 +32,13 @@
                     <li><a href="#filesets">File Sets</a></li>
                     <li><a href="#manifests">Manifests</a></li>
                 </ul>
+                <h4>UI Guide</h4>
+                <ul>
+                    <li><a href="#dashboard">Dashboard</a></li>
+                    <li><a href="#file-registry-ui">File Registry UI</a></li>
+                    <li><a href="#worksets-ui">Worksets UI</a></li>
+                    <li><a href="#usage-tracking">Usage & Costs</a></li>
+                </ul>
                 <h4>API Reference</h4>
                 <ul>
                     <li><a href="/docs" target="_blank">OpenAPI Docs</a></li>
@@ -103,6 +110,104 @@
                 </ol>
             </section>
 
+            <section id="dashboard" class="docs-section">
+                <h2>Dashboard Guide</h2>
+                <p>The Dashboard provides a quick overview of your account activity and status:</p>
+                <div class="grid grid-2 gap-lg">
+                    <div class="card">
+                        <h4><i class="fas fa-spinner text-accent"></i> Workset Status Tiles</h4>
+                        <p>View counts of worksets in different states: In Progress, Ready/Queued, Completed, and Errors. Click any tile to filter worksets by status.</p>
+                    </div>
+                    <div class="card">
+                        <h4><i class="fas fa-file-alt text-accent"></i> File Statistics</h4>
+                        <p>See your registered file count and total storage used. Click to navigate to the File Registry.</p>
+                    </div>
+                    <div class="card">
+                        <h4><i class="fas fa-chart-line text-accent"></i> Cost Tracking</h4>
+                        <p>Monitor your monthly costs and 30-day cost breakdown. Click to view detailed usage analytics.</p>
+                    </div>
+                    <div class="card">
+                        <h4><i class="fas fa-history text-accent"></i> Activity Chart</h4>
+                        <p>View processing activity over the last 30 days with metrics for submitted, completed, and failed worksets.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="file-registry-ui" class="docs-section">
+                <h2>File Registry UI</h2>
+                <p>The File Registry helps you manage and organize your genomics data files.</p>
+                <h4>Search & Filtering</h4>
+                <p>Use the search bar to find files by filename, sample ID, or subject ID. Click the "Advanced" button to access additional filters:</p>
+                <ul>
+                    <li><strong>Format</strong> - Filter by file type (FASTQ, BAM, CRAM, VCF)</li>
+                    <li><strong>Sample Type</strong> - Filter by sample type (Blood, Saliva, Tissue, etc.)</li>
+                    <li><strong>Subject ID</strong> - Find all files for a specific subject</li>
+                    <li><strong>Biosample ID</strong> - Find files for a specific biosample</li>
+                    <li><strong>Tags</strong> - Filter by custom tags</li>
+                    <li><strong>Sequencing Platform</strong> - Filter by sequencing platform</li>
+                    <li><strong>Date Range</strong> - Filter by registration date</li>
+                </ul>
+                <h4>File Registration Methods</h4>
+                <p>Register files using one of three methods:</p>
+                <ol>
+                    <li><strong>Single File</strong> - Register one file with full metadata</li>
+                    <li><strong>Bulk Import</strong> - Upload a CSV/TSV file with multiple files and metadata</li>
+                    <li><strong>Auto-Discover</strong> - Scan a linked S3 bucket to automatically discover and register files</li>
+                </ol>
+                <h4>File Detail Page</h4>
+                <p>Click on any file to view detailed information including:</p>
+                <ul>
+                    <li>File metadata (size, format, checksum)</li>
+                    <li>Subject and biosample information</li>
+                    <li>Sequencing details (platform, instrument, run date)</li>
+                    <li>Tags and file sets</li>
+                    <li>Workset history</li>
+                </ul>
+                <p>From the detail page, you can:</p>
+                <ul>
+                    <li><strong>Add Tags</strong> - Click "Add Tag" to add custom tags for organization</li>
+                    <li><strong>Find Similar Files</strong> - Discover other files from the same subject</li>
+                    <li><strong>View Subject's Files</strong> - See all files registered for a subject</li>
+                </ul>
+            </section>
+
+            <section id="worksets-ui" class="docs-section">
+                <h2>Worksets UI</h2>
+                <p>The Worksets page allows you to create, monitor, and manage analysis jobs.</p>
+                <h4>Creating a Workset</h4>
+                <p>Click "Submit New Workset" to create a new analysis job. You can:</p>
+                <ul>
+                    <li>Select files from your File Registry</li>
+                    <li>Upload FASTQ files directly</li>
+                    <li>Provide an S3 path to existing data</li>
+                    <li>Upload a manifest file (stage_samples.tsv)</li>
+                </ul>
+                <h4>Monitoring Worksets</h4>
+                <p>The Worksets list shows all your analysis jobs with their current status:</p>
+                <ul>
+                    <li><strong>READY</strong> - Queued and waiting to start</li>
+                    <li><strong>IN_PROGRESS</strong> - Currently running</li>
+                    <li><strong>COMPLETE</strong> - Successfully finished</li>
+                    <li><strong>ERROR</strong> - Failed with an error</li>
+                </ul>
+                <p>Click on any workset to view detailed information, logs, and results.</p>
+            </section>
+
+            <section id="usage-tracking" class="docs-section">
+                <h2>Usage & Cost Tracking</h2>
+                <p>The Usage page provides detailed insights into your compute and storage costs.</p>
+                <h4>Cost Breakdown</h4>
+                <p>View your costs broken down by:</p>
+                <ul>
+                    <li><strong>Compute</strong> - EC2 instance costs for running worksets</li>
+                    <li><strong>Storage</strong> - S3 storage costs for your data</li>
+                    <li><strong>Data Transfer</strong> - Costs for data egress</li>
+                    <li><strong>Other</strong> - Additional AWS service costs</li>
+                </ul>
+                <h4>Daily Cost Tracking</h4>
+                <p>View your daily costs over the last 30 days to identify trends and optimize spending.</p>
+            </section>
+
             <section id="api-auth" class="docs-section">
                 <h2>API Authentication</h2>
                 <p>The Daylily API supports two authentication methods:</p>
@@ -121,9 +226,17 @@
             <div class="card mt-xl" style="background: #1a2a33; text-align: center;">
                 <h3 style="margin-top: 0;">Need Help?</h3>
                 <p class="text-muted">Can't find what you're looking for? Contact our support team.</p>
-                <a href="/portal/support" class="btn btn-primary">
-                    <i class="fas fa-envelope"></i> Contact Support
-                </a>
+                <div class="d-flex gap-md justify-center">
+                    <a href="mailto:John@dyly.bio" class="btn btn-primary">
+                        <i class="fas fa-envelope"></i> Email Support
+                    </a>
+                    <a href="/portal/support" class="btn btn-outline">
+                        <i class="fas fa-question-circle"></i> Support Page
+                    </a>
+                </div>
+                <p style="margin-top: var(--spacing-lg); font-size: 0.9rem;">
+                    <strong>Email:</strong> <a href="mailto:John@dyly.bio" style="color: var(--color-accent);">John@dyly.bio</a>
+                </p>
             </div>
         </div>
     </div>

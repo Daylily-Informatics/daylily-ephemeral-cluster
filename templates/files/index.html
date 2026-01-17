@@ -168,7 +168,14 @@
             <tbody id="files-tbody">
                 {% if files %}
                 {% for file in files %}
-                <tr data-file-id="{{ file.file_id }}">
+                <tr data-file-id="{{ file.file_id }}"
+                    data-format="{{ file.file_format | lower }}"
+                    data-sample-type="{{ file.sample_type | lower | default('') }}"
+                    data-subject-id="{{ file.subject_id | lower | default('') }}"
+                    data-biosample-id="{{ file.biosample_id | lower | default('') }}"
+                    data-tags="{{ file.tags | join(',') | lower | default('') }}"
+                    data-platform="{{ file.sequencing_platform | lower | default('') }}"
+                    data-created="{{ file.registered_at | default('') }}">
                     <td>
                         <label class="checkbox-label">
                             <input type="checkbox" class="file-checkbox" value="{{ file.file_id }}">
@@ -212,7 +219,7 @@
                 </tr>
                 {% endfor %}
                 {% else %}
-                <tr id="empty-row">
+                <tr id="empty-files-row">
                     <td colspan="10">
                         <div class="empty-state">
                             <div class="empty-state-icon"><i class="fas fa-folder-open"></i></div>

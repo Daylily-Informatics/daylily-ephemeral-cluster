@@ -1356,6 +1356,84 @@ function viewSubjectFiles(subjectId) {
     }
 }
 
+// Find similar files (same subject, format, or platform)
+function findSimilarFiles(fileId) {
+    // Get current file data from page
+    const subjectId = document.querySelector('[data-subject-id]')?.textContent || '';
+    const format = document.querySelector('[data-format]')?.textContent || '';
+
+    if (subjectId) {
+        // Filter by subject ID to find similar files
+        window.location.href = `/portal/files?subject_id=${encodeURIComponent(subjectId)}`;
+    } else {
+        showToast('Cannot find similar files - no subject ID', 'info');
+    }
+}
+
+// Show add tag modal
+function showAddTagModal() {
+    document.getElementById('new-tag-input').value = '';
+    showModal('add-tag-modal');
+    document.getElementById('new-tag-input').focus();
+}
+
+// Add tag to file
+async function addTag() {
+    const tagInput = document.getElementById('new-tag-input');
+    const tag = tagInput.value.trim();
+
+    if (!tag) {
+        showToast('Please enter a tag name', 'warning');
+        return;
+    }
+
+    const fileId = window.location.pathname.split('/').pop();
+
+    try {
+        const response = await fetch(`${FILE_API_BASE}/${fileId}/tags`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ tag })
+        });
+
+        if (response.ok) {
+            showToast('Tag added successfully', 'success');
+            closeModal('add-tag-modal');
+            // Reload page to show new tag
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            showToast('Failed to add tag', 'error');
+        }
+    } catch (error) {
+        console.error('Error adding tag:', error);
+        showToast('Error adding tag', 'error');
+    }
+}
+
+// Remove tag from file
+async function removeTag(tag) {
+    if (!confirm(`Remove tag "${tag}"?`)) return;
+
+    const fileId = window.location.pathname.split('/').pop();
+
+    try {
+        const response = await fetch(`${FILE_API_BASE}/${fileId}/tags/${encodeURIComponent(tag)}`, {
+            method: 'DELETE'
+        });
+
+        if (response.ok) {
+            showToast('Tag removed successfully', 'success');
+            // Reload page to show updated tags
+            setTimeout(() => window.location.reload(), 500);
+        } else {
+            showToast('Failed to remove tag', 'error');
+        }
+    } catch (error) {
+        console.error('Error removing tag:', error);
+        showToast('Error removing tag', 'error');
+    }
+}
+
 // Use file in manifest
 function useInManifest(fileId) {
     window.location.href = `/portal/worksets/create?file_id=${fileId}`;

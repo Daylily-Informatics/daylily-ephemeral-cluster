@@ -64,6 +64,42 @@
         </a>
     </div>
 
+    <!-- Additional Tiles Grid -->
+    <div class="grid grid-3 mb-xl">
+        <a href="/portal/files" class="stat-card stat-card-clickable">
+            <div class="card-icon accent">
+                <i class="fas fa-file-alt"></i>
+            </div>
+            <div>
+                <div class="stat-value" id="stat-files">{{ stats.registered_files | default(0) }}</div>
+                <div class="stat-label">Registered Files</div>
+                <div class="stat-subtext">{{ "%.2f"|format(stats.total_file_size_gb | default(0)) }} GB</div>
+            </div>
+        </a>
+
+        <div class="stat-card">
+            <div class="card-icon info">
+                <i class="fas fa-flask"></i>
+            </div>
+            <div>
+                <div class="stat-value">—</div>
+                <div class="stat-label">Experiments</div>
+                <div class="stat-subtext">Coming soon</div>
+            </div>
+        </div>
+
+        <a href="/portal/usage" class="stat-card stat-card-clickable">
+            <div class="card-icon success">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div>
+                <div class="stat-value" id="stat-cost-30d">${{ "%.2f"|format(stats.cost_this_month | default(0)) }}</div>
+                <div class="stat-label">30-Day Costs</div>
+                <div class="stat-subtext">View breakdown</div>
+            </div>
+        </a>
+    </div>
+
     <!-- Storage Bar -->
     <div class="card mb-xl" style="padding: var(--spacing-md);">
         <div class="d-flex justify-between align-center mb-sm">

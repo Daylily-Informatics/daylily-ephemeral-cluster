@@ -44,6 +44,64 @@ function clearFileSelection() {
     updateFileBulkActions();
 }
 
+// Search and filter files
+function searchFiles() {
+    const query = document.getElementById('search-query')?.value.toLowerCase() || '';
+    const format = document.getElementById('filter-format')?.value || '';
+    const sampleType = document.getElementById('filter-sample-type')?.value || '';
+    const subjectId = document.getElementById('filter-subject-id')?.value.toLowerCase() || '';
+    const biosampleId = document.getElementById('filter-biosample-id')?.value.toLowerCase() || '';
+    const tags = document.getElementById('filter-tags')?.value.toLowerCase() || '';
+    const platform = document.getElementById('filter-platform')?.value || '';
+    const hasControls = document.getElementById('filter-has-controls')?.value || '';
+    const dateFrom = document.getElementById('filter-date-from')?.value || '';
+
+    const rows = document.querySelectorAll('#files-tbody tr[data-file-id]');
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+        let matches = true;
+
+        // Get row data
+        const filename = row.textContent.toLowerCase();
+        const fileFormat = row.dataset.format?.toLowerCase() || '';
+        const rowSampleType = row.dataset.sampleType?.toLowerCase() || '';
+        const rowSubjectId = row.dataset.subjectId?.toLowerCase() || '';
+        const rowBiosampleId = row.dataset.biosampleId?.toLowerCase() || '';
+        const rowTags = row.dataset.tags?.toLowerCase() || '';
+        const rowPlatform = row.dataset.platform?.toLowerCase() || '';
+        const rowCreated = row.dataset.created || '';
+
+        // Apply filters
+        if (query && !filename.includes(query)) matches = false;
+        if (format && fileFormat !== format.toLowerCase()) matches = false;
+        if (sampleType && rowSampleType !== sampleType.toLowerCase()) matches = false;
+        if (subjectId && !rowSubjectId.includes(subjectId)) matches = false;
+        if (biosampleId && !rowBiosampleId.includes(biosampleId)) matches = false;
+        if (tags && !rowTags.includes(tags)) matches = false;
+        if (platform && rowPlatform !== platform.toLowerCase()) matches = false;
+        if (dateFrom && rowCreated < dateFrom) matches = false;
+
+        row.style.display = matches ? '' : 'none';
+        if (matches) visibleCount++;
+    });
+
+    // Show/hide empty state
+    const emptyRow = document.getElementById('empty-files-row');
+    if (emptyRow) {
+        emptyRow.style.display = visibleCount === 0 ? '' : 'none';
+    }
+}
+
+// Debounce search input
+let searchDebounceTimer = null;
+function debounceSearch() {
+    clearTimeout(searchDebounceTimer);
+    searchDebounceTimer = setTimeout(() => {
+        searchFiles();
+    }, 300);
+}
+
 // Show upload modal
 function showUploadModal() {
     const modal = document.getElementById('upload-modal');
