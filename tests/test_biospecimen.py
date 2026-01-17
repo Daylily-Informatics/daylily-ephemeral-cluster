@@ -12,9 +12,11 @@ from botocore.exceptions import ClientError
 from daylib.biospecimen import (
     BiospecimenRegistry,
     Subject,
+    Biospecimen,
     Biosample,
     Library,
     generate_subject_id,
+    generate_biospecimen_id,
     generate_biosample_id,
     generate_library_id,
 )
@@ -30,6 +32,7 @@ def mock_dynamodb():
     with patch("daylib.biospecimen.boto3.Session") as mock_session:
         mock_resource = MagicMock()
         mock_subjects_table = MagicMock()
+        mock_biospecimens_table = MagicMock()
         mock_biosamples_table = MagicMock()
         mock_libraries_table = MagicMock()
 
@@ -37,6 +40,8 @@ def mock_dynamodb():
         def get_table(name):
             if "subjects" in name:
                 return mock_subjects_table
+            elif "biospecimens" in name:
+                return mock_biospecimens_table
             elif "biosamples" in name:
                 return mock_biosamples_table
             elif "libraries" in name:
@@ -50,6 +55,7 @@ def mock_dynamodb():
             "session": mock_session,
             "resource": mock_resource,
             "subjects_table": mock_subjects_table,
+            "biospecimens_table": mock_biospecimens_table,
             "biosamples_table": mock_biosamples_table,
             "libraries_table": mock_libraries_table,
         }
@@ -60,6 +66,7 @@ def registry(mock_dynamodb):
     """Create a BiospecimenRegistry with mocked DynamoDB tables."""
     reg = BiospecimenRegistry(
         subjects_table_name="test-subjects",
+        biospecimens_table_name="test-biospecimens",
         biosamples_table_name="test-biosamples",
         libraries_table_name="test-libraries",
         region="us-west-2",
@@ -84,11 +91,33 @@ def sample_subject():
 
 
 @pytest.fixture
-def sample_biosample(sample_subject):
+def sample_biospecimen(sample_subject):
+    """Create a sample biospecimen for testing."""
+    return Biospecimen(
+        biospecimen_id=generate_biospecimen_id("customer-123", "biospecimen-001"),
+        customer_id="customer-123",
+        subject_id=sample_subject.subject_id,
+        biospecimen_type="tissue",
+        collection_date="2024-01-15",
+        collection_method="biopsy",
+        preservation_method="frozen",
+        tissue_type="tumor",
+        anatomical_site="lung",
+        tumor_fraction=0.8,
+        is_tumor=True,
+        produced_date="2024-01-16",
+        notes="Test biospecimen",
+        tags=["test"],
+    )
+
+
+@pytest.fixture
+def sample_biosample(sample_subject, sample_biospecimen):
     """Create a sample biosample for testing."""
     return Biosample(
         biosample_id=generate_biosample_id("customer-123", "biosample-001"),
         customer_id="customer-123",
+        biospecimen_id=sample_biospecimen.biospecimen_id,
         subject_id=sample_subject.subject_id,
         sample_type="blood",
         tissue_type="peripheral blood",
@@ -354,7 +383,7 @@ class TestBiosampleCRUD:
 
         assert fetched is None
 
-    def test_list_biosamples_for_subject(self, registry, mock_dynamodb, sample_subject):
+    def test_list_biosamples_for_subject(self, registry, mock_dynamodb, sample_subject, sample_biospecimen):
         """List biosamples for a specific subject."""
         mock_table = mock_dynamodb["biosamples_table"]
 
@@ -363,6 +392,7 @@ class TestBiosampleCRUD:
             Biosample(
                 biosample_id=generate_biosample_id("customer-123", f"bio-{i}"),
                 customer_id="customer-123",
+                biospecimen_id=sample_biospecimen.biospecimen_id,
                 subject_id=sample_subject.subject_id,
                 sample_type="blood",
             )
@@ -476,16 +506,19 @@ class TestHierarchy:
     """Tests for hierarchy queries."""
 
     def test_get_subject_hierarchy_complete(
-        self, registry, mock_dynamodb, sample_subject, sample_biosample, sample_library
+        self, registry, mock_dynamodb, sample_subject, sample_biospecimen, sample_biosample, sample_library
     ):
         """Get complete hierarchy for a subject."""
         subjects_table = mock_dynamodb["subjects_table"]
+        biospecimens_table = mock_dynamodb.get("biospecimens_table", MagicMock())
         biosamples_table = mock_dynamodb["biosamples_table"]
         libraries_table = mock_dynamodb["libraries_table"]
 
         # Mock get_subject
         subjects_table.get_item.return_value = {"Item": asdict(sample_subject)}
-        # Mock list_biosamples_for_subject
+        # Mock list_biospecimens_for_subject
+        biospecimens_table.query.return_value = {"Items": [asdict(sample_biospecimen)]}
+        # Mock list_biosamples_for_biospecimen
         biosamples_table.query.return_value = {"Items": [asdict(sample_biosample)]}
         # Mock list_libraries_for_biosample
         libraries_table.query.return_value = {"Items": [asdict(sample_library)]}
@@ -495,10 +528,15 @@ class TestHierarchy:
         assert "subject" in hierarchy
         assert hierarchy["subject"]["subject_id"] == sample_subject.subject_id
 
-        assert "biosamples" in hierarchy
-        assert len(hierarchy["biosamples"]) == 1
+        assert "biospecimens" in hierarchy
+        assert len(hierarchy["biospecimens"]) == 1
 
-        biosample_entry = hierarchy["biosamples"][0]
+        biospecimen_entry = hierarchy["biospecimens"][0]
+        assert "biospecimen" in biospecimen_entry
+        assert "biosamples" in biospecimen_entry
+        assert len(biospecimen_entry["biosamples"]) == 1
+
+        biosample_entry = biospecimen_entry["biosamples"][0]
         assert "biosample" in biosample_entry
         assert "libraries" in biosample_entry
         assert len(biosample_entry["libraries"]) == 1
@@ -513,21 +551,24 @@ class TestHierarchy:
         assert hierarchy == {}
 
     def test_get_statistics(
-        self, registry, mock_dynamodb, sample_subject, sample_biosample, sample_library
+        self, registry, mock_dynamodb, sample_subject, sample_biospecimen, sample_biosample, sample_library
     ):
         """Get statistics for a customer."""
         subjects_table = mock_dynamodb["subjects_table"]
+        biospecimens_table = mock_dynamodb["biospecimens_table"]
         biosamples_table = mock_dynamodb["biosamples_table"]
         libraries_table = mock_dynamodb["libraries_table"]
 
         # Mock query responses with Items (get_statistics uses list_* methods)
         subjects_table.query.return_value = {"Items": [asdict(sample_subject)]}
+        biospecimens_table.query.return_value = {"Items": [asdict(sample_biospecimen)]}
         biosamples_table.query.return_value = {"Items": [asdict(sample_biosample)]}
         libraries_table.query.return_value = {"Items": [asdict(sample_library)]}
 
         stats = registry.get_statistics("customer-123")
 
         assert stats["subjects"] == 1
+        assert stats["biospecimens"] == 1
         assert stats["biosamples"] == 1
         assert stats["libraries"] == 1
 

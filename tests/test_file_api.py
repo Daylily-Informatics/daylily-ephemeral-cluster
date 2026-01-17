@@ -1597,3 +1597,175 @@ class TestAddFileToFilesetEndpoint:
         call_kwargs = mock_file_registry_with_get.update_file.call_args[1]
         assert call_kwargs["file_id"] == "file-001"
 
+
+class TestManifestGenerationEndpoints:
+    """Test manifest generation endpoints for single files and filesets."""
+
+    @pytest.fixture
+    def mock_file_registry_with_manifest(self):
+        """Mock FileRegistry with manifest generation support."""
+        from daylib.file_registry import (
+            FileRegistration,
+            BiosampleMetadata,
+            SequencingMetadata,
+            FileMetadata,
+        )
+
+        registry = MagicMock(spec=FileRegistry)
+
+        # Create a mock file for single file manifest generation
+        mock_file = FileRegistration(
+            file_id="file-001",
+            customer_id="cust-001",
+            file_metadata=FileMetadata(
+                file_id="file-001",
+                s3_uri="s3://bucket/path/file.fastq.gz",
+                file_size_bytes=1000000,
+                file_format="fastq",
+                md5_checksum="abc123",
+            ),
+            biosample_metadata=BiosampleMetadata(
+                biosample_id="bio-001",
+                subject_id="subj-001",
+                sample_type="blood",
+            ),
+            sequencing_metadata=SequencingMetadata(
+                platform="ILLUMINA_NOVASEQ_X",
+                vendor="ILMN",
+                lane=1,
+                barcode_id="ATCG",
+            ),
+            read_number=1,
+            paired_with=None,
+            is_positive_control=False,
+            is_negative_control=False,
+        )
+
+        registry.get_file.return_value = mock_file
+        registry.get_fileset.return_value = None
+        return registry
+
+    @pytest.fixture
+    def client_with_manifest(self, mock_file_registry_with_manifest):
+        """Create test client with manifest generation support."""
+        app = FastAPI()
+        router = create_file_api_router(
+            file_registry=mock_file_registry_with_manifest,
+            auth_dependency=None,
+        )
+        app.include_router(router)
+        return TestClient(app)
+
+    def test_generate_manifest_for_file_success(self, client_with_manifest, mock_file_registry_with_manifest):
+        """Test generating manifest for a single file."""
+        response = client_with_manifest.post(
+            "/api/files/file-001/manifest",
+            params={
+                "run_id": "R0",
+                "stage_target": "/fsx/staged_sample_data/",
+                "include_header": True,
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "tsv_content" in data
+        assert data["sample_count"] == 1
+        assert data["file_count"] == 1
+        assert data["warnings"] == []
+        # Verify the TSV content contains expected headers
+        assert "RUN_ID" in data["tsv_content"]
+        assert "SAMPLE_ID" in data["tsv_content"]
+
+    def test_generate_manifest_for_file_not_found(self, client_with_manifest, mock_file_registry_with_manifest):
+        """Test generating manifest for non-existent file."""
+        mock_file_registry_with_manifest.get_file.return_value = None
+
+        response = client_with_manifest.post(
+            "/api/files/nonexistent-file/manifest",
+        )
+
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"].lower()
+
+    def test_generate_manifest_for_file_with_custom_params(self, client_with_manifest):
+        """Test generating manifest with custom run_id and stage_target."""
+        response = client_with_manifest.post(
+            "/api/files/file-001/manifest",
+            params={
+                "run_id": "R1",
+                "stage_target": "/custom/path/",
+                "include_header": False,
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["sample_count"] == 1
+        assert data["file_count"] == 1
+
+    def test_generate_manifest_for_fileset_success(self, client_with_manifest, mock_file_registry_with_manifest):
+        """Test generating manifest for a fileset."""
+        from daylib.file_registry import FileSet
+
+        # Create a mock fileset
+        mock_fileset = FileSet(
+            fileset_id="fileset-001",
+            customer_id="cust-001",
+            name="Test FileSet",
+            file_ids=["file-001"],
+        )
+
+        mock_file_registry_with_manifest.get_fileset.return_value = mock_fileset
+
+        response = client_with_manifest.post(
+            "/api/files/filesets/fileset-001/manifest",
+            params={
+                "run_id": "R0",
+                "stage_target": "/fsx/staged_sample_data/",
+                "include_header": True,
+            },
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert "tsv_content" in data
+        assert data["sample_count"] == 1
+        assert data["file_count"] == 1
+        assert data["warnings"] == []
+
+    def test_generate_manifest_for_fileset_not_found(self, client_with_manifest, mock_file_registry_with_manifest):
+        """Test generating manifest for non-existent fileset."""
+        mock_file_registry_with_manifest.get_fileset.return_value = None
+
+        response = client_with_manifest.post(
+            "/api/files/filesets/nonexistent-fileset/manifest",
+        )
+
+        assert response.status_code == 404
+        assert "not found" in response.json()["detail"].lower()
+
+    def test_generate_manifest_for_empty_fileset(self, client_with_manifest, mock_file_registry_with_manifest):
+        """Test generating manifest for fileset with no files."""
+        from daylib.file_registry import FileSet
+
+        # Create a mock fileset with no files
+        mock_fileset = FileSet(
+            fileset_id="fileset-001",
+            customer_id="cust-001",
+            name="Empty FileSet",
+            file_ids=[],
+        )
+
+        mock_file_registry_with_manifest.get_fileset.return_value = mock_fileset
+
+        response = client_with_manifest.post(
+            "/api/files/filesets/fileset-001/manifest",
+        )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["sample_count"] == 0
+        assert data["file_count"] == 0
+        assert len(data["warnings"]) > 0
+

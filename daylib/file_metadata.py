@@ -8,7 +8,7 @@ Provides comprehensive metadata capture for genomic files following GA4GH standa
 - Sequencing Run: Platform parameters, run metrics
 - FASTQ Files: Direct outputs with full provenance
 
-This module supports the Analysis Manifest Generator and file registration system.
+This module supports the Workset Manifest Generator and file registration system.
 """
 
 from __future__ import annotations

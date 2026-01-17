@@ -1,7 +1,7 @@
 """
 Biospecimen API endpoints for Daylily portal.
 
-Provides REST API for managing Subject, Biosample, and Library entities.
+Provides REST API for managing Subject, Biospecimen, Biosample, and Library entities.
 """
 
 from __future__ import annotations
@@ -14,9 +14,11 @@ from pydantic import BaseModel, Field
 
 from daylib.biospecimen import (
     BiospecimenRegistry,
+    Biospecimen,
     Biosample,
     Library,
     Subject,
+    generate_biospecimen_id,
     generate_biosample_id,
     generate_library_id,
     generate_subject_id,
@@ -58,10 +60,47 @@ class SubjectResponse(BaseModel):
     updated_at: str
 
 
+class BiospecimenRequest(BaseModel):
+    """Request model for creating/updating a biospecimen."""
+    identifier: str = Field(..., description="External identifier for the biospecimen")
+    subject_id: str = Field(..., description="Subject ID this biospecimen belongs to")
+    biospecimen_type: str = "tissue"
+    collection_date: Optional[str] = None
+    collection_method: Optional[str] = None
+    preservation_method: Optional[str] = None
+    tissue_type: Optional[str] = None
+    anatomical_site: Optional[str] = None
+    tumor_fraction: Optional[float] = None
+    is_tumor: bool = False
+    produced_date: Optional[str] = None
+    notes: Optional[str] = None
+    tags: List[str] = Field(default_factory=list)
+
+
+class BiospecimenResponse(BaseModel):
+    """Response model for biospecimen."""
+    biospecimen_id: str
+    customer_id: str
+    subject_id: str
+    biospecimen_type: str
+    collection_date: Optional[str] = None
+    collection_method: Optional[str] = None
+    preservation_method: Optional[str] = None
+    tissue_type: Optional[str] = None
+    anatomical_site: Optional[str] = None
+    tumor_fraction: Optional[float] = None
+    is_tumor: bool = False
+    produced_date: Optional[str] = None
+    notes: Optional[str] = None
+    tags: List[str] = Field(default_factory=list)
+    created_at: str
+    updated_at: str
+
+
 class BiosampleRequest(BaseModel):
     """Request model for creating/updating a biosample."""
     identifier: str = Field(..., description="External identifier for the biosample")
-    subject_id: str = Field(..., description="Subject ID this biosample belongs to")
+    biospecimen_id: str = Field(..., description="Biospecimen ID this biosample belongs to")
     sample_type: str = "blood"
     tissue_type: Optional[str] = None
     anatomical_site: Optional[str] = None
@@ -81,6 +120,7 @@ class BiosampleResponse(BaseModel):
     """Response model for biosample."""
     biosample_id: str
     customer_id: str
+    biospecimen_id: str
     subject_id: str
     sample_type: str
     tissue_type: Optional[str] = None
@@ -141,12 +181,13 @@ class LibraryResponse(BaseModel):
 class HierarchyResponse(BaseModel):
     """Response model for subject hierarchy."""
     subject: SubjectResponse
-    biosamples: List[Dict[str, Any]] = Field(default_factory=list)
+    biospecimens: List[Dict[str, Any]] = Field(default_factory=list)
 
 
 class StatisticsResponse(BaseModel):
     """Response model for biospecimen statistics."""
     subjects: int
+    biospecimens: int
     biosamples: int
     libraries: int
 

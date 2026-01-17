@@ -2261,6 +2261,179 @@ def create_file_api_router(
             "seq_platforms": [e.value for e in SequencingPlatform],
         }
 
+    @router.post("/{file_id}/manifest", response_model=ManifestGenerationResponse)
+    async def generate_manifest_for_file(
+        file_id: str,
+        run_id: str = Query("R0", description="Run ID for the manifest"),
+        stage_target: str = Query("/fsx/staged_sample_data/", description="Stage target directory"),
+        include_header: bool = Query(True, description="Include TSV header row"),
+        current_user: Optional[Dict] = Depends(auth_dependency),
+    ):
+        """Generate a stage_samples.tsv manifest from a single file.
+
+        This is a convenience endpoint for generating a manifest containing just one file.
+        """
+        try:
+            # Get the file
+            file = file_registry.get_file(file_id)
+            if not file:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"File {file_id} not found",
+                )
+
+            # Create AnalysisInput from the file
+            seq_meta = file.sequencing_metadata
+            bio_meta = file.biosample_metadata
+
+            # Find paired file if this is R1
+            r2_uri = ""
+            if file.read_number == 1 and file.paired_with:
+                paired_file = file_registry.get_file(file.paired_with)
+                if paired_file:
+                    r2_uri = paired_file.file_metadata.s3_uri
+
+            analysis_input = AnalysisInput(
+                sample_id=bio_meta.biosample_id,
+                external_sample_id=bio_meta.subject_id,
+                run_id=run_id,
+                sample_type=SampleType(bio_meta.sample_type) if bio_meta.sample_type in [e.value for e in SampleType] else SampleType.BLOOD,
+                seq_platform=SequencingPlatform(seq_meta.platform) if seq_meta.platform in [e.value for e in SequencingPlatform] else SequencingPlatform.ILLUMINA_NOVASEQ_X,
+                seq_vendor=SequencingVendor(seq_meta.vendor) if seq_meta.vendor in [e.value for e in SequencingVendor] else SequencingVendor.ILLUMINA,
+                lane=seq_meta.lane,
+                barcode_id=seq_meta.barcode_id,
+                r1_fastq=file.file_metadata.s3_uri,
+                r2_fastq=r2_uri,
+                stage_target=stage_target,
+                concordance_dir=file.concordance_vcf_path or "",
+                is_positive_control=file.is_positive_control,
+                is_negative_control=file.is_negative_control,
+            )
+
+            # Generate TSV
+            tsv_content = generate_stage_samples_tsv(
+                [analysis_input],
+                include_header=include_header,
+            )
+
+            return ManifestGenerationResponse(
+                tsv_content=tsv_content,
+                sample_count=1,
+                file_count=1,
+                warnings=[],
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            LOGGER.error("Failed to generate manifest for file %s: %s", file_id, str(e))
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to generate manifest for file {file_id}: {str(e)}",
+            )
+
+    @router.post("/filesets/{fileset_id}/manifest", response_model=ManifestGenerationResponse)
+    async def generate_manifest_for_fileset(
+        fileset_id: str,
+        run_id: str = Query("R0", description="Run ID for the manifest"),
+        stage_target: str = Query("/fsx/staged_sample_data/", description="Stage target directory"),
+        include_header: bool = Query(True, description="Include TSV header row"),
+        current_user: Optional[Dict] = Depends(auth_dependency),
+    ):
+        """Generate a stage_samples.tsv manifest from a file set.
+
+        This endpoint generates a manifest containing all files in the specified file set.
+        """
+        try:
+            # Get the fileset
+            fileset = file_registry.get_fileset(fileset_id)
+            if not fileset:
+                raise HTTPException(
+                    status_code=status.HTTP_404_NOT_FOUND,
+                    detail=f"FileSet {fileset_id} not found",
+                )
+
+            # Get all files in the fileset
+            files = []
+            for fid in fileset.file_ids:
+                f = file_registry.get_file(fid)
+                if f:
+                    files.append(f)
+
+            if not files:
+                return ManifestGenerationResponse(
+                    tsv_content="",
+                    sample_count=0,
+                    file_count=0,
+                    warnings=["No files found in fileset"],
+                )
+
+            # Group files by biosample to create paired analysis inputs
+            biosample_files: Dict[str, List] = {}
+            for f in files:
+                bid = f.biosample_metadata.biosample_id
+                if bid not in biosample_files:
+                    biosample_files[bid] = []
+                biosample_files[bid].append(f)
+
+            # Create AnalysisInput objects
+            analysis_inputs = []
+            for biosample_id, sample_files in biosample_files.items():
+                # Find R1 and R2 files
+                r1_files = [f for f in sample_files if f.read_number == 1]
+                r2_files = [f for f in sample_files if f.read_number == 2]
+
+                # Pair files
+                for r1 in r1_files:
+                    r2_uri = ""
+                    # Find matching R2
+                    for r2 in r2_files:
+                        if r2.paired_with == r1.file_id or r1.paired_with == r2.file_id:
+                            r2_uri = r2.file_metadata.s3_uri
+                            break
+
+                    # Get first file's metadata for defaults
+                    seq_meta = r1.sequencing_metadata
+                    bio_meta = r1.biosample_metadata
+
+                    analysis_input = AnalysisInput(
+                        sample_id=biosample_id,
+                        external_sample_id=bio_meta.subject_id,
+                        run_id=run_id,
+                        sample_type=SampleType(bio_meta.sample_type) if bio_meta.sample_type in [e.value for e in SampleType] else SampleType.BLOOD,
+                        seq_platform=SequencingPlatform(seq_meta.platform) if seq_meta.platform in [e.value for e in SequencingPlatform] else SequencingPlatform.ILLUMINA_NOVASEQ_X,
+                        seq_vendor=SequencingVendor(seq_meta.vendor) if seq_meta.vendor in [e.value for e in SequencingVendor] else SequencingVendor.ILLUMINA,
+                        lane=seq_meta.lane,
+                        barcode_id=seq_meta.barcode_id,
+                        r1_fastq=r1.file_metadata.s3_uri,
+                        r2_fastq=r2_uri,
+                        stage_target=stage_target,
+                        concordance_dir=r1.concordance_vcf_path or "",
+                        is_positive_control=r1.is_positive_control,
+                        is_negative_control=r1.is_negative_control,
+                    )
+                    analysis_inputs.append(analysis_input)
+
+            # Generate TSV
+            tsv_content = generate_stage_samples_tsv(
+                analysis_inputs,
+                include_header=include_header,
+            )
+
+            return ManifestGenerationResponse(
+                tsv_content=tsv_content,
+                sample_count=len(analysis_inputs),
+                file_count=len(files),
+                warnings=[],
+            )
+        except HTTPException:
+            raise
+        except Exception as e:
+            LOGGER.error("Failed to generate manifest for fileset %s: %s", fileset_id, str(e))
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to generate manifest for fileset {fileset_id}: {str(e)}",
+            )
+
     # ========== Bucket Browsing Endpoints ==========
 
     @router.get("/buckets/{bucket_id}/browse", response_model=BrowseBucketResponse)

@@ -686,6 +686,40 @@ class CognitoAuth:
             else:
                 raise ValueError(f"Password reset failed: {error_message}")
 
+    def change_password(self, access_token: str, old_password: str, new_password: str) -> None:
+        """Change password for authenticated user.
+
+        Args:
+            access_token: User's access token
+            old_password: Current password
+            new_password: New password to set
+
+        Raises:
+            ValueError: If the password change fails
+        """
+        try:
+            self.cognito.change_password(
+                AccessToken=access_token,
+                PreviousPassword=old_password,
+                ProposedPassword=new_password,
+            )
+            LOGGER.info("Password changed successfully")
+
+        except ClientError as e:
+            error_code = e.response.get("Error", {}).get("Code")
+            error_message = e.response.get("Error", {}).get("Message", str(e))
+            LOGGER.error(f"Change password error: {error_code} - {error_message}")
+
+            # Map AWS errors to user-friendly messages
+            if error_code == "NotAuthorizedException":
+                raise ValueError("Current password is incorrect")
+            elif error_code == "InvalidPasswordException":
+                raise ValueError("Password does not meet requirements")
+            elif error_code == "InvalidParameterException":
+                raise ValueError("Invalid request parameters")
+            else:
+                raise ValueError(f"Password change failed: {error_message}")
+
 
 def create_auth_dependency(cognito_auth: CognitoAuth, optional: bool = False):
     """Create FastAPI dependency for authentication.
