@@ -204,10 +204,10 @@
 - **Issue:** No help content shown
 
 ### Feature 8.4: Rename to "Workset Manifest Generator"
-- **Status:** ❌ NOT STARTED
+- **Status:** ✅ COMPLETE
 - **Location:** `templates/manifest_generator.html` line 4, 10
-- **Current:** "Analysis Manifest Generator"
-- **Required:** Change title and references
+- **Current:** "Workset Manifest Generator"
+- **Required:** Change title and references ✅ DONE
 
 ---
 

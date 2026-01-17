@@ -2,8 +2,9 @@
 """
 Initialize DynamoDB tables for the biospecimen registry.
 
-This creates three tables:
+This creates four tables:
   - daylily-subjects: Subject/patient records
+  - daylily-biospecimens: Biospecimen/collection batch records
   - daylily-biosamples: Biosample/specimen records
   - daylily-libraries: Sequencing library records
 
@@ -52,6 +53,7 @@ def main():
         print("\n✅ All biospecimen tables created/verified successfully!")
         print("\nTables:")
         print(f"  - {registry.subjects_table_name}")
+        print(f"  - {registry.biospecimens_table_name}")
         print(f"  - {registry.biosamples_table_name}")
         print(f"  - {registry.libraries_table_name}")
     except Exception as e:
