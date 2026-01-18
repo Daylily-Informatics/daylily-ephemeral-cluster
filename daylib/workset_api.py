@@ -1,6 +1,8 @@
 """FastAPI web interface for workset monitoring and management.
 
 Provides REST API and web dashboard for workset operations.
+
+This module uses shared Pydantic models from daylib.routes.dependencies.
 """
 
 from __future__ import annotations
@@ -29,8 +31,32 @@ from fastapi.templating import Jinja2Templates
 from pydantic import BaseModel, Field, EmailStr
 from starlette.middleware.sessions import SessionMiddleware
 
+from daylib.config import Settings, get_settings
 from daylib.workset_state_db import ErrorCategory, WorksetPriority, WorksetState, WorksetStateDB
 from daylib.workset_scheduler import WorksetScheduler
+
+# Import shared Pydantic models from routes module
+from daylib.routes.dependencies import (
+    WorksetCreate,
+    WorksetResponse,
+    WorksetStateUpdate,
+    QueueStats,
+    SchedulingStats,
+    CustomerCreate,
+    CustomerResponse,
+    WorksetValidationResponse,
+    WorkYamlGenerateRequest,
+    ChangePasswordRequest,
+    APITokenCreateRequest,
+    PortalFileAutoRegisterRequest,
+    PortalFileAutoRegisterResponse,
+    # Utility functions
+    format_file_size as _format_file_size,
+    get_file_icon as _get_file_icon,
+    calculate_cost_with_efficiency as _calculate_cost_with_efficiency,
+    convert_customer_for_template as _convert_customer_for_template,
+    verify_workset_ownership,
+)
 
 # Optional imports for authentication
 try:
@@ -88,284 +114,14 @@ except ImportError:
 LOGGER = logging.getLogger("daylily.workset_api")
 
 
-# Helper functions for file management
-def _format_file_size(size_bytes: int) -> str:
-    """Format file size in human-readable form."""
-    if size_bytes == 0:
-        return "0 B"
-    units = ["B", "KB", "MB", "GB", "TB"]
-    i = 0
-    while size_bytes >= 1024 and i < len(units) - 1:
-        size_bytes /= 1024
-        i += 1
-    return f"{size_bytes:.1f} {units[i]}"
-
-
-def _get_file_icon(filename: str) -> str:
-    """Get Font Awesome icon name for file type."""
-    ext = filename.lower().split(".")[-1] if "." in filename else ""
-    icon_map = {
-        "fastq": "dna",
-        "fq": "dna",
-        "gz": "file-archive",
-        "zip": "file-archive",
-        "tar": "file-archive",
-        "bam": "dna",
-        "sam": "dna",
-        "vcf": "dna",
-        "bed": "dna",
-        "fasta": "dna",
-        "fa": "dna",
-        "yaml": "file-code",
-        "yml": "file-code",
-        "json": "file-code",
-        "csv": "file-csv",
-        "tsv": "file-csv",
-        "txt": "file-alt",
-        "log": "file-alt",
-        "pdf": "file-pdf",
-        "html": "file-code",
-        "md": "file-alt",
-    }
-    return icon_map.get(ext, "file")
-
-
-def _calculate_cost_with_efficiency(total_size_gb: float) -> float:
-    """Calculate cost using efficiency formula: (total_size / (total_size - (total_size * 0.98))).
-
-    This formula represents the cost multiplier based on data efficiency.
-    The 0.98 factor represents 98% efficiency, so the denominator is 2% of total_size.
-
-    Args:
-        total_size_gb: Total data size in GB
-
-    Returns:
-        Cost multiplier based on efficiency
-    """
-    if total_size_gb <= 0:
-        return 0.0
-
-    # Formula: total_size / (total_size - (total_size * 0.98))
-    # Simplifies to: total_size / (total_size * 0.02) = 1 / 0.02 = 50
-    # But we'll keep the full formula for clarity
-    denominator = total_size_gb - (total_size_gb * 0.98)
-    if denominator <= 0:
-        return 0.0
-
-    return total_size_gb / denominator
-
-
-def _convert_customer_for_template(customer_config):
-    """Convert CustomerConfig with Decimal fields to template-friendly object.
-
-    DynamoDB returns Decimal types which can't be used in Jinja2 template math operations.
-    This converts them to native Python types.
-    """
-    if not customer_config:
-        return None
-
-    class TemplateCustomer:
-        def __init__(self, config):
-            self.customer_id = config.customer_id
-            self.customer_name = config.customer_name
-            self.email = config.email
-            self.s3_bucket = config.s3_bucket
-            self.max_concurrent_worksets = int(config.max_concurrent_worksets) if config.max_concurrent_worksets else 10
-            self.max_storage_gb = float(config.max_storage_gb) if config.max_storage_gb else 500
-            self.billing_account_id = config.billing_account_id
-            self.cost_center = config.cost_center
-
-    return TemplateCustomer(customer_config)
-
-
-def verify_workset_ownership(workset: Dict[str, Any], customer_id: str) -> bool:
-    """Check if a workset belongs to a customer.
-
-    Ownership is determined by the customer_id field in the workset record.
-    This replaces the legacy check that compared workset.bucket to customer.s3_bucket.
-
-    With the control-plane refactor, worksets are stored in the control bucket,
-    not the customer's data bucket, so bucket comparison no longer works.
-
-    Args:
-        workset: Workset record from DynamoDB
-        customer_id: Customer ID to verify ownership for
-
-    Returns:
-        True if workset belongs to customer, False otherwise
-    """
-    if not workset or not customer_id:
-        return False
-
-    # Primary check: customer_id field (authoritative)
-    ws_customer_id = workset.get("customer_id")
-    if ws_customer_id:
-        return ws_customer_id == customer_id
-
-    # Fallback: check metadata.submitted_by for older worksets
-    metadata = workset.get("metadata", {})
-    if isinstance(metadata, dict):
-        submitted_by = metadata.get("submitted_by")
-        if submitted_by:
-            return submitted_by == customer_id
-
-    # No customer_id found - ownership cannot be verified
-    LOGGER.warning(
-        "Workset %s has no customer_id field - ownership check failed",
-        workset.get("workset_id", "unknown"),
-    )
-    return False
-
-
-# Pydantic models for API
-class WorksetCreate(BaseModel):
-    """Request model for creating a workset."""
-    workset_id: str = Field(..., description="Unique workset identifier")
-    bucket: str = Field(..., description="S3 bucket name")
-    prefix: str = Field(..., description="S3 prefix for workset files")
-    priority: WorksetPriority = Field(WorksetPriority.NORMAL, description="Execution priority")
-    metadata: Optional[Dict[str, Any]] = Field(None, description="Additional metadata")
-
-
-class WorksetResponse(BaseModel):
-    """Response model for workset data."""
-    workset_id: str
-    state: str
-    priority: str
-    bucket: str
-    prefix: str
-    created_at: str
-    updated_at: str
-    cluster_name: Optional[str] = None
-    error_details: Optional[str] = None
-    metrics: Optional[Dict[str, Any]] = None
-
-
-class WorksetStateUpdate(BaseModel):
-    """Request model for updating workset state."""
-    state: WorksetState
-    reason: str
-    error_details: Optional[str] = None
-    cluster_name: Optional[str] = None
-    metrics: Optional[Dict[str, Any]] = None
-
-
-class QueueStats(BaseModel):
-    """Queue statistics response."""
-    queue_depth: Dict[str, int]
-    total_worksets: int
-    ready_worksets: int
-    in_progress_worksets: int
-    error_worksets: int
-
-
-class SchedulingStats(BaseModel):
-    """Scheduling statistics response."""
-    total_clusters: int
-    total_vcpu_capacity: int
-    total_vcpus_used: int
-    vcpu_utilization_percent: float
-    total_active_worksets: int
-    queue_depth: Dict[str, int]
-
-
-# New models for customer portal
-class CustomerCreate(BaseModel):
-    """Request model for creating a customer."""
-    customer_name: str = Field(..., min_length=1, max_length=100)
-    email: EmailStr
-    max_concurrent_worksets: int = Field(5, ge=1, le=50)
-    max_storage_gb: int = Field(1000, ge=100, le=10000)
-    billing_account_id: Optional[str] = None
-    cost_center: Optional[str] = None
-
-
-class CustomerResponse(BaseModel):
-    """Response model for customer data."""
-    customer_id: str
-    customer_name: str
-    email: str
-    s3_bucket: str
-    max_concurrent_worksets: int
-    max_storage_gb: int
-    billing_account_id: Optional[str] = None
-    cost_center: Optional[str] = None
-
-
-class WorksetValidationResponse(BaseModel):
-    """Response model for workset validation."""
-    is_valid: bool
-    errors: List[str]
-    warnings: List[str]
-    estimated_cost_usd: Optional[float] = None
-    estimated_duration_minutes: Optional[int] = None
-    estimated_vcpu_hours: Optional[float] = None
-    estimated_storage_gb: Optional[float] = None
-
-
-class WorkYamlGenerateRequest(BaseModel):
-    """Request model for generating daylily_work.yaml."""
-    samples: List[Dict[str, str]]
-    reference_genome: str
-    pipeline: str = "germline"
-    priority: str = "normal"
-    max_retries: int = 3
-    estimated_coverage: float = 30.0
-
-
-class ChangePasswordRequest(BaseModel):
-    """Request model for changing the current user's password."""
-
-    current_password: str = Field(..., min_length=1)
-    new_password: str = Field(..., min_length=8)
-
-
-class APITokenCreateRequest(BaseModel):
-    """Request model for creating a new API token from the portal."""
-
-    name: str = Field(..., min_length=1, max_length=100)
-    # 0 means "no automatic expiry" (token is long-lived until revoked)
-    expiry_days: int = Field(0, ge=0, le=3650)
-
-
-# ========== Portal File Registration Models ==========
-
-
-class PortalFileAutoRegisterRequest(BaseModel):
-    """Request model for auto-registering discovered files from the portal.
-
-    Notes:
-    - `customer_id` is intentionally omitted; the server derives it from the
-      authenticated portal session to prevent cross-customer registration.
-    - Either `bucket_id` (preferred) or `bucket_name` must be provided.
-    """
-
-    bucket_id: Optional[str] = Field(None, description="Linked bucket ID")
-    bucket_name: Optional[str] = Field(None, description="S3 bucket name (fallback if bucket_id not provided)")
-
-    prefix: str = Field("", description="Prefix to scan")
-    file_formats: Optional[List[str]] = Field(None, description="Filter by formats (e.g. fastq,bam,vcf)")
-    selected_keys: Optional[List[str]] = Field(
-        None,
-        description="Optional list of S3 object keys to register (subset of discovered files)",
-    )
-    max_files: int = Field(1000, ge=1, le=10000, description="Maximum files to scan in the bucket")
-
-    biosample_id: str = Field(..., min_length=1, description="Biosample ID to apply to all registered files")
-    subject_id: str = Field(..., min_length=1, description="Subject ID to apply to all registered files")
-    sequencing_platform: str = Field(
-        "NOVASEQX",
-        description="Sequencing platform (prefer SequencingPlatform enum values like NOVASEQX, NOVASEQ6000)",
-    )
-
-
-class PortalFileAutoRegisterResponse(BaseModel):
-    """Response model for portal auto-registration."""
-
-    registered_count: int
-    skipped_count: int
-    errors: List[str]
-    missing_selected_keys: Optional[List[str]] = None
+# Note: Pydantic models and utility functions are now imported from daylib.routes.dependencies
+# See the imports at the top of this file for:
+# - WorksetCreate, WorksetResponse, WorksetStateUpdate, QueueStats, SchedulingStats
+# - CustomerCreate, CustomerResponse, WorksetValidationResponse, WorkYamlGenerateRequest
+# - ChangePasswordRequest, APITokenCreateRequest
+# - PortalFileAutoRegisterRequest, PortalFileAutoRegisterResponse
+# - _format_file_size, _get_file_icon, _calculate_cost_with_efficiency, _convert_customer_for_template
+# - verify_workset_ownership
 
 
 def create_app(
@@ -378,6 +134,7 @@ def create_app(
     file_registry: Optional["FileRegistry"] = None,
     manifest_registry: Optional["ManifestRegistry"] = None,
     enable_auth: bool = False,
+    settings: Optional[Settings] = None,
 ) -> FastAPI:
     """Create FastAPI application.
 
@@ -390,43 +147,55 @@ def create_app(
         integration: Optional integration layer for S3 sync
         file_registry: Optional file registry for file management
         enable_auth: Enable authentication (requires cognito_auth)
+        settings: Optional Settings instance (uses get_settings() if not provided)
 
     Returns:
         FastAPI application instance
     """
-    # Configure logging with verbose output for file management
+    # Load settings from environment if not provided
+    if settings is None:
+        settings = get_settings()
+
+    # Validate demo mode is not enabled in production
+    settings.validate_demo_mode()
+    if settings.demo_mode:
+        LOGGER.warning(
+            "DEMO MODE ENABLED - First-customer fallback is active. "
+            "This should NEVER be used in production!"
+        )
+
+    # Configure logging based on settings
+    log_level = getattr(logging, settings.log_level.upper(), logging.INFO)
     logging.basicConfig(
-        level=logging.DEBUG,
+        level=log_level,
         format="%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
 
-    # Set specific loggers to DEBUG for file management
-    logging.getLogger("daylily.file_api").setLevel(logging.DEBUG)
-    logging.getLogger("daylily.file_registry").setLevel(logging.DEBUG)
-    logging.getLogger("daylily.s3_bucket_validator").setLevel(logging.DEBUG)
-    logging.getLogger("daylily.manifest_registry").setLevel(logging.DEBUG)
+    # Set specific loggers to DEBUG for file management (in development)
+    if settings.is_development:
+        logging.getLogger("daylily.file_api").setLevel(logging.DEBUG)
+        logging.getLogger("daylily.file_registry").setLevel(logging.DEBUG)
+        logging.getLogger("daylily.s3_bucket_validator").setLevel(logging.DEBUG)
+        logging.getLogger("daylily.manifest_registry").setLevel(logging.DEBUG)
 
-    LOGGER.info("Creating Daylily application with verbose logging enabled")
+    LOGGER.info("Creating Daylily application (env=%s, log_level=%s)", settings.daylily_env, settings.log_level)
 
-    # AWS configuration from environment variables
-    region = os.getenv("AWS_DEFAULT_REGION", "us-west-2")
-    profile = os.getenv("AWS_PROFILE", None)
-
+    # AWS configuration from settings
+    region = settings.get_effective_region()
+    profile = settings.aws_profile
 
     # Initialize manifest registry (optional but enabled by default when available)
     if MANIFEST_STORAGE_AVAILABLE and manifest_registry is None and ManifestRegistry:
-        manifest_table = os.getenv("DAYLILY_MANIFEST_TABLE", "daylily-manifests")
         try:
             manifest_registry = ManifestRegistry(
-                table_name=manifest_table,
+                table_name=settings.daylily_manifest_table,
                 region=region,
                 profile=profile,
             )
-            LOGGER.info("Manifest storage enabled (table: %s)", manifest_table)
+            LOGGER.info("Manifest storage enabled (table: %s)", settings.daylily_manifest_table)
         except Exception as e:
             LOGGER.warning("Failed to initialize ManifestRegistry: %s", str(e))
             manifest_registry = None
-
 
     # Initialize LinkedBucketManager early so portal routes can use it
     linked_bucket_manager = None
@@ -435,7 +204,7 @@ def create_app(
     if FILE_MANAGEMENT_AVAILABLE and LinkedBucketManager:
         try:
             linked_bucket_manager = LinkedBucketManager(
-                table_name="daylily-linked-buckets",
+                table_name=settings.daylily_linked_buckets_table,
                 region=region,
                 profile=profile,
             )
@@ -449,19 +218,75 @@ def create_app(
         version="2.0.0",
     )
 
-    # Enable CORS
+    # Enable CORS with settings-based configuration
+    try:
+        cors_origins = settings.get_cors_origins()
+    except ValueError as e:
+        LOGGER.error("CORS configuration error: %s", e)
+        raise
     app.add_middleware(
         CORSMiddleware,
-        allow_origins=["*"],  # Configure appropriately for production
+        allow_origins=cors_origins,
         allow_credentials=True,
         allow_methods=["*"],
         allow_headers=["*"],
     )
 
     # Add session middleware for portal authentication
-    # In production, use a secure secret key from environment
-    session_secret = os.getenv("SESSION_SECRET_KEY", "daylily-dev-secret-change-in-production")
-    app.add_middleware(SessionMiddleware, secret_key=session_secret)
+    if settings.is_production and settings.session_secret_key == "daylily-dev-secret-change-in-production":
+        LOGGER.warning("Using default session secret in production - this is insecure!")
+    app.add_middleware(SessionMiddleware, secret_key=settings.session_secret_key)
+
+    # ========== Global Exception Handlers ==========
+    # Import custom exceptions
+    from daylib.exceptions import DaylilyException
+
+    @app.exception_handler(DaylilyException)
+    async def daylily_exception_handler(request: Request, exc: DaylilyException):
+        """Handle all DaylilyException subclasses with consistent JSON response."""
+        request_id = getattr(request.state, "request_id", None) or str(uuid.uuid4())[:8]
+        LOGGER.error(
+            "DaylilyException: code=%s, message=%s, request_id=%s, path=%s",
+            exc.code, exc.message, request_id, request.url.path
+        )
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=exc.status_code,
+            content=exc.to_dict(request_id=request_id),
+        )
+
+    @app.exception_handler(Exception)
+    async def generic_exception_handler(request: Request, exc: Exception):
+        """Handle unexpected exceptions with consistent JSON response."""
+        # Don't intercept HTTPException - let FastAPI handle those
+        if isinstance(exc, HTTPException):
+            raise exc
+
+        request_id = getattr(request.state, "request_id", None) or str(uuid.uuid4())[:8]
+        LOGGER.exception(
+            "Unhandled exception: %s, request_id=%s, path=%s",
+            str(exc), request_id, request.url.path
+        )
+        from fastapi.responses import JSONResponse
+        return JSONResponse(
+            status_code=500,
+            content={
+                "error": "An internal error occurred",
+                "code": "INTERNAL_ERROR",
+                "details": {"exception_type": type(exc).__name__} if settings.is_development else {},
+                "request_id": request_id,
+            },
+        )
+
+    # Add request ID middleware
+    @app.middleware("http")
+    async def add_request_id(request: Request, call_next):
+        """Add request ID to all requests for tracing."""
+        request_id = request.headers.get("X-Request-ID") or str(uuid.uuid4())[:8]
+        request.state.request_id = request_id
+        response = await call_next(request)
+        response.headers["X-Request-ID"] = request_id
+        return response
 
     # Setup authentication dependency if enabled
     if enable_auth:
@@ -550,7 +375,44 @@ def create_app(
         return None
 
     LOGGER.info("Combined session/JWT authentication configured")
-    
+
+    def get_customer_with_demo_fallback(
+        request: Request,
+        require_auth: bool = True,
+    ) -> Optional[Dict]:
+        """Get customer from session with optional demo mode fallback.
+
+        Args:
+            request: The HTTP request
+            require_auth: If True, raise HTTPException when no customer found (unless demo mode)
+
+        Returns:
+            Customer dict or None
+
+        Raises:
+            HTTPException(401): If require_auth=True and no customer found (and demo mode disabled)
+        """
+        # Try session first
+        customer, _config = get_customer_for_session(request)
+        if customer:
+            return customer
+
+        # Demo mode fallback - only if explicitly enabled
+        if settings.demo_mode and customer_manager:
+            customers = customer_manager.list_customers()
+            if customers:
+                LOGGER.debug("Demo mode: using first customer as fallback")
+                return _convert_customer_for_template(customers[0])
+
+        # No customer found
+        if require_auth:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Authentication required. Please log in.",
+            )
+
+        return None
+
     @app.get("/", tags=["health"])
     async def root():
         """Health check endpoint."""
@@ -1542,6 +1404,7 @@ def create_app(
 
         @app.post("/api/customers/{customer_id}/worksets", tags=["customer-worksets"])
         async def create_customer_workset(
+            request: Request,
             customer_id: str,
             workset_name: str = Body(..., embed=True),
             pipeline_type: str = Body(..., embed=True),
@@ -1597,7 +1460,9 @@ def create_app(
             if integration and integration.bucket:
                 bucket = integration.bucket
             if not bucket:
-                bucket = os.getenv("DAYLILY_CONTROL_BUCKET") or os.getenv("DAYLILY_MONITOR_BUCKET")
+                # Get from settings via app.state
+                app_settings = request.app.state.settings
+                bucket = app_settings.get_control_bucket()
             if not bucket:
                 error_detail = (
                     "Control bucket is not configured for workset registration. "
@@ -2121,6 +1986,7 @@ def create_app(
 
     @app.post("/api/s3/discover-samples", tags=["utilities"])
     async def discover_samples_from_s3(
+        request: Request,
         bucket: str = Body(..., embed=True),
         prefix: str = Body(..., embed=True),
         current_user: Optional[Dict] = Depends(get_current_user),
@@ -2138,13 +2004,11 @@ def create_app(
         LOGGER.info("S3 Discovery: Starting discovery for bucket=%s, prefix=%s", bucket, prefix)
 
         try:
-            # Create boto3 session using environment variables if set
-            # AWS_DEFAULT_REGION, AWS_PROFILE, or IAM role credentials
-            session_kwargs = {}
-            if os.getenv("AWS_DEFAULT_REGION"):
-                session_kwargs["region_name"] = os.getenv("AWS_DEFAULT_REGION")
-            if os.getenv("AWS_PROFILE"):
-                session_kwargs["profile_name"] = os.getenv("AWS_PROFILE")
+            # Create boto3 session using settings
+            app_settings = request.app.state.settings
+            session_kwargs = {"region_name": app_settings.get_effective_region()}
+            if app_settings.aws_profile:
+                session_kwargs["profile_name"] = app_settings.aws_profile
             session = boto3.Session(**session_kwargs)
             s3_client = session.client("s3")
 
@@ -2492,6 +2356,7 @@ def create_app(
                 return auth_redirect
 
             customer = None
+            customer_id = None
             worksets = []
             stats = {
                 "active_worksets": 0,
@@ -2509,11 +2374,19 @@ def create_app(
             }
 
             if customer_manager:
-                customers = customer_manager.list_customers()
-                if customers:
-                    customer_raw = customers[0]  # Demo: use first customer
-                    customer = _convert_customer_for_template(customer_raw)
-                    customer_id = customer_raw.customer_id
+                # Try session-based customer lookup first
+                customer, customer_config = get_customer_for_session(request)
+                if customer:
+                    customer_id = customer.customer_id
+                elif settings.demo_mode:
+                    # Demo mode fallback: use first customer
+                    customers = customer_manager.list_customers()
+                    if customers:
+                        customer_raw = customers[0]
+                        customer = _convert_customer_for_template(customer_raw)
+                        customer_id = customer_raw.customer_id
+
+                if customer_id:
 
                     # Get worksets for this customer
                     all_worksets = []
@@ -4165,46 +4038,51 @@ def create_app(
                 if customers:
                     customer = _convert_customer_for_template(customers[0])
 
-            # Collect all environment variables used in the codebase
+            # Collect configuration from settings (centralized config)
+            app_settings = request.app.state.settings
             env_vars = {
                 # AWS Configuration
-                "AWS_PROFILE": os.getenv("AWS_PROFILE"),
-                "AWS_DEFAULT_REGION": os.getenv("AWS_DEFAULT_REGION"),
-                "AWS_REGION": os.getenv("AWS_REGION"),
+                "AWS_PROFILE": app_settings.aws_profile,
+                "AWS_DEFAULT_REGION": app_settings.aws_default_region,
+                "AWS_REGION": app_settings.get_effective_region(),
                 "AWS_ACCESS_KEY_ID": "***" if os.getenv("AWS_ACCESS_KEY_ID") else None,
                 "AWS_SECRET_ACCESS_KEY": "***" if os.getenv("AWS_SECRET_ACCESS_KEY") else None,
-                "AWS_ACCOUNT_ID": os.getenv("AWS_ACCOUNT_ID"),
+                "AWS_ACCOUNT_ID": app_settings.aws_account_id,
                 # Control Bucket
-                "DAYLILY_CONTROL_BUCKET": os.getenv("DAYLILY_CONTROL_BUCKET"),
-                "DAYLILY_MONITOR_BUCKET": os.getenv("DAYLILY_MONITOR_BUCKET"),
+                "DAYLILY_CONTROL_BUCKET": app_settings.daylily_control_bucket,
+                "DAYLILY_MONITOR_BUCKET": app_settings.daylily_monitor_bucket,
                 # DynamoDB
-                "WORKSET_TABLE_NAME": os.getenv("WORKSET_TABLE_NAME"),
-                "CUSTOMER_TABLE_NAME": os.getenv("CUSTOMER_TABLE_NAME"),
+                "WORKSET_TABLE_NAME": app_settings.workset_table_name,
+                "CUSTOMER_TABLE_NAME": app_settings.customer_table_name,
                 # Cognito Auth
-                "COGNITO_USER_POOL_ID": os.getenv("COGNITO_USER_POOL_ID"),
-                "COGNITO_APP_CLIENT_ID": os.getenv("COGNITO_APP_CLIENT_ID"),
+                "COGNITO_USER_POOL_ID": app_settings.cognito_user_pool_id,
+                "COGNITO_APP_CLIENT_ID": app_settings.cognito_app_client_id,
                 # API Configuration
-                "API_HOST": os.getenv("API_HOST"),
-                "API_PORT": os.getenv("API_PORT"),
-                "ENABLE_AUTH": os.getenv("ENABLE_AUTH"),
-                "SESSION_SECRET_KEY": "***" if os.getenv("SESSION_SECRET_KEY") else None,
+                "API_HOST": app_settings.api_host,
+                "API_PORT": str(app_settings.api_port),
+                "ENABLE_AUTH": str(app_settings.enable_auth),
+                "SESSION_SECRET_KEY": "***" if app_settings.session_secret_key else None,
                 # S3 & Storage
-                "S3_BUCKET": os.getenv("S3_BUCKET"),
-                "S3_PREFIX": os.getenv("S3_PREFIX"),
+                "S3_BUCKET": app_settings.s3_bucket,
+                "S3_PREFIX": app_settings.s3_prefix,
                 # Notifications
-                "SNS_TOPIC_ARN": os.getenv("SNS_TOPIC_ARN"),
-                "DAYLILY_SNS_TOPIC_ARN": os.getenv("DAYLILY_SNS_TOPIC_ARN"),
-                "LINEAR_API_KEY": "***" if os.getenv("LINEAR_API_KEY") else None,
-                "LINEAR_TEAM_ID": os.getenv("LINEAR_TEAM_ID"),
+                "SNS_TOPIC_ARN": app_settings.sns_topic_arn,
+                "DAYLILY_SNS_TOPIC_ARN": app_settings.daylily_sns_topic_arn,
+                "LINEAR_API_KEY": "***" if app_settings.linear_api_key else None,
+                "LINEAR_TEAM_ID": app_settings.linear_team_id,
                 # Other
-                "DAY_PROJECT": os.getenv("DAY_PROJECT"),
-                "DAY_AWS_REGION": os.getenv("DAY_AWS_REGION"),
-                "DAY_EX_CFG": os.getenv("DAY_EX_CFG"),
-                "DAYLILY_PRIMARY_REGION": os.getenv("DAYLILY_PRIMARY_REGION"),
-                "DAYLILY_MULTI_REGION": os.getenv("DAYLILY_MULTI_REGION"),
-                "APPTAINER_HOME": os.getenv("APPTAINER_HOME"),
-                "DAY_BIOME": os.getenv("DAY_BIOME"),
-                "DAY_ROOT": os.getenv("DAY_ROOT"),
+                "DAY_PROJECT": app_settings.day_project,
+                "DAY_AWS_REGION": app_settings.day_aws_region,
+                "DAY_EX_CFG": app_settings.day_ex_cfg,
+                "DAYLILY_PRIMARY_REGION": app_settings.daylily_primary_region,
+                "DAYLILY_MULTI_REGION": str(app_settings.daylily_multi_region),
+                "APPTAINER_HOME": app_settings.apptainer_home,
+                "DAY_BIOME": app_settings.day_biome,
+                "DAY_ROOT": app_settings.day_root,
+                # Environment
+                "DAYLILY_ENV": app_settings.daylily_env,
+                "LOG_LEVEL": app_settings.log_level,
+                "CORS_ORIGINS": app_settings.cors_origins,
             }
 
             return templates.TemplateResponse(
@@ -4315,15 +4193,32 @@ def create_app(
         try:
             biospecimen_registry = BiospecimenRegistry(region=region, profile=profile)
 
-            def get_customer_id_from_session():
-                """Get customer ID from current request session."""
-                # This will be called during request handling
-                # The actual session access happens via dependency injection
-                return getattr(get_customer_id_from_session, '_current_customer_id', 'default-customer')
+            def get_customer_id_from_request(request: Request) -> str:
+                """Get customer ID from request session or raise 401.
+
+                Resolution order:
+                1. Session customer_id (portal login)
+                2. API key customer lookup (if implemented)
+
+                Raises:
+                    HTTPException(401): If customer cannot be resolved
+                """
+                # Try session first (portal login)
+                session = getattr(request, 'session', None)
+                if session:
+                    customer_id = session.get('customer_id')
+                    if customer_id:
+                        return customer_id
+
+                # No valid authentication found
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="Authentication required. Please log in to access biospecimen data.",
+                )
 
             biospecimen_router = create_biospecimen_router(
                 registry=biospecimen_registry,
-                get_customer_id=get_customer_id_from_session,
+                get_customer_id=get_customer_id_from_request,
             )
             app.include_router(biospecimen_router)
             LOGGER.info("Biospecimen API endpoints registered at /api/biospecimen/*")
@@ -4332,5 +4227,8 @@ def create_app(
             LOGGER.warning("Biospecimen endpoints will not be available")
     else:
         LOGGER.info("Biospecimen module not available - biospecimen API endpoints not registered")
+
+    # Store settings in app state for access in route handlers
+    app.state.settings = settings
 
     return app

@@ -9,7 +9,7 @@ from __future__ import annotations
 import logging
 from typing import Any, Callable, Dict, List, Optional
 
-from fastapi import APIRouter, Body, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Request, status
 from pydantic import BaseModel, Field
 
 from daylib.biospecimen import (
@@ -198,14 +198,15 @@ class StatisticsResponse(BaseModel):
 
 def create_biospecimen_router(
     registry: BiospecimenRegistry,
-    get_customer_id: Callable[[], str],
+    get_customer_id: Callable[[Request], str],
 ) -> APIRouter:
     """
     Create a FastAPI router for biospecimen API endpoints.
 
     Args:
         registry: BiospecimenRegistry instance
-        get_customer_id: Callable that returns the current customer ID
+        get_customer_id: Callable that takes a Request and returns the current customer ID.
+                        Should raise HTTPException(401) if customer cannot be resolved.
 
     Returns:
         Configured APIRouter
@@ -217,9 +218,9 @@ def create_biospecimen_router(
     # =========================================================================
 
     @router.post("/subjects", response_model=SubjectResponse, status_code=status.HTTP_201_CREATED)
-    async def create_subject(request: SubjectRequest):
+    async def create_subject(http_request: Request, request: SubjectRequest):
         """Create a new subject."""
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
         subject_id = generate_subject_id(customer_id, request.identifier)
 
         subject = Subject(
@@ -244,47 +245,47 @@ def create_biospecimen_router(
         return SubjectResponse(**subject.__dict__)
 
     @router.get("/subjects", response_model=List[SubjectResponse])
-    async def list_subjects(limit: int = Query(100, ge=1, le=1000)):
+    async def list_subjects(http_request: Request, limit: int = Query(100, ge=1, le=1000)):
         """List all subjects for the current customer."""
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
         subjects = registry.list_subjects(customer_id, limit=limit)
         return [SubjectResponse(**s.__dict__) for s in subjects]
 
     @router.get("/subjects/{subject_id}", response_model=SubjectResponse)
-    async def get_subject(subject_id: str):
+    async def get_subject(http_request: Request, subject_id: str):
         """Get a subject by ID."""
         subject = registry.get_subject(subject_id)
         if not subject:
             raise HTTPException(status_code=404, detail="Subject not found")
 
         # Verify customer ownership
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
         if subject.customer_id != customer_id:
             raise HTTPException(status_code=403, detail="Access denied")
 
         return SubjectResponse(**subject.__dict__)
 
     @router.get("/subjects/{subject_id}/hierarchy", response_model=Dict[str, Any])
-    async def get_subject_hierarchy(subject_id: str):
+    async def get_subject_hierarchy(http_request: Request, subject_id: str):
         """Get complete hierarchy for a subject including biosamples and libraries."""
         subject = registry.get_subject(subject_id)
         if not subject:
             raise HTTPException(status_code=404, detail="Subject not found")
 
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
         if subject.customer_id != customer_id:
             raise HTTPException(status_code=403, detail="Access denied")
 
         return registry.get_subject_hierarchy(subject_id)
 
     @router.put("/subjects/{subject_id}", response_model=SubjectResponse)
-    async def update_subject(subject_id: str, request: SubjectRequest):
+    async def update_subject(http_request: Request, subject_id: str, request: SubjectRequest):
         """Update a subject."""
         subject = registry.get_subject(subject_id)
         if not subject:
             raise HTTPException(status_code=404, detail="Subject not found")
 
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
         if subject.customer_id != customer_id:
             raise HTTPException(status_code=403, detail="Access denied")
 
@@ -308,9 +309,9 @@ def create_biospecimen_router(
     # =========================================================================
 
     @router.post("/biosamples", response_model=BiosampleResponse, status_code=status.HTTP_201_CREATED)
-    async def create_biosample(request: BiosampleRequest):
+    async def create_biosample(http_request: Request, request: BiosampleRequest):
         """Create a new biosample."""
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
 
         # Verify subject exists and belongs to customer
         subject = registry.get_subject(request.subject_id)
@@ -350,11 +351,12 @@ def create_biospecimen_router(
 
     @router.get("/biosamples", response_model=List[BiosampleResponse])
     async def list_biosamples(
+        http_request: Request,
         limit: int = Query(100, ge=1, le=1000),
         subject_id: Optional[str] = Query(None, description="Filter by subject ID"),
     ):
         """List biosamples for the current customer."""
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
 
         if subject_id:
             biosamples = registry.list_biosamples_for_subject(subject_id)
@@ -366,26 +368,26 @@ def create_biospecimen_router(
         return [BiosampleResponse(**b.__dict__) for b in biosamples]
 
     @router.get("/biosamples/{biosample_id}", response_model=BiosampleResponse)
-    async def get_biosample(biosample_id: str):
+    async def get_biosample(http_request: Request, biosample_id: str):
         """Get a biosample by ID."""
         biosample = registry.get_biosample(biosample_id)
         if not biosample:
             raise HTTPException(status_code=404, detail="Biosample not found")
 
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
         if biosample.customer_id != customer_id:
             raise HTTPException(status_code=403, detail="Access denied")
 
         return BiosampleResponse(**biosample.__dict__)
 
     @router.put("/biosamples/{biosample_id}", response_model=BiosampleResponse)
-    async def update_biosample(biosample_id: str, request: BiosampleRequest):
+    async def update_biosample(http_request: Request, biosample_id: str, request: BiosampleRequest):
         """Update a biosample."""
         biosample = registry.get_biosample(biosample_id)
         if not biosample:
             raise HTTPException(status_code=404, detail="Biosample not found")
 
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
         if biosample.customer_id != customer_id:
             raise HTTPException(status_code=403, detail="Access denied")
 
@@ -414,9 +416,9 @@ def create_biospecimen_router(
     # =========================================================================
 
     @router.post("/libraries", response_model=LibraryResponse, status_code=status.HTTP_201_CREATED)
-    async def create_library(request: LibraryRequest):
+    async def create_library(http_request: Request, request: LibraryRequest):
         """Create a new library."""
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
 
         # Verify biosample exists and belongs to customer
         biosample = registry.get_biosample(request.biosample_id)
@@ -455,11 +457,12 @@ def create_biospecimen_router(
 
     @router.get("/libraries", response_model=List[LibraryResponse])
     async def list_libraries(
+        http_request: Request,
         limit: int = Query(100, ge=1, le=1000),
         biosample_id: Optional[str] = Query(None, description="Filter by biosample ID"),
     ):
         """List libraries for the current customer."""
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
 
         if biosample_id:
             libraries = registry.list_libraries_for_biosample(biosample_id)
@@ -470,26 +473,26 @@ def create_biospecimen_router(
         return [LibraryResponse(**lib.__dict__) for lib in libraries]
 
     @router.get("/libraries/{library_id}", response_model=LibraryResponse)
-    async def get_library(library_id: str):
+    async def get_library(http_request: Request, library_id: str):
         """Get a library by ID."""
         library = registry.get_library(library_id)
         if not library:
             raise HTTPException(status_code=404, detail="Library not found")
 
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
         if library.customer_id != customer_id:
             raise HTTPException(status_code=403, detail="Access denied")
 
         return LibraryResponse(**library.__dict__)
 
     @router.put("/libraries/{library_id}", response_model=LibraryResponse)
-    async def update_library(library_id: str, request: LibraryRequest):
+    async def update_library(http_request: Request, library_id: str, request: LibraryRequest):
         """Update a library."""
         library = registry.get_library(library_id)
         if not library:
             raise HTTPException(status_code=404, detail="Library not found")
 
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
         if library.customer_id != customer_id:
             raise HTTPException(status_code=403, detail="Access denied")
 
@@ -517,9 +520,9 @@ def create_biospecimen_router(
     # =========================================================================
 
     @router.get("/statistics", response_model=StatisticsResponse)
-    async def get_statistics():
+    async def get_statistics(http_request: Request):
         """Get biospecimen statistics for the current customer."""
-        customer_id = get_customer_id()
+        customer_id = get_customer_id(http_request)
         stats = registry.get_statistics(customer_id)
         return StatisticsResponse(**stats)
 

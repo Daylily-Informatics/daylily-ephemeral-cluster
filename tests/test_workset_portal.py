@@ -449,7 +449,10 @@ class TestWorksetCreationValidation:
     @pytest.fixture(autouse=True)
     def setup_control_bucket(self, monkeypatch):
         """Set up control bucket for all tests in this class."""
+        from daylib.config import clear_settings_cache
         monkeypatch.setenv("DAYLILY_CONTROL_BUCKET", "test-control-bucket")
+        # Clear settings cache so the new env var is picked up
+        clear_settings_cache()
 
     def test_create_workset_rejects_empty_customer_id(self, mock_state_db, mock_customer_manager_with_email_lookup):
         """Test that empty customer_id is rejected."""
