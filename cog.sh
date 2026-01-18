@@ -1,3 +1,0 @@
-export COGNITO_USER_POOL_ID=us-west-2_ipMpPcnrm
-export COGNITO_APP_CLIENT_ID=3ff96u2ern8thsiv9cq1j2s87p
-
