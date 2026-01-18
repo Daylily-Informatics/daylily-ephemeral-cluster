@@ -1,7 +1,10 @@
-"""Custom exception hierarchy for Daylily.
+"""Custom exception hierarchy for Daylily Ephemeral Cluster.
 
 Provides structured exceptions that map to HTTP status codes and
 include error codes for consistent API responses.
+
+Focused on infrastructure-as-code management for ephemeral AWS
+ParallelCluster deployments.
 """
 
 from __future__ import annotations
@@ -14,7 +17,7 @@ class DaylilyException(Exception):
 
     Attributes:
         message: Human-readable error message
-        code: Machine-readable error code (e.g., "WORKSET_NOT_FOUND")
+        code: Machine-readable error code (e.g., "CLUSTER_NOT_FOUND")
         status_code: HTTP status code to return
         details: Additional error context
     """
@@ -119,32 +122,18 @@ class DependencyError(DaylilyException):
 # ========== Domain-Specific Errors ==========
 
 
-class WorksetNotFoundError(NotFoundError):
-    """Workset not found."""
+class ClusterNotFoundError(NotFoundError):
+    """Cluster not found."""
 
-    default_code = "WORKSET_NOT_FOUND"
-    default_message = "Workset not found"
-
-
-class WorksetAlreadyExistsError(ConflictError):
-    """Workset already exists."""
-
-    default_code = "WORKSET_ALREADY_EXISTS"
-    default_message = "Workset already exists"
+    default_code = "CLUSTER_NOT_FOUND"
+    default_message = "Cluster not found"
 
 
-class CustomerNotFoundError(NotFoundError):
-    """Customer not found."""
+class ClusterAlreadyExistsError(ConflictError):
+    """Cluster already exists."""
 
-    default_code = "CUSTOMER_NOT_FOUND"
-    default_message = "Customer not found"
-
-
-class FileNotFoundError(NotFoundError):
-    """File not found in registry."""
-
-    default_code = "FILE_NOT_FOUND"
-    default_message = "File not found"
+    default_code = "CLUSTER_ALREADY_EXISTS"
+    default_message = "Cluster already exists"
 
 
 class BucketAccessError(AuthorizationError):
@@ -154,16 +143,9 @@ class BucketAccessError(AuthorizationError):
     default_message = "Cannot access the specified S3 bucket"
 
 
-class WorksetLockError(ConflictError):
-    """Workset is locked by another process."""
+class ClusterConfigurationError(ValidationError):
+    """Invalid cluster configuration."""
 
-    default_code = "WORKSET_LOCKED"
-    default_message = "Workset is currently locked by another process"
-
-
-class InvalidStateTransitionError(ValidationError):
-    """Invalid workset state transition."""
-
-    default_code = "INVALID_STATE_TRANSITION"
-    default_message = "Invalid state transition"
+    default_code = "INVALID_CLUSTER_CONFIG"
+    default_message = "Invalid cluster configuration"
 

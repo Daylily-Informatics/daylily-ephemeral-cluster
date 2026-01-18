@@ -1,2 +1,2 @@
-"""Test suite for Daylily workset monitoring enhancements."""
+"""Test suite for Daylily ephemeral cluster infrastructure."""
 

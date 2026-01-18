@@ -20,11 +20,6 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-# Workset management integration (optional)
-workset = [
-    "daylily-ursa",
-]
-
 # Development dependencies
 dev = [
     "pytest>=7.4.0",

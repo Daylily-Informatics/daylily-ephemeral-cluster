@@ -1,12 +1,14 @@
-"""Centralized configuration management for Daylily.
+"""Centralized configuration management for Daylily Ephemeral Cluster.
 
 Uses Pydantic BaseSettings for environment variable loading with validation.
 Configuration is loaded once at startup and injected via dependency.
+
+This module focuses on infrastructure-as-code configuration for ephemeral
+AWS ParallelCluster deployments.
 """
 
 from __future__ import annotations
 
-import os
 from functools import lru_cache
 from typing import List, Optional
 
@@ -15,7 +17,7 @@ from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
 class Settings(BaseSettings):
-    """Daylily application settings.
+    """Daylily ephemeral cluster infrastructure settings.
 
     All settings can be overridden via environment variables.
     Environment variable names are uppercase versions of the field names.
@@ -42,44 +44,10 @@ class Settings(BaseSettings):
         description="AWS account ID for resource ARNs",
     )
 
-    # ========== DynamoDB Table Names ==========
-    workset_table_name: str = Field(
-        default="daylily-worksets",
-        description="DynamoDB table for workset state",
-    )
-    customer_table_name: str = Field(
-        default="daylily-customers",
-        description="DynamoDB table for customer configuration",
-    )
-    daylily_manifest_table: str = Field(
-        default="daylily-manifests",
-        description="DynamoDB table for manifest storage",
-    )
-    daylily_linked_buckets_table: str = Field(
-        default="daylily-linked-buckets",
-        description="DynamoDB table for linked bucket management",
-    )
-    daylily_file_registry_table: str = Field(
-        default="daylily-file-registry",
-        description="DynamoDB table for file registry",
-    )
-
     # ========== S3 Configuration ==========
     daylily_control_bucket: Optional[str] = Field(
         default=None,
-        description="S3 bucket for control plane data (worksets, configs)",
-    )
-    daylily_monitor_bucket: Optional[str] = Field(
-        default=None,
-        description="S3 bucket for monitoring (legacy alias for control bucket)",
-    )
-    s3_bucket: Optional[str] = Field(
-        default=None,
-        description="Default S3 bucket for workset data",
-    )
-    s3_prefix: str = Field(
-        default="worksets/",
-        description="Default S3 prefix for workset data",
+        description="S3 bucket for control plane data (cluster configs, state)",
     )
 
     # ========== Authentication ==========
@@ -195,10 +163,6 @@ class Settings(BaseSettings):
         default="strict",
         description="Validation strictness level: strict, permissive",
     )
-    validation_required: bool = Field(
-        default=True,
-        description="Require validation for workset creation/updates",
-    )
 
     @field_validator("cors_origins")
     @classmethod
@@ -231,8 +195,8 @@ class Settings(BaseSettings):
         return origins
 
     def get_control_bucket(self) -> Optional[str]:
-        """Get control bucket, preferring DAYLILY_CONTROL_BUCKET over legacy DAYLILY_MONITOR_BUCKET."""
-        return self.daylily_control_bucket or self.daylily_monitor_bucket
+        """Get control bucket for cluster state and configuration."""
+        return self.daylily_control_bucket
 
     def get_effective_region(self) -> str:
         """Get the effective AWS region, considering overrides."""
