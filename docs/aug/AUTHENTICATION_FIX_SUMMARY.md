@@ -148,7 +148,7 @@ $ python -c "from daylib.workset_api import create_app; print('Success')"
 ```bash
 $ python examples/run_api_without_auth.py
 INFO - Authentication disabled - API endpoints will not require authentication
-INFO - Starting server on http://0.0.0.0:8000
+INFO - Starting server on http://0.0.0.0:8001
 INFO - Application startup complete.
 ```
 

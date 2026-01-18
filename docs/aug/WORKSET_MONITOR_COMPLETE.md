@@ -130,15 +130,15 @@ stateDiagram-v2
 python3 -c "from daylib.workset_state_db import WorksetStateDB; WorksetStateDB('daylily-worksets', 'us-west-2').create_table_if_not_exists()"
 
 # 2. Start API server
-./bin/daylily-workset-api --table-name daylily-worksets --region us-west-2 --port 8000
+./bin/daylily-workset-api --table-name daylily-worksets --region us-west-2 --port 8001
 
 # 3. Register a workset
-curl -X POST http://localhost:8000/worksets \
+curl -X POST http://localhost:8001/worksets \
   -H "Content-Type: application/json" \
   -d '{"workset_id": "ws-001", "bucket": "my-bucket", "prefix": "ws-001/"}'
 
 # 4. Check status
-curl http://localhost:8000/worksets/ws-001
+curl http://localhost:8001/worksets/ws-001
 ```
 
 ## 📊 Metrics & Observability

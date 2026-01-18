@@ -95,13 +95,13 @@ pip install -e .
 python examples/run_api_without_auth.py
 
 # Get queue statistics
-curl http://localhost:8000/queue/stats
+curl http://localhost:8001/queue/stats
 
 # List worksets by state
-curl http://localhost:8000/worksets?state=ready&limit=10
+curl http://localhost:8001/worksets?state=ready&limit=10
 
 # Validate workset before submission
-curl -X POST http://localhost:8000/worksets/validate \
+curl -X POST http://localhost:8001/worksets/validate \
   -d "bucket=my-bucket&prefix=worksets/ws-001/"
 ```
 
@@ -118,7 +118,7 @@ export COGNITO_APP_CLIENT_ID=XXXXXXXXXXXXXXXXXXXXXXXXXX
 python examples/run_api_with_auth.py
 
 # Make authenticated requests
-curl http://localhost:8000/worksets \
+curl http://localhost:8001/worksets \
   -H "Authorization: Bearer <jwt_token>"
 ```
 

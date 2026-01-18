@@ -121,14 +121,14 @@ aws sns subscribe \
 ```
 
 - [ ] API server started successfully
-- [ ] Health check passes: `curl http://localhost:8000/`
-- [ ] API docs accessible: `http://localhost:8000/docs`
+- [ ] Health check passes: `curl http://localhost:8001/`
+- [ ] API docs accessible: `http://localhost:8001/docs`
 - [ ] Scheduler enabled (if desired)
 
 ### Step 6: Test Basic Operations
 ```bash
 # Register test workset
-curl -X POST http://localhost:8000/worksets \
+curl -X POST http://localhost:8001/worksets \
   -H "Content-Type: application/json" \
   -d '{
     "workset_id": "test-001",
@@ -138,10 +138,10 @@ curl -X POST http://localhost:8000/worksets \
   }'
 
 # Get workset
-curl http://localhost:8000/worksets/test-001
+curl http://localhost:8001/worksets/test-001
 
 # Get queue stats
-curl http://localhost:8000/queue/stats
+curl http://localhost:8001/queue/stats
 ```
 
 - [ ] Workset registration works
