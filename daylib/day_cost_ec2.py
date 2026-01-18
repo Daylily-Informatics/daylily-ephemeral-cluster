@@ -1,19 +1,21 @@
 # library/aws_genomics_costs.py
 
-import yaml
-import subprocess
 import statistics
-from math import isnan, fsum
-from typing import List, Dict
+import subprocess
+from math import fsum, isnan
+from typing import Any, Dict, List
+
+import yaml  # type: ignore[import-untyped]
 
 
 class ConfigLoader:
     """Handles loading and validation of YAML configuration files."""
 
     @staticmethod
-    def load_config(file_path: str) -> dict:
+    def load_config(file_path: str) -> Dict[Any, Any]:
         with open(file_path, "r") as file:
-            return yaml.safe_load(file)
+            result: Dict[Any, Any] = yaml.safe_load(file)
+            return result
 
 
 class SpotPriceFetcher:
@@ -51,7 +53,7 @@ class SpotPriceFetcher:
     @staticmethod
     def collect_spot_prices(instance_types: List[str], zones: List[str], profile: str) -> Dict[str, Dict[str, float]]:
         """Fetch spot prices for all instance types and zones."""
-        spot_data = {instance: {} for instance in instance_types}
+        spot_data: Dict[str, Dict[str, float]] = {instance: {} for instance in instance_types}
         for instance_type in instance_types:
             for zone in zones:
                 spot_data[instance_type][zone] = SpotPriceFetcher.get_spot_price(instance_type, zone, profile)
@@ -63,7 +65,7 @@ class ZoneStat:
 
     def __init__(self, zone_name: str):
         self.zone_name = zone_name
-        self.prices = []
+        self.prices: List[float] = []
         self.instances = 0
         self.median_price = float("nan")
         self.min_price = float("nan")
@@ -123,7 +125,7 @@ def display_statistics(zone_stats: List[ZoneStat], n_vcpus: int, cost_model: str
         ]
         for z in zone_stats
     ]
-    from tabulate import tabulate
+    from tabulate import tabulate  # type: ignore[import-untyped]
     print(tabulate(rows, headers=headers, floatfmt=".5f", tablefmt="fancy_grid"))
 
 

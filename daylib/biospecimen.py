@@ -707,26 +707,28 @@ class BiospecimenRegistry:
 
         biospecimens = self.list_biospecimens_for_subject(subject_id)
 
-        hierarchy = {
+        biospecimens_list: List[Dict[str, Any]] = []
+        hierarchy: Dict[str, Any] = {
             "subject": asdict(subject),
-            "biospecimens": []
+            "biospecimens": biospecimens_list
         }
 
         for biospecimen in biospecimens:
             biosamples = self.list_biosamples_for_biospecimen(biospecimen.biospecimen_id)
-            biospecimen_data = {
+            biosamples_list: List[Dict[str, Any]] = []
+            biospecimen_data: Dict[str, Any] = {
                 "biospecimen": asdict(biospecimen),
-                "biosamples": []
+                "biosamples": biosamples_list
             }
 
             for biosample in biosamples:
                 libraries = self.list_libraries_for_biosample(biosample.biosample_id)
-                biospecimen_data["biosamples"].append({
+                biosamples_list.append({
                     "biosample": asdict(biosample),
                     "libraries": [asdict(lib) for lib in libraries]
                 })
 
-            hierarchy["biospecimens"].append(biospecimen_data)
+            biospecimens_list.append(biospecimen_data)
 
         return hierarchy
 

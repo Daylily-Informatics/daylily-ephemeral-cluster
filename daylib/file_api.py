@@ -70,12 +70,12 @@ def _get_authenticated_customer_id(current_user: Optional[Dict]) -> Optional[str
     # Preferred: explicit customer_id key
     customer_id = current_user.get("customer_id")
     if customer_id:
-        return customer_id
+        return str(customer_id)
 
     # Cognito custom attribute from JWT claims
     customer_id = current_user.get("custom:customer_id")
     if customer_id:
-        return customer_id
+        return str(customer_id)
 
     return None
 
@@ -200,7 +200,7 @@ class LinkBucketRequest(BaseModel):
     description: Optional[str] = Field(None, description="Description of bucket purpose")
     prefix_restriction: Optional[str] = Field(None, description="Restrict access to specific prefix")
     read_only: bool = Field(False, description="If true, prevent writes to this bucket")
-    validate: bool = Field(True, description="Whether to validate bucket access")
+    validate_access: bool = Field(True, description="Whether to validate bucket access")
 
 
 class LinkedBucketResponse(BaseModel):
@@ -803,8 +803,8 @@ def create_file_api_router(
             )
             if LOGGER.isEnabledFor(logging.DEBUG):
                 LOGGER.debug(
-                    "Link bucket request details: prefix_restriction=%s, read_only=%s, validate=%s",
-                    request.prefix_restriction, request.read_only, request.validate
+                    "Link bucket request details: prefix_restriction=%s, read_only=%s, validate_access=%s",
+                    request.prefix_restriction, request.read_only, request.validate_access
                 )
 
             linked_bucket, validation_result = linked_bucket_manager.link_bucket(
@@ -815,7 +815,7 @@ def create_file_api_router(
                 description=request.description,
                 prefix_restriction=request.prefix_restriction,
                 read_only=request.read_only,
-                validate=request.validate,
+                validate=request.validate_access,
             )
 
             LOGGER.info(
@@ -2524,6 +2524,7 @@ def create_file_api_router(
                             last_modified=None,
                             file_format=None,
                             is_registered=False,
+                            file_id=None,
                         ))
 
                 # Add files

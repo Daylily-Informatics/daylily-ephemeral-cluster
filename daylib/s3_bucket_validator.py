@@ -801,9 +801,9 @@ class LinkedBucketManager:
             return None
 
         # Build update expression
-        update_parts = []
-        expression_values = {}
-        expression_names = {}
+        update_parts: List[str] = []
+        expression_values: Dict[str, Any] = {}
+        expression_names: Dict[str, str] = {}
 
         if display_name is not None:
             update_parts.append("#dn = :dn")

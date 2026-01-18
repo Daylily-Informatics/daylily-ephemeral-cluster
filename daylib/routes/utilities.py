@@ -8,10 +8,10 @@ from __future__ import annotations
 import json
 import logging
 import re
-from typing import Any, Dict, List, Optional
+from typing import Any, Callable, Dict, List, Optional
 
 import boto3
-import yaml
+import yaml  # type: ignore[import-untyped]
 from fastapi import APIRouter, Body, Depends, HTTPException, Request, status
 from pydantic import BaseModel, Field
 
@@ -88,7 +88,7 @@ class BucketValidationResponse(BaseModel):
 
 def create_utilities_router(
     settings: Settings,
-    get_current_user: callable,
+    get_current_user: Callable[..., Any],
 ) -> APIRouter:
     """Create utilities router with injected dependencies.
 

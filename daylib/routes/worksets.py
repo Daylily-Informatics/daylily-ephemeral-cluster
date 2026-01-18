@@ -125,11 +125,16 @@ def create_worksets_router(
             reason=update.reason,
             error_details=update.error_details,
             cluster_name=update.cluster_name,
-            metrics=update.metrics,
+            metrics=update.metrics if update.metrics else None,
         )
 
         # Return updated workset
         updated = state_db.get_workset(workset_id)
+        if not updated:
+            raise HTTPException(
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+                detail=f"Failed to retrieve updated workset {workset_id}",
+            )
         return WorksetResponse(**updated)
 
     @router.post("/worksets/{workset_id}/lock")

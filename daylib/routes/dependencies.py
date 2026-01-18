@@ -27,10 +27,11 @@ def format_file_size(size_bytes: int) -> str:
         return "0 B"
     units = ["B", "KB", "MB", "GB", "TB"]
     i = 0
-    while size_bytes >= 1024 and i < len(units) - 1:
-        size_bytes /= 1024
+    size_float: float = float(size_bytes)
+    while size_float >= 1024 and i < len(units) - 1:
+        size_float /= 1024
         i += 1
-    return f"{size_bytes:.1f} {units[i]}"
+    return f"{size_float:.1f} {units[i]}"
 
 
 def get_file_icon(filename: str) -> str:
@@ -114,14 +115,14 @@ def verify_workset_ownership(workset: Dict[str, Any], customer_id: str) -> bool:
     # Primary check: customer_id field (authoritative)
     ws_customer_id = workset.get("customer_id")
     if ws_customer_id:
-        return ws_customer_id == customer_id
+        return bool(ws_customer_id == customer_id)
 
     # Fallback: check metadata.submitted_by for older worksets
     metadata = workset.get("metadata", {})
     if isinstance(metadata, dict):
         submitted_by = metadata.get("submitted_by")
         if submitted_by:
-            return submitted_by == customer_id
+            return bool(submitted_by == customer_id)
 
     LOGGER.warning(
         "Workset %s has no customer_id field - ownership check failed",

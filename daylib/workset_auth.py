@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 import os
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import boto3
 from botocore.exceptions import ClientError
@@ -161,9 +161,10 @@ class CognitoAuth:
                 if pool["Name"] == pool_name:
                     LOGGER.info("User pool %s already exists", pool_name)
                     # Update instance to use this pool
-                    self.user_pool_id = pool["Id"]
+                    pool_id: str = str(pool["Id"])
+                    self.user_pool_id = pool_id
                     self._update_jwks_url()
-                    return pool["Id"]
+                    return pool_id
 
             # Create new pool
             LOGGER.info("Creating user pool %s", pool_name)
@@ -195,12 +196,12 @@ class CognitoAuth:
                 ],
             )
 
-            pool_id = response["UserPool"]["Id"]
-            LOGGER.info("Created user pool %s", pool_id)
+            new_pool_id: str = str(response["UserPool"]["Id"])
+            LOGGER.info("Created user pool %s", new_pool_id)
             # Update instance to use this pool
-            self.user_pool_id = pool_id
+            self.user_pool_id = new_pool_id
             self._update_jwks_url()
-            return pool_id
+            return new_pool_id
 
         except ClientError as e:
             LOGGER.error("Failed to create user pool: %s", str(e))
@@ -242,9 +243,10 @@ class CognitoAuth:
             )
             for client in response.get("UserPoolClients", []):
                 if client["ClientName"] == client_name:
-                    LOGGER.info("App client %s already exists: %s", client_name, client["ClientId"])
-                    self.app_client_id = client["ClientId"]
-                    return client["ClientId"]
+                    existing_client_id: str = str(client["ClientId"])
+                    LOGGER.info("App client %s already exists: %s", client_name, existing_client_id)
+                    self.app_client_id = existing_client_id
+                    return existing_client_id
 
             # Create new client
             response = self.cognito.create_user_pool_client(
@@ -260,11 +262,11 @@ class CognitoAuth:
                 WriteAttributes=["email"],
             )
 
-            client_id = response["UserPoolClient"]["ClientId"]
-            LOGGER.info("Created app client %s", client_id)
+            new_client_id: str = str(response["UserPoolClient"]["ClientId"])
+            LOGGER.info("Created app client %s", new_client_id)
             # Update instance to use this client
-            self.app_client_id = client_id
-            return client_id
+            self.app_client_id = new_client_id
+            return new_client_id
 
         except ClientError as e:
             LOGGER.error("Failed to create app client: %s", str(e))
@@ -340,7 +342,8 @@ class CognitoAuth:
             response = self.cognito.admin_create_user(**kwargs)
 
             LOGGER.info("Created user %s for customer %s", email, customer_id)
-            return response["User"]
+            user_data: Dict[Any, Any] = dict(response["User"])
+            return user_data
 
         except ClientError as e:
             if e.response["Error"]["Code"] == "UsernameExistsException":
@@ -349,7 +352,7 @@ class CognitoAuth:
             LOGGER.error("Failed to create user: %s", str(e))
             raise
 
-    def verify_token(self, token: str) -> Dict:
+    def verify_token(self, token: str) -> Dict[Any, Any]:
         """Verify JWT token from Cognito.
 
         Args:
@@ -367,7 +370,7 @@ class CognitoAuth:
 
             # In production, fetch and cache JWKS keys
             # For now, decode with basic validation
-            claims = jwt.decode(
+            claims: Dict[Any, Any] = jwt.decode(
                 token,
                 options={"verify_signature": False},  # TODO: Implement proper JWKS verification
             )
@@ -439,9 +442,9 @@ class CognitoAuth:
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="User not associated with a customer",
             )
-        return customer_id
+        return str(customer_id)
 
-    def list_customer_users(self, customer_id: str) -> List[Dict]:
+    def list_customer_users(self, customer_id: str) -> List[Dict[Any, Any]]:
         """List all users for a customer.
 
         Args:
@@ -456,7 +459,8 @@ class CognitoAuth:
                 Filter=f'custom:customer_id = "{customer_id}"',
             )
 
-            return response.get("Users", [])
+            users: List[Dict[Any, Any]] = list(response.get("Users", []))
+            return users
 
         except ClientError as e:
             LOGGER.error("Failed to list users for customer %s: %s", customer_id, str(e))

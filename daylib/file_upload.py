@@ -207,7 +207,7 @@ class FileUploadManager:
                 Key=object_key,
                 ContentType=content_type,
             )
-            upload_id = response["UploadId"]
+            upload_id: str = str(response["UploadId"])
             LOGGER.info("Initiated multipart upload %s for %s/%s", upload_id, bucket_name, object_key)
             return upload_id
         except ClientError as e:
@@ -237,7 +237,7 @@ class FileUploadManager:
         expiration = expiration or self.default_expiration
 
         try:
-            url = self.s3.generate_presigned_url(
+            url: str = str(self.s3.generate_presigned_url(
                 "upload_part",
                 Params={
                     "Bucket": bucket_name,
@@ -246,7 +246,7 @@ class FileUploadManager:
                     "PartNumber": part_number,
                 },
                 ExpiresIn=expiration,
-            )
+            ))
             return url
         except ClientError as e:
             LOGGER.error("Failed to generate part upload URL: %s", str(e))

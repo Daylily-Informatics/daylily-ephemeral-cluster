@@ -12,6 +12,7 @@ import hashlib
 import json
 import logging
 import re
+import uuid
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import PurePosixPath
@@ -652,8 +653,8 @@ class FileRegistry:
     ) -> bool:
         """Update file set metadata."""
         try:
-            update_expr_parts = ["updated_at = :ts"]
-            expr_values = {":ts": _utc_now_iso()}
+            update_expr_parts: List[str] = ["updated_at = :ts"]
+            expr_values: Dict[str, Any] = {":ts": _utc_now_iso()}
 
             if name is not None:
                 update_expr_parts.append("name = :name")

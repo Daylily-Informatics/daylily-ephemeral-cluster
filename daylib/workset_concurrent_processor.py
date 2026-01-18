@@ -11,12 +11,31 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass
 from typing import Callable, Dict, List, Optional
 
-from daylib.workset_notifications import NotificationManager
+from daylib.workset_notifications import NotificationEvent, NotificationManager
 from daylib.workset_scheduler import ClusterCapacity, WorksetScheduler
 from daylib.workset_state_db import ErrorCategory, WorksetPriority, WorksetState, WorksetStateDB
 from daylib.workset_validation import WorksetValidator
 
 LOGGER = logging.getLogger("daylily.workset_concurrent_processor")
+
+
+def _send_notification(
+    manager: Optional[NotificationManager],
+    workset_id: str,
+    event_type: str,
+    message: str,
+    state: str = "unknown",
+) -> None:
+    """Helper to send notification via NotificationManager.notify()."""
+    if manager is None:
+        return
+    event = NotificationEvent(
+        workset_id=workset_id,
+        event_type=event_type,
+        state=state,
+        message=message,
+    )
+    manager.notify(event)
 
 
 @dataclass
@@ -138,12 +157,12 @@ class ConcurrentWorksetProcessor:
             LOGGER.info("Resetting workset %s for retry", workset_id)
 
             if self.state_db.reset_for_retry(workset_id):
-                if self.notification_manager:
-                    self.notification_manager.send_notification(
-                        workset_id=workset_id,
-                        event_type="retry",
-                        message=f"Workset {workset_id} reset for retry",
-                    )
+                _send_notification(
+                    self.notification_manager,
+                    workset_id=workset_id,
+                    event_type="retry",
+                    message=f"Workset {workset_id} reset for retry",
+                )
 
     def _validate_workset(self, workset: Dict) -> bool:
         """Validate a workset before processing.
@@ -158,6 +177,10 @@ class ConcurrentWorksetProcessor:
         bucket = workset["bucket"]
         prefix = workset["prefix"]
 
+        if self.validator is None:
+            LOGGER.warning("Validator not configured, skipping validation for %s", workset_id)
+            return True
+
         try:
             result = self.validator.validate_workset(bucket, prefix)
 
@@ -171,12 +194,13 @@ class ConcurrentWorksetProcessor:
                     ErrorCategory.CONFIGURATION,
                 )
 
-                if self.notification_manager:
-                    self.notification_manager.send_notification(
-                        workset_id=workset_id,
-                        event_type="validation_failed",
-                        message=f"Validation failed: {error_msg}",
-                    )
+                _send_notification(
+                    self.notification_manager,
+                    workset_id=workset_id,
+                    event_type="validation_failed",
+                    message=f"Validation failed: {error_msg}",
+                    state="error",
+                )
 
                 return False
 
@@ -257,12 +281,13 @@ class ConcurrentWorksetProcessor:
                 cluster_name=decision.cluster_name,
             )
 
-            if self.notification_manager:
-                self.notification_manager.send_notification(
-                    workset_id=workset_id,
-                    event_type="started",
-                    message=f"Processing started on {decision.cluster_name or 'new cluster'}",
-                )
+            _send_notification(
+                self.notification_manager,
+                workset_id=workset_id,
+                event_type="started",
+                message=f"Processing started on {decision.cluster_name or 'new cluster'}",
+                state="in_progress",
+            )
 
             # Execute workset
             success = self.workset_executor(workset, decision)
@@ -275,12 +300,13 @@ class ConcurrentWorksetProcessor:
                     reason="Processing completed successfully",
                 )
 
-                if self.notification_manager:
-                    self.notification_manager.send_notification(
-                        workset_id=workset_id,
-                        event_type="completed",
-                        message="Processing completed successfully",
-                    )
+                _send_notification(
+                    self.notification_manager,
+                    workset_id=workset_id,
+                    event_type="completed",
+                    message="Processing completed successfully",
+                    state="complete",
+                )
             else:
                 self.state_db.record_failure(
                     workset_id,
@@ -302,12 +328,13 @@ class ConcurrentWorksetProcessor:
                 ErrorCategory.TRANSIENT,
             )
 
-            if self.notification_manager:
-                self.notification_manager.send_notification(
-                    workset_id=workset_id,
-                    event_type="error",
-                    message=f"Processing error: {e}",
-                )
+            _send_notification(
+                self.notification_manager,
+                workset_id=workset_id,
+                event_type="error",
+                message=f"Processing error: {e}",
+                state="error",
+            )
 
             return False
 

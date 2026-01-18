@@ -1,4 +1,7 @@
-import yaml
+from typing import Any, Dict
+
+import yaml  # type: ignore[import-untyped]
+
 from daylib.day_concrete_components import Task, DataArtifact
 from daylib.day_cost_components import ArtifactType, TaskType
 
@@ -14,12 +17,13 @@ class PipelineFactory:
         """
         self.config_path = config_path
 
-    def load_config(self) -> dict:
+    def load_config(self) -> Dict[Any, Any]:
         """
         Load the configuration YAML file into a dictionary.
         """
         with open(self.config_path, "r") as file:
-            return yaml.safe_load(file)
+            result: Dict[Any, Any] = yaml.safe_load(file)
+            return result
 
     def create_artifact(self, artifact_config: dict) -> DataArtifact:
         """

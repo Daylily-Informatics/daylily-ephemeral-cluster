@@ -19,11 +19,11 @@ import subprocess
 import time
 from collections import defaultdict
 from pathlib import Path, PurePosixPath
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Set, Tuple, cast
 
 import boto3
 from botocore.exceptions import ClientError
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 LOGGER = logging.getLogger("daylily.workset_monitor")
 
@@ -670,7 +670,7 @@ class WorksetMonitor:
                     sentinel_timestamps[name] = self._read_object_text(bucket, key)
         return sentinel_timestamps
 
-    def _verify_core_files(self, workset_prefix: str, bucket: str = None) -> bool:
+    def _verify_core_files(self, workset_prefix: str, bucket: Optional[str] = None) -> bool:
         """Verify that a workset directory has all required files.
 
         Args:
@@ -1287,6 +1287,7 @@ class WorksetMonitor:
         if cached is not None:
             return cached
         path = self._metrics_file(workset)
+        data: Dict[str, Any]
         if path.exists():
             try:
                 data = json.loads(path.read_text(encoding="utf-8"))
@@ -1502,7 +1503,8 @@ class WorksetMonitor:
                 pipeline_dir_str = str(location)
                 updated = True
 
-        cluster_name = metrics.get("cluster_name")
+        cluster_name_raw = metrics.get("cluster_name")
+        cluster_name: Optional[str] = str(cluster_name_raw) if cluster_name_raw else None
         is_terminal = row.state in {"complete", "error", "ignored"}
 
         remote_required_keys = [
@@ -1534,7 +1536,7 @@ class WorksetMonitor:
                 should_refresh = need_remote or self._should_refresh_remote_metrics(
                     metrics, is_terminal=is_terminal
                 )
-        if should_refresh and pipeline_dir_str:
+        if should_refresh and pipeline_dir_str and cluster_name:
             remote = self._fetch_remote_metrics(
                 workset,
                 cluster_name=cluster_name,
@@ -1584,19 +1586,19 @@ class WorksetMonitor:
         return str(dt.timedelta(seconds=total))
 
     def _format_size_gb(self, value: Optional[Any]) -> str:
-        if value in (None, ""):
+        if value is None or value == "":
             return ""
         try:
-            gb = float(value) / (1024 ** 3)
+            gb = float(str(value)) / (1024 ** 3)
         except (TypeError, ValueError):
             return ""
         return f"{gb:.2f} GB"
 
     def _format_currency(self, value: Optional[Any]) -> str:
-        if value in (None, ""):
+        if value is None or value == "":
             return ""
         try:
-            amount = float(value)
+            amount = float(str(value))
         except (TypeError, ValueError):
             return ""
         return f"${amount:.2f}"
@@ -2675,7 +2677,7 @@ class WorksetMonitor:
             env["AWS_PROFILE"] = self.config.aws.profile
         return env
 
-    def _load_pcluster_json(self, raw: bytes) -> Optional[object]:
+    def _load_pcluster_json(self, raw: bytes) -> Optional[Any]:
         text = raw.decode("utf-8", errors="ignore").strip()
         if not text:
             return None
@@ -2683,7 +2685,8 @@ class WorksetMonitor:
         if brace_positions:
             text = text[min(brace_positions):]
         try:
-            return json.loads(text)
+            result: Any = json.loads(text)
+            return result
         except json.JSONDecodeError as exc:
             LOGGER.debug("Failed to decode pcluster output as JSON: %s", exc)
             return None
@@ -2744,9 +2747,10 @@ class WorksetMonitor:
         for cluster in clusters:
             if not isinstance(cluster, dict):
                 continue
-            name = cluster.get("clusterName")
-            if not name:
+            name_raw = cluster.get("clusterName")
+            if not name_raw or not isinstance(name_raw, str):
                 continue
+            name: str = name_raw
             details = self._describe_cluster(name)
             if not details:
                 continue
@@ -2770,9 +2774,10 @@ class WorksetMonitor:
         return None
 
     def _create_cluster(self, work_yaml: Dict[str, object]) -> str:
-        cluster_name = work_yaml.get("cluster_name") or f"daylily-{int(time.time())}"
+        cluster_name_raw = work_yaml.get("cluster_name")
+        cluster_name: str = str(cluster_name_raw) if cluster_name_raw else f"daylily-{int(time.time())}"
         LOGGER.info("Creating new ephemeral cluster %s", cluster_name)
-        cmd = ["./bin/daylily-create-ephemeral-cluster", "--cluster-name", cluster_name]
+        cmd: List[str] = ["./bin/daylily-create-ephemeral-cluster", "--cluster-name", cluster_name]
         if self.config.cluster.template_path:
             cmd.extend(["--config", self.config.cluster.template_path])
         env = os.environ.copy()
@@ -2819,7 +2824,8 @@ class WorksetMonitor:
             raise MonitorError(
                 f"Missing required file {filename} in {workset_prefix}: {exc}"
             ) from exc
-        return response["Body"].read()
+        content: bytes = response["Body"].read()
+        return content
 
     def _write_sentinel(self, workset: Workset, sentinel_name: str, value: str) -> None:
         bucket = self.config.monitor.bucket
@@ -2929,7 +2935,8 @@ class WorksetMonitor:
 
     def _read_object_text(self, bucket: str, key: str) -> str:
         response = self._s3.get_object(Bucket=bucket, Key=key)
-        return response["Body"].read().decode("utf-8")
+        content: str = response["Body"].read().decode("utf-8")
+        return content
 
     def _should_process(self, workset: Workset) -> bool:
         if not self._process_directories:
@@ -3255,7 +3262,9 @@ class WorksetMonitor:
         if isinstance(command, (list, tuple)):
             command_str = " ".join(shlex.quote(str(part)) for part in command)
         else:
-            command_str = command if shell else " ".join(shlex.quote(part) for part in shlex.split(command))
+            # At this point, command is str (not Sequence[str])
+            cmd_str = cast(str, command)
+            command_str = cmd_str if shell else " ".join(shlex.quote(part) for part in shlex.split(cmd_str))
         if cwd:
             command_str = f"cd {shlex.quote(cwd)} && {command_str}"
         return f"bash -lc {shlex.quote(command_str)}"

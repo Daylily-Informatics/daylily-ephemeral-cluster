@@ -313,19 +313,20 @@ def create_biospecimen_router(
         """Create a new biosample."""
         customer_id = get_customer_id(http_request)
 
-        # Verify subject exists and belongs to customer
-        subject = registry.get_subject(request.subject_id)
-        if not subject:
-            raise HTTPException(status_code=404, detail="Subject not found")
-        if subject.customer_id != customer_id:
-            raise HTTPException(status_code=403, detail="Subject does not belong to customer")
+        # Verify biospecimen exists and belongs to customer
+        biospecimen = registry.get_biospecimen(request.biospecimen_id)
+        if not biospecimen:
+            raise HTTPException(status_code=404, detail="Biospecimen not found")
+        if biospecimen.customer_id != customer_id:
+            raise HTTPException(status_code=403, detail="Biospecimen does not belong to customer")
 
         biosample_id = generate_biosample_id(customer_id, request.identifier)
 
         biosample = Biosample(
             biosample_id=biosample_id,
             customer_id=customer_id,
-            subject_id=request.subject_id,
+            biospecimen_id=request.biospecimen_id,
+            subject_id=biospecimen.subject_id,  # Get subject_id from biospecimen
             sample_type=request.sample_type,
             tissue_type=request.tissue_type,
             anatomical_site=request.anatomical_site,

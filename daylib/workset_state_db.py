@@ -176,7 +176,7 @@ class WorksetStateDB:
             True if registered, False if already exists
         """
         now = dt.datetime.now(dt.timezone.utc).isoformat().replace("+00:00", "Z")
-        item = {
+        item: Dict[str, Any] = {
             "workset_id": workset_id,
             "state": WorksetState.READY.value,
             "priority": priority.value,
@@ -484,7 +484,7 @@ class WorksetStateDB:
             "state_history = list_append(state_history, :history)"
         )
 
-        expr_values = {
+        expr_values: Dict[str, Any] = {
             ":state": new_state.value,
             ":now": now_iso,
             ":history": [
@@ -620,17 +620,21 @@ class WorksetStateDB:
         Returns:
             List of workset records
         """
-        query_kwargs = {
-            "IndexName": "state-priority-index",
-            "KeyConditionExpression": "#state = :state",
-            "ExpressionAttributeNames": {"#state": "state"},
-            "ExpressionAttributeValues": {":state": state.value},
-            "Limit": limit,
-        }
+        key_condition = "#state = :state"
+        expr_names: Dict[str, str] = {"#state": "state"}
+        expr_values: Dict[str, str] = {":state": state.value}
 
         if priority:
-            query_kwargs["KeyConditionExpression"] += " AND priority = :priority"
-            query_kwargs["ExpressionAttributeValues"][":priority"] = priority.value
+            key_condition += " AND priority = :priority"
+            expr_values[":priority"] = priority.value
+
+        query_kwargs: Dict[str, Any] = {
+            "IndexName": "state-priority-index",
+            "KeyConditionExpression": key_condition,
+            "ExpressionAttributeNames": expr_names,
+            "ExpressionAttributeValues": expr_values,
+            "Limit": limit,
+        }
 
         try:
             response = self.table.query(**query_kwargs)
@@ -676,7 +680,7 @@ class WorksetStateDB:
         Returns:
             List of ready worksets sorted by priority
         """
-        worksets = []
+        worksets: List[Dict[str, Any]] = []
         for priority in [WorksetPriority.URGENT, WorksetPriority.NORMAL, WorksetPriority.LOW]:
             batch = self.list_worksets_by_state(
                 WorksetState.READY,
@@ -695,20 +699,20 @@ class WorksetStateDB:
         Returns:
             Dictionary mapping state to count
         """
-        counts = {}
-        for state in WorksetState:
-            worksets = self.list_worksets_by_state(state, limit=1000)
-            counts[state.value] = len(worksets)
+        counts: Dict[str, int] = {}
+        for ws_state in WorksetState:
+            worksets = self.list_worksets_by_state(ws_state, limit=1000)
+            counts[ws_state.value] = len(worksets)
 
         # Emit metrics
-        for state, count in counts.items():
-            self._emit_metric(f"QueueDepth{state.title()}", float(count))
+        for state_name, count in counts.items():
+            self._emit_metric(f"QueueDepth{state_name.title()}", float(count))
 
         return counts
 
     def _serialize_metadata(self, data: Dict[str, Any]) -> Dict[str, Any]:
         """Convert Python types to DynamoDB-compatible types."""
-        def convert(obj):
+        def convert(obj: Any) -> Any:
             if isinstance(obj, float):
                 return Decimal(str(obj))
             elif isinstance(obj, dict):
@@ -717,11 +721,12 @@ class WorksetStateDB:
                 return [convert(item) for item in obj]
             return obj
 
-        return convert(data)
+        result: Dict[str, Any] = convert(data)
+        return result
 
     def _deserialize_item(self, item: Dict[str, Any]) -> Dict[str, Any]:
         """Convert DynamoDB types to Python types."""
-        def convert(obj):
+        def convert(obj: Any) -> Any:
             if isinstance(obj, Decimal):
                 return float(obj)
             elif isinstance(obj, dict):
@@ -730,7 +735,8 @@ class WorksetStateDB:
                 return [convert(item) for item in obj]
             return obj
 
-        return convert(item)
+        result: Dict[str, Any] = convert(item)
+        return result
 
     def _emit_metric(self, metric_name: str, value: float) -> None:
         """Emit CloudWatch metric for monitoring.
@@ -876,11 +882,15 @@ class WorksetStateDB:
         Returns:
             True if successful
         """
-        return self.update_state(
-            workset_id,
-            WorksetState.READY,
-            reason="Reset for retry attempt",
-        )
+        try:
+            self.update_state(
+                workset_id,
+                WorksetState.READY,
+                reason="Reset for retry attempt",
+            )
+            return True
+        except Exception:
+            return False
 
     # ========== Concurrent Processing Methods ==========
 

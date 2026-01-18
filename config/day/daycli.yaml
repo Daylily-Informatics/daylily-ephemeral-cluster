@@ -32,6 +32,7 @@ dependencies:
       - typeguard==2.13.3
       - werkzeug==2.3.8
       - colr
+      - mypy
       - uvicorn
       - fastapi
       - python-jose

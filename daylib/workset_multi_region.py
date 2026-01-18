@@ -300,19 +300,21 @@ class WorksetMultiRegionDB:
         metadata: Optional[Dict[str, Any]] = None,
     ) -> bool:
         """Register workset (writes to active region)."""
-        return self._with_retry(
+        result: bool = bool(self._with_retry(
             lambda conn: conn.register_workset(
                 workset_id, bucket, prefix, priority, metadata
             ),
             read_only=False,
-        )
+        ))
+        return result
 
     def get_workset(self, workset_id: str) -> Optional[Dict[str, Any]]:
         """Get workset (reads from best region)."""
-        return self._with_retry(
+        result: Optional[Dict[str, Any]] = self._with_retry(
             lambda conn: conn.get_workset(workset_id),
             read_only=True,
         )
+        return result
 
     def update_state(
         self,
@@ -324,7 +326,7 @@ class WorksetMultiRegionDB:
         metrics: Optional[Dict[str, Any]] = None,
     ) -> None:
         """Update workset state (writes to active region)."""
-        return self._with_retry(
+        self._with_retry(
             lambda conn: conn.update_state(
                 workset_id, new_state, reason, error_details, cluster_name, metrics
             ),
@@ -338,17 +340,19 @@ class WorksetMultiRegionDB:
         force: bool = False,
     ) -> bool:
         """Acquire lock (writes to active region)."""
-        return self._with_retry(
+        result: bool = bool(self._with_retry(
             lambda conn: conn.acquire_lock(workset_id, owner_id, force),
             read_only=False,
-        )
+        ))
+        return result
 
     def release_lock(self, workset_id: str, owner_id: str) -> bool:
         """Release lock (writes to active region)."""
-        return self._with_retry(
+        result: bool = bool(self._with_retry(
             lambda conn: conn.release_lock(workset_id, owner_id),
             read_only=False,
-        )
+        ))
+        return result
 
     def list_worksets_by_state(
         self,
@@ -357,24 +361,27 @@ class WorksetMultiRegionDB:
         limit: int = 100,
     ) -> List[Dict[str, Any]]:
         """List worksets (reads from best region)."""
-        return self._with_retry(
+        result: List[Dict[str, Any]] = list(self._with_retry(
             lambda conn: conn.list_worksets_by_state(state, priority, limit),
             read_only=True,
-        )
+        ))
+        return result
 
     def get_ready_worksets_prioritized(self, limit: int = 100) -> List[Dict[str, Any]]:
         """Get ready worksets (reads from best region)."""
-        return self._with_retry(
+        result: List[Dict[str, Any]] = list(self._with_retry(
             lambda conn: conn.get_ready_worksets_prioritized(limit),
             read_only=True,
-        )
+        ))
+        return result
 
     def get_queue_depth(self) -> Dict[str, int]:
         """Get queue depth (reads from best region)."""
-        return self._with_retry(
+        result: Dict[str, int] = dict(self._with_retry(
             lambda conn: conn.get_queue_depth(),
             read_only=True,
-        )
+        ))
+        return result
 
     # ========== Global Tables Management ==========
 

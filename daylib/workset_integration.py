@@ -16,7 +16,7 @@ from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 import boto3
 from botocore.exceptions import ClientError
-import yaml
+import yaml  # type: ignore[import-untyped]
 
 if TYPE_CHECKING:
     from daylib.workset_state_db import WorksetStateDB, WorksetState, WorksetPriority
@@ -314,7 +314,10 @@ class WorksetIntegration:
             LOGGER.error("Workset %s not found in DynamoDB", workset_id)
             return False
 
-        bucket = workset.get("bucket", self.bucket)
+        bucket_name: str = workset.get("bucket") or self.bucket or ""
+        if not bucket_name:
+            LOGGER.error("No bucket configured for workset %s", workset_id)
+            return False
         prefix = workset.get("prefix", f"{self.prefix}{workset_id}/")
         state = workset.get("state", "ready")
         metadata = workset.get("metadata", {})
@@ -325,7 +328,7 @@ class WorksetIntegration:
             # Write work yaml if metadata present
             if metadata:
                 self._write_s3_workset_files(
-                    bucket=bucket,
+                    bucket=bucket_name,
                     prefix=prefix,
                     workset_id=workset_id,
                     metadata=metadata,
@@ -334,7 +337,7 @@ class WorksetIntegration:
 
             # Write current state sentinel
             self._write_sentinel(
-                bucket=bucket,
+                bucket=bucket_name,
                 prefix=prefix,
                 state=state,
                 timestamp=now,
@@ -759,7 +762,8 @@ notes: "Daylily Snakemake; hg38; slurm profile; 192 jobs; rerun-incomplete."
         try:
             response = self._s3.get_object(Bucket=self.bucket, Key=key)
             content = response["Body"].read().decode("utf-8")
-            return yaml.safe_load(content)
+            result: Optional[Dict[str, Any]] = yaml.safe_load(content)
+            return result
         except ClientError:
             return None
         except yaml.YAMLError as e:

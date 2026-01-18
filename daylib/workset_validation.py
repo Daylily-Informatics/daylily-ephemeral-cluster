@@ -16,7 +16,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional, Tuple
 
 import boto3
-import yaml
+import yaml  # type: ignore[import-untyped]
 from botocore.exceptions import ClientError
 
 LOGGER = logging.getLogger("daylily.workset_validation")
@@ -234,7 +234,7 @@ class WorksetValidator:
         Returns:
             List of validation errors
         """
-        errors = []
+        errors: List[ValidationError] = []
         if not prefix:
             # Empty prefix is valid
             return errors
@@ -270,8 +270,8 @@ class WorksetValidator:
             ValidationResult with validation status and estimates
         """
         effective_strictness = strictness or self.strictness
-        errors = []
-        warnings = []
+        errors: List[str] = []
+        warnings: List[str] = []
         detailed_errors: List[ValidationError] = []
 
         # Step 0: Validate prefix format
@@ -350,7 +350,8 @@ class WorksetValidator:
         """Get S3 object content as string."""
         try:
             response = self.s3.get_object(Bucket=bucket, Key=key)
-            return response["Body"].read().decode("utf-8")
+            body: bytes = response["Body"].read()
+            return body.decode("utf-8")
         except ClientError as e:
             raise ValueError(f"S3 object not found: s3://{bucket}/{key}") from e
 
@@ -363,7 +364,7 @@ class WorksetValidator:
         Returns:
             List of validation errors
         """
-        errors = []
+        errors: List[str] = []
 
         # Check required fields
         if "samples" not in config:
@@ -418,8 +419,8 @@ class WorksetValidator:
         Returns:
             Tuple of (errors, warnings)
         """
-        errors = []
-        warnings = []
+        errors: List[str] = []
+        warnings: List[str] = []
 
         if not reference_genome:
             return errors, warnings
@@ -462,7 +463,7 @@ class WorksetValidator:
         Returns:
             List of errors
         """
-        errors = []
+        errors: List[str] = []
         samples = config.get("samples", [])
 
         for i, sample in enumerate(samples):
@@ -486,21 +487,19 @@ class WorksetValidator:
 
         return errors
 
-    def _estimate_resources(self, config: Dict[str, Any]) -> Dict[str, Optional[float]]:
+    def _estimate_resources(self, config: Dict[str, Any]) -> Dict[str, Any]:
         """Estimate resource requirements using cost calculation scripts.
 
         Args:
             config: Workset configuration
 
         Returns:
-            Dict with resource estimates
+            Dict with resource estimates (cost_usd, duration_minutes, vcpu_hours, storage_gb)
         """
-        estimates = {
-            "estimated_cost_usd": None,
-            "estimated_duration_minutes": None,
-            "estimated_vcpu_hours": None,
-            "estimated_storage_gb": None,
-        }
+        estimated_cost_usd: Optional[float] = None
+        estimated_duration_minutes: Optional[int] = None
+        estimated_vcpu_hours: Optional[float] = None
+        estimated_storage_gb: Optional[float] = None
 
         try:
             # Calculate based on samples and coverage
@@ -510,29 +509,34 @@ class WorksetValidator:
             # Simple estimation (can be enhanced with actual cost scripts)
             # Assume ~200 vCPU-minutes per 1x coverage per sample
             vcpu_minutes = num_samples * avg_coverage * 200
-            estimates["estimated_vcpu_hours"] = vcpu_minutes / 60
+            estimated_vcpu_hours = vcpu_minutes / 60
 
             # Assume ~$0.05 per vCPU-hour
-            estimates["estimated_cost_usd"] = estimates["estimated_vcpu_hours"] * 0.05
+            estimated_cost_usd = estimated_vcpu_hours * 0.05
 
             # Assume ~60 minutes per sample at 30x coverage
-            estimates["estimated_duration_minutes"] = int(num_samples * (avg_coverage / 30) * 60)
+            estimated_duration_minutes = int(num_samples * (avg_coverage / 30) * 60)
 
             # Assume ~1.5 GB per 1x coverage per sample
-            estimates["estimated_storage_gb"] = num_samples * avg_coverage * 1.5
+            estimated_storage_gb = num_samples * avg_coverage * 1.5
 
             LOGGER.info(
                 "Estimated resources: %d samples, %.1fx coverage, $%.2f, %d minutes",
                 num_samples,
                 avg_coverage,
-                estimates["estimated_cost_usd"] or 0,
-                estimates["estimated_duration_minutes"] or 0,
+                estimated_cost_usd or 0,
+                estimated_duration_minutes or 0,
             )
 
         except Exception as e:
             LOGGER.warning("Failed to estimate resources: %s", str(e))
 
-        return estimates
+        return {
+            "estimated_cost_usd": estimated_cost_usd,
+            "estimated_duration_minutes": estimated_duration_minutes,
+            "estimated_vcpu_hours": estimated_vcpu_hours,
+            "estimated_storage_gb": estimated_storage_gb,
+        }
 
     def validate_config_dict(
         self,
@@ -550,8 +554,8 @@ class WorksetValidator:
         Returns:
             ValidationResult
         """
-        errors = []
-        warnings = []
+        errors: List[str] = []
+        warnings: List[str] = []
         detailed_errors: List[ValidationError] = []
 
         # Validate workset ID if provided

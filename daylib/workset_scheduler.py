@@ -7,7 +7,7 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple
 
 from daylib.workset_state_db import WorksetPriority, WorksetState, WorksetStateDB
 
@@ -244,7 +244,7 @@ class WorksetScheduler:
 
         return sorted(worksets, key=cost_key)
 
-    def get_scheduling_stats(self) -> Dict[str, any]:
+    def get_scheduling_stats(self) -> Dict[str, Any]:
         """Get scheduling statistics.
 
         Returns:
