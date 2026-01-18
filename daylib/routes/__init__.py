@@ -33,11 +33,14 @@ from daylib.routes.dependencies import (
 # Router factories
 from daylib.routes.worksets import create_worksets_router
 from daylib.routes.utilities import create_utilities_router
+from daylib.routes.portal import create_portal_router, PortalDependencies
 
 __all__ = [
     # Router factories
     "create_worksets_router",
     "create_utilities_router",
+    "create_portal_router",
+    "PortalDependencies",
     # Pydantic models
     "WorksetCreate",
     "WorksetResponse",
