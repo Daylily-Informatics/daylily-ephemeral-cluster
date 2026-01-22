@@ -166,8 +166,18 @@ require_policy() {
   fi
 
   say "Policy: $p"
-  say "  direct user attachment : $( [ "$user_c" != "0" ] && echo YES || echo NO )"
-  say "  via group membership   : $( [ -n "$group_g" ] && echo \"YES (group=$group_g)\" || echo NO )"
+	  if [ "$user_c" != "0" ]; then
+	    direct_txt="YES"
+	  else
+	    direct_txt="NO"
+	  fi
+	  if [ -n "$group_g" ]; then
+	    group_txt="YES (group=$group_g)"
+	  else
+	    group_txt="NO"
+	  fi
+	  say "  direct user attachment : $direct_txt"
+	  say "  via group membership   : $group_txt"
 
   if [ "$REQUIRE_USER_PATH" -eq 1 ] && [ "$user_c" = "0" ]; then
     fail "required via legacy user path, but user does not have policy attached directly: $p"
