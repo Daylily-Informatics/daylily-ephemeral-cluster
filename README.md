@@ -102,16 +102,29 @@ From the `Iam -> Users` console, create a new user.
 - Review the confiirmation page, and click `Create user`.
 - On the next page, capture the `Console sign-in URL`, `username`, and `password`. You will need these to log in as the `daylily-service` user.
 
-### Attach Permissiong & Policies To The `daylily-service` User
+### Attach Permissions & Policies via an IAM Group (recommended)
 _still as the admin user_
+
+Daylily now prefers using an IAM *group* (default: `daylily-ephemeral-cluster`) and
+making the `daylily-service` user (and any other operators) members of that group.
 
 #### Permissions
 
-- Navigate to the `IAM -> Users` console, click on the `daylily-service` user.
-- Click on the `Add permissions` button, then select `Add permission`, `Attach policies directly`.
-- Search for `AmazonQDeveloperAccess` , select and add.
-- Search for `AmazonEC2SpotFleetAutoscaleRole`, select and add.
-- Search for `AmazonEC2SpotFleetTaggingRole`, select and add.
+- Navigate to `IAM -> User groups` and create a group named `daylily-ephemeral-cluster`.
+- Attach the following AWS managed policies to the **group**:
+  - `AmazonQDeveloperAccess`
+  - `AmazonEC2SpotFleetAutoscaleRole`
+  - `AmazonEC2SpotFleetTaggingRole`
+- Add the `daylily-service` user to the group.
+
+> Legacy note: attaching policies directly to the user still works, but is discouraged.
+
+Migration (recommended):
+- Ensure `daylily-ephemeral-cluster` group exists and has the required policies attached.
+- Add `daylily-service` (and any other operators) to the group.
+- Optionally remove old direct user attachments once verified:
+  - Managed policies: `aws iam list-attached-user-policies --user-name daylily-service` then `aws iam detach-user-policy ...`
+  - Inline policies: `aws iam list-user-policies --user-name daylily-service` then `aws iam delete-user-policy ...`
 
 #### Create Service Linked Role `VERY IMPORTANT`
 
@@ -131,8 +144,8 @@ aws iam create-service-linked-role --aws-service-name spot.amazonaws.com
 
 #### Inline Policy
 __**note:**__ [please consult the parallel cluster docs for fine grained permissions control, the below is a broad approach](https://docs.aws.amazon.com/parallelcluster/latest/ug/iam-roles-in-parallelcluster-v3.html).
-- Navigate to the `IAM -> Users` console, click on the `daylily-service` user.
-- Click on the `Add permissions` button, then select `create inline policy`.
+- Navigate to the `IAM -> User groups` console, click on the `daylily-ephemeral-cluster` group.
+- Click on `Add permissions` and select `Create inline policy`.
 - Click on the `JSON` bubble button.
 - Delete the auto-populated json in the editor window, and paste this json into the editor (replace 3 instances of  <AWS_ACCOUNT_ID> with your new account number, an integer found in the upper right dropdown).
 
@@ -140,6 +153,10 @@ __**note:**__ [please consult the parallel cluster docs for fine grained permiss
 
 - `click next`
 - Name the policy `daylily-service-cluster-policy` (not formally mandatory, but advised to bypass various warnings in future steps), then click `Create policy`.
+
+Alternative (preferred): use the provided admin scripts to create/attach the Daylily policies to your group:
+- `bin/admin/daylily_ephemeral_cluster_bootstrap_global.sh --user daylily-service --group daylily-ephemeral-cluster`
+- `bin/admin/daylily_ephemeral_cluster_bootstrap_region.sh --region <REGION> --user daylily-service --group daylily-ephemeral-cluster`
 
 
 ### Additional AWS Considerations (also will need _admin_ intervention)
@@ -1353,15 +1370,24 @@ All tools involved in `daylily-ephemeral-cluster` can be managed in such a way t
  ### One Time, Create Policy
  ```bash
 export AWS_PROFILE=YOURADMINUSERPROFILE
-aws iam create-policy \\n  --policy-name DaylilyCostRead \\n  --policy-document file://config/aws/generate_cluster_report.json
-export AWS_PROFILE=<daylily-service>
+aws iam create-policy \
+  --policy-name DaylilyCostRead \
+  --policy-document file://config/aws/generate_cluster_report.json
  ```
 
- ### Per User (ie: daylily-service)
+### Per Group / User membership (recommended)
  ```bash
 export AWS_PROFILE=YOURADMINUSERPROFILE
-aws iam attach-user-policy \\n  --user-name daylily-service \\n  --policy-arn arn:aws:iam::108782052779:policy/DaylilyCostRead
-export AWS_PROFILE=<daylily-service>
+
+GROUP_NAME=daylily-ephemeral-cluster
+USER_NAME=daylily-service
+ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text)
+
+aws iam create-group --group-name "$GROUP_NAME" >/dev/null 2>&1 || true
+aws iam attach-group-policy \
+  --group-name "$GROUP_NAME" \
+  --policy-arn "arn:aws:iam::${ACCOUNT_ID}:policy/DaylilyCostRead"
+aws iam add-user-to-group --user-name "$USER_NAME" --group-name "$GROUP_NAME"
  ```
  
  

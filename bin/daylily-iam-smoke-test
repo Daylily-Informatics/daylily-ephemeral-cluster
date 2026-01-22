@@ -1,0 +1,194 @@
+#!/usr/bin/env sh
+set -eu
+
+# Non-destructive IAM smoke test for Daylily IAM group-based permissions.
+# Verifies the same managed-policy detection logic used by:
+#   bin/daylily-create-ephemeral-cluster (check_managed_policy_attached)
+
+usage() {
+  cat <<'USAGE'
+USAGE:
+  daylily-iam-smoke-test \
+    [--profile AWS_PROFILE] \
+    [--user IAM_USER] \
+    [--group IAM_GROUP] \
+    [--region AWS_REGION] \
+    [--require-group-path] \
+    [--require-user-path]
+
+Defaults:
+  --user   daylily-service
+  --group  daylily-ephemeral-cluster
+  --region from AWS_REGION (or eu-central-1 if unset)
+
+Notes:
+  - Non-destructive: only uses STS/IAM read-only calls.
+  - If --require-group-path is set, each required policy must be satisfied via group membership.
+  - If --require-user-path  is set, each required policy must be satisfied via direct user attachment.
+USAGE
+}
+
+PROFILE="${AWS_PROFILE-}"
+USER_NAME="daylily-service"
+GROUP_NAME="daylily-ephemeral-cluster"
+REGION="${AWS_REGION:-eu-central-1}"
+REQUIRE_GROUP_PATH=0
+REQUIRE_USER_PATH=0
+
+while [ "$#" -gt 0 ]; do
+  case "$1" in
+    --profile) PROFILE="${2-}"; shift 2 ;;
+    --user) USER_NAME="${2-}"; shift 2 ;;
+    --group) GROUP_NAME="${2-}"; shift 2 ;;
+    --region) REGION="${2-}"; shift 2 ;;
+    --require-group-path) REQUIRE_GROUP_PATH=1; shift 1 ;;
+    --require-user-path) REQUIRE_USER_PATH=1; shift 1 ;;
+    -h|--help) usage; exit 0 ;;
+    *) echo "ERR: unknown arg: $1" >&2; usage >&2; exit 2 ;;
+  esac
+done
+
+if [ "$REQUIRE_GROUP_PATH" -eq 1 ] && [ "$REQUIRE_USER_PATH" -eq 1 ]; then
+  echo "ERR: cannot set both --require-group-path and --require-user-path" >&2
+  exit 2
+fi
+
+AWS="aws"
+if [ -n "$PROFILE" ]; then
+  AWS="$AWS --profile $PROFILE"
+fi
+
+if [ "${DAYLILY_TRACE:-0}" = "1" ]; then
+  # shellcheck disable=SC3040
+  set -x
+fi
+
+say() {
+  # shellcheck disable=SC2059
+  printf "%s\n" "$*"
+}
+
+fail() {
+  say "❌ $*" >&2
+  exit 3
+}
+
+need_cmd() {
+  command -v "$1" >/dev/null 2>&1 || fail "missing required command: $1"
+}
+
+need_cmd aws
+
+say "== Identity =="
+caller_arn=$(eval "$AWS sts get-caller-identity --query Arn --output text")
+acct=$(eval "$AWS sts get-caller-identity --query Account --output text")
+say "AWS account: $acct"
+say "Caller ARN : $caller_arn"
+
+say ""
+say "== IAM object existence =="
+eval "$AWS iam get-user --user-name \"$USER_NAME\" --query User.Arn --output text" >/dev/null 2>&1 \
+  || fail "IAM user not found (or not readable): $USER_NAME"
+say "✅ user exists : $USER_NAME"
+
+if group_arn_or_err=$(eval "$AWS iam get-group --group-name \"$GROUP_NAME\" --query Group.Arn --output text" 2>&1); then
+  say "✅ group exists: $GROUP_NAME"
+else
+  say "⚠️  cannot read group '$GROUP_NAME' (missing or access denied)"
+  say "    aws error: ${group_arn_or_err}"
+  if [ "$REQUIRE_GROUP_PATH" -eq 1 ]; then
+    fail "group path required, but group is not readable/does not exist: $GROUP_NAME"
+  fi
+fi
+
+say ""
+say "== Group membership =="
+GROUPS_FOR_USER=""
+if groups_txt_or_err=$(eval "$AWS iam list-groups-for-user --user-name \"$USER_NAME\" --query 'Groups[].GroupName' --output text" 2>&1); then
+  GROUPS_FOR_USER="$groups_txt_or_err"
+  if printf "%s\n" "$GROUPS_FOR_USER" | tr '\t' '\n' | grep -x "$GROUP_NAME" >/dev/null 2>&1; then
+    say "✅ user is a member of $GROUP_NAME"
+  else
+    say "⚠️  user is NOT a member of $GROUP_NAME"
+  fi
+else
+  say "⚠️  cannot list groups for user '$USER_NAME' (access denied?)"
+  say "    aws error: ${groups_txt_or_err}"
+  if [ "$REQUIRE_GROUP_PATH" -eq 1 ]; then
+    fail "group path required, but cannot list groups for user: $USER_NAME"
+  fi
+fi
+
+has_user_attached_policy() {
+  # $1=user $2=policy_name
+  u="$1"; p="$2"
+  eval "$AWS iam list-attached-user-policies --user-name \"$u\" --query \"AttachedPolicies[?PolicyName=='$p'] | length(@)\" --output text" 2>/dev/null \
+    || echo 0
+}
+
+has_group_attached_policy_any() {
+  # $1=user $2=policy_name
+  u="$1"; p="$2"
+  groups="$GROUPS_FOR_USER"
+  if [ -z "$groups" ]; then
+    # Either user has no groups, or we couldn't list groups (access denied).
+    return 1
+  fi
+  for g in $groups; do
+    c=$(eval "$AWS iam list-attached-group-policies --group-name \"$g\" --query \"AttachedPolicies[?PolicyName=='$p'] | length(@)\" --output text" 2>/dev/null \
+      || echo 0)
+    if [ "$c" != "0" ]; then
+      echo "$g"
+      return 0
+    fi
+  done
+  return 1
+}
+
+require_policy() {
+  # $1=policy_name
+  p="$1"
+
+  user_c=$(has_user_attached_policy "$USER_NAME" "$p")
+  group_g=""
+  if group_g=$(has_group_attached_policy_any "$USER_NAME" "$p" 2>/dev/null); then
+    :
+  else
+    group_g=""
+  fi
+
+  ok=0
+  if [ "$user_c" != "0" ]; then
+    ok=1
+  fi
+  if [ -n "$group_g" ]; then
+    ok=1
+  fi
+
+  say "Policy: $p"
+  say "  direct user attachment : $( [ "$user_c" != "0" ] && echo YES || echo NO )"
+  say "  via group membership   : $( [ -n "$group_g" ] && echo \"YES (group=$group_g)\" || echo NO )"
+
+  if [ "$REQUIRE_USER_PATH" -eq 1 ] && [ "$user_c" = "0" ]; then
+    fail "required via legacy user path, but user does not have policy attached directly: $p"
+  fi
+  if [ "$REQUIRE_GROUP_PATH" -eq 1 ] && [ -z "$group_g" ]; then
+    fail "required via group path, but no group attached policy found for: $p"
+  fi
+  if [ "$ok" -ne 1 ]; then
+    fail "missing required managed policy (neither direct user attachment nor group inheritance): $p"
+  fi
+}
+
+say ""
+say "== Required managed policies (same names as daylily-create-ephemeral-cluster) =="
+DY_GLOBAL_POLICY_NAME="DaylilyGlobalEClusterPolicy"
+DY_REGION_POLICY_NAME="DaylilyRegionalEClusterPolicy-$REGION"
+
+require_policy "$DY_GLOBAL_POLICY_NAME"
+require_policy "$DY_REGION_POLICY_NAME"
+
+say ""
+say "== Summary =="
+say "✅ Managed-policy checks passed (user=$USER_NAME, region=$REGION)."
+say "   This matches the dual-path detection logic (user-attached OR group-attached via membership)."

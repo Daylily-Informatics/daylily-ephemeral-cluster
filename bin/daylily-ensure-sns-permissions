@@ -3,11 +3,15 @@ set -euo pipefail
 
 usage() {
     cat <<'USAGE'
-Usage: $0 --region REGION --account-id ACCOUNT_ID --iam-user USER [--profile PROFILE]
+Usage: $0 --region REGION --account-id ACCOUNT_ID --iam-user USER [--group GROUP] [--profile PROFILE] [--attach-to-user]
 
-Ensures the specified IAM user has the inline policy required for SNS access.
+Ensures the specified IAM user has the SNS permissions required for Daylily.
 - If jq is available, compares the existing inline policy to the expected one.
 - If jq is not available, skips comparison and just (re)applies the policy.
+
+Default behavior (recommended): attach the inline policy to an IAM *group* and
+ensure the user is a member. For backwards compatibility, pass --attach-to-user
+to put the inline policy directly on the user (legacy behavior).
 USAGE
 }
 
@@ -15,19 +19,23 @@ region=""
 account_id=""
 iam_user=""
 profile=""
+group_name="daylily-ephemeral-cluster"
+attach_to_user=false
 
 while [[ $# -gt 0 ]]; do
     case "$1" in
         --region)      region="$2"; shift 2 ;;
         --account-id)  account_id="$2"; shift 2 ;;
         --iam-user)    iam_user="$2"; shift 2 ;;
+	        --group)       group_name="$2"; shift 2 ;;
         --profile)     profile="$2"; shift 2 ;;
+	        --attach-to-user) attach_to_user=true; shift 1 ;;
         --help|-h)     usage; exit 0 ;;
         *) echo "Unknown option: $1" >&2; usage >&2; exit 1 ;;
     esac
 done
 
-if [[ -z "$region" || -z "$account_id" || -z "$iam_user" ]]; then
+if [[ -z "$region" || -z "$account_id" || -z "$iam_user" || -z "$group_name" ]]; then
     echo "Missing required arguments." >&2
     usage >&2
     exit 1
@@ -65,6 +73,33 @@ printf '%s\n' "$policy_document" >"$policy_file"
 aws_cmd=(aws iam)
 [[ -n "$profile" ]] && aws_cmd+=(--profile "$profile")
 
+ensure_user_exists() {
+    local user="$1"
+    "${aws_cmd[@]}" get-user --user-name "${user}" >/dev/null 2>&1 || {
+        echo "ERR: IAM user '${user}' not found." >&2
+        exit 4
+    }
+}
+
+ensure_group_exists() {
+    local group="$1"
+    if ! "${aws_cmd[@]}" get-group --group-name "${group}" >/dev/null 2>&1; then
+        echo "Creating IAM group: ${group}" >&2
+        "${aws_cmd[@]}" create-group --group-name "${group}" >/dev/null
+    fi
+}
+
+ensure_user_in_group() {
+    local user="$1" group="$2"
+    local in_group
+    in_group=$("${aws_cmd[@]}" list-groups-for-user --user-name "${user}" \
+        --query "Groups[?GroupName=='${group}'] | length(@)" --output text 2>/dev/null || echo "0")
+    if [[ "${in_group}" == "0" ]]; then
+        echo "Adding user ${user} to group ${group}" >&2
+        "${aws_cmd[@]}" add-user-to-group --user-name "${user}" --group-name "${group}"
+    fi
+}
+
 # URL-decode helper (no python)
 urldecode() {
     # Convert %XX to bytes; preserve '+' literally (AWS uses %20 for spaces).
@@ -78,15 +113,29 @@ if command -v jq >/dev/null 2>&1; then
 fi
 
 existing_doc=""
-if existing_json="$("${aws_cmd[@]}" get-user-policy --user-name "$iam_user" --policy-name "$policy_name" 2>/dev/null)"; then
-    # Extract PolicyDocument (URL-encoded JSON), decode, and normalize if jq present
-    encoded_doc=$(printf '%s' "$existing_json" | jq -r '.PolicyDocument' 2>/dev/null || echo "")
-    if [[ -n "$encoded_doc" && "$encoded_doc" != "null" ]]; then
-        decoded_doc="$(urldecode "$encoded_doc")"
-        if $have_jq; then
-            existing_doc="$(printf '%s' "$decoded_doc" | jq -cS . 2>/dev/null || true)"
-        else
-            existing_doc="$decoded_doc"
+if $attach_to_user; then
+    if existing_json="$("${aws_cmd[@]}" get-user-policy --user-name "$iam_user" --policy-name "$policy_name" 2>/dev/null)"; then
+        # Extract PolicyDocument (URL-encoded JSON), decode, and normalize if jq present
+        encoded_doc=$(printf '%s' "$existing_json" | jq -r '.PolicyDocument' 2>/dev/null || echo "")
+        if [[ -n "$encoded_doc" && "$encoded_doc" != "null" ]]; then
+            decoded_doc="$(urldecode "$encoded_doc")"
+            if $have_jq; then
+                existing_doc="$(printf '%s' "$decoded_doc" | jq -cS . 2>/dev/null || true)"
+            else
+                existing_doc="$decoded_doc"
+            fi
+        fi
+    fi
+else
+    if existing_json="$("${aws_cmd[@]}" get-group-policy --group-name "$group_name" --policy-name "$policy_name" 2>/dev/null)"; then
+        encoded_doc=$(printf '%s' "$existing_json" | jq -r '.PolicyDocument' 2>/dev/null || echo "")
+        if [[ -n "$encoded_doc" && "$encoded_doc" != "null" ]]; then
+            decoded_doc="$(urldecode "$encoded_doc")"
+            if $have_jq; then
+                existing_doc="$(printf '%s' "$decoded_doc" | jq -cS . 2>/dev/null || true)"
+            else
+                existing_doc="$decoded_doc"
+            fi
         fi
     fi
 fi
@@ -97,25 +146,47 @@ if $have_jq; then
 fi
 
 if $have_jq && [[ -n "${existing_doc:-}" && "$existing_doc" == "$expected_doc" ]]; then
-    echo "✅ Required SNS permissions already configured for IAM user '$iam_user' (policy '$policy_name')."
+    if $attach_to_user; then
+        echo "✅ Required SNS permissions already configured for IAM user '$iam_user' (inline policy '$policy_name')."
+    else
+        echo "✅ Required SNS permissions already configured via IAM group '$group_name' (inline policy '$policy_name')."
+    fi
     exit 0
 fi
 
-# Put/overwrite the inline policy (idempotent)
-if "${aws_cmd[@]}" put-user-policy \
-        --user-name "$iam_user" \
-        --policy-name "$policy_name" \
-        --policy-document "file://$policy_file" >/dev/null 2>&1; then
-    echo "✅ Ensured SNS permissions for IAM user '$iam_user' via inline policy '$policy_name'."
-    exit 0
+ensure_user_exists "$iam_user"
+if $attach_to_user; then
+    if "${aws_cmd[@]}" put-user-policy \
+            --user-name "$iam_user" \
+            --policy-name "$policy_name" \
+            --policy-document "file://$policy_file" >/dev/null 2>&1; then
+        echo "✅ Ensured SNS permissions for IAM user '$iam_user' via inline policy '$policy_name'."
+        exit 0
+    fi
+else
+    ensure_group_exists "$group_name"
+    ensure_user_in_group "$iam_user" "$group_name"
+    if "${aws_cmd[@]}" put-group-policy \
+            --group-name "$group_name" \
+            --policy-name "$policy_name" \
+            --policy-document "file://$policy_file" >/dev/null 2>&1; then
+        echo "✅ Ensured SNS permissions via IAM group '$group_name' (user '$iam_user' is a member) using inline policy '$policy_name'."
+        exit 0
+    fi
 fi
 
 cat <<EOF
 ❌ Error: Unable to ensure SNS permissions for IAM user '$iam_user' in region '$region'.
 
 Manual fix:
-  1) AWS Console → IAM → Users → $iam_user
-  2) Add inline policy (JSON), paste the following, name it '$policy_name', save:
+  If using group mode (recommended):
+    1) AWS Console → IAM → User groups → $group_name
+    2) Add inline policy (JSON), paste the following, name it '$policy_name', save
+    3) Ensure user '$iam_user' is a member of '$group_name'
+
+  If using legacy user mode (--attach-to-user):
+    1) AWS Console → IAM → Users → $iam_user
+    2) Add inline policy (JSON), paste the following, name it '$policy_name', save
 
 $policy_document
 EOF

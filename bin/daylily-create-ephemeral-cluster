@@ -1234,10 +1234,29 @@ DY_REGION_POLICY_NAME="DaylilyRegionalEClusterPolicy-${region}"
 
 check_managed_policy_attached() {
     local user_name="$1" policy_name="$2"
-    local count
+    local count group
+
+    # Legacy: direct attachment to the IAM user.
     count=$(aws iam list-attached-user-policies --user-name "$user_name" --profile $AWS_PROFILE \
         --query "AttachedPolicies[?PolicyName=='${policy_name}'] | length(@)" --output text 2>/dev/null || echo "0")
-    [[ "$count" != "0" ]]
+    if [[ "$count" != "0" ]]; then
+        return 0
+    fi
+
+    # Preferred: policy attached to an IAM group, and user is a member.
+    mapfile -t groups < <(
+        aws iam list-groups-for-user --user-name "$user_name" --profile $AWS_PROFILE \
+          --query 'Groups[].GroupName' --output text 2>/dev/null | tr '\t' '\n' | sed '/^$/d'
+    )
+    for group in "${groups[@]:-}"; do
+        count=$(aws iam list-attached-group-policies --group-name "$group" --profile $AWS_PROFILE \
+            --query "AttachedPolicies[?PolicyName=='${policy_name}'] | length(@)" --output text 2>/dev/null || echo "0")
+        if [[ "$count" != "0" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
 }
 
 missing_policies=()
@@ -1255,7 +1274,7 @@ if ! check_managed_policy_attached "$AWS_CLI_USER" "$DY_REGION_POLICY_NAME"; the
 fi
 
 if (( ${#missing_policies[@]} )); then
-    echo "WARNING: The following Daylily managed policies are not attached to IAM user '$AWS_CLI_USER':"
+    echo "WARNING: The following Daylily managed policies are not granted to IAM user '$AWS_CLI_USER' (direct attachment or IAM group membership):"
     for policy in "${missing_policies[@]}"; do
         echo "  - $policy"
     done
