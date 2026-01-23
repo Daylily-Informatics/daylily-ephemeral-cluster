@@ -6,28 +6,34 @@ usage() {
 Bootstrap region-scoped IAM policies for Daylily ephemeral cluster workflows.
 
 This script creates or updates the Daylily region policy alongside the
-ParallelCluster Lambda adjust policy, and attaches the region policy to a given
-user. Run this once per AWS region in which you operate Daylily clusters.
+ParallelCluster Lambda adjust policy.
+
+It attaches the region policy to an IAM *group* (recommended) and ensures the
+target IAM user is a member of that group. Run this once per AWS region in which
+you operate Daylily clusters.
 
 USAGE:
   daylily_ephemeral_cluster_bootstrap_region.sh \\
-    --region REGION --user USERNAME [--profile PROFILE]
+    --region REGION --user USERNAME [--group GROUP] [--profile PROFILE]
 
 OPTIONS:
   --region    AWS region to scope the policy to (required)
-  --user      IAM username to attach the Daylily region policy to (required)
+  --user      IAM username to grant access to (required)
+  --group     IAM group to attach the Daylily region policy to (default: daylily-ephemeral-cluster)
   --profile   AWS CLI profile with admin rights (optional)
 USAGE
 }
 
 USER_NAME=""
 REGION=""
+GROUP_NAME="daylily-ephemeral-cluster"
 PROFILE="${AWS_PROFILE:-}"
 
 while (( $# )); do
   case "$1" in
     --user) USER_NAME="${2:-}"; shift 2 ;;
     --region) REGION="${2:-}"; shift 2 ;;
+	--group) GROUP_NAME="${2:-}"; shift 2 ;;
     --profile) PROFILE="${2:-}"; shift 2 ;;
     -h|--help) usage; exit 0 ;;
     *) echo "Unknown arg: $1" >&2; usage >&2; exit 2 ;;
@@ -36,6 +42,7 @@ done
 
 : "${USER_NAME:?ERR: --user required}"
 : "${REGION:?ERR: --region required}"
+[[ -n "${GROUP_NAME}" ]] || { echo "ERR: --group cannot be empty" >&2; exit 2; }
 
 AWS=(aws)
 [[ -n "$PROFILE" ]] && AWS+=(--profile "$PROFILE")
@@ -158,11 +165,60 @@ else
   done
 fi
 
-echo "Attaching ${REGION_POLICY_NAME} to user ${USER_NAME}"
-"${AWS[@]}" iam attach-user-policy --user-name "${USER_NAME}" --policy-arn "${REGION_ARN}" || true
+ensure_user_exists() {
+  local user="$1"
+  "${AWS[@]}" iam get-user --user-name "${user}" >/dev/null 2>&1 || {
+    echo "ERR: IAM user '${user}' not found." >&2
+    exit 4
+  }
+}
+
+ensure_group_exists() {
+  local group="$1"
+  if ! "${AWS[@]}" iam get-group --group-name "${group}" >/dev/null 2>&1; then
+    echo "Creating IAM group: ${group}"
+    "${AWS[@]}" iam create-group --group-name "${group}" >/dev/null
+  fi
+}
+
+ensure_policy_attached_to_group() {
+  local group="$1" policy_arn="$2"
+  local attached
+  attached=$(
+    "${AWS[@]}" iam list-attached-group-policies --group-name "${group}" \
+      --query "AttachedPolicies[?PolicyArn=='${policy_arn}'] | length(@)" --output text 2>/dev/null || echo "0"
+  )
+  if [[ "${attached}" == "0" ]]; then
+    echo "Attaching ${REGION_POLICY_NAME} to group ${group}"
+    "${AWS[@]}" iam attach-group-policy --group-name "${group}" --policy-arn "${policy_arn}"
+  else
+    echo "${REGION_POLICY_NAME} already attached to group ${group}"
+  fi
+}
+
+ensure_user_in_group() {
+  local user="$1" group="$2"
+  local in_group
+  in_group=$(
+    "${AWS[@]}" iam list-groups-for-user --user-name "${user}" \
+      --query "Groups[?GroupName=='${group}'] | length(@)" --output text 2>/dev/null || echo "0"
+  )
+  if [[ "${in_group}" == "0" ]]; then
+    echo "Adding user ${user} to group ${group}"
+    "${AWS[@]}" iam add-user-to-group --user-name "${user}" --group-name "${group}"
+  else
+    echo "User ${user} already in group ${group}"
+  fi
+}
+
+ensure_user_exists "${USER_NAME}"
+ensure_group_exists "${GROUP_NAME}"
+ensure_policy_attached_to_group "${GROUP_NAME}" "${REGION_ARN}"
+ensure_user_in_group "${USER_NAME}" "${GROUP_NAME}"
 
 cat <<SUMMARY
 ✅ Done.
-  - ${REGION_POLICY_NAME}: ${REGION_ARN} (attached to ${USER_NAME})
+  - ${REGION_POLICY_NAME}: ${REGION_ARN} (attached to IAM group ${GROUP_NAME})
+  - IAM user ${USER_NAME} is a member of ${GROUP_NAME}
   - ${ADJUST_POLICY_NAME}: ${ADJUST_ARN}
 SUMMARY

@@ -282,6 +282,8 @@ Tags:  # TAGs necessary for per-user/project/job cost tracking
     Value: ${REGSUB_ENFORCE_BUDGET}
   - Key: aws-parallelcluster-daylily-git-deets
     Value: ${REGSUB_DAYLILY_GIT_DEETS}
+  - Key: aws-parallelcluster-monitor-bucket
+    Value: ${REGSUB_S3_BUCKET_INIT}
 DevSettings:
   Timeouts:
     HeadNodeBootstrapTimeout: 3600
