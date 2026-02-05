@@ -21,7 +21,6 @@ CONFIG_FILE="config/daylily_cli_global.yaml"
 
 git_ephemeral_cluster_repo_tag=$(yq -r '.daylily.git_ephemeral_cluster_repo_tag' "$CONFIG_FILE")
 git_ephemeral_cluster_repo=$(yq -r '.daylily.git_ephemeral_cluster_repo' "$CONFIG_FILE")
-daylily_image_cmd=$(yq -r '.daylily.daylily_image_cmd' "$CONFIG_FILE")
 
 # Ensure both PEM file and region are provided
 if [[ -z "$pem_file" || -z "$region" || -z "$aws_profile" ]]; then
@@ -124,12 +123,8 @@ mkdir -p logs
 echo "$git_key_log" >> logs/${cluster_ip_address}_pubkey.txt
 
 echo " "
-echo "(optional) save this SSH key in GitHub to your settings->ssh/gpg keys, which will allow you to push changes back to github if you make any. You can always add this key latter too, find it in you ~/.ssh/id_rsa.pub.\n\n\tSleeping for 15s then proceeding."
+echo "(optional) save this SSH key in GitHub to your settings->ssh/gpg keys, which will allow you to push changes back to github if you make any. You can always add this key later too, find it in you ~/.ssh/id_rsa.pub.\n\n\tSleeping for 15s then proceeding."
 sleep 15
-echo "Building the Daylily container on the head node..."
-# Pull the Daylily container using Singularity
-ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null  \
-    " $daylily_image_cmd " 
 
 # Clone the $dayec_name repository to the head node
 echo "Cloning $dayec_name repository using https to the head node ~/projects"
