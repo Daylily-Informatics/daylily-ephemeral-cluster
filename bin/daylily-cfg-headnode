@@ -2,6 +2,12 @@
 
 # Daylily Headnode Configuration Script
 
+# --- Ensure DAY-EC conda environment is active ---
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=helpers/ensure_dayec.sh
+source "${SCRIPT_DIR}/helpers/ensure_dayec.sh"
+ensure_dayec || return 1
+
 # Capture arguments for PEM file and region
 pem_file=$1
 region=$2

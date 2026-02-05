@@ -1,7 +1,17 @@
 #!/usr/bin/env python3
-import argparse, os, sys, time, json, subprocess
+import argparse
+import os
+import sys
+import time
+import json
+import subprocess
 from dataclasses import dataclass
 from typing import Optional
+
+# Ensure DAY-EC conda environment is active
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from ensure_dayec import ensure_dayec
+ensure_dayec(quiet=True)
 
 import boto3
 from botocore.exceptions import ClientError

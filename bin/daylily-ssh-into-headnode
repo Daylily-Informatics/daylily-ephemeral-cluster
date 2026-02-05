@@ -1,18 +1,5 @@
-
-
-echo ""
-echo ""
-echo "AWS_PROFILE to be used is >>> $AWS_PROFILE"
-echo ""
-
-
-
-unset DAY_CLUSTER_NAME
-unset cluster_ip
-unset cluster_names
-unset selected_cluster
-unset cluster
-unset DAY_CLUSTER_NAME
+#!/bin/bash
+# This script must be sourced, not executed directly.
 
 # Check if the script is running in Zsh and emulate Zsh behavior
 if [ -n "$ZSH_VERSION" ]; then
@@ -27,27 +14,34 @@ if [ -n "$ZSH_VERSION" ]; then
     fi
 fi
 
-# Activate or create the Daylily CLI conda environment
-if conda env list | grep  "DAY-EC"; then
-    echo "Conda environment 'DAY-EC' already exists."
-    conda activate DAY-EC
-else
-    echo "'DAY-EC' environment not found. Attempting to create..."
-    source bin/init_daylily.sh
-
+# Ensure the script is sourced, not executed directly (bash check)
+if [[ -n "${BASH_SOURCE[0]}" && "${BASH_SOURCE[0]}" == "${0}" ]]; then
+    echo "This script must be sourced, not executed directly. Use 'source $0' to run."
+    exit 1
 fi
+
+# --- Ensure DAY-EC conda environment is active ---
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
+# shellcheck source=helpers/ensure_dayec.sh
+source "${SCRIPT_DIR}/helpers/ensure_dayec.sh"
+ensure_dayec || return 1
+
+echo ""
+echo ""
+echo "AWS_PROFILE to be used is >>> $AWS_PROFILE"
+echo ""
+
+unset DAY_CLUSTER_NAME
+unset cluster_ip
+unset cluster_names
+unset selected_cluster
+unset cluster
+unset DAY_CLUSTER_NAME
 
 if [ -z "$AWS_PROFILE" ]; then
     echo "Error: AWS_PROFILE is not set."
     return 3  # Exit the function with an error status
 fi
-
-# Ensure the script is sourced, not executed directly
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-    echo "This script must be sourced, not executed directly. Use 'source THISSCRIPT' to run."
-    exit 1
-fi
-#!/bin/bash
 
 
 # Use a known valid region to retrieve the list of available regions

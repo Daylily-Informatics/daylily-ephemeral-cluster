@@ -4,14 +4,11 @@ unset region
 unset regions
 unset cluster_name
 
-# Source Conda's base environment setup
-source $(conda info --base)/etc/profile.d/conda.sh
-conda activate DAY-EC
-
-if [ $? -ne 0 ]; then
-    echo "Error: Conda environment 'DAY-EC' not found. Please create it before running this script."
-    exit 1
-fi
+# --- Ensure DAY-EC conda environment is active ---
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=helpers/ensure_dayec.sh
+source "${SCRIPT_DIR}/helpers/ensure_dayec.sh"
+ensure_dayec || exit 1
 
 # Ensure AWS CLI is installed
 if ! command -v aws &> /dev/null

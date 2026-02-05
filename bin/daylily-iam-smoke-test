@@ -5,6 +5,12 @@ set -eu
 # Verifies the same managed-policy detection logic used by:
 #   bin/daylily-create-ephemeral-cluster (check_managed_policy_attached)
 
+# --- Ensure DAY-EC conda environment is active ---
+SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
+# shellcheck source=helpers/ensure_dayec.sh
+. "${SCRIPT_DIR}/helpers/ensure_dayec.sh"
+ensure_dayec || exit 1
+
 usage() {
   cat <<'USAGE'
 USAGE:

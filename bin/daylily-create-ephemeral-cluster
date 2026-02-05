@@ -14,6 +14,12 @@ if [[ -z "${BASH_VERSINFO:-}" || "${BASH_VERSINFO[0]}" -lt 4 ]]; then
   exit 3
 fi
 
+# --- Ensure DAY-EC conda environment is active ---
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=helpers/ensure_dayec.sh
+source "${SCRIPT_DIR}/helpers/ensure_dayec.sh"
+ensure_dayec || exit 1
+
 command -v say >/dev/null 2>&1 && say "and we are off" || echo "and we are off"
 
 # Report shell without depending on bin/retshell

@@ -89,3 +89,36 @@ else
 fi
 
 printf 'will cite\n' | parallel --citation >/dev/null 2>&1 || echo nope
+
+# Final verification: ensure DAY-EC is active (if sourced) or exists (if executed)
+if [ "${BASH_SOURCE[0]}" != "$0" ]; then
+    # Script was sourced - verify activation
+    if [[ "${CONDA_DEFAULT_ENV:-}" != "DAY-EC" ]]; then
+        echo ""
+        echo "============================================================"
+        echo "ERROR: DAY-EC environment activation failed."
+        echo "============================================================"
+        echo ""
+        echo "Please manually activate with:"
+        echo "    conda activate DAY-EC"
+        echo ""
+        return 1
+    else
+        echo "✓ DAY-EC conda environment is now active."
+    fi
+else
+    # Script was executed - verify environment exists
+    if ! conda env list 2>/dev/null | grep -q "^DAY-EC "; then
+        echo ""
+        echo "============================================================"
+        echo "ERROR: DAY-EC environment creation failed."
+        echo "============================================================"
+        echo ""
+        exit 1
+    else
+        echo "✓ DAY-EC conda environment created successfully."
+        echo ""
+        echo "Activate with:"
+        echo "    conda activate DAY-EC"
+    fi
+fi

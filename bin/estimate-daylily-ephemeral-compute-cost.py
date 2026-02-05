@@ -1,6 +1,14 @@
 #!/usr/bin/env python
 
 import argparse
+import os
+import sys
+
+# Ensure DAY-EC conda environment is active
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "helpers"))
+from ensure_dayec import ensure_dayec
+ensure_dayec(quiet=True)
+
 from daylib.day_factory import PipelineFactory
 from daylib.day_cost_ec2 import SpotPriceFetcher, ZoneStat
 from tabulate import tabulate

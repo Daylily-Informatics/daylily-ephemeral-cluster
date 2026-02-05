@@ -1,9 +1,18 @@
 #!/usr/bin/env python3
-import sys, argparse, os
+import sys
+import argparse
+import os
 from collections import defaultdict, Counter
 from datetime import date
+
+# Ensure DAY-EC conda environment is active
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "helpers"))
+from ensure_dayec import ensure_dayec
+ensure_dayec(quiet=True)
+
 from dateutil.relativedelta import relativedelta
-import boto3, botocore
+import boto3
+import botocore
 from botocore.config import Config
 from rich.console import Console
 from rich.table import Table

@@ -1,6 +1,12 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# --- Ensure DAY-EC conda environment is active ---
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=helpers/ensure_dayec.sh
+source "${SCRIPT_DIR}/helpers/ensure_dayec.sh"
+ensure_dayec || exit 1
+
 usage() {
     cat <<'USAGE'
 Usage: $0 --region REGION --account-id ACCOUNT_ID --iam-user USER [--group GROUP] [--profile PROFILE] [--attach-to-user]

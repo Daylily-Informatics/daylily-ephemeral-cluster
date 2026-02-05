@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import json
 import os
 import subprocess
@@ -5,6 +6,11 @@ import sys
 import time
 from datetime import timedelta
 from typing import Optional
+
+# Ensure DAY-EC conda environment is active
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from ensure_dayec import ensure_dayec
+ensure_dayec(quiet=True)
 
 
 def _colorize(text: str, color_code: str) -> str:

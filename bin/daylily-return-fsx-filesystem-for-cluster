@@ -3,6 +3,12 @@
 # Usage: script.sh <cluster_name> <region>
 # Example: script.sh day-07133 us-west-2
 
+# --- Ensure DAY-EC conda environment is active ---
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=helpers/ensure_dayec.sh
+source "${SCRIPT_DIR}/helpers/ensure_dayec.sh"
+ensure_dayec || exit 1
+
 CLUSTER_NAME="$1"
 REGION="$2"
 AWS_PROFILE="${AWS_PROFILE:-default}"

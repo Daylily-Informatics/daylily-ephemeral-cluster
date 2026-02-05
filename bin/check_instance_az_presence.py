@@ -5,6 +5,12 @@ import sys
 import os
 import csv
 
+# Ensure DAY-EC conda environment is active
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "helpers"))
+from ensure_dayec import ensure_dayec
+ensure_dayec(quiet=True)
+
+
 def get_all_regions():
     """Retrieve all available AWS regions."""
     try:

@@ -8,6 +8,11 @@ import subprocess
 import sys
 import time
 
+# Ensure DAY-EC conda environment is active
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "helpers"))
+from ensure_dayec import ensure_dayec
+ensure_dayec(quiet=True)
+
 import yaml
 from colr import color
 from math import isnan, fsum

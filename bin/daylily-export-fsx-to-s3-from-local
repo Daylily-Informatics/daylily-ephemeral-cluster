@@ -6,10 +6,16 @@ from __future__ import annotations
 import argparse
 import dataclasses
 import logging
+import os
 import sys
 import time
 from pathlib import Path
 from typing import Dict, Optional
+
+# Ensure DAY-EC conda environment is active
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "helpers"))
+from ensure_dayec import ensure_dayec
+ensure_dayec(quiet=True)
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
