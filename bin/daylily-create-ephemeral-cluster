@@ -171,12 +171,23 @@ usage() {
     echo "       --pass-on-warn          Allow warnings to pass without failure (default: false)"
     echo "       --debug                 Print commands as they are executed"
     echo "       --profile  AWS profile to use (defaults to AWS_PROFILE environment variable)"
-    echo " .     --config <path>       Path to the daylily-create-ephemeral-cluster config, default: config/daylily_ephemeral_cluster_template.yaml  )"
-    echo " .     --help                  Show this help message and exit"
+    echo "       --config <path>       Path to the daylily-create-ephemeral-cluster config, default: config/daylily_ephemeral_cluster_template.yaml"
+    echo "       --repo-override <repo-key>:<git-ref>  Override the default_ref for a repository during headnode setup."
+    echo "                              Can be specified multiple times for different repositories."
+    echo "       --help                  Show this help message and exit"
     echo " "
     echo "Environment Variables:"
-    echo "   export DAY_CONTACT_EMAIL="you@email.com" -- will be used for email fields if not set in config."
+    echo "   export DAY_CONTACT_EMAIL=\"you@email.com\" -- will be used for email fields if not set in config."
     echo "   unset DAY_DISABLE_AUTO_SELECT -- if set to 1, disables auto-selecting config values and always prompts. If not set or set to 0 will use the user specified config.yaml values (as found in the ~/.config/daylily/<clustername>_cli_cfg_<datetime>.yaml, which is created following this script exiting successfully && can be used to re-create teh exact same cluster again)."
+    echo " "
+    echo "Examples:"
+    echo "   # Override daylily-omics-analysis to use a development branch"
+    echo "   $0 --region-az us-west-2c --profile \$AWS_PROFILE --repo-override daylily-omics-analysis:0.8.0-dev"
+    echo " "
+    echo "   # Override multiple repositories"
+    echo "   $0 --region-az us-west-2c --profile \$AWS_PROFILE \\"
+    echo "      --repo-override daylily-omics-analysis:feature-branch \\"
+    echo "      --repo-override rna-seq-star-deseq2:main"
 }
 
 validate_config_file() {
@@ -200,6 +211,51 @@ validate_config_file() {
     fi
 
     return 0
+}
+
+# Repository override storage
+declare -A REPO_OVERRIDES=()
+AVAILABLE_REPOS_FILE="config/daylily_available_repositories.yaml"
+
+# Validate a repository override argument (format: repo-key:git-ref)
+validate_repo_override() {
+    local override="$1"
+
+    if [[ ! "$override" =~ ^[a-zA-Z0-9_-]+:.+$ ]]; then
+        echo "❌ Error: Invalid --repo-override format: '$override'"
+        echo "   Expected format: <repository-key>:<git-ref>"
+        echo "   Example: daylily-omics-analysis:0.8.0-dev"
+        return 1
+    fi
+
+    local repo_key="${override%%:*}"
+    local git_ref="${override#*:}"
+
+    if [[ -z "$repo_key" || -z "$git_ref" ]]; then
+        echo "❌ Error: Both repository key and git ref are required in --repo-override"
+        return 1
+    fi
+
+    # Validate that the repository key exists in the available repositories file
+    if [[ -f "$AVAILABLE_REPOS_FILE" ]]; then
+        if ! yq -e ".repositories.\"$repo_key\"" "$AVAILABLE_REPOS_FILE" >/dev/null 2>&1; then
+            echo "❌ Error: Repository key '$repo_key' not found in $AVAILABLE_REPOS_FILE"
+            echo "   Available repositories:"
+            yq -r '.repositories | keys | .[]' "$AVAILABLE_REPOS_FILE" 2>/dev/null | sed 's/^/     - /'
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
+# Store a validated repo override
+add_repo_override() {
+    local override="$1"
+    local repo_key="${override%%:*}"
+    local git_ref="${override#*:}"
+    REPO_OVERRIDES["$repo_key"]="$git_ref"
+    echo "ℹ️ Repository override registered: $repo_key -> $git_ref"
 }
 
 prompt_for_config_file() {
@@ -989,6 +1045,14 @@ while [[ $# -gt 0 ]]; do
             cli_config_file="$2"
             shift 2
             ;;
+        --repo-override)
+            if validate_repo_override "$2"; then
+                add_repo_override "$2"
+            else
+                exit 3
+            fi
+            shift 2
+            ;;
         *)
             echo "❌ Error: Unknown option: $1"
             usage
@@ -996,6 +1060,15 @@ while [[ $# -gt 0 ]]; do
             ;;
     esac
 done
+
+# Display registered repo overrides if any
+if [[ ${#REPO_OVERRIDES[@]} -gt 0 ]]; then
+    echo "📦 Repository overrides registered:"
+    for repo_key in "${!REPO_OVERRIDES[@]}"; do
+        echo "   • $repo_key -> ${REPO_OVERRIDES[$repo_key]}"
+    done
+    echo ""
+fi
 
 if [[ "$debug_mode" == "1" ]]; then
     echo "ℹ️ Debug mode enabled. Command traces will be printed."
@@ -2439,14 +2512,30 @@ echo ""
 
 # ----- Configure head node -----
 echo "✅ The cluster creation is complete (per API). Configuring the head node:"
-echo "   source ./bin/daylily-cfg-headnode $pem_file $region $AWS_PROFILE $cluster_name"
+
+# Serialize repo overrides to a temp file for daylily-cfg-headnode
+REPO_OVERRIDES_FILE=""
+if [[ ${#REPO_OVERRIDES[@]} -gt 0 ]]; then
+    REPO_OVERRIDES_FILE=$(mktemp)
+    for repo_key in "${!REPO_OVERRIDES[@]}"; do
+        echo "${repo_key}:${REPO_OVERRIDES[$repo_key]}" >> "$REPO_OVERRIDES_FILE"
+    done
+    echo "📦 Passing ${#REPO_OVERRIDES[@]} repository override(s) to headnode configuration"
+fi
+
+echo "   source ./bin/daylily-cfg-headnode $pem_file $region $AWS_PROFILE $cluster_name [repo_overrides_file]"
 echo ""
 sleep 2
 # shellcheck disable=SC1091
 export AWS_PROFILE=$AWS_PROFILE
-source ./bin/daylily-cfg-headnode "$pem_file" "$region" "$AWS_PROFILE" "$cluster_name" || {
+source ./bin/daylily-cfg-headnode "$pem_file" "$region" "$AWS_PROFILE" "$cluster_name" "$REPO_OVERRIDES_FILE" || {
   echo "⚠️ Head node configuration returned non-zero. Review logs; continuing."
 }
+
+# Clean up temp file
+if [[ -n "$REPO_OVERRIDES_FILE" && -f "$REPO_OVERRIDES_FILE" ]]; then
+    rm -f "$REPO_OVERRIDES_FILE"
+fi
 echo ""
 
 # ----- Heartbeat wiring (optional) -----

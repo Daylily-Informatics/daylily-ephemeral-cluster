@@ -13,11 +13,31 @@ pem_file=$1
 region=$2
 aws_profile=$3
 requested_cluster_name=$4
+repo_overrides_file=$5  # Optional: file containing repo overrides (format: repo-key:git-ref per line)
 duser="ubuntu"
 
 dayec_name="daylily-ephemeral-cluster"
 
 CONFIG_FILE="config/daylily_cli_global.yaml"
+AVAILABLE_REPOS_CONFIG="config/daylily_available_repositories.yaml"
+
+# Create modified repository config if overrides are provided
+MODIFIED_REPOS_CONFIG=""
+if [[ -n "$repo_overrides_file" && -f "$repo_overrides_file" ]]; then
+    echo "📦 Applying repository overrides from: $repo_overrides_file"
+    MODIFIED_REPOS_CONFIG=$(mktemp)
+    cp "$AVAILABLE_REPOS_CONFIG" "$MODIFIED_REPOS_CONFIG"
+
+    while IFS= read -r override_line; do
+        [[ -z "$override_line" ]] && continue
+        repo_key="${override_line%%:*}"
+        git_ref="${override_line#*:}"
+        echo "   • Overriding $repo_key default_ref to: $git_ref"
+        yq eval ".repositories.\"$repo_key\".default_ref = \"$git_ref\"" -i "$MODIFIED_REPOS_CONFIG"
+    done < "$repo_overrides_file"
+
+    echo "   Modified config saved to: $MODIFIED_REPOS_CONFIG"
+fi
 
 git_ephemeral_cluster_repo_tag=$(yq -r '.daylily.git_ephemeral_cluster_repo_tag' "$CONFIG_FILE")
 git_ephemeral_cluster_repo=$(yq -r '.daylily.git_ephemeral_cluster_repo' "$CONFIG_FILE")
@@ -136,6 +156,17 @@ ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no 
 echo "Installing head node tooling from the cloned repository..."
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
     "source ~/.bashrc && cd ~/projects/$dayec_name && ./bin/install-daylily-headnode-tools"
+
+# If we have a modified repository config with overrides, deploy it to the headnode
+if [[ -n "$MODIFIED_REPOS_CONFIG" && -f "$MODIFIED_REPOS_CONFIG" ]]; then
+    echo "📦 Deploying modified repository configuration with overrides to headnode..."
+    scp -i "$pem_file" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
+        "$MODIFIED_REPOS_CONFIG" ubuntu@"$cluster_ip_address":~/.config/daylily/daylily_available_repositories.yaml
+    echo "   ✅ Modified repository config deployed to ~/.config/daylily/daylily_available_repositories.yaml"
+
+    # Clean up local temp file
+    rm -f "$MODIFIED_REPOS_CONFIG"
+fi
 
 echo "Installing Miniconda and initializing the DAY-EC environment on the head node..."
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
