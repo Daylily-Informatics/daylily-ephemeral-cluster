@@ -1,0 +1,106 @@
+# DAY-EC Conda Environment Script Analysis
+# Generated: 2026-02-05
+# Updated: 2026-02-05 - Added consistent DAY-EC environment checks to all scripts
+# Repository: daylily-ephemeral-cluster
+
+## Implementation Summary
+
+All scripts now use consistent DAY-EC environment checking via:
+- **Python scripts**: Import `ensure_dayec` from `bin/helpers/ensure_dayec.py`
+- **Bash scripts**: Source `bin/helpers/ensure_dayec.sh` and call `ensure_dayec`
+
+The check logic:
+1. Checks if DAY-EC is already active
+2. If not active, attempts to activate it
+3. If activation fails or environment doesn't exist, provides clear error message and exits
+
+## Scripts Updated with DAY-EC Environment Checks
+
+### Python Scripts (17 scripts)
+1. **bin/aws_deets.py** - AWS instance details and metadata
+2. **bin/calc_daylily_aws_cost_estimates.py** - AWS cost estimates for genomics
+3. **bin/calcuate_spotprice_for_cluster_yaml.py** - Spot price insertion
+4. **bin/check_current_spot_market_by_zones.py** - Spot market pricing
+5. **bin/check_current_spot_market_by_zones_wcapacity.py** - Spot market with capacity
+6. **bin/check_instance_az_presence.py** - Instance AZ presence check
+7. **bin/daylily-analysis-samples-to-manifest-new.py** - Sample manifest conversion
+8. **bin/daylily-export-fsx-to-s3-from-local** - FSx export to S3
+9. **bin/daylily-grant-admin** - Admin privilege management
+10. **bin/daylily-run-omics-analysis-headnode** - Launch omics analysis
+11. **bin/daylily-stage-samples-from-local-to-headnode** - Stage samples remotely
+12. **bin/estimate-daylily-ephemeral-compute-cost.py** - Compute cost estimation
+13. **bin/generate-report-of-aws-tagged-resources.py** - Tagged resource reports
+14. **bin/helpers/setup_cluster_heartbeat.py** - SNS heartbeat setup
+15. **bin/helpers/teardown_cluster_heartbeat.py** - Heartbeat teardown
+16. **bin/helpers/watch_cluster_status.py** - Cluster status monitoring
+
+### Bash Scripts (12 scripts)
+1. **bin/daylily-cfg-headnode** - Headnode configuration
+2. **bin/daylily-create-ephemeral-cluster** - Cluster creation
+3. **bin/daylily-delete-ephemeral-cluster** - Cluster deletion
+4. **bin/daylily-ensure-sns-permissions** - SNS permissions setup
+5. **bin/daylily-export-fsx-to-s3** - FSx export
+6. **bin/daylily-iam-smoke-test** - IAM permissions test
+7. **bin/daylily-return-fsx-filesystem-for-cluster** - FSx filesystem lookup
+8. **bin/daylily-run-ephemeral-cluster-remote-tests** - Remote tests
+9. **bin/daylily-ssh-into-headnode** - SSH into headnode
+10. **bin/daylily-stage-analysis-samples-headnode** - Stage samples on headnode
+11. **bin/daylily-stage-analysis-samples-local-experimental** - Local staging
+12. **bin/init_dayec** - DAY-EC environment initialization (special case)
+
+## Helper Modules Created
+
+### bin/helpers/ensure_dayec.py
+Python module providing `ensure_dayec(quiet=False)` function.
+- Checks `CONDA_DEFAULT_ENV` environment variable
+- Provides clear error messages with activation instructions
+- Can be imported by any Python script
+
+### bin/helpers/ensure_dayec.sh
+Bash function library providing `ensure_dayec` function.
+- Sources conda if not available
+- Attempts automatic activation if environment exists
+- Provides clear error messages with creation/activation instructions
+- Can be sourced by any bash script
+
+## Usage
+
+### In Python scripts:
+```python
+import os
+import sys
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "helpers"))
+from ensure_dayec import ensure_dayec
+ensure_dayec(quiet=True)
+```
+
+### In Bash scripts:
+```bash
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+source "${SCRIPT_DIR}/helpers/ensure_dayec.sh"
+ensure_dayec || exit 1
+```
+
+## Key Dependencies Provided by DAY-EC
+- Python 3.11
+- Bash 5.2.37
+- aws-parallelcluster==3.13.2
+- awscli==2.22.4
+- boto3 (via aws-parallelcluster)
+- tabulate, colr, rich
+- ruamel.yaml (via dependencies)
+- jq, yq, rclone
+- daylib (local package, installed in editable mode)
+
+## Commands
+
+Activate DAY-EC:
+```bash
+conda activate DAY-EC
+```
+
+Create DAY-EC if it doesn't exist:
+```bash
+./bin/init_dayec
+```
+
