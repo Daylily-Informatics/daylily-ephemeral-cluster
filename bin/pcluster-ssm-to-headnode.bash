@@ -1,12 +1,13 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-if [ $# -ne 1 ]; then
-  echo "Usage: $0 <cluster-name>" >&2
+if [ $# -ne 2 ]; then
+  echo "Usage: $0 <cluster-name> <region>" >&2
   exit 1
 fi
 
 CLUSTER_NAME="$1"
+REGION="$2"
 
 # Ensure required commands exist
 for cmd in aws pcluster; do
@@ -16,15 +17,6 @@ for cmd in aws pcluster; do
   fi
 done
 
-# Resolve region (prefer explicit env)
-REGION="${AWS_REGION:-${AWS_DEFAULT_REGION:-}}"
-
-if [ -z "$REGION" ]; then
-  REGION="$(pcluster describe-cluster \
-    --cluster-name "$CLUSTER_NAME" \
-    --query 'cluster.region' \
-    --output text 2>/dev/null || true)"
-fi
 
 if [ -z "$REGION" ] || [ "$REGION" = "None" ]; then
   echo "ERROR: Could not determine AWS region" >&2
