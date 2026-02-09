@@ -9,6 +9,10 @@ fi
 CLUSTER_NAME="$1"
 REGION="$2"
 
+echo "THIS IS NOT WORKING YET. DO NOT USE THIS SCRIPT." >&2
+echo "Please use 'pcluster ssh' instead, which is the recommended way to connect for now." >&2
+exit 1
+
 # Ensure required commands exist
 for cmd in aws pcluster; do
   if ! command -v "$cmd" >/dev/null 2>&1; then
