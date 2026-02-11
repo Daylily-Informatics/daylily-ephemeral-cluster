@@ -1,19 +1,22 @@
 """CLI entry point for daylily-ec, built on cli-core-yo.
 
-Provides the ``create`` command (and future subcommands) for managing
-ephemeral AWS ParallelCluster environments.  All flags from the legacy
-Bash script are preserved here, even those not yet implemented.
+Provides ``create``, ``preflight``, and ``drift`` commands for managing
+ephemeral AWS ParallelCluster environments.
 
 Usage::
 
     python -m daylily_ec --help
     python -m daylily_ec create --region-az us-west-2b --profile my-profile
+    python -m daylily_ec preflight --region-az us-west-2b
+    python -m daylily_ec drift --state-file ~/.config/daylily/state_prod_*.json
 """
 
 from __future__ import annotations
 
+import logging
 import os
 import sys
+from pathlib import Path
 from typing import List, Optional
 
 import typer
@@ -112,19 +115,154 @@ def create(
       DAY_BREAK                  Set to 1 to exit after dry-run validation.
       AWS_PROFILE                Default AWS profile when --profile is omitted.
     """
-    # CP-001 skeleton — prints inputs and exits cleanly.
-    # Real implementation lands in CP-003 (workflow orchestrator).
-    effective_profile = profile or os.environ.get("AWS_PROFILE", "(unset)")
+    from daylily_ec.workflow.create_cluster import run_create_workflow
 
-    output.action("daylily-ec create: not yet implemented (CP-001 skeleton)")
-    output.detail(f"region-az:       {region_az}")
-    output.detail(f"profile:         {effective_profile}")
-    output.detail(f"config:          {config or '(default)'}")
-    output.detail(f"pass-on-warn:    {pass_on_warn}")
-    output.detail(f"debug:           {debug}")
-    output.detail(f"repo-override:   {repo_override or '(none)'}")
-    output.detail(f"non-interactive: {non_interactive}")
-    raise typer.Exit(0)
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+
+    output.action(f"Creating cluster in {region_az} ...")
+    rc = run_create_workflow(
+        region_az,
+        profile=profile,
+        config_path=config,
+        pass_on_warn=pass_on_warn,
+        debug=debug,
+        non_interactive=non_interactive,
+    )
+    raise typer.Exit(rc)
+
+
+# ── preflight command ────────────────────────────────────────────────────────
+
+
+@app.command()
+def preflight(
+    region_az: str = typer.Option(
+        ...,
+        "--region-az",
+        help="AWS region + availability zone (e.g. us-west-2b).",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    config: Optional[str] = typer.Option(
+        None,
+        "--config",
+        help="Path to daylily config YAML.",
+    ),
+    pass_on_warn: bool = typer.Option(
+        False,
+        "--pass-on-warn",
+        help="Treat warnings as non-fatal.",
+    ),
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        help="Enable debug output.",
+    ),
+    non_interactive: bool = typer.Option(
+        False,
+        "--non-interactive",
+        help="Disable interactive prompts.",
+    ),
+) -> None:
+    """Run preflight validation only (no cluster creation).
+
+    Exits 0 on success, 1 on validation failure.
+    """
+    from daylily_ec.workflow.create_cluster import run_preflight_only
+
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+
+    output.action(f"Running preflight for {region_az} ...")
+    rc = run_preflight_only(
+        region_az,
+        profile=profile,
+        config_path=config,
+        pass_on_warn=pass_on_warn,
+        debug=debug,
+        non_interactive=non_interactive,
+    )
+    raise typer.Exit(rc)
+
+
+# ── drift command ────────────────────────────────────────────────────────────
+
+
+@app.command()
+def drift(
+    state_file: str = typer.Option(
+        ...,
+        "--state-file",
+        help="Path to a state JSON file from a previous run.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile.",
+    ),
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        help="Enable debug output.",
+    ),
+) -> None:
+    """Check for drift against a previous run's state.
+
+    Exit codes: 0 = no drift, 3 = drift detected, 2 = error.
+    """
+    import json
+
+    from daylily_ec.aws.context import AWSContext
+    from daylily_ec.state.drift import run_drift_check
+    from daylily_ec.state.models import StateRecord
+    from daylily_ec.workflow.create_cluster import (
+        EXIT_AWS_FAILURE,
+        EXIT_DRIFT,
+        EXIT_SUCCESS,
+    )
+
+    if debug:
+        logging.basicConfig(level=logging.DEBUG)
+
+    # Load state
+    p = Path(state_file)
+    if not p.is_file():
+        output.error(f"State file not found: {state_file}")
+        raise typer.Exit(EXIT_AWS_FAILURE)
+
+    state = StateRecord.model_validate_json(p.read_text(encoding="utf-8"))
+    output.action(f"Checking drift for cluster '{state.cluster_name}' ...")
+
+    # Build AWS context
+    region_az = state.region_az or f"{state.region}a"
+    try:
+        aws_ctx = AWSContext.build(region_az, profile=profile)
+    except RuntimeError as exc:
+        output.error(f"AWS context failed: {exc}")
+        raise typer.Exit(EXIT_AWS_FAILURE) from exc
+
+    report = run_drift_check(
+        state,
+        cfn_client=aws_ctx.client("cloudformation"),
+        budgets_client=aws_ctx.client("budgets"),
+        sns_client=aws_ctx.client("sns"),
+        scheduler_client=aws_ctx.client("scheduler"),
+        account_id=aws_ctx.account_id,
+    )
+
+    # Print report
+    output.detail(json.dumps(report.__dict__, indent=2, default=str))
+
+    if report.has_drift:
+        output.warn("Drift detected.")
+        raise typer.Exit(EXIT_DRIFT)
+
+    output.success("No drift detected.")
+    raise typer.Exit(EXIT_SUCCESS)
 
 
 # ── Entry point ──────────────────────────────────────────────────────────────
