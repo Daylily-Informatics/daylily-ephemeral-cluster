@@ -17,6 +17,7 @@ dependencies = [
     "pyyaml>=6.0",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
+    "cli-core-yo>=0.2.1",
 ]
 
 [project.optional-dependencies]
@@ -37,7 +38,7 @@ local_scheme = "node-and-date"
 fallback_version = "0.0.0"
 
 [tool.setuptools.packages.find]
-include = ["daylib*"]
+include = ["daylib*", "daylily_ec*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
