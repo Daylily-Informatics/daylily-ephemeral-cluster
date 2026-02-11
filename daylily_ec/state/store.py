@@ -1,10 +1,11 @@
-"""Persistent storage for preflight reports and state records.
+"""Persistent storage for preflight reports and state records (CP-004/CP-016).
 
 Writes JSON to ``~/.config/daylily/`` (XDG_CONFIG_HOME / daylily).
 
 File naming::
 
     preflight_<cluster>_<run_id>.json
+    state_<cluster>_<run_id>.json
 
 All JSON is serialised with **sorted keys** for deterministic, diff-friendly output.
 """
@@ -17,7 +18,7 @@ import os
 from pathlib import Path
 from typing import Optional
 
-from daylily_ec.state.models import PreflightReport
+from daylily_ec.state.models import PreflightReport, StateRecord
 
 logger = logging.getLogger(__name__)
 
@@ -73,4 +74,29 @@ def write_preflight_report(report: PreflightReport) -> Path:
     dest.write_text(payload + "\n", encoding="utf-8")
     logger.info("Preflight report written to %s", dest)
     return dest
+
+
+def write_state_record(record: StateRecord) -> Path:
+    """Persist *record* as sorted-key JSON and return the written path.
+
+    Path pattern: ``<config_dir>/state_<cluster>_<run_id>.json``
+    """
+    cluster = _safe_cluster_name(record.cluster_name)
+    filename = f"state_{cluster}_{record.run_id}.json"
+    dest = config_dir() / filename
+
+    payload = json.dumps(
+        record.model_dump(mode="json"),
+        indent=2,
+        sort_keys=True,
+    )
+    dest.write_text(payload + "\n", encoding="utf-8")
+    logger.info("State record written to %s", dest)
+    return dest
+
+
+def load_state_record(path: Path) -> StateRecord:
+    """Load a :class:`StateRecord` from a JSON file."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    return StateRecord(**data)
 
