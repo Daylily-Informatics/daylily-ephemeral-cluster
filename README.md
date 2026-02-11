@@ -32,8 +32,9 @@ Daylily composes several AWS building blocks so you can stand up a full featured
 7. **s3 references bucket** with reference genomes, resource bundles, and canned control datasets for benchmarking and concordance.
 8. **AWS CloudFormation** templates to orchestrate the above components and manage lifecycle.
 9. **AWS CloudWatch** alarms to notify on spot instance interruptions and FSx storage capacity, dashboards to monitor CPU, memory, and network utilization.
-10. **Parallel Cluster UI (PCUI)** deployment to provide a web console for job management and interactive shells. 
+10. **Parallel Cluster UI (PCUI)** deployment to provide a web console for job management and interactive shells.
 11. **Project level cost tagging & telemetry** layered on top of AWS Budgets and cost allocation tags to preserve per-sample and per-project visibility. _(experimental: budget enforcement via spot instance termination)_.
+12. **Python control plane (`daylily_ec`)** — a 3-layer orchestration library that replaces the legacy Bash monolith with structured preflight validation, YAML rendering, spot-price optimization, cluster creation monitoring, budgets, heartbeat scheduling, and drift detection. Exposed via the `daylily-ec` CLI (built on `cli-core-yo`).
 
 ---
 
@@ -497,6 +498,32 @@ Once you have selected an AZ && have a reference bucket ready in the region this
 
 The following script will check a variety of required resources, attempt to create some if missing and then prompt you to select various options which will all be used to create a new parallel cluster yaml config, which in turn is used to create the cluster via `StackFormation`. [The template yaml file can be checked out here](config/day_cluster/prod_cluster.yaml).
 
+### Using the Python control plane (recommended)
+
+The `daylily-ec` CLI replaces the legacy Bash script with a structured Python orchestrator. It runs the same preflight checks, YAML rendering, spot-price optimization, and cluster creation — but with machine-readable JSON reports, drift detection, and deterministic exit codes.
+
+```bash
+conda activate DAY-EC
+export AWS_PROFILE=daylily-service
+REGION_AZ=us-west-2c
+
+# Full cluster creation
+python -m daylily_ec create --region-az $REGION_AZ --profile $AWS_PROFILE
+
+# With --pass-on-warn to continue past non-critical warnings
+python -m daylily_ec create --region-az $REGION_AZ --profile $AWS_PROFILE --pass-on-warn
+
+# Run preflight validation only (no cluster creation)
+python -m daylily_ec preflight --region-az $REGION_AZ --profile $AWS_PROFILE
+
+# Check drift against a previous run's state
+python -m daylily_ec drift --state-file ~/.config/daylily/state_mycluster_*.json
+```
+
+The thin Bash wrapper at `bin/daylily-create-ephemeral-cluster` now delegates to the Python control plane automatically. See the [CLI Reference](#daylily-ec-cli-reference) section below for all commands and flags.
+
+### Using the Bash wrapper (backward compatible)
+
 ```bash
 export AWS_PROFILE=daylily-service
 REGION_AZ=us-west-2c
@@ -506,6 +533,8 @@ REGION_AZ=us-west-2c
 ./bin/daylily-create-ephemeral-cluster --region-az $REGION_AZ --profile $AWS_PROFILE --pass-on-warn # If you created an inline policy with a name other than daylily-service-cluster-policy, you will need to acknowledge the warning to proceed (assuming the policy permissions were granted other ways)
 
 ```
+
+> The original Bash monolith is preserved at `bin/legacy/daylily-create-ephemeral-cluster.bash` for reference.
 
 During the run the script invokes the `daylily-omics-references` CLI to
 validate the selected reference bucket, preventing misconfigured buckets from
@@ -763,6 +792,87 @@ Go to the `IAM Dashboard`, and under roles, search for the role `ParallelCluster
 ## PCUI Costs ( ~ $1.00 / month )
 *[< $1/month>](https://docs.aws.amazon.com/parallelcluster/latest/ug/install-pcui-costs-v3.html)*
 
+
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
+
+
+# `daylily-ec` CLI Reference
+
+The Python control plane is invoked via `python -m daylily_ec` (or via the `bin/daylily-create-ephemeral-cluster` wrapper). Built on [`cli-core-yo`](https://github.com/Daylily-Informatics/cli-core-yo).
+
+```bash
+python -m daylily_ec --help
+```
+
+## Commands
+
+### `create`
+
+Create an ephemeral AWS ParallelCluster environment. This is the primary workflow command.
+
+```bash
+python -m daylily_ec create --region-az <REGION_AZ> [OPTIONS]
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--region-az` | _(required)_ | AWS region + availability zone (e.g. `us-west-2b`) |
+| `--profile` | `$AWS_PROFILE` | AWS CLI profile |
+| `--config` | template YAML | Path to daylily config YAML |
+| `--pass-on-warn` | `false` | Continue on preflight warnings |
+| `--debug` | `false` | Enable debug output |
+| `--repo-override` | | Override repo ref: `<key>:<git-ref>` (repeatable) |
+| `--non-interactive` | `false` | Disable interactive prompts |
+
+**Environment variables**: `DAY_CONTACT_EMAIL`, `DAY_DISABLE_AUTO_SELECT`, `DAY_BREAK`, `AWS_PROFILE`
+
+### `preflight`
+
+Run preflight validation only — no cluster creation.
+
+```bash
+python -m daylily_ec preflight --region-az <REGION_AZ> [OPTIONS]
+```
+
+Accepts the same flags as `create` except `--repo-override`. Exits `0` on success, `1` on validation failure.
+
+### `drift`
+
+Check for infrastructure drift against a previous run's state snapshot.
+
+```bash
+python -m daylily_ec drift --state-file <PATH> [OPTIONS]
+```
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--state-file` | _(required)_ | Path to a state JSON file from a previous run |
+| `--profile` | `$AWS_PROFILE` | AWS CLI profile |
+| `--debug` | `false` | Enable debug output |
+
+**Exit codes**: `0` = no drift, `3` = drift detected, `2` = AWS error.
+
+## Exit Codes
+
+| Code | Meaning |
+|------|---------|
+| `0` | Success |
+| `1` | Validation failure (preflight check failed) |
+| `2` | AWS operation failure |
+| `3` | Drift detected |
+| `4` | Toolchain failure (missing dependencies) |
+
+## Artifacts
+
+All artifacts are written to `~/.config/daylily/`:
+
+| File | Description |
+|------|-------------|
+| `preflight_<cluster>_<ts>.json` | Preflight validation report (JSON) |
+| `state_<cluster>_<ts>.json` | Post-creation state snapshot (JSON) |
+| `<cluster>_cluster.yaml` | Rendered cluster YAML with spot prices |
+| `<cluster>_init_template_<ts>.yaml` | Initialization template snapshot |
 
 
 <p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
