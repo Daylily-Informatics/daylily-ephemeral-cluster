@@ -1,8 +1,8 @@
 # Daylily Ephemeral Cluster — Control Plane Refactor Implementation Plan
 
-**Branch**: `refactor/control-plane-implementation-plan`
+**Branch**: `feature/cp-001-package-skeleton`
 **Spec**: `REFACTOR_SPEC.md`
-**Status**: DRAFT — Awaiting approval before any implementation begins.
+**Status**: ✅ COMPLETE — All 19 tasks (CP-001 through CP-019) implemented, tested (454 tests, 85% coverage), and merged via PR #218.
 
 ---
 

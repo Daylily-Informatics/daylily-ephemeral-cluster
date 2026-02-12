@@ -47,13 +47,20 @@ The following packages are included in the DAY-EC environment:
 ### Data Processing
 - `pydantic` - Data validation
 - `pyyaml` - YAML parsing
+- `ruamel.yaml` - YAML roundtrip parsing with comment preservation (used by `daylily_ec` renderer)
+
+### Python Control Plane (`daylily_ec`)
+- `cli-core-yo` - Daylily CLI framework (typer/click/rich based)
+- `boto3` - AWS SDK for Python
+- `ruamel.yaml` - YAML roundtrip parsing
+- `pydantic` - Configuration models and validation
 
 ### Utilities
 - `jq`, `yq` - JSON/YAML command-line processing
 - `rclone` - Cloud storage sync
 - `parallel` - Shell parallelization
 - `ipython` - Interactive Python shell
-- `pytest` - Testing framework
+- `pytest`, `pytest-cov` - Testing framework with coverage
 
 ## Testing
 
@@ -61,10 +68,13 @@ The following packages are included in the DAY-EC environment:
 # Activate environment
 conda activate DAY-EC
 
-# Run tests
+# Run all tests (454 tests, ~0.3s)
 pytest tests/
 
-# Run with coverage
+# Run with coverage for the Python control plane
+pytest --cov=daylily_ec --cov-report=term-missing tests/
+
+# Run with coverage for daylib
 pytest --cov=daylib tests/
 ```
 

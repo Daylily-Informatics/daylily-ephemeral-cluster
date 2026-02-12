@@ -41,6 +41,7 @@ Daylily composes several AWS building blocks so you can stand up a full featured
 9. **AWS CloudWatch** alarms to notify on spot instance interruptions and FSx storage capacity, dashboards to monitor CPU, memory, and network utilization.
 10. **Parallel Cluster UI (PCUI)** deployment to provide a web console for job management and interactive shells. 
 11. **Project level cost tagging & telemetry** layered on top of AWS Budgets and cost allocation tags to preserve per-sample and per-project visibility. _(experimental: budget enforcement via spot instance termination)_.
+12. **Python control plane (`daylily_ec`)** — a 3-layer orchestration library that replaces the legacy Bash monolith with structured preflight validation, YAML rendering, spot-price optimization, cluster creation monitoring, budgets, heartbeat scheduling, and drift detection. Exposed via the `daylily-ec` CLI (built on `cli-core-yo`).
 
 ---
 
@@ -621,15 +622,37 @@ Once you have selected an AZ && have a reference bucket ready in the region this
 
 The following script will check a variety of required resources, attempt to create some if missing and then prompt you to select various options which will all be used to create a new parallel cluster yaml config, which in turn is used to create the cluster via `StackFormation`. [The template yaml file can be checked out here](config/day_cluster/prod_cluster.yaml).
 
+#### Using the Python control plane (recommended)
+
+```bash
+conda activate DAY-EC
+export AWS_PROFILE=daylily-service
+REGION_AZ=us-west-2c
+
+# Full cluster creation
+python -m daylily_ec create --region-az $REGION_AZ --profile $AWS_PROFILE
+
+# With --pass-on-warn to continue past non-critical warnings
+python -m daylily_ec create --region-az $REGION_AZ --profile $AWS_PROFILE --pass-on-warn
+
+# Run preflight validation only (no cluster creation)
+python -m daylily_ec preflight --region-az $REGION_AZ --profile $AWS_PROFILE
+```
+
+The thin Bash wrapper at `bin/daylily-create-ephemeral-cluster` now delegates to the Python control plane automatically. See the [CLI Reference](../../README.md#daylily-ec-cli-reference) in the main README.
+
+#### Using the Bash wrapper (backward compatible)
+
 ```bash
 export AWS_PROFILE=daylily-service
 REGION_AZ=us-west-2c
 ./bin/daylily-create-ephemeral-cluster --region-az $REGION_AZ --profile $AWS_PROFILE
 
 # And to bypass the non-critical warnings (which is fine, not all can be resolved )
-./bin/daylily-create-ephemeral-cluster --region-az $REGION_AZ --profile $AWS_PROFILE --pass-on-warn # If you created an inline policy with a name other than daylily-service-cluster-policy, you will need to acknowledge the warning to proceed (assuming the policy permissions were granted other ways)
-
+./bin/daylily-create-ephemeral-cluster --region-az $REGION_AZ --profile $AWS_PROFILE --pass-on-warn
 ```
+
+> The original Bash monolith is preserved at `bin/legacy/daylily-create-ephemeral-cluster.bash` for reference.
 
 During the run the script invokes the `daylily-omics-references` CLI to
 validate the selected reference bucket, preventing misconfigured buckets from
