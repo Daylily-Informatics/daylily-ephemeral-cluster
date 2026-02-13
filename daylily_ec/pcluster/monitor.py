@@ -46,6 +46,8 @@ class MonitorResult:
     success: bool
     consecutive_failures: int = 0
     error: str = ""
+    head_node_ip: Optional[str] = None
+    head_node_instance_id: Optional[str] = None
 
 
 # ---------------------------------------------------------------------------
@@ -95,6 +97,46 @@ def get_cluster_status(
         return proc.stdout.strip() or None
 
 
+def get_cluster_details(
+    cluster_name: str,
+    region: str,
+    *,
+    profile: Optional[str] = None,
+) -> Dict[str, Any]:
+    """Return the full ``pcluster describe-cluster`` JSON for *cluster_name*.
+
+    Returns an empty dict on any error.
+    """
+    cmd = [
+        "pcluster",
+        "describe-cluster",
+        "-n", cluster_name,
+        "--region", region,
+    ]
+    env: Dict[str, Any] = {**os.environ}
+    if profile:
+        env["AWS_PROFILE"] = profile
+
+    try:
+        proc = subprocess.run(cmd, capture_output=True, text=True, env=env)
+    except FileNotFoundError:
+        logger.error("pcluster CLI not found on PATH")
+        return {}
+
+    if proc.returncode != 0:
+        logger.warning(
+            "describe-cluster failed (rc=%d): %s",
+            proc.returncode,
+            proc.stderr.strip() or proc.stdout.strip(),
+        )
+        return {}
+
+    try:
+        return json.loads(proc.stdout)  # type: ignore[no-any-return]
+    except (json.JSONDecodeError, TypeError):
+        return {}
+
+
 # ---------------------------------------------------------------------------
 # Wait loop
 # ---------------------------------------------------------------------------
@@ -129,10 +171,17 @@ def wait_for_creation(
         status = get_cluster_status(cluster_name, region, profile=profile)
 
         if status == STATUS_COMPLETE:
+            # Fetch head node details for the success banner.
+            details = get_cluster_details(
+                cluster_name, region, profile=profile,
+            )
+            head_node = details.get("headNode", {})
             return MonitorResult(
                 final_status=STATUS_COMPLETE,
                 elapsed_seconds=time.time() - start,
                 success=True,
+                head_node_ip=head_node.get("publicIpAddress"),
+                head_node_instance_id=head_node.get("instanceId"),
             )
 
         if status == STATUS_IN_PROGRESS:

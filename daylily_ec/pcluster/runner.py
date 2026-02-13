@@ -171,9 +171,10 @@ def create_cluster(
         logger.info("Cluster creation initiated: %s", cluster_name)
     else:
         logger.error(
-            "Cluster creation failed (rc=%d): %s",
+            "Cluster creation failed (rc=%d): %s | stdout: %s",
             result.returncode,
-            result.stderr or result.message or "(no output)",
+            result.stderr or "(no stderr)",
+            result.stdout or result.message or "(no output)",
         )
 
     return result

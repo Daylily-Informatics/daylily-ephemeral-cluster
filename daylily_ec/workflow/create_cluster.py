@@ -23,6 +23,7 @@ WARN aborts unless ``--pass-on-warn`` is set.
 from __future__ import annotations
 
 import logging
+import os as _os
 from datetime import datetime, timezone
 from typing import Any, Callable, Dict, List, Optional
 
@@ -347,7 +348,6 @@ def run_create_workflow(
     )
 
     # -- 4. RENDER YAML (Phase 2a) -------------------------------------------
-    import os as _os
 
     bucket_url = f"s3://{bucket_name}" if bucket_name else ""
     template_yaml = _val("cluster_template_yaml") or "config/day_cluster/prod_cluster.yaml"
@@ -362,19 +362,27 @@ def run_create_workflow(
         "REGSUB_PRIVATE_SUBNET": private_subnet,
         "REGSUB_S3_BUCKET_REF": bucket_url,
         "REGSUB_XMR_MINE": "false",
-        "REGSUB_XMR_POOL_URL": "",
-        "REGSUB_XMR_WALLET": "",
+        # Empty args must render as '""' (YAML empty string) not null.
+        "REGSUB_XMR_POOL_URL": '""',
+        "REGSUB_XMR_WALLET": '""',
         "REGSUB_FSX_SIZE": _val("fsx_fs_size") or "1200",
         "REGSUB_DETAILED_MONITORING": _val("enable_detailed_monitoring") or "false",
         "REGSUB_CLUSTER_NAME": cluster_name,
         "REGSUB_USERNAME": f"{_os.environ.get('USER', 'unknown')}-{aws_ctx.iam_username}",
         "REGSUB_PROJECT": cluster_name,
         "REGSUB_DELETE_LOCAL_ROOT": _val("delete_local_root") or "false",
-        "REGSUB_SAVE_FSX": _val("auto_delete_fsx") or "true",
-        "REGSUB_ENFORCE_BUDGET": _val("enforce_budget") or "true",
+        # DeletionPolicy requires "Retain" or "Delete", not bool.
+        "REGSUB_SAVE_FSX": (
+            "Delete"
+            if (_val("auto_delete_fsx") or "false").lower() in ("true", "1", "yes")
+            else "Retain"
+        ),
+        # Tag values must be quoted strings, not bare YAML booleans.
+        "REGSUB_ENFORCE_BUDGET": '"' + (_val("enforce_budget") or "true") + '"',
         "REGSUB_AWS_ACCOUNT_ID": f"aws_profile-{aws_ctx.profile}",
         "REGSUB_ALLOCATION_STRATEGY": _val("spot_instance_allocation_strategy") or "capacity-optimized",
-        "REGSUB_DAYLILY_GIT_DEETS": "",
+        # Tag value must be non-empty (AWS min length = 1).
+        "REGSUB_DAYLILY_GIT_DEETS": "none",
         "REGSUB_MAX_COUNT_8I": str(max_8i),
         "REGSUB_MAX_COUNT_128I": str(max_128i),
         "REGSUB_MAX_COUNT_192I": str(max_192i),
@@ -452,6 +460,14 @@ def run_create_workflow(
         "Cluster %s created in %.0fs.",
         cluster_name,
         monitor_result.elapsed_seconds,
+    )
+
+    # -- SSH connection banner ------------------------------------------------
+    _print_ssh_banner(
+        cluster_name,
+        head_node_ip=monitor_result.head_node_ip,
+        keypair=keypair,
+        region_az=region_az,
     )
 
     # -- 8. POST-CREATE: Budgets (Phase 3a) -----------------------------------
@@ -573,6 +589,54 @@ def run_create_workflow(
 
     logger.info("✅ Cluster %s creation complete.", cluster_name)
     return EXIT_SUCCESS
+
+
+# ---------------------------------------------------------------------------
+# SSH banner helper
+# ---------------------------------------------------------------------------
+
+
+def _print_ssh_banner(
+    cluster_name: str,
+    *,
+    head_node_ip: str | None,
+    keypair: str,
+    region_az: str,
+) -> None:
+    """Print a prominent SSH connection message after successful creation."""
+    bar = "=" * 72
+    if head_node_ip:
+        print(
+            f"\n{bar}\n"
+            f"  CLUSTER CREATION SUCCESSFUL\n"
+            f"{bar}\n"
+            f"\n"
+            f"  Cluster   : {cluster_name}\n"
+            f"  Region/AZ : {region_az}\n"
+            f"  Head Node : {head_node_ip}\n"
+            f"  SSH Key   : {keypair}\n"
+            f"\n"
+            f"  Connect:\n"
+            f"\n"
+            f"    ssh -i ~/.ssh/{keypair}.pem ec2-user@{head_node_ip}\n"
+            f"\n"
+            f"{bar}\n"
+        )
+    else:
+        print(
+            f"\n{bar}\n"
+            f"  CLUSTER CREATION SUCCESSFUL\n"
+            f"{bar}\n"
+            f"\n"
+            f"  Cluster   : {cluster_name}\n"
+            f"  Region/AZ : {region_az}\n"
+            f"\n"
+            f"  Head node IP not yet available.\n"
+            f"  Run:  pcluster describe-cluster -n {cluster_name}"
+            f" --region {region_az[:-1]}\n"
+            f"\n"
+            f"{bar}\n"
+        )
 
 
 # ---------------------------------------------------------------------------
