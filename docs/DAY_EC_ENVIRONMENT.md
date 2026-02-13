@@ -68,7 +68,7 @@ The following packages are included in the DAY-EC environment:
 # Activate environment
 conda activate DAY-EC
 
-# Run all tests (454 tests, ~0.3s)
+# Run all tests (468 tests, ~0.3s)
 pytest tests/
 
 # Run with coverage for the Python control plane

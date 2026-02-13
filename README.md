@@ -1,5 +1,5 @@
 # Daylily Ephemeral Cluster
-_(stable tagged **beta release** release to use --> 0.7.353)_
+_(stable tagged **beta release** release to use --> 0.7.602)_
 
 > Infrastructure-as-code for spinning up ephemeral (transient) **AWS ParallelCluster's** that are tuned for bioinformatics and multi-omics analysis, but can run any slurm based or linux derived worflows. The project assembles the networking, storage, authentication, and head-node tooling required to launch, monitor, and tear down self-scaling Slurm clusters with predictable performance and cost transparency. Workflows themselves live in separate repositories, may be in any framework that supports slurm (snakemake, nextflow, cromwell, etc) and can be plugged in on demand and executed on your ephemeral resources.
 
@@ -1002,7 +1002,7 @@ bin/daylily-ssh-into-headnode
 
 <p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
-# From The Epheemeral Cluster Headnode
+# From The Ephemeral Cluster Headnode
 
 ## Confirm Headnode Configuration Is Complete (using the `daylily-omics-analysis` repo)
 
@@ -1095,7 +1095,7 @@ options:
 ##### clone daylily-omics-analysis
 
 ```bash
-day-clone-d dayoa --repository daylily-omics-analysis -w https
+day-clone -d dayoa --repository daylily-omics-analysis -w https
 cd /fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis
 ```
 
@@ -1251,7 +1251,7 @@ pcluster delete-cluster -n <cluster-name> --region us-west-2
 
 `bin/daylily-ssh-into-headnode`
 
-_alias it for your shell:_ `alias goday="source ~/git_repos/daylily-ephemeral-cluster/bin/daylily-ssh-into-headnode"`
+_alias it for your shell:_ `alias goday="source ~/projects/daylily-ephemeral-cluster/bin/daylily-ssh-into-headnode"`
 
 
 ---
@@ -1429,7 +1429,7 @@ _example from the daylily-omics-analysis repo_
 
 ![](docs/images/assets/tree_structure/tree.md)
 
-- [with files](docs/ops/tree_full.md   
+- [with files](docs/images/assets/daylily_tree.png)
     
 ### [Automated Concordance Analysis Table](http://daylilyinformatics.com:8081/components/daylily_qc_reports/other_reports/giabhcr_concordance_mqc.tsv)
   > Reported faceted by: SNPts, SNPtv, INS>0-<51, DEL>0-51, Indel>0-<51.
@@ -1443,8 +1443,8 @@ _example from the daylily-omics-analysis repo_
 #### [Observability w/CloudWatch Dashboard](https://us-east-2.console.aws.amazon.com/cloudwatch/home?region=us-east-2#)
 
   > ![](docs/images/assets/cloudwatch.png)
-  > ![](/docs/images/assets.cloudwatch_2.png)
-  > ![](/docs/images/assets.cloudwatch3.png)
+  > ![](docs/images/assets/cloudwatch_2.png)
+  > ![](docs/images/assets/cloudwatch3.png)
 
 #### [Cost Tracking and Budget Enforcement](https://aws.amazon.com/blogs/compute/using-cost-allocation-tags-with-aws-parallelcluster/)
 
@@ -1458,7 +1458,7 @@ _example from the daylily-omics-analysis repo_
 
 # Contributing
 
-[Contributing Guidelines](CONTRIBUTING.md)
+[Contributing Guidelines](docs/aug/CONTRIBUTING.md)
 
 # Versioning
 

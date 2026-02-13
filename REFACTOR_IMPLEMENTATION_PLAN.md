@@ -2,7 +2,7 @@
 
 **Branch**: `feature/cp-001-package-skeleton`
 **Spec**: `REFACTOR_SPEC.md`
-**Status**: ✅ COMPLETE — All 19 tasks (CP-001 through CP-019) implemented, tested (454 tests, 85% coverage), and merged via PR #218.
+**Status**: ✅ COMPLETE — All 19 tasks (CP-001 through CP-019) implemented, tested (468 tests, 85% coverage), and merged via PR #218.
 
 ---
 

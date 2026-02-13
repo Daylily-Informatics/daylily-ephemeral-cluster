@@ -11,7 +11,7 @@
 - Budget management (global + per-cluster) via Python
 - Heartbeat scheduling (EventBridge + SNS) via Python
 - Cluster creation monitoring with configurable polling
-- 454 unit tests, 85% coverage (no AWS credentials required)
+- 468 unit tests, 85% coverage (no AWS credentials required)
 - Exit codes: 0=success, 1=validation failure, 2=AWS error, 3=drift, 4=toolchain failure
 
 **Changed**
