@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Daylily Headnode Configuration Script
+# Daylily Headnode Remote Tests Script
 
 # --- Ensure DAY-EC conda environment is active ---
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -8,10 +8,48 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${SCRIPT_DIR}/helpers/ensure_dayec.sh"
 ensure_dayec || return 1
 
-# Capture arguments for PEM file and region
-pem_file=$1
-region=$2
-aws_profile=$3
+# ---------------------------------------------------------------------------
+# Flag parsing  (backward-compatible: positional args still work)
+# ---------------------------------------------------------------------------
+_rt_usage() {
+    cat <<'EOF'
+Usage: source daylily-run-ephemeral-cluster-remote-tests <pem_file> <region> <profile> [options]
+
+Positional (required):
+  pem_file       Path to SSH PEM key
+  region         AWS region
+  profile        AWS CLI profile name
+
+Options:
+  --cluster NAME   Cluster name (skip interactive cluster selection)
+  --yes            Auto-answer yes to the workflow launch prompt
+  --no-launch      Auto-answer no to the workflow launch prompt
+  -h, --help       Show this help message and return
+
+When --cluster is omitted the script falls back to interactive selection.
+When neither --yes nor --no-launch is provided, the script prompts interactively.
+EOF
+}
+
+flag_cluster=""
+flag_launch=""  # "", "yes", or "no"
+
+# Separate positional args from flags
+_positionals=()
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --cluster)    flag_cluster="$2"; shift 2 ;;
+        --yes)        flag_launch="yes"; shift   ;;
+        --no-launch)  flag_launch="no";  shift   ;;
+        -h|--help)    _rt_usage; return 0        ;;
+        -*)           echo "Unknown option: $1" >&2; _rt_usage; return 1 ;;
+        *)            _positionals+=("$1"); shift ;;
+    esac
+done
+
+pem_file="${_positionals[0]:-}"
+region="${_positionals[1]:-}"
+aws_profile="${_positionals[2]:-}"
 duser="ubuntu"
 
 
@@ -23,7 +61,7 @@ git_repo=$(yq -r '.repositories.daylily-omics-analysi.https_url' "$CONFIG_FILE")
 # Ensure both PEM file and region are provided
 if [[ -z "$pem_file" || -z "$region" || -z "$aws_profile" ]]; then
     echo "Error: You must provide both the PEM file path and the AWS region."
-    echo "Usage: source $0 /path/to/pem_file region profile"
+    echo "Usage: source $0 /path/to/pem_file region profile [--cluster NAME] [--yes|--no-launch]"
     return 1
 fi
  
@@ -44,8 +82,11 @@ while IFS= read -r cluster_name; do
     cluster_array+=("$cluster_name")
 done <<< "$cluster_names"
 
-# Auto-select if there is only one cluster, otherwise prompt for selection
-if [[ ${#cluster_array[@]} -eq 1 ]]; then
+# Auto-select from flag, single-match, or prompt interactively
+if [[ -n "$flag_cluster" ]]; then
+    selected_cluster="$flag_cluster"
+    echo "Using cluster from --cluster flag: $selected_cluster"
+elif [[ ${#cluster_array[@]} -eq 1 ]]; then
     selected_cluster=$cluster_array
     echo "Only one cluster found: $selected_cluster. Auto-selecting it."
 else
@@ -91,9 +132,15 @@ if [[ ! -f "$pem_file" ]]; then
 fi
 
 
-echo "Would you like to remotely launch a workflow w/in a tmux session on the headnode? [y/n]"
-
-read REPLY
+# Determine whether to launch the remote workflow
+if [[ "$flag_launch" == "yes" ]]; then
+    REPLY="y"
+elif [[ "$flag_launch" == "no" ]]; then
+    REPLY="n"
+else
+    echo "Would you like to remotely launch a workflow w/in a tmux session on the headnode? [y/n]"
+    read REPLY
+fi
 if [[ "$REPLY" == "y" ]]; then
 
     ssh -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \

@@ -78,7 +78,19 @@ datasets are available.
 
 - The config file `config/daylily_ephemeral_cluster.yaml` is used to pull routine defaults that will be used to skip user prompts in the next step. Please check out the file and set anything you wish to tweak.
 
-#### Run `daylily-create-ephemeral-cluster`
+#### Run cluster creation
+
+##### Python control plane (recommended)
+
+```bash
+conda activate DAY-EC
+export AWS_PROFILE=daylily-service
+REGION_AZ=us-west-2c
+
+python -m daylily_ec create --region-az $REGION_AZ --profile $AWS_PROFILE
+```
+
+##### Bash wrapper (backward compatible)
 
 ```bash
 export AWS_PROFILE=daylily-service

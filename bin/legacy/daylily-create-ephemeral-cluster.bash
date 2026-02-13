@@ -1,0 +1,2584 @@
+#!/usr/bin/env bash
+
+
+# --- Bash version guard (macOS ships bash 3.2; we need >= 4 for associative arrays) ---
+if [[ -z "${BASH_VERSINFO:-}" || "${BASH_VERSINFO[0]}" -lt 4 ]]; then
+  if [[ -n "${CONDA_PREFIX:-}" && -x "${CONDA_PREFIX}/bin/bash" ]]; then
+    exec "${CONDA_PREFIX}/bin/bash" "$0" "$@"
+  fi
+  echo "❌ Bash >= 4 required. On macOS:"
+  echo " "
+  echo "   Have you installed the DAY-EC conda env?"
+  echo "   "
+  echo "   bin/init_dayec  "
+  exit 3
+fi
+
+# --- Ensure DAY-EC conda environment is active ---
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=helpers/ensure_dayec.sh
+source "${SCRIPT_DIR}/helpers/ensure_dayec.sh"
+ensure_dayec || exit 1
+
+command -v say >/dev/null 2>&1 && say "and we are off" || echo "and we are off"
+
+# Report shell without depending on bin/retshell
+CURR_SHELL="${SHELL:-$(ps -p $$ -o comm= 2>/dev/null || echo unknown)}"
+echo "Shell: ${CURR_SHELL}"
+
+# Default configuration
+pass_on_warn=0  # Default for warnings causing failures
+cluster_status_watcher_warning_count=0
+debug_mode=0
+
+EMAIL_REGEX='^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$'
+
+HEARTBEAT_ROLE_ENV_VARS=(
+    "DAY_HEARTBEAT_SCHEDULER_ROLE_ARN"
+    "DAYLILY_HEARTBEAT_SCHEDULER_ROLE_ARN"
+    "DAY_HEARTBEAT_ROLE_ARN"
+    "DAYLILY_SCHEDULER_ROLE_ARN"
+)
+
+HEARTBEAT_DEFAULT_ROLE_NAMES=(
+    "eventbridge-scheduler-to-sns"
+    "daylily-eventbridge-scheduler"
+)
+
+resolve_or_create_heartbeat_role() {
+    local region="$1"
+    local preconfigured="${2:-}"
+
+    if [[ -n "$preconfigured" ]]; then
+        echo "$preconfigured"
+        return 0
+    fi
+
+    local env_var
+    for env_var in "${HEARTBEAT_ROLE_ENV_VARS[@]}"; do
+        local value="${!env_var:-}"
+        if [[ -n "$value" ]]; then
+            echo "$value"
+            return 0
+        fi
+    done
+
+    local aws_cli=(aws)
+    if [[ -n "${AWS_PROFILE:-}" ]]; then
+        aws_cli+=(--profile "$AWS_PROFILE")
+    fi
+    if [[ -n "$region" ]]; then
+        aws_cli+=(--region "$region")
+    fi
+
+    local role_name=""
+    local role_arn=""
+    for role_name in "${HEARTBEAT_DEFAULT_ROLE_NAMES[@]}"; do
+        if role_arn=$("${aws_cli[@]}" iam get-role --role-name "$role_name" --query 'Role.Arn' --output text 2>/dev/null); then
+            if [[ -n "$role_arn" && "$role_arn" != "None" ]]; then
+                echo "$role_arn"
+                return 0
+            fi
+        fi
+    done
+
+    if [[ -x "bin/admin/create_scheduler_role_for_sns.sh" ]]; then
+        local create_cmd=("bin/admin/create_scheduler_role_for_sns.sh" "--region" "$region")
+        if [[ -n "${AWS_PROFILE:-}" ]]; then
+            create_cmd+=("--profile" "$AWS_PROFILE")
+        fi
+
+        local output=""
+        if output=$("${create_cmd[@]}" 2>&1); then
+            echo "$output" >&2
+            role_arn=$(echo "$output" | awk '/ROLE ARN:/ {print $3}' | tail -n1)
+            if [[ -n "$role_arn" ]]; then
+                echo "$role_arn"
+                return 0
+            fi
+        else
+            echo "$output" >&2
+        fi
+    fi
+
+    return 1
+}
+
+suppress_pkg_resources_warning() {
+    local filter="ignore:pkg_resources is deprecated as an API:UserWarning"
+    if [[ -z "${PYTHONWARNINGS:-}" ]]; then
+        export PYTHONWARNINGS="$filter"
+    elif [[ "$PYTHONWARNINGS" != *"pkg_resources is deprecated as an API"* ]]; then
+        export PYTHONWARNINGS="${PYTHONWARNINGS},$filter"
+    fi
+}
+
+ensure_reference_cli() {
+    if ! command -v daylily-omics-references.sh >/dev/null 2>&1; then
+        cat <<'ERR'
+❌ Error: Required command 'daylily-omics-references' is not available.
+Activate the DAY-EC conda environment or install version 0.1.0 manually with:
+
+    pip install "git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.2.1"
+
+ERR
+        exit 3
+    fi
+}
+
+sanitize_config_var() {
+    local var_name="$1"
+    local value="${!var_name}"
+    if [[ "$value" == "null" ]]; then
+        printf -v "$var_name" ''
+    fi
+}
+
+is_valid_email() {
+    local email="$1"
+    [[ -n "$email" ]] || return 1
+    [[ $email =~ $EMAIL_REGEX ]]
+}
+
+prompt_for_valid_email() {
+    local __resultvar="$1"
+    local __prompt="$2"
+    local __input=""
+
+    while true; do
+        read -r -p "$__prompt" __input
+        if [[ -z "$__input" ]]; then
+            echo "Email cannot be empty. Please try again."
+            continue
+        fi
+
+        if is_valid_email "$__input"; then
+            printf -v "$__resultvar" '%s' "$__input"
+            echo "Valid email entered: $__input"
+            break
+        else
+            echo "Invalid email format. Please use string@string.string format."
+        fi
+    done
+}
+
+suppress_pkg_resources_warning
+
+# Function to display help
+usage() {
+    echo "Usage: $0 [--profile AWS_PROFILE] [--region-az REGION-AZ] [--pass-on-warn] [--debug]"
+    echo "       --region-az REGION-AZ   Specify the AWS region and availability zone (ie: us-west-2b)"
+    echo "       --pass-on-warn          Allow warnings to pass without failure (default: false)"
+    echo "       --debug                 Print commands as they are executed"
+    echo "       --profile  AWS profile to use (defaults to AWS_PROFILE environment variable)"
+    echo "       --config <path>       Path to the daylily-create-ephemeral-cluster config, default: config/daylily_ephemeral_cluster_template.yaml"
+    echo "       --repo-override <repo-key>:<git-ref>  Override the default_ref for a repository during headnode setup."
+    echo "                              Can be specified multiple times for different repositories."
+    echo "       --help                  Show this help message and exit"
+    echo " "
+    echo "Environment Variables:"
+    echo "   export DAY_CONTACT_EMAIL=\"you@email.com\" -- will be used for email fields if not set in config."
+    echo "   unset DAY_DISABLE_AUTO_SELECT -- if set to 1, disables auto-selecting config values and always prompts. If not set or set to 0 will use the user specified config.yaml values (as found in the ~/.config/daylily/<clustername>_cli_cfg_<datetime>.yaml, which is created following this script exiting successfully && can be used to re-create teh exact same cluster again)."
+    echo " "
+    echo "Examples:"
+    echo "   # Override daylily-omics-analysis to use a development branch"
+    echo "   $0 --region-az us-west-2c --profile \$AWS_PROFILE --repo-override daylily-omics-analysis:0.8.0-dev"
+    echo " "
+    echo "   # Override multiple repositories"
+    echo "   $0 --region-az us-west-2c --profile \$AWS_PROFILE \\"
+    echo "      --repo-override daylily-omics-analysis:feature-branch \\"
+    echo "      --repo-override rna-seq-star-deseq2:main"
+}
+
+validate_config_file() {
+    local file_path="$1"
+
+    if [[ -z "$file_path" ]]; then
+        echo "❌ Error: Configuration file path cannot be empty."
+        return 1
+    fi
+
+    if [[ ! -f "$file_path" ]]; then
+        echo "❌ Error: Configuration file '$file_path' does not exist."
+        return 1
+    fi
+
+    if command -v yq >/dev/null 2>&1; then
+        if ! yq -e '.ephemeral_cluster.config' "$file_path" >/dev/null 2>&1; then
+            echo "❌ Error: Configuration file '$file_path' is missing the 'ephemeral_cluster.config' section."
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
+# Repository override storage
+declare -A REPO_OVERRIDES=()
+AVAILABLE_REPOS_FILE="config/daylily_available_repositories.yaml"
+
+# Validate a repository override argument (format: repo-key:git-ref)
+validate_repo_override() {
+    local override="$1"
+
+    if [[ ! "$override" =~ ^[a-zA-Z0-9_-]+:.+$ ]]; then
+        echo "❌ Error: Invalid --repo-override format: '$override'"
+        echo "   Expected format: <repository-key>:<git-ref>"
+        echo "   Example: daylily-omics-analysis:0.8.0-dev"
+        return 1
+    fi
+
+    local repo_key="${override%%:*}"
+    local git_ref="${override#*:}"
+
+    if [[ -z "$repo_key" || -z "$git_ref" ]]; then
+        echo "❌ Error: Both repository key and git ref are required in --repo-override"
+        return 1
+    fi
+
+    # Validate that the repository key exists in the available repositories file
+    if [[ -f "$AVAILABLE_REPOS_FILE" ]]; then
+        if ! yq -e ".repositories.\"$repo_key\"" "$AVAILABLE_REPOS_FILE" >/dev/null 2>&1; then
+            echo "❌ Error: Repository key '$repo_key' not found in $AVAILABLE_REPOS_FILE"
+            echo "   Available repositories:"
+            yq -r '.repositories | keys | .[]' "$AVAILABLE_REPOS_FILE" 2>/dev/null | sed 's/^/     - /'
+            return 1
+        fi
+    fi
+
+    return 0
+}
+
+# Store a validated repo override
+add_repo_override() {
+    local override="$1"
+    local repo_key="${override%%:*}"
+    local git_ref="${override#*:}"
+    REPO_OVERRIDES["$repo_key"]="$git_ref"
+    echo "ℹ️ Repository override registered: $repo_key -> $git_ref"
+}
+
+prompt_for_config_file() {
+    while true; do
+        read -r -p "Enter path to the Daylily ephemeral cluster config file: " local_config
+        if validate_config_file "$local_config"; then
+            echo "✅ Using configuration file: $local_config"
+            echo "   ➜ Tip: export DAY_EX_CFG=\"$local_config\" to skip this prompt in future runs."
+            CONFIG_FILE="$local_config"
+            break
+        fi
+    done
+}
+
+prompt_for_positive_integer() {
+    local __resultvar="$1"
+    local __prompt="$2"
+    local __default="$3"
+    local __input=""
+
+    while true; do
+        read -r -p "$__prompt" __input
+        if [[ -z "$__input" && -n "$__default" ]]; then
+            __input="$__default"
+        fi
+        if [[ "$__input" =~ ^[0-9]+$ ]]; then
+            printf -v "$__resultvar" '%s' "$__input"
+            break
+        else
+            echo "Please enter a positive integer."
+        fi
+    done
+}
+
+declare -A ORIGINAL_CONFIG_VALUES=()
+declare -A FINAL_CONFIG_VALUES=()
+declare -A CONFIG_ERROR_NOTES=()
+declare -A TEMPLATE_DEFAULTS=()
+declare -A CONFIG_ACTIONS=()
+declare -A CONFIG_DEFAULTS=()
+declare -A CONFIG_SETVALS=()
+declare -a CONFIG_KEYS=()
+
+INIT_TEMPLATE_FILE=""
+
+# Track yq implementation details so we can issue compatible commands.
+YQ_FLAVOR=""
+
+detect_yq_flavor() {
+    if [[ -n "$YQ_FLAVOR" ]]; then
+        return
+    fi
+    if ! command -v yq >/dev/null 2>&1; then
+        YQ_FLAVOR="none"
+        return
+    fi
+
+    local version
+    version=$(yq --version 2>/dev/null || true)
+    if [[ "$version" == *"kislyuk"* || "$version" == *"jq wrapper"* ]]; then
+        YQ_FLAVOR="python"
+        return
+    elif [[ "$version" == *"mikefarah"* || "$version" == *"https://github.com/mikefarah/yq"* ]]; then
+        YQ_FLAVOR="go"
+        return
+    elif [[ "$version" =~ ^yq[[:space:]][0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+        YQ_FLAVOR="python"
+        return
+    fi
+
+    if yq --help 2>&1 | grep -qi 'jq wrapper'; then
+        YQ_FLAVOR="python"
+    elif yq --help 2>&1 | grep -qi 'https://github.com/mikefarah/yq'; then
+        YQ_FLAVOR="go"
+    else
+        YQ_FLAVOR="unknown"
+    fi
+}
+
+detect_yq_flavor
+
+yq_eval_pretty_yaml() {
+    # $1: input JSON file, $2: output YAML file
+    detect_yq_flavor
+    local input="$1"
+    local output="$2"
+
+    if [[ "$YQ_FLAVOR" == "go" ]]; then
+        yq eval -P '.' "$input" >"$output"
+        return $?
+    elif [[ "$YQ_FLAVOR" == "python" ]]; then
+        yq -y '.' "$input" >"$output"
+        return $?
+    fi
+
+    if yq -P '.' "$input" >"$output" 2>/dev/null; then
+        return 0
+    fi
+    if yq eval -P '.' "$input" >"$output" 2>/dev/null; then
+        return 0
+    fi
+    if yq -y '.' "$input" >"$output" 2>/dev/null; then
+        return 0
+    fi
+
+    return 1
+}
+
+yq_yaml_to_json() {
+    # $1: input YAML file, $2: output JSON file
+    detect_yq_flavor
+    local input="$1"
+    local output="$2"
+
+    if [[ "$YQ_FLAVOR" == "go" ]]; then
+        yq eval -o=json '.' "$input" >"$output"
+        return $?
+    elif [[ "$YQ_FLAVOR" == "python" ]]; then
+        yq '.' "$input" >"$output"
+        return $?
+    fi
+
+    if yq -o=json '.' "$input" >"$output" 2>/dev/null; then
+        return 0
+    fi
+
+    return 1
+}
+
+yq_inplace_triplet_update() {
+    # $1: file, $2: key, $3: action, $4: default, $5: value
+    detect_yq_flavor
+    local file="$1" key="$2" action="$3" default_val="$4" value="$5"
+    local expr='.ephemeral_cluster.config[$key] = [$action, $default, $value]'
+
+    local -a yq_args=(
+        --arg key "$key"
+        --arg action "$action"
+        --arg default "$default_val"
+        --arg value "$value"
+    )
+
+    # Flavor-specific fast paths
+    if [[ "$YQ_FLAVOR" == "go" ]]; then
+        # mikefarah/yq
+        if yq eval -i "$expr" "${yq_args[@]}" "$file" 2>/dev/null; then
+            return 0
+        fi
+    elif [[ "$YQ_FLAVOR" == "python" ]]; then
+        # kislyuk/yq (jq wrapper) requires -y with -i/--in-place
+        if yq -y --in-place "${yq_args[@]}" "$expr" "$file" 2>/dev/null; then
+            return 0
+        fi
+        # some builds prefer short flags order
+        if yq -y -i "${yq_args[@]}" "$expr" "$file" 2>/dev/null; then
+            return 0
+        fi
+    fi
+
+    # Generic attempts (cover odd PATHs / aliases)
+    if yq eval -i "$expr" "${yq_args[@]}" "$file" 2>/dev/null; then return 0; fi
+    if yq --in-place -y "${yq_args[@]}" "$expr" "$file" 2>/dev/null; then return 0; fi
+    if yq -i -y "${yq_args[@]}" "$expr" "$file" 2>/dev/null; then return 0; fi
+
+    # Last-resort, no in-place: write to tmp then mv back (works with both flavors)
+    local __tmp
+    __tmp="$(mktemp)" || return 1
+    if yq eval -P "$expr" "${yq_args[@]}" "$file" >"$__tmp" 2>/dev/null \
+       || yq -y "${yq_args[@]}" "$expr" "$file" >"$__tmp" 2>/dev/null; then
+        cat "$__tmp" > "$file"
+        rm -f "$__tmp"
+        return 0
+    fi
+    rm -f "$__tmp"
+    return 1
+}
+
+REQUIRED_CONFIG_KEYS=(
+    "auto_delete_fsx"
+    "budget_amount"
+    "budget_email"
+    "cluster_name"
+    "cluster_template_yaml"
+    "delete_local_root"
+    "enable_detailed_monitoring"
+    "enforce_budget"
+    "fsx_fs_size"
+    "global_allowed_budget_users"
+    "global_budget_amount"
+    "headnode_instance_type"
+    "heartbeat_email"
+    "heartbeat_schedule"
+    "heartbeat_scheduler_role_arn"
+    "iam_policy_arn"
+    "max_count_128I"
+    "max_count_192I"
+    "max_count_8I"
+    "private_subnet_id"
+    "public_subnet_id"
+    "s3_bucket_name"
+    "spot_instance_allocation_strategy"
+    "ssh_key_name"
+    "allowed_budget_users"
+)
+
+is_promptuser() {
+    [[ "$1" == "PROMPTUSER" ]]
+}
+
+is_auto_select_disabled() {
+    [[ "${DAY_DISABLE_AUTO_SELECT:-}" == "1" ]]
+}
+
+normalize_config_component() {
+    local value="$1"
+    if [[ "$value" == "null" || "$value" == "None" ]]; then
+        value=""
+    elif [[ "$value" == "True" || "$value" == "TRUE" ]]; then
+        value="true"
+    elif [[ "$value" == "False" || "$value" == "FALSE" ]]; then
+        value="false"
+    fi
+    echo "$value"
+}
+
+has_effective_config_set_value() {
+    local setv="$1"
+    [[ -n "$setv" && "$setv" != "PROMPTUSER" ]]
+}
+
+should_auto_apply_config_value() {
+    local action="$1"
+    local setv="$2"
+
+    if is_auto_select_disabled; then
+        return 1
+    fi
+
+    if [[ "$action" == "USESETVALUE" && -n "$setv" ]]; then
+        return 0
+    fi
+
+    if has_effective_config_set_value "$setv"; then
+        return 0
+    fi
+
+    return 1
+}
+
+set_final_config_value() {
+    local key="$1"
+    local value="$2"
+    FINAL_CONFIG_VALUES["$key"]="$value"
+}
+
+get_template_default() {
+    local key="$1"
+    local fallback="$2"
+
+    if [[ -n "${TEMPLATE_DEFAULTS[$key]+x}" ]]; then
+        echo "${TEMPLATE_DEFAULTS[$key]}"
+    else
+        echo "$fallback"
+    fi
+}
+
+mark_config_error() {
+    local key="$1"
+    local original="$2"
+    local message="$3"
+    if [[ -n "$original" ]]; then
+        if [[ -n "$message" ]]; then
+            CONFIG_ERROR_NOTES["$key"]="${original}+ERROR (${message})"
+        else
+            CONFIG_ERROR_NOTES["$key"]="${original}+ERROR"
+        fi
+    fi
+}
+
+ensure_config_key() {
+    local key="$1"
+    for existing in "${CONFIG_KEYS[@]}"; do
+        if [[ "$existing" == "$key" ]]; then
+            return
+        fi
+    done
+    CONFIG_KEYS+=("$key")
+}
+
+# ----- Config v2 (triplets) helpers -----
+yaml_node_json() {
+  local key="$1"
+  detect_yq_flavor
+  local expr='.ephemeral_cluster.config[$key] // null'
+  if [[ "$YQ_FLAVOR" == "go" ]]; then
+    yq eval -o=json --arg key "$key" "$expr" "$CONFIG_FILE" 2>/dev/null
+  elif [[ "$YQ_FLAVOR" == "python" ]]; then
+    yq --arg key "$key" "$expr" "$CONFIG_FILE" 2>/dev/null
+  else
+    yq -o=json --arg key "$key" "$expr" "$CONFIG_FILE" 2>/dev/null
+  fi
+}
+
+parse_triplet_for_key() {
+  # stdout: action \t default \t set
+  local key="$1"
+  local j
+  j=$(yaml_node_json "$key")
+  if [[ -z "$j" || "$j" == "null" ]]; then
+    printf 'PROMPTUSER\t\t\n'; return
+  fi
+  if [[ "${j:0:1}" == '"' ]]; then
+    local s
+    s=$(echo "$j" | sed -E 's/^"(.*)"$/\1/')
+    printf '%s\t\t\n' "$s"
+    return
+  fi
+  if [[ "${j:0:1}" == '[' ]]; then
+    python - "$j" <<'PY'
+import json,sys
+arr=json.loads(sys.argv[1])
+a = (arr[0] if len(arr)>0 else "PROMPTUSER") or "PROMPTUSER"
+d = (arr[1] if len(arr)>1 else "") or ""
+s = (arr[2] if len(arr)>2 else "") or ""
+print(f"{a}\t{d}\t{s}")
+PY
+    return
+  fi
+  if [[ "${j:0:1}" == '{' ]]; then
+    python - "$j" <<'PY'
+import json,sys
+m=json.loads(sys.argv[1])
+a = (m.get("action") or "PROMPTUSER")
+d = (m.get("default_value") or "")
+s = (m.get("set_value") or "")
+print(f"{a}\t{d}\t{s}")
+PY
+    return
+  fi
+  printf 'PROMPTUSER\t\t\n'
+}
+
+# Effective default: prefer config.default_value, else template_defaults, else fallback
+get_effective_default() {
+  local key="$1" ; local fallback="$2"
+  local d="${CONFIG_DEFAULTS[$key]:-}"
+  if [[ -n "$d" ]]; then echo "$d"; else echo "$(get_template_default "$key" "$fallback")"; fi
+}
+
+# For any key: if action=USESETVALUE and set_value present and auto-select enabled, return set_value; else empty
+get_action_set_or_empty() {
+  local key="$1"
+  local action="${CONFIG_ACTIONS[$key]:-PROMPTUSER}"
+  local setv="${CONFIG_SETVALS[$key]:-}"
+  if should_auto_apply_config_value "$action" "$setv"; then
+    echo "$setv"
+  else
+    echo ""
+  fi
+}
+
+# Back-compat "original value" echo for debug table
+get_original_config_value() {
+  local key="$1"
+  echo "${CONFIG_ACTIONS[$key]:-PROMPTUSER}"
+}
+
+load_config_values() {
+    local key
+    TEMPLATE_DEFAULTS=()
+    CONFIG_KEYS=()
+    CONFIG_ACTIONS=()
+    CONFIG_DEFAULTS=()
+    CONFIG_SETVALS=()
+
+    # keys present in config
+    while IFS= read -r key; do
+        [[ -n "$key" ]] && CONFIG_KEYS+=("$key")
+    done < <(yq -r '.ephemeral_cluster.config | keys | .[]' "$CONFIG_FILE" 2>/dev/null || true)
+
+    # ensure REQUIRED keys exist
+    for key in "${REQUIRED_CONFIG_KEYS[@]}"; do
+        ensure_config_key "$key"
+    done
+
+    # template defaults
+    while IFS= read -r key; do
+        [[ -n "$key" ]] || continue
+        local value
+        value=$(yq -r ".ephemeral_cluster.template_defaults.$key // \"__MISSING__\"" "$CONFIG_FILE" 2>/dev/null)
+        if [[ "$value" != "__MISSING__" && "$value" != "null" ]]; then
+            TEMPLATE_DEFAULTS["$key"]="$value"
+        fi
+    done < <(yq -r '.ephemeral_cluster.template_defaults | keys | .[]' "$CONFIG_FILE" 2>/dev/null || true)
+
+    # config triplets
+    for key in "${CONFIG_KEYS[@]}"; do
+        local line action def setv
+        line=$(parse_triplet_for_key "$key")
+        action="${line%%$'\t'*}"; line="${line#*$'\t'}"
+        def="${line%%$'\t'*}"; setv="${line#*$'\t'}"
+        def="$(normalize_config_component "$def")"
+        setv="$(normalize_config_component "$setv")"
+        CONFIG_ACTIONS["$key"]="${action:-PROMPTUSER}"
+        CONFIG_DEFAULTS["$key"]="${def:-}"
+        CONFIG_SETVALS["$key"]="${setv:-}"
+        ORIGINAL_CONFIG_VALUES["$key"]="${CONFIG_ACTIONS[$key]}"
+        FINAL_CONFIG_VALUES["$key"]="${CONFIG_ACTIONS[$key]}"
+    done
+}
+
+save_final_config_snapshot() {
+    local snapshot_dir="$HOME/.config/daylily"
+    mkdir -p "$snapshot_dir"
+
+    local base_name
+    base_name=$(basename "$CONFIG_FILE")
+    local timestamp
+    timestamp=$(date '+%Y%m%d%H%M%S')
+    local snapshot_file="$snapshot_dir/${base_name%.*}_final_${timestamp}.yaml"
+
+    local values_tmp
+    local errors_tmp
+    values_tmp=$(mktemp)
+    errors_tmp=$(mktemp)
+
+    for key in "${CONFIG_KEYS[@]}"; do
+        printf '%s\t%s\n' "$key" "${FINAL_CONFIG_VALUES[$key]}" >>"$values_tmp"
+    done
+
+    for key in "${!CONFIG_ERROR_NOTES[@]}"; do
+        printf '%s\t%s\n' "$key" "${CONFIG_ERROR_NOTES[$key]}" >>"$errors_tmp"
+    done
+
+    local json_tmp
+    json_tmp=$(mktemp)
+
+    python - <<'PY' "$values_tmp" "$errors_tmp" "$json_tmp"
+import sys
+from pathlib import Path
+import json
+
+values_path, errors_path, json_path = sys.argv[1:4]
+
+config_values = {}
+with open(values_path, 'r', encoding='utf-8') as fh:
+    for line in fh:
+        key, value = line.rstrip('\n').split('\t', 1)
+        config_values[key] = value
+
+error_notes = {}
+with open(errors_path, 'r', encoding='utf-8') as fh:
+    for line in fh:
+        key, value = line.rstrip('\n').split('\t', 1)
+        if value:
+            error_notes[key] = value
+
+payload = {
+    'ephemeral_cluster': {
+        'config': config_values,
+    }
+}
+
+if error_notes:
+    payload['ephemeral_cluster']['config_errors'] = error_notes
+
+Path(json_path).write_text(json.dumps(payload), encoding='utf-8')
+PY
+
+    if ! yq_eval_pretty_yaml "$json_tmp" "$snapshot_file"; then
+        echo "⚠️ Unable to render configuration snapshot as YAML (yq incompatibility?). Skipping snapshot export."
+        rm -f "$values_tmp" "$errors_tmp" "$json_tmp"
+        FINAL_CONFIG_SNAPSHOT=""
+        return
+    fi
+
+    rm -f "$values_tmp" "$errors_tmp" "$json_tmp"
+    echo "✅ Saved configuration snapshot to: $snapshot_file"
+    FINAL_CONFIG_SNAPSHOT="$snapshot_file"
+}
+
+write_cli_config_copy() {
+    local snapshot_dir="$HOME/.config/daylily"
+    mkdir -p "$snapshot_dir"
+
+    local cluster_name="${FINAL_CONFIG_VALUES["cluster_name"]}"
+    if [[ -z "$cluster_name" || "$cluster_name" == "PROMPTUSER" ]]; then
+        cluster_name="${CONFIG_SETVALS["cluster_name"]}"
+    fi
+    if [[ -z "$cluster_name" || "$cluster_name" == "PROMPTUSER" ]]; then
+        cluster_name="unnamed"
+    fi
+
+    local timestamp
+    timestamp=$(date '+%Y%m%d%H%M%S')
+    local resolved_file="$snapshot_dir/${cluster_name}_cli_cfg_${timestamp}.yaml"
+
+    local values_tmp json_tmp
+    values_tmp=$(mktemp)
+    json_tmp=$(mktemp)
+
+    for key in "${CONFIG_KEYS[@]}"; do
+        local action="${CONFIG_ACTIONS[$key]:-PROMPTUSER}"
+        if [[ "$action" == "PROMPTUSER" ]]; then
+            action="USESETVALUE"
+        fi
+
+        local value="${FINAL_CONFIG_VALUES[$key]}"
+        if [[ -z "${value+x}" || "$value" == "PROMPTUSER" || "$value" == "USESETVALUE" ]]; then
+            value="${CONFIG_SETVALS[$key]:-}"
+        fi
+        if [[ "$value" == "PROMPTUSER" || "$value" == "USESETVALUE" ]]; then
+            value=""
+        fi
+
+        local default_val="${CONFIG_DEFAULTS[$key]:-}"
+        if [[ "$default_val" == "PROMPTUSER" || "$default_val" == "USESETVALUE" ]]; then
+            default_val=""
+        fi
+
+        printf '%s\t%s\t%s\t%s\n' "$key" "$action" "$default_val" "$value" >>"$values_tmp"
+    done
+
+    if ! yq_yaml_to_json "$CONFIG_FILE" "$json_tmp"; then
+        echo "⚠️ Unable to serialize configuration file '$CONFIG_FILE'; skipping CLI config export."
+        rm -f "$values_tmp" "$json_tmp"
+        return
+    fi
+
+    if ! python - <<'PY' "$json_tmp" "$values_tmp"; then
+import json
+import sys
+
+json_path, values_path = sys.argv[1:3]
+
+def ensure_config_path(payload):
+    node = payload.setdefault('ephemeral_cluster', {})
+    if not isinstance(node, dict):
+        node = {}
+        payload['ephemeral_cluster'] = node
+    config = node.setdefault('config', {})
+    if not isinstance(config, dict):
+        config = {}
+        node['config'] = config
+    return config
+
+def convert_value(raw):
+    if raw == '':
+        return ''
+    lowered = raw.lower()
+    if lowered == 'true':
+        return True
+    if lowered == 'false':
+        return False
+    if raw.isdigit():
+        try:
+            return int(raw)
+        except ValueError:
+            return raw
+    return raw
+
+with open(json_path, 'r', encoding='utf-8') as handle:
+    data = json.load(handle)
+
+if not isinstance(data, dict):
+    data = {}
+
+config_section = ensure_config_path(data)
+
+with open(values_path, 'r', encoding='utf-8') as handle:
+    for line in handle:
+        line = line.rstrip('\n')
+        if not line:
+            continue
+        parts = line.split('\t', 3)
+        if len(parts) != 4:
+            continue
+        key, action, default_value, set_value = parts
+        resolved_action = action or 'PROMPTUSER'
+        if resolved_action == 'PROMPTUSER':
+            resolved_action = 'USESETVALUE'
+        resolved_set = convert_value(set_value)
+        # Default to the final value when present; otherwise fall back to any
+        # existing default from the originating configuration.
+        resolved_default = convert_value(set_value if set_value else default_value)
+        config_section[key] = [resolved_action, resolved_default, resolved_set]
+
+with open(json_path, 'w', encoding='utf-8') as handle:
+    json.dump(data, handle)
+PY
+        echo "⚠️ Unable to update CLI configuration JSON payload; skipping CLI config export."
+        rm -f "$values_tmp" "$json_tmp"
+        return
+    fi
+
+    if ! yq_eval_pretty_yaml "$json_tmp" "$resolved_file"; then
+        echo "⚠️ Unable to render CLI configuration YAML; skipping CLI config export."
+        rm -f "$values_tmp" "$json_tmp"
+        return
+    fi
+
+    rm -f "$values_tmp" "$json_tmp"
+    echo "✅ Wrote reusable CLI configuration to: $resolved_file"
+    RESOLVED_CLI_CONFIG="$resolved_file"
+}
+
+OLDwrite_init_template_yaml() {
+    local output_path="$1"
+    local substitutions_file="$2"
+
+    if [[ -z "$output_path" || -z "$substitutions_file" ]]; then
+        echo "❌ Error: write_init_template_yaml requires an output path and a substitutions file." >&2
+        return 1
+    fi
+
+    local config_tmp defaults_tmp json_tmp
+    config_tmp=$(mktemp)
+    defaults_tmp=$(mktemp)
+    json_tmp=$(mktemp)
+
+    for key in "${CONFIG_KEYS[@]}"; do
+        local value="${FINAL_CONFIG_VALUES[$key]}"
+        if [[ -z "${value+x}" ]]; then
+            value=""
+        fi
+        printf '%s\t%s\n' "$key" "$value" >>"$config_tmp"
+    done
+
+    for key in "${!TEMPLATE_DEFAULTS[@]}"; do
+        printf '%s\t%s\n' "$key" "${TEMPLATE_DEFAULTS[$key]}" >>"$defaults_tmp"
+    done
+
+    python - <<'PY' "$substitutions_file" "$config_tmp" "$defaults_tmp" "$CONFIG_FILE" "$json_tmp"
+import json
+import os
+import sys
+from datetime import datetime
+
+subs_path, config_path, defaults_path, source_config, json_path = sys.argv[1:6]
+
+def read_tab_file(path):
+    data = {}
+    if not path or not os.path.exists(path):
+        return data
+    with open(path, 'r', encoding='utf-8') as handle:
+        for raw_line in handle:
+            line = raw_line.rstrip('\n')
+            if not line:
+                continue
+            if '\t' not in line:
+                continue
+            key, value = line.split('\t', 1)
+            data[key] = value
+    return data
+
+substitutions = read_tab_file(subs_path)
+config_values = read_tab_file(config_path)
+template_defaults = read_tab_file(defaults_path)
+
+metadata = {
+    'generated_at': datetime.utcnow().isoformat(timespec='seconds') + 'Z',
+    'source_config_file': source_config,
+}
+
+cluster_name = config_values.get('cluster_name')
+if cluster_name:
+    metadata['cluster_name'] = cluster_name
+
+payload = {
+    'metadata': metadata,
+    'ephemeral_cluster': {
+        'config': config_values,
+    },
+    'substitutions': substitutions,
+}
+
+if template_defaults:
+    payload['ephemeral_cluster']['template_defaults'] = template_defaults
+
+with open(json_path, 'w', encoding='utf-8') as handle:
+    json.dump(payload, handle)
+PY
+
+    if ! yq_eval_pretty_yaml "$json_tmp" "$output_path"; then
+        echo "❌ Error: Failed to render initialization template YAML to $output_path" >&2
+        rm -f "$config_tmp" "$defaults_tmp" "$json_tmp"
+        return 1
+    fi
+
+    rm -f "$config_tmp" "$defaults_tmp" "$json_tmp"
+}
+
+write_next_run_triplet_template() {
+  local cluster_name="${FINAL_CONFIG_VALUES["cluster_name"]}"
+  [[ -z "$cluster_name" || "$cluster_name" == "PROMPTUSER" ]] && cluster_name="${CONFIG_SETVALS["cluster_name"]}"
+  [[ -z "$cluster_name" ]] && cluster_name="unnamed"
+  local out="$HOME/.config/daylily/${cluster_name}_template.yaml"
+  mkdir -p "$HOME/.config/daylily"
+  cp "$CONFIG_FILE" "$out" || true
+  for key in "${CONFIG_KEYS[@]}"; do
+    local next_action="${CONFIG_ACTIONS[$key]:-PROMPTUSER}"
+    if ! is_auto_select_disabled; then
+      next_action="USESETVALUE"
+    fi
+    local dval="${CONFIG_DEFAULTS[$key]:-}"
+    local sval="${FINAL_CONFIG_VALUES[$key]:-}"
+    if ! yq_inplace_triplet_update "$out" "$key" "$next_action" "$dval" "$sval"; then
+      echo "⚠️ Unable to update triplet template for '$key' (yq not compatible)."
+    fi
+  done
+  echo "✅ Next-run triplet template written to: $out"
+  NEXT_RUN_TEMPLATE="$out"
+}
+
+resolve_aws_profile() {
+    local provided_profile="$1"
+    local final_profile=""
+
+    if [[ -n "$provided_profile" ]]; then
+        final_profile="$provided_profile"
+    elif [[ -n "${AWS_PROFILE:-}" ]]; then
+        final_profile="$AWS_PROFILE"
+    else
+        echo "❌ Error: AWS_PROFILE is not set. Please export AWS_PROFILE or use --profile." >&2
+        exit 3
+    fi
+
+    local available_profiles
+    if ! available_profiles=$(aws configure list-profiles 2>/dev/null); then
+        echo "❌ Error: Unable to list AWS profiles. Ensure the AWS CLI is installed and configured." >&2
+        exit 3
+    fi
+
+    if ! grep -Fxq "$final_profile" <<<"$available_profiles"; then
+        echo "❌ Error: AWS profile '$final_profile' not found." >&2
+        echo "ℹ️ Available profiles detected with \"aws configure list-profiles | grep -E '.'\":" >&2
+        echo "$available_profiles" | grep -E '.' | sed 's/^/  - /' >&2
+        echo "❌ Please set AWS_PROFILE to a valid profile." >&2
+        exit 3
+    fi
+
+    export AWS_PROFILE="$final_profile"
+
+    if [[ "$AWS_PROFILE" == "default" ]]; then
+        echo "⚠️ WARNING: AWS_PROFILE is set to 'default'. Sleeping for 1 second..."
+        sleep 1
+    else
+        echo "ℹ️ Using AWS profile: $AWS_PROFILE"
+    fi
+}
+
+# Check if script is sourced with no arguments
+if [[ $# -eq 0 ]]; then
+    usage
+    exit 0
+fi
+
+CONFIG_FILE=""
+cli_config_file=""
+
+# Parse command-line arguments
+profile_arg=""
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --region-az)
+            region_az="$2"
+            region="${region_az:0:${#region_az}-1}"
+            shift 2
+            ;;
+        --pass-on-warn)
+            pass_on_warn="1"
+            shift
+            ;;
+        --debug)
+            debug_mode=1
+            shift
+            ;;
+        -h|--help)
+            usage
+            exit 0
+            ;;
+        --profile)
+            profile_arg="$2"
+            shift 2
+            ;;
+        --config)
+            cli_config_file="$2"
+            shift 2
+            ;;
+        --repo-override)
+            if validate_repo_override "$2"; then
+                add_repo_override "$2"
+            else
+                exit 3
+            fi
+            shift 2
+            ;;
+        *)
+            echo "❌ Error: Unknown option: $1"
+            usage
+            exit 3
+            ;;
+    esac
+done
+
+# Display registered repo overrides if any
+if [[ ${#REPO_OVERRIDES[@]} -gt 0 ]]; then
+    echo "📦 Repository overrides registered:"
+    for repo_key in "${!REPO_OVERRIDES[@]}"; do
+        echo "   • $repo_key -> ${REPO_OVERRIDES[$repo_key]}"
+    done
+    echo ""
+fi
+
+if [[ "$debug_mode" == "1" ]]; then
+    echo "ℹ️ Debug mode enabled. Command traces will be printed."
+    set -x
+fi
+
+DEFAULT_TEMPLATE="config/daylily_ephemeral_cluster_template.yaml"
+
+if [[ -n "${DAY_EX_CFG:-}" ]]; then
+    CONFIG_FILE="$DAY_EX_CFG"
+elif [[ -n "$cli_config_file" ]]; then
+    CONFIG_FILE="$cli_config_file"
+else
+    # Prompt with default
+    read -r -p "Enter path to config file [${DEFAULT_TEMPLATE}]: " user_cfg
+    CONFIG_FILE="${user_cfg:-$DEFAULT_TEMPLATE}"
+
+    if [[ ! -f "$CONFIG_FILE" ]]; then
+        echo "❌ Config file '$CONFIG_FILE' not found."
+        prompt_for_config_file
+    else
+        echo "✅ Using configuration file: $CONFIG_FILE"
+    fi
+fi
+
+
+resolve_aws_profile "$profile_arg"
+
+if [[ -z "$region_az" ]]; then
+    echo "❌ Error: --region-az flag not set"
+    exit 3
+fi
+
+if  yq --version &> /dev/null; then
+    echo "yq is installed, proceeding."
+else
+    echo "❌ Error: yq is not detected."
+    echo "Please run conda activate DAY-EC (or bash bin/init_dayec) to proceed."
+    exit 3
+fi
+
+# Ensure the configuration file has the expected structure now that yq is available
+if ! yq -e '.ephemeral_cluster.config' "$CONFIG_FILE" >/dev/null 2>&1; then
+    echo "❌ Error: '$CONFIG_FILE' does not contain an 'ephemeral_cluster.config' section."
+    prompt_for_config_file
+fi
+
+# Load configuration values
+echo "Loading configuration from $CONFIG_FILE"
+load_config_values
+
+echo "$CONFIG_FILE configuration actions:"
+for key in "${CONFIG_KEYS[@]}"; do
+    echo "  $key: ${CONFIG_ACTIONS[$key]}"
+done
+
+echo ""
+
+echo "If you wish to override the above values, edit $CONFIG_FILE. These defaults are for a low-quota account; boost CONFIG_MAX_COUNT_*I if you have higher Spot quotas."
+echo ""
+echo "Proceeding with these configuration values."
+
+# ---- Resolve initial values from triplets (USESETVALUE wins unless DAY_DISABLE_AUTO_SELECT=1) ----
+CONFIG_MAX_COUNT_8I="$(get_action_set_or_empty "max_count_8I")"
+CONFIG_MAX_COUNT_128I="$(get_action_set_or_empty "max_count_128I")"
+CONFIG_MAX_COUNT_192I="$(get_action_set_or_empty "max_count_192I")"
+CONFIG_SSH_KEY_NAME="$(get_action_set_or_empty "ssh_key_name")"
+CONFIG_S3_BUCKET_NAME="$(get_action_set_or_empty "s3_bucket_name")"
+CONFIG_PUBLIC_SUBNET_ID="$(get_action_set_or_empty "public_subnet_id")"
+CONFIG_PRIVATE_SUBNET_ID="$(get_action_set_or_empty "private_subnet_id")"
+CONFIG_IAM_POLICY_ARN="$(get_action_set_or_empty "iam_policy_arn")"
+CONFIG_CLUSTER_NAME="$(get_action_set_or_empty "cluster_name")"
+CONFIG_BUDGET_EMAIL="$(get_action_set_or_empty "budget_email")"
+CONFIG_ALLOWED_BUDGET_USERS="$(get_action_set_or_empty "allowed_budget_users")"
+CONFIG_BUDGET_AMOUNT="$(get_action_set_or_empty "budget_amount")"
+CONFIG_GLOBAL_ALLOWED_BUDGET_USERS="$(get_action_set_or_empty "global_allowed_budget_users")"
+CONFIG_GLOBAL_BUDGET_AMOUNT="$(get_action_set_or_empty "global_budget_amount")"
+CONFIG_ENFORCE_BUDGET="$(get_action_set_or_empty "enforce_budget")"
+CONFIG_CLUSTER_TEMPLATE_YAML="$(get_action_set_or_empty "cluster_template_yaml")"
+CONFIG_HEADNODE_INSTANCE_TYPE="$(get_action_set_or_empty "headnode_instance_type")"
+CONFIG_FSX_FS_SIZE="$(get_action_set_or_empty "fsx_fs_size")"
+CONFIG_ENABLE_DETAILED_MONITORING="$(get_action_set_or_empty "enable_detailed_monitoring")"
+CONFIG_DELETE_LOCAL_ROOT="$(get_action_set_or_empty "delete_local_root")"
+CONFIG_AUTO_DELETE_FSX="$(get_action_set_or_empty "auto_delete_fsx")"
+CONFIG_HEARTBEAT_EMAIL="$(get_action_set_or_empty "heartbeat_email")"
+CONFIG_HEARTBEAT_SCHEDULE="$(get_action_set_or_empty "heartbeat_schedule")"
+CONFIG_HEARTBEAT_SCHEDULER_ROLE_ARN="$(get_action_set_or_empty "heartbeat_scheduler_role_arn")"
+CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY="$(get_action_set_or_empty "spot_instance_allocation_strategy")"
+
+# Numeric prompts with triplet defaults
+default_max_count_8="$(get_effective_default "max_count_8I" "1")"
+if [[ -z "$CONFIG_MAX_COUNT_8I" ]]; then
+    prompt_for_positive_integer CONFIG_MAX_COUNT_8I "Enter the max number of 8xlarge instances to request [${default_max_count_8}]: " "$default_max_count_8"
+fi
+set_final_config_value "max_count_8I" "$CONFIG_MAX_COUNT_8I"
+
+default_max_count_128="$(get_effective_default "max_count_128I" "1")"
+if [[ -z "$CONFIG_MAX_COUNT_128I" ]]; then
+    prompt_for_positive_integer CONFIG_MAX_COUNT_128I "Enter the max number of 128xlarge instances to request [${default_max_count_128}]: " "$default_max_count_128"
+fi
+set_final_config_value "max_count_128I" "$CONFIG_MAX_COUNT_128I"
+
+default_max_count_192="$(get_effective_default "max_count_192I" "1")"
+if [[ -z "$CONFIG_MAX_COUNT_192I" ]]; then
+    prompt_for_positive_integer CONFIG_MAX_COUNT_192I "Enter the max number of 192xlarge instances to request [${default_max_count_192}]: " "$default_max_count_192"
+fi
+set_final_config_value "max_count_192I" "$CONFIG_MAX_COUNT_192I"
+
+# Extract the last character
+az_char="${region_az: -1}"
+
+# Check if the last character is a letter
+if [[ "$az_char" =~ [a-zA-Z] ]]; then
+    echo "The last character of --region-az ${region_az} '$az_char' is a letter."
+else
+    echo "❌ Error: The last character of --region-az ${region_az} '$az_char' is NOT a letter."
+    exit 3
+fi
+
+echo "YOUR AWS_PROFILE IS NOW SET TO: $AWS_PROFILE"
+
+# Function to handle warnings
+handle_warning() {
+    local message="$1"
+    echo -e "WARNING: $message"
+    echo "If appropriate, consider setting --pass-on-warn to continue without failure. Current setting: $pass_on_warn"
+    if [[ "$pass_on_warn" != "1" ]]; then
+        echo "Exiting due to warning."
+        exit 3
+    fi
+}
+
+validate_region() {
+  echo "REGION:" $1 
+}
+echo "DEBUG: pass_on_warn after parsing: $pass_on_warn"
+
+# Check if system packages are installed
+./bin/check_prereq_sw.sh
+if [ $? -ne 0 ]; then
+    handle_warning "There were problems detected with pre-requisites, and the warnings bypassed. Run './bin/check_prereq_sw.sh' for more information ." 
+    if [[ $? -ne 0 ]]; then
+        echo "❌ Error: System package check failed, investigate or run again with or use --pass-on-warn."
+        exit 3
+    fi
+fi
+
+# Ensure Conda exists
+conda --version &> /dev/null
+if [[ $? -ne 0 ]]; then
+    echo ">  > ❌ Error <  <"
+    echo "Conda is not available in this shell (version >= 24.0.0)."
+    echo "Please run the following command to install miniconda. *warning*, if you are using homebrew conda, things might get wobbly."
+    echo ""
+    echo "To install miniconda, run:"
+    echo "    ./bin/install_miniconda # and once installed, open a new shell and run "
+    exit 1
+fi
+
+# Check conda version is sufficient
+required_version="24.0.0"
+current_version=$(conda --version | awk '{print $2}')
+if [[ "$(printf '%s\n' "$required_version" "$current_version" | sort -V | head -n1)" != "$required_version" ]]; then
+    echo "❌ Error: Conda version $current_version is less than the required version $required_version ."
+    exit 3
+fi
+echo "Conda version $current_version meets the requirement of $required_version or higher."
+
+# Check if the Conda environment DAY-EC is active
+if [[ "$CONDA_DEFAULT_ENV" == "DAY-EC" ]]; then
+    echo "The Conda environment DAY-EC is active, proceeding."
+else
+    echo "The Conda environment DAY-EC is not active or missing."
+    echo ""
+    echo "Please activate the DAY-EC environment by running:"
+    echo "    conda activate DAY-EC"
+    echo ""
+    echo "If the environment does not exist, create it by running:"
+    echo "    ./bin/init_dayec"
+    exit 3
+fi
+
+# Activate or create the Daylily CLI conda environment
+if conda env list | grep -q "^DAY-EC "; then
+    if [[ "$CONDA_DEFAULT_ENV" == "DAY-EC" ]]; then
+        echo "Conda environment 'DAY-EC' already exists and is already active."
+    else
+        echo "Conda environment 'DAY-EC' already exists. Activating it."
+        # Ensure the conda shell functions are available before attempting to activate.
+        eval "$(conda shell.bash hook)"
+        conda activate DAY-EC
+    fi
+else
+    echo "Creating 'DAY-EC' environment."
+    source bin/init_dayec
+    if [[ $? -ne 0 ]]; then
+        echo "❌ Error: Failed to create the 'DAY-EC' environment. Exiting."
+        exit 3
+    fi
+    # init_dayec is sourced above, so the environment should now be available for activation.
+    if [[ "$CONDA_DEFAULT_ENV" != "DAY-EC" ]]; then
+        eval "$(conda shell.bash hook)"
+        conda activate DAY-EC
+    fi
+fi
+
+AWS_CLI_USER=$(aws sts get-caller-identity --region $region --profile $AWS_PROFILE --query "Arn" --output text | awk -F '/' '{print $2}')
+
+# Ensure pcluster is installed
+echo "Checking pcluster version..."
+expected_pcluster_version="3.13.2"
+pcluster_version=$(AWS_PROFILE=${AWS_PROFILE} pcluster version | grep 'version' | cut -d '"' -f 4)
+if [[ "$pcluster_version" != "$expected_pcluster_version" ]]; then
+    handle_warning "Warning: Expected pcluster version $expected_pcluster_version, but found version $pcluster_version."
+    if [[ $? -ne 0 ]]; then
+        echo "❌ Error: pcluster version mis-match:  expected:$expected_pcluster_version , detected:$pcluster_version ."
+        exit 3
+    fi
+fi
+
+### AWS Configuration Setup
+# Check AWS credentials
+echo "Verifying AWS credentials..."
+if ! aws sts get-caller-identity --region "$region" --profile $AWS_PROFILE  &> /dev/null; then
+    echo "❌ Error: AWS credentials are invalid or do not have access to the AWS account in region $region."
+    exit 3
+else
+    echo "✅  AWS credentials verified successfully."
+fi
+
+# Call the region validation function
+validate_region "$region" || exit 3
+
+AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query Account --output text  --profile $AWS_PROFILE )
+
+# Get AWS caller identity
+caller_identity_arn=$(aws sts get-caller-identity --query 'Arn' --output text --region "$region"  --profile $AWS_PROFILE )
+
+# Check if the required managed policies are attached to the user
+DY_GLOBAL_POLICY_NAME="DaylilyGlobalEClusterPolicy"
+DY_REGION_POLICY_NAME="DaylilyRegionalEClusterPolicy-${region}"
+
+check_managed_policy_attached() {
+    local user_name="$1" policy_name="$2"
+    local count group
+
+    # Legacy: direct attachment to the IAM user.
+    count=$(aws iam list-attached-user-policies --user-name "$user_name" --profile $AWS_PROFILE \
+        --query "AttachedPolicies[?PolicyName=='${policy_name}'] | length(@)" --output text 2>/dev/null || echo "0")
+    if [[ "$count" != "0" ]]; then
+        return 0
+    fi
+
+    # Preferred: policy attached to an IAM group, and user is a member.
+    mapfile -t groups < <(
+        aws iam list-groups-for-user --user-name "$user_name" --profile $AWS_PROFILE \
+          --query 'Groups[].GroupName' --output text 2>/dev/null | tr '\t' '\n' | sed '/^$/d'
+    )
+    for group in "${groups[@]:-}"; do
+        count=$(aws iam list-attached-group-policies --group-name "$group" --profile $AWS_PROFILE \
+            --query "AttachedPolicies[?PolicyName=='${policy_name}'] | length(@)" --output text 2>/dev/null || echo "0")
+        if [[ "$count" != "0" ]]; then
+            return 0
+        fi
+    done
+
+    return 1
+}
+
+missing_policies=()
+missing_global=0
+missing_region=0
+
+if ! check_managed_policy_attached "$AWS_CLI_USER" "$DY_GLOBAL_POLICY_NAME"; then
+    missing_policies+=("${DY_GLOBAL_POLICY_NAME} (global)")
+    missing_global=1
+fi
+
+if ! check_managed_policy_attached "$AWS_CLI_USER" "$DY_REGION_POLICY_NAME"; then
+    missing_policies+=("${DY_REGION_POLICY_NAME} (region)")
+    missing_region=1
+fi
+
+if (( ${#missing_policies[@]} )); then
+    echo "WARNING: The following Daylily managed policies are not granted to IAM user '$AWS_CLI_USER' (direct attachment or IAM group membership):"
+    for policy in "${missing_policies[@]}"; do
+        echo "  - $policy"
+    done
+    echo ""
+    echo "An admin can attach them by running:"
+    if (( missing_global )); then
+        echo "  bin/admin/daylily_ephemeral_cluster_bootstrap_global.sh --profile <admin_user_profile> --user $AWS_CLI_USER"
+    fi
+    if (( missing_region )); then
+        echo "  bin/admin/daylily_ephemeral_cluster_bootstrap_region.sh --region $region --profile <admin_user_profile> --user $AWS_CLI_USER"
+    fi
+    echo ""
+    echo "Do you want to proceed without the missing policies (for example, if you created custom equivalents)?"
+    echo "1) Proceed anyway"
+    echo "2) Exit"
+    echo -n "Enter your choice (1 or 2): "
+    read CHOICE
+    if [ "$CHOICE" -eq 1 ]; then
+        echo "✅ Proceeding anyway..."
+    elif [ "$CHOICE" -eq 2 ]; then
+        echo "❌ Exiting."
+        exit 3 2>/dev/null || exit 3
+    else
+        echo "❌ Invalid choice. Exiting."
+        exit 3 2>/dev/null || exit 3
+    fi
+else
+    echo "✅ Daylily managed policies are attached to user $AWS_CLI_USER."
+fi
+
+# AWS Quota Check Function
+check_quota() {
+    local resource_name="$1"
+    local quota_code="$2"
+    local recommended_count="$3"
+    local sccode="$4"
+    
+    echo "Checking quota for $resource_name..."
+    quota=$(aws service-quotas get-service-quota --service-code $sccode --quota-code "$quota_code" --region "$region" --profile $AWS_PROFILE  2>/dev/null)
+    if [[ $? -ne 0 ]]; then
+        handle_warning "❌ Error: Unable to retrieve quota for $resource_name."
+        exit 3
+    fi
+    quota_value=$(echo "$quota" | jq -r '.Quota.Value')
+
+    # Calculate total vCPUs requested
+    tot_vcpu=$(( (CONFIG_MAX_COUNT_8I * 8) + (CONFIG_MAX_COUNT_128I * 128) + (CONFIG_MAX_COUNT_192I * 192) ))
+
+    # Check if the requested vCPUs exceed the quota
+    if [[ "$quota_code" == "L-34B43A08" ]]; then
+        if (( $(echo "$tot_vcpu >= $quota_value" | bc -l) )); then
+            echo "Your requested instance types total vCPUs ($tot_vcpu) exceed the quota ($quota_value) for $quota_code in region $region."
+            echo "This will cause the cluster to fail to allocate spot instances."
+            echo "You must request a quota increase of at least $tot_vcpu or adjust downwards the instance type max in config/daylily_ephemeral_cluster.yaml."
+            echo "It is not advised to skip this warning, but you may by pressing enter, all other keys will exis"
+            read -r -p "Press enter to continue, any other key to exit: " confirmq
+            if [[ "$confirmq" != "" ]]; then
+                echo "Exiting..."
+                exit 3
+            fi
+            echo "There be dragons..."
+        fi
+    fi
+
+    if (( $(echo "$quota_value < $recommended_count" | bc -l) )); then
+        handle_warning "Warning: $resource_name quota $quota_code in $region is below the recommended $recommended_count. Current quota: $quota_value."
+        if [[ $? -ne 0 ]]; then
+            echo "❌ quota check failed"
+            exit 3
+        fi
+    else
+        echo "✅ $resource_name quota is sufficient: $quota_value."
+    fi
+}
+echo ""
+
+# Quota Checks for Key AWS Resources
+echo "Performing AWS quota checks..."
+
+# Dedicated Instances
+check_quota "On Demand vCPU Max" "L-1216C47A" 20 ec2 || true
+echo ""
+
+# Spot vCPU Max Quota 
+check_quota "Spot vCPU Max" "L-34B43A08" 192 ec2 || true
+echo ""
+
+# VPC Quota (Default: 5 per region)
+check_quota "VPCs" "L-F678F1CE" 4 vpc || true
+echo ""
+
+# Elastic IP Quota (Default: 5 per region)
+check_quota "Elastic IPs" "L-0263D0A3" 4 ec2 || true
+echo ""
+
+# NAT Gateway Quota (Default: 5 per AZ)
+check_quota "NAT Gateways" "L-FE5A380F" 4 vpc || true
+echo ""
+
+# Internet Gateway Quota (Default: 5 per region)
+check_quota "Internet Gateways" "L-A4707A72" 4 vpc || true
+echo ""
+
+# Ensure 'pcluster-omics-analysis' policy exists (spot SL role)
+echo "Checking for required IAM policy 'pcluster-omics-analysis'..."
+policy_name="pcluster-omics-analysis"
+policy_arn=$(aws iam list-policies --query "Policies[?PolicyName=='$policy_name'].Arn" --output text --region "$region"  --profile $AWS_PROFILE )
+if [[ -z "$policy_arn" ]]; then
+    echo "Creating IAM policy '$policy_name'..."
+    policy_document='{
+      "Version": "2012-10-17",
+      "Statement": [
+        {
+          "Effect": "Allow",
+          "Action": "iam:CreateServiceLinkedRole",
+          "Resource": "*",
+          "Condition": {
+            "StringLike": {
+              "iam:AWSServiceName": "spot.amazonaws.com"
+            }
+          }
+        }
+      ]
+    }'
+    aws iam create-policy --policy-name "$policy_name" --policy-document "$policy_document" --region "$region"  --profile $AWS_PROFILE 
+fi
+echo ""
+
+## PEM File Check
+# Fetch all key pairs in the given region
+key_data=$(aws ec2 describe-key-pairs --region "$region" --query 'KeyPairs[*].[KeyName, KeyType]' --output text  --profile $AWS_PROFILE | grep omics)
+
+echo "Keys in region $region:"
+echo "$key_data"
+
+export pem_file="na"
+# Filter for keys with the required suffix
+filtered_keys=()
+while IFS=$'\t' read -r key_name key_type; do
+    if [[ $key_type == "ed25519" ]]; then
+        pem_file_f=$HOME/.ssh/"${key_name}.pem"
+        pem_status="❌ pem - NOT FOUND"
+        [[ -f "$pem_file_f" ]] && pem_status="✅ pem - FOUND"
+        filtered_keys+=("$key_name|$key_type|$pem_status|$pem_file_f")
+    fi
+done <<< "$key_data"
+
+# Present valid keys to the user
+echo "Available ED25519 keys with matching PEM files:"
+valid_keys=()
+declare -A KEY_PEM_PATH_MAP=()
+declare -A KEY_DISPLAY_MAP=()
+index=1
+for key_info in "${filtered_keys[@]}"; do
+    IFS='|' read -r key_name key_type pem_status pem_file <<< "$key_info"
+    if [[ $pem_status == "✅ pem - FOUND" ]]; then
+        valid_keys+=("$key_name")
+        KEY_PEM_PATH_MAP["$key_name"]="$pem_file"
+        KEY_DISPLAY_MAP["$key_name"]="Key: $key_name | Type: $key_type | PEM: $pem_status"
+        echo "[$index] ${KEY_DISPLAY_MAP[$key_name]}"
+        ((index++))
+    fi
+done
+echo ""
+
+selected_key=""
+# Triplet preselection for ssh_key_name
+cfg_action_ssh="${CONFIG_ACTIONS["ssh_key_name"]}"
+cfg_default_ssh="${CONFIG_DEFAULTS["ssh_key_name"]}"
+cfg_set_ssh="${CONFIG_SETVALS["ssh_key_name"]}"
+
+if [[ -z "$selected_key" ]]; then
+  if should_auto_apply_config_value "$cfg_action_ssh" "$cfg_set_ssh"; then
+    if [[ -n "${KEY_PEM_PATH_MAP[$cfg_set_ssh]:-}" ]]; then
+      selected_key="$cfg_set_ssh"
+      if [[ "$cfg_action_ssh" == "USESETVALUE" ]]; then
+        echo "✅ Using SSH key from set_value: $selected_key"
+      else
+        echo "✅ Using SSH key from configuration set_value: $selected_key"
+      fi
+    fi
+  fi
+fi
+
+if [[ ${#valid_keys[@]} -eq 1 && -z "$selected_key" ]]; then
+    if is_auto_select_disabled; then
+        echo "ℹ️ Only one valid key found, but DAY_DISABLE_AUTO_SELECT=1. Prompting for manual selection."
+    else
+        selected_key="${valid_keys[0]}"
+        echo "ℹ️ Only one valid key found. Automatically selecting: $selected_key"
+    fi
+elif [[ -z "$selected_key" && -n "$CONFIG_SSH_KEY_NAME" ]]; then
+    if [[ -n "${KEY_PEM_PATH_MAP[$CONFIG_SSH_KEY_NAME]}" ]]; then
+        selected_key="$CONFIG_SSH_KEY_NAME"
+        echo "✅ Using SSH key from configuration: $selected_key"
+    fi
+fi
+
+if [[ -z "$selected_key" ]]; then
+    echo "Select a valid ED25519 key with a matching PEM file:"
+    select key_choice in "${valid_keys[@]}"; do
+        if [[ -n "$key_choice" ]]; then
+            selected_key="$key_choice"
+            echo "You selected: $selected_key"
+            break
+        else
+            echo "Invalid selection. Please try again."
+        fi
+    done
+fi
+
+if [[ -z "$selected_key" ]]; then
+  echo "❌ No valid SSH key selected. ONLY pem files in the region named '-omics-analysis-<region>' will be visible "
+  exit 3
+fi
+
+set_final_config_value "ssh_key_name" "$selected_key"
+echo ""
+
+# Proceed with further operations using the selected key
+pem_file=$HOME/.ssh/"${selected_key}.pem"
+
+# Check if the PEM file exists
+if [[ ! -e "$pem_file" ]]; then
+    echo "❌ Error: PEM file $pem_file does not exist. Exiting."
+    exit 1
+fi
+
+# Determine file permissions in a portable way
+current_permissions=$(stat --format='%a' "$pem_file" 2>/dev/null || stat -f '%A' "$pem_file" 2>/dev/null)
+if [[ -z "$current_permissions" ]]; then
+    echo "❌ Error: Unable to determine permissions for $pem_file. Ensure 'stat' is available."
+    exit 2
+fi
+
+# Check if the PEM file permissions are 400
+if [[ "$current_permissions" -ne 400 ]]; then
+    echo "❌ Error: The PEM file $pem_file does not have the required permissions of 400."
+    echo "Please run: chmod 400 $pem_file"
+    exit 3
+fi
+
+echo "The PEM file $pem_file has the correct permissions (400)."
+echo "✅ Using key: $selected_key with PEM file $pem_file"
+
+# Query available S3 buckets and present only those in the correct region
+echo "Fetching S3 buckets matching 'omics-analysis' in $region..."
+buckets=$(aws s3api list-buckets --profile $AWS_PROFILE --query "Buckets[].Name" --output text  --profile $AWS_PROFILE | tr '\t' '\n' | \
+while read -r bucket; do \
+  region=$(aws s3api get-bucket-location  --profile $AWS_PROFILE --bucket "$bucket" --query "LocationConstraint" --output text --profile $AWS_PROFILE ); \
+  echo "$bucket ($region)" | grep "omics-analysis"; \
+done)
+
+matching_buckets=()
+while IFS= read  bucket; do
+    bucket_region=$(echo "$bucket" | awk '{print $NF}')
+    if [[ "$bucket_region" == "(None)" ]]; then
+        bucket_region="(us-east-1)"
+    fi
+    if [[ "$bucket_region" == "($region)" ]]; then
+        matching_buckets+=("$bucket")
+    fi
+done <<< "$buckets"
+
+if [[ ${#matching_buckets[@]} -eq 0 ]]; then
+    echo "❌ No matching buckets found in region $region."
+    exit 3
+fi
+
+bucket_choice=""
+selected_bucket=""
+declare -a bucket_names=()
+for entry in "${matching_buckets[@]}"; do
+    bucket_names+=("$(echo "$entry" | awk '{print $1}')")
+done
+
+# Try set_value/default for S3
+cfg_action_s3="${CONFIG_ACTIONS["s3_bucket_name"]}"
+cfg_default_s3="${CONFIG_DEFAULTS["s3_bucket_name"]}"
+cfg_set_s3="${CONFIG_SETVALS["s3_bucket_name"]}"
+
+if [[ -z "$selected_bucket" ]]; then
+  if should_auto_apply_config_value "$cfg_action_s3" "$cfg_set_s3"; then
+    for entry in "${matching_buckets[@]}"; do
+      current_bucket=$(echo "$entry" | awk '{print $1}')
+      if [[ "$current_bucket" == "$cfg_set_s3" ]]; then
+        selected_bucket="$current_bucket"
+        if [[ "$cfg_action_s3" == "USESETVALUE" ]]; then
+          echo "✅ Using S3 bucket from set_value: $selected_bucket"
+        else
+          echo "✅ Using S3 bucket from configuration set_value: $selected_bucket"
+        fi
+        break
+      fi
+    done
+  fi
+fi
+
+if [[ ${#matching_buckets[@]} -eq 1 && -z "$selected_bucket" ]]; then
+    if is_auto_select_disabled; then
+        echo "ℹ️ Only one matching bucket found, but DAY_DISABLE_AUTO_SELECT=1. Prompting for manual selection."
+    else
+        selected_bucket="${bucket_names[0]}"
+        echo "ℹ️ Only one matching bucket found. Automatically selecting: $selected_bucket"
+    fi
+elif [[ -z "$selected_bucket" && -n "$CONFIG_S3_BUCKET_NAME" ]]; then
+    for entry in "${matching_buckets[@]}"; do
+        current_bucket=$(echo "$entry" | awk '{print $1}')
+        if [[ "$current_bucket" == "$CONFIG_S3_BUCKET_NAME" ]]; then
+            bucket_choice="$entry"
+            selected_bucket="$current_bucket"
+            echo "✅ Using S3 bucket from configuration: $selected_bucket"
+            break
+        fi
+    done
+fi
+
+if [[ -z "$selected_bucket" ]]; then
+    echo "Select a matching S3 bucket:"
+    select choice in "${matching_buckets[@]}"; do
+        if [[ -n "$choice" ]]; then
+            bucket_choice="$choice"
+            selected_bucket=$(echo "$choice" | awk '{print $1}')
+            echo "✅ You selected: $selected_bucket"
+            break
+        else
+            echo "Invalid selection. Please try again."
+        fi
+    done
+fi
+
+bucket=$(echo "$selected_bucket" )
+set_final_config_value "s3_bucket_name" "$selected_bucket"
+
+## TODO: parameterize what verification flags are used here
+echo "Validating reference bucket contents for: $selected_bucket"
+ensure_reference_cli
+if daylily-omics-references.sh --profile "$AWS_PROFILE" --region "$region" \
+    verify --bucket "$selected_bucket"  --exclude-b37 ; then
+    echo "✅ Reference bucket $selected_bucket passed verification."
+else
+    status=$?
+    echo "❌ Reference bucket verification failed (exit $status). Review the output above for details."
+    exit 3
+fi
+
+bucket_url="s3://$selected_bucket"
+bucket_name=$bucket
+
+echo ""
+
+# Query for public and private subnets and ARN
+echo "Checking subnets and ARN in the specified AZ: $region_az..."
+
+public_subnets=$(aws ec2 describe-subnets \
+  --query "Subnets[?AvailabilityZone=='$region_az'].{ID: SubnetId, Name: Tags[?Key=='Name']|[0].Value}" \
+  --region "$region" --output text  --profile $AWS_PROFILE | grep "Public Subnet"
+  )
+  
+private_subnets=$(aws ec2 describe-subnets \
+  --query "Subnets[?AvailabilityZone=='$region_az'].{ID: SubnetId, Name: Tags[?Key=='Name']|[0].Value}" \
+  --region "$region" --output text  --profile $AWS_PROFILE | grep "Private Subnet"
+)
+
+arn_count=$(aws iam list-policies --query 'Policies[?PolicyName==`pclusterTagsAndBudget`].Arn' --output text --region "$region"  --profile $AWS_PROFILE | wc -l)
+
+if [[ -z "$public_subnets" && -z "$private_subnets" ]]; then
+    echo "All required resources are missing. Running the initialization script..."
+    res_prefix=$(echo "daylily-cs-$region_az" | sed -e 's/1/one/g' -e 's/2/two/g' -e 's/3/three/g' -e 's/4/four/g')
+    bin/init_cloudstackformation.sh ./config/day_cluster/pcluster_env.yml "$res_prefix" "$region_az" "$region" $AWS_PROFILE
+elif [[ -z "$public_subnets" || -z "$private_subnets"  ]]; then
+    echo "❌ Error: Incomplete setup. Ensure public and private subnets and the required ARN are available.  You might try running : bin/init_cloudstackformation.sh ./config/day_cluster/pcluster_env.yml $res_prefix $region_az $region $AWS_PROFILE"
+    exit 1
+else
+    echo "✅ All required resources are available."
+fi
+
+echo ""
+
+echo "✅ Setup complete. Proceeding with the remaining steps..."
+
+echo ""
+echo ""
+
+# Select public and private subnets (with triplet preselection)
+public_subnets_new=$(aws ec2 describe-subnets --query "Subnets[*].[SubnetId, Tags[?Key=='Name'].Value | [0], AvailabilityZone]" --region "$region" --output text  --profile $AWS_PROFILE | grep "Public Subnet" | grep $region_az)
+echo "Select a Public Subnet (todo: select VPC first, then filter):"
+public_subnet_choices=()
+public_subnet_ids=()
+while read -r subnet_id subnet_name _; do
+    public_subnet_choices+=("$subnet_name ($subnet_id)")
+    public_subnet_ids+=("$subnet_id")
+done <<< "$public_subnets_new"
+echo ""
+
+public_subnet=""
+cfg_action_pub="${CONFIG_ACTIONS["public_subnet_id"]}"
+cfg_set_pub="${CONFIG_SETVALS["public_subnet_id"]}"
+if [[ -z "$public_subnet" ]]; then
+  if should_auto_apply_config_value "$cfg_action_pub" "$cfg_set_pub"; then
+    for idx in "${!public_subnet_ids[@]}"; do
+      if [[ "${public_subnet_ids[$idx]}" == "$cfg_set_pub" ]]; then
+        public_subnet="$cfg_set_pub"
+        if [[ "$cfg_action_pub" == "USESETVALUE" ]]; then
+          echo "✅ Using public subnet from set_value: $public_subnet"
+        else
+          echo "✅ Using public subnet from configuration set_value: $public_subnet"
+        fi
+        break
+      fi
+    done
+  fi
+fi
+
+if [[ ${#public_subnet_choices[@]} -eq 1 && -z "$public_subnet" ]]; then
+    if is_auto_select_disabled; then
+        echo "ℹ️ Only one public subnet found, but DAY_DISABLE_AUTO_SELECT=1. Prompting."
+    else
+        public_subnet="${public_subnet_ids[0]}"
+        echo "ℹ️ Only one public subnet found. Auto-select: $public_subnet"
+    fi
+elif [[ -z "$public_subnet" && -n "$CONFIG_PUBLIC_SUBNET_ID" ]]; then
+    for idx in "${!public_subnet_ids[@]}"; do
+        if [[ "${public_subnet_ids[$idx]}" == "$CONFIG_PUBLIC_SUBNET_ID" ]]; then
+            public_subnet="$CONFIG_PUBLIC_SUBNET_ID"
+            echo "✅ Using public subnet from configuration: $public_subnet"
+            break
+        fi
+    done
+fi
+
+if [[ -z "$public_subnet" ]]; then
+    select public_subnet_choice in "${public_subnet_choices[@]}"; do
+        if [[ -n "$public_subnet_choice" ]]; then
+            public_subnet=$(echo "$public_subnet_choice" | sed -n 's/.*(\(.*\)).*/\1/p')
+            echo "✅ You selected Public Subnet: $public_subnet"
+            break
+        else
+            echo "Invalid selection. Try again."
+        fi
+    done
+fi
+set_final_config_value "public_subnet_id" "$public_subnet"
+echo ""
+
+echo "Select a Private Subnet (same VPC as public):"
+private_subnets_new=$(aws ec2 describe-subnets --query "Subnets[*].[SubnetId, Tags[?Key=='Name'].Value | [0], AvailabilityZone]" --region "$region" --output text  --profile $AWS_PROFILE | grep "Private Subnet" | grep $region_az)
+private_subnet_choices=()
+private_subnet_ids=()
+while read -r subnet_id subnet_name _; do
+    private_subnet_choices+=("$subnet_name ($subnet_id)")
+    private_subnet_ids+=("$subnet_id")
+done <<< "$private_subnets_new"
+echo ""
+
+private_subnet=""
+cfg_action_priv="${CONFIG_ACTIONS["private_subnet_id"]}"
+cfg_set_priv="${CONFIG_SETVALS["private_subnet_id"]}"
+if [[ -z "$private_subnet" ]]; then
+  if should_auto_apply_config_value "$cfg_action_priv" "$cfg_set_priv"; then
+    for idx in "${!private_subnet_ids[@]}"; do
+      if [[ "${private_subnet_ids[$idx]}" == "$cfg_set_priv" ]]; then
+        private_subnet="$cfg_set_priv"
+        if [[ "$cfg_action_priv" == "USESETVALUE" ]]; then
+          echo "✅ Using private subnet from set_value: $private_subnet"
+        else
+          echo "✅ Using private subnet from configuration set_value: $private_subnet"
+        fi
+        break
+      fi
+    done
+  fi
+fi
+
+if [[ ${#private_subnet_choices[@]} -eq 1 && -z "$private_subnet" ]]; then
+    if is_auto_select_disabled; then
+        echo "ℹ️ Only one private subnet found, but DAY_DISABLE_AUTO_SELECT=1. Prompting."
+    else
+        private_subnet="${private_subnet_ids[0]}"
+        echo "ℹ️ Only one private subnet found. Auto-select: $private_subnet"
+    fi
+elif [[ -z "$private_subnet" && -n "$CONFIG_PRIVATE_SUBNET_ID" ]]; then
+    for idx in "${!private_subnet_ids[@]}"; do
+        if [[ "${private_subnet_ids[$idx]}" == "$CONFIG_PRIVATE_SUBNET_ID" ]]; then
+            private_subnet="$CONFIG_PRIVATE_SUBNET_ID"
+            echo "✅ Using private subnet from configuration: $private_subnet"
+            break
+        fi
+    done
+fi
+
+if [[ -z "$private_subnet" ]]; then
+    select private_subnet_choice in "${private_subnet_choices[@]}"; do
+        if [[ -n "$private_subnet_choice" ]]; then
+            private_subnet=$(echo "$private_subnet_choice" | sed -n 's/.*(\(.*\)).*/\1/p')
+            echo "✅ You selected Private Subnet: $private_subnet"
+            break
+        else
+            echo "Invalid selection. Try again."
+        fi
+    done
+fi
+set_final_config_value "private_subnet_id" "$private_subnet"
+
+echo ""
+# Select an IAM policy ARN for 'pclusterTagsAndBudget'
+policy_arns=($(aws iam list-policies --query 'Policies[?PolicyName==`pclusterTagsAndBudget`].Arn' --output text --region "$region" --profile $AWS_PROFILE ))
+echo "Select an IAM policy ARN for 'pclusterTagsAndBudget':"
+arn_policy_id=""
+cfg_action_iam="${CONFIG_ACTIONS["iam_policy_arn"]}"
+cfg_set_iam="${CONFIG_SETVALS["iam_policy_arn"]}"
+if [[ -z "$arn_policy_id" ]]; then
+  if should_auto_apply_config_value "$cfg_action_iam" "$cfg_set_iam"; then
+    for policy in "${policy_arns[@]}"; do
+      if [[ "$policy" == "$cfg_set_iam" ]]; then
+        arn_policy_id="$policy"
+        if [[ "$cfg_action_iam" == "USESETVALUE" ]]; then
+          echo "✅ Using IAM policy ARN from set_value."
+        else
+          echo "✅ Using IAM policy ARN from configuration set_value."
+        fi
+        break
+      fi
+    done
+  fi
+fi
+
+if [[ ${#policy_arns[@]} -eq 1 && -z "$arn_policy_id" ]]; then
+    if is_auto_select_disabled; then
+        echo "ℹ️ Only one IAM policy ARN found, but DAY_DISABLE_AUTO_SELECT=1. Prompting."
+    else
+        arn_policy_id="${policy_arns[0]}"
+        echo "ℹ️ Only one IAM policy ARN found. Auto-select: $arn_policy_id"
+    fi
+elif [[ -z "$arn_policy_id" && -n "$CONFIG_IAM_POLICY_ARN" ]]; then
+    for policy in "${policy_arns[@]}"; do
+        if [[ "$policy" == "$CONFIG_IAM_POLICY_ARN" ]]; then
+            arn_policy_id="$policy"
+            echo "✅ Using IAM policy ARN from configuration."
+            break
+        fi
+    done
+fi
+
+if [[ -z "$arn_policy_id" ]]; then
+    select arn_policy_choice in "${policy_arns[@]}"; do
+        if [[ -n "$arn_policy_choice" ]]; then
+            arn_policy_id="$arn_policy_choice"
+            echo "✅ You selected: $arn_policy_id"
+            break
+        else
+            echo "Invalid selection. Try again."
+        fi
+    done
+fi
+echo ""
+
+if [[ -z "$arn_policy_id" ]]; then
+    echo "❌ Error: No IAM policy ARN selected. Exiting."
+    exit 3
+fi
+set_final_config_value "iam_policy_arn" "$arn_policy_id"
+
+echo ""
+
+# Function to validate cluster name
+validate_cluster_name() {
+    if [[ ! "$1" =~ ^[a-zA-Z0-9\-]+$ ]] || [[ ${#1} -gt 25 ]]; then
+        return 1
+    else
+        return 0
+    fi
+}
+
+# Prompt user for cluster name (respect triplets)
+cluster_name=""
+cfg_action_clu="${CONFIG_ACTIONS["cluster_name"]}"
+cfg_default_clu="$(get_effective_default "cluster_name" "")"
+cfg_set_clu="${CONFIG_SETVALS["cluster_name"]}"
+if [[ -z "$cluster_name" ]]; then
+  if should_auto_apply_config_value "$cfg_action_clu" "$cfg_set_clu"; then
+    if validate_cluster_name "$cfg_set_clu"; then
+      cluster_name="$cfg_set_clu"
+      if [[ "$cfg_action_clu" == "USESETVALUE" ]]; then
+        echo "✅ Using cluster name from set_value: $cluster_name"
+      else
+        echo "✅ Using cluster name from configuration set_value: $cluster_name"
+      fi
+    fi
+  fi
+fi
+
+while [[ -z "$cluster_name" ]]; do
+    if [[ -n "$cfg_default_clu" ]]; then
+      read -r -p "Enter cluster name [${cfg_default_clu}] (alphanumeric and '-', max 25 chars): " cluster_name
+      cluster_name="${cluster_name:-$cfg_default_clu}"
+    else
+      read -r -p "Enter cluster name (alphanumeric and '-', max 25 chars): " cluster_name
+    fi
+    if validate_cluster_name "$cluster_name"; then
+        echo "✅ Cluster name accepted: $cluster_name"
+        break
+    else
+        echo "❌ Invalid cluster name."; cluster_name=""
+    fi
+done
+set_final_config_value "cluster_name" "$cluster_name"
+
+# Budget email
+budget_email=""
+cfg_action_bem="${CONFIG_ACTIONS["budget_email"]}"
+cfg_default_bem="$(get_effective_default "budget_email" "")"
+cfg_set_bem="${CONFIG_SETVALS["budget_email"]}"
+if [[ -z "$budget_email" ]]; then
+  if should_auto_apply_config_value "$cfg_action_bem" "$cfg_set_bem" && is_valid_email "$cfg_set_bem"; then
+    budget_email="$cfg_set_bem"
+    if [[ "$cfg_action_bem" == "USESETVALUE" ]]; then
+      echo "✅ Using budget email from set_value: $budget_email"
+    else
+      echo "✅ Using budget email from configuration set_value: $budget_email"
+    fi
+  fi
+fi
+while [[ -z "$budget_email" ]]; do
+  if [[ -n "$cfg_default_bem" ]]; then
+    read -r -p "Enter an email for budget alerts [${cfg_default_bem}]: " budget_email
+    budget_email="${budget_email:-$cfg_default_bem}"
+  else
+    read -r -p "Enter an email for budget alerts: " budget_email
+  fi
+  if ! is_valid_email "$budget_email"; then
+    echo "Invalid email format."; budget_email=""
+  fi
+done
+set_final_config_value "budget_email" "$budget_email"
+
+echo ""
+# Global budget check
+global_budget_name="daylily-global"
+echo "Checking if the $global_budget_name budget exists..."
+global_budget_exists=$(aws budgets describe-budgets \
+    --query "Budgets[?BudgetName=='$global_budget_name'] | [0].BudgetName" \
+    --output text --region "$region" --account-id "$AWS_ACCOUNT_ID"  --profile $AWS_PROFILE )
+
+if [[ -z "$global_budget_exists" || "$global_budget_exists" == "None" ]]; then
+    echo "Budget '$global_budget_name' not found."
+    if [[ -z "$CONFIG_GLOBAL_ALLOWED_BUDGET_USERS" ]]; then
+        echo -n "Enter csv of allowed user names for global budget (ubuntu is allowed for all budgets): "
+        read gallowed_users
+    else
+        gallowed_users="$CONFIG_GLOBAL_ALLOWED_BUDGET_USERS"
+        echo "✅ Using global allowed budget users from config/set_value: $gallowed_users"
+    fi
+    set_final_config_value "global_allowed_budget_users" "$gallowed_users"
+
+    gamount="$CONFIG_GLOBAL_BUDGET_AMOUNT"
+    default_global_budget_amount=$(get_effective_default "global_budget_amount" "200")
+    while [[ -z "$gamount" ]]; do
+        echo -n "Enter global budget amount (default: ${default_global_budget_amount}): "
+        read gamount
+        gamount=${gamount:-$default_global_budget_amount}
+        [[ "$gamount" =~ ^[0-9]+(\.[0-9]+)?$ ]] || { echo "Enter a numeric amount."; gamount=""; }
+    done
+    set_final_config_value "global_budget_amount" "$gamount"
+
+    echo "Creating the budget..."
+    echo "bin/create_budget.sh -p $global_budget_name -r $region -t 25,50,75,99 -e $budget_email -a $gamount -c $cluster_name -z $region_az -b $bucket_url  -u $gallowed_users "
+    bin/create_budget.sh -p $global_budget_name -r $region -t 25,50,75,99 -e "$budget_email" -a "$gamount" -c $cluster_name -z $region_az -b $bucket_url  -u "$gallowed_users " || {
+        echo "❌ Error: Failed to create the budget. Exiting."
+        exit 3
+    }
+    echo "✅  Budget '$global_budget_name' created successfully."
+else
+    echo "✅ Default budget '$global_budget_name' exists. Proceeding"
+fi
+
+# Cluster budget
+echo "Checking if the 'daylily-omics-analysis-${region_az}' budget exists..."
+budget_name="da-${region_az}-${cluster_name}"
+budget_exists=$(aws budgets describe-budgets \
+    --query "Budgets[?BudgetName=='$budget_name'] | [0].BudgetName" \
+    --output text --region "$region" --account-id "$AWS_ACCOUNT_ID"  --profile $AWS_PROFILE )
+
+if [[ -z "$budget_exists" || "$budget_exists" == "None" ]]; then
+    echo "Budget '$budget_name' not found."
+    if [[ -z "$CONFIG_ALLOWED_BUDGET_USERS" ]]; then
+        echo -n "Enter csv string of allowed user names for cluster budget (ubuntu - default): "
+        read allowed_users
+    else
+        allowed_users="$CONFIG_ALLOWED_BUDGET_USERS"
+        echo "✅ Using cluster budget allowed users from config/set_value: $allowed_users"
+    fi
+    set_final_config_value "allowed_budget_users" "$allowed_users"
+
+    amount="$CONFIG_BUDGET_AMOUNT"
+    default_budget_amount=$(get_effective_default "budget_amount" "200")
+    while [[ -z "$amount" ]]; do
+        echo -n "Enter cluster budget amount (default: ${default_budget_amount}): "
+        read amount
+        amount=${amount:-$default_budget_amount}
+        [[ "$amount" =~ ^[0-9]+(\.[0-9]+)?$ ]] || { echo "Enter a numeric amount."; amount=""; }
+    done
+    set_final_config_value "budget_amount" "$amount"
+
+    echo "Creating the budget..."
+    echo "bin/create_budget.sh -p $budget_name -r $region -t 75 -e $budget_email -a $amount -c $cluster_name -z $region_az -b $bucket_url  -u $allowed_users "
+    bin/create_budget.sh -p $budget_name -r $region -t 75 -e "$budget_email" -a "$amount" -c $cluster_name -z $region_az -b $bucket_url  -u "$allowed_users " || {
+        echo "❌ Error: Failed to create the budget. Exiting."
+        exit 3
+    }
+    echo "✅ Budget '$budget_name' created successfully."
+else
+    echo "✅ Default budget '$budget_name' exists. Proceeding"
+fi
+echo ""
+
+# Budget enforcement
+enforce_budget_opt="${CONFIG_ENFORCE_BUDGET:-}"
+if [[ "$enforce_budget_opt" != "enforce" && "$enforce_budget_opt" != "skip" ]]; then
+    echo "Enforce budget for the cluster? (1) No (2) Yes:"
+    echo "If enforced, new jobs are blocked when budget exceeded; cluster stays up until you stop it."
+    echo "1) No (default)"
+    echo "2) Yes"
+    while true; do
+        read -r -p "Select option [1]: " enforce_choice
+        enforce_choice=${enforce_choice:-1}
+        case "$enforce_choice" in
+            1)
+                enforce_budget_opt="skip"
+                break
+                ;;
+            2)
+                enforce_budget_opt="enforce"
+                break
+                ;;
+            *)
+                echo "Please enter 1 or 2."
+                ;;
+        esac
+    done
+    echo ""
+fi
+set_final_config_value "enforce_budget" "$enforce_budget_opt"
+
+# Cluster config file input
+cluster_yaml="$CONFIG_CLUSTER_TEMPLATE_YAML"
+default_cluster_template=$(get_effective_default "cluster_template_yaml" "config/day_cluster/prod_cluster.yaml")
+while [[ -z "$cluster_yaml" ]]; do
+    read -r -p "Enter path to Daylily cluster config YAML [${default_cluster_template}]: " cluster_yaml
+    [[ -z "$cluster_yaml" ]] && cluster_yaml="$default_cluster_template"
+    [[ -f "$cluster_yaml" ]] || { echo "❌ '$cluster_yaml' not found."; cluster_yaml=""; }
+done
+set_final_config_value "cluster_template_yaml" "$cluster_yaml"
+echo "✅ Using cluster template yaml: $cluster_yaml"
+echo ""
+
+# XMR Mining Setup (disabled)
+xmr_pool_url=na
+xmr_wallet=na
+enable_xmr=0
+echo ""
+
+# Headnode instance type
+sel_headnode_type="$CONFIG_HEADNODE_INSTANCE_TYPE"
+if [[ -z "$sel_headnode_type" ]]; then
+    echo "Choose headnode instance type"
+    echo "1) r7i.2xlarge (default)"
+    echo "2) r7i.4xlarge"
+    echo "3) r7i.8xlarge"
+    echo "4) r7i.16xlarge"
+    headnode_options=("r7i.2xlarge" "r7i.4xlarge" "r7i.8xlarge" "r7i.16xlarge")
+    while true; do
+        read -r -p "Select option [1]: " headnode_choice
+        headnode_choice=${headnode_choice:-1}
+        if [[ "$headnode_choice" =~ ^[1-4]$ ]]; then
+            sel_headnode_type="${headnode_options[$((headnode_choice-1))]}"
+            echo "You selected headnode instance type: $sel_headnode_type"
+            break
+        else
+            echo "Please enter a number between 1 and 4."
+        fi
+    done
+fi
+set_final_config_value "headnode_instance_type" "$sel_headnode_type"
+
+echo ""
+echo "Choose the FSX Lustre File System Size (tested with 4800):"
+sel_fsx_size="${CONFIG_FSX_FS_SIZE:-$(get_effective_default "fsx_fs_size" "4800")}"
+if [[ ! "$sel_fsx_size" =~ ^[0-9]+$ ]]; then
+    fsx_options="4800 7200"
+    select fsx_size in $fsx_options; do
+        sel_fsx_size=$(echo $fsx_size | awk '{print $1}')
+        echo "You selected FSX Lustre File System Size: $sel_fsx_size"
+        break
+    done
+fi
+set_final_config_value "fsx_fs_size" "$sel_fsx_size"
+echo "✅ FSX Lustre File System Size: $sel_fsx_size"
+echo ""
+
+
+# Resolve value (config -> env var -> prompt), then persist once
+auto_val="$(get_action_set_or_empty "enable_detailed_monitoring")"   # "" or "true"/"false"
+# quick fix: skip prompt if USESETVALUE and not explicitly true
+if [[ "${CONFIG_ACTIONS[enable_detailed_monitoring]}" == "USESETVALUE" ]]; then
+  case "${CONFIG_SETVALS[enable_detailed_monitoring]}" in
+    true|True|TRUE) act_detailed_monitoring="true" ;;
+    *) act_detailed_monitoring="false" ;;
+  esac
+else
+  auto_val="$(get_action_set_or_empty "enable_detailed_monitoring")"
+  act_detailed_monitoring="${auto_val:-false}"
+fi
+
+# Guardrail
+if [[ "$act_detailed_monitoring" != "true" && "$act_detailed_monitoring" != "false" ]]; then
+  echo "fatal: enable_detailed_monitoring must be 'true' or 'false', got: '$act_detailed_monitoring'" >&2
+  exit 2
+fi
+
+# Persist exactly once, then log
+set_final_config_value "enable_detailed_monitoring" "$act_detailed_monitoring"
+printf '✅ Detailed monitoring %s\n\n' "$([[ "$act_detailed_monitoring" == "true" ]] && echo "ENABLED" || echo "DISABLED")"
+
+
+# Prepare configuration
+mkdir -p "$HOME/.config/daylily"
+config_timestamp=$(date '+%Y%m%d%H%M%S')
+target_conf="$HOME/.config/daylily/${cluster_name}_cluster_${config_timestamp}.yaml.init"
+target_conf_fin="$HOME/.config/daylily/${cluster_name}_cluster_${config_timestamp}.yaml"
+INIT_TEMPLATE_FILE="$HOME/.config/daylily/${cluster_name}_init_template_${config_timestamp}.yaml"
+
+cp "$cluster_yaml" "$target_conf"
+pem_name=$(basename "$pem_file" | cut -d '.' -f 1)
+
+# delete_local_root
+delete_local_root="${CONFIG_DELETE_LOCAL_ROOT:-$(get_effective_default "delete_local_root" "true")}"
+if [[ "$delete_local_root" != "true" && "$delete_local_root" != "false" ]]; then
+    echo "Delete local root volume on termination? (1) No (2) Yes:"
+    select delete_local_root_choice in "No" "Yes"; do
+        if [[ "$delete_local_root_choice" == "Yes" ]]; then
+            delete_local_root="true"
+        else
+            delete_local_root="false"
+        fi
+        break
+    done
+fi
+set_final_config_value "delete_local_root" "$delete_local_root"
+echo "✅ Delete local root volume on termination?: $delete_local_root"
+
+# FSx retain/delete
+save_fsx="${CONFIG_AUTO_DELETE_FSX:-$(get_effective_default "auto_delete_fsx" "Delete")}"
+if [[ "$save_fsx" != "Retain" && "$save_fsx" != "Delete" ]]; then
+    echo "Retain or delete the FSx Lustre file system on cluster [update|termination]? (1) Retain (2) Delete:"
+    select save_fsx in "Retain" "Delete"; do
+        [[ -n "$save_fsx" ]] && break
+    done
+fi
+set_final_config_value "auto_delete_fsx" "$save_fsx"
+echo "✅ FSx retain/delete on update/termination?: $save_fsx"
+echo ""
+
+# Heartbeat email/schedule
+heartbeat_email="${CONFIG_HEARTBEAT_EMAIL:-}"
+heartbeat_schedule=""
+heartbeat_scheduler_role_arn="${CONFIG_HEARTBEAT_SCHEDULER_ROLE_ARN:-}"
+heartbeat_email_from_config=0
+
+cfg_action_hb="${CONFIG_ACTIONS["heartbeat_email"]:-PROMPTUSER}"
+cfg_set_hb="${CONFIG_SETVALS["heartbeat_email"]:-}"
+if should_auto_apply_config_value "$cfg_action_hb" "$cfg_set_hb"; then
+    heartbeat_email="$cfg_set_hb"
+    heartbeat_email_from_config=1
+    if [[ -n "$heartbeat_email" ]]; then
+        if [[ "$cfg_action_hb" == "USESETVALUE" ]]; then
+            echo "✅ Using heartbeat email from set_value: $heartbeat_email"
+        else
+            echo "✅ Using heartbeat email from configuration set_value: $heartbeat_email"
+        fi
+    else
+        echo "ℹ️ Heartbeat email disabled via configuration set_value."
+    fi
+fi
+
+if [[ $heartbeat_email_from_config -eq 0 ]]; then
+    if [[ -z "$heartbeat_email" && -n "$budget_email" ]]; then
+        heartbeat_email="$budget_email"
+        echo "ℹ️ Defaulting heartbeat email to budget email: $heartbeat_email"
+    fi
+
+    if [[ -z "$heartbeat_email" ]]; then
+        read -r -p "Enter an email to receive heartbeat notifications (leave blank to skip): " heartbeat_email
+    else
+        read -r -p "Enter an email to receive heartbeat notifications [${heartbeat_email}] (leave blank to keep, type 'skip' to disable): " heartbeat_email_input
+        if [[ -z "$heartbeat_email_input" ]]; then
+            heartbeat_email="$heartbeat_email"
+        elif [[ "$heartbeat_email_input" == "skip" ]]; then
+            heartbeat_email=""
+        else
+            heartbeat_email="$heartbeat_email_input"
+        fi
+    fi
+fi
+
+if [[ -n "$heartbeat_email" ]]; then
+    if [[ $heartbeat_email_from_config -eq 1 ]]; then
+        if ! is_valid_email "$heartbeat_email"; then
+            echo "❌ Heartbeat email from configuration is not a valid email format: $heartbeat_email"
+            exit 3
+        fi
+    else
+        while ! is_valid_email "$heartbeat_email"; do
+            echo "Invalid email format."
+            read -r -p "Enter a valid email (or blank to skip): " heartbeat_email
+            [[ -z "$heartbeat_email" ]] && break
+        done
+    fi
+fi
+
+if [[ -n "$heartbeat_email" ]]; then
+    default_schedule="$(get_effective_default "heartbeat_schedule" "rate(60 minutes)")"
+    heartbeat_schedule="${CONFIG_HEARTBEAT_SCHEDULE:-}"
+    if [[ -z "$heartbeat_schedule" ]]; then
+        read -r -p "Enter EventBridge schedule [${default_schedule}]: " heartbeat_schedule
+        [[ -z "$heartbeat_schedule" ]] && heartbeat_schedule="$default_schedule"
+    fi
+    while [[ -n "$heartbeat_schedule" && ! "$heartbeat_schedule" =~ ^(rate|cron)\(.+\)$ ]]; do
+        echo "Invalid schedule. Examples: rate(60 minutes), rate(4 hours), cron(0 12 * * ? *)"
+        read -r -p "Enter a valid EventBridge schedule [${default_schedule}]: " heartbeat_schedule
+        [[ -z "$heartbeat_schedule" ]] && heartbeat_schedule="$default_schedule"
+    done
+    resolved_role=""
+    if ! resolved_role=$(resolve_or_create_heartbeat_role "$region" "$heartbeat_scheduler_role_arn"); then
+        echo "❌ Unable to automatically determine or create an IAM role for EventBridge Scheduler." >&2
+        echo "   Ensure you have IAM permissions or run bin/admin/create_scheduler_role_for_sns.sh --region $region." >&2
+        exit 3
+    fi
+    heartbeat_scheduler_role_arn="$resolved_role"
+    echo "ℹ️ Using EventBridge Scheduler role ARN: $heartbeat_scheduler_role_arn"
+    echo "✅ Heartbeat notifications to $heartbeat_email with '$heartbeat_schedule'"
+else
+    heartbeat_scheduler_role_arn=""
+    echo "ℹ️ Heartbeat notifications skipped."
+fi
+set_final_config_value "heartbeat_email" "${heartbeat_email:-}"
+set_final_config_value "heartbeat_schedule" "${heartbeat_schedule:-}"
+set_final_config_value "heartbeat_scheduler_role_arn" "${heartbeat_scheduler_role_arn:-}"
+
+# Spot allocation strategy
+# Spot allocation strategy
+allocation_strategy="$CONFIG_SPOT_INSTANCE_ALLOCATION_STRATEGY"
+if [[ "$allocation_strategy" != "price-capacity-optimized" && \
+      "$allocation_strategy" != "capacity-optimized" && \
+      "$allocation_strategy" != "lowest-price" ]]; then
+    default_allocation_strategy="$(get_effective_default "spot_instance_allocation_strategy" "price-capacity-optimized")"
+    case "$default_allocation_strategy" in
+      "capacity-optimized") default_choice="2" ;;
+      "lowest-price")       default_choice="3" ;;
+      *)                    default_choice="1"; default_allocation_strategy="price-capacity-optimized" ;;
+    esac
+    while true; do
+        echo "Select Spot Instance Allocation Strategy:"
+        echo "1) price-capacity-optimized  (default; balances cost with capacity stability)"
+        echo "2) capacity-optimized        (pricier; fewer interruptions)"
+        echo "3) lowest-price              (cheapest; more interruptions)"
+        read -r -p "Enter selection [${default_choice}]: " user_choice
+        [[ -z "$user_choice" ]] && user_choice="$default_choice"
+        case "$user_choice" in
+            1) allocation_strategy="price-capacity-optimized"; break ;;
+            2) allocation_strategy="capacity-optimized"; break ;;
+            3) allocation_strategy="lowest-price"; break ;;
+            *) echo "Invalid selection."; ;;
+        esac
+    done
+fi
+echo "✅ Allocation strategy: $allocation_strategy"
+set_final_config_value "spot_instance_allocation_strategy" "$allocation_strategy"
+echo ""
+
+
+
+
+# ----- Build init template & resolved cluster YAML -----
+write_init_template_yaml() {
+  # $1: output YAML path
+  # $2: kvfile with KEY=VALUE lines (shell-escaped)
+  local out="$1"
+  local kvfile="$2"
+  # Point this at your input template with ${REGSUB_*} placeholders
+  local template="$3" #"${INIT_TEMPLATE_SRC:-config/daylily_ephemeral_cluster_init.yaml}"
+
+  # deps
+  if ! command -v envsubst >/dev/null 2>&1; then
+    echo "❌ envsubst not found. On macOS: brew install gettext && brew link --force gettext" >&2
+    return 1
+  fi
+  if [[ ! -f "$template" ]]; then
+    echo "❌ Template not found: $template" >&2
+    return 1
+  fi
+
+  mkdir -p "$(dirname "$out")"
+
+  # Load variables safely into env and render
+  set -a
+  # shellcheck disable=SC1090
+  . "$kvfile"
+  set +a
+
+  # Optional sanity checks for required vars (add/remove as needed)
+  local required=(REGSUB_REGION REGSUB_PUB_SUBNET REGSUB_PRIVATE_SUBNET REGSUB_CLUSTER_NAME)
+  for v in "${required[@]}"; do
+    if [[ -z "${!v:-}" ]]; then
+      echo "❌ Missing required substitution: $v" >&2
+      return 1
+    fi
+  done
+
+  if ! envsubst <"$template" >"$out"; then
+    echo "❌ envsubst failed to render $out" >&2
+    return 1
+  fi
+
+  echo "✅ Wrote init template: $out"
+}
+
+git_deets=$(bin/get_git_deets.sh || echo "git:unknown")
+
+# Normalize enforce flag
+enforce_budget_opt="${enforce_budget_opt:-skip}"
+[[ "$enforce_budget_opt" == "false" ]] && enforce_budget_opt="skip"
+
+# Ensure Bash >= 4 if you keep associative arrays
+if [[ -z "${BASH_VERSINFO:-}" || "${BASH_VERSINFO[0]}" -lt 4 ]]; then
+  echo "❌ Bash >= 4 required for associative arrays. Use Conda/Homebrew bash or refactor." >&2
+  exit 2
+fi
+
+declare -A REG_SUBSTITUTIONS=(
+  ["REGSUB_REGION"]="$region"
+  ["REGSUB_PUB_SUBNET"]="$public_subnet"
+  ["REGSUB_KEYNAME"]="$pem_name"
+  ["REGSUB_S3_BUCKET_INIT"]="$bucket_url"
+  ["REGSUB_S3_BUCKET_NAME"]="$bucket_name"
+  ["REGSUB_S3_IAM_POLICY"]="$arn_policy_id"
+  ["REGSUB_PRIVATE_SUBNET"]="$private_subnet"
+  ["REGSUB_S3_BUCKET_REF"]="$bucket_url"
+  ["REGSUB_XMR_MINE"]="$enable_xmr"
+  ["REGSUB_XMR_POOL_URL"]="$xmr_pool_url"
+  ["REGSUB_XMR_WALLET"]="$xmr_wallet"
+  ["REGSUB_FSX_SIZE"]="$sel_fsx_size"
+  ["REGSUB_DETAILED_MONITORING"]="$act_detailed_monitoring"
+  ["REGSUB_CLUSTER_NAME"]="$cluster_name"
+  ["REGSUB_USERNAME"]="${USER}-${AWS_CLI_USER}"
+  ["REGSUB_PROJECT"]="$budget_name"
+  ["REGSUB_DELETE_LOCAL_ROOT"]="$delete_local_root"
+  ["REGSUB_SAVE_FSX"]="$save_fsx"
+  ["REGSUB_ENFORCE_BUDGET"]="$enforce_budget_opt"
+  ["REGSUB_AWS_ACCOUNT_ID"]="aws_profile-$AWS_PROFILE"
+  ["REGSUB_ALLOCATION_STRATEGY"]="$allocation_strategy"
+  ["REGSUB_DAYLILY_GIT_DEETS"]="$git_deets"
+  ["REGSUB_MAX_COUNT_8I"]="$CONFIG_MAX_COUNT_8I"
+  ["REGSUB_MAX_COUNT_128I"]="$CONFIG_MAX_COUNT_128I"
+  ["REGSUB_MAX_COUNT_192I"]="$CONFIG_MAX_COUNT_192I"
+  ["REGSUB_HEADNODE_INSTANCE_TYPE"]="$sel_headnode_type"
+  ["REGSUB_HEARTBEAT_EMAIL"]="$heartbeat_email"
+  ["REGSUB_HEARTBEAT_SCHEDULE"]="$heartbeat_schedule"
+  ["REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN"]="$heartbeat_scheduler_role_arn"
+)
+
+subs_tmp=$(mktemp)
+# Write **shell-safe assignments** (quoted) the parser can `.` (source)
+for key in "${!REG_SUBSTITUTIONS[@]}"; do
+  printf '%s=%q\n' "$key" "${REG_SUBSTITUTIONS[$key]}" >>"$subs_tmp"
+done
+
+if ! write_init_template_yaml "$INIT_TEMPLATE_FILE" "$subs_tmp" "$cluster_yaml"; then
+  echo "❌ Error: Failed to create initialization template YAML."
+  echo "TMPFILES: $subs_tmp"
+  exit 3
+fi
+rm -f "$subs_tmp"
+
+
+echo ""
+echo "📄 Initialization template saved to: $INIT_TEMPLATE_FILE"
+
+# Apply substitutions into the working cluster YAML (.init -> .yaml.init substituted)
+bash bin/other/regsub_yaml.sh "$INIT_TEMPLATE_FILE" "$target_conf" || {
+  echo "❌ regsub failed."
+  exit 3
+}
+echo ""
+
+echo "Calculating max spot bid prices per partition resource group..."
+echo ""
+python bin/calcuate_spotprice_for_cluster_yaml.py \
+  -i "$INIT_TEMPLATE_FILE" -o "$target_conf_fin" \
+  --az "$region_az" --profile "$AWS_PROFILE" -b 4.14
+rc=$?
+echo ""
+if [[ $rc -ne 0 ]]; then
+    echo "❌ Error: Failed to calculate spot bid prices. Likely an AWS policy/permissions issue."
+    echo "   Command: calcuate_spotprice_for_cluster_yaml.py -i $target_conf -o $target_conf_fin --az $region_az --profile $AWS_PROFILE -b 4.14"
+    exit 3
+fi
+echo "✅ Spot bid prices calculated successfully."
+
+# ----- Dry run -----
+echo "Running a cluster creation dry run..."
+echo ""
+json_response=$(AWS_PROFILE=${AWS_PROFILE} pcluster create-cluster -n "$cluster_name" -c "$target_conf_fin" --dryrun true --region "$region"  2>/dev/null || true)
+message=$(echo "$json_response" | jq -r '.message' 2>/dev/null || echo "")
+echo ""
+
+if [[ "$message" == "Request would have succeeded, but DryRun flag is set." ]]; then
+    echo "✅ Dry run successful. Proceeding with cluster creation."
+elif [[ "$DAY_BREAK" == "1" ]]; then
+    echo "DAY_BREAK == '1'. Exiting without creating the cluster."
+    exit 0
+else
+    echo "❌ Error: Dry run failed:"
+    echo "$json_response"
+    echo "   Command: AWS_PROFILE=${AWS_PROFILE} pcluster create-cluster -n $cluster_name -c $target_conf_fin --dryrun true --region $region"
+    exit 3
+fi
+echo ""
+
+# ----- Create the cluster -----
+echo "Creating the cluster $cluster_name in region $region"
+echo ""
+AWS_PROFILE=${AWS_PROFILE} pcluster create-cluster -n "$cluster_name" -c "$target_conf_fin" --region "$region" || {
+  echo "❌ Cluster creation failed."
+  exit 3
+}
+echo ""
+
+# ----- Monitor cluster creation -----
+echo "Monitoring cluster creation... this may take 15–60 minutes."
+while true; do
+  if python bin/helpers/watch_cluster_status.py "$region" "$cluster_name"; then
+    break
+  fi
+
+  cluster_status_watcher_warning_count=$((cluster_status_watcher_warning_count + 1))
+  if [[ $cluster_status_watcher_warning_count -ge 5 ]]; then
+    echo "❌ Cluster status watcher exited with non-zero status $cluster_status_watcher_warning_count times in a row. Halting."
+    exit 3
+  fi
+
+  echo "⚠️ Cluster status watcher exited with non-zero status. Continuing. (warning ${cluster_status_watcher_warning_count}/5)"
+  sleep 5
+done
+echo ""
+
+# ----- Configure head node -----
+echo "✅ The cluster creation is complete (per API). Configuring the head node:"
+
+# Serialize repo overrides to a temp file for daylily-cfg-headnode
+REPO_OVERRIDES_FILE=""
+if [[ ${#REPO_OVERRIDES[@]} -gt 0 ]]; then
+    REPO_OVERRIDES_FILE=$(mktemp)
+    for repo_key in "${!REPO_OVERRIDES[@]}"; do
+        echo "${repo_key}:${REPO_OVERRIDES[$repo_key]}" >> "$REPO_OVERRIDES_FILE"
+    done
+    echo "📦 Passing ${#REPO_OVERRIDES[@]} repository override(s) to headnode configuration"
+fi
+
+echo "   source ./bin/daylily-cfg-headnode $pem_file $region $AWS_PROFILE $cluster_name [repo_overrides_file]"
+echo ""
+sleep 2
+# shellcheck disable=SC1091
+export AWS_PROFILE=$AWS_PROFILE
+source ./bin/daylily-cfg-headnode "$pem_file" "$region" "$AWS_PROFILE" "$cluster_name" "$REPO_OVERRIDES_FILE" || {
+  echo "⚠️ Head node configuration returned non-zero. Review logs; continuing."
+}
+
+# Clean up temp file
+if [[ -n "$REPO_OVERRIDES_FILE" && -f "$REPO_OVERRIDES_FILE" ]]; then
+    rm -f "$REPO_OVERRIDES_FILE"
+fi
+echo ""
+
+# ----- Heartbeat wiring (optional) -----
+if [[ -n "$heartbeat_email" ]]; then
+    echo "Configuring heartbeat notifications via EventBridge Scheduler, Lambda, and SNS..."
+    python bin/helpers/setup_cluster_heartbeat.py \
+        --cluster-name "$cluster_name" \
+        --region "$region" \
+        --email "$heartbeat_email" \
+        --schedule "$heartbeat_schedule" \
+        --scheduler-role-arn "$heartbeat_scheduler_role_arn" \
+        --profile "$AWS_PROFILE"
+    if [[ $? -ne 0 ]]; then
+        echo "❌ Failed to configure heartbeat notifications. Review logs; configure manually if desired."
+    else
+        echo "✅ Heartbeat notifications are in place. Remember to confirm the SNS email subscription."
+    fi
+else
+    echo "Skipping heartbeat notification setup."
+fi
+echo ""
+
+# ----- Persist run artifacts -----
+save_final_config_snapshot
+if [[ -n "$FINAL_CONFIG_SNAPSHOT" ]]; then
+    echo "📄 Final configuration snapshot written to: $FINAL_CONFIG_SNAPSHOT"
+fi
+
+write_cli_config_copy
+if [[ -n "$RESOLVED_CLI_CONFIG" ]]; then
+    echo "📁 CLI configuration export saved to: $RESOLVED_CLI_CONFIG"
+fi
+
+write_next_run_triplet_template
+if [[ -n "$NEXT_RUN_TEMPLATE" ]]; then
+    echo "🧩 Next-run triplet template saved to: $NEXT_RUN_TEMPLATE"
+fi
+
+echo "✅ ✅ ✅ ....fin!"
+
+echo ""
+echo "to login to the headnode: ssh -i $pem_file ubuntu@$cluster_ip_address"
+
+command -v say >/dev/null 2>&1 && say "onward to daylily" | echo "onward to daylily"
+
+unset AWS_PROFILE

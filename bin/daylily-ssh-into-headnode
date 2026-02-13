@@ -26,6 +26,42 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]:-$0}")" && pwd)"
 source "${SCRIPT_DIR}/helpers/ensure_dayec.sh"
 ensure_dayec || return 1
 
+# ---------------------------------------------------------------------------
+# Flag parsing  (backward-compatible: falls back to interactive prompts)
+# ---------------------------------------------------------------------------
+_ssh_usage() {
+    cat <<'EOF'
+Usage: source daylily-ssh-into-headnode [options]
+
+Options:
+  --region REGION   AWS region (skip interactive region selection)
+  --cluster NAME    Cluster name (skip interactive cluster selection)
+  --pem FILE        Path to PEM key file (skip interactive PEM selection)
+  -h, --help        Show this help message and return
+
+When flags are omitted the script falls back to interactive select menus.
+EOF
+}
+
+_flag_region=""
+_flag_cluster=""
+_flag_pem=""
+
+# Save positional params so sourcing scripts don't lose theirs
+_ssh_args=("$@")
+set --
+for _a in "${_ssh_args[@]}"; do set -- "$@" "$_a"; done
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --region)   _flag_region="$2";  shift 2 ;;
+        --cluster)  _flag_cluster="$2"; shift 2 ;;
+        --pem)      _flag_pem="$2";     shift 2 ;;
+        -h|--help)  _ssh_usage; return 0        ;;
+        *)          shift                       ;;
+    esac
+done
+
 echo ""
 echo ""
 echo "AWS_PROFILE to be used is >>> $AWS_PROFILE"
@@ -87,7 +123,13 @@ select_aws_region() {
 }
 
 # Call the function to list and select AWS region
-select_aws_region
+if [[ -n "$_flag_region" ]]; then
+    region="$_flag_region"
+    export AWS_SELECTED_REGION="$region"
+    echo "Using region from --region flag: $region"
+else
+    select_aws_region
+fi
 if [[ -z "$AWS_SELECTED_REGION" ]]; then
     echo "AWS_SELECTED_REGION is not set. please be sure your AWS_PROFILE is set correctly (is is _ $AWS_PROFILE _. Valid options are:"
     echo "...." $(grep '\[' ~/.aws/credentials | perl -pe 's/(\[|\])//g;')
@@ -126,7 +168,16 @@ select_pem_file() {
     done
 }
 unset DAY_PEM
-select_pem_file
+if [[ -n "$_flag_pem" ]]; then
+    if [[ ! -f "$_flag_pem" ]]; then
+        echo "Error: PEM file '$_flag_pem' does not exist."
+        return 1
+    fi
+    export DAY_PEM="$_flag_pem"
+    echo "Using PEM from --pem flag: $DAY_PEM"
+else
+    select_pem_file
+fi
 
 # Check if DAY_PEM is set, if not prompt user to select one
 if [[ -z "$DAY_PEM" ]]; then
@@ -169,7 +220,10 @@ select_cluster_name() {
 
 
 # Check if DAY_CLUSTER_NAME is set, if not prompt user to select one
-if [[ -z "$DAY_CLUSTER_NAME" ]]; then
+if [[ -n "$_flag_cluster" ]]; then
+    export DAY_CLUSTER_NAME="$_flag_cluster"
+    echo "Using cluster from --cluster flag: $DAY_CLUSTER_NAME"
+elif [[ -z "$DAY_CLUSTER_NAME" ]]; then
     echo "DAY_CLUSTER_NAME is not set. Prompting user to select a cluster..."
     select_cluster_name || return 1  # Exit if no valid selection
 fi
