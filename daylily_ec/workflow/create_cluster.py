@@ -618,7 +618,7 @@ def _print_ssh_banner(
             f"\n"
             f"  Connect:\n"
             f"\n"
-            f"    ssh -i ~/.ssh/{keypair}.pem ec2-user@{head_node_ip}\n"
+            f"    ssh -i ~/.ssh/{keypair}.pem ubuntu@{head_node_ip}\n"
             f"\n"
             f"{bar}\n"
         )
