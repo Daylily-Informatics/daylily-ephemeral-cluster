@@ -24,7 +24,10 @@ from __future__ import annotations
 
 import logging
 import os as _os
+import shlex
+import subprocess
 from datetime import datetime, timezone
+from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
 from daylily_ec.state.models import PreflightReport, StateRecord
@@ -470,6 +473,24 @@ def run_create_workflow(
         region_az=region_az,
     )
 
+    # -- 7b. HEADNODE CONFIGURATION -------------------------------------------
+    if monitor_result.head_node_ip:
+        logger.info("Configuring headnode ...")
+        headnode_ok = configure_headnode(
+            cluster_name=cluster_name,
+            head_node_ip=monitor_result.head_node_ip,
+            keypair=keypair,
+            region=aws_ctx.region,
+            profile=aws_ctx.profile,
+            repo_overrides=None,  # TODO: wire from config if needed
+        )
+        if headnode_ok:
+            logger.info("Headnode configuration succeeded.")
+        else:
+            logger.warning("Headnode configuration failed (non-fatal).")
+    else:
+        logger.warning("Head node IP unavailable — skipping headnode configuration.")
+
     # -- 8. POST-CREATE: Budgets (Phase 3a) -----------------------------------
     budget_email = _val("budget_email") or _os.environ.get("DAY_CONTACT_EMAIL", "")
     budget_amount = _val("budget_amount") or "200"
@@ -637,6 +658,227 @@ def _print_ssh_banner(
             f"\n"
             f"{bar}\n"
         )
+
+
+# ---------------------------------------------------------------------------
+# Headnode configuration (wraps bin/daylily-cfg-headnode logic)
+# ---------------------------------------------------------------------------
+
+# SSH options reused across all remote commands
+_SSH_OPTS = ["-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null"]
+
+
+def _ssh_cmd(
+    pem_path: str,
+    ip: str,
+    remote_cmd: str,
+    *,
+    timeout: int = 300,
+) -> subprocess.CompletedProcess:
+    """Run a single command on the headnode via SSH.
+
+    Returns the CompletedProcess; caller decides what to do with failures.
+    """
+    cmd = [
+        "ssh", "-i", pem_path, *_SSH_OPTS,
+        f"ubuntu@{ip}",
+        remote_cmd,
+    ]
+    logger.debug("SSH → %s", remote_cmd)
+    return subprocess.run(  # noqa: S603
+        cmd,
+        capture_output=True,
+        text=True,
+        timeout=timeout,
+    )
+
+
+def _scp_to(
+    pem_path: str,
+    ip: str,
+    local_path: str,
+    remote_path: str,
+    *,
+    timeout: int = 60,
+) -> subprocess.CompletedProcess:
+    """Copy a local file to the headnode via SCP."""
+    cmd = [
+        "scp", "-i", pem_path, *_SSH_OPTS,
+        local_path,
+        f"ubuntu@{ip}:{remote_path}",
+    ]
+    logger.debug("SCP %s → %s:%s", local_path, ip, remote_path)
+    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)  # noqa: S603
+
+
+def configure_headnode(
+    cluster_name: str,
+    head_node_ip: str,
+    keypair: str,
+    region: str,
+    profile: str,
+    *,
+    repo_overrides: Optional[Dict[str, str]] = None,
+) -> bool:
+    """Configure headnode after successful cluster creation.
+
+    Performs (mirrors ``bin/daylily-cfg-headnode``):
+
+    1. SSH key generation on headnode
+    2. Repository cloning to ``~/projects/daylily-ephemeral-cluster``
+    3. Miniconda installation
+    4. DAY-EC environment initialization
+    5. Headnode tooling installation (day-clone, config files)
+    6. Optional repository override deployment
+
+    Args:
+        cluster_name: Name of the cluster (for logging).
+        head_node_ip: Public IP of the head node.
+        keypair: SSH key-pair name (looked up in ``~/.ssh/{keypair}.pem``).
+        region: AWS region (e.g. ``us-west-2``).
+        profile: AWS profile name.
+        repo_overrides: Optional mapping of repo-key → git-ref overrides.
+
+    Returns:
+        *True* on success, *False* on failure (non-fatal to the workflow).
+    """
+    import tempfile
+
+    import yaml
+
+    pem_path = str(Path.home() / ".ssh" / f"{keypair}.pem")
+    if not Path(pem_path).exists():
+        logger.error("PEM file not found: %s", pem_path)
+        return False
+
+    # Read repo tag + URL from global config
+    cfg_path = Path("config/daylily_cli_global.yaml")
+    if not cfg_path.exists():
+        logger.error("Global config not found: %s", cfg_path)
+        return False
+
+    with open(cfg_path) as fh:
+        cli_cfg = yaml.safe_load(fh)
+
+    daylily = cli_cfg.get("daylily", {})
+    repo_tag = daylily.get("git_ephemeral_cluster_repo_tag", "main")
+    repo_url = daylily.get(
+        "git_ephemeral_cluster_repo",
+        "https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git",
+    )
+    repo_name = "daylily-ephemeral-cluster"
+
+    steps = [
+        (
+            "Generate SSH key on headnode",
+            "ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -N '' <<< $'\\ny' 2>/dev/null || true",
+            60,
+        ),
+        (
+            "Clone repository to headnode",
+            (
+                f"mkdir -p ~/projects && cd ~/projects && "
+                f"{{ [ -d {repo_name} ] && echo 'repo already cloned'; }} || "
+                f"git clone -b {shlex.quote(repo_tag)} {shlex.quote(repo_url)} {repo_name}"
+            ),
+            120,
+        ),
+        (
+            "Install Miniconda",
+            (
+                f"cd ~/projects/{repo_name} && "
+                "{ [ -d ~/miniconda3 ] && echo 'miniconda already installed'; } || "
+                "./bin/install_miniconda"
+            ),
+            180,
+        ),
+        (
+            "Initialize DAY-EC environment",
+            (
+                f"source ~/miniconda3/etc/profile.d/conda.sh && "
+                f"cd ~/projects/{repo_name} && ./bin/init_dayec"
+            ),
+            300,
+        ),
+        (
+            "Install headnode tools",
+            (
+                f"source ~/miniconda3/etc/profile.d/conda.sh && conda activate DAY-EC && "
+                f"cd ~/projects/{repo_name} && ./bin/install-daylily-headnode-tools"
+            ),
+            120,
+        ),
+    ]
+
+    for label, remote_cmd, timeout in steps:
+        logger.info("  ▸ %s ...", label)
+        try:
+            result = _ssh_cmd(pem_path, head_node_ip, remote_cmd, timeout=timeout)
+            if result.returncode != 0:
+                logger.warning(
+                    "  ⚠ %s returned rc=%d: %s",
+                    label, result.returncode, result.stderr.strip()[:200],
+                )
+                # Non-fatal for individual steps; continue trying remaining steps
+            else:
+                logger.info("  ✓ %s", label)
+        except subprocess.TimeoutExpired:
+            logger.warning("  ⚠ %s timed out after %ds", label, timeout)
+        except Exception as exc:
+            logger.warning("  ⚠ %s failed: %s", label, exc)
+
+    # Optional: deploy repository overrides
+    if repo_overrides:
+        logger.info("  ▸ Deploying repository overrides ...")
+        avail_repos_path = Path("config/daylily_available_repositories.yaml")
+        if avail_repos_path.exists():
+            with open(avail_repos_path) as fh:
+                repos_cfg = yaml.safe_load(fh)
+
+            for repo_key, git_ref in repo_overrides.items():
+                if repo_key in repos_cfg.get("repositories", {}):
+                    repos_cfg["repositories"][repo_key]["default_ref"] = git_ref
+                    logger.info("    Override: %s → %s", repo_key, git_ref)
+
+            with tempfile.NamedTemporaryFile(
+                mode="w", suffix=".yaml", delete=False,
+            ) as tmp:
+                yaml.safe_dump(repos_cfg, tmp, default_flow_style=False)
+                tmp_path = tmp.name
+
+            try:
+                scp_result = _scp_to(
+                    pem_path, head_node_ip, tmp_path,
+                    "~/.config/daylily/daylily_available_repositories.yaml",
+                )
+                if scp_result.returncode == 0:
+                    logger.info("  ✓ Repository overrides deployed")
+                else:
+                    logger.warning(
+                        "  ⚠ SCP overrides failed: %s", scp_result.stderr.strip()[:200],
+                    )
+            finally:
+                Path(tmp_path).unlink(missing_ok=True)
+        else:
+            logger.warning("  ⚠ Available repos config not found: %s", avail_repos_path)
+
+    # Verify day-clone works
+    logger.info("  ▸ Verifying day-clone ...")
+    try:
+        verify = _ssh_cmd(
+            pem_path, head_node_ip,
+            "source ~/miniconda3/etc/profile.d/conda.sh && conda activate DAY-EC && day-clone --list",
+            timeout=30,
+        )
+        if verify.returncode == 0 and "repositories" in verify.stdout.lower():
+            logger.info("  ✓ day-clone verified")
+        else:
+            logger.warning("  ⚠ day-clone verification inconclusive (rc=%d)", verify.returncode)
+    except Exception as exc:
+        logger.warning("  ⚠ day-clone verification failed: %s", exc)
+
+    logger.info("Headnode configuration complete for %s @ %s", cluster_name, head_node_ip)
+    return True
 
 
 # ---------------------------------------------------------------------------

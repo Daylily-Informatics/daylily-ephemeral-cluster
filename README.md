@@ -540,6 +540,22 @@ During the run the script invokes the `daylily-omics-references` CLI to
 validate the selected reference bucket, preventing misconfigured buckets from
 reaching the cluster provisioning phase.
 
+### Automatic headnode configuration
+
+After a successful cluster creation, the Python control plane automatically configures the headnode:
+
+- Generates an SSH key pair on the headnode (`~/.ssh/id_rsa`)
+- Clones the `daylily-ephemeral-cluster` repository to `~/projects/`
+- Installs Miniconda and creates the `DAY-EC` conda environment
+- Installs `day-clone` and deploys config files to `~/.config/daylily/`
+- Sources `dyinit` in `~/.bashrc` and `~/.bash_profile`
+
+This step is **non-fatal** — if any sub-step fails, the cluster remains usable and a warning is logged. You can re-run headnode configuration manually at any time with:
+
+```bash
+./bin/daylily-cfg-headnode
+```
+
 ### Provide defaults with `DAY_EX_CFG`
 
 Configuration for every prompt in `bin/daylily-create-ephemeral-cluster` lives in a user-managed YAML file. Copy the template
