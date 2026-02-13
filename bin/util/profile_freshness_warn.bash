@@ -82,12 +82,27 @@ elif [[  "config/day_profiles/$DAY_PROFILE/templates/profile_env.bash" -nt  "con
     echo " "
     echo " "
     
-    echo "Please select:"
-    echo "1) Remove the active config files."
-    echo "2) Touch the active config files."
-    echo "3) Exit."
+    # Support non-interactive use via DAY_PROFILE_ACTION env var.
+    # Valid values: "remove" (option 1), "touch" (option 2), "exit" (option 3).
+    choice=""
+    if [[ -n "${DAY_PROFILE_ACTION:-}" ]]; then
+        case "$DAY_PROFILE_ACTION" in
+            remove) choice="1" ;;
+            touch)  choice="2" ;;
+            exit)   choice="3" ;;
+            *)
+                echo "Warning: invalid DAY_PROFILE_ACTION='$DAY_PROFILE_ACTION' (expected: remove, touch, exit). Falling back to interactive prompt."
+                ;;
+        esac
+    fi
 
-    read -p "Enter your choice (1, 2, or 3): " choice
+    if [[ -z "$choice" ]]; then
+        echo "Please select:"
+        echo "1) Remove the active config files."
+        echo "2) Touch the active config files."
+        echo "3) Exit."
+        read -p "Enter your choice (1, 2, or 3): " choice
+    fi
 
     case $choice in
         1)
@@ -95,7 +110,7 @@ elif [[  "config/day_profiles/$DAY_PROFILE/templates/profile_env.bash" -nt  "con
             echo "Active config files removed."
             ;;
         2)
-            touch $profile_dir/* 
+            touch $profile_dir/*
             echo "Active config files touched."
             ;;
         3)

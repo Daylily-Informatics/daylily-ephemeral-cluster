@@ -17,7 +17,36 @@ then
     exit 1
 fi
 
+# ---------------------------------------------------------------------------
+# Flag parsing  (backward-compatible: falls back to interactive prompts)
+# ---------------------------------------------------------------------------
+usage() {
+    cat <<'EOF'
+Usage: daylily-delete-ephemeral-cluster [options]
 
+Options:
+  --region REGION          AWS region where the cluster is located
+  --cluster-name NAME      AWS ParallelCluster cluster name
+  --yes                    Skip the FSx deletion confirmation prompt
+  -h, --help               Show this help message and exit
+
+When flags are omitted the script falls back to interactive prompts.
+EOF
+}
+
+flag_region=""
+flag_cluster_name=""
+flag_yes=0
+
+while [[ $# -gt 0 ]]; do
+    case "$1" in
+        --region)        flag_region="$2";       shift 2 ;;
+        --cluster-name)  flag_cluster_name="$2"; shift 2 ;;
+        --yes)           flag_yes=1;             shift   ;;
+        -h|--help)       usage; exit 0                   ;;
+        *)               echo "Unknown option: $1" >&2; usage; exit 1 ;;
+    esac
+done
 
 # Prompt user for AWS ParallelCluster name
 function get_cluster_name() {
@@ -72,13 +101,20 @@ function delete_cluster() {
 
 # Main script execution
 
-read -p "type the AWS region where the cluster is located: " region
+if [[ -n "$flag_region" ]]; then
+    region="$flag_region"
+else
+    read -p "type the AWS region where the cluster is located: " region
+fi
+
+if [[ -n "$flag_cluster_name" ]]; then
+    cluster_name="$flag_cluster_name"
+else
+    cluster_name=$(get_cluster_name)
+fi
 
 
-cluster_name=$(get_cluster_name)
-
-
-if [[ $(pcluster list-clusters --region us-west-2 | grep clusterName | grep $cluster_name | wc -l | perl -pe 's/ +//g;') == "1" ]]; then
+if [[ $(pcluster list-clusters --region "$region" | grep clusterName | grep "$cluster_name" | wc -l | perl -pe 's/ +//g;') == "1" ]]; then
     echo "Cluster $cluster_name  exists"
 else
     echo "ERROR: Cluster ($cluster_name) does not exist in region ($region)"
@@ -109,10 +145,14 @@ else
     sleep 2
     echo "If you wish to proceed with deleting this cluster, the FSX filesystem will be deleted or preserved given the parameters set during creation."
     echo ""
-    read -p "Type 'please delete' to proceed with cluster deletion: " confirmation
-    if [[ "$confirmation" != "please delete" ]]; then
-        echo "Aborting cluster deletion."
-        exit 1
+    if [[ "$flag_yes" == "1" ]]; then
+        echo "Skipping confirmation (--yes flag provided)."
+    else
+        read -p "Type 'please delete' to proceed with cluster deletion: " confirmation
+        if [[ "$confirmation" != "please delete" ]]; then
+            echo "Aborting cluster deletion."
+            exit 1
+        fi
     fi
 fi
 
