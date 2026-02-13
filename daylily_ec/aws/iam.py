@@ -114,6 +114,11 @@ def check_policy_attached(
 # ---------------------------------------------------------------------------
 
 
+def _is_root_account(username: str) -> bool:
+    """Return *True* if *username* represents the AWS root account."""
+    return username == "root"
+
+
 def check_daylily_policies(
     iam_client: Any,
     username: str,
@@ -126,7 +131,31 @@ def check_daylily_policies(
     Returns:
         List of :class:`CheckResult` — one per policy checked.
         Missing policies produce WARN in interactive mode, FAIL otherwise.
+        Root accounts auto-PASS (implicit full access).
     """
+    # Root accounts have implicit full access — policy attachment is N/A.
+    if _is_root_account(username):
+        return [
+            CheckResult(
+                id="iam.policy.global",
+                status=CheckStatus.PASS,
+                details={
+                    "policy": GLOBAL_POLICY_NAME,
+                    "user": username,
+                    "note": "root account — implicit full access",
+                },
+            ),
+            CheckResult(
+                id="iam.policy.regional",
+                status=CheckStatus.PASS,
+                details={
+                    "policy": f"{REGIONAL_POLICY_PREFIX}-{region}",
+                    "user": username,
+                    "note": "root account — implicit full access",
+                },
+            ),
+        ]
+
     regional_policy = f"{REGIONAL_POLICY_PREFIX}-{region}"
     results: List[CheckResult] = []
 

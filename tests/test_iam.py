@@ -241,6 +241,23 @@ class TestCheckDaylilyPolicies:
         results = check_daylily_policies(iam, "alice", "us-west-2")
         assert all(r.status == CheckStatus.PASS for r in results)
 
+    def test_root_account_auto_passes(self):
+        """Root account has implicit full access → two PASS without API calls."""
+        iam = _iam_client()  # no policies attached
+        results = check_daylily_policies(iam, "root", "us-west-2", interactive=False)
+        assert len(results) == 2
+        assert all(r.status == CheckStatus.PASS for r in results)
+        assert results[0].id == "iam.policy.global"
+        assert results[1].id == "iam.policy.regional"
+        assert "root account" in results[0].details.get("note", "")
+
+    def test_root_account_auto_passes_interactive(self):
+        """Root account auto-PASS applies regardless of interactive flag."""
+        iam = _iam_client()
+        results = check_daylily_policies(iam, "root", "eu-west-1", interactive=True)
+        assert len(results) == 2
+        assert all(r.status == CheckStatus.PASS for r in results)
+
 
 # ===========================================================================
 # ensure_pcluster_omics_policy
