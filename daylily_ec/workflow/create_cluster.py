@@ -30,6 +30,7 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+from daylily_ec import ui
 from daylily_ec.state.models import PreflightReport, StateRecord
 from daylily_ec.state.store import write_preflight_report, write_state_record
 
@@ -95,7 +96,17 @@ def run_preflight(
     pipeline = steps if steps is not None else _PREFLIGHT_STEPS
 
     for step in pipeline:
+        prev_count = len(report.checks)
         report = step(report)
+
+        # Print result only for checks just added by this step
+        for chk in report.checks[prev_count:]:
+            if chk.status.value == "FAIL":
+                ui.fail(f"{chk.id}: {chk.remediation or chk.message}")
+            elif chk.status.value == "WARN":
+                ui.warn(f"{chk.id}: {chk.remediation or chk.message}")
+            elif chk.status.value == "PASS":
+                ui.ok(chk.id)
 
         # Check for FAIL after each step — abort immediately
         if not report.passed:
@@ -110,12 +121,14 @@ def run_preflight(
         logger.warning("Preflight WARN detected and --pass-on-warn not set.")
         for chk in report.warned_checks:
             logger.warning("  [WARN] %s: %s", chk.id, chk.remediation)
+        ui.warn("Preflight has warnings and --pass-on-warn not set — aborting.")
         write_preflight_report(report)
         return report
 
     # Success
     write_preflight_report(report)
     logger.info("Preflight passed — %d checks OK.", len(report.checks))
+    ui.ok(f"Preflight passed — {len(report.checks)} checks OK")
     return report
 
 
@@ -231,11 +244,14 @@ def run_create_workflow(
 
     cluster_name = _val("cluster_name") or "prod"
 
+    ui.phase(f"INIT · {cluster_name}")
+
     # -- 1. AWS Context -------------------------------------------------------
     try:
         aws_ctx = AWSContext.build(region_az, profile=profile)
     except RuntimeError as exc:
         logger.error("AWS context failed: %s", exc)
+        ui.fail(f"AWS context: {exc}")
         return EXIT_AWS_FAILURE
 
     logger.info(
@@ -244,8 +260,12 @@ def run_create_workflow(
         aws_ctx.iam_username,
         aws_ctx.region,
     )
+    ui.detail("Account", aws_ctx.account_id)
+    ui.detail("User", aws_ctx.iam_username)
+    ui.detail("Region", f"{aws_ctx.region} ({region_az})")
 
     # -- 2. PREFLIGHT (Phase 1) -----------------------------------------------
+    ui.phase("PREFLIGHT")
     report = PreflightReport(
         run_id=ts,
         cluster_name=cluster_name,
@@ -294,20 +314,24 @@ def run_create_workflow(
 
     if should_abort(report, pass_on_warn=pass_on_warn):
         logger.error("Preflight aborted — exiting.")
+        ui.fail("Preflight aborted — exiting.")
         return exit_code_for(report)
 
-    logger.info("Preflight passed — proceeding to resource resolution.")
-
     # -- 3. RESOURCE RESOLUTION -----------------------------------------------
+    ui.phase("RESOURCE RESOLUTION")
+
     # Extract selected bucket from preflight report
     bucket_name = _extract_selected(report, "s3.bucket_select", "selected")
 
     # 3a. Baseline CFN stack
+    ui.step("Ensuring baseline CFN stack ...")
     try:
         cfn_outputs = ensure_pcluster_env_stack(aws_ctx, region_az)
     except (FileNotFoundError, RuntimeError) as exc:
         logger.error("CFN stack ensure failed: %s", exc)
+        ui.fail(f"CFN stack: {exc}")
         return EXIT_AWS_FAILURE
+    ui.ok("CFN stack ready")
 
     stack_name = derive_stack_name(region_az)
 
@@ -349,8 +373,14 @@ def run_create_workflow(
         "Resources: bucket=%s pub=%s priv=%s policy=%s key=%s",
         bucket_name, public_subnet, private_subnet, policy_arn, keypair,
     )
+    ui.ok("Resources resolved")
+    ui.detail("Bucket", bucket_name)
+    ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
+    ui.detail("Policy", policy_arn)
+    ui.detail("Keypair", keypair)
 
     # -- 4. RENDER YAML (Phase 2a) -------------------------------------------
+    ui.phase("RENDER CLUSTER YAML")
 
     bucket_url = f"s3://{bucket_name}" if bucket_name else ""
     template_yaml = _val("cluster_template_yaml") or "config/day_cluster/prod_cluster.yaml"
@@ -395,18 +425,21 @@ def run_create_workflow(
         "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": _val("heartbeat_scheduler_role_arn") or "",
     }
 
+    ui.step("Rendering YAML template ...")
     try:
         _yaml_init, init_template_path = write_init_artifacts(
             cluster_name, ts, template_yaml, substitutions,
         )
     except (FileNotFoundError, ValueError) as exc:
         logger.error("YAML render failed: %s", exc)
+        ui.fail(f"YAML render: {exc}")
         return EXIT_VALIDATION_FAILURE
 
     # 4b. Apply spot prices
     cluster_yaml_path = str(
         CONFIG_DIR / f"{cluster_name}_cluster_{ts}.yaml"
     )
+    ui.step("Applying spot prices ...")
     try:
         apply_spot_prices(
             init_template_path,
@@ -416,25 +449,33 @@ def run_create_workflow(
         )
     except Exception as exc:
         logger.error("Spot price application failed: %s", exc)
+        ui.fail(f"Spot pricing: {exc}")
         return EXIT_AWS_FAILURE
 
     logger.info("Cluster YAML ready: %s", cluster_yaml_path)
-
+    ui.ok(f"Cluster YAML ready: {cluster_yaml_path}")
 
     # -- 5. DRY-RUN (Phase 2b) ------------------------------------------------
+    ui.phase("DRY-RUN VALIDATION")
+    ui.step("Running pcluster dry-run ...")
     dry_result = dry_run_create(
         cluster_name, cluster_yaml_path, aws_ctx.region,
         profile=aws_ctx.profile,
     )
     if not dry_result.success:
         logger.error("Dry-run failed: %s", dry_result.message or dry_result.stderr)
+        ui.fail(f"Dry-run failed: {dry_result.message or dry_result.stderr}")
         return EXIT_AWS_FAILURE
+    ui.ok("Dry-run passed")
 
     if should_break_after_dry_run():
         logger.info("DAY_BREAK=1 — stopping after dry-run.")
+        ui.info("DAY_BREAK=1 — stopping after dry-run.")
         return EXIT_SUCCESS
 
     # -- 6. CREATE (Phase 2c) -------------------------------------------------
+    ui.phase("CREATE CLUSTER")
+    ui.step(f"Submitting cluster creation: {cluster_name} ...")
     create_result = pcluster_create(
         cluster_name, cluster_yaml_path, aws_ctx.region,
         profile=aws_ctx.profile,
@@ -445,9 +486,13 @@ def run_create_workflow(
             create_result.returncode,
             create_result.stderr or create_result.message,
         )
+        ui.fail(f"Creation failed (rc={create_result.returncode})")
         return EXIT_AWS_FAILURE
+    ui.ok("Cluster creation submitted")
 
     # -- 7. MONITOR (Phase 2d) ------------------------------------------------
+    ui.phase("MONITOR")
+    ui.step("Waiting for CREATE_COMPLETE ...")
     monitor_result = wait_for_creation(
         cluster_name, aws_ctx.region, profile=aws_ctx.profile,
     )
@@ -457,6 +502,7 @@ def run_create_workflow(
             monitor_result.final_status,
             monitor_result.error,
         )
+        ui.fail(f"Did not reach CREATE_COMPLETE: {monitor_result.final_status}")
         return EXIT_AWS_FAILURE
 
     logger.info(
@@ -464,6 +510,7 @@ def run_create_workflow(
         cluster_name,
         monitor_result.elapsed_seconds,
     )
+    ui.ok(f"Cluster created in {ui.elapsed_str(monitor_result.elapsed_seconds)}")
 
     # -- SSH connection banner ------------------------------------------------
     _print_ssh_banner(
@@ -474,8 +521,9 @@ def run_create_workflow(
     )
 
     # -- 7b. HEADNODE CONFIGURATION -------------------------------------------
+    ui.phase("HEADNODE CONFIGURATION")
     if monitor_result.head_node_ip:
-        logger.info("Configuring headnode ...")
+        ui.step("Configuring headnode ...")
         headnode_ok = configure_headnode(
             cluster_name=cluster_name,
             head_node_ip=monitor_result.head_node_ip,
@@ -486,12 +534,16 @@ def run_create_workflow(
         )
         if headnode_ok:
             logger.info("Headnode configuration succeeded.")
+            ui.ok("Headnode configured")
         else:
             logger.warning("Headnode configuration failed (non-fatal).")
+            ui.warn("Headnode configuration failed (non-fatal)")
     else:
         logger.warning("Head node IP unavailable — skipping headnode configuration.")
+        ui.warn("Head node IP unavailable — skipping headnode config")
 
     # -- 8. POST-CREATE: Budgets (Phase 3a) -----------------------------------
+    ui.phase("POST-CREATE: BUDGETS")
     budget_email = _val("budget_email") or _os.environ.get("DAY_CONTACT_EMAIL", "")
     budget_amount = _val("budget_amount") or "200"
     global_budget_amount = _val("global_budget_amount") or "1000"
@@ -502,6 +554,7 @@ def run_create_workflow(
 
     global_budget = ""
     cluster_budget = ""
+    ui.step("Ensuring budgets ...")
     try:
         global_budget = ensure_global_budget(
             budgets_client, s3_client, aws_ctx.account_id,
@@ -524,10 +577,13 @@ def run_create_workflow(
             allowed_users=allowed_users,
         )
         logger.info("Budgets: global=%s cluster=%s", global_budget, cluster_budget)
+        ui.ok(f"Budgets: global={global_budget}, cluster={cluster_budget}")
     except Exception as exc:
         logger.warning("Budget setup failed (non-fatal): %s", exc)
+        ui.warn(f"Budget setup failed (non-fatal): {exc}")
 
     # -- 9. POST-CREATE: Heartbeat (Phase 3b) ---------------------------------
+    ui.phase("POST-CREATE: HEARTBEAT")
     heartbeat_email = _val("heartbeat_email") or budget_email
     schedule_expr = _val("heartbeat_schedule") or "rate(6 hours)"
 
@@ -540,6 +596,7 @@ def run_create_workflow(
 
     hb_result = _noop_heartbeat_result()
     if scheduler_role_arn and heartbeat_email:
+        ui.step("Configuring heartbeat ...")
         sns_client = aws_ctx.client("sns")
         scheduler_client = aws_ctx.client("scheduler")
         hb_result = ensure_heartbeat(
@@ -553,15 +610,20 @@ def run_create_workflow(
         )
         if hb_result.success:
             logger.info("Heartbeat configured (source=%s).", role_source)
+            ui.ok(f"Heartbeat configured (source={role_source})")
         else:
             logger.warning("Heartbeat failed (non-fatal): %s", hb_result.error)
+            ui.warn(f"Heartbeat failed (non-fatal): {hb_result.error}")
     else:
         logger.info(
             "Heartbeat skipped: role=%s email=%s",
             scheduler_role_arn or "(none)", heartbeat_email or "(none)",
         )
+        ui.info(f"Heartbeat skipped: role={scheduler_role_arn or '(none)'}")
 
     # -- 10. STATE SNAPSHOT ---------------------------------------------------
+    ui.phase("STATE SNAPSHOT")
+    ui.step("Writing state record ...")
     # Write next-run template
     final_values: Dict[str, str] = {
         "cluster_name": cluster_name,
@@ -607,8 +669,16 @@ def run_create_workflow(
     )
     state_path = write_state_record(state)
     logger.info("State written: %s", state_path)
+    ui.ok(f"State written: {state_path}")
 
     logger.info("✅ Cluster %s creation complete.", cluster_name)
+    elapsed_total = monitor_result.elapsed_seconds
+    ui.success_panel(
+        "CLUSTER CREATION COMPLETE",
+        f"[bold]Cluster:[/]  {cluster_name}\n"
+        f"[bold]Region:[/]   {aws_ctx.region} ({region_az})\n"
+        f"[bold]Elapsed:[/]  {ui.elapsed_str(elapsed_total)}",
+    )
     return EXIT_SUCCESS
 
 
@@ -625,39 +695,25 @@ def _print_ssh_banner(
     region_az: str,
 ) -> None:
     """Print a prominent SSH connection message after successful creation."""
-    bar = "=" * 72
     if head_node_ip:
-        print(
-            f"\n{bar}\n"
-            f"  CLUSTER CREATION SUCCESSFUL\n"
-            f"{bar}\n"
-            f"\n"
-            f"  Cluster   : {cluster_name}\n"
-            f"  Region/AZ : {region_az}\n"
-            f"  Head Node : {head_node_ip}\n"
-            f"  SSH Key   : {keypair}\n"
-            f"\n"
-            f"  Connect:\n"
-            f"\n"
-            f"    ssh -i ~/.ssh/{keypair}.pem ubuntu@{head_node_ip}\n"
-            f"\n"
-            f"{bar}\n"
+        body = (
+            f"[bold]Cluster:[/]   {cluster_name}\n"
+            f"[bold]Region/AZ:[/] {region_az}\n"
+            f"[bold]Head Node:[/] {head_node_ip}\n"
+            f"[bold]SSH Key:[/]   {keypair}\n\n"
+            f"[bold cyan]Connect:[/]\n"
+            f"  [dim]ssh -i ~/.ssh/{keypair}.pem ubuntu@{head_node_ip}[/]"
         )
+        ui.success_panel("SSH CONNECTION", body)
     else:
-        print(
-            f"\n{bar}\n"
-            f"  CLUSTER CREATION SUCCESSFUL\n"
-            f"{bar}\n"
-            f"\n"
-            f"  Cluster   : {cluster_name}\n"
-            f"  Region/AZ : {region_az}\n"
-            f"\n"
-            f"  Head node IP not yet available.\n"
-            f"  Run:  pcluster describe-cluster -n {cluster_name}"
-            f" --region {region_az[:-1]}\n"
-            f"\n"
-            f"{bar}\n"
+        body = (
+            f"[bold]Cluster:[/]   {cluster_name}\n"
+            f"[bold]Region/AZ:[/] {region_az}\n\n"
+            f"[yellow]Head node IP not yet available.[/]\n"
+            f"Run: [dim]pcluster describe-cluster -n {cluster_name}"
+            f" --region {region_az[:-1]}[/]"
         )
+        ui.success_panel("SSH CONNECTION", body)
 
 
 # ---------------------------------------------------------------------------

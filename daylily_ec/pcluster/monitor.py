@@ -171,6 +171,9 @@ def wait_for_creation(
         status = get_cluster_status(cluster_name, region, profile=profile)
 
         if status == STATUS_COMPLETE:
+            from daylily_ec import ui  # local import to avoid circular deps
+
+            ui.clear_progress()
             # Fetch head node details for the success banner.
             details = get_cluster_details(
                 cluster_name, region, profile=profile,
@@ -186,11 +189,15 @@ def wait_for_creation(
 
         if status == STATUS_IN_PROGRESS:
             consecutive_failures = 0
+            elapsed = time.time() - start
             logger.info(
                 "Cluster %s still creating (%.0fs elapsed)",
                 cluster_name,
-                time.time() - start,
+                elapsed,
             )
+            from daylily_ec import ui  # local import to avoid circular deps
+
+            ui.progress_line(f"Cluster creating ... {ui.elapsed_str(elapsed)}")
             sleep(poll_interval)
             continue
 
