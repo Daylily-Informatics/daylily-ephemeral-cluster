@@ -1522,5 +1522,4 @@ aws iam add-user-to-group --user-name "$USER_NAME" --group-name "$GROUP_NAME"
 
 _named in honor of Margaret Oakley Dahoff_ 
  
- X
- 
+ > Most bioinformatics groups treat clusters as pets; Daylily treats them as cattle. This is correct.
