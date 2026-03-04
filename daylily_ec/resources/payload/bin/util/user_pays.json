@@ -1,0 +1,49 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "PublicReadGetObject",
+      "Effect": "Allow",
+      "Principal": "*",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::daylily-references-public/*"
+    },
+    {
+      "Sid": "AllowYourUserWriteAccess",
+      "Effect": "Allow",
+      "Principal": {
+        "AWS": "arn:aws:iam::670484050738:root"
+      },
+      "Action": [
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:PutObjectAcl",
+        "s3:DeleteObjectVersion",
+        "s3:PutObjectVersionAcl",
+        "s3:PutObjectTagging",
+        "s3:DeleteObjectTagging"
+      ],
+      "Resource": "arn:aws:s3:::daylily-references-public/*"
+    },
+    {
+      "Sid": "DenyAllWriteActionsForPublic",
+      "Effect": "Deny",
+      "Principal": "*",
+      "Action": [
+        "s3:PutObject",
+        "s3:DeleteObject",
+        "s3:PutObjectAcl",
+        "s3:DeleteObjectVersion",
+        "s3:PutObjectVersionAcl",
+        "s3:PutObjectTagging",
+        "s3:DeleteObjectTagging"
+      ],
+      "Resource": "arn:aws:s3:::daylily-references-public/*",
+      "Condition": {
+        "StringNotEquals": {
+          "aws:PrincipalArn": "arn:aws:iam::670484050738:root"
+        }
+      }
+    }
+  ]
+}

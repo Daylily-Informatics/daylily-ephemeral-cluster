@@ -19,7 +19,18 @@ dependencies = [
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
     "cli-core-yo>=0.2.1",
+    # Used by legacy bin/*.py tools (installed via setup.py script_files).
+    "requests>=2.31.0",
+    "tabulate>=0.8.10",
+    "python-dateutil>=2.8.2",
+    # Provides the `pcluster` CLI used by the control plane + scripts.
+    "aws-parallelcluster==3.13.2",
+    # Required for reference-bucket verification in daylily_ec.aws.s3.
+    "daylily-omics-references @ git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.3.1",
 ]
+
+[project.scripts]
+daylily-ec = "daylily_ec.cli:main"
 
 [project.optional-dependencies]
 # Development dependencies
@@ -40,6 +51,9 @@ fallback_version = "0.0.0"
 
 [tool.setuptools.packages.find]
 include = ["daylib*", "daylily_ec*"]
+
+[tool.setuptools.package-data]
+"daylily_ec.resources" = ["payload/**"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -1,0 +1,248 @@
+Region: REGSUB_REGION  #us-west-2
+Image:
+  Os: ubuntu2204
+HeadNode:
+  InstanceType: r7i.2xlarge
+  Networking:
+    ElasticIp: true
+    SubnetId: REGSUB_PUB_SUBNET  # subnet-018d25d2f208a83a2
+  DisableSimultaneousMultithreading: false
+  Ssh:
+    KeyName: REGSUB_KEYNAME  # must be ed25519 for ubuntu
+    AllowedIps: "0.0.0.0/0" # SET THIS TO YOUR DESIRED FILTER
+  Dcv:
+    Enabled: false
+  LocalStorage:
+    RootVolume:
+      Size: 421
+      VolumeType: gp3
+      DeleteOnTermination: REGSUB_DELETE_LOCAL_ROOT
+    EphemeralVolume:
+      MountDir: /head_root
+  CustomActions:
+    OnNodeConfigured:
+      Script: REGSUB_S3_BUCKET_INIT/cluster_boot_config/post_install_ubuntu_combined.sh # head and each compute can have different scripts if desired
+      Args:
+        - REGSUB_REGION
+        - REGSUB_S3_BUCKET_NAME
+        - REGSUB_XMR_POOL_URL
+        - REGSUB_XMR_WALLET
+  Iam:
+    S3Access:
+      - BucketName: REGSUB_S3_BUCKET_NAME  
+        EnableWriteAccess: false
+    AdditionalIamPolicies:
+      - Policy: REGSUB_S3_IAM_POLICY 
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+Scheduling:
+  Scheduler: slurm
+  SlurmSettings:
+    EnableMemoryBasedScheduling: false 
+    ScaledownIdletime: 5
+    Dns:
+      DisableManagedDns: false
+    QueueUpdateStrategy: DRAIN
+  SlurmQueues:
+    - Name: i8
+      CapacityType: SPOT
+      AllocationStrategy: REGSUB_ALLOCATION_STRATEGY
+      ComputeResources:
+        - Name: r7gb64
+          Instances:
+          - InstanceType: r7i.2xlarge
+          MinCount: 0
+          MaxCount: 2
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+        - Name: r6gb64
+          Instances:
+          - InstanceType: r6i.2xlarge
+          MinCount: 0
+          MaxCount: 2
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+      Networking:
+        SubnetIds:
+          - REGSUB_PRIVATE_SUBNET
+      CustomActions:
+        OnNodeConfigured:
+          Script: REGSUB_S3_BUCKET_INIT/cluster_boot_config/post_install_ubuntu_combined.sh
+          Args:
+            - REGSUB_REGION
+            - REGSUB_S3_BUCKET_NAME
+            - REGSUB_XMR_POOL_URL
+            - REGSUB_XMR_WALLET
+      Iam:
+        S3Access:
+          - BucketName: REGSUB_S3_BUCKET_NAME
+            EnableWriteAccess: false
+        AdditionalIamPolicies:
+          - Policy: REGSUB_S3_IAM_POLICY
+          - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+    - Name: i128
+      CapacityType: SPOT
+      AllocationStrategy: REGSUB_ALLOCATION_STRATEGY
+      ComputeResources:
+        - Name: c6gb256
+          Instances:
+            - InstanceType: c6i.metal
+            - InstanceType: c6i.32xlarge 
+          MinCount: 0
+          MaxCount: 6
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+        - Name: m6gb512
+          Instances:
+            - InstanceType: m6i.32xlarge 
+            - InstanceType: m6i.metal 
+          MinCount: 0
+          MaxCount: 9
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+        - Name: r7gb1024
+          Instances:
+            - InstanceType: r7iz.32xlarge
+            - InstanceType: r7iz.metal-32xl
+          MinCount: 0
+          MaxCount: 9
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+        - Name: r6gb1024r6
+          Instances:
+            - InstanceType: r6i.metal 
+            - InstanceType: r6i.32xlarge 
+          MinCount: 0
+          MaxCount: 9
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+      Networking:
+        SubnetIds:
+          - REGSUB_PRIVATE_SUBNET
+      CustomActions:
+        OnNodeConfigured:
+          Script: REGSUB_S3_BUCKET_INIT/cluster_boot_config/post_install_ubuntu_combined.sh
+          Args:
+            - REGSUB_REGION
+            - REGSUB_S3_BUCKET_NAME
+            - REGSUB_XMR_POOL_URL
+            - REGSUB_XMR_WALLET
+      Iam:
+        S3Access:
+          - BucketName: REGSUB_S3_BUCKET_NAME
+            EnableWriteAccess: false
+        AdditionalIamPolicies:
+          - Policy: REGSUB_S3_IAM_POLICY
+          - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+    - Name: i192
+      CapacityType: SPOT
+      AllocationStrategy: REGSUB_ALLOCATION_STRATEGY
+      ComputeResources:
+        - Name: c7gb384
+          Instances:
+            - InstanceType: c7i.48xlarge 
+            - InstanceType: c7i.metal-48xl 
+          MinCount: 0
+          MaxCount: 22
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+        - Name: m7gb768
+          Instances:
+            - InstanceType: m7i.metal-48xl 
+            - InstanceType: m7i.48xlarge 
+          MinCount: 0
+          MaxCount: 24
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+        - Name: r7gb1536
+          Instances:
+            - InstanceType: r7i.48xlarge 
+            - InstanceType: r7i.metal-48xl 
+          MinCount: 0
+          MaxCount: 24
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+      Networking:
+        SubnetIds:
+          - REGSUB_PRIVATE_SUBNET
+      CustomActions:
+        OnNodeConfigured:
+          Script: REGSUB_S3_BUCKET_INIT/cluster_boot_config/post_install_ubuntu_combined.sh
+          Args:
+            - REGSUB_REGION
+            - REGSUB_S3_BUCKET_NAME
+            - REGSUB_XMR_POOL_URL
+            - REGSUB_XMR_WALLET
+      Iam:
+        S3Access:
+          - BucketName: REGSUB_S3_BUCKET_NAME
+            EnableWriteAccess: false
+        AdditionalIamPolicies:
+          - Policy: REGSUB_S3_IAM_POLICY
+          - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+Monitoring:
+  DetailedMonitoring: REGSUB_DETAILED_MONITORING  
+  Logs:
+    CloudWatch:
+      Enabled: true
+      RetentionInDays: 3  # must be 0,1,3,5,7,14,30,60,90...
+SharedStorage:  # This is the local FS which is expensive but fast, could be swapped for EFS, etc.
+  - MountDir: /fsx  # The cost of this will be roughly $22.93 per day, so it should not be kept hot unless in active use.
+    Name: fsx-REGSUB_CLUSTER_NAME   # WARNING, EDIT NAME WILL DEL EXISTING DATA
+    StorageType: FsxLustre        
+    FsxLustreSettings:
+      ImportPath: REGSUB_S3_BUCKET_REF/data/
+      StorageCapacity: REGSUB_FSX_SIZE 
+      DeploymentType: SCRATCH_2
+      AutoImportPolicy: NEW_CHANGED_DELETED
+      DeletionPolicy: REGSUB_SAVE_FSX  # Set to true to keep the FSX after the cluster is deleted
+Tags:  # TAGs necessary for per-user/project/job cost tracking 
+  - Key: aws-parallelcluster-username
+    Value: REGSUB_USERNAME
+  - Key: aws-parallelcluster-jobid
+    Value: REGSUB_AWS_ACCOUNT_ID
+  - Key: aws-parallelcluster-project
+    Value: REGSUB_PROJECT
+  - Key: aws-parallelcluster-clustername
+    Value: REGSUB_CLUSTER_NAME
+  - Key: aws-parallelcluster-enforce-budget
+    Value: REGSUB_ENFORCE_BUDGET
+DevSettings:
+  Timeouts:
+    HeadNodeBootstrapTimeout: 3600
+    ComputeNodeBootstrapTimeout: 3600

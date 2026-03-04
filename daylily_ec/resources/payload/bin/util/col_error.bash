@@ -1,0 +1,13 @@
+
+colr "|\ " "turquoise" "debianred" "f"
+colr "| \ " "turquoise" "debianred" "f"
+colr "|  \ " "turquoise" "debianred" "f"
+colr "| ! \ " "turquoise" "debianred" "f"
+colr "|  E \ " "turquoise" "debianred" "f"
+colr "|   R \ " "turquoise" "debianred" "f"
+colr "|    R \ " "turquoise" "debianred" "f"
+colr "|     O \ " "turquoise" "debianred" "f"
+colr "|      R \ " "turquoise" "debianred" "f"
+colr "|       ! \ " "turquoise" "debianred" "f"
+colr "|_________/  " "turquoise" "debianred" "f"
+colr "                                     "

@@ -1,0 +1,90 @@
+#!/usr/bin/env python3
+"""Remove heartbeat notification resources for a Daylily ephemeral cluster."""
+from __future__ import annotations
+
+import argparse
+import os
+import sys
+from typing import Iterable, Optional
+
+# Ensure DAY-EC conda environment is active
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+from ensure_dayec import ensure_dayec
+ensure_dayec(quiet=True)
+
+import boto3
+from botocore.exceptions import ClientError
+
+from setup_cluster_heartbeat import derive_names, resolve_aws_profile  # type: ignore
+
+
+def parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--cluster-name", required=True)
+    parser.add_argument("--region", required=True)
+    parser.add_argument(
+        "--profile",
+        help="AWS profile to use (defaults to AWS_PROFILE environment variable).",
+    )
+    return parser.parse_args(argv)
+
+
+def delete_schedule(scheduler_client, schedule_name: str) -> None:
+    try:
+        scheduler_client.delete_schedule(Name=schedule_name, GroupName="default")
+        print(f"Deleted schedule {schedule_name}.")
+    except ClientError as error:
+        if error.response["Error"].get("Code") in {"ResourceNotFoundException", "ValidationException"}:
+            print(f"Schedule {schedule_name} did not exist.")
+        else:
+            raise
+
+
+def delete_lambda(lambda_client, function_name: str) -> None:
+    try:
+        lambda_client.delete_function(FunctionName=function_name)
+        print(f"Deleted Lambda function {function_name}.")
+    except ClientError as error:
+        if error.response["Error"].get("Code") == "ResourceNotFoundException":
+            print(f"Lambda function {function_name} did not exist.")
+        else:
+            raise
+
+
+def delete_topic(sns_client, topic_arn: str) -> None:
+    try:
+        sns_client.delete_topic(TopicArn=topic_arn)
+        print(f"Deleted SNS topic {topic_arn}.")
+    except ClientError as error:
+        if error.response["Error"].get("Code") == "NotFound":
+            print(f"SNS topic {topic_arn} did not exist.")
+        else:
+            raise
+
+
+def main(argv: Optional[Iterable[str]] = None) -> int:
+    args = parse_args(argv)
+
+    names = derive_names(args.cluster_name)
+
+    profile = resolve_aws_profile(args.profile)
+
+    session = boto3.Session(profile_name=profile, region_name=args.region)
+    scheduler_client = session.client("scheduler")
+    lambda_client = session.client("lambda")
+    sns_client = session.client("sns")
+    sts_client = session.client("sts")
+
+    account_id = sts_client.get_caller_identity()["Account"]
+    topic_arn = names.topic_arn(account_id, args.region)
+
+    delete_schedule(scheduler_client, names.schedule_name)
+    delete_lambda(lambda_client, names.function_name)
+    delete_topic(sns_client, topic_arn)
+
+    print("✅ Heartbeat notification resources removed (if they existed).")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

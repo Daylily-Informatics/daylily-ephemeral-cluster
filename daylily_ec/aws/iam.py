@@ -18,6 +18,7 @@ import subprocess
 from typing import Any, List, Optional, Tuple
 
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
+from daylily_ec.resources import resource_path
 
 logger = logging.getLogger(__name__)
 
@@ -311,17 +312,23 @@ def resolve_scheduler_role(
             continue
 
     # 4. Create via script
-    if shutil.which(CREATE_SCHEDULER_SCRIPT) or os.path.isfile(
-        CREATE_SCHEDULER_SCRIPT
-    ):
-        cmd: List[str] = [CREATE_SCHEDULER_SCRIPT, "--region", region]
+    script_path = ""
+    if os.path.isfile(CREATE_SCHEDULER_SCRIPT):
+        script_path = CREATE_SCHEDULER_SCRIPT
+    else:
+        # When installed via pip, use the packaged script.
+        try:
+            script_path = str(resource_path(CREATE_SCHEDULER_SCRIPT))
+        except FileNotFoundError:
+            script_path = ""
+
+    if script_path:
+        cmd: List[str] = [script_path, "--region", region]
         if profile:
             cmd.extend(["--profile", profile])
 
         try:
-            result = subprocess.run(
-                cmd, capture_output=True, text=True, timeout=120,
-            )
+            result = subprocess.run(cmd, capture_output=True, text=True, timeout=120)
             if result.returncode == 0:
                 # Parse "ROLE ARN: arn:aws:iam::..." from output
                 for line in result.stdout.splitlines():
@@ -373,4 +380,3 @@ def make_iam_preflight_step(
         return report
 
     return step
-

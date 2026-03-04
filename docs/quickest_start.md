@@ -21,8 +21,9 @@ _on the laptop you'll create ephemeral clusters from_
 _on the laptop you'll create ephemeral cluster, where you have saved the daylily-service user AWS cli credentials and have the appropriate `.pem`'s in `~/.ssh`._
 
 > Run `./bin/init_dayec` from the repository root before using the CLI.
-> The script now performs an editable `pip install`, so activating `DAY-EC`
-> places every `bin/` command on your shell `$PATH`.
+> For pip-based usage (no repo checkout layout required), see: `docs/pip_install.md`.
+> If you prefer conda, `./bin/init_dayec` performs an editable install when run
+> from a repo checkout.
 
 ### Create References S3 Bucket (if it does not already exist)
 _One is needed per region you intend to run in._
@@ -100,7 +101,6 @@ REGION_AZ=us-west-2c
 ```
 
 You will be prompted for a variety of config settings. Some resources, if missing, will be created. Other resources if missing will trigger failures.  If all is well, you'll be left with a success message with a suggested command to start a remote test on the headnode.
-
 
 
 

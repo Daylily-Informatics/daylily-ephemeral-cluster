@@ -1,0 +1,1 @@
+cat bin/chatgpt/giab_locations.fofn  | parallel 'k={}; h=$(echo $k | cut -d , -f 1); f=$( echo $k | cut -d , -f 2); echo $h $f; rclone -P --dry-run copy --header-upload "x-amz-tagging: Department=DayDemo&s3-copy-costcenter=DY-s3-test" $f awsdaylily:/daylily-reference-data/data/genomic_data/organism_reads/H_sapiens/giab/NCBI/$h/ ;'

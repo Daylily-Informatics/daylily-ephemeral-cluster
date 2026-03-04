@@ -1,0 +1,113 @@
+#!/bin/bash
+
+# MIT No Attribution
+# Copyright 2020 Amazon.com, Inc. or its affiliates. All Rights Reserved.
+
+parameters=$@
+
+# Extract the project name from --comment
+if [ -z "${project}" ]; then
+    export project=$(echo $@ | sed -n -e 's/.*comment //p' | awk '{print $1}')
+fi
+
+slurm_command=$(basename "$0")
+
+if [ -z "${project}" ]; then
+    echo "ERROR: Please specify a project/budget name with the comment flag. '--comment ProjectName' to proceed with any sbatch command." >&2
+    echo "Available budgets/projects in /fsx/data/budget_tags/pcluster-project-budget-tags.tsv are:" >&2
+    cat /fsx/data/budget_tags/pcluster-project-budget-tags.tsv  >&2
+    echo ""  >&2
+    echo "you may modify this script to fully block unknown projects, for now this will tag with the specified project and proceed."  >&2
+    echo "a log of warnings/errors will be written to ./sbatch_errs.log"  >&2
+    echo "setting project=unknown-project "  >&2
+    project="unknown-project"
+fi
+
+# Path to the file containing budget names and users
+budget_file="/fsx/data/budget_tags/pcluster-project-budget-tags.tsv"
+
+# Default value for the modified project name
+modified_project="${project}"
+
+# Check if the budget file exists
+if [ ! -f "${budget_file}" ]; then
+    echo "WARNING: Budget file ${budget_file} not found." >> ./sbatch_errs.log 2>&1
+    modified_project="${project}-no-file"
+    echo "" >> ./sbatch_errs.log >> ./sbatch_errs.log 2>&1
+    echo "Proceeding with the tag: $modified_project  ...continuing in 3 seconds." >> ./sbatch_errs.log 2>&1
+    echo "" >> ./sbatch_errs.log >> ./sbatch_errs.log 2>&1
+
+else
+    # Check if the project exists and the user is authorized
+    project_users=$(awk -F'\t' -v proj="${project}" '$1 == proj && NF == 2 {print $2}' "${budget_file}" | tr ',' '\n')
+
+    if [ -z "${project_users}" ]; then
+        echo "WARNING: Project '${project}' not found in budget file. " >> ./sbatch_errs.log 2>&1
+        echo "Available budgets/projects are:" >> ./sbatch_errs.log 2>&1
+        cat "${budget_file}" >> ./sbatch_errs.log 2>&1
+        echo "" >> ./sbatch_errs.log 2>&1
+        modified_project="${project}-invalid-project"
+        echo "Proceeding with the tag: $modified_project  ...continuing in 3 seconds." >> ./sbatch_errs.log 2>&1
+
+    elif ! echo "${project_users}" | grep -qx "${USER}"; then
+        echo "WARNING: User '${USER}' is not authorized for project '${project}'." >> ./sbatch_errs.log 2>&1
+        echo "" >> ./sbatch_errs.log 2>&1
+        modified_project="${project}-invalid-user"
+        echo "Proceeding with the tag: $modified_project  ...continuing in 3 seconds." >> ./sbatch_errs.log 2>&1
+    fi
+fi
+
+
+## HELLO- THIS IS NOT SUPER TESTED YET. THE PIECES SHOULD ALL BE IN PLACE, BUT HAVE NOT RUN MANY USE CASES YET.
+# Check for 'aws-parallelcluster-enforce-budget' tag in pcluster-config.yaml
+enforce_budget=$(awk '/Key: aws-parallelcluster-enforce-budget/ {getline; print $2}' /opt/parallelcluster/shared/cluster-config.yaml)
+
+if [ "$enforce_budget" != "enforce" ]; then
+    #echo "Budget enforcement is not enabled. Skipping budget check."
+    sleep 0.0001
+else
+    # Budget Check
+    AWS_ACCOUNT_ID=$(aws sts get-caller-identity --query "Account" --output text)
+    region=$(cat  /etc/parallelcluster/cfnconfig | grep cfn_region | cut -d '=' -f 2)
+    if [ -z "$region" ]; then
+        echo "ERROR: Region is not set. Cannot verify budget." 
+        exit 1
+    fi
+
+    BUDGETS=$(aws budgets describe-budgets --account-id "$AWS_ACCOUNT_ID" --region "$region" 2>/dev/null)
+
+    if [ -z "$BUDGETS" ]; then
+        echo "WARNING: Unable to retrieve AWS budgets. Continuing without budget check." >> ./sbatch_errs.log 2>&1
+    else
+        MATCHING_BUDGET=$(echo "$BUDGETS" | jq -r ".Budgets[] | select(.BudgetName==\"$project\")")
+
+        if [ -z "$MATCHING_BUDGET" ]; then
+            echo "WARNING: No matching AWS budget found for project '$project'. Continuing..." >> ./sbatch_errs.log 2>&1
+        else
+            TOTAL_BUDGET=$(echo "$MATCHING_BUDGET" | jq -r ".BudgetLimit.Amount")
+            USED_BUDGET=$(echo "$MATCHING_BUDGET" | jq -r ".CalculatedSpend.ActualSpend.Amount")
+
+            if [ -z "$TOTAL_BUDGET" ] || [ -z "$USED_BUDGET" ]; then
+                echo "ERROR: Unable to retrieve budget details for project '$project'." 
+                exit 1
+            fi
+
+            PERCENT_USED=$(awk "BEGIN {print ($USED_BUDGET / $TOTAL_BUDGET) * 100}")
+
+            echo "" >> ./sbatch_errs.log 2>&1
+            echo "________________________________________________________" >> ./sbatch_errs.log 2>&1
+            echo "AWS Budget for project '$project' in region '$region':" >> ./sbatch_errs.log 2>&1
+            echo "  Total: $TOTAL_BUDGET USD" >> ./sbatch_errs.log 2>&1
+            echo "  Used: $USED_BUDGET USD" >> ./sbatch_errs.log 2>&1
+            echo "  Percent Used: $PERCENT_USED%" >> ./sbatch_errs.log 2>&1
+            echo "________________________________________________________" >> ./sbatch_errs.log 2>&1
+
+            if (( $(echo "$PERCENT_USED >= 100" | bc -l) )); then
+                echo "WARNING: Budget for project '$project' is exhausted! Continuing anyway..." >> ./sbatch_errs.log 2>&1
+            fi
+        fi
+    fi
+fi
+
+# Append the modified --comment to the Slurm command
+/opt/slurm/sbin/${slurm_command} --comment="${modified_project}" --export=ALL "$@" 

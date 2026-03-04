@@ -223,6 +223,7 @@ def run_create_workflow(
         dry_run_create,
         should_break_after_dry_run,
     )
+    from daylily_ec.resources import resource_path
     from daylily_ec.render.renderer import CONFIG_DIR, write_init_artifacts
 
     if debug:
@@ -232,6 +233,8 @@ def run_create_workflow(
 
     # -- 0. Load config -------------------------------------------------------
     effective_config = config_path or "config/daylily_ephemeral_cluster_template.yaml"
+    if config_path is None and not Path(effective_config).is_file():
+        effective_config = str(resource_path(effective_config))
     cfg = load_config(effective_config)
     ec = cfg.ephemeral_cluster
 
@@ -384,6 +387,8 @@ def run_create_workflow(
 
     bucket_url = f"s3://{bucket_name}" if bucket_name else ""
     template_yaml = _val("cluster_template_yaml") or "config/day_cluster/prod_cluster.yaml"
+    if not Path(template_yaml).is_file():
+        template_yaml = str(resource_path(template_yaml))
 
     substitutions: Dict[str, str] = {
         "REGSUB_REGION": aws_ctx.region,
@@ -801,6 +806,7 @@ def configure_headnode(
     import tempfile
 
     import yaml
+    from daylily_ec.resources import resource_path
 
     pem_path = str(Path.home() / ".ssh" / f"{keypair}.pem")
     if not Path(pem_path).exists():
@@ -808,12 +814,18 @@ def configure_headnode(
         return False
 
     # Read repo tag + URL from global config
-    cfg_path = Path("config/daylily_cli_global.yaml")
-    if not cfg_path.exists():
-        logger.error("Global config not found: %s", cfg_path)
-        return False
+    user_cfg_path = Path.home() / ".config" / "daylily" / "daylily_cli_global.yaml"
+    cfg_path = (
+        user_cfg_path
+        if user_cfg_path.exists()
+        else (
+            Path("config/daylily_cli_global.yaml")
+            if Path("config/daylily_cli_global.yaml").exists()
+            else resource_path("config/daylily_cli_global.yaml")
+        )
+    )
 
-    with open(cfg_path) as fh:
+    with open(cfg_path, encoding="utf-8") as fh:
         cli_cfg = yaml.safe_load(fh)
 
     daylily = cli_cfg.get("daylily", {})
@@ -886,9 +898,18 @@ def configure_headnode(
     # Optional: deploy repository overrides
     if repo_overrides:
         logger.info("  ▸ Deploying repository overrides ...")
-        avail_repos_path = Path("config/daylily_available_repositories.yaml")
+        user_avail = Path.home() / ".config" / "daylily" / "daylily_available_repositories.yaml"
+        avail_repos_path = (
+            user_avail
+            if user_avail.exists()
+            else (
+                Path("config/daylily_available_repositories.yaml")
+                if Path("config/daylily_available_repositories.yaml").exists()
+                else resource_path("config/daylily_available_repositories.yaml")
+            )
+        )
         if avail_repos_path.exists():
-            with open(avail_repos_path) as fh:
+            with open(avail_repos_path, encoding="utf-8") as fh:
                 repos_cfg = yaml.safe_load(fh)
 
             for repo_key, git_ref in repo_overrides.items():
@@ -969,6 +990,10 @@ def run_preflight_only(
 
     # Load config
     effective_config = config_path or "config/daylily_ephemeral_cluster_template.yaml"
+    if config_path is None and not Path(effective_config).is_file():
+        from daylily_ec.resources import resource_path
+
+        effective_config = str(resource_path(effective_config))
     cfg = load_config(effective_config)
     ec = cfg.ephemeral_cluster
 

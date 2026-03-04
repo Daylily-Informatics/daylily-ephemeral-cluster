@@ -445,7 +445,7 @@ conda activate DAY-EC
 
 # CLI commands from ./bin are now on your PATH.
 # Re-run this after pulling updates if needed.
-# (init_dayec performs an editable pip install each run)
+# (init_dayec performs an editable pip install when run from a repo checkout)
 
 # DAY-EC should now be active... did it work?
 colr  'did it work?' 0,100,255 255,100,0
