@@ -1,0 +1,165 @@
+{
+	"Version": "2012-10-17",
+	"Statement": [
+		{
+			"Effect": "Allow",
+			"Action": [
+				"ec2:*",
+				"autoscaling:*",
+				"elasticloadbalancing:*",
+			        "elasticfilesystem:*",
+			    	"sns:CreateTopic",
+				"sns:ListTopics",
+				"sns:ListSubscriptions",
+				"sns:ListSubscriptionsByTopic"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"iam:List*",
+				"iam:Get*",
+				"iam:SimulatePrincipalPolicy",
+				"iam:Create*",
+				"iam:DeleteInstanceProfile",
+				"iam:AddRoleToInstanceProfile",
+				"iam:RemoveRoleFromInstanceProfile",
+				"iam:AttachRolePolicy",
+				"iam:DetachRolePolicy",
+				"iam:TagRole",
+				"iam:PutRolePolicy",
+				"iam:DeleteRole*"
+			],
+			"Resource": "*"
+		},
+        {
+            "Action": [
+                "iam:PassRole"
+            ],
+            "Resource": [
+				"arn:aws:iam::<AWS_ACCOUNT_ID>:role/*"
+            ],
+            "Effect": "Allow"
+        },
+		{
+			"Effect": "Allow",
+			"Action": [
+				"cognito-idp:*",
+				"servicequotas:GetServiceQuota",
+				"ssm:*"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "iam:CreateServiceLinkedRole",
+			"Resource": "*",
+			"Condition": {
+				"StringLike": {
+					"iam:AWSServiceName": [
+						"spot.amazonaws.com",
+						"fsx.amazonaws.com",
+						"s3.data-source.lustre.fsx.amazonaws.com",
+						"imagebuilder.amazonaws.com",
+						"ec2.amazonaws.com",
+						"lambda.amazonaws.com"
+					]
+				}
+			}
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"lambda:*"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": "cloudformation:*",
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"fsx:*"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"dynamodb:*"
+			],
+			"Resource": "arn:aws:dynamodb:*:<AWS_ACCOUNT_ID>:table/parallelcluster-*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"route53:*",
+				"apigateway:*",
+				"secretsmanager:*",
+				"ecr:*"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"s3:*",
+				"s3:ListAllMyBuckets"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"budgets:*"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"cloudwatch:*",
+				"logs:*"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"imagebuilder:*"
+			],
+			"Resource": "*"
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"sns:*"
+			],
+			"Resource": "*"
+			
+		},
+		{
+			"Effect": "Allow",
+			"Action": [
+				"tag:*"
+			],
+			"Resource": "*"
+		},
+	    	{
+			"Effect": "Allow",
+			"Action": [
+				"sns:GetTopicAttributes",
+				"sns:SetTopicAttributes",
+				"sns:Subscribe",
+				"sns:Unsubscribe",
+				"sns:Publish",
+				"sns:DeleteTopic"
+			],
+			"Resource": "arn:aws:sns:<REGION>:<AWS_ACCOUNT_ID>:*"
+		}
+	]
+}

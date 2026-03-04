@@ -1,0 +1,42 @@
+zones:
+  - eu-central-1a
+  - eu-central-1b
+  - eu-central-1c
+aws_profile: "daylily"
+vcpu_cost_per_min: 0.05
+storage_rate: 0.023
+transfer_rate: 0.01
+genome_coverage: 30
+cluster_config_yaml: "config/day_cluster/prod_cluster.yaml"
+partition: i192
+tasks:
+  - name: Alignment
+    description: "Align sequencing reads"
+    type: alignment
+    vcpu_min_per_x_cov: 200
+    artifacts:
+      - name: BAM
+        description: "Aligned reads"
+        type: alignment_output
+        size_per_x_cov: 1.5
+        keep: true
+      - name: QC
+        description: "Quality control metrics"
+        type: qc_metrics
+        size_per_x_cov: 0.01
+        keep: true
+  - name: Variant Calling
+    description: "Call variants from aligned reads"
+    type: snv_calling
+    vcpu_min_per_x_cov: 500
+    artifacts:
+      - name: VCF
+        description: "Variant calls"
+        type: variant_output
+        size_per_x_cov: 0.3
+        keep: true
+      - name: GVCF
+        description: "Genomic VCF"
+        type: variant_output
+        size_per_x_cov: 0.5
+        keep: false

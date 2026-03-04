@@ -127,7 +127,12 @@ def select_bucket(
 # Reference bundle verification
 # ---------------------------------------------------------------------------
 
-VERIFY_CMD = "daylily-omics-references.sh"
+VERIFY_CMD = "daylily-omics-references"
+
+VERIFY_CMDS = (
+    "daylily-omics-references",
+    "daylily-omics-references.sh",
+)
 
 
 def verify_reference_bundle(
@@ -136,23 +141,23 @@ def verify_reference_bundle(
     profile: str = "",
     region: str = "",
 ) -> bool:
-    """Run ``daylily-omics-references.sh verify`` and return success.
+    """Run ``daylily-omics-references verify`` and return success.
 
     Matches Bash::
 
         daylily-omics-references.sh --profile "$AWS_PROFILE" --region "$region" \\
             verify --bucket "$selected_bucket" --exclude-b37
     """
-    if not shutil.which(VERIFY_CMD):
+    verify_cmd = next((c for c in VERIFY_CMDS if shutil.which(c)), "")
+    if not verify_cmd:
         logger.error(
-            "%s not found on PATH. Install with: "
+            "daylily-omics-references CLI not found on PATH. Install with: "
             'pip install "git+https://github.com/Daylily-Informatics/'
-            'daylily-omics-references.git@0.2.1"',
-            VERIFY_CMD,
+            'daylily-omics-references.git@0.3.1"',
         )
         return False
 
-    cmd: List[str] = [VERIFY_CMD]
+    cmd: List[str] = [verify_cmd]
     if profile:
         cmd.extend(["--profile", profile])
     if region:
@@ -300,4 +305,3 @@ def make_s3_bucket_preflight_step(
         return report
 
     return step
-

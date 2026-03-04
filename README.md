@@ -308,6 +308,14 @@ region = <REGION>
 
 > To automatically use a profile other than `default`, set the `AWS_PROFILE` environment variable to the profile name you wish to use. _ie:_ `export AWS_PROFILE=daylily-service`
 
+### Pip Install (No Repo Checkout Required)
+
+For downstream repos (e.g. `daylily-ursa`) or running from any working directory
+without relying on a checked-out repo layout, install via pip and use the
+`daylily-ec` console script:
+
+- See: `docs/pip_install.md`
+
 
 
 ### Clone stable release of `daylily` Git Repository
@@ -348,7 +356,7 @@ conda activate DAY-EC
 
 # CLI commands from ./bin are now on your PATH.
 # Re-run this after pulling updates if needed.
-# (init_dayec performs an editable pip install each run)
+# (init_dayec performs an editable pip install when run from a repo checkout)
 
 # DAY-EC should now be active... did it work?
 colr  'did it work?' 0,100,255 255,100,0

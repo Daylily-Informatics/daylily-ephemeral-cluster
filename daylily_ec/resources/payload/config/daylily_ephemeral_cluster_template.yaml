@@ -1,0 +1,39 @@
+ephemeral_cluster:
+  config:
+    ssh_key_name: [PROMPTUSER, "", ""]           # dynamic list; default blank forces selection
+    s3_bucket_name: [PROMPTUSER, "", ""]
+    public_subnet_id: [PROMPTUSER, "", ""]
+    private_subnet_id: [PROMPTUSER, "", ""]
+    iam_policy_arn: [PROMPTUSER, "", ""]
+    cluster_name: [PROMPTUSER, "majors-cluster", ""]
+    budget_email: [PROMPTUSER, "", ""]
+    allowed_budget_users: [PROMPTUSER, "", ""]
+    budget_amount: [PROMPTUSER, "200", ""]
+    global_allowed_budget_users: [PROMPTUSER, "", ""]
+    global_budget_amount: [PROMPTUSER, "200", ""]
+    enforce_budget: [PROMPTUSER, "skip", ""]
+    cluster_template_yaml: [PROMPTUSER, "config/day_cluster/prod_cluster.yaml", ""]
+    headnode_instance_type: [PROMPTUSER, "r7i.2xlarge", ""]
+    fsx_fs_size: [PROMPTUSER, "4800", ""]
+    enable_detailed_monitoring: [PROMPTUSER, "false", ""]
+    delete_local_root: [PROMPTUSER, "true", ""] # false or true
+    auto_delete_fsx: [PROMPTUSER, "Delete", ""] # Delete or Retain
+    heartbeat_email: [PROMPTUSER, "", ""]
+    heartbeat_schedule: [PROMPTUSER, "rate(60 minutes)", ""]
+    heartbeat_scheduler_role_arn: [PROMPTUSER, "", ""]
+    spot_instance_allocation_strategy: [PROMPTUSER, "price-capacity-optimized", ""]
+    max_count_8I: [PROMPTUSER, "1", ""]
+    max_count_128I: [PROMPTUSER, "1", ""]
+    max_count_192I: [PROMPTUSER, "1", ""]
+  template_defaults:
+    # keep as you had; these are fallbacks if default_value is empty
+    headnode_instance_type: "r7i.2xlarge"
+    fsx_fs_size: "7200"
+    enable_detailed_monitoring: "false"
+    delete_local_root: "true"
+    auto_delete_fsx: "Delete"
+    heartbeat_schedule: "rate(60 minutes)"
+    spot_instance_allocation_strategy: "price-capacity-optimized"
+    max_count_8I: "1"
+    max_count_128I: "1"
+    max_count_192I: "1"

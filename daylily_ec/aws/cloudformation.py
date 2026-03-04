@@ -23,6 +23,7 @@ from dataclasses import dataclass
 from typing import Any, Dict, List, Optional
 
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
+from daylily_ec.resources import resource_path
 
 logger = logging.getLogger(__name__)
 
@@ -251,12 +252,16 @@ def ensure_pcluster_env_stack(
         waiter.wait(StackName=stack_name)
         return get_stack_outputs(cfn, stack_name)
 
-    # 2. Read template
+    # 2. Read template. When installed via pip, fall back to packaged resources.
     if not os.path.isfile(template_path):
-        raise FileNotFoundError(
-            f"CFN template not found: {template_path}"
-        )
-    with open(template_path) as fh:
+        # Only auto-fallback for the default repo-relative path.
+        if template_path == DEFAULT_TEMPLATE_PATH:
+            template_path = str(resource_path(DEFAULT_TEMPLATE_PATH))
+        else:
+            raise FileNotFoundError(
+                f"CFN template not found: {template_path}"
+            )
+    with open(template_path, encoding="utf-8") as fh:
         template_body = fh.read()
 
     # 3. Check policy existence

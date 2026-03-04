@@ -345,35 +345,30 @@ class TestConfigureHeadnode:
         assert ok is True
         assert mock_run.call_count == 6
 
-    def test_global_config_not_found(self, tmp_path, monkeypatch):
-        """Returns False when global config file doesn't exist."""
+    @patch("daylily_ec.workflow.create_cluster.subprocess.run")
+    def test_global_config_not_found(self, mock_run, tmp_path, monkeypatch):
+        """Falls back to packaged config when local/global config is missing."""
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+
         pem = tmp_path / ".ssh" / "test-key.pem"
         pem.parent.mkdir(parents=True, exist_ok=True)
         pem.write_text("fake-pem")
 
-        # Patch Path.home to use tmp_path
-        with patch("daylily_ec.workflow.create_cluster.Path") as mock_path_cls:
-            mock_path_cls.home.return_value = tmp_path
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=[], returncode=0, stdout="repositories", stderr="",
+        )
 
-            def path_side_effect(arg):
-                if isinstance(arg, str) and arg == "config/daylily_cli_global.yaml":
-                    fake = MagicMock()
-                    fake.exists.return_value = False
-                    return fake
-                from pathlib import Path as RealPath
-
-                return RealPath(arg)
-
-            mock_path_cls.side_effect = path_side_effect
-
-            ok = configure_headnode(
-                cluster_name="test-cluster",
-                head_node_ip="1.2.3.4",
-                keypair="test-key",
-                region="us-west-2",
-                profile="test",
-            )
-            assert ok is False
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_ip="1.2.3.4",
+            keypair="test-key",
+            region="us-west-2",
+            profile="test",
+        )
+        assert ok is True
+        assert mock_run.call_count >= 1
 
 
 # ── configure_headnode export ────────────────────────────────────────

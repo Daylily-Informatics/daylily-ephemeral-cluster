@@ -265,6 +265,20 @@ def drift(
     raise typer.Exit(EXIT_SUCCESS)
 
 
+# ── resources-dir command ────────────────────────────────────────────────────
+
+
+@app.command("resources-dir")
+def resources_dir() -> None:
+    """Print the extracted resource directory used by Daylily.
+
+    Intended for use by legacy shell scripts installed from ``bin/``.
+    """
+    from daylily_ec.resources import ensure_extracted
+
+    typer.echo(str(ensure_extracted()))
+
+
 # ── Entry point ──────────────────────────────────────────────────────────────
 
 
@@ -279,4 +293,3 @@ def main() -> int:
 
 if __name__ == "__main__":
     sys.exit(main())
-

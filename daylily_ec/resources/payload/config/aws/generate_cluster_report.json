@@ -1,0 +1,41 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    { "Effect": "Allow",
+      "Action": [
+        "ce:GetCostAndUsage",
+        "ce:GetCostAndUsageWithResources",
+        "ce:GetDimensionValues",
+        "ce:GetTags",
+        "ce:ListCostAllocationTags",
+        "ce:DescribeCostAllocationTags",
+        "ce:DescribeCostCategoryDefinition",
+        "ce:ListCostCategoryDefinitions"
+      ],
+      "Resource": "*"
+    },
+    { "Effect": "Allow",
+      "Action": [
+        "budgets:DescribeBudget",
+        "budgets:ViewBudget",
+        "budgets:DescribeBudgets",
+        "budgets:DescribeBudgetPerformanceHistory",
+        "budgets:DescribeNotificationsForBudget",
+        "budgets:DescribeSubscribersForNotification"
+      ],
+      "Resource": "*"
+    },
+    { "Effect": "Allow",
+      "Action": [
+        "tag:GetResources",
+        "tag:GetTagKeys",
+        "tag:GetTagValues"
+      ],
+      "Resource": "*"
+    },
+    { "Effect": "Allow",
+      "Action": [ "sts:GetCallerIdentity" ],
+      "Resource": "*"
+    }
+  ]
+}

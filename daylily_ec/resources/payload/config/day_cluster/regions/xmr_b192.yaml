@@ -1,0 +1,109 @@
+Region: REGSUB_REGION  #us-west-2
+Image:
+  Os: ubuntu2204
+HeadNode:
+  InstanceType: m7a.2xlarge
+  Networking:
+    ElasticIp: true
+    SubnetId: REGSUB_PUB_SUBNET  # subnet-018d25d2f208a83a2
+  DisableSimultaneousMultithreading: false
+  Ssh:
+    KeyName: REGSUB_KEYNAME  # must be ed25519 for ubuntu
+    AllowedIps: "0.0.0.0/0" # SET THIS TO YOUR DESIRED FILTER
+  Dcv:
+    Enabled: false
+  LocalStorage:
+    RootVolume:
+      Size: 775
+      VolumeType: gp3
+      DeleteOnTermination: false
+    EphemeralVolume:
+      MountDir: /head_root
+  CustomActions:
+    OnNodeConfigured:
+      Script: REGSUB_S3_BUCKET_INIT/cluster_boot_config/post_install_ubuntu_combined.sh # head and each compute can have different scripts if desired
+      Args:
+        - REGSUB_REGION
+        - REGSUB_S3_BUCKET_NAME
+        - REGSUB_XMR_POOL_URL
+        - REGSUB_XMR_WALLET
+  Iam:
+    S3Access:
+      - BucketName: REGSUB_S3_BUCKET_NAME  # daylily-ref
+        EnableWriteAccess: false
+    AdditionalIamPolicies:
+      - Policy: REGSUB_S3_IAM_POLICY  
+      - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+Scheduling:
+  Scheduler: slurm
+  SlurmSettings:
+    EnableMemoryBasedScheduling: false # Unclear this is going to be more a pain than a help... see how deepvar fares
+    ScaledownIdletime: 5
+    Dns:
+      DisableManagedDns: false
+    QueueUpdateStrategy: DRAIN
+  SlurmQueues:
+    - Name: b192
+      CapacityType: SPOT
+      AllocationStrategy: lowest-price
+      ComputeResources:
+        - Name: all
+          Instances:
+            - InstanceType: c7a.48xlarge   # 192 vCPUs, 384 GiB
+            - InstanceType: c7a.metal-48xl # 192 vCPUs, 384 GiB
+            - InstanceType: m7a.48xlarge   # 192 vCPUs, 768 GiB
+            - InstanceType: m7a.metal-48xl # 192 vCPUs, 768 GiB
+            - InstanceType: r7a.48xlarge   # 192 vCPUs, 1536 GiB
+            - InstanceType: r7a.metal-48xl # 192 vCPUs, 1536 GiB
+          MinCount: 0
+          MaxCount: 10
+          SpotPrice: CALCULATE_MIN_DEDICATED_PRICE_OF_THE_SPECIFIED_SET_IN_THIS_GROUP_DIVIDE_BY_2
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+      Networking:
+        SubnetIds:
+          - REGSUB_PRIVATE_SUBNET
+      CustomActions:
+        OnNodeConfigured:
+          Script: REGSUB_S3_BUCKET_INIT/cluster_boot_config/post_install_ubuntu_combined.sh
+          Args:
+            - REGSUB_REGION
+            - REGSUB_S3_BUCKET_NAME
+            - REGSUB_XMR_POOL_URL
+            - REGSUB_XMR_WALLET
+      Iam:
+        S3Access:
+          - BucketName: REGSUB_S3_BUCKET_NAME
+            EnableWriteAccess: false
+        AdditionalIamPolicies:
+          - Policy: REGSUB_S3_IAM_POLICY
+          - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+Monitoring:
+  DetailedMonitoring: false
+  Logs:
+    CloudWatch:
+      Enabled: true
+      RetentionInDays: 3  # must be 0,1,3,5,7,14,30,60,90...
+SharedStorage:  # This is the local FS which is expensive but fast, could be swapped for EFS, etc.
+  - MountDir: /fsx
+    Name: fsx-for-daylily-x3  # WARNING, EDIT NAME WILL DEL EXISTING DATA
+    StorageType: FsxLustre
+    FsxLustreSettings:
+      ImportPath: REGSUB_S3_BUCKET_REF/data/
+      StorageCapacity: 1200
+      DeploymentType: SCRATCH_2
+      AutoImportPolicy: NEW_CHANGED_DELETED
+Tags:  # TAGs necessary for per-user/project/job cost tracking
+  - Key: aws-parallelcluster-username
+    Value: NA
+  - Key: aws-parallelcluster-jobid
+    Value: NA
+  - Key: aws-parallelcluster-project
+    Value: NA 
+DevSettings:
+  Timeouts:
+    HeadNodeBootstrapTimeout: 3600
+    ComputeNodeBootstrapTimeout: 3600
