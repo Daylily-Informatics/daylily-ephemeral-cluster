@@ -152,8 +152,7 @@ def verify_reference_bundle(
     if not verify_cmd:
         logger.error(
             "daylily-omics-references CLI not found on PATH. Install with: "
-            'pip install "git+https://github.com/Daylily-Informatics/'
-            'daylily-omics-references.git@0.3.1"',
+            'pip install "daylily-omics-references==0.3.3"',
         )
         return False
 

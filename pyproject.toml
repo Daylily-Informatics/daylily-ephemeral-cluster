@@ -26,7 +26,7 @@ dependencies = [
     # Provides the `pcluster` CLI used by the control plane + scripts.
     "aws-parallelcluster==3.13.2",
     # Required for reference-bucket verification in daylily_ec.aws.s3.
-    "daylily-omics-references @ git+https://github.com/Daylily-Informatics/daylily-omics-references.git@0.3.1",
+    "daylily-omics-references==0.3.3",
 ]
 
 [project.scripts]
