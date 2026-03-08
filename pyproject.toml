@@ -8,7 +8,8 @@ dynamic = ["version"]
 description = "Infrastructure-as-code for ephemeral AWS ParallelCluster environments for bioinformatics"
 readme = "README.md"
 requires-python = ">=3.9"
-license = {text = "MIT"}
+license = "GPL-3.0-only"
+license-files = ["LICENSE"]
 authors = [
     {name = "Daylily Informatics", email = "daylily@daylilyinformatics.com"}
 ]
