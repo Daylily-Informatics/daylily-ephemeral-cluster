@@ -1,72 +1,69 @@
-# Pip Install Usage (Downstream Repos)
+# Pip Install Usage
 
-`daylily-ephemeral-cluster` can be installed with `pip` and used from **any**
-working directory (no repo checkout layout required).
+`daylily-ephemeral-cluster` can be installed with `pip` and used from any working directory. This is mainly useful for downstream repos, automation environments, or operator machines where you do not want to keep a full checkout around.
 
 ## Install
 
-From a clean virtualenv:
+From a clean virtual environment:
 
 ```bash
 python -m venv .venv
 source .venv/bin/activate
 
-# From a local checkout:
+# From a local checkout
 pip install /path/to/daylily-ephemeral-cluster
 
-# Or from git (example):
-# pip install "git+https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git@<tag>"
+# Or from git
+pip install "git+https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git@<ref>"
 ```
 
-Verify:
+## Verify The Install
 
 ```bash
-python -m daylily_ec --help
 daylily-ec --help
+daylily-ec version
+daylily-ec info
 daylily-ec resources-dir
 ```
 
-## Packaged Assets ("Resources")
+## Packaged Resources
 
-Static repo assets (`config/`, `etc/`, and selected `bin/` helpers) are bundled
-into the wheel and extracted at runtime to:
+The wheel includes packaged repo assets such as `config/`, `etc/`, and selected `bin/` helpers. They are extracted at runtime under:
 
 `~/.config/daylily/resources/<package-version>/`
 
-Use this command to locate them:
+Use this command to resolve the active resource directory:
 
 ```bash
 daylily-ec resources-dir
 ```
 
-Override extraction (useful for dev or custom templates):
+Override the resource root when needed:
 
 ```bash
 export DAYLILY_EC_RESOURCES_DIR=/path/to/override-root
 ```
 
-The override directory must contain at least:
+The override directory must contain the Daylily `config/`, `etc/`, and `bin/` trees expected by the helper scripts.
 
-- `config/`
-- `etc/`
-- `bin/`
+## Running Bundled Helper Scripts
 
-## Running Legacy `bin/` Tools
-
-`bin/` tools are shipped as packaged assets. To run them from anywhere:
+Some helper scripts are packaged alongside the Python CLI. Run them via the resolved resource directory:
 
 ```bash
 RES_DIR="$(daylily-ec resources-dir)"
+
 "$RES_DIR/bin/daylily-create-ephemeral-cluster" --help
+"$RES_DIR/bin/daylily-stage-analysis-samples-headnode" --help
 ```
 
-## External Dependencies
+## Host Requirements
 
-These are **not** installed by pip and must be present on the host:
+`pip` installs the Python dependencies, but some workflows still expect host tools or external configuration:
 
-- `aws` (AWS CLI v2)
-- `ssh`, `scp`
-- `jq` (required by `check_aws_permissions.sh`)
+- AWS CLI v2 for commands that shell out to `aws`
+- `ssh` and `scp` for remote helper flows
+- a configured AWS profile when operating on real infrastructure
+- standard Unix tools such as `sed`, `awk`, and `bash`
 
-Some scripts may also require standard Unix tools like `sed`, `awk`, and `perl`.
-
+If you want the managed conda workflow instead, use [`DAY_EC_ENVIRONMENT.md`](DAY_EC_ENVIRONMENT.md).

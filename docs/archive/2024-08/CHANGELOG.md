@@ -1,3 +1,5 @@
+> Archived on 2026-03-08. This changelog snapshot is historical and not the canonical release note source for the current repo state.
+
 ## Changelog
 
 ### [Unreleased] — Python Control Plane Refactor (CP-001 through CP-019)

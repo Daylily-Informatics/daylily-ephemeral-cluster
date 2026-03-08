@@ -1,119 +1,100 @@
-# DAY-EC Conda Environment
+# DAY-EC Environment
 
-The DAY-EC (Daylily Ephemeral Cluster) conda environment is the standard development environment for this project.
+`DAY-EC` is the standard local environment for this repo and the environment installed on bootstrapped head nodes.
 
-## Environment Configuration
+## Create Or Update The Environment
 
-The environment is defined in `config/day/daycli.yaml` and includes:
-
-- **Python 3.11**
-- **AWS Tools**: awscli, aws-parallelcluster
-- **API Framework**: FastAPI, Uvicorn
-- **Data Processing**: Pydantic, YAML, JSON
-- **Utilities**: jq, yq, rclone, parallel, ipython, pytest
-
-## Creating the Environment
+From a repo checkout:
 
 ```bash
-# Create the environment from the config file
-conda env create -f config/day/daycli.yaml -n DAY-EC
-
-# Activate the environment
+./bin/init_dayec
 conda activate DAY-EC
 ```
 
-## Updating the Environment
+`./bin/init_dayec` reads [`../config/day/daycli.yaml`](../config/day/daycli.yaml), creates or updates the `DAY-EC` conda environment, and installs `daylily-ephemeral-cluster` into it.
 
-After modifying `config/day/daycli.yaml`:
+Useful `init_dayec` environment variables:
+
+- `DAYLILY_EC_INIT_DAYEC_PIP_SPEC`: install from a specific pip target when not running from a repo checkout
+- `DAYLILY_EC_RESOURCES_DIR`: override packaged resource lookup
+
+## Core Diagnostics
 
 ```bash
-# Update the existing environment
-conda env update -f config/day/daycli.yaml -n DAY-EC --prune
-
-# Or recreate from scratch
-conda env remove -n DAY-EC
-conda env create -f config/day/daycli.yaml -n DAY-EC
+python -m daylily_ec version
+python -m daylily_ec info
+python -m daylily_ec resources-dir
+python -m daylily_ec pricing snapshot --help
 ```
 
-## Core Dependencies
+These commands are the fastest way to confirm that the CLI, packaged resources, and runtime directories are available.
 
-The following packages are included in the DAY-EC environment:
+## What The Environment Includes
 
-### AWS Dependencies
-- `boto3` - AWS SDK (via awscli)
-- `botocore` - AWS core library
-- `aws-parallelcluster` - AWS ParallelCluster CLI
+The exact dependency set lives in [`../config/day/daycli.yaml`](../config/day/daycli.yaml). At a high level it includes:
 
-### Data Processing
-- `pydantic` - Data validation
-- `pyyaml` - YAML parsing
-- `ruamel.yaml` - YAML roundtrip parsing with comment preservation (used by `daylily_ec` renderer)
+- Python 3.11
+- AWS CLI v2
+- `aws-parallelcluster`
+- `daylily-omics-references`
+- `pytest`, `mypy`, and related dev tooling
+- common operator utilities such as `jq`, `yq`, and `rclone`
 
-### Python Control Plane (`daylily_ec`)
-- `cli-core-yo` - Daylily CLI framework (typer/click/rich based)
-- `boto3` - AWS SDK for Python
-- `ruamel.yaml` - YAML roundtrip parsing
-- `pydantic` - Configuration models and validation
-
-### Utilities
-- `jq`, `yq` - JSON/YAML command-line processing
-- `rclone` - Cloud storage sync
-- `parallel` - Shell parallelization
-- `ipython` - Interactive Python shell
-- `pytest`, `pytest-cov` - Testing framework with coverage
-
-## Testing
+## Running Tests
 
 ```bash
-# Activate environment
 conda activate DAY-EC
 
-# Run all tests (468 tests, ~0.3s)
 pytest tests/
-
-# Run with coverage for the Python control plane
-pytest --cov=daylily_ec --cov-report=term-missing tests/
-
-# Run with coverage for daylib
-pytest --cov=daylib tests/
+pytest --cov=daylily_ec --cov=daylib tests/
+pytest --collect-only -q tests
 ```
+
+Avoid hard-coding expected test counts into docs; use `pytest --collect-only` when you want the current count.
 
 ## Troubleshooting
 
-### Missing Dependencies
-
-**Error:** `ModuleNotFoundError: No module named 'pydantic'`
-
-**Solution:**
-```bash
-# Update the environment
-conda env update -f config/day/daycli.yaml -n DAY-EC --prune
-
-# Or install manually
-pip install pydantic pydantic-settings
-```
-
-### AWS Credentials Not Found
-
-**Error:** `NoCredentialsError: Unable to locate credentials`
-
-**Solution:**
-```bash
-# Configure AWS credentials
-aws configure
-
-# Or set environment variables
-export AWS_ACCESS_KEY_ID=your_access_key
-export AWS_SECRET_ACCESS_KEY=your_secret_key
-export AWS_DEFAULT_REGION=us-west-2
-```
-
-## Environment Variables
-
-Common environment variables for the DAY-EC environment:
+### Conda Is Missing
 
 ```bash
-# AWS Configuration
-export AWS_REGION=us-west-2
-export AWS_PROFILE=daylily
+./bin/install_miniconda
+./bin/init_dayec
 ```
+
+### AWS Credentials Are Missing
+
+```bash
+export AWS_PROFILE=daylily-service
+python -m daylily_ec info
+aws sts get-caller-identity
+```
+
+### Packaged Resources Are Not Resolving
+
+```bash
+python -m daylily_ec resources-dir
+```
+
+If you need to point the CLI at a custom resource tree:
+
+```bash
+export DAYLILY_EC_RESOURCES_DIR=/path/to/override-root
+```
+
+### The Reference CLI Is Missing
+
+If `daylily-omics-references` is not available after activation, re-run:
+
+```bash
+./bin/init_dayec
+conda activate DAY-EC
+```
+
+## Common Environment Variables
+
+- `AWS_PROFILE`
+- `AWS_REGION`
+- `AWS_DEFAULT_REGION`
+- `DAY_CONTACT_EMAIL`
+- `DAY_DISABLE_AUTO_SELECT`
+- `DAY_BREAK`
