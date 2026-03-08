@@ -1,106 +1,168 @@
 # Quickest Start
-_this doc lays out the core steps necessary to install an ephemeral cluster, and assumes many pre-reqs exist_
 
-> **If you encounter issues during install, please refer back to the detailed steps in the [README](README.md) and treat those as canonical.
+This is the shortest supported operator path from a repo checkout to a usable Daylily cluster. It uses the current Python control plane and current packaged scripts. For post-provisioning workflows, see [operations.md](operations.md). For architecture, benchmarks, and public-facing context, see [overview.md](overview.md).
 
-## AWS Dashboard
-### As an admin
-#### Create `daylily-service` IAM user
-- create a new IAM user named `daylily-service` & capture the console login url and p/w. 
-- Assign the permission `AmazonQDeveloperAccess`. 
-- Attach an inline policy named `daylily-service-cluster-policy` and use the json editor to then paste in [this json](config/aws/daylily-service-cluster-policy.json). Be sure to replace the <AWS_ACCOUNT_ID> instances with your aws account id.
+## 1. AWS Operator Prerequisites
 
-#### As the `daylily-service` user
-_on the laptop you'll create ephemeral clusters from_
+Create or reuse an IAM operator identity, typically `daylily-service`, and make sure it can:
 
-- Using the console URL, login w/the saved p/w. Set new password.
-- Save CLI credentials to `~/.aws/credentials` in a profile named `daylily-omics-analysis`.
-- In the region you intend to run in, create a keypair with the name `<YOURPREFIX>-omics-analysis-<REGION>` of the type `ed25519`. Download `.pem` and move to `~/.ssh/`, fix permissions if necessary.
+- assume the Daylily operator role or act directly as the Daylily operator user
+- create and inspect ParallelCluster resources in the target account
+- manage the reference bucket used for FSx-backed data access
 
-## DAYLILY CLI & Ephemeral Cluster Creation
-_on the laptop you'll create ephemeral cluster, where you have saved the daylily-service user AWS cli credentials and have the appropriate `.pem`'s in `~/.ssh`._
+The repo ships the custom cluster policy at [`../config/aws/daylily-service-cluster-policy.json`](../config/aws/daylily-service-cluster-policy.json). The current operator docs assume:
 
-> Run `./bin/init_dayec` from the repository root before using the CLI.
-> For pip-based usage (no repo checkout layout required), see: `docs/pip_install.md`.
-> If you prefer conda, `./bin/init_dayec` performs an editable install when run
-> from a repo checkout.
+- a CLI profile named `daylily-service`
+- a PEM key for the target region stored in `~/.ssh/`
+- a region-specific reference bucket whose name includes `omics-analysis`
 
-### Create References S3 Bucket (if it does not already exist)
-_One is needed per region you intend to run in._
+Minimal AWS CLI profile example:
 
-```bash
-export AWS_PROFILE=daylily-service
-BUCKET_PREFIX=yocorp
-REGION=us-west-2
-./bin/create_daylily_omics_analysis_s3.sh  --disable-warn --region $REGION --profile $AWS_PROFILE --bucket-prefix $BUCKET_PREFIX --disable-dryrun
+```ini
+[daylily-service]
+region = us-west-2
+output = json
 ```
 
-- This will take ~20min if you remain in `us-west-2`, longer if cross region.
+## 2. Local Prerequisites And Environment
 
-  The script wraps the [`daylily-omics-references`](https://github.com/Daylily-Informatics/daylily-omics-references)
-  CLI (version `0.1.0`). Activate the `DAY-EC` environment or run the CLI directly:
-
-  ```bash
-  daylily-omics-references --profile $AWS_PROFILE --region $REGION \
-    clone --bucket-prefix $BUCKET_PREFIX --version 0.7.131c --execute
-  ```
-
-> your reference bucket will be named **`yocorp-daylily-omics-analysis-us-west-2`**
-
-
-#### Move the sentieon lic into place (only necessary if you are running sentieon, else skip)
+From the repo root:
 
 ```bash
-sentieon_lic=Sentieon_YOCORP.lic
-rclone copy $sentieon_lic yocorp_remote:yocorp-daylily-omics-analysis-us-west-2/data/cached_envs/
-```
-
-### Check Spot Market Pricing (optional, but suggested to get best pricing over time)
-
-```bash
-export AWS_PROFILE=daylily-service
-REGION=us-west-2          
-OUT_TSV=./init_daylily_cluster.tsv
-
-./bin/check_current_spot_market_by_zones.py -o $OUT_TSV --profile $AWS_PROFILE   
-```
-
-- You can choose the region-availability-zone you wish to run in (be sure you already have a references bucket cloned into this region), and use the region-availability-zone in the create ephemeral cluster step.
-
-### Create An Ephemeral Cluster
-_this script will check and install a number of prerequsites and attempt to install_
-
-The workflow now verifies your selected reference bucket with the
-`daylily-omics-references` CLI before proceeding, ensuring the expected
-datasets are available.
-
-
-#### Edit `config/daylily_ephemeral_cluster.yaml`
-
-- The config file `config/daylily_ephemeral_cluster.yaml` is used to pull routine defaults that will be used to skip user prompts in the next step. Please check out the file and set anything you wish to tweak.
-
-#### Run cluster creation
-
-##### Python control plane (recommended)
-
-```bash
+./bin/check_prereq_sw.sh
+./bin/install_miniconda   # only if conda is not already installed
+./bin/init_dayec
 conda activate DAY-EC
-export AWS_PROFILE=daylily-service
-REGION_AZ=us-west-2c
 
-python -m daylily_ec create --region-az $REGION_AZ --profile $AWS_PROFILE
+python -m daylily_ec info
+python -m daylily_ec version
 ```
 
-##### Bash wrapper (backward compatible)
+`./bin/init_dayec` creates or updates the `DAY-EC` conda environment from [`../config/day/daycli.yaml`](../config/day/daycli.yaml) and installs this repo into it.
+
+## 3. Create The Region Reference Bucket
+
+Daylily expects a reference bucket in the target region. Use the installed `daylily-omics-references` CLI directly.
 
 ```bash
 export AWS_PROFILE=daylily-service
-REGION_AZ=us-west-2c
+export REGION=us-west-2
+export BUCKET_PREFIX=myorg
 
-./bin/daylily-create-ephemeral-cluster --region-az $REGION_AZ --profile $AWS_PROFILE
+REF_VERSION_FILE="$(find config/day_cluster -maxdepth 1 -name 'daylily_reference_version_*.info' | head -n 1)"
+REF_VERSION="$(basename "$REF_VERSION_FILE" .info)"
+REF_VERSION="${REF_VERSION#daylily_reference_version_}"
+
+daylily-omics-references --profile "$AWS_PROFILE" --region "$REGION" \
+  clone --bucket-prefix "$BUCKET_PREFIX" --version "$REF_VERSION" --execute
 ```
 
-You will be prompted for a variety of config settings. Some resources, if missing, will be created. Other resources if missing will trigger failures.  If all is well, you'll be left with a success message with a suggested command to start a remote test on the headnode.
+The resulting bucket name will include `omics-analysis`. With the standard clone flow that is typically `${BUCKET_PREFIX}-daylily-omics-analysis-${REGION}`.
 
+Optional manual verification:
 
+```bash
+daylily-omics-references --profile "$AWS_PROFILE" --region "$REGION" \
+  verify --bucket "${BUCKET_PREFIX}-daylily-omics-analysis-${REGION}" --exclude-b37
+```
 
+The Daylily preflight step also verifies the selected bucket before cluster creation.
+
+## 4. Prepare The Cluster Config
+
+Copy the template to a writable location, set `DAY_EX_CFG`, and pass it explicitly to the CLI.
+
+```bash
+mkdir -p ~/.config/daylily
+cp config/daylily_ephemeral_cluster_template.yaml \
+  ~/.config/daylily/daylily_ephemeral_cluster.yaml
+
+export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
+```
+
+Recommended keys to fill in before the first run:
+
+- `cluster_name`
+- `s3_bucket_name`
+- `budget_email`
+- `allowed_budget_users`
+- `global_allowed_budget_users`
+- `heartbeat_email`
+
+Optional if you want fewer prompts:
+
+- `ssh_key_name`
+- `public_subnet_id`
+- `private_subnet_id`
+- `iam_policy_arn`
+
+Leave a key set to `PROMPTUSER` if you want the CLI to query AWS and prompt interactively. `DAY_EX_CFG` is just a shell convenience variable; the current Python CLI does not consume it implicitly, so pass `--config "$DAY_EX_CFG"` on every `preflight` and `create` invocation.
+
+## 5. Optional Pricing Snapshot
+
+If you want a raw spot-pricing snapshot before choosing an AZ:
+
+```bash
+python -m daylily_ec pricing snapshot \
+  --region "$REGION" \
+  --config config/day_cluster/prod_cluster.yaml \
+  --profile "$AWS_PROFILE"
+```
+
+## 6. Run Preflight
+
+```bash
+export REGION_AZ=us-west-2c
+
+python -m daylily_ec preflight \
+  --region-az "$REGION_AZ" \
+  --profile "$AWS_PROFILE" \
+  --config "$DAY_EX_CFG"
+```
+
+Add `--pass-on-warn` if you have reviewed the warnings and intentionally want to continue past them.
+
+## 7. Create The Cluster
+
+```bash
+python -m daylily_ec create \
+  --region-az "$REGION_AZ" \
+  --profile "$AWS_PROFILE" \
+  --config "$DAY_EX_CFG"
+```
+
+Backward-compatible wrapper:
+
+```bash
+./bin/daylily-create-ephemeral-cluster \
+  --region-az "$REGION_AZ" \
+  --profile "$AWS_PROFILE" \
+  --config "$DAY_EX_CFG"
+```
+
+The create workflow:
+
+- runs preflight and aborts on failures
+- resolves or creates baseline network resources as needed
+- renders the cluster YAML and applies live spot pricing
+- creates the cluster through ParallelCluster
+- bootstraps the head node
+- writes artifacts to `~/.config/daylily/`
+
+## 8. What Success Looks Like
+
+After a successful run:
+
+- `~/.config/daylily/` contains a preflight report, a state snapshot, and rendered cluster YAML artifacts
+- the head node has been bootstrapped with `DAY-EC`, `day-clone`, and the Daylily helper scripts
+- you can continue with [operations.md](operations.md), starting at [Validate The Head Node](operations.md#validate-the-head-node)
+
+If the cluster comes up but the head-node bootstrap needs to be re-run:
+
+```bash
+./bin/daylily-cfg-headnode \
+  --pem ~/.ssh/<your-key>.pem \
+  --region "$REGION" \
+  --profile "$AWS_PROFILE" \
+  --cluster <cluster-name>
+```

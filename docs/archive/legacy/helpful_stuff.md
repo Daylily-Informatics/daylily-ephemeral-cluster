@@ -1,3 +1,5 @@
+> Archived on 2026-03-08. These notes are preserved for historical reference and are not canonical operator guidance.
+
 # Various Helpful Incantations
 
 ## AWS CLI 
@@ -50,4 +52,3 @@ aws ec2 describe-spot-price-history \
 aws cloudtrail lookup-events     --region us-west-2     --lookup-attributes AttributeKey=EventName,AttributeValue=TerminateInstances     --start-time $(date -u -d '2 days ago' '+%Y-%m-%dT%H:%M:%SZ')     --end-time $(date -u '+%Y-%m-%dT%H:%M:%SZ')     --output json > termination_events.json
 
 ```
-

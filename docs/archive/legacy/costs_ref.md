@@ -1,3 +1,5 @@
+> Archived on 2026-03-08. This file is preserved as historical scratch material and is not part of the current live cost documentation.
+
 # Cost References
 Data used to calculate costs for the various services and operations.
 

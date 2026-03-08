@@ -1,26 +1,41 @@
 # daylib
 
-`./daylib` holds the library code which supports daylily-ephemeral-cluster infrastructure-as-code management.
+`daylib/` contains legacy library code that still supports Daylily cost estimation and compatibility paths. It is no longer the primary operator interface.
 
-> **Note**: The primary control plane is now `daylily_ec/` (the Python control plane added in the CP-001 through CP-019 refactor). `daylib/` remains for cost estimation and legacy configuration support. See the [main README](../../README.md#daylily-ec-cli-reference) for the `daylily-ec` CLI reference.
+## Current Role
 
-## Core Components
+`daylib/` remains useful for:
 
-### Configuration Management
-- **config.py**: Centralized Pydantic-based configuration for AWS resources and cluster settings
-- **exceptions.py**: Custom exception hierarchy for infrastructure operations
+- cost and resource estimation helpers
+- compatibility code still exercised by the test suite
+- older scripts that have not yet been fully folded into `daylily_ec/`
 
-## Making libs available
+For active operator workflows, use:
+
+- [`../../README.md`](../../README.md)
+- [`../quickest_start.md`](../quickest_start.md)
+- [`../operations.md`](../operations.md)
+
+## Local Setup
 
 ```bash
+./bin/init_dayec
 conda activate DAY-EC
-cd ~/projects/daylily-ephemeral-cluster
-pip install -e .
 ```
 
-## Run a test
-_assuming your aws credentials are in place, and `AWS_PROFILE=<something>`.
+## Sanity Checks
 
 ```bash
-calc_daylily_aws_cost_estimates
+python -m pytest tests/ -k daylib
+python - <<'PY'
+import daylib
+import daylily_ec
+print(daylib.__name__, daylily_ec.__name__)
+PY
 ```
+
+## Related Code
+
+- [`../../daylib/config.py`](../../daylib/config.py)
+- [`../../daylib/day_factory.py`](../../daylib/day_factory.py)
+- [`../../daylily_ec/`](../../daylily_ec/)
