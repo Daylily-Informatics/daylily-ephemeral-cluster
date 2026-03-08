@@ -5,12 +5,9 @@ structured Python package for creating and managing ephemeral AWS
 ParallelCluster environments for bioinformatics workloads.
 """
 
-try:
-    from importlib.metadata import version
+from daylily_ec.versioning import get_version
 
-    __version__ = version("daylily-ephemeral-cluster")
-except Exception:
-    __version__ = "0.0.0.dev0"
+__version__ = get_version()
 
 from daylily_ec.create import create_cluster
 
