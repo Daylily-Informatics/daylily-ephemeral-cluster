@@ -22,18 +22,9 @@ from pathlib import Path
 from typing import Iterable
 
 import importlib.resources as ir
+from daylily_ec import versioning
 
 RES_DIR_ENV = "DAYLILY_EC_RESOURCES_DIR"
-
-
-def _package_version() -> str:
-    try:
-        from importlib.metadata import version
-
-        return version("daylily-ephemeral-cluster")
-    except Exception:
-        # Source-tree or otherwise not installed. Keep path stable but clearly dev.
-        return "dev"
 
 
 def _xdg_config_home() -> Path:
@@ -75,7 +66,7 @@ def ensure_extracted() -> Path:
         _validate_resources_dir(root)
         return root
 
-    version = _package_version()
+    version = versioning.get_version()
     dest = _xdg_config_home() / "daylily" / "resources" / version
     marker = dest / ".complete"
 
@@ -132,4 +123,3 @@ def resource_path(rel_path: str) -> Path:
             f"Override with {RES_DIR_ENV} if needed."
         )
     return p
-

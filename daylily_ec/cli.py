@@ -25,6 +25,7 @@ from cli_core_yo import output
 from cli_core_yo.app import create_app
 from cli_core_yo.runtime import _reset, initialize
 from cli_core_yo.spec import CliSpec, XdgSpec
+from daylily_ec import versioning
 
 # ── App specification ────────────────────────────────────────────────────────
 
@@ -42,6 +43,58 @@ spec = CliSpec(
 app = create_app(spec)
 pricing_app = typer.Typer(help="Spot pricing inspection helpers.")
 app.add_typer(pricing_app, name="pricing")
+app.registered_commands[:] = [
+    cmd for cmd in app.registered_commands if cmd.name not in {"version", "info"}
+]
+
+
+def _installed_dist_version(dist_name: str) -> str:
+    try:
+        from importlib.metadata import version
+
+        return version(dist_name)
+    except Exception:
+        return "unknown"
+
+
+@app.command("version")
+def version_command(
+    json: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
+) -> None:
+    """Show version."""
+    version = versioning.get_version()
+    if json:
+        output.emit_json({"app": spec.app_display_name, "version": version})
+    else:
+        output.print_text(f"{spec.app_display_name} [cyan]{version}[/cyan]")
+
+
+@app.command("info")
+def info_command(
+    json: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
+) -> None:
+    """Show system info."""
+    xdg_paths = app._cli_core_yo_xdg_paths  # type: ignore[attr-defined]
+    rows: list[tuple[str, str]] = [
+        ("Version", versioning.get_version()),
+        ("Python", sys.version.split()[0]),
+        ("Config Dir", str(xdg_paths.config)),
+        ("Data Dir", str(xdg_paths.data)),
+        ("State Dir", str(xdg_paths.state)),
+        ("Cache Dir", str(xdg_paths.cache)),
+        ("CLI Core", _installed_dist_version("cli-core-yo")),
+    ]
+    for hook in spec.info_hooks:
+        rows.extend(hook())
+
+    if json:
+        output.emit_json({key: value for key, value in rows})
+        return
+
+    output.heading(f"{spec.app_display_name} Info")
+    max_key = max(len(key) for key, _ in rows)
+    for key, value in rows:
+        output.print_text(f"  {key:<{max_key}}  {value}")
 
 
 # ── Root callback (global options) ───────────────────────────────────────────
