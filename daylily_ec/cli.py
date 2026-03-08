@@ -16,6 +16,7 @@ from __future__ import annotations
 import logging
 import os
 import sys
+import json
 from pathlib import Path
 from typing import List, Optional
 
@@ -39,6 +40,8 @@ spec = CliSpec(
 )
 
 app = create_app(spec)
+pricing_app = typer.Typer(help="Spot pricing inspection helpers.")
+app.add_typer(pricing_app, name="pricing")
 
 
 # ── Root callback (global options) ───────────────────────────────────────────
@@ -277,6 +280,41 @@ def resources_dir() -> None:
     from daylily_ec.resources import ensure_extracted
 
     typer.echo(str(ensure_extracted()))
+
+
+@pricing_app.command("snapshot")
+def pricing_snapshot(
+    region: Optional[List[str]] = typer.Option(
+        None,
+        "--region",
+        help="AWS region to monitor. Repeat for multiple regions.",
+    ),
+    partition: Optional[List[str]] = typer.Option(
+        None,
+        "--partition",
+        help="Production partition name. Repeat for multiple partitions.",
+    ),
+    config: Optional[str] = typer.Option(
+        None,
+        "--config",
+        help="Cluster YAML used as the partition source of truth.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+) -> None:
+    """Emit a raw JSON pricing snapshot for the requested regions and partitions."""
+    from daylily_ec.aws.pricing_snapshots import collect_pricing_snapshot
+
+    snapshot = collect_pricing_snapshot(
+        regions=region,
+        partitions=partition,
+        cluster_config_path=config,
+        profile=profile,
+    )
+    typer.echo(json.dumps(snapshot.to_dict(), indent=2, sort_keys=False))
 
 
 # ── Entry point ──────────────────────────────────────────────────────────────

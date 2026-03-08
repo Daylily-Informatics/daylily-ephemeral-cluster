@@ -12,5 +12,6 @@ try:
 except Exception:
     __version__ = "0.0.0.dev0"
 
-__all__ = ["__version__"]
+from daylily_ec.create import create_cluster
 
+__all__ = ["__version__", "create_cluster"]

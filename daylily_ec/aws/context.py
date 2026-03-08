@@ -22,7 +22,12 @@ from dataclasses import dataclass, field
 from typing import Any, Optional
 
 import boto3
-from botocore.exceptions import BotoCoreError, ClientError
+try:
+    from botocore.exceptions import BotoCoreError, ClientError
+except ImportError:  # pragma: no cover - compatibility for older botocore builds
+    from botocore.exceptions import ClientError
+
+    BotoCoreError = Exception  # type: ignore[misc,assignment]
 
 logger = logging.getLogger(__name__)
 
@@ -182,4 +187,3 @@ def _extract_username(arn: str) -> str:
         return parts[-1]
     # Fallback: last segment after ':'
     return arn.rsplit(":", maxsplit=1)[-1]
-
