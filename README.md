@@ -71,3 +71,4 @@ Run `python -m daylily_ec --help` for the current command tree.
 ## Historical Material
 
 Older long-form docs and retired notes live under [`docs/archive/`](docs/archive/). They are preserved for historical context and are not canonical for current operator workflows.
+ 
