@@ -1,0 +1,163 @@
+#!/usr/bin/env bash
+
+# Source this file from bash or zsh to make the Daylily CLI available in the
+# current shell from a repo checkout.
+
+__daylily_activate_is_sourced() {
+  if [ -n "${ZSH_VERSION:-}" ]; then
+    case "${ZSH_EVAL_CONTEXT:-}" in
+      *:file|*:file:*) return 0 ;;
+    esac
+    return 1
+  fi
+
+  if [ -n "${BASH_VERSION:-}" ]; then
+    [ "${BASH_SOURCE[0]}" != "$0" ]
+    return
+  fi
+
+  return 1
+}
+
+if ! __daylily_activate_is_sourced; then
+  echo "Error: this script must be sourced." >&2
+  echo "Usage: source ./activate" >&2
+  exit 1
+fi
+
+__daylily_activate_script_path() {
+  if [ -n "${BASH_VERSION:-}" ]; then
+    printf '%s\n' "${BASH_SOURCE[0]}"
+    return 0
+  fi
+
+  if [ -n "${ZSH_VERSION:-}" ]; then
+    eval 'printf "%s\n" "${(%):-%N}"'
+    return 0
+  fi
+
+  return 1
+}
+
+__daylily_activate_prepend_path() {
+  case ":${PATH}:" in
+    *":$1:"*) ;;
+    *) PATH="$1${PATH:+:${PATH}}" ;;
+  esac
+}
+
+__daylily_activate_conda_is_function() {
+  case "$(type conda 2>/dev/null)" in
+    *"shell function"*|*"function"*) return 0 ;;
+  esac
+  return 1
+}
+
+__daylily_activate_conda_exe() {
+  if [ -n "${CONDA_EXE:-}" ] && [ -x "${CONDA_EXE}" ]; then
+    printf '%s\n' "${CONDA_EXE}"
+    return 0
+  fi
+
+  if [ -n "${BASH_VERSION:-}" ]; then
+    type -p conda
+    return
+  fi
+
+  if [ -n "${ZSH_VERSION:-}" ]; then
+    whence -p conda
+    return
+  fi
+
+  command -v conda
+}
+
+__daylily_activate_load_conda() {
+  if ! command -v conda >/dev/null 2>&1; then
+    return 1
+  fi
+
+  if __daylily_activate_conda_is_function; then
+    return 0
+  fi
+
+  local conda_exe conda_shell conda_hook conda_base
+  conda_exe="$(__daylily_activate_conda_exe 2>/dev/null || true)"
+  if [ -z "${conda_exe}" ]; then
+    return 1
+  fi
+
+  if [ -n "${BASH_VERSION:-}" ]; then
+    conda_shell="bash"
+  elif [ -n "${ZSH_VERSION:-}" ]; then
+    conda_shell="zsh"
+  else
+    conda_shell="posix"
+  fi
+
+  conda_hook="$("${conda_exe}" "shell.${conda_shell}" hook 2>/dev/null || "${conda_exe}" shell.posix hook 2>/dev/null || true)"
+  if [ -n "${conda_hook}" ]; then
+    eval "${conda_hook}"
+    return 0
+  fi
+
+  conda_base="$("${conda_exe}" info --base 2>/dev/null || true)"
+  if [ -n "${conda_base}" ] && [ -f "${conda_base}/etc/profile.d/conda.sh" ]; then
+    . "${conda_base}/etc/profile.d/conda.sh"
+    return 0
+  fi
+
+  return 1
+}
+
+__daylily_activate_dayec_exists() {
+  command -v conda >/dev/null 2>&1 || return 1
+  conda env list 2>/dev/null | awk '{print $1}' | grep -qx 'DAY-EC'
+}
+
+__daylily_activate_repo_root="$(
+  cd "$(dirname "$(__daylily_activate_script_path)")" && pwd
+)"
+export DAYLILY_EC_REPO_ROOT="${__daylily_activate_repo_root}"
+
+__daylily_activate_prepend_path "${DAYLILY_EC_REPO_ROOT}/bin"
+export PATH
+
+if __daylily_activate_load_conda && __daylily_activate_dayec_exists; then
+  conda activate DAY-EC >/dev/null 2>&1 || true
+fi
+
+__daylily_activate_cli_path="$(command -v daylily-ec 2>/dev/null || true)"
+
+daylily-ec() {
+  if [ -n "${__daylily_activate_cli_path}" ] && [ -x "${__daylily_activate_cli_path}" ]; then
+    "${__daylily_activate_cli_path}" "$@"
+    return $?
+  fi
+
+  if __daylily_activate_load_conda && __daylily_activate_dayec_exists; then
+    conda run -n DAY-EC python -m daylily_ec "$@"
+    return $?
+  fi
+
+  if command -v python >/dev/null 2>&1 && (
+    cd "${DAYLILY_EC_REPO_ROOT}" &&
+    python -m daylily_ec version >/dev/null 2>&1
+  ); then
+    (
+      cd "${DAYLILY_EC_REPO_ROOT}" &&
+      python -m daylily_ec "$@"
+    )
+    return $?
+  fi
+
+  echo "Error: daylily-ec dependencies are not available." >&2
+  echo "Run ./bin/init_dayec to create the DAY-EC environment first." >&2
+  return 1
+}
+
+if [ "${CONDA_DEFAULT_ENV:-}" = "DAY-EC" ]; then
+  echo "DAY-EC activated. daylily-ec is available in this shell."
+else
+  echo "Repo tools added to PATH. daylily-ec is available via a shell wrapper."
+fi
