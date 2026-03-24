@@ -30,6 +30,8 @@ from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
 
+import typer
+
 from daylily_ec import ui
 from daylily_ec.state.models import PreflightReport, StateRecord
 from daylily_ec.state.store import write_preflight_report, write_state_record
@@ -173,6 +175,185 @@ def _noop_heartbeat_result() -> Any:
     )
 
 
+def _prompt_select(label: str, choices: List[str]) -> str:
+    """Prompt the user to choose one value from *choices*."""
+    typer.echo(f"Select {label}:")
+    for idx, choice in enumerate(choices, start=1):
+        typer.echo(f"  [{idx}] {choice}")
+
+    while True:
+        raw = typer.prompt("Enter selection number", default="1").strip()
+        if not raw.isdigit():
+            typer.echo("Invalid selection. Enter a number.")
+            continue
+        index = int(raw)
+        if 1 <= index <= len(choices):
+            return choices[index - 1]
+        typer.echo("Invalid selection. Enter one of the listed numbers.")
+
+
+FSX_SIZE_INCREMENT_GIB = 1200
+FSX_PROMPT_OPTIONS = [str(FSX_SIZE_INCREMENT_GIB * i) for i in range(1, 6)]
+
+
+def _is_valid_fsx_size(value: str) -> bool:
+    """Return True when *value* is a valid FSx Lustre storage capacity."""
+    if not value or not value.isdigit():
+        return False
+    size = int(value)
+    return size > 0 and size % FSX_SIZE_INCREMENT_GIB == 0
+
+
+def _resolve_fsx_size(cfg: Any, *, non_interactive: bool) -> str:
+    """Resolve the FSx size, prompting from the smallest valid options."""
+    from daylily_ec.config.triplets import get_effective_default, resolve_value
+
+    triplet = cfg.ephemeral_cluster.config.get("fsx_fs_size")
+    configured = resolve_value(triplet) if triplet is not None else ""
+    default_value = get_effective_default(cfg, "fsx_fs_size", "4800") or "4800"
+
+    if configured:
+        configured = configured.strip()
+        if _is_valid_fsx_size(configured):
+            return configured
+        raise ValueError(
+            "Invalid FSx size "
+            f"'{configured}'. Allowed sizes are positive multiples of {FSX_SIZE_INCREMENT_GIB} GiB."
+        )
+
+    if default_value:
+        default_value = default_value.strip()
+        if not _is_valid_fsx_size(default_value):
+            raise ValueError(
+                "Invalid FSx size "
+                f"'{default_value}'. Allowed sizes are positive multiples of {FSX_SIZE_INCREMENT_GIB} GiB."
+            )
+
+    if non_interactive:
+        return default_value
+
+    typer.echo("Choose FSx Lustre file system size (GiB).")
+    typer.echo("Smallest allowed sizes:")
+    for idx, option in enumerate(FSX_PROMPT_OPTIONS, start=1):
+        typer.echo(f"  [{idx}] {option}")
+
+    while True:
+        raw = typer.prompt(
+            "Enter selection number or explicit size",
+            default=default_value,
+        ).strip()
+        if raw.isdigit():
+            index = int(raw)
+            if 1 <= index <= len(FSX_PROMPT_OPTIONS):
+                return FSX_PROMPT_OPTIONS[index - 1]
+        if _is_valid_fsx_size(raw):
+            return raw
+        typer.echo(
+            f"Invalid FSx size. Enter one of the listed numbers or a positive multiple of {FSX_SIZE_INCREMENT_GIB}."
+        )
+
+
+def _resolve_config_value(
+    cfg: Any,
+    key: str,
+    label: str,
+    *,
+    non_interactive: bool,
+    default_fallback: str = "",
+    required: bool = True,
+    allow_empty: bool = False,
+) -> str:
+    """Resolve a triplet-backed config value, prompting when needed."""
+    from daylily_ec.config.triplets import get_effective_default, resolve_value
+
+    triplet = cfg.ephemeral_cluster.config.get(key)
+    if triplet is not None:
+        resolved = resolve_value(triplet)
+        if resolved:
+            return resolved
+
+    default_value = get_effective_default(cfg, key, default_fallback)
+    if non_interactive:
+        return default_value
+
+    if allow_empty and not required and not default_value:
+        return typer.prompt(f"{label} (leave blank to skip)", default="").strip()
+
+    prompt_default = default_value if default_value else None
+    while True:
+        value = typer.prompt(label, default=prompt_default).strip()
+        if value:
+            return value
+        if allow_empty and not required:
+            return ""
+        typer.echo(f"{label} cannot be empty.")
+
+
+def _list_local_keypair_candidates(ec2_client: Any) -> List[str]:
+    """Return EC2 keypair names that also have a local PEM file."""
+    try:
+        resp = ec2_client.describe_key_pairs()
+    except Exception as exc:
+        logger.debug("Could not list key pairs: %s", exc)
+        return []
+
+    candidates: List[str] = []
+    for key in resp.get("KeyPairs", []):
+        key_name = str(key.get("KeyName", ""))
+        if not key_name:
+            continue
+        pem_path = Path.home() / ".ssh" / f"{key_name}.pem"
+        if pem_path.exists():
+            candidates.append(key_name)
+    return sorted(set(candidates))
+
+
+def _resolve_ssh_keypair(
+    cfg: Any,
+    *,
+    ec2_client: Any,
+    non_interactive: bool,
+) -> str:
+    """Resolve or prompt for the SSH keypair used by the cluster."""
+    from daylily_ec.config.triplets import get_effective_default, resolve_value
+
+    triplet = cfg.ephemeral_cluster.config.get("ssh_key_name")
+    configured = resolve_value(triplet) if triplet is not None else ""
+    default_value = get_effective_default(cfg, "ssh_key_name", "")
+    candidates = _list_local_keypair_candidates(ec2_client)
+
+    for candidate in [configured, default_value]:
+        if candidate and candidate in candidates:
+            return candidate
+
+    if len(candidates) == 1:
+        return candidates[0]
+
+    if non_interactive:
+        return ""
+
+    if candidates:
+        return _prompt_select("SSH keypair", candidates)
+
+    while True:
+        key_name = typer.prompt("SSH keypair name").strip()
+        if not key_name:
+            typer.echo("SSH keypair name cannot be empty.")
+            continue
+        pem_path = Path.home() / ".ssh" / f"{key_name}.pem"
+        if pem_path.exists():
+            return key_name
+        typer.echo(f"Missing local PEM file: {pem_path}")
+
+
+def _require_values(values: Dict[str, str]) -> Optional[str]:
+    """Return an error message if any required values are blank."""
+    missing = [label for label, value in values.items() if not value]
+    if not missing:
+        return None
+    return "Missing required values: " + ", ".join(missing)
+
+
 # ---------------------------------------------------------------------------
 # Full create workflow (CP-017)
 # ---------------------------------------------------------------------------
@@ -213,6 +394,7 @@ def run_create_workflow(
     from daylily_ec.aws.s3 import make_s3_bucket_preflight_step
     from daylily_ec.aws.spot_pricing import apply_spot_prices
     from daylily_ec.config.triplets import (
+        get_effective_default,
         load_config,
         resolve_value,
         write_next_run_template,
@@ -238,14 +420,13 @@ def run_create_workflow(
     cfg = load_config(effective_config)
     ec = cfg.ephemeral_cluster
 
-    def _val(key: str) -> str:
-        """Resolve a config triplet value."""
-        t = ec.config.get(key)
-        if t is None:
-            return ""
-        return resolve_value(t)
-
-    cluster_name = _val("cluster_name") or "prod"
+    cluster_name = _resolve_config_value(
+        cfg,
+        "cluster_name",
+        "Cluster name",
+        non_interactive=non_interactive,
+        default_fallback="prod",
+    ) or "prod"
 
     ui.phase(f"INIT · {cluster_name}")
 
@@ -280,13 +461,36 @@ def run_create_workflow(
     )
 
     # Build preflight steps in §10.5 order
-    max_8i = int(_val("max_count_8I") or "1")
-    max_128i = int(_val("max_count_128I") or "1")
-    max_192i = int(_val("max_count_192I") or "1")
+    max_8i = int(
+        _resolve_config_value(
+            cfg, "max_count_8I", "Max 8xlarge count",
+            non_interactive=non_interactive, default_fallback="1",
+        )
+        or "1"
+    )
+    max_128i = int(
+        _resolve_config_value(
+            cfg, "max_count_128I", "Max 128xlarge count",
+            non_interactive=non_interactive, default_fallback="1",
+        )
+        or "1"
+    )
+    max_192i = int(
+        _resolve_config_value(
+            cfg, "max_count_192I", "Max 192xlarge count",
+            non_interactive=non_interactive, default_fallback="1",
+        )
+        or "1"
+    )
 
     s3_triplet = ec.config.get("s3_bucket_name")
     s3_cfg_action = s3_triplet.action if s3_triplet else ""
     s3_cfg_set = s3_triplet.set_value if s3_triplet else ""
+    s3_cfg_bucket_name = get_effective_default(cfg, "s3_bucket_name", "")
+    if s3_triplet is not None:
+        resolved_s3_value = resolve_value(s3_triplet)
+        if resolved_s3_value:
+            s3_cfg_bucket_name = resolved_s3_value
 
     preflight_steps: List[PreflightStep] = [
         # 1-2: ToolchainValidator + AWS Identity — implicit via AWSContext.build
@@ -306,8 +510,9 @@ def run_create_workflow(
             aws_ctx,
             cfg_action=s3_cfg_action,
             cfg_set_value=s3_cfg_set,
-            cfg_bucket_name=_val("s3_bucket_name"),
+            cfg_bucket_name=s3_cfg_bucket_name,
             profile=aws_ctx.profile,
+            interactive=not non_interactive,
         ),
     ]
 
@@ -352,6 +557,10 @@ def run_create_workflow(
         cfg_set_value=pub_t.set_value if pub_t else "",
         cfg_fallback=cfn_outputs.public_subnet_id,
     ) or cfn_outputs.public_subnet_id
+    if not public_subnet and not non_interactive and pub_list:
+        public_subnet = _prompt_select(
+            "public subnet", [subnet.subnet_id for subnet in pub_list],
+        )
 
     private_subnet = select_subnet(
         priv_list,
@@ -359,6 +568,10 @@ def run_create_workflow(
         cfg_set_value=priv_t.set_value if priv_t else "",
         cfg_fallback=cfn_outputs.private_subnet_id,
     ) or cfn_outputs.private_subnet_id
+    if not private_subnet and not non_interactive and priv_list:
+        private_subnet = _prompt_select(
+            "private subnet", [subnet.subnet_id for subnet in priv_list],
+        )
 
     # 3c. Policy ARN selection
     iam_client = aws_ctx.client("iam")
@@ -370,8 +583,26 @@ def run_create_workflow(
         cfg_set_value=iam_t.set_value if iam_t else "",
         cfg_fallback=cfn_outputs.policy_arn,
     ) or cfn_outputs.policy_arn
+    if not policy_arn and not non_interactive and policy_arns:
+        policy_arn = _prompt_select("IAM policy ARN", policy_arns)
 
-    keypair = _val("ssh_key_name")
+    keypair = _resolve_ssh_keypair(
+        cfg, ec2_client=ec2, non_interactive=non_interactive,
+    )
+    missing_resources = _require_values(
+        {
+            "bucket": bucket_name,
+            "public subnet": public_subnet,
+            "private subnet": private_subnet,
+            "IAM policy ARN": policy_arn,
+            "SSH keypair": keypair,
+        }
+    )
+    if missing_resources:
+        logger.error("Resource resolution failed: %s", missing_resources)
+        ui.fail(missing_resources)
+        return EXIT_VALIDATION_FAILURE
+
     logger.info(
         "Resources: bucket=%s pub=%s priv=%s policy=%s key=%s",
         bucket_name, public_subnet, private_subnet, policy_arn, keypair,
@@ -386,7 +617,13 @@ def run_create_workflow(
     ui.phase("RENDER CLUSTER YAML")
 
     bucket_url = f"s3://{bucket_name}" if bucket_name else ""
-    template_yaml = _val("cluster_template_yaml") or "config/day_cluster/prod_cluster.yaml"
+    template_yaml = _resolve_config_value(
+        cfg,
+        "cluster_template_yaml",
+        "Cluster template YAML",
+        non_interactive=non_interactive,
+        default_fallback="config/day_cluster/prod_cluster.yaml",
+    ) or "config/day_cluster/prod_cluster.yaml"
     if not Path(template_yaml).is_file():
         template_yaml = str(resource_path(template_yaml))
 
@@ -403,31 +640,97 @@ def run_create_workflow(
         # Empty args must render as '""' (YAML empty string) not null.
         "REGSUB_XMR_POOL_URL": '""',
         "REGSUB_XMR_WALLET": '""',
-        "REGSUB_FSX_SIZE": _val("fsx_fs_size") or "1200",
-        "REGSUB_DETAILED_MONITORING": _val("enable_detailed_monitoring") or "false",
+        "REGSUB_FSX_SIZE": _resolve_fsx_size(
+            cfg, non_interactive=non_interactive,
+        ),
+        "REGSUB_DETAILED_MONITORING": _resolve_config_value(
+            cfg,
+            "enable_detailed_monitoring",
+            "Enable detailed monitoring",
+            non_interactive=non_interactive,
+            default_fallback="false",
+        ) or "false",
         "REGSUB_CLUSTER_NAME": cluster_name,
         "REGSUB_USERNAME": f"{_os.environ.get('USER', 'unknown')}-{aws_ctx.iam_username}",
         "REGSUB_PROJECT": cluster_name,
-        "REGSUB_DELETE_LOCAL_ROOT": _val("delete_local_root") or "false",
+        "REGSUB_DELETE_LOCAL_ROOT": _resolve_config_value(
+            cfg,
+            "delete_local_root",
+            "Delete local root",
+            non_interactive=non_interactive,
+            default_fallback="false",
+        ) or "false",
         # DeletionPolicy requires "Retain" or "Delete", not bool.
         "REGSUB_SAVE_FSX": (
             "Delete"
-            if (_val("auto_delete_fsx") or "false").lower() in ("true", "1", "yes")
+            if (
+                _resolve_config_value(
+                    cfg,
+                    "auto_delete_fsx",
+                    "Auto delete FSx",
+                    non_interactive=non_interactive,
+                    default_fallback="Delete",
+                )
+                or "false"
+            ).lower() in ("true", "1", "yes", "delete")
             else "Retain"
         ),
         # Tag values must be quoted strings, not bare YAML booleans.
-        "REGSUB_ENFORCE_BUDGET": '"' + (_val("enforce_budget") or "true") + '"',
+        "REGSUB_ENFORCE_BUDGET": '"' + (
+            _resolve_config_value(
+                cfg,
+                "enforce_budget",
+                "Enforce budget",
+                non_interactive=non_interactive,
+                default_fallback="true",
+            )
+            or "true"
+        ) + '"',
         "REGSUB_AWS_ACCOUNT_ID": f"aws_profile-{aws_ctx.profile}",
-        "REGSUB_ALLOCATION_STRATEGY": _val("spot_instance_allocation_strategy") or "capacity-optimized",
+        "REGSUB_ALLOCATION_STRATEGY": _resolve_config_value(
+            cfg,
+            "spot_instance_allocation_strategy",
+            "Spot allocation strategy",
+            non_interactive=non_interactive,
+            default_fallback="capacity-optimized",
+        ) or "capacity-optimized",
         # Tag value must be non-empty (AWS min length = 1).
         "REGSUB_DAYLILY_GIT_DEETS": "none",
         "REGSUB_MAX_COUNT_8I": str(max_8i),
         "REGSUB_MAX_COUNT_128I": str(max_128i),
         "REGSUB_MAX_COUNT_192I": str(max_192i),
-        "REGSUB_HEADNODE_INSTANCE_TYPE": _val("headnode_instance_type") or "m5.xlarge",
-        "REGSUB_HEARTBEAT_EMAIL": _val("heartbeat_email") or _os.environ.get("DAY_CONTACT_EMAIL", ""),
-        "REGSUB_HEARTBEAT_SCHEDULE": _val("heartbeat_schedule") or "rate(6 hours)",
-        "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": _val("heartbeat_scheduler_role_arn") or "",
+        "REGSUB_HEADNODE_INSTANCE_TYPE": _resolve_config_value(
+            cfg,
+            "headnode_instance_type",
+            "Headnode instance type",
+            non_interactive=non_interactive,
+            default_fallback="m5.xlarge",
+        ) or "m5.xlarge",
+        "REGSUB_HEARTBEAT_EMAIL": _resolve_config_value(
+            cfg,
+            "heartbeat_email",
+            "Heartbeat email",
+            non_interactive=non_interactive,
+            default_fallback=_os.environ.get("DAY_CONTACT_EMAIL", ""),
+            required=False,
+            allow_empty=True,
+        ) or _os.environ.get("DAY_CONTACT_EMAIL", ""),
+        "REGSUB_HEARTBEAT_SCHEDULE": _resolve_config_value(
+            cfg,
+            "heartbeat_schedule",
+            "Heartbeat schedule",
+            non_interactive=non_interactive,
+            default_fallback="rate(6 hours)",
+            required=False,
+        ) or "rate(6 hours)",
+        "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": _resolve_config_value(
+            cfg,
+            "heartbeat_scheduler_role_arn",
+            "Heartbeat scheduler role ARN",
+            non_interactive=non_interactive,
+            required=False,
+            allow_empty=True,
+        ) or "",
     }
 
     ui.step("Rendering YAML template ...")
@@ -549,10 +852,30 @@ def run_create_workflow(
 
     # -- 8. POST-CREATE: Budgets (Phase 3a) -----------------------------------
     ui.phase("POST-CREATE: BUDGETS")
-    budget_email = _val("budget_email") or _os.environ.get("DAY_CONTACT_EMAIL", "")
-    budget_amount = _val("budget_amount") or "200"
-    global_budget_amount = _val("global_budget_amount") or "1000"
-    allowed_users = _val("allowed_budget_users") or aws_ctx.iam_username
+    budget_email = _resolve_config_value(
+        cfg,
+        "budget_email",
+        "Budget email",
+        non_interactive=non_interactive,
+        default_fallback=_os.environ.get("DAY_CONTACT_EMAIL", ""),
+    ) or _os.environ.get("DAY_CONTACT_EMAIL", "")
+    budget_amount = _resolve_config_value(
+        cfg, "budget_amount", "Budget amount", non_interactive=non_interactive, default_fallback="200",
+    ) or "200"
+    global_budget_amount = _resolve_config_value(
+        cfg,
+        "global_budget_amount",
+        "Global budget amount",
+        non_interactive=non_interactive,
+        default_fallback="1000",
+    ) or "1000"
+    allowed_users = _resolve_config_value(
+        cfg,
+        "allowed_budget_users",
+        "Allowed budget users",
+        non_interactive=non_interactive,
+        default_fallback=aws_ctx.iam_username,
+    ) or aws_ctx.iam_username
 
     budgets_client = aws_ctx.client("budgets")
     s3_client = aws_ctx.client("s3")
@@ -589,12 +912,34 @@ def run_create_workflow(
 
     # -- 9. POST-CREATE: Heartbeat (Phase 3b) ---------------------------------
     ui.phase("POST-CREATE: HEARTBEAT")
-    heartbeat_email = _val("heartbeat_email") or budget_email
-    schedule_expr = _val("heartbeat_schedule") or "rate(6 hours)"
+    heartbeat_email = _resolve_config_value(
+        cfg,
+        "heartbeat_email",
+        "Heartbeat email",
+        non_interactive=non_interactive,
+        default_fallback=budget_email,
+        required=False,
+        allow_empty=True,
+    ) or budget_email
+    schedule_expr = _resolve_config_value(
+        cfg,
+        "heartbeat_schedule",
+        "Heartbeat schedule",
+        non_interactive=non_interactive,
+        default_fallback="rate(6 hours)",
+        required=False,
+    ) or "rate(6 hours)"
 
     scheduler_role_arn, role_source = resolve_scheduler_role(
         iam_client,
-        preconfigured=_val("heartbeat_scheduler_role_arn"),
+        preconfigured=_resolve_config_value(
+            cfg,
+            "heartbeat_scheduler_role_arn",
+            "Heartbeat scheduler role ARN",
+            non_interactive=non_interactive,
+            required=False,
+            allow_empty=True,
+        ),
         region=aws_ctx.region,
         profile=aws_ctx.profile,
     )
@@ -981,7 +1326,7 @@ def run_preflight_only(
     from daylily_ec.aws.iam import make_iam_preflight_step
     from daylily_ec.aws.quotas import make_quota_preflight_step
     from daylily_ec.aws.s3 import make_s3_bucket_preflight_step
-    from daylily_ec.config.triplets import load_config, resolve_value
+    from daylily_ec.config.triplets import get_effective_default, load_config
 
     if debug:
         logging.getLogger("daylily_ec").setLevel(logging.DEBUG)
@@ -997,13 +1342,7 @@ def run_preflight_only(
     cfg = load_config(effective_config)
     ec = cfg.ephemeral_cluster
 
-    def _val(key: str) -> str:
-        t = ec.config.get(key)
-        if t is None:
-            return ""
-        return resolve_value(t)
-
-    cluster_name = _val("cluster_name") or "prod"
+    cluster_name = get_effective_default(cfg, "cluster_name", "prod") or "prod"
 
     # AWS Context
     try:
@@ -1023,9 +1362,9 @@ def run_preflight_only(
         caller_arn=aws_ctx.caller_arn,
     )
 
-    max_8i = int(_val("max_count_8I") or "1")
-    max_128i = int(_val("max_count_128I") or "1")
-    max_192i = int(_val("max_count_192I") or "1")
+    max_8i = int(get_effective_default(cfg, "max_count_8I", "1") or "1")
+    max_128i = int(get_effective_default(cfg, "max_count_128I", "1") or "1")
+    max_192i = int(get_effective_default(cfg, "max_count_192I", "1") or "1")
 
     s3_triplet = ec.config.get("s3_bucket_name")
     s3_cfg_action = s3_triplet.action if s3_triplet else ""
@@ -1044,8 +1383,9 @@ def run_preflight_only(
             aws_ctx,
             cfg_action=s3_cfg_action,
             cfg_set_value=s3_cfg_set,
-            cfg_bucket_name=_val("s3_bucket_name"),
+            cfg_bucket_name=get_effective_default(cfg, "s3_bucket_name", ""),
             profile=aws_ctx.profile,
+            interactive=not non_interactive,
         ),
     ]
 

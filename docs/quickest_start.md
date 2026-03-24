@@ -32,13 +32,15 @@ From the repo root:
 ./bin/check_prereq_sw.sh
 ./bin/install_miniconda   # only if conda is not already installed
 ./bin/init_dayec
-conda activate DAY-EC
+source ./activate
 
-python -m daylily_ec info
-python -m daylily_ec version
+daylily-ec info
+daylily-ec version
 ```
 
 `./bin/init_dayec` creates or updates the `DAY-EC` conda environment from [`../config/day/daycli.yaml`](../config/day/daycli.yaml) and installs this repo into it.
+
+`source ./activate` is the checkout-friendly entrypoint. It activates `DAY-EC` when present, adds [`../bin/`](../bin/) to `PATH`, and exposes `daylily-ec` from the current shell.
 
 ## 3. Create The Region Reference Bucket
 

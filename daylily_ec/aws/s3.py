@@ -26,6 +26,8 @@ import shutil
 import subprocess
 from typing import Any, List, Optional
 
+import typer
+
 from daylily_ec.config.triplets import is_auto_select_disabled, should_auto_apply
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 
@@ -192,6 +194,26 @@ def bucket_url(bucket_name: str) -> str:
     return f"s3://{bucket_name}"
 
 
+def _prompt_for_bucket(candidates: List[str]) -> Optional[str]:
+    """Prompt the user to choose one S3 bucket from *candidates*."""
+    if not candidates:
+        return None
+
+    typer.echo("Select an S3 reference bucket:")
+    for idx, candidate in enumerate(candidates, start=1):
+        typer.echo(f"  [{idx}] {candidate}")
+
+    while True:
+        choice = typer.prompt("Enter selection number", default="1").strip()
+        if not choice.isdigit():
+            typer.echo("Invalid selection. Enter a number.")
+            continue
+        index = int(choice)
+        if 1 <= index <= len(candidates):
+            return candidates[index - 1]
+        typer.echo("Invalid selection. Enter one of the listed numbers.")
+
+
 # ---------------------------------------------------------------------------
 # Preflight step factory
 # ---------------------------------------------------------------------------
@@ -204,6 +226,7 @@ def make_s3_bucket_preflight_step(
     cfg_set_value: str = "",
     cfg_bucket_name: str = "",
     profile: str = "",
+    interactive: bool = False,
 ) -> Any:
     """Return a :data:`PreflightStep` that discovers, selects, and verifies.
 
@@ -241,6 +264,10 @@ def make_s3_bucket_preflight_step(
             cfg_set_value=cfg_set_value,
             cfg_bucket_name=cfg_bucket_name,
         )
+
+        if selected is None:
+            if interactive:
+                selected = _prompt_for_bucket(candidates)
 
         if selected is None:
             # Cannot auto-select — needs interactive prompt

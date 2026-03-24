@@ -25,7 +25,7 @@ Use the full runbook in [docs/quickest_start.md](docs/quickest_start.md). The sh
 ```bash
 ./bin/check_prereq_sw.sh
 ./bin/init_dayec
-conda activate DAY-EC
+source ./activate
 
 export AWS_PROFILE=daylily-service
 export REGION_AZ=us-west-2c
@@ -36,6 +36,8 @@ python -m daylily_ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --
 ```
 
 Before `create`, make sure the reference bucket for the target region exists and your config file points at it. [docs/quickest_start.md](docs/quickest_start.md) shows the supported `daylily-omics-references` workflow and the template-copy step.
+
+After `./bin/init_dayec`, you can use `source ./activate` from the repo root to activate `DAY-EC` when available and expose `daylily-ec` plus the repo's `bin/` helpers in the current shell.
 
 ## CLI Surface
 

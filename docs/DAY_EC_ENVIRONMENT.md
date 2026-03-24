@@ -8,10 +8,12 @@ From a repo checkout:
 
 ```bash
 ./bin/init_dayec
-conda activate DAY-EC
+source ./activate
 ```
 
 `./bin/init_dayec` reads [`../config/day/daycli.yaml`](../config/day/daycli.yaml), creates or updates the `DAY-EC` conda environment, and installs `daylily-ephemeral-cluster` into it.
+
+`source ./activate` is the lightweight activation step from a checkout. It activates `DAY-EC` when that conda environment exists, prepends [`../bin/`](../bin/) to `PATH`, and makes `daylily-ec` available in the current shell.
 
 Useful `init_dayec` environment variables:
 
@@ -21,10 +23,10 @@ Useful `init_dayec` environment variables:
 ## Core Diagnostics
 
 ```bash
-python -m daylily_ec version
-python -m daylily_ec info
-python -m daylily_ec resources-dir
-python -m daylily_ec pricing snapshot --help
+daylily-ec version
+daylily-ec info
+daylily-ec resources-dir
+daylily-ec pricing snapshot --help
 ```
 
 These commands are the fastest way to confirm that the CLI, packaged resources, and runtime directories are available.
@@ -43,7 +45,7 @@ The exact dependency set lives in [`../config/day/daycli.yaml`](../config/day/da
 ## Running Tests
 
 ```bash
-conda activate DAY-EC
+source ./activate
 
 pytest tests/
 pytest --cov=daylily_ec --cov=daylib tests/
@@ -59,20 +61,21 @@ Avoid hard-coding expected test counts into docs; use `pytest --collect-only` wh
 ```bash
 ./bin/install_miniconda
 ./bin/init_dayec
+source ./activate
 ```
 
 ### AWS Credentials Are Missing
 
 ```bash
 export AWS_PROFILE=daylily-service
-python -m daylily_ec info
+daylily-ec info
 aws sts get-caller-identity
 ```
 
 ### Packaged Resources Are Not Resolving
 
 ```bash
-python -m daylily_ec resources-dir
+daylily-ec resources-dir
 ```
 
 If you need to point the CLI at a custom resource tree:
@@ -87,7 +90,7 @@ If `daylily-omics-references` is not available after activation, re-run:
 
 ```bash
 ./bin/init_dayec
-conda activate DAY-EC
+source ./activate
 ```
 
 ## Common Environment Variables

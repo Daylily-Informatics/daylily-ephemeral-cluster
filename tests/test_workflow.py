@@ -15,6 +15,7 @@ from __future__ import annotations
 import subprocess
 from unittest.mock import MagicMock, patch
 
+from daylily_ec.config.models import ConfigFile
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 from daylily_ec.workflow.create_cluster import (
     EXIT_AWS_FAILURE,
@@ -22,8 +23,13 @@ from daylily_ec.workflow.create_cluster import (
     EXIT_SUCCESS,
     EXIT_TOOLCHAIN,
     EXIT_VALIDATION_FAILURE,
+    _is_valid_fsx_size,
     _extract_selected,
+    _resolve_fsx_size,
     _noop_heartbeat_result,
+    _require_values,
+    _resolve_config_value,
+    _resolve_ssh_keypair,
     _ssh_cmd,
     configure_headnode,
 )
@@ -103,6 +109,127 @@ class TestNoopHeartbeatResult:
         assert result.error == "skipped"
 
 
+class TestWorkflowResolutionHelpers:
+    def test_resolve_config_value_uses_default_non_interactive(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"cluster_name": ["PROMPTUSER", "majors-cluster", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        value = _resolve_config_value(
+            cfg,
+            "cluster_name",
+            "Cluster name",
+            non_interactive=True,
+            default_fallback="prod",
+        )
+
+        assert value == "majors-cluster"
+
+    @patch("daylily_ec.workflow.create_cluster.typer.prompt", return_value="chosen-cluster")
+    def test_resolve_config_value_prompts_interactively(self, mock_prompt):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"cluster_name": ["PROMPTUSER", "majors-cluster", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        value = _resolve_config_value(
+            cfg,
+            "cluster_name",
+            "Cluster name",
+            non_interactive=False,
+            default_fallback="prod",
+        )
+
+        assert value == "chosen-cluster"
+        mock_prompt.assert_called_once()
+
+    def test_resolve_ssh_keypair_auto_selects_single_candidate(self, tmp_path, monkeypatch):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        pem = tmp_path / ".ssh" / "only-key.pem"
+        pem.parent.mkdir(parents=True, exist_ok=True)
+        pem.write_text("fake pem")
+
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"ssh_key_name": ["PROMPTUSER", "", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+        ec2 = MagicMock()
+        ec2.describe_key_pairs.return_value = {"KeyPairs": [{"KeyName": "only-key"}]}
+
+        value = _resolve_ssh_keypair(cfg, ec2_client=ec2, non_interactive=True)
+        assert value == "only-key"
+
+    def test_require_values_reports_missing_labels(self):
+        msg = _require_values(
+            {"bucket": "b", "SSH keypair": "", "IAM policy ARN": ""}
+        )
+        assert msg == "Missing required values: SSH keypair, IAM policy ARN"
+
+    def test_is_valid_fsx_size(self):
+        assert _is_valid_fsx_size("1200") is True
+        assert _is_valid_fsx_size("6000") is True
+        assert _is_valid_fsx_size("1250") is False
+        assert _is_valid_fsx_size("abc") is False
+        assert _is_valid_fsx_size("0") is False
+
+    def test_resolve_fsx_size_uses_valid_default(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"fsx_fs_size": ["PROMPTUSER", "4800", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        assert _resolve_fsx_size(cfg, non_interactive=True) == "4800"
+
+    def test_resolve_fsx_size_rejects_invalid_default(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"fsx_fs_size": ["PROMPTUSER", "1250", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        with patch("daylily_ec.workflow.create_cluster.typer.echo"):
+            try:
+                _resolve_fsx_size(cfg, non_interactive=True)
+            except ValueError as exc:
+                assert "Invalid FSx size '1250'" in str(exc)
+            else:
+                raise AssertionError("Expected ValueError")
+
+    @patch("daylily_ec.workflow.create_cluster.typer.prompt", return_value="2")
+    def test_resolve_fsx_size_prompts_with_menu(self, mock_prompt):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"fsx_fs_size": ["PROMPTUSER", "", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        assert _resolve_fsx_size(cfg, non_interactive=False) == "2400"
+        mock_prompt.assert_called_once()
+
+
 # ── Module exports ──────────────────────────────────────────────────────
 
 
@@ -152,7 +279,7 @@ class TestRunCreateWorkflow:
 
         from daylily_ec.workflow.create_cluster import run_create_workflow
 
-        rc = run_create_workflow("us-west-2b", profile="test")
+        rc = run_create_workflow("us-west-2b", profile="test", non_interactive=True)
         assert rc == EXIT_AWS_FAILURE
 
 
