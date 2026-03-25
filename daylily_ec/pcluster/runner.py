@@ -21,9 +21,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 #: Exact message pcluster returns on dry-run success.
-DRY_RUN_SUCCESS_MESSAGE: str = (
-    "Request would have succeeded, but DryRun flag is set."
-)
+DRY_RUN_SUCCESS_MESSAGE: str = "Request would have succeeded, but DryRun flag is set."
 
 # ---------------------------------------------------------------------------
 # Result dataclass
@@ -118,10 +116,14 @@ def dry_run_create(
     result = _run_pcluster(
         [
             "create-cluster",
-            "-n", cluster_name,
-            "-c", config_path,
-            "--dryrun", "true",
-            "--region", region,
+            "-n",
+            cluster_name,
+            "-c",
+            config_path,
+            "--dryrun",
+            "true",
+            "--region",
+            region,
         ],
         profile=profile,
     )
@@ -159,9 +161,12 @@ def create_cluster(
     result = _run_pcluster(
         [
             "create-cluster",
-            "-n", cluster_name,
-            "-c", config_path,
-            "--region", region,
+            "-n",
+            cluster_name,
+            "-c",
+            config_path,
+            "--region",
+            region,
         ],
         profile=profile,
     )
@@ -179,3 +184,34 @@ def create_cluster(
 
     return result
 
+
+def delete_cluster(
+    cluster_name: str,
+    region: str,
+    *,
+    profile: Optional[str] = None,
+) -> PclusterResult:
+    """Execute ``pcluster delete-cluster`` for *cluster_name*."""
+    result = _run_pcluster(
+        [
+            "delete-cluster",
+            "-n",
+            cluster_name,
+            "--region",
+            region,
+        ],
+        profile=profile,
+    )
+    result.success = result.returncode == 0
+
+    if result.success:
+        logger.info("Cluster deletion initiated: %s", cluster_name)
+    else:
+        logger.error(
+            "Cluster deletion failed to start (rc=%d): %s | stdout: %s",
+            result.returncode,
+            result.stderr or "(no stderr)",
+            result.stdout or result.message or "(no output)",
+        )
+
+    return result

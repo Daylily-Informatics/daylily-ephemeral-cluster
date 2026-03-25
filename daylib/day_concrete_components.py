@@ -1,6 +1,6 @@
 # daylib/concrete_components.py
 
-from daylib.day_cost_components import AbstractArtifact, AbstractTask, ArtifactType, TaskType
+from daylib.day_cost_components import AbstractArtifact, AbstractTask
 
 class DataArtifact(AbstractArtifact):
     def calculate_storage_cost(self, genome_coverage: float, storage_rate: float) -> float:

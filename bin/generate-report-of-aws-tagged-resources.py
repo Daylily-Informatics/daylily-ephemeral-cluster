@@ -94,17 +94,28 @@ def canonical_service(name: str, source: str) -> str:
         return n
     # CE SERVICE dimension values → map to compact tokens
     # Key patterns:
-    if "elastic compute cloud" in n: return "ec2"
-    if "fsx" in n: return "fsx"
-    if "simple notification service" in n: return "sns"
-    if "simple storage service" in n or n == "amazon s3": return "s3"
-    if "cloudwatch" in n: return "cloudwatch"  # treat 'logs' ~ 'cloudwatch'
-    if "elastic file system" in n: return "elasticfilesystem"
-    if "elastic load balancing" in n: return "elasticloadbalancing"
-    if n.startswith("amazon ecr") or "elastic container registry" in n: return "ecr"
-    if "route 53" in n: return "route53"
-    if "api gateway" in n: return "apigateway"
-    if "secrets manager" in n: return "secretsmanager"
+    if "elastic compute cloud" in n:
+        return "ec2"
+    if "fsx" in n:
+        return "fsx"
+    if "simple notification service" in n:
+        return "sns"
+    if "simple storage service" in n or n == "amazon s3":
+        return "s3"
+    if "cloudwatch" in n:
+        return "cloudwatch"  # treat 'logs' ~ 'cloudwatch'
+    if "elastic file system" in n:
+        return "elasticfilesystem"
+    if "elastic load balancing" in n:
+        return "elasticloadbalancing"
+    if n.startswith("amazon ecr") or "elastic container registry" in n:
+        return "ecr"
+    if "route 53" in n:
+        return "route53"
+    if "api gateway" in n:
+        return "apigateway"
+    if "secrets manager" in n:
+        return "secretsmanager"
     # Fall back: last token-ish
     return n.replace("amazon ", "").replace("aws ", "").strip()
 
@@ -141,7 +152,8 @@ def ce_total_for_tag(tag_key, tag_val):
     token = None
     while True:
         kw = dict(Filter=flt, GroupBy=[{"Type": "DIMENSION", "Key": "SERVICE"}], **time_filter)
-        if token: kw["NextPageToken"] = token
+        if token:
+            kw["NextPageToken"] = token
         resp = ce.get_cost_and_usage(**kw)
         for rb in resp.get("ResultsByTime", []):
             for grp in rb.get("Groups", []):
@@ -153,14 +165,16 @@ def ce_total_for_tag(tag_key, tag_val):
                     by_service[svc_dim] = by_service.get(svc_dim, 0.0) + amt  # keep pretty CE name for display
                     total += amt
         token = resp.get("NextPageToken")
-        if not token: break
+        if not token:
+            break
     return total, by_service, currency
 
 def get_budget_line(name):
     aid = b3.client("sts").get_caller_identity()["Account"]
     try:
         b = budgets.describe_budget(AccountId=aid, BudgetName=name)["Budget"]
-        lim = float(b["BudgetLimit"]["Amount"]); unit = b["BudgetLimit"]["Unit"]
+        lim = float(b["BudgetLimit"]["Amount"])
+        unit = b["BudgetLimit"]["Unit"]
         act = float(b.get("CalculatedSpend", {}).get("ActualSpend", {}).get("Amount", "0"))
         fcast = float(b.get("CalculatedSpend", {}).get("ForecastedSpend", {}).get("Amount", "0"))
         return {"limit": lim, "actual": act, "forecast": fcast, "unit": unit}
@@ -221,9 +235,12 @@ for cluster in sorted(by_cluster.keys()):
         act_str += f", others:{others:.2f}"
 
     cost_styles = []
-    if total_cost >= 10000: cost_styles.append("red bold")
-    elif total_cost >= 2000: cost_styles.append("yellow")
-    else: cost_styles.append("green")
+    if total_cost >= 10000:
+        cost_styles.append("red bold")
+    elif total_cost >= 2000:
+        cost_styles.append("yellow")
+    else:
+        cost_styles.append("green")
 
     if not is_active:
         cost_styles.append("on darkgray")
@@ -238,9 +255,12 @@ budget = get_budget_line(args.budget_name)
 if budget:
     util = (budget["actual"] / budget["limit"] * 100.0) if budget["limit"] > 0 else 0.0
     util_txt = Text(f"{budget['actual']:.2f}/{budget['limit']:.2f} {budget['unit']} ({util:.1f}%)")
-    if util >= 90: util_txt.stylize("red bold")
-    elif util >= 70: util_txt.stylize("yellow")
-    else: util_txt.stylize("green")
+    if util >= 90:
+        util_txt.stylize("red bold")
+    elif util >= 70:
+        util_txt.stylize("yellow")
+    else:
+        util_txt.stylize("green")
     table.add_row("global", "—", f"budget:{args.budget_name}", "—", util_txt)
 else:
     table.add_row("global", "—", f"budget:{args.budget_name}", "—", Text("not found", style="dim"))
@@ -250,5 +270,5 @@ gtxt = Text(f"Grand total (clusters) TOTAL {args.metric}: {grand_total:.2f} {cur
 console.print(gtxt)
 console.print(Text(f"Window: {user_start.isoformat()} → {end.isoformat()} (CE end exclusive) | tag-region: {args.region} | CE/Budgets: us-east-1", style="dim"))
 
-gtxt = Text(f"WARNING: resources can lag by up to a day before appearing -OR- dissappearing from this report!" ,style="bold")
+gtxt = Text("WARNING: resources can lag by up to a day before appearing -OR- dissappearing from this report!", style="bold")
 console.print(gtxt)

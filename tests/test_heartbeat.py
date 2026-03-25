@@ -6,6 +6,7 @@ from unittest.mock import MagicMock
 
 from daylily_ec.aws.heartbeat import (
     HeartbeatNames,
+    delete_heartbeat_resources,
     HeartbeatResult,
     _error_code,
     create_or_update_schedule,
@@ -76,9 +77,7 @@ class TestEnsureTopicAndSubscription:
         sns = MagicMock()
         sns.create_topic.return_value = {"TopicArn": "arn:aws:sns:us-west-2:123:t"}
         sns.list_subscriptions_by_topic.return_value = {"Subscriptions": []}
-        arn = ensure_topic_and_subscription(
-            sns, "t", "a@b.com", "us-west-2", "123"
-        )
+        arn = ensure_topic_and_subscription(sns, "t", "a@b.com", "us-west-2", "123")
         assert arn == "arn:aws:sns:us-west-2:123:t"
         sns.subscribe.assert_called_once()
 
@@ -96,9 +95,7 @@ class TestEnsureTopicAndSubscription:
         sns.create_topic.side_effect = _client_error("AuthorizationError")
         sns.get_topic_attributes.return_value = {}
         sns.list_subscriptions_by_topic.return_value = {"Subscriptions": []}
-        arn = ensure_topic_and_subscription(
-            sns, "t", "a@b.com", "us-west-2", "123"
-        )
+        arn = ensure_topic_and_subscription(sns, "t", "a@b.com", "us-west-2", "123")
         assert "arn:aws:sns:us-west-2:123:t" == arn
 
     def test_auth_error_no_existing_topic_raises(self):
@@ -106,9 +103,7 @@ class TestEnsureTopicAndSubscription:
         sns.create_topic.side_effect = _client_error("AuthorizationError")
         sns.get_topic_attributes.side_effect = Exception("not found")
         try:
-            ensure_topic_and_subscription(
-                sns, "t", "a@b.com", "us-west-2", "123"
-            )
+            ensure_topic_and_subscription(sns, "t", "a@b.com", "us-west-2", "123")
             assert False, "Should have raised"
         except RuntimeError as exc:
             assert "forbidden" in str(exc).lower()
@@ -119,9 +114,7 @@ class TestEnsureTopicAndSubscription:
         sns.list_subscriptions_by_topic.return_value = {"Subscriptions": []}
         sns.subscribe.side_effect = _client_error("AuthorizationError")
         try:
-            ensure_topic_and_subscription(
-                sns, "t", "a@b.com", "us-west-2", "123"
-            )
+            ensure_topic_and_subscription(sns, "t", "a@b.com", "us-west-2", "123")
             assert False, "Should have raised"
         except RuntimeError as exc:
             assert "subscription" in str(exc).lower()
@@ -130,9 +123,7 @@ class TestEnsureTopicAndSubscription:
         sns = MagicMock()
         sns.create_topic.side_effect = _client_error("InternalError")
         try:
-            ensure_topic_and_subscription(
-                sns, "t", "a@b.com", "us-west-2", "123"
-            )
+            ensure_topic_and_subscription(sns, "t", "a@b.com", "us-west-2", "123")
             assert False, "Should have raised"
         except Exception as exc:
             assert _error_code(exc) == "InternalError"
@@ -144,24 +135,25 @@ class TestEnsureTopicAndSubscription:
 class TestCreateOrUpdateSchedule:
     def test_creates_schedule(self):
         sch = MagicMock()
-        create_or_update_schedule(
-            sch, "s1", "rate(60 minutes)", "role", "topic", "msg"
-        )
+        create_or_update_schedule(sch, "s1", "rate(60 minutes)", "role", "topic", "msg")
         sch.create_schedule.assert_called_once()
         sch.update_schedule.assert_not_called()
 
     def test_conflict_falls_back_to_update(self):
         sch = MagicMock()
         sch.create_schedule.side_effect = _client_error("ConflictException")
-        create_or_update_schedule(
-            sch, "s1", "rate(60 minutes)", "role", "topic", "msg"
-        )
+        create_or_update_schedule(sch, "s1", "rate(60 minutes)", "role", "topic", "msg")
         sch.update_schedule.assert_called_once()
 
     def test_timezone_included_when_set(self):
         sch = MagicMock()
         create_or_update_schedule(
-            sch, "s1", "rate(60 minutes)", "role", "topic", "msg",
+            sch,
+            "s1",
+            "rate(60 minutes)",
+            "role",
+            "topic",
+            "msg",
             timezone="US/Pacific",
         )
         call_kwargs = sch.create_schedule.call_args.kwargs
@@ -171,9 +163,7 @@ class TestCreateOrUpdateSchedule:
         sch = MagicMock()
         sch.create_schedule.side_effect = _client_error("AccessDenied")
         try:
-            create_or_update_schedule(
-                sch, "s1", "rate(60 minutes)", "role", "topic", "msg"
-            )
+            create_or_update_schedule(sch, "s1", "rate(60 minutes)", "role", "topic", "msg")
             assert False, "Should have raised"
         except Exception as exc:
             assert _error_code(exc) == "AccessDenied"
@@ -192,7 +182,8 @@ class TestEnsureHeartbeat:
         sch = MagicMock()
 
         r = ensure_heartbeat(
-            sns, sch,
+            sns,
+            sch,
             cluster_name="cl",
             region="us-west-2",
             account_id="123",
@@ -212,7 +203,8 @@ class TestEnsureHeartbeat:
         sch = MagicMock()
 
         r = ensure_heartbeat(
-            sns, sch,
+            sns,
+            sch,
             cluster_name="cl",
             region="us-west-2",
             account_id="123",
@@ -230,3 +222,51 @@ class TestEnsureHeartbeat:
         assert r.role_arn == ""
         assert r.error == ""
 
+
+class TestDeleteHeartbeatResources:
+    def test_uses_derived_names(self):
+        sns = MagicMock()
+        scheduler = MagicMock()
+        lambda_client = MagicMock()
+
+        result = delete_heartbeat_resources(
+            sns,
+            scheduler,
+            lambda_client,
+            cluster_name="cl",
+            region="us-west-2",
+            account_id="123456789012",
+        )
+
+        assert result.deleted_schedule is True
+        assert result.deleted_function is True
+        assert result.deleted_topic is True
+        scheduler.delete_schedule.assert_called_once_with(
+            Name="daylily-cl-heartbeat",
+            GroupName="default",
+        )
+        lambda_client.delete_function.assert_called_once_with(FunctionName="daylily-cl-heartbeat")
+        sns.delete_topic.assert_called_once_with(
+            TopicArn="arn:aws:sns:us-west-2:123456789012:daylily-cl-heartbeat"
+        )
+
+    def test_missing_resources_return_false(self):
+        sns = MagicMock()
+        scheduler = MagicMock()
+        lambda_client = MagicMock()
+        sns.delete_topic.side_effect = _client_error("NotFound")
+        scheduler.delete_schedule.side_effect = _client_error("ResourceNotFoundException")
+        lambda_client.delete_function.side_effect = _client_error("ResourceNotFoundException")
+
+        result = delete_heartbeat_resources(
+            sns,
+            scheduler,
+            lambda_client,
+            cluster_name="cl",
+            region="us-west-2",
+            topic_arn="arn:aws:sns:us-west-2:123456789012:topic",
+        )
+
+        assert result.deleted_schedule is False
+        assert result.deleted_function is False
+        assert result.deleted_topic is False

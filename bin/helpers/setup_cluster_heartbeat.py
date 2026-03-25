@@ -13,8 +13,8 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from ensure_dayec import ensure_dayec
 ensure_dayec(quiet=True)
 
-import boto3
-from botocore.exceptions import ClientError
+import boto3  # noqa: E402
+from botocore.exceptions import ClientError  # noqa: E402
 
 def parse_args():
     p = argparse.ArgumentParser(description="Wire an SNS heartbeat via EventBridge Scheduler (no IAM writes).")
@@ -32,14 +32,17 @@ def parse_args():
 def resolve_aws_profile(profile: Optional[str]) -> str:
     prof = profile or os.environ.get("AWS_PROFILE")
     if not prof:
-        print("Error: set AWS_PROFILE or pass --profile", file=sys.stderr); sys.exit(1)
+        print("Error: set AWS_PROFILE or pass --profile", file=sys.stderr)
+        sys.exit(1)
     # sanity: ensure profile exists
     try:
         out = subprocess.run(["aws","configure","list-profiles"], check=True, capture_output=True, text=True).stdout
         if prof not in [x.strip() for x in out.splitlines() if x.strip()]:
-            print(f"Error: profile {prof} not found.", file=sys.stderr); sys.exit(1)
+            print(f"Error: profile {prof} not found.", file=sys.stderr)
+            sys.exit(1)
     except Exception as e:
-        print(f"Error listing profiles: {e}", file=sys.stderr); sys.exit(1)
+        print(f"Error listing profiles: {e}", file=sys.stderr)
+        sys.exit(1)
     os.environ["AWS_PROFILE"] = prof
     return prof
 

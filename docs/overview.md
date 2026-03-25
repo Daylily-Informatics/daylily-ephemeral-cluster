@@ -27,13 +27,13 @@ The Daylily stack has three layers:
 The intended operator loop is:
 
 1. Prepare the AWS identity, key pair, and reference bucket for a region.
-2. Run `python -m daylily_ec preflight` to catch quota, IAM, or bucket problems before provisioning.
+2. Run `daylily-ec preflight` to catch quota, IAM, or bucket problems before provisioning.
 3. Create the cluster and let Daylily bootstrap the head node.
 4. Stage sample metadata and inputs from a laptop or directly on the head node.
 5. Launch a workflow through the head node helpers and monitor the run in Slurm and tmux.
 6. Export results to S3, check for drift if needed, and delete the cluster.
 
-That operational sequence is the main reason Daylily ships both the Python CLI and the supporting `bin/` helper scripts.
+That operational sequence is why Daylily ships a Python CLI as the canonical operator interface, with `bin/` helpers retained only as compatibility wrappers where practical.
 
 ## Pluggable Workflow Catalog
 

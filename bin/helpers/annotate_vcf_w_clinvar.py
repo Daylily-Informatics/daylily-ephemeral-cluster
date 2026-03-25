@@ -7,6 +7,7 @@ clinvar_api_params = {"fields": "variation_id,rcv.accession,rcv.conditions.name,
 
 # Load the VCF file using PyVCF
 vcf_reader = vcf.Reader(open('input.vcf', 'r'))
+vcf_writer = vcf.Writer(open('output.vcf', 'w'), vcf_reader)
 
 # Add ClinVar annotations to each variant in the VCF file
 for record in vcf_reader:

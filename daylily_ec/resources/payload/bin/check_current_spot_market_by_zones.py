@@ -693,8 +693,6 @@ def main():
     storage_table = []
 
     # Calculate storage costs based on selected storage approach
-    storage_class = storage_approach.lower().replace(' ', '_')
-
     # Build storage table rows
     for approach in storage_approaches:
         row = [color(approach, fore=COLORS[args.mode]['header'])]

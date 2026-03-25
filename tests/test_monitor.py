@@ -2,16 +2,19 @@
 
 from __future__ import annotations
 
+import json as _json
 from unittest.mock import MagicMock, patch
 
 from daylily_ec.pcluster.monitor import (
     DEFAULT_POLL_INTERVAL,
+    DELETE_STATUS_FAILED,
     MAX_CONSECUTIVE_FAILURES,
     STATUS_COMPLETE,
     STATUS_IN_PROGRESS,
     MonitorResult,
     get_cluster_details,
     get_cluster_status,
+    wait_for_deletion,
     wait_for_creation,
 )
 
@@ -106,8 +109,6 @@ class TestGetClusterStatus:
 
 # ── TestGetClusterDetails ────────────────────────────────────────────────
 
-import json as _json
-
 
 class TestGetClusterDetails:
     @patch("daylily_ec.pcluster.monitor.subprocess.run")
@@ -170,18 +171,14 @@ class TestWaitForCreation:
             STATUS_COMPLETE,
         ]
         mock_details.return_value = {"headNode": {}}
-        r = wait_for_creation(
-            "cl", "us-west-2", poll_interval=0.01, _sleep_fn=_noop_sleep
-        )
+        r = wait_for_creation("cl", "us-west-2", poll_interval=0.01, _sleep_fn=_noop_sleep)
         assert r.success is True
         assert mock_status.call_count == 3
 
     @patch("daylily_ec.pcluster.monitor.get_cluster_status")
     def test_consecutive_failures_abort(self, mock_status):
         mock_status.return_value = None
-        r = wait_for_creation(
-            "cl", "us-west-2", max_failures=3, _sleep_fn=_noop_sleep
-        )
+        r = wait_for_creation("cl", "us-west-2", max_failures=3, _sleep_fn=_noop_sleep)
         assert r.success is False
         assert r.consecutive_failures == 3
         assert "3" in r.error
@@ -196,9 +193,7 @@ class TestWaitForCreation:
             STATUS_COMPLETE,
         ]
         mock_details.return_value = {"headNode": {}}
-        r = wait_for_creation(
-            "cl", "us-west-2", max_failures=5, _sleep_fn=_noop_sleep
-        )
+        r = wait_for_creation("cl", "us-west-2", max_failures=5, _sleep_fn=_noop_sleep)
         assert r.success is True
 
     @patch("daylily_ec.pcluster.monitor.get_cluster_status")
@@ -214,8 +209,27 @@ class TestWaitForCreation:
     def test_profile_passed(self, mock_status, mock_details):
         mock_status.return_value = STATUS_COMPLETE
         mock_details.return_value = {"headNode": {}}
-        wait_for_creation(
-            "cl", "us-west-2", profile="p", _sleep_fn=_noop_sleep
-        )
+        wait_for_creation("cl", "us-west-2", profile="p", _sleep_fn=_noop_sleep)
         mock_status.assert_called_with("cl", "us-west-2", profile="p")
 
+
+class TestWaitForDeletion:
+    @patch("daylily_ec.pcluster.monitor.get_cluster_status")
+    def test_none_means_deleted(self, mock_status):
+        mock_status.return_value = None
+        r = wait_for_deletion("cl", "us-west-2", _sleep_fn=_noop_sleep)
+        assert r.success is True
+        assert r.final_status is None
+
+    @patch("daylily_ec.pcluster.monitor.get_cluster_status")
+    def test_failed_status(self, mock_status):
+        mock_status.return_value = DELETE_STATUS_FAILED
+        r = wait_for_deletion("cl", "us-west-2", _sleep_fn=_noop_sleep)
+        assert r.success is False
+        assert r.final_status == DELETE_STATUS_FAILED
+
+    @patch("daylily_ec.pcluster.monitor.get_cluster_status")
+    def test_profile_passed(self, mock_status):
+        mock_status.side_effect = ["DELETE_IN_PROGRESS", None]
+        wait_for_deletion("cl", "us-west-2", profile="p", _sleep_fn=_noop_sleep)
+        mock_status.assert_any_call("cl", "us-west-2", profile="p")

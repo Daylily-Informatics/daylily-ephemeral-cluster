@@ -12,10 +12,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from ensure_dayec import ensure_dayec
 ensure_dayec(quiet=True)
 
-import boto3
-from botocore.exceptions import ClientError
+import boto3  # noqa: E402
+from botocore.exceptions import ClientError  # noqa: E402
 
-from setup_cluster_heartbeat import derive_names, resolve_aws_profile  # type: ignore
+from setup_cluster_heartbeat import derive_names, resolve_aws_profile  # type: ignore  # noqa: E402
 
 
 def parse_args(argv: Optional[Iterable[str]] = None) -> argparse.Namespace:

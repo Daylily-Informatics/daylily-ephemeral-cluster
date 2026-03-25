@@ -1,6 +1,6 @@
 """CLI entry point for daylily-ec, built on cli-core-yo.
 
-Provides ``create``, ``preflight``, and ``drift`` commands for managing
+Provides ``create``, ``preflight``, ``drift``, ``delete``, and ``export`` commands for managing
 ephemeral AWS ParallelCluster environments.
 
 Usage::
@@ -9,6 +9,8 @@ Usage::
     python -m daylily_ec create --region-az us-west-2b --profile my-profile
     python -m daylily_ec preflight --region-az us-west-2b
     python -m daylily_ec drift --state-file ~/.config/daylily/state_prod_*.json
+    python -m daylily_ec export --cluster-name prod --region us-west-2 --target-uri analysis_results --output-dir .
+    python -m daylily_ec delete --cluster-name prod --region us-west-2
 """
 
 from __future__ import annotations
@@ -34,8 +36,7 @@ spec = CliSpec(
     app_display_name="Daylily Ephemeral Cluster",
     dist_name="daylily-ephemeral-cluster",
     root_help=(
-        "Create and manage ephemeral AWS ParallelCluster environments "
-        "for bioinformatics workloads."
+        "Create and manage ephemeral AWS ParallelCluster environments for bioinformatics workloads."
     ),
     xdg=XdgSpec(app_dir_name="daylily"),
 )
@@ -102,9 +103,7 @@ def info_command(
 
 @app.callback()
 def _root_callback(
-    json_flag: bool = typer.Option(
-        False, "--json", "-j", help="Output as JSON."
-    ),
+    json_flag: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
 ) -> None:
     """Daylily Ephemeral Cluster control plane."""
     _reset()
@@ -132,8 +131,7 @@ def create(
         None,
         "--config",
         help=(
-            "Path to daylily config YAML. "
-            "Default: config/daylily_ephemeral_cluster_template.yaml"
+            "Path to daylily config YAML. Default: config/daylily_ephemeral_cluster_template.yaml"
         ),
     ),
     pass_on_warn: bool = typer.Option(
@@ -410,11 +408,13 @@ def cluster_info(
         except json.JSONDecodeError:
             details = {}
 
-        rows.append({
-            "name": name,
-            "status": details.get("clusterStatus", "N/A"),
-            "ip": details.get("headNode", {}).get("publicIpAddress", "N/A"),
-        })
+        rows.append(
+            {
+                "name": name,
+                "status": details.get("clusterStatus", "N/A"),
+                "ip": details.get("headNode", {}).get("publicIpAddress", "N/A"),
+            }
+        )
 
     # --- output --------------------------------------------------------------
     if json_out:
@@ -427,9 +427,110 @@ def cluster_info(
     output.print_text(header)
     output.print_text(sep)
     for row in rows:
-        output.print_text(
-            f"{row['name']:<30} {row['status']:<20} {row['ip']:<15}"
+        output.print_text(f"{row['name']:<30} {row['status']:<20} {row['ip']:<15}")
+
+
+# ── export command ───────────────────────────────────────────────────────────
+
+
+@app.command()
+def export(
+    cluster_name: str = typer.Option(
+        ...,
+        "--cluster-name",
+        "--cluster",
+        help="ParallelCluster name.",
+    ),
+    target_uri: str = typer.Option(
+        ...,
+        "--target-uri",
+        help="FSx relative path or S3 URI to export.",
+    ),
+    region: str = typer.Option(
+        ...,
+        "--region",
+        help="AWS region where the FSx filesystem lives.",
+    ),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Directory where fsx_export.yaml will be written.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        help="Enable verbose export logging.",
+    ),
+) -> None:
+    """Export FSx results back to the backing S3 repository."""
+    from daylily_ec.workflow.export_data import (
+        ExportOptions,
+        configure_logging,
+        run_export_workflow,
+    )
+
+    configure_logging(verbose)
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name=cluster_name,
+            target_uri=target_uri,
+            region=region,
+            profile=profile,
+            output_dir=output_dir.expanduser().resolve(),
         )
+    )
+    raise typer.Exit(rc)
+
+
+# ── delete command ───────────────────────────────────────────────────────────
+
+
+@app.command()
+def delete(
+    cluster_name: Optional[str] = typer.Option(
+        None,
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region where the cluster lives. Prompts when omitted.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    state_file: Optional[Path] = typer.Option(
+        None,
+        "--state-file",
+        help="Optional state JSON file from a previous daylily-ec run.",
+    ),
+    yes: bool = typer.Option(
+        False,
+        "--yes",
+        help="Skip the FSx deletion confirmation prompt.",
+    ),
+) -> None:
+    """Delete a cluster and monitor teardown to completion."""
+    from daylily_ec.workflow.delete_cluster import DeleteOptions, run_delete_workflow
+
+    rc = run_delete_workflow(
+        DeleteOptions(
+            cluster_name=cluster_name,
+            region=region,
+            profile=profile,
+            state_file=state_file,
+            yes=yes,
+        )
+    )
+    raise typer.Exit(rc)
 
 
 # ── resources-dir command ────────────────────────────────────────────────────

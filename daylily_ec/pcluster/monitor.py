@@ -26,6 +26,12 @@ STATUS_IN_PROGRESS: str = "CREATE_IN_PROGRESS"
 #: Cluster status indicating creation completed successfully.
 STATUS_COMPLETE: str = "CREATE_COMPLETE"
 
+#: Cluster status indicating deletion is still running.
+DELETE_STATUS_IN_PROGRESS: str = "DELETE_IN_PROGRESS"
+
+#: Cluster status indicating deletion failed.
+DELETE_STATUS_FAILED: str = "DELETE_FAILED"
+
 #: Maximum consecutive poll failures before aborting.
 MAX_CONSECUTIVE_FAILURES: int = 5
 
@@ -69,9 +75,12 @@ def get_cluster_status(
     cmd = [
         "pcluster",
         "describe-cluster",
-        "-n", cluster_name,
-        "--region", region,
-        "--query", "clusterStatus",
+        "-n",
+        cluster_name,
+        "--region",
+        region,
+        "--query",
+        "clusterStatus",
     ]
     env: Dict[str, Any] = {**os.environ}
     if profile:
@@ -110,8 +119,10 @@ def get_cluster_details(
     cmd = [
         "pcluster",
         "describe-cluster",
-        "-n", cluster_name,
-        "--region", region,
+        "-n",
+        cluster_name,
+        "--region",
+        region,
     ]
     env: Dict[str, Any] = {**os.environ}
     if profile:
@@ -176,7 +187,9 @@ def wait_for_creation(
             ui.clear_progress()
             # Fetch head node details for the success banner.
             details = get_cluster_details(
-                cluster_name, region, profile=profile,
+                cluster_name,
+                region,
+                profile=profile,
             )
             head_node = details.get("headNode", {})
             return MonitorResult(
@@ -209,10 +222,7 @@ def wait_for_creation(
                     elapsed_seconds=time.time() - start,
                     success=False,
                     consecutive_failures=consecutive_failures,
-                    error=(
-                        f"Monitor failed {consecutive_failures} "
-                        "consecutive times. Aborting."
-                    ),
+                    error=(f"Monitor failed {consecutive_failures} consecutive times. Aborting."),
                 )
             logger.warning(
                 "Status poll returned None (%d/%d)",
@@ -230,3 +240,42 @@ def wait_for_creation(
             error=f"Cluster entered unexpected status: {status}",
         )
 
+
+def wait_for_deletion(
+    cluster_name: str,
+    region: str,
+    *,
+    profile: Optional[str] = None,
+    poll_interval: float = DEFAULT_POLL_INTERVAL,
+    _sleep_fn: Any = None,
+) -> MonitorResult:
+    """Block until cluster deletion completes or reaches ``DELETE_FAILED``."""
+    sleep = _sleep_fn or time.sleep
+    start = time.time()
+
+    while True:
+        status = get_cluster_status(cluster_name, region, profile=profile)
+
+        if status is None:
+            from daylily_ec import ui  # local import to avoid circular deps
+
+            ui.clear_progress()
+            return MonitorResult(
+                final_status=None,
+                elapsed_seconds=time.time() - start,
+                success=True,
+            )
+
+        if status == DELETE_STATUS_FAILED:
+            return MonitorResult(
+                final_status=status,
+                elapsed_seconds=time.time() - start,
+                success=False,
+                error="Cluster deletion failed.",
+            )
+
+        from daylily_ec import ui  # local import to avoid circular deps
+
+        elapsed = time.time() - start
+        ui.progress_line(f"Cluster deleting ... status: {status} ({ui.elapsed_str(elapsed)})")
+        sleep(poll_interval)

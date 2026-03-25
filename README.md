@@ -435,17 +435,37 @@ Use `watch squeue` or your preferred terminal workflow if you want a live schedu
 
 ### Export `fsx` Analysis Results Back To S3
 
-Use the AWS FSx console or CLI to create a data-repository export task for the filesystem associated with the cluster.
+Use `daylily-ec export` after `source ./activate`.
+
+```bash
+daylily-ec export \
+  --cluster-name "$CLUSTER_NAME" \
+  --region "$REGION" \
+  --target-uri analysis_results \
+  --output-dir .
+```
+
+This starts an FSx data-repository export task, waits for completion, and writes `./fsx_export.yaml` with the result. Use `analysis_results` or a subdirectory under it for `--target-uri`; if you already know the exact S3 destination under the filesystem export root, you may pass that `s3://...` URI instead.
+
+The legacy helpers `bin/daylily-export-fsx-to-s3-from-local` and `bin/daylily-export-fsx-to-s3` still exist, but they now delegate to the same `daylily-ec export` workflow.
 
 > Be sure you export results from `/fsx/analysis_results` before deleting the cluster. FSx is scratch-like high-performance working storage, not your final archive.
 
 ### Delete The Cluster
 
-When the workload is complete and results have been exported:
+When the workload is complete and results have been exported, use the Daylily control plane to tear the cluster down:
 
 ```bash
-pcluster delete-cluster -n "$CLUSTER_NAME" --region "$REGION"
+daylily-ec delete --cluster-name "$CLUSTER_NAME" --region "$REGION"
 ```
+
+If you have the state file from the create run, you can let Daylily resolve the cluster metadata and heartbeat resources automatically:
+
+```bash
+daylily-ec delete --state-file "$STATE_FILE"
+```
+
+The command preserves the existing `please delete` confirmation when FSx filesystems are still attached unless you explicitly pass `--yes`. The legacy helper `bin/daylily-delete-ephemeral-cluster` remains available as a compatibility wrapper around the same CLI flow.
 
 If you retained FSx or root volumes by choice, go confirm their fate explicitly. Those are the resources most likely to keep costing money after you think you are done.
 
