@@ -46,24 +46,13 @@ export DAYLILY_EC_RESOURCES_DIR=/path/to/override-root
 
 The override directory must contain the Daylily `config/`, `etc/`, and `bin/` trees expected by the helper scripts.
 
-## Running Bundled Helper Scripts
-
-Some helper scripts are packaged alongside the Python CLI. Run them via the resolved resource directory:
-
-```bash
-RES_DIR="$(daylily-ec resources-dir)"
-
-"$RES_DIR/bin/daylily-create-ephemeral-cluster" --help
-"$RES_DIR/bin/daylily-stage-analysis-samples-headnode" --help
-```
-
 ## Host Requirements
 
 `pip` installs the Python dependencies, but some workflows still expect host tools or external configuration:
 
 - AWS CLI v2 for commands that shell out to `aws`
-- `ssh` and `scp` for remote helper flows
+- `pcluster` CLI for cluster management commands (e.g. `daylily-ec cluster-info`)
+- `ssh` for connecting to head nodes
 - a configured AWS profile when operating on real infrastructure
-- standard Unix tools such as `sed`, `awk`, and `bash`
 
 If you want the managed conda workflow instead, use [`DAY_EC_ENVIRONMENT.md`](DAY_EC_ENVIRONMENT.md).

@@ -5,7 +5,7 @@ Daylily provisions ephemeral AWS ParallelCluster environments for bioinformatics
 ## What Daylily Covers
 
 - Preflight validation for IAM, quotas, network prerequisites, local toolchain, and reference-bucket readiness
-- Cluster creation through `python -m daylily_ec create` or the thin wrapper `./bin/daylily-create-ephemeral-cluster`
+- Cluster creation through `daylily-ec create`
 - A region-scoped S3 and FSx for Lustre layout for shared references, staged inputs, and results
 - Head-node bootstrap that installs `DAY-EC`, `day-clone`, and the packaged Daylily helpers
 - Operator workflows for validation, staging, workflow launch, export, drift checks, and delete
@@ -15,7 +15,7 @@ Daylily provisions ephemeral AWS ParallelCluster environments for bioinformatics
 1. `daylily_ec` is the control plane that runs preflight, renders cluster YAML, applies spot pricing, creates the cluster, and records state snapshots.
 2. AWS ParallelCluster and Slurm provide the compute fabric.
 3. A region-specific S3 bucket whose name includes `omics-analysis` backs FSx for Lustre so references and staged data are shared across the cluster.
-4. The head node installs Daylily utilities from [`bin/`](bin/) and workflow definitions from [`config/daylily_available_repositories.yaml`](config/daylily_available_repositories.yaml).
+4. The head node installs Daylily utilities and workflow definitions from [`config/daylily_available_repositories.yaml`](config/daylily_available_repositories.yaml).
 5. Optional budgets and heartbeat notifications help operators track cost and stale resources.
 
 ## Fast Path
@@ -31,27 +31,28 @@ export AWS_PROFILE=daylily-service
 export REGION_AZ=us-west-2c
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
 
-python -m daylily_ec preflight --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
-python -m daylily_ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
+daylily-ec preflight --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
+daylily-ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
 ```
 
 Before `create`, make sure the reference bucket for the target region exists and your config file points at it. [docs/quickest_start.md](docs/quickest_start.md) shows the supported `daylily-omics-references` workflow and the template-copy step.
 
-After `./bin/init_dayec`, you can use `source ./activate` from the repo root to activate `DAY-EC` when available and expose `daylily-ec` plus the repo's `bin/` helpers in the current shell.
+After `./bin/init_dayec`, you can use `source ./activate` from the repo root to activate `DAY-EC` when available and expose `daylily-ec` in the current shell.
 
 ## CLI Surface
 
 The current CLI surface is:
 
-- `python -m daylily_ec version`
-- `python -m daylily_ec info`
-- `python -m daylily_ec create --region-az <region-az> ...`
-- `python -m daylily_ec preflight --region-az <region-az> ...`
-- `python -m daylily_ec drift --state-file <path> ...`
-- `python -m daylily_ec resources-dir`
-- `python -m daylily_ec pricing snapshot --region <region> --config config/day_cluster/prod_cluster.yaml`
+- `daylily-ec version`
+- `daylily-ec info`
+- `daylily-ec create --region-az <region-az> ...`
+- `daylily-ec preflight --region-az <region-az> ...`
+- `daylily-ec drift --state-file <path> ...`
+- `daylily-ec cluster-info --region <region> ...`
+- `daylily-ec resources-dir`
+- `daylily-ec pricing snapshot --region <region> --config config/day_cluster/prod_cluster.yaml`
 
-Run `python -m daylily_ec --help` for the current command tree.
+Run `daylily-ec --help` for the current command tree.
 
 ## Documentation
 
