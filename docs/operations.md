@@ -7,34 +7,20 @@ This doc covers the supported operator workflows after the local environment is 
 List clusters in a region:
 
 ```bash
-pcluster list-clusters --region "$REGION"
+daylily-ec cluster-info --region "$REGION" --profile "$AWS_PROFILE"
 ```
 
-SSH to the head node with the helper script:
+SSH to the head node:
 
 ```bash
-./bin/daylily-ssh-into-headnode \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --pem ~/.ssh/<your-key>.pem
+ssh -i ~/.ssh/<your-key>.pem ubuntu@<headnode-ip>
 ```
 
-When flags are omitted the helper falls back to interactive selection.
+Use `daylily-ec cluster-info` to find the public IP for the cluster you want to connect to.
 
 ## Validate The Head Node
 
 Daylily bootstraps the head node automatically after cluster creation. Validate that bootstrap before staging data or launching a workflow.
-
-From your laptop, re-run the head-node bootstrap if needed:
-
-```bash
-./bin/daylily-cfg-headnode \
-  --pem ~/.ssh/<your-key>.pem \
-  --region "$REGION" \
-  --profile "$AWS_PROFILE" \
-  --cluster "$CLUSTER_NAME"
-```
 
 Once connected to the head node:
 
@@ -42,22 +28,9 @@ Once connected to the head node:
 cd ~/projects/daylily-ephemeral-cluster
 conda activate DAY-EC
 
-python -m daylily_ec info
+daylily-ec info
 day-clone --list
 ```
-
-Optional remote validation workflow from your laptop:
-
-```bash
-./bin/daylily-run-ephemeral-cluster-remote-tests \
-  ~/.ssh/<your-key>.pem \
-  "$REGION" \
-  "$AWS_PROFILE" \
-  --cluster "$CLUSTER_NAME" \
-  --yes
-```
-
-That helper clones the default workflow repository and launches a tmux-backed test run on the head node.
 
 ## Stage Sample Data On The Head Node
 
@@ -135,7 +108,7 @@ Infrastructure status:
 
 ```bash
 pcluster describe-cluster -n "$CLUSTER_NAME" --region "$REGION"
-python -m daylily_ec drift --state-file ~/.config/daylily/state_<cluster>_<timestamp>.json --profile "$AWS_PROFILE"
+daylily-ec drift --state-file ~/.config/daylily/state_<cluster>_<timestamp>.json --profile "$AWS_PROFILE"
 ```
 
 Scheduler and tmux status on the head node:
@@ -149,31 +122,15 @@ tmux attach -t <session-name>
 
 ## Export Results Back To S3
 
-Launch an FSx export task from your laptop and store the task outcome locally:
-
-```bash
-./bin/daylily-export-fsx-to-s3-from-local \
-  --cluster "$CLUSTER_NAME" \
-  --target-uri analysis_results/ubuntu/<run-or-project> \
-  --region "$REGION" \
-  --profile "$AWS_PROFILE" \
-  --output-dir ./fsx-export-status
-```
-
-`--target-uri` accepts an FSx-relative path or an S3 URI under the filesystem export root. The helper writes `fsx_export.yaml` into `--output-dir`.
+Use the AWS FSx console or CLI to create a data repository export task for the filesystem associated with the cluster.
 
 ## Delete A Cluster
 
-When the workload is complete and results have been exported:
+When the workload is complete and results have been exported, delete the cluster using `pcluster delete-cluster`:
 
 ```bash
-./bin/daylily-delete-ephemeral-cluster \
-  --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME" \
-  --profile "$AWS_PROFILE"
+pcluster delete-cluster -n "$CLUSTER_NAME" --region "$REGION"
 ```
-
-Add `--yes` to skip the FSx deletion confirmation prompt.
 
 ## Related Docs
 

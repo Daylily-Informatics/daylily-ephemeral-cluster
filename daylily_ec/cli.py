@@ -321,6 +321,117 @@ def drift(
     raise typer.Exit(EXIT_SUCCESS)
 
 
+# ── cluster-info command ─────────────────────────────────────────────────────
+
+
+@app.command("cluster-info")
+def cluster_info(
+    region: str = typer.Option(
+        ...,
+        "--region",
+        help="AWS region to query (e.g. us-west-2).",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    json_out: bool = typer.Option(
+        False,
+        "--json",
+        "-j",
+        help="Output as JSON instead of a table.",
+    ),
+) -> None:
+    """List ParallelCluster clusters and their status.
+
+    Queries ``pcluster list-clusters`` and ``pcluster describe-cluster``
+    for each cluster in the given region, then prints a summary table.
+
+    Requires ``pcluster`` on PATH and valid AWS credentials.
+    """
+    import subprocess as _sp
+
+    resolved_profile = profile or os.environ.get("AWS_PROFILE", "")
+    if not resolved_profile:
+        output.error("AWS_PROFILE is not set. Use --profile or export AWS_PROFILE.")
+        raise typer.Exit(1)
+
+    env = {**os.environ, "AWS_PROFILE": resolved_profile}
+
+    # --- list clusters -------------------------------------------------------
+    try:
+        proc = _sp.run(
+            ["pcluster", "list-clusters", "--region", region],
+            capture_output=True,
+            text=True,
+            env=env,
+        )
+    except FileNotFoundError:
+        output.error("pcluster CLI not found on PATH.")
+        raise typer.Exit(1)
+
+    if proc.returncode != 0:
+        output.error(f"pcluster list-clusters failed: {proc.stderr.strip()}")
+        raise typer.Exit(1)
+
+    try:
+        clusters_json = json.loads(proc.stdout) if proc.stdout.strip() else {}
+    except json.JSONDecodeError:
+        output.error(f"Failed to parse list-clusters output: {proc.stdout[:200]}")
+        raise typer.Exit(1)
+
+    cluster_names = [c["clusterName"] for c in clusters_json.get("clusters", [])]
+
+    if not cluster_names:
+        output.print_text(f"No clusters found in {region}.")
+        raise typer.Exit(0)
+
+    # --- describe each cluster -----------------------------------------------
+    rows: list[dict[str, str]] = []
+    for name in cluster_names:
+        try:
+            desc_proc = _sp.run(
+                ["pcluster", "describe-cluster", "--region", region, "-n", name],
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+        except FileNotFoundError:
+            rows.append({"name": name, "status": "ERROR", "ip": "N/A"})
+            continue
+
+        if desc_proc.returncode != 0:
+            rows.append({"name": name, "status": "ERROR", "ip": "N/A"})
+            continue
+
+        try:
+            details = json.loads(desc_proc.stdout) if desc_proc.stdout.strip() else {}
+        except json.JSONDecodeError:
+            details = {}
+
+        rows.append({
+            "name": name,
+            "status": details.get("clusterStatus", "N/A"),
+            "ip": details.get("headNode", {}).get("publicIpAddress", "N/A"),
+        })
+
+    # --- output --------------------------------------------------------------
+    if json_out:
+        output.emit_json({"region": region, "clusters": rows})
+        return
+
+    output.heading(f"Clusters in {region}")
+    header = f"{'CLUSTER_NAME':<30} {'STATUS':<20} {'PUBLIC_IP':<15}"
+    sep = f"{'─' * 30} {'─' * 20} {'─' * 15}"
+    output.print_text(header)
+    output.print_text(sep)
+    for row in rows:
+        output.print_text(
+            f"{row['name']:<30} {row['status']:<20} {row['ip']:<15}"
+        )
+
+
 # ── resources-dir command ────────────────────────────────────────────────────
 
 

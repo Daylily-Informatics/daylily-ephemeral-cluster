@@ -105,7 +105,7 @@ Leave a key set to `PROMPTUSER` if you want the CLI to query AWS and prompt inte
 If you want a raw spot-pricing snapshot before choosing an AZ:
 
 ```bash
-python -m daylily_ec pricing snapshot \
+daylily-ec pricing snapshot \
   --region "$REGION" \
   --config config/day_cluster/prod_cluster.yaml \
   --profile "$AWS_PROFILE"
@@ -116,7 +116,7 @@ python -m daylily_ec pricing snapshot \
 ```bash
 export REGION_AZ=us-west-2c
 
-python -m daylily_ec preflight \
+daylily-ec preflight \
   --region-az "$REGION_AZ" \
   --profile "$AWS_PROFILE" \
   --config "$DAY_EX_CFG"
@@ -127,16 +127,7 @@ Add `--pass-on-warn` if you have reviewed the warnings and intentionally want to
 ## 7. Create The Cluster
 
 ```bash
-python -m daylily_ec create \
-  --region-az "$REGION_AZ" \
-  --profile "$AWS_PROFILE" \
-  --config "$DAY_EX_CFG"
-```
-
-Backward-compatible wrapper:
-
-```bash
-./bin/daylily-create-ephemeral-cluster \
+daylily-ec create \
   --region-az "$REGION_AZ" \
   --profile "$AWS_PROFILE" \
   --config "$DAY_EX_CFG"
@@ -159,12 +150,4 @@ After a successful run:
 - the head node has been bootstrapped with `DAY-EC`, `day-clone`, and the Daylily helper scripts
 - you can continue with [operations.md](operations.md), starting at [Validate The Head Node](operations.md#validate-the-head-node)
 
-If the cluster comes up but the head-node bootstrap needs to be re-run:
-
-```bash
-./bin/daylily-cfg-headnode \
-  --pem ~/.ssh/<your-key>.pem \
-  --region "$REGION" \
-  --profile "$AWS_PROFILE" \
-  --cluster <cluster-name>
-```
+If the cluster comes up but the head-node bootstrap needs to be re-run, SSH to the headnode and re-run the bootstrap manually or use the `daylily-ec` CLI from your laptop.
