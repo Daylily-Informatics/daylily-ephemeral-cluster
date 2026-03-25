@@ -1,6 +1,12 @@
 # Daylily Ephemeral Cluster
 
+[![Latest release](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_release_tag&label=latest%20release&cacheSeconds=300&color=teal)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/releases) [![Latest tag](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_tag&label=latest%20tag&color=pink&cacheSeconds=300)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/tags)
+
 Daylily provisions ephemeral AWS ParallelCluster environments for bioinformatics workloads. It gives operators a Python control plane, shared reference-data plumbing, head-node bootstrap, workflow launch helpers, and a clean delete path.
+
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
 ## Highlights
 
@@ -21,6 +27,10 @@ daylily-ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$D
 - **Laptop-to-cluster staging and launch helpers** for a practical remote operator flow.
 - **Operator artifacts** including preflight reports, state snapshots, rendered YAML, and reusable config in `~/.config/daylily/`.
 
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
+
 ## Architecture at a Glance
 
 Daylily composes a few AWS building blocks into a usable HPC environment:
@@ -34,7 +44,9 @@ Daylily composes a few AWS building blocks into a usable HPC environment:
 7. **Workflow registry metadata** in [`config/daylily_available_repositories.yaml`](config/daylily_available_repositories.yaml) defines approved repos and default refs.
 8. **Artifacts under `~/.config/daylily/`** preserve the exact config, state, and rendered templates that created a cluster.
 
----
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
 ## Workflow Catalog & Launch Path
 
@@ -42,7 +54,9 @@ The head node ships with a registry of vetted repositories defined in [`config/d
 
 Current bundled examples include `daylily-omics-analysis`, `rna-seq-star-deseq2`, and `daylily-sarek`. Because the compute layer is plain Slurm, any orchestrator that speaks Slurm can run once the repo is on the head node.
 
----
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
 ## Reference Data & Canned Controls
 
@@ -77,13 +91,17 @@ High-throughput analyses rely on predictable reference data access. Daylily expe
 
 ![Spot pricing example](docs/images/cost_est_table.png)
 
----
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
 ## Remote Data Staging & Pipeline Execution
 
 Use the bundled helpers to stage on the head node, stage from a laptop through the FSx-backed S3 path, and launch workflows remotely in tmux. The full operator flow is documented later in this README and in [docs/operations.md](docs/operations.md).
 
----
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
 ## Cost Monitoring & Budget Enforcement
 
@@ -98,6 +116,10 @@ Daylily uses AWS Budgets, cost-allocation tags, pricing helpers, and heartbeat n
 > For ephemeral infrastructure, cost is part of operations, not an appendix.
 
 ![Tagged cost tracking example](docs/images/assets/day_aws_tagged_costs_by_hour_project.png)
+
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
 ## Installation -- Quickest Start
 
@@ -125,6 +147,10 @@ daylily-ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$D
 ```
 
 See [docs/quickest_start.md](docs/quickest_start.md) for the shortest canonical runbook and [docs/operations.md](docs/operations.md) for day-2 operations.
+
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
 ## Installation -- Detailed
 
@@ -312,6 +338,10 @@ After a successful run:
 
 ![Remote test success example](docs/images/daylily_remote_test_success.png)
 
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
+
 ## Costs
 
 ### Monitoring, Tags, And Budgets
@@ -338,6 +368,10 @@ These are still the right cost buckets to watch:
 - keep an eye on retained FSx and root volumes
 - export results promptly and delete the cluster promptly
 - do not treat the ephemeral cluster as long-term storage
+
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
 ## Working With The Ephemeral Clusters
 
@@ -469,6 +503,10 @@ The command preserves the existing `please delete` confirmation when FSx filesys
 
 If you retained FSx or root volumes by choice, go confirm their fate explicitly. Those are the resources most likely to keep costing money after you think you are done.
 
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
+
 ## PCUI (technically optional, but you will be missing out)
 
 PCUI is not required for the supported Daylily operator flow, but it is still useful if you want a browser-driven interface for cluster visibility and interactive shell access.
@@ -478,6 +516,10 @@ PCUI is not required for the supported Daylily operator flow, but it is still us
 - enable SSM if you want browser-shell access; from there you will usually want `sudo su - ubuntu`
 
 The CLI/SSH path remains the canonical Daylily workflow, but PCUI is still a legitimate companion tool.
+
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
 ## Other Monitoring Tools
 
@@ -498,6 +540,10 @@ daylily-ec cluster-info --region "$REGION" --profile "$AWS_PROFILE"
 
 Heartbeat notifications are intended to keep noisy, pricey stale resources from quietly hanging around forever.
 
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
+
 ## Documentation
 
 - [docs/quickest_start.md](docs/quickest_start.md): the shortest canonical install and cluster creation runbook
@@ -507,9 +553,17 @@ Heartbeat notifications are intended to keep noisy, pricey stale resources from 
 - [docs/DAY_EC_ENVIRONMENT.md](docs/DAY_EC_ENVIRONMENT.md): local environment and CLI diagnostics
 - [CONTRIBUTING.md](CONTRIBUTING.md): development and docs contribution guide
 
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
+
 ## Historical Material
 
 Older long-form docs and retired notes live under [`docs/archive/`](docs/archive/). They remain useful for background and screenshots, but the supported workflows are described by this README and the live docs above.
+
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
 ## Known Issues
 
@@ -519,9 +573,17 @@ The old README was correct about one thing: known issues belong in operator docs
 - low spot or FSx quotas are still among the easiest ways to fail before a first successful build
 - CloudFormation remains the best place to inspect low-level failure events during provisioning
 
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
+
 ## Contributing
 
 [Contributing Guidelines](CONTRIBUTING.md)
+
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
 
 ## Versioning
 
