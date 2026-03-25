@@ -312,10 +312,10 @@ def resolve_scheduler_role(
             continue
 
     # 4. Create via script
-    script_path = ""
-    if os.path.isfile(CREATE_SCHEDULER_SCRIPT):
+    script_path = shutil.which(CREATE_SCHEDULER_SCRIPT) or ""
+    if not script_path and os.path.isfile(CREATE_SCHEDULER_SCRIPT):
         script_path = CREATE_SCHEDULER_SCRIPT
-    else:
+    elif not script_path:
         # When installed via pip, use the packaged script.
         try:
             script_path = str(resource_path(CREATE_SCHEDULER_SCRIPT))

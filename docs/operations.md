@@ -122,15 +122,33 @@ tmux attach -t <session-name>
 
 ## Export Results Back To S3
 
-Use the AWS FSx console or CLI to create a data repository export task for the filesystem associated with the cluster.
+Use `daylily-ec export`:
+
+```bash
+daylily-ec export \
+  --cluster-name "$CLUSTER_NAME" \
+  --region "$REGION" \
+  --target-uri analysis_results \
+  --output-dir .
+```
+
+This waits for the FSx data-repository task to finish and writes `fsx_export.yaml` locally. The older export helpers in `bin/` remain available as wrappers around this same command.
 
 ## Delete A Cluster
 
-When the workload is complete and results have been exported, delete the cluster using `pcluster delete-cluster`:
+When the workload is complete and results have been exported, delete the cluster with `daylily-ec delete`:
 
 ```bash
-pcluster delete-cluster -n "$CLUSTER_NAME" --region "$REGION"
+daylily-ec delete --cluster-name "$CLUSTER_NAME" --region "$REGION"
 ```
+
+If you have the create-time state JSON, prefer:
+
+```bash
+daylily-ec delete --state-file "$STATE_FILE"
+```
+
+The CLI keeps the existing FSx safety confirmation and performs the supported heartbeat teardown before monitoring cluster deletion to completion. The legacy delete helper remains as a thin wrapper for compatibility.
 
 ## Related Docs
 

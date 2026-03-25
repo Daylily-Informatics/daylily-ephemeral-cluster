@@ -83,7 +83,7 @@ def ensure_dayec(quiet: bool = False) -> None:
         sys.stderr.write(f"The {env_name} environment does not exist.\n\n")
         sys.stderr.write("Create it by running:\n\n")
         sys.stderr.write("    ./bin/init_dayec\n\n")
-        sys.stderr.write(f"Then activate with:\n\n")
+        sys.stderr.write("Then activate with:\n\n")
         sys.stderr.write(f"    conda activate {env_name}\n\n")
         sys.stderr.write("And re-run this script.\n")
 

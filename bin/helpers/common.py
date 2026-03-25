@@ -3,7 +3,6 @@ Common code for unit testing of rules generated with Snakemake 7.25.0.
 """
 
 from pathlib import Path
-import subprocess as sp
 import os
 
 

@@ -10,6 +10,7 @@ from daylily_ec.pcluster.runner import (
     PclusterResult,
     _run_pcluster,
     create_cluster,
+    delete_cluster,
     dry_run_create,
     should_break_after_dry_run,
 )
@@ -32,9 +33,7 @@ def _dry_run_ok_json() -> str:
 
 
 def _dry_run_fail_json() -> str:
-    return json.dumps(
-        {"message": "Some validation error", "validationMessages": []}
-    )
+    return json.dumps({"message": "Some validation error", "validationMessages": []})
 
 
 # ── TestConstants ────────────────────────────────────────────────────────
@@ -120,11 +119,16 @@ class TestDryRunCreate:
         dry_run_create("my-cl", "/tmp/c.yaml", "us-east-1")
         cmd = mock_run.call_args.args[0]
         assert cmd == [
-            "pcluster", "create-cluster",
-            "-n", "my-cl",
-            "-c", "/tmp/c.yaml",
-            "--dryrun", "true",
-            "--region", "us-east-1",
+            "pcluster",
+            "create-cluster",
+            "-n",
+            "my-cl",
+            "-c",
+            "/tmp/c.yaml",
+            "--dryrun",
+            "true",
+            "--region",
+            "us-east-1",
         ]
 
 
@@ -151,9 +155,7 @@ class TestShouldBreakAfterDryRun:
 class TestCreateCluster:
     @patch("daylily_ec.pcluster.runner.subprocess.run")
     def test_success(self, mock_run):
-        mock_run.return_value = _completed(
-            stdout=json.dumps({"clusterName": "my-cl"})
-        )
+        mock_run.return_value = _completed(stdout=json.dumps({"clusterName": "my-cl"}))
         r = create_cluster("my-cl", "/tmp/c.yaml", "us-west-2")
         assert r.success is True
         assert r.returncode == 0
@@ -171,10 +173,44 @@ class TestCreateCluster:
         create_cluster("cl1", "/tmp/c.yaml", "eu-west-1", profile="p")
         cmd = mock_run.call_args.args[0]
         assert cmd == [
-            "pcluster", "create-cluster",
-            "-n", "cl1",
-            "-c", "/tmp/c.yaml",
-            "--region", "eu-west-1",
+            "pcluster",
+            "create-cluster",
+            "-n",
+            "cl1",
+            "-c",
+            "/tmp/c.yaml",
+            "--region",
+            "eu-west-1",
         ]
         assert mock_run.call_args.kwargs["env"]["AWS_PROFILE"] == "p"
 
+
+class TestDeleteCluster:
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_success(self, mock_run):
+        mock_run.return_value = _completed(stdout=json.dumps({"clusterName": "my-cl"}))
+        r = delete_cluster("my-cl", "us-west-2")
+        assert r.success is True
+        assert r.returncode == 0
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_failure(self, mock_run):
+        mock_run.return_value = _completed(stderr="error", rc=1)
+        r = delete_cluster("my-cl", "us-west-2")
+        assert r.success is False
+        assert r.returncode == 1
+
+    @patch("daylily_ec.pcluster.runner.subprocess.run")
+    def test_command_args(self, mock_run):
+        mock_run.return_value = _completed()
+        delete_cluster("cl1", "eu-west-1", profile="p")
+        cmd = mock_run.call_args.args[0]
+        assert cmd == [
+            "pcluster",
+            "delete-cluster",
+            "-n",
+            "cl1",
+            "--region",
+            "eu-west-1",
+        ]
+        assert mock_run.call_args.kwargs["env"]["AWS_PROFILE"] == "p"

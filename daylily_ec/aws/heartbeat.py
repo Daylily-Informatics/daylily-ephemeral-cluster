@@ -35,6 +35,10 @@ class HeartbeatNames:
         # EventBridge Scheduler names are limited to 64 characters.
         return f"daylily-{self.cluster_name}-heartbeat"[:64]
 
+    @property
+    def function_name(self) -> str:
+        return f"daylily-{self.cluster_name}-heartbeat"
+
     def topic_arn(self, account_id: str, region: str) -> str:
         return f"arn:aws:sns:{region}:{account_id}:{self.topic_name}"
 
@@ -58,6 +62,18 @@ class HeartbeatResult:
     schedule_name: str = ""
     role_arn: str = ""
     error: str = ""
+
+
+@dataclass
+class HeartbeatDeleteResult:
+    """Outcome of :func:`delete_heartbeat_resources`."""
+
+    topic_arn: str = ""
+    schedule_name: str = ""
+    function_name: str = ""
+    deleted_topic: bool = False
+    deleted_schedule: bool = False
+    deleted_function: bool = False
 
 
 # ---------------------------------------------------------------------------
@@ -101,18 +117,11 @@ def ensure_topic_and_subscription(
         )
 
     # Subscribe email if not already subscribed.
-    subs = sns_client.list_subscriptions_by_topic(TopicArn=topic_arn).get(
-        "Subscriptions", []
-    )
-    already = any(
-        s.get("Protocol") == "email" and s.get("Endpoint") == email
-        for s in subs
-    )
+    subs = sns_client.list_subscriptions_by_topic(TopicArn=topic_arn).get("Subscriptions", [])
+    already = any(s.get("Protocol") == "email" and s.get("Endpoint") == email for s in subs)
     if not already:
         try:
-            sns_client.subscribe(
-                TopicArn=topic_arn, Protocol="email", Endpoint=email
-            )
+            sns_client.subscribe(TopicArn=topic_arn, Protocol="email", Endpoint=email)
         except Exception as exc:
             err_code = _error_code(exc)
             if err_code == "AuthorizationError":
@@ -164,6 +173,79 @@ def create_or_update_schedule(
         if _error_code(exc) != "ConflictException":
             raise
         scheduler_client.update_schedule(**kwargs)
+
+
+def delete_schedule(scheduler_client: Any, schedule_name: str) -> bool:
+    """Delete an EventBridge Scheduler schedule if it exists."""
+    try:
+        scheduler_client.delete_schedule(Name=schedule_name, GroupName="default")
+        return True
+    except Exception as exc:
+        if _error_code(exc) in {"ResourceNotFoundException", "ValidationException"}:
+            return False
+        raise
+
+
+def delete_lambda(lambda_client: Any, function_name: str) -> bool:
+    """Delete a Lambda function if it exists."""
+    try:
+        lambda_client.delete_function(FunctionName=function_name)
+        return True
+    except Exception as exc:
+        if _error_code(exc) == "ResourceNotFoundException":
+            return False
+        raise
+
+
+def delete_topic(sns_client: Any, topic_arn: str) -> bool:
+    """Delete an SNS topic if it exists."""
+    if not topic_arn:
+        return False
+    try:
+        sns_client.delete_topic(TopicArn=topic_arn)
+        return True
+    except Exception as exc:
+        if _error_code(exc) == "NotFound":
+            return False
+        raise
+
+
+def delete_heartbeat_resources(
+    sns_client: Any,
+    scheduler_client: Any,
+    lambda_client: Any,
+    *,
+    cluster_name: str,
+    region: str,
+    account_id: str = "",
+    topic_arn: str = "",
+    schedule_name: str = "",
+    function_name: str = "",
+) -> HeartbeatDeleteResult:
+    """Delete heartbeat resources, deriving names when explicit values are absent."""
+    names = derive_names(cluster_name)
+    resolved_schedule = schedule_name or names.schedule_name
+    resolved_function = function_name or names.function_name
+    resolved_topic = topic_arn or (names.topic_arn(account_id, region) if account_id else "")
+
+    deleted_schedule = delete_schedule(scheduler_client, resolved_schedule)
+    deleted_function = delete_lambda(lambda_client, resolved_function)
+    deleted_topic = delete_topic(sns_client, resolved_topic)
+
+    logger.info(
+        "Heartbeat teardown completed: schedule=%s lambda=%s topic=%s",
+        resolved_schedule,
+        resolved_function,
+        resolved_topic or "(skipped)",
+    )
+    return HeartbeatDeleteResult(
+        topic_arn=resolved_topic,
+        schedule_name=resolved_schedule,
+        function_name=resolved_function,
+        deleted_topic=deleted_topic,
+        deleted_schedule=deleted_schedule,
+        deleted_function=deleted_function,
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -240,4 +322,3 @@ def _error_code(exc: BaseException) -> str:
     if resp and isinstance(resp, dict):
         return resp.get("Error", {}).get("Code", "")
     return ""
-

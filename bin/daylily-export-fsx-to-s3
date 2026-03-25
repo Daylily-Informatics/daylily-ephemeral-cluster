@@ -1,107 +1,62 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
+"""Compatibility wrapper for positional FSx export invocations."""
 
-set -euo pipefail
+from __future__ import annotations
 
-usage() {
-    cat <<'EOF'
-Usage: daylily-export-fsx-to-s3 <cluster_name> <region> <export_path>
-
-Start an FSx (Lustre) EXPORT_TO_REPOSITORY task for the given directory path.
-
-Environment:
-  AWS_PROFILE  AWS CLI profile to use (required)
-EOF
-}
-
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-    usage
-    exit 0
-fi
-
-cluster_name="${1:-}"
-region="${2:-}"
-EXPORT_PATH="${3:-}"
-EXPORT_PATH=$(echo "$EXPORT_PATH" | sed 's|^/*\(.*\)/*$|\1|')
-
-if [[ -z "$cluster_name" || -z "$region" ]]; then
-    usage
-    exit 1
-fi
-
-if [[ -z "$AWS_PROFILE" ]]; then
-    echo "Error: AWS_PROFILE is not set."
-    exit 1
-fi
-
-if [[ -z "$EXPORT_PATH" ]]; then
-    echo "Error: <export_path> is not set."
-    exit 1
-fi
-
-# FSx File System ID
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-read FSX_ID IMPORT_S3 EXPORT_S3 <<<"$("${script_dir}/daylily-return-fsx-filesystem-for-cluster" "$cluster_name" "$region")"
-
-echo "FSX_ID: $FSX_ID"
-echo "IMPORT_PATH: $IMPORT_S3"
-echo "EXPORT_PATH: $EXPORT_S3"
-if [[ -z "$FSX_ID" || -z "$IMPORT_S3" || -z "$EXPORT_S3" ]]; then
-    echo "Error: Failed to retrieve FSx details. Check the cluster name and region."
-    exit 1
-fi
-
-# Polling interval (seconds)
-POLL_INTERVAL=15
-
-# Start the export task
-echo "Starting FSx export task for directory: ${EXPORT_PATH}"
-
-TASK_ID=$(aws fsx create-data-repository-task \
-    --profile "$AWS_PROFILE" \
-    --region "$region" \
-    --file-system-id "${FSX_ID}" \
-    --type EXPORT_TO_REPOSITORY \
-    --paths "${EXPORT_PATH}" \
-    --report "Enabled=true,Path=${EXPORT_S3}/export-report,Format=REPORT_CSV_20191124,Scope=FAILED_FILES_ONLY" \
-    --query "DataRepositoryTask.TaskId" \
-    --output text)
-    
-
-if [[ -z "${TASK_ID}" ]]; then
-    echo "Error: Failed to create data repository task."
-    exit 1
-fi
-
-echo "Export task started with Task ID: ${TASK_ID}"
+import argparse
+import os
+import shutil
+import sys
+from pathlib import Path
 
 
-# Monitor the task status
-while true; do
-    TASK_STATUS=$(aws fsx describe-data-repository-tasks \
-        --task-ids "${TASK_ID}" \
-        --profile "$AWS_PROFILE" \
-        --region "$region" \
-        --query "DataRepositoryTasks[0].Lifecycle" \
-        --output text 2>/dev/null)
+def _build_parser() -> argparse.ArgumentParser:
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("cluster_name")
+    parser.add_argument("region")
+    parser.add_argument("export_path")
+    parser.add_argument("--profile")
+    parser.add_argument("--output-dir", default=".")
+    parser.add_argument("--verbose", action="store_true")
+    return parser
 
-    if [[ $? -ne 0 ]]; then
-        echo "Error: Failed to describe task status. Retrying..."
-        sleep "${POLL_INTERVAL}"
-        continue
-    fi
 
-    echo "Task ${TASK_ID} is currently in state: ${TASK_STATUS}"
+def _resolve_entrypoint() -> list[str]:
+    cli = shutil.which("daylily-ec")
+    if cli:
+        return [cli]
 
-    if [[ "${TASK_STATUS}" == "SUCCEEDED" ]]; then
-        echo "Task ${TASK_ID} completed successfully."
-        exit 0
-    elif [[ "${TASK_STATUS}" == "FAILED" || "${TASK_STATUS}" == "CANCELED" ]]; then
-        echo "Task ${TASK_ID} failed or was canceled."
-        exit 1
-    fi
+    repo_root = Path(__file__).resolve().parents[1]
+    if (repo_root / "daylily_ec" / "__main__.py").is_file():
+        os.chdir(repo_root)
+        return [sys.executable, "-m", "daylily_ec"]
 
-    echo "Waiting ${POLL_INTERVAL} seconds before checking again..."
-    sleep "${POLL_INTERVAL}"
-done
+    raise SystemExit("Error: daylily-ec is not available. Run 'source ./activate' first.")
 
-echo "...fin"
+
+def main(argv: list[str] | None = None) -> int:
+    args = _build_parser().parse_args(argv)
+    cmd = [
+        *_resolve_entrypoint(),
+        "export",
+        "--cluster-name",
+        args.cluster_name,
+        "--region",
+        args.region,
+        "--target-uri",
+        args.export_path.strip("/"),
+        "--output-dir",
+        str(Path(args.output_dir).expanduser()),
+    ]
+    profile = args.profile or os.environ.get("AWS_PROFILE")
+    if profile:
+        cmd.extend(["--profile", profile])
+    if args.verbose:
+        cmd.append("--verbose")
+
+    os.execvp(cmd[0], cmd)
+    return 1
+
+
+if __name__ == "__main__":
+    raise SystemExit(main())
