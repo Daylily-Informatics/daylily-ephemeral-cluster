@@ -217,27 +217,27 @@ When modernizing an old Daylily README, preserve these qualities even if command
 
 ## Cost Monitoring & Budget Enforcement
 
-# Installation -- Quickest Start
+## Installation -- Quickest Start
 
-# Installation -- Detailed
+## Installation -- Detailed
 
-## <Create / Validate / Operate>
+### <Create / Validate / Operate>
 
-# Working With <The System>
+## Working With <The System>
 
-# Costs
+## Costs
 
-# Other Monitoring Tools
+## Other Monitoring Tools
 
-# Known Issues
+## Known Issues
 
-# Documentation
+## Documentation
 
-# Historical Material
+## Historical Material
 
-# Contributing
+## Contributing
 
-# Versioning
+## Versioning
 ```
 
 ## README Review Checklist

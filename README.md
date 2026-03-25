@@ -99,7 +99,7 @@ Daylily uses AWS Budgets, cost-allocation tags, pricing helpers, and heartbeat n
 
 ![Tagged cost tracking example](docs/images/assets/day_aws_tagged_costs_by_hour_project.png)
 
-# Installation -- Quickest Start
+## Installation -- Quickest Start
 
 _only useful if you already have AWS account configuration, a target region, and a reference bucket in place_
 
@@ -126,11 +126,11 @@ daylily-ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$D
 
 See [docs/quickest_start.md](docs/quickest_start.md) for the shortest canonical runbook and [docs/operations.md](docs/operations.md) for day-2 operations.
 
-# Installation -- Detailed
+## Installation -- Detailed
 
-## AWS
+### AWS
 
-### Operator Identity
+#### Operator Identity
 
 Create or reuse an AWS operator identity, typically `daylily-service`, and make sure it can:
 
@@ -140,7 +140,7 @@ Create or reuse an AWS operator identity, typically `daylily-service`, and make 
 
 The repo ships the cluster policy template at [`config/aws/daylily-service-cluster-policy.json`](config/aws/daylily-service-cluster-policy.json).
 
-#### Create Service Linked Role `VERY IMPORTANT`
+##### Create Service Linked Role `VERY IMPORTANT`
 
 > If this role is missing, spot capacity can fail in annoying ways even when the head node looks fine.
 
@@ -149,7 +149,7 @@ aws iam list-roles --query "Roles[?RoleName=='AWSServiceRoleForEC2Spot'].RoleNam
 aws iam create-service-linked-role --aws-service-name spot.amazonaws.com
 ```
 
-#### Quotas, Cost Tags, And Other AWS Considerations
+##### Quotas, Cost Tags, And Other AWS Considerations
 
 Daylily preflight checks the common blockers, but you should still be aware of them up front:
 
@@ -161,7 +161,7 @@ Daylily preflight checks the common blockers, but you should still be aware of t
 
 Historically, under-provisioned spot quotas and missing FSx quota were the easiest ways to waste time before the first successful cluster build.
 
-#### AWS CLI Profile
+##### AWS CLI Profile
 
 Minimal profile example:
 
@@ -173,7 +173,7 @@ output = json
 
 > Be explicit with `AWS_PROFILE`; avoid leaning on `default`.
 
-#### SSH Key Pair(s)
+##### SSH Key Pair(s)
 
 - Keep the PEM in `~/.ssh/`
 - use the same region as your target cluster
@@ -185,7 +185,7 @@ chmod 700 ~/.ssh
 chmod 400 ~/.ssh/<your-key>.pem
 ```
 
-## Prerequisites (On Your Local Machine)
+### Prerequisites (On Your Local Machine)
 
 From the repo root:
 
@@ -201,7 +201,7 @@ daylily-ec version
 
 `./bin/init_dayec` creates or updates the `DAY-EC` conda environment and installs this repo into it. `source ./activate` activates `DAY-EC` when present, adds [`bin/`](bin/) to `PATH`, and exposes `daylily-ec` in the current shell.
 
-## Clone Reference Bucket (only needs to be done once per region, or whenever it is missing)
+### Clone Reference Bucket (only needs to be done once per region, or whenever it is missing)
 
 _`daylily-ec preflight` and `daylily-ec create` will fail if the expected reference bucket is not detected in the region you run in._
 
@@ -225,7 +225,7 @@ daylily-omics-references --profile "$AWS_PROFILE" --region "$REGION" \
   verify --bucket "${BUCKET_PREFIX}-daylily-omics-analysis-${REGION}" --exclude-b37
 ```
 
-## Prepare The Cluster Config
+### Prepare The Cluster Config
 
 Configuration for the create flow lives in a user-managed YAML file. Copy the template to a writable location and set `DAY_EX_CFG` for convenience:
 
@@ -256,7 +256,7 @@ Leave any value set to `PROMPTUSER` if you want the CLI to query AWS and prompt 
 
 > `DAY_EX_CFG` is a shell convenience variable. The current Python CLI does **not** consume it implicitly, so always pass `--config "$DAY_EX_CFG"`.
 
-## Generate Analysis Cost Estimates per Availability Zone
+### Generate Analysis Cost Estimates per Availability Zone
 
 If you want a raw pricing snapshot before choosing an AZ:
 
@@ -269,7 +269,7 @@ daylily-ec pricing snapshot \
 
 This is the current supported path for spot-pricing inspection.
 
-## Create An Ephemeral Cluster
+### Create An Ephemeral Cluster
 
 _from your local machine, in the Daylily repo root_
 
@@ -303,7 +303,7 @@ Add `--pass-on-warn` to `preflight` only when you have reviewed the warnings and
 
 If you need to debug a failure, the CloudFormation console still gives the best low-level event trail.
 
-## What Success Looks Like
+### What Success Looks Like
 
 After a successful run:
 
@@ -312,15 +312,15 @@ After a successful run:
 
 ![Remote test success example](docs/images/daylily_remote_test_success.png)
 
-# Costs
+## Costs
 
-## Monitoring, Tags, And Budgets
+### Monitoring, Tags, And Budgets
 
 Daylily-created resources are intended to be tagged well enough for operators to monitor costs, find stale infrastructure, and reason about run economics per cluster or per project.
 
 Budget-aware lifecycle hooks still exist conceptually in the Daylily flow, but treat hard enforcement as something to test in your own account before trusting it.
 
-## Typical Cost Drivers
+### Typical Cost Drivers
 
 These are still the right cost buckets to watch:
 
@@ -332,16 +332,16 @@ These are still the right cost buckets to watch:
 
 > Historically, the most expensive mistake was not running the cluster — it was forgetting what you chose to retain after deleting it.
 
-## Operator Advice
+### Operator Advice
 
 - run `daylily-ec pricing snapshot` before choosing an AZ if price sensitivity matters
 - keep an eye on retained FSx and root volumes
 - export results promptly and delete the cluster promptly
 - do not treat the ephemeral cluster as long-term storage
 
-# Working With The Ephemeral Clusters
+## Working With The Ephemeral Clusters
 
-## Connect To A Cluster
+### Connect To A Cluster
 
 List clusters in a region:
 
@@ -357,7 +357,7 @@ ssh -i ~/.ssh/<your-key>.pem ubuntu@<headnode-ip>
 
 Use `daylily-ec cluster-info` or `pcluster describe-cluster` to find the head-node public IP.
 
-## Validate The Head Node
+### Validate The Head Node
 
 Once connected to the head node:
 
@@ -374,9 +374,9 @@ You want to see the Daylily CLI available, the workflow registry available, and 
 
 ![Example results tree](docs/images/assets/daylily_tree.png)
 
-## Stage Sample Data & Build `config/samples.tsv` and `config/units.tsv`
+### Stage Sample Data & Build `config/samples.tsv` and `config/units.tsv`
 
-### Run Directly On The Head Node
+#### Run Directly On The Head Node
 
 ```bash
 cd ~/projects/daylily-ephemeral-cluster
@@ -388,7 +388,7 @@ cd ~/projects/daylily-ephemeral-cluster
   /fsx/custom_stage_dir
 ```
 
-### Launch Staging From Your Laptop
+#### Launch Staging From Your Laptop
 
 ```bash
 ./bin/daylily-stage-samples-from-local-to-headnode \
@@ -405,7 +405,7 @@ Important details:
 - its default staging base is `/data/staged_sample_data`, which appears on the cluster as `/fsx/data/staged_sample_data/remote_stage_<timestamp>/`
 - local `samples.tsv` and `units.tsv` copies are written into `--config-dir` or next to the source TSV if omitted
 
-## Clone & Launch the Workflow From Your Laptop
+### Clone & Launch the Workflow From Your Laptop
 
 ```bash
 ./bin/daylily-run-omics-analysis-headnode \
@@ -420,7 +420,7 @@ Useful launch flags include `--stage-dir`, `--repository`, `--project`, `--targe
 
 The launcher clones the workflow via `day-clone`, copies staged config files into the repo, and starts the run inside a tmux session on the head node.
 
-## Slurm Monitoring
+### Slurm Monitoring
 
 On the head node:
 
@@ -433,13 +433,13 @@ tmux attach -t <session-name>
 
 Use `watch squeue` or your preferred terminal workflow if you want a live scheduler view.
 
-## Export `fsx` Analysis Results Back To S3
+### Export `fsx` Analysis Results Back To S3
 
 Use the AWS FSx console or CLI to create a data-repository export task for the filesystem associated with the cluster.
 
 > Be sure you export results from `/fsx/analysis_results` before deleting the cluster. FSx is scratch-like high-performance working storage, not your final archive.
 
-## Delete The Cluster
+### Delete The Cluster
 
 When the workload is complete and results have been exported:
 
@@ -449,7 +449,7 @@ pcluster delete-cluster -n "$CLUSTER_NAME" --region "$REGION"
 
 If you retained FSx or root volumes by choice, go confirm their fate explicitly. Those are the resources most likely to keep costing money after you think you are done.
 
-# PCUI (technically optional, but you will be missing out)
+## PCUI (technically optional, but you will be missing out)
 
 PCUI is not required for the supported Daylily operator flow, but it is still useful if you want a browser-driven interface for cluster visibility and interactive shell access.
 
@@ -459,13 +459,13 @@ PCUI is not required for the supported Daylily operator flow, but it is still us
 
 The CLI/SSH path remains the canonical Daylily workflow, but PCUI is still a legitimate companion tool.
 
-# Other Monitoring Tools
+## Other Monitoring Tools
 
-## AWS CloudWatch
+### AWS CloudWatch
 
 CloudWatch remains useful for low-level cluster and node inspection, especially when debugging failures or inspecting logs outside the terminal that launched the cluster.
 
-## Drift And Tagged Resources
+### Drift And Tagged Resources
 
 Useful operator commands:
 
@@ -474,11 +474,11 @@ daylily-ec drift --state-file ~/.config/daylily/state_<cluster>_<timestamp>.json
 daylily-ec cluster-info --region "$REGION" --profile "$AWS_PROFILE"
 ```
 
-## SNS Notifications (cluster heartbeat - experimental)
+### SNS Notifications (cluster heartbeat - experimental)
 
 Heartbeat notifications are intended to keep noisy, pricey stale resources from quietly hanging around forever.
 
-# Documentation
+## Documentation
 
 - [docs/quickest_start.md](docs/quickest_start.md): the shortest canonical install and cluster creation runbook
 - [docs/operations.md](docs/operations.md): validation, staging, launch, monitoring, export, and delete
@@ -487,11 +487,11 @@ Heartbeat notifications are intended to keep noisy, pricey stale resources from 
 - [docs/DAY_EC_ENVIRONMENT.md](docs/DAY_EC_ENVIRONMENT.md): local environment and CLI diagnostics
 - [CONTRIBUTING.md](CONTRIBUTING.md): development and docs contribution guide
 
-# Historical Material
+## Historical Material
 
 Older long-form docs and retired notes live under [`docs/archive/`](docs/archive/). They remain useful for background and screenshots, but the supported workflows are described by this README and the live docs above.
 
-# Known Issues
+## Known Issues
 
 The old README was correct about one thing: known issues belong in operator docs.
 
@@ -499,11 +499,11 @@ The old README was correct about one thing: known issues belong in operator docs
 - low spot or FSx quotas are still among the easiest ways to fail before a first successful build
 - CloudFormation remains the best place to inspect low-level failure events during provisioning
 
-# Contributing
+## Contributing
 
 [Contributing Guidelines](CONTRIBUTING.md)
 
-# Versioning
+## Versioning
 
 Daylily uses tagged releases. For currently available versions, see the [tags on this repository](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/tags).
  
