@@ -43,7 +43,9 @@ This guide captures the style, structure, and operator-documentation patterns us
 - Short explanatory paragraphs followed by concrete commands.
 - Blockquotes for warnings, caveats, and operator advice.
 - Italics for context notes and parenthetical guidance.
-- Horizontal rules (`---`) between major conceptual blocks when the README is long.
+- A required badge row near the top of every top-level `README.md`.
+- Decorative HTML image-divider section breaks for major sections.
+- Horizontal rules (`---`) only for minor section divisions.
 - Screenshots or diagrams where they reduce ambiguity.
 
 ### Daylily-style callouts
@@ -62,6 +64,18 @@ These sections appear often and should be considered the default structure for D
 ### 1. Title + one-paragraph summary
 
 State what the repo does in operational terms.
+
+### 1a. Required badge row
+
+Every top-level `README.md` must include a badge row near the top of the document.
+
+- This is mandatory, not optional.
+- Each repo should use repo-specific badge URLs, labels, and colors that match that repo.
+- For `daylily-ephemeral-cluster`, the canonical badge pattern is:
+
+```markdown
+[![Latest release](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_release_tag&label=latest%20release&cacheSeconds=300&color=teal)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/releases) [![Latest tag](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_tag&label=latest%20tag&color=pink&cacheSeconds=300)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/tags)
+```
 
 ### 2. Highlights
 
@@ -177,8 +191,27 @@ Close by linking the deeper docs, archives, contributing guide, and versioning s
 
 - Use screenshots where they clarify operations, costs, or topology.
 - Use diagrams where they reduce explanation burden.
-- Keep old visual separators and distinctive Daylily flourishes if they still render cleanly.
+- Keep distinctive Daylily flourishes if they still render cleanly.
 - Do not remove visuals just to make the README look shorter.
+
+### Required major section breaks
+
+Major section breaks must use the decorative HTML image-divider pattern rather than plain Markdown alone.
+
+- This is a style requirement for Daylily top-level READMEs.
+- The divider color palette should be unique per repository.
+- In this repo, `ORIG_README.md` is the canonical example for `daylily-ephemeral-cluster`.
+- For `daylily-ephemeral-cluster`, preserve this divider pattern exactly as the canonical example:
+
+```html
+<p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/0000002.png" valign="bottom" ></a></p>
+
+<p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
+```
+
+### Minor section breaks
+
+Minor section divisions may use `---` instead of the decorative image-divider pattern.
 
 ## What To Preserve From Older Daylily READMEs
 
@@ -206,6 +239,8 @@ When modernizing an old Daylily README, preserve these qualities even if command
 # <Repo Name>
 
 <One-paragraph operator summary>
+
+<required badge row>
 
 ## Highlights
 ### Single Command <Action>
@@ -244,11 +279,14 @@ When modernizing an old Daylily README, preserve these qualities even if command
 
 Before calling a Daylily README “done,” check:
 
+- Does it include a required badge row near the top of the top-level `README.md`?
 - Does it contain a real quickstart?
 - Does it include at least one current canonical command?
 - Does it explain the operator lifecycle after provisioning?
 - Does it mention cost traps and deletion safety?
 - Does it surface the most common failure modes?
+- Do major section breaks use the required decorative HTML image-divider pattern?
+- Are plain `---` separators used only for minor section divisions?
 - Does it still sound like Daylily, not a generic AI summary?
 
 If the answer to any of those is “no,” the README probably got flattened too far.
