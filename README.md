@@ -13,7 +13,14 @@
 ### Single Command Cluster Creation
 
 ```bash
-bin/daylily-create-ephemeral-cluster --profile $AWS_PROFILE --region-az <region-az> --config daylily_cluster_config.yaml
+export AWS_PROFILE=daylily-service
+REGION_AZ=us-west-2c
+
+# Validate prerequisites before provisioning
+daylily-ec preflight --region-az $REGION_AZ --profile $AWS_PROFILE
+
+# Create the cluster (prompts for config if DAY_EX_CFG is not set)
+daylily-ec create --region-az $REGION_AZ --profile $AWS_PROFILE
 ```
 
 ### Architecture & Features
@@ -139,7 +146,34 @@ The AWS Parallel Cluster port of `slurm` has been slightly tweaked in the follow
 # Installation -- Quickest Start
 _only useful if you have already installed daylily previously and have all of the AWS account configurations in place_
 
-- [Can be found here](docs/quickest_start.md).
+```bash
+# 1. Activate the conda environment
+conda activate DAY-EC
+
+# 2. (Once per region) Clone the public reference bucket
+export AWS_PROFILE=daylily-service
+REGION=us-west-2
+BUCKET_PREFIX=<yourprefix>
+
+daylily-omics-references --profile $AWS_PROFILE --region $REGION \
+  clone --bucket ${BUCKET_PREFIX}-daylily --use-acceleration --execute
+
+# 3. Validate prerequisites
+REGION_AZ=us-west-2c
+daylily-ec preflight --region-az $REGION_AZ --profile $AWS_PROFILE
+
+# 4. Create the cluster
+daylily-ec create --region-az $REGION_AZ --profile $AWS_PROFILE
+
+# 5. Export results when done
+daylily-ec export --cluster-name <cluster-name> --region $REGION \
+  --target-uri analysis_results --output-dir .
+
+# 6. Delete the cluster
+daylily-ec delete --cluster-name <cluster-name> --region $REGION
+```
+
+> See [docs/quickest_start.md](docs/quickest_start.md) for a deeper walkthrough. See `daylily-ec --help` for all commands.
 
 # Installation -- Detailed
 
@@ -271,7 +305,7 @@ _key pairs are region specific, be sure you create a key pair in the region you 
 
 - Navigate to the `EC2 dashboard`, in the left hand menu under `Network & Security`, click on `Key Pairs`. 
 - CLick `Create Key Pair`.
-- Give it a name, which must include the string `-omics-analysis-<region>`. So, _ie:_ `username-omics-analysis-us-west-2`. 
+- Give it a name which must include `-omics-` (for example: `username-omics-analysis-us-west-2`).
 - Choose `Key pair type` of `ed25519`.
 - Choose `.pem` as the file format.
 - Click `Create key pair`.
@@ -416,7 +450,7 @@ colr  'did it work?' 0,100,255 255,100,0
 # Ephemeral Cluster Creation
 
 ## Clone Reference Bucket (only needs to be done once per region, or anytime it is missing)
-_`daylily-create-ephemeral-cluster` will fail if the expected reference bucket is not detected in the region you run in._
+_`daylily-ec preflight` and `daylily-ec create` will fail if the expected reference bucket is not detected in the region you run in._
 - _DRY RUN_ clone :
 ```bash
 export AWS_PROFILE=<profile>
@@ -453,67 +487,51 @@ daylily-omics-references \
 
 ### Clone `daylily-references-public` to YOURPREFIX-omics-analysis-REGION
 
-_from your local machine, in the daylily git repo root_
+_from your local machine, with the `DAY-EC` conda environment active_
 
-> You may add/remove/update your copy of the refernces bucket as you find necessary.
+> You may add/remove/update your copy of the references bucket as you find necessary.
 
-- `YOURPREFIX` will be used as the bucket name prefix. Please keep it short. The new bucket name will be `YOURPREFIX-omics-analysis-REGION` and created in the region you specify. You may name the buckets in other ways, but this will block you from using the `daylily-create-ephemeral-cluster` script, which is largely why you're here.
-- Cloning it will take 1 to many hours.
-  
-**Use the following script**
-
-_running in a tmux/screen session is advised as the copy may take 1-many hours_
+- `YOURPREFIX` will be used as the bucket name prefix. Keep it short. The new bucket name will be `YOURPREFIX-omics-analysis-REGION`, created in the region you specify.
+- Cloning takes 1 to many hours — run in a `tmux` or `screen` session.
 
 ```bash
 conda activate DAY-EC
-# help
-./bin/create_daylily_omics_analysis_s3.sh -h
-
 export AWS_PROFILE=<your_profile>
 BUCKET_PREFIX=<your_prefix>
 REGION=us-west-2
 
-# dryrun
-./bin/create_daylily_omics_analysis_s3.sh  --disable-warn --region $REGION --profile $AWS_PROFILE --bucket-prefix $BUCKET_PREFIX
-
-# run for real
-./bin/create_daylily_omics_analysis_s3.sh  --disable-warn --region $REGION --profile $AWS_PROFILE --bucket-prefix $BUCKET_PREFIX --disable-dryrun
-
-```
-
-The helper script is a thin wrapper around the
-[`daylily-omics-references`](https://github.com/Daylily-Informatics/daylily-omics-references)
-CLI (version `0.1.0`). Activating the `DAY-EC` conda environment installs the
-dependency automatically. You can also invoke the CLI directly once the
-`DAY-EC` environment is active (the editable install makes it available from
-any working directory):
-
-```bash
+# Dry run (no data copied, shows what would happen)
 daylily-omics-references --profile $AWS_PROFILE --region $REGION \
-  clone --bucket-prefix $BUCKET_PREFIX --version 0.7.131c --execute
+  clone --bucket ${BUCKET_PREFIX}-daylily --use-acceleration
+
+# Live run
+daylily-omics-references --profile $AWS_PROFILE --region $REGION \
+  clone --bucket ${BUCKET_PREFIX}-daylily --use-acceleration --execute
 ```
 
-> You may visit the `S3` console to confirm the bucket is being cloned as expected. The copy (if w/in `us-west-2` should take ~1hr, much longer across AZs.
+> If `--use-acceleration` fails, retry without it (you may need to delete the partially-created bucket first).
+
+> You may visit the S3 console to confirm the bucket is being cloned as expected. A within-`us-west-2` copy takes ~1hr; cross-region takes longer.
 
 ---
 
-## Generate Analysis Cost Estimates per Availability Zone 
+## Generate Analysis Cost Estimates per Availability Zone
 
-_from your local machine, in the daylily git repo root_
+_from your local machine, with the `DAY-EC` conda environment active_
 
-You may choose any AZ to build and run an ephemeral cluster in (assuming resources both exist and can be requisitioned in the AZ). Run the following command to scan the spot markets in the AZ's you are interested in assessing (reference buckets do not need to exist in the regions you scan, but to ultimately run there, a reference bucket is required):
+You may choose any AZ to build and run an ephemeral cluster in (assuming resources both exist and can be requisitioned in the AZ). Run the following command to scan the spot markets in the AZs you are interested in assessing (reference buckets do not need to exist in the regions you scan, but to ultimately run there, a reference bucket is required).
 
-_this command will take ~5min to complete, and much longer if you expand to all possible AZs, run with `--help` for all flags_
+**Primary: `daylily-ec pricing snapshot`** — takes ~5min for the default region set; add `--help` for all flags:
 
 ```bash
-
 conda activate DAY-EC
 export AWS_PROFILE=daylily-service
-REGION=us-west-2          
-OUT_TSV=./init_daylily_cluster.tsv
+REGION=us-west-2
 
-./bin/check_current_spot_market_by_zones.py -o $OUT_TSV --profile $AWS_PROFILE   
+daylily-ec pricing snapshot --region $REGION --profile $AWS_PROFILE
 ```
+
+_The legacy `./bin/check_current_spot_market_by_zones.py` script is still available as a lower-level alternative._
 
   > ![](docs/images/cost_est_table.png)
 
@@ -570,35 +588,32 @@ Select the availability zone by number:
 ---
 
 ## Create An Ephemeral Cluster
-_from your local machine, in the daylily git repo root_
+_from your local machine, with the `DAY-EC` conda environment active_
 
-Once you have selected an AZ && have a reference bucket ready in the region this AZ exists in, you are ready to proceed to creating an ephemeral cluster.
-
-The following script will check a variety of required resources, attempt to create some if missing and then prompt you to select various options which will all be used to create a new parallel cluster yaml config, which in turn is used to create the cluster via `StackFormation`. [The template yaml file can be checked out here](config/day_cluster/prod_cluster.yaml).
+Once you have selected an AZ and have a reference bucket ready in the region, you are ready to create the cluster. The `daylily-ec` CLI checks required resources, auto-creates subnets/policies via CloudFormation if missing, prompts for any unset values, validates the reference bucket via `daylily-omics-references`, and then drives `pcluster` to provision the stack. [The cluster template can be found here](config/day_cluster/prod_cluster.yaml).
 
 ```bash
 export AWS_PROFILE=daylily-service
 REGION_AZ=us-west-2c
-./bin/daylily-create-ephemeral-cluster --region-az $REGION_AZ --profile $AWS_PROFILE
 
-# And to bypass the non-critical warnings (which is fine, not all can be resolved )
-./bin/daylily-create-ephemeral-cluster --region-az $REGION_AZ --profile $AWS_PROFILE --pass-on-warn # If you created an inline policy with a name other than daylily-service-cluster-policy, you will need to acknowledge the warning to proceed (assuming the policy permissions were granted other ways)
+# Step 1: Run preflight checks (IAM, quotas, reference bucket, subnets)
+daylily-ec preflight --region-az $REGION_AZ --profile $AWS_PROFILE
 
+# Step 2: Create the cluster
+daylily-ec create --region-az $REGION_AZ --profile $AWS_PROFILE
+
+# Pass --pass-on-warn to skip non-critical warnings (fine for most setups)
+daylily-ec create --region-az $REGION_AZ --profile $AWS_PROFILE --pass-on-warn
 ```
-
-During the run the script invokes the `daylily-omics-references` CLI to
-validate the selected reference bucket, preventing misconfigured buckets from
-reaching the cluster provisioning phase.
 
 ### Provide defaults with `DAY_EX_CFG`
 
-Configuration for every prompt in `bin/daylily-create-ephemeral-cluster` lives in a user-managed YAML file. Copy the template
-`config/daylily_ephemeral_cluster_template.yaml` to a writable location (for example `config/daylily_ephemeral_cluster.yaml`) and
-set the environment variable `DAY_EX_CFG` to point at it:
+Configuration for every prompt in `daylily-ec create` lives in a user-managed YAML file. Copy the template
+and point `DAY_EX_CFG` at it to skip interactive prompts:
 
 ```bash
-cp config/daylily_ephemeral_cluster_template.yaml config/daylily_ephemeral_cluster.yaml
-export DAY_EX_CFG=$PWD/config/daylily_ephemeral_cluster.yaml
+cp config/daylily_ephemeral_cluster_template.yaml ~/.config/daylily/my_cluster.yaml
+export DAY_EX_CFG=~/.config/daylily/my_cluster.yaml
 ```
 
 - Each key in the template corresponds to information collected by the script. Provide a concrete value to skip the prompt or
@@ -1189,52 +1204,50 @@ ssh i192-dy-gb384-1
 
 ### Export `fsx` Analysis Results Back To S3
 
-#### Facilitated
+> **BE SURE YOU EXPORT BEFORE DELETING** — the FSx filesystem is deleted with the cluster unless explicitly retained.
 
-Run:
+#### Via `daylily-ec export` (recommended)
 
 ```bash
-./bin/daylily-export-fsx-to-s3 <cluster_name> <region> <export_path:analysis_results>
+daylily-ec export \
+  --cluster-name "$CLUSTER_NAME" \
+  --region "$REGION" \
+  --target-uri analysis_results \
+  --output-dir .
 ```
 
-- export_path should be `analysis_results` or a subdirectory of `analysis_results/*` to export successfully. 
-- The script will run, and report status until complete. If interrupted, the export will not be halted. 
-- You can visit the FSX console, and go to the Fsx filesystem details page to monitor the export status in the data repository tab.
+This waits for the FSx data-repository task to finish and writes `fsx_export.yaml` locally. The older `bin/daylily-export-fsx-to-s3` wrapper remains available and calls the same underlying logic.
 
+- `--target-uri` should be `analysis_results` or a subdirectory of `analysis_results/*`. Do **not** export the entire `/fsx` mount — this may try to duplicate reference data.
+- Export can take 10+ min. Monitor progress in the FSx console under **Data Repositories**.
 
 #### Via `FSX` Console
 
-- Go to the 'fsx' AWS console and select the filesystem for your cluster.
-- Under the `Data Repositories` tab, select the `fsx` filesystem and click `Export to S3`. Export can only currently be carried out back to the same s3 which was mounted to the fsx filesystem. 
-- Specify the export path as `analysis_results` (or be more specific to an `analysis_results/subdir`), the path you enter is named relative to the mountpoint of the fsx filesystem on the cluster head and compute nodes, which is `/fsx/`. Start the export. This can take 10+ min.  When complete, confirm the data is now visible in the s3 bucket which was exported to. Once you confirm the export was successful, you can delete the cluster (which will delete the fsx filesystem).
+Go to the FSx console → select your filesystem → **Data Repositories** tab → **Export to S3**. Specify `analysis_results` as the export path (relative to `/fsx/`). Confirm data appears in S3 before deleting the cluster.
 
 #### Delete The Cluster
-Deleting the cluster will delete all resources created for the ephemeral cluster, including the fsx filesystem if not explicitly set to be saved during creation. You must export any analysis results created in `/fsx/analysis_results` from the `fsx` filesystem back to `s3` before deleting the cluster.
 
-> One exception when deleting the ephemeral cluster is the cloudwatch logs created for the cluster will persist after deletion for the number of days specified in the pcluster config. You may delete these manually if you wish to do so via the cloudwatch log group dashboard.
+> CloudWatch logs created for the cluster persist after deletion for the configured retention period. Delete them manually via the CloudWatch log group dashboard if desired.
 
-##### via `bin/daylily-delete-ephemeral-cluster`
-This helper script will guide you through deleting the cluster, and will confirm you have exported data from the fsx filesystem before proceeding.
+**Via `daylily-ec delete` (recommended)**
 
 ```bash
-AWS_PROFILE=<daylily-service-profile>./bin/daylily-delete-ephemeral-cluster # then enter the region and cluster name
+daylily-ec delete --cluster-name "$CLUSTER_NAME" --region "$REGION"
+
+# Preferred if you have the create-time state file:
+daylily-ec delete --state-file ~/.config/daylily/state_<cluster>_<timestamp>.json
 ```
 
-##### via pcluster CLI
-_note: this will not modify/delete the s3 bucket mounted to the fsx filesystem, nor will it delete the policyARN, or private/public subnets used to config the ephemeral cluster._
+The CLI performs the FSx safety confirmation and heartbeat teardown before monitoring cluster deletion to completion. Deletion takes ~10min.
 
-**the headnode `/root` volume and the fsx filesystem will be deleted if not explicitly flagged to be saved -- be sure you have exported Fsx->S3 before deleting the cluster**
+**Via `pcluster` CLI** _(does not touch the S3 bucket, policyARN, or subnets)_
 
 ```bash
 pcluster delete-cluster-instances -n <cluster-name> --region us-west-2
 pcluster delete-cluster -n <cluster-name> --region us-west-2
 ```
 
-- You can monitor the status of the cluster deletion using `pcluster list-clusters --region us-west-2` and/or `pcluster describe-cluster -n <cluster-name> --region us-west-2`. Deletion can take ~10min depending on the complexity of resources created and fsx filesystem size.
-
-##### via PCUI
-- Navigate to the `Clusters` tab of the PCUI console.
-- Select the cluster you wish to delete, and click the `Delete` button.
+**Via PCUI** — navigate to the **Clusters** tab, select the cluster, click **Delete**.
 
 
 
@@ -1250,7 +1263,7 @@ pcluster delete-cluster -n <cluster-name> --region us-west-2
 
 `bin/daylily-ssh-into-headnode`
 
-_alias it for your shell:_ `alias goday="source ~/git_repos/daylily-ephemeral-cluster/bin/daylily-ssh-into-headnode"`
+_alias it for your shell:_ `alias goday="source ~/projects/daylily/daylily-ephemeral-cluster/bin/daylily-ssh-into-headnode"`
 
 
 ---
@@ -1455,6 +1468,18 @@ _example from the daylily-omics-analysis repo_
 <p valign="middle"><a href=http://www.workwithcolor.com/color-converter-01.htm?cp=ff8c00><img src="docs/images/000000.png" valign="bottom" ></a></p>
 
 
+# Documentation
+
+| Doc | Description |
+|-----|-------------|
+| [docs/quickest_start.md](docs/quickest_start.md) | Shortest supported path for returning operators |
+| [docs/operations.md](docs/operations.md) | Full operator lifecycle: connect, stage, run, monitor, export, delete |
+| [docs/overview.md](docs/overview.md) | Architecture overview |
+| [docs/DAY_EC_ENVIRONMENT.md](docs/DAY_EC_ENVIRONMENT.md) | DAY-EC conda environment details |
+| [docs/pip_install.md](docs/pip_install.md) | Installing `daylily-ec` via pip |
+| [CONTRIBUTING.md](CONTRIBUTING.md) | Contribution guidelines |
+
+
 # Contributing
 
 [Contributing Guidelines](CONTRIBUTING.md)
@@ -1485,38 +1510,39 @@ All tools involved in `daylily-ephemeral-cluster` can be managed in such a way t
 
 
 
- # Super Helpful Stuff
+# Super Helpful Stuff
 
 ## Cluster Quick Build Approaches
-Assuming you have created a cluster with ``bin/daylily-create-ephemeral-cluster --profile $AWS_PROFILE --region-az <region-az>`, it will leave 3 artifact files in `~/.config/daylily/`:
+After `daylily-ec create` completes, three artifact files are written to `~/.config/daylily/`:
 
-- `<cluster_name>_cli_cfg_<datetime>.yaml` # used by daylily-create-ephemeral-cluster script
-- `<cluster_name>_template.yaml`
-- `<cluster_name>_cluster.yaml` # used by pcluster and PCUI
+- `state_<cluster_name>_<datetime>.json` — full state snapshot; pass to `--state-file` for delete/drift
+- `<cluster_name>_template.yaml` — resolved cluster template
+- `<cluster_name>_cluster.yaml` — the `pcluster`-compatible config; also usable in PCUI
 
-### (highly recommended) via `daylily-create-ephemeral-cluster` script
-Using `<cluster_name>_cluster.yaml` 
+### (recommended) Re-run via `daylily-ec create` with a saved config
 
-> You should edit the cluster name in the config file to be unique before re-using it.
-
-```bash
-bin/daylily-create-ephemeral-cluster --profile $AWS_PROFILE --region-az <region-az> --config ~/.config/daylily/<cluster_name>_cli_cfg_<datetime>.yaml
-```
-
-### (less reccomended) via `pcluster` directly with `<cluster_name>_cluster.yaml` 
-
-> !!! This will not create budgets or sns monitoring....
+> Edit the cluster name in your config file to be unique before re-using it.
 
 ```bash
-pcuster create-cluster -n <cluster_name> --region <region> --cluster-template ~/.config/daylily/<cluster_name>_cluster.yaml
+export DAY_EX_CFG=~/.config/daylily/my_cluster.yaml
+daylily-ec create --region-az <region-az> --profile $AWS_PROFILE
 ```
 
-### (less recommended) via `PCUI`
+### (alternate) via `pcluster` directly
+
+> This will **not** create budgets or SNS monitoring.
+
+```bash
+pcluster create-cluster -n <cluster_name> --region <region> \
+  --cluster-configuration ~/.config/daylily/<cluster_name>_cluster.yaml
+```
+
+### (alternate) via `PCUI`
 #### From a running cluster
-- Navigate to the `PCUI` console, select the region you wish to operate in. Choose 'create new cluster' and choose from a running or stopped cluster.
+- Navigate to the PCUI console, select the region. Choose **Create new cluster** → from a running or stopped cluster.
 
-#### From a cluster config file `<cluster_name>_cluster.yaml` 
-- Navigate to the `PCUI` console, select the region you wish to operate in. Choose 'create new cluster' and choose 'from cluster config file', and upload the `<cluster_name>_cluster.yaml` file.
+#### From a cluster config file
+- Navigate to the PCUI console, select the region. Choose **Create new cluster** → **From cluster config file** → upload `<cluster_name>_cluster.yaml`.
  
 
 ## Cluster Tagged Resources Report
@@ -1595,7 +1621,7 @@ usage: generate-report-of-aws-tagged-resources.py [-h] [--tag-key TAG_KEY] [--si
 ![](docs/images/cost_pcui.png)
 
 ### SNS Notifications (cluster heartbeat - experimental)
-You can monitor the health of your cluster via SNS notifications.  These are created automatically when you create a cluster via the `daylily-create-ephemeral-cluster` script.  You can subscribe to the topic via email, sms, or other methods.  You will receive notifications while pricey tagged resources remain active (most importantly, FSx filesystems and EBS volumes which can be set not to delete upon cluster termination, and which can become expensive to sit idle).
+You can monitor the health of your cluster via SNS notifications.  These are created automatically when you create a cluster via `daylily-ec create`.  You can subscribe to the topic via email, SMS, or other methods.  You will receive notifications while pricey tagged resources remain active (most importantly, FSx filesystems and EBS volumes which can be set not to delete upon cluster termination, and which can become expensive sitting idle).
 
 ---
 
