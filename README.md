@@ -420,6 +420,8 @@ Install with:
 ```bash
 ./bin/install_miniconda
 ```
+- The installer auto-detects Apple Silicon, Intel macOS, Linux x86_64, and Linux ARM hosts.
+- It prefers `curl` and falls back to `wget`, so fresh Macs do not need Homebrew `wget` just to bootstrap conda.
 - open a new terminal/shell, and conda should be available: `conda -v`.
 
 ### Install DAY-EC Environment
@@ -642,9 +644,11 @@ export DAY_EX_CFG=~/.config/daylily/my_cluster.yaml
 
 - (_one unique name per region_)enter a name to asisgn your new ephemeral cluster (ie: `<myorg>-omics-analysis`)
 
-- (_one per-aws account_) You will be prompted to enter info to create a `daylily-global` budget (allowed user-strings: `daylily-service`, alert email: `your@email`, budget amount: `100`)
+- (_one per-aws account_) before dry-run begins, you will be prompted to enter info for the `daylily-global` budget inputs (allowed user-strings: `daylily-service`, alert email: `your@email`, budget amount: `100`)
 
-- (_one per unique cluster name_) You will be prompted to enter info to create a `daylily-ephemeral-cluster` budget (allowed user-strings: `daylily-service`, alert email: `your@email`, budget amount: `100`)
+- (_one per unique cluster name_) before dry-run begins, you will be prompted to enter info for the per-cluster budget inputs (allowed user-strings: `daylily-service`, alert email: `your@email`, budget amount: `100`)
+
+- (_optional, before dry-run begins_) you will be prompted for heartbeat email, schedule, and an optional preconfigured EventBridge Scheduler role ARN
 
 - Enforce budgets? (default is no, _yes is not fully tested_)
 
@@ -670,25 +674,37 @@ The script will take all of the info entered and proceed to:
 
 The terminal will block, a status message will slowly scroll by, and after ~20m, if successful, the headnode config will begin (you may be prompted to select the cluster to config if there are multiple in the AZ.  The headnode confiig will setup a few final bits, and then run a few tests (you should see a few magenta success bars during this process).
 
+The actual AWS budget creation and heartbeat wiring happen only after the cluster create and headnode bootstrap steps succeed, but the values for those operations are collected up front before dry-run so the create path can run through without stopping for more prompts.
+
 
 If all is well, you will see the following message:
 
 ```text
-You can now SSH into the head node with the following command:
-ssh -i /Users/daylily/.ssh/omics-analysis-b.pem ubuntu@52.24.138.65
-Once logged in, as the 'ubuntu' user, run the following commands:
-  cd ~/projects/daylily-ephemeral-cluster
-  source ./activate
-  eval "$(daylily-ec headnode init --emit-shell --non-interactive)"
-  daylily-ec headnode init --project PROJECT
-  daylily-ec info
-  daylily-ec pricing snapshot --help
- 
-"Would you like to start building various caches needed to run jobs? [y/n]"
+── STATE SNAPSHOT ──
+  ✓ State written: ~/.config/daylily/state_<cluster>_<timestamp>.json
 
+╭────────── CLUSTER CREATION COMPLETE ──────────╮
+│ Cluster:  <cluster-name>                      │
+│ Region:   us-west-2 (us-west-2d)              │
+│ Elapsed:  23m 14s                             │
+╰───────────────────────────────────────────────╯
+ssh -i ~/.ssh/<keypair>.pem ubuntu@<headnode-ip>
+...fin!
 ```
 
-- (optional), you may select `y` or `n` to begin building the cached environments on the cluster. The caches will be automatically created if missing whenever a job is submitted. They should only need to be created _once_ per ephemeral cluster (the compute nodes all share the caches w/the headnode). The build can take 15-30m the first time.
+- The second-to-last stdout line is the exact command to use for the first headnode login.
+- If the public IP is not available yet, the final connection hint will instead be `pcluster describe-cluster -n <cluster-name> --region <region>`.
+- On macOS, if the `say` command exists, the local shell will speak `Onward to daylily!` after `...fin!`.
+- Once logged in as `ubuntu`, the managed headnode login hook should already have activated `DAY-EC`. If you need to repair that shell manually, run:
+
+```bash
+cd ~/projects/daylily-ephemeral-cluster
+source ./activate
+eval "$(daylily-ec headnode init --emit-shell --non-interactive)"
+daylily-ec headnode init --project PROJECT
+daylily-ec info
+daylily-ec pricing snapshot --help
+```
 
 - You are ready to roll.
 

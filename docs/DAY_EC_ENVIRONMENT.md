@@ -64,6 +64,8 @@ Avoid hard-coding expected test counts into docs; use `pytest --collect-only` wh
 source ./activate
 ```
 
+`install_miniconda` auto-detects Apple Silicon, Intel macOS, Linux x86_64, and Linux ARM hosts. It prefers `curl` and falls back to `wget`.
+
 ### AWS Credentials Are Missing
 
 ```bash

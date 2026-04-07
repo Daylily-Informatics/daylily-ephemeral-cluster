@@ -26,6 +26,7 @@ import logging
 import os as _os
 import shlex
 import subprocess
+from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
@@ -354,6 +355,125 @@ def _require_values(values: Dict[str, str]) -> Optional[str]:
     return "Missing required values: " + ", ".join(missing)
 
 
+@dataclass(frozen=True)
+class _PostCreateInputs:
+    budget_email: str
+    budget_amount: str
+    global_budget_amount: str
+    allowed_budget_users: str
+    heartbeat_email: str
+    heartbeat_schedule: str
+    heartbeat_scheduler_role_arn: str
+
+
+def _resolve_post_create_inputs(
+    cfg: Any,
+    *,
+    non_interactive: bool,
+    budget_email_default: str,
+    allowed_budget_users_default: str,
+) -> _PostCreateInputs:
+    """Resolve budget and heartbeat inputs once before the create phase."""
+    budget_email = _resolve_config_value(
+        cfg,
+        "budget_email",
+        "Budget email",
+        non_interactive=non_interactive,
+        default_fallback=budget_email_default,
+    ) or budget_email_default
+    budget_amount = _resolve_config_value(
+        cfg,
+        "budget_amount",
+        "Budget amount",
+        non_interactive=non_interactive,
+        default_fallback="200",
+    ) or "200"
+    global_budget_amount = _resolve_config_value(
+        cfg,
+        "global_budget_amount",
+        "Global budget amount",
+        non_interactive=non_interactive,
+        default_fallback="1000",
+    ) or "1000"
+    allowed_budget_users = _resolve_config_value(
+        cfg,
+        "allowed_budget_users",
+        "Allowed budget users",
+        non_interactive=non_interactive,
+        default_fallback=allowed_budget_users_default,
+    ) or allowed_budget_users_default
+    heartbeat_email = _resolve_config_value(
+        cfg,
+        "heartbeat_email",
+        "Heartbeat email",
+        non_interactive=non_interactive,
+        default_fallback=budget_email,
+        required=False,
+        allow_empty=True,
+    ) or budget_email
+    heartbeat_schedule = _resolve_config_value(
+        cfg,
+        "heartbeat_schedule",
+        "Heartbeat schedule",
+        non_interactive=non_interactive,
+        default_fallback="rate(6 hours)",
+        required=False,
+    ) or "rate(6 hours)"
+    heartbeat_scheduler_role_arn = _resolve_config_value(
+        cfg,
+        "heartbeat_scheduler_role_arn",
+        "Heartbeat scheduler role ARN",
+        non_interactive=non_interactive,
+        required=False,
+        allow_empty=True,
+    ) or ""
+
+    return _PostCreateInputs(
+        budget_email=budget_email,
+        budget_amount=budget_amount,
+        global_budget_amount=global_budget_amount,
+        allowed_budget_users=allowed_budget_users,
+        heartbeat_email=heartbeat_email,
+        heartbeat_schedule=heartbeat_schedule,
+        heartbeat_scheduler_role_arn=heartbeat_scheduler_role_arn,
+    )
+
+
+def _build_connection_command(
+    cluster_name: str,
+    *,
+    head_node_ip: str | None,
+    keypair: str,
+    region: str,
+) -> str:
+    """Return the final connection/help command shown after create completes."""
+    if head_node_ip:
+        return f"ssh -i ~/.ssh/{keypair}.pem ubuntu@{head_node_ip}"
+    return f"pcluster describe-cluster -n {cluster_name} --region {region}"
+
+
+def _maybe_say_onward() -> None:
+    """Play the optional completion cue when macOS `say` is available."""
+    try:
+        detect_result = subprocess.run(
+            ["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            timeout=15,
+        )
+        if detect_result.returncode == 0:
+            subprocess.run(
+                ["say", "Onward to daylily!"],
+                check=False,
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                timeout=15,
+            )
+    except Exception:
+        logger.debug("Optional speech cue failed.", exc_info=True)
+
+
 # ---------------------------------------------------------------------------
 # Full create workflow (CP-017)
 # ---------------------------------------------------------------------------
@@ -613,7 +733,16 @@ def run_create_workflow(
     ui.detail("Policy", policy_arn)
     ui.detail("Keypair", keypair)
 
-    # -- 4. RENDER YAML (Phase 2a) -------------------------------------------
+    # -- 4. PRE-CREATE: Prompt-only operational inputs -----------------------
+    ui.phase("PRE-CREATE: BUDGETS & HEARTBEAT")
+    post_create_inputs = _resolve_post_create_inputs(
+        cfg,
+        non_interactive=non_interactive,
+        budget_email_default=_os.environ.get("DAY_CONTACT_EMAIL", ""),
+        allowed_budget_users_default=aws_ctx.iam_username,
+    )
+
+    # -- 5. RENDER YAML (Phase 2a) -------------------------------------------
     ui.phase("RENDER CLUSTER YAML")
 
     bucket_url = f"s3://{bucket_name}" if bucket_name else ""
@@ -706,31 +835,11 @@ def run_create_workflow(
             non_interactive=non_interactive,
             default_fallback="m5.xlarge",
         ) or "m5.xlarge",
-        "REGSUB_HEARTBEAT_EMAIL": _resolve_config_value(
-            cfg,
-            "heartbeat_email",
-            "Heartbeat email",
-            non_interactive=non_interactive,
-            default_fallback=_os.environ.get("DAY_CONTACT_EMAIL", ""),
-            required=False,
-            allow_empty=True,
-        ) or _os.environ.get("DAY_CONTACT_EMAIL", ""),
-        "REGSUB_HEARTBEAT_SCHEDULE": _resolve_config_value(
-            cfg,
-            "heartbeat_schedule",
-            "Heartbeat schedule",
-            non_interactive=non_interactive,
-            default_fallback="rate(6 hours)",
-            required=False,
-        ) or "rate(6 hours)",
-        "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": _resolve_config_value(
-            cfg,
-            "heartbeat_scheduler_role_arn",
-            "Heartbeat scheduler role ARN",
-            non_interactive=non_interactive,
-            required=False,
-            allow_empty=True,
-        ) or "",
+        "REGSUB_HEARTBEAT_EMAIL": post_create_inputs.heartbeat_email,
+        "REGSUB_HEARTBEAT_SCHEDULE": post_create_inputs.heartbeat_schedule,
+        "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": (
+            post_create_inputs.heartbeat_scheduler_role_arn
+        ),
     }
 
     ui.step("Rendering YAML template ...")
@@ -763,7 +872,7 @@ def run_create_workflow(
     logger.info("Cluster YAML ready: %s", cluster_yaml_path)
     ui.ok(f"Cluster YAML ready: {cluster_yaml_path}")
 
-    # -- 5. DRY-RUN (Phase 2b) ------------------------------------------------
+    # -- 6. DRY-RUN (Phase 2b) ------------------------------------------------
     ui.phase("DRY-RUN VALIDATION")
     ui.step("Running pcluster dry-run ...")
     dry_result = dry_run_create(
@@ -781,7 +890,7 @@ def run_create_workflow(
         ui.info("DAY_BREAK=1 — stopping after dry-run.")
         return EXIT_SUCCESS
 
-    # -- 6. CREATE (Phase 2c) -------------------------------------------------
+    # -- 7. CREATE (Phase 2c) -------------------------------------------------
     ui.phase("CREATE CLUSTER")
     ui.step(f"Submitting cluster creation: {cluster_name} ...")
     create_result = pcluster_create(
@@ -798,7 +907,7 @@ def run_create_workflow(
         return EXIT_AWS_FAILURE
     ui.ok("Cluster creation submitted")
 
-    # -- 7. MONITOR (Phase 2d) ------------------------------------------------
+    # -- 8. MONITOR (Phase 2d) ------------------------------------------------
     ui.phase("MONITOR")
     ui.step("Waiting for CREATE_COMPLETE ...")
     monitor_result = wait_for_creation(
@@ -820,15 +929,7 @@ def run_create_workflow(
     )
     ui.ok(f"Cluster created in {ui.elapsed_str(monitor_result.elapsed_seconds)}")
 
-    # -- SSH connection banner ------------------------------------------------
-    _print_ssh_banner(
-        cluster_name,
-        head_node_ip=monitor_result.head_node_ip,
-        keypair=keypair,
-        region_az=region_az,
-    )
-
-    # -- 7b. HEADNODE CONFIGURATION -------------------------------------------
+    # -- 8b. HEADNODE CONFIGURATION -------------------------------------------
     ui.phase("HEADNODE CONFIGURATION")
     if monitor_result.head_node_ip:
         ui.step("Configuring headnode ...")
@@ -850,32 +951,8 @@ def run_create_workflow(
         logger.warning("Head node IP unavailable — skipping headnode configuration.")
         ui.warn("Head node IP unavailable — skipping headnode config")
 
-    # -- 8. POST-CREATE: Budgets (Phase 3a) -----------------------------------
+    # -- 9. POST-CREATE: Budgets (Phase 3a) -----------------------------------
     ui.phase("POST-CREATE: BUDGETS")
-    budget_email = _resolve_config_value(
-        cfg,
-        "budget_email",
-        "Budget email",
-        non_interactive=non_interactive,
-        default_fallback=_os.environ.get("DAY_CONTACT_EMAIL", ""),
-    ) or _os.environ.get("DAY_CONTACT_EMAIL", "")
-    budget_amount = _resolve_config_value(
-        cfg, "budget_amount", "Budget amount", non_interactive=non_interactive, default_fallback="200",
-    ) or "200"
-    global_budget_amount = _resolve_config_value(
-        cfg,
-        "global_budget_amount",
-        "Global budget amount",
-        non_interactive=non_interactive,
-        default_fallback="1000",
-    ) or "1000"
-    allowed_users = _resolve_config_value(
-        cfg,
-        "allowed_budget_users",
-        "Allowed budget users",
-        non_interactive=non_interactive,
-        default_fallback=aws_ctx.iam_username,
-    ) or aws_ctx.iam_username
 
     budgets_client = aws_ctx.client("budgets")
     s3_client = aws_ctx.client("s3")
@@ -886,23 +963,23 @@ def run_create_workflow(
     try:
         global_budget = ensure_global_budget(
             budgets_client, s3_client, aws_ctx.account_id,
-            amount=global_budget_amount,
+            amount=post_create_inputs.global_budget_amount,
             cluster_name=cluster_name,
-            email=budget_email,
+            email=post_create_inputs.budget_email,
             region=aws_ctx.region,
             region_az=region_az,
             bucket_name=bucket_name,
-            allowed_users=allowed_users,
+            allowed_users=post_create_inputs.allowed_budget_users,
         )
         cluster_budget = ensure_cluster_budget(
             budgets_client, s3_client, aws_ctx.account_id,
-            amount=budget_amount,
+            amount=post_create_inputs.budget_amount,
             cluster_name=cluster_name,
-            email=budget_email,
+            email=post_create_inputs.budget_email,
             region=aws_ctx.region,
             region_az=region_az,
             bucket_name=bucket_name,
-            allowed_users=allowed_users,
+            allowed_users=post_create_inputs.allowed_budget_users,
         )
         logger.info("Budgets: global=%s cluster=%s", global_budget, cluster_budget)
         ui.ok(f"Budgets: global={global_budget}, cluster={cluster_budget}")
@@ -910,42 +987,17 @@ def run_create_workflow(
         logger.warning("Budget setup failed (non-fatal): %s", exc)
         ui.warn(f"Budget setup failed (non-fatal): {exc}")
 
-    # -- 9. POST-CREATE: Heartbeat (Phase 3b) ---------------------------------
+    # -- 10. POST-CREATE: Heartbeat (Phase 3b) --------------------------------
     ui.phase("POST-CREATE: HEARTBEAT")
-    heartbeat_email = _resolve_config_value(
-        cfg,
-        "heartbeat_email",
-        "Heartbeat email",
-        non_interactive=non_interactive,
-        default_fallback=budget_email,
-        required=False,
-        allow_empty=True,
-    ) or budget_email
-    schedule_expr = _resolve_config_value(
-        cfg,
-        "heartbeat_schedule",
-        "Heartbeat schedule",
-        non_interactive=non_interactive,
-        default_fallback="rate(6 hours)",
-        required=False,
-    ) or "rate(6 hours)"
-
     scheduler_role_arn, role_source = resolve_scheduler_role(
         iam_client,
-        preconfigured=_resolve_config_value(
-            cfg,
-            "heartbeat_scheduler_role_arn",
-            "Heartbeat scheduler role ARN",
-            non_interactive=non_interactive,
-            required=False,
-            allow_empty=True,
-        ),
+        preconfigured=post_create_inputs.heartbeat_scheduler_role_arn,
         region=aws_ctx.region,
         profile=aws_ctx.profile,
     )
 
     hb_result = _noop_heartbeat_result()
-    if scheduler_role_arn and heartbeat_email:
+    if scheduler_role_arn and post_create_inputs.heartbeat_email:
         ui.step("Configuring heartbeat ...")
         sns_client = aws_ctx.client("sns")
         scheduler_client = aws_ctx.client("scheduler")
@@ -954,8 +1006,8 @@ def run_create_workflow(
             cluster_name=cluster_name,
             region=aws_ctx.region,
             account_id=aws_ctx.account_id,
-            email=heartbeat_email,
-            schedule_expression=schedule_expr,
+            email=post_create_inputs.heartbeat_email,
+            schedule_expression=post_create_inputs.heartbeat_schedule,
             role_arn=scheduler_role_arn,
         )
         if hb_result.success:
@@ -967,11 +1019,12 @@ def run_create_workflow(
     else:
         logger.info(
             "Heartbeat skipped: role=%s email=%s",
-            scheduler_role_arn or "(none)", heartbeat_email or "(none)",
+            scheduler_role_arn or "(none)",
+            post_create_inputs.heartbeat_email or "(none)",
         )
         ui.info(f"Heartbeat skipped: role={scheduler_role_arn or '(none)'}")
 
-    # -- 10. STATE SNAPSHOT ---------------------------------------------------
+    # -- 11. STATE SNAPSHOT ---------------------------------------------------
     ui.phase("STATE SNAPSHOT")
     ui.step("Writing state record ...")
     # Write next-run template
@@ -982,13 +1035,15 @@ def run_create_workflow(
         "public_subnet_id": public_subnet,
         "private_subnet_id": private_subnet,
         "iam_policy_arn": policy_arn,
-        "budget_email": budget_email,
-        "budget_amount": budget_amount,
-        "global_budget_amount": global_budget_amount,
-        "allowed_budget_users": allowed_users,
-        "heartbeat_email": heartbeat_email,
-        "heartbeat_schedule": schedule_expr,
-        "heartbeat_scheduler_role_arn": scheduler_role_arn or "",
+        "budget_email": post_create_inputs.budget_email,
+        "budget_amount": post_create_inputs.budget_amount,
+        "global_budget_amount": post_create_inputs.global_budget_amount,
+        "allowed_budget_users": post_create_inputs.allowed_budget_users,
+        "heartbeat_email": post_create_inputs.heartbeat_email,
+        "heartbeat_schedule": post_create_inputs.heartbeat_schedule,
+        "heartbeat_scheduler_role_arn": (
+            post_create_inputs.heartbeat_scheduler_role_arn
+        ),
     }
     next_run_path = CONFIG_DIR / f"{cluster_name}_next_run_{ts}.yaml"
     write_next_run_template(cfg, final_values, next_run_path)
@@ -1010,8 +1065,8 @@ def run_create_workflow(
         heartbeat_topic_arn=hb_result.topic_arn if hb_result.success else "",
         heartbeat_schedule_name=hb_result.schedule_name if hb_result.success else "",
         heartbeat_role_arn=hb_result.role_arn if hb_result.success else "",
-        heartbeat_email=heartbeat_email,
-        heartbeat_schedule_expression=schedule_expr,
+        heartbeat_email=post_create_inputs.heartbeat_email,
+        heartbeat_schedule_expression=post_create_inputs.heartbeat_schedule,
         init_template_path=init_template_path,
         cluster_yaml_path=cluster_yaml_path,
         resolved_cli_config_path=str(next_run_path),
@@ -1029,41 +1084,17 @@ def run_create_workflow(
         f"[bold]Region:[/]   {aws_ctx.region} ({region_az})\n"
         f"[bold]Elapsed:[/]  {ui.elapsed_str(elapsed_total)}",
     )
+    typer.echo(
+        _build_connection_command(
+            cluster_name,
+            head_node_ip=monitor_result.head_node_ip,
+            keypair=keypair,
+            region=aws_ctx.region,
+        )
+    )
+    typer.echo("...fin!")
+    _maybe_say_onward()
     return EXIT_SUCCESS
-
-
-# ---------------------------------------------------------------------------
-# SSH banner helper
-# ---------------------------------------------------------------------------
-
-
-def _print_ssh_banner(
-    cluster_name: str,
-    *,
-    head_node_ip: str | None,
-    keypair: str,
-    region_az: str,
-) -> None:
-    """Print a prominent SSH connection message after successful creation."""
-    if head_node_ip:
-        body = (
-            f"[bold]Cluster:[/]   {cluster_name}\n"
-            f"[bold]Region/AZ:[/] {region_az}\n"
-            f"[bold]Head Node:[/] {head_node_ip}\n"
-            f"[bold]SSH Key:[/]   {keypair}\n\n"
-            f"[bold cyan]Connect:[/]\n"
-            f"  [dim]ssh -i ~/.ssh/{keypair}.pem ubuntu@{head_node_ip}[/]"
-        )
-        ui.success_panel("SSH CONNECTION", body)
-    else:
-        body = (
-            f"[bold]Cluster:[/]   {cluster_name}\n"
-            f"[bold]Region/AZ:[/] {region_az}\n\n"
-            f"[yellow]Head node IP not yet available.[/]\n"
-            f"Run: [dim]pcluster describe-cluster -n {cluster_name}"
-            f" --region {region_az[:-1]}[/]"
-        )
-        ui.success_panel("SSH CONNECTION", body)
 
 
 # ---------------------------------------------------------------------------
