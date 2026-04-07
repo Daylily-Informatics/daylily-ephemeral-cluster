@@ -12,6 +12,11 @@
 
 ### Single Command Cluster Creation
 
+  > `bash bin/quick_start_all_prereq_done_prior.bash`
+  >
+  > _note: You must have all AWS and system wide prereqs complete, then it uses the current Python control plane and current packaged scripts._
+
+
 ```bash
 export AWS_PROFILE=daylily-service
 REGION_AZ=us-west-2c
