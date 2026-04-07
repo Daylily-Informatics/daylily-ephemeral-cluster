@@ -1,6 +1,10 @@
 # Quickest Start
 
-This is the shortest supported operator path from a repo checkout to a usable Daylily cluster. It uses the current Python control plane and current packaged scripts. For post-provisioning workflows, see [operations.md](operations.md). For architecture, benchmarks, and public-facing context, see [overview.md](overview.md).
+This
+
+  > `bash bin/quick_start_all_prereq_done_prior.bash`
+
+is the shortest supported operator path from a repo checkout to a usable Daylily cluster. You must have all AWS and system wide prereqs complete, then it uses the current Python control plane and current packaged scripts. For post-provisioning workflows, see [operations.md](operations.md). For architecture, benchmarks, and public-facing context, see [overview.md](overview.md).
 
 ## 1. AWS Operator Prerequisites
 
