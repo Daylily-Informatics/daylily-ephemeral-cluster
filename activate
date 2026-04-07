@@ -115,10 +115,25 @@ __daylily_activate_dayec_exists() {
   conda env list 2>/dev/null | awk '{print $1}' | grep -qx 'DAY-EC'
 }
 
+__daylily_activate_cli_path() {
+  if [ -n "${BASH_VERSION:-}" ]; then
+    type -P daylily-ec 2>/dev/null || true
+    return 0
+  fi
+
+  if [ -n "${ZSH_VERSION:-}" ]; then
+    whence -p daylily-ec 2>/dev/null || true
+    return 0
+  fi
+
+  command -v daylily-ec 2>/dev/null || true
+}
+
 __daylily_activate_repo_root="$(
   cd "$(dirname "$(__daylily_activate_script_path)")" && pwd
 )"
 export DAYLILY_EC_REPO_ROOT="${__daylily_activate_repo_root}"
+export DAYLILY_EC_ACTIVE="1"
 
 __daylily_activate_prepend_path "${DAYLILY_EC_REPO_ROOT}/bin"
 export PATH
@@ -127,32 +142,21 @@ if __daylily_activate_load_conda && __daylily_activate_dayec_exists; then
   conda activate DAY-EC >/dev/null 2>&1 || true
 fi
 
-__daylily_activate_cli_path="$(command -v daylily-ec 2>/dev/null || true)"
-
 daylily-ec() {
-  if [ -n "${__daylily_activate_cli_path}" ] && [ -x "${__daylily_activate_cli_path}" ]; then
-    "${__daylily_activate_cli_path}" "$@"
+  local cli_path
+  cli_path="$(__daylily_activate_cli_path)"
+  if [ -n "${cli_path}" ] && [ -x "${cli_path}" ]; then
+    "${cli_path}" "$@"
     return $?
   fi
 
   if __daylily_activate_load_conda && __daylily_activate_dayec_exists; then
-    conda run -n DAY-EC python -m daylily_ec "$@"
+    conda run -n DAY-EC daylily-ec "$@"
     return $?
   fi
 
-  if command -v python >/dev/null 2>&1 && (
-    cd "${DAYLILY_EC_REPO_ROOT}" &&
-    python -m daylily_ec version >/dev/null 2>&1
-  ); then
-    (
-      cd "${DAYLILY_EC_REPO_ROOT}" &&
-      python -m daylily_ec "$@"
-    )
-    return $?
-  fi
-
-  echo "Error: daylily-ec dependencies are not available." >&2
-  echo "Run ./bin/init_dayec to create the DAY-EC environment first." >&2
+  echo "Error: daylily-ec is not available on PATH." >&2
+  echo "Install the published package into DAY-EC, or run ./bin/init_dayec first." >&2
   return 1
 }
 

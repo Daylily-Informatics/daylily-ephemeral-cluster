@@ -43,6 +43,8 @@ def _make_cp(stdout: str = "", stderr: str = "", rc: int = 0) -> CompletedProces
 def _side_effect_for_happy(*_args, **kwargs):
     """Route subprocess.run calls to list or describe based on argv."""
     cmd = kwargs.get("args") or _args[0]
+    if isinstance(cmd, (list, tuple)) and "-c" in cmd:
+        return _make_cp()
     if "list-clusters" in cmd:
         return _make_cp(stdout=LIST_CLUSTERS_JSON)
     if "describe-cluster" in cmd:
@@ -53,6 +55,11 @@ def _side_effect_for_happy(*_args, **kwargs):
     raise ValueError(f"unexpected cmd: {cmd}")
 
 
+def _activate_dayec_runtime(monkeypatch):
+    monkeypatch.setenv("CONDA_PREFIX", "/tmp/dayec")
+    monkeypatch.setenv("CONDA_DEFAULT_ENV", "DAY-EC")
+
+
 # ---------------------------------------------------------------------------
 # Tests
 # ---------------------------------------------------------------------------
@@ -60,6 +67,7 @@ def _side_effect_for_happy(*_args, **kwargs):
 
 class TestClusterInfoTable:
     def test_table_output(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
         with patch("subprocess.run", side_effect=_side_effect_for_happy):
             result = runner.invoke(app, ["cluster-info", "--region", "us-west-2"])
@@ -70,9 +78,10 @@ class TestClusterInfoTable:
         assert "1.2.3.4" in result.stdout
 
     def test_json_output(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
         with patch("subprocess.run", side_effect=_side_effect_for_happy):
-            result = runner.invoke(app, ["cluster-info", "--region", "us-west-2", "--json"])
+            result = runner.invoke(app, ["--json", "cluster-info", "--region", "us-west-2"])
         assert result.exit_code == 0
         data = json.loads(result.stdout)
         assert data["region"] == "us-west-2"
@@ -83,11 +92,13 @@ class TestClusterInfoTable:
 
 class TestClusterInfoEdgeCases:
     def test_no_profile(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
         monkeypatch.delenv("AWS_PROFILE", raising=False)
         result = runner.invoke(app, ["cluster-info", "--region", "us-west-2"])
         assert result.exit_code == 1
 
-    def test_profile_from_flag(self):
+    def test_profile_from_flag(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
         with patch("subprocess.run", side_effect=_side_effect_for_happy):
             result = runner.invoke(
                 app, ["cluster-info", "--region", "us-west-2", "--profile", "my-prof"]
@@ -96,12 +107,20 @@ class TestClusterInfoEdgeCases:
         assert "alpha" in result.stdout
 
     def test_pcluster_not_found(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
-        with patch("subprocess.run", side_effect=FileNotFoundError("pcluster")):
+        def side_effect(*args, **kwargs):
+            cmd = kwargs.get("args") or args[0]
+            if isinstance(cmd, (list, tuple)) and "-c" in cmd:
+                return _make_cp()
+            raise FileNotFoundError("pcluster")
+
+        with patch("subprocess.run", side_effect=side_effect):
             result = runner.invoke(app, ["cluster-info", "--region", "us-west-2"])
         assert result.exit_code == 1
 
     def test_no_clusters(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
         empty = _make_cp(stdout=json.dumps({"clusters": []}))
         with patch("subprocess.run", return_value=empty):
@@ -110,33 +129,44 @@ class TestClusterInfoEdgeCases:
         assert "No clusters" in result.stdout
 
     def test_list_clusters_failure(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
         fail = _make_cp(rc=1, stderr="access denied")
-        with patch("subprocess.run", return_value=fail):
+
+        def side_effect(*args, **kwargs):
+            cmd = kwargs.get("args") or args[0]
+            if isinstance(cmd, (list, tuple)) and "-c" in cmd:
+                return _make_cp()
+            return fail
+
+        with patch("subprocess.run", side_effect=side_effect):
             result = runner.invoke(app, ["cluster-info", "--region", "us-west-2"])
         assert result.exit_code == 1
 
     def test_describe_failure_still_shows_rows(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
         list_ok = _make_cp(stdout=json.dumps({"clusters": [{"clusterName": "c1"}]}))
         desc_fail = _make_cp(rc=1, stderr="timeout")
 
         def side_effect(*args, **kwargs):
             cmd = kwargs.get("args") or args[0]
+            if isinstance(cmd, (list, tuple)) and "-c" in cmd:
+                return _make_cp()
             if "list-clusters" in cmd:
                 return list_ok
             return desc_fail
 
         with patch("subprocess.run", side_effect=side_effect):
-            result = runner.invoke(app, ["cluster-info", "--region", "us-west-2", "--json"])
+            result = runner.invoke(app, ["--json", "cluster-info", "--region", "us-west-2"])
         assert result.exit_code == 0
         data = json.loads(result.stdout)
         assert data["clusters"][0]["status"] == "ERROR"
 
     def test_bad_json_from_list(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
         bad = _make_cp(stdout="not-json{{")
         with patch("subprocess.run", return_value=bad):
             result = runner.invoke(app, ["cluster-info", "--region", "us-west-2"])
         assert result.exit_code == 1
-

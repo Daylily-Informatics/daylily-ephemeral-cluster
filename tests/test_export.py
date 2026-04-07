@@ -15,6 +15,11 @@ from daylily_ec.workflow.export_data import ExportOptions, _normalise_target, ru
 runner = CliRunner()
 
 
+def _activate_dayec_runtime(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CONDA_PREFIX", "/tmp/dayec")
+    monkeypatch.setenv("CONDA_DEFAULT_ENV", "DAY-EC")
+
+
 def _filesystem(export_path: str = "s3://bucket/exports") -> dict[str, object]:
     return {
         "FileSystemId": "fs-123",
@@ -94,7 +99,8 @@ class TestExportWorkflow:
 
 
 class TestExportCli:
-    def test_cli_export_passes_options(self, tmp_path):
+    def test_cli_export_passes_options(self, tmp_path, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
         with (
             patch("daylily_ec.workflow.export_data.configure_logging") as mock_logging,
             patch(

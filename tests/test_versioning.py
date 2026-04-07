@@ -1,9 +1,12 @@
 from __future__ import annotations
 
+from importlib.metadata import version as dist_version
+import json
+
 from typer.testing import CliRunner
 
 from daylily_ec import versioning
-from daylily_ec.cli import app
+from daylily_ec.cli import app, spec
 from daylily_ec.resources import ensure_extracted
 
 runner = CliRunner()
@@ -25,27 +28,34 @@ def test_get_version_falls_back_to_installed_metadata(monkeypatch):
     assert versioning.get_version() == "2.3.4"
 
 
-def test_cli_version_uses_shared_version_resolver(monkeypatch):
-    versioning.get_version.cache_clear()
-    monkeypatch.setattr(versioning, "get_version", lambda: "3.4.5")
-
-    result = runner.invoke(app, ["version"])
+def test_cli_version_uses_installed_dist_metadata():
+    result = runner.invoke(app, ["--json", "version"])
 
     assert result.exit_code == 0
-    assert "3.4.5" in result.stdout
+    payload = json.loads(result.stdout)
+    assert payload["version"] == dist_version("daylily-ephemeral-cluster")
+    assert payload["app"] == "Daylily Ephemeral Cluster"
 
 
-def test_cli_info_uses_shared_version_resolver(monkeypatch):
-    versioning.get_version.cache_clear()
-    monkeypatch.setattr(versioning, "get_version", lambda: "4.5.6")
+def test_cli_info_uses_installed_dist_metadata(monkeypatch, tmp_path):
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "config"))
+    monkeypatch.setenv("XDG_DATA_HOME", str(tmp_path / "data"))
+    monkeypatch.setenv("XDG_STATE_HOME", str(tmp_path / "state"))
+    monkeypatch.setenv("XDG_CACHE_HOME", str(tmp_path / "cache"))
 
-    result = runner.invoke(app, ["info"])
+    from cli_core_yo.app import create_app
+
+    fresh_app = create_app(spec)
+    result = runner.invoke(fresh_app, ["--json", "info"])
 
     assert result.exit_code == 0
-    assert "4.5.6" in result.stdout
+    payload = json.loads(result.stdout)
+    assert payload["Version"] == dist_version("daylily-ephemeral-cluster")
+    assert payload["Config Dir"] == str((tmp_path / "config" / "daylily").resolve())
+    assert "CLI Core" in payload
 
 
-def test_resources_dir_uses_shared_version_resolver(tmp_path, monkeypatch):
+def test_resources_dir_uses_repo_version_resolver(tmp_path, monkeypatch):
     versioning.get_version.cache_clear()
     monkeypatch.setattr(versioning, "get_version", lambda: "5.6.7")
     monkeypatch.delenv("DAYLILY_EC_RESOURCES_DIR", raising=False)

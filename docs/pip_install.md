@@ -26,6 +26,11 @@ daylily-ec info
 daylily-ec resources-dir
 ```
 
+If you use the checkout `activate` wrapper, it now expects the published
+`daylily-ec` command to be available on `PATH` or inside the active `DAY-EC`
+conda environment. It no longer falls back to `python -m daylily_ec` from the
+repository checkout.
+
 ## Packaged Resources
 
 The wheel includes packaged repo assets such as `config/`, `etc/`, and selected `bin/` helpers. They are extracted at runtime under:

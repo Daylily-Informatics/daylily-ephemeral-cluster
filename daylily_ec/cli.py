@@ -1,35 +1,48 @@
-"""CLI entry point for daylily-ec, built on cli-core-yo.
-
-Provides ``create``, ``preflight``, ``drift``, ``delete``, and ``export`` commands for managing
-ephemeral AWS ParallelCluster environments.
-
-Usage::
-
-    python -m daylily_ec --help
-    python -m daylily_ec create --region-az us-west-2b --profile my-profile
-    python -m daylily_ec preflight --region-az us-west-2b
-    python -m daylily_ec drift --state-file ~/.config/daylily/state_prod_*.json
-    python -m daylily_ec export --cluster-name prod --region us-west-2 --target-uri analysis_results --output-dir .
-    python -m daylily_ec delete --cluster-name prod --region us-west-2
-"""
+"""CLI entry point for daylily-ec built on cli-core-yo v2."""
 
 from __future__ import annotations
 
+import json
 import logging
 import os
+import subprocess
 import sys
-import json
 from pathlib import Path
 from typing import List, Optional
 
 import typer
 from cli_core_yo import output
-from cli_core_yo.app import create_app
-from cli_core_yo.runtime import _reset, initialize
-from cli_core_yo.spec import CliSpec, XdgSpec
-from daylily_ec import versioning
+from cli_core_yo.app import create_app, run
+from cli_core_yo.runtime import get_context
+from cli_core_yo.spec import (
+    BackendDetectSpec,
+    BackendValidationSpec,
+    CliSpec,
+    EnvSpec,
+    ExecutionBackendSpec,
+    PluginSpec,
+    PolicySpec,
+    PrereqSpec,
+    RuntimeSpec,
+    XdgSpec,
+)
 
-# ── App specification ────────────────────────────────────────────────────────
+from daylily_ec._registry_v2 import (
+    DAYLILY_EC_RUNTIME_TAG,
+    EXEMPT,
+    REQUIRED_JSON,
+    REQUIRED_LONG_RUNNING,
+    REQUIRED_MUTATING_INTERACTIVE,
+    REQUIRED_MUTATING_LONG_RUNNING,
+    register_group_commands,
+    register_root_command,
+)
+from daylily_ec.resources import ensure_extracted
+
+
+def _dayec_info_hook() -> list[tuple[str, str]]:
+    return [("Project Root", str(Path(__file__).resolve().parents[1]))]
+
 
 spec = CliSpec(
     prog_name="daylily-ec",
@@ -39,83 +52,72 @@ spec = CliSpec(
         "Create and manage ephemeral AWS ParallelCluster environments for bioinformatics workloads."
     ),
     xdg=XdgSpec(app_dir_name="daylily"),
+    policy=PolicySpec(),
+    env=EnvSpec(
+        active_env_var="DAYLILY_EC_ACTIVE",
+        project_root_env_var="DAYLILY_EC_REPO_ROOT",
+        activate_script_name="source ./activate",
+        deactivate_script_name="conda deactivate",
+        preferred_backend="day-ec-conda",
+    ),
+    runtime=RuntimeSpec(
+        supported_backends=[
+            ExecutionBackendSpec(
+                name="day-ec-conda",
+                kind="conda",
+                entry_guidance="source ./activate",
+                detect=BackendDetectSpec(env_vars=("CONDA_PREFIX",)),
+                validation=BackendValidationSpec(env_vars=("CONDA_PREFIX",)),
+            )
+        ],
+        default_backend="day-ec-conda",
+        guard_mode="enforced",
+        prereqs=[
+            PrereqSpec(
+                key="day-ec-conda-active-env",
+                kind="env_var",
+                value="CONDA_DEFAULT_ENV",
+                help="Activate DAY-EC with source ./activate.",
+                applies_to_backends={"day-ec-conda"},
+                tags={DAYLILY_EC_RUNTIME_TAG},
+                success_message="DAY-EC conda environment is active.",
+                failure_message="daylily-ec requires an active DAY-EC conda environment. Run `source ./activate`.",
+            ),
+            PrereqSpec(
+                key="day-ec-conda-env-name",
+                kind="command_probe",
+                value=(
+                    sys.executable,
+                    "-c",
+                    "import os, sys; sys.exit(0 if os.environ.get('CONDA_DEFAULT_ENV', '').strip() == 'DAY-EC' else 1)",
+                ),
+                help="Use the DAY-EC conda environment from source ./activate.",
+                applies_to_backends={"day-ec-conda"},
+                tags={DAYLILY_EC_RUNTIME_TAG},
+                success_message="DAY-EC conda environment name is valid.",
+                failure_message="daylily-ec requires the DAY-EC conda environment. Run `source ./activate`.",
+            ),
+        ],
+    ),
+    plugins=PluginSpec(explicit=["daylily_ec.cli.register"]),
+    info_hooks=[_dayec_info_hook],
 )
 
-app = create_app(spec)
-pricing_app = typer.Typer(help="Spot pricing inspection helpers.")
-app.add_typer(pricing_app, name="pricing")
-app.registered_commands[:] = [
-    cmd for cmd in app.registered_commands if cmd.name not in {"version", "info"}
-]
 
-
-def _installed_dist_version(dist_name: str) -> str:
+def _json_mode() -> bool:
     try:
-        from importlib.metadata import version
-
-        return version(dist_name)
+        return bool(get_context().json_mode)
     except Exception:
-        return "unknown"
+        return False
 
 
-@app.command("version")
-def version_command(
-    json: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
-) -> None:
-    """Show version."""
-    version = versioning.get_version()
-    if json:
-        output.emit_json({"app": spec.app_display_name, "version": version})
-    else:
-        output.print_text(f"{spec.app_display_name} [cyan]{version}[/cyan]")
-
-
-@app.command("info")
-def info_command(
-    json: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
-) -> None:
-    """Show system info."""
-    xdg_paths = app._cli_core_yo_xdg_paths  # type: ignore[attr-defined]
-    rows: list[tuple[str, str]] = [
-        ("Version", versioning.get_version()),
-        ("Python", sys.version.split()[0]),
-        ("Config Dir", str(xdg_paths.config)),
-        ("Data Dir", str(xdg_paths.data)),
-        ("State Dir", str(xdg_paths.state)),
-        ("Cache Dir", str(xdg_paths.cache)),
-        ("CLI Core", _installed_dist_version("cli-core-yo")),
-    ]
-    for hook in spec.info_hooks:
-        rows.extend(hook())
-
-    if json:
-        output.emit_json({key: value for key, value in rows})
+def _emit_payload(payload: dict[str, object], text: str) -> None:
+    if _json_mode():
+        output.emit_json(payload)
         return
-
-    output.heading(f"{spec.app_display_name} Info")
-    max_key = max(len(key) for key, _ in rows)
-    for key, value in rows:
-        output.print_text(f"  {key:<{max_key}}  {value}")
+    output.print_text(text)
 
 
-# ── Root callback (global options) ───────────────────────────────────────────
-
-
-@app.callback()
-def _root_callback(
-    json_flag: bool = typer.Option(False, "--json", "-j", help="Output as JSON."),
-) -> None:
-    """Daylily Ephemeral Cluster control plane."""
-    _reset()
-    debug = os.environ.get("CLI_CORE_YO_DEBUG") == "1"
-    xdg_paths = app._cli_core_yo_xdg_paths  # type: ignore[attr-defined]
-    initialize(spec, xdg_paths, json_mode=json_flag, debug=debug)
-
-
-# ── create command ───────────────────────────────────────────────────────────
-
-
-@app.command()
 def create(
     region_az: str = typer.Option(
         ...,
@@ -158,23 +160,15 @@ def create(
         help="Disable interactive prompts; use config defaults or fail.",
     ),
 ) -> None:
-    """Create an ephemeral AWS ParallelCluster environment.
+    """Create an ephemeral AWS ParallelCluster environment."""
 
-    This is the primary workflow command, replacing
-    bin/daylily-create-ephemeral-cluster.
-
-    Environment variables:
-      DAY_CONTACT_EMAIL          Used for notification/budget email fields.
-      DAY_DISABLE_AUTO_SELECT    Set to 1 to always prompt for config values.
-      DAY_BREAK                  Set to 1 to exit after dry-run validation.
-      AWS_PROFILE                Default AWS profile when --profile is omitted.
-    """
     from daylily_ec.workflow.create_cluster import run_create_workflow
 
+    _ = repo_override
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    output.action(f"Creating cluster in {region_az} ...")
+    output.action("Creating cluster in %s ..." % region_az)
     rc = run_create_workflow(
         region_az,
         profile=profile,
@@ -186,10 +180,6 @@ def create(
     raise typer.Exit(rc)
 
 
-# ── preflight command ────────────────────────────────────────────────────────
-
-
-@app.command()
 def preflight(
     region_az: str = typer.Option(
         ...,
@@ -222,16 +212,14 @@ def preflight(
         help="Disable interactive prompts.",
     ),
 ) -> None:
-    """Run preflight validation only (no cluster creation).
+    """Run preflight validation only (no cluster creation)."""
 
-    Exits 0 on success, 1 on validation failure.
-    """
     from daylily_ec.workflow.create_cluster import run_preflight_only
 
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    output.action(f"Running preflight for {region_az} ...")
+    output.action("Running preflight for %s ..." % region_az)
     rc = run_preflight_only(
         region_az,
         profile=profile,
@@ -243,10 +231,6 @@ def preflight(
     raise typer.Exit(rc)
 
 
-# ── drift command ────────────────────────────────────────────────────────────
-
-
-@app.command()
 def drift(
     state_file: str = typer.Option(
         ...,
@@ -264,11 +248,7 @@ def drift(
         help="Enable debug output.",
     ),
 ) -> None:
-    """Check for drift against a previous run's state.
-
-    Exit codes: 0 = no drift, 3 = drift detected, 2 = error.
-    """
-    import json
+    """Check for drift against a previous run's state."""
 
     from daylily_ec.aws.context import AWSContext
     from daylily_ec.state.drift import run_drift_check
@@ -282,21 +262,19 @@ def drift(
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
-    # Load state
-    p = Path(state_file)
-    if not p.is_file():
-        output.error(f"State file not found: {state_file}")
+    state_path = Path(state_file)
+    if not state_path.is_file():
+        output.error("State file not found: %s" % state_file)
         raise typer.Exit(EXIT_AWS_FAILURE)
 
-    state = StateRecord.model_validate_json(p.read_text(encoding="utf-8"))
-    output.action(f"Checking drift for cluster '{state.cluster_name}' ...")
+    state = StateRecord.model_validate_json(state_path.read_text(encoding="utf-8"))
+    output.action("Checking drift for cluster '%s' ..." % state.cluster_name)
 
-    # Build AWS context
-    region_az = state.region_az or f"{state.region}a"
+    region_az = state.region_az or "%sa" % state.region
     try:
         aws_ctx = AWSContext.build(region_az, profile=profile)
     except RuntimeError as exc:
-        output.error(f"AWS context failed: {exc}")
+        output.error("AWS context failed: %s" % exc)
         raise typer.Exit(EXIT_AWS_FAILURE) from exc
 
     report = run_drift_check(
@@ -308,8 +286,11 @@ def drift(
         account_id=aws_ctx.account_id,
     )
 
-    # Print report
-    output.detail(json.dumps(report.__dict__, indent=2, default=str))
+    payload = json.loads(json.dumps(report.__dict__, default=str))
+    if _json_mode():
+        output.emit_json(payload)
+    else:
+        output.detail(json.dumps(payload, indent=2, default=str))
 
     if report.has_drift:
         output.warn("Drift detected.")
@@ -319,10 +300,6 @@ def drift(
     raise typer.Exit(EXIT_SUCCESS)
 
 
-# ── cluster-info command ─────────────────────────────────────────────────────
-
-
-@app.command("cluster-info")
 def cluster_info(
     region: str = typer.Option(
         ...,
@@ -334,32 +311,19 @@ def cluster_info(
         "--profile",
         help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
     ),
-    json_out: bool = typer.Option(
-        False,
-        "--json",
-        "-j",
-        help="Output as JSON instead of a table.",
-    ),
 ) -> None:
-    """List ParallelCluster clusters and their status.
-
-    Queries ``pcluster list-clusters`` and ``pcluster describe-cluster``
-    for each cluster in the given region, then prints a summary table.
-
-    Requires ``pcluster`` on PATH and valid AWS credentials.
-    """
-    import subprocess as _sp
+    """List ParallelCluster clusters and their status."""
 
     resolved_profile = profile or os.environ.get("AWS_PROFILE", "")
     if not resolved_profile:
         output.error("AWS_PROFILE is not set. Use --profile or export AWS_PROFILE.")
         raise typer.Exit(1)
 
-    env = {**os.environ, "AWS_PROFILE": resolved_profile}
+    env = dict(os.environ)
+    env["AWS_PROFILE"] = resolved_profile
 
-    # --- list clusters -------------------------------------------------------
     try:
-        proc = _sp.run(
+        proc = subprocess.run(
             ["pcluster", "list-clusters", "--region", region],
             capture_output=True,
             text=True,
@@ -370,26 +334,24 @@ def cluster_info(
         raise typer.Exit(1)
 
     if proc.returncode != 0:
-        output.error(f"pcluster list-clusters failed: {proc.stderr.strip()}")
+        output.error("pcluster list-clusters failed: %s" % proc.stderr.strip())
         raise typer.Exit(1)
 
     try:
         clusters_json = json.loads(proc.stdout) if proc.stdout.strip() else {}
     except json.JSONDecodeError:
-        output.error(f"Failed to parse list-clusters output: {proc.stdout[:200]}")
+        output.error("Failed to parse list-clusters output: %s" % proc.stdout[:200])
         raise typer.Exit(1)
 
-    cluster_names = [c["clusterName"] for c in clusters_json.get("clusters", [])]
-
+    cluster_names = [item["clusterName"] for item in clusters_json.get("clusters", [])]
     if not cluster_names:
-        output.print_text(f"No clusters found in {region}.")
+        _emit_payload({"region": region, "clusters": []}, "No clusters found in %s." % region)
         raise typer.Exit(0)
 
-    # --- describe each cluster -----------------------------------------------
     rows: list[dict[str, str]] = []
     for name in cluster_names:
         try:
-            desc_proc = _sp.run(
+            desc_proc = subprocess.run(
                 ["pcluster", "describe-cluster", "--region", region, "-n", name],
                 capture_output=True,
                 text=True,
@@ -416,24 +378,20 @@ def cluster_info(
             }
         )
 
-    # --- output --------------------------------------------------------------
-    if json_out:
-        output.emit_json({"region": region, "clusters": rows})
+    payload = {"region": region, "clusters": rows}
+    if _json_mode():
+        output.emit_json(payload)
         return
 
-    output.heading(f"Clusters in {region}")
-    header = f"{'CLUSTER_NAME':<30} {'STATUS':<20} {'PUBLIC_IP':<15}"
-    sep = f"{'─' * 30} {'─' * 20} {'─' * 15}"
+    output.heading("Clusters in %s" % region)
+    header = "%-30s %-20s %-15s" % ("CLUSTER_NAME", "STATUS", "PUBLIC_IP")
+    sep = "%s %s %s" % ("\u2500" * 30, "\u2500" * 20, "\u2500" * 15)
     output.print_text(header)
     output.print_text(sep)
     for row in rows:
-        output.print_text(f"{row['name']:<30} {row['status']:<20} {row['ip']:<15}")
+        output.print_text("%-30s %-20s %-15s" % (row["name"], row["status"], row["ip"]))
 
 
-# ── export command ───────────────────────────────────────────────────────────
-
-
-@app.command()
 def export(
     cluster_name: str = typer.Option(
         ...,
@@ -468,6 +426,7 @@ def export(
     ),
 ) -> None:
     """Export FSx results back to the backing S3 repository."""
+
     from daylily_ec.workflow.export_data import (
         ExportOptions,
         configure_logging,
@@ -487,10 +446,6 @@ def export(
     raise typer.Exit(rc)
 
 
-# ── delete command ───────────────────────────────────────────────────────────
-
-
-@app.command()
 def delete(
     cluster_name: Optional[str] = typer.Option(
         None,
@@ -519,6 +474,7 @@ def delete(
     ),
 ) -> None:
     """Delete a cluster and monitor teardown to completion."""
+
     from daylily_ec.workflow.delete_cluster import DeleteOptions, run_delete_workflow
 
     rc = run_delete_workflow(
@@ -533,21 +489,15 @@ def delete(
     raise typer.Exit(rc)
 
 
-# ── resources-dir command ────────────────────────────────────────────────────
-
-
-@app.command("resources-dir")
 def resources_dir() -> None:
-    """Print the extracted resource directory used by Daylily.
+    """Print the extracted resource directory used by Daylily."""
+    path = str(ensure_extracted())
+    if _json_mode():
+        output.emit_json({"resources_dir": path})
+        return
+    output.print_text(path)
 
-    Intended for use by legacy shell scripts installed from ``bin/``.
-    """
-    from daylily_ec.resources import ensure_extracted
 
-    typer.echo(str(ensure_extracted()))
-
-
-@pricing_app.command("snapshot")
 def pricing_snapshot(
     region: Optional[List[str]] = typer.Option(
         None,
@@ -571,28 +521,80 @@ def pricing_snapshot(
     ),
 ) -> None:
     """Emit a raw JSON pricing snapshot for the requested regions and partitions."""
+
     from daylily_ec.aws.pricing_snapshots import collect_pricing_snapshot
 
-    snapshot = collect_pricing_snapshot(
+    payload = collect_pricing_snapshot(
         regions=region,
         partitions=partition,
         cluster_config_path=config,
         profile=profile,
+    ).to_dict()
+
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+
+
+def register(registry, cli_spec) -> None:
+    _ = cli_spec
+    register_root_command(
+        registry,
+        "create",
+        create,
+        REQUIRED_MUTATING_LONG_RUNNING,
     )
-    typer.echo(json.dumps(snapshot.to_dict(), indent=2, sort_keys=False))
+    register_root_command(
+        registry,
+        "preflight",
+        preflight,
+        REQUIRED_LONG_RUNNING,
+    )
+    register_root_command(
+        registry,
+        "drift",
+        drift,
+        REQUIRED_JSON,
+    )
+    register_root_command(
+        registry,
+        "cluster-info",
+        cluster_info,
+        REQUIRED_JSON,
+    )
+    register_root_command(
+        registry,
+        "export",
+        export,
+        REQUIRED_MUTATING_LONG_RUNNING,
+    )
+    register_root_command(
+        registry,
+        "delete",
+        delete,
+        REQUIRED_MUTATING_INTERACTIVE,
+    )
+    register_root_command(
+        registry,
+        "resources-dir",
+        resources_dir,
+        EXEMPT,
+    )
+    register_group_commands(
+        registry,
+        "pricing",
+        "Spot pricing inspection helpers.",
+        [("snapshot", pricing_snapshot, REQUIRED_JSON)],
+    )
 
 
-# ── Entry point ──────────────────────────────────────────────────────────────
+app = create_app(spec)
 
 
-def main() -> int:
-    """Run the CLI and return an exit code."""
-    try:
-        app()
-        return 0
-    except SystemExit as exc:
-        return exc.code if isinstance(exc.code, int) else 0
+def main() -> None:
+    raise SystemExit(run(spec))
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    main()
