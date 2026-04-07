@@ -41,7 +41,7 @@ done
 export AWS_PROFILE REGION REGION_AZ CLUSTER_NAME S3_BUCKET_NAME SSH_KEY_NAME DAY_CONTACT_EMAIL
 export PEM_PATH="$HOME/.ssh/${SSH_KEY_NAME}.pem"
 
-git clone -b main https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git
+git clone --branch 0.7.620 --depth 1 https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git
 cd daylily-ephemeral-cluster
 source ./activate
 
