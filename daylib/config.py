@@ -24,8 +24,6 @@ class Settings(BaseSettings):
     """
 
     model_config = SettingsConfigDict(
-        env_file=".env",
-        env_file_encoding="utf-8",
         case_sensitive=False,
         extra="ignore",
     )
@@ -280,4 +278,3 @@ def get_settings_for_testing(**overrides) -> Settings:
     This bypasses the cache, allowing tests to use custom configuration.
     """
     return Settings(**overrides)
-
