@@ -13,10 +13,24 @@ Tests cover:
 from __future__ import annotations
 
 import subprocess
+from pathlib import Path
+from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import daylily_ec.aws.cloudformation as cloudformation
+import daylily_ec.aws.context as aws_context
+import daylily_ec.aws.ec2 as aws_ec2
+import daylily_ec.aws.heartbeat as aws_heartbeat
+import daylily_ec.aws.iam as aws_iam
+import daylily_ec.aws.spot_pricing as spot_pricing
+import daylily_ec.config.triplets as triplets
+import daylily_ec.pcluster.monitor as pcluster_monitor
+import daylily_ec.pcluster.runner as pcluster_runner
+import daylily_ec.render.renderer as renderer
+import daylily_ec.workflow.create_cluster as create_cluster_module
 from daylily_ec.config.models import ConfigFile
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
+from daylily_ec.state import store as state_store
 from daylily_ec.workflow.create_cluster import (
     EXIT_AWS_FAILURE,
     EXIT_DRIFT,
@@ -282,6 +296,93 @@ class TestRunCreateWorkflow:
         rc = run_create_workflow("us-west-2b", profile="test", non_interactive=True)
         assert rc == EXIT_AWS_FAILURE
 
+    def test_collects_budget_and_heartbeat_inputs_before_dry_run(
+        self, tmp_path, monkeypatch
+    ):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=True,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["prompt_labels"] == [
+            "Budget email",
+            "Budget amount",
+            "Global budget amount",
+            "Allowed budget users",
+            "Heartbeat email",
+            "Heartbeat schedule",
+            "Heartbeat scheduler role ARN (leave blank to skip)",
+        ]
+
+        dry_run_phase_index = records["events"].index(("phase", "DRY-RUN VALIDATION"))
+        create_phase_index = records["events"].index(("phase", "CREATE CLUSTER"))
+        resolve_role_index = records["events"].index(("resolve_scheduler_role", None))
+        prompt_indices = [
+            idx for idx, event in enumerate(records["events"]) if event[0] == "prompt"
+        ]
+
+        assert prompt_indices
+        assert max(prompt_indices) < dry_run_phase_index
+        assert create_phase_index < resolve_role_index
+        assert records["global_budget_kwargs"]["email"] == "johnm@lsmc.com"
+        assert records["global_budget_kwargs"]["amount"] == "200"
+        assert records["global_budget_kwargs"]["allowed_users"] == "root"
+        assert records["cluster_budget_kwargs"]["email"] == "johnm@lsmc.com"
+        assert records["heartbeat_kwargs"]["email"] == "johnm@lsmc.com"
+        assert (
+            records["heartbeat_kwargs"]["schedule_expression"] == "rate(60 minutes)"
+        )
+        assert records["next_run_values"]["budget_email"] == "johnm@lsmc.com"
+        assert records["next_run_values"]["heartbeat_email"] == "johnm@lsmc.com"
+        assert records["next_run_values"]["heartbeat_schedule"] == "rate(60 minutes)"
+        assert records["next_run_values"]["heartbeat_scheduler_role_arn"] == ""
+        assert records["resolve_scheduler_role_kwargs"]["preconfigured"] == ""
+
+    def test_prints_ssh_command_then_fin_and_runs_say_when_available(
+        self, tmp_path, monkeypatch
+    ):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=True,
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["echoes"][-2:] == [
+            "ssh -i ~/.ssh/daykey.pem ubuntu@54.1.2.3",
+            "...fin!",
+        ]
+        assert records["subprocess_calls"] == [
+            ["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"],
+            ["say", "Onward to daylily!"],
+        ]
+
+    def test_prints_describe_cluster_fallback_when_headnode_ip_is_missing(
+        self, tmp_path, monkeypatch
+    ):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip=None,
+            say_available=False,
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["echoes"][-2:] == [
+            "pcluster describe-cluster -n majors-cluster --region us-west-2",
+            "...fin!",
+        ]
+        assert records["subprocess_calls"] == [
+            ["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"]
+        ]
+
 
 
 # ── _ssh_cmd helper ──────────────────────────────────────────────────
@@ -506,3 +607,286 @@ class TestConfigureHeadnodeExport:
         import daylily_ec.workflow as wf
 
         assert hasattr(wf, "configure_headnode")
+
+
+def _build_workflow_config(template_path: Path) -> ConfigFile:
+    return ConfigFile.model_validate(
+        {
+            "ephemeral_cluster": {
+                "config": {
+                    "cluster_name": ["USESETVALUE", "", "majors-cluster"],
+                    "max_count_8I": ["USESETVALUE", "", "1"],
+                    "max_count_128I": ["USESETVALUE", "", "1"],
+                    "max_count_192I": ["USESETVALUE", "", "1"],
+                    "cluster_template_yaml": ["USESETVALUE", "", str(template_path)],
+                    "fsx_fs_size": ["USESETVALUE", "", "2400"],
+                    "enable_detailed_monitoring": ["USESETVALUE", "", "false"],
+                    "delete_local_root": ["USESETVALUE", "", "false"],
+                    "auto_delete_fsx": ["USESETVALUE", "", "Delete"],
+                    "enforce_budget": ["USESETVALUE", "", "true"],
+                    "spot_instance_allocation_strategy": [
+                        "USESETVALUE",
+                        "",
+                        "capacity-optimized",
+                    ],
+                    "headnode_instance_type": ["USESETVALUE", "", "m5.xlarge"],
+                    "budget_email": ["PROMPTUSER", "johnm@lsmc.com", ""],
+                    "budget_amount": ["PROMPTUSER", "200", ""],
+                    "global_budget_amount": ["PROMPTUSER", "200", ""],
+                    "allowed_budget_users": ["PROMPTUSER", "root", ""],
+                    "heartbeat_email": ["PROMPTUSER", "johnm@lsmc.com", ""],
+                    "heartbeat_schedule": ["PROMPTUSER", "rate(60 minutes)", ""],
+                    "heartbeat_scheduler_role_arn": ["PROMPTUSER", "", ""],
+                },
+                "template_defaults": {},
+            }
+        }
+    )
+
+
+def _run_stubbed_create_workflow(
+    tmp_path: Path,
+    monkeypatch,
+    *,
+    interactive: bool,
+    head_node_ip: str | None,
+    say_available: bool,
+) -> dict[str, object]:
+    template_path = tmp_path / "template.yaml"
+    template_path.write_text("Region: REGSUB_REGION\n", encoding="utf-8")
+
+    records: dict[str, object] = {
+        "events": [],
+        "echoes": [],
+        "prompt_labels": [],
+        "subprocess_calls": [],
+    }
+    cfg = _build_workflow_config(template_path)
+
+    class FakeAWSContext:
+        profile = "lsmc"
+        region = "us-west-2"
+        account_id = "123456789012"
+        iam_username = "root"
+        caller_arn = "arn:aws:iam::123456789012:root"
+
+        def __init__(self) -> None:
+            shared_client = object()
+            self._clients = {
+                "ec2": shared_client,
+                "iam": shared_client,
+                "budgets": shared_client,
+                "s3": shared_client,
+                "sns": shared_client,
+                "scheduler": shared_client,
+            }
+
+        def client(self, service_name: str):
+            return self._clients[service_name]
+
+    aws_ctx_instance = FakeAWSContext()
+
+    def fake_build(_cls, region_az: str, profile: str | None = None):
+        assert region_az == "us-west-2d"
+        assert profile == "lsmc"
+        return aws_ctx_instance
+
+    def fake_prompt(label: str, default=None):
+        _ = default
+        records["prompt_labels"].append(label)
+        records["events"].append(("prompt", label))
+        answers = {
+            "Budget email": "johnm@lsmc.com",
+            "Budget amount": "200",
+            "Global budget amount": "200",
+            "Allowed budget users": "root",
+            "Heartbeat email": "johnm@lsmc.com",
+            "Heartbeat schedule": "rate(60 minutes)",
+            "Heartbeat scheduler role ARN (leave blank to skip)": "",
+        }
+        return answers[label]
+
+    def fake_run_preflight(report: PreflightReport, **_kwargs):
+        report.checks.append(
+            CheckResult(
+                id="s3.bucket_select",
+                status=CheckStatus.PASS,
+                details={"selected": "bucket-a"},
+            )
+        )
+        return report
+
+    def fake_phase(title: str):
+        records["events"].append(("phase", title))
+
+    def fake_success_panel(title: str, body: str):
+        records["events"].append(("success_panel", title))
+        records["success_panel"] = (title, body)
+
+    def fake_echo(message: str):
+        records["echoes"].append(message)
+
+    def fake_create_cluster(*_args, **_kwargs):
+        records["events"].append(("create_cluster", None))
+        return SimpleNamespace(success=True, returncode=0, stderr="", message="")
+
+    def fake_resolve_scheduler_role(*_args, **kwargs):
+        records["events"].append(("resolve_scheduler_role", None))
+        records["resolve_scheduler_role_kwargs"] = kwargs
+        return (
+            "arn:aws:iam::123456789012:role/eventbridge-scheduler-to-sns",
+            "existing_role:eventbridge-scheduler-to-sns",
+        )
+
+    def fake_ensure_global_budget(*_args, **kwargs):
+        records["global_budget_kwargs"] = kwargs
+        return "daylily-global"
+
+    def fake_ensure_cluster_budget(*_args, **kwargs):
+        records["cluster_budget_kwargs"] = kwargs
+        return "da-us-west-2d-majors-cluster"
+
+    def fake_ensure_heartbeat(*_args, **kwargs):
+        records["heartbeat_kwargs"] = kwargs
+        return SimpleNamespace(
+            success=True,
+            topic_arn="arn:aws:sns:us-west-2:123456789012:daylily",
+            schedule_name="daylily-majors-cluster-heartbeat",
+            role_arn=kwargs["role_arn"],
+        )
+
+    def fake_write_next_run_template(_cfg, final_values, dest):
+        records["next_run_values"] = dict(final_values)
+        Path(dest).write_text("next-run\n", encoding="utf-8")
+        return Path(dest)
+
+    def fake_subprocess_run(cmd, **kwargs):
+        _ = kwargs
+        records["subprocess_calls"].append(list(cmd))
+        if cmd == ["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"]:
+            return subprocess.CompletedProcess(
+                args=cmd,
+                returncode=0 if say_available else 1,
+                stdout="",
+                stderr="",
+            )
+        if cmd == ["say", "Onward to daylily!"]:
+            return subprocess.CompletedProcess(
+                args=cmd,
+                returncode=0,
+                stdout="",
+                stderr="",
+            )
+        raise AssertionError(f"unexpected subprocess.run call: {cmd}")
+
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    monkeypatch.setenv("DAY_CONTACT_EMAIL", "johnm@lsmc.com")
+    monkeypatch.setattr(aws_context.AWSContext, "build", classmethod(fake_build))
+    monkeypatch.setattr(triplets, "load_config", lambda _path: cfg)
+    monkeypatch.setattr(create_cluster_module, "run_preflight", fake_run_preflight)
+    monkeypatch.setattr(
+        create_cluster_module,
+        "should_abort",
+        lambda *_args, **_kwargs: False,
+    )
+    monkeypatch.setattr(
+        cloudformation,
+        "ensure_pcluster_env_stack",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            public_subnet_id="subnet-pub",
+            private_subnet_id="subnet-priv",
+            policy_arn="arn:policy:default",
+        ),
+    )
+    monkeypatch.setattr(
+        cloudformation, "derive_stack_name", lambda _region_az: "daylily-stack"
+    )
+    monkeypatch.setattr(aws_ec2, "list_public_subnets", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(aws_ec2, "list_private_subnets", lambda *_args, **_kwargs: [])
+    monkeypatch.setattr(
+        aws_ec2,
+        "list_pcluster_tags_budget_policies",
+        lambda *_args, **_kwargs: [],
+    )
+    monkeypatch.setattr(
+        create_cluster_module,
+        "_resolve_ssh_keypair",
+        lambda *_args, **_kwargs: "daykey",
+    )
+    monkeypatch.setattr(
+        renderer,
+        "write_init_artifacts",
+        lambda *_args, **_kwargs: (
+            str(tmp_path / "cluster.yaml.init"),
+            str(tmp_path / "init-template.yaml"),
+        ),
+    )
+    monkeypatch.setattr(spot_pricing, "apply_spot_prices", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        pcluster_runner,
+        "dry_run_create",
+        lambda *_args, **_kwargs: SimpleNamespace(success=True, message="", stderr=""),
+    )
+    monkeypatch.setattr(pcluster_runner, "should_break_after_dry_run", lambda: False)
+    monkeypatch.setattr(pcluster_runner, "create_cluster", fake_create_cluster)
+    monkeypatch.setattr(
+        pcluster_monitor,
+        "wait_for_creation",
+        lambda *_args, **_kwargs: SimpleNamespace(
+            success=True,
+            elapsed_seconds=125.0,
+            final_status="CREATE_COMPLETE",
+            error="",
+            head_node_ip=head_node_ip,
+        ),
+    )
+    monkeypatch.setattr(create_cluster_module, "configure_headnode", lambda **_kwargs: True)
+    monkeypatch.setattr(aws_iam, "resolve_scheduler_role", fake_resolve_scheduler_role)
+    monkeypatch.setattr(aws_heartbeat, "ensure_heartbeat", fake_ensure_heartbeat)
+    monkeypatch.setattr(create_cluster_module.ui, "phase", fake_phase)
+    monkeypatch.setattr(create_cluster_module.ui, "step", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(create_cluster_module.ui, "ok", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(create_cluster_module.ui, "warn", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(create_cluster_module.ui, "info", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(create_cluster_module.ui, "detail", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(create_cluster_module.ui, "success_panel", fake_success_panel)
+    monkeypatch.setattr(create_cluster_module.typer, "prompt", fake_prompt)
+    monkeypatch.setattr(create_cluster_module.typer, "echo", fake_echo)
+    monkeypatch.setattr(create_cluster_module.subprocess, "run", fake_subprocess_run)
+    monkeypatch.setattr(
+        triplets, "write_next_run_template", fake_write_next_run_template
+    )
+    monkeypatch.setattr(
+        state_store,
+        "write_state_record",
+        lambda state: tmp_path / f"{state.cluster_name}.json",
+    )
+    monkeypatch.setattr(
+        create_cluster_module,
+        "write_state_record",
+        lambda state: tmp_path / f"{state.cluster_name}.json",
+    )
+    monkeypatch.setattr(
+        create_cluster_module,
+        "_noop_heartbeat_result",
+        lambda: SimpleNamespace(
+            success=False,
+            topic_arn="",
+            schedule_name="",
+            role_arn="",
+            error="skipped",
+        ),
+    )
+
+    import daylily_ec.aws.budgets as budgets
+
+    monkeypatch.setattr(budgets, "ensure_global_budget", fake_ensure_global_budget)
+    monkeypatch.setattr(budgets, "ensure_cluster_budget", fake_ensure_cluster_budget)
+
+    records["rc"] = create_cluster_module.run_create_workflow(
+        "us-west-2d",
+        profile="lsmc",
+        config_path=str(tmp_path / "config.yaml"),
+        non_interactive=not interactive,
+    )
+    return records

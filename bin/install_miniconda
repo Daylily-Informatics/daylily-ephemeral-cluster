@@ -1,4 +1,3 @@
-
 #!/usr/bin/env bash
 set -euo pipefail
 
@@ -14,135 +13,164 @@ Notes:
 EOF
 }
 
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-    usage
-    exit 0
-fi
+detect_machine() {
+    local system arch
 
-# Check if Miniconda is already installed
-if command -v conda >/dev/null 2>&1; then
-    echo "Miniconda/Conda is already installed. Please uninstall it before proceeding."
-    exit 0
-fi
-echo "Miniconda is not installed. Proceeding with installation..."
+    system="$(uname -s)"
+    arch="$(uname -m)"
 
-
-# Detect the machine type if MACHINE is not set
-if [[ -z "$MACHINE" ]]; then
-    uname_output=$(uname -m)
-    case "$uname_output" in
-        arm64)
-            if [[ "$(uname)" == "Darwin" ]]; then
-                MACHINE="apple_silicon"
-            else
-                MACHINE="linux_arm"
-            fi
+    case "${system}:${arch}" in
+        Darwin:arm64)
+            printf '%s\n' "apple_silicon"
             ;;
-        x86_64)
-            if [[ "$(uname)" == "Darwin" ]]; then
-                MACHINE="intel_mac"
-            else
-                MACHINE="linux_x86"
-            fi
+        Darwin:x86_64)
+            printf '%s\n' "intel_mac"
+            ;;
+        Linux:arm64|Linux:aarch64)
+            printf '%s\n' "linux_arm"
+            ;;
+        Linux:x86_64)
+            printf '%s\n' "linux_x86"
             ;;
         *)
-            echo "Unsupported architecture: $uname_output"
-            exit 1
+            return 1
             ;;
     esac
-fi
+}
 
-# Proceed with installation
-if [[ "$MACHINE" == "apple_silicon" ]]; then
-    echo "Autoinstalling Miniconda for Apple Silicon..."
-    wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh -O Miniconda3-MacOSX-arm64.sh
-    chmod +x Miniconda3-MacOSX-arm64.sh
-    ./Miniconda3-MacOSX-arm64.sh -b -p ~/miniconda3
-    rm Miniconda3-MacOSX-arm64.sh
-elif [[ "$MACHINE" == "intel_mac" ]]; then
-    echo "Autoinstalling Miniconda for Intel Mac..."
-    wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh -O Miniconda3-MacOSX-x86_64.sh
-    chmod +x Miniconda3-MacOSX-x86_64.sh
-    ./Miniconda3-MacOSX-x86_64.sh -b -p ~/miniconda3
-    rm Miniconda3-MacOSX-x86_64.sh
-elif [[ "$MACHINE" == "linux_x86" ]]; then
-    echo "Autoinstalling Miniconda for Linux x86..."
-    wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh -O Miniconda3-Linux-x86_64.sh
-    chmod +x Miniconda3-Linux-x86_64.sh
-    ./Miniconda3-Linux-x86_64.sh -b -p ~/miniconda3
-    rm Miniconda3-Linux-x86_64.sh
-elif [[ "$MACHINE" == "linux_arm" ]]; then
-    echo "Autoinstalling Miniconda for Linux ARM..."
-    wget -q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh -O Miniconda3-Linux-aarch64.sh
-    chmod +x Miniconda3-Linux-aarch64.sh
-    ./Miniconda3-Linux-aarch64.sh -b -p ~/miniconda3
-    rm Miniconda3-Linux-aarch64.sh
-else
-    echo "Unsupported machine type: $MACHINE"
-    echo "Please visit https://docs.conda.io/en/latest/miniconda.html for manual installation instructions."
-    exit 2
-fi
+download_file() {
+    local url="$1"
+    local output_path="$2"
 
-# Initialize Conda
-if [[ -x ~/miniconda3/bin/conda ]]; then
-    echo "Initializing Conda..."
-    ~/miniconda3/bin/conda init bash
-    ~/miniconda3/bin/conda init zsh
-    ~/miniconda3/bin/conda config --set accept_channel_terms true
-
-    # Define file paths
-    BASHRC="$HOME/.bashrc"
-    BASH_PROFILE="$HOME/.bash_profile"
-
-    touch $BASHRC $BASH_PROFILE
-    
-    # Function to extract and copy the Conda block
-    copy_conda_block() {
-        local source_file=$1
-        local target_file=$2
-
-        # Extract the Conda block from the source file
-        CONDA_BLOCK=$(sed -n '/# >>> conda initialize >>>/,/# <<< conda initialize <<</p' "$source_file")
-
-        # Append the Conda block to the target file
-        echo "Adding Conda initialization block to $target_file."
-        echo ""
-        echo "$source_file // $target_file // $CONDA_BLOCK"
-        echo "" >> $target_file
-        echo  "$CONDA_BLOCK" >> "$target_file"
-        echo "Conda initialization block added to $target_file."
-    }
-
-    # Check for Conda block in both files
-    BASHRC_HAS_BLOCK=false
-    BASH_PROFILE_HAS_BLOCK=false
-
-    if grep -q "# >>> conda initialize >>>" "$BASHRC"; then
-        BASHRC_HAS_BLOCK=true
+    if command -v curl >/dev/null 2>&1; then
+        if curl -fsSL "$url" -o "$output_path"; then
+            return 0
+        fi
     fi
 
-    if grep -q "# >>> conda initialize >>>" "$BASH_PROFILE"; then
-        BASH_PROFILE_HAS_BLOCK=true
+    if command -v wget >/dev/null 2>&1; then
+        wget -q "$url" -O "$output_path"
+        return 0
     fi
 
-    # Handle the cases
-    if $BASHRC_HAS_BLOCK && ! $BASH_PROFILE_HAS_BLOCK; then
-        echo "Conda initialization block found in .bashrc but missing in .bash_profile."
-        copy_conda_block "$BASHRC" "$BASH_PROFILE"
-    elif $BASH_PROFILE_HAS_BLOCK && ! $BASHRC_HAS_BLOCK; then
-        echo "Conda initialization block found in .bash_profile but missing in .bashrc."
-        copy_conda_block "$BASH_PROFILE" "$BASHRC"
-    elif $BASHRC_HAS_BLOCK && $BASH_PROFILE_HAS_BLOCK; then
-        echo "Conda initialization block already exists in both .bashrc and .bash_profile. No changes made."
+    echo "Neither curl nor wget is available for downloading ${url}."
+    return 1
+}
+
+copy_conda_block() {
+    local source_file="$1"
+    local target_file="$2"
+    local conda_block
+
+    conda_block="$(sed -n '/# >>> conda initialize >>>/,/# <<< conda initialize <<</p' "$source_file")"
+
+    echo "Adding Conda initialization block to $target_file."
+    printf '\n' >> "$target_file"
+    printf '%s\n' "$conda_block" >> "$target_file"
+    echo "Conda initialization block added to $target_file."
+}
+
+main() {
+    local installer_url=""
+    local installer_script=""
+    local installer_label=""
+    local bashrc bash_profile
+    local bashrc_has_block=false
+    local bash_profile_has_block=false
+
+    if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
+        usage
+        exit 0
+    fi
+
+    if command -v conda >/dev/null 2>&1; then
+        echo "Miniconda/Conda is already installed. Please uninstall it before proceeding."
+        exit 0
+    fi
+    echo "Miniconda is not installed. Proceeding with installation..."
+
+    if [[ -z "${MACHINE:-}" ]]; then
+        MACHINE="$(detect_machine)" || {
+            echo "Unsupported system/architecture: $(uname -s) $(uname -m)"
+            exit 1
+        }
+    fi
+
+    case "$MACHINE" in
+        apple_silicon)
+            installer_label="Apple Silicon"
+            installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh"
+            installer_script="Miniconda3-MacOSX-arm64.sh"
+            ;;
+        intel_mac)
+            installer_label="Intel Mac"
+            installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
+            installer_script="Miniconda3-MacOSX-x86_64.sh"
+            ;;
+        linux_x86)
+            installer_label="Linux x86"
+            installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+            installer_script="Miniconda3-Linux-x86_64.sh"
+            ;;
+        linux_arm)
+            installer_label="Linux ARM"
+            installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh"
+            installer_script="Miniconda3-Linux-aarch64.sh"
+            ;;
+        *)
+            echo "Unsupported machine type: $MACHINE"
+            echo "Please visit https://docs.conda.io/en/latest/miniconda.html for manual installation instructions."
+            exit 2
+            ;;
+    esac
+
+    echo "Autoinstalling Miniconda for ${installer_label}..."
+    download_file "$installer_url" "$installer_script"
+    chmod +x "$installer_script"
+    "./$installer_script" -b -p "$HOME/miniconda3"
+    rm -f "$installer_script"
+
+    if [[ -x "$HOME/miniconda3/bin/conda" ]]; then
+        echo "Initializing Conda..."
+        "$HOME/miniconda3/bin/conda" init bash
+        "$HOME/miniconda3/bin/conda" init zsh
+        "$HOME/miniconda3/bin/conda" config --set accept_channel_terms true
+
+        bashrc="$HOME/.bashrc"
+        bash_profile="$HOME/.bash_profile"
+
+        touch "$bashrc" "$bash_profile"
+
+        if grep -q "# >>> conda initialize >>>" "$bashrc"; then
+            bashrc_has_block=true
+        fi
+
+        if grep -q "# >>> conda initialize >>>" "$bash_profile"; then
+            bash_profile_has_block=true
+        fi
+
+        if $bashrc_has_block && ! $bash_profile_has_block; then
+            echo "Conda initialization block found in .bashrc but missing in .bash_profile."
+            copy_conda_block "$bashrc" "$bash_profile"
+        elif $bash_profile_has_block && ! $bashrc_has_block; then
+            echo "Conda initialization block found in .bash_profile but missing in .bashrc."
+            copy_conda_block "$bash_profile" "$bashrc"
+        elif $bashrc_has_block && $bash_profile_has_block; then
+            echo "Conda initialization block already exists in both .bashrc and .bash_profile. No changes made."
+        else
+            echo "No Conda initialization block found in either .bashrc or .bash_profile."
+            echo "From a bash shell, please run 'conda init bash' to initialize Conda."
+            exit 1
+        fi
+
+        echo "Miniconda installation successful."
+        echo "Open a new shell, and conda should be available (try: 'conda -v')."
     else
-        echo "No Conda initialization block found in either .bashrc or .bash_profile."
-        echo "From a bash shell, please run 'conda init bash' to initialize Conda."
-        exit 1
+        echo "Miniconda installation failed. Please try again and/or atttempt the commands in this script manually."
+        exit 3
     fi
+}
 
-    echo "Miniconda installation successful."
-    echo "Open a new shell, and conda should be available (try: 'conda -v')."
-else
-    echo "Miniconda installation failed. Please try again and/or atttempt the commands in this script manually."
-    exit 3
+if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
+    main "$@"
 fi

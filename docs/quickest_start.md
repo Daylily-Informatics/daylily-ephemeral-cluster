@@ -39,6 +39,8 @@ daylily-ec version
 
 `source ./activate` is the checkout-friendly entrypoint. It activates or bootstraps `DAY-EC`, adds [`../bin/`](../bin/) to `PATH`, and exposes `daylily-ec` from the current shell. If you need the lower-level environment builder directly, `./bin/init_dayec` still exists, but it is no longer the primary local flow.
 
+`./bin/install_miniconda` now auto-detects Apple Silicon, Intel macOS, Linux x86_64, and Linux ARM hosts. It prefers `curl` and falls back to `wget`, so a fresh Mac does not need Homebrew `wget` just to bootstrap conda.
+
 ## 3. Create The Region Reference Bucket
 
 Daylily expects a reference bucket in the target region. Use the installed `daylily-omics-references` CLI directly.
@@ -134,9 +136,11 @@ The create workflow:
 
 - runs preflight and aborts on failures
 - resolves or creates baseline network resources as needed
+- collects budget and heartbeat answers before dry-run starts
 - renders the cluster YAML and applies live spot pricing
 - creates the cluster through ParallelCluster
 - bootstraps the head node
+- applies the AWS budget and heartbeat changes only after the cluster and headnode bootstrap succeed
 - writes artifacts to `~/.config/daylily/`
 
 ## 8. What Success Looks Like
@@ -145,7 +149,22 @@ After a successful run:
 
 - `~/.config/daylily/` contains a preflight report, a state snapshot, and rendered cluster YAML artifacts
 - the head node has been bootstrapped with `DAY-EC`, `day-clone`, and the Daylily helper scripts
+- the final two stdout lines are the connection hint and `...fin!`
 - you can continue with [operations.md](operations.md), starting at [Validate The Head Node](operations.md#validate-the-head-node)
+
+Typical successful ending:
+
+```text
+ssh -i ~/.ssh/<keypair>.pem ubuntu@<headnode-ip>
+...fin!
+```
+
+If the headnode IP is not available yet, the connection hint falls back to:
+
+```text
+pcluster describe-cluster -n <cluster-name> --region <region>
+...fin!
+```
 
 If the cluster comes up but the head-node bootstrap needs to be re-run, SSH to the headnode and re-run the bootstrap manually or use the `daylily-ec` CLI from your laptop.
 
