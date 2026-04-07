@@ -1,0 +1,35 @@
+---
+channels:
+  - conda-forge
+  - bioconda
+  - defaults
+dependencies:
+  - pandas==1.5.3
+  - python
+  - ipython
+  - perl
+  - yappi
+  - snakedeploy
+  - snakefmt
+  - networkx
+  - yamllint
+  - pip
+  - rclone
+  - parallel
+  - pygraphviz
+  - glances
+  - tabix
+  - fd-find
+  - graphviz
+  - yq
+  - pip:
+    - git+https://github.com/Daylily-Informatics/snakemake.git@7.25.0a112
+    - wrapt
+    - chromedriver-binary-auto
+    - rgbw-colorspace-converter
+    - docopt==0.6.2
+    - xmltodict
+    - wrapt
+    - tabulate
+    - setuptools_scm
+    - ruamel.yaml
