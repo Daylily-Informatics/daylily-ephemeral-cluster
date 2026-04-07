@@ -22,6 +22,11 @@ from daylily_ec.workflow.delete_cluster import (
 runner = CliRunner()
 
 
+def _activate_dayec_runtime(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv("CONDA_PREFIX", "/tmp/dayec")
+    monkeypatch.setenv("CONDA_DEFAULT_ENV", "DAY-EC")
+
+
 def _write_state(path: Path) -> None:
     path.write_text(
         StateRecord(
@@ -164,7 +169,8 @@ class TestDeleteWorkflow:
 
 
 class TestDeleteCli:
-    def test_cli_delete_passes_options(self, tmp_path):
+    def test_cli_delete_passes_options(self, tmp_path, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
         state_file = tmp_path / "state.json"
         state_file.write_text("{}", encoding="utf-8")
 
