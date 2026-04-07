@@ -19,7 +19,7 @@ dependencies = [
     "ruamel.yaml>=0.18.0",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
-    "cli-core-yo>=0.2.1",
+    "cli-core-yo==2.0.0",
     # Used by legacy bin/*.py tools (installed via setup.py script_files).
     "requests>=2.31.0",
     "tabulate>=0.8.10",
