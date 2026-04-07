@@ -26,11 +26,14 @@ Once connected to the head node:
 
 ```bash
 cd ~/projects/daylily-ephemeral-cluster
-conda activate DAY-EC
+source ~/projects/daylily-ephemeral-cluster/activate
+eval "$(daylily-ec headnode init --emit-shell --non-interactive)"
 
 daylily-ec info
 day-clone --list
 ```
+
+The managed login hook should perform the activation and shell initialization automatically on a healthy headnode. If you land in a plain shell, rerun the `source ~/projects/daylily-ephemeral-cluster/activate` + `daylily-ec headnode init` sequence above.
 
 ## Stage Sample Data On The Head Node
 

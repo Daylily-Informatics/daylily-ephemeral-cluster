@@ -87,12 +87,26 @@ fi
 printf 'env-cli:%s\\n' "$*"
 EOF
     chmod +x "${root}/envs/${env_name}/bin/daylily-ec"
+    cat > "${root}/envs/${env_name}/bin/pcluster" <<'EOF'
+#!/usr/bin/env bash
+if [[ "${1:-}" == "version" ]]; then
+  echo "env-pcluster-version"
+  exit 0
+fi
+printf 'env-pcluster:%s\\n' "$*"
+EOF
+    chmod +x "${root}/envs/${env_name}/bin/pcluster"
     exit 0
   fi
 
   if [[ "${1:-}" == "daylily-ec" ]]; then
     shift
     exec "${root}/envs/${env_name}/bin/daylily-ec" "$@"
+  fi
+
+  if [[ "${1:-}" == "pcluster" ]]; then
+    shift
+    exec "${root}/envs/${env_name}/bin/pcluster" "$@"
   fi
 
   exit 1
@@ -112,6 +126,7 @@ def _prepare_fake_runtime(
     *,
     existing_env: bool = False,
     existing_env_cli: bool = False,
+    broken_existing_env_pcluster: bool = False,
 ) -> tuple[dict[str, str], Path]:
     fake_bin = tmp_path / "fake-bin"
     fake_root = tmp_path / "fake-conda-root"
@@ -143,12 +158,34 @@ fi
 printf 'existing-env:%s\\n' "$*"
 """,
         )
+        _write_executable(
+            fake_root / "envs" / "DAY-EC" / "bin" / "pcluster",
+            """#!/usr/bin/env bash
+if [[ "${1:-}" == "version" ]]; then
+  echo "existing-pcluster-version"
+  exit 0
+fi
+printf 'existing-pcluster:%s\\n' "$*"
+""",
+        )
+
+    if existing_env and broken_existing_env_pcluster:
+        _write_executable(
+            fake_root / "envs" / "DAY-EC" / "bin" / "pcluster",
+            """#!/usr/bin/env bash
+echo "Traceback (most recent call last):" >&2
+echo "ModuleNotFoundError: No module named 'pkg_resources'" >&2
+exit 1
+""",
+        )
 
     env = os.environ.copy()
     env["FAKE_CONDA_ROOT"] = str(fake_root)
     env["FAKE_CONDA_LOG"] = str(log_path)
     env["FAKE_CONDA_EXE"] = str(fake_bin / "conda")
     env["CONDA_EXE"] = str(fake_bin / "conda")
+    env.pop("CONDA_PREFIX", None)
+    env.pop("CONDA_DEFAULT_ENV", None)
     env["PATH"] = f"{fake_bin}:{env.get('PATH', '')}"
     env["HOME"] = str(tmp_path)
 
@@ -177,6 +214,36 @@ def test_activate_bootstraps_missing_dayec_from_environment_yaml(tmp_path: Path)
 
     log = log_path.read_text(encoding="utf-8")
     assert f"env create -n DAY-EC -f {ENVIRONMENT_YAML}" in log
+    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
+
+
+def test_activate_supports_version_and_pricing_help_flow(tmp_path: Path) -> None:
+    env, _ = _prepare_fake_runtime(tmp_path)
+
+    result = _source_activate_and_run(
+        env,
+        "daylily-ec version && AWS_PROFILE=lsmc daylily-ec pricing snapshot --help",
+    )
+
+    assert result.returncode == 0
+    assert "env-version" in result.stdout
+    assert "env-cli:pricing snapshot --help" in result.stdout
+
+
+def test_activate_repairs_existing_dayec_when_pcluster_smoke_fails(tmp_path: Path) -> None:
+    env, log_path = _prepare_fake_runtime(
+        tmp_path,
+        existing_env=True,
+        existing_env_cli=True,
+        broken_existing_env_pcluster=True,
+    )
+
+    result = _source_activate_and_run(env, "daylily-ec version")
+
+    assert result.returncode == 0
+    assert "env-version" in result.stdout
+    assert "pkg_resources" not in (result.stdout + result.stderr)
+    log = log_path.read_text(encoding="utf-8")
     assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
 
 

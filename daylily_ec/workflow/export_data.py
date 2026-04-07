@@ -9,7 +9,12 @@ from pathlib import Path
 from typing import Dict, Optional
 
 import boto3
-from botocore.exceptions import BotoCoreError, ClientError
+try:
+    from botocore.exceptions import BotoCoreError, ClientError
+except ImportError:  # pragma: no cover - compatibility for older botocore builds
+    from botocore.exceptions import ClientError
+
+    BotoCoreError = Exception  # type: ignore[misc,assignment]
 import yaml
 
 from daylily_ec import ui

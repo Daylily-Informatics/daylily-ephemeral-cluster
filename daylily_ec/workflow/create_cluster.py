@@ -1208,16 +1208,18 @@ def configure_headnode(
         (
             "Initialize DAY-EC environment",
             (
-                f"source ~/miniconda3/etc/profile.d/conda.sh && "
-                f"cd ~/projects/{repo_name} && ./bin/init_dayec"
+                f"source ~/projects/{repo_name}/activate && "
+                f"eval \"$(daylily-ec headnode init --emit-shell --non-interactive)\""
             ),
             300,
         ),
         (
             "Install headnode tools",
             (
-                f"source ~/miniconda3/etc/profile.d/conda.sh && conda activate DAY-EC && "
-                f"cd ~/projects/{repo_name} && ./bin/install-daylily-headnode-tools"
+                f"cd ~/projects/{repo_name} && "
+                f"source ~/projects/{repo_name}/activate && "
+                f"eval \"$(daylily-ec headnode init --emit-shell --non-interactive)\" && "
+                f"./bin/install-daylily-headnode-tools"
             ),
             120,
         ),
@@ -1289,7 +1291,9 @@ def configure_headnode(
     try:
         verify = _ssh_cmd(
             pem_path, head_node_ip,
-            "source ~/miniconda3/etc/profile.d/conda.sh && conda activate DAY-EC && day-clone --list",
+            f"source ~/projects/{repo_name}/activate && "
+            f"eval \"$(daylily-ec headnode init --emit-shell --non-interactive)\" && "
+            "day-clone --list",
             timeout=30,
         )
         if verify.returncode == 0 and "repositories" in verify.stdout.lower():

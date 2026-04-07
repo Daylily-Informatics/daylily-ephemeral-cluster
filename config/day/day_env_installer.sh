@@ -119,7 +119,8 @@ else
         echo "DAYOA environment created successfully."
         echo ""
         echo "Try the following commands to get started:"
-        echo "  source dyinit --project <PROJECT>"
+        echo "  source ~/projects/daylily-ephemeral-cluster/activate"
+        echo "  eval \"\$(daylily-ec headnode init --emit-shell --non-interactive)\""
         echo "  dy-a local"
         echo "  dy-r help"
     else
@@ -131,7 +132,8 @@ fi
 echo ""
 echo "Installation complete."
 echo "Please log out and log back in, then run:"
-echo "  source dyinit --project <PROJECT>"
+echo "  source ~/projects/daylily-ephemeral-cluster/activate"
+echo "  eval \"\$(daylily-ec headnode init --emit-shell --non-interactive)\""
 echo "  dy-a local"
 echo "  dy-r help"
 

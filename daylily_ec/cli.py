@@ -537,6 +537,48 @@ def pricing_snapshot(
     typer.echo(json.dumps(payload, indent=2, sort_keys=False))
 
 
+def headnode_init(
+    project: Optional[str] = typer.Option(
+        None,
+        "--project",
+        help="Budget/project name to export into the headnode shell.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    skip_project_check: bool = typer.Option(
+        False,
+        "--skip-project-check",
+        help="Skip budget-tag validation and AWS budget lookups.",
+    ),
+    non_interactive: bool = typer.Option(
+        False,
+        "--non-interactive",
+        help="Disable prompts and emit warnings instead of asking for input.",
+    ),
+    emit_shell: bool = typer.Option(
+        False,
+        "--emit-shell",
+        help="Print shell code for eval-based bootstrap flows.",
+    ),
+) -> None:
+    """Initialize headnode shell state and optionally repair missing project budgets."""
+
+    from daylily_ec.headnode import run_headnode_init
+
+    raise typer.Exit(
+        run_headnode_init(
+            project=project,
+            profile=profile,
+            skip_project_check=skip_project_check,
+            non_interactive=non_interactive,
+            emit_shell=emit_shell,
+        )
+    )
+
+
 def register(registry, cli_spec) -> None:
     _ = cli_spec
     register_root_command(
@@ -586,6 +628,12 @@ def register(registry, cli_spec) -> None:
         "pricing",
         "Spot pricing inspection helpers.",
         [("snapshot", pricing_snapshot, REQUIRED_JSON)],
+    )
+    register_group_commands(
+        registry,
+        "headnode",
+        "Headnode bootstrap and shell-context helpers.",
+        [("init", headnode_init, REQUIRED_MUTATING_INTERACTIVE)],
     )
 
 

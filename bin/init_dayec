@@ -124,18 +124,19 @@ else
 fi
 
 echo "Daylily CLI environment is ready. Activate with:"
-echo "  conda activate DAY-EC"
+echo "  source ./activate"
 
 if [[ "$is_sourced" -eq 1 ]]; then
   # Best-effort activation for interactive sourcing.
-  if command -v conda >/dev/null 2>&1; then
-    eval "$(conda shell.bash hook)" >/dev/null 2>&1 || true
-    conda activate DAY-EC >/dev/null 2>&1 || true
+  if [[ -f "${repo_root}/activate" ]]; then
+    # shellcheck source=/dev/null
+    source "${repo_root}/activate"
     if [[ "${CONDA_DEFAULT_ENV:-}" == "DAY-EC" ]]; then
       echo "✓ DAY-EC conda environment is now active."
     else
-      echo "Warning: could not auto-activate DAY-EC in this shell; run 'conda activate DAY-EC'." >&2
+      echo "Warning: could not auto-activate DAY-EC in this shell; run 'source ./activate'." >&2
     fi
+  else
+    echo "Warning: could not find ${repo_root}/activate; run 'source ./activate'." >&2
   fi
 fi
-

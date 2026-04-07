@@ -31,16 +31,13 @@ From the repo root:
 ```bash
 ./bin/check_prereq_sw.sh
 ./bin/install_miniconda   # only if conda is not already installed
-./bin/init_dayec
 source ./activate
 
 daylily-ec info
 daylily-ec version
 ```
 
-`./bin/init_dayec` creates or updates the `DAY-EC` conda environment from [`../config/day/daycli.yaml`](../config/day/daycli.yaml) and installs this repo into it.
-
-`source ./activate` is the checkout-friendly entrypoint. It activates `DAY-EC` when present, adds [`../bin/`](../bin/) to `PATH`, and exposes `daylily-ec` from the current shell.
+`source ./activate` is the checkout-friendly entrypoint. It activates or bootstraps `DAY-EC`, adds [`../bin/`](../bin/) to `PATH`, and exposes `daylily-ec` from the current shell. If you need the lower-level environment builder directly, `./bin/init_dayec` still exists, but it is no longer the primary local flow.
 
 ## 3. Create The Region Reference Bucket
 
@@ -151,3 +148,5 @@ After a successful run:
 - you can continue with [operations.md](operations.md), starting at [Validate The Head Node](operations.md#validate-the-head-node)
 
 If the cluster comes up but the head-node bootstrap needs to be re-run, SSH to the headnode and re-run the bootstrap manually or use the `daylily-ec` CLI from your laptop.
+
+On a healthy headnode, the login shell should perform the same activation and shell initialization automatically by sourcing `~/projects/daylily-ephemeral-cluster/activate` and evaluating `daylily-ec headnode init --emit-shell --non-interactive`.

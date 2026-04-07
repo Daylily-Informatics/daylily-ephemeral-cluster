@@ -8,11 +8,10 @@ From a repo checkout:
 
 ```bash
 ./bin/check_prereq_sw.sh
-./bin/init_dayec
-conda activate DAY-EC
+source ./activate
 
-python -m daylily_ec info
-python -m daylily_ec --help
+daylily-ec info
+daylily-ec --help
 ```
 
 ## Before Opening A Change
@@ -21,10 +20,10 @@ Run the checks that match your change:
 
 ```bash
 pytest tests/
-python -m daylily_ec --help
-python -m daylily_ec info --help
-python -m daylily_ec pricing snapshot --help
-./bin/init_dayec --help
+daylily-ec --help
+daylily-ec info --help
+daylily-ec pricing snapshot --help
+daylily-ec headnode init --help
 ```
 
 If you touched operator scripts, also run the relevant helper `--help` commands from `bin/`.

@@ -134,6 +134,7 @@ RES_DIR="$(resolve_daylily_res_dir)" || exit 1
 duser="ubuntu"
 
 dayec_name="daylily-ephemeral-cluster"
+headnode_bootstrap_cmd="source ~/projects/$dayec_name/activate && eval \"\$(daylily-ec headnode init --emit-shell --non-interactive)\""
 
 CONFIG_FILE="${RES_DIR}/config/daylily_cli_global.yaml"
 AVAILABLE_REPOS_CONFIG="${RES_DIR}/config/daylily_available_repositories.yaml"
@@ -273,8 +274,7 @@ sleep 15
 # Clone the $dayec_name repository to the head node
 echo "Cloning $dayec_name repository using https to the head node ~/projects"
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address"  -o StrictHostKeyChecking=no   -o UserKnownHostsFile=/dev/null \
-    "mkdir -p ~/projects && cd ~/projects &&  git clone -b ${git_ephemeral_cluster_repo_tag} ${git_ephemeral_cluster_repo} $dayec_name && cd $dayec_name && bin/install_miniconda || echo "failed to install miniconda" && bin/init_dayec || echo "failed to install day-ec" &&
-. dyinit "
+    "mkdir -p ~/projects && cd ~/projects && git clone -b ${git_ephemeral_cluster_repo_tag} ${git_ephemeral_cluster_repo} $dayec_name && cd $dayec_name && bin/install_miniconda || echo 'failed to install miniconda' && $headnode_bootstrap_cmd"
 
 # Install shared tooling from the repo (day-clone, config files, etc.)
 echo "Installing head node tooling from the cloned repository..."
@@ -294,7 +294,7 @@ fi
 
 echo "Installing Miniconda and initializing the DAY-EC environment on the head node..."
 ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
-    "source ~/.bashrc && cd ~/projects/$dayec_name && ./bin/install_miniconda && ./bin/init_dayec"
+    "source ~/.bashrc && cd ~/projects/$dayec_name && ./bin/install_miniconda && $headnode_bootstrap_cmd"
 
 echo "day-clone is now available on the head node. Use it to clone analysis repositories such as daylily-omics-analysis."
 
@@ -304,8 +304,8 @@ echo "        ssh -i $pem_file ubuntu@$cluster_ip_address"
 echo " "
 echo "Once logged in, as the 'ubuntu' user, run the following commands:"
 echo "  cd ~/projects/$dayec_name"
-echo "  ./bin/install_miniconda"
-echo "  ./bin/init_dayec"
+echo "  source ~/projects/$dayec_name/activate"
+echo "  eval \"\$(daylily-ec headnode init --emit-shell --non-interactive)\""
 echo "  ./bin/headnode_utils/day-clone --list"
 echo "  day-clone -d <analysis_name> [--repository <repo-key>]"
 echo " "

@@ -171,6 +171,27 @@ __daylily_activate_dayec_cli_smoke_test() {
   conda run -n DAY-EC daylily-ec version >/dev/null 2>&1
 }
 
+__daylily_activate_dayec_pcluster_smoke_test() {
+  local pcluster_path
+
+  if [ "${CONDA_DEFAULT_ENV:-}" = "DAY-EC" ] && [ -n "${CONDA_PREFIX:-}" ]; then
+    pcluster_path="${CONDA_PREFIX}/bin/pcluster"
+    if [ -x "${pcluster_path}" ]; then
+      "${pcluster_path}" version >/dev/null 2>&1
+      return $?
+    fi
+  fi
+
+  __daylily_activate_load_conda || return 1
+  __daylily_activate_dayec_exists || return 1
+  conda run -n DAY-EC pcluster version >/dev/null 2>&1
+}
+
+__daylily_activate_dayec_runtime_smoke_test() {
+  __daylily_activate_dayec_cli_smoke_test || return 1
+  __daylily_activate_dayec_pcluster_smoke_test
+}
+
 __daylily_activate_activate_dayec() {
   __daylily_activate_load_conda || return 1
 
@@ -216,7 +237,7 @@ __daylily_activate_bootstrap_dayec() {
     return 1
   }
 
-  if __daylily_activate_dayec_cli_smoke_test; then
+  if __daylily_activate_dayec_runtime_smoke_test; then
     return 0
   fi
 
@@ -225,8 +246,9 @@ __daylily_activate_bootstrap_dayec() {
     return 1
   }
 
-  if ! __daylily_activate_dayec_cli_smoke_test; then
-    echo "Error: DAY-EC is active but daylily-ec still failed its version smoke test." >&2
+  if ! __daylily_activate_dayec_runtime_smoke_test; then
+    echo "Error: DAY-EC is active but required runtime checks still failed." >&2
+    echo "Repair with: conda run -n DAY-EC python -m pip install --upgrade 'setuptools<81'" >&2
     return 1
   fi
 
@@ -285,8 +307,8 @@ daylily-ec() {
   return 1
 }
 
-if [ "${CONDA_DEFAULT_ENV:-}" = "DAY-EC" ] && __daylily_activate_dayec_cli_smoke_test; then
-  echo "DAY-EC activated. daylily-ec is available in this shell."
+if [ "${CONDA_DEFAULT_ENV:-}" = "DAY-EC" ] && __daylily_activate_dayec_runtime_smoke_test; then
+  echo "DAY-EC activated. daylily-ec and pcluster are available in this shell."
 elif cli_path="$(__daylily_activate_external_cli_path)" && [ -n "${cli_path}" ] && __daylily_activate_cli_smoke_test "${cli_path}"; then
   echo "Repo tools added to PATH. daylily-ec is available via a validated PATH install."
 else

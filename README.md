@@ -147,8 +147,8 @@ The AWS Parallel Cluster port of `slurm` has been slightly tweaked in the follow
 _only useful if you have already installed daylily previously and have all of the AWS account configurations in place_
 
 ```bash
-# 1. Activate the conda environment
-conda activate DAY-EC
+# 1. Activate the repo environment
+source ./activate
 
 # 2. (Once per region) Clone the public reference bucket
 export AWS_PROFILE=daylily-service
@@ -427,13 +427,11 @@ _from `daylily` root dir_
 
 ```bash
 
-./bin/init_dayec
-
-conda activate DAY-EC
+source ./activate
 
 # CLI commands from ./bin are now on your PATH.
 # Re-run this after pulling updates if needed.
-# (init_dayec performs an editable pip install each run)
+# (source ./activate bootstraps or reuses DAY-EC and keeps the repo installed.)
 
 # DAY-EC should now be active... did it work?
 colr  'did it work?' 0,100,255 255,100,0
@@ -487,7 +485,7 @@ daylily-omics-references \
 
 ### Clone `daylily-references-public` to YOURPREFIX-omics-analysis-REGION
 
-_from your local machine, with the `DAY-EC` conda environment active_
+_from your local machine, after `source ./activate` in a checkout_
 
 > You may add/remove/update your copy of the references bucket as you find necessary.
 
@@ -495,7 +493,7 @@ _from your local machine, with the `DAY-EC` conda environment active_
 - Cloning takes 1 to many hours — run in a `tmux` or `screen` session.
 
 ```bash
-conda activate DAY-EC
+source ./activate
 export AWS_PROFILE=<your_profile>
 BUCKET_PREFIX=<your_prefix>
 REGION=us-west-2
@@ -517,14 +515,14 @@ daylily-omics-references --profile $AWS_PROFILE --region $REGION \
 
 ## Generate Analysis Cost Estimates per Availability Zone
 
-_from your local machine, with the `DAY-EC` conda environment active_
+_from your local machine, after `source ./activate` in a checkout_
 
 You may choose any AZ to build and run an ephemeral cluster in (assuming resources both exist and can be requisitioned in the AZ). Run the following command to scan the spot markets in the AZs you are interested in assessing (reference buckets do not need to exist in the regions you scan, but to ultimately run there, a reference bucket is required).
 
 **Primary: `daylily-ec pricing snapshot`** — takes ~5min for the default region set; add `--help` for all flags:
 
 ```bash
-conda activate DAY-EC
+source ./activate
 export AWS_PROFILE=daylily-service
 REGION=us-west-2
 
@@ -679,14 +677,12 @@ If all is well, you will see the following message:
 You can now SSH into the head node with the following command:
 ssh -i /Users/daylily/.ssh/omics-analysis-b.pem ubuntu@52.24.138.65
 Once logged in, as the 'ubuntu' user, run the following commands:
-  cd ~/projects/daylily
-  source dyinit
-  source dyinit  --project PROJECT
-  dy-a local hg38 # the other option being b37
-
-  export DAY_CONTAINERIZED=false # or true to use pre-built container of all analysis envs. false will create each conda env as needed
-
-  dy-r help
+  cd ~/projects/daylily-ephemeral-cluster
+  source ./activate
+  eval "$(daylily-ec headnode init --emit-shell --non-interactive)"
+  daylily-ec headnode init --project PROJECT
+  daylily-ec info
+  daylily-ec pricing snapshot --help
  
 "Would you like to start building various caches needed to run jobs? [y/n]"
 
@@ -870,10 +866,10 @@ Visit your url created when you built a PCUI
 
 ## DAY-EC & AWS Parallel Cluster CLI (pcluster)
 
-### Activate The DAY-EC Conda Environment
+### Activate The Repo Environment
 
 ```bash
-conda activate DAY-EC
+source ./activate
 ```
 
 ### `pcluster` CLI Usage
@@ -976,39 +972,33 @@ bin/daylily-ssh-into-headnode
 
 ## Confirm Headnode Configuration Is Complete (using the `daylily-omics-analysis` repo)
 
-**Is `daylily` CLI Available & Working**
+**Is the Daylily CLI Available & Working**
 
 ```bash
 cd ~/projects/daylily-omics-analysis
-. dyinit # inisitalizes the daylily cli
-dy-a local hg38 # activates the local config using reference hg38, the other build available is b37
-
+source ~/projects/daylily-ephemeral-cluster/activate
+eval "$(daylily-ec headnode init --emit-shell --non-interactive)"
+daylily-ec info
+daylily-ec pricing snapshot --help
 ```
 
-> if `. dyinit` works, but `dy-a local` fails, try `dy-b BUILD`
+The managed login hook should run the activation and headnode shell setup automatically on future logins. If you need to repair the shell context manually, use the same `source ./activate` + `daylily-ec headnode init` flow yourself.
 
-This should produce a magenta `WORKFLOW SUCCESS` message and `RETURN CODE: 0` at the end of the output.  If so, you are set. If not, see the next section.
+This should produce the expected CLI output and a valid shell context. If so, you are set. If not, see the next section.
 
 ### (if) Headnode Confiugration Incomplete
 
-If there is no `~/projects/daylily` directory, or the `dyinit` command is not found, the headnode configuration is incomplete. 
+If there is no `~/projects/daylily` directory, or the managed headnode shell hook has not been installed, the headnode configuration is incomplete.
 
 **Attempt To Complete Headnode Configuration**
 From your remote terminal that you created the cluster with, run the following commands to complete the headnode configuration.
 
 ```bash
-conda activate DAY-EC
-
-./bin/daylily-cfg-headnode $PATH_TO_PEM $CLUSTER_AWS_REGION $AWS_PROFILE
-
-# This script now installs Miniconda and initializes the DAY-EC environment on the
-# headnode after cloning `daylily-ephemeral-cluster` to `~/projects/`. If you need
-# to re-run that setup manually from the headnode, run:
-#   cd ~/projects/daylily-ephemeral-cluster
-#   ./bin/install_miniconda && ./bin/init_dayec
+source ~/projects/daylily-ephemeral-cluster/activate
+eval "$(daylily-ec headnode init --emit-shell --non-interactive)"
 ```
 
-> If the problem persists, ssh into the headnode, and attempt to run the commands as the ubuntu user which are being attempted by the `daylily-cfg-headnode` script.
+> If the problem persists, ssh into the headnode, and run the same commands as the `ubuntu` user. Legacy `dyinit` may still exist as a compatibility shim on older clusters, but the supported flow is the CLI-owned headnode init hook above.
 
 ### Confirm Headnode /fsx/ Directory Structure
 
