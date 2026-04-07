@@ -26,10 +26,8 @@ daylily-ec info
 daylily-ec resources-dir
 ```
 
-If you use the checkout `activate` wrapper, it now expects the published
-`daylily-ec` command to be available on `PATH` or inside the active `DAY-EC`
-conda environment. It no longer falls back to `python -m daylily_ec` from the
-repository checkout.
+For a repo checkout, use `source ./activate` as the canonical local flow.
+For a pip install, call `daylily-ec` directly from the virtual environment.
 
 ## Packaged Resources
 

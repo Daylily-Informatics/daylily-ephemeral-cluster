@@ -2,14 +2,16 @@
 
 from __future__ import annotations
 
+import importlib.util
 from pathlib import Path
+import sys
+import types
 from unittest.mock import MagicMock, patch
 
 import pytest
 import yaml
 from typer.testing import CliRunner
 
-from daylily_ec.cli import app
 from daylily_ec.workflow.export_data import ExportOptions, _normalise_target, run_export_workflow
 
 runner = CliRunner()
@@ -28,6 +30,38 @@ def _filesystem(export_path: str = "s3://bucket/exports") -> dict[str, object]:
 
 
 class TestExportHelpers:
+    def test_export_module_imports_with_missing_botocoreerror(self):
+        source_path = Path(__file__).resolve().parents[1] / "daylily_ec" / "workflow" / "export_data.py"
+        module_name = "tests.export_data_missing_botocoreerror"
+        module_spec = importlib.util.spec_from_file_location(module_name, source_path)
+        assert module_spec is not None
+        assert module_spec.loader is not None
+
+        export_data = importlib.util.module_from_spec(module_spec)
+        fake_botocore = types.ModuleType("botocore")
+        fake_botocore.__path__ = []  # type: ignore[attr-defined]
+        fake_exceptions = types.ModuleType("botocore.exceptions")
+
+        class FakeClientError(Exception):
+            pass
+
+        fake_exceptions.ClientError = FakeClientError
+        fake_botocore.exceptions = fake_exceptions
+
+        with patch.dict(
+            sys.modules,
+            {
+                module_name: export_data,
+                "botocore": fake_botocore,
+                "botocore.exceptions": fake_exceptions,
+            },
+        ):
+            module_spec.loader.exec_module(export_data)
+
+        assert export_data.ClientError is FakeClientError
+        assert export_data.BotoCoreError is Exception
+        assert export_data.ExportOptions
+
     def test_normalise_relative_target(self):
         relative_path, s3_uri = _normalise_target(_filesystem(), "/analysis_results/run-1")
         assert relative_path == "analysis_results/run-1"
@@ -100,6 +134,8 @@ class TestExportWorkflow:
 
 class TestExportCli:
     def test_cli_export_passes_options(self, tmp_path, monkeypatch):
+        from daylily_ec.cli import app
+
         _activate_dayec_runtime(monkeypatch)
         with (
             patch("daylily_ec.workflow.export_data.configure_logging") as mock_logging,

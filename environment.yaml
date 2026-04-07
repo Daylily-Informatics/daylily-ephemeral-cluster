@@ -22,6 +22,7 @@ dependencies:
   - fd-find
   - graphviz
   - yq
+  - setuptools<81
   - pip:
     - git+https://github.com/Daylily-Informatics/snakemake.git@7.25.0a112
     - wrapt

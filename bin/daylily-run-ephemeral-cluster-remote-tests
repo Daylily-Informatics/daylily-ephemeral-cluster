@@ -196,7 +196,7 @@ if [[ "$REPLY" == "y" ]]; then
     session_name="cluster_test_$(date +%s)"  
     ssh -t -i "$pem_file" ubuntu@"$cluster_ip_address" -o StrictHostKeyChecking=no -o UserKnownHostsFile=/dev/null \
         "tmux new-session -d -s \"$session_name\" \
-        \"bash -c 'source ~/.bashrc && cd /fsx/analysis_results/ubuntu/daylily_remote_test/daylily-omics-analysis && source dyinit && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=true ./bin/day_run produce_snv_concordances -p -k -j 2 --config aligners=[\\\"strobe\\\",\\\"bwa2a\\\"] dedupers=[\\\"dppl\\\"] genome_build=\\\"hg38\\\" snv_callers=[\\\"deep\\\"]; bash'\"" && \
+        \"bash -c 'source ~/.bashrc && source ~/projects/daylily-ephemeral-cluster/activate && eval \"\\\$(daylily-ec headnode init --emit-shell --non-interactive)\" && cd /fsx/analysis_results/ubuntu/daylily_remote_test/daylily-omics-analysis && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=true ./bin/day_run produce_snv_concordances -p -k -j 2 --config aligners=[\\\"strobe\\\",\\\"bwa2a\\\"] dedupers=[\\\"dppl\\\"] genome_build=\\\"hg38\\\" snv_callers=[\\\"deep\\\"]; bash'\"" && \
 
     echo "Tmux session >>> '$session_name' <<< started on the remote server."
     echo "You can monitor the session using the following command:"

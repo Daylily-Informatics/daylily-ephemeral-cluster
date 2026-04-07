@@ -8,7 +8,7 @@ Usage: install-daylily-headnode-tools [-h|--help]
 Installs a small set of Daylily helper assets on a ParallelCluster head node:
   - Copies daylily CLI config files into ~/.config/daylily
   - Installs the `day-clone` helper into /usr/local/bin (if possible) and ~/.local/bin
-  - Optionally runs `install_miniconda` and `init_dayec` from the packaged resources
+  - Boots the local checkout with `source ./activate` and emits the headnode shell context
 
 This script is safe to run from any working directory as long as the
 daylily-ephemeral-cluster package is installed (or DAYLILY_EC_RESOURCES_DIR is set).
@@ -62,7 +62,65 @@ fi
 
 cd "$REPO_ROOT" || echo "Failed to cd to $REPO_ROOT" >&2
 "$REPO_ROOT/bin/install_miniconda" || echo "failed to install miniconda"
-"$REPO_ROOT/bin/init_dayec" || echo "failed to install day-ec"
+
+if [[ -f "$REPO_ROOT/activate" ]]; then
+    # shellcheck source=/dev/null
+    source "$REPO_ROOT/activate"
+    if command -v daylily-ec >/dev/null 2>&1; then
+        eval "$(daylily-ec headnode init --emit-shell --non-interactive)" || echo "failed to emit headnode shell context" >&2
+    else
+        echo "Warning: daylily-ec is not available after sourcing $REPO_ROOT/activate" >&2
+    fi
+else
+    echo "Warning: missing activate script at $REPO_ROOT/activate; skipping headnode bootstrap." >&2
+fi
+
+install_managed_login_block() {
+    local target_file="$1"
+
+    mkdir -p "$(dirname "$target_file")"
+    touch "$target_file"
+
+    if grep -qF "# >>> daylily headnode bootstrap >>>" "$target_file"; then
+        return 0
+    fi
+
+    cat >>"$target_file" <<'EOF'
+
+# >>> daylily headnode bootstrap >>>
+daylily_headnode_bootstrap() {
+    local repo_root="$HOME/projects/daylily-ephemeral-cluster"
+    local activate_script="$repo_root/activate"
+
+    if [[ "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" == "1" ]]; then
+        return 0
+    fi
+    export DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1
+
+    if [[ ! -f "$activate_script" ]]; then
+        echo "Warning: missing Daylily activate script at $activate_script" >&2
+        return 0
+    fi
+
+    # shellcheck source=/dev/null
+    source "$activate_script"
+
+    if command -v daylily-ec >/dev/null 2>&1; then
+        eval "$(daylily-ec headnode init --emit-shell --non-interactive)" || \
+            echo "Warning: daylily-ec headnode init bootstrap failed" >&2
+    else
+        echo "Warning: daylily-ec is not available after sourcing $activate_script" >&2
+    fi
+}
+
+daylily_headnode_bootstrap
+unset -f daylily_headnode_bootstrap
+# <<< daylily headnode bootstrap <<<
+EOF
+}
+
+install_managed_login_block "$HOME/.bashrc"
+install_managed_login_block "$HOME/.bash_profile"
 
 reference_bucket=$(awk '/^[[:space:]]*Script: s3:/{match($0,/s3:\\/\\/([^/]+)/,a); print a[1]; exit}' /opt/parallelcluster/shared/cluster-config.yaml) || echo "failed to set ref bucket"
 sed -i "s|<REF-BUCKET-NAME>|$reference_bucket|g"  "$REPO_ROOT/etc/analysis_samples_template.tsv" || echo "failed to regsub anasamptemp.tsv"

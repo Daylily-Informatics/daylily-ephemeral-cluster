@@ -7,13 +7,14 @@
 From a repo checkout:
 
 ```bash
-./bin/init_dayec
 source ./activate
 ```
 
-`./bin/init_dayec` reads [`../config/day/daycli.yaml`](../config/day/daycli.yaml), creates or updates the `DAY-EC` conda environment, and installs `daylily-ephemeral-cluster` into it.
+`source ./activate` is the supported checkout-friendly entrypoint. It bootstraps or activates `DAY-EC`, prepends [`../bin/`](../bin/) to `PATH`, and makes `daylily-ec` available in the current shell.
 
-`source ./activate` is the lightweight activation step from a checkout. It activates `DAY-EC` when that conda environment exists, prepends [`../bin/`](../bin/) to `PATH`, and makes `daylily-ec` available in the current shell.
+If you need to force a rebuild or run the lower-level bootstrap helper directly, use `./bin/init_dayec` explicitly.
+
+On bootstrapped headnodes, the managed login shell should source `~/projects/daylily-ephemeral-cluster/activate` and then evaluate `daylily-ec headnode init --emit-shell --non-interactive` to populate the headnode shell context.
 
 Useful `init_dayec` environment variables:
 
@@ -60,7 +61,6 @@ Avoid hard-coding expected test counts into docs; use `pytest --collect-only` wh
 
 ```bash
 ./bin/install_miniconda
-./bin/init_dayec
 source ./activate
 ```
 
@@ -89,7 +89,6 @@ export DAYLILY_EC_RESOURCES_DIR=/path/to/override-root
 If `daylily-omics-references` is not available after activation, re-run:
 
 ```bash
-./bin/init_dayec
 source ./activate
 ```
 

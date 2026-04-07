@@ -19,8 +19,7 @@ For active operator workflows, use:
 ## Local Setup
 
 ```bash
-./bin/init_dayec
-conda activate DAY-EC
+source ./activate
 ```
 
 ## Sanity Checks

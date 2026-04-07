@@ -5,10 +5,19 @@ structured Python package for creating and managing ephemeral AWS
 ParallelCluster environments for bioinformatics workloads.
 """
 
+from __future__ import annotations
+
 from daylily_ec.versioning import get_version
 
 __version__ = get_version()
 
-from daylily_ec.create import create_cluster
+
+def __getattr__(name: str):
+    if name == "create_cluster":
+        from daylily_ec.create import create_cluster
+
+        return create_cluster
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = ["__version__", "create_cluster"]

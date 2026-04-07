@@ -32,6 +32,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         ["export"],
         ["resources-dir"],
         ["cluster-info"],
+        ["headnode", "init"],
         ["pricing", "snapshot"],
     ):
         assert registry.resolve_command_args(argv) is not None
@@ -42,6 +43,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     delete_cmd = registry.get_command(("delete",))
     export_cmd = registry.get_command(("export",))
     cluster_info_cmd = registry.get_command(("cluster-info",))
+    headnode_init_cmd = registry.get_command(("headnode", "init"))
     pricing_snapshot_cmd = registry.get_command(("pricing", "snapshot"))
 
     assert version_cmd is not None
@@ -62,6 +64,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
 
     assert cluster_info_cmd is not None
     assert cluster_info_cmd.policy.supports_json is True
+
+    assert headnode_init_cmd is not None
+    assert headnode_init_cmd.policy.mutates_state is True
+    assert headnode_init_cmd.policy.interactive is True
 
     assert pricing_snapshot_cmd is not None
     assert pricing_snapshot_cmd.policy.supports_json is True

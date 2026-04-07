@@ -35,6 +35,8 @@ The intended operator loop is:
 
 That operational sequence is why Daylily ships a Python CLI as the canonical operator interface, with `bin/` helpers retained only as compatibility wrappers where practical.
 
+For local checkout work, `source ./activate` is the canonical entrypoint. On bootstrapped headnodes, the login shell should source `~/projects/daylily-ephemeral-cluster/activate` and then evaluate `daylily-ec headnode init --emit-shell --non-interactive` to restore the shell context the headnode expects.
+
 ## Pluggable Workflow Catalog
 
 The repo already carries a small workflow registry:
