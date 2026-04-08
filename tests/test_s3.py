@@ -2,10 +2,12 @@
 
 from __future__ import annotations
 
+import io
 from unittest.mock import MagicMock, patch
 
 from daylily_ec.aws.s3 import (
     BUCKET_NAME_FILTER,
+    CORE_REFERENCE_PREFIXES,
     _resolve_bucket_region,
     bucket_url,
     list_candidate_buckets,
@@ -56,6 +58,34 @@ def _make_aws_ctx(
     ctx.region = region
     ctx.client = MagicMock(return_value=s3_client)
     return ctx
+
+
+def _make_reference_s3_client(
+    *,
+    bucket_exists: bool = True,
+    version: str | None = "0.7.131c",
+    missing_prefixes: set[str] | None = None,
+):
+    client = MagicMock()
+    if bucket_exists:
+        client.head_bucket.return_value = {}
+    else:
+        client.head_bucket.side_effect = Exception("missing bucket")
+
+    if version is None:
+        client.get_object.side_effect = Exception("missing version marker")
+    else:
+        client.get_object.return_value = {"Body": io.BytesIO(version.encode("utf-8"))}
+
+    missing = missing_prefixes or set()
+
+    def fake_list_objects_v2(*, Bucket: str, Prefix: str, MaxKeys: int):
+        if Prefix in missing:
+            return {}
+        return {"Contents": [{"Key": f"{Prefix}example"}]}
+
+    client.list_objects_v2.side_effect = fake_list_objects_v2
+    return client
 
 
 # ---------------------------------------------------------------------------
@@ -234,48 +264,39 @@ class TestSelectBucket:
 
 
 class TestVerifyReferenceBundle:
-    @patch("daylily_ec.aws.s3.shutil.which", return_value="/usr/bin/fake")
-    @patch("daylily_ec.aws.s3.subprocess.run")
-    def test_success(self, mock_run, mock_which):
-        mock_run.return_value = MagicMock(returncode=0)
-        assert verify_reference_bundle("my-bucket", profile="prof", region="us-west-2")
-        mock_run.assert_called_once()
-        cmd = mock_run.call_args[0][0]
-        assert "verify" in cmd
-        assert "--bucket" in cmd
-        assert "my-bucket" in cmd
-        assert "--exclude-b37" in cmd
-        assert "--profile" in cmd
-        assert "prof" in cmd
-        assert "--region" in cmd
-        assert "us-west-2" in cmd
+    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    def test_success(self, mock_client_factory):
+        mock_client_factory.return_value = _make_reference_s3_client()
 
-    @patch("daylily_ec.aws.s3.shutil.which", return_value="/usr/bin/fake")
-    @patch("daylily_ec.aws.s3.subprocess.run")
-    def test_failure(self, mock_run, mock_which):
-        mock_run.return_value = MagicMock(returncode=1, stderr="bad", stdout="")
+        assert verify_reference_bundle("my-bucket", profile="prof", region="us-west-2")
+        mock_client_factory.assert_called_once_with(profile="prof", region="us-west-2")
+
+    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    def test_failure_when_required_prefix_missing(self, mock_client_factory):
+        mock_client_factory.return_value = _make_reference_s3_client(
+            missing_prefixes={CORE_REFERENCE_PREFIXES[0]},
+        )
+
         assert not verify_reference_bundle("bad-bucket")
 
-    @patch("daylily_ec.aws.s3.shutil.which", return_value=None)
-    def test_missing_command(self, mock_which):
+    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    def test_failure_when_version_marker_missing(self, mock_client_factory):
+        mock_client_factory.return_value = _make_reference_s3_client(version=None)
+
         assert not verify_reference_bundle("any-bucket")
 
-    @patch("daylily_ec.aws.s3.shutil.which", return_value="/usr/bin/fake")
-    @patch("daylily_ec.aws.s3.subprocess.run")
-    def test_timeout(self, mock_run, mock_which):
-        import subprocess as sp
+    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    def test_failure_when_bucket_missing(self, mock_client_factory):
+        mock_client_factory.return_value = _make_reference_s3_client(bucket_exists=False)
 
-        mock_run.side_effect = sp.TimeoutExpired(cmd="x", timeout=300)
         assert not verify_reference_bundle("bucket")
 
-    @patch("daylily_ec.aws.s3.shutil.which", return_value="/usr/bin/fake")
-    @patch("daylily_ec.aws.s3.subprocess.run")
-    def test_no_profile_no_region(self, mock_run, mock_which):
-        mock_run.return_value = MagicMock(returncode=0)
+    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    def test_no_profile_no_region(self, mock_client_factory):
+        mock_client_factory.return_value = _make_reference_s3_client()
+
         verify_reference_bundle("bucket")
-        cmd = mock_run.call_args[0][0]
-        assert "--profile" not in cmd
-        assert "--region" not in cmd
+        mock_client_factory.assert_called_once_with(profile="", region="")
 
 
 # ---------------------------------------------------------------------------
@@ -297,11 +318,9 @@ class TestBucketUrl:
 
 
 class TestMakeS3BucketPreflightStep:
-    @patch("daylily_ec.aws.s3.shutil.which", return_value="/usr/bin/fake")
-    @patch("daylily_ec.aws.s3.subprocess.run")
-    def test_full_success(self, mock_run, mock_which):
+    @patch("daylily_ec.aws.s3.verify_reference_bundle", return_value=True)
+    def test_full_success(self, mock_verify):
         """Happy path: single bucket found, verified, PASS."""
-        mock_run.return_value = MagicMock(returncode=0)
         ctx = _make_aws_ctx(
             buckets=["prod-omics-analysis-usw2"],
             locations={"prod-omics-analysis-usw2": "us-west-2"},
@@ -349,11 +368,9 @@ class TestMakeS3BucketPreflightStep:
         assert report.checks[0].status == CheckStatus.FAIL
         assert "auto-selected" in report.checks[0].remediation
 
-    @patch("daylily_ec.aws.s3.shutil.which", return_value="/usr/bin/fake")
-    @patch("daylily_ec.aws.s3.subprocess.run")
-    def test_verification_failure_hard_gate(self, mock_run, mock_which):
+    @patch("daylily_ec.aws.s3.verify_reference_bundle", return_value=False)
+    def test_verification_failure_hard_gate(self, mock_verify):
         """Verification failure → FAIL (hard gate)."""
-        mock_run.return_value = MagicMock(returncode=1, stderr="err", stdout="")
         ctx = _make_aws_ctx(
             buckets=["omics-analysis-bucket"],
             locations={"omics-analysis-bucket": "us-west-2"},
@@ -368,11 +385,9 @@ class TestMakeS3BucketPreflightStep:
         assert report.checks[1].status == CheckStatus.FAIL
         assert not report.passed
 
-    @patch("daylily_ec.aws.s3.shutil.which", return_value="/usr/bin/fake")
-    @patch("daylily_ec.aws.s3.subprocess.run")
-    def test_config_set_value_selection(self, mock_run, mock_which):
+    @patch("daylily_ec.aws.s3.verify_reference_bundle", return_value=True)
+    def test_config_set_value_selection(self, mock_verify):
         """Config set_value selects correct bucket from multiple."""
-        mock_run.return_value = MagicMock(returncode=0)
         ctx = _make_aws_ctx(
             buckets=["a-omics-analysis", "b-omics-analysis"],
             locations={
@@ -391,11 +406,9 @@ class TestMakeS3BucketPreflightStep:
         assert report.checks[0].details["selected"] == "b-omics-analysis"
         assert report.passed
 
-    @patch("daylily_ec.aws.s3.shutil.which", return_value="/usr/bin/fake")
-    @patch("daylily_ec.aws.s3.subprocess.run")
-    def test_preserves_existing_checks(self, mock_run, mock_which):
+    @patch("daylily_ec.aws.s3.verify_reference_bundle", return_value=True)
+    def test_preserves_existing_checks(self, mock_verify):
         """Step preserves checks already in the report."""
-        mock_run.return_value = MagicMock(returncode=0)
         ctx = _make_aws_ctx(
             buckets=["omics-analysis-x"],
             locations={"omics-analysis-x": "us-west-2"},
@@ -410,11 +423,9 @@ class TestMakeS3BucketPreflightStep:
         assert len(report.checks) == 3
         assert report.checks[0].id == "prior.check"
 
-    @patch("daylily_ec.aws.s3.shutil.which", return_value="/usr/bin/fake")
-    @patch("daylily_ec.aws.s3.subprocess.run")
-    def test_uses_report_region(self, mock_run, mock_which):
+    @patch("daylily_ec.aws.s3.verify_reference_bundle", return_value=True)
+    def test_uses_report_region(self, mock_verify):
         """Step uses report.region, not aws_ctx.region."""
-        mock_run.return_value = MagicMock(returncode=0)
         ctx = _make_aws_ctx(
             buckets=["omics-analysis-eu"],
             locations={"omics-analysis-eu": "eu-west-1"},

@@ -39,7 +39,6 @@ The exact dependency set lives in [`../config/day/daycli.yaml`](../config/day/da
 - Python 3.11
 - AWS CLI v2
 - `aws-parallelcluster`
-- `daylily-omics-references`
 - `pytest`, `mypy`, and related dev tooling
 - common operator utilities such as `jq`, `yq`, and `rclone`
 
@@ -86,13 +85,10 @@ If you need to point the CLI at a custom resource tree:
 export DAYLILY_EC_RESOURCES_DIR=/path/to/override-root
 ```
 
-### The Reference CLI Is Missing
+### Reference Bucket Tooling
 
-If `daylily-omics-references` is not available after activation, re-run:
-
-```bash
-source ./activate
-```
+Reference-bucket cloning lives in the separate `daylily-omics-references` project. `DAY-EC`
+only needs the bucket to exist and verifies the layout directly during preflight/create flows.
 
 ## Common Environment Variables
 

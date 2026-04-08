@@ -47,7 +47,8 @@ daylily-ec version
 
 ## 3. Create The Region Reference Bucket
 
-Daylily expects a reference bucket in the target region. Use the installed `daylily-omics-references` CLI directly.
+Daylily expects a reference bucket in the target region. Use the separate
+`daylily-omics-references` tool to seed that bucket before running `daylily-ec create`.
 
 ```bash
 export AWS_PROFILE=daylily-service

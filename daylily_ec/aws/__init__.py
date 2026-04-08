@@ -84,7 +84,6 @@ from daylily_ec.aws.quotas import (
 )
 from daylily_ec.aws.s3 import (
     BUCKET_NAME_FILTER,
-    VERIFY_CMD,
     bucket_url,
     list_candidate_buckets,
     make_s3_bucket_preflight_step,
@@ -147,7 +146,6 @@ __all__ = [
     "SubnetInfo",
     "TAGS_AND_BUDGET_POLICY_NAME",
     "TAGS_FILE_S3_SUFFIX",
-    "VERIFY_CMD",
     "VPC_CIDR",
     "apply_spot_prices",
     "apply_spot_to_queue",

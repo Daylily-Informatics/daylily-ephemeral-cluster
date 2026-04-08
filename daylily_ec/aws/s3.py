@@ -8,7 +8,7 @@ Preserves exact Bash behaviour:
    (``LocationConstraint=None`` → ``us-east-1``).
 4. Keep only buckets matching the target region.
 5. Auto-select based on config triplet / single-match / config fallback.
-6. Verify via ``daylily-omics-references.sh verify --bucket <b> --exclude-b37``.
+6. Verify via direct boto3 checks against the expected reference-bucket layout.
 7. Hard-gate: FAIL if verification fails — never allow pcluster create.
 
 Public API
@@ -22,10 +22,9 @@ Public API
 from __future__ import annotations
 
 import logging
-import shutil
-import subprocess
 from typing import Any, List, Optional
 
+import boto3
 import typer
 
 from daylily_ec.config.triplets import is_auto_select_disabled, should_auto_apply
@@ -129,12 +128,60 @@ def select_bucket(
 # Reference bundle verification
 # ---------------------------------------------------------------------------
 
-VERIFY_CMD = "daylily-omics-references"
-
-VERIFY_CMDS = (
-    "daylily-omics-references",
-    "daylily-omics-references.sh",
+REFERENCE_VERSION_KEY = "s3_reference_data_version.info"
+DEFAULT_REFERENCE_VERSION = "0.7.131c"
+CORE_REFERENCE_PREFIXES = (
+    "cluster_boot_config/",
+    "data/cached_envs/",
+    "data/tool_specific_resources/",
+    "data/budget_tags/",
 )
+HG38_REFERENCE_PREFIXES = (
+    "data/genomic_data/organism_references/H_sapiens/hg38/",
+    "data/genomic_data/organism_annotations/H_sapiens/hg38/",
+)
+GIAB_REFERENCE_PREFIXES = (
+    "data/genomic_data/organism_reads/",
+)
+REQUIRED_REFERENCE_PREFIXES = (
+    *CORE_REFERENCE_PREFIXES,
+    *HG38_REFERENCE_PREFIXES,
+    *GIAB_REFERENCE_PREFIXES,
+)
+
+
+def _reference_bucket_s3_client(*, profile: str = "", region: str = "") -> Any:
+    session = boto3.session.Session(
+        profile_name=profile or None,
+        region_name=region or None,
+    )
+    return session.client("s3")
+
+
+def _reference_bucket_exists(s3_client: Any, bucket_name: str) -> bool:
+    try:
+        s3_client.head_bucket(Bucket=bucket_name)
+    except Exception:
+        return False
+    return True
+
+
+def _read_reference_bucket_version(s3_client: Any, bucket_name: str) -> Optional[str]:
+    try:
+        response = s3_client.get_object(Bucket=bucket_name, Key=REFERENCE_VERSION_KEY)
+    except Exception:
+        return None
+
+    body = response.get("Body")
+    if body is None:
+        return None
+
+    return body.read().decode("utf-8").strip()
+
+
+def _reference_prefix_exists(s3_client: Any, bucket_name: str, prefix: str) -> bool:
+    response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix, MaxKeys=1)
+    return "Contents" in response and bool(response["Contents"])
 
 
 def verify_reference_bundle(
@@ -143,42 +190,45 @@ def verify_reference_bundle(
     profile: str = "",
     region: str = "",
 ) -> bool:
-    """Run ``daylily-omics-references verify`` and return success.
+    """Verify the selected reference bucket and return success.
 
-    Matches Bash::
+    Matches the previously delegated `daylily-omics-references verify
+    --exclude-b37` contract by checking:
 
-        daylily-omics-references.sh --profile "$AWS_PROFILE" --region "$region" \\
-            verify --bucket "$selected_bucket" --exclude-b37
+    - the bucket exists
+    - the version marker matches :data:`DEFAULT_REFERENCE_VERSION`
+    - all required non-b37 prefixes have at least one object
     """
-    verify_cmd = next((c for c in VERIFY_CMDS if shutil.which(c)), "")
-    if not verify_cmd:
-        logger.error(
-            "daylily-omics-references CLI not found on PATH. Install with: "
-            'pip install "daylily-omics-references==0.3.3"',
-        )
-        return False
-
-    cmd: List[str] = [verify_cmd]
-    if profile:
-        cmd.extend(["--profile", profile])
-    if region:
-        cmd.extend(["--region", region])
-    cmd.extend(["verify", "--bucket", bucket_name, "--exclude-b37"])
-
-    logger.info("Verifying reference bundle: %s", " ".join(cmd))
     try:
-        result = subprocess.run(cmd, capture_output=True, text=True, timeout=300)
-        if result.returncode == 0:
-            return True
-        logger.error(
-            "Reference verification failed (exit %d): %s",
-            result.returncode,
-            result.stderr.strip() or result.stdout.strip(),
-        )
-        return False
-    except subprocess.TimeoutExpired:
-        logger.error("Reference verification timed out after 300s")
-        return False
+        s3_client = _reference_bucket_s3_client(profile=profile, region=region)
+        if not _reference_bucket_exists(s3_client, bucket_name):
+            logger.error("Reference verification failed: bucket %s does not exist.", bucket_name)
+            return False
+
+        issues: List[str] = []
+
+        bucket_version = _read_reference_bucket_version(s3_client, bucket_name)
+        if bucket_version is None:
+            issues.append("missing version marker")
+        elif bucket_version != DEFAULT_REFERENCE_VERSION:
+            issues.append(
+                "version mismatch "
+                f"(expected {DEFAULT_REFERENCE_VERSION}, found {bucket_version})"
+            )
+
+        for prefix in REQUIRED_REFERENCE_PREFIXES:
+            if not _reference_prefix_exists(s3_client, bucket_name, prefix):
+                issues.append(f"missing objects under {prefix}")
+
+        if issues:
+            logger.error(
+                "Reference verification failed for %s: %s",
+                bucket_name,
+                "; ".join(issues),
+            )
+            return False
+
+        return True
     except Exception as exc:
         logger.error("Reference verification error: %s", exc)
         return False
@@ -321,9 +371,10 @@ def make_s3_bucket_preflight_step(
                     status=CheckStatus.FAIL,
                     details={"bucket": selected, "verified": False},
                     remediation=(
-                        f"Reference bundle verification failed for "
-                        f"bucket '{selected}'. Run: {VERIFY_CMD} "
-                        f"verify --bucket {selected} --exclude-b37"
+                        f"Reference bundle verification failed for bucket '{selected}'. "
+                        "Confirm the bucket contains "
+                        f"{REFERENCE_VERSION_KEY}={DEFAULT_REFERENCE_VERSION} and the "
+                        "expected Daylily reference prefixes."
                     ),
                 )
             )
