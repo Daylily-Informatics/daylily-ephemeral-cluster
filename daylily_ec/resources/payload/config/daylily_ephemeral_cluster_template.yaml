@@ -1,6 +1,5 @@
 ephemeral_cluster:
   config:
-    ssh_key_name: [PROMPTUSER, "", ""]           # dynamic list; default blank forces selection
     s3_bucket_name: [PROMPTUSER, "", ""]
     public_subnet_id: [PROMPTUSER, "", ""]
     private_subnet_id: [PROMPTUSER, "", ""]

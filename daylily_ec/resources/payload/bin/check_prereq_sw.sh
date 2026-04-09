@@ -82,4 +82,18 @@ for entry in "${required_versions[@]}"; do
     esac
 done
 
+required_commands=(
+    "aws"
+    "pcluster"
+    "session-manager-plugin"
+)
+
+for cmd in "${required_commands[@]}"; do
+    if ! command -v "$cmd" >/dev/null 2>&1; then
+        echo "Error: $cmd is not installed."
+        [[ "$pass_on_warn" -eq 1 ]] && continue || exit 1
+    fi
+    echo "$cmd is installed."
+done
+
 echo "All tools meet the required versions."

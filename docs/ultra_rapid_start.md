@@ -32,19 +32,12 @@ S3_BUCKET_NAME="${S3_BUCKET_URL#s3://}"
 S3_BUCKET_NAME="${S3_BUCKET_NAME%%/*}"
 S3_BUCKET_URL="s3://${S3_BUCKET_NAME}"
 
-while [ -z "${PEM_PATH:-}" ]; do
-  printf 'SSH PEM path: '
-  read -r PEM_PATH
-  PEM_PATH="${PEM_PATH/#\~/$HOME}"
-done
-SSH_KEY_NAME="$(basename "$PEM_PATH" .pem)"
-
 while [ -z "${DAY_CONTACT_EMAIL:-}" ]; do
   printf 'Budget / heartbeat email: '
   read -r DAY_CONTACT_EMAIL
 done
 
-export AWS_PROFILE REGION REGION_AZ CLUSTER_NAME S3_BUCKET_URL S3_BUCKET_NAME PEM_PATH SSH_KEY_NAME DAY_CONTACT_EMAIL
+export AWS_PROFILE REGION REGION_AZ CLUSTER_NAME S3_BUCKET_URL S3_BUCKET_NAME DAY_CONTACT_EMAIL
 export REPO_DIR=daylily-ephemeral-cluster
 
 if [ -f ./activate ] && [ -f ./environment.yaml ]; then
@@ -70,7 +63,6 @@ cfg = load_config(os.environ["DAY_EX_CFG"])
 updates = {
     "cluster_name": os.environ["CLUSTER_NAME"],
     "s3_bucket_name": os.environ["S3_BUCKET_NAME"],
-    "ssh_key_name": os.environ["SSH_KEY_NAME"],
     "budget_email": os.environ["DAY_CONTACT_EMAIL"],
     "heartbeat_email": os.environ["DAY_CONTACT_EMAIL"],
 }
@@ -122,10 +114,8 @@ export REGION=us-west-2
 export REGION_AZ=us-west-2d
 export CLUSTER_NAME=daylily-demo-cluster
 export S3_BUCKET_URL=s3://daylily-service-omics-analysis-us-west-2
-export PEM_PATH="$HOME/.ssh/daylily-omics-analysis-us-west-2.pem"
 export S3_BUCKET_NAME="${S3_BUCKET_URL#s3://}"
 export S3_BUCKET_NAME="${S3_BUCKET_NAME%%/*}"
-export SSH_KEY_NAME="$(basename "$PEM_PATH" .pem)"
 ```
 
 ## Check Pricing First
@@ -146,14 +136,12 @@ daylily-ec preflight --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config 
 daylily-ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
 ```
 
-The real SSH command is also printed by `daylily-ec create` at the end of a successful run.
+The Session Manager connect command is also printed by `daylily-ec create` at the end of a successful run.
 
-## SSH Into The Headnode
-
-Hypothetical example IP:
+## Connect To The Headnode
 
 ```bash
-ssh -i "$PEM_PATH" ubuntu@54.218.10.25
+bin/daylily-ssh-into-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
 ## Check Cluster Info

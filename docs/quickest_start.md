@@ -17,7 +17,7 @@ Create or reuse an IAM operator identity, typically `daylily-service`, and make 
 The repo ships the custom cluster policy at [`../config/aws/daylily-service-cluster-policy.json`](../config/aws/daylily-service-cluster-policy.json). The current operator docs assume:
 
 - a CLI profile named `daylily-service`
-- a PEM key for the target region stored in `~/.ssh/`
+- the local `session-manager-plugin` is installed for headnode access
 - a region-specific reference bucket whose name includes `omics-analysis`
 
 Minimal AWS CLI profile example:
@@ -97,7 +97,6 @@ Recommended keys to fill in before the first run:
 
 Optional if you want fewer prompts:
 
-- `ssh_key_name`
 - `public_subnet_id`
 - `private_subnet_id`
 - `iam_policy_arn`
@@ -160,17 +159,14 @@ After a successful run:
 Typical successful ending:
 
 ```text
-ssh -i ~/.ssh/<keypair>.pem ubuntu@<headnode-ip>
+daylily-ssh-into-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster "<cluster-name>"
 ...fin!
 ```
 
-If the headnode IP is not available yet, the connection hint falls back to:
+If the cluster comes up but the head-node bootstrap needs to be re-run, use the laptop-side helper:
 
-```text
-pcluster describe-cluster -n <cluster-name> --region <region>
-...fin!
+```bash
+./bin/daylily-cfg-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster "<cluster-name>"
 ```
-
-If the cluster comes up but the head-node bootstrap needs to be re-run, SSH to the headnode and re-run the bootstrap manually or use the `daylily-ec` CLI from your laptop.
 
 On a healthy headnode, the login shell should perform the same activation and shell initialization automatically by sourcing `~/projects/daylily-ephemeral-cluster/activate` and evaluating `daylily-ec headnode init --emit-shell --non-interactive`.

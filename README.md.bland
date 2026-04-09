@@ -273,7 +273,6 @@ Recommended keys to fill in before the first run:
 
 Optional if you want fewer prompts:
 
-- `ssh_key_name`
 - `public_subnet_id`
 - `private_subnet_id`
 - `iam_policy_arn`
@@ -386,10 +385,13 @@ daylily-ec cluster-info --region "$REGION" --profile "$AWS_PROFILE"
 SSH to the head node:
 
 ```bash
-ssh -i ~/.ssh/<your-key>.pem ubuntu@<headnode-ip>
+./bin/daylily-ssh-into-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
 ```
 
-Use `daylily-ec cluster-info` or `pcluster describe-cluster` to find the head-node public IP.
+This requires the local `session-manager-plugin`. If the session opens in a plain shell, run `sudo -iu ubuntu`.
 
 ### Validate The Head Node
 
@@ -446,7 +448,6 @@ Important details:
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --pem ~/.ssh/<your-key>.pem \
   --stage-base /fsx/data/staged_sample_data
 ```
 

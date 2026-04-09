@@ -10,13 +10,16 @@ List clusters in a region:
 daylily-ec cluster-info --region "$REGION" --profile "$AWS_PROFILE"
 ```
 
-SSH to the head node:
+Connect to the head node through Session Manager:
 
 ```bash
-ssh -i ~/.ssh/<your-key>.pem ubuntu@<headnode-ip>
+./bin/daylily-ssh-into-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
 ```
 
-Use `daylily-ec cluster-info` to find the public IP for the cluster you want to connect to.
+This requires the local `session-manager-plugin`. If the session opens in the wrong shell context, run `sudo -iu ubuntu`.
 
 ## Validate The Head Node
 
@@ -81,7 +84,6 @@ For data staged with the laptop-side helper above, point the launcher at the mat
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --pem ~/.ssh/<your-key>.pem \
   --stage-base /fsx/data/staged_sample_data
 ```
 
@@ -91,8 +93,7 @@ For data staged directly on the head node into `/fsx/staged_sample_data`, the de
 ./bin/daylily-run-omics-analysis-headnode \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --pem ~/.ssh/<your-key>.pem
+  --cluster "$CLUSTER_NAME"
 ```
 
 Useful launch flags:
@@ -103,7 +104,7 @@ Useful launch flags:
 - `--target`, `--jobs`, `--aligners`, `--dedupers`, `--snv-callers` to shape the run
 - `--dry-run` to emit the `dy-r` command without executing the full workload
 
-The launcher clones the workflow repository via `day-clone`, copies the staged config files into the repo, and starts the run inside a tmux session on the head node.
+The launcher clones the workflow repository via `day-clone`, copies the staged config files into the repo, and starts the run inside a tmux session on the head node. Reconnect with `./bin/daylily-ssh-into-headnode ...` and attach with `sudo -iu ubuntu tmux attach -t <session-name>`.
 
 ## Monitor Cluster And Workload State
 

@@ -55,7 +55,7 @@ The override directory must contain the Daylily `config/`, `etc/`, and `bin/` tr
 
 - AWS CLI v2 for commands that shell out to `aws`
 - `pcluster` CLI for cluster management commands (e.g. `daylily-ec cluster-info`)
-- `ssh` for connecting to head nodes
+- `session-manager-plugin` for interactive headnode sessions
 - a configured AWS profile when operating on real infrastructure
 
 If you want the managed conda workflow instead, use [`DAY_EC_ENVIRONMENT.md`](DAY_EC_ENVIRONMENT.md).

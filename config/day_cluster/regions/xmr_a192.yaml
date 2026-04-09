@@ -7,9 +7,6 @@ HeadNode:
     ElasticIp: true
     SubnetId: REGSUB_PUB_SUBNET  # subnet-018d25d2f208a83a2
   DisableSimultaneousMultithreading: false
-  Ssh:
-    KeyName: REGSUB_KEYNAME  # must be ed25519 for ubuntu
-    AllowedIps: "0.0.0.0/0" # SET THIS TO YOUR DESIRED FILTER 
   Dcv:
     Enabled: false
   LocalStorage:

@@ -290,63 +290,6 @@ def _resolve_config_value(
         typer.echo(f"{label} cannot be empty.")
 
 
-def _list_local_keypair_candidates(ec2_client: Any) -> List[str]:
-    """Return EC2 keypair names that also have a local PEM file."""
-    try:
-        resp = ec2_client.describe_key_pairs()
-    except Exception as exc:
-        logger.debug("Could not list key pairs: %s", exc)
-        return []
-
-    candidates: List[str] = []
-    for key in resp.get("KeyPairs", []):
-        key_name = str(key.get("KeyName", ""))
-        if not key_name:
-            continue
-        pem_path = Path.home() / ".ssh" / f"{key_name}.pem"
-        if pem_path.exists():
-            candidates.append(key_name)
-    return sorted(set(candidates))
-
-
-def _resolve_ssh_keypair(
-    cfg: Any,
-    *,
-    ec2_client: Any,
-    non_interactive: bool,
-) -> str:
-    """Resolve or prompt for the SSH keypair used by the cluster."""
-    from daylily_ec.config.triplets import get_effective_default, resolve_value
-
-    triplet = cfg.ephemeral_cluster.config.get("ssh_key_name")
-    configured = resolve_value(triplet) if triplet is not None else ""
-    default_value = get_effective_default(cfg, "ssh_key_name", "")
-    candidates = _list_local_keypair_candidates(ec2_client)
-
-    for candidate in [configured, default_value]:
-        if candidate and candidate in candidates:
-            return candidate
-
-    if len(candidates) == 1:
-        return candidates[0]
-
-    if non_interactive:
-        return ""
-
-    if candidates:
-        return _prompt_select("SSH keypair", candidates)
-
-    while True:
-        key_name = typer.prompt("SSH keypair name").strip()
-        if not key_name:
-            typer.echo("SSH keypair name cannot be empty.")
-            continue
-        pem_path = Path.home() / ".ssh" / f"{key_name}.pem"
-        if pem_path.exists():
-            return key_name
-        typer.echo(f"Missing local PEM file: {pem_path}")
-
-
 def _require_values(values: Dict[str, str]) -> Optional[str]:
     """Return an error message if any required values are blank."""
     missing = [label for label, value in values.items() if not value]
@@ -442,14 +385,16 @@ def _resolve_post_create_inputs(
 def _build_connection_command(
     cluster_name: str,
     *,
-    head_node_ip: str | None,
-    keypair: str,
     region: str,
+    profile: str,
 ) -> str:
     """Return the final connection/help command shown after create completes."""
-    if head_node_ip:
-        return f"ssh -i ~/.ssh/{keypair}.pem ubuntu@{head_node_ip}"
-    return f"pcluster describe-cluster -n {cluster_name} --region {region}"
+    return (
+        "daylily-ssh-into-headnode "
+        f"--profile {shlex.quote(profile)} "
+        f"--region {shlex.quote(region)} "
+        f"--cluster {shlex.quote(cluster_name)}"
+    )
 
 
 def _maybe_say_onward() -> None:
@@ -512,6 +457,7 @@ def run_create_workflow(
     )
     from daylily_ec.aws.quotas import make_quota_preflight_step
     from daylily_ec.aws.s3 import make_s3_bucket_preflight_step
+    from daylily_ec.aws.ssm import wait_for_ssm_online
     from daylily_ec.aws.spot_pricing import apply_spot_prices
     from daylily_ec.config.triplets import (
         get_effective_default,
@@ -706,16 +652,12 @@ def run_create_workflow(
     if not policy_arn and not non_interactive and policy_arns:
         policy_arn = _prompt_select("IAM policy ARN", policy_arns)
 
-    keypair = _resolve_ssh_keypair(
-        cfg, ec2_client=ec2, non_interactive=non_interactive,
-    )
     missing_resources = _require_values(
         {
             "bucket": bucket_name,
             "public subnet": public_subnet,
             "private subnet": private_subnet,
             "IAM policy ARN": policy_arn,
-            "SSH keypair": keypair,
         }
     )
     if missing_resources:
@@ -724,14 +666,13 @@ def run_create_workflow(
         return EXIT_VALIDATION_FAILURE
 
     logger.info(
-        "Resources: bucket=%s pub=%s priv=%s policy=%s key=%s",
-        bucket_name, public_subnet, private_subnet, policy_arn, keypair,
+        "Resources: bucket=%s pub=%s priv=%s policy=%s",
+        bucket_name, public_subnet, private_subnet, policy_arn,
     )
     ui.ok("Resources resolved")
     ui.detail("Bucket", bucket_name)
     ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
     ui.detail("Policy", policy_arn)
-    ui.detail("Keypair", keypair)
 
     # -- 4. PRE-CREATE: Prompt-only operational inputs -----------------------
     ui.phase("PRE-CREATE: BUDGETS & HEARTBEAT")
@@ -759,7 +700,6 @@ def run_create_workflow(
     substitutions: Dict[str, str] = {
         "REGSUB_REGION": aws_ctx.region,
         "REGSUB_PUB_SUBNET": public_subnet,
-        "REGSUB_KEYNAME": keypair,
         "REGSUB_S3_BUCKET_INIT": bucket_url,
         "REGSUB_S3_BUCKET_NAME": bucket_name,
         "REGSUB_S3_IAM_POLICY": policy_arn,
@@ -931,25 +871,37 @@ def run_create_workflow(
 
     # -- 8b. HEADNODE CONFIGURATION -------------------------------------------
     ui.phase("HEADNODE CONFIGURATION")
-    if monitor_result.head_node_ip:
-        ui.step("Configuring headnode ...")
-        headnode_ok = configure_headnode(
-            cluster_name=cluster_name,
-            head_node_ip=monitor_result.head_node_ip,
-            keypair=keypair,
-            region=aws_ctx.region,
+    if not monitor_result.head_node_instance_id:
+        logger.error("Head node instance id unavailable — cannot continue with SSM bootstrap.")
+        ui.fail("Head node instance id unavailable — cannot continue with SSM bootstrap")
+        return EXIT_AWS_FAILURE
+
+    ui.step("Waiting for headnode SSM registration ...")
+    try:
+        wait_for_ssm_online(
+            monitor_result.head_node_instance_id,
+            aws_ctx.region,
             profile=aws_ctx.profile,
-            repo_overrides=None,  # TODO: wire from config if needed
         )
-        if headnode_ok:
-            logger.info("Headnode configuration succeeded.")
-            ui.ok("Headnode configured")
-        else:
-            logger.warning("Headnode configuration failed (non-fatal).")
-            ui.warn("Headnode configuration failed (non-fatal)")
-    else:
-        logger.warning("Head node IP unavailable — skipping headnode configuration.")
-        ui.warn("Head node IP unavailable — skipping headnode config")
+    except Exception as exc:
+        logger.error("Head node did not become SSM-managed: %s", exc)
+        ui.fail(f"Head node did not become SSM-managed: {exc}")
+        return EXIT_AWS_FAILURE
+
+    ui.step("Configuring headnode ...")
+    headnode_ok = configure_headnode(
+        cluster_name=cluster_name,
+        head_node_instance_id=monitor_result.head_node_instance_id,
+        region=aws_ctx.region,
+        profile=aws_ctx.profile,
+        repo_overrides=None,  # TODO: wire from config if needed
+    )
+    if not headnode_ok:
+        logger.error("Headnode configuration failed.")
+        ui.fail("Headnode configuration failed")
+        return EXIT_AWS_FAILURE
+    logger.info("Headnode configuration succeeded.")
+    ui.ok("Headnode configured")
 
     # -- 9. POST-CREATE: Budgets (Phase 3a) -----------------------------------
     ui.phase("POST-CREATE: BUDGETS")
@@ -1031,7 +983,6 @@ def run_create_workflow(
     final_values: Dict[str, str] = {
         "cluster_name": cluster_name,
         "s3_bucket_name": bucket_name,
-        "ssh_key_name": keypair,
         "public_subnet_id": public_subnet,
         "private_subnet_id": private_subnet,
         "iam_policy_arn": policy_arn,
@@ -1056,7 +1007,7 @@ def run_create_workflow(
         aws_profile=aws_ctx.profile,
         account_id=aws_ctx.account_id,
         bucket=bucket_name,
-        keypair=keypair,
+        keypair="",
         public_subnet_id=public_subnet,
         private_subnet_id=private_subnet,
         policy_arn=policy_arn,
@@ -1087,9 +1038,8 @@ def run_create_workflow(
     typer.echo(
         _build_connection_command(
             cluster_name,
-            head_node_ip=monitor_result.head_node_ip,
-            keypair=keypair,
             region=aws_ctx.region,
+            profile=aws_ctx.profile,
         )
     )
     typer.echo("...fin!")
@@ -1098,98 +1048,24 @@ def run_create_workflow(
 
 
 # ---------------------------------------------------------------------------
-# Headnode configuration (wraps bin/daylily-cfg-headnode logic)
+# Headnode configuration (SSM-backed)
 # ---------------------------------------------------------------------------
-
-# SSH options reused across all remote commands
-_SSH_OPTS = ["-o", "StrictHostKeyChecking=no", "-o", "UserKnownHostsFile=/dev/null"]
-
-
-def _ssh_cmd(
-    pem_path: str,
-    ip: str,
-    remote_cmd: str,
-    *,
-    timeout: int = 300,
-) -> subprocess.CompletedProcess:
-    """Run a single command on the headnode via SSH.
-
-    Returns the CompletedProcess; caller decides what to do with failures.
-    """
-    cmd = [
-        "ssh", "-i", pem_path, *_SSH_OPTS,
-        f"ubuntu@{ip}",
-        remote_cmd,
-    ]
-    logger.debug("SSH → %s", remote_cmd)
-    return subprocess.run(  # noqa: S603
-        cmd,
-        capture_output=True,
-        text=True,
-        timeout=timeout,
-    )
-
-
-def _scp_to(
-    pem_path: str,
-    ip: str,
-    local_path: str,
-    remote_path: str,
-    *,
-    timeout: int = 60,
-) -> subprocess.CompletedProcess:
-    """Copy a local file to the headnode via SCP."""
-    cmd = [
-        "scp", "-i", pem_path, *_SSH_OPTS,
-        local_path,
-        f"ubuntu@{ip}:{remote_path}",
-    ]
-    logger.debug("SCP %s → %s:%s", local_path, ip, remote_path)
-    return subprocess.run(cmd, capture_output=True, text=True, timeout=timeout)  # noqa: S603
 
 
 def configure_headnode(
     cluster_name: str,
-    head_node_ip: str,
-    keypair: str,
+    head_node_instance_id: str,
     region: str,
     profile: str,
     *,
     repo_overrides: Optional[Dict[str, str]] = None,
 ) -> bool:
-    """Configure headnode after successful cluster creation.
-
-    Performs (mirrors ``bin/daylily-cfg-headnode``):
-
-    1. SSH key generation on headnode
-    2. Repository cloning to ``~/projects/daylily-ephemeral-cluster``
-    3. Miniconda installation
-    4. DAY-EC environment initialization
-    5. Headnode tooling installation (day-clone, config files)
-    6. Optional repository override deployment
-
-    Args:
-        cluster_name: Name of the cluster (for logging).
-        head_node_ip: Public IP of the head node.
-        keypair: SSH key-pair name (looked up in ``~/.ssh/{keypair}.pem``).
-        region: AWS region (e.g. ``us-west-2``).
-        profile: AWS profile name.
-        repo_overrides: Optional mapping of repo-key → git-ref overrides.
-
-    Returns:
-        *True* on success, *False* on failure (non-fatal to the workflow).
-    """
-    import tempfile
-
+    """Configure the headnode after a successful cluster creation."""
     import yaml
+
+    from daylily_ec.aws.ssm import SsmCommandFailedError, run_shell, write_remote_text
     from daylily_ec.resources import resource_path
 
-    pem_path = str(Path.home() / ".ssh" / f"{keypair}.pem")
-    if not Path(pem_path).exists():
-        logger.error("PEM file not found: %s", pem_path)
-        return False
-
-    # Read repo tag + URL from global config
     user_cfg_path = Path.home() / ".config" / "daylily" / "daylily_cli_global.yaml"
     cfg_path = (
         user_cfg_path
@@ -1202,9 +1078,9 @@ def configure_headnode(
     )
 
     with open(cfg_path, encoding="utf-8") as fh:
-        cli_cfg = yaml.safe_load(fh)
+        cli_cfg = yaml.safe_load(fh) or {}
 
-    daylily = cli_cfg.get("daylily", {})
+    daylily = cli_cfg.get("daylily", {}) or {}
     repo_tag = daylily.get("git_ephemeral_cluster_repo_tag", "main")
     repo_url = daylily.get(
         "git_ephemeral_cluster_repo",
@@ -1259,21 +1135,38 @@ def configure_headnode(
     for label, remote_cmd, timeout in steps:
         logger.info("  ▸ %s ...", label)
         try:
-            result = _ssh_cmd(pem_path, head_node_ip, remote_cmd, timeout=timeout)
-            if result.returncode != 0:
-                logger.warning(
-                    "  ⚠ %s returned rc=%d: %s",
-                    label, result.returncode, result.stderr.strip()[:200],
-                )
-                # Non-fatal for individual steps; continue trying remaining steps
-            else:
-                logger.info("  ✓ %s", label)
-        except subprocess.TimeoutExpired:
-            logger.warning("  ⚠ %s timed out after %ds", label, timeout)
-        except Exception as exc:
-            logger.warning("  ⚠ %s failed: %s", label, exc)
+            run_shell(
+                head_node_instance_id,
+                region,
+                remote_cmd,
+                profile=profile,
+                timeout=timeout,
+                comment=label,
+            )
+            logger.info("  ✓ %s", label)
+        except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
+            logger.error("  ✗ %s failed: %s", label, exc)
+            return False
 
-    # Optional: deploy repository overrides
+    try:
+        pubkey_result = run_shell(
+            head_node_instance_id,
+            region,
+            "cat ~/.ssh/id_rsa.pub",
+            profile=profile,
+            timeout=30,
+            comment="Fetch headnode SSH public key",
+        )
+        pubkey = pubkey_result.stdout.strip()
+        if pubkey:
+            logs_dir = Path("logs")
+            logs_dir.mkdir(parents=True, exist_ok=True)
+            pubkey_path = logs_dir / f"{cluster_name}_{head_node_instance_id}_id_rsa.pub"
+            pubkey_path.write_text(pubkey + "\n", encoding="utf-8")
+            logger.info("  ✓ Headnode SSH public key saved to %s", pubkey_path)
+    except Exception as exc:
+        logger.warning("  ⚠ Unable to fetch headnode SSH public key: %s", exc)
+
     if repo_overrides:
         logger.info("  ▸ Deploying repository overrides ...")
         user_avail = Path.home() / ".config" / "daylily" / "daylily_available_repositories.yaml"
@@ -1288,53 +1181,54 @@ def configure_headnode(
         )
         if avail_repos_path.exists():
             with open(avail_repos_path, encoding="utf-8") as fh:
-                repos_cfg = yaml.safe_load(fh)
+                repos_cfg = yaml.safe_load(fh) or {}
 
             for repo_key, git_ref in repo_overrides.items():
                 if repo_key in repos_cfg.get("repositories", {}):
                     repos_cfg["repositories"][repo_key]["default_ref"] = git_ref
                     logger.info("    Override: %s → %s", repo_key, git_ref)
 
-            with tempfile.NamedTemporaryFile(
-                mode="w", suffix=".yaml", delete=False,
-            ) as tmp:
-                yaml.safe_dump(repos_cfg, tmp, default_flow_style=False)
-                tmp_path = tmp.name
-
             try:
-                scp_result = _scp_to(
-                    pem_path, head_node_ip, tmp_path,
+                write_remote_text(
+                    head_node_instance_id,
+                    region,
                     "~/.config/daylily/daylily_available_repositories.yaml",
+                    yaml.safe_dump(repos_cfg, default_flow_style=False, sort_keys=False),
+                    profile=profile,
                 )
-                if scp_result.returncode == 0:
-                    logger.info("  ✓ Repository overrides deployed")
-                else:
-                    logger.warning(
-                        "  ⚠ SCP overrides failed: %s", scp_result.stderr.strip()[:200],
-                    )
-            finally:
-                Path(tmp_path).unlink(missing_ok=True)
+                logger.info("  ✓ Repository overrides deployed")
+            except Exception as exc:
+                logger.error("  ✗ Repository override deployment failed: %s", exc)
+                return False
         else:
-            logger.warning("  ⚠ Available repos config not found: %s", avail_repos_path)
+            logger.error("  ✗ Available repos config not found: %s", avail_repos_path)
+            return False
 
-    # Verify day-clone works
     logger.info("  ▸ Verifying day-clone ...")
     try:
-        verify = _ssh_cmd(
-            pem_path, head_node_ip,
+        verify = run_shell(
+            head_node_instance_id,
+            region,
             f"source ~/projects/{repo_name}/activate && "
             f"eval \"$(daylily-ec headnode init --emit-shell --non-interactive)\" && "
             "day-clone --list",
+            profile=profile,
             timeout=30,
+            comment="Verify day-clone",
         )
-        if verify.returncode == 0 and "repositories" in verify.stdout.lower():
-            logger.info("  ✓ day-clone verified")
-        else:
-            logger.warning("  ⚠ day-clone verification inconclusive (rc=%d)", verify.returncode)
+        if "repositories" not in verify.stdout.lower():
+            logger.error("  ✗ day-clone verification output was inconclusive")
+            return False
+        logger.info("  ✓ day-clone verified")
     except Exception as exc:
-        logger.warning("  ⚠ day-clone verification failed: %s", exc)
+        logger.error("  ✗ day-clone verification failed: %s", exc)
+        return False
 
-    logger.info("Headnode configuration complete for %s @ %s", cluster_name, head_node_ip)
+    logger.info(
+        "Headnode configuration complete for %s @ %s",
+        cluster_name,
+        head_node_instance_id,
+    )
     return True
 
 

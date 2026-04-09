@@ -693,14 +693,13 @@ If all is well, you will see the following message:
 │ Region:   us-west-2 (us-west-2d)              │
 │ Elapsed:  23m 14s                             │
 ╰───────────────────────────────────────────────╯
-ssh -i ~/.ssh/<keypair>.pem ubuntu@<headnode-ip>
+daylily-ssh-into-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster "<cluster-name>"
 ...fin!
 ```
 
 - The second-to-last stdout line is the exact command to use for the first headnode login.
-- If the public IP is not available yet, the final connection hint will instead be `pcluster describe-cluster -n <cluster-name> --region <region>`.
 - On macOS, if the `say` command exists, the local shell will speak `Onward to daylily!` after `...fin!`.
-- Once logged in as `ubuntu`, the managed headnode login hook should already have activated `DAY-EC`. If you need to repair that shell manually, run:
+- Once the Session Manager shell opens, the managed headnode login hook should already have activated `DAY-EC`. If you land in the wrong shell context, run `sudo -iu ubuntu`. If you need to repair that shell manually after switching users, run:
 
 ```bash
 cd ~/projects/daylily-ephemeral-cluster
@@ -719,7 +718,7 @@ daylily-ec pricing snapshot --help
 ### Run Remote Slurm Tests On Headnode (using `daylily-omics-analysis`)
 
 ```bash
-./bin/daylily-run-ephemeral-cluster-remote-tests $pem_file $region $AWS_PROFILE
+./bin/daylily-run-ephemeral-cluster-remote-tests --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
 A successful test will look like this:
@@ -969,22 +968,16 @@ ie: to get the public IP of the head node.
 pcluster describe-cluster -n $cluster_name --region us-west-2 | grep 'publicIpAddress' | cut -d '"' -f 4
 ```
 
-#### SSH Into Cluster Headnode
+#### Connect To Cluster Headnode
 
-##### Basic
-
-From your local shell, you can ssh into the head node of the cluster using the following command.
-
-```bash
-ssh -i $pem_file ubuntu@$cluster_ip_address 
-```
-
-##### Facilitated
+From your local shell, connect to the head node through Session Manager:
 
 ```bash
 export AWS_PROFILE=<profile_name>
-bin/daylily-ssh-into-headnode 
+bin/daylily-ssh-into-headnode --region <aws_region> --cluster <cluster_name>
 ```
+
+If the session opens in a plain shell, run `sudo -iu ubuntu`.
 
 
 <p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
@@ -1135,28 +1128,35 @@ The helper defaults to `/fsx/staged_sample_data` and writes `samples.tsv` and `u
 ### Launch Staging From Your Laptop
 
 ```bash
-./bin/daylily-stage-samples-from-local-to-headnode --profile <aws_profile> --region <aws_region> \
-    --pem ~/.ssh/<your-key>.pem --cluster <cluster-name> /path/to/analysis_samples.tsv
+./bin/daylily-stage-samples-from-local-to-headnode \
+    --profile <aws_profile> \
+    --region <aws_region> \
+    --reference-bucket s3://<bucket-name> \
+    --config-dir ./generated-config \
+    /path/to/analysis_samples.tsv
 ```
 
-When values such as the region, cluster name, or PEM file are omitted the script will prompt for them. The workflow is:
+The workflow is:
 
-1. Upload the TSV to the selected head node.
-2. Run `daylily-stage-analysis-samples-headnode` remotely so data are staged into `/fsx/staged_sample_data/<timestamp>/`.
-3. Download `samples.tsv` and `units.tsv` back next to the local TSV (disable with `--no-download`).
+1. Validate the TSV locally and upload the staged payload to the S3-backed FSx repository.
+2. Materialize the stage under `/fsx/data/staged_sample_data/remote_stage_<timestamp>/` on the cluster.
+3. Write local `samples.tsv` and `units.tsv` copies next to the TSV or into `--config-dir`.
 
-This preserves the head node staging behaviour while allowing the process to be initiated during cluster provisioning.
+This is the supported laptop-side staging path and does not require SSH or SCP.
 
 ### Clone & Launch the Workflow From Your Laptop
 
 After staging samples you can kick off the default `daylily-omics-analysis` workflow from the same machine that created the cluster:
 
 ```bash
-./bin/daylily-run-omics-analysis-headnode --profile <aws_profile> --region <aws_region> \
-    --pem ~/.ssh/<your-key>.pem --cluster <cluster-name>
+./bin/daylily-run-omics-analysis-headnode \
+    --profile <aws_profile> \
+    --region <aws_region> \
+    --cluster <cluster-name> \
+    --stage-base /fsx/data/staged_sample_data
 ```
 
-The helper locates the most recent staging run (or a directory you specify with `--stage-dir`), clones the analysis repository via `day-clone`, copies the generated `config/samples.tsv` and `config/units.tsv`, and launches `dy-r` inside a tmux session on the head node. Attach with `tmux attach -t daylily-omics-analysis` after logging in via SSH to monitor progress. Use options such as `--target`, `--jobs`, or `--dy-command` to tailor the run.
+The helper locates the most recent staging run (or a directory you specify with `--stage-dir`), clones the analysis repository via `day-clone`, copies the generated `config/samples.tsv` and `config/units.tsv`, and launches `dy-r` inside a tmux session on the head node. Reconnect with `bin/daylily-ssh-into-headnode --profile <aws_profile> --region <aws_region> --cluster <cluster-name>` and attach with `sudo -iu ubuntu tmux attach -t daylily-omics-analysis`. Use options such as `--target`, `--jobs`, or `--dy-command` to tailor the run.
 
 ## Slurm Monitoring
 
@@ -1274,7 +1274,7 @@ pcluster delete-cluster -n <cluster-name> --region us-west-2
 
 `bin/daylily-ssh-into-headnode`
 
-_alias it for your shell:_ `alias goday="source ~/projects/daylily/daylily-ephemeral-cluster/bin/daylily-ssh-into-headnode"`
+_alias it for your shell:_ `alias goday="$HOME/projects/daylily/daylily-ephemeral-cluster/bin/daylily-ssh-into-headnode"`
 
 
 ---

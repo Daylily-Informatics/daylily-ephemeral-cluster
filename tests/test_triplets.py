@@ -272,13 +272,13 @@ class TestEnsureRequiredKeys:
     def test_partial_fill(self):
         cfg = ConfigFile(
             ephemeral_cluster={
-                "config": {"ssh_key_name": ["USESETVALUE", "", "mykey"]},
+                "config": {"cluster_name": ["USESETVALUE", "", "my-cluster"]},
                 "template_defaults": {},
             }
         )
         ensure_required_keys(cfg)
         # Existing key preserved
-        assert cfg.ephemeral_cluster.config["ssh_key_name"].set_value == "mykey"
+        assert cfg.ephemeral_cluster.config["cluster_name"].set_value == "my-cluster"
         # Missing keys added
         assert "budget_amount" in cfg.ephemeral_cluster.config
 
@@ -294,13 +294,13 @@ class TestLoadConfig:
         p.write_text(textwrap.dedent("""\
             ephemeral_cluster:
               config:
-                ssh_key_name: [USESETVALUE, "", "mykey"]
+                s3_bucket_name: [USESETVALUE, "", "my-bucket"]
                 cluster_name: PROMPTUSER
               template_defaults:
                 fsx_fs_size: "7200"
         """))
         cfg = load_config(p)
-        assert cfg.ephemeral_cluster.config["ssh_key_name"].set_value == "mykey"
+        assert cfg.ephemeral_cluster.config["s3_bucket_name"].set_value == "my-bucket"
         assert cfg.ephemeral_cluster.config["cluster_name"].action == "PROMPTUSER"
         assert cfg.ephemeral_cluster.template_defaults["fsx_fs_size"] == "7200"
 
@@ -315,9 +315,8 @@ class TestLoadConfig:
             pytest.skip("template file not found")
         cfg = load_config(tpl)
         ec = cfg.ephemeral_cluster
-        # All 25 keys present in template
-        assert len(ec.config) == 25
-        assert ec.config["ssh_key_name"].action == "PROMPTUSER"
+        assert len(ec.config) == 24
+        assert "ssh_key_name" not in ec.config
         assert ec.config["budget_amount"].default_value == "200"
         assert ec.template_defaults["fsx_fs_size"] == "7200"
 
@@ -332,7 +331,7 @@ class TestWriteConfig:
         cfg = ConfigFile(
             ephemeral_cluster={
                 "config": {
-                    "ssh_key_name": ["USESETVALUE", "def", "mykey"],
+                    "s3_bucket_name": ["USESETVALUE", "def", "my-bucket"],
                     "cluster_name": ["PROMPTUSER", "my-cluster", ""],
                 },
                 "template_defaults": {"fsx_fs_size": "7200"},
@@ -341,7 +340,7 @@ class TestWriteConfig:
         out = tmp_path / "out.yaml"
         write_config(cfg, out)
         loaded = load_config(out)
-        assert loaded.ephemeral_cluster.config["ssh_key_name"].set_value == "mykey"
+        assert loaded.ephemeral_cluster.config["s3_bucket_name"].set_value == "my-bucket"
         assert loaded.ephemeral_cluster.config["cluster_name"].default_value == "my-cluster"
         assert loaded.ephemeral_cluster.template_defaults["fsx_fs_size"] == "7200"
 
@@ -365,35 +364,35 @@ class TestWriteNextRunTemplate:
         cfg = ConfigFile(
             ephemeral_cluster={
                 "config": {
-                    "ssh_key_name": ["PROMPTUSER", "", ""],
+                    "s3_bucket_name": ["PROMPTUSER", "", ""],
                     "cluster_name": ["PROMPTUSER", "my-cluster", ""],
                 },
                 "template_defaults": {},
             }
         )
-        final = {"ssh_key_name": "resolved-key", "cluster_name": "prod-cluster"}
+        final = {"s3_bucket_name": "bucket-a", "cluster_name": "prod-cluster"}
         dest = tmp_path / "next.yaml"
         result = write_next_run_template(cfg, final, dest)
         assert result == dest
         loaded = load_config(dest)
         # Actions become USESETVALUE when auto-select not disabled
-        assert loaded.ephemeral_cluster.config["ssh_key_name"].action == "USESETVALUE"
-        assert loaded.ephemeral_cluster.config["ssh_key_name"].set_value == "resolved-key"
+        assert loaded.ephemeral_cluster.config["s3_bucket_name"].action == "USESETVALUE"
+        assert loaded.ephemeral_cluster.config["s3_bucket_name"].set_value == "bucket-a"
         assert loaded.ephemeral_cluster.config["cluster_name"].set_value == "prod-cluster"
 
     def test_preserves_action_when_disabled(self, tmp_path, monkeypatch):
         monkeypatch.setenv("DAY_DISABLE_AUTO_SELECT", "1")
         cfg = ConfigFile(
             ephemeral_cluster={
-                "config": {"ssh_key_name": ["PROMPTUSER", "", ""]},
+                "config": {"s3_bucket_name": ["PROMPTUSER", "", ""]},
                 "template_defaults": {},
             }
         )
         dest = tmp_path / "next.yaml"
-        write_next_run_template(cfg, {"ssh_key_name": "k"}, dest)
+        write_next_run_template(cfg, {"s3_bucket_name": "k"}, dest)
         loaded = load_config(dest)
         # Action stays PROMPTUSER because auto-select is disabled
-        assert loaded.ephemeral_cluster.config["ssh_key_name"].action == "PROMPTUSER"
+        assert loaded.ephemeral_cluster.config["s3_bucket_name"].action == "PROMPTUSER"
 
     def test_preserves_template_defaults(self, tmp_path, monkeypatch):
         monkeypatch.delenv("DAY_DISABLE_AUTO_SELECT", raising=False)
@@ -407,4 +406,3 @@ class TestWriteNextRunTemplate:
         write_next_run_template(cfg, {"k": "v"}, dest)
         loaded = load_config(dest)
         assert loaded.ephemeral_cluster.template_defaults["fsx_fs_size"] == "7200"
-
