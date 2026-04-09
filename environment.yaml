@@ -21,6 +21,7 @@ dependencies:
   - tabix
   - fd-find
   - graphviz
+  - nodejs
   - yq
   - setuptools<81
   - pip:

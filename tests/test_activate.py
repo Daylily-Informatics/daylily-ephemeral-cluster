@@ -66,6 +66,39 @@ if [[ "$cmd" == "env" && "$subcmd" == "create" ]]; then
   exit 0
 fi
 
+if [[ "$cmd" == "env" && "$subcmd" == "update" ]]; then
+  env_name=""
+  env_file=""
+  shift 2
+  while [[ $# -gt 0 ]]; do
+    case "$1" in
+      -n)
+        env_name="$2"
+        shift 2
+        ;;
+      -f)
+        env_file="$2"
+        shift 2
+        ;;
+      *)
+        shift
+        ;;
+    esac
+  done
+  mkdir -p "${root}/envs/${env_name}/bin"
+  printf '%s\\n' "${env_file}" > "${root}/last_env_update_file"
+  cat > "${root}/envs/${env_name}/bin/node" <<'EOF'
+#!/usr/bin/env bash
+if [[ "${1:-}" == "--version" ]]; then
+  echo "env-node-version"
+  exit 0
+fi
+printf 'env-node:%s\\n' "$*"
+EOF
+  chmod +x "${root}/envs/${env_name}/bin/node"
+  exit 0
+fi
+
 if [[ "$cmd" == "activate" ]]; then
   [[ -d "${root}/envs/${subcmd}" ]]
   exit $?
@@ -96,6 +129,15 @@ fi
 printf 'env-pcluster:%s\\n' "$*"
 EOF
     chmod +x "${root}/envs/${env_name}/bin/pcluster"
+    cat > "${root}/envs/${env_name}/bin/node" <<'EOF'
+#!/usr/bin/env bash
+if [[ "${1:-}" == "--version" ]]; then
+  echo "env-node-version"
+  exit 0
+fi
+printf 'env-node:%s\\n' "$*"
+EOF
+    chmod +x "${root}/envs/${env_name}/bin/node"
     exit 0
   fi
 
@@ -107,6 +149,15 @@ EOF
   if [[ "${1:-}" == "pcluster" ]]; then
     shift
     exec "${root}/envs/${env_name}/bin/pcluster" "$@"
+  fi
+
+  if [[ "${1:-}" == "python" && "${2:-}" == "-c" ]]; then
+    if grep -q "bin', 'node'" <<<"${3:-}"; then
+      if [[ -x "${root}/envs/${env_name}/bin/node" ]]; then
+        exit 0
+      fi
+      exit 1
+    fi
   fi
 
   exit 1
@@ -127,6 +178,7 @@ def _prepare_fake_runtime(
     existing_env: bool = False,
     existing_env_cli: bool = False,
     broken_existing_env_pcluster: bool = False,
+    missing_existing_env_node: bool = False,
 ) -> tuple[dict[str, str], Path]:
     fake_bin = tmp_path / "fake-bin"
     fake_root = tmp_path / "fake-conda-root"
@@ -168,6 +220,17 @@ fi
 printf 'existing-pcluster:%s\\n' "$*"
 """,
         )
+        if not missing_existing_env_node:
+            _write_executable(
+                fake_root / "envs" / "DAY-EC" / "bin" / "node",
+                """#!/usr/bin/env bash
+if [[ "${1:-}" == "--version" ]]; then
+  echo "existing-node-version"
+  exit 0
+fi
+printf 'existing-node:%s\\n' "$*"
+""",
+            )
 
     if existing_env and broken_existing_env_pcluster:
         _write_executable(
@@ -244,6 +307,24 @@ def test_activate_repairs_existing_dayec_when_pcluster_smoke_fails(tmp_path: Pat
     assert "env-version" in result.stdout
     assert "pkg_resources" not in (result.stdout + result.stderr)
     log = log_path.read_text(encoding="utf-8")
+    assert f"env update -n DAY-EC -f {ENVIRONMENT_YAML}" in log
+    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
+
+
+def test_activate_repairs_existing_dayec_when_node_smoke_fails(tmp_path: Path) -> None:
+    env, log_path = _prepare_fake_runtime(
+        tmp_path,
+        existing_env=True,
+        existing_env_cli=True,
+        missing_existing_env_node=True,
+    )
+
+    result = _source_activate_and_run(env, "daylily-ec version")
+
+    assert result.returncode == 0
+    assert "env-version" in result.stdout
+    log = log_path.read_text(encoding="utf-8")
+    assert f"env update -n DAY-EC -f {ENVIRONMENT_YAML}" in log
     assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
 
 

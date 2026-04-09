@@ -187,8 +187,25 @@ __daylily_activate_dayec_pcluster_smoke_test() {
   conda run -n DAY-EC pcluster version >/dev/null 2>&1
 }
 
+__daylily_activate_dayec_node_smoke_test() {
+  local node_path
+
+  if [ "${CONDA_DEFAULT_ENV:-}" = "DAY-EC" ] && [ -n "${CONDA_PREFIX:-}" ]; then
+    node_path="${CONDA_PREFIX}/bin/node"
+    if [ -x "${node_path}" ]; then
+      "${node_path}" --version >/dev/null 2>&1
+      return $?
+    fi
+  fi
+
+  __daylily_activate_load_conda || return 1
+  __daylily_activate_dayec_exists || return 1
+  conda run -n DAY-EC python -c "import os, sys; p = os.path.join(sys.prefix, 'bin', 'node'); raise SystemExit(0 if os.path.isfile(p) and os.access(p, os.X_OK) else 1)" >/dev/null 2>&1
+}
+
 __daylily_activate_dayec_runtime_smoke_test() {
   __daylily_activate_dayec_cli_smoke_test || return 1
+  __daylily_activate_dayec_node_smoke_test || return 1
   __daylily_activate_dayec_pcluster_smoke_test
 }
 
@@ -216,6 +233,19 @@ __daylily_activate_create_dayec() {
   conda env create -n DAY-EC -f "${env_yaml}"
 }
 
+__daylily_activate_update_dayec() {
+  local env_yaml
+
+  env_yaml="$(__daylily_activate_env_yaml)"
+  if [ ! -f "${env_yaml}" ]; then
+    echo "Error: DAY-EC bootstrap spec not found at ${env_yaml}." >&2
+    return 1
+  fi
+
+  echo "Updating DAY-EC from ${env_yaml} ..." >&2
+  conda env update -n DAY-EC -f "${env_yaml}"
+}
+
 __daylily_activate_install_repo_into_dayec() {
   echo "Installing daylily-ephemeral-cluster into DAY-EC from ${DAYLILY_EC_REPO_ROOT} ..." >&2
   conda run -n DAY-EC python -m pip install --editable "${DAYLILY_EC_REPO_ROOT}" || return 1
@@ -241,6 +271,11 @@ __daylily_activate_bootstrap_dayec() {
     return 0
   fi
 
+  __daylily_activate_update_dayec || {
+    echo "Error: failed to update the DAY-EC conda environment." >&2
+    return 1
+  }
+
   __daylily_activate_install_repo_into_dayec || {
     echo "Error: failed to install daylily-ephemeral-cluster into DAY-EC." >&2
     return 1
@@ -248,7 +283,7 @@ __daylily_activate_bootstrap_dayec() {
 
   if ! __daylily_activate_dayec_runtime_smoke_test; then
     echo "Error: DAY-EC is active but required runtime checks still failed." >&2
-    echo "Repair with: conda run -n DAY-EC python -m pip install --upgrade 'setuptools<81'" >&2
+    echo "Repair with: conda env update -n DAY-EC -f ${DAYLILY_EC_REPO_ROOT}/environment.yaml" >&2
     return 1
   fi
 
