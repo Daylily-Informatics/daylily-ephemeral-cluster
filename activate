@@ -280,6 +280,17 @@ __daylily_activate_update_dayec() {
   conda env update -n DAY-EC -f "${env_yaml}"
 }
 
+__daylily_activate_accept_tos() {
+  local channels_main channels_r
+
+  channels_main="https://repo.anaconda.com/pkgs/main"
+  channels_r="https://repo.anaconda.com/pkgs/r"
+
+  conda config --set always_yes true >/dev/null 2>&1 || true
+  conda tos accept --override-channels --channel "${channels_main}" >/dev/null 2>&1 || true
+  conda tos accept --override-channels --channel "${channels_r}" >/dev/null 2>&1 || true
+}
+
 __daylily_activate_install_repo_into_dayec() {
   local editable_spec
   editable_spec="${DAYLILY_EC_REPO_ROOT}[dev]"
@@ -293,6 +304,8 @@ __daylily_activate_bootstrap_dayec() {
     echo "Error: conda is not available in this shell." >&2
     return 1
   }
+
+  __daylily_activate_accept_tos
 
   if ! __daylily_activate_dayec_exists; then
     __daylily_activate_create_dayec || return 1

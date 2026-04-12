@@ -42,6 +42,14 @@ if [[ "$cmd" == "env" && "$subcmd" == "list" ]]; then
   exit 0
 fi
 
+if [[ "$cmd" == "config" && "$subcmd" == "--set" ]]; then
+  exit 0
+fi
+
+if [[ "$cmd" == "tos" && "$subcmd" == "accept" ]]; then
+  exit 0
+fi
+
 if [[ "$cmd" == "env" && "$subcmd" == "create" ]]; then
   env_name=""
   env_file=""
@@ -331,6 +339,12 @@ def test_activate_bootstraps_missing_dayec_from_environment_yaml(tmp_path: Path)
     assert "env-cli:--help" in result.stdout
 
     log = log_path.read_text(encoding="utf-8")
+    main_tos = "tos accept --override-channels --channel https://repo.anaconda.com/pkgs/main"
+    r_tos = "tos accept --override-channels --channel https://repo.anaconda.com/pkgs/r"
+    assert main_tos in log
+    assert r_tos in log
+    assert log.index(main_tos) < log.index(f"env create -n DAY-EC -f {ENVIRONMENT_YAML}")
+    assert log.index(r_tos) < log.index(f"env create -n DAY-EC -f {ENVIRONMENT_YAML}")
     assert f"env create -n DAY-EC -f {ENVIRONMENT_YAML}" in log
     assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}[dev]" in log
 
