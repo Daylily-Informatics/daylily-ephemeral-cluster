@@ -9,7 +9,6 @@ Supported replacements:
      bin/daylily-stage-samples-from-local-to-headnode --profile <profile> --region <region> --reference-bucket s3://<bucket> <analysis_samples.tsv>
   2. Headnode-side staging after connecting through SSM:
      bin/daylily-ssh-into-headnode --profile <profile> --region <region> --cluster <cluster>
-     sudo -iu ubuntu
      cd ~/projects/daylily-ephemeral-cluster
      ./bin/daylily-stage-analysis-samples-headnode <analysis_samples.tsv>
 EOF

@@ -23,13 +23,13 @@ Usage: init_dayec [-h|--help]
 Create (or update) the DAY-EC conda environment and install daylily-ephemeral-cluster into it.
 
 Behavior:
-  - If run from a repo checkout (pyproject.toml present), performs an editable install.
+  - If run from a repo checkout (pyproject.toml present), performs an editable install with dev extras.
   - Otherwise, installs from pip using DAYLILY_EC_INIT_DAYEC_PIP_SPEC if set,
     else attempts to install by package name (requires the package to be available on your index).
 
 Environment:
   DAYLILY_EC_INIT_DAYEC_PIP_SPEC   Pip install spec (e.g. git+https://...@<ref>).
-  DAYLILY_EC_RESOURCES_DIR         Overrides packaged resource lookup for config/day/daycli.yaml.
+  DAYLILY_EC_RESOURCES_DIR         Overrides packaged resource lookup for environment.yaml.
 EOF
 }
 
@@ -84,7 +84,7 @@ if conda env list 2>/dev/null | awk '{print $1}' | grep -qx DAY-EC; then
   env_exists=1
   echo "Conda environment 'DAY-EC' already exists."
 else
-  env_yaml="${RES_DIR}/config/day/daycli.yaml"
+  env_yaml="${RES_DIR}/environment.yaml"
   if [[ ! -f "$env_yaml" ]]; then
     die "Error: expected conda env YAML not found: $env_yaml" 2
   fi
@@ -98,8 +98,8 @@ repo_root="$(cd "${script_dir}/.." && pwd)"
 pip_args=()
 install_desc=""
 if [[ -f "${repo_root}/pyproject.toml" ]]; then
-  pip_args+=(--editable "$repo_root")
-  install_desc="editable install from repo checkout"
+  pip_args+=(--editable "${repo_root}[dev]")
+  install_desc="editable install with dev extras from repo checkout"
 elif [[ -n "${DAYLILY_EC_INIT_DAYEC_PIP_SPEC:-}" ]]; then
   pip_args+=("${DAYLILY_EC_INIT_DAYEC_PIP_SPEC}")
   install_desc="pip spec from DAYLILY_EC_INIT_DAYEC_PIP_SPEC"

@@ -22,6 +22,7 @@ import daylily_ec.aws.context as aws_context
 import daylily_ec.aws.ec2 as aws_ec2
 import daylily_ec.aws.heartbeat as aws_heartbeat
 import daylily_ec.aws.iam as aws_iam
+from daylily_ec.aws.ssm import SsmCommandFailedError, SsmCommandResult
 import daylily_ec.aws.spot_pricing as spot_pricing
 import daylily_ec.config.triplets as triplets
 import daylily_ec.pcluster.monitor as pcluster_monitor
@@ -383,18 +384,14 @@ class TestConfigureHeadnode:
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_success_path(self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch):
         monkeypatch.setenv("HOME", str(tmp_path))
-        logs_dir = tmp_path / "logs"
-        logs_dir.mkdir(parents=True, exist_ok=True)
         monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
 
         mock_run_shell.side_effect = [
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="ssh-rsa AAAATEST\n", stderr=""),
-            SimpleNamespace(stdout="Available repositories:\n- repo1\n", stderr=""),
         ]
 
         ok = configure_headnode(
@@ -404,15 +401,54 @@ class TestConfigureHeadnode:
             profile="test",
         )
         assert ok is True
-        assert mock_run_shell.call_count == 7
+        assert mock_run_shell.call_count == 4
+        assert "source ~/projects/daylily-ephemeral-cluster/activate" in mock_run_shell.call_args_list[2].args[2]
+        assert "bash -lc" in mock_run_shell.call_args_list[3].args[2]
+        assert "whoami" in mock_run_shell.call_args_list[3].args[2]
         mock_write_remote_text.assert_not_called()
-        assert (logs_dir / "test-cluster_i-abc123_id_rsa.pub").exists()
+
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    def test_login_shell_validation_failure_is_fatal(
+        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
+
+        mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SsmCommandFailedError(
+                "validation failed",
+                SsmCommandResult(
+                    command_id="cmd-1",
+                    instance_id="i-abc123",
+                    status="Failed",
+                    response_code=1,
+                    stdout="",
+                    stderr="whoami: command not found",
+                ),
+            ),
+        ]
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+        )
+        assert ok is False
+        assert mock_run_shell.call_count == 4
+        mock_write_remote_text.assert_not_called()
 
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_step_failure_is_fatal(self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
 
         mock_run_shell.side_effect = RuntimeError("boom")
 
@@ -432,15 +468,13 @@ class TestConfigureHeadnode:
     ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
 
         mock_run_shell.side_effect = [
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="ssh-rsa AAAATEST\n", stderr=""),
-            SimpleNamespace(stdout="repositories:\n", stderr=""),
         ]
 
         ok = configure_headnode(
@@ -451,7 +485,175 @@ class TestConfigureHeadnode:
             repo_overrides={"daylily-omics-analysis": "feature/refactor"},
         )
         assert ok is True
+        assert mock_run_shell.call_count == 4
         mock_write_remote_text.assert_called_once()
+
+    @patch("daylily_ec.aws.ssm.write_remote_text", side_effect=RuntimeError("nope"))
+    @patch("daylily_ec.aws.ssm.run_shell")
+    def test_repo_override_write_failure_is_fatal(
+        self, mock_run_shell, _mock_write_remote_text, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
+
+        mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+        ]
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+            repo_overrides={"daylily-omics-analysis": "feature/refactor"},
+        )
+        assert ok is False
+
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    def test_repo_override_requires_available_repo_config(
+        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+    ):
+        import daylily_ec.resources as resources_module
+
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
+        (tmp_path / "config").mkdir()
+        (tmp_path / "config" / "daylily_cli_global.yaml").write_text("daylily: {}\n", encoding="utf-8")
+        monkeypatch.setattr(resources_module, "resource_path", lambda _rel: tmp_path / "missing_available_repositories.yaml")
+
+        mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+        ]
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+            repo_overrides={"daylily-omics-analysis": "feature/refactor"},
+        )
+        assert ok is False
+        mock_write_remote_text.assert_not_called()
+
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    @patch("daylily_ec.workflow.create_cluster.subprocess.run")
+    def test_repo_checkout_uses_local_branch_and_refreshes_remote_checkout(
+        self,
+        mock_subprocess_run,
+        mock_run_shell,
+        mock_write_remote_text,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        repo_root = tmp_path / "repo"
+        repo_root.mkdir()
+        monkeypatch.setenv("DAYLILY_EC_REPO_ROOT", str(repo_root))
+
+        def fake_git_run(cmd, **_kwargs):
+            if cmd == ["git", "-C", str(repo_root), "config", "--get", "remote.origin.url"]:
+                return subprocess.CompletedProcess(cmd, 0, "https://example.com/daylily.git\n", "")
+            if cmd == ["git", "-C", str(repo_root), "symbolic-ref", "--short", "HEAD"]:
+                return subprocess.CompletedProcess(cmd, 0, "codex/ssh-to-ssm-refactor\n", "")
+            if cmd == [
+                "git",
+                "-C",
+                str(repo_root),
+                "ls-remote",
+                "--exit-code",
+                "--heads",
+                "origin",
+                "codex/ssh-to-ssm-refactor",
+            ]:
+                return subprocess.CompletedProcess(
+                    cmd,
+                    0,
+                    "abc\trefs/heads/codex/ssh-to-ssm-refactor\n",
+                    "",
+                )
+            raise AssertionError(f"unexpected subprocess.run call: {cmd}")
+
+        mock_subprocess_run.side_effect = fake_git_run
+        mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+        ]
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+        )
+
+        assert ok is True
+        assert mock_run_shell.call_count == 4
+        clone_cmd = mock_run_shell.call_args_list[0].args[2]
+        assert "repo already cloned" not in clone_cmd
+        assert "git clone https://example.com/daylily.git daylily-ephemeral-cluster" in clone_cmd
+        assert "git fetch origin --tags --prune" in clone_cmd
+        assert "git clean -fdx" in clone_cmd
+        assert "git checkout -B daylily-managed origin/codex/ssh-to-ssm-refactor" in clone_cmd
+        mock_write_remote_text.assert_not_called()
+
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    @patch("daylily_ec.workflow.create_cluster.subprocess.run")
+    def test_repo_checkout_branch_must_be_published(
+        self,
+        mock_subprocess_run,
+        mock_run_shell,
+        mock_write_remote_text,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        repo_root = tmp_path / "repo"
+        repo_root.mkdir()
+        monkeypatch.setenv("DAYLILY_EC_REPO_ROOT", str(repo_root))
+
+        def fake_git_run(cmd, **_kwargs):
+            if cmd == ["git", "-C", str(repo_root), "config", "--get", "remote.origin.url"]:
+                return subprocess.CompletedProcess(cmd, 0, "https://example.com/daylily.git\n", "")
+            if cmd == ["git", "-C", str(repo_root), "symbolic-ref", "--short", "HEAD"]:
+                return subprocess.CompletedProcess(cmd, 0, "feature/local-only\n", "")
+            if cmd == [
+                "git",
+                "-C",
+                str(repo_root),
+                "ls-remote",
+                "--exit-code",
+                "--heads",
+                "origin",
+                "feature/local-only",
+            ]:
+                return subprocess.CompletedProcess(cmd, 2, "", "fatal: not found")
+            raise AssertionError(f"unexpected subprocess.run call: {cmd}")
+
+        mock_subprocess_run.side_effect = fake_git_run
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+        )
+
+        assert ok is False
+        mock_run_shell.assert_not_called()
+        mock_write_remote_text.assert_not_called()
 
 
 # ── configure_headnode export ────────────────────────────────────────

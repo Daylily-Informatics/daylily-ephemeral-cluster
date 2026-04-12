@@ -216,16 +216,15 @@ chmod 400 ~/.ssh/<your-key>.pem
 From the repo root:
 
 ```bash
-./bin/check_prereq_sw.sh
 ./bin/install_miniconda   # only if needed
-./bin/init_dayec
 source ./activate
+./bin/check_prereq_sw.sh
 
 daylily-ec info
 daylily-ec version
 ```
 
-`./bin/init_dayec` creates or updates the `DAY-EC` conda environment and installs this repo into it. `source ./activate` activates `DAY-EC` when present, adds [`bin/`](bin/) to `PATH`, and exposes `daylily-ec` in the current shell.
+`source ./activate` creates or updates the `DAY-EC` conda environment from [`environment.yaml`](environment.yaml), installs this repo into it with its `dev` extras from [`pyproject.toml`](pyproject.toml), adds [`bin/`](bin/) to `PATH`, and exposes `daylily-ec` in the current shell.
 
 ### Clone Reference Bucket (only needs to be done once per region, or whenever it is missing)
 
@@ -382,7 +381,7 @@ List clusters in a region:
 daylily-ec cluster-info --region "$REGION" --profile "$AWS_PROFILE"
 ```
 
-SSH to the head node:
+Connect to the head node through Session Manager:
 
 ```bash
 ./bin/daylily-ssh-into-headnode \
@@ -391,7 +390,7 @@ SSH to the head node:
   --cluster "$CLUSTER_NAME"
 ```
 
-This requires the local `session-manager-plugin`. If the session opens in a plain shell, run `sudo -iu ubuntu`.
+This requires the local `session-manager-plugin` and should land you directly in the `ubuntu` shell. If it does not, reconnect with the Session Manager helper and confirm the login hook completed successfully.
 
 ### Validate The Head Node
 
@@ -514,7 +513,7 @@ PCUI is not required for the supported Daylily operator flow, but it is still us
 
 - use the AWS ParallelCluster PCUI docs for installation
 - use the VPC and subnet associated with a working Daylily cluster in the region
-- enable SSM if you want browser-shell access; from there you will usually want `sudo su - ubuntu`
+- enable SSM if you want browser-shell access; the shell should open directly as `ubuntu`
 
 The CLI/SSH path remains the canonical Daylily workflow, but PCUI is still a legitimate companion tool.
 

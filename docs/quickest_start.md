@@ -17,7 +17,7 @@ Create or reuse an IAM operator identity, typically `daylily-service`, and make 
 The repo ships the custom cluster policy at [`../config/aws/daylily-service-cluster-policy.json`](../config/aws/daylily-service-cluster-policy.json). The current operator docs assume:
 
 - a CLI profile named `daylily-service`
-- the local `session-manager-plugin` is installed for headnode access
+- the local AWS CLI is installed and configured
 - a region-specific reference bucket whose name includes `omics-analysis`
 
 Minimal AWS CLI profile example:
@@ -33,15 +33,15 @@ output = json
 From the repo root:
 
 ```bash
-./bin/check_prereq_sw.sh
 ./bin/install_miniconda   # only if conda is not already installed
 source ./activate
+./bin/check_prereq_sw.sh
 
 daylily-ec info
 daylily-ec version
 ```
 
-`source ./activate` is the checkout-friendly entrypoint. It activates or bootstraps `DAY-EC`, adds [`../bin/`](../bin/) to `PATH`, and exposes `daylily-ec` from the current shell. If you need the lower-level environment builder directly, `./bin/init_dayec` still exists, but it is no longer the primary local flow.
+`source ./activate` is the checkout-friendly entrypoint. It bootstraps `DAY-EC` from [`../environment.yaml`](../environment.yaml), installs this repo into that env with its `dev` extras from [`../pyproject.toml`](../pyproject.toml), adds [`../bin/`](../bin/) to `PATH`, and exposes `daylily-ec` from the current shell. If you need the lower-level environment builder directly, `./bin/init_dayec` still exists, but it is no longer the primary local flow.
 
 `./bin/install_miniconda` now auto-detects Apple Silicon, Intel macOS, Linux x86_64, and Linux ARM hosts. It prefers `curl` and falls back to `wget`, so a fresh Mac does not need Homebrew `wget` just to bootstrap conda.
 

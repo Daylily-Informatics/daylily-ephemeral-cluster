@@ -134,7 +134,6 @@ main() {
         echo "Initializing Conda..."
         "$HOME/miniconda3/bin/conda" init bash
         "$HOME/miniconda3/bin/conda" init zsh
-        "$HOME/miniconda3/bin/conda" config --set accept_channel_terms true
 
         bashrc="$HOME/.bashrc"
         bash_profile="$HOME/.bash_profile"

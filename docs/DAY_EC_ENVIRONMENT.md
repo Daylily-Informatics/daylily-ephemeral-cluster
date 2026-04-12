@@ -11,6 +11,7 @@ source ./activate
 ```
 
 `source ./activate` is the supported checkout-friendly entrypoint. It bootstraps or activates `DAY-EC`, prepends [`../bin/`](../bin/) to `PATH`, and makes `daylily-ec` available in the current shell.
+From a repo checkout it also installs this repo into `DAY-EC` as an editable package with the `dev` extras enabled.
 
 If you need to force a rebuild or run the lower-level bootstrap helper directly, use `./bin/init_dayec` explicitly.
 
@@ -34,13 +35,26 @@ These commands are the fastest way to confirm that the CLI, packaged resources, 
 
 ## What The Environment Includes
 
-The exact dependency set lives in [`../config/day/daycli.yaml`](../config/day/daycli.yaml). At a high level it includes:
+The environment is split intentionally:
+
+- [`../environment.yaml`](../environment.yaml) defines the Conda-managed non-Python/operator tooling.
+- [`../pyproject.toml`](../pyproject.toml) defines the Python runtime and `dev` extras that the editable install brings into `DAY-EC`.
+
+At a high level `DAY-EC` includes:
 
 - Python 3.11
 - AWS CLI v2
 - `aws-parallelcluster`
+- `aws-session-manager-plugin`
 - `pytest`, `mypy`, and related dev tooling
 - common operator utilities such as `jq`, `yq`, and `rclone`
+
+To rebuild from scratch:
+
+```bash
+conda env remove -n DAY-EC
+source ./activate
+```
 
 ## Running Tests
 

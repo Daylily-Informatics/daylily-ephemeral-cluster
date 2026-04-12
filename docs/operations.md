@@ -19,7 +19,7 @@ Connect to the head node through Session Manager:
   --cluster "$CLUSTER_NAME"
 ```
 
-This requires the local `session-manager-plugin`. If the session opens in the wrong shell context, run `sudo -iu ubuntu`.
+This requires the local `session-manager-plugin` and opens an `ubuntu` login shell directly.
 
 ## Validate The Head Node
 
@@ -36,7 +36,7 @@ daylily-ec info
 day-clone --list
 ```
 
-The managed login hook should perform the activation and shell initialization automatically on a healthy headnode. If you land in a plain shell, rerun the `source ~/projects/daylily-ephemeral-cluster/activate` + `daylily-ec headnode init` sequence above.
+The managed login hook should perform the activation and shell initialization automatically on a healthy headnode. If the shell context is incomplete, rerun the `source ~/projects/daylily-ephemeral-cluster/activate` + `daylily-ec headnode init` sequence above from the `ubuntu` shell.
 
 ## Stage Sample Data On The Head Node
 
@@ -104,7 +104,7 @@ Useful launch flags:
 - `--target`, `--jobs`, `--aligners`, `--dedupers`, `--snv-callers` to shape the run
 - `--dry-run` to emit the `dy-r` command without executing the full workload
 
-The launcher clones the workflow repository via `day-clone`, copies the staged config files into the repo, and starts the run inside a tmux session on the head node. Reconnect with `./bin/daylily-ssh-into-headnode ...` and attach with `sudo -iu ubuntu tmux attach -t <session-name>`.
+The launcher clones the workflow repository via `day-clone`, copies the staged config files into the repo, and starts the run inside a tmux session on the head node. Reconnect with `./bin/daylily-ssh-into-headnode ...` and attach with `tmux attach -t <session-name>`.
 
 ## Monitor Cluster And Workload State
 

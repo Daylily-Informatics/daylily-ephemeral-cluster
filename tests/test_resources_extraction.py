@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import pytest
+
 from daylily_ec.resources import ensure_extracted, resource_path
 
 
@@ -15,10 +17,13 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
 
     assert (root / "config/day_cluster/prod_cluster.yaml").is_file()
     assert (root / "config/day_cluster/pcluster_env.yml").is_file()
+    assert (root / "environment.yaml").is_file()
     assert (root / "etc/analysis_samples_template.tsv").is_file()
+    assert not (root / "quarantine").exists()
+    with pytest.raises(FileNotFoundError):
+        resource_path("quarantine/README.md")
 
     # resource_path should return the same filesystem location.
     p = resource_path("config/day_cluster/prod_cluster.yaml")
     assert isinstance(p, Path)
     assert p.is_file()
-

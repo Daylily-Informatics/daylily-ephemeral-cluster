@@ -31,7 +31,7 @@ if [[ "$1" != "$DY_ENVNAME" ]]; then
     echo "  conda env remove -n DAYOA"
     echo ""
     usage
-fi
+}
 
 # Check if the shell is bash
 if [[ "$SHELL" != "/bin/bash" ]]; then

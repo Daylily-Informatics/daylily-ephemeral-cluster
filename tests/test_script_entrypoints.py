@@ -6,7 +6,7 @@ from unittest.mock import patch
 
 import pytest
 
-from daylily_ec.aws.ssm import HeadNodeTarget
+from daylily_ec.aws.ssm import HeadNodeTarget, SsmError
 from daylily_ec.scripts.common import CommandError
 from daylily_ec.scripts.daylily_cfg_headnode import _load_repo_overrides
 import daylily_ec.scripts.daylily_cfg_headnode as cfg_headnode_module
@@ -16,6 +16,34 @@ import daylily_ec.scripts.daylily_ssh_into_headnode as ssh_headnode_module
 
 
 class TestSshIntoHeadnodeScript:
+
+    @patch("daylily_ec.scripts.daylily_ssh_into_headnode.start_session")
+    @patch("daylily_ec.scripts.daylily_ssh_into_headnode.wait_for_ssm_online")
+    @patch(
+        "daylily_ec.scripts.daylily_ssh_into_headnode.resolve_headnode_instance_id",
+        return_value=HeadNodeTarget("cluster-a", "us-west-2", "i-abc123"),
+    )
+    @patch("daylily_ec.scripts.daylily_ssh_into_headnode.resolve_cluster", return_value="cluster-a")
+    @patch("daylily_ec.scripts.daylily_ssh_into_headnode.resolve_region", return_value="us-west-2")
+    @patch("daylily_ec.scripts.daylily_ssh_into_headnode.need_cmd")
+    def test_dry_run_prints_preview_without_starting_session(
+        self,
+        _mock_need_cmd,
+        _mock_region,
+        _mock_cluster,
+        _mock_target,
+        _mock_wait,
+        mock_start,
+        capsys,
+    ):
+        rc = ssh_headnode_module.main(["--profile", "dev", "--dry-run"])
+
+        assert rc == 0
+        mock_start.assert_not_called()
+        out = capsys.readouterr().out
+        assert "Opening Session Manager session as ubuntu to i-abc123" in out
+        assert "Session Manager command: aws ssm start-session --region us-west-2 --target i-abc123 --document-name SSM-SessionManagerRunShell" in out
+
     def test_requires_profile(self, monkeypatch):
         monkeypatch.delenv("AWS_PROFILE", raising=False)
 
@@ -47,8 +75,32 @@ class TestSshIntoHeadnodeScript:
         mock_wait.assert_called_once_with("i-abc123", "us-west-2", profile="dev", timeout=120)
         mock_start.assert_called_once_with("i-abc123", "us-west-2", profile="dev")
         out = capsys.readouterr().out
-        assert "Connecting to i-abc123" in out
-        assert "sudo -iu ubuntu" in out
+        assert "Opening Session Manager session as ubuntu to i-abc123" in out
+        assert "sudo -iu ubuntu" not in out
+
+    @patch(
+        "daylily_ec.scripts.daylily_ssh_into_headnode.start_session",
+        side_effect=SsmError("Session Manager must be configured to run shell sessions as ubuntu via SSM-SessionManagerRunShell."),
+    )
+    @patch("daylily_ec.scripts.daylily_ssh_into_headnode.wait_for_ssm_online")
+    @patch(
+        "daylily_ec.scripts.daylily_ssh_into_headnode.resolve_headnode_instance_id",
+        return_value=HeadNodeTarget("cluster-a", "us-west-2", "i-abc123"),
+    )
+    @patch("daylily_ec.scripts.daylily_ssh_into_headnode.resolve_cluster", return_value="cluster-a")
+    @patch("daylily_ec.scripts.daylily_ssh_into_headnode.resolve_region", return_value="us-west-2")
+    @patch("daylily_ec.scripts.daylily_ssh_into_headnode.need_cmd")
+    def test_start_session_failures_surface_as_command_error(
+        self,
+        _mock_need_cmd,
+        _mock_region,
+        _mock_cluster,
+        _mock_target,
+        _mock_wait,
+        _mock_start,
+    ):
+        with pytest.raises(CommandError, match="run shell sessions as ubuntu"):
+            ssh_headnode_module.main(["--profile", "dev"])
 
 
 class TestRunOmicsAnalysisHeadnodeScript:
@@ -160,7 +212,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
         script = mock_run_shell.call_args.args[2]
         assert "tmux new-session" in script
         assert "DAY_CONTAINERIZED=true" in script
-        assert "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in capsys.readouterr().out
+        assert '--which-one "$TRANSPORT"' not in script
+        out = capsys.readouterr().out
+        assert "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in out
+        assert "Then run: tmux attach -t sess-1" in out
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
@@ -373,7 +428,7 @@ class TestRemoteTestsScript:
         assert "git clone -b release-1 https://example.com/test.git" in script
         out = capsys.readouterr().out
         assert "Tmux session 'sess-2' created" in out
-        assert "sudo -iu ubuntu tmux attach -t sess-2" in out
+        assert "Then run: tmux attach -t sess-2" in out
 
     @patch(
         "daylily_ec.scripts.daylily_run_ephemeral_cluster_remote_tests.run_shell",

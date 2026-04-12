@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import base64
 import subprocess
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
@@ -11,9 +12,11 @@ from daylily_ec.aws.ssm import (
     SessionManagerPluginMissingError,
     SsmCommandFailedError,
     SsmInstanceUnavailableError,
+    SsmError,
     resolve_headnode_instance_id,
     require_session_manager_plugin,
     run_shell,
+    start_session,
     wait_for_ssm_online,
     write_remote_text,
 )
@@ -36,8 +39,8 @@ class TestResolveHeadnodeInstanceId:
         mock_run.return_value = subprocess.CompletedProcess(
             args=[],
             returncode=0,
-            stdout='{"instances":[{"nodeType":"HeadNode","instanceId":"i-abc123"}]}',
-            stderr="",
+            stdout='{"headNode":{"instanceId":"i-abc123"}}',
+            stderr="/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API.\n",
         )
 
         result = resolve_headnode_instance_id("cluster-a", "us-west-2", profile="dev")
@@ -49,13 +52,43 @@ class TestResolveHeadnodeInstanceId:
         )
 
     @patch("daylily_ec.aws.ssm.subprocess.run")
+    def test_falls_back_to_describe_cluster_instances(self, mock_run):
+        mock_run.side_effect = [
+            subprocess.CompletedProcess(
+                args=[],
+                returncode=0,
+                stdout='{"headNode":{}}',
+                stderr="",
+            ),
+            subprocess.CompletedProcess(
+                args=[],
+                returncode=0,
+                stdout='{"instances":[{"nodeType":"HeadNode","instanceId":"i-abc123"}]}',
+                stderr="",
+            ),
+        ]
+
+        result = resolve_headnode_instance_id("cluster-a", "us-west-2", profile="dev")
+
+        assert result.instance_id == "i-abc123"
+        assert mock_run.call_count == 2
+
+    @patch("daylily_ec.aws.ssm.subprocess.run")
     def test_missing_headnode_raises(self, mock_run):
-        mock_run.return_value = subprocess.CompletedProcess(
-            args=[],
-            returncode=0,
-            stdout='{"instances":[]}',
-            stderr="",
-        )
+        mock_run.side_effect = [
+            subprocess.CompletedProcess(
+                args=[],
+                returncode=0,
+                stdout='{"headNode":{}}',
+                stderr="",
+            ),
+            subprocess.CompletedProcess(
+                args=[],
+                returncode=0,
+                stdout='{"instances":[]}',
+                stderr="",
+            ),
+        ]
 
         with pytest.raises(RuntimeError):
             resolve_headnode_instance_id("cluster-a", "us-west-2")
@@ -89,7 +122,7 @@ class TestWaitForSsmOnline:
         client.describe_instance_information.return_value = {"InstanceInformationList": []}
         mock_session_cls.return_value.client.return_value = client
 
-        with pytest.raises(SsmInstanceUnavailableError):
+        with pytest.raises(SsmInstanceUnavailableError, match="did not become available in SSM"):
             wait_for_ssm_online("i-abc123", "us-west-2", timeout=3, poll_interval=0)
 
 
@@ -112,7 +145,20 @@ class TestRunShell:
         assert result.stdout == "ok\n"
         sent = client.send_command.call_args.kwargs
         assert sent["DocumentName"] == "AWS-RunShellScript"
+        assert "chown ubuntu \"$tmp\"" in sent["Parameters"]["commands"][0]
         assert "sudo -iu ubuntu bash" in sent["Parameters"]["commands"][0]
+        assert sent["Parameters"]["commands"][0].startswith("set -eu\n")
+        encoded = sent["Parameters"]["commands"][0].split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
+        decoded = base64.b64decode(encoded).decode("utf-8")
+        assert "Daylily SSM payload must run as ubuntu" in decoded
+        assert 'if [ "$actual_user" != "ubuntu" ]; then' in decoded
+
+    @pytest.mark.parametrize("as_user", [None, "root", "ssm-user"])
+    @patch("daylily_ec.aws.ssm.boto3.Session")
+    def test_rejects_non_ubuntu_users(self, mock_session_cls, as_user):
+        with pytest.raises(SsmError, match="must run as ubuntu"):
+            run_shell("i-abc123", "us-west-2", "echo hi", profile="dev", as_user=as_user)
+        mock_session_cls.assert_not_called()
 
     @patch("daylily_ec.aws.ssm.boto3.Session")
     def test_failure_raises(self, mock_session_cls):
@@ -168,6 +214,20 @@ class TestRunShell:
 
 
 class TestWriteRemoteText:
+    @pytest.mark.parametrize("as_user", [None, "root", "ssm-user"])
+    @patch("daylily_ec.aws.ssm.run_shell")
+    def test_rejects_non_ubuntu_users(self, mock_run_shell, as_user):
+        with pytest.raises(SsmError, match="must run as ubuntu"):
+            write_remote_text(
+                "i-abc123",
+                "us-west-2",
+                "~/test.txt",
+                "hello\n",
+                profile="dev",
+                as_user=as_user,
+            )
+        mock_run_shell.assert_not_called()
+
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_expands_home_path(self, mock_run_shell):
         mock_run_shell.return_value = MagicMock()
@@ -182,3 +242,79 @@ class TestWriteRemoteText:
 
         script = mock_run_shell.call_args.args[2]
         assert "/home/ubuntu/.config/daylily/test.yaml" in script
+
+
+class TestStartSession:
+    @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
+    @patch("daylily_ec.aws.ssm.subprocess.run")
+    def test_validates_session_manager_run_as_ubuntu_and_starts_session(
+        self,
+        mock_run,
+        _mock_require_plugin,
+    ):
+        mock_run.side_effect = [
+            subprocess.CompletedProcess(
+                args=[],
+                returncode=0,
+                stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"exec bash -l"}}}',
+                stderr="",
+            ),
+            subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr=""),
+        ]
+
+        rc = start_session("i-abc123", "us-west-2", profile="dev")
+
+        assert rc == 0
+        assert mock_run.call_count == 2
+        assert mock_run.call_args_list[0].args[0][:5] == [
+            "aws",
+            "ssm",
+            "get-document",
+            "--name",
+            "SSM-SessionManagerRunShell",
+        ]
+        assert mock_run.call_args_list[1].args[0] == [
+            "aws",
+            "ssm",
+            "start-session",
+            "--region",
+            "us-west-2",
+            "--target",
+            "i-abc123",
+            "--document-name",
+            "SSM-SessionManagerRunShell",
+        ]
+
+    @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
+    @patch("daylily_ec.aws.ssm.subprocess.run")
+    def test_rejects_session_manager_preferences_without_ubuntu_run_as(
+        self,
+        mock_run,
+        _mock_require_plugin,
+    ):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout='{"inputs":{"runAsEnabled":false,"runAsDefaultUser":"ssm-user"}}',
+            stderr="",
+        )
+
+        with pytest.raises(SsmError, match="run shell sessions as ubuntu"):
+            start_session("i-abc123", "us-west-2", profile="dev")
+
+    @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
+    @patch("daylily_ec.aws.ssm.subprocess.run")
+    def test_rejects_session_manager_preferences_without_login_shell_profile(
+        self,
+        mock_run,
+        _mock_require_plugin,
+    ):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"pwd"}}}',
+            stderr="",
+        )
+
+        with pytest.raises(SsmError, match="source the ubuntu login shell"):
+            start_session("i-abc123", "us-west-2", profile="dev")

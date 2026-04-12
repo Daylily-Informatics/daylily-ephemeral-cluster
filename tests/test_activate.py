@@ -96,6 +96,20 @@ fi
 printf 'env-node:%s\\n' "$*"
 EOF
   chmod +x "${root}/envs/${env_name}/bin/node"
+  cat > "${root}/envs/${env_name}/bin/aws" <<'EOF'
+#!/usr/bin/env bash
+if [[ "${1:-}" == "--version" ]]; then
+  echo "aws-cli/2.22.4"
+  exit 0
+fi
+printf 'env-aws:%s\\n' "$*"
+EOF
+  chmod +x "${root}/envs/${env_name}/bin/aws"
+  cat > "${root}/envs/${env_name}/bin/session-manager-plugin" <<'EOF'
+#!/usr/bin/env bash
+echo "The Session Manager plugin is installed successfully. Use the AWS CLI to start a session."
+EOF
+  chmod +x "${root}/envs/${env_name}/bin/session-manager-plugin"
   exit 0
 fi
 
@@ -108,9 +122,10 @@ if [[ "$cmd" == "run" && "$subcmd" == "-n" ]]; then
   env_name="$third"
   shift 3
   if [[ "${1:-}" == "python" && "${2:-}" == "-m" && "${3:-}" == "pip" && "${4:-}" == "install" && "${5:-}" == "--editable" ]]; then
-    repo_root="${6:-}"
+    repo_spec="${6:-}"
+    repo_root="${repo_spec%\\[dev]}"
     mkdir -p "${root}/envs/${env_name}/bin"
-    printf '%s\\n' "${repo_root}" > "${root}/last_editable_repo"
+    printf '%s\\n' "${repo_spec}" > "${root}/last_editable_repo"
     cat > "${root}/envs/${env_name}/bin/daylily-ec" <<'EOF'
 #!/usr/bin/env bash
 if [[ "${1:-}" == "version" ]]; then
@@ -129,6 +144,15 @@ fi
 printf 'env-pcluster:%s\\n' "$*"
 EOF
     chmod +x "${root}/envs/${env_name}/bin/pcluster"
+    cat > "${root}/envs/${env_name}/bin/aws" <<'EOF'
+#!/usr/bin/env bash
+if [[ "${1:-}" == "--version" ]]; then
+  echo "aws-cli/2.22.4"
+  exit 0
+fi
+printf 'env-aws:%s\\n' "$*"
+EOF
+    chmod +x "${root}/envs/${env_name}/bin/aws"
     cat > "${root}/envs/${env_name}/bin/node" <<'EOF'
 #!/usr/bin/env bash
 if [[ "${1:-}" == "--version" ]]; then
@@ -138,6 +162,11 @@ fi
 printf 'env-node:%s\\n' "$*"
 EOF
     chmod +x "${root}/envs/${env_name}/bin/node"
+    cat > "${root}/envs/${env_name}/bin/session-manager-plugin" <<'EOF'
+#!/usr/bin/env bash
+echo "The Session Manager plugin is installed successfully. Use the AWS CLI to start a session."
+EOF
+    chmod +x "${root}/envs/${env_name}/bin/session-manager-plugin"
     exit 0
   fi
 
@@ -149,6 +178,16 @@ EOF
   if [[ "${1:-}" == "pcluster" ]]; then
     shift
     exec "${root}/envs/${env_name}/bin/pcluster" "$@"
+  fi
+
+  if [[ "${1:-}" == "aws" ]]; then
+    shift
+    exec "${root}/envs/${env_name}/bin/aws" "$@"
+  fi
+
+  if [[ "${1:-}" == "session-manager-plugin" ]]; then
+    shift
+    exec "${root}/envs/${env_name}/bin/session-manager-plugin" "$@"
   fi
 
   if [[ "${1:-}" == "python" && "${2:-}" == "-c" ]]; then
@@ -220,6 +259,22 @@ fi
 printf 'existing-pcluster:%s\\n' "$*"
 """,
         )
+        _write_executable(
+            fake_root / "envs" / "DAY-EC" / "bin" / "aws",
+            """#!/usr/bin/env bash
+if [[ "${1:-}" == "--version" ]]; then
+  echo "existing-aws-version"
+  exit 0
+fi
+printf 'existing-aws:%s\\n' "$*"
+""",
+        )
+        _write_executable(
+            fake_root / "envs" / "DAY-EC" / "bin" / "session-manager-plugin",
+            """#!/usr/bin/env bash
+echo "The Session Manager plugin is installed successfully. Use the AWS CLI to start a session."
+""",
+        )
         if not missing_existing_env_node:
             _write_executable(
                 fake_root / "envs" / "DAY-EC" / "bin" / "node",
@@ -277,7 +332,7 @@ def test_activate_bootstraps_missing_dayec_from_environment_yaml(tmp_path: Path)
 
     log = log_path.read_text(encoding="utf-8")
     assert f"env create -n DAY-EC -f {ENVIRONMENT_YAML}" in log
-    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
+    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}[dev]" in log
 
 
 def test_activate_supports_version_and_pricing_help_flow(tmp_path: Path) -> None:
@@ -308,7 +363,7 @@ def test_activate_repairs_existing_dayec_when_pcluster_smoke_fails(tmp_path: Pat
     assert "pkg_resources" not in (result.stdout + result.stderr)
     log = log_path.read_text(encoding="utf-8")
     assert f"env update -n DAY-EC -f {ENVIRONMENT_YAML}" in log
-    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
+    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}[dev]" in log
 
 
 def test_activate_repairs_existing_dayec_when_node_smoke_fails(tmp_path: Path) -> None:
@@ -325,7 +380,7 @@ def test_activate_repairs_existing_dayec_when_node_smoke_fails(tmp_path: Path) -
     assert "env-version" in result.stdout
     log = log_path.read_text(encoding="utf-8")
     assert f"env update -n DAY-EC -f {ENVIRONMENT_YAML}" in log
-    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
+    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}[dev]" in log
 
 
 def test_activate_does_not_fall_back_to_broken_global_cli(tmp_path: Path) -> None:
@@ -348,3 +403,17 @@ def test_activate_reuses_existing_dayec_without_recreating_it(tmp_path: Path) ->
     log = log_path.read_text(encoding="utf-8")
     assert "env create -n DAY-EC" not in log
     assert "python -m pip install --editable" not in log
+
+
+def test_activate_exposes_env_local_operator_clis(tmp_path: Path) -> None:
+    env, _ = _prepare_fake_runtime(tmp_path)
+
+    result = _source_activate_and_run(
+        env,
+        "aws --version && pcluster version && session-manager-plugin",
+    )
+
+    assert result.returncode == 0
+    assert "aws-cli/2.22.4" in result.stdout
+    assert "env-pcluster-version" in result.stdout
+    assert "Session Manager plugin is installed successfully" in result.stdout

@@ -302,29 +302,7 @@ _as the `daylily-service` user_
 
 
 ##### SSH Key Pair(s)
-_as the `daylily-service` user_
-
-> Must include `-omics-` in the name!
-
-_key pairs are region specific, be sure you create a key pair in the region you intend to create an ephemeral cluster in_
-
-- Navigate to the `EC2 dashboard`, in the left hand menu under `Network & Security`, click on `Key Pairs`. 
-- CLick `Create Key Pair`.
-- Give it a name which must include `-omics-` (for example: `username-omics-analysis-us-west-2`).
-- Choose `Key pair type` of `ed25519`.
-- Choose `.pem` as the file format.
-- Click `Create key pair`.
-- The `.pem` file will download, and please move it into your `~/.ssh` dir and give it appropriate permissions. _you may not download this file again, so be sure to store it in a safe place_.
-
-###### Place .pem File & Set Permissions
-
-```bash
-mkdir -p ~/.ssh
-chmod 700 ~/.ssh
-
-mv ~/Downloads/<yourkey>.pem  ~/.ssh/<yourkey>.pem 
-chmod 400 ~/.ssh/<yourkey>.pem
-```
+The supported Daylily operator flow no longer requires a local PEM or SSH key pair for headnode access. Use Session Manager and the repository-provided connect helper instead.
 
 ## Default Region `us-west-2`
 You may run in any region or AZ you wish to try. This said, the majority of testing has been done in AZ's `us-west-2c` & `us-west-2d` (which have consistently been among the most cost effective & available spot markets for the instance types used in the daylily workflows).
@@ -403,7 +381,7 @@ region = <REGION>
 ### Clone stable release of `daylily` Git Repository
 
 ```bash
-git clone -b $(yq -r '.daylily.git_tag' "config/daylily/daylily_cli_global.yaml") https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git  # or, if you have set ssh keys with github and intend to make changes:  git clone git@github.com:Daylily-Informatics/daylily-ephemeral-cluster.git
+git clone -b $(yq -r '.daylily.git_tag' "config/daylily/daylily_cli_global.yaml") https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git
 cd daylily-ephemeral-cluster
 ```
 
@@ -637,7 +615,7 @@ export DAY_EX_CFG=~/.config/daylily/my_cluster.yaml
 
 - Your aws credentials will be auto-detected and used to query appropriate resources to select from to proceed. You will be prompted to:
 
-- (_one per-region_) select the full path to your $HOME/.ssh/<mykey>.pem (from detected .pem files)
+- (_one per-region_) no PEM or SSH key file is required for the supported Session Manager flow
   
 - (_one per-region_) select the `s3` bucket you created and seeded, options presented will be any with names ending in `-omics-analysis`. The script now verifies the bucket with the `daylily-omics-references` CLI and will halt if required data are missing. Or you may select `1` and manually enter a s3 url.
   
@@ -699,7 +677,7 @@ daylily-ssh-into-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster 
 
 - The second-to-last stdout line is the exact command to use for the first headnode login.
 - On macOS, if the `say` command exists, the local shell will speak `Onward to daylily!` after `...fin!`.
-- Once the Session Manager shell opens, the managed headnode login hook should already have activated `DAY-EC`. If you land in the wrong shell context, run `sudo -iu ubuntu`. If you need to repair that shell manually after switching users, run:
+- Once the Session Manager shell opens, the managed headnode login hook should already have activated `DAY-EC`. If the shell context is incomplete, rerun the activation and headnode init sequence from the `ubuntu` shell:
 
 ```bash
 cd ~/projects/daylily-ephemeral-cluster
@@ -826,7 +804,7 @@ To find the PCUI url, visit the `Outputs` tab of the `parallelcluster-ui` stack 
 
 > The PCUI stuff is not required, but very VERY awesome.
 
-> **When you use the SSM web browser `shell` via PCUI, you will need to run the following command: `sudo su - ubuntu` to move to the user setup to run the various pipelines.**
+> **When you use the SSM web browser `shell` via PCUI, you should already land in the supported `ubuntu` context. If that is not the case, reconnect through the Session Manager helper so the login hook can run.**
 
 ### Adding `inline policies` To The PCUI IAM Roles To Allow Access To Parallel Cluster Ref Buckets
 Go to the `IAM Dashboard`, and under roles, search for the role `ParallelClusterUIUserRole-*` and the role `ParallelClusterLambdaRole-*`. For each, add an in line json policy as follows (_you will need to enumerate all reference buckets you wish to be able to edit with PCUI_). Name it something like `pcui-additional-s3-access`. *you may be restricted to only editing clusters w/in the same region the PCUI was started even with these changes*
@@ -898,7 +876,7 @@ source ./activate
 ```text
 pcluster -h  
 usage: pcluster [-h]
-                {list-clusters,create-cluster,delete-cluster,describe-cluster,update-cluster,describe-compute-fleet,update-compute-fleet,delete-cluster-instances,describe-cluster-instances,list-cluster-log-streams,get-cluster-log-events,get-cluster-stack-events,list-images,build-image,delete-image,describe-image,list-image-log-streams,get-image-log-events,get-image-stack-events,list-official-images,configure,dcv-connect,export-cluster-logs,export-image-logs,ssh,version}
+                {list-clusters,create-cluster,delete-cluster,describe-cluster,update-cluster,describe-compute-fleet,update-compute-fleet,delete-cluster-instances,describe-cluster-instances,list-cluster-log-streams,get-cluster-log-events,get-cluster-stack-events,list-images,build-image,delete-image,describe-image,list-image-log-streams,get-image-log-events,get-image-stack-events,list-official-images,configure,dcv-connect,export-cluster-logs,export-image-logs,connect,version}
                 ...
 
 pcluster is the AWS ParallelCluster CLI and permits launching and management of HPC clusters in the AWS cloud.
@@ -907,7 +885,7 @@ options:
   -h, --help            show this help message and exit
 
 COMMANDS:
-  {list-clusters,create-cluster,delete-cluster,describe-cluster,update-cluster,describe-compute-fleet,update-compute-fleet,delete-cluster-instances,describe-cluster-instances,list-cluster-log-streams,get-cluster-log-events,get-cluster-stack-events,list-images,build-image,delete-image,describe-image,list-image-log-streams,get-image-log-events,get-image-stack-events,list-official-images,configure,dcv-connect,export-cluster-logs,export-image-logs,ssh,version}
+  {list-clusters,create-cluster,delete-cluster,describe-cluster,update-cluster,describe-compute-fleet,update-compute-fleet,delete-cluster-instances,describe-cluster-instances,list-cluster-log-streams,get-cluster-log-events,get-cluster-stack-events,list-images,build-image,delete-image,describe-image,list-image-log-streams,get-image-log-events,get-image-stack-events,list-official-images,configure,dcv-connect,export-cluster-logs,export-image-logs,connect,version}
     list-clusters       Retrieve the list of existing clusters.
     create-cluster      Create a managed cluster in a given region.
     delete-cluster      Initiate the deletion of a cluster.
@@ -944,7 +922,7 @@ COMMANDS:
     export-cluster-logs
                         Export the logs of the cluster to a local tar.gz archive by passing through an Amazon S3 Bucket.
     export-image-logs   Export the logs of the image builder stack to a local tar.gz archive by passing through an Amazon S3 Bucket.
-    ssh                 Connects to the head node instance using SSH.
+    connect             Opens the head node through Session Manager.
     version             Displays the version of AWS ParallelCluster.
 
 For command specific flags, please run: "pcluster [command] --help"
@@ -977,7 +955,7 @@ export AWS_PROFILE=<profile_name>
 bin/daylily-ssh-into-headnode --region <aws_region> --cluster <cluster_name>
 ```
 
-If the session opens in a plain shell, run `sudo -iu ubuntu`.
+If the session opens in a plain shell, reconnect with the Session Manager helper and confirm the login hook completed successfully.
 
 
 <p valign="middle"><img src="docs/images/000000.png" valign="bottom" ></p>
@@ -1012,7 +990,7 @@ source ~/projects/daylily-ephemeral-cluster/activate
 eval "$(daylily-ec headnode init --emit-shell --non-interactive)"
 ```
 
-> If the problem persists, ssh into the headnode, and run the same commands as the `ubuntu` user. Legacy `dyinit` may still exist as a compatibility shim on older clusters, but the supported flow is the CLI-owned headnode init hook above.
+> If the problem persists, reconnect through the Session Manager helper and rerun the same commands from the `ubuntu` shell. Legacy `dyinit` may still exist as a compatibility shim on older clusters, but the supported flow is the CLI-owned headnode init hook above.
 
 ### Confirm Headnode /fsx/ Directory Structure
 
@@ -1038,7 +1016,7 @@ The `day-clone` script will be available to the ubuntu user on the headnode. Thi
 ```bash
 day-clone --help
 usage: day-clone [-h] [-d DESTINATION] [-t GIT_TAG] [-r GIT_REPO] [-c CLONE_ROOT]
-                 [-u USER_NAME] [-w {https,ssh}] [--repository REPOSITORY] [--list]
+                 [-u USER_NAME] [-w {https}] [--repository REPOSITORY] [--list]
 
 Clone Daylily analysis repositories into the FSx analysis workspace.
 
@@ -1058,8 +1036,6 @@ options:
   -u, --user-name USER_NAME
                         User directory to create within the clone root. Defaults to the
                         current user.
-  -w, --which-one {https,ssh}
-                        Clone using https or ssh (default: https).
   --repository REPOSITORY
                         Key of the repository defined in daylily_available_repositories.yaml
                         to clone.
@@ -1087,7 +1063,7 @@ Available repositories:
 ##### clone daylily-omics-analysis
 
 ```bash
-day-clone-d dayoa --repository daylily-omics-analysis -w https
+day-clone -d dayoa --repository daylily-omics-analysis
 cd /fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis
 ```
 
@@ -1156,7 +1132,7 @@ After staging samples you can kick off the default `daylily-omics-analysis` work
     --stage-base /fsx/data/staged_sample_data
 ```
 
-The helper locates the most recent staging run (or a directory you specify with `--stage-dir`), clones the analysis repository via `day-clone`, copies the generated `config/samples.tsv` and `config/units.tsv`, and launches `dy-r` inside a tmux session on the head node. Reconnect with `bin/daylily-ssh-into-headnode --profile <aws_profile> --region <aws_region> --cluster <cluster-name>` and attach with `sudo -iu ubuntu tmux attach -t daylily-omics-analysis`. Use options such as `--target`, `--jobs`, or `--dy-command` to tailor the run.
+The helper locates the most recent staging run (or a directory you specify with `--stage-dir`), clones the analysis repository via `day-clone`, copies the generated `config/samples.tsv` and `config/units.tsv`, and launches `dy-r` inside a tmux session on the head node. Reconnect with `bin/daylily-ssh-into-headnode --profile <aws_profile> --region <aws_region> --cluster <cluster-name>` and attach with `tmux attach -t daylily-omics-analysis`. Use options such as `--target`, `--jobs`, or `--dy-command` to tailor the run.
 
 ## Slurm Monitoring
 
@@ -1198,13 +1174,9 @@ glances
 ```
 
 
-### SSH Into Compute Nodes
+### Access Compute Nodes
 
-You can not access compute nodes directly, but can access them via the head node. From the head node, you can determine if there are running compute nodes with `squeue`, and use the node names to ssh into them.
-
-```bash
-ssh i192-dy-gb384-1
-```
+You can not access compute nodes directly. Use the head node, `squeue`, and Slurm tooling to monitor them from the supported `ubuntu` shell.
 
 
 ### Delete Cluster
@@ -1269,7 +1241,7 @@ pcluster delete-cluster -n <cluster-name> --region us-west-2
 ## PCUI (Parallel Cluster User Interface)
 ... For real, use it!
 
-## Quick SSH Into Headnode
+## Quick Connect To Headnode
 (also, can be done via pcui)
 
 `bin/daylily-ssh-into-headnode`

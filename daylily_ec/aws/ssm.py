@@ -21,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 PENDING_STATUSES = {"Pending", "InProgress", "Delayed"}
 SUCCESS_STATUS = "Success"
+SUPPORTED_REMOTE_USER = "ubuntu"
 
 
 class SsmError(RuntimeError):
@@ -96,47 +97,70 @@ def resolve_headnode_instance_id(
     profile: Optional[str] = None,
 ) -> HeadNodeTarget:
     """Resolve the headnode EC2 instance id for a ParallelCluster cluster."""
-    cmd = [
-        "pcluster",
-        "describe-cluster-instances",
-        "--cluster-name",
-        cluster_name,
-        "--region",
-        region,
-        "--output",
-        "json",
+    commands = [
+        [
+            "pcluster",
+            "describe-cluster",
+            "--cluster-name",
+            cluster_name,
+            "--region",
+            region,
+        ],
+        [
+            "pcluster",
+            "describe-cluster-instances",
+            "--cluster-name",
+            cluster_name,
+            "--region",
+            region,
+        ],
     ]
-    try:
-        result = subprocess.run(
-            cmd,
-            capture_output=True,
-            text=True,
-            env=_build_env(profile=profile, region=region),
-        )
-    except FileNotFoundError as exc:
-        raise SsmError("pcluster CLI not found on PATH.") from exc
+    env = _build_env(profile=profile, region=region)
+    errors: list[str] = []
 
-    if result.returncode != 0:
-        detail = result.stderr.strip() or result.stdout.strip() or "unknown error"
-        raise SsmError(
-            f"Unable to resolve head node instance for cluster '{cluster_name}': {detail}"
-        )
+    for cmd in commands:
+        try:
+            result = subprocess.run(
+                cmd,
+                capture_output=True,
+                text=True,
+                env=env,
+            )
+        except FileNotFoundError as exc:
+            raise SsmError("pcluster CLI not found on PATH.") from exc
 
-    try:
-        payload = json.loads(result.stdout or "{}")
-    except json.JSONDecodeError as exc:
-        raise SsmError(
-            f"Unable to parse describe-cluster-instances output for cluster '{cluster_name}'."
-        ) from exc
+        if result.returncode != 0:
+            detail = result.stderr.strip() or result.stdout.strip() or "unknown error"
+            errors.append(detail)
+            continue
 
-    for instance in payload.get("instances", []) or []:
-        if instance.get("nodeType") == "HeadNode" and instance.get("instanceId"):
+        try:
+            payload = json.loads(result.stdout or "{}")
+        except json.JSONDecodeError as exc:
+            errors.append(f"Unable to parse {' '.join(cmd[1:3])} output.")
+            continue
+
+        head_node = payload.get("headNode") or {}
+        instance_id = head_node.get("instanceId")
+        if instance_id:
             return HeadNodeTarget(
                 cluster_name=cluster_name,
                 region=region,
-                instance_id=str(instance["instanceId"]),
+                instance_id=str(instance_id),
             )
 
+        for instance in payload.get("instances", []) or []:
+            if instance.get("nodeType") == "HeadNode" and instance.get("instanceId"):
+                return HeadNodeTarget(
+                    cluster_name=cluster_name,
+                    region=region,
+                    instance_id=str(instance["instanceId"]),
+                )
+
+    if errors:
+        raise SsmError(
+            f"Unable to resolve head node instance for cluster '{cluster_name}': {errors[-1]}"
+        )
     raise SsmError(f"Head node instance not found for cluster '{cluster_name}'.")
 
 
@@ -184,21 +208,46 @@ def _normalize_remote_path(path: str, *, user: str) -> str:
     return path
 
 
+def _require_ubuntu_user(as_user: Optional[str]) -> str:
+    if as_user != SUPPORTED_REMOTE_USER:
+        raise SsmError(
+            "Supported SSM commands must run as ubuntu; "
+            f"got {as_user!r}."
+        )
+    return SUPPORTED_REMOTE_USER
+
+
+def _ubuntu_payload_guard() -> str:
+    return "\n".join(
+        [
+            'actual_user="$(id -un)"',
+            f'if [ "$actual_user" != "{SUPPORTED_REMOTE_USER}" ]; then',
+            '  echo "Daylily SSM payload must run as ubuntu; got $actual_user." >&2',
+            "  exit 64",
+            "fi",
+        ]
+    )
+
+
 def _encode_script_payload(script: str, *, as_user: Optional[str]) -> str:
+    user = _require_ubuntu_user(as_user)
     encoded = base64.b64encode(script.encode("utf-8")).decode("ascii")
     writer = (
         "import base64, os, pathlib; "
         "path = pathlib.Path(os.environ['DAYLILY_SSM_TMP']); "
         "path.write_text(base64.b64decode(os.environ['DAYLILY_SSM_B64']).decode('utf-8'), encoding='utf-8')"
     )
-    runner = f"sudo -iu {shlex.quote(as_user)} bash \"$tmp\"" if as_user else "bash \"$tmp\""
+    runner = f"sudo -iu {shlex.quote(user)} bash \"$tmp\""
     return "\n".join(
         [
-            "set -euo pipefail",
+            # AWS-RunShellScript uses /bin/sh for the transport wrapper on Ubuntu.
+            # Keep the wrapper POSIX-safe and run the real payload under bash as ubuntu.
+            "set -eu",
             "tmp=$(mktemp /tmp/daylily-ssm-XXXXXX.sh)",
             f"export DAYLILY_SSM_B64={shlex.quote(encoded)}",
             'export DAYLILY_SSM_TMP="$tmp"',
             f"python3 -c {shlex.quote(writer)}",
+            f"chown {shlex.quote(user)} \"$tmp\"",
             "chmod 700 \"$tmp\"",
             "set +e",
             runner,
@@ -222,9 +271,13 @@ def run_shell(
     comment: str = "Daylily remote command",
 ) -> SsmCommandResult:
     """Run *script* on an instance via SSM Run Command and return its result."""
+    _require_ubuntu_user(as_user)
     session = _build_boto_session(profile=profile, region=region)
     client = session.client("ssm")
-    payload = _encode_script_payload(script, as_user=as_user)
+    payload = _encode_script_payload(
+        "\n".join([_ubuntu_payload_guard(), script]),
+        as_user=as_user,
+    )
 
     try:
         response = client.send_command(
@@ -293,6 +346,7 @@ def write_remote_text(
     as_user: str = "ubuntu",
 ) -> SsmCommandResult:
     """Write small text content to *remote_path* via SSM Run Command."""
+    as_user = _require_ubuntu_user(as_user)
     target_path = _normalize_remote_path(remote_path, user=as_user)
     encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
     script = "\n".join(
@@ -319,6 +373,80 @@ def write_remote_text(
     )
 
 
+def _require_ubuntu_session_preferences(
+    region: str,
+    *,
+    profile: Optional[str] = None,
+) -> None:
+    cmd = [
+        "aws",
+        "ssm",
+        "get-document",
+        "--name",
+        "SSM-SessionManagerRunShell",
+        "--document-format",
+        "JSON",
+        "--query",
+        "Content",
+        "--output",
+        "text",
+        "--region",
+        region,
+    ]
+    try:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            env=_build_env(profile=profile, region=region),
+        )
+    except FileNotFoundError as exc:
+        raise SsmError("aws CLI not found on PATH.") from exc
+
+    if result.returncode != 0:
+        detail = result.stderr.strip() or result.stdout.strip() or "unknown error"
+        raise SsmError(
+            "Unable to read Session Manager preferences for 'SSM-SessionManagerRunShell': "
+            f"{detail}"
+        )
+
+    try:
+        payload = json.loads(result.stdout or "{}")
+    except json.JSONDecodeError as exc:
+        raise SsmError(
+            "Unable to parse Session Manager preferences for 'SSM-SessionManagerRunShell'."
+        ) from exc
+
+    inputs = payload.get("inputs", {}) if isinstance(payload, dict) else {}
+    shell_profile = inputs.get("shellProfile", {}) if isinstance(inputs, dict) else {}
+    linux_shell_profile = ""
+    if isinstance(shell_profile, dict):
+        linux_shell_profile = str(shell_profile.get("linux") or "")
+    if inputs.get("runAsEnabled") is not True or inputs.get("runAsDefaultUser") != SUPPORTED_REMOTE_USER:
+        raise SsmError(
+            "Session Manager must be configured to run shell sessions as ubuntu "
+            "via SSM-SessionManagerRunShell."
+        )
+    if not linux_shell_profile or (
+        "bash -l" not in linux_shell_profile
+        and ".bash_profile" not in linux_shell_profile
+        and "daylily-headnode-bootstrap.sh" not in linux_shell_profile
+    ):
+        raise SsmError(
+            "Session Manager must source the ubuntu login shell via "
+            "SSM-SessionManagerRunShell shellProfile.linux."
+        )
+
+
+def ensure_ubuntu_session_preferences(
+    region: str,
+    *,
+    profile: Optional[str] = None,
+) -> None:
+    """Validate that Session Manager shell sessions land in the ubuntu login shell."""
+    _require_ubuntu_session_preferences(region, profile=profile)
+
+
 def start_session(
     instance_id: str,
     region: str,
@@ -327,6 +455,7 @@ def start_session(
 ) -> int:
     """Start an interactive Session Manager shell."""
     require_session_manager_plugin()
+    ensure_ubuntu_session_preferences(region, profile=profile)
     cmd = [
         "aws",
         "ssm",
@@ -335,6 +464,8 @@ def start_session(
         region,
         "--target",
         instance_id,
+        "--document-name",
+        "SSM-SessionManagerRunShell",
     ]
     result = subprocess.run(cmd, env=_build_env(profile=profile, region=region))
     return int(result.returncode)

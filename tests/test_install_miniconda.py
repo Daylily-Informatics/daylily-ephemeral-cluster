@@ -84,6 +84,9 @@ EOI
 fi
 
 if [[ "${1:-}" == "config" ]]; then
+  if [[ "${INSTALLER_FAIL_ON_CONDA_CONFIG:-0}" == "1" ]]; then
+    exit 42
+  fi
   exit 0
 fi
 
@@ -194,6 +197,19 @@ def test_install_miniconda_falls_back_to_wget_when_curl_fails(tmp_path: Path) ->
     log_text = log_path.read_text(encoding="utf-8")
     assert "curl:-fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh" in log_text
     assert "wget:-q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh" in log_text
+
+
+def test_install_miniconda_does_not_require_conda_config_accept_channel_terms(tmp_path: Path) -> None:
+    env, fake_bin, _log_path = _base_env(tmp_path)
+    env["DAY_TEST_UNAME_S"] = "Linux"
+    env["DAY_TEST_UNAME_M"] = "x86_64"
+    env["INSTALLER_FAIL_ON_CONDA_CONFIG"] = "1"
+
+    _write_executable(fake_bin / "curl", _fake_downloader_script("curl"))
+
+    result = _run_bash(f'"{SCRIPT_PATH}"', env)
+
+    assert result.returncode == 0, result.stderr
 
 
 def test_install_miniconda_payload_mirror_matches_repo_script() -> None:

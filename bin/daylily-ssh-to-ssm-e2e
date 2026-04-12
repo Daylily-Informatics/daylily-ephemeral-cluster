@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+python3 -m daylily_ec.ssh_to_ssm_e2e_runner "$@"

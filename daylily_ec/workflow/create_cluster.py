@@ -58,6 +58,12 @@ PreflightStep = Callable[[PreflightReport], PreflightReport]
 _PREFLIGHT_STEPS: List[PreflightStep] = []
 
 
+@dataclass(frozen=True)
+class HeadnodeRepoSpec:
+    url: str
+    ref: str
+
+
 def register_preflight_step(step: PreflightStep) -> None:
     """Append a validator to the global preflight pipeline.
 
@@ -69,6 +75,71 @@ def register_preflight_step(step: PreflightStep) -> None:
 def clear_preflight_steps() -> None:
     """Reset the pipeline (used in tests)."""
     _PREFLIGHT_STEPS.clear()
+
+
+def _git_stdout(repo_root: Path, *args: str) -> str:
+    proc = subprocess.run(
+        ["git", "-C", str(repo_root), *args],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if proc.returncode != 0:
+        detail = proc.stderr.strip() or proc.stdout.strip() or f"git {' '.join(args)} failed"
+        raise RuntimeError(detail)
+    return proc.stdout.strip()
+
+
+def _resolve_headnode_repo_spec(default_url: str, default_ref: str) -> HeadnodeRepoSpec:
+    repo_root_env = _os.environ.get("DAYLILY_EC_REPO_ROOT", "").strip()
+    if not repo_root_env:
+        return HeadnodeRepoSpec(url=default_url, ref=default_ref)
+
+    repo_root = Path(repo_root_env).expanduser().resolve()
+    if not repo_root.exists():
+        raise RuntimeError(f"DAYLILY_EC_REPO_ROOT does not exist: {repo_root}")
+
+    repo_url = _git_stdout(repo_root, "config", "--get", "remote.origin.url")
+    repo_ref = _git_stdout(repo_root, "symbolic-ref", "--short", "HEAD")
+    published = subprocess.run(
+        ["git", "-C", str(repo_root), "ls-remote", "--exit-code", "--heads", "origin", repo_ref],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if published.returncode != 0:
+        detail = published.stderr.strip() or published.stdout.strip() or "branch not published on origin"
+        raise RuntimeError(
+            f"Current checkout branch is not available on origin: {repo_ref} ({detail})"
+        )
+
+    return HeadnodeRepoSpec(url=repo_url, ref=repo_ref)
+
+
+def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: str) -> str:
+    repo_name_q = shlex.quote(repo_name)
+    repo_url_q = shlex.quote(repo_url)
+    repo_ref_q = shlex.quote(repo_ref)
+    origin_ref_q = shlex.quote(f"refs/remotes/origin/{repo_ref}")
+    origin_checkout_q = shlex.quote(f"origin/{repo_ref}")
+    repo_error_q = shlex.quote(f"Expected ~/projects/{repo_name} to be a git checkout")
+
+    return (
+        "mkdir -p ~/projects && cd ~/projects && "
+        f"if [ -e {repo_name_q} ] && [ ! -d {repo_name_q}/.git ]; then "
+        f"echo {repo_error_q} >&2; exit 1; "
+        "fi && "
+        f"if [ ! -d {repo_name_q}/.git ]; then git clone {repo_url_q} {repo_name_q}; fi && "
+        f"cd {repo_name_q} && "
+        "git fetch origin --tags --prune && "
+        "git reset --hard HEAD && "
+        "git clean -fdx && "
+        f"if git show-ref --verify --quiet {origin_ref_q}; then "
+        f"git checkout -B daylily-managed {origin_checkout_q}; "
+        "else "
+        f"git checkout --detach {repo_ref_q}; "
+        "fi"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -1081,26 +1152,26 @@ def configure_headnode(
         cli_cfg = yaml.safe_load(fh) or {}
 
     daylily = cli_cfg.get("daylily", {}) or {}
-    repo_tag = daylily.get("git_ephemeral_cluster_repo_tag", "main")
+    repo_ref = daylily.get("git_ephemeral_cluster_repo_tag", "main")
     repo_url = daylily.get(
         "git_ephemeral_cluster_repo",
         "https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git",
     )
     repo_name = "daylily-ephemeral-cluster"
+    try:
+        repo_spec = _resolve_headnode_repo_spec(repo_url, repo_ref)
+    except RuntimeError as exc:
+        logger.error("  ✗ Could not resolve headnode repository source: %s", exc)
+        return False
+
+    repo_url = repo_spec.url
+    repo_ref = repo_spec.ref
+    logger.info("  ▸ Headnode repository source: %s @ %s", repo_url, repo_ref)
 
     steps = [
         (
-            "Generate SSH key on headnode",
-            "ssh-keygen -q -t rsa -f ~/.ssh/id_rsa -N '' <<< $'\\ny' 2>/dev/null || true",
-            60,
-        ),
-        (
             "Clone repository to headnode",
-            (
-                f"mkdir -p ~/projects && cd ~/projects && "
-                f"{{ [ -d {repo_name} ] && echo 'repo already cloned'; }} || "
-                f"git clone -b {shlex.quote(repo_tag)} {shlex.quote(repo_url)} {repo_name}"
-            ),
+            _build_headnode_repo_sync_command(repo_name, repo_url, repo_ref),
             120,
         ),
         (
@@ -1113,19 +1184,10 @@ def configure_headnode(
             180,
         ),
         (
-            "Initialize DAY-EC environment",
-            (
-                f"source ~/projects/{repo_name}/activate && "
-                f"eval \"$(daylily-ec headnode init --emit-shell --non-interactive)\""
-            ),
-            300,
-        ),
-        (
             "Install headnode tools",
             (
                 f"cd ~/projects/{repo_name} && "
                 f"source ~/projects/{repo_name}/activate && "
-                f"eval \"$(daylily-ec headnode init --emit-shell --non-interactive)\" && "
                 f"./bin/install-daylily-headnode-tools"
             ),
             120,
@@ -1147,25 +1209,6 @@ def configure_headnode(
         except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
             logger.error("  ✗ %s failed: %s", label, exc)
             return False
-
-    try:
-        pubkey_result = run_shell(
-            head_node_instance_id,
-            region,
-            "cat ~/.ssh/id_rsa.pub",
-            profile=profile,
-            timeout=30,
-            comment="Fetch headnode SSH public key",
-        )
-        pubkey = pubkey_result.stdout.strip()
-        if pubkey:
-            logs_dir = Path("logs")
-            logs_dir.mkdir(parents=True, exist_ok=True)
-            pubkey_path = logs_dir / f"{cluster_name}_{head_node_instance_id}_id_rsa.pub"
-            pubkey_path.write_text(pubkey + "\n", encoding="utf-8")
-            logger.info("  ✓ Headnode SSH public key saved to %s", pubkey_path)
-    except Exception as exc:
-        logger.warning("  ⚠ Unable to fetch headnode SSH public key: %s", exc)
 
     if repo_overrides:
         logger.info("  ▸ Deploying repository overrides ...")
@@ -1204,24 +1247,29 @@ def configure_headnode(
             logger.error("  ✗ Available repos config not found: %s", avail_repos_path)
             return False
 
-    logger.info("  ▸ Verifying day-clone ...")
+    logger.info("  ▸ Validating fresh ubuntu login shell ...")
     try:
-        verify = run_shell(
+        run_shell(
             head_node_instance_id,
             region,
-            f"source ~/projects/{repo_name}/activate && "
-            f"eval \"$(daylily-ec headnode init --emit-shell --non-interactive)\" && "
-            "day-clone --list",
+            (
+                f"cd ~/projects/{repo_name} && "
+                "bash -lc '"
+                "set -euo pipefail; "
+                "test \"$(whoami)\" = ubuntu; "
+                "test \"${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}\" = 1; "
+                "test \"${CONDA_DEFAULT_ENV:-}\" = DAY-EC; "
+                "command -v daylily-ec >/dev/null 2>&1; "
+                "command -v day-clone >/dev/null 2>&1; "
+                "day-clone --list >/dev/null'"
+            ),
             profile=profile,
-            timeout=30,
-            comment="Verify day-clone",
+            timeout=120,
+            comment="Validate fresh ubuntu login shell",
         )
-        if "repositories" not in verify.stdout.lower():
-            logger.error("  ✗ day-clone verification output was inconclusive")
-            return False
-        logger.info("  ✓ day-clone verified")
-    except Exception as exc:
-        logger.error("  ✗ day-clone verification failed: %s", exc)
+        logger.info("  ✓ Fresh ubuntu login shell validated")
+    except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
+        logger.error("  ✗ Fresh ubuntu login shell validation failed: %s", exc)
         return False
 
     logger.info(
