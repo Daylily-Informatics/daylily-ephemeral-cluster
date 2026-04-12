@@ -311,6 +311,26 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         ),
     )
 
+    legacy_block = (
+        "# >>> daylily headnode bootstrap >>>\n"
+        "daylily_headnode_bootstrap() {\n"
+        "    local repo_root=\"$HOME/projects/daylily-ephemeral-cluster\"\n"
+        "    local activate_script=\"$repo_root/activate\"\n"
+        "    export DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1\n"
+        "    source \"$activate_script\"\n"
+        "}\n"
+        "daylily_headnode_bootstrap\n"
+        "unset -f daylily_headnode_bootstrap\n"
+        "# <<< daylily headnode bootstrap <<<\n"
+    )
+    conda_block = (
+        "# >>> conda initialize >>>\n"
+        "conda hook\n"
+        "# <<< conda initialize <<<\n"
+    )
+    (home_dir / ".bashrc").write_text(legacy_block + "\n" + conda_block, encoding="utf-8")
+    (home_dir / ".bash_profile").write_text(legacy_block + "\n" + conda_block, encoding="utf-8")
+
     env = os.environ.copy()
     env.update(
         {
@@ -344,6 +364,14 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     assert bash_profile.count("# >>> daylily headnode bootstrap >>>") == 1
     assert 'daylily-headnode-bootstrap.sh' in bashrc
     assert 'daylily-headnode-bootstrap.sh' in bash_profile
+    assert "daylily_headnode_bootstrap()" not in bashrc
+    assert "daylily_headnode_bootstrap()" not in bash_profile
+    assert 'export DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1' not in bashrc
+    assert 'export DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1' not in bash_profile
+    assert bashrc.index("# >>> conda initialize >>>") < bashrc.index("# >>> daylily headnode bootstrap >>>")
+    assert bash_profile.index("# >>> conda initialize >>>") < bash_profile.index(
+        "# >>> daylily headnode bootstrap >>>"
+    )
     assert bootstrap_file.exists()
     bootstrap_text = bootstrap_file.read_text(encoding="utf-8")
     assert 'local repo_root="$HOME/projects/daylily-ephemeral-cluster"' in bootstrap_text

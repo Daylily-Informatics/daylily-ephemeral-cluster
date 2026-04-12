@@ -89,18 +89,51 @@ install_managed_login_block() {
     mkdir -p "$(dirname "$target_file")"
     touch "$target_file"
 
-    if grep -qF "# >>> daylily headnode bootstrap >>>" "$target_file"; then
-        return 0
-    fi
+    python3 - "$target_file" "$bootstrap_file" <<'PY'
+from pathlib import Path
+import shlex
+import sys
 
-    cat >>"$target_file" <<EOF
+target = Path(sys.argv[1])
+bootstrap = sys.argv[2]
+start = "# >>> daylily headnode bootstrap >>>"
+end = "# <<< daylily headnode bootstrap <<<"
+text = target.read_text(encoding="utf-8")
+parts = []
+cursor = 0
 
-# >>> daylily headnode bootstrap >>>
-if [[ -f "$bootstrap_file" ]]; then
-    . "$bootstrap_file"
-fi
-# <<< daylily headnode bootstrap <<<
-EOF
+while True:
+    start_idx = text.find(start, cursor)
+    if start_idx == -1:
+        parts.append(text[cursor:])
+        break
+    parts.append(text[cursor:start_idx])
+    end_idx = text.find(end, start_idx)
+    if end_idx == -1:
+        cursor = len(text)
+        break
+    cursor = end_idx + len(end)
+    if cursor < len(text) and text[cursor] == "\n":
+        cursor += 1
+
+cleaned = "".join(parts).rstrip()
+block = "\n".join(
+    [
+        "# >>> daylily headnode bootstrap >>>",
+        f"if [[ -f {shlex.quote(bootstrap)} ]]; then",
+        f"    . {shlex.quote(bootstrap)}",
+        "fi",
+        "# <<< daylily headnode bootstrap <<<",
+    ]
+)
+
+if cleaned:
+    rendered = cleaned + "\n\n" + block + "\n"
+else:
+    rendered = block + "\n"
+
+target.write_text(rendered, encoding="utf-8")
+PY
 }
 
 REPO_ROOT="$(resolve_daylily_res_dir)" || exit 1
