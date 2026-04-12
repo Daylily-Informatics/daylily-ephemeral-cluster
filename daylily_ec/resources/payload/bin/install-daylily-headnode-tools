@@ -67,6 +67,13 @@ daylily_headnode_bootstrap() {
     # shellcheck source=/dev/null
     source "$activate_script"
 
+    if [[ "${CONDA_DEFAULT_ENV:-}" != "DAY-EC" ]]; then
+        conda activate DAY-EC >/dev/null 2>&1 || {
+            echo "Error: failed to activate DAY-EC after sourcing $activate_script" >&2
+            return 1
+        }
+    fi
+
     if ! command -v daylily-ec >/dev/null 2>&1; then
         echo "Error: daylily-ec is not available after sourcing $activate_script" >&2
         return 1
