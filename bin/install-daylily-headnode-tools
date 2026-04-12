@@ -76,7 +76,7 @@ if [[ "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" != "1" ]]; then
     fi
 
     eval "$(daylily-ec headnode init --emit-shell --non-interactive)"
-    export DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1
+    DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1
 fi
 
 unset repo_root activate_script user_bin_dir
