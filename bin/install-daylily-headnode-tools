@@ -45,20 +45,16 @@ write_login_bootstrap() {
 
     cat >"$bootstrap_file" <<'EOF'
 # Managed by install-daylily-headnode-tools. Source this file from shell startup.
-daylily_headnode_bootstrap() {
-    local repo_root="$HOME/projects/daylily-ephemeral-cluster"
-    local activate_script="$repo_root/activate"
-    local user_bin_dir="$HOME/.local/bin"
+repo_root="$HOME/projects/daylily-ephemeral-cluster"
+activate_script="$repo_root/activate"
+user_bin_dir="$HOME/.local/bin"
 
-    case ":$PATH:" in
-        *":${user_bin_dir}:"*) ;;
-        *) export PATH="${user_bin_dir}:$PATH" ;;
-    esac
+case ":$PATH:" in
+    *":${user_bin_dir}:"*) ;;
+    *) export PATH="${user_bin_dir}:$PATH" ;;
+esac
 
-    if [[ "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" == "1" ]]; then
-        return 0
-    fi
-
+if [[ "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" != "1" ]]; then
     if [[ ! -f "$activate_script" ]]; then
         echo "Error: missing Daylily activate script at $activate_script" >&2
         return 1
@@ -81,10 +77,9 @@ daylily_headnode_bootstrap() {
 
     eval "$(daylily-ec headnode init --emit-shell --non-interactive)"
     export DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1
-}
+fi
 
-daylily_headnode_bootstrap
-unset -f daylily_headnode_bootstrap
+unset repo_root activate_script user_bin_dir
 EOF
     chmod 0644 "$bootstrap_file"
 }
