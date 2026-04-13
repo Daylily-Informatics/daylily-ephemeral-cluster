@@ -264,8 +264,18 @@ def _prompt_select(label: str, choices: List[str]) -> str:
         typer.echo("Invalid selection. Enter one of the listed numbers.")
 
 
-FSX_SIZE_INCREMENT_GIB = 1200
-FSX_PROMPT_OPTIONS = [str(FSX_SIZE_INCREMENT_GIB * i) for i in range(1, 6)]
+FSX_PROMPT_OPTIONS = [
+    "1200",
+    "2400",
+    "4800",
+    "7200",
+    "9600",
+    "12000",
+    "14400",
+]
+FSX_SIZE_RULE_TEXT = (
+    "1200 GiB, 2400 GiB, or any value >= 4800 GiB divisible by 2400 GiB"
+)
 
 
 def _is_valid_fsx_size(value: str) -> bool:
@@ -273,7 +283,9 @@ def _is_valid_fsx_size(value: str) -> bool:
     if not value or not value.isdigit():
         return False
     size = int(value)
-    return size > 0 and size % FSX_SIZE_INCREMENT_GIB == 0
+    if size == 1200 or size == 2400:
+        return True
+    return size >= 4800 and size % 2400 == 0
 
 
 def _resolve_fsx_size(cfg: Any, *, non_interactive: bool) -> str:
@@ -290,7 +302,7 @@ def _resolve_fsx_size(cfg: Any, *, non_interactive: bool) -> str:
             return configured
         raise ValueError(
             "Invalid FSx size "
-            f"'{configured}'. Allowed sizes are positive multiples of {FSX_SIZE_INCREMENT_GIB} GiB."
+            f"'{configured}'. Allowed sizes are {FSX_SIZE_RULE_TEXT}."
         )
 
     if default_value:
@@ -298,7 +310,7 @@ def _resolve_fsx_size(cfg: Any, *, non_interactive: bool) -> str:
         if not _is_valid_fsx_size(default_value):
             raise ValueError(
                 "Invalid FSx size "
-                f"'{default_value}'. Allowed sizes are positive multiples of {FSX_SIZE_INCREMENT_GIB} GiB."
+                f"'{default_value}'. Allowed sizes are {FSX_SIZE_RULE_TEXT}."
             )
 
     if non_interactive:
@@ -321,7 +333,8 @@ def _resolve_fsx_size(cfg: Any, *, non_interactive: bool) -> str:
         if _is_valid_fsx_size(raw):
             return raw
         typer.echo(
-            f"Invalid FSx size. Enter one of the listed numbers or a positive multiple of {FSX_SIZE_INCREMENT_GIB}."
+            "Invalid FSx size. Enter one of the listed numbers or a value matching: "
+            f"{FSX_SIZE_RULE_TEXT}."
         )
 
 

@@ -17,6 +17,8 @@ from pathlib import Path
 from types import SimpleNamespace
 from unittest.mock import MagicMock, patch
 
+import pytest
+
 import daylily_ec.aws.cloudformation as cloudformation
 import daylily_ec.aws.context as aws_context
 import daylily_ec.aws.ec2 as aws_ec2
@@ -184,11 +186,10 @@ class TestWorkflowResolutionHelpers:
         )
 
     def test_is_valid_fsx_size(self):
-        assert _is_valid_fsx_size("1200") is True
-        assert _is_valid_fsx_size("6000") is True
-        assert _is_valid_fsx_size("1250") is False
-        assert _is_valid_fsx_size("abc") is False
-        assert _is_valid_fsx_size("0") is False
+        for size in ("1200", "2400", "4800", "7200", "9600", "12000", "14400"):
+            assert _is_valid_fsx_size(size) is True
+        for size in ("3600", "6000", "1250", "abc", "0"):
+            assert _is_valid_fsx_size(size) is False
 
     def test_resolve_fsx_size_uses_valid_default(self):
         cfg = ConfigFile.model_validate(
@@ -202,26 +203,22 @@ class TestWorkflowResolutionHelpers:
 
         assert _resolve_fsx_size(cfg, non_interactive=True) == "4800"
 
-    def test_resolve_fsx_size_rejects_invalid_default(self):
+    @pytest.mark.parametrize("default_value", ["3600", "6000", "1250"])
+    def test_resolve_fsx_size_rejects_invalid_default(self, default_value):
         cfg = ConfigFile.model_validate(
             {
                 "ephemeral_cluster": {
-                    "config": {"fsx_fs_size": ["PROMPTUSER", "1250", ""]},
+                    "config": {"fsx_fs_size": ["PROMPTUSER", default_value, ""]},
                     "template_defaults": {},
                 }
             }
         )
 
         with patch("daylily_ec.workflow.create_cluster.typer.echo"):
-            try:
+            with pytest.raises(ValueError, match=rf"Invalid FSx size '{default_value}'"):
                 _resolve_fsx_size(cfg, non_interactive=True)
-            except ValueError as exc:
-                assert "Invalid FSx size '1250'" in str(exc)
-            else:
-                raise AssertionError("Expected ValueError")
 
-    @patch("daylily_ec.workflow.create_cluster.typer.prompt", return_value="2")
-    def test_resolve_fsx_size_prompts_with_menu(self, mock_prompt):
+    def test_resolve_fsx_size_prompts_with_menu(self):
         cfg = ConfigFile.model_validate(
             {
                 "ephemeral_cluster": {
@@ -231,7 +228,41 @@ class TestWorkflowResolutionHelpers:
             }
         )
 
-        assert _resolve_fsx_size(cfg, non_interactive=False) == "2400"
+        with (
+            patch("daylily_ec.workflow.create_cluster.typer.prompt", return_value="2") as mock_prompt,
+            patch("daylily_ec.workflow.create_cluster.typer.echo") as mock_echo,
+        ):
+            assert _resolve_fsx_size(cfg, non_interactive=False) == "2400"
+
+        assert [call.args[0] for call in mock_echo.call_args_list] == [
+            "Choose FSx Lustre file system size (GiB).",
+            "Smallest allowed sizes:",
+            "  [1] 1200",
+            "  [2] 2400",
+            "  [3] 4800",
+            "  [4] 7200",
+            "  [5] 9600",
+            "  [6] 12000",
+            "  [7] 14400",
+        ]
+        mock_prompt.assert_called_once()
+
+    def test_resolve_fsx_size_accepts_explicit_valid_size(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"fsx_fs_size": ["PROMPTUSER", "", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        with (
+            patch("daylily_ec.workflow.create_cluster.typer.prompt", return_value="9600") as mock_prompt,
+            patch("daylily_ec.workflow.create_cluster.typer.echo"),
+        ):
+            assert _resolve_fsx_size(cfg, non_interactive=False) == "9600"
+
         mock_prompt.assert_called_once()
 
 
