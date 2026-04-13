@@ -28,7 +28,6 @@ from daylily_ec.scripts.common import CommandError, aws_env, need_cmd, run_comma
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "daylily" / "daylily_ephemeral_cluster.yaml"
-DEFAULT_STAGE_BASE = "/fsx/data/staged_sample_data"
 DEFAULT_EXPORT_TARGET = "analysis_results"
 CLUSTER_NAME_PREFIX = "day-ssm-e2e"
 MAX_CLUSTER_NAME_LEN = 26
@@ -103,11 +102,6 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         "--stage-config-dir",
         default=None,
         help="Directory to write generated samples.tsv/units.tsv (default: tmp-e2e-config/<cluster>)",
-    )
-    parser.add_argument(
-        "--stage-base",
-        default=DEFAULT_STAGE_BASE,
-        help=f"Remote stage base used for workflow launch (default: {DEFAULT_STAGE_BASE})",
     )
     parser.add_argument(
         "--export-output-dir",
@@ -551,8 +545,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         args.region,
         "--cluster",
         args.cluster_name,
-        "--stage-base",
-        args.stage_base,
+        "--stage-dir",
+        remote_stage_dir,
     ]
     if not args.workflow_live:
         launch_cmd.append("--dry-run")
@@ -573,17 +567,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         profile=profile,
         region=args.region,
     )
-
-    cfg_headnode_cmd = [
-        str((REPO_ROOT / "bin" / "daylily-cfg-headnode").resolve()),
-        "--profile",
-        profile,
-        "--region",
-        args.region,
-        "--cluster",
-        args.cluster_name,
-    ]
-    _run_local_command(summary, output_json, "rerun-headnode-bootstrap", cfg_headnode_cmd, env=env)
 
     if args.skip_export:
         _record_step(summary, output_json, "export-results", "skipped", reason="--skip-export")

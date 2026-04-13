@@ -8,17 +8,16 @@ The runner exercises the supported lifecycle against a real AWS sandbox account:
 
 1. prepare a temporary config with a unique cluster name
 2. run `daylily-ec preflight`
-3. run `daylily-ec create`
+3. run `daylily-ec create` and wait for the CLI to return only after the post-`pcluster` headnode configuration finishes
 4. resolve the headnode instance ID and wait for SSM readiness
 5. validate that `SSM-SessionManagerRunShell` is configured to land in the `ubuntu` login shell
 6. optionally smoke a live Session Manager open/exit through a PTY-capable local shell
 7. validate headnode bootstrap over SSM as `ubuntu`
 8. stage sample data from the laptop through the S3/FSx-backed path
-9. launch the workflow from the laptop
+9. launch the workflow from the laptop against the exact remote stage directory returned by the staging step
 10. inspect tmux and Slurm state over SSM
-11. rerun the laptop-side headnode bootstrap helper
-12. export results back to S3
-13. optionally delete the cluster
+11. export results back to S3
+12. optionally delete the cluster
 
 Each stage is recorded in a machine-readable JSON summary.
 

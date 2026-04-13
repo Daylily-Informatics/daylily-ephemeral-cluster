@@ -137,6 +137,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         )
 
         assert "DAY_CONTAINERIZED=false" in command
+        assert "bin/day_run" in command
         assert "aligners=['bwa2a','strobe']" in command
         assert "-j 8" in command
         assert "-n" in command
@@ -210,8 +211,19 @@ class TestRunOmicsAnalysisHeadnodeScript:
 
         assert rc == 0
         script = mock_run_shell.call_args.args[2]
-        assert "tmux new-session" in script
+        assert "nohup tmux new-session" in script
+        assert "tmux has-session" in script
         assert "DAY_CONTAINERIZED=true" in script
+        assert 'mkdir -p "$analysis_root/$(whoami)"' in script
+        assert 'mkdir -p "$clone_root"' not in script
+        assert "__DAYLILY_ERROR__=destination_exists_without_repo" in script
+        assert 'elif [[ -n "${DAY_PROJECT:-}" ]]; then' in script
+        assert 'export PROJECT="$DAY_PROJECT"' in script
+        assert "set +u" in script
+        assert "set -u" in script
+        assert ". bin/day_activate slurm hg38 remote" in script
+        assert "bin/day_run" in script
+        assert "exec bash -il" in script
         assert '--which-one "$TRANSPORT"' not in script
         out = capsys.readouterr().out
         assert "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in out

@@ -231,6 +231,14 @@ def build_stage_paths(stage_target: str, bucket_uri: str) -> StagePaths:
     )
 
 
+def headnode_visible_path(path: str) -> str:
+    if path == "/data":
+        return "/fsx/data"
+    if path.startswith("/data/"):
+        return f"/fsx{path}"
+    return path
+
+
 def build_aws_env(config: AwsConfig) -> Dict[str, str]:
     env = dict(os.environ)
     env["AWS_PROFILE"] = config.profile
@@ -898,10 +906,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     aws_copy(str(units_path), remote_units_path, aws_env=aws_env, debug=args.debug)
 
     print("Remote staging completed successfully.")
-    print(f"Remote FSx stage directory: {stage.remote_fsx_stage}")
+    print(f"Remote FSx stage directory: {headnode_visible_path(stage.remote_fsx_stage)}")
     print(f"Staged files ({len(created_files)}):")
     for path in created_files:
-        print(f"  {path}")
+        print(f"  {headnode_visible_path(path)}")
     print("Generated configuration files:")
     print(f"  samples.tsv -> {remote_samples_path}")
     print(f"  units.tsv   -> {remote_units_path}")

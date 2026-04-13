@@ -208,6 +208,9 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
     assert "delete-cluster" in step_names
     assert "--non-interactive" in commands_by_name["preflight"]
     assert "--non-interactive" in commands_by_name["create-cluster"]
+    assert "--stage-dir" in commands_by_name["launch-workflow"]
+    assert "/fsx/data/staged_sample_data/remote_stage_1" in commands_by_name["launch-workflow"]
+    assert "--stage-base" not in commands_by_name["launch-workflow"]
     assert calls.count("smoke-interactive-session") == 1
     assert "create-cluster" in calls
     assert "export-results" in calls
