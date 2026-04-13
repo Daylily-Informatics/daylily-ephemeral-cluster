@@ -241,14 +241,21 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'python3 -c ' in script
         assert "nohup tmux new-session" in script
         assert "tmux has-session" in script
+        assert 'repo_key = "daylily-omics-analysis"' in script
         assert "DAY_CONTAINERIZED=true" in script
+        assert "DY_COMMAND='DAY_CONTAINERIZED=true" in script
         assert 'mkdir -p "$(dirname "$clone_root")"' in script
         assert 'mkdir -p "$clone_root"' not in script
         assert "__DAYLILY_ERROR__=destination_exists_without_repo" in script
+        assert 'if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then' in script
+        assert '. "$HOME/miniconda3/etc/profile.d/conda.sh"' in script
         assert 'unset PROJECT || true' in script
         assert 'dyoa_args+=(--skip-project-check)' in script
         assert "set +u" in script
         assert "set -u" in script
+        assert 'activate_status=$?' in script
+        assert 'set +u\n. bin/day_activate slurm hg38 remote\nactivate_status=$?\nset -u' in script
+        assert 'echo "[ERROR] day_activate failed with status $activate_status"' in script
         assert ". bin/day_activate slurm hg38 remote" in script
         assert "bin/day_run" in script
         assert "exec bash -il" in script

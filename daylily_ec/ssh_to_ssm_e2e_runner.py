@@ -6,6 +6,7 @@ import argparse
 import json
 import os
 import re
+import shlex
 import shutil
 import subprocess
 import sys
@@ -27,7 +28,7 @@ from daylily_ec.aws.ssm import (
 from daylily_ec.scripts.common import CommandError, aws_env, need_cmd, run_command
 
 
-REPO_ROOT = Path(__file__).resolve().parents[2]
+REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "daylily" / "daylily_ephemeral_cluster.yaml"
 DEFAULT_EXPORT_TARGET = "analysis_results/ubuntu"
 CLUSTER_NAME_PREFIX = "day-ssm-e2e"
@@ -144,6 +145,32 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         "--workflow-live",
         action="store_true",
         help="Launch the workflow without --dry-run",
+    )
+    parser.add_argument(
+        "--workflow-destination",
+        default="dayoa",
+        help="Workspace destination passed through to the headnode workflow launcher",
+    )
+    parser.add_argument(
+        "--workflow-aligners",
+        default="bwa2a",
+        help="Comma-separated aligner list passed through to the headnode workflow launcher",
+    )
+    parser.add_argument(
+        "--workflow-dedupers",
+        default="dppl",
+        help="Comma-separated deduper list passed through to the headnode workflow launcher",
+    )
+    parser.add_argument(
+        "--workflow-snv-callers",
+        default="deep",
+        help="Comma-separated SNV caller list passed through to the headnode workflow launcher",
+    )
+    parser.add_argument(
+        "--workflow-jobs",
+        type=int,
+        default=6,
+        help="Parallelism passed through to the headnode workflow launcher",
     )
     parser.add_argument(
         "--workflow-timeout-minutes",
@@ -418,12 +445,13 @@ def _resolve_export_output_dir(cluster_name: str, explicit: Optional[str]) -> Pa
 
 def _build_interactive_smoke_command(profile: str, region: str, cluster_name: str) -> list[str]:
     helper = (
+        f"source {shlex.quote(str((REPO_ROOT / 'activate').resolve()))} >/dev/null && "
         f"printf 'exit\\n' | "
         f"{(REPO_ROOT / 'bin' / 'daylily-ssh-into-headnode').resolve()} "
         f"--profile {profile} --region {region} --cluster {cluster_name}"
     )
     if sys.platform == "darwin":
-        return ["script", "-q", "/dev/null", "/bin/sh", "-lc", helper]
+        return ["script", "-q", "/dev/null", "/bin/bash", "--noprofile", "--norc", "-lc", helper]
     return ["script", "-q", "-c", helper, "/dev/null"]
 
 
@@ -826,6 +854,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         args.cluster_name,
         "--stage-dir",
         remote_stage_dir,
+        "--destination",
+        args.workflow_destination,
+        "--aligners",
+        args.workflow_aligners,
+        "--dedupers",
+        args.workflow_dedupers,
+        "--snv-callers",
+        args.workflow_snv_callers,
+        "--jobs",
+        str(args.workflow_jobs),
     ]
     if not args.workflow_live:
         launch_cmd.append("--dry-run")

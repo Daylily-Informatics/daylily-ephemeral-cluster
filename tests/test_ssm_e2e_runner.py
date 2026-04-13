@@ -10,6 +10,11 @@ from daylily_ec.scripts.common import CommandError
 import daylily_ec.ssh_to_ssm_e2e_runner as runner_module
 
 
+def test_repo_root_points_to_checkout_root() -> None:
+    assert (runner_module.REPO_ROOT / "bin" / "daylily-cfg-headnode").is_file()
+    assert (runner_module.REPO_ROOT / "pyproject.toml").is_file()
+
+
 def test_write_runner_config_sets_cluster_name_triplet(tmp_path: Path) -> None:
     base_config = tmp_path / "daylily.yaml"
     base_config.write_text(
@@ -122,7 +127,8 @@ def test_build_interactive_smoke_command_targets_connect_helper(monkeypatch) -> 
 
     command = runner_module._build_interactive_smoke_command("dev", "us-west-2", "cluster-a")
 
-    assert command[:4] == ["script", "-q", "/dev/null", "/bin/sh"]
+    assert command[:7] == ["script", "-q", "/dev/null", "/bin/bash", "--noprofile", "--norc", "-lc"]
+    assert "source " in command[-1]
     assert "daylily-ssh-into-headnode" in command[-1]
     assert "--cluster cluster-a" in command[-1]
 
@@ -428,6 +434,16 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
     assert "--stage-dir" in commands_by_name["launch-workflow"]
     assert "/fsx/data/staged_sample_data/remote_stage_1" in commands_by_name["launch-workflow"]
     assert "--stage-base" not in commands_by_name["launch-workflow"]
+    assert "--destination" in commands_by_name["launch-workflow"]
+    assert "dayoa" in commands_by_name["launch-workflow"]
+    assert "--aligners" in commands_by_name["launch-workflow"]
+    assert "bwa2a" in commands_by_name["launch-workflow"]
+    assert "--dedupers" in commands_by_name["launch-workflow"]
+    assert "dppl" in commands_by_name["launch-workflow"]
+    assert "--snv-callers" in commands_by_name["launch-workflow"]
+    assert "deep" in commands_by_name["launch-workflow"]
+    assert "--jobs" in commands_by_name["launch-workflow"]
+    assert "6" in commands_by_name["launch-workflow"]
     assert "analysis_results/ubuntu" in commands_by_name["export-results"]
     assert calls.count("smoke-interactive-session") == 1
     assert "create-cluster" in calls
@@ -533,3 +549,115 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
     assert "configure-headnode" in calls
     assert "create-cluster" not in calls
     assert "--cluster" in commands_by_name["configure-headnode"]
+
+
+def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Path) -> None:
+    analysis_samples = tmp_path / "analysis_samples.tsv"
+    export_dir = tmp_path / "export"
+    output_json = tmp_path / "summary.json"
+    analysis_samples.write_text("RUN_ID\tSAMPLE_ID\n", encoding="utf-8")
+
+    commands_by_name: dict[str, list[str]] = {}
+
+    monkeypatch.setattr(runner_module, "need_cmd", lambda name: None)
+    monkeypatch.setattr(
+        runner_module,
+        "resolve_headnode_instance_id",
+        lambda cluster, region, profile=None: HeadNodeTarget(cluster, region, "i-abc123"),
+    )
+    monkeypatch.setattr(
+        runner_module,
+        "wait_for_ssm_online",
+        lambda instance_id, region, profile=None, timeout=300: None,
+    )
+    monkeypatch.setattr(
+        runner_module,
+        "ensure_ubuntu_session_preferences",
+        lambda region, profile=None: None,
+    )
+    monkeypatch.setattr(
+        runner_module,
+        "_validate_headnode_bootstrap",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        runner_module,
+        "_inspect_runtime_state",
+        lambda *args, **kwargs: None,
+    )
+    monkeypatch.setattr(
+        runner_module,
+        "_wait_for_workflow_completion",
+        lambda *args, **kwargs: None,
+    )
+
+    def fake_run_local(summary, output_path, name, command, env):
+        commands_by_name[name] = list(command)
+        if name == "stage-from-laptop":
+            stdout = "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_1\n"
+            runner_module._record_step(summary, output_path, name, "passed", command=" ".join(command))
+            return stdout
+        if name == "launch-workflow":
+            stdout = (
+                "__DAYLILY_SESSION__=sess-1\n"
+                "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/run_deploy/daylily-omics-analysis\n"
+            )
+            runner_module._record_step(summary, output_path, name, "passed", command=" ".join(command))
+            return stdout
+        if name == "export-results":
+            export_dir.mkdir(parents=True, exist_ok=True)
+            (export_dir / "fsx_export.yaml").write_text(
+                "fsx_export:\n"
+                "  status: success\n"
+                "  s3_uri: s3://bucket/FSxLustre20260412T103705Z/analysis_results/ubuntu\n",
+                encoding="utf-8",
+            )
+        runner_module._record_step(summary, output_path, name, "passed", command=" ".join(command))
+        return ""
+
+    monkeypatch.setattr(runner_module, "_run_local_command", fake_run_local)
+
+    rc = runner_module.main(
+        [
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster-name",
+            "cluster-a",
+            "--reuse-existing-cluster",
+            "--reference-bucket",
+            "s3://bucket",
+            "--analysis-samples",
+            str(analysis_samples),
+            "--export-output-dir",
+            str(export_dir),
+            "--output-json",
+            str(output_json),
+            "--workflow-live",
+            "--workflow-destination",
+            "run_deploy",
+            "--workflow-aligners",
+            "sent",
+            "--workflow-dedupers",
+            "dppl",
+            "--workflow-snv-callers",
+            "sentd",
+            "--workflow-jobs",
+            "2",
+        ]
+    )
+
+    assert rc == 0
+    launch = commands_by_name["launch-workflow"]
+    assert "--destination" in launch
+    assert "run_deploy" in launch
+    assert "--aligners" in launch
+    assert "sent" in launch
+    assert "--dedupers" in launch
+    assert "dppl" in launch
+    assert "--snv-callers" in launch
+    assert "sentd" in launch
+    assert "--jobs" in launch
+    assert "2" in launch
