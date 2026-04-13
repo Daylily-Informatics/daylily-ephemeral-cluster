@@ -3,7 +3,9 @@
 This package ships a snapshot of repo assets (config/, etc/, bin/ helpers)
 inside the wheel/sdist under ``daylily_ec.resources/payload`` so that
 `pip install daylily-ephemeral-cluster` is sufficient to run tools from
-any working directory (i.e. without a repo checkout).
+any working directory (i.e. without a repo checkout). Legacy SSH/PEM-era
+material may live under ``payload/quarantine`` but is excluded from the
+active extracted resources tree.
 
 At runtime we extract the payload to a stable per-version directory:
 
@@ -39,6 +41,7 @@ def _expected_subpaths(root: Path) -> Iterable[Path]:
     yield root / "config"
     yield root / "config" / "day_cluster" / "prod_cluster.yaml"
     yield root / "config" / "day_cluster" / "pcluster_env.yml"
+    yield root / "environment.yaml"
     yield root / "etc"
     yield root / "bin"
 
@@ -88,6 +91,9 @@ def ensure_extracted() -> Path:
         )
         try:
             shutil.copytree(src, tmp_dir, dirs_exist_ok=True)
+            quarantine_dir = tmp_dir / "quarantine"
+            if quarantine_dir.exists():
+                shutil.rmtree(quarantine_dir, ignore_errors=True)
             (tmp_dir / ".complete").write_text(
                 f"daylily-ephemeral-cluster resources {version}\n",
                 encoding="utf-8",

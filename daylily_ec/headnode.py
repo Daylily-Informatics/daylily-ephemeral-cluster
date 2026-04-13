@@ -178,11 +178,11 @@ def _resolve_project(
         if user_name in users
     )
     warnings.append(
-        f"Project '{resolved}' is not valid for user '{user_name}'. Falling back to {GLOBAL_BUDGET_NAME}."
+        f"Project '{resolved}' is not valid for user '{user_name}'. Proceeding without fallback."
     )
     if allowed:
         warnings.append(f"Valid projects for '{user_name}': {', '.join(allowed)}")
-    return GLOBAL_BUDGET_NAME
+    return resolved
 
 
 def _build_session(region: str, profile: str):

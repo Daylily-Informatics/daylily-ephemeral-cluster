@@ -1,8 +1,42 @@
 # DAY-EC Environment
 
-`DAY-EC` is the standard local environment for this repo and the environment installed on bootstrapped head nodes.
+`DAY-EC` is the supported local engineering and operator environment for this repo.
 
-## Create Or Update The Environment
+The environment contract is intentionally split:
+
+- `environment.yaml` owns the Conda/system layer
+- `pyproject.toml` owns the Python package dependencies
+
+## Source Of Truth
+
+### `environment.yaml`
+
+This file defines the Conda environment shape and the non-Python operator tooling, including:
+
+- `python`
+- `pip`
+- `awscli`
+- `aws-session-manager-plugin`
+- `bash`
+- `jq`
+- `yq`
+- `nodejs`
+- `rclone`
+- `parallel`
+- `perl`
+- `fd-find`
+
+### `pyproject.toml`
+
+This file owns the Python dependency graph for the package. In a repo checkout, `DAY-EC` installs this repo editable with dev extras so the environment includes:
+
+- runtime package dependencies
+- test tooling
+- lint/type tooling
+
+That is the current supported engineering contract.
+
+## The Supported Checkout Entry Point
 
 From a repo checkout:
 
@@ -10,91 +44,79 @@ From a repo checkout:
 source ./activate
 ```
 
-`source ./activate` is the supported checkout-friendly entrypoint. It bootstraps or activates `DAY-EC`, prepends [`../bin/`](../bin/) to `PATH`, and makes `daylily-ec` available in the current shell.
+`activate` does the following:
 
-If you need to force a rebuild or run the lower-level bootstrap helper directly, use `./bin/init_dayec` explicitly.
+1. resolves the repo root
+2. ensures Conda is available
+3. creates `DAY-EC` from `environment.yaml` if it does not exist
+4. updates `DAY-EC` if runtime smoke tests fail
+5. installs this repo into `DAY-EC` as an editable package with `[dev]` extras
+6. validates the local runtime by checking `daylily-ec`, `aws`, `pcluster`, `session-manager-plugin`, and `node`
 
-On bootstrapped headnodes, the managed login shell should source `~/projects/daylily-ephemeral-cluster/activate` and then evaluate `daylily-ec headnode init --emit-shell --non-interactive` to populate the headnode shell context.
+If `source ./activate` completes cleanly, that is the supported shell for operator work and test execution.
 
-Useful `init_dayec` environment variables:
+## Explicit Bootstrap Helper
 
-- `DAYLILY_EC_INIT_DAYEC_PIP_SPEC`: install from a specific pip target when not running from a repo checkout
-- `DAYLILY_EC_RESOURCES_DIR`: override packaged resource lookup
+You can run the bootstrap directly:
 
-## Core Diagnostics
+```bash
+./bin/init_dayec
+```
+
+Use this when:
+
+- rebuilding `DAY-EC` explicitly
+- bootstrapping from packaged resources
+- diagnosing environment setup without sourcing the shell wrapper
+
+`bin/init_dayec` uses `environment.yaml` from the resolved resources directory and, in a repo checkout, installs:
+
+```bash
+python -m pip install --editable ".[dev]"
+```
+
+## Smoke Tests
+
+After activation, these commands should work:
 
 ```bash
 daylily-ec version
+daylily-ec runtime status
+aws --version
+pcluster version
+session-manager-plugin
+```
+
+Useful runtime inspection:
+
+```bash
 daylily-ec info
-daylily-ec resources-dir
-daylily-ec pricing snapshot --help
+daylily-ec runtime check
+daylily-ec runtime explain
 ```
 
-These commands are the fastest way to confirm that the CLI, packaged resources, and runtime directories are available.
+## Rebuild Or Repair
 
-## What The Environment Includes
-
-The exact dependency set lives in [`../config/day/daycli.yaml`](../config/day/daycli.yaml). At a high level it includes:
-
-- Python 3.11
-- AWS CLI v2
-- `aws-parallelcluster`
-- `pytest`, `mypy`, and related dev tooling
-- common operator utilities such as `jq`, `yq`, and `rclone`
-
-## Running Tests
+If you want a clean rebuild:
 
 ```bash
-source ./activate
-
-pytest tests/
-pytest --cov=daylily_ec --cov=daylib tests/
-pytest --collect-only -q tests
-```
-
-Avoid hard-coding expected test counts into docs; use `pytest --collect-only` when you want the current count.
-
-## Troubleshooting
-
-### Conda Is Missing
-
-```bash
-./bin/install_miniconda
+conda env remove -n DAY-EC
 source ./activate
 ```
 
-`install_miniconda` auto-detects Apple Silicon, Intel macOS, Linux x86_64, and Linux ARM hosts. It prefers `curl` and falls back to `wget`.
-
-### AWS Credentials Are Missing
+If you want a repair without removing the environment first:
 
 ```bash
-export AWS_PROFILE=daylily-service
-daylily-ec info
-aws sts get-caller-identity
+conda env update -n DAY-EC -f environment.yaml
+conda run -n DAY-EC python -m pip install --editable ".[dev]"
 ```
 
-### Packaged Resources Are Not Resolving
+## What Is No Longer Active
 
-```bash
-daylily-ec resources-dir
-```
+These are not part of the active environment contract anymore:
 
-If you need to point the CLI at a custom resource tree:
+- the old duplicate day-env YAML path
+- the retired pre-`DAY-EC` installer flow
+- duplicated bootstrap YAMLs that are now archive-only
 
-```bash
-export DAYLILY_EC_RESOURCES_DIR=/path/to/override-root
-```
-
-### Reference Bucket Tooling
-
-Reference-bucket cloning lives in the separate `daylily-omics-references` project. `DAY-EC`
-only needs the bucket to exist and verifies the layout directly during preflight/create flows.
-
-## Common Environment Variables
-
-- `AWS_PROFILE`
-- `AWS_REGION`
-- `AWS_DEFAULT_REGION`
-- `DAY_CONTACT_EMAIL`
-- `DAY_DISABLE_AUTO_SELECT`
-- `DAY_BREAK`
+Those materials live in archive/quarantine locations for historical reference only.

@@ -1,178 +1,81 @@
 # Ultra Rapid Start
 
-This is the shortest copy-pasteable path to clone `main`, activate Daylily, create a cluster, connect to it, inspect it, check pricing, and delete it.
+This is the shortest supported path for operators who already have:
 
-## One Paste To Start The Build
+- a working AWS profile
+- the required IAM/bootstrap in the target account
+- a known-good Daylily config file
+- a reference bucket in the target region
+- `SSM-SessionManagerRunShell` configured correctly
 
-Paste this block into your shell. It prompts for the values used later in this doc, reuses the current checkout if you are already in it, otherwise reuses `./daylily-ephemeral-cluster` if it is a valid Daylily checkout, otherwise clones the repo. It then activates the repo, prepares the config, runs pricing and preflight, and starts `daylily-ec create`. The `yes '' |` line feeds Enter to any remaining create-time prompts so the shown defaults or option `[1]` are accepted automatically.
+If any of that is not already true, stop here and read [aws_setup.md](aws_setup.md) first.
 
-```bash
-printf 'AWS profile [daylily-service]: '
-read -r AWS_PROFILE
-AWS_PROFILE="${AWS_PROFILE:-daylily-service}"
-
-printf 'AWS region [us-west-2]: '
-read -r REGION
-REGION="${REGION:-us-west-2}"
-
-printf 'AWS region-AZ [us-west-2d]: '
-read -r REGION_AZ
-REGION_AZ="${REGION_AZ:-us-west-2d}"
-
-printf 'Cluster name [daylily-demo-cluster]: '
-read -r CLUSTER_NAME
-CLUSTER_NAME="${CLUSTER_NAME:-daylily-demo-cluster}"
-
-while [ -z "${S3_BUCKET_URL:-}" ]; do
-  printf 'Reference bucket URL (s3://bucket): '
-  read -r S3_BUCKET_URL
-done
-S3_BUCKET_URL="${S3_BUCKET_URL%/}"
-S3_BUCKET_NAME="${S3_BUCKET_URL#s3://}"
-S3_BUCKET_NAME="${S3_BUCKET_NAME%%/*}"
-S3_BUCKET_URL="s3://${S3_BUCKET_NAME}"
-
-while [ -z "${PEM_PATH:-}" ]; do
-  printf 'SSH PEM path: '
-  read -r PEM_PATH
-  PEM_PATH="${PEM_PATH/#\~/$HOME}"
-done
-SSH_KEY_NAME="$(basename "$PEM_PATH" .pem)"
-
-while [ -z "${DAY_CONTACT_EMAIL:-}" ]; do
-  printf 'Budget / heartbeat email: '
-  read -r DAY_CONTACT_EMAIL
-done
-
-export AWS_PROFILE REGION REGION_AZ CLUSTER_NAME S3_BUCKET_URL S3_BUCKET_NAME PEM_PATH SSH_KEY_NAME DAY_CONTACT_EMAIL
-export REPO_DIR=daylily-ephemeral-cluster
-
-if [ -f ./activate ] && [ -f ./environment.yaml ]; then
-  :
-elif [ -f "./$REPO_DIR/activate" ] && [ -f "./$REPO_DIR/environment.yaml" ]; then
-  cd "$REPO_DIR"
-else
-  git clone -b main https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git "$REPO_DIR"
-  cd "$REPO_DIR"
-fi
-
-source ./activate
-
-mkdir -p ~/.config/daylily
-cp config/daylily_ephemeral_cluster_template.yaml ~/.config/daylily/daylily_ephemeral_cluster.yaml
-export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
-
-python3 -c '
-import os
-from daylily_ec.config import load_config, write_config
-
-cfg = load_config(os.environ["DAY_EX_CFG"])
-updates = {
-    "cluster_name": os.environ["CLUSTER_NAME"],
-    "s3_bucket_name": os.environ["S3_BUCKET_NAME"],
-    "ssh_key_name": os.environ["SSH_KEY_NAME"],
-    "budget_email": os.environ["DAY_CONTACT_EMAIL"],
-    "heartbeat_email": os.environ["DAY_CONTACT_EMAIL"],
-}
-for key, value in updates.items():
-    triplet = cfg.ephemeral_cluster.config[key]
-    triplet.action = "USESETVALUE"
-    triplet.default_value = value
-    triplet.set_value = value
-write_config(cfg, os.environ["DAY_EX_CFG"])
-'
-
-daylily-ec pricing snapshot --region "$REGION" --config config/day_cluster/prod_cluster.yaml --profile "$AWS_PROFILE"
-daylily-ec preflight --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG" --pass-on-warn
-yes '' | daylily-ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG" --pass-on-warn
-```
-
-If you want to answer prompts manually instead, remove `yes '' |` from the final command.
-
-The rest of this doc shows the same lifecycle as separate commands.
-
-## Clone Main
-
-```bash
-git clone -b main https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git
-cd daylily-ephemeral-cluster
-```
-
-## Activate
+## Short Path
 
 ```bash
 source ./activate
-```
 
-## Prepare Config
-
-```bash
-mkdir -p ~/.config/daylily
-cp config/daylily_ephemeral_cluster_template.yaml ~/.config/daylily/daylily_ephemeral_cluster.yaml
-export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
-```
-
-Set `cluster_name:` in `"$DAY_EX_CFG"` to `daylily-demo-cluster` before you create the cluster so the later info and delete commands match the created name.
-
-## Set Operator Variables
-
-```bash
-export AWS_PROFILE=daylily-service
+export AWS_PROFILE=daylily-service-lsmc
 export REGION=us-west-2
 export REGION_AZ=us-west-2d
-export CLUSTER_NAME=daylily-demo-cluster
-export S3_BUCKET_URL=s3://daylily-service-omics-analysis-us-west-2
-export PEM_PATH="$HOME/.ssh/daylily-omics-analysis-us-west-2.pem"
-export S3_BUCKET_NAME="${S3_BUCKET_URL#s3://}"
-export S3_BUCKET_NAME="${S3_BUCKET_NAME%%/*}"
-export SSH_KEY_NAME="$(basename "$PEM_PATH" .pem)"
+export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
+export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
+export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
+export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
+export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
+export EXPORT_DIR="$PWD/tmp-export/$CLUSTER_NAME"
+
+daylily-ec preflight \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG"
+
+daylily-ec create \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG"
+
+bin/daylily-ssh-into-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+
+bin/daylily-stage-samples-from-local-to-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --reference-bucket "$REF_BUCKET" \
+  --config-dir "$STAGE_CFG_DIR" \
+  "$ANALYSIS_SAMPLES"
+
+bin/daylily-run-omics-analysis-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
+  --destination dayoa
+
+daylily-ec export \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME" \
+  --target-uri analysis_results/ubuntu \
+  --output-dir "$EXPORT_DIR"
 ```
 
-## Check Pricing First
+## Fast Checks
+
+- `daylily-ec info`
+- `daylily-ec runtime status`
+- `daylily-ec cluster-info --profile "$AWS_PROFILE" --region "$REGION"`
+- `cat "$EXPORT_DIR/fsx_export.yaml"`
+
+## Delete Only After Export Verification
 
 ```bash
-daylily-ec pricing snapshot --region "$REGION" --config config/day_cluster/prod_cluster.yaml --profile "$AWS_PROFILE"
+daylily-ec delete \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME"
 ```
 
-## Preflight
-
-```bash
-daylily-ec preflight --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
-```
-
-## Create The Cluster
-
-```bash
-daylily-ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
-```
-
-The real SSH command is also printed by `daylily-ec create` at the end of a successful run.
-
-## SSH Into The Headnode
-
-Hypothetical example IP:
-
-```bash
-ssh -i "$PEM_PATH" ubuntu@54.218.10.25
-```
-
-## Check Cluster Info
-
-```bash
-daylily-ec cluster-info --region "$REGION" --profile "$AWS_PROFILE"
-pcluster describe-cluster -n "$CLUSTER_NAME" --region "$REGION"
-```
-
-## Get AWS Region-AZ Pricing Info
-
-```bash
-daylily-ec pricing snapshot --region "$REGION" --config config/day_cluster/prod_cluster.yaml --profile "$AWS_PROFILE"
-```
-
-Use the snapshot output to compare instance pricing before choosing or changing `REGION_AZ`.
-
-## Delete The Cluster
-
-```bash
-daylily-ec delete --cluster-name "$CLUSTER_NAME" --region "$REGION"
-```
+That delete is destructive. Verify export first.

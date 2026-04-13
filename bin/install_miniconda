@@ -74,6 +74,7 @@ main() {
     local installer_url=""
     local installer_script=""
     local installer_label=""
+    local conda_bin=""
     local bashrc bash_profile
     local bashrc_has_block=false
     local bash_profile_has_block=false
@@ -84,57 +85,63 @@ main() {
     fi
 
     if command -v conda >/dev/null 2>&1; then
-        echo "Miniconda/Conda is already installed. Please uninstall it before proceeding."
-        exit 0
-    fi
-    echo "Miniconda is not installed. Proceeding with installation..."
-
-    if [[ -z "${MACHINE:-}" ]]; then
-        MACHINE="$(detect_machine)" || {
-            echo "Unsupported system/architecture: $(uname -s) $(uname -m)"
-            exit 1
-        }
+        conda_bin="$(command -v conda)"
+        echo "Miniconda/Conda is already installed. Ensuring shell initialization is present."
+    elif [[ -x "$HOME/miniconda3/bin/conda" ]]; then
+        conda_bin="$HOME/miniconda3/bin/conda"
+        echo "Miniconda is already installed at $HOME/miniconda3. Ensuring shell initialization is present."
+    else
+        echo "Miniconda is not installed. Proceeding with installation..."
     fi
 
-    case "$MACHINE" in
-        apple_silicon)
-            installer_label="Apple Silicon"
-            installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh"
-            installer_script="Miniconda3-MacOSX-arm64.sh"
-            ;;
-        intel_mac)
-            installer_label="Intel Mac"
-            installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
-            installer_script="Miniconda3-MacOSX-x86_64.sh"
-            ;;
-        linux_x86)
-            installer_label="Linux x86"
-            installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-            installer_script="Miniconda3-Linux-x86_64.sh"
-            ;;
-        linux_arm)
-            installer_label="Linux ARM"
-            installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh"
-            installer_script="Miniconda3-Linux-aarch64.sh"
-            ;;
-        *)
-            echo "Unsupported machine type: $MACHINE"
-            echo "Please visit https://docs.conda.io/en/latest/miniconda.html for manual installation instructions."
-            exit 2
-            ;;
-    esac
+    if [[ -z "$conda_bin" ]]; then
+        if [[ -z "${MACHINE:-}" ]]; then
+            MACHINE="$(detect_machine)" || {
+                echo "Unsupported system/architecture: $(uname -s) $(uname -m)"
+                exit 1
+            }
+        fi
 
-    echo "Autoinstalling Miniconda for ${installer_label}..."
-    download_file "$installer_url" "$installer_script"
-    chmod +x "$installer_script"
-    "./$installer_script" -b -p "$HOME/miniconda3"
-    rm -f "$installer_script"
+        case "$MACHINE" in
+            apple_silicon)
+                installer_label="Apple Silicon"
+                installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh"
+                installer_script="Miniconda3-MacOSX-arm64.sh"
+                ;;
+            intel_mac)
+                installer_label="Intel Mac"
+                installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
+                installer_script="Miniconda3-MacOSX-x86_64.sh"
+                ;;
+            linux_x86)
+                installer_label="Linux x86"
+                installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
+                installer_script="Miniconda3-Linux-x86_64.sh"
+                ;;
+            linux_arm)
+                installer_label="Linux ARM"
+                installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh"
+                installer_script="Miniconda3-Linux-aarch64.sh"
+                ;;
+            *)
+                echo "Unsupported machine type: $MACHINE"
+                echo "Please visit https://docs.conda.io/en/latest/miniconda.html for manual installation instructions."
+                exit 2
+                ;;
+        esac
 
-    if [[ -x "$HOME/miniconda3/bin/conda" ]]; then
+        echo "Autoinstalling Miniconda for ${installer_label}..."
+        download_file "$installer_url" "$installer_script"
+        chmod +x "$installer_script"
+        "./$installer_script" -b -p "$HOME/miniconda3"
+        rm -f "$installer_script"
+        conda_bin="$HOME/miniconda3/bin/conda"
+    fi
+
+    if [[ -x "$conda_bin" ]]; then
         echo "Initializing Conda..."
-        "$HOME/miniconda3/bin/conda" init bash
-        "$HOME/miniconda3/bin/conda" init zsh
-        "$HOME/miniconda3/bin/conda" config --set accept_channel_terms true
+        "$conda_bin" init bash
+        "$conda_bin" init zsh
 
         bashrc="$HOME/.bashrc"
         bash_profile="$HOME/.bash_profile"

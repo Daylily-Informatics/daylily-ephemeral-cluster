@@ -40,6 +40,7 @@ R2_FQ = "R2_FQ"
 STAGE_DIRECTIVE = "STAGE_DIRECTIVE"
 STAGE_TARGET = "STAGE_TARGET"
 SUBSAMPLE_PCT = "SUBSAMPLE_PCT"
+ILMN_TRIM_READ_LENGTH = "ILMN_TRIM_READ_LENGTH"
 IS_POS_CTRL = "IS_POS_CTRL"
 IS_NEG_CTRL = "IS_NEG_CTRL"
 N_X = "N_X"
@@ -96,6 +97,7 @@ UNITS_HEADER = [
     "UG_R1_PATH",
     "UG_R2_PATH",
     "SUBSAMPLE_PCT",
+    ILMN_TRIM_READ_LENGTH,
     "SAMPLEUSE",
     "BWA_KMER",
     "DEEP_MODEL",
@@ -229,6 +231,14 @@ def build_stage_paths(stage_target: str, bucket_uri: str) -> StagePaths:
         remote_fsx_stage=remote_fsx_stage,
         remote_s3_stage=remote_s3_stage,
     )
+
+
+def headnode_visible_path(path: str) -> str:
+    if path == "/data":
+        return "/fsx/data"
+    if path.startswith("/data/"):
+        return f"/fsx{path}"
+    return path
 
 
 def build_aws_env(config: AwsConfig) -> Dict[str, str]:
@@ -380,6 +390,47 @@ def get_entry_value(entry: Dict[str, str], field: str, default: str = "") -> str
 
 def normalise_identifier(value: str) -> str:
     return value.replace("_", "-")
+
+
+def canonical_manifest_libprep(value: str, *, vendor: str) -> str:
+    normalized = normalise_identifier(value)
+    if vendor == "ILMN" and normalized.upper() in {
+        "NOAMPWGS",
+        "PCRFREE",
+        "PCR-FREE",
+        "TRUSEQPF",
+        "TRUSEQ-PF",
+    }:
+        return "PCR-FREE"
+    return normalized
+
+
+def canonical_manifest_seq_platform(value: str, *, vendor: str) -> str:
+    normalized = normalise_identifier(value)
+    if vendor == "ILMN" and normalized.upper() in {"NOVASEQ", "NOVASEQX"}:
+        return "NOVASEQ"
+    return normalized
+
+
+def is_giab_control(entry: Dict[str, str]) -> bool:
+    concordance = get_entry_value(entry, PATH_TO_CONCORDANCE).lower()
+    return "/controls/giab/" in concordance
+
+
+def resolve_positive_control(entry: Dict[str, str]) -> str:
+    raw = get_entry_value(entry, IS_POS_CTRL).lower()
+    if raw in {"true", "false"}:
+        if raw == "false" and is_giab_control(entry):
+            return "true"
+        return raw
+    return "true" if is_giab_control(entry) else "false"
+
+
+def resolve_negative_control(entry: Dict[str, str]) -> str:
+    raw = get_entry_value(entry, IS_NEG_CTRL).lower()
+    if raw in {"true", "false"}:
+        return raw
+    return "false"
 
 
 def aws_copy(
@@ -623,6 +674,27 @@ def stage_multi_lane(
     return remote_r1_fsx, remote_r2_fsx
 
 
+def reject_duplicate_multi_lane_sources(
+    entries: Sequence[Dict[str, str]],
+    *,
+    sample_name: str,
+) -> None:
+    seen: set[Tuple[str, str]] = set()
+    duplicates: list[Tuple[str, str]] = []
+    for entry in entries:
+        pair = (get_entry_value(entry, R1_FQ), get_entry_value(entry, R2_FQ))
+        if pair in seen and pair not in duplicates:
+            duplicates.append(pair)
+        seen.add(pair)
+    if duplicates:
+        duplicate_inputs = ", ".join(f"{r1} | {r2}" for r1, r2 in duplicates)
+        raise CommandError(
+            "Duplicate FASTQ lane sources are not supported for multi-lane samples. "
+            f"Sample {sample_name} repeats the same R1/R2 pair across lanes: {duplicate_inputs}. "
+            "Use distinct lane FASTQs or a single premerged/downsampled input instead."
+        )
+
+
 def write_tsv(path: Path, header: Sequence[str], rows: Sequence[Dict[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="") as handle:
@@ -712,10 +784,10 @@ def process_samples(
         sampleid = normalise_identifier(key[1])
         experiment_id = normalise_identifier(key[2])
         sample_type = normalise_identifier(key[3])
-        libprep = normalise_identifier(key[4])
         vendor_value = normalise_identifier(key[5])
         vendor = vendor_value.upper()
-        seq_platform = normalise_identifier(key[6])
+        libprep = canonical_manifest_libprep(key[4], vendor=vendor)
+        seq_platform = canonical_manifest_seq_platform(key[6], vendor=vendor)
         lane = normalise_identifier(first[LANE])
         seqbc = normalise_identifier(first[SEQBC_ID])
 
@@ -734,6 +806,7 @@ def process_samples(
             )
 
         if is_multi_lane:
+            reject_duplicate_multi_lane_sources(entries, sample_name=sample_name)
             r1_files = [get_entry_value(entry, R1_FQ) for entry in entries]
             r2_files = [get_entry_value(entry, R2_FQ) for entry in entries]
             remote_r1, remote_r2 = stage_multi_lane(
@@ -789,7 +862,9 @@ def process_samples(
             }
         )
 
-        is_pos_ctrl = get_entry_value(first, IS_POS_CTRL).lower() == "true"
+        resolved_pos_ctrl = resolve_positive_control(first)
+        resolved_neg_ctrl = resolve_negative_control(first)
+        is_pos_ctrl = resolved_pos_ctrl == "true"
         units_row["SAMPLEUSE"] = get_entry_value(first, "SAMPLEUSE") or ("posControl" if is_pos_ctrl else "sample")
         units_row["BWA_KMER"] = get_entry_value(first, "BWA_KMER") or "19"
 
@@ -825,8 +900,8 @@ def process_samples(
             "SAMPLECLASS": "research",
             "BIOLOGICAL_SEX": sex,
             "CONCORDANCE_CONTROL_PATH": concordance_path,
-            "IS_POSITIVE_CONTROL": get_entry_value(first, IS_POS_CTRL),
-            "IS_NEGATIVE_CONTROL": get_entry_value(first, IS_NEG_CTRL),
+            "IS_POSITIVE_CONTROL": resolved_pos_ctrl,
+            "IS_NEGATIVE_CONTROL": resolved_neg_ctrl,
             "SAMPLE_TYPE": sample_type,
             "TUM_NRM_SAMPLEID_MATCH": "na",
             "EXTERNAL_SAMPLE_ID": get_entry_value(first, EXTERNAL_SAMPLE_ID) or "na",
@@ -898,10 +973,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     aws_copy(str(units_path), remote_units_path, aws_env=aws_env, debug=args.debug)
 
     print("Remote staging completed successfully.")
-    print(f"Remote FSx stage directory: {stage.remote_fsx_stage}")
+    print(f"Remote FSx stage directory: {headnode_visible_path(stage.remote_fsx_stage)}")
     print(f"Staged files ({len(created_files)}):")
     for path in created_files:
-        print(f"  {path}")
+        print(f"  {headnode_visible_path(path)}")
     print("Generated configuration files:")
     print(f"  samples.tsv -> {remote_samples_path}")
     print(f"  units.tsv   -> {remote_units_path}")

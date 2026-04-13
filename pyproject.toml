@@ -19,6 +19,7 @@ dependencies = [
     "ruamel.yaml>=0.18.0",
     "pydantic>=2.0.0",
     "pydantic-settings>=2.0.0",
+    "typer>=0.12,<1",
     "cli-core-yo==2.0.0",
     # aws-parallelcluster 3.13.x still imports pkg_resources at runtime.
     "setuptools<81",
@@ -43,6 +44,10 @@ dev = [
     "ruff>=0.1.0",
     "mypy>=1.5.0",
     "boto3-stubs[ec2,s3]>=1.28.0",
+    "ipython>=8.0.0",
+    # Keep the checkout env compatible with the Conda awscli build in environment.yaml.
+    "prompt-toolkit>=3.0.41,<3.0.52",
+    "yamllint>=1.35.0",
 ]
 
 [tool.setuptools_scm]
@@ -55,6 +60,9 @@ include = ["daylib*", "daylily_ec*"]
 
 [tool.setuptools.package-data]
 "daylily_ec.resources" = ["payload/**"]
+
+[tool.setuptools.exclude-package-data]
+"daylily_ec.resources" = ["payload/quarantine/**"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

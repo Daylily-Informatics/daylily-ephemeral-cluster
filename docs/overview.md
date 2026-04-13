@@ -1,85 +1,125 @@
 # Overview
 
-Daylily is an operator-focused framework for standing up short-lived AWS ParallelCluster environments around durable reference data and repeatable workflow launch paths. The goal is simple: make large Slurm-backed bioinformatics clusters easy to create, use, inspect, and destroy without turning the cluster itself into a permanent pet.
+This repo is an operator-facing control plane for disposable AWS ParallelCluster environments used to run Daylily bioinformatics workflows. The current supported path is repo-driven and Session-Manager-first:
 
-## Why Ephemeral Clusters
+1. validate the local environment and AWS prerequisites
+2. create the cluster
+3. finish headnode bootstrap over Session Manager as `ubuntu`
+4. stage local inputs into the bucket-backed FSx namespace
+5. launch the workflow in tmux on the headnode
+6. monitor runtime state until the run is complete
+7. export `/fsx/analysis_results/ubuntu` back to S3
+8. tear the cluster down
 
-Daylily assumes the durable assets are the data, references, manifests, and workflow definitions - not the running compute fleet. That pushes the design toward:
+## Control Plane
 
-- preflight validation before any expensive mutation happens
-- region-scoped reference buckets that survive cluster turnover
-- FSx for Lustre for shared cluster-time performance
-- lightweight, repeatable head-node bootstrap
-- explicit export and delete workflows once the run is complete
+The supported control-plane surfaces are:
 
-This keeps the operator workflow close to "create, validate, run, export, tear down" instead of "tune and babysit a permanent cluster".
+- `daylily-ec`
+- `activate`
+- `bin/daylily-ssh-into-headnode`
+- `bin/daylily-stage-samples-from-local-to-headnode`
+- `bin/daylily-run-omics-analysis-headnode`
+- `bin/daylily-cfg-headnode`
+- `python -m daylily_ec.ssh_to_ssm_e2e_runner`
 
-## System Model
+`daylily-ec` is the main CLI. It owns:
 
-The Daylily stack has three layers:
+- environment/runtime introspection
+- preflight
+- cluster create
+- cluster listing/info
+- export
+- delete
+- pricing snapshots
+- headnode init helpers
 
-1. Control plane: `daylily_ec` validates prerequisites, renders cluster YAML, applies spot pricing, creates the cluster, and records state.
-2. Data plane: a region-specific S3 bucket whose name includes `omics-analysis` is exposed through FSx for Lustre so references and staged data are shared across nodes.
-3. Workflow plane: repository metadata in [`../config/daylily_available_repositories.yaml`](../config/daylily_available_repositories.yaml) tells the head node what workflow repos exist, where to clone them from, and which default ref to use.
+The `bin/` helpers are thin supported wrappers around the staged-input, headnode-config, interactive-connect, and workflow-launch flows.
 
-## Operator Story
+## Data Plane
 
-The intended operator loop is:
+The data model is simple on purpose:
 
-1. Prepare the AWS identity, key pair, and reference bucket for a region.
-2. Run `daylily-ec preflight` to catch quota, IAM, or bucket problems before provisioning.
-3. Create the cluster and let Daylily bootstrap the head node.
-4. Stage sample metadata and inputs from a laptop or directly on the head node.
-5. Launch a workflow through the head node helpers and monitor the run in Slurm and tmux.
-6. Export results to S3, check for drift if needed, and delete the cluster.
+- the cluster is temporary
+- the reference bucket is durable
+- FSx for Lustre is the performance layer mounted into the cluster
 
-That operational sequence is why Daylily ships a Python CLI as the canonical operator interface, with `bin/` helpers retained only as compatibility wrappers where practical.
+The staging helper reads a local `analysis_samples.tsv`, validates the referenced sources, uploads or references them in the bucket-backed namespace, and writes workflow manifests that the headnode launcher can consume:
 
-For local checkout work, `source ./activate` is the canonical entrypoint. On bootstrapped headnodes, the login shell should source `~/projects/daylily-ephemeral-cluster/activate` and then evaluate `daylily-ec headnode init --emit-shell --non-interactive` to restore the shell context the headnode expects.
+- `<timestamp>_samples.tsv`
+- `<timestamp>_units.tsv`
 
-## Pluggable Workflow Catalog
+The helper prints the remote FSx stage directory. The launcher uses that path through `--stage-dir` so the workflow starts from the exact staged manifest set you just generated.
 
-The repo already carries a small workflow registry:
+## Headnode Bootstrap Model
 
-- `daylily-omics-analysis`: primary whole-genome and multiomics workflows
-- `rna-seq-star-deseq2`: RNA-seq alignment and differential expression workflows
-- `daylily-sarek`: a Sarek-based workflow entry
+The cluster create flow does more than call `pcluster create-cluster`.
 
-Those entries live in [`../config/daylily_available_repositories.yaml`](../config/daylily_available_repositories.yaml), and `day-clone` uses them on the head node.
+After infrastructure creation, Daylily:
 
-## Cost And Performance Context
+- resolves the headnode instance
+- waits for Systems Manager readiness
+- configures the headnode over Session Manager
+- installs and validates the user-scoped Daylily bootstrap under `/home/ubuntu`
+- verifies a fresh `ubuntu` login shell
 
-Daylily is opinionated about cost visibility:
+That last point matters. The supported shell must already be correct when the operator connects. The repo does not treat manual user switching as part of the supported workflow.
 
-- preflight can stop before a bad cluster launch
-- budgets and heartbeat notifications are part of the lifecycle model
-- the CLI includes raw pricing inspection helpers
-- the repo keeps benchmark and cost context alongside the operator docs
+Session Manager is only considered valid when the regional document `SSM-SessionManagerRunShell` is configured to:
 
-Illustrative artifacts already shipped in the repo:
+- run shell sessions as `ubuntu`
+- source a login shell for `ubuntu`
 
-![Spot pricing example](images/cost_est_table.png)
+## Workflow Launch Model
 
-![Tagged cost tracking example](images/assets/day_aws_tagged_costs_by_hour_project.png)
+`bin/daylily-run-omics-analysis-headnode` is the supported launcher. It:
 
-## Filesystem And Results Story
+1. discovers the staged config files from `--stage-dir`
+2. ensures the target repo exists under `/fsx/analysis_results/ubuntu/<destination>/...`
+3. copies staged `samples.tsv` and `units.tsv` into the workflow repo
+4. creates `/home/ubuntu/daylily-runs/<session>/`
+5. writes `launch.sh`, `tmux.log`, and `status.json`
+6. starts the tmux session
 
-The shared filesystem layout is part of the operator value proposition. References, staged inputs, workflow repos, and analysis results land in predictable places so the cluster can stay ephemeral while the run outputs remain easy to export and inspect.
+`status.json` is the durable machine-readable run receipt for the launcher. It records:
 
-![Example results tree](images/assets/daylily_tree.png)
+- `session_name`
+- `repo_path`
+- `started_at`
+- `completed_at`
+- `exit_code`
+- `command`
 
-## Benchmark Reference Material
+## Create, Export, And E2E Artifacts
 
-The repo keeps benchmark notes under [`benchmarks/`](benchmarks/). These are reference material, not the operator quickstart:
+The current codebase writes several operator-useful artifacts:
 
-- [`benchmarks/FS_performance.md`](benchmarks/FS_performance.md)
-- [`benchmarks/aligner_benchmarks.md`](benchmarks/aligner_benchmarks.md)
-- [`benchmarks/deduplication_benchmarks.md`](benchmarks/deduplication_benchmarks.md)
-- [`benchmarks/snv_calling.md`](benchmarks/snv_calling.md)
-- [`benchmarks/sv_calling.md`](benchmarks/sv_calling.md)
+### Create
 
-## Where To Go Next
+- preflight report JSON under the Daylily XDG state/config tree
+- state record JSON for create/delete workflows
+- rendered cluster config and related local workflow state
 
-- [quickest_start.md](quickest_start.md) for the install and create flow
-- [operations.md](operations.md) for the day-2 operator workflow
-- [archive/README.md](archive/README.md) for historical material that is preserved but no longer canonical
+### Workflow launch
+
+- stage manifest files in the chosen local `--config-dir`
+- remote workflow run directory under `/home/ubuntu/daylily-runs/<session>/`
+
+### Export
+
+- `fsx_export.yaml` in the chosen `--output-dir`
+
+### E2E runner
+
+- generated config copy for the run
+- per-stage JSON summary, defaulting to `tmp-e2e-results/<cluster>.json`
+- stage config directory and export output directory when not overridden
+
+## Mental Model
+
+If you remember only four things, remember these:
+
+1. `source ./activate` is the supported way into the local toolchain.
+2. `daylily-ec create` is not done until the Daylily post-create headnode steps succeed.
+3. `bin/daylily-ssh-into-headnode` is Session Manager into the `ubuntu` login shell.
+4. Export is the handoff from ephemeral compute back to durable storage.

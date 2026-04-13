@@ -187,6 +187,38 @@ __daylily_activate_dayec_pcluster_smoke_test() {
   conda run -n DAY-EC pcluster version >/dev/null 2>&1
 }
 
+__daylily_activate_dayec_aws_smoke_test() {
+  local aws_path
+
+  if [ "${CONDA_DEFAULT_ENV:-}" = "DAY-EC" ] && [ -n "${CONDA_PREFIX:-}" ]; then
+    aws_path="${CONDA_PREFIX}/bin/aws"
+    if [ -x "${aws_path}" ]; then
+      "${aws_path}" --version >/dev/null 2>&1
+      return $?
+    fi
+  fi
+
+  __daylily_activate_load_conda || return 1
+  __daylily_activate_dayec_exists || return 1
+  conda run -n DAY-EC aws --version >/dev/null 2>&1
+}
+
+__daylily_activate_dayec_ssm_plugin_smoke_test() {
+  local plugin_path
+
+  if [ "${CONDA_DEFAULT_ENV:-}" = "DAY-EC" ] && [ -n "${CONDA_PREFIX:-}" ]; then
+    plugin_path="${CONDA_PREFIX}/bin/session-manager-plugin"
+    if [ -x "${plugin_path}" ]; then
+      "${plugin_path}" >/dev/null 2>&1
+      return $?
+    fi
+  fi
+
+  __daylily_activate_load_conda || return 1
+  __daylily_activate_dayec_exists || return 1
+  conda run -n DAY-EC session-manager-plugin >/dev/null 2>&1
+}
+
 __daylily_activate_dayec_node_smoke_test() {
   local node_path
 
@@ -205,8 +237,10 @@ __daylily_activate_dayec_node_smoke_test() {
 
 __daylily_activate_dayec_runtime_smoke_test() {
   __daylily_activate_dayec_cli_smoke_test || return 1
+  __daylily_activate_dayec_aws_smoke_test || return 1
   __daylily_activate_dayec_node_smoke_test || return 1
-  __daylily_activate_dayec_pcluster_smoke_test
+  __daylily_activate_dayec_pcluster_smoke_test || return 1
+  __daylily_activate_dayec_ssm_plugin_smoke_test
 }
 
 __daylily_activate_activate_dayec() {
@@ -246,9 +280,22 @@ __daylily_activate_update_dayec() {
   conda env update -n DAY-EC -f "${env_yaml}"
 }
 
+__daylily_activate_accept_tos() {
+  local channels_main channels_r
+
+  channels_main="https://repo.anaconda.com/pkgs/main"
+  channels_r="https://repo.anaconda.com/pkgs/r"
+
+  conda config --set always_yes true >/dev/null 2>&1 || true
+  conda tos accept --override-channels --channel "${channels_main}" >/dev/null 2>&1 || true
+  conda tos accept --override-channels --channel "${channels_r}" >/dev/null 2>&1 || true
+}
+
 __daylily_activate_install_repo_into_dayec() {
-  echo "Installing daylily-ephemeral-cluster into DAY-EC from ${DAYLILY_EC_REPO_ROOT} ..." >&2
-  conda run -n DAY-EC python -m pip install --editable "${DAYLILY_EC_REPO_ROOT}" || return 1
+  local editable_spec
+  editable_spec="${DAYLILY_EC_REPO_ROOT}[dev]"
+  echo "Installing daylily-ephemeral-cluster into DAY-EC from ${editable_spec} ..." >&2
+  conda run -n DAY-EC python -m pip install --editable "${editable_spec}" || return 1
   __daylily_activate_refresh_command_cache
 }
 
@@ -257,6 +304,8 @@ __daylily_activate_bootstrap_dayec() {
     echo "Error: conda is not available in this shell." >&2
     return 1
   }
+
+  __daylily_activate_accept_tos
 
   if ! __daylily_activate_dayec_exists; then
     __daylily_activate_create_dayec || return 1
@@ -343,7 +392,7 @@ daylily-ec() {
 }
 
 if [ "${CONDA_DEFAULT_ENV:-}" = "DAY-EC" ] && __daylily_activate_dayec_runtime_smoke_test; then
-  echo "DAY-EC activated. daylily-ec and pcluster are available in this shell."
+  echo "DAY-EC activated. daylily-ec, aws, pcluster, and session-manager-plugin are available in this shell."
 elif cli_path="$(__daylily_activate_external_cli_path)" && [ -n "${cli_path}" ] && __daylily_activate_cli_smoke_test "${cli_path}"; then
   echo "Repo tools added to PATH. daylily-ec is available via a validated PATH install."
 else

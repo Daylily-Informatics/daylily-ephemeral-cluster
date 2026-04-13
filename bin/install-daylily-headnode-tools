@@ -7,8 +7,8 @@ Usage: install-daylily-headnode-tools [-h|--help]
 
 Installs a small set of Daylily helper assets on a ParallelCluster head node:
   - Copies daylily CLI config files into ~/.config/daylily
-  - Installs the `day-clone` helper into /usr/local/bin (if possible) and ~/.local/bin
-  - Boots the local checkout with `source ./activate` and emits the headnode shell context
+  - Installs the `day-clone` helper into ~/.local/bin
+  - Writes a managed bootstrap file that loads the DAY-EC shell context for fresh login shells
 
 This script is safe to run from any working directory as long as the
 daylily-ephemeral-cluster package is installed (or DAYLILY_EC_RESOURCES_DIR is set).
@@ -40,93 +40,139 @@ resolve_daylily_res_dir() {
     return 1
 }
 
-REPO_ROOT="$(resolve_daylily_res_dir)" || exit 1
-CONFIG_SOURCE_DIR="$REPO_ROOT/config"
-TARGET_CONFIG_DIR="$HOME/.config/daylily"
+write_login_bootstrap() {
+    local bootstrap_file="$1"
 
-mkdir -p "$TARGET_CONFIG_DIR"
+    cat >"$bootstrap_file" <<'EOF'
+# Managed by install-daylily-headnode-tools. Source this file from shell startup.
+repo_root="$HOME/projects/daylily-ephemeral-cluster"
+activate_script="$repo_root/activate"
+user_bin_dir="$HOME/.local/bin"
 
-cp "$CONFIG_SOURCE_DIR/daylily_cli_global.yaml" "$TARGET_CONFIG_DIR/daylily_cli_global.yaml"
-cp "$CONFIG_SOURCE_DIR/daylily_available_repositories.yaml" "$TARGET_CONFIG_DIR/daylily_available_repositories.yaml"
+case ":$PATH:" in
+    *":${user_bin_dir}:"*) ;;
+    *) export PATH="${user_bin_dir}:$PATH" ;;
+esac
 
-# Install day-clone into a system-wide location if possible, otherwise fall back to ~/.local/bin
-INSTALL_TARGET="/usr/local/bin/day-clone"
-if command -v sudo >/dev/null 2>&1; then
-    if sudo install -m 0755 "$REPO_ROOT/bin/headnode_utils/day-clone" "$INSTALL_TARGET"; then
-        echo "day-clone installed to $INSTALL_TARGET"
- 
-    else
-        echo "Warning: failed to install day-clone to $INSTALL_TARGET with sudo. Falling back to user installation." >&2
-    fi
-fi
-
-cd "$REPO_ROOT" || echo "Failed to cd to $REPO_ROOT" >&2
-"$REPO_ROOT/bin/install_miniconda" || echo "failed to install miniconda"
-
-if [[ -f "$REPO_ROOT/activate" ]]; then
-    # shellcheck source=/dev/null
-    source "$REPO_ROOT/activate"
-    if command -v daylily-ec >/dev/null 2>&1; then
-        eval "$(daylily-ec headnode init --emit-shell --non-interactive)" || echo "failed to emit headnode shell context" >&2
-    else
-        echo "Warning: daylily-ec is not available after sourcing $REPO_ROOT/activate" >&2
-    fi
-else
-    echo "Warning: missing activate script at $REPO_ROOT/activate; skipping headnode bootstrap." >&2
-fi
-
-install_managed_login_block() {
-    local target_file="$1"
-
-    mkdir -p "$(dirname "$target_file")"
-    touch "$target_file"
-
-    if grep -qF "# >>> daylily headnode bootstrap >>>" "$target_file"; then
-        return 0
-    fi
-
-    cat >>"$target_file" <<'EOF'
-
-# >>> daylily headnode bootstrap >>>
-daylily_headnode_bootstrap() {
-    local repo_root="$HOME/projects/daylily-ephemeral-cluster"
-    local activate_script="$repo_root/activate"
-
-    if [[ "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" == "1" ]]; then
-        return 0
-    fi
-    export DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1
-
+if [[ "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" != "1" ]]; then
     if [[ ! -f "$activate_script" ]]; then
-        echo "Warning: missing Daylily activate script at $activate_script" >&2
-        return 0
+        echo "Error: missing Daylily activate script at $activate_script" >&2
+        return 1
     fi
 
     # shellcheck source=/dev/null
     source "$activate_script"
 
-    if command -v daylily-ec >/dev/null 2>&1; then
-        eval "$(daylily-ec headnode init --emit-shell --non-interactive)" || \
-            echo "Warning: daylily-ec headnode init bootstrap failed" >&2
-    else
-        echo "Warning: daylily-ec is not available after sourcing $activate_script" >&2
+    if [[ "${CONDA_DEFAULT_ENV:-}" != "DAY-EC" ]]; then
+        conda activate DAY-EC >/dev/null 2>&1 || {
+            echo "Error: failed to activate DAY-EC after sourcing $activate_script" >&2
+            return 1
+        }
     fi
-}
 
-daylily_headnode_bootstrap
-unset -f daylily_headnode_bootstrap
-# <<< daylily headnode bootstrap <<<
+    if ! command -v daylily-ec >/dev/null 2>&1; then
+        echo "Error: daylily-ec is not available after sourcing $activate_script" >&2
+        return 1
+    fi
+
+    eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)"
+    DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1
+fi
+
+unset repo_root activate_script user_bin_dir
 EOF
+    chmod 0644 "$bootstrap_file"
 }
 
-install_managed_login_block "$HOME/.bashrc"
-install_managed_login_block "$HOME/.bash_profile"
+install_managed_login_block() {
+    local target_file="$1"
+    local bootstrap_file="$2"
 
-reference_bucket=$(awk '/^[[:space:]]*Script: s3:/{match($0,/s3:\\/\\/([^/]+)/,a); print a[1]; exit}' /opt/parallelcluster/shared/cluster-config.yaml) || echo "failed to set ref bucket"
-sed -i "s|<REF-BUCKET-NAME>|$reference_bucket|g"  "$REPO_ROOT/etc/analysis_samples_template.tsv" || echo "failed to regsub anasamptemp.tsv"
+    mkdir -p "$(dirname "$target_file")"
+    touch "$target_file"
 
+    python3 - "$target_file" "$bootstrap_file" <<'PY'
+from pathlib import Path
+import shlex
+import sys
 
+target = Path(sys.argv[1])
+bootstrap = sys.argv[2]
+start = "# >>> daylily headnode bootstrap >>>"
+end = "# <<< daylily headnode bootstrap <<<"
+text = target.read_text(encoding="utf-8")
+parts = []
+cursor = 0
+
+while True:
+    start_idx = text.find(start, cursor)
+    if start_idx == -1:
+        parts.append(text[cursor:])
+        break
+    parts.append(text[cursor:start_idx])
+    end_idx = text.find(end, start_idx)
+    if end_idx == -1:
+        cursor = len(text)
+        break
+    cursor = end_idx + len(end)
+    if cursor < len(text) and text[cursor] == "\n":
+        cursor += 1
+
+cleaned = "".join(parts).rstrip()
+block = "\n".join(
+    [
+        "# >>> daylily headnode bootstrap >>>",
+        f"if [[ -f {shlex.quote(bootstrap)} ]]; then",
+        f"    . {shlex.quote(bootstrap)}",
+        "fi",
+        "# <<< daylily headnode bootstrap <<<",
+    ]
+)
+
+if cleaned:
+    rendered = cleaned + "\n\n" + block + "\n"
+else:
+    rendered = block + "\n"
+
+target.write_text(rendered, encoding="utf-8")
+PY
+}
+
+REPO_ROOT="$(resolve_daylily_res_dir)" || exit 1
+CONFIG_SOURCE_DIR="$REPO_ROOT/config"
+TARGET_CONFIG_DIR="$HOME/.config/daylily"
+BOOTSTRAP_FILE="$TARGET_CONFIG_DIR/daylily-headnode-bootstrap.sh"
 USER_BIN_DIR="$HOME/.local/bin"
-mkdir -p "$USER_BIN_DIR"
+CLUSTER_CONFIG_PATH="${DAYLILY_EC_CLUSTER_CONFIG_PATH:-/opt/parallelcluster/shared/cluster-config.yaml}"
+
+mkdir -p "$TARGET_CONFIG_DIR" "$USER_BIN_DIR"
+
+cp "$CONFIG_SOURCE_DIR/daylily_cli_global.yaml" "$TARGET_CONFIG_DIR/daylily_cli_global.yaml"
+cp "$CONFIG_SOURCE_DIR/daylily_available_repositories.yaml" "$TARGET_CONFIG_DIR/daylily_available_repositories.yaml"
+
 install -m 0755 "$REPO_ROOT/bin/headnode_utils/day-clone" "$USER_BIN_DIR/day-clone"
-echo "day-clone installed to $USER_BIN_DIR/day-clone. Ensure $USER_BIN_DIR is on your PATH."
+echo "day-clone installed to $USER_BIN_DIR/day-clone"
+
+cd "$REPO_ROOT"
+"$REPO_ROOT/bin/install_miniconda"
+
+write_login_bootstrap "$BOOTSTRAP_FILE"
+install_managed_login_block "$HOME/.bashrc" "$BOOTSTRAP_FILE"
+install_managed_login_block "$HOME/.bash_profile" "$BOOTSTRAP_FILE"
+
+reference_bucket="$(grep -m1 -oE 's3://[^[:space:]]+' "$CLUSTER_CONFIG_PATH" | sed -E 's#^s3://([^/]+).*$#\1#')"
+if [[ -z "$reference_bucket" ]]; then
+    echo "Error: could not determine reference bucket from $CLUSTER_CONFIG_PATH" >&2
+    exit 1
+fi
+python3 - "$REPO_ROOT/etc/analysis_samples_template.tsv" "$reference_bucket" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+bucket = sys.argv[2]
+text = path.read_text(encoding="utf-8")
+path.write_text(text.replace("<REF-BUCKET-NAME>", bucket), encoding="utf-8")
+PY
+
+source "$BOOTSTRAP_FILE"

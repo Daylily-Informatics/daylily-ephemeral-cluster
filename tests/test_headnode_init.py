@@ -139,6 +139,42 @@ def test_collect_headnode_state_skip_project_check_preserves_detected_project(
     assert state.warnings == []
 
 
+def test_collect_headnode_state_does_not_fall_back_to_global_when_project_is_not_authorized(
+    monkeypatch, tmp_path: Path
+) -> None:
+    cfnconfig_path = tmp_path / "cfnconfig"
+    cfnconfig_path.write_text("cfn_region=us-west-2\n", encoding="utf-8")
+
+    cluster_config_path = tmp_path / "cluster-config.yaml"
+    cluster_config_path.write_text(
+        "\n".join(
+            [
+                "  - Key: aws-parallelcluster-project",
+                "    Value: day-ssm-e2e-20260412103613",
+                "      Script: s3://reference-bucket/bootstrap.sh",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    budget_tags_path = tmp_path / "budget-tags.tsv"
+    budget_tags_path.write_text("da-us-west-2d-allowed\talice\n", encoding="utf-8")
+
+    monkeypatch.setattr(headnode.getpass, "getuser", lambda: "alice")
+    monkeypatch.setattr(headnode, "_build_session", lambda region, profile: _FakeSession([]))
+
+    state = headnode.collect_headnode_state(
+        cfnconfig_path=cfnconfig_path,
+        cluster_config_path=cluster_config_path,
+        budget_tags_path=budget_tags_path,
+    )
+
+    assert state.project == "day-ssm-e2e-20260412103613"
+    assert all("daylily-global" not in warning for warning in state.warnings)
+    assert any("Proceeding without fallback" in warning for warning in state.warnings)
+
+
 def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) -> None:
     monkeypatch.setenv("DAYLILY_EC_REPO_ROOT", "/repo/dayec")
 
@@ -250,6 +286,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     home_dir = tmp_path / "home"
     log_dir = tmp_path / "logs"
     user_bin_dir = home_dir / ".local" / "bin"
+    checkout_dir = home_dir / "projects" / "daylily-ephemeral-cluster"
 
     for path in (
         resources_dir / "bin" / "headnode_utils",
@@ -259,6 +296,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         home_dir,
         log_dir,
         user_bin_dir,
+        checkout_dir,
     ):
         path.mkdir(parents=True, exist_ok=True)
 
@@ -271,6 +309,8 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         "<REF-BUCKET-NAME>\n",
         encoding="utf-8",
     )
+    cluster_config_path = tmp_path / "cluster-config.yaml"
+    cluster_config_path.write_text("HeadNode:\n  CustomActions:\n    OnNodeConfigured:\n      Script: s3://reference-bucket/bootstrap.sh\n", encoding="utf-8")
 
     _write_executable(
         resources_dir / "bin" / "headnode_utils" / "day-clone",
@@ -281,7 +321,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         "#!/usr/bin/env bash\nprintf 'install_miniconda\\n' >>\"${HEADNODE_TEST_LOG}\"\n",
     )
     _write_executable(
-        resources_dir / "activate",
+        checkout_dir / "activate",
         (
             "#!/usr/bin/env bash\n"
             "export PATH=\"${FAKE_DAYLILY_BIN}:$PATH\"\n"
@@ -295,7 +335,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         (
             "#!/usr/bin/env bash\n"
             "printf 'daylily-ec:%s\\n' \"$*\" >>\"${HEADNODE_TEST_LOG}\"\n"
-            "if [[ \"$1\" == \"headnode\" && \"$2\" == \"init\" && \"$3\" == \"--emit-shell\" && \"$4\" == \"--non-interactive\" ]]; then\n"
+            "if [[ \"$1\" == \"headnode\" && \"$2\" == \"init\" && \"$3\" == \"--emit-shell\" && \"$4\" == \"--non-interactive\" && \"$5\" == \"--skip-project-check\" ]]; then\n"
             "  printf '%s\\n' 'export TEST_HEADNODE_BOOTSTRAP=1'\n"
             "  exit 0\n"
             "fi\n"
@@ -306,12 +346,32 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
             "exit 1\n"
         ),
     )
-    _write_executable(fake_bin / "sudo", "#!/usr/bin/env bash\nexit 1\n")
+
+    legacy_block = (
+        "# >>> daylily headnode bootstrap >>>\n"
+        "daylily_headnode_bootstrap() {\n"
+        "    local repo_root=\"$HOME/projects/daylily-ephemeral-cluster\"\n"
+        "    local activate_script=\"$repo_root/activate\"\n"
+        "    export DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1\n"
+        "    source \"$activate_script\"\n"
+        "}\n"
+        "daylily_headnode_bootstrap\n"
+        "unset -f daylily_headnode_bootstrap\n"
+        "# <<< daylily headnode bootstrap <<<\n"
+    )
+    conda_block = (
+        "# >>> conda initialize >>>\n"
+        "conda hook\n"
+        "# <<< conda initialize <<<\n"
+    )
+    (home_dir / ".bashrc").write_text(legacy_block + "\n" + conda_block, encoding="utf-8")
+    (home_dir / ".bash_profile").write_text(legacy_block + "\n" + conda_block, encoding="utf-8")
 
     env = os.environ.copy()
     env.update(
         {
             "DAYLILY_EC_RESOURCES_DIR": str(resources_dir),
+            "DAYLILY_EC_CLUSTER_CONFIG_PATH": str(cluster_config_path),
             "FAKE_DAYLILY_BIN": str(fake_bin),
             "HEADNODE_TEST_LOG": str(log_dir / "installer.log"),
             "HOME": str(home_dir),
@@ -333,16 +393,99 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
 
     bashrc = (home_dir / ".bashrc").read_text(encoding="utf-8")
     bash_profile = (home_dir / ".bash_profile").read_text(encoding="utf-8")
+    bootstrap_file = home_dir / ".config" / "daylily" / "daylily-headnode-bootstrap.sh"
     log_text = (log_dir / "installer.log").read_text(encoding="utf-8")
 
     assert bashrc.count("# >>> daylily headnode bootstrap >>>") == 1
     assert bash_profile.count("# >>> daylily headnode bootstrap >>>") == 1
-    assert 'local repo_root="$HOME/projects/daylily-ephemeral-cluster"' in bashrc
-    assert 'source "$activate_script"' in bashrc
-    assert 'eval "$(daylily-ec headnode init --emit-shell --non-interactive)"' in bashrc
+    assert 'daylily-headnode-bootstrap.sh' in bashrc
+    assert 'daylily-headnode-bootstrap.sh' in bash_profile
+    assert bashrc.index("# >>> conda initialize >>>") < bashrc.index("# >>> daylily headnode bootstrap >>>")
+    assert bash_profile.index("# >>> conda initialize >>>") < bash_profile.index(
+        "# >>> daylily headnode bootstrap >>>"
+    )
+    assert bootstrap_file.exists()
+    bootstrap_text = bootstrap_file.read_text(encoding="utf-8")
+    assert 'repo_root="$HOME/projects/daylily-ephemeral-cluster"' in bootstrap_text
+    assert 'case ":$PATH:" in' in bootstrap_text
+    assert 'DAYLILY_EC_HEADNODE_BOOTSTRAPPED' in bootstrap_text
+    assert 'source "$activate_script"' in bootstrap_text
+    assert 'conda activate DAY-EC' in bootstrap_text
+    assert 'eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)"' in bootstrap_text
+    assert "daylily_headnode_bootstrap()" not in bootstrap_text
+    assert "unset -f daylily_headnode_bootstrap" not in bootstrap_text
     assert (user_bin_dir / "day-clone").is_file()
-    assert "activate" in log_text
-    assert "daylily-ec:headnode init --emit-shell --non-interactive" in log_text
+    assert log_text.count("install_miniconda") >= 2
+    assert log_text.count("activate") == 2
+    assert log_text.count("daylily-ec:headnode init --emit-shell --non-interactive --skip-project-check") == 2
+
+
+def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Path) -> None:
+    resources_dir = tmp_path / "resources"
+    fake_bin = tmp_path / "fake-bin"
+    home_dir = tmp_path / "home"
+
+    for path in (
+        resources_dir / "bin" / "headnode_utils",
+        resources_dir / "config",
+        resources_dir / "etc",
+        fake_bin,
+        home_dir,
+    ):
+        path.mkdir(parents=True, exist_ok=True)
+
+    (resources_dir / "config" / "daylily_cli_global.yaml").write_text("daylily: {}\n", encoding="utf-8")
+    (resources_dir / "config" / "daylily_available_repositories.yaml").write_text(
+        "default_repository: daylily-omics-analysis\nrepositories: {}\n",
+        encoding="utf-8",
+    )
+    (resources_dir / "etc" / "analysis_samples_template.tsv").write_text(
+        "<REF-BUCKET-NAME>\n",
+        encoding="utf-8",
+    )
+    cluster_config_path = tmp_path / "cluster-config.yaml"
+    cluster_config_path.write_text("HeadNode:\n  CustomActions:\n    OnNodeConfigured:\n      Script: s3://reference-bucket/bootstrap.sh\n", encoding="utf-8")
+
+    _write_executable(
+        resources_dir / "bin" / "headnode_utils" / "day-clone",
+        "#!/usr/bin/env bash\necho day-clone\n",
+    )
+    _write_executable(
+        resources_dir / "bin" / "install_miniconda",
+        "#!/usr/bin/env bash\nexit 42\n",
+    )
+    _write_executable(
+        resources_dir / "activate",
+        "#!/usr/bin/env bash\nexport CONDA_DEFAULT_ENV=\"DAY-EC\"\n",
+    )
+    _write_executable(
+        fake_bin / "daylily-ec",
+        "#!/usr/bin/env bash\nexit 0\n",
+    )
+
+    env = os.environ.copy()
+    env.update(
+        {
+            "DAYLILY_EC_RESOURCES_DIR": str(resources_dir),
+            "DAYLILY_EC_CLUSTER_CONFIG_PATH": str(cluster_config_path),
+            "HOME": str(home_dir),
+            "PATH": f"{fake_bin}:{env.get('PATH', '')}",
+        }
+    )
+
+    script_path = REPO_ROOT / "bin" / "install-daylily-headnode-tools"
+    result = subprocess.run(
+        ["bash", str(script_path)],
+        cwd=REPO_ROOT,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    assert "install_miniconda" not in result.stdout
+    assert not (home_dir / ".config" / "daylily" / "daylily-headnode-bootstrap.sh").exists()
 
 
 def test_active_runtime_paths_no_longer_invoke_dyinit() -> None:

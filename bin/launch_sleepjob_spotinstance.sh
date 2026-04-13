@@ -69,6 +69,6 @@ sleep 0.5
 
 echo ""
 echo ""
-echo "AND, importantly, you may ssh to the compute nodes with: 'ssh <nodelist-name-from-squeue>' (ie: i8-dy-r6gb64-1)"
+echo "Inspect compute-node allocation from the headnode with: squeue -o \"%.18i %.8u %.8T %.10M %.30N %.50j\""
 echo ""
 sleep 1

@@ -1,61 +1,71 @@
-# Pip Install Usage
+# Pip Install
 
-`daylily-ephemeral-cluster` can be installed with `pip` and used from any working directory. This is mainly useful for downstream repos, automation environments, or operator machines where you do not want to keep a full checkout around.
+The supported operator path for a repo checkout is still:
 
-## Install
+```bash
+source ./activate
+```
 
-From a clean virtual environment:
+That path gives you the full `DAY-EC` Conda environment and installs this repo editable with dev extras.
+
+This document covers the other path: installing the Python package directly.
+
+## What Pip Installation Owns
+
+`pyproject.toml` is the Python dependency source of truth. A pip install gives you:
+
+- `daylily-ec`
+- the package runtime dependencies
+- `aws-parallelcluster`, which provides `pcluster`
+
+For a checkout install with development tooling:
+
+```bash
+python -m pip install --editable ".[dev]"
+```
+
+For a non-editable install:
+
+```bash
+python -m pip install .
+```
+
+## What Pip Installation Does Not Own
+
+The pip install path does not provide the non-Python operator tooling that `environment.yaml` carries. Most importantly, you still need:
+
+- `aws`
+- `session-manager-plugin`
+- a shell environment in which those tools are available
+
+If you want the fully supported local operator environment, use the Conda path instead.
+
+## Minimal Example
 
 ```bash
 python -m venv .venv
-source .venv/bin/activate
-
-# From a local checkout
-pip install /path/to/daylily-ephemeral-cluster
-
-# Or from git
-pip install "git+https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git@<ref>"
-```
-
-## Verify The Install
-
-```bash
-daylily-ec --help
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install --editable ".[dev]"
 daylily-ec version
-daylily-ec info
-daylily-ec resources-dir
+pcluster version
 ```
 
-For a repo checkout, use `source ./activate` as the canonical local flow.
-For a pip install, call `daylily-ec` directly from the virtual environment.
+If `pcluster version` fails in that environment, your Python install path is incomplete.
 
-## Packaged Resources
-
-The wheel includes packaged repo assets such as `config/`, `etc/`, and selected `bin/` helpers. They are extracted at runtime under:
-
-`~/.config/daylily/resources/<package-version>/`
-
-Use this command to resolve the active resource directory:
+Then verify the external tools:
 
 ```bash
-daylily-ec resources-dir
+aws --version
+session-manager-plugin
 ```
 
-Override the resource root when needed:
+## When To Use This Path
 
-```bash
-export DAYLILY_EC_RESOURCES_DIR=/path/to/override-root
-```
+Use pip installation when you:
 
-The override directory must contain the Daylily `config/`, `etc/`, and `bin/` trees expected by the helper scripts.
+- are developing on a custom Python environment
+- want package-only inspection without Conda bootstrapping
+- are integrating the CLI into an existing environment you already control
 
-## Host Requirements
-
-`pip` installs the Python dependencies, but some workflows still expect host tools or external configuration:
-
-- AWS CLI v2 for commands that shell out to `aws`
-- `pcluster` CLI for cluster management commands (e.g. `daylily-ec cluster-info`)
-- `ssh` for connecting to head nodes
-- a configured AWS profile when operating on real infrastructure
-
-If you want the managed conda workflow instead, use [`DAY_EC_ENVIRONMENT.md`](DAY_EC_ENVIRONMENT.md).
+Do not use it if you want the least-friction supported operator shell. In that case, use `source ./activate`.

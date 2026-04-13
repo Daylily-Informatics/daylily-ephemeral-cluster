@@ -1,176 +1,194 @@
 # Quickest Start
 
-This
+This is the supported operator walkthrough with sanity checks after each stage. It is longer than [ultra_rapid_start.md](ultra_rapid_start.md), but it is the better first runbook for a fresh operator session.
 
-  > `bash bin/quick_start_all_prereq_done_prior.bash`
-
-is the shortest supported operator path from a repo checkout to a usable Daylily cluster. You must have all AWS and system wide prereqs complete, then it uses the current Python control plane and current packaged scripts. For post-provisioning workflows, see [operations.md](operations.md). For architecture, benchmarks, and public-facing context, see [overview.md](overview.md).
-
-## 1. AWS Operator Prerequisites
-
-Create or reuse an IAM operator identity, typically `daylily-service`, and make sure it can:
-
-- assume the Daylily operator role or act directly as the Daylily operator user
-- create and inspect ParallelCluster resources in the target account
-- manage the reference bucket used for FSx-backed data access
-
-The repo ships the custom cluster policy at [`../config/aws/daylily-service-cluster-policy.json`](../config/aws/daylily-service-cluster-policy.json). The current operator docs assume:
-
-- a CLI profile named `daylily-service`
-- a PEM key for the target region stored in `~/.ssh/`
-- a region-specific reference bucket whose name includes `omics-analysis`
-
-Minimal AWS CLI profile example:
-
-```ini
-[daylily-service]
-region = us-west-2
-output = json
-```
-
-## 2. Local Prerequisites And Environment
-
-From the repo root:
+## 1. Activate The Repo Environment
 
 ```bash
-./bin/check_prereq_sw.sh
-./bin/install_miniconda   # only if conda is not already installed
+cd /path/to/daylily-ephemeral-cluster
 source ./activate
-
-daylily-ec info
 daylily-ec version
+daylily-ec runtime status
+daylily-ec info
+aws --version
+pcluster version
+session-manager-plugin
 ```
 
-`source ./activate` is the checkout-friendly entrypoint. It activates or bootstraps `DAY-EC`, adds [`../bin/`](../bin/) to `PATH`, and exposes `daylily-ec` from the current shell. If you need the lower-level environment builder directly, `./bin/init_dayec` still exists, but it is no longer the primary local flow.
+Expected:
 
-`./bin/install_miniconda` now auto-detects Apple Silicon, Intel macOS, Linux x86_64, and Linux ARM hosts. It prefers `curl` and falls back to `wget`, so a fresh Mac does not need Homebrew `wget` just to bootstrap conda.
+- `daylily-ec` resolves successfully
+- runtime backend is `day-ec-conda`
+- `aws`, `pcluster`, and `session-manager-plugin` are available in the shell
 
-## 3. Create The Region Reference Bucket
-
-Daylily expects a reference bucket in the target region. Use the separate
-`daylily-omics-references` tool to seed that bucket before running `daylily-ec create`.
+## 2. Set The Working Variables
 
 ```bash
-export AWS_PROFILE=daylily-service
+export AWS_PROFILE=daylily-service-lsmc
 export REGION=us-west-2
-export BUCKET_PREFIX=myorg
-
-REF_VERSION_FILE="$(find config/day_cluster -maxdepth 1 -name 'daylily_reference_version_*.info' | head -n 1)"
-REF_VERSION="$(basename "$REF_VERSION_FILE" .info)"
-REF_VERSION="${REF_VERSION#daylily_reference_version_}"
-
-daylily-omics-references --profile "$AWS_PROFILE" --region "$REGION" \
-  clone --bucket-prefix "$BUCKET_PREFIX" --version "$REF_VERSION" --execute
-```
-
-The resulting bucket name will include `omics-analysis`. With the standard clone flow that is typically `${BUCKET_PREFIX}-daylily-omics-analysis-${REGION}`.
-
-Optional manual verification:
-
-```bash
-daylily-omics-references --profile "$AWS_PROFILE" --region "$REGION" \
-  verify --bucket "${BUCKET_PREFIX}-daylily-omics-analysis-${REGION}" --exclude-b37
-```
-
-The Daylily preflight step also verifies the selected bucket before cluster creation.
-
-## 4. Prepare The Cluster Config
-
-Copy the template to a writable location, set `DAY_EX_CFG`, and pass it explicitly to the CLI.
-
-```bash
-mkdir -p ~/.config/daylily
-cp config/daylily_ephemeral_cluster_template.yaml \
-  ~/.config/daylily/daylily_ephemeral_cluster.yaml
-
+export REGION_AZ=us-west-2d
+export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
+export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
+export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
+export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
+export EXPORT_DIR="$PWD/tmp-export/$CLUSTER_NAME"
 ```
 
-Recommended keys to fill in before the first run:
-
-- `cluster_name`
-- `s3_bucket_name`
-- `budget_email`
-- `allowed_budget_users`
-- `global_allowed_budget_users`
-- `heartbeat_email`
-
-Optional if you want fewer prompts:
-
-- `ssh_key_name`
-- `public_subnet_id`
-- `private_subnet_id`
-- `iam_policy_arn`
-
-Leave a key set to `PROMPTUSER` if you want the CLI to query AWS and prompt interactively. `DAY_EX_CFG` is just a shell convenience variable; the current Python CLI does not consume it implicitly, so pass `--config "$DAY_EX_CFG"` on every `preflight` and `create` invocation.
-
-## 5. Optional Pricing Snapshot
-
-If you want a raw spot-pricing snapshot before choosing an AZ:
+Sanity check:
 
 ```bash
-daylily-ec pricing snapshot \
-  --region "$REGION" \
-  --config config/day_cluster/prod_cluster.yaml \
-  --profile "$AWS_PROFILE"
+aws sts get-caller-identity --profile "$AWS_PROFILE"
+aws s3 ls "$REF_BUCKET" --profile "$AWS_PROFILE" --region "$REGION"
 ```
 
-## 6. Run Preflight
+## 3. Run Preflight
 
 ```bash
-export REGION_AZ=us-west-2c
-
 daylily-ec preflight \
-  --region-az "$REGION_AZ" \
   --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG"
 ```
 
-Add `--pass-on-warn` if you have reviewed the warnings and intentionally want to continue past them.
+What preflight is checking:
 
-## 7. Create The Cluster
+- local toolchain
+- AWS identity
+- IAM permissions
+- config validity
+- quota headroom
+- bucket discovery/access
+- baseline network resources and region policy selection
+
+Do not skip this unless you enjoy slow failures later.
+
+## 4. Create The Cluster
 
 ```bash
 daylily-ec create \
-  --region-az "$REGION_AZ" \
   --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG"
 ```
 
-The create workflow:
+Important:
 
-- runs preflight and aborts on failures
-- resolves or creates baseline network resources as needed
-- collects budget and heartbeat answers before dry-run starts
-- renders the cluster YAML and applies live spot pricing
-- creates the cluster through ParallelCluster
-- bootstraps the head node
-- applies the AWS budget and heartbeat changes only after the cluster and headnode bootstrap succeed
-- writes artifacts to `~/.config/daylily/`
+- this may take a long time
+- `pcluster` success is not the final readiness point
+- wait for the Daylily CLI to return successfully
 
-## 8. What Success Looks Like
+Sanity checks after create:
 
-After a successful run:
+```bash
+daylily-ec cluster-info --profile "$AWS_PROFILE" --region "$REGION"
 
-- `~/.config/daylily/` contains a preflight report, a state snapshot, and rendered cluster YAML artifacts
-- the head node has been bootstrapped with `DAY-EC`, `day-clone`, and the Daylily helper scripts
-- the final two stdout lines are the connection hint and `...fin!`
-- you can continue with [operations.md](operations.md), starting at [Validate The Head Node](operations.md#validate-the-head-node)
-
-Typical successful ending:
-
-```text
-ssh -i ~/.ssh/<keypair>.pem ubuntu@<headnode-ip>
-...fin!
+bin/daylily-ssh-into-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
 ```
 
-If the headnode IP is not available yet, the connection hint falls back to:
+Once connected, verify the login shell:
 
-```text
-pcluster describe-cluster -n <cluster-name> --region <region>
-...fin!
+```bash
+whoami
+command -v day-clone
+command -v tmux
+command -v python3
+exit
 ```
 
-If the cluster comes up but the head-node bootstrap needs to be re-run, SSH to the headnode and re-run the bootstrap manually or use the `daylily-ec` CLI from your laptop.
+Expected:
 
-On a healthy headnode, the login shell should perform the same activation and shell initialization automatically by sourcing `~/projects/daylily-ephemeral-cluster/activate` and evaluating `daylily-ec headnode init --emit-shell --non-interactive`.
+- `whoami` prints `ubuntu`
+- `day-clone` resolves on `PATH`
+
+## 5. Stage The Analysis Inputs From The Laptop
+
+```bash
+bin/daylily-stage-samples-from-local-to-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --reference-bucket "$REF_BUCKET" \
+  --config-dir "$STAGE_CFG_DIR" \
+  "$ANALYSIS_SAMPLES"
+```
+
+This prints:
+
+- the remote FSx stage directory
+- the staged file list
+- the generated manifest filenames
+
+Sanity checks:
+
+```bash
+ls -1 "$STAGE_CFG_DIR"
+```
+
+You should see one `*_samples.tsv` and one `*_units.tsv`.
+
+## 6. Launch The Workflow
+
+Use the exact remote stage directory printed by the staging helper:
+
+```bash
+bin/daylily-run-omics-analysis-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
+  --destination dayoa
+```
+
+The launcher prints:
+
+- `__DAYLILY_SESSION__`
+- `__DAYLILY_RUN_DIR__`
+- `__DAYLILY_REPO_PATH__`
+
+Sanity checks:
+
+```bash
+bin/daylily-ssh-into-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+
+tmux ls
+cat /home/ubuntu/daylily-runs/<session>/status.json
+tail -n 50 /home/ubuntu/daylily-runs/<session>/tmux.log
+exit
+```
+
+## 7. Export Results
+
+```bash
+daylily-ec export \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME" \
+  --target-uri analysis_results/ubuntu \
+  --output-dir "$EXPORT_DIR"
+
+cat "$EXPORT_DIR/fsx_export.yaml"
+```
+
+Expected:
+
+- `status: success`
+- an `s3_uri` pointing under the filesystem export root
+
+## 8. Delete The Cluster
+
+Delete only after export verification:
+
+```bash
+daylily-ec delete \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME"
+```
+
+If you want the longer debugging and monitoring playbook, continue with [operations.md](operations.md) and [monitoring_and_troubleshooting.md](monitoring_and_troubleshooting.md).

@@ -190,13 +190,6 @@ def main(argv: List[str]) -> int:
         help="User directory to create within the clone root. Defaults to the current user.",
     )
     parser.add_argument(
-        "-w",
-        "--which-one",
-        choices=["https", "ssh"],
-        default="https",
-        help="Clone using https or ssh (default: https). TO USE SSH, you must copy ~/.ssh/id_rsa.pub contents into your github settings gpg/ssh keys.",
-    )
-    parser.add_argument(
         "--repository",
         help="Key of the repository defined in daylily_available_repositories.yaml to clone.",
     )
@@ -265,14 +258,10 @@ def main(argv: List[str]) -> int:
         relative_path = derive_default_path(git_url)
         default_ref = None
     else:
-        preferred_key = "https_url" if args.which_one == "https" else "ssh_url"
-        git_url = repo_config.get(preferred_key, "")
-        if not git_url:
-            alternative_key = "ssh_url" if preferred_key == "https_url" else "https_url"
-            git_url = repo_config.get(alternative_key, "")
+        git_url = repo_config.get("https_url", "")
         if not git_url:
             print(
-                f"Error: repository '{repo_key}' does not define a git URL for cloning.",
+                f"Error: repository '{repo_key}' does not define an https_url.",
                 file=sys.stderr,
             )
             return 1

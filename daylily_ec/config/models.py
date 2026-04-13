@@ -122,7 +122,6 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "public_subnet_id",
     "s3_bucket_name",
     "spot_instance_allocation_strategy",
-    "ssh_key_name",
 ]
 
 
@@ -144,4 +143,3 @@ def _normalize(value: str) -> str:
     if value in ("False", "FALSE"):
         return "false"
     return value
-

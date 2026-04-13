@@ -84,6 +84,9 @@ EOI
 fi
 
 if [[ "${1:-}" == "config" ]]; then
+  if [[ "${INSTALLER_FAIL_ON_CONDA_CONFIG:-0}" == "1" ]]; then
+    exit 42
+  fi
   exit 0
 fi
 
@@ -104,6 +107,38 @@ def _run_bash(script: str, env: dict[str, str]) -> subprocess.CompletedProcess[s
         capture_output=True,
         text=True,
         check=False,
+    )
+
+
+def _write_fake_home_conda(home_dir: Path) -> None:
+    conda_path = home_dir / "miniconda3" / "bin" / "conda"
+    conda_path.parent.mkdir(parents=True, exist_ok=True)
+    _write_executable(
+        conda_path,
+        """#!/usr/bin/env bash
+set -euo pipefail
+
+if [[ "${1:-}" == "init" ]]; then
+  rcfile="$HOME/.bashrc"
+  if [[ "${2:-}" == "zsh" ]]; then
+    rcfile="$HOME/.zshrc"
+  fi
+  cat > "$rcfile" <<'EOF'
+# >>> conda initialize >>>
+# <<< conda initialize <<<
+EOF
+  exit 0
+fi
+
+if [[ "${1:-}" == "config" ]]; then
+  if [[ "${INSTALLER_FAIL_ON_CONDA_CONFIG:-0}" == "1" ]]; then
+    exit 42
+  fi
+  exit 0
+fi
+
+exit 0
+""",
     )
 
 
@@ -194,6 +229,39 @@ def test_install_miniconda_falls_back_to_wget_when_curl_fails(tmp_path: Path) ->
     log_text = log_path.read_text(encoding="utf-8")
     assert "curl:-fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh" in log_text
     assert "wget:-q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh" in log_text
+
+
+def test_install_miniconda_does_not_require_conda_config_accept_channel_terms(tmp_path: Path) -> None:
+    env, fake_bin, _log_path = _base_env(tmp_path)
+    env["DAY_TEST_UNAME_S"] = "Linux"
+    env["DAY_TEST_UNAME_M"] = "x86_64"
+    env["INSTALLER_FAIL_ON_CONDA_CONFIG"] = "1"
+
+    _write_executable(fake_bin / "curl", _fake_downloader_script("curl"))
+
+    result = _run_bash(f'"{SCRIPT_PATH}"', env)
+
+    assert result.returncode == 0, result.stderr
+
+
+def test_install_miniconda_repairs_shell_init_when_home_miniconda_exists(tmp_path: Path) -> None:
+    env, fake_bin, log_path = _base_env(tmp_path)
+    env["DAY_TEST_UNAME_S"] = "Linux"
+    env["DAY_TEST_UNAME_M"] = "x86_64"
+    _write_fake_home_conda(Path(env["HOME"]))
+    _write_executable(fake_bin / "curl", _fake_downloader_script("curl"))
+
+    result = _run_bash(f'"{SCRIPT_PATH}"', env)
+
+    assert result.returncode == 0, result.stderr
+    assert "already installed at" in result.stdout
+    assert not log_path.exists() or "curl:" not in log_path.read_text(encoding="utf-8")
+    assert "# >>> conda initialize >>>" in (Path(env["HOME"]) / ".bashrc").read_text(
+        encoding="utf-8"
+    )
+    assert "# >>> conda initialize >>>" in (
+        Path(env["HOME"]) / ".bash_profile"
+    ).read_text(encoding="utf-8")
 
 
 def test_install_miniconda_payload_mirror_matches_repo_script() -> None:

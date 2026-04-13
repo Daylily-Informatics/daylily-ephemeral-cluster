@@ -22,6 +22,10 @@ dist/
 # Local virtualenvs / scratch dirs
 .venv/
 scripts/
+tmp-e2e-config/
+tmp-e2e-export/
+tmp-e2e-inputs/
+tmp-e2e-results/
 
 # macOS filesystem metadata
 .DS_Store
