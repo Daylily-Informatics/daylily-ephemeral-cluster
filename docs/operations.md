@@ -1,8 +1,10 @@
 # Operations
 
-This doc covers the supported day-2 operator tasks after a cluster exists.
+This is the day-2 operator runbook for the supported path: connect, validate, restage, run, monitor, export, and delete.
 
-## Connect To The Head Node
+## Connect To The Headnode
+
+Use the supported helper:
 
 ```bash
 bin/daylily-ssh-into-headnode \
@@ -11,11 +13,32 @@ bin/daylily-ssh-into-headnode \
   --cluster "$CLUSTER_NAME"
 ```
 
-The supported path uses Session Manager and must land directly in the `ubuntu` login shell.
+What this does:
 
-## Reapply Headnode Configuration
+- resolves the headnode instance ID
+- checks Session Manager plugin availability
+- validates `SSM-SessionManagerRunShell`
+- opens the interactive shell
 
-If you update the local checkout after the cluster already exists, reapply the supported headnode configuration before running new helpers:
+Once connected, the shell should already be correct:
+
+```bash
+whoami
+pwd
+command -v day-clone
+command -v tmux
+```
+
+Expected:
+
+- `whoami` prints `ubuntu`
+- `day-clone` resolves on `PATH`
+
+If that is not true, stop and fix the bootstrap. Do not continue a supported workflow from the wrong user context.
+
+## Re-run Headnode Configuration
+
+If cluster creation succeeded but you need to re-apply the supported headnode configuration:
 
 ```bash
 bin/daylily-cfg-headnode \
@@ -24,106 +47,153 @@ bin/daylily-cfg-headnode \
   --cluster "$CLUSTER_NAME"
 ```
 
-## Validate The Shell Context
+This is the supported repair path when the headnode needs to be brought back to the expected Daylily state.
 
-On the head node:
-
-```bash
-whoami
-echo "$CONDA_DEFAULT_ENV"
-command -v daylily-ec
-command -v day-clone
-day-clone --list
-```
-
-If the managed login hook has not been applied yet:
-
-```bash
-cd ~/projects/daylily-ephemeral-cluster
-source ./activate
-eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)"
-```
-
-## Stage From The Operator Machine
+## Restage Inputs From The Laptop
 
 ```bash
 bin/daylily-stage-samples-from-local-to-headnode \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --reference-bucket "$REF_BUCKET" \
-  --config-dir ./generated-config \
-  ./analysis_samples.tsv
+  --config-dir "$STAGE_CFG_DIR" \
+  "$ANALYSIS_SAMPLES"
 ```
 
-Important details:
+Operational notes:
 
-- the staging helper writes through the S3-backed FSx data repository
-- the default visible remote staging base is `/fsx/data/staged_sample_data`
-- the command prints the exact remote stage directory to pass into the launcher
+- the input file is `analysis_samples.tsv`
+- the helper writes workflow manifests into `--config-dir`
+- the helper prints the remote stage directory under `/fsx/data/staged_sample_data/...`
+- use that exact printed directory for the next step
 
-## Launch The Workflow
+Useful local checks:
+
+```bash
+ls -lh "$STAGE_CFG_DIR"
+head -n 5 "$STAGE_CFG_DIR"/*_samples.tsv
+head -n 5 "$STAGE_CFG_DIR"/*_units.tsv
+```
+
+## Launch A Workflow
 
 ```bash
 bin/daylily-run-omics-analysis-headnode \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --stage-dir /fsx/data/staged_sample_data/remote_stage_<timestamp>
+  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
+  --destination dayoa
 ```
 
-The supported launcher:
+Useful launch options:
 
-- clones the configured workflow repo through `day-clone`
-- writes `config/samples.tsv` and `config/units.tsv`
-- records durable run state in `/home/ubuntu/daylily-runs/<session>/`
-- starts the workflow inside tmux
+- `--destination`: controls the target workspace under `/fsx/analysis_results/ubuntu`
+- `--aligners`
+- `--dedupers`
+- `--snv-callers`
+- `--jobs`
+- `--dy-command`: full override if you need a specific workflow command
+- `--dry-run`: useful for launch smoke tests
 
-If you want the launcher to enforce the upstream workflow repo’s own project validation, add `--strict-project-check`. The supported default skips that upstream check so the Daylily flow does not fall back to a global project implicitly.
+The launcher writes the run-state directory:
 
-## Inspect Runtime State
-
-On the head node:
-
-```bash
-sinfo
-squeue -o "%.18i %.8u %.8T %.10M %.30N %.50j"
-tmux ls
-tmux attach -t <session-name>
+```text
+/home/ubuntu/daylily-runs/<session>/
 ```
 
-For durable launcher state from the operator machine:
+Expected files:
+
+- `launch.sh`
+- `tmux.log`
+- `status.json`
+
+## Inspect Tmux And Runtime State
+
+Reconnect if needed:
 
 ```bash
-python -m daylily_ec.ssh_to_ssm_e2e_runner \
+bin/daylily-ssh-into-headnode \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME" \
-  --reuse-existing-cluster \
-  --reference-bucket "$REF_BUCKET" \
-  --analysis-samples ./analysis_samples.tsv \
-  --workflow-live
+  --cluster "$CLUSTER_NAME"
 ```
 
-That runner reuses the cluster, restages data, launches the workflow, waits for `status.json` completion, and exports results unless `--skip-export` is set.
+Then inspect:
+
+```bash
+tmux ls
+tmux attach -t <session>
+cat /home/ubuntu/daylily-runs/<session>/status.json
+tail -n 100 /home/ubuntu/daylily-runs/<session>/tmux.log
+squeue
+```
+
+Useful local CLI checks:
+
+```bash
+daylily-ec runtime status
+daylily-ec runtime check
+daylily-ec runtime explain
+daylily-ec info
+daylily-ec cluster-info --profile "$AWS_PROFILE" --region "$REGION"
+```
 
 ## Export Results
 
+The supported export scope is `analysis_results/ubuntu` unless you have a deliberate reason to choose a narrower or different path.
+
 ```bash
 daylily-ec export \
-  --cluster-name "$CLUSTER_NAME" \
+  --profile "$AWS_PROFILE" \
   --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME" \
   --target-uri analysis_results/ubuntu \
-  --output-dir .
+  --output-dir "$EXPORT_DIR"
 ```
 
-`fsx_export.yaml` is the local artifact to keep.
+Then verify the receipt:
+
+```bash
+cat "$EXPORT_DIR/fsx_export.yaml"
+```
+
+Success means:
+
+- `status: success`
+- `s3_uri:` points to the expected path under the filesystem export root
 
 ## Delete The Cluster
 
+Deletion is destructive. The supported flow is:
+
+1. export first
+2. verify `fsx_export.yaml`
+3. then delete
+
+Command:
+
 ```bash
 daylily-ec delete \
-  --cluster-name "$CLUSTER_NAME" \
-  --region "$REGION"
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME"
 ```
 
-Delete is destructive. Export and verify the results first.
+For scripted teardown, `--yes` skips the final FSx deletion confirmation prompt. Use that only when the delete has already been intentionally approved.
+
+## A Useful Read-Only Loop
+
+When you are watching a live run from the operator machine:
+
+```bash
+watch -n 30 "daylily-ec cluster-info --profile $AWS_PROFILE --region $REGION"
+```
+
+When you are watching from the headnode:
+
+```bash
+watch -n 30 "squeue && echo && tail -n 40 /home/ubuntu/daylily-runs/<session>/tmux.log"
+```
+
+If things go sideways, continue with [monitoring_and_troubleshooting.md](monitoring_and_troubleshooting.md).

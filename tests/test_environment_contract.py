@@ -21,10 +21,14 @@ ACTIVE_ENV_FILES = [
     REPO_ROOT / "README.md",
     REPO_ROOT / "README.md.bland",
     REPO_ROOT / "docs" / "DAY_EC_ENVIRONMENT.md",
+    REPO_ROOT / "docs" / "aws_setup.md",
+    REPO_ROOT / "docs" / "cli_reference.md",
+    REPO_ROOT / "docs" / "monitoring_and_troubleshooting.md",
     REPO_ROOT / "docs" / "operations.md",
     REPO_ROOT / "docs" / "overview.md",
     REPO_ROOT / "docs" / "pip_install.md",
     REPO_ROOT / "docs" / "quickest_start.md",
+    REPO_ROOT / "docs" / "testing_and_debugging.md",
     REPO_ROOT / "docs" / "ultra_rapid_start.md",
 ]
 

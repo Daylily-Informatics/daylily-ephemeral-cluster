@@ -1,8 +1,42 @@
 # DAY-EC Environment
 
-`DAY-EC` is the supported environment for working on this repo locally and for running the managed Daylily shell context on bootstrapped head nodes.
+`DAY-EC` is the supported local engineering and operator environment for this repo.
 
-## Checkout Flow
+The environment contract is intentionally split:
+
+- `environment.yaml` owns the Conda/system layer
+- `pyproject.toml` owns the Python package dependencies
+
+## Source Of Truth
+
+### `environment.yaml`
+
+This file defines the Conda environment shape and the non-Python operator tooling, including:
+
+- `python`
+- `pip`
+- `awscli`
+- `aws-session-manager-plugin`
+- `bash`
+- `jq`
+- `yq`
+- `nodejs`
+- `rclone`
+- `parallel`
+- `perl`
+- `fd-find`
+
+### `pyproject.toml`
+
+This file owns the Python dependency graph for the package. In a repo checkout, `DAY-EC` installs this repo editable with dev extras so the environment includes:
+
+- runtime package dependencies
+- test tooling
+- lint/type tooling
+
+That is the current supported engineering contract.
+
+## The Supported Checkout Entry Point
 
 From a repo checkout:
 
@@ -10,68 +44,79 @@ From a repo checkout:
 source ./activate
 ```
 
-`source ./activate` is the supported entrypoint. It ensures the Conda environment from `environment.yaml` exists, installs this repo into that environment, and makes `daylily-ec`, `aws`, `pcluster`, and `session-manager-plugin` available in the current shell.
+`activate` does the following:
 
-## Dependency Ownership
+1. resolves the repo root
+2. ensures Conda is available
+3. creates `DAY-EC` from `environment.yaml` if it does not exist
+4. updates `DAY-EC` if runtime smoke tests fail
+5. installs this repo into `DAY-EC` as an editable package with `[dev]` extras
+6. validates the local runtime by checking `daylily-ec`, `aws`, `pcluster`, `session-manager-plugin`, and `node`
 
-The current contract is:
+If `source ./activate` completes cleanly, that is the supported shell for operator work and test execution.
 
-- `environment.yaml`: Conda-managed operator tooling and `pip`
-- `pyproject.toml`: Python package dependencies for `daylily-ec` and the supported Python scripts
+## Explicit Bootstrap Helper
 
-For repo checkouts, the package is installed into `DAY-EC` as an editable install with the `dev` extras.
-
-## Headnode Flow
-
-On a supported head node, the managed login hook should do the equivalent of:
+You can run the bootstrap directly:
 
 ```bash
-source ~/projects/daylily-ephemeral-cluster/activate
-eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)"
+./bin/init_dayec
 ```
 
-That shell context is expected to expose:
+Use this when:
 
-- `CONDA_DEFAULT_ENV=DAY-EC`
-- `daylily-ec`
-- `day-clone`
-- the standard Daylily environment variables such as `DAY_PROJECT` and `DAY_AWS_REGION`
+- rebuilding `DAY-EC` explicitly
+- bootstrapping from packaged resources
+- diagnosing environment setup without sourcing the shell wrapper
 
-## Useful Commands
+`bin/init_dayec` uses `environment.yaml` from the resolved resources directory and, in a repo checkout, installs:
+
+```bash
+python -m pip install --editable ".[dev]"
+```
+
+## Smoke Tests
+
+After activation, these commands should work:
 
 ```bash
 daylily-ec version
-daylily-ec info
-daylily-ec resources-dir
-daylily-ec runtime --help
-daylily-ec env --help
+daylily-ec runtime status
+aws --version
+pcluster version
+session-manager-plugin
 ```
 
-## Rebuild From Scratch
+Useful runtime inspection:
+
+```bash
+daylily-ec info
+daylily-ec runtime check
+daylily-ec runtime explain
+```
+
+## Rebuild Or Repair
+
+If you want a clean rebuild:
 
 ```bash
 conda env remove -n DAY-EC
 source ./activate
 ```
 
-## Tests
+If you want a repair without removing the environment first:
 
 ```bash
-pytest tests/
-pytest --collect-only -q tests
+conda env update -n DAY-EC -f environment.yaml
+conda run -n DAY-EC python -m pip install --editable ".[dev]"
 ```
 
-## Troubleshooting
+## What Is No Longer Active
 
-If the shell is missing Daylily commands after activation:
+These are not part of the active environment contract anymore:
 
-```bash
-source ./activate
-daylily-ec info
-```
+- the old duplicate day-env YAML path
+- the retired pre-`DAY-EC` installer flow
+- duplicated bootstrap YAMLs that are now archive-only
 
-If the head node shell is missing the managed context:
-
-```bash
-eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)"
-```
+Those materials live in archive/quarantine locations for historical reference only.

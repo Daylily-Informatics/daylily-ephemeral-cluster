@@ -1,38 +1,71 @@
 # Pip Install
 
-The supported development flow is still a repo checkout plus `source ./activate`, but the Python dependency source is now `pyproject.toml`.
-
-## When To Use Pip Directly
-
-Use a direct pip install when you want the Python package and CLI in an existing environment without the full checkout-managed Conda bootstrap.
+The supported operator path for a repo checkout is still:
 
 ```bash
-python -m pip install .
+source ./activate
 ```
 
-For editable local development:
+That path gives you the full `DAY-EC` Conda environment and installs this repo editable with dev extras.
+
+This document covers the other path: installing the Python package directly.
+
+## What Pip Installation Owns
+
+`pyproject.toml` is the Python dependency source of truth. A pip install gives you:
+
+- `daylily-ec`
+- the package runtime dependencies
+- `aws-parallelcluster`, which provides `pcluster`
+
+For a checkout install with development tooling:
 
 ```bash
 python -m pip install --editable ".[dev]"
 ```
 
-## What Pip Does And Does Not Provide
+For a non-editable install:
 
-`pyproject.toml` provides the Python package dependencies for:
+```bash
+python -m pip install .
+```
 
-- `daylily-ec`
-- the packaged Python workflow helpers
-- the dev and test extras used from a repo checkout
+## What Pip Installation Does Not Own
 
-Direct pip install does not supply the non-Python operator tooling from `environment.yaml`. For full operator workflows you still need the external tools that the supported commands rely on, including:
+The pip install path does not provide the non-Python operator tooling that `environment.yaml` carries. Most importantly, you still need:
 
 - `aws`
-- `pcluster`
 - `session-manager-plugin`
+- a shell environment in which those tools are available
 
-If you want the repo’s full operator environment, use `source ./activate` instead of managing those pieces manually.
+If you want the fully supported local operator environment, use the Conda path instead.
 
-## Repo Checkout vs Pip Install
+## Minimal Example
 
-- Repo checkout: `source ./activate` builds `DAY-EC`, installs this repo as editable with `dev` extras, and is the supported contributor path.
-- Pip install: useful for package consumption, lightweight CLI use, or embedding the Python package into an already-managed environment.
+```bash
+python -m venv .venv
+. .venv/bin/activate
+python -m pip install --upgrade pip
+python -m pip install --editable ".[dev]"
+daylily-ec version
+pcluster version
+```
+
+If `pcluster version` fails in that environment, your Python install path is incomplete.
+
+Then verify the external tools:
+
+```bash
+aws --version
+session-manager-plugin
+```
+
+## When To Use This Path
+
+Use pip installation when you:
+
+- are developing on a custom Python environment
+- want package-only inspection without Conda bootstrapping
+- are integrating the CLI into an existing environment you already control
+
+Do not use it if you want the least-friction supported operator shell. In that case, use `source ./activate`.

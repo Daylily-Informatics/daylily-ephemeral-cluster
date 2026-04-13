@@ -1,27 +1,85 @@
 # Daylily Ephemeral Cluster
 
-Supported lifecycle:
+Daylily creates a short-lived AWS ParallelCluster, finishes the headnode bootstrap after `pcluster` completes, stages laptop-side workflow inputs into the bucket-backed FSx filesystem, launches the workflow on the headnode, exports results back to S3, and then deletes the cluster when the operator is done.
+
+Supported remote access is Session Manager landing directly in the `ubuntu` login shell. The cluster is ephemeral. The bucket is durable. Export before delete.
+
+## Happy Path
 
 ```bash
 source ./activate
-daylily-ec preflight --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
-daylily-ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
-bin/daylily-ssh-into-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
-bin/daylily-stage-samples-from-local-to-headnode --profile "$AWS_PROFILE" --region "$REGION" --reference-bucket "s3://bucket" ./analysis_samples.tsv
-bin/daylily-run-omics-analysis-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --stage-dir /fsx/data/staged_sample_data/remote_stage_<timestamp>
-daylily-ec export --cluster-name "$CLUSTER_NAME" --region "$REGION" --target-uri analysis_results/ubuntu --output-dir .
-daylily-ec delete --cluster-name "$CLUSTER_NAME" --region "$REGION"
+
+export AWS_PROFILE=daylily-service-lsmc
+export REGION=us-west-2
+export REGION_AZ=us-west-2d
+export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
+export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
+export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
+export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
+export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
+export EXPORT_DIR="$PWD/tmp-export/$CLUSTER_NAME"
+
+daylily-ec preflight \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG"
+
+daylily-ec create \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG"
+
+bin/daylily-ssh-into-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+
+bin/daylily-stage-samples-from-local-to-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --reference-bucket "$REF_BUCKET" \
+  --config-dir "$STAGE_CFG_DIR" \
+  "$ANALYSIS_SAMPLES"
+
+bin/daylily-run-omics-analysis-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>"
+
+daylily-ec export \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME" \
+  --target-uri analysis_results/ubuntu \
+  --output-dir "$EXPORT_DIR"
+
+cat "$EXPORT_DIR/fsx_export.yaml"
+
+daylily-ec delete \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME"
 ```
 
-Key points:
+## What Matters
 
-- `source ./activate` is the supported checkout entrypoint.
-- Session Manager is the supported connect path and must land in `ubuntu`.
-- The laptop-side staging and workflow launch helpers are supported surfaces.
-- Export before delete. Deletion is destructive.
+- `source ./activate` is the supported checkout bootstrap. It creates or repairs `DAY-EC` and installs the repo editable with dev extras.
+- `daylily-ec create` is only complete when the CLI returns after the Daylily headnode configuration and validation steps finish.
+- `bin/daylily-ssh-into-headnode` is the supported connect path. Its name is historical; the behavior is Session Manager.
+- `environment.yaml` is the Conda/system layer. `pyproject.toml` owns Python package dependencies.
+- `daylily-ec export` writes `fsx_export.yaml`. Treat that file as the export receipt before teardown.
 
-See:
+## Read More
 
+- [docs/overview.md](docs/overview.md)
+- [docs/ultra_rapid_start.md](docs/ultra_rapid_start.md)
 - [docs/quickest_start.md](docs/quickest_start.md)
 - [docs/operations.md](docs/operations.md)
+- [docs/aws_setup.md](docs/aws_setup.md)
+- [docs/cli_reference.md](docs/cli_reference.md)
+- [docs/testing_and_debugging.md](docs/testing_and_debugging.md)
+- [docs/monitoring_and_troubleshooting.md](docs/monitoring_and_troubleshooting.md)
 - [docs/DAY_EC_ENVIRONMENT.md](docs/DAY_EC_ENVIRONMENT.md)
+- [docs/pip_install.md](docs/pip_install.md)
+- [docs/archive/README.md](docs/archive/README.md)

@@ -1,8 +1,14 @@
 # Daylily Ephemeral Cluster
 
-Daylily provisions short-lived AWS ParallelCluster environments for bioinformatics workflows, bootstraps the head node with the Daylily control-plane tools, stages data into FSx-backed storage, launches workflow repos from the operator machine, exports results back to S3, and tears the cluster down when the run is done.
+[![Latest release](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_release_tag&label=latest%20release&cacheSeconds=300&color=teal)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/releases) [![Latest tag](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_tag&label=latest%20tag&color=pink&cacheSeconds=300)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/tags)
 
-The supported operator path is:
+Daylily stands up a short-lived AWS ParallelCluster, finishes the headnode configuration after `pcluster` itself reports success, gives the operator a validated Session Manager login shell as `ubuntu`, stages laptop-side inputs into the FSx-backed data plane, launches the workflow repo in tmux, exports results back to the backing S3 repository, and then tears the cluster down when the run is complete.
+
+> The bucket is durable. The cluster is ephemeral. Export before delete.
+
+## Supported Operator Contract
+
+The supported path is:
 
 1. `source ./activate`
 2. `daylily-ec preflight`
@@ -13,11 +19,11 @@ The supported operator path is:
 7. `daylily-ec export --target-uri analysis_results/ubuntu`
 8. `daylily-ec delete`
 
-The current supported remote access path is AWS Systems Manager Session Manager landing directly in the `ubuntu` login shell. The repo no longer treats PEM-driven access as part of the supported operator flow.
+Supported remote access is AWS Systems Manager Session Manager landing directly in the `ubuntu` login shell. The repo hard-checks the Session Manager document and the effective remote user before supported command payloads run.
 
-## Quick Start
+> A cluster is not "ready" when CloudFormation or ParallelCluster first says the infrastructure exists. The supported readiness point is when `daylily-ec create` returns successfully after the post-create headnode configuration and bootstrap validation steps complete.
 
-From a repo checkout:
+## One Copy-Pasteable Lifecycle
 
 ```bash
 source ./activate
@@ -25,46 +31,119 @@ source ./activate
 export AWS_PROFILE=daylily-service-lsmc
 export REGION=us-west-2
 export REGION_AZ=us-west-2d
+export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
+export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
+export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
+export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
+export EXPORT_DIR="$PWD/tmp-export/$CLUSTER_NAME"
 
 daylily-ec preflight \
-  --region-az "$REGION_AZ" \
   --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG"
 
 daylily-ec create \
-  --region-az "$REGION_AZ" \
   --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG"
-```
 
-After create completes, continue with:
-
-```bash
 bin/daylily-ssh-into-headnode \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "<cluster-name>"
+  --cluster "$CLUSTER_NAME"
+
+bin/daylily-stage-samples-from-local-to-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --reference-bucket "$REF_BUCKET" \
+  --config-dir "$STAGE_CFG_DIR" \
+  "$ANALYSIS_SAMPLES"
+
+# Use the "Remote FSx stage directory" printed by the staging helper.
+bin/daylily-run-omics-analysis-headnode \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
+  --destination dayoa \
+  --aligners sent \
+  --dedupers dppl \
+  --snv-callers sentd
+
+daylily-ec export \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME" \
+  --target-uri analysis_results/ubuntu \
+  --output-dir "$EXPORT_DIR"
+
+cat "$EXPORT_DIR/fsx_export.yaml"
+
+daylily-ec delete \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME"
 ```
 
-For the complete operator walkthrough, see [docs/quickest_start.md](docs/quickest_start.md) and [docs/operations.md](docs/operations.md).
+`fsx_export.yaml` is the machine-readable export receipt. A successful run writes `status: success` and the resolved S3 destination.
 
-## What The Repo Provides
+## Architecture At A Glance
 
-- `daylily-ec`: the supported CLI for preflight, create, export, delete, drift, pricing, and headnode shell helpers
-- `environment.yaml` plus `pyproject.toml`: the `DAY-EC` environment contract for checkout and packaged installs
-- `bin/daylily-ssh-into-headnode`: Session Manager access that validates the account document lands in an `ubuntu` login shell
-- `bin/daylily-stage-samples-from-local-to-headnode`: laptop-side staging into the FSx-backed data repository
-- `bin/daylily-run-omics-analysis-headnode`: workflow launcher that clones the configured repo, writes staged config, starts tmux, and records durable run state
-- `daylily_ec/ssh_to_ssm_e2e_runner.py`: a real AWS-backed acceptance runner for the supported lifecycle
+1. `daylily-ec` is the control-plane CLI. It handles preflight, create, cluster inspection, export, delete, environment introspection, runtime checks, and pricing snapshots.
+2. The create flow renders the cluster configuration, calls ParallelCluster, then runs Daylily headnode configuration over Session Manager.
+3. The durable data plane is the S3 bucket plus the FSx for Lustre filesystem attached to the cluster. Laptop-side staging writes into the bucket-backed FSx namespace.
+4. The supported connect path is `bin/daylily-ssh-into-headnode`. The name is historical; the behavior is Session Manager into the `ubuntu` login shell.
+5. Workflow launch happens from the operator machine through `bin/daylily-run-omics-analysis-headnode`, which creates a run directory at `/home/ubuntu/daylily-runs/<session>/`, writes `launch.sh`, `tmux.log`, and `status.json`, and starts the run inside tmux.
+6. Export uses the FSx data repository task API and writes `fsx_export.yaml` locally so the operator has a concrete export receipt before teardown.
 
-## Supported Docs
+## What This Repo Ships
 
-- [docs/overview.md](docs/overview.md)
-- [docs/quickest_start.md](docs/quickest_start.md)
-- [docs/ultra_rapid_start.md](docs/ultra_rapid_start.md)
-- [docs/operations.md](docs/operations.md)
-- [docs/DAY_EC_ENVIRONMENT.md](docs/DAY_EC_ENVIRONMENT.md)
-- [docs/pip_install.md](docs/pip_install.md)
+- `environment.yaml` plus `pyproject.toml`: the `DAY-EC` environment contract
+- `activate`: checkout bootstrap that creates or repairs `DAY-EC`, installs the repo editable with dev extras, and validates the local toolchain
+- `bin/daylily-ssh-into-headnode`: interactive Session Manager shell launcher with `ubuntu`-only validation
+- `bin/daylily-stage-samples-from-local-to-headnode`: translator and staging helper that turns `analysis_samples.tsv` into workflow-ready `samples.tsv` and `units.tsv`
+- `bin/daylily-run-omics-analysis-headnode`: remote launcher that creates the run-state directory and starts the workflow
+- `bin/daylily-cfg-headnode`: explicit headnode configuration helper for repair or manual reruns
+- `daylily_ec/ssh_to_ssm_e2e_runner.py`: AWS-backed end-to-end runner that exercises the supported lifecycle through the repo CLI/helpers
 
-Archived or historical materials live under [docs/archive/](docs/archive/README.md). They are reference material, not the supported operator path.
+## AWS And Local Prerequisites
+
+At minimum, the operator account needs:
+
+- a working named AWS profile
+- permission for STS identity lookup, IAM inspection/bootstrap, Service Quotas reads, S3 bucket discovery/access, EC2/VPC inspection, FSx, SSM, and ParallelCluster operations
+- a reference bucket in the target region that will back the cluster FSx filesystem
+- Session Manager document `SSM-SessionManagerRunShell` configured to run shell sessions as `ubuntu` and source a login shell
+- enough regional quota for the requested cluster shape
+
+Local toolchain for the supported path:
+
+- Conda
+- `daylily-ec`
+- `aws`
+- `pcluster`
+- `session-manager-plugin`
+- `jq`, `yq`, `rclone`, `node`, and the rest of the `DAY-EC` Conda layer
+
+If any of this is missing, cluster creation will fail in annoying ways. Run `daylily-ec preflight` first and read the failures instead of guessing.
+
+## Cost, Time, And Failure Notes
+
+- `daylily-ec create` can take a long time. The ParallelCluster build alone can take tens of minutes, and Daylily still has headnode bootstrap work to finish after that.
+- The cluster is disposable; the export target is not. Do not delete until you have checked `fsx_export.yaml`.
+- The supported remote user is `ubuntu`. Any path that would land you as another user is a defect, not a supported fallback.
+- Session Manager misconfiguration is a hard stop. The repo does not tell operators to connect first and then switch users manually.
+
+## Read This Next
+
+- [docs/ultra_rapid_start.md](docs/ultra_rapid_start.md): the shortest happy path
+- [docs/quickest_start.md](docs/quickest_start.md): a guided walkthrough with sanity checks
+- [docs/operations.md](docs/operations.md): connect, stage, run, monitor, export, and delete
+- [docs/aws_setup.md](docs/aws_setup.md): AWS prerequisites, IAM expectations, quotas, and Session Manager requirements
+- [docs/cli_reference.md](docs/cli_reference.md): command reference grounded in current `--help` output
+- [docs/testing_and_debugging.md](docs/testing_and_debugging.md): test commands, E2E runner usage, and failure triage
+- [docs/monitoring_and_troubleshooting.md](docs/monitoring_and_troubleshooting.md): runtime and operational debugging
+- [docs/DAY_EC_ENVIRONMENT.md](docs/DAY_EC_ENVIRONMENT.md): `DAY-EC` checkout environment contract
+- [docs/pip_install.md](docs/pip_install.md): pip-install path and external prerequisites
+- [docs/archive/README.md](docs/archive/README.md): historical material, pre-rewrite snapshot, and unsupported legacy appendix

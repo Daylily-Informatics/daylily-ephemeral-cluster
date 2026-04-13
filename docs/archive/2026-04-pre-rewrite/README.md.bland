@@ -1,0 +1,27 @@
+# Daylily Ephemeral Cluster
+
+Supported lifecycle:
+
+```bash
+source ./activate
+daylily-ec preflight --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
+daylily-ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
+bin/daylily-ssh-into-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+bin/daylily-stage-samples-from-local-to-headnode --profile "$AWS_PROFILE" --region "$REGION" --reference-bucket "s3://bucket" ./analysis_samples.tsv
+bin/daylily-run-omics-analysis-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --stage-dir /fsx/data/staged_sample_data/remote_stage_<timestamp>
+daylily-ec export --cluster-name "$CLUSTER_NAME" --region "$REGION" --target-uri analysis_results/ubuntu --output-dir .
+daylily-ec delete --cluster-name "$CLUSTER_NAME" --region "$REGION"
+```
+
+Key points:
+
+- `source ./activate` is the supported checkout entrypoint.
+- Session Manager is the supported connect path and must land in `ubuntu`.
+- The laptop-side staging and workflow launch helpers are supported surfaces.
+- Export before delete. Deletion is destructive.
+
+See:
+
+- [docs/quickest_start.md](docs/quickest_start.md)
+- [docs/operations.md](docs/operations.md)
+- [docs/DAY_EC_ENVIRONMENT.md](docs/DAY_EC_ENVIRONMENT.md)
