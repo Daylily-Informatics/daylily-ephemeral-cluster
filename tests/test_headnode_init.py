@@ -139,6 +139,42 @@ def test_collect_headnode_state_skip_project_check_preserves_detected_project(
     assert state.warnings == []
 
 
+def test_collect_headnode_state_does_not_fall_back_to_global_when_project_is_not_authorized(
+    monkeypatch, tmp_path: Path
+) -> None:
+    cfnconfig_path = tmp_path / "cfnconfig"
+    cfnconfig_path.write_text("cfn_region=us-west-2\n", encoding="utf-8")
+
+    cluster_config_path = tmp_path / "cluster-config.yaml"
+    cluster_config_path.write_text(
+        "\n".join(
+            [
+                "  - Key: aws-parallelcluster-project",
+                "    Value: day-ssm-e2e-20260412103613",
+                "      Script: s3://reference-bucket/bootstrap.sh",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+    budget_tags_path = tmp_path / "budget-tags.tsv"
+    budget_tags_path.write_text("da-us-west-2d-allowed\talice\n", encoding="utf-8")
+
+    monkeypatch.setattr(headnode.getpass, "getuser", lambda: "alice")
+    monkeypatch.setattr(headnode, "_build_session", lambda region, profile: _FakeSession([]))
+
+    state = headnode.collect_headnode_state(
+        cfnconfig_path=cfnconfig_path,
+        cluster_config_path=cluster_config_path,
+        budget_tags_path=budget_tags_path,
+    )
+
+    assert state.project == "day-ssm-e2e-20260412103613"
+    assert all("daylily-global" not in warning for warning in state.warnings)
+    assert any("Proceeding without fallback" in warning for warning in state.warnings)
+
+
 def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) -> None:
     monkeypatch.setenv("DAYLILY_EC_REPO_ROOT", "/repo/dayec")
 
@@ -299,7 +335,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         (
             "#!/usr/bin/env bash\n"
             "printf 'daylily-ec:%s\\n' \"$*\" >>\"${HEADNODE_TEST_LOG}\"\n"
-            "if [[ \"$1\" == \"headnode\" && \"$2\" == \"init\" && \"$3\" == \"--emit-shell\" && \"$4\" == \"--non-interactive\" ]]; then\n"
+            "if [[ \"$1\" == \"headnode\" && \"$2\" == \"init\" && \"$3\" == \"--emit-shell\" && \"$4\" == \"--non-interactive\" && \"$5\" == \"--skip-project-check\" ]]; then\n"
             "  printf '%s\\n' 'export TEST_HEADNODE_BOOTSTRAP=1'\n"
             "  exit 0\n"
             "fi\n"
@@ -375,13 +411,13 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     assert 'DAYLILY_EC_HEADNODE_BOOTSTRAPPED' in bootstrap_text
     assert 'source "$activate_script"' in bootstrap_text
     assert 'conda activate DAY-EC' in bootstrap_text
-    assert 'eval "$(daylily-ec headnode init --emit-shell --non-interactive)"' in bootstrap_text
+    assert 'eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)"' in bootstrap_text
     assert "daylily_headnode_bootstrap()" not in bootstrap_text
     assert "unset -f daylily_headnode_bootstrap" not in bootstrap_text
     assert (user_bin_dir / "day-clone").is_file()
     assert log_text.count("install_miniconda") >= 2
     assert log_text.count("activate") == 2
-    assert log_text.count("daylily-ec:headnode init --emit-shell --non-interactive") == 2
+    assert log_text.count("daylily-ec:headnode init --emit-shell --non-interactive --skip-project-check") == 2
 
 
 def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Path) -> None:

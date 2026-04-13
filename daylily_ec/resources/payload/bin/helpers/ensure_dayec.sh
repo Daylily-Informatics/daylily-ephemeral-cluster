@@ -46,7 +46,7 @@ ensure_dayec() {
     echo "Create or activate it with:" >&2
     echo "" >&2
     echo "    source \"$repo_root/activate\"" >&2
-    echo "    eval \"\$(daylily-ec headnode init --emit-shell --non-interactive)\"" >&2
+    echo "    eval \"\$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)\"" >&2
     echo "" >&2
     echo "And re-run this script." >&2
     echo "" >&2

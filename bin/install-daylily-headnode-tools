@@ -75,7 +75,7 @@ if [[ "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" != "1" ]]; then
         return 1
     fi
 
-    eval "$(daylily-ec headnode init --emit-shell --non-interactive)"
+    eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)"
     DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1
 fi
 

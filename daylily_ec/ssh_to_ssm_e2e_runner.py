@@ -10,6 +10,7 @@ import shutil
 import subprocess
 import sys
 import tempfile
+import time
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from pathlib import Path
@@ -28,7 +29,7 @@ from daylily_ec.scripts.common import CommandError, aws_env, need_cmd, run_comma
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "daylily" / "daylily_ephemeral_cluster.yaml"
-DEFAULT_EXPORT_TARGET = "analysis_results"
+DEFAULT_EXPORT_TARGET = "analysis_results/ubuntu"
 CLUSTER_NAME_PREFIX = "day-ssm-e2e"
 MAX_CLUSTER_NAME_LEN = 26
 
@@ -51,6 +52,23 @@ class RunnerSummary:
     output_json: str
     started_at: str
     steps: List[StepResult] = field(default_factory=list)
+
+
+@dataclass
+class WorkflowLaunchInfo:
+    session_name: str
+    run_dir: str
+    repo_path: str
+
+
+@dataclass
+class WorkflowStatus:
+    session_name: str
+    repo_path: str
+    started_at: Optional[str]
+    completed_at: Optional[str]
+    exit_code: Optional[int]
+    command: str
 
 
 def _timestamp_slug() -> str:
@@ -77,7 +95,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument("--profile", default=os.environ.get("AWS_PROFILE"))
     parser.add_argument("--region", required=True, help="AWS region for the cluster")
-    parser.add_argument("--region-az", required=True, help="AWS region/AZ to create into")
+    parser.add_argument("--region-az", help="AWS region/AZ to create into")
     parser.add_argument(
         "--config",
         default=os.environ.get("DAY_EX_CFG") or str(DEFAULT_CONFIG_PATH),
@@ -85,8 +103,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--cluster-name",
-        default=default_cluster_name(),
-        help="Cluster name for this run (default: generated timestamped name)",
+        help="Cluster name for this run (default: generated timestamped name when not reusing)",
+    )
+    parser.add_argument(
+        "--reuse-existing-cluster",
+        action="store_true",
+        help="Resume an existing cluster instead of running preflight/create",
     )
     parser.add_argument(
         "--reference-bucket",
@@ -124,6 +146,12 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Launch the workflow without --dry-run",
     )
     parser.add_argument(
+        "--workflow-timeout-minutes",
+        type=int,
+        default=240,
+        help="Maximum time to wait for a live workflow completion before failing",
+    )
+    parser.add_argument(
         "--interactive-session-smoke",
         action="store_true",
         help="Attempt a live Session Manager open/exit probe through a PTY-capable local shell",
@@ -155,6 +183,22 @@ def ensure_profile(profile: Optional[str]) -> str:
     if not profile:
         raise CommandError("AWS profile is required. Set AWS_PROFILE or pass --profile.")
     return profile
+
+
+def finalize_cluster_args(
+    *,
+    cluster_name: Optional[str],
+    region_az: Optional[str],
+    reuse_existing_cluster: bool,
+) -> tuple[str, str]:
+    if reuse_existing_cluster:
+        if not cluster_name:
+            raise CommandError("--reuse-existing-cluster requires --cluster-name.")
+        return validate_cluster_name(cluster_name), region_az or ""
+    if not region_az:
+        raise CommandError("--region-az is required unless --reuse-existing-cluster is set.")
+    resolved_cluster_name = cluster_name or default_cluster_name()
+    return validate_cluster_name(resolved_cluster_name), region_az
 
 
 def validate_delete_flags(*, delete_cluster: bool, allow_destroy: bool) -> None:
@@ -195,11 +239,54 @@ def parse_remote_stage_dir(stdout: str) -> str:
     return match.group("path")
 
 
+def parse_workflow_launch(stdout: str) -> WorkflowLaunchInfo:
+    session_name = run_dir = repo_path = None
+    for line in stdout.splitlines():
+        if line.startswith("__DAYLILY_SESSION__="):
+            session_name = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_RUN_DIR__="):
+            run_dir = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_REPO_PATH__="):
+            repo_path = line.split("=", 1)[1].strip()
+    if not (session_name and run_dir and repo_path):
+        raise CommandError("Unable to determine workflow launch details from launcher output.")
+    return WorkflowLaunchInfo(session_name=session_name, run_dir=run_dir, repo_path=repo_path)
+
+
 def parse_tmux_session(stdout: str) -> str:
-    match = re.search(r"Tmux session '(?P<name>[^']+)' created on the head node\.", stdout)
-    if not match:
-        raise CommandError("Unable to determine tmux session name from workflow launcher output.")
-    return match.group("name")
+    return parse_workflow_launch(stdout).session_name
+
+
+def _parse_workflow_status(stdout: str) -> tuple[Optional[WorkflowStatus], str]:
+    status_payload: Optional[WorkflowStatus] = None
+    tail_lines: list[str] = []
+    in_tail = False
+    for line in stdout.splitlines():
+        if line == "__DAYLILY_LOG_TAIL_START__":
+            in_tail = True
+            continue
+        if line == "__DAYLILY_LOG_TAIL_END__":
+            in_tail = False
+            continue
+        if in_tail:
+            tail_lines.append(line)
+            continue
+        if line.startswith("__DAYLILY_STATUS__="):
+            raw = line.split("=", 1)[1].strip()
+            if raw == "MISSING":
+                continue
+            payload = json.loads(raw)
+            exit_code_raw = payload.get("exit_code")
+            exit_code = int(exit_code_raw) if isinstance(exit_code_raw, int) else None
+            status_payload = WorkflowStatus(
+                session_name=str(payload.get("session_name") or ""),
+                repo_path=str(payload.get("repo_path") or ""),
+                started_at=str(payload.get("started_at")) if payload.get("started_at") else None,
+                completed_at=str(payload.get("completed_at")) if payload.get("completed_at") else None,
+                exit_code=exit_code,
+                command=str(payload.get("command") or ""),
+            )
+    return status_payload, "\n".join(tail_lines).strip()
 
 
 def _summary_output_path(cluster_name: str, explicit: Optional[str]) -> Path:
@@ -394,21 +481,170 @@ def _smoke_interactive_session(
     )
 
 
+def _fetch_workflow_status(
+    *,
+    instance_id: str,
+    profile: str,
+    region: str,
+    run_dir: str,
+) -> tuple[Optional[WorkflowStatus], str, str]:
+    status_file = f"{run_dir.rstrip('/')}/status.json"
+    log_file = f"{run_dir.rstrip('/')}/tmux.log"
+    script = f"""
+set -euo pipefail
+STATUS_FILE={json.dumps(status_file)}
+LOG_FILE={json.dumps(log_file)}
+export STATUS_FILE LOG_FILE
+if [[ -f "$STATUS_FILE" ]]; then
+  python3 - <<'PY'
+import json
+import os
+from pathlib import Path
+
+payload = json.loads(Path(os.environ["STATUS_FILE"]).read_text(encoding="utf-8"))
+print("__DAYLILY_STATUS__=" + json.dumps(payload, sort_keys=True))
+PY
+else
+  echo "__DAYLILY_STATUS__=MISSING"
+fi
+if [[ -f "$LOG_FILE" ]]; then
+  echo "__DAYLILY_LOG_TAIL_START__"
+  tail -n 80 "$LOG_FILE"
+  echo "__DAYLILY_LOG_TAIL_END__"
+fi
+"""
+    result = run_shell(
+        instance_id,
+        region,
+        script,
+        profile=profile,
+        timeout=120,
+        comment="Poll Daylily workflow status",
+    )
+    status, log_tail = _parse_workflow_status(result.stdout or "")
+    return status, log_tail, result.command_id
+
+
+def _wait_for_workflow_completion(
+    summary: RunnerSummary,
+    output_path: Path,
+    *,
+    instance_id: str,
+    profile: str,
+    region: str,
+    launch_info: WorkflowLaunchInfo,
+    timeout_minutes: int,
+    poll_interval_seconds: int = 30,
+) -> WorkflowStatus:
+    deadline = time.time() + (timeout_minutes * 60)
+    last_command_id = ""
+    last_tail = ""
+    last_status: Optional[WorkflowStatus] = None
+
+    while time.time() < deadline:
+        status, log_tail, command_id = _fetch_workflow_status(
+            instance_id=instance_id,
+            profile=profile,
+            region=region,
+            run_dir=launch_info.run_dir,
+        )
+        last_command_id = command_id
+        last_tail = log_tail
+        if status is None or status.exit_code is None:
+            time.sleep(poll_interval_seconds)
+            continue
+
+        last_status = status
+        if status.exit_code != 0:
+            _record_step(
+                summary,
+                output_path,
+                "wait-for-workflow",
+                "failed",
+                session_name=launch_info.session_name,
+                run_dir=launch_info.run_dir,
+                repo_path=launch_info.repo_path,
+                command_id=command_id,
+                exit_code=str(status.exit_code),
+            )
+            detail = f"Workflow failed with exit code {status.exit_code}."
+            if log_tail:
+                detail = detail + "\n\nLast workflow log lines:\n" + log_tail
+            raise CommandError(detail)
+
+        _record_step(
+            summary,
+            output_path,
+            "wait-for-workflow",
+            "passed",
+            session_name=launch_info.session_name,
+            run_dir=launch_info.run_dir,
+            repo_path=launch_info.repo_path,
+            command_id=command_id,
+            completed_at=status.completed_at or "",
+            exit_code=str(status.exit_code),
+        )
+        return status
+
+    _record_step(
+        summary,
+        output_path,
+        "wait-for-workflow",
+        "failed",
+        session_name=launch_info.session_name,
+        run_dir=launch_info.run_dir,
+        repo_path=launch_info.repo_path,
+        command_id=last_command_id,
+        reason="timeout",
+    )
+    message = (
+        f"Workflow did not complete within {timeout_minutes} minutes for session "
+        f"'{launch_info.session_name}'."
+    )
+    if last_status is not None and last_status.started_at:
+        message += f" Started at {last_status.started_at}."
+    if last_tail:
+        message += "\n\nLast workflow log lines:\n" + last_tail
+    raise CommandError(message)
+
+
+def _validate_export_artifact(export_yaml: Path, expected_target_uri: str) -> dict[str, object]:
+    if not export_yaml.is_file():
+        raise CommandError(f"Export did not write expected artifact: {export_yaml}")
+    payload = yaml.safe_load(export_yaml.read_text(encoding="utf-8")) or {}
+    export_payload = payload.get("fsx_export") or {}
+    status = str(export_payload.get("status") or "")
+    s3_uri = str(export_payload.get("s3_uri") or "")
+    if status != "success":
+        raise CommandError(f"Export status is not success in {export_yaml}: {status or 'missing'}")
+    expected_suffix = expected_target_uri.strip("/")
+    if expected_suffix and not s3_uri.rstrip("/").endswith(expected_suffix):
+        raise CommandError(
+            f"Export S3 URI {s3_uri!r} does not end with the expected target {expected_suffix!r}."
+        )
+    return export_payload
+
+
 def main(argv: Optional[Sequence[str]] = None) -> int:
     args = parse_args(argv)
     profile = ensure_profile(args.profile)
     validate_delete_flags(delete_cluster=args.delete_cluster, allow_destroy=args.allow_destroy)
-    args.cluster_name = validate_cluster_name(args.cluster_name)
+    args.cluster_name, args.region_az = finalize_cluster_args(
+        cluster_name=args.cluster_name,
+        region_az=args.region_az,
+        reuse_existing_cluster=args.reuse_existing_cluster,
+    )
 
     need_cmd("aws")
     need_cmd("daylily-ec")
     need_cmd("pcluster")
     need_cmd("session-manager-plugin")
 
-    base_config_path = Path(args.config).expanduser().resolve()
     analysis_samples = Path(args.analysis_samples).expanduser().resolve()
     if not analysis_samples.is_file():
         raise CommandError(f"analysis_samples.tsv fixture not found: {analysis_samples}")
+
+    base_config_path = Path(args.config).expanduser().resolve()
 
     stage_config_dir = _resolve_stage_config_dir(args.cluster_name, args.stage_config_dir)
     export_output_dir = _resolve_export_output_dir(args.cluster_name, args.export_output_dir)
@@ -427,45 +663,68 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     _record_step(summary, output_json, "runner-start", "passed")
 
     env = aws_env(profile=profile, region=args.region)
-    with tempfile.TemporaryDirectory(prefix=f"{args.cluster_name}-cfg-") as tmp_dir_name:
-        runner_config = write_runner_config(base_config_path, args.cluster_name, Path(tmp_dir_name))
+    if args.reuse_existing_cluster:
         _record_step(
             summary,
             output_json,
             "prepare-config",
-            "passed",
-            runner_config=str(runner_config),
+            "skipped",
+            reason="--reuse-existing-cluster skips config rendering for an existing cluster.",
         )
-
-        preflight_cmd = [
-            "daylily-ec",
+        _record_step(
+            summary,
+            output_json,
             "preflight",
-            "--region-az",
-            args.region_az,
-            "--profile",
-            profile,
-            "--config",
-            str(runner_config),
-            "--non-interactive",
-        ]
-        if args.pass_on_warn:
-            preflight_cmd.append("--pass-on-warn")
-        _run_local_command(summary, output_json, "preflight", preflight_cmd, env=env)
+            "skipped",
+            reason="--reuse-existing-cluster skips preflight for an existing cluster.",
+        )
+        _record_step(
+            summary,
+            output_json,
+            "create-cluster",
+            "skipped",
+            reason="--reuse-existing-cluster skips cluster creation.",
+        )
+    else:
+        with tempfile.TemporaryDirectory(prefix=f"{args.cluster_name}-cfg-") as tmp_dir_name:
+            runner_config = write_runner_config(base_config_path, args.cluster_name, Path(tmp_dir_name))
+            _record_step(
+                summary,
+                output_json,
+                "prepare-config",
+                "passed",
+                runner_config=str(runner_config),
+            )
 
-        create_cmd = [
-            "daylily-ec",
-            "create",
-            "--region-az",
-            args.region_az,
-            "--profile",
-            profile,
-            "--config",
-            str(runner_config),
-            "--non-interactive",
-        ]
-        if args.pass_on_warn:
-            create_cmd.append("--pass-on-warn")
-        _run_local_command(summary, output_json, "create-cluster", create_cmd, env=env)
+            preflight_cmd = [
+                "daylily-ec",
+                "preflight",
+                "--region-az",
+                args.region_az,
+                "--profile",
+                profile,
+                "--config",
+                str(runner_config),
+                "--non-interactive",
+            ]
+            if args.pass_on_warn:
+                preflight_cmd.append("--pass-on-warn")
+            _run_local_command(summary, output_json, "preflight", preflight_cmd, env=env)
+
+            create_cmd = [
+                "daylily-ec",
+                "create",
+                "--region-az",
+                args.region_az,
+                "--profile",
+                profile,
+                "--config",
+                str(runner_config),
+                "--non-interactive",
+            ]
+            if args.pass_on_warn:
+                create_cmd.append("--pass-on-warn")
+            _run_local_command(summary, output_json, "create-cluster", create_cmd, env=env)
 
     target = resolve_headnode_instance_id(args.cluster_name, args.region, profile=profile)
     _record_step(
@@ -478,6 +737,26 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     wait_for_ssm_online(target.instance_id, args.region, profile=profile, timeout=300)
     _record_step(summary, output_json, "wait-for-ssm", "passed", instance_id=target.instance_id)
+
+    if args.reuse_existing_cluster:
+        cfg_headnode_cmd = [
+            str((REPO_ROOT / "bin" / "daylily-cfg-headnode").resolve()),
+            "--profile",
+            profile,
+            "--region",
+            args.region,
+            "--cluster",
+            args.cluster_name,
+        ]
+        _run_local_command(summary, output_json, "configure-headnode", cfg_headnode_cmd, env=env)
+    else:
+        _record_step(
+            summary,
+            output_json,
+            "configure-headnode",
+            "skipped",
+            reason="Create already configures the headnode before returning.",
+        )
 
     ensure_ubuntu_session_preferences(args.region, profile=profile)
     _record_step(
@@ -551,13 +830,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if not args.workflow_live:
         launch_cmd.append("--dry-run")
     launch_stdout = _run_local_command(summary, output_json, "launch-workflow", launch_cmd, env=env)
-    session_name = parse_tmux_session(launch_stdout)
+    launch_info = parse_workflow_launch(launch_stdout)
     _record_step(
         summary,
         output_json,
         "parse-workflow-output",
         "passed",
-        session_name=session_name,
+        session_name=launch_info.session_name,
+        run_dir=launch_info.run_dir,
+        repo_path=launch_info.repo_path,
     )
 
     _inspect_runtime_state(
@@ -567,6 +848,25 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         profile=profile,
         region=args.region,
     )
+
+    if args.workflow_live:
+        _wait_for_workflow_completion(
+            summary,
+            output_path=output_json,
+            instance_id=target.instance_id,
+            profile=profile,
+            region=args.region,
+            launch_info=launch_info,
+            timeout_minutes=args.workflow_timeout_minutes,
+        )
+    else:
+        _record_step(
+            summary,
+            output_json,
+            "wait-for-workflow",
+            "skipped",
+            reason="--workflow-live is required to wait for a real workflow completion.",
+        )
 
     if args.skip_export:
         _record_step(summary, output_json, "export-results", "skipped", reason="--skip-export")
@@ -586,14 +886,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         ]
         _run_local_command(summary, output_json, "export-results", export_cmd, env=env)
         export_yaml = export_output_dir / "fsx_export.yaml"
-        if not export_yaml.is_file():
-            raise CommandError(f"Export did not write expected artifact: {export_yaml}")
+        export_payload = _validate_export_artifact(export_yaml, args.export_target_uri)
         _record_step(
             summary,
             output_json,
             "verify-export-artifact",
             "passed",
             fsx_export_yaml=str(export_yaml),
+            s3_uri=str(export_payload.get("s3_uri") or ""),
         )
 
     if args.delete_cluster:

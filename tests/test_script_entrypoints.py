@@ -123,6 +123,22 @@ class TestRunOmicsAnalysisHeadnodeScript:
         with pytest.raises(CommandError, match="Remote lookup failed: missing_stage_dir"):
             run_omics_module.parse_remote_config("__DAYLILY_ERROR__=missing_stage_dir")
 
+    def test_parse_workflow_launch_extracts_run_metadata(self):
+        launch = run_omics_module.parse_workflow_launch(
+            "\n".join(
+                [
+                    "__DAYLILY_SESSION__=sess-1",
+                    "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1",
+                    "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis",
+                ]
+            )
+            + "\n"
+        )
+
+        assert launch.session_name == "sess-1"
+        assert launch.run_dir == "/home/ubuntu/daylily-runs/sess-1"
+        assert launch.repo_path.endswith("/daylily-omics-analysis")
+
     def test_build_default_command_includes_requested_flags(self):
         command = run_omics_module.build_default_command(
             target="produce_snv_concordances",
@@ -172,7 +188,14 @@ class TestRunOmicsAnalysisHeadnodeScript:
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
-        return_value=SimpleNamespace(stdout="__DAYLILY_SESSION__=sess-1\n", stderr=""),
+        return_value=SimpleNamespace(
+            stdout=(
+                "__DAYLILY_SESSION__=sess-1\n"
+                "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis\n"
+            ),
+            stderr="",
+        ),
     )
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.discover_stage_config",
@@ -211,14 +234,19 @@ class TestRunOmicsAnalysisHeadnodeScript:
 
         assert rc == 0
         script = mock_run_shell.call_args.args[2]
+        assert 'run_dir="/home/ubuntu/daylily-runs/$SESSION_NAME"' in script
+        assert 'work_script="$run_dir/launch.sh"' in script
+        assert 'tmux_log="$run_dir/tmux.log"' in script
+        assert 'STATUS_FILE="${DAYLILY_RUN_DIR}/status.json"' in script
+        assert 'python3 -c ' in script
         assert "nohup tmux new-session" in script
         assert "tmux has-session" in script
         assert "DAY_CONTAINERIZED=true" in script
-        assert 'mkdir -p "$analysis_root/$(whoami)"' in script
+        assert 'mkdir -p "$(dirname "$clone_root")"' in script
         assert 'mkdir -p "$clone_root"' not in script
         assert "__DAYLILY_ERROR__=destination_exists_without_repo" in script
-        assert 'elif [[ -n "${DAY_PROJECT:-}" ]]; then' in script
-        assert 'export PROJECT="$DAY_PROJECT"' in script
+        assert 'unset PROJECT || true' in script
+        assert 'dyoa_args+=(--skip-project-check)' in script
         assert "set +u" in script
         assert "set -u" in script
         assert ". bin/day_activate slurm hg38 remote" in script
@@ -226,6 +254,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "exec bash -il" in script
         assert '--which-one "$TRANSPORT"' not in script
         out = capsys.readouterr().out
+        assert "Run state directory: /home/ubuntu/daylily-runs/sess-1" in out
+        assert "Workflow repo path: /fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis" in out
         assert "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in out
         assert "Then run: tmux attach -t sess-1" in out
 
