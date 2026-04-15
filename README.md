@@ -147,3 +147,4 @@ If any of this is missing, cluster creation will fail in annoying ways. Run `day
 - [docs/DAY_EC_ENVIRONMENT.md](docs/DAY_EC_ENVIRONMENT.md): `DAY-EC` checkout environment contract
 - [docs/pip_install.md](docs/pip_install.md): pip-install path and external prerequisites
 - [docs/archive/README.md](docs/archive/README.md): historical material, pre-rewrite snapshot, and unsupported legacy appendix
+ 
