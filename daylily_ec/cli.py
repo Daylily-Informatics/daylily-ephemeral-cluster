@@ -71,17 +71,21 @@ spec = CliSpec(
             )
         ],
         default_backend="day-ec-conda",
-        guard_mode="enforced",
+        guard_mode="advisory",
         prereqs=[
             PrereqSpec(
                 key="day-ec-conda-active-env",
                 kind="env_var",
                 value="CONDA_DEFAULT_ENV",
                 help="Activate DAY-EC with source ./activate.",
+                severity="warn",
                 applies_to_backends={"day-ec-conda"},
                 tags={DAYLILY_EC_RUNTIME_TAG},
                 success_message="DAY-EC conda environment is active.",
-                failure_message="daylily-ec requires an active DAY-EC conda environment. Run `source ./activate`.",
+                failure_message=(
+                    "DAY-EC conda environment is not active. "
+                    "Continuing anyway; the supported path is `source ./activate`."
+                ),
             ),
             PrereqSpec(
                 key="day-ec-conda-env-name",
@@ -92,10 +96,14 @@ spec = CliSpec(
                     "import os, sys; sys.exit(0 if os.environ.get('CONDA_DEFAULT_ENV', '').strip() == 'DAY-EC' else 1)",
                 ),
                 help="Use the DAY-EC conda environment from source ./activate.",
+                severity="warn",
                 applies_to_backends={"day-ec-conda"},
                 tags={DAYLILY_EC_RUNTIME_TAG},
                 success_message="DAY-EC conda environment name is valid.",
-                failure_message="daylily-ec requires the DAY-EC conda environment. Run `source ./activate`.",
+                failure_message=(
+                    "Active conda environment is not DAY-EC. "
+                    "Continuing anyway; the supported path is `source ./activate`."
+                ),
             ),
         ],
     ),
@@ -116,6 +124,35 @@ def _emit_payload(payload: dict[str, object], text: str) -> None:
         output.emit_json(payload)
         return
     output.print_text(text)
+
+
+def _dayec_env_warning_message() -> str | None:
+    active_env = os.environ.get("CONDA_DEFAULT_ENV", "").strip()
+    conda_prefix = os.environ.get("CONDA_PREFIX", "").strip()
+    if active_env == "DAY-EC":
+        return None
+    if active_env:
+        return (
+            f"Active conda environment is '{active_env}', not DAY-EC. "
+            "Continuing anyway; the supported path is `source ./activate`."
+        )
+    if conda_prefix:
+        return (
+            "A conda environment is active but CONDA_DEFAULT_ENV is not DAY-EC. "
+            "Continuing anyway; the supported path is `source ./activate`."
+        )
+    return (
+        "DAY-EC conda environment is not active. "
+        "Continuing anyway; the supported path is `source ./activate`."
+    )
+
+
+def _warn_if_dayec_env_inactive() -> None:
+    if _json_mode():
+        return
+    message = _dayec_env_warning_message()
+    if message:
+        output.warning(message)
 
 
 def create(
@@ -164,6 +201,7 @@ def create(
 
     from daylily_ec.workflow.create_cluster import run_create_workflow
 
+    _warn_if_dayec_env_inactive()
     _ = repo_override
     if debug:
         logging.basicConfig(level=logging.DEBUG)
@@ -216,6 +254,7 @@ def preflight(
 
     from daylily_ec.workflow.create_cluster import run_preflight_only
 
+    _warn_if_dayec_env_inactive()
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -259,6 +298,7 @@ def drift(
         EXIT_SUCCESS,
     )
 
+    _warn_if_dayec_env_inactive()
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -314,6 +354,7 @@ def cluster_info(
 ) -> None:
     """List ParallelCluster clusters and their status."""
 
+    _warn_if_dayec_env_inactive()
     resolved_profile = profile or os.environ.get("AWS_PROFILE", "")
     if not resolved_profile:
         output.error("AWS_PROFILE is not set. Use --profile or export AWS_PROFILE.")
@@ -433,6 +474,7 @@ def export(
         run_export_workflow,
     )
 
+    _warn_if_dayec_env_inactive()
     configure_logging(verbose)
     rc = run_export_workflow(
         ExportOptions(
@@ -477,6 +519,7 @@ def delete(
 
     from daylily_ec.workflow.delete_cluster import DeleteOptions, run_delete_workflow
 
+    _warn_if_dayec_env_inactive()
     rc = run_delete_workflow(
         DeleteOptions(
             cluster_name=cluster_name,
@@ -524,6 +567,7 @@ def pricing_snapshot(
 
     from daylily_ec.aws.pricing_snapshots import collect_pricing_snapshot
 
+    _warn_if_dayec_env_inactive()
     payload = collect_pricing_snapshot(
         regions=region,
         partitions=partition,
@@ -568,6 +612,7 @@ def headnode_init(
 
     from daylily_ec.headnode import run_headnode_init
 
+    _warn_if_dayec_env_inactive()
     raise typer.Exit(
         run_headnode_init(
             project=project,

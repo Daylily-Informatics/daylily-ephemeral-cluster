@@ -13,10 +13,14 @@ runner = CliRunner()
 def test_cli_spec_uses_platform_v2_runtime() -> None:
     assert spec.policy.profile == "platform-v2"
     assert spec.runtime is not None
-    assert spec.runtime.guard_mode == "enforced"
+    assert spec.runtime.guard_mode == "advisory"
     assert spec.runtime.allow_skip_check is False
     assert spec.runtime.supported_backends
     assert spec.runtime.prereqs
+    assert {prereq.key: prereq.severity for prereq in spec.runtime.prereqs} == {
+        "day-ec-conda-active-env": "warn",
+        "day-ec-conda-env-name": "warn",
+    }
 
 
 def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
@@ -119,13 +123,13 @@ def test_runtime_exempt_command_bypasses_runtime_guard(monkeypatch) -> None:
     assert json.loads(result.stdout)["app"] == "Daylily Ephemeral Cluster"
 
 
-def test_runtime_required_command_fails_without_active_env(monkeypatch) -> None:
+def test_runtime_required_command_warns_without_active_env(monkeypatch) -> None:
     monkeypatch.delenv("CONDA_PREFIX", raising=False)
     monkeypatch.delenv("CONDA_DEFAULT_ENV", raising=False)
+    monkeypatch.delenv("AWS_PROFILE", raising=False)
 
-    result = runner.invoke(app, ["--json", "cluster-info", "--region", "us-west-2"])
+    result = runner.invoke(app, ["cluster-info", "--region", "us-west-2"])
 
-    assert result.exit_code == 3
-    payload = json.loads(result.stdout)
-    assert payload["error"]["code"] == "runtime_validation_failed"
-    assert payload["error"]["details"]["summary"]["blocking_failures"] >= 1
+    assert result.exit_code == 1
+    assert "DAY-EC conda environment is not active." in result.stderr
+    assert "AWS_PROFILE is not set." in result.stderr
