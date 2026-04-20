@@ -54,8 +54,8 @@ def test_init_dayec_scripts_bootstrap_from_environment_yaml() -> None:
     assert expected in PAYLOAD_INIT_DAYEC.read_text(encoding="utf-8")
 
 
-def test_init_dayec_installs_dev_extras_from_repo_checkout() -> None:
-    expected = 'pip_args+=(--editable "${repo_root}[dev]")'
+def test_init_dayec_installs_repo_checkout_without_extras() -> None:
+    expected = 'pip_args+=(--editable "${repo_root}")'
     assert expected in INIT_DAYEC.read_text(encoding="utf-8")
     assert expected in PAYLOAD_INIT_DAYEC.read_text(encoding="utf-8")
 
@@ -122,6 +122,7 @@ def test_pyproject_declares_expected_runtime_python_dependencies() -> None:
         "typer",
     }
     assert expected <= deps
+    assert "optional-dependencies" not in project["project"]
 
 
 def test_legacy_day_env_surfaces_are_not_active() -> None:

@@ -293,7 +293,7 @@ __daylily_activate_accept_tos() {
 
 __daylily_activate_install_repo_into_dayec() {
   local editable_spec
-  editable_spec="${DAYLILY_EC_REPO_ROOT}[dev]"
+  editable_spec="${DAYLILY_EC_REPO_ROOT}"
   echo "Installing daylily-ephemeral-cluster into DAY-EC from ${editable_spec} ..." >&2
   conda run -n DAY-EC python -m pip install --editable "${editable_spec}" || return 1
   __daylily_activate_refresh_command_cache

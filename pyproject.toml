@@ -29,14 +29,6 @@ dependencies = [
     "python-dateutil>=2.8.2",
     # Provides the `pcluster` CLI used by the control plane + scripts.
     "aws-parallelcluster==3.13.2",
-]
-
-[project.scripts]
-daylily-ec = "daylily_ec.cli:main"
-
-[project.optional-dependencies]
-# Development dependencies
-dev = [
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "moto>=4.2.0",
@@ -49,6 +41,9 @@ dev = [
     "prompt-toolkit>=3.0.41,<3.0.52",
     "yamllint>=1.35.0",
 ]
+
+[project.scripts]
+daylily-ec = "daylily_ec.cli:main"
 
 [tool.setuptools_scm]
 version_scheme = "guess-next-dev"

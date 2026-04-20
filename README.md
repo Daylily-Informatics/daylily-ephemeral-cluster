@@ -100,7 +100,7 @@ daylily-ec delete \
 ## What This Repo Ships
 
 - `environment.yaml` plus `pyproject.toml`: the `DAY-EC` environment contract
-- `activate`: checkout bootstrap that creates or repairs `DAY-EC`, installs the repo editable with dev extras, and validates the local toolchain
+- `activate`: checkout bootstrap that creates or repairs `DAY-EC`, installs the repo editable, and validates the local toolchain
 - `bin/daylily-ssh-into-headnode`: interactive Session Manager shell launcher with `ubuntu`-only validation
 - `bin/daylily-stage-samples-from-local-to-headnode`: translator and staging helper that turns `analysis_samples.tsv` into workflow-ready `samples.tsv` and `units.tsv`
 - `bin/daylily-run-omics-analysis-headnode`: remote launcher that creates the run-state directory and starts the workflow

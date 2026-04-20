@@ -28,7 +28,7 @@ This file defines the Conda environment shape and the non-Python operator toolin
 
 ### `pyproject.toml`
 
-This file owns the Python dependency graph for the package. In a repo checkout, `DAY-EC` installs this repo editable with dev extras so the environment includes:
+This file owns the Python dependency graph for the package. In a repo checkout, `DAY-EC` installs this repo editable so the environment includes:
 
 - runtime package dependencies
 - test tooling
@@ -50,7 +50,7 @@ source ./activate
 2. ensures Conda is available
 3. creates `DAY-EC` from `environment.yaml` if it does not exist
 4. updates `DAY-EC` if runtime smoke tests fail
-5. installs this repo into `DAY-EC` as an editable package with `[dev]` extras
+5. installs this repo into `DAY-EC` as an editable package
 6. validates the local runtime by checking `daylily-ec`, `aws`, `pcluster`, `session-manager-plugin`, and `node`
 
 If `source ./activate` completes cleanly, that is the supported shell for operator work and test execution.
@@ -72,7 +72,7 @@ Use this when:
 `bin/init_dayec` uses `environment.yaml` from the resolved resources directory and, in a repo checkout, installs:
 
 ```bash
-python -m pip install --editable ".[dev]"
+python -m pip install --editable "."
 ```
 
 ## Smoke Tests
@@ -108,7 +108,7 @@ If you want a repair without removing the environment first:
 
 ```bash
 conda env update -n DAY-EC -f environment.yaml
-conda run -n DAY-EC python -m pip install --editable ".[dev]"
+conda run -n DAY-EC python -m pip install --editable "."
 ```
 
 ## What Is No Longer Active

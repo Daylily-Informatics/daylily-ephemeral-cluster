@@ -6,7 +6,7 @@ The supported operator path for a repo checkout is still:
 source ./activate
 ```
 
-That path gives you the full `DAY-EC` Conda environment and installs this repo editable with dev extras.
+That path gives you the full `DAY-EC` Conda environment and installs this repo editable.
 
 This document covers the other path: installing the Python package directly.
 
@@ -18,10 +18,10 @@ This document covers the other path: installing the Python package directly.
 - the package runtime dependencies
 - `aws-parallelcluster`, which provides `pcluster`
 
-For a checkout install with development tooling:
+For an editable checkout install:
 
 ```bash
-python -m pip install --editable ".[dev]"
+python -m pip install --editable "."
 ```
 
 For a non-editable install:
@@ -46,7 +46,7 @@ If you want the fully supported local operator environment, use the Conda path i
 python -m venv .venv
 . .venv/bin/activate
 python -m pip install --upgrade pip
-python -m pip install --editable ".[dev]"
+python -m pip install --editable "."
 daylily-ec version
 pcluster version
 ```

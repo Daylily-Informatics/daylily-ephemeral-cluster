@@ -126,12 +126,11 @@ if [[ "$cmd" == "activate" ]]; then
   exit $?
 fi
 
-if [[ "$cmd" == "run" && "$subcmd" == "-n" ]]; then
+  if [[ "$cmd" == "run" && "$subcmd" == "-n" ]]; then
   env_name="$third"
   shift 3
   if [[ "${1:-}" == "python" && "${2:-}" == "-m" && "${3:-}" == "pip" && "${4:-}" == "install" && "${5:-}" == "--editable" ]]; then
     repo_spec="${6:-}"
-    repo_root="${repo_spec%\\[dev]}"
     mkdir -p "${root}/envs/${env_name}/bin"
     printf '%s\\n' "${repo_spec}" > "${root}/last_editable_repo"
     cat > "${root}/envs/${env_name}/bin/daylily-ec" <<'EOF'
@@ -346,7 +345,7 @@ def test_activate_bootstraps_missing_dayec_from_environment_yaml(tmp_path: Path)
     assert log.index(main_tos) < log.index(f"env create -n DAY-EC -f {ENVIRONMENT_YAML}")
     assert log.index(r_tos) < log.index(f"env create -n DAY-EC -f {ENVIRONMENT_YAML}")
     assert f"env create -n DAY-EC -f {ENVIRONMENT_YAML}" in log
-    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}[dev]" in log
+    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
 
 
 def test_activate_supports_version_and_pricing_help_flow(tmp_path: Path) -> None:
@@ -377,7 +376,7 @@ def test_activate_repairs_existing_dayec_when_pcluster_smoke_fails(tmp_path: Pat
     assert "pkg_resources" not in (result.stdout + result.stderr)
     log = log_path.read_text(encoding="utf-8")
     assert f"env update -n DAY-EC -f {ENVIRONMENT_YAML}" in log
-    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}[dev]" in log
+    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
 
 
 def test_activate_repairs_existing_dayec_when_node_smoke_fails(tmp_path: Path) -> None:
@@ -394,7 +393,7 @@ def test_activate_repairs_existing_dayec_when_node_smoke_fails(tmp_path: Path) -
     assert "env-version" in result.stdout
     log = log_path.read_text(encoding="utf-8")
     assert f"env update -n DAY-EC -f {ENVIRONMENT_YAML}" in log
-    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}[dev]" in log
+    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
 
 
 def test_activate_does_not_fall_back_to_broken_global_cli(tmp_path: Path) -> None:
