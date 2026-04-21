@@ -15,7 +15,7 @@ from __future__ import annotations
 import subprocess
 from pathlib import Path
 from types import SimpleNamespace
-from unittest.mock import MagicMock, patch
+from unittest.mock import patch
 
 import pytest
 
@@ -636,6 +636,118 @@ class TestConfigureHeadnode:
         assert "git fetch origin --tags --prune" in clone_cmd
         assert "git clean -fdx" in clone_cmd
         assert "git checkout -B daylily-managed origin/codex/ssh-to-ssm-refactor" in clone_cmd
+        mock_write_remote_text.assert_not_called()
+
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    @patch("daylily_ec.workflow.create_cluster.subprocess.run")
+    @pytest.mark.parametrize(
+        ("origin_url", "expected_url"),
+        [
+            (
+                "git@github.com:Daylily-Informatics/daylily-ephemeral-cluster.git\n",
+                "https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git",
+            ),
+            (
+                "ssh://git@github.com/Daylily-Informatics/daylily-ephemeral-cluster.git\n",
+                "https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git",
+            ),
+        ],
+    )
+    def test_repo_checkout_normalizes_github_ssh_origin_for_headnode_clone(
+        self,
+        mock_subprocess_run,
+        mock_run_shell,
+        mock_write_remote_text,
+        origin_url,
+        expected_url,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        repo_root = tmp_path / "repo"
+        repo_root.mkdir()
+        monkeypatch.setenv("DAYLILY_EC_REPO_ROOT", str(repo_root))
+
+        def fake_git_run(cmd, **_kwargs):
+            if cmd == ["git", "-C", str(repo_root), "config", "--get", "remote.origin.url"]:
+                return subprocess.CompletedProcess(cmd, 0, origin_url, "")
+            if cmd == ["git", "-C", str(repo_root), "symbolic-ref", "--short", "HEAD"]:
+                return subprocess.CompletedProcess(cmd, 0, "codex/https-headnode-clone\n", "")
+            if cmd == [
+                "git",
+                "-C",
+                str(repo_root),
+                "ls-remote",
+                "--exit-code",
+                "--heads",
+                "origin",
+                "codex/https-headnode-clone",
+            ]:
+                return subprocess.CompletedProcess(
+                    cmd,
+                    0,
+                    "abc\trefs/heads/codex/https-headnode-clone\n",
+                    "",
+                )
+            raise AssertionError(f"unexpected subprocess.run call: {cmd}")
+
+        mock_subprocess_run.side_effect = fake_git_run
+        mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+        ]
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+        )
+
+        assert ok is True
+        clone_cmd = mock_run_shell.call_args_list[0].args[2]
+        assert f"git clone {expected_url} daylily-ephemeral-cluster" in clone_cmd
+        assert "git@github.com" not in clone_cmd
+        assert "ssh://git@github.com" not in clone_cmd
+        mock_write_remote_text.assert_not_called()
+
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    @patch("daylily_ec.workflow.create_cluster.subprocess.run")
+    def test_repo_checkout_rejects_unsupported_ssh_origin_for_headnode_clone(
+        self,
+        mock_subprocess_run,
+        mock_run_shell,
+        mock_write_remote_text,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        repo_root = tmp_path / "repo"
+        repo_root.mkdir()
+        monkeypatch.setenv("DAYLILY_EC_REPO_ROOT", str(repo_root))
+
+        def fake_git_run(cmd, **_kwargs):
+            if cmd == ["git", "-C", str(repo_root), "config", "--get", "remote.origin.url"]:
+                return subprocess.CompletedProcess(cmd, 0, "git@gitlab.example.com:org/repo.git\n", "")
+            raise AssertionError(f"unexpected subprocess.run call: {cmd}")
+
+        mock_subprocess_run.side_effect = fake_git_run
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+        )
+
+        assert ok is False
+        mock_run_shell.assert_not_called()
         mock_write_remote_text.assert_not_called()
 
     @patch("daylily_ec.aws.ssm.write_remote_text")

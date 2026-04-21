@@ -90,16 +90,41 @@ def _git_stdout(repo_root: Path, *args: str) -> str:
     return proc.stdout.strip()
 
 
+def _normalize_headnode_repo_url(repo_url: str) -> str:
+    """Return a headnode-safe clone URL for the Daylily control repo."""
+    if repo_url.startswith("git@github.com:"):
+        repo_path = repo_url.removeprefix("git@github.com:")
+        if "/" not in repo_path:
+            raise RuntimeError(f"Unsupported GitHub SSH repository URL: {repo_url}")
+        return f"https://github.com/{repo_path}"
+
+    if repo_url.startswith("ssh://git@github.com/"):
+        repo_path = repo_url.removeprefix("ssh://git@github.com/")
+        if "/" not in repo_path:
+            raise RuntimeError(f"Unsupported GitHub SSH repository URL: {repo_url}")
+        return f"https://github.com/{repo_path}"
+
+    if repo_url.startswith("git@") or repo_url.startswith("ssh://"):
+        raise RuntimeError(
+            "Headnode repository clone requires HTTPS or a supported GitHub SSH remote; "
+            f"got {repo_url}"
+        )
+
+    return repo_url
+
+
 def _resolve_headnode_repo_spec(default_url: str, default_ref: str) -> HeadnodeRepoSpec:
     repo_root_env = _os.environ.get("DAYLILY_EC_REPO_ROOT", "").strip()
     if not repo_root_env:
-        return HeadnodeRepoSpec(url=default_url, ref=default_ref)
+        return HeadnodeRepoSpec(url=_normalize_headnode_repo_url(default_url), ref=default_ref)
 
     repo_root = Path(repo_root_env).expanduser().resolve()
     if not repo_root.exists():
         raise RuntimeError(f"DAYLILY_EC_REPO_ROOT does not exist: {repo_root}")
 
-    repo_url = _git_stdout(repo_root, "config", "--get", "remote.origin.url")
+    repo_url = _normalize_headnode_repo_url(
+        _git_stdout(repo_root, "config", "--get", "remote.origin.url")
+    )
     repo_ref = _git_stdout(repo_root, "symbolic-ref", "--short", "HEAD")
     published = subprocess.run(
         ["git", "-C", str(repo_root), "ls-remote", "--exit-code", "--heads", "origin", repo_ref],
