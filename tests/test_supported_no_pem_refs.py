@@ -44,9 +44,7 @@ BANNED_PATTERNS = {
     r"\bUserKnownHostsFile\b": "legacy SSH option",
     r"\bsudo -iu ubuntu\b": "manual user-switch instruction",
     r"\bsudo su - ubuntu\b": "manual user-switch instruction",
-    r"\bssh_url\b": "unsupported SSH repository URL field",
     r"\bgit_ephemeral_cluster_repo_ssh\b": "unsupported SSH repository config field",
-    r"--which-one\s+\{https,ssh\}": "unsupported day-clone transport selector",
     r"\bscp\b": "legacy SSH file copy command",
 }
 
@@ -108,12 +106,12 @@ def test_supported_scripts_have_no_pem_references():
         pytest.fail("Supported scripts still contain unsupported SSH/PEM references:\n" + "\n".join(failures))
 
 
-def test_supported_configs_have_no_ssh_or_pem_references():
+def test_supported_configs_have_no_pem_references():
     failures = []
     for path in _iter_supported_config_files():
         failures.extend(_find_banned_refs(path))
     if failures:
-        pytest.fail("Supported configs still contain unsupported SSH/PEM references:\n" + "\n".join(failures))
+        pytest.fail("Supported configs still contain unsupported PEM references:\n" + "\n".join(failures))
 
 
 def test_legacy_payload_assets_are_quarantined_out_of_runtime_bundle():

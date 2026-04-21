@@ -36,6 +36,13 @@ Expected:
 
 If that is not true, stop and fix the bootstrap. Do not continue a supported workflow from the wrong user context.
 
+`day-clone` uses HTTPS by default for workflow clones. For editable development clones
+where you need to push back to GitHub, select SSH explicitly:
+
+```bash
+day-clone -d dayoa-dev --repository daylily-omics-analysis -w ssh
+```
+
 Useful headnode status commands:
 
 ```bash

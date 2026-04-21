@@ -1218,6 +1218,16 @@ def configure_headnode(
             None,
         ),
         (
+            "Accept Conda Terms of Service",
+            (
+                "~/miniconda3/bin/conda tos accept --override-channels "
+                "--channel https://repo.anaconda.com/pkgs/main && "
+                "~/miniconda3/bin/conda tos accept --override-channels "
+                "--channel https://repo.anaconda.com/pkgs/r"
+            ),
+            None,
+        ),
+        (
             "Install headnode tools",
             (
                 f"cd ~/projects/{repo_name} && "

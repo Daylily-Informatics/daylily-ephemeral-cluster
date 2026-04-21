@@ -423,6 +423,7 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
         ]
 
         ok = configure_headnode(
@@ -432,16 +433,21 @@ class TestConfigureHeadnode:
             profile="test",
         )
         assert ok is True
-        assert mock_run_shell.call_count == 4
+        assert mock_run_shell.call_count == 5
         assert [call.kwargs["timeout"] for call in mock_run_shell.call_args_list] == [
             None,
             None,
             None,
             None,
+            None,
         ]
-        assert "source ~/projects/daylily-ephemeral-cluster/activate" in mock_run_shell.call_args_list[2].args[2]
-        assert "bash -lc" in mock_run_shell.call_args_list[3].args[2]
-        assert "whoami" in mock_run_shell.call_args_list[3].args[2]
+        tos_cmd = mock_run_shell.call_args_list[2].args[2]
+        assert "conda tos accept --override-channels" in tos_cmd
+        assert "https://repo.anaconda.com/pkgs/main" in tos_cmd
+        assert "https://repo.anaconda.com/pkgs/r" in tos_cmd
+        assert "source ~/projects/daylily-ephemeral-cluster/activate" in mock_run_shell.call_args_list[3].args[2]
+        assert "bash -lc" in mock_run_shell.call_args_list[4].args[2]
+        assert "whoami" in mock_run_shell.call_args_list[4].args[2]
         mock_write_remote_text.assert_not_called()
 
     @patch("daylily_ec.aws.ssm.write_remote_text")
@@ -454,6 +460,7 @@ class TestConfigureHeadnode:
         monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
 
         mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
@@ -477,7 +484,42 @@ class TestConfigureHeadnode:
             profile="test",
         )
         assert ok is False
-        assert mock_run_shell.call_count == 4
+        assert mock_run_shell.call_count == 5
+        mock_write_remote_text.assert_not_called()
+
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    def test_conda_tos_acceptance_failure_is_fatal(
+        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
+
+        mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SsmCommandFailedError(
+                "tos failed",
+                SsmCommandResult(
+                    command_id="cmd-1",
+                    instance_id="i-abc123",
+                    status="Failed",
+                    response_code=1,
+                    stdout="",
+                    stderr="CondaToSNonInteractiveError",
+                ),
+            ),
+        ]
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+        )
+        assert ok is False
+        assert mock_run_shell.call_count == 3
         mock_write_remote_text.assert_not_called()
 
     @patch("daylily_ec.aws.ssm.write_remote_text")
@@ -512,6 +554,7 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
         ]
 
         ok = configure_headnode(
@@ -522,7 +565,7 @@ class TestConfigureHeadnode:
             repo_overrides={"daylily-omics-analysis": "feature/refactor"},
         )
         assert ok is True
-        assert mock_run_shell.call_count == 4
+        assert mock_run_shell.call_count == 5
         mock_write_remote_text.assert_called_once()
 
     @patch("daylily_ec.aws.ssm.write_remote_text", side_effect=RuntimeError("nope"))
@@ -535,6 +578,8 @@ class TestConfigureHeadnode:
         monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
 
         mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
@@ -564,6 +609,8 @@ class TestConfigureHeadnode:
         monkeypatch.setattr(resources_module, "resource_path", lambda _rel: tmp_path / "missing_available_repositories.yaml")
 
         mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
@@ -625,6 +672,7 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
         ]
 
         ok = configure_headnode(
@@ -635,7 +683,7 @@ class TestConfigureHeadnode:
         )
 
         assert ok is True
-        assert mock_run_shell.call_count == 4
+        assert mock_run_shell.call_count == 5
         clone_cmd = mock_run_shell.call_args_list[0].args[2]
         assert "repo already cloned" not in clone_cmd
         assert "git clone https://example.com/daylily.git daylily-ephemeral-cluster" in clone_cmd
@@ -701,6 +749,7 @@ class TestConfigureHeadnode:
 
         mock_subprocess_run.side_effect = fake_git_run
         mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),

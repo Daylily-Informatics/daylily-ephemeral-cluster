@@ -180,6 +180,13 @@ def main(argv: List[str]) -> int:
         help="Override the git repository URL to clone. Overrides --repository.",
     )
     parser.add_argument(
+        "-w",
+        "--which-one",
+        choices=("https", "ssh"),
+        default="https",
+        help="Repository URL transport to use from the registry. Defaults to https.",
+    )
+    parser.add_argument(
         "-c",
         "--clone-root",
         help="Root directory where analysis workspaces are created. Defaults to the configured analysis_root.",
@@ -258,10 +265,11 @@ def main(argv: List[str]) -> int:
         relative_path = derive_default_path(git_url)
         default_ref = None
     else:
-        git_url = repo_config.get("https_url", "")
+        url_key = f"{args.which_one}_url"
+        git_url = repo_config.get(url_key, "")
         if not git_url:
             print(
-                f"Error: repository '{repo_key}' does not define an https_url.",
+                f"Error: repository '{repo_key}' does not define a {url_key}.",
                 file=sys.stderr,
             )
             return 1
