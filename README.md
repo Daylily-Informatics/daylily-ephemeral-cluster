@@ -13,7 +13,7 @@ The supported path is:
 1. `source ./activate`
 2. `daylily-ec preflight`
 3. `daylily-ec create`
-4. `bin/daylily-ssh-into-headnode`
+4. `daylily-ec headnode connect`
 5. `bin/daylily-stage-samples-from-local-to-headnode`
 6. `bin/daylily-run-omics-analysis-headnode`
 7. `daylily-ec export --target-uri analysis_results/ubuntu`
@@ -48,7 +48,7 @@ daylily-ec create \
   --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG"
 
-bin/daylily-ssh-into-headnode \
+daylily-ec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
@@ -93,7 +93,7 @@ daylily-ec delete \
 1. `daylily-ec` is the control-plane CLI. It handles preflight, create, cluster inspection, export, delete, environment introspection, runtime checks, and pricing snapshots.
 2. The create flow renders the cluster configuration, calls ParallelCluster, then runs Daylily headnode configuration over Session Manager.
 3. The durable data plane is the S3 bucket plus the FSx for Lustre filesystem attached to the cluster. Laptop-side staging writes into the bucket-backed FSx namespace.
-4. The supported connect path is `bin/daylily-ssh-into-headnode`. The name is historical; the behavior is Session Manager into the `ubuntu` login shell.
+4. The supported connect path is `daylily-ec headnode connect`, which opens Session Manager into the `ubuntu` login shell.
 5. Workflow launch happens from the operator machine through `bin/daylily-run-omics-analysis-headnode`, which creates a run directory at `/home/ubuntu/daylily-runs/<session>/`, writes `launch.sh`, `tmux.log`, and `status.json`, and starts the run inside tmux.
 6. Export uses the FSx data repository task API and writes `fsx_export.yaml` locally so the operator has a concrete export receipt before teardown.
 
@@ -101,7 +101,9 @@ daylily-ec delete \
 
 - `environment.yaml` plus `pyproject.toml`: the `DAY-EC` environment contract
 - `activate`: checkout bootstrap that creates or repairs `DAY-EC`, installs the repo editable, and validates the local toolchain
-- `bin/daylily-ssh-into-headnode`: interactive Session Manager shell launcher with `ubuntu`-only validation
+- `daylily-ec headnode connect`: interactive Session Manager shell launcher with `ubuntu`-only validation
+- `daylily-ec headnode info`: full `pcluster describe-cluster` output for one cluster
+- `daylily-ec headnode jobs`: Slurm queue output using the same format as the headnode `sq` alias
 - `bin/daylily-stage-samples-from-local-to-headnode`: translator and staging helper that turns `analysis_samples.tsv` into workflow-ready `samples.tsv` and `units.tsv`
 - `bin/daylily-run-omics-analysis-headnode`: remote launcher that creates the run-state directory and starts the workflow
 - `bin/daylily-cfg-headnode`: explicit headnode configuration helper for repair or manual reruns

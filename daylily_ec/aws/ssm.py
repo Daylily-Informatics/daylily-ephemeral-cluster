@@ -266,7 +266,7 @@ def run_shell(
     *,
     profile: Optional[str] = None,
     as_user: Optional[str] = "ubuntu",
-    timeout: int = 300,
+    timeout: Optional[int] = 300,
     poll_interval: int = 3,
     comment: str = "Daylily remote command",
 ) -> SsmCommandResult:
@@ -280,18 +280,21 @@ def run_shell(
     )
 
     try:
-        response = client.send_command(
-            InstanceIds=[instance_id],
-            DocumentName="AWS-RunShellScript",
-            Comment=comment,
-            Parameters={"commands": [payload]},
-            TimeoutSeconds=max(timeout, 30),
-        )
+        send_kwargs = {
+            "InstanceIds": [instance_id],
+            "DocumentName": "AWS-RunShellScript",
+            "Comment": comment,
+            "Parameters": {"commands": [payload]},
+        }
+        if timeout is not None:
+            send_kwargs["TimeoutSeconds"] = max(timeout, 30)
+
+        response = client.send_command(**send_kwargs)
     except (BotoCoreError, ClientError) as exc:
         raise SsmError(f"Unable to start SSM Run Command on '{instance_id}': {exc}") from exc
 
     command_id = str(response["Command"]["CommandId"])
-    deadline = time.time() + timeout
+    deadline = None if timeout is None else time.time() + timeout
 
     while True:
         try:
@@ -300,7 +303,7 @@ def run_shell(
                 InstanceId=instance_id,
             )
         except client.exceptions.InvocationDoesNotExist:
-            if time.time() >= deadline:
+            if deadline is not None and time.time() >= deadline:
                 raise TimeoutError(
                     f"SSM command '{command_id}' did not start within {timeout}s."
                 )
@@ -313,7 +316,7 @@ def run_shell(
 
         status = str(invocation.get("Status") or "")
         if status in PENDING_STATUSES:
-            if time.time() >= deadline:
+            if deadline is not None and time.time() >= deadline:
                 raise TimeoutError(
                     f"SSM command '{command_id}' did not complete within {timeout}s."
                 )

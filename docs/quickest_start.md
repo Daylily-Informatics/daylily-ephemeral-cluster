@@ -83,7 +83,7 @@ Sanity checks after create:
 ```bash
 daylily-ec cluster-info --profile "$AWS_PROFILE" --region "$REGION"
 
-bin/daylily-ssh-into-headnode \
+daylily-ec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
@@ -151,7 +151,7 @@ The launcher prints:
 Sanity checks:
 
 ```bash
-bin/daylily-ssh-into-headnode \
+daylily-ec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"

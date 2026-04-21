@@ -433,6 +433,12 @@ class TestConfigureHeadnode:
         )
         assert ok is True
         assert mock_run_shell.call_count == 4
+        assert [call.kwargs["timeout"] for call in mock_run_shell.call_args_list] == [
+            None,
+            None,
+            None,
+            None,
+        ]
         assert "source ~/projects/daylily-ephemeral-cluster/activate" in mock_run_shell.call_args_list[2].args[2]
         assert "bash -lc" in mock_run_shell.call_args_list[3].args[2]
         assert "whoami" in mock_run_shell.call_args_list[3].args[2]

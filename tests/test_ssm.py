@@ -153,6 +153,46 @@ class TestRunShell:
         assert "Daylily SSM payload must run as ubuntu" in decoded
         assert 'if [ "$actual_user" != "ubuntu" ]; then' in decoded
 
+    @patch("daylily_ec.aws.ssm.time.sleep", return_value=None)
+    @patch("daylily_ec.aws.ssm.boto3.Session")
+    def test_no_timeout_omits_send_command_timeout_and_waits_until_success(
+        self,
+        mock_session_cls,
+        _mock_sleep,
+    ):
+        client = MagicMock()
+        client.send_command.return_value = {"Command": {"CommandId": "cmd-1"}}
+        client.get_command_invocation.side_effect = [
+            {
+                "Status": "InProgress",
+                "ResponseCode": -1,
+                "StandardOutputContent": "",
+                "StandardErrorContent": "",
+            },
+            {
+                "Status": "Success",
+                "ResponseCode": 0,
+                "StandardOutputContent": "done\n",
+                "StandardErrorContent": "",
+            },
+        ]
+        mock_session_cls.return_value.client.return_value = client
+
+        result = run_shell(
+            "i-abc123",
+            "us-west-2",
+            "sleep 900",
+            profile="dev",
+            timeout=None,
+            poll_interval=0,
+        )
+
+        assert result.command_id == "cmd-1"
+        assert result.stdout == "done\n"
+        assert client.get_command_invocation.call_count == 2
+        sent = client.send_command.call_args.kwargs
+        assert "TimeoutSeconds" not in sent
+
     @pytest.mark.parametrize("as_user", [None, "root", "ssm-user"])
     @patch("daylily_ec.aws.ssm.boto3.Session")
     def test_rejects_non_ubuntu_users(self, mock_session_cls, as_user):

@@ -2,12 +2,42 @@ from __future__ import annotations
 
 from importlib.metadata import version as dist_version
 import json
+from subprocess import CompletedProcess
 
 from typer.testing import CliRunner
 
+import daylily_ec.cli as cli_module
+from daylily_ec.aws.ssm import (
+    HeadNodeTarget,
+    SsmCommandFailedError,
+    SsmCommandResult,
+)
 from daylily_ec.cli import app, spec
+from daylily_ec.headnode import SQUEUE_FORMAT
 
 runner = CliRunner()
+
+
+def _activate_dayec_runtime(monkeypatch) -> None:
+    monkeypatch.setenv("CONDA_PREFIX", "/tmp/dayec")
+    monkeypatch.setenv("CONDA_DEFAULT_ENV", "DAY-EC")
+
+
+def _patch_headnode_selection(
+    monkeypatch,
+    *,
+    region: str = "us-west-2",
+    cluster: str = "cluster-a",
+) -> None:
+    import daylily_ec.scripts.common as common_module
+
+    monkeypatch.setattr(common_module, "need_cmd", lambda _name: None)
+    monkeypatch.setattr(common_module, "resolve_region", lambda _profile, _explicit=None: region)
+    monkeypatch.setattr(
+        common_module,
+        "resolve_cluster",
+        lambda _profile, _region, _explicit=None: cluster,
+    )
 
 
 def test_cli_spec_uses_platform_v2_runtime() -> None:
@@ -37,6 +67,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         ["resources-dir"],
         ["cluster-info"],
         ["headnode", "init"],
+        ["headnode", "connect"],
+        ["headnode", "info"],
+        ["headnode", "jobs"],
         ["pricing", "snapshot"],
     ):
         assert registry.resolve_command_args(argv) is not None
@@ -48,6 +81,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     export_cmd = registry.get_command(("export",))
     cluster_info_cmd = registry.get_command(("cluster-info",))
     headnode_init_cmd = registry.get_command(("headnode", "init"))
+    headnode_connect_cmd = registry.get_command(("headnode", "connect"))
+    headnode_info_cmd = registry.get_command(("headnode", "info"))
+    headnode_jobs_cmd = registry.get_command(("headnode", "jobs"))
     pricing_snapshot_cmd = registry.get_command(("pricing", "snapshot"))
 
     assert version_cmd is not None
@@ -72,6 +108,17 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert headnode_init_cmd is not None
     assert headnode_init_cmd.policy.mutates_state is True
     assert headnode_init_cmd.policy.interactive is True
+
+    assert headnode_connect_cmd is not None
+    assert headnode_connect_cmd.policy.interactive is True
+    assert headnode_connect_cmd.policy.mutates_state is False
+
+    assert headnode_info_cmd is not None
+    assert headnode_info_cmd.policy.supports_json is True
+
+    assert headnode_jobs_cmd is not None
+    assert headnode_jobs_cmd.policy.runtime_guard == "required"
+    assert headnode_jobs_cmd.policy.mutates_state is False
 
     assert pricing_snapshot_cmd is not None
     assert pricing_snapshot_cmd.policy.supports_json is True
@@ -133,3 +180,306 @@ def test_runtime_required_command_warns_without_active_env(monkeypatch) -> None:
     assert result.exit_code == 1
     assert "DAY-EC conda environment is not active." in result.stderr
     assert "AWS_PROFILE is not set." in result.stderr
+
+
+def test_headnode_connect_dry_run_prints_session_command(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a",
+            "us-west-2",
+            "i-abc123",
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        ssm_module,
+        "start_session",
+        lambda *args, **kwargs: (_ for _ in ()).throw(AssertionError("unexpected session")),
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "headnode",
+            "connect",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "Opening Session Manager session as ubuntu to i-abc123" in result.stdout
+    assert "SSM-SessionManagerRunShell" in result.stdout
+
+
+def test_headnode_connect_starts_session(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a",
+            "us-west-2",
+            "i-abc123",
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+
+    def fake_start_session(instance_id: str, region: str, *, profile: str | None = None) -> int:
+        calls["start_session"] = (instance_id, region, profile)
+        return 17
+
+    monkeypatch.setattr(ssm_module, "start_session", fake_start_session)
+
+    result = runner.invoke(
+        app,
+        [
+            "headnode",
+            "connect",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster-name",
+            "cluster-a",
+        ],
+    )
+
+    assert result.exit_code == 17
+    assert calls["start_session"] == ("i-abc123", "us-west-2", "dev")
+
+
+def test_headnode_info_returns_describe_cluster_json(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    payload = {
+        "clusterName": "cluster-a",
+        "clusterStatus": "CREATE_COMPLETE",
+        "headNode": {"instanceId": "i-abc123"},
+    }
+
+    def fake_run(cmd, *args, **kwargs):
+        if isinstance(cmd, (list, tuple)) and "-c" in cmd:
+            return CompletedProcess(cmd, 0, "", "")
+        assert cmd == [
+            "pcluster",
+            "describe-cluster",
+            "--cluster-name",
+            "cluster-a",
+            "--region",
+            "us-west-2",
+        ]
+        assert kwargs["env"]["AWS_PROFILE"] == "dev"
+        return CompletedProcess(cmd, 0, json.dumps(payload), "")
+
+    monkeypatch.setattr(cli_module.subprocess, "run", fake_run)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "headnode",
+            "info",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert json.loads(result.stdout)["headNode"]["instanceId"] == "i-abc123"
+
+
+def test_headnode_info_reports_pcluster_errors(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+
+    def fake_run(cmd, *args, **kwargs):
+        if isinstance(cmd, (list, tuple)) and "-c" in cmd:
+            return CompletedProcess(cmd, 0, "", "")
+        return CompletedProcess(cmd, 1, "", "access denied")
+
+    monkeypatch.setattr(cli_module.subprocess, "run", fake_run)
+
+    result = runner.invoke(
+        app,
+        [
+            "headnode",
+            "info",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "pcluster describe-cluster failed: access denied" in result.stderr
+
+
+def test_headnode_info_reports_missing_pcluster(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+
+    def fake_run(cmd, *args, **kwargs):
+        if isinstance(cmd, (list, tuple)) and "-c" in cmd:
+            return CompletedProcess(cmd, 0, "", "")
+        raise FileNotFoundError("pcluster")
+
+    monkeypatch.setattr(cli_module.subprocess, "run", fake_run)
+
+    result = runner.invoke(
+        app,
+        [
+            "headnode",
+            "info",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "pcluster CLI not found on PATH." in result.stderr
+
+
+def test_headnode_info_reports_invalid_json(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+
+    def fake_run(cmd, *args, **kwargs):
+        if isinstance(cmd, (list, tuple)) and "-c" in cmd:
+            return CompletedProcess(cmd, 0, "", "")
+        return CompletedProcess(cmd, 0, "not-json", "")
+
+    monkeypatch.setattr(cli_module.subprocess, "run", fake_run)
+
+    result = runner.invoke(
+        app,
+        [
+            "headnode",
+            "info",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "Failed to parse pcluster describe-cluster output." in result.stderr
+
+
+def test_headnode_jobs_runs_squeue_with_sq_format(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a",
+            "us-west-2",
+            "i-abc123",
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        calls["run_shell"] = (instance_id, region, script, kwargs)
+        return SsmCommandResult("cmd-1", instance_id, "Success", 0, "JOBID PARTITION\n", "")
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+
+    result = runner.invoke(
+        app,
+        [
+            "headnode",
+            "jobs",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "JOBID PARTITION" in result.stdout
+    instance_id, region, script, kwargs = calls["run_shell"]
+    assert instance_id == "i-abc123"
+    assert region == "us-west-2"
+    assert "squeue -o" in script
+    assert SQUEUE_FORMAT in script
+    assert kwargs["profile"] == "dev"
+    assert kwargs["timeout"] == 120
+
+
+def test_headnode_jobs_surfaces_ssm_failures(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a",
+            "us-west-2",
+            "i-abc123",
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+
+    failed_result = SsmCommandResult("cmd-1", "i-abc123", "Failed", 127, "", "squeue missing")
+
+    def fake_run_shell(*args, **kwargs):
+        raise SsmCommandFailedError("SSM command 'cmd-1' failed", failed_result)
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+
+    result = runner.invoke(
+        app,
+        [
+            "headnode",
+            "jobs",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+        ],
+    )
+
+    assert result.exit_code == 1
+    assert "squeue missing" in result.stderr
+    assert "SSM command 'cmd-1' failed" in result.stderr

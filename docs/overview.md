@@ -17,7 +17,9 @@ The supported control-plane surfaces are:
 
 - `daylily-ec`
 - `activate`
-- `bin/daylily-ssh-into-headnode`
+- `daylily-ec headnode connect`
+- `daylily-ec headnode info`
+- `daylily-ec headnode jobs`
 - `bin/daylily-stage-samples-from-local-to-headnode`
 - `bin/daylily-run-omics-analysis-headnode`
 - `bin/daylily-cfg-headnode`
@@ -121,5 +123,5 @@ If you remember only four things, remember these:
 
 1. `source ./activate` is the supported way into the local toolchain.
 2. `daylily-ec create` is not done until the Daylily post-create headnode steps succeed.
-3. `bin/daylily-ssh-into-headnode` is Session Manager into the `ubuntu` login shell.
+3. `daylily-ec headnode connect` is Session Manager into the `ubuntu` login shell.
 4. Export is the handoff from ephemeral compute back to durable storage.

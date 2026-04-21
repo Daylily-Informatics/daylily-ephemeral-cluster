@@ -78,7 +78,7 @@ It exercises the supported lifecycle through the actual CLI/helpers:
 
 - `daylily-ec preflight`
 - `daylily-ec create`
-- `bin/daylily-ssh-into-headnode`
+- `daylily-ec headnode connect`
 - `bin/daylily-stage-samples-from-local-to-headnode`
 - `bin/daylily-run-omics-analysis-headnode`
 - `daylily-ec export`
@@ -209,7 +209,7 @@ When the failure is ambiguous, use this order:
 2. `daylily-ec runtime status`
 3. `daylily-ec preflight --debug ...`
 4. `daylily-ec cluster-info ...`
-5. `bin/daylily-ssh-into-headnode ...`
+5. `daylily-ec headnode connect ...`
 6. inspect `/home/ubuntu/daylily-runs/<session>/`
 
 That sequence is usually faster than jumping directly into AWS console tabs.

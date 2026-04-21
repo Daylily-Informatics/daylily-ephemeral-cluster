@@ -1206,7 +1206,7 @@ def configure_headnode(
         (
             "Clone repository to headnode",
             _build_headnode_repo_sync_command(repo_name, repo_url, repo_ref),
-            120,
+            None,
         ),
         (
             "Install Miniconda",
@@ -1215,7 +1215,7 @@ def configure_headnode(
                 "{ [ -d ~/miniconda3 ] && echo 'miniconda already installed'; } || "
                 "./bin/install_miniconda"
             ),
-            180,
+            None,
         ),
         (
             "Install headnode tools",
@@ -1224,7 +1224,7 @@ def configure_headnode(
                 f"source ~/projects/{repo_name}/activate && "
                 f"./bin/install-daylily-headnode-tools"
             ),
-            120,
+            None,
         ),
     ]
 
@@ -1298,7 +1298,7 @@ def configure_headnode(
                 "day-clone --list >/dev/null'"
             ),
             profile=profile,
-            timeout=120,
+            timeout=None,
             comment="Validate fresh ubuntu login shell",
         )
         logger.info("  ✓ Fresh ubuntu login shell validated")

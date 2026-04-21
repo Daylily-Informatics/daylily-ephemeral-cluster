@@ -4,10 +4,10 @@ This is the day-2 operator runbook for the supported path: connect, validate, re
 
 ## Connect To The Headnode
 
-Use the supported helper:
+Use the supported CLI command:
 
 ```bash
-bin/daylily-ssh-into-headnode \
+daylily-ec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
@@ -35,6 +35,20 @@ Expected:
 - `day-clone` resolves on `PATH`
 
 If that is not true, stop and fix the bootstrap. Do not continue a supported workflow from the wrong user context.
+
+Useful headnode status commands:
+
+```bash
+daylily-ec headnode info \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+
+daylily-ec headnode jobs \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+```
 
 ## Re-run Headnode Configuration
 
@@ -113,7 +127,7 @@ Expected files:
 Reconnect if needed:
 
 ```bash
-bin/daylily-ssh-into-headnode \
+daylily-ec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"

@@ -35,7 +35,7 @@ daylily-ec create \
   --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG"
 
-bin/daylily-ssh-into-headnode \
+daylily-ec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"

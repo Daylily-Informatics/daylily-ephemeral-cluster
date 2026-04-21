@@ -5,6 +5,7 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shlex
 import subprocess
 import sys
 from pathlib import Path
@@ -36,6 +37,7 @@ from daylily_ec._registry_v2 import (
     REQUIRED_MUTATING_LONG_RUNNING,
     register_group_commands,
     register_root_command,
+    required_policy,
 )
 from daylily_ec.resources import ensure_extracted
 
@@ -624,6 +626,258 @@ def headnode_init(
     )
 
 
+def _resolve_headnode_cli_selection(
+    *,
+    profile: Optional[str],
+    region: Optional[str],
+    cluster: Optional[str],
+):
+    from daylily_ec.scripts.common import CommandError, need_cmd, resolve_cluster, resolve_region
+
+    resolved_profile = profile or os.environ.get("AWS_PROFILE")
+    if not resolved_profile:
+        raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
+
+    need_cmd("aws")
+    need_cmd("pcluster")
+
+    resolved_region = resolve_region(resolved_profile, region)
+    resolved_cluster = resolve_cluster(resolved_profile, resolved_region, cluster)
+    return resolved_profile, resolved_region, resolved_cluster
+
+
+def _resolve_headnode_cli_target(
+    *,
+    profile: Optional[str],
+    region: Optional[str],
+    cluster: Optional[str],
+):
+    from daylily_ec.aws.ssm import resolve_headnode_instance_id
+
+    resolved_profile, resolved_region, resolved_cluster = _resolve_headnode_cli_selection(
+        profile=profile,
+        region=region,
+        cluster=cluster,
+    )
+    target = resolve_headnode_instance_id(
+        resolved_cluster,
+        resolved_region,
+        profile=resolved_profile,
+    )
+    return resolved_profile, resolved_region, resolved_cluster, target
+
+
+def _describe_headnode_cluster(
+    *,
+    profile: str,
+    region: str,
+    cluster: str,
+) -> dict[str, object]:
+    from daylily_ec.scripts.common import CommandError, aws_env
+
+    try:
+        proc = subprocess.run(
+            [
+                "pcluster",
+                "describe-cluster",
+                "--cluster-name",
+                cluster,
+                "--region",
+                region,
+            ],
+            capture_output=True,
+            text=True,
+            env=aws_env(profile=profile, region=region),
+        )
+    except FileNotFoundError as exc:
+        raise CommandError("pcluster CLI not found on PATH.") from exc
+
+    if proc.returncode != 0:
+        detail = proc.stderr.strip() or proc.stdout.strip() or "unknown error"
+        raise CommandError(f"pcluster describe-cluster failed: {detail}")
+
+    try:
+        payload = json.loads(proc.stdout or "{}")
+    except json.JSONDecodeError as exc:
+        raise CommandError("Failed to parse pcluster describe-cluster output.") from exc
+
+    if not isinstance(payload, dict):
+        raise CommandError("pcluster describe-cluster returned non-object JSON.")
+    return payload
+
+
+def _exit_headnode_error(exc: BaseException) -> None:
+    output.error(str(exc))
+    raise typer.Exit(1)
+
+
+def headnode_connect(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Print the Session Manager command without opening a session.",
+    ),
+) -> None:
+    """Open an ubuntu bash login shell on a cluster headnode via Session Manager."""
+
+    from daylily_ec.aws.ssm import SsmError, start_session, wait_for_ssm_online
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        connect_cmd = (
+            "aws ssm start-session "
+            f"--region {resolved_region} "
+            f"--target {target.instance_id} "
+            "--document-name SSM-SessionManagerRunShell"
+        )
+        output.print_text(
+            f"Opening Session Manager session as ubuntu to {target.instance_id} "
+            f"(cluster={resolved_cluster} region={resolved_region} profile={resolved_profile})"
+        )
+        output.print_text(f"Session Manager command: {connect_cmd}")
+        if dry_run:
+            raise typer.Exit(0)
+        raise typer.Exit(
+            start_session(target.instance_id, resolved_region, profile=resolved_profile)
+        )
+    except (CommandError, SsmError, TimeoutError) as exc:
+        _exit_headnode_error(exc)
+
+
+def headnode_info(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+) -> None:
+    """Return the full pcluster describe-cluster payload for a headnode."""
+
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile, resolved_region, resolved_cluster = _resolve_headnode_cli_selection(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        payload = _describe_headnode_cluster(
+            profile=resolved_profile,
+            region=resolved_region,
+            cluster=resolved_cluster,
+        )
+    except CommandError as exc:
+        _exit_headnode_error(exc)
+
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+
+
+def headnode_jobs(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+) -> None:
+    """Print Slurm jobs from the headnode using the Daylily sq format."""
+
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        SsmError,
+        run_shell,
+        wait_for_ssm_online,
+    )
+    from daylily_ec.headnode import SQUEUE_FORMAT
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            "set -euo pipefail\nsqueue -o " + shlex.quote(SQUEUE_FORMAT),
+            profile=resolved_profile,
+            timeout=120,
+            comment="Daylily headnode Slurm jobs",
+        )
+    except SsmCommandFailedError as exc:
+        if exc.result.stderr.strip():
+            typer.echo(exc.result.stderr.rstrip(), err=True)
+        _exit_headnode_error(exc)
+    except (CommandError, SsmError, TimeoutError) as exc:
+        _exit_headnode_error(exc)
+
+    if result.stdout:
+        typer.echo(result.stdout.rstrip())
+    if result.stderr:
+        typer.echo(result.stderr.rstrip(), err=True)
+
+
 def register(registry, cli_spec) -> None:
     _ = cli_spec
     register_root_command(
@@ -678,7 +932,12 @@ def register(registry, cli_spec) -> None:
         registry,
         "headnode",
         "Headnode bootstrap and shell-context helpers.",
-        [("init", headnode_init, REQUIRED_MUTATING_INTERACTIVE)],
+        [
+            ("init", headnode_init, REQUIRED_MUTATING_INTERACTIVE),
+            ("connect", headnode_connect, required_policy(interactive=True)),
+            ("info", headnode_info, REQUIRED_JSON),
+            ("jobs", headnode_jobs, required_policy()),
+        ],
     )
 
 

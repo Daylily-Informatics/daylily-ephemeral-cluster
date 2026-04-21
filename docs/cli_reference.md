@@ -295,11 +295,71 @@ This command is about shell/bootstrap state. To configure a live cluster headnod
 bin/daylily-cfg-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
+## `daylily-ec headnode connect`
+
+Opens a Session Manager shell on the cluster headnode. The shell must land as `ubuntu` in a bash login shell.
+
+Important options:
+
+- `--profile`
+- `--region`
+- `--cluster` / `--cluster-name`
+- `--dry-run`
+
+Example:
+
+```bash
+daylily-ec headnode connect \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+```
+
+## `daylily-ec headnode info`
+
+Returns the full `pcluster describe-cluster` payload for one cluster. Use global `--json` for machine-readable output.
+
+Important options:
+
+- `--profile`
+- `--region`
+- `--cluster` / `--cluster-name`
+
+Example:
+
+```bash
+daylily-ec --json headnode info \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+```
+
+## `daylily-ec headnode jobs`
+
+Runs a read-only Slurm queue check on the headnode using the same format as the headnode `sq` alias.
+
+Important options:
+
+- `--profile`
+- `--region`
+- `--cluster` / `--cluster-name`
+
+Example:
+
+```bash
+daylily-ec headnode jobs \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+```
+
 ## Supported Helper Scripts
 
 These helpers remain part of the supported path:
 
 ### `bin/daylily-ssh-into-headnode`
+
+Prefer `daylily-ec headnode connect` for operator use.
 
 ```bash
 bin/daylily-ssh-into-headnode \
