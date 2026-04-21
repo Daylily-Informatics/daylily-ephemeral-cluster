@@ -55,7 +55,7 @@ daylily-ec headnode jobs \
 If cluster creation succeeded but you need to re-apply the supported headnode configuration:
 
 ```bash
-bin/daylily-cfg-headnode \
+daylily-ec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
@@ -66,12 +66,11 @@ This is the supported repair path when the headnode needs to be brought back to 
 ## Restage Inputs From The Laptop
 
 ```bash
-bin/daylily-stage-samples-from-local-to-headnode \
+daylily-ec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --reference-bucket "$REF_BUCKET" \
-  --config-dir "$STAGE_CFG_DIR" \
-  "$ANALYSIS_SAMPLES"
+  --config-dir "$STAGE_CFG_DIR"
 ```
 
 Operational notes:
@@ -92,7 +91,7 @@ head -n 5 "$STAGE_CFG_DIR"/*_units.tsv
 ## Launch A Workflow
 
 ```bash
-bin/daylily-run-omics-analysis-headnode \
+daylily-ec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
@@ -138,8 +137,6 @@ Then inspect:
 ```bash
 tmux ls
 tmux attach -t <session>
-cat /home/ubuntu/daylily-runs/<session>/status.json
-tail -n 100 /home/ubuntu/daylily-runs/<session>/tmux.log
 squeue
 ```
 
@@ -150,7 +147,9 @@ daylily-ec runtime status
 daylily-ec runtime check
 daylily-ec runtime explain
 daylily-ec info
-daylily-ec cluster-info --profile "$AWS_PROFILE" --region "$REGION"
+daylily-ec cluster list --profile "$AWS_PROFILE" --region "$REGION"
+daylily-ec --json workflow status --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session>
+daylily-ec workflow logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session> --lines 100
 ```
 
 ## Export Results
@@ -188,6 +187,11 @@ Deletion is destructive. The supported flow is:
 Command:
 
 ```bash
+daylily-ec delete --dry-run \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME"
+
 daylily-ec delete \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
@@ -201,7 +205,7 @@ For scripted teardown, `--yes` skips the final FSx deletion confirmation prompt.
 When you are watching a live run from the operator machine:
 
 ```bash
-watch -n 30 "daylily-ec cluster-info --profile $AWS_PROFILE --region $REGION"
+watch -n 30 "daylily-ec cluster list --profile $AWS_PROFILE --region $REGION"
 ```
 
 When you are watching from the headnode:

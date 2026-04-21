@@ -8,6 +8,7 @@ from unittest.mock import patch
 
 from typer.testing import CliRunner
 
+import daylily_ec.cli as cli_module
 from daylily_ec.cli import app
 
 runner = CliRunner()
@@ -48,7 +49,7 @@ def _side_effect_for_happy(*_args, **kwargs):
     if "list-clusters" in cmd:
         return _make_cp(stdout=LIST_CLUSTERS_JSON)
     if "describe-cluster" in cmd:
-        name = cmd[cmd.index("-n") + 1]
+        name = cmd[cmd.index("-n") + 1] if "-n" in cmd else cmd[cmd.index("--cluster-name") + 1]
         if name == "alpha":
             return _make_cp(stdout=DESCRIBE_ALPHA)
         return _make_cp(stdout=DESCRIBE_BETA)
@@ -88,6 +89,83 @@ class TestClusterInfoTable:
         assert len(data["clusters"]) == 2
         assert data["clusters"][0]["name"] == "alpha"
         assert data["clusters"][0]["ip"] == "1.2.3.4"
+
+    def test_cluster_list_json_output(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
+        monkeypatch.setenv("AWS_PROFILE", "test-profile")
+        with patch("subprocess.run", side_effect=_side_effect_for_happy):
+            result = runner.invoke(app, ["--json", "cluster", "list", "--region", "us-west-2"])
+        assert result.exit_code == 0
+        data = json.loads(result.stdout)
+        assert data["region"] == "us-west-2"
+        assert data["clusters"][0]["name"] == "alpha"
+        assert data["clusters"][0]["status"] == "CREATE_COMPLETE"
+
+    def test_cluster_list_details_includes_headnode(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
+        monkeypatch.setenv("AWS_PROFILE", "test-profile")
+        with patch("subprocess.run", side_effect=_side_effect_for_happy):
+            result = runner.invoke(
+                app,
+                ["--json", "cluster", "list", "--region", "us-west-2", "--details"],
+            )
+        assert result.exit_code == 0
+        data = json.loads(result.stdout)
+        assert data["clusters"][0]["ip"] == "1.2.3.4"
+        assert data["clusters"][0]["details"]["clusterName"] == "alpha"
+
+    def test_cluster_describe_returns_full_payload(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
+        monkeypatch.setenv("AWS_PROFILE", "test-profile")
+        with patch("subprocess.run", side_effect=_side_effect_for_happy):
+            result = runner.invoke(
+                app,
+                [
+                    "--json",
+                    "cluster",
+                    "describe",
+                    "--region",
+                    "us-west-2",
+                    "--cluster",
+                    "alpha",
+                ],
+            )
+        assert result.exit_code == 0
+        data = json.loads(result.stdout)
+        assert data["clusterName"] == "alpha"
+        assert data["headNode"]["publicIpAddress"] == "1.2.3.4"
+
+    def test_cluster_wait_polls_until_target_status(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
+        monkeypatch.setenv("AWS_PROFILE", "test-profile")
+        responses = [
+            _make_cp(stdout=json.dumps({"clusterName": "alpha", "clusterStatus": "CREATE_IN_PROGRESS"})),
+            _make_cp(stdout=DESCRIBE_ALPHA),
+        ]
+
+        def side_effect(*args, **kwargs):
+            cmd = kwargs.get("args") or args[0]
+            if isinstance(cmd, (list, tuple)) and "-c" in cmd:
+                return _make_cp()
+            return responses.pop(0)
+
+        monkeypatch.setattr(cli_module.time, "sleep", lambda _seconds: None)
+        with patch("subprocess.run", side_effect=side_effect):
+            result = runner.invoke(
+                app,
+                [
+                    "cluster",
+                    "wait",
+                    "--region",
+                    "us-west-2",
+                    "--cluster",
+                    "alpha",
+                    "--poll-interval",
+                    "1",
+                ],
+            )
+        assert result.exit_code == 0
+        assert "CREATE_COMPLETE" in result.stdout
 
 
 class TestClusterInfoEdgeCases:

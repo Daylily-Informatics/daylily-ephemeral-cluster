@@ -211,3 +211,49 @@ def run_delete_workflow(options: DeleteOptions) -> int:
         or f"Cluster ended in unexpected status: {monitor_result.final_status}",
     )
     return 1
+
+
+def run_delete_dry_run(options: DeleteOptions) -> int:
+    """Inspect the resources that would be affected by a cluster deletion."""
+    try:
+        resolved, state = _resolve_delete_options(options)
+    except RuntimeError as exc:
+        ui.error_panel("Delete dry run failed", str(exc))
+        return 1
+
+    ui.phase("DELETE DRY RUN")
+    ui.step(f"Inspecting cluster deletion target '{resolved.cluster_name}' in {resolved.region}")
+
+    existing_status = get_cluster_status(
+        resolved.cluster_name,
+        resolved.region,
+        profile=resolved.profile,
+    )
+    if existing_status is None:
+        ui.error_panel(
+            "Delete dry run failed",
+            f"Cluster '{resolved.cluster_name}' does not exist in region '{resolved.region}'.",
+        )
+        return 1
+
+    session = boto3.Session(
+        profile_name=resolved.profile,
+        region_name=resolved.region,
+    )
+    fsx_ids = find_fsx_associations(session.client("fsx"), resolved.cluster_name)
+
+    ui.info("No AWS resources were changed.")
+    ui.detail("Cluster", resolved.cluster_name)
+    ui.detail("Region", resolved.region)
+    ui.detail("Profile", resolved.profile)
+    ui.detail("Current status", existing_status)
+    if state and resolved.state_file:
+        ui.detail("State file", str(resolved.state_file))
+    if fsx_ids:
+        ui.warn("FSx filesystems are still associated with the cluster:")
+        for fsx_id in fsx_ids:
+            ui.detail("FSx", fsx_id)
+        ui.info("Export results with `daylily-ec export` before deleting if needed.")
+    else:
+        ui.info("No FSx filesystems associated with the cluster.")
+    return 0

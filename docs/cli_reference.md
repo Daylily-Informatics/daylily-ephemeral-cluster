@@ -16,6 +16,7 @@ Current root commands:
 - `preflight`
 - `drift`
 - `cluster-info`
+- `cluster`
 - `export`
 - `delete`
 - `resources-dir`
@@ -23,6 +24,9 @@ Current root commands:
 - `runtime`
 - `pricing`
 - `headnode`
+- `samples`
+- `workflow`
+- `state`
 
 ## `daylily-ec version`
 
@@ -107,7 +111,7 @@ daylily-ec create \
 
 ## `daylily-ec cluster-info`
 
-Lists clusters in a region and their basic status.
+Lists clusters in a region and their basic status. Prefer `daylily-ec cluster list` for new operator usage.
 
 Required:
 
@@ -123,6 +127,40 @@ Example:
 daylily-ec cluster-info \
   --profile "$AWS_PROFILE" \
   --region "$REGION"
+```
+
+## `daylily-ec cluster`
+
+ParallelCluster inspection helpers.
+
+Subcommands:
+
+- `list`
+- `describe`
+- `wait`
+
+Examples:
+
+```bash
+daylily-ec cluster list \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION"
+
+daylily-ec cluster list \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --details
+
+daylily-ec --json cluster describe \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+
+daylily-ec cluster wait \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --status CREATE_COMPLETE
 ```
 
 ## `daylily-ec export`
@@ -163,10 +201,16 @@ Optional inputs:
 - `--profile`
 - `--state-file`
 - `--yes`
+- `--dry-run`
 
 For supported automation, pass the cluster and region explicitly instead of relying on prompts:
 
 ```bash
+daylily-ec delete --dry-run \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME"
+
 daylily-ec delete \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
@@ -289,10 +333,10 @@ daylily-ec headnode init --project dayoa --skip-project-check
 daylily-ec headnode init --emit-shell
 ```
 
-This command is about shell/bootstrap state. To configure a live cluster headnode over Session Manager from the operator machine, use:
+This command is about shell/bootstrap state. To configure a live cluster headnode over Session Manager from the operator machine, use `daylily-ec headnode configure`.
 
 ```bash
-bin/daylily-cfg-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+daylily-ec headnode configure --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
 ## `daylily-ec headnode connect`
@@ -353,9 +397,104 @@ daylily-ec headnode jobs \
   --cluster "$CLUSTER_NAME"
 ```
 
-## Supported Helper Scripts
+## `daylily-ec headnode configure`
 
-These helpers remain part of the supported path:
+Re-runs the supported Daylily headnode bootstrap over SSM.
+
+Important options:
+
+- `--profile`
+- `--region`
+- `--cluster` / `--cluster-name`
+- `--repo-overrides`
+
+Example:
+
+```bash
+daylily-ec headnode configure \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+```
+
+## `daylily-ec samples stage`
+
+Stages local `analysis_samples.tsv` inputs into the FSx-backed data repository and writes workflow-ready manifests.
+
+Important inputs:
+
+- positional `analysis_samples`
+- `--reference-bucket`
+- `--config-dir`
+- `--stage-target`
+- `--profile`
+- `--region`
+- `--debug`
+
+Example:
+
+```bash
+daylily-ec samples stage "$ANALYSIS_SAMPLES" \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --reference-bucket "$REF_BUCKET" \
+  --config-dir "$STAGE_CFG_DIR"
+```
+
+## `daylily-ec workflow`
+
+Headnode workflow launch and inspection helpers.
+
+Subcommands:
+
+- `launch`
+- `status`
+- `logs`
+
+Examples:
+
+```bash
+daylily-ec workflow launch \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
+  --destination dayoa
+
+daylily-ec --json workflow status \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --session daylily-omics-analysis
+
+daylily-ec workflow logs \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --session daylily-omics-analysis \
+  --lines 100
+```
+
+## `daylily-ec state`
+
+Local state-file inspection helpers.
+
+Subcommands:
+
+- `list`
+- `show`
+
+Examples:
+
+```bash
+daylily-ec --json state list
+daylily-ec state show --cluster-name "$CLUSTER_NAME"
+daylily-ec --json state show --state-file ~/.config/daylily/state_<cluster>_<run>.json
+```
+
+## Helper Scripts
+
+These helpers remain callable, but the preferred operator surface is now `daylily-ec`.
 
 ### `bin/daylily-ssh-into-headnode`
 
@@ -370,6 +509,8 @@ bin/daylily-ssh-into-headnode \
 
 ### `bin/daylily-stage-samples-from-local-to-headnode`
 
+Prefer `daylily-ec samples stage` for operator use.
+
 ```bash
 bin/daylily-stage-samples-from-local-to-headnode \
   --profile "$AWS_PROFILE" \
@@ -381,6 +522,8 @@ bin/daylily-stage-samples-from-local-to-headnode \
 
 ### `bin/daylily-run-omics-analysis-headnode`
 
+Prefer `daylily-ec workflow launch` for operator use.
+
 ```bash
 bin/daylily-run-omics-analysis-headnode \
   --profile "$AWS_PROFILE" \
@@ -391,6 +534,8 @@ bin/daylily-run-omics-analysis-headnode \
 ```
 
 ### `bin/daylily-cfg-headnode`
+
+Prefer `daylily-ec headnode configure` for operator use.
 
 ```bash
 bin/daylily-cfg-headnode \

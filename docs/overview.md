@@ -17,12 +17,19 @@ The supported control-plane surfaces are:
 
 - `daylily-ec`
 - `activate`
+- `daylily-ec cluster list`
+- `daylily-ec cluster describe`
+- `daylily-ec cluster wait`
 - `daylily-ec headnode connect`
 - `daylily-ec headnode info`
 - `daylily-ec headnode jobs`
-- `bin/daylily-stage-samples-from-local-to-headnode`
-- `bin/daylily-run-omics-analysis-headnode`
-- `bin/daylily-cfg-headnode`
+- `daylily-ec headnode configure`
+- `daylily-ec samples stage`
+- `daylily-ec workflow launch`
+- `daylily-ec workflow status`
+- `daylily-ec workflow logs`
+- `daylily-ec state list`
+- `daylily-ec state show`
 - `python -m daylily_ec.ssh_to_ssm_e2e_runner`
 
 `daylily-ec` is the main CLI. It owns:
@@ -30,13 +37,16 @@ The supported control-plane surfaces are:
 - environment/runtime introspection
 - preflight
 - cluster create
-- cluster listing/info
+- cluster listing/info/wait
+- headnode connect/configure/jobs/info
+- sample staging
+- workflow launch/status/logs
 - export
 - delete
+- state inspection
 - pricing snapshots
-- headnode init helpers
 
-The `bin/` helpers are thin supported wrappers around the staged-input, headnode-config, interactive-connect, and workflow-launch flows.
+The `bin/` helpers remain callable during the transition, but new operator workflows should use `daylily-ec ...` commands.
 
 ## Data Plane
 
@@ -74,7 +84,7 @@ Session Manager is only considered valid when the regional document `SSM-Session
 
 ## Workflow Launch Model
 
-`bin/daylily-run-omics-analysis-headnode` is the supported launcher. It:
+`daylily-ec workflow launch` is the supported launcher. It:
 
 1. discovers the staged config files from `--stage-dir`
 2. ensures the target repo exists under `/fsx/analysis_results/ubuntu/<destination>/...`
