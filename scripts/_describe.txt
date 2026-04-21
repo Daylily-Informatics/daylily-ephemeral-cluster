@@ -1,0 +1,66 @@
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+{
+  "creationTime": "2026-02-13T14:24:56.349Z",
+  "headNode": {
+    "launchTime": "2026-02-13T14:57:36.000Z",
+    "instanceId": "i-026dc11f9e12538f6",
+    "publicIpAddress": "34.215.222.242",
+    "instanceType": "r7i.2xlarge",
+    "state": "running",
+    "privateIpAddress": "10.0.0.48"
+  },
+  "version": "3.13.2",
+  "clusterConfiguration": {
+    "url": "https://parallelcluster-4da281c1dc024f1c-v1-do-not-delete.s3.us-west-2.amazonaws.com/parallelcluster/3.13.2/clusters/day-forge-usw2d-d5yaxn4wb9rxjnde/configs/cluster-config.yaml?versionId=l1.Aot2aGWZye0Zll1aH72khwK51cbTU&AWSAccessKeyId=AKIARSU7KMWVUNP6SU5X&Signature=A9C5ePzvB4BSvIL0%2BGdWC8hiK3o%3D&Expires=1771004326"
+  },
+  "tags": [
+    {
+      "value": "none",
+      "key": "aws-parallelcluster-daylily-git-deets"
+    },
+    {
+      "value": "3.13.2",
+      "key": "parallelcluster:version"
+    },
+    {
+      "value": "aws_profile-lsmc",
+      "key": "aws-parallelcluster-jobid"
+    },
+    {
+      "value": "skip",
+      "key": "aws-parallelcluster-enforce-budget"
+    },
+    {
+      "value": "s3://lsmc-dayoa-omics-analysis-us-west-2",
+      "key": "aws-parallelcluster-monitor-bucket"
+    },
+    {
+      "value": "day-forge-usw2d",
+      "key": "parallelcluster:cluster-name"
+    },
+    {
+      "value": "day-forge-usw2d",
+      "key": "aws-parallelcluster-clustername"
+    },
+    {
+      "value": "jmajor-root",
+      "key": "aws-parallelcluster-username"
+    },
+    {
+      "value": "day-forge-usw2d",
+      "key": "aws-parallelcluster-project"
+    }
+  ],
+  "cloudFormationStackStatus": "CREATE_COMPLETE",
+  "clusterName": "day-forge-usw2d",
+  "computeFleetStatus": "RUNNING",
+  "cloudformationStackArn": "arn:aws:cloudformation:us-west-2:108782052779:stack/day-forge-usw2d/c5171d50-08e7-11f1-b90e-06039e7d575d",
+  "lastUpdatedTime": "2026-02-13T14:24:56.349Z",
+  "region": "us-west-2",
+  "clusterStatus": "CREATE_COMPLETE",
+  "scheduler": {
+    "type": "slurm"
+  }
+}
+EXIT=0

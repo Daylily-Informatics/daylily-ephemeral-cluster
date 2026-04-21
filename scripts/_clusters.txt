@@ -1,0 +1,29 @@
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+{
+  "clusters": [
+    {
+      "clusterName": "day-forge-usw2d",
+      "cloudformationStackStatus": "CREATE_COMPLETE",
+      "cloudformationStackArn": "arn:aws:cloudformation:us-west-2:108782052779:stack/day-forge-usw2d/c5171d50-08e7-11f1-b90e-06039e7d575d",
+      "region": "us-west-2",
+      "version": "3.13.2",
+      "clusterStatus": "CREATE_COMPLETE",
+      "scheduler": {
+        "type": "slurm"
+      }
+    },
+    {
+      "clusterName": "agbt-12t-usw2d",
+      "cloudformationStackStatus": "CREATE_COMPLETE",
+      "cloudformationStackArn": "arn:aws:cloudformation:us-west-2:108782052779:stack/agbt-12t-usw2d/7d59be40-0744-11f1-81d4-0276f834f9e3",
+      "region": "us-west-2",
+      "version": "3.13.2",
+      "clusterStatus": "CREATE_COMPLETE",
+      "scheduler": {
+        "type": "slurm"
+      }
+    }
+  ]
+}
+EXIT=0

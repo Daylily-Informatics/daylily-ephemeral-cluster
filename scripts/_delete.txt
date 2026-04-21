@@ -1,0 +1,123 @@
+✓ DAY-EC conda environment is active.
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Cluster day-forge-usw2d  exists
+lsmc
+us-west-2
+day-forge-usw2d
+HH fs-0e2fc09404c8375cd
+~~WARNING~~ 
+   FSx filesystems are still associated with the cluster:
+fs-0e2fc09404c8375cd
+
+If you wish to export FSX data back to S3, please do so via the FSX console, or you may run the following command:
+  bin/daylily-export-fsx-to-s3
+
+If you wish to proceed with deleting this cluster, the FSX filesystem will be deleted or preserved given the parameters set during creation.
+
+Skipping confirmation (--yes flag provided).
+Tearing down heartbeat notification infrastructure (if present)...
+Deleted schedule daylily-day-forge-usw2d-heartbeat.
+Lambda function daylily-day-forge-usw2d-heartbeat did not exist.
+Deleted SNS topic arn:aws:sns:us-west-2:108782052779:daylily-day-forge-usw2d-heartbeat.
+✅ Heartbeat notification resources removed (if they existed).
+Deleting cluster 'day-forge-usw2d' in region 'us-west-2'...
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+{
+  "cluster": {
+    "clusterName": "day-forge-usw2d",
+    "cloudformationStackStatus": "DELETE_IN_PROGRESS",
+    "cloudformationStackArn": "arn:aws:cloudformation:us-west-2:108782052779:stack/day-forge-usw2d/c5171d50-08e7-11f1-b90e-06039e7d575d",
+    "region": "us-west-2",
+    "version": "3.13.2",
+    "clusterStatus": "DELETE_IN_PROGRESS",
+    "scheduler": {
+      "type": "slurm"
+    }
+  }
+}
+Monitoring cluster deletion status...
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Current status: DELETE_IN_PROGRESS
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+Cluster deletion completed successfully.
+deletion of day-forge-usw2d is complete ()
+DELETE_EXIT=0
