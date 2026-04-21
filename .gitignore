@@ -21,7 +21,8 @@ dist/
 
 # Local virtualenvs / scratch dirs
 .venv/
-scripts/
+scripts/*.sh
+scripts/_*.txt
 tmp-e2e-config/
 tmp-e2e-export/
 tmp-e2e-inputs/

@@ -1,0 +1,27 @@
+{
+  "bucket": "lsmc-dayoa-omics-analysis-us-west-2",
+  "command_count": 386,
+  "excluded_exports": [
+    "FSxLustre20260412T103705Z"
+  ],
+  "included_exports": [
+    "FSxLustre20260122T043503Z",
+    "FSxLustre20260122T112533Z",
+    "FSxLustre20260122T113142Z",
+    "FSxLustre20260211T122354Z",
+    "FSxLustre20260213T142513Z",
+    "FSxLustre20260216T130001Z",
+    "FSxLustre20260309T122755Z"
+  ],
+  "object_count_method": "S3 ListObjectsV2 pagination by hg38 result prefix; no result payload downloads",
+  "outputs": {
+    "analysis_dirs_tsv": "/Users/jmajor/projects/daylily/daylily-ephemeral-cluster/reports/dayoa-q1-2026-analysis-inventory/analysis_dirs.tsv",
+    "analysis_dirs_xlsx": "/Users/jmajor/projects/daylily/daylily-ephemeral-cluster/reports/dayoa-q1-2026-analysis-inventory/analysis_dirs.xlsx",
+    "dy_r_runbook": "/Users/jmajor/projects/daylily/daylily-ephemeral-cluster/reports/dayoa-q1-2026-analysis-inventory/dy-r-runbook.md"
+  },
+  "profile": "daylily-service-lsmc",
+  "region": "us-west-2",
+  "repo_count": 81,
+  "scan_time": "2026-04-21T07:13:26.011033Z",
+  "validation_issues": []
+}

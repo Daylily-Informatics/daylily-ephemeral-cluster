@@ -9,6 +9,7 @@ from unittest.mock import patch
 from typer.testing import CliRunner
 
 import daylily_ec.cli as cli_module
+from daylily_ec.aws.ssm import SsmCommandFailedError, SsmCommandResult
 from daylily_ec.cli import app
 
 runner = CliRunner()
@@ -27,12 +28,20 @@ LIST_CLUSTERS_JSON = json.dumps({
 DESCRIBE_ALPHA = json.dumps({
     "clusterName": "alpha",
     "clusterStatus": "CREATE_COMPLETE",
-    "headNode": {"publicIpAddress": "1.2.3.4"},
+    "creationTime": "2026-04-21T06:51:02.985Z",
+    "lastUpdatedTime": "2026-04-21T07:10:03.000Z",
+    "headNode": {
+        "publicIpAddress": "1.2.3.4",
+        "instanceId": "i-alpha",
+        "launchTime": "2026-04-21T07:23:41.000Z",
+    },
 })
 
 DESCRIBE_BETA = json.dumps({
     "clusterName": "beta",
     "clusterStatus": "CREATE_IN_PROGRESS",
+    "creationTime": "2026-04-21T08:00:00.000Z",
+    "lastUpdatedTime": "2026-04-21T08:05:00.000Z",
     "headNode": {},
 })
 
@@ -59,6 +68,31 @@ def _side_effect_for_happy(*_args, **kwargs):
 def _activate_dayec_runtime(monkeypatch):
     monkeypatch.setenv("CONDA_PREFIX", "/tmp/dayec")
     monkeypatch.setenv("CONDA_DEFAULT_ENV", "DAY-EC")
+
+
+def _patch_headnode_config_check(monkeypatch, *, configured: bool = True):
+    import daylily_ec.aws.ssm as ssm_module
+
+    scripts: list[str] = []
+
+    def fake_run_shell(_instance_id, _region, script, **_kwargs):
+        scripts.append(script)
+        if configured:
+            return object()
+        raise SsmCommandFailedError(
+            "not configured",
+            SsmCommandResult(
+                command_id="cmd-1",
+                instance_id="i-alpha",
+                status="Failed",
+                response_code=1,
+                stdout="",
+                stderr="day-clone: command not found",
+            ),
+        )
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+    return scripts
 
 
 # ---------------------------------------------------------------------------
@@ -93,17 +127,66 @@ class TestClusterInfoTable:
     def test_cluster_list_json_output(self, monkeypatch):
         _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
-        with patch("subprocess.run", side_effect=_side_effect_for_happy):
+        scripts = _patch_headnode_config_check(monkeypatch)
+        with patch("subprocess.run", side_effect=_side_effect_for_happy) as mock_run:
             result = runner.invoke(app, ["--json", "cluster", "list", "--region", "us-west-2"])
         assert result.exit_code == 0
+        describe_calls = [
+            call
+            for call in mock_run.call_args_list
+            if "describe-cluster" in (call.kwargs.get("args") or call.args[0])
+        ]
+        assert len(describe_calls) == 2
         data = json.loads(result.stdout)
         assert data["region"] == "us-west-2"
         assert data["clusters"][0]["name"] == "alpha"
         assert data["clusters"][0]["status"] == "CREATE_COMPLETE"
+        assert data["clusters"][0]["created_at"] == "2026-04-21T06:51:02.985Z"
+        assert data["clusters"][0]["updated_at"] == "2026-04-21T07:10:03.000Z"
+        assert data["clusters"][0]["headnode_launched_at"] == "2026-04-21T07:23:41.000Z"
+        assert data["clusters"][0]["ip"] == "1.2.3.4"
+        assert data["clusters"][0]["instance_id"] == "i-alpha"
+        assert data["clusters"][0]["headnode_configured"] is True
+        assert data["clusters"][0]["headnode_configured_text"] == "YES"
+        assert "details" not in data["clusters"][0]
+        assert data["clusters"][1]["headnode_configured"] is None
+        assert data["clusters"][1]["headnode_configured_text"] == "N/A"
+        assert len(scripts) == 1
+        assert "day-clone --list" in scripts[0]
+
+    def test_cluster_list_reports_unconfigured_headnode(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
+        monkeypatch.setenv("AWS_PROFILE", "test-profile")
+        _patch_headnode_config_check(monkeypatch, configured=False)
+        with patch("subprocess.run", side_effect=_side_effect_for_happy):
+            result = runner.invoke(app, ["--json", "cluster", "list", "--region", "us-west-2"])
+        assert result.exit_code == 0
+        data = json.loads(result.stdout)
+        assert data["clusters"][0]["headnode_configured"] is False
+        assert data["clusters"][0]["headnode_configured_text"] == "NO"
+        assert "day-clone: command not found" in data["clusters"][0]["headnode_config_error"]
+
+    def test_cluster_list_table_includes_describe_datetimes_and_ip(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
+        monkeypatch.setenv("AWS_PROFILE", "test-profile")
+        _patch_headnode_config_check(monkeypatch)
+        with patch("subprocess.run", side_effect=_side_effect_for_happy):
+            result = runner.invoke(app, ["cluster", "list", "--region", "us-west-2"])
+        assert result.exit_code == 0
+        assert "HEADNODE_CONFIGURED" in result.stdout
+        assert "YES" in result.stdout
+        assert "CREATED_AT" in result.stdout
+        assert "UPDATED_AT" in result.stdout
+        assert "HEADNODE_LAUNCHED_AT" in result.stdout
+        assert "2026-04-21T06:51:02.985Z" in result.stdout
+        assert "2026-04-21T07:10:03.000Z" in result.stdout
+        assert "2026-04-21T07:23:41.000Z" in result.stdout
+        assert "1.2.3.4" in result.stdout
 
     def test_cluster_list_details_includes_headnode(self, monkeypatch):
         _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
+        _patch_headnode_config_check(monkeypatch)
         with patch("subprocess.run", side_effect=_side_effect_for_happy):
             result = runner.invoke(
                 app,
@@ -112,6 +195,9 @@ class TestClusterInfoTable:
         assert result.exit_code == 0
         data = json.loads(result.stdout)
         assert data["clusters"][0]["ip"] == "1.2.3.4"
+        assert data["clusters"][0]["instance_id"] == "i-alpha"
+        assert data["clusters"][0]["created_at"] == "2026-04-21T06:51:02.985Z"
+        assert data["clusters"][0]["headnode_configured_text"] == "YES"
         assert data["clusters"][0]["details"]["clusterName"] == "alpha"
 
     def test_cluster_describe_returns_full_payload(self, monkeypatch):
@@ -248,3 +334,23 @@ class TestClusterInfoEdgeCases:
         with patch("subprocess.run", return_value=bad):
             result = runner.invoke(app, ["cluster-info", "--region", "us-west-2"])
         assert result.exit_code == 1
+
+    def test_cluster_list_failure_reports_pcluster_stdout_message(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
+        monkeypatch.setenv("AWS_PROFILE", "typo-profile")
+        fail = _make_cp(
+            stdout=json.dumps({"message": "Unexpected fatal exception."}),
+            stderr="/path/to/pcluster/common.py:20: UserWarning: pkg_resources is deprecated",
+            rc=1,
+        )
+
+        def side_effect(*args, **kwargs):
+            cmd = kwargs.get("args") or args[0]
+            if isinstance(cmd, (list, tuple)) and "-c" in cmd:
+                return _make_cp()
+            return fail
+
+        with patch("subprocess.run", side_effect=side_effect):
+            result = runner.invoke(app, ["cluster", "list", "--region", "us-west-2"])
+        assert result.exit_code == 1
+        assert "Unexpected fatal exception." in result.output

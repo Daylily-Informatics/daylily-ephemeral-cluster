@@ -178,6 +178,25 @@ def _aws_env(*, profile: Optional[str], region: Optional[str] = None) -> dict[st
     return env
 
 
+def _command_failure_detail(proc: subprocess.CompletedProcess[str]) -> str:
+    stdout = proc.stdout.strip()
+    stderr = proc.stderr.strip()
+    details: list[str] = []
+    if stdout:
+        try:
+            payload = json.loads(stdout)
+        except json.JSONDecodeError:
+            details.append(stdout)
+        else:
+            if isinstance(payload, dict) and payload.get("message"):
+                details.append(str(payload["message"]))
+            else:
+                details.append(stdout)
+    if stderr:
+        details.append(stderr)
+    return "\n".join(details) or "unknown error"
+
+
 def _run_pcluster_json(
     command: list[str],
     *,
@@ -197,8 +216,7 @@ def _run_pcluster_json(
         raise CommandError("pcluster CLI not found on PATH.") from exc
 
     if proc.returncode != 0:
-        detail = proc.stderr.strip() or proc.stdout.strip() or "unknown error"
-        raise CommandError(f"pcluster command failed: {detail}")
+        raise CommandError(f"pcluster command failed: {_command_failure_detail(proc)}")
 
     try:
         payload = json.loads(proc.stdout or "{}")
@@ -214,10 +232,63 @@ def _cluster_row_from_details(name: str, details: dict[str, Any]) -> dict[str, A
     return {
         "name": name,
         "status": details.get("clusterStatus", "N/A"),
+        "created_at": details.get("creationTime", "N/A"),
+        "updated_at": details.get("lastUpdatedTime", "N/A"),
+        "headnode_launched_at": head_node.get("launchTime", "N/A"),
         "ip": head_node.get("publicIpAddress", "N/A"),
         "instance_id": head_node.get("instanceId", ""),
         "details": details,
     }
+
+
+def _cluster_headnode_config_status(
+    row: dict[str, Any],
+    *,
+    profile: str,
+    region: str,
+) -> None:
+    instance_id = str(row.get("instance_id") or "").strip()
+    if not instance_id:
+        row["headnode_configured"] = None
+        row["headnode_configured_text"] = "N/A"
+        row["headnode_config_error"] = "headnode instance id is unavailable"
+        return
+
+    from daylily_ec.aws.ssm import SsmCommandFailedError, SsmError, run_shell
+
+    script = "\n".join(
+        [
+            "set -euo pipefail",
+            'test "$(whoami)" = "ubuntu"',
+            'test "${CONDA_DEFAULT_ENV:-}" = "DAY-EC"',
+            "command -v daylily-ec >/dev/null",
+            "command -v day-clone >/dev/null",
+            "day-clone --list >/dev/null",
+        ]
+    )
+    try:
+        run_shell(
+            instance_id,
+            region,
+            script,
+            profile=profile,
+            timeout=60,
+            comment=f"Check headnode configuration for {row['name']}",
+        )
+    except SsmCommandFailedError as exc:
+        row["headnode_configured"] = False
+        row["headnode_configured_text"] = "NO"
+        row["headnode_config_error"] = exc.result.stderr.strip() or exc.result.stdout.strip() or str(exc)
+        return
+    except (SsmError, TimeoutError, RuntimeError) as exc:
+        row["headnode_configured"] = False
+        row["headnode_configured_text"] = "NO"
+        row["headnode_config_error"] = str(exc)
+        return
+
+    row["headnode_configured"] = True
+    row["headnode_configured_text"] = "YES"
+    row["headnode_config_error"] = ""
 
 
 def _cluster_rows_from_list(
@@ -238,22 +309,14 @@ def _cluster_rows_from_list(
         name = str(item.get("clusterName") or "")
         if not name:
             continue
-        if details:
-            rows.append(
-                _cluster_row_from_details(
-                    name,
-                    _describe_cluster_payload(profile=profile, region=region, cluster=name),
-                )
-            )
-        else:
-            rows.append(
-                {
-                    "name": name,
-                    "status": item.get("clusterStatus", "N/A"),
-                    "ip": "N/A",
-                    "instance_id": "",
-                }
-            )
+        row = _cluster_row_from_details(
+            name,
+            _describe_cluster_payload(profile=profile, region=region, cluster=name),
+        )
+        _cluster_headnode_config_status(row, profile=profile, region=region)
+        if not details:
+            row.pop("details", None)
+        rows.append(row)
     return rows
 
 
@@ -283,28 +346,77 @@ def _emit_cluster_table(region: str, rows: list[dict[str, Any]], *, include_inst
         return
     output.heading("Clusters in %s" % region)
     if include_instance:
-        header = "%-30s %-20s %-15s %-20s" % (
+        header = "%-30s %-20s %-19s %-28s %-28s %-28s %-15s %-20s" % (
             "CLUSTER_NAME",
             "STATUS",
+            "HEADNODE_CONFIGURED",
+            "CREATED_AT",
+            "UPDATED_AT",
+            "HEADNODE_LAUNCHED_AT",
             "PUBLIC_IP",
             "INSTANCE_ID",
         )
-        sep = "%s %s %s %s" % ("\u2500" * 30, "\u2500" * 20, "\u2500" * 15, "\u2500" * 20)
+        sep = "%s %s %s %s %s %s %s %s" % (
+            "\u2500" * 30,
+            "\u2500" * 20,
+            "\u2500" * 19,
+            "\u2500" * 28,
+            "\u2500" * 28,
+            "\u2500" * 28,
+            "\u2500" * 15,
+            "\u2500" * 20,
+        )
         output.print_text(header)
         output.print_text(sep)
         for row in rows:
             output.print_text(
-                "%-30s %-20s %-15s %-20s"
-                % (row["name"], row["status"], row["ip"], row.get("instance_id") or "")
+                "%-30s %-20s %-19s %-28s %-28s %-28s %-15s %-20s"
+                % (
+                    row["name"],
+                    row["status"],
+                    row["headnode_configured_text"],
+                    row["created_at"],
+                    row["updated_at"],
+                    row["headnode_launched_at"],
+                    row["ip"],
+                    row.get("instance_id") or "",
+                )
             )
         return
 
-    header = "%-30s %-20s %-15s" % ("CLUSTER_NAME", "STATUS", "PUBLIC_IP")
-    sep = "%s %s %s" % ("\u2500" * 30, "\u2500" * 20, "\u2500" * 15)
+    header = "%-30s %-20s %-19s %-28s %-28s %-28s %-15s" % (
+        "CLUSTER_NAME",
+        "STATUS",
+        "HEADNODE_CONFIGURED",
+        "CREATED_AT",
+        "UPDATED_AT",
+        "HEADNODE_LAUNCHED_AT",
+        "PUBLIC_IP",
+    )
+    sep = "%s %s %s %s %s %s %s" % (
+        "\u2500" * 30,
+        "\u2500" * 20,
+        "\u2500" * 19,
+        "\u2500" * 28,
+        "\u2500" * 28,
+        "\u2500" * 28,
+        "\u2500" * 15,
+    )
     output.print_text(header)
     output.print_text(sep)
     for row in rows:
-        output.print_text("%-30s %-20s %-15s" % (row["name"], row["status"], row["ip"]))
+        output.print_text(
+            "%-30s %-20s %-19s %-28s %-28s %-28s %-15s"
+            % (
+                row["name"],
+                row["status"],
+                row["headnode_configured_text"],
+                row["created_at"],
+                row["updated_at"],
+                row["headnode_launched_at"],
+                row["ip"],
+            )
+        )
 
 
 def create(
@@ -1023,8 +1135,7 @@ def _describe_headnode_cluster(
         raise CommandError("pcluster CLI not found on PATH.") from exc
 
     if proc.returncode != 0:
-        detail = proc.stderr.strip() or proc.stdout.strip() or "unknown error"
-        raise CommandError(f"pcluster describe-cluster failed: {detail}")
+        raise CommandError(f"pcluster describe-cluster failed: {_command_failure_detail(proc)}")
 
     try:
         payload = json.loads(proc.stdout or "{}")

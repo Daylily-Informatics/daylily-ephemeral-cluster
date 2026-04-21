@@ -131,7 +131,9 @@ daylily-ec cluster-info \
 
 ## `daylily-ec cluster`
 
-ParallelCluster inspection helpers.
+ParallelCluster inspection helpers. `cluster list` describes each cluster so the
+operator table includes status, create time, last update time, headnode launch
+time, public IP, and whether the Daylily headnode configuration check passes.
 
 Subcommands:
 
