@@ -13,8 +13,6 @@ touch /tmp/$(hostname).postinstallBEGIN
 
 region="$1"
 bucket="$2"  # specified in the cluster yaml, bucket-name, no s3:// prefix
-miner_pool="$3"  # specified in the cluster yaml, miner_pool
-wallet="$4"  # specified in the cluster yaml, wallet
 
 aws configure set region $region
 
@@ -104,25 +102,21 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   head_log_fn=/fsx/logs/$(hostname)_head_$timestamp.log
 
   # Log message with timestamp
-  echo "[$timestamp] Running post_install_ubuntu_combined.sh $region $bucket $miner_pool $wallet on $(hostname)" > $head_log_fn
+  echo "[$timestamp] Running post_install_ubuntu_combined.sh $region $bucket on $(hostname)" > $head_log_fn
   
 
   # Create necessary directories
   mkdir -p /fsx/analysis_results/cromwell_executions  
   mkdir -p /fsx/analysis_results/ubuntu  
   mkdir -p /fsx/analysis_results/daylily              
-  mkdir -p /fsx/miners/logs  
   mkdir -p /fsx/tmp
-  mkdir -p /fsx/miners/bin               
   mkdir -p /fsx/scratch
   mkdir -p /fsx/resources/environments/containers/{ubuntu,daylily}/$(hostname)/
   mkdir -p /fsx/resources/environments/conda/{ubuntu,daylily}/$(hostname)/
   chmod -R a+wrx /fsx/analysis_results
   chmod -R a+wrx /fsx/scratch
-  chmod -R a+wrx /fsx/miners
   chmod -R a+wrx /fsx/tmp
   chmod -R a+wrx /fsx/resources
-  chown -R ubuntu:ubuntu /fsx/miners
 
 
   # Copy cached data from S3
@@ -298,33 +292,6 @@ EOF
 fi
 
 
-
-mkdir -p /fsx/miners/bin
-mkdir -p /fsx/miners/logs
-
-chown -R ubuntu:ubuntu /fsx/miners
-aws s3 cp s3://${bucket}/cluster_boot_config/xmr_miner.sh /fsx/miners/bin/$(hostname)_miner.sh
-chmod a+x /fsx/miners/bin/$(hostname)_miner.sh
-
-aws s3 cp s3://${bucket}/cluster_boot_config/mine_cron.sh /fsx/miners/bin/mine_cron.sh
-chmod a+x /fsx/miners/bin/mine_cron.sh
-
-if [ "$miner_pool" != "na" ]; then
-  echo "miner_pool specified, starting mining"
-  touch /tmp/$HOSTNAME.setting_up_mining
-
-  export MINE_CPU=$(nproc)
-  echo "/fsx/miners/bin/$(hostname)_miner.sh $miner_pool $wallet" > /fsx/miners/bin/miner_cmd_args_$(hostname).sh
-  chmod a+x  /fsx/miners/bin/miner_cmd_args_$(hostname).sh
-  
-  /fsx/miners/bin/miner_cmd_args_$(hostname).sh  > /tmp/miner_$(hostname).log 2>&1 &
-
-  echo "mining started"
-  touch /tmp/$HOSTNAME.mining
-else
-  touch /tmp/$HOSTNAME.notmining
-  echo "no miner_pool specified, passing on mining"
-fi
 
 echo "Expanding /dev/shm to 80% of total memory"
 # Calculate 80% of total memory

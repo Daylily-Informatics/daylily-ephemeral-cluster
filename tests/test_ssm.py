@@ -146,7 +146,7 @@ class TestRunShell:
         sent = client.send_command.call_args.kwargs
         assert sent["DocumentName"] == "AWS-RunShellScript"
         assert "chown ubuntu \"$tmp\"" in sent["Parameters"]["commands"][0]
-        assert "sudo -iu ubuntu bash" in sent["Parameters"]["commands"][0]
+        assert "sudo -iu ubuntu bash -l \"$tmp\"" in sent["Parameters"]["commands"][0]
         assert sent["Parameters"]["commands"][0].startswith("set -eu\n")
         encoded = sent["Parameters"]["commands"][0].split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
         decoded = base64.b64decode(encoded).decode("utf-8")

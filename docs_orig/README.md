@@ -1336,7 +1336,6 @@ The following directories are created and accessible via `/fsx` on the headnode 
 │   ├── cached_envs
 │   ├── genomic_data
 │   └── tool_specific_resources
-├── miners  ## experimental & disabled by default
 ├── resources
 │   └── environments  ## location of cached conda envs and docker images. so they are only created/pulled once per cluster lifetime.
 ├── scratch  ## scratch space for high IO tools

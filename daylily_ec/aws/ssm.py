@@ -12,7 +12,7 @@ import subprocess
 import time
 from dataclasses import dataclass
 from pathlib import PurePosixPath
-from typing import Any, Dict, Optional
+from typing import Dict, Optional
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
@@ -136,7 +136,7 @@ def resolve_headnode_instance_id(
 
         try:
             payload = json.loads(result.stdout or "{}")
-        except json.JSONDecodeError as exc:
+        except json.JSONDecodeError:
             errors.append(f"Unable to parse {' '.join(cmd[1:3])} output.")
             continue
 
@@ -237,11 +237,11 @@ def _encode_script_payload(script: str, *, as_user: Optional[str]) -> str:
         "path = pathlib.Path(os.environ['DAYLILY_SSM_TMP']); "
         "path.write_text(base64.b64decode(os.environ['DAYLILY_SSM_B64']).decode('utf-8'), encoding='utf-8')"
     )
-    runner = f"sudo -iu {shlex.quote(user)} bash \"$tmp\""
+    runner = f"sudo -iu {shlex.quote(user)} bash -l \"$tmp\""
     return "\n".join(
         [
             # AWS-RunShellScript uses /bin/sh for the transport wrapper on Ubuntu.
-            # Keep the wrapper POSIX-safe and run the real payload under bash as ubuntu.
+            # Keep the wrapper POSIX-safe and run the real payload under a bash login shell as ubuntu.
             "set -eu",
             "tmp=$(mktemp /tmp/daylily-ssm-XXXXXX.sh)",
             f"export DAYLILY_SSM_B64={shlex.quote(encoded)}",

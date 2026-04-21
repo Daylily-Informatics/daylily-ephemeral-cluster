@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import re
+import subprocess
 import tomllib
 from pathlib import Path
 
@@ -31,6 +32,21 @@ ACTIVE_ENV_FILES = [
     REPO_ROOT / "docs" / "testing_and_debugging.md",
     REPO_ROOT / "docs" / "ultra_rapid_start.md",
 ]
+
+RETIRED_MINER_PATTERNS = (
+    "xmrig",
+    "REGSUB_XMR",
+    "xmr_miner",
+    "mine_cron",
+    "/fsx/miners",
+    r"\bminers?\b",
+    r"\bmining\b",
+    r"\bmonero\b",
+    "monero_mining",
+    "enable_xmr",
+    "xmr_a192",
+    "xmr_b192",
+)
 
 
 def _load_env(path: Path) -> dict:
@@ -176,3 +192,36 @@ def test_legacy_day_env_assets_are_archived_or_quarantined() -> None:
         / "day"
         / "conda_base.yaml"
     ).is_file()
+
+
+def test_tracked_files_do_not_reintroduce_retired_miner_support() -> None:
+    result = subprocess.run(
+        ["git", "ls-files"],
+        cwd=REPO_ROOT,
+        check=True,
+        capture_output=True,
+        text=True,
+    )
+    failures: list[str] = []
+    ignored_paths = {"tests/test_environment_contract.py"}
+
+    for rel_path in result.stdout.splitlines():
+        if rel_path in ignored_paths:
+            continue
+        path = REPO_ROOT / rel_path
+        if not path.is_file():
+            continue
+        for pattern in RETIRED_MINER_PATTERNS:
+            if re.search(pattern, rel_path, flags=re.IGNORECASE):
+                failures.append(f"{rel_path}: path contains retired miner marker {pattern!r}")
+
+        try:
+            text = path.read_text(encoding="utf-8")
+        except (FileNotFoundError, UnicodeDecodeError):
+            continue
+        for lineno, line in enumerate(text.splitlines(), start=1):
+            for pattern in RETIRED_MINER_PATTERNS:
+                if re.search(pattern, line, flags=re.IGNORECASE):
+                    failures.append(f"{rel_path}:{lineno}: contains retired miner marker {pattern!r}")
+
+    assert not failures, "Tracked files still contain retired miner support:\n" + "\n".join(failures)

@@ -2110,12 +2110,6 @@ set_final_config_value "cluster_template_yaml" "$cluster_yaml"
 echo "✅ Using cluster template yaml: $cluster_yaml"
 echo ""
 
-# XMR Mining Setup (disabled)
-xmr_pool_url=na
-xmr_wallet=na
-enable_xmr=0
-echo ""
-
 # Headnode instance type
 sel_headnode_type="$CONFIG_HEADNODE_INSTANCE_TYPE"
 if [[ -z "$sel_headnode_type" ]]; then
@@ -2402,9 +2396,6 @@ declare -A REG_SUBSTITUTIONS=(
   ["REGSUB_S3_IAM_POLICY"]="$arn_policy_id"
   ["REGSUB_PRIVATE_SUBNET"]="$private_subnet"
   ["REGSUB_S3_BUCKET_REF"]="$bucket_url"
-  ["REGSUB_XMR_MINE"]="$enable_xmr"
-  ["REGSUB_XMR_POOL_URL"]="$xmr_pool_url"
-  ["REGSUB_XMR_WALLET"]="$xmr_wallet"
   ["REGSUB_FSX_SIZE"]="$sel_fsx_size"
   ["REGSUB_DETAILED_MONITORING"]="$act_detailed_monitoring"
   ["REGSUB_CLUSTER_NAME"]="$cluster_name"

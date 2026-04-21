@@ -814,10 +814,6 @@ def run_create_workflow(
         "REGSUB_S3_IAM_POLICY": policy_arn,
         "REGSUB_PRIVATE_SUBNET": private_subnet,
         "REGSUB_S3_BUCKET_REF": bucket_url,
-        "REGSUB_XMR_MINE": "false",
-        # Empty args must render as '""' (YAML empty string) not null.
-        "REGSUB_XMR_POOL_URL": '""',
-        "REGSUB_XMR_WALLET": '""',
         "REGSUB_FSX_SIZE": _resolve_fsx_size(
             cfg, non_interactive=non_interactive,
         ),
