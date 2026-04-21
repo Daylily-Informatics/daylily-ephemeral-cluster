@@ -16,3 +16,7 @@
 # ParallelCluster CLI
 
 - `pcluster` is not an `aws` CLI subcommand. Do not pass AWS CLI-only flags such as `--json` to `pcluster`; ParallelCluster commands emit JSON by default.
+
+# Version Tags
+
+- Daylily version tags should not use a leading `v`. When determining the next version, use non-`v` semver tags as the source of truth.
