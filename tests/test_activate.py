@@ -132,6 +132,11 @@ fi
   if [[ "${1:-}" == "python" && "${2:-}" == "-m" && "${3:-}" == "pip" && "${4:-}" == "install" && "${5:-}" == "--editable" ]]; then
     repo_spec="${6:-}"
     mkdir -p "${root}/envs/${env_name}/bin"
+  elif [[ "${1:-}" == "pip" && "${2:-}" == "install" && "${3:-}" == "-e" ]]; then
+    repo_spec="${4:-}"
+    mkdir -p "${root}/envs/${env_name}/bin"
+  fi
+  if [[ -n "${repo_spec:-}" ]]; then
     printf '%s\\n' "${repo_spec}" > "${root}/last_editable_repo"
     cat > "${root}/envs/${env_name}/bin/daylily-ec" <<'EOF'
 #!/usr/bin/env bash
@@ -345,7 +350,7 @@ def test_activate_bootstraps_missing_dayec_from_environment_yaml(tmp_path: Path)
     assert log.index(main_tos) < log.index(f"env create -n DAY-EC -f {ENVIRONMENT_YAML}")
     assert log.index(r_tos) < log.index(f"env create -n DAY-EC -f {ENVIRONMENT_YAML}")
     assert f"env create -n DAY-EC -f {ENVIRONMENT_YAML}" in log
-    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
+    assert "run -n DAY-EC pip install -e ." in log
 
 
 def test_activate_supports_version_and_pricing_help_flow(tmp_path: Path) -> None:
@@ -376,7 +381,7 @@ def test_activate_repairs_existing_dayec_when_pcluster_smoke_fails(tmp_path: Pat
     assert "pkg_resources" not in (result.stdout + result.stderr)
     log = log_path.read_text(encoding="utf-8")
     assert f"env update -n DAY-EC -f {ENVIRONMENT_YAML}" in log
-    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
+    assert "run -n DAY-EC pip install -e ." in log
 
 
 def test_activate_repairs_existing_dayec_when_node_smoke_fails(tmp_path: Path) -> None:
@@ -393,7 +398,7 @@ def test_activate_repairs_existing_dayec_when_node_smoke_fails(tmp_path: Path) -
     assert "env-version" in result.stdout
     log = log_path.read_text(encoding="utf-8")
     assert f"env update -n DAY-EC -f {ENVIRONMENT_YAML}" in log
-    assert f"run -n DAY-EC python -m pip install --editable {REPO_ROOT}" in log
+    assert "run -n DAY-EC pip install -e ." in log
 
 
 def test_activate_does_not_fall_back_to_broken_global_cli(tmp_path: Path) -> None:
@@ -415,7 +420,28 @@ def test_activate_reuses_existing_dayec_without_recreating_it(tmp_path: Path) ->
     assert result.returncode == 0
     log = log_path.read_text(encoding="utf-8")
     assert "env create -n DAY-EC" not in log
-    assert "python -m pip install --editable" not in log
+    assert "pip install -e" not in log
+
+
+def test_activate_resolves_daylily_ec_from_dayec_env_not_global_path(tmp_path: Path) -> None:
+    env, _ = _prepare_fake_runtime(tmp_path, existing_env=True, existing_env_cli=True)
+
+    result = _source_activate_and_run(
+        env,
+        'printf "prefix=%s\\n" "$CONDA_PREFIX" && '
+        'printf "cli=%s\\n" "$(type -P daylily-ec)" && '
+        "daylily-ec --help",
+    )
+
+    expected_prefix = f"{tmp_path}/fake-conda-root/envs/DAY-EC"
+    expected_cli = f"{expected_prefix}/bin/daylily-ec"
+    combined = result.stdout + result.stderr
+    assert result.returncode == 0
+    assert f"prefix={expected_prefix}" in result.stdout
+    assert f"cli={expected_cli}" in result.stdout
+    assert "existing-env:--help" in result.stdout
+    assert "ModuleNotFoundError" not in combined
+    assert "fake-bin/daylily-ec" not in result.stdout
 
 
 def test_activate_exposes_env_local_operator_clis(tmp_path: Path) -> None:
