@@ -5,10 +5,12 @@ from __future__ import annotations
 import json
 import logging
 import os
+import shlex
 import subprocess
 import sys
+import time
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
 
 import typer
 from cli_core_yo import output
@@ -30,12 +32,14 @@ from cli_core_yo.spec import (
 from daylily_ec._registry_v2 import (
     DAYLILY_EC_RUNTIME_TAG,
     EXEMPT,
+    EXEMPT_JSON,
     REQUIRED_JSON,
     REQUIRED_LONG_RUNNING,
     REQUIRED_MUTATING_INTERACTIVE,
     REQUIRED_MUTATING_LONG_RUNNING,
     register_group_commands,
     register_root_command,
+    required_policy,
 )
 from daylily_ec.resources import ensure_extracted
 
@@ -153,6 +157,154 @@ def _warn_if_dayec_env_inactive() -> None:
     message = _dayec_env_warning_message()
     if message:
         output.warning(message)
+
+
+def _resolved_aws_profile(profile: Optional[str]) -> str:
+    from daylily_ec.scripts.common import CommandError
+
+    resolved_profile = profile or os.environ.get("AWS_PROFILE", "")
+    if not resolved_profile:
+        raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
+    return resolved_profile
+
+
+def _aws_env(*, profile: Optional[str], region: Optional[str] = None) -> dict[str, str]:
+    env = dict(os.environ)
+    if profile:
+        env["AWS_PROFILE"] = profile
+    if region:
+        env["AWS_REGION"] = region
+        env.setdefault("AWS_DEFAULT_REGION", region)
+    return env
+
+
+def _run_pcluster_json(
+    command: list[str],
+    *,
+    profile: str,
+    region: str,
+) -> dict[str, Any]:
+    from daylily_ec.scripts.common import CommandError
+
+    try:
+        proc = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            env=_aws_env(profile=profile, region=region),
+        )
+    except FileNotFoundError as exc:
+        raise CommandError("pcluster CLI not found on PATH.") from exc
+
+    if proc.returncode != 0:
+        detail = proc.stderr.strip() or proc.stdout.strip() or "unknown error"
+        raise CommandError(f"pcluster command failed: {detail}")
+
+    try:
+        payload = json.loads(proc.stdout or "{}")
+    except json.JSONDecodeError as exc:
+        raise CommandError("Failed to parse pcluster JSON output.") from exc
+    if not isinstance(payload, dict):
+        raise CommandError("pcluster returned non-object JSON.")
+    return payload
+
+
+def _cluster_row_from_details(name: str, details: dict[str, Any]) -> dict[str, Any]:
+    head_node = details.get("headNode") if isinstance(details.get("headNode"), dict) else {}
+    return {
+        "name": name,
+        "status": details.get("clusterStatus", "N/A"),
+        "ip": head_node.get("publicIpAddress", "N/A"),
+        "instance_id": head_node.get("instanceId", ""),
+        "details": details,
+    }
+
+
+def _cluster_rows_from_list(
+    payload: dict[str, Any],
+    *,
+    profile: str,
+    region: str,
+    details: bool,
+) -> list[dict[str, Any]]:
+    clusters = payload.get("clusters", [])
+    if not isinstance(clusters, list):
+        return []
+
+    rows: list[dict[str, Any]] = []
+    for item in clusters:
+        if not isinstance(item, dict):
+            continue
+        name = str(item.get("clusterName") or "")
+        if not name:
+            continue
+        if details:
+            rows.append(
+                _cluster_row_from_details(
+                    name,
+                    _describe_cluster_payload(profile=profile, region=region, cluster=name),
+                )
+            )
+        else:
+            rows.append(
+                {
+                    "name": name,
+                    "status": item.get("clusterStatus", "N/A"),
+                    "ip": "N/A",
+                    "instance_id": "",
+                }
+            )
+    return rows
+
+
+def _describe_cluster_payload(
+    *,
+    profile: str,
+    region: str,
+    cluster: str,
+) -> dict[str, Any]:
+    return _run_pcluster_json(
+        [
+            "pcluster",
+            "describe-cluster",
+            "--cluster-name",
+            cluster,
+            "--region",
+            region,
+        ],
+        profile=profile,
+        region=region,
+    )
+
+
+def _emit_cluster_table(region: str, rows: list[dict[str, Any]], *, include_instance: bool) -> None:
+    if not rows:
+        output.print_text(f"No clusters found in {region}.")
+        return
+    output.heading("Clusters in %s" % region)
+    if include_instance:
+        header = "%-30s %-20s %-15s %-20s" % (
+            "CLUSTER_NAME",
+            "STATUS",
+            "PUBLIC_IP",
+            "INSTANCE_ID",
+        )
+        sep = "%s %s %s %s" % ("\u2500" * 30, "\u2500" * 20, "\u2500" * 15, "\u2500" * 20)
+        output.print_text(header)
+        output.print_text(sep)
+        for row in rows:
+            output.print_text(
+                "%-30s %-20s %-15s %-20s"
+                % (row["name"], row["status"], row["ip"], row.get("instance_id") or "")
+            )
+        return
+
+    header = "%-30s %-20s %-15s" % ("CLUSTER_NAME", "STATUS", "PUBLIC_IP")
+    sep = "%s %s %s" % ("\u2500" * 30, "\u2500" * 20, "\u2500" * 15)
+    output.print_text(header)
+    output.print_text(sep)
+    for row in rows:
+        output.print_text("%-30s %-20s %-15s" % (row["name"], row["status"], row["ip"]))
 
 
 def create(
@@ -433,6 +585,178 @@ def cluster_info(
         output.print_text("%-30s %-20s %-15s" % (row["name"], row["status"], row["ip"]))
 
 
+def cluster_list(
+    region: str = typer.Option(
+        ...,
+        "--region",
+        help="AWS region to query (e.g. us-west-2).",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    details: bool = typer.Option(
+        False,
+        "--details",
+        help="Describe each cluster and include headnode details.",
+    ),
+) -> None:
+    """List ParallelCluster clusters in a region."""
+
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile = _resolved_aws_profile(profile)
+        payload = _run_pcluster_json(
+            ["pcluster", "list-clusters", "--region", region],
+            profile=resolved_profile,
+            region=region,
+        )
+        rows = _cluster_rows_from_list(
+            payload,
+            profile=resolved_profile,
+            region=region,
+            details=details,
+        )
+    except CommandError as exc:
+        _exit_headnode_error(exc)
+
+    result = {"region": region, "clusters": rows}
+    if _json_mode():
+        output.emit_json(result)
+        return
+    _emit_cluster_table(region, rows, include_instance=details)
+
+
+def cluster_describe(
+    region: str = typer.Option(
+        ...,
+        "--region",
+        help="AWS region to query (e.g. us-west-2).",
+    ),
+    cluster: str = typer.Option(
+        ...,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+) -> None:
+    """Return the full pcluster describe-cluster payload."""
+
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        payload = _describe_cluster_payload(
+            profile=_resolved_aws_profile(profile),
+            region=region,
+            cluster=cluster,
+        )
+    except CommandError as exc:
+        _exit_headnode_error(exc)
+
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+
+
+def cluster_wait(
+    region: str = typer.Option(
+        ...,
+        "--region",
+        help="AWS region to query (e.g. us-west-2).",
+    ),
+    cluster: str = typer.Option(
+        ...,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    status: str = typer.Option(
+        "CREATE_COMPLETE",
+        "--status",
+        help="Cluster status to wait for.",
+    ),
+    timeout: int = typer.Option(
+        3600,
+        "--timeout",
+        help="Maximum seconds to wait.",
+    ),
+    poll_interval: int = typer.Option(
+        30,
+        "--poll-interval",
+        help="Seconds between polls.",
+    ),
+) -> None:
+    """Wait until a ParallelCluster cluster reaches a target status."""
+
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile = _resolved_aws_profile(profile)
+    except CommandError as exc:
+        _exit_headnode_error(exc)
+    target_status = status.strip()
+    deadline = time.time() + timeout
+    terminal_failure_prefixes = ("CREATE_FAILED", "DELETE_FAILED", "UPDATE_FAILED", "ROLLBACK")
+
+    while True:
+        try:
+            payload = _describe_cluster_payload(
+                profile=resolved_profile,
+                region=region,
+                cluster=cluster,
+            )
+        except CommandError as exc:
+            _exit_headnode_error(exc)
+
+        current_status = str(payload.get("clusterStatus") or "")
+        if current_status == target_status:
+            result = {
+                "cluster": cluster,
+                "region": region,
+                "status": current_status,
+                "details": payload,
+            }
+            if _json_mode():
+                output.emit_json(result)
+            else:
+                output.success(f"Cluster '{cluster}' reached {current_status}.")
+            return
+
+        if current_status.startswith(terminal_failure_prefixes):
+            output.error(
+                "Cluster '%s' entered terminal status %s before %s."
+                % (cluster, current_status, target_status)
+            )
+            raise typer.Exit(1)
+
+        if time.time() >= deadline:
+            output.error(
+                "Timed out waiting for cluster '%s' to reach %s; last status was %s."
+                % (cluster, target_status, current_status or "UNKNOWN")
+            )
+            raise typer.Exit(1)
+
+        if not _json_mode():
+            output.print_text("Status: %s" % (current_status or "UNKNOWN"))
+        time.sleep(max(poll_interval, 1))
+
+
 def export(
     cluster_name: str = typer.Option(
         ...,
@@ -514,21 +838,29 @@ def delete(
         "--yes",
         help="Skip the FSx deletion confirmation prompt.",
     ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Inspect the delete target without changing AWS resources.",
+    ),
 ) -> None:
     """Delete a cluster and monitor teardown to completion."""
 
-    from daylily_ec.workflow.delete_cluster import DeleteOptions, run_delete_workflow
+    from daylily_ec.workflow.delete_cluster import (
+        DeleteOptions,
+        run_delete_dry_run,
+        run_delete_workflow,
+    )
 
     _warn_if_dayec_env_inactive()
-    rc = run_delete_workflow(
-        DeleteOptions(
-            cluster_name=cluster_name,
-            region=region,
-            profile=profile,
-            state_file=state_file,
-            yes=yes,
-        )
+    options = DeleteOptions(
+        cluster_name=cluster_name,
+        region=region,
+        profile=profile,
+        state_file=state_file,
+        yes=yes,
     )
+    rc = run_delete_dry_run(options) if dry_run else run_delete_workflow(options)
     raise typer.Exit(rc)
 
 
@@ -624,6 +956,719 @@ def headnode_init(
     )
 
 
+def _resolve_headnode_cli_selection(
+    *,
+    profile: Optional[str],
+    region: Optional[str],
+    cluster: Optional[str],
+):
+    from daylily_ec.scripts.common import CommandError, need_cmd, resolve_cluster, resolve_region
+
+    resolved_profile = profile or os.environ.get("AWS_PROFILE")
+    if not resolved_profile:
+        raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
+
+    need_cmd("aws")
+    need_cmd("pcluster")
+
+    resolved_region = resolve_region(resolved_profile, region)
+    resolved_cluster = resolve_cluster(resolved_profile, resolved_region, cluster)
+    return resolved_profile, resolved_region, resolved_cluster
+
+
+def _resolve_headnode_cli_target(
+    *,
+    profile: Optional[str],
+    region: Optional[str],
+    cluster: Optional[str],
+):
+    from daylily_ec.aws.ssm import resolve_headnode_instance_id
+
+    resolved_profile, resolved_region, resolved_cluster = _resolve_headnode_cli_selection(
+        profile=profile,
+        region=region,
+        cluster=cluster,
+    )
+    target = resolve_headnode_instance_id(
+        resolved_cluster,
+        resolved_region,
+        profile=resolved_profile,
+    )
+    return resolved_profile, resolved_region, resolved_cluster, target
+
+
+def _describe_headnode_cluster(
+    *,
+    profile: str,
+    region: str,
+    cluster: str,
+) -> dict[str, object]:
+    from daylily_ec.scripts.common import CommandError, aws_env
+
+    try:
+        proc = subprocess.run(
+            [
+                "pcluster",
+                "describe-cluster",
+                "--cluster-name",
+                cluster,
+                "--region",
+                region,
+            ],
+            capture_output=True,
+            text=True,
+            env=aws_env(profile=profile, region=region),
+        )
+    except FileNotFoundError as exc:
+        raise CommandError("pcluster CLI not found on PATH.") from exc
+
+    if proc.returncode != 0:
+        detail = proc.stderr.strip() or proc.stdout.strip() or "unknown error"
+        raise CommandError(f"pcluster describe-cluster failed: {detail}")
+
+    try:
+        payload = json.loads(proc.stdout or "{}")
+    except json.JSONDecodeError as exc:
+        raise CommandError("Failed to parse pcluster describe-cluster output.") from exc
+
+    if not isinstance(payload, dict):
+        raise CommandError("pcluster describe-cluster returned non-object JSON.")
+    return payload
+
+
+def _exit_headnode_error(exc: BaseException) -> None:
+    output.error(str(exc))
+    raise typer.Exit(1)
+
+
+def headnode_connect(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Print the Session Manager command without opening a session.",
+    ),
+) -> None:
+    """Open an ubuntu bash login shell on a cluster headnode via Session Manager."""
+
+    from daylily_ec.aws.ssm import SsmError, start_session, wait_for_ssm_online
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        connect_cmd = (
+            "aws ssm start-session "
+            f"--region {resolved_region} "
+            f"--target {target.instance_id} "
+            "--document-name SSM-SessionManagerRunShell"
+        )
+        output.print_text(
+            f"Opening Session Manager session as ubuntu to {target.instance_id} "
+            f"(cluster={resolved_cluster} region={resolved_region} profile={resolved_profile})"
+        )
+        output.print_text(f"Session Manager command: {connect_cmd}")
+        if dry_run:
+            raise typer.Exit(0)
+        raise typer.Exit(
+            start_session(target.instance_id, resolved_region, profile=resolved_profile)
+        )
+    except (CommandError, SsmError, TimeoutError) as exc:
+        _exit_headnode_error(exc)
+
+
+def headnode_info(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+) -> None:
+    """Return the full pcluster describe-cluster payload for a headnode."""
+
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile, resolved_region, resolved_cluster = _resolve_headnode_cli_selection(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        payload = _describe_headnode_cluster(
+            profile=resolved_profile,
+            region=resolved_region,
+            cluster=resolved_cluster,
+        )
+    except CommandError as exc:
+        _exit_headnode_error(exc)
+
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+
+
+def headnode_jobs(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+) -> None:
+    """Print Slurm jobs from the headnode using the Daylily sq format."""
+
+    from daylily_ec.aws.ssm import (
+        SsmCommandFailedError,
+        SsmError,
+        run_shell,
+        wait_for_ssm_online,
+    )
+    from daylily_ec.headnode import SQUEUE_FORMAT
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            "set -euo pipefail\nsqueue -o " + shlex.quote(SQUEUE_FORMAT),
+            profile=resolved_profile,
+            timeout=120,
+            comment="Daylily headnode Slurm jobs",
+        )
+    except SsmCommandFailedError as exc:
+        if exc.result.stderr.strip():
+            typer.echo(exc.result.stderr.rstrip(), err=True)
+        _exit_headnode_error(exc)
+    except (CommandError, SsmError, TimeoutError) as exc:
+        _exit_headnode_error(exc)
+
+    if result.stdout:
+        typer.echo(result.stdout.rstrip())
+    if result.stderr:
+        typer.echo(result.stderr.rstrip(), err=True)
+
+
+def headnode_configure(
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Prompts when omitted.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name. Prompts when omitted.",
+    ),
+    repo_overrides: Optional[Path] = typer.Option(
+        None,
+        "--repo-overrides",
+        help="File containing repo overrides as repo-key:git-ref lines.",
+    ),
+) -> None:
+    """Configure a cluster headnode through the supported SSM bootstrap."""
+
+    from daylily_ec.aws.ssm import SsmError, wait_for_ssm_online
+    from daylily_ec.scripts.common import CommandError
+    from daylily_ec.scripts.daylily_cfg_headnode import _load_repo_overrides
+    from daylily_ec.workflow.create_cluster import configure_headnode
+
+    _warn_if_dayec_env_inactive()
+    try:
+        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        overrides = _load_repo_overrides(str(repo_overrides) if repo_overrides else None)
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        ok = configure_headnode(
+            cluster_name=resolved_cluster,
+            head_node_instance_id=target.instance_id,
+            region=resolved_region,
+            profile=resolved_profile,
+            repo_overrides=overrides or None,
+        )
+        if not ok:
+            raise CommandError(f"Headnode configuration failed for cluster '{resolved_cluster}'.")
+    except (CommandError, SsmError, TimeoutError) as exc:
+        _exit_headnode_error(exc)
+
+    output.success(f"Headnode configured via SSM for cluster '{resolved_cluster}'.")
+
+
+def _invoke_stage_samples(argv: list[str]) -> int:
+    import importlib.util
+
+    script_path = Path(__file__).resolve().parents[1] / "bin" / (
+        "daylily-stage-samples-from-local-to-headnode"
+    )
+    spec_obj = importlib.util.spec_from_file_location(
+        "daylily_ec._stage_samples_from_local_to_headnode",
+        script_path,
+    )
+    if spec_obj is None or spec_obj.loader is None:
+        raise RuntimeError(f"Unable to load staging helper: {script_path}")
+    module = importlib.util.module_from_spec(spec_obj)
+    spec_obj.loader.exec_module(module)
+    return int(module.main(argv))
+
+
+def samples_stage(
+    analysis_samples: Path = typer.Argument(
+        ...,
+        help="Path to analysis_samples.tsv.",
+    ),
+    reference_bucket: str = typer.Option(
+        ...,
+        "--reference-bucket",
+        help="S3 URI mapped to the FSx data repository.",
+    ),
+    config_dir: Optional[Path] = typer.Option(
+        None,
+        "--config-dir",
+        help="Directory for generated samples.tsv and units.tsv.",
+    ),
+    stage_target: str = typer.Option(
+        "/data/staged_sample_data",
+        "--stage-target",
+        help="FSx staging base directory.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Defaults to AWS_REGION/AWS_DEFAULT_REGION.",
+    ),
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        help="Print AWS CLI commands before execution.",
+    ),
+) -> None:
+    """Stage analysis samples and generate workflow manifests."""
+
+    _warn_if_dayec_env_inactive()
+    argv = [
+        str(analysis_samples),
+        "--reference-bucket",
+        reference_bucket,
+        "--stage-target",
+        stage_target,
+    ]
+    if config_dir:
+        argv.extend(["--config-dir", str(config_dir)])
+    if profile:
+        argv.extend(["--profile", profile])
+    if region:
+        argv.extend(["--region", region])
+    if debug:
+        argv.append("--debug")
+
+    try:
+        rc = _invoke_stage_samples(argv)
+    except RuntimeError as exc:
+        _exit_headnode_error(exc)
+    raise typer.Exit(rc)
+
+
+def workflow_launch(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name.",
+    ),
+    stage_dir: Optional[str] = typer.Option(
+        None,
+        "--stage-dir",
+        help="Specific staging directory containing generated manifests.",
+    ),
+    stage_base: str = typer.Option(
+        "/fsx/staged_sample_data",
+        "--stage-base",
+        help="Base staging directory to scan when --stage-dir is omitted.",
+    ),
+    session_name: str = typer.Option(
+        "daylily-omics-analysis",
+        "--session-name",
+        help="Tmux session name.",
+    ),
+    destination: str = typer.Option("dayoa", "--destination", help="day-clone destination."),
+    repository: str = typer.Option(
+        "daylily-omics-analysis",
+        "--repository",
+        help="Repository key to pass to day-clone.",
+    ),
+    project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
+    skip_project_check: bool = typer.Option(
+        True,
+        "--skip-project-check/--strict-project-check",
+        help="Skip or enable upstream project validation in dyoainit.",
+    ),
+    genome: str = typer.Option("hg38", "--genome", help="Genome build."),
+    jobs: int = typer.Option(6, "--jobs", help="Snakemake job count."),
+    aligners: str = typer.Option("bwa2a", "--aligners", help="Comma-separated aligner list."),
+    dedupers: str = typer.Option("dppl", "--dedupers", help="Comma-separated deduper list."),
+    snv_callers: str = typer.Option(
+        "deep",
+        "--snv-callers",
+        help="Comma-separated SNV caller list.",
+    ),
+    target: str = typer.Option(
+        "produce_snv_concordances",
+        "--target",
+        help="Workflow target.",
+    ),
+    dy_command: Optional[str] = typer.Option(
+        None,
+        "--dy-command",
+        help="Override the dy-r command entirely.",
+    ),
+    snakemake_extra: Optional[str] = typer.Option(
+        None,
+        "--snakemake-extra",
+        help="Additional arguments appended to dy-r.",
+    ),
+    no_containerized: bool = typer.Option(
+        False,
+        "--no-containerized",
+        help="Disable DAY_CONTAINERIZED.",
+    ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
+) -> None:
+    """Launch daylily-omics-analysis inside tmux on the headnode."""
+
+    from daylily_ec.scripts.common import CommandError
+    from daylily_ec.scripts.daylily_run_omics_analysis_headnode import main as launch_main
+
+    _warn_if_dayec_env_inactive()
+    argv: list[str] = []
+    for flag, value in (
+        ("--profile", profile),
+        ("--region", region),
+        ("--cluster", cluster),
+        ("--stage-dir", stage_dir),
+        ("--stage-base", stage_base),
+        ("--session-name", session_name),
+        ("--destination", destination),
+        ("--repository", repository),
+        ("--project", project),
+        ("--genome", genome),
+        ("--jobs", str(jobs)),
+        ("--aligners", aligners),
+        ("--dedupers", dedupers),
+        ("--snv-callers", snv_callers),
+        ("--target", target),
+        ("--dy-command", dy_command),
+        ("--snakemake-extra", snakemake_extra),
+    ):
+        if value is not None:
+            argv.extend([flag, value])
+    argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
+    if no_containerized:
+        argv.append("--no-containerized")
+    if dry_run:
+        argv.append("--dry-run")
+
+    try:
+        raise typer.Exit(launch_main(argv))
+    except CommandError as exc:
+        _exit_headnode_error(exc)
+
+
+def _workflow_run_dir(session: Optional[str], run_dir: Optional[str]) -> str:
+    from daylily_ec.scripts.common import CommandError
+
+    if bool(session) == bool(run_dir):
+        raise CommandError("Provide exactly one of --session or --run-dir.")
+    if run_dir:
+        return run_dir.rstrip("/")
+    return f"/home/ubuntu/daylily-runs/{session}"
+
+
+def _read_workflow_file(
+    *,
+    profile: Optional[str],
+    region: Optional[str],
+    cluster: Optional[str],
+    session: Optional[str],
+    run_dir: Optional[str],
+    filename: str,
+    tail_lines: Optional[int] = None,
+):
+    from daylily_ec.aws.ssm import SsmError, run_shell, wait_for_ssm_online
+    from daylily_ec.scripts.common import CommandError
+
+    try:
+        resolved_run_dir = _workflow_run_dir(session, run_dir)
+        resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        file_path = f"{resolved_run_dir}/{filename}"
+        if tail_lines is None:
+            read_command = "cat \"$FILE_PATH\""
+        else:
+            read_command = f"tail -n {max(tail_lines, 1)} \"$FILE_PATH\""
+        script = f"""
+set -euo pipefail
+if [[ "$(id -un)" != "ubuntu" ]]; then
+  echo "__DAYLILY_ERROR__=wrong_user"
+  exit 5
+fi
+FILE_PATH={shlex.quote(file_path)}
+if [[ ! -f "$FILE_PATH" ]]; then
+  echo "__DAYLILY_ERROR__=missing_file:$FILE_PATH"
+  exit 2
+fi
+{read_command}
+"""
+        return run_shell(
+            target.instance_id,
+            resolved_region,
+            script,
+            profile=resolved_profile,
+            timeout=120,
+            comment=f"Read Daylily workflow {filename}",
+        )
+    except (CommandError, SsmError, TimeoutError) as exc:
+        _exit_headnode_error(exc)
+
+
+def workflow_status(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    session: Optional[str] = typer.Option(None, "--session", help="Tmux session/run name."),
+    run_dir: Optional[str] = typer.Option(None, "--run-dir", help="Explicit run directory."),
+) -> None:
+    """Read a workflow status.json file from the headnode."""
+
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    try:
+        result = _read_workflow_file(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            session=session,
+            run_dir=run_dir,
+            filename="status.json",
+        )
+        payload = json.loads(result.stdout or "{}")
+        if not isinstance(payload, dict):
+            raise CommandError("Workflow status file contained non-object JSON.")
+    except (CommandError, json.JSONDecodeError) as exc:
+        _exit_headnode_error(exc)
+
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+
+
+def workflow_logs(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    session: Optional[str] = typer.Option(None, "--session", help="Tmux session/run name."),
+    run_dir: Optional[str] = typer.Option(None, "--run-dir", help="Explicit run directory."),
+    lines: int = typer.Option(200, "--lines", help="Number of tmux log lines to print."),
+) -> None:
+    """Tail a workflow tmux.log file from the headnode."""
+
+    _warn_if_dayec_env_inactive()
+    result = _read_workflow_file(
+        profile=profile,
+        region=region,
+        cluster=cluster,
+        session=session,
+        run_dir=run_dir,
+        filename="tmux.log",
+        tail_lines=lines,
+    )
+    if result.stdout:
+        typer.echo(result.stdout.rstrip())
+    if result.stderr:
+        typer.echo(result.stderr.rstrip(), err=True)
+
+
+def _state_payload(path: Path) -> dict[str, Any]:
+    from daylily_ec.state.store import load_state_record
+
+    record = load_state_record(path)
+    payload = record.model_dump(mode="json")
+    payload["path"] = str(path)
+    return payload
+
+
+def state_list() -> None:
+    """List Daylily state files."""
+
+    from daylily_ec.state.store import config_dir
+
+    state_dir = config_dir()
+    rows: list[dict[str, Any]] = []
+    for path in sorted(state_dir.glob("state_*.json")):
+        try:
+            rows.append(_state_payload(path))
+        except Exception as exc:  # noqa: BLE001
+            rows.append({"path": str(path), "error": str(exc)})
+
+    payload = {"state_dir": str(state_dir), "states": rows}
+    if _json_mode():
+        output.emit_json(payload)
+        return
+
+    if not rows:
+        output.print_text(f"No state files found in {state_dir}.")
+        return
+    output.heading("Daylily state files")
+    header = "%-32s %-16s %-12s %s" % ("CLUSTER_NAME", "RUN_ID", "REGION", "PATH")
+    output.print_text(header)
+    output.print_text("%s %s %s %s" % ("\u2500" * 32, "\u2500" * 16, "\u2500" * 12, "\u2500" * 30))
+    for row in rows:
+        if "error" in row:
+            output.print_text("%-32s %-16s %-12s %s" % ("ERROR", "", "", row["path"]))
+            continue
+        output.print_text(
+            "%-32s %-16s %-12s %s"
+            % (row.get("cluster_name") or "", row.get("run_id") or "", row.get("region") or "", row["path"])
+        )
+
+
+def _latest_state_for_cluster(cluster_name: str) -> dict[str, Any]:
+    from daylily_ec.scripts.common import CommandError
+    from daylily_ec.state.store import config_dir
+
+    matches: list[dict[str, Any]] = []
+    for path in sorted(config_dir().glob("state_*.json")):
+        try:
+            payload = _state_payload(path)
+        except Exception:
+            continue
+        if payload.get("cluster_name") == cluster_name:
+            matches.append(payload)
+    if not matches:
+        raise CommandError(f"No state file found for cluster '{cluster_name}'.")
+    return sorted(matches, key=lambda item: (str(item.get("run_id") or ""), str(item["path"])))[-1]
+
+
+def state_show(
+    state_file: Optional[Path] = typer.Option(
+        None,
+        "--state-file",
+        help="State JSON file to show.",
+    ),
+    cluster_name: Optional[str] = typer.Option(
+        None,
+        "--cluster-name",
+        "--cluster",
+        help="Show the newest state file for this cluster.",
+    ),
+) -> None:
+    """Show one Daylily state record."""
+
+    from daylily_ec.scripts.common import CommandError
+
+    try:
+        if bool(state_file) == bool(cluster_name):
+            raise CommandError("Provide exactly one of --state-file or --cluster-name.")
+        payload = _state_payload(state_file.expanduser().resolve()) if state_file else _latest_state_for_cluster(str(cluster_name))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+
+
 def register(registry, cli_spec) -> None:
     _ = cli_spec
     register_root_command(
@@ -676,9 +1721,50 @@ def register(registry, cli_spec) -> None:
     )
     register_group_commands(
         registry,
+        "cluster",
+        "ParallelCluster inspection helpers.",
+        [
+            ("list", cluster_list, REQUIRED_JSON),
+            ("describe", cluster_describe, REQUIRED_JSON),
+            ("wait", cluster_wait, REQUIRED_LONG_RUNNING),
+        ],
+    )
+    register_group_commands(
+        registry,
         "headnode",
         "Headnode bootstrap and shell-context helpers.",
-        [("init", headnode_init, REQUIRED_MUTATING_INTERACTIVE)],
+        [
+            ("init", headnode_init, REQUIRED_MUTATING_INTERACTIVE),
+            ("connect", headnode_connect, required_policy(interactive=True)),
+            ("info", headnode_info, REQUIRED_JSON),
+            ("jobs", headnode_jobs, required_policy()),
+            ("configure", headnode_configure, REQUIRED_MUTATING_LONG_RUNNING),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "samples",
+        "Sample staging helpers.",
+        [("stage", samples_stage, REQUIRED_MUTATING_LONG_RUNNING)],
+    )
+    register_group_commands(
+        registry,
+        "workflow",
+        "Headnode workflow helpers.",
+        [
+            ("launch", workflow_launch, REQUIRED_MUTATING_LONG_RUNNING),
+            ("status", workflow_status, REQUIRED_JSON),
+            ("logs", workflow_logs, required_policy()),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "state",
+        "Local Daylily state inspection helpers.",
+        [
+            ("list", state_list, EXEMPT_JSON),
+            ("show", state_show, EXEMPT_JSON),
+        ],
     )
 
 

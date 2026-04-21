@@ -22,8 +22,6 @@ HeadNode:
       Args:
         - REGSUB_REGION
         - REGSUB_S3_BUCKET_NAME
-        - REGSUB_XMR_POOL_URL
-        - REGSUB_XMR_WALLET
   Iam:
     S3Access:
       - BucketName: REGSUB_S3_BUCKET_NAME  
@@ -76,8 +74,6 @@ Scheduling:
           Args:
             - REGSUB_REGION
             - REGSUB_S3_BUCKET_NAME
-            - REGSUB_XMR_POOL_URL
-            - REGSUB_XMR_WALLET
       Iam:
         S3Access:
           - BucketName: REGSUB_S3_BUCKET_NAME
@@ -159,8 +155,6 @@ Scheduling:
           Args:
             - REGSUB_REGION
             - REGSUB_S3_BUCKET_NAME
-            - REGSUB_XMR_POOL_URL
-            - REGSUB_XMR_WALLET
       Iam:
         S3Access:
           - BucketName: REGSUB_S3_BUCKET_NAME
@@ -217,8 +211,6 @@ Scheduling:
           Args:
             - REGSUB_REGION
             - REGSUB_S3_BUCKET_NAME
-            - REGSUB_XMR_POOL_URL
-            - REGSUB_XMR_WALLET
       Iam:
         S3Access:
           - BucketName: REGSUB_S3_BUCKET_NAME

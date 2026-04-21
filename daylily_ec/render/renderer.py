@@ -17,8 +17,7 @@ from typing import Dict, FrozenSet, List, Optional, Tuple
 
 # ── constants ────────────────────────────────────────────────────────
 
-#: All 26 substitution keys recognised by the Bash ``REG_SUBSTITUTIONS``
-#: associative array (lines 2396-2426 of the monolith).
+#: All supported substitution keys recognised by the renderer.
 ALL_SUBSTITUTION_KEYS: FrozenSet[str] = frozenset(
     {
         "REGSUB_REGION",
@@ -29,9 +28,6 @@ ALL_SUBSTITUTION_KEYS: FrozenSet[str] = frozenset(
         "REGSUB_S3_IAM_POLICY",
         "REGSUB_PRIVATE_SUBNET",
         "REGSUB_S3_BUCKET_REF",
-        "REGSUB_XMR_MINE",
-        "REGSUB_XMR_POOL_URL",
-        "REGSUB_XMR_WALLET",
         "REGSUB_FSX_SIZE",
         "REGSUB_DETAILED_MONITORING",
         "REGSUB_CLUSTER_NAME",
@@ -184,4 +180,3 @@ def write_init_artifacts(
     init_template.write_text(rendered, encoding="utf-8")
 
     return str(yaml_init), str(init_template)
-

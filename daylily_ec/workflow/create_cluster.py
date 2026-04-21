@@ -90,16 +90,41 @@ def _git_stdout(repo_root: Path, *args: str) -> str:
     return proc.stdout.strip()
 
 
+def _normalize_headnode_repo_url(repo_url: str) -> str:
+    """Return a headnode-safe clone URL for the Daylily control repo."""
+    if repo_url.startswith("git@github.com:"):
+        repo_path = repo_url.removeprefix("git@github.com:")
+        if "/" not in repo_path:
+            raise RuntimeError(f"Unsupported GitHub SSH repository URL: {repo_url}")
+        return f"https://github.com/{repo_path}"
+
+    if repo_url.startswith("ssh://git@github.com/"):
+        repo_path = repo_url.removeprefix("ssh://git@github.com/")
+        if "/" not in repo_path:
+            raise RuntimeError(f"Unsupported GitHub SSH repository URL: {repo_url}")
+        return f"https://github.com/{repo_path}"
+
+    if repo_url.startswith("git@") or repo_url.startswith("ssh://"):
+        raise RuntimeError(
+            "Headnode repository clone requires HTTPS or a supported GitHub SSH remote; "
+            f"got {repo_url}"
+        )
+
+    return repo_url
+
+
 def _resolve_headnode_repo_spec(default_url: str, default_ref: str) -> HeadnodeRepoSpec:
     repo_root_env = _os.environ.get("DAYLILY_EC_REPO_ROOT", "").strip()
     if not repo_root_env:
-        return HeadnodeRepoSpec(url=default_url, ref=default_ref)
+        return HeadnodeRepoSpec(url=_normalize_headnode_repo_url(default_url), ref=default_ref)
 
     repo_root = Path(repo_root_env).expanduser().resolve()
     if not repo_root.exists():
         raise RuntimeError(f"DAYLILY_EC_REPO_ROOT does not exist: {repo_root}")
 
-    repo_url = _git_stdout(repo_root, "config", "--get", "remote.origin.url")
+    repo_url = _normalize_headnode_repo_url(
+        _git_stdout(repo_root, "config", "--get", "remote.origin.url")
+    )
     repo_ref = _git_stdout(repo_root, "symbolic-ref", "--short", "HEAD")
     published = subprocess.run(
         ["git", "-C", str(repo_root), "ls-remote", "--exit-code", "--heads", "origin", repo_ref],
@@ -789,10 +814,6 @@ def run_create_workflow(
         "REGSUB_S3_IAM_POLICY": policy_arn,
         "REGSUB_PRIVATE_SUBNET": private_subnet,
         "REGSUB_S3_BUCKET_REF": bucket_url,
-        "REGSUB_XMR_MINE": "false",
-        # Empty args must render as '""' (YAML empty string) not null.
-        "REGSUB_XMR_POOL_URL": '""',
-        "REGSUB_XMR_WALLET": '""',
         "REGSUB_FSX_SIZE": _resolve_fsx_size(
             cfg, non_interactive=non_interactive,
         ),
@@ -1185,7 +1206,7 @@ def configure_headnode(
         (
             "Clone repository to headnode",
             _build_headnode_repo_sync_command(repo_name, repo_url, repo_ref),
-            120,
+            None,
         ),
         (
             "Install Miniconda",
@@ -1194,7 +1215,7 @@ def configure_headnode(
                 "{ [ -d ~/miniconda3 ] && echo 'miniconda already installed'; } || "
                 "./bin/install_miniconda"
             ),
-            180,
+            None,
         ),
         (
             "Install headnode tools",
@@ -1203,7 +1224,7 @@ def configure_headnode(
                 f"source ~/projects/{repo_name}/activate && "
                 f"./bin/install-daylily-headnode-tools"
             ),
-            120,
+            None,
         ),
     ]
 
@@ -1277,7 +1298,7 @@ def configure_headnode(
                 "day-clone --list >/dev/null'"
             ),
             profile=profile,
-            timeout=120,
+            timeout=None,
             comment="Validate fresh ubuntu login shell",
         )
         logger.info("  ✓ Fresh ubuntu login shell validated")

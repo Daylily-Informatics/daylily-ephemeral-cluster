@@ -6,7 +6,6 @@ import sys
 
 from typer.testing import CliRunner
 
-import daylily_ec
 from daylily_ec import versioning
 from daylily_ec.resources import ensure_extracted
 

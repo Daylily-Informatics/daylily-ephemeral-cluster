@@ -81,9 +81,9 @@ Important:
 Sanity checks after create:
 
 ```bash
-daylily-ec cluster-info --profile "$AWS_PROFILE" --region "$REGION"
+daylily-ec cluster list --profile "$AWS_PROFILE" --region "$REGION"
 
-bin/daylily-ssh-into-headnode \
+daylily-ec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
@@ -107,12 +107,11 @@ Expected:
 ## 5. Stage The Analysis Inputs From The Laptop
 
 ```bash
-bin/daylily-stage-samples-from-local-to-headnode \
+daylily-ec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --reference-bucket "$REF_BUCKET" \
-  --config-dir "$STAGE_CFG_DIR" \
-  "$ANALYSIS_SAMPLES"
+  --config-dir "$STAGE_CFG_DIR"
 ```
 
 This prints:
@@ -134,7 +133,7 @@ You should see one `*_samples.tsv` and one `*_units.tsv`.
 Use the exact remote stage directory printed by the staging helper:
 
 ```bash
-bin/daylily-run-omics-analysis-headnode \
+daylily-ec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
@@ -151,15 +150,18 @@ The launcher prints:
 Sanity checks:
 
 ```bash
-bin/daylily-ssh-into-headnode \
+daylily-ec --json workflow status \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
+  --cluster "$CLUSTER_NAME" \
+  --session <session>
 
-tmux ls
-cat /home/ubuntu/daylily-runs/<session>/status.json
-tail -n 50 /home/ubuntu/daylily-runs/<session>/tmux.log
-exit
+daylily-ec workflow logs \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --session <session> \
+  --lines 50
 ```
 
 ## 7. Export Results
@@ -185,6 +187,11 @@ Expected:
 Delete only after export verification:
 
 ```bash
+daylily-ec delete --dry-run \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME"
+
 daylily-ec delete \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \

@@ -78,9 +78,9 @@ It exercises the supported lifecycle through the actual CLI/helpers:
 
 - `daylily-ec preflight`
 - `daylily-ec create`
-- `bin/daylily-ssh-into-headnode`
-- `bin/daylily-stage-samples-from-local-to-headnode`
-- `bin/daylily-run-omics-analysis-headnode`
+- `daylily-ec headnode connect`
+- `daylily-ec samples stage`
+- `daylily-ec workflow launch`
 - `daylily-ec export`
 - optionally `daylily-ec delete`
 
@@ -168,7 +168,7 @@ session-manager-plugin
 Try:
 
 ```bash
-bin/daylily-cfg-headnode \
+daylily-ec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
@@ -186,9 +186,9 @@ command -v day-clone
 Inspect on the headnode:
 
 ```bash
-tmux ls
-cat /home/ubuntu/daylily-runs/<session>/status.json
-tail -n 100 /home/ubuntu/daylily-runs/<session>/tmux.log
+daylily-ec headnode jobs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+daylily-ec --json workflow status --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session>
+daylily-ec workflow logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session> --lines 100
 ```
 
 ### Export failures
@@ -208,8 +208,8 @@ When the failure is ambiguous, use this order:
 1. `source ./activate`
 2. `daylily-ec runtime status`
 3. `daylily-ec preflight --debug ...`
-4. `daylily-ec cluster-info ...`
-5. `bin/daylily-ssh-into-headnode ...`
+4. `daylily-ec cluster list ...`
+5. `daylily-ec headnode connect ...`
 6. inspect `/home/ubuntu/daylily-runs/<session>/`
 
 That sequence is usually faster than jumping directly into AWS console tabs.

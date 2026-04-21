@@ -88,7 +88,7 @@ The current code accepts a login-shell setup when `shellProfile.linux` clearly l
 - sourcing `.bash_profile`
 - invoking the managed Daylily headnode bootstrap shell path
 
-If this document is missing or misconfigured, `bin/daylily-ssh-into-headnode` and other supported SSM flows will fail on purpose.
+If this document is missing or misconfigured, `daylily-ec headnode connect` and other supported SSM flows will fail on purpose.
 
 ## 6. Region, Availability Zone, And Bucket Alignment
 

@@ -35,19 +35,18 @@ daylily-ec create \
   --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG"
 
-bin/daylily-ssh-into-headnode \
+daylily-ec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
 
-bin/daylily-stage-samples-from-local-to-headnode \
+daylily-ec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --reference-bucket "$REF_BUCKET" \
-  --config-dir "$STAGE_CFG_DIR" \
-  "$ANALYSIS_SAMPLES"
+  --config-dir "$STAGE_CFG_DIR"
 
-bin/daylily-run-omics-analysis-headnode \
+daylily-ec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
@@ -66,12 +65,17 @@ daylily-ec export \
 
 - `daylily-ec info`
 - `daylily-ec runtime status`
-- `daylily-ec cluster-info --profile "$AWS_PROFILE" --region "$REGION"`
+- `daylily-ec cluster list --profile "$AWS_PROFILE" --region "$REGION"`
 - `cat "$EXPORT_DIR/fsx_export.yaml"`
 
 ## Delete Only After Export Verification
 
 ```bash
+daylily-ec delete --dry-run \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME"
+
 daylily-ec delete \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \

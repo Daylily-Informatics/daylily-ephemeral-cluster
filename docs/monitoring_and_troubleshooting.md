@@ -21,7 +21,7 @@ If the local runtime is broken, fix that first.
 Use both the Daylily view and the ParallelCluster view:
 
 ```bash
-daylily-ec cluster-info --profile "$AWS_PROFILE" --region "$REGION"
+daylily-ec cluster list --profile "$AWS_PROFILE" --region "$REGION"
 pcluster describe-cluster --region "$REGION" -n "$CLUSTER_NAME"
 ```
 
@@ -64,7 +64,7 @@ Expected:
 When the login shell is incomplete:
 
 ```bash
-bin/daylily-cfg-headnode \
+daylily-ec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
@@ -91,8 +91,18 @@ The current launcher creates a durable run directory on the headnode:
 Inspect it:
 
 ```bash
-cat /home/ubuntu/daylily-runs/<session>/status.json
-tail -n 100 /home/ubuntu/daylily-runs/<session>/tmux.log
+daylily-ec --json workflow status \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --session <session>
+
+daylily-ec workflow logs \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --session <session> \
+  --lines 100
 ```
 
 Attach if needed:
@@ -114,12 +124,11 @@ sacct | tail -n 20
 If workflow launch cannot find manifests or staged data, rerun staging and pay attention to the printed remote stage directory:
 
 ```bash
-bin/daylily-stage-samples-from-local-to-headnode \
+daylily-ec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --reference-bucket "$REF_BUCKET" \
-  --config-dir "$STAGE_CFG_DIR" \
-  "$ANALYSIS_SAMPLES"
+  --config-dir "$STAGE_CFG_DIR"
 ```
 
 Local manifest checks:
@@ -163,6 +172,11 @@ Before delete:
 Delete:
 
 ```bash
+daylily-ec delete --dry-run \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster-name "$CLUSTER_NAME"
+
 daylily-ec delete \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
@@ -172,7 +186,7 @@ daylily-ec delete \
 After delete, confirm:
 
 ```bash
-daylily-ec cluster-info --profile "$AWS_PROFILE" --region "$REGION"
+daylily-ec cluster list --profile "$AWS_PROFILE" --region "$REGION"
 ```
 
 If the cluster is still present, inspect the ParallelCluster side directly:
@@ -187,7 +201,7 @@ Use the following escalation order:
 
 1. local runtime checks
 2. preflight with `--debug`
-3. cluster-info plus `pcluster describe-cluster`
+3. `daylily-ec cluster list` plus `pcluster describe-cluster`
 4. Session Manager document verification
 5. headnode run-state inspection under `/home/ubuntu/daylily-runs/`
 6. export receipt inspection

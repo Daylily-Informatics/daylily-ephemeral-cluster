@@ -42,7 +42,7 @@ def _full_subs() -> dict[str, str]:
 
 class TestConstants:
     def test_all_keys_count(self):
-        assert len(ALL_SUBSTITUTION_KEYS) == 29
+        assert len(ALL_SUBSTITUTION_KEYS) == 26
 
     def test_required_keys_subset(self):
         assert REQUIRED_KEYS.issubset(ALL_SUBSTITUTION_KEYS)
@@ -141,8 +141,7 @@ class TestAllSubstitutionKeys:
             "REGSUB_REGION", "REGSUB_PUB_SUBNET", "REGSUB_KEYNAME",
             "REGSUB_S3_BUCKET_INIT", "REGSUB_S3_BUCKET_NAME",
             "REGSUB_S3_IAM_POLICY", "REGSUB_PRIVATE_SUBNET",
-            "REGSUB_S3_BUCKET_REF", "REGSUB_XMR_MINE",
-            "REGSUB_XMR_POOL_URL", "REGSUB_XMR_WALLET",
+            "REGSUB_S3_BUCKET_REF",
             "REGSUB_FSX_SIZE", "REGSUB_DETAILED_MONITORING",
             "REGSUB_CLUSTER_NAME", "REGSUB_USERNAME", "REGSUB_PROJECT",
             "REGSUB_DELETE_LOCAL_ROOT", "REGSUB_SAVE_FSX",
@@ -240,4 +239,3 @@ class TestWriteInitArtifacts:
             "c", "ts", str(tpl), MINIMAL_SUBS, config_dir=d2,
         )
         assert Path(p1).read_bytes() == Path(p2).read_bytes()
-
