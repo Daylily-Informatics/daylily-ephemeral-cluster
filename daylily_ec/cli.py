@@ -1502,6 +1502,11 @@ def workflow_launch(
         "--snv-callers",
         help="Comma-separated SNV caller list.",
     ),
+    sv_callers: str = typer.Option(
+        "",
+        "--sv-callers",
+        help="Comma-separated SV caller list.",
+    ),
     target: str = typer.Option(
         "produce_snv_concordances",
         "--target",
@@ -1546,6 +1551,7 @@ def workflow_launch(
         ("--aligners", aligners),
         ("--dedupers", dedupers),
         ("--snv-callers", snv_callers),
+        ("--sv-callers", sv_callers),
         ("--target", target),
         ("--dy-command", dy_command),
         ("--snakemake-extra", snakemake_extra),
@@ -1561,6 +1567,59 @@ def workflow_launch(
     try:
         raise typer.Exit(launch_main(argv))
     except CommandError as exc:
+        _exit_headnode_error(exc)
+
+
+def repositories_commands(
+    config: Optional[Path] = typer.Option(
+        None,
+        "--config",
+        help="Path to daylily_available_repositories.yaml.",
+    ),
+    repository: Optional[str] = typer.Option(
+        None,
+        "--repository",
+        help="Limit output to one repository key.",
+    ),
+    command_id: Optional[str] = typer.Option(
+        None,
+        "--command-id",
+        help="Limit output to one analysis command id.",
+    ),
+) -> None:
+    """List blessed analysis command profiles from the repository catalog."""
+
+    from daylily_ec.repositories import load_repository_catalog
+    from daylily_ec.scripts.common import CommandError
+
+    try:
+        catalog = load_repository_catalog(config)
+        payload = catalog.to_public_payload()
+        if repository:
+            repo_key = repository.strip()
+            repositories = payload["repositories"]
+            if not isinstance(repositories, dict) or repo_key not in repositories:
+                raise CommandError(f"Unknown repository: {repo_key}")
+            payload["repositories"] = {repo_key: repositories[repo_key]}
+            payload["commands"] = [
+                command
+                for command in payload["commands"]
+                if isinstance(command, dict) and command.get("repository") == repo_key
+            ]
+        if command_id:
+            command_key = command_id.strip()
+            payload["commands"] = [
+                command
+                for command in payload["commands"]
+                if isinstance(command, dict) and command.get("command_id") == command_key
+            ]
+            if not payload["commands"]:
+                raise CommandError(f"Unknown analysis command: {command_key}")
+        if _json_mode():
+            output.emit_json(payload)
+            return
+        typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+    except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
 
@@ -1867,6 +1926,12 @@ def register(registry, cli_spec) -> None:
             ("status", workflow_status, REQUIRED_JSON),
             ("logs", workflow_logs, required_policy()),
         ],
+    )
+    register_group_commands(
+        registry,
+        "repositories",
+        "Repository catalog and blessed analysis command helpers.",
+        [("commands", repositories_commands, EXEMPT_JSON)],
     )
     register_group_commands(
         registry,

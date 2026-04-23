@@ -1,4 +1,5 @@
 ---
+command_catalog_version: 1
 default_repository: daylily-omics-analysis
 repositories:
   daylily-omics-analysis:
@@ -8,6 +9,35 @@ repositories:
     ssh_url: git@github.com:Daylily-Informatics/daylily-omics-analysis.git
     default_ref: 0.7.700
     relative_path: daylily-omics-analysis
+    analysis_commands:
+      - command_id: illumina_snv_alignstats
+        display_name: "Illumina SNV + Alignstats"
+        description: "Blessed Illumina WGS SNV concordance and alignment-statistics launch profile."
+        datasource: Illumina
+        launcher: workflow_launch
+        targets:
+          - produce_alignstats
+          - produce_snv_concordances
+        genome: hg38
+        jobs: 10
+        aligners:
+          - bwa2a
+        dedupers:
+          - dppl
+        snv_callers:
+          - sentd
+          - deep19
+        sv_callers: []
+        destination: dayoa
+        no_containerized: false
+        optional_features:
+          tiddit:
+            display_name: "Tiddit SV calling"
+            description: "Add Tiddit structural-variant calling to the launch."
+            targets:
+              - produce_tiddit
+            sv_callers:
+              - tiddit
   rna-seq-star-deseq2:
     display_name: "RNA-seq STAR + DESeq2"
     description: "RNA sequencing alignment and differential expression analysis workflows."
@@ -15,6 +45,7 @@ repositories:
     ssh_url: git@github.com:Daylily-Informatics/rna-seq-star-deseq2.git
     default_ref: main
     relative_path: rna-seq-star-deseq2
+    analysis_commands: []
   daylily-sarek:
     display_name: "daylily-sarek"
     description: "sarek nf-core analysis workflows."
@@ -22,3 +53,4 @@ repositories:
     ssh_url: git@github.com:iamh2o/sarek.git
     default_ref: 0.0.4d
     relative_path: sarek
+    analysis_commands: []

@@ -107,8 +107,9 @@ def load_available_repos() -> Tuple[str, Dict[str, Dict[str, Any]]]:
         )
     default_repo = config.get("default_repository")
     if not default_repo:
-        # Fall back to the first repository key for backwards compatibility.
-        default_repo = next(iter(repositories.keys()))
+        raise ConfigError(
+            f"Missing default_repository in {AVAILABLE_REPOS_PATH}."
+        )
     return default_repo, repositories
 
 

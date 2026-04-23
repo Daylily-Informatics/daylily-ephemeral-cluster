@@ -158,6 +158,7 @@ def build_default_command(
     aligners: List[str],
     dedupers: List[str],
     snv_callers: List[str],
+    sv_callers: List[str],
     containerized: bool,
     dry_run: bool,
     extra: Optional[str],
@@ -168,6 +169,8 @@ def build_default_command(
         f"dedupers={format_list(dedupers)}",
         f"snv_callers={format_list(snv_callers)}",
     ]
+    if sv_callers:
+        config_args.append(f"sv_callers={format_list(sv_callers)}")
     command = [
         "DAY_CONTAINERIZED=true" if containerized else "DAY_CONTAINERIZED=false",
         "bin/day_run",
@@ -234,6 +237,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--aligners", default="bwa2a")
     parser.add_argument("--dedupers", default="dppl")
     parser.add_argument("--snv-callers", default="deep")
+    parser.add_argument("--sv-callers", default="")
     parser.add_argument("--target", default="produce_snv_concordances")
     parser.add_argument("--dy-command", help="Override the dy-r command entirely")
     parser.add_argument("--snakemake-extra", help="Additional arguments appended to dy-r")
@@ -279,6 +283,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             aligners=args.aligners.split(","),
             dedupers=args.dedupers.split(","),
             snv_callers=args.snv_callers.split(","),
+            sv_callers=[value for value in args.sv_callers.split(",") if value],
             containerized=not args.no_containerized,
             dry_run=args.dry_run,
             extra=args.snakemake_extra,

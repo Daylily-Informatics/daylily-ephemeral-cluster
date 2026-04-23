@@ -124,6 +124,25 @@ def test_day_clone_ssh_transport_requires_ssh_url(monkeypatch, tmp_path, capsys)
     assert "does not define a ssh_url" in capsys.readouterr().err
 
 
+def test_day_clone_requires_explicit_default_repository(monkeypatch, tmp_path, capsys):
+    module = _load_day_clone()
+    global_config, available_repos, _clone_root = _write_configs(tmp_path)
+    available_repos.write_text(
+        "repositories:\n"
+        "  test-repo:\n"
+        "    https_url: https://github.com/Daylily-Informatics/test-repo.git\n"
+        "    default_ref: main\n"
+        "    relative_path: test-repo\n",
+        encoding="utf-8",
+    )
+    _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
+
+    rc = module.main(["--destination", "analysis"])
+
+    assert rc == 2
+    assert "Missing default_repository" in capsys.readouterr().err
+
+
 def test_packaged_day_clone_matches_source_day_clone():
     source = REPO_ROOT / "bin" / "headnode_utils" / "day-clone"
     packaged = REPO_ROOT / "daylily_ec" / "resources" / "payload" / "bin" / "headnode_utils" / "day-clone"

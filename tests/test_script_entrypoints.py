@@ -146,6 +146,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             aligners=["bwa2a", "strobe"],
             dedupers=["dppl"],
             snv_callers=["deep"],
+            sv_callers=["tiddit"],
             containerized=False,
             dry_run=True,
             extra="--rerun-incomplete",
@@ -154,6 +155,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "DAY_CONTAINERIZED=false" in command
         assert "bin/day_run" in command
         assert "aligners=['bwa2a','strobe']" in command
+        assert "sv_callers=['tiddit']" in command
         assert "-j 8" in command
         assert "-n" in command
         assert "--rerun-incomplete" in command

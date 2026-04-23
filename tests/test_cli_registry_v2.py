@@ -51,6 +51,7 @@ EXPECTED_COMMANDS = {
     ("workflow", "launch"),
     ("workflow", "status"),
     ("workflow", "logs"),
+    ("repositories", "commands"),
     ("state", "list"),
     ("state", "show"),
 }
@@ -126,6 +127,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     workflow_launch_cmd = registry.get_command(("workflow", "launch"))
     workflow_status_cmd = registry.get_command(("workflow", "status"))
     workflow_logs_cmd = registry.get_command(("workflow", "logs"))
+    repositories_commands_cmd = registry.get_command(("repositories", "commands"))
     state_list_cmd = registry.get_command(("state", "list"))
     state_show_cmd = registry.get_command(("state", "show"))
     pricing_snapshot_cmd = registry.get_command(("pricing", "snapshot"))
@@ -220,6 +222,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
 
     assert workflow_logs_cmd is not None
     assert workflow_logs_cmd.policy.mutates_state is False
+
+    assert repositories_commands_cmd is not None
+    assert repositories_commands_cmd.policy.supports_json is True
+    assert repositories_commands_cmd.policy.runtime_guard == "exempt"
 
     assert state_list_cmd is not None
     assert state_list_cmd.policy.supports_json is True
@@ -1083,6 +1089,8 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "/fsx/stage/run-1",
             "--session-name",
             "sess-1",
+            "--sv-callers",
+            "tiddit",
             "--strict-project-check",
             "--dry-run",
         ],
@@ -1098,6 +1106,8 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "/fsx/stage/run-1" in argv
     assert "--session-name" in argv
     assert "sess-1" in argv
+    assert "--sv-callers" in argv
+    assert "tiddit" in argv
     assert "--strict-project-check" in argv
     assert "--dry-run" in argv
 
