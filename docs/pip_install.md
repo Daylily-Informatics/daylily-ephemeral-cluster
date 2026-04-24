@@ -15,6 +15,7 @@ This document covers the other path: installing the Python package directly.
 `pyproject.toml` is the Python dependency source of truth. A pip install gives you:
 
 - `daylily-ec`
+- `dyec`, a shorter alias for the same CLI entrypoint
 - the package runtime dependencies
 - `aws-parallelcluster`, which provides `pcluster`
 
@@ -48,6 +49,7 @@ python -m venv .venv
 python -m pip install --upgrade pip
 python -m pip install --editable "."
 daylily-ec version
+dyec version
 pcluster version
 ```
 

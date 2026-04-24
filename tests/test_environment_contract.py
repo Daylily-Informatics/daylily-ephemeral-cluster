@@ -141,6 +141,14 @@ def test_pyproject_declares_expected_runtime_python_dependencies() -> None:
     assert "optional-dependencies" not in project["project"]
 
 
+def test_pyproject_declares_cli_entrypoints() -> None:
+    project = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
+    scripts = project["project"]["scripts"]
+
+    assert scripts["daylily-ec"] == "daylily_ec.cli:main"
+    assert scripts["dyec"] == "daylily_ec.cli:main"
+
+
 def test_legacy_day_env_surfaces_are_not_active() -> None:
     banned_patterns = (
         r"config/day/daycli\.yaml",
@@ -154,7 +162,9 @@ def test_legacy_day_env_surfaces_are_not_active() -> None:
             if any(re.search(pattern, line) for pattern in banned_patterns):
                 failures.append(f"{path.relative_to(REPO_ROOT)}:{lineno}: {line.strip()}")
 
-    assert not failures, "Active files still reference retired env surfaces:\n" + "\n".join(failures)
+    assert not failures, "Active files still reference retired env surfaces:\n" + "\n".join(
+        failures
+    )
 
 
 def test_legacy_day_env_assets_are_archived_or_quarantined() -> None:
@@ -162,15 +172,34 @@ def test_legacy_day_env_assets_are_archived_or_quarantined() -> None:
     assert not (REPO_ROOT / "config" / "day" / "day.yaml").exists()
     assert not (REPO_ROOT / "config" / "day" / "day_env_installer.sh").exists()
     assert not (REPO_ROOT / "config" / "day" / "conda_base.yaml").exists()
-    assert not (REPO_ROOT / "daylily_ec" / "resources" / "payload" / "config" / "day" / "day.yaml").exists()
-    assert not (REPO_ROOT / "daylily_ec" / "resources" / "payload" / "config" / "day" / "day_env_installer.sh").exists()
-    assert not (REPO_ROOT / "daylily_ec" / "resources" / "payload" / "config" / "day" / "conda_base.yaml").exists()
+    assert not (
+        REPO_ROOT / "daylily_ec" / "resources" / "payload" / "config" / "day" / "day.yaml"
+    ).exists()
+    assert not (
+        REPO_ROOT
+        / "daylily_ec"
+        / "resources"
+        / "payload"
+        / "config"
+        / "day"
+        / "day_env_installer.sh"
+    ).exists()
+    assert not (
+        REPO_ROOT / "daylily_ec" / "resources" / "payload" / "config" / "day" / "conda_base.yaml"
+    ).exists()
 
     assert (REPO_ROOT / "docs" / "archive" / "legacy-dayoa-env" / "day.yaml").is_file()
     assert (REPO_ROOT / "docs" / "archive" / "legacy-dayoa-env" / "day_env_installer.sh").is_file()
     assert (REPO_ROOT / "docs" / "archive" / "legacy-dayoa-env" / "conda_base.yaml").is_file()
     assert (
-        REPO_ROOT / "daylily_ec" / "resources" / "payload" / "quarantine" / "config" / "day" / "day.yaml"
+        REPO_ROOT
+        / "daylily_ec"
+        / "resources"
+        / "payload"
+        / "quarantine"
+        / "config"
+        / "day"
+        / "day.yaml"
     ).is_file()
     assert (
         REPO_ROOT
@@ -222,6 +251,10 @@ def test_tracked_files_do_not_reintroduce_retired_miner_support() -> None:
         for lineno, line in enumerate(text.splitlines(), start=1):
             for pattern in RETIRED_MINER_PATTERNS:
                 if re.search(pattern, line, flags=re.IGNORECASE):
-                    failures.append(f"{rel_path}:{lineno}: contains retired miner marker {pattern!r}")
+                    failures.append(
+                        f"{rel_path}:{lineno}: contains retired miner marker {pattern!r}"
+                    )
 
-    assert not failures, "Tracked files still contain retired miner support:\n" + "\n".join(failures)
+    assert not failures, "Tracked files still contain retired miner support:\n" + "\n".join(
+        failures
+    )

@@ -102,7 +102,7 @@ daylily-ec delete \
 
 ## Architecture At A Glance
 
-1. `daylily-ec` is the control-plane CLI. It handles preflight, create, cluster inspection, export, delete, environment introspection, runtime checks, and pricing snapshots.
+1. `daylily-ec` is the control-plane CLI, with `dyec` installed as a shorter alias for the same entrypoint. It handles preflight, create, cluster inspection, export, delete, environment introspection, runtime checks, and pricing snapshots.
 2. The create flow renders the cluster configuration, calls ParallelCluster, then runs Daylily headnode configuration over Session Manager.
 3. The durable data plane is the S3 bucket plus the FSx for Lustre filesystem attached to the cluster. Laptop-side staging writes into the bucket-backed FSx namespace.
 4. The supported connect path is `daylily-ec headnode connect`, which opens Session Manager into the `ubuntu` login shell.
@@ -136,7 +136,7 @@ At minimum, the operator account needs:
 Local toolchain for the supported path:
 
 - Conda
-- `daylily-ec`
+- `daylily-ec` or its short alias `dyec`
 - `aws`
 - `pcluster`
 - `session-manager-plugin`

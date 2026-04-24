@@ -44,6 +44,7 @@ dependencies = [
 
 [project.scripts]
 daylily-ec = "daylily_ec.cli:main"
+dyec = "daylily_ec.cli:main"
 
 [tool.setuptools_scm]
 version_scheme = "guess-next-dev"

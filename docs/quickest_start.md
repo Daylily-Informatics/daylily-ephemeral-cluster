@@ -18,6 +18,7 @@ session-manager-plugin
 Expected:
 
 - `daylily-ec` resolves successfully
+- `dyec` resolves successfully as the short alias for the same CLI
 - runtime backend is `day-ec-conda`
 - `aws`, `pcluster`, and `session-manager-plugin` are available in the shell
 
