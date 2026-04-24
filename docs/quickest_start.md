@@ -120,6 +120,12 @@ This prints:
 - the staged file list
 - the generated manifest filenames
 
+Manifest notes:
+
+- start from `etc/analysis_samples_template.tsv`
+- legacy Illumina rows still work with `R1_FQ` / `R2_FQ`
+- ONT, Ultima, PacBio, Roche, and hybrid rows use the modality-specific columns on the same TSV header
+
 Sanity checks:
 
 ```bash

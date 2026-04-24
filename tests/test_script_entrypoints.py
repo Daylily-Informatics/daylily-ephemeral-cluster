@@ -15,7 +15,6 @@ import daylily_ec.scripts.daylily_ssh_into_headnode as ssh_headnode_module
 
 
 class TestSshIntoHeadnodeScript:
-
     @patch("daylily_ec.scripts.daylily_ssh_into_headnode.start_session")
     @patch("daylily_ec.scripts.daylily_ssh_into_headnode.wait_for_ssm_online")
     @patch(
@@ -41,7 +40,10 @@ class TestSshIntoHeadnodeScript:
         mock_start.assert_not_called()
         out = capsys.readouterr().out
         assert "Opening Session Manager session as ubuntu to i-abc123" in out
-        assert "Session Manager command: aws ssm start-session --region us-west-2 --target i-abc123 --document-name SSM-SessionManagerRunShell" in out
+        assert (
+            "Session Manager command: aws ssm start-session --region us-west-2 --target i-abc123 --document-name SSM-SessionManagerRunShell"
+            in out
+        )
 
     def test_requires_profile(self, monkeypatch):
         monkeypatch.delenv("AWS_PROFILE", raising=False)
@@ -72,14 +74,21 @@ class TestSshIntoHeadnodeScript:
 
         assert rc == 17
         mock_wait.assert_called_once_with("i-abc123", "us-west-2", profile="dev", timeout=120)
-        mock_start.assert_called_once_with("i-abc123", "us-west-2", profile="dev")
+        mock_start.assert_called_once_with(
+            "i-abc123",
+            "us-west-2",
+            profile="dev",
+            replace_process=True,
+        )
         out = capsys.readouterr().out
         assert "Opening Session Manager session as ubuntu to i-abc123" in out
         assert "sudo -iu ubuntu" not in out
 
     @patch(
         "daylily_ec.scripts.daylily_ssh_into_headnode.start_session",
-        side_effect=SsmError("Session Manager must be configured to run shell sessions as ubuntu via SSM-SessionManagerRunShell."),
+        side_effect=SsmError(
+            "Session Manager must be configured to run shell sessions as ubuntu via SSM-SessionManagerRunShell."
+        ),
     )
     @patch("daylily_ec.scripts.daylily_ssh_into_headnode.wait_for_ssm_online")
     @patch(
@@ -239,7 +248,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'work_script="$run_dir/launch.sh"' in script
         assert 'tmux_log="$run_dir/tmux.log"' in script
         assert 'STATUS_FILE="${DAYLILY_RUN_DIR}/status.json"' in script
-        assert 'python3 -c ' in script
+        assert "python3 -c " in script
         assert "nohup tmux new-session" in script
         assert "tmux has-session" in script
         assert 'repo_key = "daylily-omics-analysis"' in script
@@ -250,12 +259,12 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "__DAYLILY_ERROR__=destination_exists_without_repo" in script
         assert 'if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then' in script
         assert '. "$HOME/miniconda3/etc/profile.d/conda.sh"' in script
-        assert 'unset PROJECT || true' in script
-        assert 'dyoa_args+=(--skip-project-check)' in script
+        assert "unset PROJECT || true" in script
+        assert "dyoa_args+=(--skip-project-check)" in script
         assert "set +u" in script
         assert "set -u" in script
-        assert 'activate_status=$?' in script
-        assert 'set +u\n. bin/day_activate slurm hg38 remote\nactivate_status=$?\nset -u' in script
+        assert "activate_status=$?" in script
+        assert "set +u\n. bin/day_activate slurm hg38 remote\nactivate_status=$?\nset -u" in script
         assert 'echo "[ERROR] day_activate failed with status $activate_status"' in script
         assert ". bin/day_activate slurm hg38 remote" in script
         assert "bin/day_run" in script
@@ -263,8 +272,12 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert '--which-one "$TRANSPORT"' not in script
         out = capsys.readouterr().out
         assert "Run state directory: /home/ubuntu/daylily-runs/sess-1" in out
-        assert "Workflow repo path: /fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis" in out
-        assert "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in out
+        assert (
+            "Workflow repo path: /fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis" in out
+        )
+        assert (
+            "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in out
+        )
         assert "Then run: tmux attach -t sess-1" in out
 
     @patch(
@@ -311,10 +324,7 @@ class TestCfgHeadnodeScript:
     def test_load_repo_overrides_parses_file(self, tmp_path):
         override_file = tmp_path / "repos.txt"
         override_file.write_text(
-            "# comment\n"
-            "daylily-omics-analysis:release-1\n"
-            "invalid-line\n"
-            "rna-seq-star-deseq2:main\n",
+            "# comment\ndaylily-omics-analysis:release-1\ninvalid-line\nrna-seq-star-deseq2:main\n",
             encoding="utf-8",
         )
 
@@ -435,7 +445,10 @@ class TestRemoteTestsScript:
         rc = remote_tests_module.main(["--profile", "dev", "--no-launch"])
 
         assert rc == 0
-        assert "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in capsys.readouterr().out
+        assert (
+            "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a"
+            in capsys.readouterr().out
+        )
 
     @patch(
         "daylily_ec.scripts.daylily_run_ephemeral_cluster_remote_tests.run_shell",

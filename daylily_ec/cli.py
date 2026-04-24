@@ -278,7 +278,9 @@ def _cluster_headnode_config_status(
     except SsmCommandFailedError as exc:
         row["headnode_configured"] = False
         row["headnode_configured_text"] = "NO"
-        row["headnode_config_error"] = exc.result.stderr.strip() or exc.result.stdout.strip() or str(exc)
+        row["headnode_config_error"] = (
+            exc.result.stderr.strip() or exc.result.stdout.strip() or str(exc)
+        )
         return
     except (SsmError, TimeoutError, RuntimeError) as exc:
         row["headnode_configured"] = False
@@ -297,6 +299,7 @@ def _cluster_rows_from_list(
     profile: str,
     region: str,
     details: bool,
+    verbose: bool,
 ) -> list[dict[str, Any]]:
     clusters = payload.get("clusters", [])
     if not isinstance(clusters, list):
@@ -313,8 +316,16 @@ def _cluster_rows_from_list(
             name,
             _describe_cluster_payload(profile=profile, region=region, cluster=name),
         )
-        _cluster_headnode_config_status(row, profile=profile, region=region)
-        if not details:
+        row["region"] = region
+        if verbose or details:
+            _cluster_headnode_config_status(row, profile=profile, region=region)
+        else:
+            row = {
+                "name": row["name"],
+                "region": row["region"],
+                "ip": row["ip"],
+            }
+        if verbose and not details:
             row.pop("details", None)
         rows.append(row)
     return rows
@@ -340,81 +351,118 @@ def _describe_cluster_payload(
     )
 
 
-def _emit_cluster_table(region: str, rows: list[dict[str, Any]], *, include_instance: bool) -> None:
+def _emit_cluster_table(
+    regions: list[str],
+    rows: list[dict[str, Any]],
+    *,
+    verbose: bool,
+    include_instance: bool,
+) -> None:
+    region_label = ", ".join(regions)
     if not rows:
-        output.print_text(f"No clusters found in {region}.")
+        output.print_text(f"No clusters found in {region_label}.")
         return
-    output.heading("Clusters in %s" % region)
-    if include_instance:
-        header = "%-30s %-20s %-19s %-28s %-28s %-28s %-15s %-20s" % (
+    output.heading("Clusters in %s" % region_label)
+    if not verbose and not include_instance:
+        header = "%-30s %-15s %-15s" % (
             "CLUSTER_NAME",
+            "REGION",
+            "PUBLIC_IP",
+        )
+        sep = "%s %s %s" % (
+            "\u2500" * 30,
+            "\u2500" * 15,
+            "\u2500" * 15,
+        )
+        output.print_text(header)
+        output.print_text(sep)
+        for row in rows:
+            output.print_text(
+                "%-30s %-15s %-15s"
+                % (
+                    row["name"],
+                    row["region"],
+                    row["ip"],
+                )
+            )
+        return
+
+    if include_instance:
+        header = "%-30s %-15s %-15s %-20s %-19s %-28s %-28s %-28s %-20s" % (
+            "CLUSTER_NAME",
+            "REGION",
+            "PUBLIC_IP",
             "STATUS",
             "HEADNODE_CONFIGURED",
             "CREATED_AT",
             "UPDATED_AT",
             "HEADNODE_LAUNCHED_AT",
-            "PUBLIC_IP",
             "INSTANCE_ID",
         )
-        sep = "%s %s %s %s %s %s %s %s" % (
+        sep = "%s %s %s %s %s %s %s %s %s" % (
             "\u2500" * 30,
+            "\u2500" * 15,
+            "\u2500" * 15,
             "\u2500" * 20,
             "\u2500" * 19,
             "\u2500" * 28,
             "\u2500" * 28,
             "\u2500" * 28,
-            "\u2500" * 15,
             "\u2500" * 20,
         )
         output.print_text(header)
         output.print_text(sep)
         for row in rows:
             output.print_text(
-                "%-30s %-20s %-19s %-28s %-28s %-28s %-15s %-20s"
+                "%-30s %-15s %-15s %-20s %-19s %-28s %-28s %-28s %-20s"
                 % (
                     row["name"],
+                    row["region"],
+                    row["ip"],
                     row["status"],
                     row["headnode_configured_text"],
                     row["created_at"],
                     row["updated_at"],
                     row["headnode_launched_at"],
-                    row["ip"],
                     row.get("instance_id") or "",
                 )
             )
         return
 
-    header = "%-30s %-20s %-19s %-28s %-28s %-28s %-15s" % (
+    header = "%-30s %-15s %-15s %-20s %-19s %-28s %-28s %-28s" % (
         "CLUSTER_NAME",
+        "REGION",
+        "PUBLIC_IP",
         "STATUS",
         "HEADNODE_CONFIGURED",
         "CREATED_AT",
         "UPDATED_AT",
         "HEADNODE_LAUNCHED_AT",
-        "PUBLIC_IP",
     )
-    sep = "%s %s %s %s %s %s %s" % (
+    sep = "%s %s %s %s %s %s %s %s" % (
         "\u2500" * 30,
+        "\u2500" * 15,
+        "\u2500" * 15,
         "\u2500" * 20,
         "\u2500" * 19,
         "\u2500" * 28,
         "\u2500" * 28,
         "\u2500" * 28,
-        "\u2500" * 15,
     )
     output.print_text(header)
     output.print_text(sep)
     for row in rows:
         output.print_text(
-            "%-30s %-20s %-19s %-28s %-28s %-28s %-15s"
+            "%-30s %-15s %-15s %-20s %-19s %-28s %-28s %-28s"
             % (
                 row["name"],
+                row["region"],
+                row["ip"],
                 row["status"],
                 row["headnode_configured_text"],
                 row["created_at"],
                 row["updated_at"],
                 row["headnode_launched_at"],
-                row["ip"],
             )
         )
 
@@ -697,49 +745,73 @@ def cluster_info(
         output.print_text("%-30s %-20s %-15s" % (row["name"], row["status"], row["ip"]))
 
 
+def _normalize_cluster_list_regions(regions: List[str]) -> list[str]:
+    normalized = [region.strip() for region in regions if region.strip()]
+    if not normalized:
+        output.error("At least one --region value is required.")
+        raise typer.Exit(1)
+    return normalized
+
+
 def cluster_list(
-    region: str = typer.Option(
+    regions: List[str] = typer.Option(
         ...,
         "--region",
-        help="AWS region to query (e.g. us-west-2).",
+        help="AWS region to query. Repeat --region once per requested region.",
     ),
     profile: Optional[str] = typer.Option(
         None,
         "--profile",
         help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
     ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        help="Include status, headnode configuration, and timestamp columns.",
+    ),
     details: bool = typer.Option(
         False,
         "--details",
-        help="Describe each cluster and include headnode details.",
+        help="Include raw pcluster describe payloads in JSON output. Implies --verbose table columns.",
     ),
 ) -> None:
-    """List ParallelCluster clusters in a region."""
+    """List ParallelCluster clusters in one or more regions."""
 
     from daylily_ec.scripts.common import CommandError
 
     _warn_if_dayec_env_inactive()
     try:
         resolved_profile = _resolved_aws_profile(profile)
-        payload = _run_pcluster_json(
-            ["pcluster", "list-clusters", "--region", region],
-            profile=resolved_profile,
-            region=region,
-        )
-        rows = _cluster_rows_from_list(
-            payload,
-            profile=resolved_profile,
-            region=region,
-            details=details,
-        )
+        requested_regions = _normalize_cluster_list_regions(regions)
+        rows: list[dict[str, Any]] = []
+        for region in requested_regions:
+            payload = _run_pcluster_json(
+                ["pcluster", "list-clusters", "--region", region],
+                profile=resolved_profile,
+                region=region,
+            )
+            rows.extend(
+                _cluster_rows_from_list(
+                    payload,
+                    profile=resolved_profile,
+                    region=region,
+                    details=details,
+                    verbose=verbose,
+                )
+            )
     except CommandError as exc:
         _exit_headnode_error(exc)
 
-    result = {"region": region, "clusters": rows}
+    result = {"regions": requested_regions, "clusters": rows}
     if _json_mode():
         output.emit_json(result)
         return
-    _emit_cluster_table(region, rows, include_instance=details)
+    _emit_cluster_table(
+        requested_regions,
+        rows,
+        verbose=verbose,
+        include_instance=details,
+    )
 
 
 def cluster_describe(
@@ -1207,7 +1279,12 @@ def headnode_connect(
         if dry_run:
             raise typer.Exit(0)
         raise typer.Exit(
-            start_session(target.instance_id, resolved_region, profile=resolved_profile)
+            start_session(
+                target.instance_id,
+                resolved_region,
+                profile=resolved_profile,
+                replace_process=True,
+            )
         )
     except (CommandError, SsmError, TimeoutError) as exc:
         _exit_headnode_error(exc)
@@ -1379,20 +1456,9 @@ def headnode_configure(
 
 
 def _invoke_stage_samples(argv: list[str]) -> int:
-    import importlib.util
+    from daylily_ec.stage_samples import main as stage_samples_main
 
-    script_path = Path(__file__).resolve().parents[1] / "bin" / (
-        "daylily-stage-samples-from-local-to-headnode"
-    )
-    spec_obj = importlib.util.spec_from_file_location(
-        "daylily_ec._stage_samples_from_local_to_headnode",
-        script_path,
-    )
-    if spec_obj is None or spec_obj.loader is None:
-        raise RuntimeError(f"Unable to load staging helper: {script_path}")
-    module = importlib.util.module_from_spec(spec_obj)
-    spec_obj.loader.exec_module(module)
-    return int(module.main(argv))
+    return int(stage_samples_main(argv))
 
 
 def samples_stage(
@@ -1661,9 +1727,9 @@ def _read_workflow_file(
         )
         file_path = f"{resolved_run_dir}/{filename}"
         if tail_lines is None:
-            read_command = "cat \"$FILE_PATH\""
+            read_command = 'cat "$FILE_PATH"'
         else:
-            read_command = f"tail -n {max(tail_lines, 1)} \"$FILE_PATH\""
+            read_command = f'tail -n {max(tail_lines, 1)} "$FILE_PATH"'
         script = f"""
 set -euo pipefail
 if [[ "$(id -un)" != "ubuntu" ]]; then
@@ -1788,7 +1854,12 @@ def state_list() -> None:
             continue
         output.print_text(
             "%-32s %-16s %-12s %s"
-            % (row.get("cluster_name") or "", row.get("run_id") or "", row.get("region") or "", row["path"])
+            % (
+                row.get("cluster_name") or "",
+                row.get("run_id") or "",
+                row.get("region") or "",
+                row["path"],
+            )
         )
 
 
@@ -1829,7 +1900,11 @@ def state_show(
     try:
         if bool(state_file) == bool(cluster_name):
             raise CommandError("Provide exactly one of --state-file or --cluster-name.")
-        payload = _state_payload(state_file.expanduser().resolve()) if state_file else _latest_state_for_cluster(str(cluster_name))
+        payload = (
+            _state_payload(state_file.expanduser().resolve())
+            if state_file
+            else _latest_state_for_cluster(str(cluster_name))
+        )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 

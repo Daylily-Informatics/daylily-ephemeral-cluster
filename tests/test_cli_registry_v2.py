@@ -716,8 +716,14 @@ def test_headnode_connect_starts_session(monkeypatch) -> None:
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
 
-    def fake_start_session(instance_id: str, region: str, *, profile: str | None = None) -> int:
-        calls["start_session"] = (instance_id, region, profile)
+    def fake_start_session(
+        instance_id: str,
+        region: str,
+        *,
+        profile: str | None = None,
+        replace_process: bool = False,
+    ) -> int:
+        calls["start_session"] = (instance_id, region, profile, replace_process)
         return 17
 
     monkeypatch.setattr(ssm_module, "start_session", fake_start_session)
@@ -737,7 +743,7 @@ def test_headnode_connect_starts_session(monkeypatch) -> None:
     )
 
     assert result.exit_code == 17
-    assert calls["start_session"] == ("i-abc123", "us-west-2", "dev")
+    assert calls["start_session"] == ("i-abc123", "us-west-2", "dev", True)
 
 
 def test_headnode_info_returns_describe_cluster_json(monkeypatch) -> None:

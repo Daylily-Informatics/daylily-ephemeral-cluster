@@ -132,8 +132,10 @@ daylily-ec cluster-info \
 ## `daylily-ec cluster`
 
 ParallelCluster inspection helpers. `cluster list` describes each cluster so the
-operator table includes status, create time, last update time, headnode launch
-time, public IP, and whether the Daylily headnode configuration check passes.
+default operator table includes cluster name, region, and public IP. Add
+`--verbose` to include status, create time, last update time, headnode launch
+time, and whether the Daylily headnode configuration check passes. Repeat
+`--region` once per requested region to combine clusters into one table.
 
 Subcommands:
 
@@ -147,6 +149,12 @@ Examples:
 daylily-ec cluster list \
   --profile "$AWS_PROFILE" \
   --region "$REGION"
+
+daylily-ec cluster list \
+  --profile "$AWS_PROFILE" \
+  --region us-west-2 \
+  --region us-east-1 \
+  --verbose
 
 daylily-ec cluster list \
   --profile "$AWS_PROFILE" \
@@ -343,7 +351,8 @@ daylily-ec headnode configure --profile "$AWS_PROFILE" --region "$REGION" --clus
 
 ## `daylily-ec headnode connect`
 
-Opens a Session Manager shell on the cluster headnode. The shell must land as `ubuntu` in a bash login shell.
+Opens a Session Manager shell on the cluster headnode. The shell must land as
+`ubuntu` in `/home/ubuntu` in a bash login shell.
 
 Important options:
 
@@ -432,6 +441,14 @@ Important inputs:
 - `--profile`
 - `--region`
 - `--debug`
+
+Manifest notes:
+
+- the shipped template is `etc/analysis_samples_template.tsv`
+- legacy Illumina rows can still use `R1_FQ` / `R2_FQ`
+- multi-modality rows can also populate `ILMN_*`, `ONT_*`, `UG_*`, `ULTIMA_CRAM*`, `ONT_CRAM*`, `PB_BAM*`, `ONT_BAM*`, and `ROCHE_BAM*`
+- raw reads are staged into the remote stage; aligned artifacts remain pass-through unless `STAGE_DIRECTIVE=stage_data`
+- one manifest row normally maps to one `units.tsv` row; multi-lane Illumina rows with the same unit identity are merged
 
 Example:
 

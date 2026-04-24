@@ -61,6 +61,12 @@ daylily-ec samples stage \
   --reference-bucket "$REF_BUCKET" \
   --config-dir "$STAGE_CFG_DIR"
 
+# The manifest is row-oriented and multi-modality:
+# - legacy Illumina rows can still use R1_FQ/R2_FQ
+# - aligned inputs can be supplied directly through ULTIMA_CRAM, ONT_CRAM,
+#   PB_BAM, ONT_BAM, or ROCHE_BAM columns
+# - hybrid units populate multiple source groups on one row
+
 # Use the "Remote FSx stage directory" printed by the staging helper.
 daylily-ec workflow launch \
   --profile "$AWS_PROFILE" \
@@ -112,7 +118,7 @@ daylily-ec delete \
 - `daylily-ec headnode info`: full `pcluster describe-cluster` output for one cluster
 - `daylily-ec headnode jobs`: Slurm queue output using the same format as the headnode `sq` alias
 - `daylily-ec cluster list/describe/wait`: ParallelCluster inspection helpers
-- `daylily-ec samples stage`: translator and staging helper that turns `analysis_samples.tsv` into workflow-ready `samples.tsv` and `units.tsv`
+- `daylily-ec samples stage`: translator and staging helper that turns a multi-modality `analysis_samples.tsv` into workflow-ready `samples.tsv` and `units.tsv`
 - `daylily-ec workflow launch/status/logs`: remote launcher and run-state inspection helpers
 - `daylily-ec state list/show`: local state-file inspection helpers
 - `daylily_ec/ssh_to_ssm_e2e_runner.py`: AWS-backed end-to-end runner that exercises the supported lifecycle through the repo CLI/helpers
@@ -124,7 +130,7 @@ At minimum, the operator account needs:
 - a working named AWS profile
 - permission for STS identity lookup, IAM inspection/bootstrap, Service Quotas reads, S3 bucket discovery/access, EC2/VPC inspection, FSx, SSM, and ParallelCluster operations
 - a reference bucket in the target region that will back the cluster FSx filesystem
-- Session Manager document `SSM-SessionManagerRunShell` configured to run shell sessions as `ubuntu` and source a login shell
+- Session Manager document `SSM-SessionManagerRunShell` configured to run shell sessions as `ubuntu` in `/home/ubuntu` and source a login shell
 - enough regional quota for the requested cluster shape
 
 Local toolchain for the supported path:

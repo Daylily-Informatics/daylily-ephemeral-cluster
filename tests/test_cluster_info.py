@@ -18,32 +18,60 @@ runner = CliRunner()
 # Fixtures / helpers
 # ---------------------------------------------------------------------------
 
-LIST_CLUSTERS_JSON = json.dumps({
-    "clusters": [
-        {"clusterName": "alpha", "clusterStatus": "CREATE_COMPLETE"},
-        {"clusterName": "beta", "clusterStatus": "CREATE_IN_PROGRESS"},
-    ]
-})
+LIST_CLUSTERS_JSON = json.dumps(
+    {
+        "clusters": [
+            {"clusterName": "alpha", "clusterStatus": "CREATE_COMPLETE"},
+            {"clusterName": "beta", "clusterStatus": "CREATE_IN_PROGRESS"},
+        ]
+    }
+)
 
-DESCRIBE_ALPHA = json.dumps({
-    "clusterName": "alpha",
-    "clusterStatus": "CREATE_COMPLETE",
-    "creationTime": "2026-04-21T06:51:02.985Z",
-    "lastUpdatedTime": "2026-04-21T07:10:03.000Z",
-    "headNode": {
-        "publicIpAddress": "1.2.3.4",
-        "instanceId": "i-alpha",
-        "launchTime": "2026-04-21T07:23:41.000Z",
-    },
-})
+DESCRIBE_ALPHA = json.dumps(
+    {
+        "clusterName": "alpha",
+        "clusterStatus": "CREATE_COMPLETE",
+        "creationTime": "2026-04-21T06:51:02.985Z",
+        "lastUpdatedTime": "2026-04-21T07:10:03.000Z",
+        "headNode": {
+            "publicIpAddress": "1.2.3.4",
+            "instanceId": "i-alpha",
+            "launchTime": "2026-04-21T07:23:41.000Z",
+        },
+    }
+)
 
-DESCRIBE_BETA = json.dumps({
-    "clusterName": "beta",
-    "clusterStatus": "CREATE_IN_PROGRESS",
-    "creationTime": "2026-04-21T08:00:00.000Z",
-    "lastUpdatedTime": "2026-04-21T08:05:00.000Z",
-    "headNode": {},
-})
+DESCRIBE_BETA = json.dumps(
+    {
+        "clusterName": "beta",
+        "clusterStatus": "CREATE_IN_PROGRESS",
+        "creationTime": "2026-04-21T08:00:00.000Z",
+        "lastUpdatedTime": "2026-04-21T08:05:00.000Z",
+        "headNode": {},
+    }
+)
+
+LIST_CLUSTERS_EAST_JSON = json.dumps(
+    {
+        "clusters": [
+            {"clusterName": "gamma", "clusterStatus": "CREATE_COMPLETE"},
+        ]
+    }
+)
+
+DESCRIBE_GAMMA = json.dumps(
+    {
+        "clusterName": "gamma",
+        "clusterStatus": "CREATE_COMPLETE",
+        "creationTime": "2026-04-22T06:51:02.985Z",
+        "lastUpdatedTime": "2026-04-22T07:10:03.000Z",
+        "headNode": {
+            "publicIpAddress": "5.6.7.8",
+            "instanceId": "i-gamma",
+            "launchTime": "2026-04-22T07:23:41.000Z",
+        },
+    }
+)
 
 
 def _make_cp(stdout: str = "", stderr: str = "", rc: int = 0) -> CompletedProcess:
@@ -61,6 +89,26 @@ def _side_effect_for_happy(*_args, **kwargs):
         name = cmd[cmd.index("-n") + 1] if "-n" in cmd else cmd[cmd.index("--cluster-name") + 1]
         if name == "alpha":
             return _make_cp(stdout=DESCRIBE_ALPHA)
+        return _make_cp(stdout=DESCRIBE_BETA)
+    raise ValueError(f"unexpected cmd: {cmd}")
+
+
+def _side_effect_for_multi_region(*_args, **kwargs):
+    """Route subprocess.run calls to region-specific list or describe payloads."""
+    cmd = kwargs.get("args") or _args[0]
+    if isinstance(cmd, (list, tuple)) and "-c" in cmd:
+        return _make_cp()
+    if "list-clusters" in cmd:
+        region = cmd[cmd.index("--region") + 1]
+        if region == "us-east-1":
+            return _make_cp(stdout=LIST_CLUSTERS_EAST_JSON)
+        return _make_cp(stdout=LIST_CLUSTERS_JSON)
+    if "describe-cluster" in cmd:
+        name = cmd[cmd.index("-n") + 1] if "-n" in cmd else cmd[cmd.index("--cluster-name") + 1]
+        if name == "alpha":
+            return _make_cp(stdout=DESCRIBE_ALPHA)
+        if name == "gamma":
+            return _make_cp(stdout=DESCRIBE_GAMMA)
         return _make_cp(stdout=DESCRIBE_BETA)
     raise ValueError(f"unexpected cmd: {cmd}")
 
@@ -138,8 +186,33 @@ class TestClusterInfoTable:
         ]
         assert len(describe_calls) == 2
         data = json.loads(result.stdout)
-        assert data["region"] == "us-west-2"
+        assert data["regions"] == ["us-west-2"]
+        assert data["clusters"][0] == {
+            "name": "alpha",
+            "region": "us-west-2",
+            "ip": "1.2.3.4",
+        }
+        assert data["clusters"][1] == {
+            "name": "beta",
+            "region": "us-west-2",
+            "ip": "N/A",
+        }
+        assert scripts == []
+
+    def test_cluster_list_verbose_json_output(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
+        monkeypatch.setenv("AWS_PROFILE", "test-profile")
+        scripts = _patch_headnode_config_check(monkeypatch)
+        with patch("subprocess.run", side_effect=_side_effect_for_happy):
+            result = runner.invoke(
+                app,
+                ["--json", "cluster", "list", "--region", "us-west-2", "--verbose"],
+            )
+        assert result.exit_code == 0
+        data = json.loads(result.stdout)
+        assert data["regions"] == ["us-west-2"]
         assert data["clusters"][0]["name"] == "alpha"
+        assert data["clusters"][0]["region"] == "us-west-2"
         assert data["clusters"][0]["status"] == "CREATE_COMPLETE"
         assert data["clusters"][0]["created_at"] == "2026-04-21T06:51:02.985Z"
         assert data["clusters"][0]["updated_at"] == "2026-04-21T07:10:03.000Z"
@@ -159,20 +232,45 @@ class TestClusterInfoTable:
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
         _patch_headnode_config_check(monkeypatch, configured=False)
         with patch("subprocess.run", side_effect=_side_effect_for_happy):
-            result = runner.invoke(app, ["--json", "cluster", "list", "--region", "us-west-2"])
+            result = runner.invoke(
+                app,
+                ["--json", "cluster", "list", "--region", "us-west-2", "--verbose"],
+            )
         assert result.exit_code == 0
         data = json.loads(result.stdout)
         assert data["clusters"][0]["headnode_configured"] is False
         assert data["clusters"][0]["headnode_configured_text"] == "NO"
         assert "day-clone: command not found" in data["clusters"][0]["headnode_config_error"]
 
-    def test_cluster_list_table_includes_describe_datetimes_and_ip(self, monkeypatch):
+    def test_cluster_list_table_defaults_to_name_region_and_ip(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
+        monkeypatch.setenv("AWS_PROFILE", "test-profile")
+        scripts = _patch_headnode_config_check(monkeypatch)
+        with patch("subprocess.run", side_effect=_side_effect_for_happy):
+            result = runner.invoke(app, ["cluster", "list", "--region", "us-west-2"])
+        assert result.exit_code == 0
+        assert "CLUSTER_NAME" in result.stdout
+        assert "REGION" in result.stdout
+        assert "PUBLIC_IP" in result.stdout
+        assert "alpha" in result.stdout
+        assert "us-west-2" in result.stdout
+        assert "1.2.3.4" in result.stdout
+        assert "STATUS" not in result.stdout
+        assert "HEADNODE_CONFIGURED" not in result.stdout
+        assert "CREATED_AT" not in result.stdout
+        assert scripts == []
+
+    def test_cluster_list_verbose_table_includes_current_extra_columns(self, monkeypatch):
         _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
         _patch_headnode_config_check(monkeypatch)
         with patch("subprocess.run", side_effect=_side_effect_for_happy):
-            result = runner.invoke(app, ["cluster", "list", "--region", "us-west-2"])
+            result = runner.invoke(
+                app,
+                ["cluster", "list", "--region", "us-west-2", "--verbose"],
+            )
         assert result.exit_code == 0
+        assert "REGION" in result.stdout
         assert "HEADNODE_CONFIGURED" in result.stdout
         assert "YES" in result.stdout
         assert "CREATED_AT" in result.stdout
@@ -194,11 +292,46 @@ class TestClusterInfoTable:
             )
         assert result.exit_code == 0
         data = json.loads(result.stdout)
+        assert data["regions"] == ["us-west-2"]
+        assert data["clusters"][0]["region"] == "us-west-2"
         assert data["clusters"][0]["ip"] == "1.2.3.4"
         assert data["clusters"][0]["instance_id"] == "i-alpha"
         assert data["clusters"][0]["created_at"] == "2026-04-21T06:51:02.985Z"
         assert data["clusters"][0]["headnode_configured_text"] == "YES"
         assert data["clusters"][0]["details"]["clusterName"] == "alpha"
+
+    def test_cluster_list_accepts_multiple_regions(self, monkeypatch):
+        _activate_dayec_runtime(monkeypatch)
+        monkeypatch.setenv("AWS_PROFILE", "test-profile")
+        _patch_headnode_config_check(monkeypatch)
+        with patch("subprocess.run", side_effect=_side_effect_for_multi_region) as mock_run:
+            result = runner.invoke(
+                app,
+                [
+                    "cluster",
+                    "list",
+                    "--region",
+                    "us-west-2",
+                    "--region",
+                    "us-east-1",
+                ],
+            )
+        assert result.exit_code == 0
+        assert "alpha" in result.stdout
+        assert "gamma" in result.stdout
+        assert "us-west-2" in result.stdout
+        assert "us-east-1" in result.stdout
+        assert "1.2.3.4" in result.stdout
+        assert "5.6.7.8" in result.stdout
+
+        list_regions = [
+            (call.kwargs.get("args") or call.args[0])[
+                (call.kwargs.get("args") or call.args[0]).index("--region") + 1
+            ]
+            for call in mock_run.call_args_list
+            if "list-clusters" in (call.kwargs.get("args") or call.args[0])
+        ]
+        assert list_regions == ["us-west-2", "us-east-1"]
 
     def test_cluster_describe_returns_full_payload(self, monkeypatch):
         _activate_dayec_runtime(monkeypatch)
@@ -225,7 +358,9 @@ class TestClusterInfoTable:
         _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
         responses = [
-            _make_cp(stdout=json.dumps({"clusterName": "alpha", "clusterStatus": "CREATE_IN_PROGRESS"})),
+            _make_cp(
+                stdout=json.dumps({"clusterName": "alpha", "clusterStatus": "CREATE_IN_PROGRESS"})
+            ),
             _make_cp(stdout=DESCRIBE_ALPHA),
         ]
 
@@ -273,6 +408,7 @@ class TestClusterInfoEdgeCases:
     def test_pcluster_not_found(self, monkeypatch):
         _activate_dayec_runtime(monkeypatch)
         monkeypatch.setenv("AWS_PROFILE", "test-profile")
+
         def side_effect(*args, **kwargs):
             cmd = kwargs.get("args") or args[0]
             if isinstance(cmd, (list, tuple)) and "-c" in cmd:

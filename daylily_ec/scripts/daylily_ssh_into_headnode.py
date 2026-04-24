@@ -62,7 +62,12 @@ def main(argv: list[str] | None = None) -> int:
     if args.dry_run:
         return 0
     try:
-        return start_session(target.instance_id, region, profile=args.profile)
+        return start_session(
+            target.instance_id,
+            region,
+            profile=args.profile,
+            replace_process=True,
+        )
     except SsmError as exc:
         raise CommandError(str(exc)) from exc
 
