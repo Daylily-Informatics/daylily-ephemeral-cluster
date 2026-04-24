@@ -9,7 +9,7 @@ import sys
 import time
 from dataclasses import asdict, dataclass
 from pathlib import Path
-from typing import Sequence
+from typing import Optional, Sequence
 
 import pytest
 
@@ -91,6 +91,8 @@ WORKFLOW_COMMANDS = {
         dy_command=(
             "bin/day_run produce_alignstats produce_rochehc_vcf --config dedupers=['na'] -p -j 5 -k"
         ),
+        # Roche HC dry-run asks Snakemake to resolve a private Roche container
+        # even in -n mode. The full non-dry-run command stays covered above.
         dryrun_dy_command="bin/day_run produce_alignstats --config dedupers=['na'] -p -j 5 -k -n",
     ),
 }
@@ -178,16 +180,27 @@ def _parse_launch(stdout: str) -> dict[str, str]:
     return parsed
 
 
-def _parse_json_stdout(stdout: str) -> dict[str, object]:
+def _parse_json_stdout(stdout: str, *, allow_missing: bool = False) -> Optional[dict[str, object]]:
     try:
         payload = json.loads(stdout)
     except json.JSONDecodeError:
         start = stdout.find("{")
         end = stdout.rfind("}")
+        if allow_missing and (start < 0 or end <= start):
+            return None
         assert start >= 0 and end > start, f"stdout did not contain JSON:\n{stdout}"
         payload = json.loads(stdout[start : end + 1])
     assert isinstance(payload, dict), f"workflow status JSON was not an object: {payload!r}"
     return payload
+
+
+def test_parse_json_stdout_allows_transient_missing_status_response() -> None:
+    assert _parse_json_stdout("", allow_missing=True) is None
+    assert _parse_json_stdout("no json here", allow_missing=True) is None
+
+
+def test_parse_json_stdout_extracts_status_json_from_noisy_output() -> None:
+    assert _parse_json_stdout('noise\n{"exit_code": 0}\n') == {"exit_code": 0}
 
 
 def _count_tsv_rows(path: Path) -> int:
@@ -237,7 +250,23 @@ def _wait_for_workflow_exit_zero(
         )
         last_result = result
         if result.returncode == 0:
-            payload = _parse_json_stdout(result.stdout)
+            payload = _parse_json_stdout(result.stdout, allow_missing=True)
+            if payload is None:
+                _write_text(
+                    evidence_dir / "workflow-status-last-transient.json",
+                    json.dumps(
+                        {
+                            "returncode": result.returncode,
+                            "stdout": result.stdout,
+                            "stderr": result.stderr,
+                        },
+                        indent=2,
+                        sort_keys=True,
+                    )
+                    + "\n",
+                )
+                time.sleep(poll_interval_seconds)
+                continue
             _write_text(
                 evidence_dir / "workflow-status-last.json",
                 json.dumps(payload, indent=2, sort_keys=True) + "\n",
