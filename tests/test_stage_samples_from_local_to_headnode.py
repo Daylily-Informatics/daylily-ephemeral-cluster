@@ -648,6 +648,7 @@ def test_process_samples_rejects_ultima_cram_without_crai(
                 "SEQBC_ID",
                 "ULTIMA_CRAM",
                 "ULTIMA_CRAM_ALIGNER",
+                "STAGE_DIRECTIVE",
             ]
         ),
         [
@@ -664,6 +665,7 @@ def test_process_samples_rejects_ultima_cram_without_crai(
                     "D0",
                     str(cram),
                     "ug",
+                    "stage_data",
                 ]
             )
         ],
@@ -677,3 +679,35 @@ def test_process_samples_rejects_ultima_cram_without_crai(
             aws_env={},
             debug=False,
         )
+
+
+def test_stage_path_with_sidecars_stages_cram_before_crai(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    calls: list[str] = []
+
+    def fake_stage_path(
+        source: str, *, dest_fsx_dir: str, **_kwargs: object
+    ) -> tuple[str, list[str]]:
+        calls.append(source)
+        remote_path = f"{dest_fsx_dir}/{Path(source).name}"
+        return remote_path, [remote_path]
+
+    monkeypatch.setattr(module, "stage_path", fake_stage_path)
+
+    remote_path, created = module.stage_path_with_sidecars(
+        "s3://bucket/sample.cram",
+        sidecar_suffixes=(".crai",),
+        dest_fsx_dir="/data/staged_sample_data/remote_stage_test/sample",
+        dest_s3_dir="s3://bucket/data/staged_sample_data/remote_stage_test/sample",
+        reference_bucket="s3://reference",
+        aws_env={},
+        debug=False,
+    )
+
+    assert calls == ["s3://bucket/sample.cram", "s3://bucket/sample.cram.crai"]
+    assert remote_path.endswith("/sample.cram")
+    assert created == [
+        "/data/staged_sample_data/remote_stage_test/sample/sample.cram",
+        "/data/staged_sample_data/remote_stage_test/sample/sample.cram.crai",
+    ]

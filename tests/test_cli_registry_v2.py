@@ -1068,6 +1068,14 @@ def test_samples_stage_calls_python_staging_entrypoint(monkeypatch, tmp_path) ->
     ]
 
 
+def test_samples_stage_help_does_not_advertise_generated_cram_index_flags() -> None:
+    result = runner.invoke(app, ["samples", "stage", "--help"])
+
+    assert result.exit_code == 0
+    assert "--generate-missing-cram-indexes" not in result.stdout
+    assert "--index-threads" not in result.stdout
+
+
 def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     import daylily_ec.scripts.daylily_run_omics_analysis_headnode as launch_module
 
