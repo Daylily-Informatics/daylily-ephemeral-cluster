@@ -1497,6 +1497,8 @@ def process_samples(
     run_ids: set[str] = set()
     sample_concordance_sources: Dict[str, str] = {}
     sample_concordance_paths: Dict[str, str] = {}
+    staged_raw_pairs: Dict[Tuple[str, str, str, str, str], Dict[str, str]] = {}
+    staged_aligned_sources: Dict[Tuple[str, str, str, Tuple[str, ...]], str] = {}
 
     def staged_concordance_for_sample(
         entry: ManifestRow,
@@ -1596,15 +1598,28 @@ def process_samples(
             source_values: Dict[str, str] = {}
 
             for spec in raw_groups_present(entry.original):
-                staged_source_values, staged_created_files = emit_single_raw_group(
-                    entry,
-                    spec=spec,
-                    dest_fsx_dir=dest_fsx_dir,
-                    dest_s3_dir=dest_s3_dir,
-                    reference_bucket=reference_bucket,
-                    aws_env=aws_env,
-                    debug=debug,
+                r1_field, r2_field, _unit_r1_field, _unit_r2_field = spec
+                raw_cache_key = (
+                    entry.staging.stage_directive,
+                    r1_field,
+                    r2_field,
+                    get_entry_value(entry.sources, r1_field),
+                    get_entry_value(entry.sources, r2_field),
                 )
+                if raw_cache_key in staged_raw_pairs:
+                    staged_source_values = staged_raw_pairs[raw_cache_key]
+                    staged_created_files = []
+                else:
+                    staged_source_values, staged_created_files = emit_single_raw_group(
+                        entry,
+                        spec=spec,
+                        dest_fsx_dir=dest_fsx_dir,
+                        dest_s3_dir=dest_s3_dir,
+                        reference_bucket=reference_bucket,
+                        aws_env=aws_env,
+                        debug=debug,
+                    )
+                    staged_raw_pairs[raw_cache_key] = staged_source_values
                 source_values.update(staged_source_values)
                 created_files.extend(staged_created_files)
 
@@ -1620,16 +1635,28 @@ def process_samples(
                 (ONT_BAM, ()),
                 (ROCHE_BAM, ()),
             ):
-                staged_path, staged_created = emit_aligned_source(
-                    entry,
-                    path_field=path_field,
-                    sidecar_suffixes=sidecars,
-                    dest_fsx_dir=dest_fsx_dir,
-                    dest_s3_dir=dest_s3_dir,
-                    reference_bucket=reference_bucket,
-                    aws_env=aws_env,
-                    debug=debug,
+                aligned_cache_key = (
+                    entry.staging.stage_directive,
+                    path_field,
+                    get_entry_value(entry.sources, path_field),
+                    tuple(sidecars),
                 )
+                if aligned_cache_key in staged_aligned_sources:
+                    staged_path = staged_aligned_sources[aligned_cache_key]
+                    staged_created = []
+                else:
+                    staged_path, staged_created = emit_aligned_source(
+                        entry,
+                        path_field=path_field,
+                        sidecar_suffixes=sidecars,
+                        dest_fsx_dir=dest_fsx_dir,
+                        dest_s3_dir=dest_s3_dir,
+                        reference_bucket=reference_bucket,
+                        aws_env=aws_env,
+                        debug=debug,
+                    )
+                    if staged_path:
+                        staged_aligned_sources[aligned_cache_key] = staged_path
                 if staged_path:
                     source_values[path_field] = staged_path
                 created_files.extend(staged_created)

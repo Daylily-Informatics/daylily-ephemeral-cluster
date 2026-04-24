@@ -11,6 +11,11 @@ Every row uses `STAGE_DIRECTIVE=stage_data`, so raw reads, aligned artifacts,
 and concordance data are copied into the timestamped remote stage before the
 generated `samples.tsv` and `units.tsv` point at FSx paths.
 
+Each example is intentionally limited to three manifest rows. Because one
+manifest row becomes one generated `units.tsv` row, these examples exercise the
+staging and workflow contracts without launching large sample batches in live
+tests.
+
 Run commands from the repository root:
 
 ```bash
@@ -97,3 +102,7 @@ Live test evidence is written under
 `tmp-stage-config/live-staging-examples/<run-id>/<analysis-type>/`. The tests
 create staged data and workflow sessions; they do not delete or teardown AWS
 resources.
+
+The Roche dry-run validation uses `produce_alignstats` so it does not depend on
+a pre-populated Roche Singularity image cache. Non-dry-run validation uses the
+standard Roche HaplotypeCaller command.

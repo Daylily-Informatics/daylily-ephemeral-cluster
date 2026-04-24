@@ -91,10 +91,7 @@ WORKFLOW_COMMANDS = {
         dy_command=(
             "bin/day_run produce_alignstats produce_rochehc_vcf --config dedupers=['na'] -p -j 5 -k"
         ),
-        dryrun_dy_command=(
-            "bin/day_run produce_alignstats produce_rochehc_vcf "
-            "--config dedupers=['na'] -p -j 5 -k -n"
-        ),
+        dryrun_dy_command="bin/day_run produce_alignstats --config dedupers=['na'] -p -j 5 -k -n",
     ),
 }
 

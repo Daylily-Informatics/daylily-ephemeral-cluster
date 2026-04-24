@@ -15,27 +15,27 @@ REFERENCE_ROOT = "s3://lsmc-dayoa-omics-analysis-us-west-2/data/"
 
 EXAMPLES = {
     "ilmn_solo": {
-        "rows": 9,
+        "rows": 3,
         "unit_fields": ("ILMN_R1_PATH", "ILMN_R2_PATH"),
     },
     "ultima_solo": {
-        "rows": 10,
+        "rows": 3,
         "unit_fields": (module.ULTIMA_CRAM,),
     },
     "ont_solo": {
-        "rows": 9,
+        "rows": 3,
         "unit_fields": (module.ONT_CRAM,),
     },
     "hybrid_ilmn_ont": {
-        "rows": 63,
+        "rows": 3,
         "unit_fields": ("ILMN_R1_PATH", "ILMN_R2_PATH", module.ONT_CRAM),
     },
     "pacbio_solo": {
-        "rows": 9,
+        "rows": 3,
         "unit_fields": (module.PB_BAM,),
     },
     "roche_solo": {
-        "rows": 11,
+        "rows": 3,
         "unit_fields": (module.ROCHE_BAM, module.ROCHE_DOWNSAMPLE_RATIO),
     },
 }
