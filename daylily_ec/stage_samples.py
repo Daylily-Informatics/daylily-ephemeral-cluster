@@ -25,12 +25,18 @@ RUN_ID = "RUN_ID"
 SAMPLE_ID = "SAMPLE_ID"
 EXPERIMENT_ID = "EXPERIMENTID"
 SAMPLE_TYPE = "SAMPLE_TYPE"
+SAMPLESOURCE = "SAMPLESOURCE"
+SAMPLECLASS = "SAMPLECLASS"
+BIOLOGICAL_SEX = "BIOLOGICAL_SEX"
+TUM_NRM_SAMPLEID_MATCH = "TUM_NRM_SAMPLEID_MATCH"
 LIB_PREP = "LIB_PREP"
 SEQ_VENDOR = "SEQ_VENDOR"
 SEQ_PLATFORM = "SEQ_PLATFORM"
 LANE = "LANE"
 SEQBC_ID = "SEQBC_ID"
 PATH_TO_CONCORDANCE = "PATH_TO_CONCORDANCE_DATA_DIR"
+CONCORDANCE_CONTROL_PATH = "CONCORDANCE_CONTROL_PATH"
+TRUTH_DATA_DIR = "TRUTH_DATA_DIR"
 R1_FQ = "R1_FQ"
 R2_FQ = "R2_FQ"
 ILMN_R1_FQ = "ILMN_R1_FQ"
@@ -135,7 +141,13 @@ MANIFEST_UNITS_PASSTHROUGH_FIELDS = [
 
 ALLOWED_MANIFEST_FIELDS = {
     *MANIFEST_REQUIRED_FIELDS,
+    SAMPLESOURCE,
+    SAMPLECLASS,
+    BIOLOGICAL_SEX,
+    TUM_NRM_SAMPLEID_MATCH,
     PATH_TO_CONCORDANCE,
+    CONCORDANCE_CONTROL_PATH,
+    TRUTH_DATA_DIR,
     R1_FQ,
     R2_FQ,
     ILMN_R1_FQ,
@@ -268,9 +280,13 @@ class StagePaths:
 class SampleMetadata:
     sample_id: str
     sample_type: str
+    sample_source: str
+    sample_class: str
+    biological_sex: str
     path_to_concordance: str
     is_pos_ctrl: str
     is_neg_ctrl: str
+    tum_nrm_sampleid_match: str
     n_x: str
     n_y: str
     external_sample_id: str
@@ -575,7 +591,7 @@ def canonical_manifest_seq_platform(value: str, *, vendor: str) -> str:
 
 
 def is_giab_control(entry: Mapping[str, str]) -> bool:
-    concordance = get_entry_value(entry, PATH_TO_CONCORDANCE).lower()
+    concordance = resolve_concordance_source(entry).lower()
     return "/controls/giab/" in concordance
 
 
@@ -1004,6 +1020,27 @@ def normalize_stage_directive(value: str) -> str:
     )
 
 
+def is_populated_path(value: str) -> bool:
+    return bool(value) and value.lower() != "na"
+
+
+def resolve_concordance_source(row: Mapping[str, str]) -> str:
+    candidates = {
+        field: get_entry_value(row, field)
+        for field in (PATH_TO_CONCORDANCE, CONCORDANCE_CONTROL_PATH, TRUTH_DATA_DIR)
+    }
+    populated = {field: value for field, value in candidates.items() if is_populated_path(value)}
+    unique_values = set(populated.values())
+    if len(unique_values) > 1:
+        details = ", ".join(f"{field}={value}" for field, value in populated.items())
+        raise CommandError(
+            f"Concordance path columns must agree when more than one is populated: {details}"
+        )
+    if unique_values:
+        return next(iter(unique_values))
+    return "na"
+
+
 def validate_sidecar_paths(
     path: str,
     *,
@@ -1055,9 +1092,10 @@ def validate_manifest_row(
         )
 
     directive = normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
-    if get_entry_value(normalized, PATH_TO_CONCORDANCE):
+    concordance_source = resolve_concordance_source(normalized)
+    if is_populated_path(concordance_source):
         check_source_path(
-            get_entry_value(normalized, PATH_TO_CONCORDANCE),
+            concordance_source,
             reference_bucket=reference_bucket,
             aws_env=aws_env,
             debug=debug,
@@ -1165,14 +1203,30 @@ def validate_manifest_row(
 
 
 def build_manifest_row(normalized: Mapping[str, str]) -> ManifestRow:
+    sample_type = normalise_identifier(get_entry_value(normalized, SAMPLE_TYPE))
+    sample_source = get_entry_value(normalized, SAMPLESOURCE) or sample_type
+    sample_class = get_entry_value(normalized, SAMPLECLASS) or "research"
+    n_x = get_entry_value(normalized, N_X)
+    n_y = get_entry_value(normalized, N_Y)
+    biological_sex = get_entry_value(normalized, BIOLOGICAL_SEX) or determine_sex(
+        safe_int(n_x),
+        safe_int(n_y),
+    )
+    tum_nrm_sampleid_match = get_entry_value(normalized, TUM_NRM_SAMPLEID_MATCH)
+    if TUM_NRM_SAMPLEID_MATCH not in normalized:
+        tum_nrm_sampleid_match = "na"
     sample = SampleMetadata(
         sample_id=normalise_identifier(get_entry_value(normalized, SAMPLE_ID)),
-        sample_type=normalise_identifier(get_entry_value(normalized, SAMPLE_TYPE)),
-        path_to_concordance=get_entry_value(normalized, PATH_TO_CONCORDANCE, "na"),
+        sample_type=sample_type,
+        sample_source=sample_source,
+        sample_class=sample_class,
+        biological_sex=biological_sex,
+        path_to_concordance=resolve_concordance_source(normalized),
         is_pos_ctrl=resolve_positive_control(normalized),
         is_neg_ctrl=resolve_negative_control(normalized),
-        n_x=get_entry_value(normalized, N_X),
-        n_y=get_entry_value(normalized, N_Y),
+        tum_nrm_sampleid_match=tum_nrm_sampleid_match,
+        n_x=n_x,
+        n_y=n_y,
         external_sample_id=get_entry_value(normalized, EXTERNAL_SAMPLE_ID) or "na",
     )
     vendor = normalise_identifier(get_entry_value(normalized, SEQ_VENDOR)).upper()
@@ -1401,17 +1455,16 @@ def build_samples_row(
     *,
     concordance_path: str,
 ) -> Dict[str, str]:
-    sex = determine_sex(safe_int(row.sample.n_x), safe_int(row.sample.n_y))
     return {
         "SAMPLEID": row.sample.sample_id,
-        "SAMPLESOURCE": row.sample.sample_type,
-        "SAMPLECLASS": "research",
-        "BIOLOGICAL_SEX": sex,
+        "SAMPLESOURCE": row.sample.sample_source,
+        "SAMPLECLASS": row.sample.sample_class,
+        "BIOLOGICAL_SEX": row.sample.biological_sex,
         "CONCORDANCE_CONTROL_PATH": concordance_path,
         "IS_POSITIVE_CONTROL": row.sample.is_pos_ctrl,
         "IS_NEGATIVE_CONTROL": row.sample.is_neg_ctrl,
         "SAMPLE_TYPE": row.sample.sample_type,
-        "TUM_NRM_SAMPLEID_MATCH": "na",
+        "TUM_NRM_SAMPLEID_MATCH": row.sample.tum_nrm_sampleid_match,
         "EXTERNAL_SAMPLE_ID": row.sample.external_sample_id or "na",
         "N_X": row.sample.n_x,
         "N_Y": row.sample.n_y,
@@ -1439,10 +1492,42 @@ def process_samples(
         grouped_rows[merge_grouping_key(row)].append(row)
 
     samples_rows: Dict[str, Dict[str, str]] = {}
-    sampleid_to_entry: Dict[str, Tuple[str, Dict[str, str]]] = {}
     units_rows: List[Dict[str, str]] = []
     created_files: List[str] = []
     run_ids: set[str] = set()
+    sample_concordance_sources: Dict[str, str] = {}
+    sample_concordance_paths: Dict[str, str] = {}
+
+    def staged_concordance_for_sample(
+        entry: ManifestRow,
+        *,
+        concordance_fsx: str,
+        concordance_s3: str,
+    ) -> Tuple[str, List[str]]:
+        concordance_source = entry.sample.path_to_concordance
+        sample_id = entry.sample.sample_id
+        existing_source = sample_concordance_sources.get(sample_id)
+        if existing_source is not None:
+            if existing_source != concordance_source:
+                raise CommandError(
+                    f"Duplicate SAMPLEID with conflicting concordance source: {sample_id}"
+                )
+            return sample_concordance_paths[sample_id], []
+
+        concordance_path = stage_concordance(
+            concordance_source,
+            concordance_fsx,
+            concordance_s3,
+            reference_bucket=reference_bucket,
+            aws_env=aws_env,
+            debug=debug,
+        )
+        sample_concordance_sources[sample_id] = concordance_source
+        sample_concordance_paths[sample_id] = concordance_path
+        staged_files = (
+            [concordance_path] if concordance_path.startswith(stage.remote_fsx_root) else []
+        )
+        return concordance_path, staged_files
 
     processed_groups: set[Tuple[str, ...]] = set()
     for row in rows:
@@ -1480,19 +1565,14 @@ def process_samples(
             created_files.extend([remote_r1, remote_r2])
             lane_id = "0"
             manifest_for_units = first
-            concordance_source = first.sample.path_to_concordance
             concordance_fsx = dest_fsx_dir + "/concordance_data"
             concordance_s3 = dest_s3_dir + "/concordance_data"
-            concordance_path = stage_concordance(
-                concordance_source,
-                concordance_fsx,
-                concordance_s3,
-                reference_bucket=reference_bucket,
-                aws_env=aws_env,
-                debug=debug,
+            concordance_path, staged_concordance_files = staged_concordance_for_sample(
+                first,
+                concordance_fsx=concordance_fsx,
+                concordance_s3=concordance_s3,
             )
-            if concordance_path.startswith(stage.remote_fsx_root):
-                created_files.append(concordance_path)
+            created_files.extend(staged_concordance_files)
             units_rows.append(
                 build_units_row_from_manifest(
                     manifest_for_units,
@@ -1501,19 +1581,11 @@ def process_samples(
                 )
             )
             samples_row = build_samples_row(manifest_for_units, concordance_path=concordance_path)
-            existing = samples_rows.get(sample_name)
+            sample_id = manifest_for_units.sample.sample_id
+            existing = samples_rows.get(sample_id)
             if existing and existing != samples_row:
-                raise CommandError(f"Conflicting metadata for sample {sample_name}.")
-            sampleid_entry = sampleid_to_entry.get(manifest_for_units.sample.sample_id)
-            if sampleid_entry and sampleid_entry[1] != samples_row:
-                raise CommandError(
-                    f"Duplicate SAMPLEID with conflicting metadata: {manifest_for_units.sample.sample_id}"
-                )
-            samples_rows[sample_name] = samples_row
-            sampleid_to_entry[manifest_for_units.sample.sample_id] = (
-                sample_name,
-                samples_row,
-            )
+                raise CommandError(f"Duplicate SAMPLEID with conflicting metadata: {sample_id}")
+            samples_rows[sample_id] = samples_row
             run_ids.add(manifest_for_units.unit.run_id)
             continue
 
@@ -1562,19 +1634,14 @@ def process_samples(
                     source_values[path_field] = staged_path
                 created_files.extend(staged_created)
 
-            concordance_source = entry.sample.path_to_concordance
             concordance_fsx = dest_fsx_dir + "/concordance_data"
             concordance_s3 = dest_s3_dir + "/concordance_data"
-            concordance_path = stage_concordance(
-                concordance_source,
-                concordance_fsx,
-                concordance_s3,
-                reference_bucket=reference_bucket,
-                aws_env=aws_env,
-                debug=debug,
+            concordance_path, staged_concordance_files = staged_concordance_for_sample(
+                entry,
+                concordance_fsx=concordance_fsx,
+                concordance_s3=concordance_s3,
             )
-            if concordance_path.startswith(stage.remote_fsx_root):
-                created_files.append(concordance_path)
+            created_files.extend(staged_concordance_files)
 
             units_rows.append(
                 build_units_row_from_manifest(
@@ -1585,19 +1652,14 @@ def process_samples(
             )
 
             samples_row = build_samples_row(entry, concordance_path=concordance_path)
-            existing = samples_rows.get(sample_name)
+            sample_id = entry.sample.sample_id
+            existing = samples_rows.get(sample_id)
             if existing and existing != samples_row:
-                raise CommandError(f"Conflicting metadata for sample {sample_name}.")
-            sampleid_entry = sampleid_to_entry.get(entry.sample.sample_id)
-            if sampleid_entry and sampleid_entry[1] != samples_row:
-                raise CommandError(
-                    f"Duplicate SAMPLEID with conflicting metadata: {entry.sample.sample_id}"
-                )
-            samples_rows[sample_name] = samples_row
-            sampleid_to_entry[entry.sample.sample_id] = (sample_name, samples_row)
+                raise CommandError(f"Duplicate SAMPLEID with conflicting metadata: {sample_id}")
+            samples_rows[sample_id] = samples_row
             run_ids.add(entry.unit.run_id)
 
-    sorted_samples = [samples_rows[name] for name in sorted(samples_rows.keys())]
+    sorted_samples = [samples_rows[sample_id] for sample_id in sorted(samples_rows.keys())]
     return sorted_samples, units_rows, sorted(created_files), sorted(run_ids)
 
 

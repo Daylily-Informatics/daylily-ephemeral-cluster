@@ -65,6 +65,9 @@ python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
 addopts = "-v"
+markers = [
+    "live_aws: tests that execute against live AWS resources and must be explicitly opted in",
+]
 
 [tool.black]
 line-length = 100

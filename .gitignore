@@ -25,6 +25,7 @@ tmp-e2e-config/
 tmp-e2e-export/
 tmp-e2e-inputs/
 tmp-e2e-results/
+tmp-stage-config/
 
 # macOS filesystem metadata
 .DS_Store

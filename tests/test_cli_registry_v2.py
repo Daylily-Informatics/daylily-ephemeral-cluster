@@ -1142,7 +1142,7 @@ def test_workflow_status_reads_status_json_via_ssm(monkeypatch) -> None:
             instance_id,
             "Success",
             0,
-            '{"session_name":"sess-1","exit_code":0}\n',
+            'DAY-EC activated.\n{"session_name":"sess-1","exit_code":0}\n',
             "",
         )
 

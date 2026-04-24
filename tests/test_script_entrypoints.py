@@ -250,6 +250,9 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'STATUS_FILE="${DAYLILY_RUN_DIR}/status.json"' in script
         assert "python3 -c " in script
         assert "nohup tmux new-session" in script
+        assert '-e "DAYLILY_RUN_DIR=$run_dir"' in script
+        assert '-e "DAYLILY_REPO_PATH=$repo_path"' in script
+        assert '-e "DAYLILY_TMUX_LOG=$tmux_log"' in script
         assert "tmux has-session" in script
         assert 'repo_key = "daylily-omics-analysis"' in script
         assert "DAY_CONTAINERIZED=true" in script

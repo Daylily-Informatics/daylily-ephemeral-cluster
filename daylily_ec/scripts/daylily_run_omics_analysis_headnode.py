@@ -456,7 +456,11 @@ cat <<'PAYLOAD' > "$work_script"
 {pipeline_script}
 PAYLOAD
 chmod 0700 "$work_script"
-nohup tmux new-session -d -s "$SESSION_NAME" "bash -lc 'source \"$work_script\" >>\"$tmux_log\" 2>&1'" >"$bootstrap_log" 2>&1 &
+nohup tmux new-session -d -s "$SESSION_NAME" \
+  -e "DAYLILY_RUN_DIR=$run_dir" \
+  -e "DAYLILY_REPO_PATH=$repo_path" \
+  -e "DAYLILY_TMUX_LOG=$tmux_log" \
+  "bash -lc 'source \"$work_script\" >>\"$tmux_log\" 2>&1'" >"$bootstrap_log" 2>&1 &
 sleep 2
 if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
   if [[ -s "$bootstrap_log" ]]; then

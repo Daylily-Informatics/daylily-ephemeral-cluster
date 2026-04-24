@@ -1755,6 +1755,22 @@ fi
         _exit_headnode_error(exc)
 
 
+def _parse_workflow_status_payload(stdout: str) -> dict[str, Any]:
+    from daylily_ec.scripts.common import CommandError
+
+    try:
+        payload = json.loads(stdout or "{}")
+    except json.JSONDecodeError:
+        start = stdout.find("{")
+        end = stdout.rfind("}")
+        if start < 0 or end <= start:
+            raise
+        payload = json.loads(stdout[start : end + 1])
+    if not isinstance(payload, dict):
+        raise CommandError("Workflow status file contained non-object JSON.")
+    return payload
+
+
 def workflow_status(
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
@@ -1776,9 +1792,7 @@ def workflow_status(
             run_dir=run_dir,
             filename="status.json",
         )
-        payload = json.loads(result.stdout or "{}")
-        if not isinstance(payload, dict):
-            raise CommandError("Workflow status file contained non-object JSON.")
+        payload = _parse_workflow_status_payload(result.stdout)
     except (CommandError, json.JSONDecodeError) as exc:
         _exit_headnode_error(exc)
 
