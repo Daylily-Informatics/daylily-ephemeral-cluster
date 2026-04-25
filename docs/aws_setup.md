@@ -109,12 +109,26 @@ Sanity checks:
 
 ```bash
 aws s3 ls "s3://your-reference-bucket" --profile "$AWS_PROFILE" --region "$REGION"
+daylily-ec aws validate all \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG" \
+  --gap-analysis aws_gap.md
 daylily-ec preflight --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
 ```
 
+`daylily-ec aws validate permissions|quotas|all` is read-only. It requires an
+explicit `--profile` and `--region-az`, rejects the implicit `default` profile,
+derives the region from the AZ, and does not create, update, delete, send SSM
+commands, start sessions, or run `pcluster create`. Use `--gap-analysis PATH`
+when an AWS admin needs a Markdown report that lists denied IAM actions, quota
+codes, rendered cluster demand, and remediation guidance. The global `--json`
+flag remains the machine-readable output path.
+
 ## 7. Quotas The Repo Checks
 
-The current quota preflight checks these recommended minimums:
+The quota validator checks the preflight quota set plus the rendered
+ParallelCluster shape. The current baseline quota set is:
 
 - On-Demand vCPU Max: 20
 - Spot vCPU Max: 192
@@ -123,7 +137,12 @@ The current quota preflight checks these recommended minimums:
 - NAT Gateways: 5
 - Internet Gateways: 5
 
-Spot demand is computed from the cluster config `max_count_*` values. If the requested spot capacity is greater than or equal to the quota, preflight warns or fails depending on mode.
+Spot demand in preflight is computed from the cluster config `max_count_*`
+values. `daylily-ec aws validate quotas` also renders the selected
+ParallelCluster template in memory and validates rendered Spot vCPU demand,
+On-Demand vCPU demand, requested instance-type offerings in the target AZ,
+visible Spot price signal, EBS gp3 storage, FSx for Lustre storage, and first
+network-stack quota needs when the baseline stack is absent.
 
 ## 8. Network And Region Policy Expectations
 
@@ -164,13 +183,21 @@ session-manager-plugin
 
 ## 10. First Real Validation
 
-After account/bootstrap work is complete, the next command should be:
+After account/bootstrap work is complete, the next commands should be:
 
 ```bash
+daylily-ec aws validate all \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG" \
+  --gap-analysis aws_gap.md
+
 daylily-ec preflight \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG"
 ```
 
-Treat preflight as the authoritative setup validator. If it fails, fix the reported setup gap before attempting create.
+Treat `aws validate` as the account-admin readiness check and preflight as the
+final operator setup validator. If either fails, fix the reported setup gap
+before attempting create.
