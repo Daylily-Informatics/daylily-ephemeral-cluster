@@ -1,0 +1,15 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_STAGE_DIR__=/fsx/data/staged_sample_data/remote_stage_20260425T020222Z
+__DAYLILY_STAGE_SAMPLES__=/fsx/data/staged_sample_data/remote_stage_20260425T020222Z/20260425T020222Z_samples.tsv
+__DAYLILY_STAGE_UNITS__=/fsx/data/staged_sample_data/remote_stage_20260425T020222Z/20260425T020222Z_units.tsv
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=prod-alignstats-602221-20260417-2346-isolated-20260425T090724Z
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/prod-alignstats-602221-20260417-2346-isolated-20260425T090724Z
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/prod-alignstats-602221-20260417-2346-20260425T090724Z/daylily-omics-analysis
+Tmux session 'prod-alignstats-602221-20260417-2346-isolated-20260425T090724Z' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/prod-alignstats-602221-20260417-2346-isolated-20260425T090724Z
+Workflow repo path: /fsx/analysis_results/ubuntu/prod-alignstats-602221-20260417-2346-20260425T090724Z/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster mk-gotime3
+Then run: tmux attach -t prod-alignstats-602221-20260417-2346-isolated-20260425T090724Z

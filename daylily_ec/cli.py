@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import logging
 import os
@@ -278,7 +280,9 @@ def _cluster_headnode_config_status(
     except SsmCommandFailedError as exc:
         row["headnode_configured"] = False
         row["headnode_configured_text"] = "NO"
-        row["headnode_config_error"] = exc.result.stderr.strip() or exc.result.stdout.strip() or str(exc)
+        row["headnode_config_error"] = (
+            exc.result.stderr.strip() or exc.result.stdout.strip() or str(exc)
+        )
         return
     except (SsmError, TimeoutError, RuntimeError) as exc:
         row["headnode_configured"] = False
@@ -297,6 +301,7 @@ def _cluster_rows_from_list(
     profile: str,
     region: str,
     details: bool,
+    verbose: bool,
 ) -> list[dict[str, Any]]:
     clusters = payload.get("clusters", [])
     if not isinstance(clusters, list):
@@ -313,8 +318,16 @@ def _cluster_rows_from_list(
             name,
             _describe_cluster_payload(profile=profile, region=region, cluster=name),
         )
-        _cluster_headnode_config_status(row, profile=profile, region=region)
-        if not details:
+        row["region"] = region
+        if verbose or details:
+            _cluster_headnode_config_status(row, profile=profile, region=region)
+        else:
+            row = {
+                "name": row["name"],
+                "region": row["region"],
+                "ip": row["ip"],
+            }
+        if verbose and not details:
             row.pop("details", None)
         rows.append(row)
     return rows
@@ -340,81 +353,118 @@ def _describe_cluster_payload(
     )
 
 
-def _emit_cluster_table(region: str, rows: list[dict[str, Any]], *, include_instance: bool) -> None:
+def _emit_cluster_table(
+    regions: list[str],
+    rows: list[dict[str, Any]],
+    *,
+    verbose: bool,
+    include_instance: bool,
+) -> None:
+    region_label = ", ".join(regions)
     if not rows:
-        output.print_text(f"No clusters found in {region}.")
+        output.print_text(f"No clusters found in {region_label}.")
         return
-    output.heading("Clusters in %s" % region)
-    if include_instance:
-        header = "%-30s %-20s %-19s %-28s %-28s %-28s %-15s %-20s" % (
+    output.heading("Clusters in %s" % region_label)
+    if not verbose and not include_instance:
+        header = "%-30s %-15s %-15s" % (
             "CLUSTER_NAME",
+            "REGION",
+            "PUBLIC_IP",
+        )
+        sep = "%s %s %s" % (
+            "\u2500" * 30,
+            "\u2500" * 15,
+            "\u2500" * 15,
+        )
+        output.print_text(header)
+        output.print_text(sep)
+        for row in rows:
+            output.print_text(
+                "%-30s %-15s %-15s"
+                % (
+                    row["name"],
+                    row["region"],
+                    row["ip"],
+                )
+            )
+        return
+
+    if include_instance:
+        header = "%-30s %-15s %-15s %-20s %-19s %-28s %-28s %-28s %-20s" % (
+            "CLUSTER_NAME",
+            "REGION",
+            "PUBLIC_IP",
             "STATUS",
             "HEADNODE_CONFIGURED",
             "CREATED_AT",
             "UPDATED_AT",
             "HEADNODE_LAUNCHED_AT",
-            "PUBLIC_IP",
             "INSTANCE_ID",
         )
-        sep = "%s %s %s %s %s %s %s %s" % (
+        sep = "%s %s %s %s %s %s %s %s %s" % (
             "\u2500" * 30,
+            "\u2500" * 15,
+            "\u2500" * 15,
             "\u2500" * 20,
             "\u2500" * 19,
             "\u2500" * 28,
             "\u2500" * 28,
             "\u2500" * 28,
-            "\u2500" * 15,
             "\u2500" * 20,
         )
         output.print_text(header)
         output.print_text(sep)
         for row in rows:
             output.print_text(
-                "%-30s %-20s %-19s %-28s %-28s %-28s %-15s %-20s"
+                "%-30s %-15s %-15s %-20s %-19s %-28s %-28s %-28s %-20s"
                 % (
                     row["name"],
+                    row["region"],
+                    row["ip"],
                     row["status"],
                     row["headnode_configured_text"],
                     row["created_at"],
                     row["updated_at"],
                     row["headnode_launched_at"],
-                    row["ip"],
                     row.get("instance_id") or "",
                 )
             )
         return
 
-    header = "%-30s %-20s %-19s %-28s %-28s %-28s %-15s" % (
+    header = "%-30s %-15s %-15s %-20s %-19s %-28s %-28s %-28s" % (
         "CLUSTER_NAME",
+        "REGION",
+        "PUBLIC_IP",
         "STATUS",
         "HEADNODE_CONFIGURED",
         "CREATED_AT",
         "UPDATED_AT",
         "HEADNODE_LAUNCHED_AT",
-        "PUBLIC_IP",
     )
-    sep = "%s %s %s %s %s %s %s" % (
+    sep = "%s %s %s %s %s %s %s %s" % (
         "\u2500" * 30,
+        "\u2500" * 15,
+        "\u2500" * 15,
         "\u2500" * 20,
         "\u2500" * 19,
         "\u2500" * 28,
         "\u2500" * 28,
         "\u2500" * 28,
-        "\u2500" * 15,
     )
     output.print_text(header)
     output.print_text(sep)
     for row in rows:
         output.print_text(
-            "%-30s %-20s %-19s %-28s %-28s %-28s %-15s"
+            "%-30s %-15s %-15s %-20s %-19s %-28s %-28s %-28s"
             % (
                 row["name"],
+                row["region"],
+                row["ip"],
                 row["status"],
                 row["headnode_configured_text"],
                 row["created_at"],
                 row["updated_at"],
                 row["headnode_launched_at"],
-                row["ip"],
             )
         )
 
@@ -697,49 +747,73 @@ def cluster_info(
         output.print_text("%-30s %-20s %-15s" % (row["name"], row["status"], row["ip"]))
 
 
+def _normalize_cluster_list_regions(regions: List[str]) -> list[str]:
+    normalized = [region.strip() for region in regions if region.strip()]
+    if not normalized:
+        output.error("At least one --region value is required.")
+        raise typer.Exit(1)
+    return normalized
+
+
 def cluster_list(
-    region: str = typer.Option(
+    regions: List[str] = typer.Option(
         ...,
         "--region",
-        help="AWS region to query (e.g. us-west-2).",
+        help="AWS region to query. Repeat --region once per requested region.",
     ),
     profile: Optional[str] = typer.Option(
         None,
         "--profile",
         help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
     ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        help="Include status, headnode configuration, and timestamp columns.",
+    ),
     details: bool = typer.Option(
         False,
         "--details",
-        help="Describe each cluster and include headnode details.",
+        help="Include raw pcluster describe payloads in JSON output. Implies --verbose table columns.",
     ),
 ) -> None:
-    """List ParallelCluster clusters in a region."""
+    """List ParallelCluster clusters in one or more regions."""
 
     from daylily_ec.scripts.common import CommandError
 
     _warn_if_dayec_env_inactive()
     try:
         resolved_profile = _resolved_aws_profile(profile)
-        payload = _run_pcluster_json(
-            ["pcluster", "list-clusters", "--region", region],
-            profile=resolved_profile,
-            region=region,
-        )
-        rows = _cluster_rows_from_list(
-            payload,
-            profile=resolved_profile,
-            region=region,
-            details=details,
-        )
+        requested_regions = _normalize_cluster_list_regions(regions)
+        rows: list[dict[str, Any]] = []
+        for region in requested_regions:
+            payload = _run_pcluster_json(
+                ["pcluster", "list-clusters", "--region", region],
+                profile=resolved_profile,
+                region=region,
+            )
+            rows.extend(
+                _cluster_rows_from_list(
+                    payload,
+                    profile=resolved_profile,
+                    region=region,
+                    details=details,
+                    verbose=verbose,
+                )
+            )
     except CommandError as exc:
         _exit_headnode_error(exc)
 
-    result = {"region": region, "clusters": rows}
+    result = {"regions": requested_regions, "clusters": rows}
     if _json_mode():
         output.emit_json(result)
         return
-    _emit_cluster_table(region, rows, include_instance=details)
+    _emit_cluster_table(
+        requested_regions,
+        rows,
+        verbose=verbose,
+        include_instance=details,
+    )
 
 
 def cluster_describe(
@@ -1207,7 +1281,12 @@ def headnode_connect(
         if dry_run:
             raise typer.Exit(0)
         raise typer.Exit(
-            start_session(target.instance_id, resolved_region, profile=resolved_profile)
+            start_session(
+                target.instance_id,
+                resolved_region,
+                profile=resolved_profile,
+                replace_process=True,
+            )
         )
     except (CommandError, SsmError, TimeoutError) as exc:
         _exit_headnode_error(exc)
@@ -1379,20 +1458,38 @@ def headnode_configure(
 
 
 def _invoke_stage_samples(argv: list[str]) -> int:
-    import importlib.util
+    from daylily_ec.stage_samples import main as stage_samples_main
 
-    script_path = Path(__file__).resolve().parents[1] / "bin" / (
-        "daylily-stage-samples-from-local-to-headnode"
-    )
-    spec_obj = importlib.util.spec_from_file_location(
-        "daylily_ec._stage_samples_from_local_to_headnode",
-        script_path,
-    )
-    if spec_obj is None or spec_obj.loader is None:
-        raise RuntimeError(f"Unable to load staging helper: {script_path}")
-    module = importlib.util.module_from_spec(spec_obj)
-    spec_obj.loader.exec_module(module)
-    return int(module.main(argv))
+    return int(stage_samples_main(argv))
+
+
+def _invoke_workflow_launch(argv: list[str]) -> int:
+    from daylily_ec.scripts.daylily_run_omics_analysis_headnode import main as launch_main
+
+    return int(launch_main(argv))
+
+
+def _parse_remote_stage_dir(stage_stdout: str) -> str:
+    from daylily_ec.scripts.common import CommandError
+
+    for line in stage_stdout.splitlines():
+        if line.startswith("Remote FSx stage directory:"):
+            stage_dir = line.split(":", 1)[1].strip()
+            if stage_dir:
+                return stage_dir
+    raise CommandError("Staging output did not include a Remote FSx stage directory.")
+
+
+def _parse_workflow_launch_metadata(launch_stdout: str) -> dict[str, str]:
+    parsed: dict[str, str] = {}
+    for line in launch_stdout.splitlines():
+        if line.startswith("__DAYLILY_SESSION__="):
+            parsed["session_name"] = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_RUN_DIR__="):
+            parsed["run_dir"] = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_REPO_PATH__="):
+            parsed["repo_path"] = line.split("=", 1)[1].strip()
+    return parsed
 
 
 def samples_stage(
@@ -1457,6 +1554,181 @@ def samples_stage(
     raise typer.Exit(rc)
 
 
+def samples_run(
+    analysis_samples: Path = typer.Argument(
+        ...,
+        help="Path to analysis_samples.tsv.",
+    ),
+    command_id: str = typer.Option(
+        ...,
+        "--command-id",
+        help="Repository catalog analysis command id to launch.",
+    ),
+    destination: str = typer.Option(
+        ...,
+        "--destination",
+        help="Required day-clone destination for the analysis repository.",
+    ),
+    reference_bucket: str = typer.Option(
+        ...,
+        "--reference-bucket",
+        help="S3 URI mapped to the FSx data repository.",
+    ),
+    config_dir: Optional[Path] = typer.Option(
+        None,
+        "--config-dir",
+        help="Directory for generated samples.tsv, units.tsv, and run receipt.",
+    ),
+    stage_target: str = typer.Option(
+        "/data/staged_sample_data",
+        "--stage-target",
+        help="FSx staging base directory.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Defaults to AWS_REGION/AWS_DEFAULT_REGION.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name.",
+    ),
+    git_tag: Optional[str] = typer.Option(
+        None,
+        "--git-tag",
+        "-t",
+        help="Override the catalog command's DayOA git tag.",
+    ),
+    session_name: Optional[str] = typer.Option(
+        None,
+        "--session-name",
+        help="Tmux session name. Defaults to --destination.",
+    ),
+    project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
+    skip_project_check: bool = typer.Option(
+        True,
+        "--skip-project-check/--strict-project-check",
+        help="Skip or enable upstream project validation in dyoainit.",
+    ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Launch the catalog dry-run command."),
+    catalog_config: Optional[Path] = typer.Option(
+        None,
+        "--catalog-config",
+        help="Path to daylily_available_repositories.yaml.",
+    ),
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        help="Print AWS CLI commands during staging.",
+    ),
+) -> None:
+    """Stage analysis samples and launch a compatible catalog workflow command."""
+
+    from daylily_ec.repositories import load_repository_catalog
+    from daylily_ec.scripts.common import CommandError
+    from daylily_ec.stage_samples import detect_manifest_data_modes
+
+    _warn_if_dayec_env_inactive()
+    analysis_path = analysis_samples.expanduser().resolve()
+    try:
+        catalog = load_repository_catalog(catalog_config)
+        command = catalog.get_command(command_id)
+        data_modes = detect_manifest_data_modes(analysis_path)
+        incompatible = command.incompatible_modes(data_modes)
+        if incompatible:
+            raise CommandError(
+                f"Analysis command {command.command_id} is not compatible with "
+                f"manifest data mode(s): {', '.join(incompatible)}. "
+                "Compatible modes: " + ", ".join(command.compatible_data_modes)
+            )
+        resolved_profile = _resolved_aws_profile(profile)
+        resolved_region = (
+            region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
+        )
+
+        stage_argv = [
+            str(analysis_path),
+            "--reference-bucket",
+            reference_bucket,
+            "--stage-target",
+            stage_target,
+        ]
+        resolved_config_dir = config_dir.expanduser() if config_dir else analysis_path.parent
+        stage_argv.extend(["--config-dir", str(resolved_config_dir)])
+        stage_argv.extend(["--profile", resolved_profile])
+        if resolved_region:
+            stage_argv.extend(["--region", resolved_region])
+        if debug:
+            stage_argv.append("--debug")
+
+        stage_stdout_buffer = io.StringIO()
+        with contextlib.redirect_stdout(stage_stdout_buffer):
+            stage_rc = _invoke_stage_samples(stage_argv)
+        stage_stdout = stage_stdout_buffer.getvalue()
+        if stage_stdout:
+            typer.echo(stage_stdout, nl=False)
+        if stage_rc != 0:
+            raise typer.Exit(stage_rc)
+
+        remote_stage_dir = _parse_remote_stage_dir(stage_stdout)
+        resolved_session_name = session_name or destination
+        resolved_git_tag = git_tag or command.git_tag
+        workflow_cli_argv = command.launch_argv(
+            destination=destination,
+            git_tag=resolved_git_tag,
+            profile=resolved_profile,
+            region=resolved_region,
+            cluster=cluster,
+            stage_dir=remote_stage_dir,
+            session_name=resolved_session_name,
+            project=project,
+            dry_run=dry_run,
+            skip_project_check=skip_project_check,
+        )
+        launch_stdout_buffer = io.StringIO()
+        with contextlib.redirect_stdout(launch_stdout_buffer):
+            launch_rc = _invoke_workflow_launch(workflow_cli_argv[2:])
+        launch_stdout = launch_stdout_buffer.getvalue()
+        if launch_stdout:
+            typer.echo(launch_stdout, nl=False)
+        if launch_rc != 0:
+            raise typer.Exit(launch_rc)
+
+        stage_name = Path(remote_stage_dir.rstrip("/")).name
+        timestamp = stage_name.replace("remote_stage_", "")
+        receipt_path = resolved_config_dir / f"{timestamp}_samples_run_receipt.json"
+        receipt_path.parent.mkdir(parents=True, exist_ok=True)
+        receipt = {
+            "analysis_samples": str(analysis_path),
+            "command_id": command.command_id,
+            "compatible_data_modes": command.compatible_data_modes,
+            "detected_data_modes": data_modes,
+            "destination": destination,
+            "dry_run": dry_run,
+            "dy_command": command.dryrun_dy_command if dry_run else command.dy_command,
+            "git_tag": resolved_git_tag,
+            "remote_stage_dir": remote_stage_dir,
+            "samples_tsv": str(resolved_config_dir / f"{timestamp}_samples.tsv"),
+            "session_name": resolved_session_name,
+            "units_tsv": str(resolved_config_dir / f"{timestamp}_units.tsv"),
+            "workflow_argv": workflow_cli_argv,
+            "workflow_launch": _parse_workflow_launch_metadata(launch_stdout),
+        }
+        receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        typer.echo(f"Samples run receipt: {receipt_path}")
+    except typer.Exit:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
 def workflow_launch(
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
@@ -1481,11 +1753,17 @@ def workflow_launch(
         "--session-name",
         help="Tmux session name.",
     ),
-    destination: str = typer.Option("dayoa", "--destination", help="day-clone destination."),
+    destination: str = typer.Option(..., "--destination", help="Required day-clone destination."),
     repository: str = typer.Option(
         "daylily-omics-analysis",
         "--repository",
         help="Repository key to pass to day-clone.",
+    ),
+    git_tag: str = typer.Option(
+        "main",
+        "--git-tag",
+        "-t",
+        help="Git branch or tag passed to day-clone.",
     ),
     project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
     skip_project_check: bool = typer.Option(
@@ -1501,6 +1779,11 @@ def workflow_launch(
         "deep",
         "--snv-callers",
         help="Comma-separated SNV caller list.",
+    ),
+    sv_callers: str = typer.Option(
+        "",
+        "--sv-callers",
+        help="Comma-separated SV caller list.",
     ),
     target: str = typer.Option(
         "produce_snv_concordances",
@@ -1527,7 +1810,6 @@ def workflow_launch(
     """Launch daylily-omics-analysis inside tmux on the headnode."""
 
     from daylily_ec.scripts.common import CommandError
-    from daylily_ec.scripts.daylily_run_omics_analysis_headnode import main as launch_main
 
     _warn_if_dayec_env_inactive()
     argv: list[str] = []
@@ -1540,12 +1822,14 @@ def workflow_launch(
         ("--session-name", session_name),
         ("--destination", destination),
         ("--repository", repository),
+        ("--git-tag", git_tag),
         ("--project", project),
         ("--genome", genome),
         ("--jobs", str(jobs)),
         ("--aligners", aligners),
         ("--dedupers", dedupers),
         ("--snv-callers", snv_callers),
+        ("--sv-callers", sv_callers),
         ("--target", target),
         ("--dy-command", dy_command),
         ("--snakemake-extra", snakemake_extra),
@@ -1559,8 +1843,61 @@ def workflow_launch(
         argv.append("--dry-run")
 
     try:
-        raise typer.Exit(launch_main(argv))
+        raise typer.Exit(_invoke_workflow_launch(argv))
     except CommandError as exc:
+        _exit_headnode_error(exc)
+
+
+def repositories_commands(
+    config: Optional[Path] = typer.Option(
+        None,
+        "--config",
+        help="Path to daylily_available_repositories.yaml.",
+    ),
+    repository: Optional[str] = typer.Option(
+        None,
+        "--repository",
+        help="Limit output to one repository key.",
+    ),
+    command_id: Optional[str] = typer.Option(
+        None,
+        "--command-id",
+        help="Limit output to one analysis command id.",
+    ),
+) -> None:
+    """List blessed analysis command profiles from the repository catalog."""
+
+    from daylily_ec.repositories import load_repository_catalog
+    from daylily_ec.scripts.common import CommandError
+
+    try:
+        catalog = load_repository_catalog(config)
+        payload = catalog.to_public_payload()
+        if repository:
+            repo_key = repository.strip()
+            repositories = payload["repositories"]
+            if not isinstance(repositories, dict) or repo_key not in repositories:
+                raise CommandError(f"Unknown repository: {repo_key}")
+            payload["repositories"] = {repo_key: repositories[repo_key]}
+            payload["commands"] = [
+                command
+                for command in payload["commands"]
+                if isinstance(command, dict) and command.get("repository") == repo_key
+            ]
+        if command_id:
+            command_key = command_id.strip()
+            payload["commands"] = [
+                command
+                for command in payload["commands"]
+                if isinstance(command, dict) and command.get("command_id") == command_key
+            ]
+            if not payload["commands"]:
+                raise CommandError(f"Unknown analysis command: {command_key}")
+        if _json_mode():
+            output.emit_json(payload)
+            return
+        typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+    except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
 
@@ -1602,9 +1939,9 @@ def _read_workflow_file(
         )
         file_path = f"{resolved_run_dir}/{filename}"
         if tail_lines is None:
-            read_command = "cat \"$FILE_PATH\""
+            read_command = 'cat "$FILE_PATH"'
         else:
-            read_command = f"tail -n {max(tail_lines, 1)} \"$FILE_PATH\""
+            read_command = f'tail -n {max(tail_lines, 1)} "$FILE_PATH"'
         script = f"""
 set -euo pipefail
 if [[ "$(id -un)" != "ubuntu" ]]; then
@@ -1630,6 +1967,22 @@ fi
         _exit_headnode_error(exc)
 
 
+def _parse_workflow_status_payload(stdout: str) -> dict[str, Any]:
+    from daylily_ec.scripts.common import CommandError
+
+    try:
+        payload = json.loads(stdout or "{}")
+    except json.JSONDecodeError:
+        start = stdout.find("{")
+        end = stdout.rfind("}")
+        if start < 0 or end <= start:
+            raise
+        payload = json.loads(stdout[start : end + 1])
+    if not isinstance(payload, dict):
+        raise CommandError("Workflow status file contained non-object JSON.")
+    return payload
+
+
 def workflow_status(
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
@@ -1651,9 +2004,7 @@ def workflow_status(
             run_dir=run_dir,
             filename="status.json",
         )
-        payload = json.loads(result.stdout or "{}")
-        if not isinstance(payload, dict):
-            raise CommandError("Workflow status file contained non-object JSON.")
+        payload = _parse_workflow_status_payload(result.stdout)
     except (CommandError, json.JSONDecodeError) as exc:
         _exit_headnode_error(exc)
 
@@ -1729,7 +2080,12 @@ def state_list() -> None:
             continue
         output.print_text(
             "%-32s %-16s %-12s %s"
-            % (row.get("cluster_name") or "", row.get("run_id") or "", row.get("region") or "", row["path"])
+            % (
+                row.get("cluster_name") or "",
+                row.get("run_id") or "",
+                row.get("region") or "",
+                row["path"],
+            )
         )
 
 
@@ -1770,7 +2126,11 @@ def state_show(
     try:
         if bool(state_file) == bool(cluster_name):
             raise CommandError("Provide exactly one of --state-file or --cluster-name.")
-        payload = _state_payload(state_file.expanduser().resolve()) if state_file else _latest_state_for_cluster(str(cluster_name))
+        payload = (
+            _state_payload(state_file.expanduser().resolve())
+            if state_file
+            else _latest_state_for_cluster(str(cluster_name))
+        )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
@@ -1856,7 +2216,10 @@ def register(registry, cli_spec) -> None:
         registry,
         "samples",
         "Sample staging helpers.",
-        [("stage", samples_stage, REQUIRED_MUTATING_LONG_RUNNING)],
+        [
+            ("stage", samples_stage, REQUIRED_MUTATING_LONG_RUNNING),
+            ("run", samples_run, REQUIRED_MUTATING_LONG_RUNNING),
+        ],
     )
     register_group_commands(
         registry,
@@ -1867,6 +2230,12 @@ def register(registry, cli_spec) -> None:
             ("status", workflow_status, REQUIRED_JSON),
             ("logs", workflow_logs, required_policy()),
         ],
+    )
+    register_group_commands(
+        registry,
+        "repositories",
+        "Repository catalog and blessed analysis command helpers.",
+        [("commands", repositories_commands, EXEMPT_JSON)],
     )
     register_group_commands(
         registry,

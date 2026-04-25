@@ -1,0 +1,139 @@
+DAY-EC activated.
+DAY-EC activated.
+[Sat Apr 25 09:33:47 2026]
+rule alignstats:
+    input: results/day/hg38_broad/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA.ug.na.cram, results/day/hg38_broad/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA.ug.na.cram.crai
+    output: results/day/hg38_broad/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA.ug.na.alignstats.json
+    log: results/day/hg38_broad/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA.ug.na.alignstats.log
+    jobid: 20
+    benchmark: results/day/hg38_broad/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA/benchmarks/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA.ug.na.alignstats.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA.ug.na.alignstats.json; Input files updated by another job: results/day/hg38_broad/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA.ug.na.cram, results/day/hg38_broad/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA.ug.na.cram.crai
+    wildcards: sample=602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA, alnr=ug, ddup=na
+    threads: 96
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=96, time=5440, partition=i192,i192mem,i128, vcpu=96, distribution=block, exclusive=, constraint=, exclude=, include=, attempt_n=1
+
+resources/alignstats/alignstats  -C -U  -i results/day/hg38_broad/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA.ug.na.cram -T /fsx/data/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -o results/day/hg38_broad/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA.ug.na.alignstats.json  -j cram -v -P 96 -p 96 > results/day/hg38_broad/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S14-B-Z0313-CTGTGACATAATGAT-prod-cram-5-CTGTGACATAATGAT-PF-UG-ULTIMA.ug.na.alignstats.log;
+Submitted job 20 with external jobid '2115'.
+
+[Sat Apr 25 09:33:47 2026]
+rule alignstats:
+    input: results/day/hg38_broad/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA.ug.na.cram, results/day/hg38_broad/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA.ug.na.cram.crai
+    output: results/day/hg38_broad/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA.ug.na.alignstats.json
+    log: results/day/hg38_broad/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA.ug.na.alignstats.log
+    jobid: 16
+    benchmark: results/day/hg38_broad/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA/benchmarks/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA.ug.na.alignstats.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA.ug.na.alignstats.json; Input files updated by another job: results/day/hg38_broad/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA.ug.na.cram, results/day/hg38_broad/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA.ug.na.cram.crai
+    wildcards: sample=602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA, alnr=ug, ddup=na
+    threads: 96
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=96, time=5440, partition=i192,i192mem,i128, vcpu=96, distribution=block, exclusive=, constraint=, exclude=, include=, attempt_n=1
+
+resources/alignstats/alignstats  -C -U  -i results/day/hg38_broad/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA.ug.na.cram -T /fsx/data/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -o results/day/hg38_broad/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA.ug.na.alignstats.json  -j cram -v -P 96 -p 96 > results/day/hg38_broad/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S13-B-Z0312-CAGTTGATACATGAT-prod-cram-4-CAGTTGATACATGAT-PF-UG-ULTIMA.ug.na.alignstats.log;
+Submitted job 16 with external jobid '2116'.
+
+[Sat Apr 25 09:33:47 2026]
+rule alignstats:
+    input: results/day/hg38_broad/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA.ug.na.cram, results/day/hg38_broad/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA.ug.na.cram.crai
+    output: results/day/hg38_broad/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA.ug.na.alignstats.json
+    log: results/day/hg38_broad/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA.ug.na.alignstats.log
+    jobid: 44
+    benchmark: results/day/hg38_broad/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA/benchmarks/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA.ug.na.alignstats.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA.ug.na.alignstats.json; Input files updated by another job: results/day/hg38_broad/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA.ug.na.cram, results/day/hg38_broad/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA.ug.na.cram.crai
+    wildcards: sample=602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA, alnr=ug, ddup=na
+    threads: 96
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=96, time=5440, partition=i192,i192mem,i128, vcpu=96, distribution=block, exclusive=, constraint=, exclude=, include=, attempt_n=1
+
+resources/alignstats/alignstats  -C -U  -i results/day/hg38_broad/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA.ug.na.cram -T /fsx/data/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -o results/day/hg38_broad/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA.ug.na.alignstats.json  -j cram -v -P 96 -p 96 > results/day/hg38_broad/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S21-B-Z0317-CTGCGCAGCATCCTGAT-prod-cram-11-CTGCGCAGCATCCTGAT-PF-UG-ULTIMA.ug.na.alignstats.log;
+Submitted job 44 with external jobid '2117'.
+
+[Sat Apr 25 09:33:47 2026]
+rule alignstats:
+    input: results/day/hg38_broad/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA.ug.na.cram, results/day/hg38_broad/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA.ug.na.cram.crai
+    output: results/day/hg38_broad/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA.ug.na.alignstats.json
+    log: results/day/hg38_broad/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA.ug.na.alignstats.log
+    jobid: 56
+    benchmark: results/day/hg38_broad/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA/benchmarks/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA.ug.na.alignstats.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA.ug.na.alignstats.json; Input files updated by another job: results/day/hg38_broad/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA.ug.na.cram.crai, results/day/hg38_broad/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA.ug.na.cram
+    wildcards: sample=602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA, alnr=ug, ddup=na
+    threads: 96
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=96, time=5440, partition=i192,i192mem,i128, vcpu=96, distribution=block, exclusive=, constraint=, exclude=, include=, attempt_n=1
+
+resources/alignstats/alignstats  -C -U  -i results/day/hg38_broad/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA.ug.na.cram -T /fsx/data/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -o results/day/hg38_broad/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA.ug.na.alignstats.json  -j cram -v -P 96 -p 96 > results/day/hg38_broad/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S5-B-Z0305-CACACACAACATGAT-prod-cram-14-CACACACAACATGAT-PF-UG-ULTIMA.ug.na.alignstats.log;
+Submitted job 56 with external jobid '2118'.
+[Sat Apr 25 09:33:47 2026]
+Finished job 61.
+22 of 67 steps (33%) done
+Select jobs to execute...
+
+[Sat Apr 25 09:33:47 2026]
+rule alignstats:
+    input: results/day/hg38_broad/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA.ug.na.cram, results/day/hg38_broad/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA.ug.na.cram.crai
+    output: results/day/hg38_broad/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA.ug.na.alignstats.json
+    log: results/day/hg38_broad/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA.ug.na.alignstats.log
+    jobid: 60
+    benchmark: results/day/hg38_broad/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA/benchmarks/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA.ug.na.alignstats.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA.ug.na.alignstats.json; Input files updated by another job: results/day/hg38_broad/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA.ug.na.cram.crai, results/day/hg38_broad/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA.ug.na.cram
+    wildcards: sample=602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA, alnr=ug, ddup=na
+    threads: 96
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=96, time=5440, partition=i192,i192mem,i128, vcpu=96, distribution=block, exclusive=, constraint=, exclude=, include=, attempt_n=1
+
+resources/alignstats/alignstats  -C -U  -i results/day/hg38_broad/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA.ug.na.cram -T /fsx/data/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -o results/day/hg38_broad/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA.ug.na.alignstats.json  -j cram -v -P 96 -p 96 > results/day/hg38_broad/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S6-B-Z0306-CTTACATGTCATGAT-prod-cram-15-CTTACATGTCATGAT-PF-UG-ULTIMA.ug.na.alignstats.log;
+Submitted job 60 with external jobid '2119'.
+[Sat Apr 25 09:34:07 2026]
+Finished job 37.
+23 of 67 steps (34%) done
+Select jobs to execute...
+
+[Sat Apr 25 09:34:07 2026]
+rule alignstats:
+    input: results/day/hg38_broad/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA.ug.na.cram, results/day/hg38_broad/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA.ug.na.cram.crai
+    output: results/day/hg38_broad/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA.ug.na.alignstats.json
+    log: results/day/hg38_broad/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA.ug.na.alignstats.log
+    jobid: 36
+    benchmark: results/day/hg38_broad/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA/benchmarks/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA.ug.na.alignstats.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA.ug.na.alignstats.json; Input files updated by another job: results/day/hg38_broad/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA.ug.na.cram.crai, results/day/hg38_broad/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA.ug.na.cram
+    wildcards: sample=602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA, alnr=ug, ddup=na
+    threads: 96
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=96, time=5440, partition=i192,i192mem,i128, vcpu=96, distribution=block, exclusive=, constraint=, exclude=, include=, attempt_n=1
+
+resources/alignstats/alignstats  -C -U  -i results/day/hg38_broad/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA.ug.na.cram -T /fsx/data/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -o results/day/hg38_broad/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA.ug.na.alignstats.json  -j cram -v -P 96 -p 96 > results/day/hg38_broad/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S18-B-Z0307-CAGAAGAGATATGAT-prod-cram-9-CAGAAGAGATATGAT-PF-UG-ULTIMA.ug.na.alignstats.log;
+Submitted job 36 with external jobid '2171'.
+[Sat Apr 25 09:34:07 2026]
+Finished job 13.
+24 of 67 steps (36%) done
+[Sat Apr 25 09:34:08 2026]
+Finished job 53.
+25 of 67 steps (37%) done
+[Sat Apr 25 09:34:08 2026]
+Finished job 29.
+26 of 67 steps (39%) done
+[Sat Apr 25 09:34:08 2026]
+Finished job 49.
+27 of 67 steps (40%) done
+[Sat Apr 25 09:34:08 2026]
+Finished job 5.
+28 of 67 steps (42%) done
+[Sat Apr 25 09:34:08 2026]
+Finished job 25.
+29 of 67 steps (43%) done
+[Sat Apr 25 09:34:09 2026]
+Finished job 65.
+30 of 67 steps (45%) done
+[Sat Apr 25 09:34:09 2026]
+Finished job 41.
+31 of 67 steps (46%) done
+[Sat Apr 25 09:34:09 2026]
+Finished job 9.
+32 of 67 steps (48%) done
+Select jobs to execute...
+
+[Sat Apr 25 09:34:09 2026]
+rule alignstats:
+    input: results/day/hg38_broad/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA.ug.na.cram, results/day/hg38_broad/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA.ug.na.cram.crai
+    output: results/day/hg38_broad/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA.ug.na.alignstats.json
+    log: results/day/hg38_broad/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/logs/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA.ug.na.alignstats.log
+    jobid: 24
+    benchmark: results/day/hg38_broad/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA/benchmarks/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA.ug.na.alignstats.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA/align/ug/na/alignqc/alignstats/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA.ug.na.alignstats.json; Input files updated by another job: results/day/hg38_broad/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA.ug.na.cram, results/day/hg38_broad/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA/align/ug/na/602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA.ug.na.cram.crai
+    wildcards: sample=602221-20260417-2346-S15-B-Z0314-CATAGTGCTGCAATGAT-prod-cram-6-CATAGTGCTGCAATGAT-PF-UG-ULTIMA, alnr=ug, ddup=na
+    threads: 96
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tm--output truncated--

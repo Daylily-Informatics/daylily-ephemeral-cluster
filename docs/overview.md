@@ -25,6 +25,7 @@ The supported control-plane surfaces are:
 - `daylily-ec headnode jobs`
 - `daylily-ec headnode configure`
 - `daylily-ec samples stage`
+- `daylily-ec samples run`
 - `daylily-ec workflow launch`
 - `daylily-ec workflow status`
 - `daylily-ec workflow logs`
@@ -39,7 +40,7 @@ The supported control-plane surfaces are:
 - cluster create
 - cluster listing/info/wait
 - headnode connect/configure/jobs/info
-- sample staging
+- sample staging and catalog-driven stage+run
 - workflow launch/status/logs
 - export
 - delete
@@ -61,6 +62,11 @@ The staging helper reads a local `analysis_samples.tsv`, validates the reference
 - `<timestamp>_samples.tsv`
 - `<timestamp>_units.tsv`
 
+The manifest is additive and multi-modality. Legacy Illumina rows can still use
+`R1_FQ` / `R2_FQ`, while newer rows can describe ONT, Ultima, PacBio, Roche,
+and explicit hybrid units with the modality-specific columns in the bundled
+template.
+
 The helper prints the remote FSx stage directory. The launcher uses that path through `--stage-dir` so the workflow starts from the exact staged manifest set you just generated.
 
 ## Headnode Bootstrap Model
@@ -80,6 +86,7 @@ That last point matters. The supported shell must already be correct when the op
 Session Manager is only considered valid when the regional document `SSM-SessionManagerRunShell` is configured to:
 
 - run shell sessions as `ubuntu`
+- start in `/home/ubuntu`
 - source a login shell for `ubuntu`
 
 ## Workflow Launch Model

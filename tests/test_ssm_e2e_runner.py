@@ -18,9 +18,7 @@ def test_repo_root_points_to_checkout_root() -> None:
 def test_write_runner_config_sets_cluster_name_triplet(tmp_path: Path) -> None:
     base_config = tmp_path / "daylily.yaml"
     base_config.write_text(
-        "ephemeral_cluster:\n"
-        "  config:\n"
-        "    cluster_name: [PROMPTUSER, old-default, old-value]\n",
+        "ephemeral_cluster:\n  config:\n    cluster_name: [PROMPTUSER, old-default, old-value]\n",
         encoding="utf-8",
     )
 
@@ -146,7 +144,9 @@ def test_record_step_writes_machine_readable_summary(tmp_path: Path) -> None:
     )
     output_path = tmp_path / "summary.json"
 
-    runner_module._record_step(summary, output_path, "preflight", "passed", command="daylily-ec preflight")
+    runner_module._record_step(
+        summary, output_path, "preflight", "passed", command="daylily-ec preflight"
+    )
 
     payload = json.loads(output_path.read_text(encoding="utf-8"))
     assert payload["cluster_name"] == "cluster-a"
@@ -369,7 +369,9 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
         commands_by_name[name] = list(command)
         if name == "stage-from-laptop":
             stdout = "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_1\n"
-            runner_module._record_step(summary, output_path, name, "passed", command=" ".join(command))
+            runner_module._record_step(
+                summary, output_path, name, "passed", command=" ".join(command)
+            )
             return stdout
         if name == "launch-workflow":
             stdout = (
@@ -377,7 +379,9 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis\n"
             )
-            runner_module._record_step(summary, output_path, name, "passed", command=" ".join(command))
+            runner_module._record_step(
+                summary, output_path, name, "passed", command=" ".join(command)
+            )
             return stdout
         if name == "export-results":
             export_dir.mkdir(parents=True, exist_ok=True)
@@ -413,6 +417,10 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
             "--output-json",
             str(output_json),
             "--workflow-live",
+            "--workflow-destination",
+            "run_deploy",
+            "--workflow-git-tag",
+            "release-1",
             "--interactive-session-smoke",
             "--delete-cluster",
             "--allow-destroy",
@@ -435,7 +443,9 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
     assert "/fsx/data/staged_sample_data/remote_stage_1" in commands_by_name["launch-workflow"]
     assert "--stage-base" not in commands_by_name["launch-workflow"]
     assert "--destination" in commands_by_name["launch-workflow"]
-    assert "dayoa" in commands_by_name["launch-workflow"]
+    assert "run_deploy" in commands_by_name["launch-workflow"]
+    assert "--git-tag" in commands_by_name["launch-workflow"]
+    assert "release-1" in commands_by_name["launch-workflow"]
     assert "--aligners" in commands_by_name["launch-workflow"]
     assert "bwa2a" in commands_by_name["launch-workflow"]
     assert "--dedupers" in commands_by_name["launch-workflow"]
@@ -496,7 +506,9 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
         commands_by_name[name] = list(command)
         if name == "stage-from-laptop":
             stdout = "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_1\n"
-            runner_module._record_step(summary, output_path, name, "passed", command=" ".join(command))
+            runner_module._record_step(
+                summary, output_path, name, "passed", command=" ".join(command)
+            )
             return stdout
         if name == "launch-workflow":
             stdout = (
@@ -504,7 +516,9 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis\n"
             )
-            runner_module._record_step(summary, output_path, name, "passed", command=" ".join(command))
+            runner_module._record_step(
+                summary, output_path, name, "passed", command=" ".join(command)
+            )
             return stdout
         if name == "export-results":
             export_dir.mkdir(parents=True, exist_ok=True)
@@ -537,6 +551,8 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
             "--output-json",
             str(output_json),
             "--workflow-live",
+            "--workflow-destination",
+            "dayoa",
         ]
     )
 
@@ -595,7 +611,9 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
         commands_by_name[name] = list(command)
         if name == "stage-from-laptop":
             stdout = "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_1\n"
-            runner_module._record_step(summary, output_path, name, "passed", command=" ".join(command))
+            runner_module._record_step(
+                summary, output_path, name, "passed", command=" ".join(command)
+            )
             return stdout
         if name == "launch-workflow":
             stdout = (
@@ -603,7 +621,9 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/run_deploy/daylily-omics-analysis\n"
             )
-            runner_module._record_step(summary, output_path, name, "passed", command=" ".join(command))
+            runner_module._record_step(
+                summary, output_path, name, "passed", command=" ".join(command)
+            )
             return stdout
         if name == "export-results":
             export_dir.mkdir(parents=True, exist_ok=True)
@@ -653,6 +673,8 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
     launch = commands_by_name["launch-workflow"]
     assert "--destination" in launch
     assert "run_deploy" in launch
+    assert "--git-tag" in launch
+    assert "main" in launch
     assert "--aligners" in launch
     assert "sent" in launch
     assert "--dedupers" in launch

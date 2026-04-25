@@ -145,8 +145,8 @@ class TestRunShell:
         assert result.stdout == "ok\n"
         sent = client.send_command.call_args.kwargs
         assert sent["DocumentName"] == "AWS-RunShellScript"
-        assert "chown ubuntu \"$tmp\"" in sent["Parameters"]["commands"][0]
-        assert "sudo -iu ubuntu bash -l \"$tmp\"" in sent["Parameters"]["commands"][0]
+        assert 'chown ubuntu "$tmp"' in sent["Parameters"]["commands"][0]
+        assert 'sudo -iu ubuntu bash -l "$tmp"' in sent["Parameters"]["commands"][0]
         assert sent["Parameters"]["commands"][0].startswith("set -eu\n")
         encoded = sent["Parameters"]["commands"][0].split("DAYLILY_SSM_B64=")[1].split("\n", 1)[0]
         decoded = base64.b64decode(encoded).decode("utf-8")
@@ -235,7 +235,9 @@ class TestRunShell:
         mock_session_cls.return_value.client.return_value = client
 
         with pytest.raises(TimeoutError, match="did not complete"):
-            run_shell("i-abc123", "us-west-2", "sleep 10", profile="dev", timeout=3, poll_interval=0)
+            run_shell(
+                "i-abc123", "us-west-2", "sleep 10", profile="dev", timeout=3, poll_interval=0
+            )
 
     @patch("daylily_ec.aws.ssm.time.time", side_effect=[0, 5])
     @patch("daylily_ec.aws.ssm.boto3.Session")
@@ -296,7 +298,7 @@ class TestStartSession:
             subprocess.CompletedProcess(
                 args=[],
                 returncode=0,
-                stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"exec bash -l"}}}',
+                stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"cd /home/ubuntu && exec bash -l"}}}',
                 stderr="",
             ),
             subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr=""),
@@ -324,6 +326,68 @@ class TestStartSession:
             "--document-name",
             "SSM-SessionManagerRunShell",
         ]
+
+    @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
+    @patch("daylily_ec.aws.ssm.os.execvpe")
+    @patch("daylily_ec.aws.ssm.subprocess.run")
+    def test_can_replace_process_for_interactive_sessions(
+        self,
+        mock_run,
+        mock_execvpe,
+        _mock_require_plugin,
+    ):
+        class ExecCalled(Exception):
+            pass
+
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"cd /home/ubuntu && exec bash -l"}}}',
+            stderr="",
+        )
+        mock_execvpe.side_effect = ExecCalled()
+
+        with pytest.raises(ExecCalled):
+            start_session(
+                "i-abc123",
+                "us-west-2",
+                profile="dev",
+                replace_process=True,
+            )
+
+        assert mock_run.call_count == 1
+        executable, argv, env = mock_execvpe.call_args.args
+        assert executable == "aws"
+        assert argv == [
+            "aws",
+            "ssm",
+            "start-session",
+            "--region",
+            "us-west-2",
+            "--target",
+            "i-abc123",
+            "--document-name",
+            "SSM-SessionManagerRunShell",
+        ]
+        assert env["AWS_PROFILE"] == "dev"
+        assert env["AWS_REGION"] == "us-west-2"
+
+    @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
+    @patch("daylily_ec.aws.ssm.subprocess.run")
+    def test_rejects_session_manager_preferences_without_home_cd(
+        self,
+        mock_run,
+        _mock_require_plugin,
+    ):
+        mock_run.return_value = subprocess.CompletedProcess(
+            args=[],
+            returncode=0,
+            stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"exec bash -l"}}}',
+            stderr="",
+        )
+
+        with pytest.raises(SsmError, match="cd to /home/ubuntu"):
+            start_session("i-abc123", "us-west-2", profile="dev")
 
     @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
     @patch("daylily_ec.aws.ssm.subprocess.run")

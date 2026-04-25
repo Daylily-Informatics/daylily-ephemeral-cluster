@@ -1,4 +1,5 @@
 ---
+command_catalog_version: 1
 default_repository: daylily-omics-analysis
 repositories:
   daylily-omics-analysis:
@@ -6,8 +7,219 @@ repositories:
     description: "Primary whole genome and multiomics workflows."
     https_url: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
     ssh_url: git@github.com:Daylily-Informatics/daylily-omics-analysis.git
-    default_ref: 0.7.633
+    default_ref: 0.7.704
     relative_path: daylily-omics-analysis
+    analysis_commands:
+      - command_id: illumina_snv_alignstats
+        display_name: "Illumina SNV + Alignstats"
+        description: "Illumina WGS Sentieon DNAscope and alignment-statistics launch profile."
+        datasource: Illumina
+        launcher: workflow_launch
+        targets:
+          - produce_snv_concordances
+          - produce_alignstats
+        genome: hg38_broad
+        jobs: 20
+        aligners:
+          - sent
+        dedupers:
+          - dppl
+        snv_callers:
+          - sentd
+        sv_callers: []
+        dy_command: "bin/day_run produce_snv_concordances produce_alignstats --config aligners=['sent'] dedupers=['dppl'] snv_callers=['sentd'] -p -k -j 20"
+        dryrun_dy_command: "bin/day_run produce_snv_concordances produce_alignstats --config aligners=['sent'] dedupers=['dppl'] snv_callers=['sentd'] -p -k -j 20 -n"
+        compatible_platforms:
+          - ILMN
+        compatible_data_modes:
+          - ilmn_solo
+        git_tag: 0.7.704
+        no_containerized: false
+      - command_id: ultima_snv_alignstats
+        display_name: "Ultima SNV + Alignstats"
+        description: "Ultima CRAM/FASTQ Sentieon DNAscope and alignment-statistics launch profile."
+        datasource: Ultima
+        launcher: workflow_launch
+        targets:
+          - produce_alignstats
+          - produce_sentdug_vcf
+          - produce_snv_concordances
+        genome: hg38_broad
+        jobs: 20
+        aligners:
+          - ug
+        dedupers:
+          - na
+        snv_callers:
+          - sentdug
+        sv_callers: []
+        dy_command: "bin/day_run produce_alignstats produce_sentdug_vcf produce_snv_concordances --config dppl=['na'] -p -j 20 -k"
+        dryrun_dy_command: "bin/day_run produce_alignstats produce_sentdug_vcf produce_snv_concordances --config dppl=['na'] -p -j 20 -k -n"
+        compatible_platforms:
+          - ULTIMA
+        compatible_data_modes:
+          - ultima_solo
+        git_tag: 0.7.704
+        no_containerized: false
+      - command_id: ont_snv_alignstats
+        display_name: "ONT SNV + Alignstats"
+        description: "ONT alignment, Sentieon DNAscope, and alignment-statistics launch profile."
+        datasource: ONT
+        launcher: workflow_launch
+        targets:
+          - produce_alignstats
+          - produce_sentmm2ont_align_sort
+          - produce_sentdont_vcf
+          - produce_snv_concordances
+        genome: hg38_broad
+        jobs: 5
+        aligners:
+          - sentmm2ont
+        dedupers:
+          - na
+        snv_callers:
+          - sentdont
+        sv_callers: []
+        dy_command: "bin/day_run produce_alignstats produce_sentmm2ont_align_sort produce_sentdont_vcf produce_snv_concordances --config dedupers=['na'] -p -j 5 -k"
+        dryrun_dy_command: "bin/day_run produce_alignstats produce_sentmm2ont_align_sort produce_sentdont_vcf produce_snv_concordances --config dedupers=['na'] -p -j 5 -k -n"
+        compatible_platforms:
+          - ONT
+        compatible_data_modes:
+          - ont_solo
+        git_tag: 0.7.704
+        no_containerized: false
+      - command_id: pacbio_snv_alignstats
+        display_name: "PacBio SNV + Alignstats"
+        description: "PacBio HiFi Sentieon DeepVariant and alignment-statistics launch profile."
+        datasource: PacBio
+        launcher: workflow_launch
+        targets:
+          - produce_sentdpb_vcf
+          - produce_alignstats
+          - produce_snv_concordances
+        genome: hg38_broad
+        jobs: 2
+        aligners:
+          - sentmm2
+        dedupers:
+          - na
+        snv_callers:
+          - sentdpb
+        sv_callers: []
+        dy_command: "bin/day_run produce_sentdpb_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1"
+        dryrun_dy_command: "bin/day_run produce_sentdpb_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1 -n"
+        compatible_platforms:
+          - PACBIO
+        compatible_data_modes:
+          - pacbio_solo
+        git_tag: 0.7.704
+        no_containerized: false
+      - command_id: roche_snv_alignstats
+        display_name: "Roche SNV + Alignstats"
+        description: "Roche aligned BAM HaplotypeCaller and alignment-statistics launch profile."
+        datasource: Roche
+        launcher: workflow_launch
+        targets:
+          - produce_alignstats
+          - produce_rochehc_vcf
+        genome: hg38_broad
+        jobs: 5
+        aligners:
+          - roche
+        dedupers:
+          - na
+        snv_callers:
+          - rochehc
+        sv_callers: []
+        dy_command: "bin/day_run produce_alignstats produce_rochehc_vcf --config dedupers=['na'] -p -j 5 -k"
+        dryrun_dy_command: "bin/day_run produce_alignstats --config dedupers=['na'] -p -j 5 -k -n"
+        compatible_platforms:
+          - ROCHE
+        compatible_data_modes:
+          - roche_solo
+        git_tag: 0.7.704
+        no_containerized: false
+      - command_id: hybrid_ilmn_ont_snv
+        display_name: "Hybrid ILMN+ONT SNV/SV"
+        description: "Hybrid Illumina plus ONT modular Sentieon SNV/SV launch profile."
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        targets:
+          - produce_snv_concordances
+          - produce_sentdhiom_sv
+          - produce_sentdhiom_vcf
+        genome: hg38_broad
+        jobs: 100
+        aligners:
+          - sentdhiom
+        dedupers:
+          - na
+        snv_callers:
+          - sentdhiom
+        sv_callers:
+          - sentdhiom
+        dy_command: "bin/day_run produce_snv_concordances produce_sentdhiom_sv produce_sentdhiom_vcf -p -j 100 -k"
+        dryrun_dy_command: "bin/day_run produce_snv_concordances produce_sentdhiom_sv produce_sentdhiom_vcf -p -j 100 -k -n"
+        compatible_platforms:
+          - ILMN
+          - ONT
+        compatible_data_modes:
+          - hybrid_ilmn_ont
+        git_tag: 0.7.704
+        no_containerized: false
+      - command_id: hybrid_ultima_ont_snv
+        display_name: "Hybrid Ultima+ONT SNV"
+        description: "Hybrid Ultima plus ONT modular Sentieon SNV launch profile."
+        datasource: Hybrid Ultima+ONT
+        launcher: workflow_launch
+        targets:
+          - produce_sentdhuom_vcf
+          - produce_alignstats
+          - produce_snv_concordances
+        genome: hg38_broad
+        jobs: 100
+        aligners:
+          - sentdhuom
+        dedupers:
+          - na
+        snv_callers:
+          - sentdhuom
+        sv_callers: []
+        dy_command: "bin/day_run produce_sentdhuom_vcf produce_alignstats produce_snv_concordances -p -j 100 -k"
+        dryrun_dy_command: "bin/day_run produce_sentdhuom_vcf produce_alignstats produce_snv_concordances -p -j 100 -k -n"
+        compatible_platforms:
+          - ULTIMA
+          - ONT
+        compatible_data_modes:
+          - hybrid_ug_ont
+        git_tag: 0.7.704
+        no_containerized: false
+      - command_id: complete_genomics_mgi_snv_concordance
+        display_name: "Complete Genomics/MGI SNV + Concordance"
+        description: "Complete Genomics/MGI Sentieon sentcg/smd/cgt7p launch profile."
+        datasource: Complete Genomics/MGI
+        launcher: workflow_launch
+        targets:
+          - produce_alignstats
+          - produce_cgt7p_vcf
+          - produce_snv_concordances
+        genome: hg38_broad
+        jobs: 20
+        aligners:
+          - sentcg
+        dedupers:
+          - smd
+        snv_callers:
+          - cgt7p
+        sv_callers: []
+        dy_command: "bin/day_run produce_alignstats produce_cgt7p_vcf produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete --config aligners=['sentcg'] dedupers=['smd'] snv_callers=['cgt7p']"
+        dryrun_dy_command: "bin/day_run produce_alignstats produce_cgt7p_vcf produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete --config aligners=['sentcg'] dedupers=['smd'] snv_callers=['cgt7p'] -n"
+        compatible_platforms:
+          - CG/MGI
+        compatible_data_modes:
+          - complete_genomics_solo
+        git_tag: 0.7.704
+        no_containerized: false
   rna-seq-star-deseq2:
     display_name: "RNA-seq STAR + DESeq2"
     description: "RNA sequencing alignment and differential expression analysis workflows."
@@ -15,6 +227,7 @@ repositories:
     ssh_url: git@github.com:Daylily-Informatics/rna-seq-star-deseq2.git
     default_ref: main
     relative_path: rna-seq-star-deseq2
+    analysis_commands: []
   daylily-sarek:
     display_name: "daylily-sarek"
     description: "sarek nf-core analysis workflows."
@@ -22,3 +235,4 @@ repositories:
     ssh_url: git@github.com:iamh2o/sarek.git
     default_ref: 0.0.4d
     relative_path: sarek
+    analysis_commands: []

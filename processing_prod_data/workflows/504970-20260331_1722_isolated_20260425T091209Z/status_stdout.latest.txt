@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_alignstats --config dppl=['na'] -p -j 20 -k",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/prod-alignstats-504970-20260331-1722-20260425T091209Z/daylily-omics-analysis",
+  "session_name": "prod-alignstats-504970-20260331-1722-isolated-20260425T091209Z",
+  "started_at": "2026-04-25T09:12:24Z"
+}

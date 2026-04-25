@@ -1,0 +1,17 @@
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+S10-A-Z0294-CGCACAAGTCATGAT	unknown	research	unknown	na	false	false	gdna	na	S10_A-Z0294-CGCACAAGTCATGAT	na	na	na
+S12a-A-Z0295-CATGCAATACATGAGAT	unknown	research	unknown	na	false	false	gdna	na	S12a_A-Z0295-CATGCAATACATGAGAT	na	na	na
+S12b-A-Z0302-CTATCAAGCTCAGAT	unknown	research	unknown	na	false	false	gdna	na	S12b_A-Z0302-CTATCAAGCTCAGAT	na	na	na
+S13-A-Z0296-CATCTATCAGGCGAT	unknown	research	unknown	na	false	false	gdna	na	S13_A-Z0296-CATCTATCAGGCGAT	na	na	na
+S14-A-Z0297-CGAGCATCAGGTGAT	unknown	research	unknown	na	false	false	gdna	na	S14_A-Z0297-CGAGCATCAGGTGAT	na	na	na
+S15-A-Z0298-CAAGACTGATATGAT	unknown	research	unknown	na	false	false	gdna	na	S15_A-Z0298-CAAGACTGATATGAT	na	na	na
+S16-A-Z0299-CATGCGGAGTGAGAT	unknown	research	unknown	na	false	false	gdna	na	S16_A-Z0299-CATGCGGAGTGAGAT	na	na	na
+S17-A-Z0293-CATGTGAGCGGTGAT	unknown	research	unknown	na	false	false	gdna	na	S17_A-Z0293-CATGTGAGCGGTGAT	na	na	na
+S18-A-Z0291-CATGTATCAGGTGAT	unknown	research	unknown	na	false	false	gdna	na	S18_A-Z0291-CATGTATCAGGTGAT	na	na	na
+S19-A-Z0300-CAGATATAGCCTGAT	unknown	research	unknown	na	false	false	gdna	na	S19_A-Z0300-CAGATATAGCCTGAT	na	na	na
+S21-A-Z0301-CAAGAGAGAGCTGAT	unknown	research	unknown	na	false	false	gdna	na	S21_A-Z0301-CAAGAGAGAGCTGAT	na	na	na
+S2a-A-Z0303-CAGAATACATGCGAT	unknown	research	unknown	na	false	false	gdna	na	S2a_A-Z0303-CAGAATACATGCGAT	na	na	na
+S2b-A-Z0304-CTCAAGCGCACAGAT	unknown	research	unknown	na	false	false	gdna	na	S2b_A-Z0304-CTCAAGCGCACAGAT	na	na	na
+S5-A-Z0289-CATCATGCTCCGCTGAT	unknown	research	unknown	na	false	false	gdna	na	S5_A-Z0289-CATCATGCTCCGCTGAT	na	na	na
+S6-A-Z0290-CTTGCTATGAGCGAT	unknown	research	unknown	na	false	false	gdna	na	S6_A-Z0290-CTTGCTATGAGCGAT	na	na	na
+S8-A-Z0292-CATGCGCAATGTATGAT	unknown	research	unknown	na	false	false	gdna	na	S8_A-Z0292-CATGCGCAATGTATGAT	na	na	na

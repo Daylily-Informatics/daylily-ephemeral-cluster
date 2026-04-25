@@ -18,6 +18,7 @@ session-manager-plugin
 Expected:
 
 - `daylily-ec` resolves successfully
+- `dyec` resolves successfully as the short alias for the same CLI
 - runtime backend is `day-ec-conda`
 - `aws`, `pcluster`, and `session-manager-plugin` are available in the shell
 
@@ -119,6 +120,12 @@ This prints:
 - the remote FSx stage directory
 - the staged file list
 - the generated manifest filenames
+
+Manifest notes:
+
+- start from `etc/analysis_samples_template.tsv`
+- legacy Illumina rows still work with `R1_FQ` / `R2_FQ`
+- ONT, Ultima, PacBio, Roche, and hybrid rows use the modality-specific columns on the same TSV header
 
 Sanity checks:
 

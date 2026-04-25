@@ -22,6 +22,8 @@ logger = logging.getLogger(__name__)
 PENDING_STATUSES = {"Pending", "InProgress", "Delayed"}
 SUCCESS_STATUS = "Success"
 SUPPORTED_REMOTE_USER = "ubuntu"
+SUPPORTED_SESSION_HOME = f"/home/{SUPPORTED_REMOTE_USER}"
+SUPPORTED_SESSION_SHELL_PROFILE = f"cd {SUPPORTED_SESSION_HOME} && exec bash -l"
 
 
 class SsmError(RuntimeError):
@@ -210,10 +212,7 @@ def _normalize_remote_path(path: str, *, user: str) -> str:
 
 def _require_ubuntu_user(as_user: Optional[str]) -> str:
     if as_user != SUPPORTED_REMOTE_USER:
-        raise SsmError(
-            "Supported SSM commands must run as ubuntu; "
-            f"got {as_user!r}."
-        )
+        raise SsmError(f"Supported SSM commands must run as ubuntu; got {as_user!r}.")
     return SUPPORTED_REMOTE_USER
 
 
@@ -237,7 +236,7 @@ def _encode_script_payload(script: str, *, as_user: Optional[str]) -> str:
         "path = pathlib.Path(os.environ['DAYLILY_SSM_TMP']); "
         "path.write_text(base64.b64decode(os.environ['DAYLILY_SSM_B64']).decode('utf-8'), encoding='utf-8')"
     )
-    runner = f"sudo -iu {shlex.quote(user)} bash -l \"$tmp\""
+    runner = f'sudo -iu {shlex.quote(user)} bash -l "$tmp"'
     return "\n".join(
         [
             # AWS-RunShellScript uses /bin/sh for the transport wrapper on Ubuntu.
@@ -247,13 +246,13 @@ def _encode_script_payload(script: str, *, as_user: Optional[str]) -> str:
             f"export DAYLILY_SSM_B64={shlex.quote(encoded)}",
             'export DAYLILY_SSM_TMP="$tmp"',
             f"python3 -c {shlex.quote(writer)}",
-            f"chown {shlex.quote(user)} \"$tmp\"",
-            "chmod 700 \"$tmp\"",
+            f'chown {shlex.quote(user)} "$tmp"',
+            'chmod 700 "$tmp"',
             "set +e",
             runner,
             "rc=$?",
             "set -e",
-            "rm -f \"$tmp\"",
+            'rm -f "$tmp"',
             "exit $rc",
         ]
     )
@@ -304,15 +303,11 @@ def run_shell(
             )
         except client.exceptions.InvocationDoesNotExist:
             if deadline is not None and time.time() >= deadline:
-                raise TimeoutError(
-                    f"SSM command '{command_id}' did not start within {timeout}s."
-                )
+                raise TimeoutError(f"SSM command '{command_id}' did not start within {timeout}s.")
             time.sleep(poll_interval)
             continue
         except (BotoCoreError, ClientError) as exc:
-            raise SsmError(
-                f"Unable to fetch SSM command invocation '{command_id}': {exc}"
-            ) from exc
+            raise SsmError(f"Unable to fetch SSM command invocation '{command_id}': {exc}") from exc
 
         status = str(invocation.get("Status") or "")
         if status in PENDING_STATUSES:
@@ -409,8 +404,7 @@ def _require_ubuntu_session_preferences(
     if result.returncode != 0:
         detail = result.stderr.strip() or result.stdout.strip() or "unknown error"
         raise SsmError(
-            "Unable to read Session Manager preferences for 'SSM-SessionManagerRunShell': "
-            f"{detail}"
+            f"Unable to read Session Manager preferences for 'SSM-SessionManagerRunShell': {detail}"
         )
 
     try:
@@ -425,7 +419,10 @@ def _require_ubuntu_session_preferences(
     linux_shell_profile = ""
     if isinstance(shell_profile, dict):
         linux_shell_profile = str(shell_profile.get("linux") or "")
-    if inputs.get("runAsEnabled") is not True or inputs.get("runAsDefaultUser") != SUPPORTED_REMOTE_USER:
+    if (
+        inputs.get("runAsEnabled") is not True
+        or inputs.get("runAsDefaultUser") != SUPPORTED_REMOTE_USER
+    ):
         raise SsmError(
             "Session Manager must be configured to run shell sessions as ubuntu "
             "via SSM-SessionManagerRunShell."
@@ -439,6 +436,25 @@ def _require_ubuntu_session_preferences(
             "Session Manager must source the ubuntu login shell via "
             "SSM-SessionManagerRunShell shellProfile.linux."
         )
+    if not _shell_profile_enters_ubuntu_home(linux_shell_profile):
+        raise SsmError(
+            "Session Manager must cd to /home/ubuntu before starting the ubuntu login shell "
+            "via SSM-SessionManagerRunShell shellProfile.linux. Expected a shell profile "
+            f"like: {SUPPORTED_SESSION_SHELL_PROFILE!r}."
+        )
+
+
+def _shell_profile_enters_ubuntu_home(shell_profile: str) -> bool:
+    normalized = shell_profile.replace('"', "").replace("'", "")
+    return any(
+        marker in normalized
+        for marker in (
+            f"cd {SUPPORTED_SESSION_HOME}",
+            "cd ~",
+            "cd $HOME",
+            "cd ${HOME}",
+        )
+    )
 
 
 def ensure_ubuntu_session_preferences(
@@ -455,6 +471,7 @@ def start_session(
     region: str,
     *,
     profile: Optional[str] = None,
+    replace_process: bool = False,
 ) -> int:
     """Start an interactive Session Manager shell."""
     require_session_manager_plugin()
@@ -470,5 +487,13 @@ def start_session(
         "--document-name",
         "SSM-SessionManagerRunShell",
     ]
-    result = subprocess.run(cmd, env=_build_env(profile=profile, region=region))
+    env = _build_env(profile=profile, region=region)
+    if replace_process:
+        try:
+            os.execvpe(cmd[0], cmd, env)
+        except FileNotFoundError as exc:
+            raise SsmError("aws CLI not found on PATH.") from exc
+        except OSError as exc:
+            raise SsmError(f"Unable to start Session Manager session: {exc}") from exc
+    result = subprocess.run(cmd, env=env)
     return int(result.returncode)

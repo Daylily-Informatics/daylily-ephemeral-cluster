@@ -1,0 +1,3 @@
+✗ Unable to start SSM Run Command on 'i-061e067471c91714b': An error occurred 
+(MaxDocumentSizeExceeded) when calling the SendCommand operation: The total size
+of your parameter(s) and document exceeds the 97KB limit.

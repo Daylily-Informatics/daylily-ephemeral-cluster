@@ -148,8 +148,13 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--workflow-destination",
-        default="dayoa",
+        required=True,
         help="Workspace destination passed through to the headnode workflow launcher",
+    )
+    parser.add_argument(
+        "--workflow-git-tag",
+        default="main",
+        help="Git branch or tag passed through to the headnode workflow launcher",
     )
     parser.add_argument(
         "--workflow-aligners",
@@ -309,7 +314,9 @@ def _parse_workflow_status(stdout: str) -> tuple[Optional[WorkflowStatus], str]:
                 session_name=str(payload.get("session_name") or ""),
                 repo_path=str(payload.get("repo_path") or ""),
                 started_at=str(payload.get("started_at")) if payload.get("started_at") else None,
-                completed_at=str(payload.get("completed_at")) if payload.get("completed_at") else None,
+                completed_at=str(payload.get("completed_at"))
+                if payload.get("completed_at")
+                else None,
                 exit_code=exit_code,
                 command=str(payload.get("command") or ""),
             )
@@ -322,7 +329,9 @@ def _summary_output_path(cluster_name: str, explicit: Optional[str]) -> Path:
     return (REPO_ROOT / "tmp-e2e-results" / f"{cluster_name}.json").resolve()
 
 
-def _record_step(summary: RunnerSummary, output_path: Path, name: str, status: str, **details: str) -> None:
+def _record_step(
+    summary: RunnerSummary, output_path: Path, name: str, status: str, **details: str
+) -> None:
     summary.steps.append(StepResult(name=name, status=status, details=details))
     output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(
@@ -715,7 +724,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         )
     else:
         with tempfile.TemporaryDirectory(prefix=f"{args.cluster_name}-cfg-") as tmp_dir_name:
-            runner_config = write_runner_config(base_config_path, args.cluster_name, Path(tmp_dir_name))
+            runner_config = write_runner_config(
+                base_config_path, args.cluster_name, Path(tmp_dir_name)
+            )
             _record_step(
                 summary,
                 output_json,
@@ -856,6 +867,8 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         remote_stage_dir,
         "--destination",
         args.workflow_destination,
+        "--git-tag",
+        args.workflow_git_tag,
         "--aligners",
         args.workflow_aligners,
         "--dedupers",

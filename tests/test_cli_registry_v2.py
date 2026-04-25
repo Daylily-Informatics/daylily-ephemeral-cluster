@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from importlib.metadata import version as dist_version
 import json
+from pathlib import Path
 from subprocess import CompletedProcess
 from types import SimpleNamespace
 
@@ -48,9 +49,11 @@ EXPECTED_COMMANDS = {
     ("headnode", "jobs"),
     ("headnode", "configure"),
     ("samples", "stage"),
+    ("samples", "run"),
     ("workflow", "launch"),
     ("workflow", "status"),
     ("workflow", "logs"),
+    ("repositories", "commands"),
     ("state", "list"),
     ("state", "show"),
 }
@@ -126,6 +129,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     workflow_launch_cmd = registry.get_command(("workflow", "launch"))
     workflow_status_cmd = registry.get_command(("workflow", "status"))
     workflow_logs_cmd = registry.get_command(("workflow", "logs"))
+    repositories_commands_cmd = registry.get_command(("repositories", "commands"))
     state_list_cmd = registry.get_command(("state", "list"))
     state_show_cmd = registry.get_command(("state", "show"))
     pricing_snapshot_cmd = registry.get_command(("pricing", "snapshot"))
@@ -220,6 +224,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
 
     assert workflow_logs_cmd is not None
     assert workflow_logs_cmd.policy.mutates_state is False
+
+    assert repositories_commands_cmd is not None
+    assert repositories_commands_cmd.policy.supports_json is True
+    assert repositories_commands_cmd.policy.runtime_guard == "exempt"
 
     assert state_list_cmd is not None
     assert state_list_cmd.policy.supports_json is True
@@ -710,8 +718,14 @@ def test_headnode_connect_starts_session(monkeypatch) -> None:
     )
     monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
 
-    def fake_start_session(instance_id: str, region: str, *, profile: str | None = None) -> int:
-        calls["start_session"] = (instance_id, region, profile)
+    def fake_start_session(
+        instance_id: str,
+        region: str,
+        *,
+        profile: str | None = None,
+        replace_process: bool = False,
+    ) -> int:
+        calls["start_session"] = (instance_id, region, profile, replace_process)
         return 17
 
     monkeypatch.setattr(ssm_module, "start_session", fake_start_session)
@@ -731,7 +745,7 @@ def test_headnode_connect_starts_session(monkeypatch) -> None:
     )
 
     assert result.exit_code == 17
-    assert calls["start_session"] == ("i-abc123", "us-west-2", "dev")
+    assert calls["start_session"] == ("i-abc123", "us-west-2", "dev", True)
 
 
 def test_headnode_info_returns_describe_cluster_json(monkeypatch) -> None:
@@ -1056,6 +1070,227 @@ def test_samples_stage_calls_python_staging_entrypoint(monkeypatch, tmp_path) ->
     ]
 
 
+def test_samples_stage_help_does_not_advertise_generated_cram_index_flags() -> None:
+    result = runner.invoke(app, ["samples", "stage", "--help"])
+
+    assert result.exit_code == 0
+    assert "--generate-missing-cram-indexes" not in result.stdout
+    assert "--index-threads" not in result.stdout
+
+
+def _write_complete_genomics_manifest(path) -> None:
+    path.write_text(
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "CG_R1_FQ",
+                "CG_R2_FQ",
+            ]
+        )
+        + "\n"
+        + "\t".join(
+            [
+                "CGT7P",
+                "HG003",
+                "T7PLUS",
+                "blood",
+                "PCR-FREE",
+                "CG",
+                "DNBSEQ",
+                "0",
+                "D0",
+                "s3://bucket/HG003_R1.fastq.gz",
+                "s3://bucket/HG003_R2.fastq.gz",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+
+
+def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path) -> None:
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    manifest = tmp_path / "analysis_samples.tsv"
+    config_dir = tmp_path / "cfg"
+    catalog = tmp_path / "catalog.yaml"
+    catalog.write_text(
+        (
+            Path(__file__).resolve().parents[1] / "config" / "daylily_available_repositories.yaml"
+        ).read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    _write_complete_genomics_manifest(manifest)
+
+    def fake_stage(argv: list[str]) -> int:
+        calls["stage_argv"] = argv
+        print("Remote staging completed successfully.")
+        print(
+            "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_20260425T000000Z"
+        )
+        return 0
+
+    def fake_launch(argv: list[str]) -> int:
+        calls["launch_argv"] = argv
+        print("__DAYLILY_SESSION__=cg-session")
+        print("__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/cg-session")
+        print("__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/cg-run/daylily-omics-analysis")
+        return 0
+
+    monkeypatch.setattr(cli_module, "_invoke_stage_samples", fake_stage)
+    monkeypatch.setattr(cli_module, "_invoke_workflow_launch", fake_launch)
+
+    result = runner.invoke(
+        app,
+        [
+            "samples",
+            "run",
+            str(manifest),
+            "--catalog-config",
+            str(catalog),
+            "--command-id",
+            "complete_genomics_mgi_snv_concordance",
+            "--destination",
+            "cg-run",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--reference-bucket",
+            "s3://bucket",
+            "--config-dir",
+            str(config_dir),
+            "--session-name",
+            "cg-session",
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["stage_argv"] == [
+        str(manifest.resolve()),
+        "--reference-bucket",
+        "s3://bucket",
+        "--stage-target",
+        "/data/staged_sample_data",
+        "--config-dir",
+        str(config_dir),
+        "--profile",
+        "dev",
+        "--region",
+        "us-west-2",
+    ]
+    launch_argv = calls["launch_argv"]
+    assert "--destination" in launch_argv
+    assert "cg-run" in launch_argv
+    assert "--git-tag" in launch_argv
+    assert "0.7.704" in launch_argv
+    assert "--dy-command" in launch_argv
+    dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
+    assert "produce_cgt7p_vcf" in dy_command
+    assert dy_command.endswith(" -n")
+    assert "--stage-dir" in launch_argv
+    assert "/fsx/data/staged_sample_data/remote_stage_20260425T000000Z" in launch_argv
+    receipt = config_dir / "20260425T000000Z_samples_run_receipt.json"
+    payload = json.loads(receipt.read_text(encoding="utf-8"))
+    assert payload["detected_data_modes"] == ["complete_genomics_solo"]
+    assert payload["workflow_launch"]["session_name"] == "cg-session"
+
+
+def test_samples_run_requires_destination(monkeypatch, tmp_path) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    manifest = tmp_path / "analysis_samples.tsv"
+    _write_complete_genomics_manifest(manifest)
+
+    result = runner.invoke(
+        app,
+        [
+            "samples",
+            "run",
+            str(manifest),
+            "--command-id",
+            "complete_genomics_mgi_snv_concordance",
+            "--profile",
+            "dev",
+            "--reference-bucket",
+            "s3://bucket",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "destination" in result.output
+
+
+def test_samples_run_rejects_unknown_command(monkeypatch, tmp_path) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    manifest = tmp_path / "analysis_samples.tsv"
+    _write_complete_genomics_manifest(manifest)
+
+    result = runner.invoke(
+        app,
+        [
+            "samples",
+            "run",
+            str(manifest),
+            "--command-id",
+            "missing",
+            "--destination",
+            "cg-run",
+            "--profile",
+            "dev",
+            "--reference-bucket",
+            "s3://bucket",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "Unknown analysis command: missing" in result.output
+
+
+def test_samples_run_rejects_incompatible_catalog_command(monkeypatch, tmp_path) -> None:
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    manifest = tmp_path / "analysis_samples.tsv"
+    _write_complete_genomics_manifest(manifest)
+
+    def fake_stage(argv: list[str]) -> int:
+        calls["stage_argv"] = argv
+        return 0
+
+    monkeypatch.setattr(cli_module, "_invoke_stage_samples", fake_stage)
+
+    result = runner.invoke(
+        app,
+        [
+            "samples",
+            "run",
+            str(manifest),
+            "--command-id",
+            "illumina_snv_alignstats",
+            "--destination",
+            "cg-run",
+            "--profile",
+            "dev",
+            "--reference-bucket",
+            "s3://bucket",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "not compatible" in result.output
+    assert "stage_argv" not in calls
+
+
 def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     import daylily_ec.scripts.daylily_run_omics_analysis_headnode as launch_module
 
@@ -1081,8 +1316,14 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "cluster-a",
             "--stage-dir",
             "/fsx/stage/run-1",
+            "--destination",
+            "run-1",
+            "--git-tag",
+            "release-1",
             "--session-name",
             "sess-1",
+            "--sv-callers",
+            "tiddit",
             "--strict-project-check",
             "--dry-run",
         ],
@@ -1096,10 +1337,39 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "cluster-a" in argv
     assert "--stage-dir" in argv
     assert "/fsx/stage/run-1" in argv
+    assert "--destination" in argv
+    assert "run-1" in argv
+    assert "--git-tag" in argv
+    assert "release-1" in argv
     assert "--session-name" in argv
     assert "sess-1" in argv
+    assert "--sv-callers" in argv
+    assert "tiddit" in argv
     assert "--strict-project-check" in argv
     assert "--dry-run" in argv
+
+
+def test_workflow_launch_requires_destination(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "launch",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--stage-dir",
+            "/fsx/stage/run-1",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "destination" in result.output
 
 
 def test_workflow_status_reads_status_json_via_ssm(monkeypatch) -> None:
@@ -1126,7 +1396,7 @@ def test_workflow_status_reads_status_json_via_ssm(monkeypatch) -> None:
             instance_id,
             "Success",
             0,
-            '{"session_name":"sess-1","exit_code":0}\n',
+            'DAY-EC activated.\n{"session_name":"sess-1","exit_code":0}\n',
             "",
         )
 

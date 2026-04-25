@@ -158,6 +158,7 @@ def build_default_command(
     aligners: List[str],
     dedupers: List[str],
     snv_callers: List[str],
+    sv_callers: List[str],
     containerized: bool,
     dry_run: bool,
     extra: Optional[str],
@@ -168,6 +169,8 @@ def build_default_command(
         f"dedupers={format_list(dedupers)}",
         f"snv_callers={format_list(snv_callers)}",
     ]
+    if sv_callers:
+        config_args.append(f"sv_callers={format_list(sv_callers)}")
     command = [
         "DAY_CONTAINERIZED=true" if containerized else "DAY_CONTAINERIZED=false",
         "bin/day_run",
@@ -208,13 +211,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--destination",
-        default="dayoa",
+        required=True,
         help="Workspace destination passed to day-clone",
     )
     parser.add_argument(
         "--repository",
         default="daylily-omics-analysis",
         help="Repository key to pass to day-clone",
+    )
+    parser.add_argument(
+        "--git-tag",
+        "-t",
+        default="main",
+        help="Git branch or tag to pass to day-clone",
     )
     parser.add_argument("--project", help="Project/budget to supply to dyoainit")
     parser.add_argument(
@@ -234,6 +243,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--aligners", default="bwa2a")
     parser.add_argument("--dedupers", default="dppl")
     parser.add_argument("--snv-callers", default="deep")
+    parser.add_argument("--sv-callers", default="")
     parser.add_argument("--target", default="produce_snv_concordances")
     parser.add_argument("--dy-command", help="Override the dy-r command entirely")
     parser.add_argument("--snakemake-extra", help="Additional arguments appended to dy-r")
@@ -279,6 +289,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             aligners=args.aligners.split(","),
             dedupers=args.dedupers.split(","),
             snv_callers=args.snv_callers.split(","),
+            sv_callers=[value for value in args.sv_callers.split(",") if value],
             containerized=not args.no_containerized,
             dry_run=args.dry_run,
             extra=args.snakemake_extra,
@@ -338,16 +349,10 @@ trap 'status=$?; if [[ "${{DAYLILY_STATUS_FINALIZED:-0}}" != "1" ]]; then export
 clone_root="$(dirname "${{DAYLILY_REPO_PATH}}")"
 repo_path="${{DAYLILY_REPO_PATH}}"
 mkdir -p "$(dirname "$clone_root")"
-if [[ ! -d "$repo_path/.git" ]]; then
-  if [[ -d "$clone_root" ]]; then
-    if find "$clone_root" -mindepth 1 -maxdepth 1 | read -r _; then
-      echo "__DAYLILY_ERROR__=destination_exists_without_repo"
-      exit 9
-    fi
-    rmdir "$clone_root"
-  fi
-  day-clone --destination {shlex.quote(args.destination)} --repository {shlex.quote(args.repository)}
-fi
+day-clone \
+  --destination {shlex.quote(args.destination)} \
+  --repository {shlex.quote(args.repository)} \
+  --git-tag {shlex.quote(args.git_tag)}
 cd "$repo_path"
 mkdir -p config
 cp "$STAGE_SAMPLES" config/samples.tsv
@@ -451,7 +456,11 @@ cat <<'PAYLOAD' > "$work_script"
 {pipeline_script}
 PAYLOAD
 chmod 0700 "$work_script"
-nohup tmux new-session -d -s "$SESSION_NAME" "bash -lc 'source \"$work_script\" >>\"$tmux_log\" 2>&1'" >"$bootstrap_log" 2>&1 &
+nohup tmux new-session -d -s "$SESSION_NAME" \
+  -e "DAYLILY_RUN_DIR=$run_dir" \
+  -e "DAYLILY_REPO_PATH=$repo_path" \
+  -e "DAYLILY_TMUX_LOG=$tmux_log" \
+  "bash -lc 'source \"$work_script\" >>\"$tmux_log\" 2>&1'" >"$bootstrap_log" 2>&1 &
 sleep 2
 if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
   if [[ -s "$bootstrap_log" ]]; then

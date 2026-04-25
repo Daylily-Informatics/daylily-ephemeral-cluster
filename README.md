@@ -61,16 +61,34 @@ daylily-ec samples stage \
   --reference-bucket "$REF_BUCKET" \
   --config-dir "$STAGE_CFG_DIR"
 
+# The manifest is row-oriented and multi-modality:
+# - legacy Illumina rows can still use R1_FQ/R2_FQ
+# - aligned inputs can be supplied directly through ULTIMA_CRAM, ONT_CRAM,
+#   PB_BAM, ONT_BAM, or ROCHE_BAM columns
+# - hybrid units populate multiple source groups on one row
+
 # Use the "Remote FSx stage directory" printed by the staging helper.
 daylily-ec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination dayoa \
+  --destination "<analysis-run-id>" \
+  --git-tag main \
   --aligners sent \
   --dedupers dppl \
   --snv-callers sentd
+
+# Or use a catalog command to stage and launch in one CLI call.
+daylily-ec samples run \
+  "$ANALYSIS_SAMPLES" \
+  --command-id complete_genomics_mgi_snv_concordance \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --reference-bucket "$REF_BUCKET" \
+  --destination "<analysis-run-id>" \
+  --dry-run
 
 daylily-ec export \
   --profile "$AWS_PROFILE" \
@@ -96,7 +114,7 @@ daylily-ec delete \
 
 ## Architecture At A Glance
 
-1. `daylily-ec` is the control-plane CLI. It handles preflight, create, cluster inspection, export, delete, environment introspection, runtime checks, and pricing snapshots.
+1. `daylily-ec` is the control-plane CLI, with `dyec` installed as a shorter alias for the same entrypoint. It handles preflight, create, cluster inspection, export, delete, environment introspection, runtime checks, and pricing snapshots.
 2. The create flow renders the cluster configuration, calls ParallelCluster, then runs Daylily headnode configuration over Session Manager.
 3. The durable data plane is the S3 bucket plus the FSx for Lustre filesystem attached to the cluster. Laptop-side staging writes into the bucket-backed FSx namespace.
 4. The supported connect path is `daylily-ec headnode connect`, which opens Session Manager into the `ubuntu` login shell.
@@ -112,7 +130,7 @@ daylily-ec delete \
 - `daylily-ec headnode info`: full `pcluster describe-cluster` output for one cluster
 - `daylily-ec headnode jobs`: Slurm queue output using the same format as the headnode `sq` alias
 - `daylily-ec cluster list/describe/wait`: ParallelCluster inspection helpers
-- `daylily-ec samples stage`: translator and staging helper that turns `analysis_samples.tsv` into workflow-ready `samples.tsv` and `units.tsv`
+- `daylily-ec samples stage`: translator and staging helper that turns a multi-modality `analysis_samples.tsv` into workflow-ready `samples.tsv` and `units.tsv`
 - `daylily-ec workflow launch/status/logs`: remote launcher and run-state inspection helpers
 - `daylily-ec state list/show`: local state-file inspection helpers
 - `daylily_ec/ssh_to_ssm_e2e_runner.py`: AWS-backed end-to-end runner that exercises the supported lifecycle through the repo CLI/helpers
@@ -124,13 +142,13 @@ At minimum, the operator account needs:
 - a working named AWS profile
 - permission for STS identity lookup, IAM inspection/bootstrap, Service Quotas reads, S3 bucket discovery/access, EC2/VPC inspection, FSx, SSM, and ParallelCluster operations
 - a reference bucket in the target region that will back the cluster FSx filesystem
-- Session Manager document `SSM-SessionManagerRunShell` configured to run shell sessions as `ubuntu` and source a login shell
+- Session Manager document `SSM-SessionManagerRunShell` configured to run shell sessions as `ubuntu` in `/home/ubuntu` and source a login shell
 - enough regional quota for the requested cluster shape
 
 Local toolchain for the supported path:
 
 - Conda
-- `daylily-ec`
+- `daylily-ec` or its short alias `dyec`
 - `aws`
 - `pcluster`
 - `session-manager-plugin`
@@ -157,5 +175,6 @@ If any of this is missing, cluster creation will fail in annoying ways. Run `day
 - [docs/DAY_EC_ENVIRONMENT.md](docs/DAY_EC_ENVIRONMENT.md): `DAY-EC` checkout environment contract
 - [docs/pip_install.md](docs/pip_install.md): pip-install path and external prerequisites
 - [docs/archive/README.md](docs/archive/README.md): historical material, pre-rewrite snapshot, and unsupported legacy appendix
+ 
  
  
