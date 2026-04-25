@@ -211,13 +211,19 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--destination",
-        default="dayoa",
+        required=True,
         help="Workspace destination passed to day-clone",
     )
     parser.add_argument(
         "--repository",
         default="daylily-omics-analysis",
         help="Repository key to pass to day-clone",
+    )
+    parser.add_argument(
+        "--git-tag",
+        "-t",
+        default="main",
+        help="Git branch or tag to pass to day-clone",
     )
     parser.add_argument("--project", help="Project/budget to supply to dyoainit")
     parser.add_argument(
@@ -343,16 +349,10 @@ trap 'status=$?; if [[ "${{DAYLILY_STATUS_FINALIZED:-0}}" != "1" ]]; then export
 clone_root="$(dirname "${{DAYLILY_REPO_PATH}}")"
 repo_path="${{DAYLILY_REPO_PATH}}"
 mkdir -p "$(dirname "$clone_root")"
-if [[ ! -d "$repo_path/.git" ]]; then
-  if [[ -d "$clone_root" ]]; then
-    if find "$clone_root" -mindepth 1 -maxdepth 1 | read -r _; then
-      echo "__DAYLILY_ERROR__=destination_exists_without_repo"
-      exit 9
-    fi
-    rmdir "$clone_root"
-  fi
-  day-clone --destination {shlex.quote(args.destination)} --repository {shlex.quote(args.repository)}
-fi
+day-clone \
+  --destination {shlex.quote(args.destination)} \
+  --repository {shlex.quote(args.repository)} \
+  --git-tag {shlex.quote(args.git_tag)}
 cd "$repo_path"
 mkdir -p config
 cp "$STAGE_SAMPLES" config/samples.tsv

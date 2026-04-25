@@ -1,0 +1,10 @@
+✗ Command failed (255): aws s3 ls 
+s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN504352/2026/504352-202604
+04_1215/504352-UGAv3-946-CTTCATCTGCATCAGAT/504352-UGAv3-946-CTTCATCTGCATCAGAT.cr
+am
+STDERR:
+aws: [ERROR]: Could not connect to the endpoint URL: 
+"https://lsmc-ssf-sequencing-data.s3.us-west-2.amazonaws.com/?list-type=2&prefix
+=basecalls%2Flsmc%2Fssf-hq%2FRUN504352%2F2026%2F504352-20260404_1215%2F504352-UG
+Av3-946-CTTCATCTGCATCAGAT%2F504352-UGAv3-946-CTTCATCTGCATCAGAT.cram&delimiter=%2
+F&encoding-type=url"

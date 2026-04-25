@@ -25,6 +25,7 @@ The supported control-plane surfaces are:
 - `daylily-ec headnode jobs`
 - `daylily-ec headnode configure`
 - `daylily-ec samples stage`
+- `daylily-ec samples run`
 - `daylily-ec workflow launch`
 - `daylily-ec workflow status`
 - `daylily-ec workflow logs`
@@ -39,7 +40,7 @@ The supported control-plane surfaces are:
 - cluster create
 - cluster listing/info/wait
 - headnode connect/configure/jobs/info
-- sample staging
+- sample staging and catalog-driven stage+run
 - workflow launch/status/logs
 - export
 - delete

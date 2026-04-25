@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
 import json
 import logging
 import os
@@ -1461,6 +1463,35 @@ def _invoke_stage_samples(argv: list[str]) -> int:
     return int(stage_samples_main(argv))
 
 
+def _invoke_workflow_launch(argv: list[str]) -> int:
+    from daylily_ec.scripts.daylily_run_omics_analysis_headnode import main as launch_main
+
+    return int(launch_main(argv))
+
+
+def _parse_remote_stage_dir(stage_stdout: str) -> str:
+    from daylily_ec.scripts.common import CommandError
+
+    for line in stage_stdout.splitlines():
+        if line.startswith("Remote FSx stage directory:"):
+            stage_dir = line.split(":", 1)[1].strip()
+            if stage_dir:
+                return stage_dir
+    raise CommandError("Staging output did not include a Remote FSx stage directory.")
+
+
+def _parse_workflow_launch_metadata(launch_stdout: str) -> dict[str, str]:
+    parsed: dict[str, str] = {}
+    for line in launch_stdout.splitlines():
+        if line.startswith("__DAYLILY_SESSION__="):
+            parsed["session_name"] = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_RUN_DIR__="):
+            parsed["run_dir"] = line.split("=", 1)[1].strip()
+        elif line.startswith("__DAYLILY_REPO_PATH__="):
+            parsed["repo_path"] = line.split("=", 1)[1].strip()
+    return parsed
+
+
 def samples_stage(
     analysis_samples: Path = typer.Argument(
         ...,
@@ -1523,6 +1554,181 @@ def samples_stage(
     raise typer.Exit(rc)
 
 
+def samples_run(
+    analysis_samples: Path = typer.Argument(
+        ...,
+        help="Path to analysis_samples.tsv.",
+    ),
+    command_id: str = typer.Option(
+        ...,
+        "--command-id",
+        help="Repository catalog analysis command id to launch.",
+    ),
+    destination: str = typer.Option(
+        ...,
+        "--destination",
+        help="Required day-clone destination for the analysis repository.",
+    ),
+    reference_bucket: str = typer.Option(
+        ...,
+        "--reference-bucket",
+        help="S3 URI mapped to the FSx data repository.",
+    ),
+    config_dir: Optional[Path] = typer.Option(
+        None,
+        "--config-dir",
+        help="Directory for generated samples.tsv, units.tsv, and run receipt.",
+    ),
+    stage_target: str = typer.Option(
+        "/data/staged_sample_data",
+        "--stage-target",
+        help="FSx staging base directory.",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    region: Optional[str] = typer.Option(
+        None,
+        "--region",
+        help="AWS region. Defaults to AWS_REGION/AWS_DEFAULT_REGION.",
+    ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name.",
+    ),
+    git_tag: Optional[str] = typer.Option(
+        None,
+        "--git-tag",
+        "-t",
+        help="Override the catalog command's DayOA git tag.",
+    ),
+    session_name: Optional[str] = typer.Option(
+        None,
+        "--session-name",
+        help="Tmux session name. Defaults to --destination.",
+    ),
+    project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
+    skip_project_check: bool = typer.Option(
+        True,
+        "--skip-project-check/--strict-project-check",
+        help="Skip or enable upstream project validation in dyoainit.",
+    ),
+    dry_run: bool = typer.Option(False, "--dry-run", help="Launch the catalog dry-run command."),
+    catalog_config: Optional[Path] = typer.Option(
+        None,
+        "--catalog-config",
+        help="Path to daylily_available_repositories.yaml.",
+    ),
+    debug: bool = typer.Option(
+        False,
+        "--debug",
+        help="Print AWS CLI commands during staging.",
+    ),
+) -> None:
+    """Stage analysis samples and launch a compatible catalog workflow command."""
+
+    from daylily_ec.repositories import load_repository_catalog
+    from daylily_ec.scripts.common import CommandError
+    from daylily_ec.stage_samples import detect_manifest_data_modes
+
+    _warn_if_dayec_env_inactive()
+    analysis_path = analysis_samples.expanduser().resolve()
+    try:
+        catalog = load_repository_catalog(catalog_config)
+        command = catalog.get_command(command_id)
+        data_modes = detect_manifest_data_modes(analysis_path)
+        incompatible = command.incompatible_modes(data_modes)
+        if incompatible:
+            raise CommandError(
+                f"Analysis command {command.command_id} is not compatible with "
+                f"manifest data mode(s): {', '.join(incompatible)}. "
+                "Compatible modes: " + ", ".join(command.compatible_data_modes)
+            )
+        resolved_profile = _resolved_aws_profile(profile)
+        resolved_region = (
+            region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
+        )
+
+        stage_argv = [
+            str(analysis_path),
+            "--reference-bucket",
+            reference_bucket,
+            "--stage-target",
+            stage_target,
+        ]
+        resolved_config_dir = config_dir.expanduser() if config_dir else analysis_path.parent
+        stage_argv.extend(["--config-dir", str(resolved_config_dir)])
+        stage_argv.extend(["--profile", resolved_profile])
+        if resolved_region:
+            stage_argv.extend(["--region", resolved_region])
+        if debug:
+            stage_argv.append("--debug")
+
+        stage_stdout_buffer = io.StringIO()
+        with contextlib.redirect_stdout(stage_stdout_buffer):
+            stage_rc = _invoke_stage_samples(stage_argv)
+        stage_stdout = stage_stdout_buffer.getvalue()
+        if stage_stdout:
+            typer.echo(stage_stdout, nl=False)
+        if stage_rc != 0:
+            raise typer.Exit(stage_rc)
+
+        remote_stage_dir = _parse_remote_stage_dir(stage_stdout)
+        resolved_session_name = session_name or destination
+        resolved_git_tag = git_tag or command.git_tag
+        workflow_cli_argv = command.launch_argv(
+            destination=destination,
+            git_tag=resolved_git_tag,
+            profile=resolved_profile,
+            region=resolved_region,
+            cluster=cluster,
+            stage_dir=remote_stage_dir,
+            session_name=resolved_session_name,
+            project=project,
+            dry_run=dry_run,
+            skip_project_check=skip_project_check,
+        )
+        launch_stdout_buffer = io.StringIO()
+        with contextlib.redirect_stdout(launch_stdout_buffer):
+            launch_rc = _invoke_workflow_launch(workflow_cli_argv[2:])
+        launch_stdout = launch_stdout_buffer.getvalue()
+        if launch_stdout:
+            typer.echo(launch_stdout, nl=False)
+        if launch_rc != 0:
+            raise typer.Exit(launch_rc)
+
+        stage_name = Path(remote_stage_dir.rstrip("/")).name
+        timestamp = stage_name.replace("remote_stage_", "")
+        receipt_path = resolved_config_dir / f"{timestamp}_samples_run_receipt.json"
+        receipt_path.parent.mkdir(parents=True, exist_ok=True)
+        receipt = {
+            "analysis_samples": str(analysis_path),
+            "command_id": command.command_id,
+            "compatible_data_modes": command.compatible_data_modes,
+            "detected_data_modes": data_modes,
+            "destination": destination,
+            "dry_run": dry_run,
+            "dy_command": command.dryrun_dy_command if dry_run else command.dy_command,
+            "git_tag": resolved_git_tag,
+            "remote_stage_dir": remote_stage_dir,
+            "samples_tsv": str(resolved_config_dir / f"{timestamp}_samples.tsv"),
+            "session_name": resolved_session_name,
+            "units_tsv": str(resolved_config_dir / f"{timestamp}_units.tsv"),
+            "workflow_argv": workflow_cli_argv,
+            "workflow_launch": _parse_workflow_launch_metadata(launch_stdout),
+        }
+        receipt_path.write_text(json.dumps(receipt, indent=2, sort_keys=True) + "\n")
+        typer.echo(f"Samples run receipt: {receipt_path}")
+    except typer.Exit:
+        raise
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
 def workflow_launch(
     profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
     region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
@@ -1547,11 +1753,17 @@ def workflow_launch(
         "--session-name",
         help="Tmux session name.",
     ),
-    destination: str = typer.Option("dayoa", "--destination", help="day-clone destination."),
+    destination: str = typer.Option(..., "--destination", help="Required day-clone destination."),
     repository: str = typer.Option(
         "daylily-omics-analysis",
         "--repository",
         help="Repository key to pass to day-clone.",
+    ),
+    git_tag: str = typer.Option(
+        "main",
+        "--git-tag",
+        "-t",
+        help="Git branch or tag passed to day-clone.",
     ),
     project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
     skip_project_check: bool = typer.Option(
@@ -1598,7 +1810,6 @@ def workflow_launch(
     """Launch daylily-omics-analysis inside tmux on the headnode."""
 
     from daylily_ec.scripts.common import CommandError
-    from daylily_ec.scripts.daylily_run_omics_analysis_headnode import main as launch_main
 
     _warn_if_dayec_env_inactive()
     argv: list[str] = []
@@ -1611,6 +1822,7 @@ def workflow_launch(
         ("--session-name", session_name),
         ("--destination", destination),
         ("--repository", repository),
+        ("--git-tag", git_tag),
         ("--project", project),
         ("--genome", genome),
         ("--jobs", str(jobs)),
@@ -1631,7 +1843,7 @@ def workflow_launch(
         argv.append("--dry-run")
 
     try:
-        raise typer.Exit(launch_main(argv))
+        raise typer.Exit(_invoke_workflow_launch(argv))
     except CommandError as exc:
         _exit_headnode_error(exc)
 
@@ -2004,7 +2216,10 @@ def register(registry, cli_spec) -> None:
         registry,
         "samples",
         "Sample staging helpers.",
-        [("stage", samples_stage, REQUIRED_MUTATING_LONG_RUNNING)],
+        [
+            ("stage", samples_stage, REQUIRED_MUTATING_LONG_RUNNING),
+            ("run", samples_run, REQUIRED_MUTATING_LONG_RUNNING),
+        ],
     )
     register_group_commands(
         registry,

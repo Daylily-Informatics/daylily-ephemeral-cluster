@@ -73,10 +73,22 @@ daylily-ec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination dayoa \
+  --destination "<analysis-run-id>" \
+  --git-tag main \
   --aligners sent \
   --dedupers dppl \
   --snv-callers sentd
+
+# Or use a catalog command to stage and launch in one CLI call.
+daylily-ec samples run \
+  "$ANALYSIS_SAMPLES" \
+  --command-id complete_genomics_mgi_snv_concordance \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --reference-bucket "$REF_BUCKET" \
+  --destination "<analysis-run-id>" \
+  --dry-run
 
 daylily-ec export \
   --profile "$AWS_PROFILE" \

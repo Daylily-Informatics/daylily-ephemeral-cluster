@@ -32,18 +32,49 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert catalog.command_catalog_version == 1
     assert command.repository == "daylily-omics-analysis"
     assert command.datasource == "Illumina"
-    assert command.targets == ["produce_alignstats", "produce_snv_concordances"]
-    assert command.snv_callers == ["sentd", "deep19"]
+    assert command.targets == ["produce_snv_concordances", "produce_alignstats"]
+    assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
+    assert command.git_tag == "0.7.704"
+    assert command.compatible_platforms == ["ILMN"]
+    assert command.compatible_data_modes == ["ilmn_solo"]
+    assert "bin/day_run" in command.dy_command
+    assert command.dryrun_dy_command.endswith(" -n")
 
-    with_tiddit = command.with_features(["tiddit"])
-    assert with_tiddit.targets == [
-        "produce_alignstats",
-        "produce_snv_concordances",
-        "produce_tiddit",
-    ]
-    assert with_tiddit.sv_callers == ["tiddit"]
-    assert "--sv-callers" in with_tiddit.launch_argv(cluster="cluster-a")
+    launch_argv = command.launch_argv(destination="run-1", cluster="cluster-a")
+    assert "--dy-command" in launch_argv
+    assert "--git-tag" in launch_argv
+    assert "0.7.704" in launch_argv
+
+
+def test_repository_catalog_commands_have_run_metadata() -> None:
+    catalog = load_repository_catalog(CATALOG_PATH)
+
+    command_ids = {command.command_id for command in catalog.commands()}
+    assert {
+        "illumina_snv_alignstats",
+        "ultima_snv_alignstats",
+        "ont_snv_alignstats",
+        "pacbio_snv_alignstats",
+        "roche_snv_alignstats",
+        "hybrid_ilmn_ont_snv",
+        "hybrid_ultima_ont_snv",
+        "complete_genomics_mgi_snv_concordance",
+    } <= command_ids
+
+    for command in catalog.commands():
+        assert command.dy_command.startswith("bin/day_run ")
+        assert command.dryrun_dy_command.startswith("bin/day_run ")
+        assert command.dryrun_dy_command.endswith(" -n")
+        assert command.compatible_platforms
+        assert command.compatible_data_modes
+        assert command.git_tag == "0.7.704"
+
+    complete_genomics = catalog.get_command("complete_genomics_mgi_snv_concordance")
+    assert complete_genomics.compatible_platforms == ["CG/MGI"]
+    assert complete_genomics.compatible_data_modes == ["complete_genomics_solo"]
+    assert "produce_cgt7p_vcf" in complete_genomics.dy_command
+    assert "aligners=['sentcg']" in complete_genomics.dy_command
 
 
 def test_repository_catalog_requires_catalog_version(tmp_path: Path) -> None:
@@ -83,6 +114,5 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
-    assert [item["command_id"] for item in payload["commands"]] == [
-        "illumina_snv_alignstats"
-    ]
+    assert [item["command_id"] for item in payload["commands"]] == ["illumina_snv_alignstats"]
+    assert payload["commands"][0]["compatible_platforms"] == ["ILMN"]

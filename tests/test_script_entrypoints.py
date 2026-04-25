@@ -131,6 +131,12 @@ class TestRunOmicsAnalysisHeadnodeScript:
         with pytest.raises(CommandError, match="Remote lookup failed: missing_stage_dir"):
             run_omics_module.parse_remote_config("__DAYLILY_ERROR__=missing_stage_dir")
 
+    def test_main_requires_destination(self):
+        with pytest.raises(SystemExit) as exc:
+            run_omics_module.main(["--profile", "dev"])
+
+        assert exc.value.code == 2
+
     def test_parse_workflow_launch_extracts_run_metadata(self):
         launch = run_omics_module.parse_workflow_launch(
             "\n".join(
@@ -202,7 +208,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             stdout=(
                 "__DAYLILY_SESSION__=sess-1\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
-                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/analysis/daylily-omics-analysis\n"
             ),
             stderr="",
         ),
@@ -240,7 +246,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         mock_run_shell,
         capsys,
     ):
-        rc = run_omics_module.main(["--profile", "dev", "--dry-run"])
+        rc = run_omics_module.main(["--profile", "dev", "--destination", "analysis", "--dry-run"])
 
         assert rc == 0
         script = mock_run_shell.call_args.args[2]
@@ -259,7 +265,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "DY_COMMAND='DAY_CONTAINERIZED=true" in script
         assert 'mkdir -p "$(dirname "$clone_root")"' in script
         assert 'mkdir -p "$clone_root"' not in script
-        assert "__DAYLILY_ERROR__=destination_exists_without_repo" in script
+        assert "day-clone" in script
+        assert "--destination analysis" in script
+        assert "--repository daylily-omics-analysis" in script
+        assert "--git-tag main" in script
+        assert "__DAYLILY_ERROR__=destination_exists_without_repo" not in script
         assert 'if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then' in script
         assert '. "$HOME/miniconda3/etc/profile.d/conda.sh"' in script
         assert "unset PROJECT || true" in script
@@ -276,7 +286,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         out = capsys.readouterr().out
         assert "Run state directory: /home/ubuntu/daylily-runs/sess-1" in out
         assert (
-            "Workflow repo path: /fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis" in out
+            "Workflow repo path: /fsx/analysis_results/ubuntu/analysis/daylily-omics-analysis"
+            in out
         )
         assert (
             "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in out
@@ -320,7 +331,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         _mock_run_shell,
     ):
         with pytest.raises(CommandError, match="did not report success"):
-            run_omics_module.main(["--profile", "dev"])
+            run_omics_module.main(["--profile", "dev", "--destination", "analysis"])
 
 
 class TestCfgHeadnodeScript:

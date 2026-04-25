@@ -41,6 +41,8 @@ R1_FQ = "R1_FQ"
 R2_FQ = "R2_FQ"
 ILMN_R1_FQ = "ILMN_R1_FQ"
 ILMN_R2_FQ = "ILMN_R2_FQ"
+CG_R1_FQ = "CG_R1_FQ"
+CG_R2_FQ = "CG_R2_FQ"
 PACBIO_R1_FQ = "PACBIO_R1_FQ"
 PACBIO_R2_FQ = "PACBIO_R2_FQ"
 ONT_R1_FQ = "ONT_R1_FQ"
@@ -104,6 +106,7 @@ MANIFEST_REQUIRED_FIELDS = [
 
 RAW_SOURCE_SPECS = (
     (ILMN_R1_FQ, ILMN_R2_FQ, "ILMN_R1_PATH", "ILMN_R2_PATH"),
+    (CG_R1_FQ, CG_R2_FQ, "ILMN_R1_PATH", "ILMN_R2_PATH"),
     (PACBIO_R1_FQ, PACBIO_R2_FQ, "PACBIO_R1_PATH", "PACBIO_R2_PATH"),
     (ONT_R1_FQ, ONT_R2_FQ, "ONT_R1_PATH", "ONT_R2_PATH"),
     (UG_R1_FQ, UG_R2_FQ, "UG_R1_PATH", "UG_R2_PATH"),
@@ -152,6 +155,8 @@ ALLOWED_MANIFEST_FIELDS = {
     R2_FQ,
     ILMN_R1_FQ,
     ILMN_R2_FQ,
+    CG_R1_FQ,
+    CG_R2_FQ,
     PACBIO_R1_FQ,
     PACBIO_R2_FQ,
     ONT_R1_FQ,
@@ -1251,6 +1256,8 @@ def build_manifest_row(normalized: Mapping[str, str]) -> ManifestRow:
         for field in {
             ILMN_R1_FQ,
             ILMN_R2_FQ,
+            CG_R1_FQ,
+            CG_R2_FQ,
             PACBIO_R1_FQ,
             PACBIO_R2_FQ,
             ONT_R1_FQ,
@@ -1317,6 +1324,90 @@ def load_manifest_rows(
             rows.append(build_manifest_row(normalized))
 
     return rows
+
+
+def _row_source_groups(row: Mapping[str, str]) -> set[str]:
+    groups: set[str] = set()
+    if get_entry_value(row, ILMN_R1_FQ) or get_entry_value(row, ILMN_R2_FQ):
+        groups.add("ilmn")
+    if get_entry_value(row, CG_R1_FQ) or get_entry_value(row, CG_R2_FQ):
+        groups.add("complete_genomics")
+    if (
+        get_entry_value(row, UG_R1_FQ)
+        or get_entry_value(row, UG_R2_FQ)
+        or get_entry_value(row, ULTIMA_CRAM)
+    ):
+        groups.add("ultima")
+    if (
+        get_entry_value(row, ONT_R1_FQ)
+        or get_entry_value(row, ONT_R2_FQ)
+        or get_entry_value(row, ONT_CRAM)
+        or get_entry_value(row, ONT_BAM)
+    ):
+        groups.add("ont")
+    if (
+        get_entry_value(row, PACBIO_R1_FQ)
+        or get_entry_value(row, PACBIO_R2_FQ)
+        or get_entry_value(row, PB_BAM)
+    ):
+        groups.add("pacbio")
+    if get_entry_value(row, ROCHE_BAM):
+        groups.add("roche")
+    return groups
+
+
+def _data_mode_for_source_groups(groups: set[str], *, row_number: int) -> str:
+    mode_by_groups = {
+        frozenset({"ilmn"}): "ilmn_solo",
+        frozenset({"complete_genomics"}): "complete_genomics_solo",
+        frozenset({"ultima"}): "ultima_solo",
+        frozenset({"ont"}): "ont_solo",
+        frozenset({"pacbio"}): "pacbio_solo",
+        frozenset({"roche"}): "roche_solo",
+        frozenset({"ilmn", "ont"}): "hybrid_ilmn_ont",
+        frozenset({"ultima", "ont"}): "hybrid_ug_ont",
+    }
+    mode = mode_by_groups.get(frozenset(groups))
+    if mode:
+        return mode
+    detail = ", ".join(sorted(groups)) or "none"
+    raise CommandError(f"Row {row_number} has unsupported source group combination: {detail}.")
+
+
+def detect_manifest_data_modes(analysis_samples: Path) -> List[str]:
+    """Return sorted logical data modes from an analysis samples manifest."""
+
+    modes: set[str] = set()
+    with analysis_samples.open(newline="") as ff:
+        reader = csv.DictReader(ff, delimiter="\t")
+        if reader.fieldnames is None:
+            raise CommandError("Input TSV is missing a header row")
+        header_fields = [field.strip() for field in reader.fieldnames if field and field.strip()]
+        unknown_fields = sorted(set(header_fields) - ALLOWED_MANIFEST_FIELDS)
+        if unknown_fields:
+            raise CommandError(
+                "Unknown columns in analysis samples manifest: " + ", ".join(unknown_fields)
+            )
+        missing_fields = [field for field in MANIFEST_REQUIRED_FIELDS if field not in header_fields]
+        if missing_fields:
+            raise CommandError(f"Missing required columns: {', '.join(missing_fields)}")
+
+        for row_number, row in enumerate(reader, start=2):
+            if not row:
+                continue
+            normalized = normalize_manifest_row(row, row_number=row_number)
+            if not any(normalized.values()):
+                continue
+            source_groups = _row_source_groups(normalized)
+            if not source_groups:
+                raise CommandError(
+                    f"Row {row_number} does not define any supported data source columns."
+                )
+            modes.add(_data_mode_for_source_groups(source_groups, row_number=row_number))
+
+    if not modes:
+        raise CommandError(f"No data rows found in analysis samples manifest: {analysis_samples}")
+    return sorted(modes)
 
 
 def merge_grouping_key(row: ManifestRow) -> Tuple[str, ...]:

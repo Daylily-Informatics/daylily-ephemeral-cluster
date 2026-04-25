@@ -1,0 +1,17 @@
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+L11088-Z0865-CTGCAGAGGCAGAGAT	unknown	research	unknown	na	false	false	gdna	na	L11088-Z0865-CTGCAGAGGCAGAGAT	na	na	na
+L11089-Z0866-CGGCAGTGCATGTGAT	unknown	research	unknown	na	false	false	gdna	na	L11089-Z0866-CGGCAGTGCATGTGAT	na	na	na
+L11090-Z0867-CTCATGGCATGAGCAGAT	unknown	research	unknown	na	false	false	gdna	na	L11090-Z0867-CTCATGGCATGAGCAGAT	na	na	na
+L11091-Z0868-CATGAGTCAGATTGAT	unknown	research	unknown	na	false	false	gdna	na	L11091-Z0868-CATGAGTCAGATTGAT	na	na	na
+L11092-Z0869-CAAGCATCTCAGTGAT	unknown	research	unknown	na	false	false	gdna	na	L11092-Z0869-CAAGCATCTCAGTGAT	na	na	na
+L11093-Z0870-CATCATCAAGCACATGAT	unknown	research	unknown	na	false	false	gdna	na	L11093-Z0870-CATCATCAAGCACATGAT	na	na	na
+L11094-Z0871-CTTAGCGCATCGAT	unknown	research	unknown	na	false	false	gdna	na	L11094-Z0871-CTTAGCGCATCGAT	na	na	na
+L11095-Z0872-CACAATGCGCTGTGAT	unknown	research	unknown	na	false	false	gdna	na	L11095-Z0872-CACAATGCGCTGTGAT	na	na	na
+L11096-Z0873-CAATATGCGATCAGAT	unknown	research	unknown	na	false	false	gdna	na	L11096-Z0873-CAATATGCGATCAGAT	na	na	na
+L11097-Z0874-CTTACATGTGCGAT	unknown	research	unknown	na	false	false	gdna	na	L11097-Z0874-CTTACATGTGCGAT	na	na	na
+L11098-Z0875-CTGTGTGCCTGCAGAT	unknown	research	unknown	na	false	false	gdna	na	L11098-Z0875-CTGTGTGCCTGCAGAT	na	na	na
+L11099-Z0876-CAATGCTGCTCATGCGAT	unknown	research	unknown	na	false	false	gdna	na	L11099-Z0876-CAATGCTGCTCATGCGAT	na	na	na
+L11100-Z0877-CGATCTCATCATTGAT	unknown	research	unknown	na	false	false	gdna	na	L11100-Z0877-CGATCTCATCATTGAT	na	na	na
+L11101-Z0878-CAATCAGATGCTAGAT	unknown	research	unknown	na	false	false	gdna	na	L11101-Z0878-CAATCAGATGCTAGAT	na	na	na
+L11102-Z0879-CAAGAGTGATAGAT	unknown	research	unknown	na	false	false	gdna	na	L11102-Z0879-CAAGAGTGATAGAT	na	na	na
+L11103-Z0880-CTTGCGTCATCATGAT	unknown	research	unknown	na	false	false	gdna	na	L11103-Z0880-CTTGCGTCATCATGAT	na	na	na

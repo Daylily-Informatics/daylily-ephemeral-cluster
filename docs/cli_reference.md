@@ -446,7 +446,7 @@ Manifest notes:
 
 - the shipped template is `etc/analysis_samples_template.tsv`
 - legacy Illumina rows can still use `R1_FQ` / `R2_FQ`
-- multi-modality rows can also populate `ILMN_*`, `ONT_*`, `UG_*`, `ULTIMA_CRAM*`, `ONT_CRAM*`, `PB_BAM*`, `ONT_BAM*`, and `ROCHE_BAM*`
+- multi-modality rows can also populate `ILMN_*`, `CG_*`, `ONT_*`, `UG_*`, `ULTIMA_CRAM*`, `ONT_CRAM*`, `PB_BAM*`, `ONT_BAM*`, and `ROCHE_BAM*`
 - raw reads are staged into the remote stage; aligned artifacts remain pass-through unless `STAGE_DIRECTIVE=stage_data`
 - one manifest row normally maps to one `units.tsv` row; multi-lane Illumina rows with the same unit identity are merged
 
@@ -458,6 +458,43 @@ daylily-ec samples stage "$ANALYSIS_SAMPLES" \
   --region "$REGION" \
   --reference-bucket "$REF_BUCKET" \
   --config-dir "$STAGE_CFG_DIR"
+```
+
+## `daylily-ec samples run`
+
+Stages a manifest, validates it against a repository catalog command, and
+launches the compatible workflow with the staged manifests.
+
+Important inputs:
+
+- positional `analysis_samples`
+- `--command-id`
+- `--destination`
+- `--reference-bucket`
+- `--config-dir`
+- `--profile`
+- `--region`
+- `--cluster`
+- `--git-tag`
+- `--dry-run`
+
+The command writes a timestamped `*_samples_run_receipt.json` next to the
+generated `samples.tsv` and `units.tsv`. Complete Genomics/MGI inputs use
+`CG_R1_FQ` / `CG_R2_FQ` in the staging manifest; generated `units.tsv` rows
+still point DayOA at `ILMN_R1_PATH` / `ILMN_R2_PATH` with
+`SEQ_VENDOR=CG` and `SEQ_PLATFORM=DNBSEQ`.
+
+Example:
+
+```bash
+daylily-ec samples run "$ANALYSIS_SAMPLES" \
+  --command-id complete_genomics_mgi_snv_concordance \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --reference-bucket "$REF_BUCKET" \
+  --destination "$ANALYSIS_RUN_ID" \
+  --dry-run
 ```
 
 ## `daylily-ec workflow`

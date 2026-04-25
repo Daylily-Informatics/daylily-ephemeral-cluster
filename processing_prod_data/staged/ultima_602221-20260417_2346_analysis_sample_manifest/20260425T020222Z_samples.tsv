@@ -1,0 +1,17 @@
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+S10-B-Z0310-CATGACAGTAATGAT	unknown	research	unknown	na	false	false	gdna	na	S10_B-Z0310-CATGACAGTAATGAT	na	na	na
+S12a-B-Z0311-CATGCAATCACATCGAT	unknown	research	unknown	na	false	false	gdna	na	S12a_B-Z0311-CATGCAATCACATCGAT	na	na	na
+S12b-B-Z0318-CAAGACATCAGAGAT	unknown	research	unknown	na	false	false	gdna	na	S12b_B-Z0318-CAAGACATCAGAGAT	na	na	na
+S13-B-Z0312-CAGTTGATACATGAT	unknown	research	unknown	na	false	false	gdna	na	S13_B-Z0312-CAGTTGATACATGAT	na	na	na
+S14-B-Z0313-CTGTGACATAATGAT	unknown	research	unknown	na	false	false	gdna	na	S14_B-Z0313-CTGTGACATAATGAT	na	na	na
+S15-B-Z0314-CATAGTGCTGCAATGAT	unknown	research	unknown	na	false	false	gdna	na	S15_B-Z0314-CATAGTGCTGCAATGAT	na	na	na
+S16-B-Z0315-CACGAGCGCAATGAT	unknown	research	unknown	na	false	false	gdna	na	S16_B-Z0315-CACGAGCGCAATGAT	na	na	na
+S17-B-Z0309-CGCTCAACATGCGAT	unknown	research	unknown	na	false	false	gdna	na	S17_B-Z0309-CGCTCAACATGCGAT	na	na	na
+S18-B-Z0307-CAGAAGAGATATGAT	unknown	research	unknown	na	false	false	gdna	na	S18_B-Z0307-CAGAAGAGATATGAT	na	na	na
+S20-B-Z0316-CACAATGCAGATGTGAT	unknown	research	unknown	na	false	false	gdna	na	S20_B-Z0316-CACAATGCAGATGTGAT	na	na	na
+S21-B-Z0317-CTGCGCAGCATCCTGAT	unknown	research	unknown	na	false	false	gdna	na	S21_B-Z0317-CTGCGCAGCATCCTGAT	na	na	na
+S2a-B-Z0319-CATGCTTGTGTCATGAT	unknown	research	unknown	na	false	false	gdna	na	S2a_B-Z0319-CATGCTTGTGTCATGAT	na	na	na
+S2b-B-Z0320-CAGTGCGACAATGAT	unknown	research	unknown	na	false	false	gdna	na	S2b_B-Z0320-CAGTGCGACAATGAT	na	na	na
+S5-B-Z0305-CACACACAACATGAT	unknown	research	unknown	na	false	false	gdna	na	S5_B-Z0305-CACACACAACATGAT	na	na	na
+S6-B-Z0306-CTTACATGTCATGAT	unknown	research	unknown	na	false	false	gdna	na	S6_B-Z0306-CTTACATGTCATGAT	na	na	na
+S8-B-Z0308-CAGAGCGCCGCAGAT	unknown	research	unknown	na	false	false	gdna	na	S8_B-Z0308-CAGAGCGCCGCAGAT	na	na	na

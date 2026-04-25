@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, Iterable, List, Optional
+from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -63,7 +63,12 @@ class AnalysisCommand(BaseModel):
     dedupers: List[str]
     snv_callers: List[str]
     sv_callers: List[str] = Field(default_factory=list)
-    destination: str = "dayoa"
+    dy_command: str
+    dryrun_dy_command: str
+    compatible_platforms: List[str]
+    compatible_data_modes: List[str]
+    destination: Optional[str] = None
+    git_tag: str = "main"
     no_containerized: bool = False
     optional_features: Dict[str, AnalysisCommandFeature] = Field(default_factory=dict)
 
@@ -73,13 +78,23 @@ class AnalysisCommand(BaseModel):
         "datasource",
         "launcher",
         "genome",
-        "destination",
+        "dy_command",
+        "dryrun_dy_command",
+        "git_tag",
     )
     @classmethod
     def _validate_non_empty(cls, value: str) -> str:
         return _clean_id(value, field_name="value")
 
-    @field_validator("targets", "aligners", "dedupers", "snv_callers", "sv_callers")
+    @field_validator(
+        "targets",
+        "aligners",
+        "dedupers",
+        "snv_callers",
+        "sv_callers",
+        "compatible_platforms",
+        "compatible_data_modes",
+    )
     @classmethod
     def _validate_list(cls, values: List[str]) -> List[str]:
         cleaned = [str(value).strip() for value in values]
@@ -87,10 +102,21 @@ class AnalysisCommand(BaseModel):
             raise ValueError("list values must not be empty")
         return cleaned
 
+    @field_validator("destination")
+    @classmethod
+    def _validate_optional_destination(cls, value: Optional[str]) -> Optional[str]:
+        if value is None:
+            return None
+        return _clean_id(value, field_name="destination")
+
     @model_validator(mode="after")
     def _validate_launcher(self) -> "AnalysisCommand":
         if self.launcher != "workflow_launch":
             raise ValueError("launcher must be workflow_launch")
+        if not self.compatible_platforms:
+            raise ValueError("compatible_platforms must not be empty")
+        if not self.compatible_data_modes:
+            raise ValueError("compatible_data_modes must not be empty")
         return self
 
     def with_features(self, feature_ids: Iterable[str]) -> "AnalysisCommand":
@@ -114,6 +140,8 @@ class AnalysisCommand(BaseModel):
     def launch_argv(
         self,
         *,
+        destination: Optional[str] = None,
+        git_tag: Optional[str] = None,
         profile: Optional[str] = None,
         region: Optional[str] = None,
         cluster: Optional[str] = None,
@@ -121,31 +149,29 @@ class AnalysisCommand(BaseModel):
         session_name: Optional[str] = None,
         project: Optional[str] = None,
         dry_run: bool = False,
+        skip_project_check: bool = True,
     ) -> List[str]:
         """Render a daylily-ec workflow launch argv for this profile."""
 
+        resolved_destination = destination or self.destination
+        if not resolved_destination:
+            raise ValueError("destination is required to render a workflow launch command")
+        resolved_git_tag = git_tag or self.git_tag
+        dy_command = self.dryrun_dy_command if dry_run else self.dy_command
         argv = [
             "workflow",
             "launch",
             "--repository",
             self.repository,
             "--destination",
-            self.destination,
+            resolved_destination,
+            "--git-tag",
+            resolved_git_tag,
             "--genome",
             self.genome,
-            "--jobs",
-            str(self.jobs),
-            "--aligners",
-            ",".join(self.aligners),
-            "--dedupers",
-            ",".join(self.dedupers),
-            "--snv-callers",
-            ",".join(self.snv_callers),
-            "--target",
-            " ".join(self.targets),
+            "--dy-command",
+            dy_command,
         ]
-        if self.sv_callers:
-            argv.extend(["--sv-callers", ",".join(self.sv_callers)])
         for flag, value in (
             ("--profile", profile),
             ("--region", region),
@@ -156,11 +182,18 @@ class AnalysisCommand(BaseModel):
         ):
             if value:
                 argv.extend([flag, value])
+        argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
         if self.no_containerized:
             argv.append("--no-containerized")
         if dry_run:
             argv.append("--dry-run")
         return argv
+
+    def incompatible_modes(self, modes: Sequence[str]) -> List[str]:
+        """Return manifest data modes this command does not support."""
+
+        supported = set(self.compatible_data_modes)
+        return [mode for mode in modes if mode not in supported]
 
 
 class RepositoryDefinition(BaseModel):
@@ -194,9 +227,7 @@ class RepositoryCatalog(BaseModel):
                 f"got {self.command_catalog_version}"
             )
         if self.default_repository not in self.repositories:
-            raise ValueError(
-                f"default_repository {self.default_repository!r} is not configured"
-            )
+            raise ValueError(f"default_repository {self.default_repository!r} is not configured")
         seen: set[str] = set()
         for repo_key, repo in self.repositories.items():
             for command in repo.analysis_commands:

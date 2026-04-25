@@ -152,6 +152,133 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
     assert units_row["ROCHE_BAM"] == ""
 
 
+def test_process_samples_emits_complete_genomics_fastq_rows(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "CG_R1_FQ",
+                "CG_R2_FQ",
+                "STAGE_DIRECTIVE",
+                "SUBSAMPLE_PCT",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "CGT7P",
+                    "HG003",
+                    "T7PLUS",
+                    "blood",
+                    "PCR-FREE",
+                    "CG",
+                    "DNBSEQ",
+                    "0",
+                    "D0",
+                    "s3://bucket/HG003_CG_R1.fastq.gz",
+                    "s3://bucket/HG003_CG_R2.fastq.gz",
+                    "stage_data",
+                    "0.182",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        module,
+        "stage_single_lane",
+        lambda *args, **kwargs: (
+            "/data/staged_sample_data/remote_stage_test/CGT7P_HG003-DNBSEQ-PCR-FREE-blood-T7PLUS_D0_0/HG003_CG_R1.fastq.gz",
+            "/data/staged_sample_data/remote_stage_test/CGT7P_HG003-DNBSEQ-PCR-FREE-blood-T7PLUS_D0_0/HG003_CG_R2.fastq.gz",
+        ),
+    )
+    monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
+
+    samples_rows, units_rows, _created_files, run_ids = module.process_samples(
+        analysis_samples,
+        _stage_paths(),
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert module.detect_manifest_data_modes(analysis_samples) == ["complete_genomics_solo"]
+    assert run_ids == ["CGT7P"]
+    assert samples_rows[0]["SAMPLEID"] == "HG003"
+    units_row = units_rows[0]
+    assert units_row["RUNID"] == "CGT7P"
+    assert units_row["SEQ_VENDOR"] == "CG"
+    assert units_row["SEQ_PLATFORM"] == "DNBSEQ"
+    assert units_row["ILMN_R1_PATH"].endswith("HG003_CG_R1.fastq.gz")
+    assert units_row["ILMN_R2_PATH"].endswith("HG003_CG_R2.fastq.gz")
+    assert units_row["SUBSAMPLE_PCT"] == "0.182"
+
+
+def test_process_samples_rejects_incomplete_complete_genomics_fastq_pair(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "CG_R1_FQ",
+                "CG_R2_FQ",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "CGT7P",
+                    "HG003",
+                    "T7PLUS",
+                    "blood",
+                    "PCR-FREE",
+                    "CG",
+                    "DNBSEQ",
+                    "0",
+                    "D0",
+                    "s3://bucket/HG003_CG_R1.fastq.gz",
+                    "",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+
+    with pytest.raises(module.CommandError, match="must populate both CG_R1_FQ and CG_R2_FQ"):
+        module.process_samples(
+            analysis_samples,
+            _stage_paths(),
+            reference_bucket="s3://bucket",
+            aws_env={},
+            debug=False,
+        )
+
+
 def test_process_samples_rejects_duplicate_multi_lane_fastq_pairs(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

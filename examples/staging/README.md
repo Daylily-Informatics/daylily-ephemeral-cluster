@@ -70,7 +70,24 @@ After staging, pass the exact printed `Remote FSx stage directory` to workflow
 launch:
 
 ```bash
-daylily-ec workflow launch --stage-dir <printed-remote-fsx-stage-directory>
+daylily-ec workflow launch \
+  --stage-dir <printed-remote-fsx-stage-directory> \
+  --destination <analysis-run-id> \
+  --git-tag main
+```
+
+For catalog-covered workflows, `samples run` stages and launches in one call
+after validating that the manifest data mode is compatible with the command:
+
+```bash
+daylily-ec samples run examples/staging/ilmn_solo/analysis_samples_manifest.tsv \
+  --command-id illumina_snv_alignstats \
+  --profile lsmc \
+  --region us-west-2 \
+  --cluster mk-gotime3 \
+  --reference-bucket s3://lsmc-dayoa-omics-analysis-us-west-2 \
+  --destination <analysis-run-id> \
+  --dry-run
 ```
 
 Automated tests parse and mock-stage these examples. They do not copy live S3

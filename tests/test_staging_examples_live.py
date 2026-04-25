@@ -330,6 +330,7 @@ def test_live_staging_example_dryrun_or_workflow(
     _assert_generated_config(config_dir, expected_units_rows=int(expected["rows"]))
 
     session_name = f"stg-ex-{example_name.replace('_', '-')}-{live_staging_run_id}"
+    destination = session_name
     workflow_spec = WORKFLOW_COMMANDS[example_name]
     dy_command = workflow_spec.dy_command if options.non_dryrun else workflow_spec.dryrun_dy_command
     launch_args = [
@@ -343,6 +344,10 @@ def test_live_staging_example_dryrun_or_workflow(
         options.cluster,
         "--stage-dir",
         remote_stage_dir,
+        "--destination",
+        destination,
+        "--git-tag",
+        "main",
         "--session-name",
         session_name,
         "--dy-command",

@@ -1,0 +1,2 @@
+Completed 27 Bytes/27 Bytes (106 Bytes/s) with 1 file(s) remainingupload: ../../../../../var/folders/rk/2n95m40s1zs48qr48ynwhxwm0000gn/T/tmpcxyi36tl to s3://lsmc-dayoa-omics-analysis-us-west-2/data/staged_sample_data/remote_stage_20260424T194144Z/_write_test.txt
+delete: s3://lsmc-dayoa-omics-analysis-us-west-2/data/staged_sample_data/remote_stage_20260424T194144Z/_write_test.txt
