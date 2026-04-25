@@ -23,6 +23,7 @@ Current root commands:
 - `env`
 - `runtime`
 - `pricing`
+- `aws`
 - `headnode`
 - `samples`
 - `workflow`
@@ -323,6 +324,53 @@ daylily-ec pricing snapshot \
   --region us-west-2 \
   --partition all_clusters
 ```
+
+## `daylily-ec aws validate`
+
+Read-only AWS readiness validation for the selected profile and AZ.
+
+Subcommands:
+
+- `permissions`
+- `quotas`
+- `all`
+
+Required:
+
+- `--profile`
+- `--region-az`
+
+Optional:
+
+- `--config`
+- `--gap-analysis`
+
+Examples:
+
+```bash
+daylily-ec aws validate permissions \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --gap-analysis aws_permissions_gap.md
+
+daylily-ec aws validate quotas \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG" \
+  --gap-analysis aws_quota_gap.md
+
+daylily-ec --json aws validate all \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG"
+```
+
+The command rejects `--profile default` and does not use implicit profile or
+region discovery. It never creates, updates, deletes, sends SSM commands, starts
+SSM sessions, or runs `pcluster create`. `--gap-analysis PATH` writes a Markdown
+report for AWS admins with denied actions, quota codes, rendered cluster demand,
+and remediation guidance. ParallelCluster UI is not part of current validation;
+the repo uses the `pcluster` CLI directly.
 
 ## `daylily-ec headnode init`
 

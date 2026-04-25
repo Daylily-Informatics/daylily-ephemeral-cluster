@@ -43,6 +43,9 @@ EXPECTED_COMMANDS = {
     ("runtime", "check"),
     ("runtime", "explain"),
     ("pricing", "snapshot"),
+    ("aws", "validate", "permissions"),
+    ("aws", "validate", "quotas"),
+    ("aws", "validate", "all"),
     ("headnode", "init"),
     ("headnode", "connect"),
     ("headnode", "info"),
@@ -133,6 +136,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     state_list_cmd = registry.get_command(("state", "list"))
     state_show_cmd = registry.get_command(("state", "show"))
     pricing_snapshot_cmd = registry.get_command(("pricing", "snapshot"))
+    aws_validate_permissions_cmd = registry.get_command(("aws", "validate", "permissions"))
+    aws_validate_quotas_cmd = registry.get_command(("aws", "validate", "quotas"))
+    aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
 
     assert version_cmd is not None
     assert version_cmd.policy.runtime_guard == "exempt"
@@ -239,6 +245,15 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
 
     assert pricing_snapshot_cmd is not None
     assert pricing_snapshot_cmd.policy.supports_json is True
+
+    for aws_validate_cmd in (
+        aws_validate_permissions_cmd,
+        aws_validate_quotas_cmd,
+        aws_validate_all_cmd,
+    ):
+        assert aws_validate_cmd is not None
+        assert aws_validate_cmd.policy.supports_json is True
+        assert aws_validate_cmd.policy.mutates_state is False
 
 
 @pytest.mark.parametrize("argv", sorted(EXPECTED_COMMANDS))
@@ -599,6 +614,79 @@ def test_pricing_snapshot_command_passes_collection_options(monkeypatch, tmp_pat
         "cluster_config_path": str(config_path),
         "profile": "dev",
     }
+
+
+def test_aws_validate_all_passes_options_and_json(monkeypatch, tmp_path) -> None:
+    import daylily_ec.aws.validation as validation_module
+    from daylily_ec.aws.validation import AwsValidationReport
+    from daylily_ec.state.models import CheckResult, CheckStatus
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    gap_path = tmp_path / "gap.md"
+    config_path.write_text("ephemeral_cluster: {}\n", encoding="utf-8")
+
+    def fake_run_aws_validation(options):
+        calls["options"] = options
+        report = AwsValidationReport(
+            mode=options.mode,
+            region="us-west-2",
+            region_az=options.region_az,
+            aws_profile=options.profile,
+            account_id="123456789012",
+            caller_arn="arn:aws:iam::123456789012:user/alice",
+            config_path=str(config_path),
+            checks=[
+                CheckResult(
+                    id="aws.identity",
+                    status=CheckStatus.PASS,
+                    details={"ok": True},
+                )
+            ],
+            summary={"PASS": 1, "WARN": 0, "FAIL": 0},
+        )
+        return 0, report
+
+    monkeypatch.setattr(validation_module, "run_aws_validation", fake_run_aws_validation)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "aws",
+            "validate",
+            "all",
+            "--profile",
+            "dev",
+            "--region-az",
+            "us-west-2b",
+            "--config",
+            str(config_path),
+            "--gap-analysis",
+            str(gap_path),
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["mode"] == "all"
+    assert payload["summary"] == {"PASS": 1, "WARN": 0, "FAIL": 0}
+    options = calls["options"]
+    assert options.mode == "all"
+    assert options.profile == "dev"
+    assert options.region_az == "us-west-2b"
+    assert options.config_path == str(config_path)
+    assert options.gap_analysis_path == gap_path
+
+
+def test_aws_validate_requires_profile() -> None:
+    result = runner.invoke(
+        app,
+        ["aws", "validate", "permissions", "--region-az", "us-west-2b"],
+    )
+
+    assert result.exit_code == 2
 
 
 def test_headnode_init_command_passes_runtime_options(monkeypatch) -> None:

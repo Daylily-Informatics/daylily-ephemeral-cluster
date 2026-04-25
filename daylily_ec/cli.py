@@ -1099,6 +1099,170 @@ def pricing_snapshot(
     typer.echo(json.dumps(payload, indent=2, sort_keys=False))
 
 
+def _run_aws_validate_command(
+    mode: str,
+    *,
+    profile: str,
+    region_az: str,
+    config: Optional[str],
+    gap_analysis: Optional[Path],
+) -> None:
+    from daylily_ec.aws.validation import (
+        AwsValidationError,
+        AwsValidationOptions,
+        run_aws_validation,
+    )
+    from daylily_ec.workflow.create_cluster import EXIT_AWS_FAILURE
+
+    _warn_if_dayec_env_inactive()
+    try:
+        rc, report = run_aws_validation(
+            AwsValidationOptions(
+                mode=mode,  # type: ignore[arg-type]
+                profile=profile,
+                region_az=region_az,
+                config_path=config,
+                gap_analysis_path=gap_analysis,
+            )
+        )
+    except (AwsValidationError, FileNotFoundError, RuntimeError, ValueError) as exc:
+        if _json_mode():
+            output.emit_json({"mode": mode, "error": str(exc)})
+        else:
+            output.error(f"AWS validation failed to start: {exc}")
+        raise SystemExit(EXIT_AWS_FAILURE) from exc
+
+    if _json_mode():
+        output.emit_json(report.model_dump(mode="json"))
+        raise SystemExit(rc)
+
+    output.print_text(
+        "AWS validation %s: PASS=%s WARN=%s FAIL=%s"
+        % (
+            mode,
+            report.summary.get("PASS", 0),
+            report.summary.get("WARN", 0),
+            report.summary.get("FAIL", 0),
+        )
+    )
+    for check in report.checks:
+        if check.status.value == "PASS":
+            continue
+        line = f"{check.status.value} {check.id}"
+        if check.remediation:
+            line = f"{line}: {check.remediation}"
+        if check.status.value == "FAIL":
+            output.error(line)
+        else:
+            output.warning(line)
+    if gap_analysis is not None:
+        output.print_text(f"Gap analysis written: {gap_analysis}")
+    if rc == 0:
+        output.success("AWS validation passed.")
+    else:
+        output.error("AWS validation found permission or quota gaps.")
+    raise SystemExit(rc)
+
+
+def aws_validate_permissions(
+    profile: str = typer.Option(
+        ...,
+        "--profile",
+        help="Explicit named AWS CLI profile to validate; 'default' is rejected.",
+    ),
+    region_az: str = typer.Option(
+        ...,
+        "--region-az",
+        help="Target AWS availability zone, e.g. us-west-2b.",
+    ),
+    config: Optional[str] = typer.Option(
+        None,
+        "--config",
+        help="Daylily config path. Accepted for report context.",
+    ),
+    gap_analysis: Optional[Path] = typer.Option(
+        None,
+        "--gap-analysis",
+        help="Write an AWS-admin Markdown gap analysis report.",
+    ),
+) -> None:
+    """Validate AWS permissions needed by Daylily."""
+
+    _run_aws_validate_command(
+        "permissions",
+        profile=profile,
+        region_az=region_az,
+        config=config,
+        gap_analysis=gap_analysis,
+    )
+
+
+def aws_validate_quotas(
+    profile: str = typer.Option(
+        ...,
+        "--profile",
+        help="Explicit named AWS CLI profile to validate; 'default' is rejected.",
+    ),
+    region_az: str = typer.Option(
+        ...,
+        "--region-az",
+        help="Target AWS availability zone, e.g. us-west-2b.",
+    ),
+    config: Optional[str] = typer.Option(
+        None,
+        "--config",
+        help="Daylily config path to render for quota demand.",
+    ),
+    gap_analysis: Optional[Path] = typer.Option(
+        None,
+        "--gap-analysis",
+        help="Write an AWS-admin Markdown gap analysis report.",
+    ),
+) -> None:
+    """Validate AWS quotas needed by the rendered Daylily cluster."""
+
+    _run_aws_validate_command(
+        "quotas",
+        profile=profile,
+        region_az=region_az,
+        config=config,
+        gap_analysis=gap_analysis,
+    )
+
+
+def aws_validate_all(
+    profile: str = typer.Option(
+        ...,
+        "--profile",
+        help="Explicit named AWS CLI profile to validate; 'default' is rejected.",
+    ),
+    region_az: str = typer.Option(
+        ...,
+        "--region-az",
+        help="Target AWS availability zone, e.g. us-west-2b.",
+    ),
+    config: Optional[str] = typer.Option(
+        None,
+        "--config",
+        help="Daylily config path to render for quota demand.",
+    ),
+    gap_analysis: Optional[Path] = typer.Option(
+        None,
+        "--gap-analysis",
+        help="Write an AWS-admin Markdown gap analysis report.",
+    ),
+) -> None:
+    """Validate AWS permissions and quotas needed by Daylily."""
+
+    _run_aws_validate_command(
+        "all",
+        profile=profile,
+        region_az=region_az,
+        config=config,
+        gap_analysis=gap_analysis,
+    )
+
+
 def headnode_init(
     project: Optional[str] = typer.Option(
         None,
@@ -2189,6 +2353,30 @@ def register(registry, cli_spec) -> None:
         "pricing",
         "Spot pricing inspection helpers.",
         [("snapshot", pricing_snapshot, REQUIRED_JSON)],
+    )
+    register_group_commands(
+        registry,
+        "aws",
+        "AWS readiness validation helpers.",
+        [],
+    )
+    register_group_commands(
+        registry,
+        "aws/validate",
+        "Read-only AWS permission and quota validation.",
+        [
+            (
+                "permissions",
+                aws_validate_permissions,
+                required_policy(supports_json=True),
+            ),
+            (
+                "quotas",
+                aws_validate_quotas,
+                required_policy(supports_json=True),
+            ),
+            ("all", aws_validate_all, required_policy(supports_json=True)),
+        ],
     )
     register_group_commands(
         registry,
