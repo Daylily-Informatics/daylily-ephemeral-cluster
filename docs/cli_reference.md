@@ -368,9 +368,10 @@ daylily-ec --json aws validate all \
 The command rejects `--profile default` and does not use implicit profile or
 region discovery. It never creates, updates, deletes, sends SSM commands, starts
 SSM sessions, or runs `pcluster create`. `--gap-analysis PATH` writes a Markdown
-report for AWS admins with denied actions, quota codes, rendered cluster demand,
-and remediation guidance. ParallelCluster UI is not part of current validation;
-the repo uses the `pcluster` CLI directly.
+report for AWS admins with every passing permission/quota check, denied actions,
+quota codes, rendered cluster demand, and WARN/FAIL remediation guidance.
+ParallelCluster UI is not part of current validation; the repo uses the
+`pcluster` CLI directly.
 
 ## `daylily-ec headnode init`
 

@@ -121,9 +121,10 @@ daylily-ec preflight --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config 
 explicit `--profile` and `--region-az`, rejects the implicit `default` profile,
 derives the region from the AZ, and does not create, update, delete, send SSM
 commands, start sessions, or run `pcluster create`. Use `--gap-analysis PATH`
-when an AWS admin needs a Markdown report that lists denied IAM actions, quota
-codes, rendered cluster demand, and remediation guidance. The global `--json`
-flag remains the machine-readable output path.
+when an AWS admin needs a comprehensive Markdown validation log: every passing
+permission and quota check is recorded with details, and WARN/FAIL entries also
+include remediation guidance. The global `--json` flag remains the
+machine-readable output path.
 
 ## 7. Quotas The Repo Checks
 

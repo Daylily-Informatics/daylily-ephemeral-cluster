@@ -679,6 +679,7 @@ def write_gap_analysis(report: AwsValidationReport, path: Path) -> None:
     path = Path(path).expanduser()
     path.parent.mkdir(parents=True, exist_ok=True)
     gaps = [check for check in report.checks if check.status != CheckStatus.PASS]
+    passing = [check for check in report.checks if check.status == CheckStatus.PASS]
     lines = [
         "# Daylily AWS Validation Gap Analysis",
         "",
@@ -715,6 +716,21 @@ def write_gap_analysis(report: AwsValidationReport, path: Path) -> None:
                     "",
                     check.remediation
                     or "Review this validation result and correct the account setup.",
+                    "",
+                    "```json",
+                    json.dumps(check.details, indent=2, sort_keys=True),
+                    "```",
+                    "",
+                ]
+            )
+    lines.extend(["## Passing Validation Checks", ""])
+    if not passing:
+        lines.extend(["No passing validation checks were recorded.", ""])
+    else:
+        for check in passing:
+            lines.extend(
+                [
+                    f"### {check.id} - {check.status.value}",
                     "",
                     "```json",
                     json.dumps(check.details, indent=2, sort_keys=True),

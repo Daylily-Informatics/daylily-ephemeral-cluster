@@ -175,14 +175,93 @@ def test_gap_analysis_lists_remediation(tmp_path) -> None:
                 status=CheckStatus.FAIL,
                 details={"policy": "missing"},
                 remediation="Attach the Daylily global policy.",
-            )
+            ),
+            CheckResult(
+                id="iam.simulation.s3_data",
+                status=CheckStatus.PASS,
+                details={
+                    "actions": ["s3:GetObject", "s3:ListBucket"],
+                    "denied_actions": [],
+                },
+            ),
         ],
-        summary={"PASS": 0, "WARN": 0, "FAIL": 1},
+        summary={"PASS": 1, "WARN": 0, "FAIL": 1},
     )
     report_path = tmp_path / "gap.md"
 
     write_gap_analysis(report, report_path)
 
     text = report_path.read_text(encoding="utf-8")
+    assert "- PASS: 1" in text
+    assert "- WARN: 0" in text
+    assert "- FAIL: 1" in text
     assert "iam.policy.global - FAIL" in text
     assert "Attach the Daylily global policy." in text
+    assert "## Passing Validation Checks" in text
+    assert "iam.simulation.s3_data - PASS" in text
+    assert '"actions": [' in text
+    assert '"s3:GetObject"' in text
+    assert '"denied_actions": []' in text
+
+
+def test_gap_analysis_no_gaps_still_lists_passing_checks(tmp_path) -> None:
+    report = AwsValidationReport(
+        mode="quotas",
+        region="us-east-1",
+        region_az="us-east-1a",
+        aws_profile="prod",
+        account_id="123456789012",
+        caller_arn="arn:aws:iam::123456789012:user/alice",
+        checks=[
+            CheckResult(
+                id="quota.spot_vcpu",
+                status=CheckStatus.PASS,
+                details={
+                    "quota_code": "L-34B43A08",
+                    "current_value": 512,
+                    "tot_vcpu_demand": 328,
+                },
+            )
+        ],
+        summary={"PASS": 1, "WARN": 0, "FAIL": 0},
+    )
+    report_path = tmp_path / "no_gap.md"
+
+    write_gap_analysis(report, report_path)
+
+    text = report_path.read_text(encoding="utf-8")
+    assert "No permission or quota gaps were detected." in text
+    assert "## Passing Validation Checks" in text
+    assert "quota.spot_vcpu - PASS" in text
+    assert '"quota_code": "L-34B43A08"' in text
+    assert '"tot_vcpu_demand": 328' in text
+
+
+def test_gap_analysis_warn_only_report_records_no_passing_checks(tmp_path) -> None:
+    report = AwsValidationReport(
+        mode="all",
+        region="eu-central-1",
+        region_az="eu-central-1a",
+        aws_profile="prod",
+        account_id="123456789012",
+        caller_arn="arn:aws:iam::123456789012:user/alice",
+        checks=[
+            CheckResult(
+                id="quota.spot_market_signal",
+                status=CheckStatus.WARN,
+                details={"spot_instance_types": ["r7i.2xlarge"]},
+                remediation="Confirm Spot market capacity before launching.",
+            )
+        ],
+        summary={"PASS": 0, "WARN": 1, "FAIL": 0},
+    )
+    report_path = tmp_path / "nested" / "gap.md"
+
+    write_gap_analysis(report, report_path)
+
+    text = report_path.read_text(encoding="utf-8")
+    assert "## Required Admin Follow-Up" in text
+    assert "quota.spot_market_signal - WARN" in text
+    assert "Confirm Spot market capacity before launching." in text
+    assert "## Passing Validation Checks" in text
+    assert "No passing validation checks were recorded." in text
