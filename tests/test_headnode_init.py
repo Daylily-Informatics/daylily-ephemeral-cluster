@@ -50,7 +50,9 @@ def _write_executable(path: Path, content: str) -> None:
     path.chmod(0o755)
 
 
-def test_collect_headnode_state_reads_project_budget_and_bucket(monkeypatch, tmp_path: Path) -> None:
+def test_collect_headnode_state_reads_project_budget_and_bucket(
+    monkeypatch, tmp_path: Path
+) -> None:
     cfnconfig_path = tmp_path / "cfnconfig"
     cfnconfig_path.write_text("cfn_region=us-west-2\n", encoding="utf-8")
 
@@ -187,7 +189,9 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
     )
 
     assert "export DAYLILY_EC_REPO_ROOT=/repo/dayec" in shell_code
-    assert 'export DAY_CONTACT_EMAIL="${DAY_CONTACT_EMAIL:-john@daylilyinformatics.com}"' in shell_code
+    assert (
+        'export DAY_CONTACT_EMAIL="${DAY_CONTACT_EMAIL:-john@daylilyinformatics.com}"' in shell_code
+    )
     assert "export DAY_PROJECT=da-us-west-2b-demo" in shell_code
     assert "export DAY_AWS_REGION=us-west-2" in shell_code
     assert 'export DAY_ROOT="${PWD}"' in shell_code
@@ -218,9 +222,7 @@ def test_run_headnode_init_emit_shell_non_interactive_sends_warnings_to_stderr(
     assert "Warning: Budget tags file not found." in captured.err
 
 
-def test_run_headnode_init_interactive_mode_prompts_for_missing_budget(
-    monkeypatch, capsys
-) -> None:
+def test_run_headnode_init_interactive_mode_prompts_for_missing_budget(monkeypatch, capsys) -> None:
     state = headnode.HeadnodeState(
         region="us-west-2",
         project="da-us-west-2b-demo",
@@ -300,7 +302,9 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     ):
         path.mkdir(parents=True, exist_ok=True)
 
-    (resources_dir / "config" / "daylily_cli_global.yaml").write_text("daylily: {}\n", encoding="utf-8")
+    (resources_dir / "config" / "daylily_cli_global.yaml").write_text(
+        "daylily: {}\n", encoding="utf-8"
+    )
     (resources_dir / "config" / "daylily_available_repositories.yaml").write_text(
         "default_repository: daylily-omics-analysis\nrepositories: {}\n",
         encoding="utf-8",
@@ -310,7 +314,10 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         encoding="utf-8",
     )
     cluster_config_path = tmp_path / "cluster-config.yaml"
-    cluster_config_path.write_text("HeadNode:\n  CustomActions:\n    OnNodeConfigured:\n      Script: s3://reference-bucket/bootstrap.sh\n", encoding="utf-8")
+    cluster_config_path.write_text(
+        "HeadNode:\n  CustomActions:\n    OnNodeConfigured:\n      Script: s3://reference-bucket/bootstrap.sh\n",
+        encoding="utf-8",
+    )
 
     _write_executable(
         resources_dir / "bin" / "headnode_utils" / "day-clone",
@@ -324,9 +331,9 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         checkout_dir / "activate",
         (
             "#!/usr/bin/env bash\n"
-            "export PATH=\"${FAKE_DAYLILY_BIN}:$PATH\"\n"
-            "export DAYLILY_EC_REPO_ROOT=\"${DAYLILY_EC_RESOURCES_DIR}\"\n"
-            "export CONDA_DEFAULT_ENV=\"DAY-EC\"\n"
+            'export PATH="${FAKE_DAYLILY_BIN}:$PATH"\n'
+            'export DAYLILY_EC_REPO_ROOT="${DAYLILY_EC_RESOURCES_DIR}"\n'
+            'export CONDA_DEFAULT_ENV="DAY-EC"\n'
             "printf 'activate\\n' >>\"${HEADNODE_TEST_LOG}\"\n"
         ),
     )
@@ -334,12 +341,12 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         fake_bin / "daylily-ec",
         (
             "#!/usr/bin/env bash\n"
-            "printf 'daylily-ec:%s\\n' \"$*\" >>\"${HEADNODE_TEST_LOG}\"\n"
-            "if [[ \"$1\" == \"headnode\" && \"$2\" == \"init\" && \"$3\" == \"--emit-shell\" && \"$4\" == \"--non-interactive\" && \"$5\" == \"--skip-project-check\" ]]; then\n"
+            'printf \'daylily-ec:%s\\n\' "$*" >>"${HEADNODE_TEST_LOG}"\n'
+            'if [[ "$1" == "headnode" && "$2" == "init" && "$3" == "--emit-shell" && "$4" == "--non-interactive" && "$5" == "--skip-project-check" ]]; then\n'
             "  printf '%s\\n' 'export TEST_HEADNODE_BOOTSTRAP=1'\n"
             "  exit 0\n"
             "fi\n"
-            "if [[ \"$1\" == \"resources-dir\" ]]; then\n"
+            'if [[ "$1" == "resources-dir" ]]; then\n'
             "  printf '%s\\n' \"${DAYLILY_EC_RESOURCES_DIR}\"\n"
             "  exit 0\n"
             "fi\n"
@@ -350,20 +357,16 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     legacy_block = (
         "# >>> daylily headnode bootstrap >>>\n"
         "daylily_headnode_bootstrap() {\n"
-        "    local repo_root=\"$HOME/projects/daylily-ephemeral-cluster\"\n"
-        "    local activate_script=\"$repo_root/activate\"\n"
+        '    local repo_root="$HOME/projects/daylily-ephemeral-cluster"\n'
+        '    local activate_script="$repo_root/activate"\n'
         "    export DAYLILY_EC_HEADNODE_BOOTSTRAPPED=1\n"
-        "    source \"$activate_script\"\n"
+        '    source "$activate_script"\n'
         "}\n"
         "daylily_headnode_bootstrap\n"
         "unset -f daylily_headnode_bootstrap\n"
         "# <<< daylily headnode bootstrap <<<\n"
     )
-    conda_block = (
-        "# >>> conda initialize >>>\n"
-        "conda hook\n"
-        "# <<< conda initialize <<<\n"
-    )
+    conda_block = "# >>> conda initialize >>>\nconda hook\n# <<< conda initialize <<<\n"
     (home_dir / ".bashrc").write_text(legacy_block + "\n" + conda_block, encoding="utf-8")
     (home_dir / ".bash_profile").write_text(legacy_block + "\n" + conda_block, encoding="utf-8")
 
@@ -398,9 +401,11 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
 
     assert bashrc.count("# >>> daylily headnode bootstrap >>>") == 1
     assert bash_profile.count("# >>> daylily headnode bootstrap >>>") == 1
-    assert 'daylily-headnode-bootstrap.sh' in bashrc
-    assert 'daylily-headnode-bootstrap.sh' in bash_profile
-    assert bashrc.index("# >>> conda initialize >>>") < bashrc.index("# >>> daylily headnode bootstrap >>>")
+    assert "daylily-headnode-bootstrap.sh" in bashrc
+    assert "daylily-headnode-bootstrap.sh" in bash_profile
+    assert bashrc.index("# >>> conda initialize >>>") < bashrc.index(
+        "# >>> daylily headnode bootstrap >>>"
+    )
     assert bash_profile.index("# >>> conda initialize >>>") < bash_profile.index(
         "# >>> daylily headnode bootstrap >>>"
     )
@@ -408,16 +413,24 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     bootstrap_text = bootstrap_file.read_text(encoding="utf-8")
     assert 'repo_root="$HOME/projects/daylily-ephemeral-cluster"' in bootstrap_text
     assert 'case ":$PATH:" in' in bootstrap_text
-    assert 'DAYLILY_EC_HEADNODE_BOOTSTRAPPED' in bootstrap_text
+    assert "DAYLILY_EC_HEADNODE_BOOTSTRAPPED" in bootstrap_text
     assert 'source "$activate_script"' in bootstrap_text
-    assert 'conda activate DAY-EC' in bootstrap_text
-    assert 'eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)"' in bootstrap_text
+    assert "conda activate DAY-EC" in bootstrap_text
+    assert (
+        'eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-check)"'
+        in bootstrap_text
+    )
     assert "daylily_headnode_bootstrap()" not in bootstrap_text
     assert "unset -f daylily_headnode_bootstrap" not in bootstrap_text
     assert (user_bin_dir / "day-clone").is_file()
     assert log_text.count("install_miniconda") >= 2
     assert log_text.count("activate") == 2
-    assert log_text.count("daylily-ec:headnode init --emit-shell --non-interactive --skip-project-check") == 2
+    assert (
+        log_text.count(
+            "daylily-ec:headnode init --emit-shell --non-interactive --skip-project-check"
+        )
+        == 2
+    )
 
 
 def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Path) -> None:
@@ -434,7 +447,9 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
     ):
         path.mkdir(parents=True, exist_ok=True)
 
-    (resources_dir / "config" / "daylily_cli_global.yaml").write_text("daylily: {}\n", encoding="utf-8")
+    (resources_dir / "config" / "daylily_cli_global.yaml").write_text(
+        "daylily: {}\n", encoding="utf-8"
+    )
     (resources_dir / "config" / "daylily_available_repositories.yaml").write_text(
         "default_repository: daylily-omics-analysis\nrepositories: {}\n",
         encoding="utf-8",
@@ -444,7 +459,10 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
         encoding="utf-8",
     )
     cluster_config_path = tmp_path / "cluster-config.yaml"
-    cluster_config_path.write_text("HeadNode:\n  CustomActions:\n    OnNodeConfigured:\n      Script: s3://reference-bucket/bootstrap.sh\n", encoding="utf-8")
+    cluster_config_path.write_text(
+        "HeadNode:\n  CustomActions:\n    OnNodeConfigured:\n      Script: s3://reference-bucket/bootstrap.sh\n",
+        encoding="utf-8",
+    )
 
     _write_executable(
         resources_dir / "bin" / "headnode_utils" / "day-clone",
@@ -456,7 +474,7 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
     )
     _write_executable(
         resources_dir / "activate",
-        "#!/usr/bin/env bash\nexport CONDA_DEFAULT_ENV=\"DAY-EC\"\n",
+        '#!/usr/bin/env bash\nexport CONDA_DEFAULT_ENV="DAY-EC"\n',
     )
     _write_executable(
         fake_bin / "daylily-ec",
@@ -503,3 +521,48 @@ def test_active_runtime_paths_no_longer_invoke_dyinit() -> None:
         text = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
         assert "source dyinit" not in text
         assert ". dyinit" not in text
+
+
+def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> None:
+    script = (REPO_ROOT / "config/day_cluster/post_install_ubuntu_combined.sh").read_text(
+        encoding="utf-8"
+    )
+
+    assert "set -Ee -o pipefail" in script
+    assert "set -Eeuo pipefail" not in script
+    assert 'export HOME="${HOME:-/root}"' in script
+    assert "trap 'rc=$?; echo \"[$(date +%Y%m%d_%H%M%S)] ERROR rc=${rc}" in script
+    assert 'exec > >(tee -a "${local_log_fn}" "${fsx_log_fn}") 2>&1' in script
+    assert "apptainer_1.4.5_amd64.deb" in script
+    assert "70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05" in script
+    assert "cached Apptainer deb not found" in script
+    assert 'apt-get install -y "${apptainer_deb}"' in script
+    assert 'ln -sfn "$(command -v apptainer)" /usr/local/bin/singularity' in script
+    assert "ln -sfn /fsx/data/tool_specific_resources/cromwell_87.jar" in script
+    assert "ln -sfn /fsx/data/tool_specific_resources/womtool_87.jar" in script
+    assert "link_cached_entries /fsx/data/cached_envs/conda" in script
+    assert "required" in script
+    assert "optional" in script
+    assert "No optional cached entries found under" in script
+    assert "Cached entry already present, leaving in place" in script
+    assert "Original sbatch already present" in script
+    assert "Original srun already present" in script
+    assert "ln -sfn /opt/slurm/bin/sbatch /opt/slurm/bin/srun" in script
+    assert 'append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf' in script
+    assert "mv /opt/slurm/bin/sbatch /opt/slurm/sbin/sbatch" in script
+    assert "mv /opt/slurm/bin/srun /opt/slurm/sbin/srun" in script
+    assert "ln -s /fsx/data/cached_envs/conda/*" not in script
+    assert 'echo "PrologFlags=Alloc" >> /opt/slurm/etc/slurm.conf' not in script
+    assert "ppa:apptainer/ppa" not in script
+    assert "command -v apptainer" in script
+    assert "command -v singularity" in script
+
+
+def test_packaged_post_install_bootstrap_matches_source() -> None:
+    source = REPO_ROOT / "config/day_cluster/post_install_ubuntu_combined.sh"
+    packaged = (
+        REPO_ROOT
+        / "daylily_ec/resources/payload/config/day_cluster/post_install_ubuntu_combined.sh"
+    )
+
+    assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")

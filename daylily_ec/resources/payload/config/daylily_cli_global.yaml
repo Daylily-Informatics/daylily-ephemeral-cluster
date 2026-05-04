@@ -1,7 +1,7 @@
 ---
 daylily:
-  git_ephemeral_cluster_repo_tag: 2.0.2
-  git_ephemeral_cluster_repo_release_tag: 2.0.2
+  git_ephemeral_cluster_repo_tag: 2.1.13
+  git_ephemeral_cluster_repo_release_tag: 2.1.13
   git_ephemeral_cluster_repo: https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git
   analysis_root: /fsx/analysis_results/
   sentieon_lic_path: /fsx/data/cached_envs/x.lic

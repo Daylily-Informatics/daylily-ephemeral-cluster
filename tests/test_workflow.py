@@ -48,6 +48,8 @@ from daylily_ec.workflow.create_cluster import (
     _require_values,
     _resolve_config_value,
     configure_headnode,
+    make_repository_catalog_preflight_step,
+    run_preflight,
 )
 
 
@@ -125,6 +127,68 @@ class TestNoopHeartbeatResult:
         assert result.error == "skipped"
 
 
+class TestRepositoryCatalogPreflight:
+    def test_valid_checked_in_catalog_passes(self):
+        catalog_path = (
+            Path(__file__).resolve().parents[1] / "config" / ("daylily_available_repositories.yaml")
+        )
+        report = PreflightReport()
+
+        result = make_repository_catalog_preflight_step(catalog_path)(report)
+
+        check = result.checks[-1]
+        assert check.id == "config.repository_catalog"
+        assert check.status == CheckStatus.PASS
+        assert check.details["path"] == str(catalog_path)
+        assert check.details["repository_count"] >= 1
+        assert check.details["command_count"] >= 1
+
+    def test_malformed_catalog_fails_with_headnode_day_clone_context(self, tmp_path):
+        catalog_path = tmp_path / "daylily_available_repositories.yaml"
+        catalog_path.write_text(
+            "command_catalog_version: [unterminated\n",
+            encoding="utf-8",
+        )
+        report = PreflightReport()
+
+        result = make_repository_catalog_preflight_step(catalog_path)(report)
+
+        check = result.checks[-1]
+        assert check.id == "config.repository_catalog"
+        assert check.status == CheckStatus.FAIL
+        assert check.details["path"] == str(catalog_path)
+        assert "while parsing a flow sequence" in check.details["error"]
+        assert "Headnode configuration would fail" in check.remediation
+        assert "day-clone consumes this file" in check.remediation
+
+    def test_malformed_catalog_short_circuits_preflight_pipeline(self, monkeypatch, tmp_path):
+        catalog_path = tmp_path / "daylily_available_repositories.yaml"
+        catalog_path.write_text(
+            "command_catalog_version: [unterminated\n",
+            encoding="utf-8",
+        )
+        called = False
+
+        def later_step(report: PreflightReport) -> PreflightReport:
+            nonlocal called
+            called = True
+            return report
+
+        monkeypatch.setattr(
+            create_cluster_module,
+            "write_preflight_report",
+            lambda report: None,
+        )
+
+        result = run_preflight(
+            PreflightReport(),
+            steps=[make_repository_catalog_preflight_step(catalog_path), later_step],
+        )
+
+        assert called is False
+        assert result.failed_checks[0].id == "config.repository_catalog"
+
+
 class TestWorkflowResolutionHelpers:
     def test_resolve_config_value_uses_default_non_interactive(self):
         cfg = ConfigFile.model_validate(
@@ -169,9 +233,7 @@ class TestWorkflowResolutionHelpers:
         mock_prompt.assert_called_once()
 
     def test_require_values_reports_missing_labels(self):
-        msg = _require_values(
-            {"bucket": "b", "public subnet": "", "IAM policy ARN": ""}
-        )
+        msg = _require_values({"bucket": "b", "public subnet": "", "IAM policy ARN": ""})
         assert msg == "Missing required values: public subnet, IAM policy ARN"
 
     def test_build_connection_command_uses_ssm_helper(self):
@@ -229,7 +291,9 @@ class TestWorkflowResolutionHelpers:
         )
 
         with (
-            patch("daylily_ec.workflow.create_cluster.typer.prompt", return_value="2") as mock_prompt,
+            patch(
+                "daylily_ec.workflow.create_cluster.typer.prompt", return_value="2"
+            ) as mock_prompt,
             patch("daylily_ec.workflow.create_cluster.typer.echo") as mock_echo,
         ):
             assert _resolve_fsx_size(cfg, non_interactive=False) == "2400"
@@ -258,7 +322,9 @@ class TestWorkflowResolutionHelpers:
         )
 
         with (
-            patch("daylily_ec.workflow.create_cluster.typer.prompt", return_value="9600") as mock_prompt,
+            patch(
+                "daylily_ec.workflow.create_cluster.typer.prompt", return_value="9600"
+            ) as mock_prompt,
             patch("daylily_ec.workflow.create_cluster.typer.echo"),
         ):
             assert _resolve_fsx_size(cfg, non_interactive=False) == "9600"
@@ -318,9 +384,7 @@ class TestRunCreateWorkflow:
         rc = run_create_workflow("us-west-2b", profile="test", non_interactive=True)
         assert rc == EXIT_AWS_FAILURE
 
-    def test_collects_budget_and_heartbeat_inputs_before_dry_run(
-        self, tmp_path, monkeypatch
-    ):
+    def test_collects_budget_and_heartbeat_inputs_before_dry_run(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
@@ -355,18 +419,14 @@ class TestRunCreateWorkflow:
         assert records["global_budget_kwargs"]["allowed_users"] == "root"
         assert records["cluster_budget_kwargs"]["email"] == "johnm@lsmc.com"
         assert records["heartbeat_kwargs"]["email"] == "johnm@lsmc.com"
-        assert (
-            records["heartbeat_kwargs"]["schedule_expression"] == "rate(60 minutes)"
-        )
+        assert records["heartbeat_kwargs"]["schedule_expression"] == "rate(60 minutes)"
         assert records["next_run_values"]["budget_email"] == "johnm@lsmc.com"
         assert records["next_run_values"]["heartbeat_email"] == "johnm@lsmc.com"
         assert records["next_run_values"]["heartbeat_schedule"] == "rate(60 minutes)"
         assert records["next_run_values"]["heartbeat_scheduler_role_arn"] == ""
         assert records["resolve_scheduler_role_kwargs"]["preconfigured"] == ""
 
-    def test_prints_ssh_command_then_fin_and_runs_say_when_available(
-        self, tmp_path, monkeypatch
-    ):
+    def test_prints_ssh_command_then_fin_and_runs_say_when_available(self, tmp_path, monkeypatch):
         records = _run_stubbed_create_workflow(
             tmp_path,
             monkeypatch,
@@ -401,10 +461,7 @@ class TestRunCreateWorkflow:
             "daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster majors-cluster",
             "...fin!",
         ]
-        assert records["subprocess_calls"] == [
-            ["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"]
-        ]
-
+        assert records["subprocess_calls"] == [["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"]]
 
 
 # ── configure_headnode ───────────────────────────────────────────────
@@ -445,7 +502,10 @@ class TestConfigureHeadnode:
         assert "conda tos accept --override-channels" in tos_cmd
         assert "https://repo.anaconda.com/pkgs/main" in tos_cmd
         assert "https://repo.anaconda.com/pkgs/r" in tos_cmd
-        assert "source ~/projects/daylily-ephemeral-cluster/activate" in mock_run_shell.call_args_list[3].args[2]
+        assert (
+            "source ~/projects/daylily-ephemeral-cluster/activate"
+            in mock_run_shell.call_args_list[3].args[2]
+        )
         assert "bash -lc" in mock_run_shell.call_args_list[4].args[2]
         assert "whoami" in mock_run_shell.call_args_list[4].args[2]
         mock_write_remote_text.assert_not_called()
@@ -524,7 +584,9 @@ class TestConfigureHeadnode:
 
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
-    def test_step_failure_is_fatal(self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch):
+    def test_step_failure_is_fatal(
+        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+    ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
         monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
@@ -605,8 +667,14 @@ class TestConfigureHeadnode:
         monkeypatch.chdir(tmp_path)
         monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
         (tmp_path / "config").mkdir()
-        (tmp_path / "config" / "daylily_cli_global.yaml").write_text("daylily: {}\n", encoding="utf-8")
-        monkeypatch.setattr(resources_module, "resource_path", lambda _rel: tmp_path / "missing_available_repositories.yaml")
+        (tmp_path / "config" / "daylily_cli_global.yaml").write_text(
+            "daylily: {}\n", encoding="utf-8"
+        )
+        monkeypatch.setattr(
+            resources_module,
+            "resource_path",
+            lambda _rel: tmp_path / "missing_available_repositories.yaml",
+        )
 
         mock_run_shell.side_effect = [
             SimpleNamespace(stdout="", stderr=""),
@@ -789,7 +857,9 @@ class TestConfigureHeadnode:
 
         def fake_git_run(cmd, **_kwargs):
             if cmd == ["git", "-C", str(repo_root), "config", "--get", "remote.origin.url"]:
-                return subprocess.CompletedProcess(cmd, 0, "git@gitlab.example.com:org/repo.git\n", "")
+                return subprocess.CompletedProcess(
+                    cmd, 0, "git@gitlab.example.com:org/repo.git\n", ""
+                )
             raise AssertionError(f"unexpected subprocess.run call: {cmd}")
 
         mock_subprocess_run.side_effect = fake_git_run
@@ -1053,9 +1123,7 @@ def _run_stubbed_create_workflow(
             policy_arn="arn:policy:default",
         ),
     )
-    monkeypatch.setattr(
-        cloudformation, "derive_stack_name", lambda _region_az: "daylily-stack"
-    )
+    monkeypatch.setattr(cloudformation, "derive_stack_name", lambda _region_az: "daylily-stack")
     monkeypatch.setattr(aws_ec2, "list_public_subnets", lambda *_args, **_kwargs: [])
     monkeypatch.setattr(aws_ec2, "list_private_subnets", lambda *_args, **_kwargs: [])
     monkeypatch.setattr(
@@ -1111,9 +1179,7 @@ def _run_stubbed_create_workflow(
     monkeypatch.setattr(create_cluster_module.typer, "prompt", fake_prompt)
     monkeypatch.setattr(create_cluster_module.typer, "echo", fake_echo)
     monkeypatch.setattr(create_cluster_module.subprocess, "run", fake_subprocess_run)
-    monkeypatch.setattr(
-        triplets, "write_next_run_template", fake_write_next_run_template
-    )
+    monkeypatch.setattr(triplets, "write_next_run_template", fake_write_next_run_template)
     monkeypatch.setattr(
         state_store,
         "write_state_record",
