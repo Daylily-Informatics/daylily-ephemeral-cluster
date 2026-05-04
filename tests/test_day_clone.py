@@ -34,7 +34,9 @@ def _write_configs(
         f"daylily:\n  analysis_root: {clone_root}\n",
         encoding="utf-8",
     )
-    ssh_line = "    ssh_url: git@github.com:Daylily-Informatics/test-repo.git\n" if include_ssh_url else ""
+    ssh_line = (
+        "    ssh_url: git@github.com:Daylily-Informatics/test-repo.git\n" if include_ssh_url else ""
+    )
     available_repos = config_dir / "daylily_available_repositories.yaml"
     available_repos.write_text(
         "default_repository: test-repo\n"
@@ -143,8 +145,70 @@ def test_day_clone_requires_explicit_default_repository(monkeypatch, tmp_path, c
     assert "Missing default_repository" in capsys.readouterr().err
 
 
+def test_day_clone_list_accepts_real_repository_catalog(monkeypatch, tmp_path, capsys):
+    module = _load_day_clone()
+    global_config, available_repos, _clone_root = _write_configs(tmp_path)
+    available_repos.write_text(
+        (REPO_ROOT / "config" / "daylily_available_repositories.yaml").read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
+
+    rc = module.main(["--list"])
+
+    out = capsys.readouterr()
+    assert rc == 0
+    assert "daylily-omics-analysis" in out.out
+    assert "Error:" not in out.err
+
+
+def test_day_clone_list_accepts_list_valued_command_metadata(monkeypatch, tmp_path, capsys):
+    module = _load_day_clone()
+    global_config, available_repos, _clone_root = _write_configs(tmp_path)
+    available_repos.write_text(
+        "command_catalog_version: 1\n"
+        "default_repository: test-repo\n"
+        "repositories:\n"
+        "  test-repo:\n"
+        "    display_name: Test Repo\n"
+        "    https_url: https://github.com/Daylily-Informatics/test-repo.git\n"
+        "    default_ref: main\n"
+        "    relative_path: test-repo\n"
+        "    analysis_commands:\n"
+        "      - command_id: sample_command\n"
+        "        targets:\n"
+        "          - produce_alignstats\n",
+        encoding="utf-8",
+    )
+    _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
+
+    rc = module.main(["--list"])
+
+    assert rc == 0
+    assert "test-repo: Test Repo" in capsys.readouterr().out
+
+
+def test_day_clone_invalid_available_repositories_yaml_exits_2(monkeypatch, tmp_path, capsys):
+    module = _load_day_clone()
+    global_config, available_repos, _clone_root = _write_configs(tmp_path)
+    available_repos.write_text(
+        "default_repository: [unterminated\n",
+        encoding="utf-8",
+    )
+    _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
+
+    rc = module.main(["--list"])
+
+    err = capsys.readouterr().err
+    assert rc == 2
+    assert "Invalid YAML" in err
+    assert str(available_repos) in err
+
+
 def test_packaged_day_clone_matches_source_day_clone():
     source = REPO_ROOT / "bin" / "headnode_utils" / "day-clone"
-    packaged = REPO_ROOT / "daylily_ec" / "resources" / "payload" / "bin" / "headnode_utils" / "day-clone"
+    packaged = (
+        REPO_ROOT / "daylily_ec" / "resources" / "payload" / "bin" / "headnode_utils" / "day-clone"
+    )
 
     assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")

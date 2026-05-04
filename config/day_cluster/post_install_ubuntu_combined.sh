@@ -8,11 +8,39 @@
 # This initializes many useful env vars (cfn_node_type, stack_name, region, etc) need to use this more correctly below
 . "/etc/parallelcluster/cfnconfig"
 
-touch /tmp/$(hostname).postinstallBEGIN
+set -Ee -o pipefail
 
+# ParallelCluster compute custom actions may run without HOME in the environment.
+export HOME="${HOME:-/root}"
+
+timestamp=$(date +"%Y%m%d_%H%M%S")
+node_type="${cfn_node_type:-unknown}"
+node_type_slug="$(echo "${node_type}" | tr '[:upper:]' '[:lower:]')"
+local_log_dir="/var/log/daylily"
+local_log_fn="${local_log_dir}/$(hostname)_${node_type_slug}_${timestamp}_postinstall.log"
+mkdir -p "${local_log_dir}"
+if [ -d /fsx ]; then
+  mkdir -p /fsx/logs
+  chmod -R a+wrx /fsx/logs
+  fsx_log_fn="/fsx/logs/$(hostname)_${node_type_slug}_${timestamp}.log"
+  exec > >(tee -a "${local_log_fn}" "${fsx_log_fn}") 2>&1
+else
+  exec > >(tee -a "${local_log_fn}") 2>&1
+fi
+trap 'rc=$?; echo "[$(date +%Y%m%d_%H%M%S)] ERROR rc=${rc} line=${LINENO}: ${BASH_COMMAND}"; exit ${rc}' ERR
+
+touch /tmp/$(hostname).postinstallBEGIN
 
 region="$1"
 bucket="$2"  # specified in the cluster yaml, bucket-name, no s3:// prefix
+apptainer_deb="/fsx/data/cached_envs/apptainer_1.4.5_amd64.deb"
+apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
+
+echo "[$timestamp] Running post_install_ubuntu_combined.sh ${region} ${bucket} on $(hostname) as ${node_type}"
+echo "[$timestamp] Local log: ${local_log_fn}"
+if [ "${fsx_log_fn:-}" ]; then
+  echo "[$timestamp] FSx log: ${fsx_log_fn}"
+fi
 
 aws configure set region $region
 
@@ -50,11 +78,47 @@ log_spot_price() {
   echo "$(date '+%Y-%m-%d %H:%M:%S') - Region: $region, AZ: $availability_zone, Instance type: $instance_type, Spot price: $spot_price USD/hour" >> "$log_file"
 }
 
+append_once() {
+  local line="$1"
+  local file="$2"
+  grep -Fxq "$line" "$file" 2>/dev/null || echo "$line" >> "$file"
+}
+
+link_cached_entries() {
+  local source_dir="$1"
+  local dest_dir="$2"
+  local requirement="${3:-required}"
+
+  mkdir -p "$dest_dir"
+  shopt -s nullglob
+  local source_paths=("${source_dir}"/*)
+  shopt -u nullglob
+  if [ "${#source_paths[@]}" -eq 0 ]; then
+    if [ "${requirement}" = "optional" ]; then
+      echo "No optional cached entries found under ${source_dir}; skipping"
+      return 0
+    fi
+    echo "ERROR: no cached entries found under ${source_dir}" >&2
+    exit 1
+  fi
+
+  for source_path in "${source_paths[@]}"; do
+    local dest_path="${dest_dir}/$(basename "${source_path}")"
+    if [ -e "${dest_path}" ] || [ -L "${dest_path}" ]; then
+      echo "Cached entry already present, leaving in place: ${dest_path}"
+    else
+      ln -s "${source_path}" "${dest_path}"
+    fi
+  done
+}
+
 
 # GLOBAL ACTIONS HeadNode and ComputeFleet
 
 mkdir -p /tmp/jobs
 chmod -R a+wrx /tmp/jobs
+mkdir -p /fsx/scratch
+chmod -R a+wrx /fsx/scratch
 
 # Configure hugepages and namespaces (common to both head and compute nodes)
 echo "vm.nr_hugepages=2048" | tee -a /etc/sysctl.conf
@@ -70,39 +134,35 @@ log_spot_price
 
 # Update and install necessary packages
 export DEBIAN_FRONTEND=noninteractive
-apt update -y
-apt install -y tmux emacs rclone parallel atop htop glances fd-find docker.io \
+apt-get update
+apt-get install -y tmux emacs rclone parallel atop htop glances fd-find docker.io \
                     build-essential libssl-dev uuid-dev libgpgme-dev squashfs-tools \
                     libseccomp-dev pkg-config openjdk-11-jdk wget unzip nasm yasm isal \
                     fuse2fs gocryptfs cpulimit golang-go numactl
 
-# Add Apptainer PPA
-add-apt-repository -y ppa:apptainer/ppa
-
-# Update package lists
-apt update
-
-# Install Apptainer
-apt install -y apptainer
+# Install Apptainer from the FSx/S3-backed cache. Do not depend on live Launchpad/PPA reachability.
+if [ ! -s "${apptainer_deb}" ]; then
+  echo "ERROR: cached Apptainer deb not found: ${apptainer_deb}" >&2
+  echo "Expected S3 source: s3://${bucket}/data/cached_envs/$(basename "${apptainer_deb}")" >&2
+  exit 1
+fi
+echo "${apptainer_deb_sha256}  ${apptainer_deb}" | sha256sum -c -
+apt-get install -y "${apptainer_deb}"
+if command -v apptainer >/dev/null 2>&1 && ! command -v singularity >/dev/null 2>&1; then
+  ln -sfn "$(command -v apptainer)" /usr/local/bin/singularity
+fi
+command -v apptainer
+command -v singularity
 
 # Install Cromwell and Go (using cached versions)
-ln -s /fsx/data/tool_specific_resources/cromwell_87.jar /usr/local/bin/cromwell.jar
-ln -s /fsx/data/tool_specific_resources/womtool_87.jar /usr/local/bin/womtool.jar
+ln -sfn /fsx/data/tool_specific_resources/cromwell_87.jar /usr/local/bin/cromwell.jar
+ln -sfn /fsx/data/tool_specific_resources/womtool_87.jar /usr/local/bin/womtool.jar
 chmod a+r /usr/local/bin/cromwell.jar /usr/local/bin/womtool.jar
 
 
 if [ "${cfn_node_type}" == "HeadNode" ];then
 
-  # Get the current date and time in seconds
-  timestamp=$(date +"%Y%m%d_%H%M%S")
-
-  # Construct the log filename with the timestamp
-  mkdir -p /fsx/logs
-  chmod -R a+wrx /fsx/logs
-  head_log_fn=/fsx/logs/$(hostname)_head_$timestamp.log
-
-  # Log message with timestamp
-  echo "[$timestamp] Running post_install_ubuntu_combined.sh $region $bucket on $(hostname)" > $head_log_fn
+  echo "[$(date +%Y%m%d_%H%M%S)] Running HeadNode post-install actions"
   
 
   # Create necessary directories
@@ -121,18 +181,26 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
 
   # Copy cached data from S3
 
-  ln -s /fsx/data/cached_envs/conda/* /fsx/resources/environments/conda/ubuntu/$(hostname)/
-  ln -s /fsx/data/cached_envs/containers/* /fsx/resources/environments/containers/ubuntu/$(hostname)/
-  ln -s /fsx/data/cached_envs/conda/* /fsx/resources/environments/conda/daylily/$(hostname)/
-  ln -s /fsx/data/cached_envs/containers/* /fsx/resources/environments/containers/daylily/$(hostname)/
+  link_cached_entries /fsx/data/cached_envs/conda /fsx/resources/environments/conda/ubuntu/$(hostname) required
+  link_cached_entries /fsx/data/cached_envs/containers /fsx/resources/environments/containers/ubuntu/$(hostname) optional
+  link_cached_entries /fsx/data/cached_envs/conda /fsx/resources/environments/conda/daylily/$(hostname) required
+  link_cached_entries /fsx/data/cached_envs/containers /fsx/resources/environments/containers/daylily/$(hostname) optional
 
 
-  mv /opt/slurm/bin/sbatch /opt/slurm/sbin/sbatch
+  if [ ! -e /opt/slurm/sbin/sbatch ]; then
+    mv /opt/slurm/bin/sbatch /opt/slurm/sbin/sbatch
+  else
+    echo "Original sbatch already present: /opt/slurm/sbin/sbatch"
+  fi
   aws s3 cp s3://${bucket}/cluster_boot_config/sbatch /opt/slurm/bin/sbatch
   chmod +x /opt/slurm/bin/sbatch
 
-  mv /opt/slurm/bin/srun /opt/slurm/sbin/srun
-  ln -s /opt/slurm/bin/sbatch /opt/slurm/bin/srun
+  if [ ! -e /opt/slurm/sbin/srun ]; then
+    mv /opt/slurm/bin/srun /opt/slurm/sbin/srun
+  else
+    echo "Original srun already present: /opt/slurm/sbin/srun"
+  fi
+  ln -sfn /opt/slurm/bin/sbatch /opt/slurm/bin/srun
 
   aws s3 cp s3://${bucket}/cluster_boot_config/sleep_test.sh /opt/slurm/bin/sleep_test.sh
   chmod a+x /opt/slurm/bin/sleep_test.sh
@@ -284,9 +352,9 @@ EOF
    chmod a+x /opt/slurm/sbin/epilog.sh
    
    # Configure slurm to use Prolog and Epilog
-   echo "PrologFlags=Alloc" >> /opt/slurm/etc/slurm.conf
-   echo "Prolog=/opt/slurm/sbin/prolog.sh" >> /opt/slurm/etc/slurm.conf
-   echo "Epilog=/opt/slurm/sbin/epilog.sh" >> /opt/slurm/etc/slurm.conf
+   append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf
+   append_once "Prolog=/opt/slurm/sbin/prolog.sh" /opt/slurm/etc/slurm.conf
+   append_once "Epilog=/opt/slurm/sbin/epilog.sh" /opt/slurm/etc/slurm.conf
    
    systemctl restart slurmctld
 fi

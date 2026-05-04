@@ -34,7 +34,7 @@ from typing import Any, Callable, Dict, List, Optional
 import typer
 
 from daylily_ec import ui
-from daylily_ec.state.models import PreflightReport, StateRecord
+from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport, StateRecord
 from daylily_ec.state.store import write_preflight_report, write_state_record
 
 logger = logging.getLogger(__name__)
@@ -133,7 +133,9 @@ def _resolve_headnode_repo_spec(default_url: str, default_ref: str) -> HeadnodeR
         text=True,
     )
     if published.returncode != 0:
-        detail = published.stderr.strip() or published.stdout.strip() or "branch not published on origin"
+        detail = (
+            published.stderr.strip() or published.stdout.strip() or "branch not published on origin"
+        )
         raise RuntimeError(
             f"Current checkout branch is not available on origin: {repo_ref} ({detail})"
         )
@@ -249,13 +251,76 @@ def exit_code_for(report: PreflightReport) -> int:
     return EXIT_SUCCESS
 
 
+def _repository_catalog_path() -> Path:
+    """Return the repository catalog path used by local create/headnode setup."""
+    local_catalog = Path("config/daylily_available_repositories.yaml")
+    if local_catalog.exists():
+        return local_catalog
+
+    from daylily_ec.repositories import default_catalog_path
+
+    return default_catalog_path()
+
+
+def make_repository_catalog_preflight_step(
+    catalog_path: Optional[Path] = None,
+) -> PreflightStep:
+    """Validate the repository catalog consumed by ``day-clone`` on headnodes."""
+
+    def step(report: PreflightReport) -> PreflightReport:
+        from daylily_ec.repositories import load_repository_catalog
+
+        path = (
+            Path(catalog_path).expanduser()
+            if catalog_path is not None
+            else _repository_catalog_path()
+        )
+        try:
+            catalog = load_repository_catalog(path)
+        except Exception as exc:
+            report.checks.append(
+                CheckResult(
+                    id="config.repository_catalog",
+                    status=CheckStatus.FAIL,
+                    details={
+                        "path": str(path),
+                        "error": str(exc),
+                    },
+                    remediation=(
+                        f"Fix repository catalog {path}. Headnode configuration would fail "
+                        "because day-clone consumes this file."
+                    ),
+                )
+            )
+            return report
+
+        report.checks.append(
+            CheckResult(
+                id="config.repository_catalog",
+                status=CheckStatus.PASS,
+                details={
+                    "path": str(path),
+                    "command_catalog_version": catalog.command_catalog_version,
+                    "default_repository": catalog.default_repository,
+                    "repository_count": len(catalog.repositories),
+                    "command_count": len(catalog.commands()),
+                },
+            )
+        )
+        return report
+
+    return step
+
+
 # ---------------------------------------------------------------------------
 # Internal helpers
 # ---------------------------------------------------------------------------
 
 
 def _extract_selected(
-    report: PreflightReport, check_id: str, detail_key: str,
+    report: PreflightReport,
+    check_id: str,
+    detail_key: str,
 ) -> str:
     """Pull a value from report check details (e.g. selected bucket)."""
     for chk in report.checks:
@@ -267,8 +332,13 @@ def _extract_selected(
 def _noop_heartbeat_result() -> Any:
     """Return a stub HeartbeatResult-like object for the no-op path."""
     from types import SimpleNamespace
+
     return SimpleNamespace(
-        success=False, topic_arn="", schedule_name="", role_arn="", error="skipped",
+        success=False,
+        topic_arn="",
+        schedule_name="",
+        role_arn="",
+        error="skipped",
     )
 
 
@@ -298,9 +368,7 @@ FSX_PROMPT_OPTIONS = [
     "12000",
     "14400",
 ]
-FSX_SIZE_RULE_TEXT = (
-    "1200 GiB, 2400 GiB, or any value >= 4800 GiB divisible by 2400 GiB"
-)
+FSX_SIZE_RULE_TEXT = "1200 GiB, 2400 GiB, or any value >= 4800 GiB divisible by 2400 GiB"
 
 
 def _is_valid_fsx_size(value: str) -> bool:
@@ -326,16 +394,14 @@ def _resolve_fsx_size(cfg: Any, *, non_interactive: bool) -> str:
         if _is_valid_fsx_size(configured):
             return configured
         raise ValueError(
-            "Invalid FSx size "
-            f"'{configured}'. Allowed sizes are {FSX_SIZE_RULE_TEXT}."
+            f"Invalid FSx size '{configured}'. Allowed sizes are {FSX_SIZE_RULE_TEXT}."
         )
 
     if default_value:
         default_value = default_value.strip()
         if not _is_valid_fsx_size(default_value):
             raise ValueError(
-                "Invalid FSx size "
-                f"'{default_value}'. Allowed sizes are {FSX_SIZE_RULE_TEXT}."
+                f"Invalid FSx size '{default_value}'. Allowed sizes are {FSX_SIZE_RULE_TEXT}."
             )
 
     if non_interactive:
@@ -426,59 +492,80 @@ def _resolve_post_create_inputs(
     allowed_budget_users_default: str,
 ) -> _PostCreateInputs:
     """Resolve budget and heartbeat inputs once before the create phase."""
-    budget_email = _resolve_config_value(
-        cfg,
-        "budget_email",
-        "Budget email",
-        non_interactive=non_interactive,
-        default_fallback=budget_email_default,
-    ) or budget_email_default
-    budget_amount = _resolve_config_value(
-        cfg,
-        "budget_amount",
-        "Budget amount",
-        non_interactive=non_interactive,
-        default_fallback="200",
-    ) or "200"
-    global_budget_amount = _resolve_config_value(
-        cfg,
-        "global_budget_amount",
-        "Global budget amount",
-        non_interactive=non_interactive,
-        default_fallback="1000",
-    ) or "1000"
-    allowed_budget_users = _resolve_config_value(
-        cfg,
-        "allowed_budget_users",
-        "Allowed budget users",
-        non_interactive=non_interactive,
-        default_fallback=allowed_budget_users_default,
-    ) or allowed_budget_users_default
-    heartbeat_email = _resolve_config_value(
-        cfg,
-        "heartbeat_email",
-        "Heartbeat email",
-        non_interactive=non_interactive,
-        default_fallback=budget_email,
-        required=False,
-        allow_empty=True,
-    ) or budget_email
-    heartbeat_schedule = _resolve_config_value(
-        cfg,
-        "heartbeat_schedule",
-        "Heartbeat schedule",
-        non_interactive=non_interactive,
-        default_fallback="rate(6 hours)",
-        required=False,
-    ) or "rate(6 hours)"
-    heartbeat_scheduler_role_arn = _resolve_config_value(
-        cfg,
-        "heartbeat_scheduler_role_arn",
-        "Heartbeat scheduler role ARN",
-        non_interactive=non_interactive,
-        required=False,
-        allow_empty=True,
-    ) or ""
+    budget_email = (
+        _resolve_config_value(
+            cfg,
+            "budget_email",
+            "Budget email",
+            non_interactive=non_interactive,
+            default_fallback=budget_email_default,
+        )
+        or budget_email_default
+    )
+    budget_amount = (
+        _resolve_config_value(
+            cfg,
+            "budget_amount",
+            "Budget amount",
+            non_interactive=non_interactive,
+            default_fallback="200",
+        )
+        or "200"
+    )
+    global_budget_amount = (
+        _resolve_config_value(
+            cfg,
+            "global_budget_amount",
+            "Global budget amount",
+            non_interactive=non_interactive,
+            default_fallback="1000",
+        )
+        or "1000"
+    )
+    allowed_budget_users = (
+        _resolve_config_value(
+            cfg,
+            "allowed_budget_users",
+            "Allowed budget users",
+            non_interactive=non_interactive,
+            default_fallback=allowed_budget_users_default,
+        )
+        or allowed_budget_users_default
+    )
+    heartbeat_email = (
+        _resolve_config_value(
+            cfg,
+            "heartbeat_email",
+            "Heartbeat email",
+            non_interactive=non_interactive,
+            default_fallback=budget_email,
+            required=False,
+            allow_empty=True,
+        )
+        or budget_email
+    )
+    heartbeat_schedule = (
+        _resolve_config_value(
+            cfg,
+            "heartbeat_schedule",
+            "Heartbeat schedule",
+            non_interactive=non_interactive,
+            default_fallback="rate(6 hours)",
+            required=False,
+        )
+        or "rate(6 hours)"
+    )
+    heartbeat_scheduler_role_arn = (
+        _resolve_config_value(
+            cfg,
+            "heartbeat_scheduler_role_arn",
+            "Heartbeat scheduler role ARN",
+            non_interactive=non_interactive,
+            required=False,
+            allow_empty=True,
+        )
+        or ""
+    )
 
     return _PostCreateInputs(
         budget_email=budget_email,
@@ -595,13 +682,16 @@ def run_create_workflow(
     cfg = load_config(effective_config)
     ec = cfg.ephemeral_cluster
 
-    cluster_name = _resolve_config_value(
-        cfg,
-        "cluster_name",
-        "Cluster name",
-        non_interactive=non_interactive,
-        default_fallback="prod",
-    ) or "prod"
+    cluster_name = (
+        _resolve_config_value(
+            cfg,
+            "cluster_name",
+            "Cluster name",
+            non_interactive=non_interactive,
+            default_fallback="prod",
+        )
+        or "prod"
+    )
 
     ui.phase(f"INIT · {cluster_name}")
 
@@ -638,22 +728,31 @@ def run_create_workflow(
     # Build preflight steps in §10.5 order
     max_8i = int(
         _resolve_config_value(
-            cfg, "max_count_8I", "Max 8xlarge count",
-            non_interactive=non_interactive, default_fallback="1",
+            cfg,
+            "max_count_8I",
+            "Max 8xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
         )
         or "1"
     )
     max_128i = int(
         _resolve_config_value(
-            cfg, "max_count_128I", "Max 128xlarge count",
-            non_interactive=non_interactive, default_fallback="1",
+            cfg,
+            "max_count_128I",
+            "Max 128xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
         )
         or "1"
     )
     max_192i = int(
         _resolve_config_value(
-            cfg, "max_count_192I", "Max 192xlarge count",
-            non_interactive=non_interactive, default_fallback="1",
+            cfg,
+            "max_count_192I",
+            "Max 192xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
         )
         or "1"
     )
@@ -671,7 +770,10 @@ def run_create_workflow(
         # 1-2: ToolchainValidator + AWS Identity — implicit via AWSContext.build
         # 3: IAM Permission Validator
         make_iam_preflight_step(aws_ctx, interactive=not non_interactive),
-        # 4: ConfigValidator — config load already succeeded above
+        # 4: ConfigValidator — config load already succeeded above; validate
+        # the repository catalog before any AWS mutation because headnode
+        # configuration consumes it through day-clone.
+        make_repository_catalog_preflight_step(),
         # 5: QuotaValidator
         make_quota_preflight_step(
             aws_ctx,
@@ -692,7 +794,9 @@ def run_create_workflow(
     ]
 
     report = run_preflight(
-        report, pass_on_warn=pass_on_warn, steps=preflight_steps,
+        report,
+        pass_on_warn=pass_on_warn,
+        steps=preflight_steps,
     )
 
     if should_abort(report, pass_on_warn=pass_on_warn):
@@ -726,38 +830,49 @@ def run_create_workflow(
     pub_t = ec.config.get("public_subnet_id")
     priv_t = ec.config.get("private_subnet_id")
 
-    public_subnet = select_subnet(
-        pub_list,
-        cfg_action=pub_t.action if pub_t else "",
-        cfg_set_value=pub_t.set_value if pub_t else "",
-        cfg_fallback=cfn_outputs.public_subnet_id,
-    ) or cfn_outputs.public_subnet_id
+    public_subnet = (
+        select_subnet(
+            pub_list,
+            cfg_action=pub_t.action if pub_t else "",
+            cfg_set_value=pub_t.set_value if pub_t else "",
+            cfg_fallback=cfn_outputs.public_subnet_id,
+        )
+        or cfn_outputs.public_subnet_id
+    )
     if not public_subnet and not non_interactive and pub_list:
         public_subnet = _prompt_select(
-            "public subnet", [subnet.subnet_id for subnet in pub_list],
+            "public subnet",
+            [subnet.subnet_id for subnet in pub_list],
         )
 
-    private_subnet = select_subnet(
-        priv_list,
-        cfg_action=priv_t.action if priv_t else "",
-        cfg_set_value=priv_t.set_value if priv_t else "",
-        cfg_fallback=cfn_outputs.private_subnet_id,
-    ) or cfn_outputs.private_subnet_id
+    private_subnet = (
+        select_subnet(
+            priv_list,
+            cfg_action=priv_t.action if priv_t else "",
+            cfg_set_value=priv_t.set_value if priv_t else "",
+            cfg_fallback=cfn_outputs.private_subnet_id,
+        )
+        or cfn_outputs.private_subnet_id
+    )
     if not private_subnet and not non_interactive and priv_list:
         private_subnet = _prompt_select(
-            "private subnet", [subnet.subnet_id for subnet in priv_list],
+            "private subnet",
+            [subnet.subnet_id for subnet in priv_list],
         )
 
     # 3c. Policy ARN selection
     iam_client = aws_ctx.client("iam")
     policy_arns = list_pcluster_tags_budget_policies(iam_client)
     iam_t = ec.config.get("iam_policy_arn")
-    policy_arn = select_policy_arn(
-        policy_arns,
-        cfg_action=iam_t.action if iam_t else "",
-        cfg_set_value=iam_t.set_value if iam_t else "",
-        cfg_fallback=cfn_outputs.policy_arn,
-    ) or cfn_outputs.policy_arn
+    policy_arn = (
+        select_policy_arn(
+            policy_arns,
+            cfg_action=iam_t.action if iam_t else "",
+            cfg_set_value=iam_t.set_value if iam_t else "",
+            cfg_fallback=cfn_outputs.policy_arn,
+        )
+        or cfn_outputs.policy_arn
+    )
     if not policy_arn and not non_interactive and policy_arns:
         policy_arn = _prompt_select("IAM policy ARN", policy_arns)
 
@@ -776,7 +891,10 @@ def run_create_workflow(
 
     logger.info(
         "Resources: bucket=%s pub=%s priv=%s policy=%s",
-        bucket_name, public_subnet, private_subnet, policy_arn,
+        bucket_name,
+        public_subnet,
+        private_subnet,
+        policy_arn,
     )
     ui.ok("Resources resolved")
     ui.detail("Bucket", bucket_name)
@@ -796,13 +914,16 @@ def run_create_workflow(
     ui.phase("RENDER CLUSTER YAML")
 
     bucket_url = f"s3://{bucket_name}" if bucket_name else ""
-    template_yaml = _resolve_config_value(
-        cfg,
-        "cluster_template_yaml",
-        "Cluster template YAML",
-        non_interactive=non_interactive,
-        default_fallback="config/day_cluster/prod_cluster.yaml",
-    ) or "config/day_cluster/prod_cluster.yaml"
+    template_yaml = (
+        _resolve_config_value(
+            cfg,
+            "cluster_template_yaml",
+            "Cluster template YAML",
+            non_interactive=non_interactive,
+            default_fallback="config/day_cluster/prod_cluster.yaml",
+        )
+        or "config/day_cluster/prod_cluster.yaml"
+    )
     if not Path(template_yaml).is_file():
         template_yaml = str(resource_path(template_yaml))
 
@@ -815,7 +936,8 @@ def run_create_workflow(
         "REGSUB_PRIVATE_SUBNET": private_subnet,
         "REGSUB_S3_BUCKET_REF": bucket_url,
         "REGSUB_FSX_SIZE": _resolve_fsx_size(
-            cfg, non_interactive=non_interactive,
+            cfg,
+            non_interactive=non_interactive,
         ),
         "REGSUB_DETAILED_MONITORING": _resolve_config_value(
             cfg,
@@ -823,7 +945,8 @@ def run_create_workflow(
             "Enable detailed monitoring",
             non_interactive=non_interactive,
             default_fallback="false",
-        ) or "false",
+        )
+        or "false",
         "REGSUB_CLUSTER_NAME": cluster_name,
         "REGSUB_USERNAME": f"{_os.environ.get('USER', 'unknown')}-{aws_ctx.iam_username}",
         "REGSUB_PROJECT": cluster_name,
@@ -833,7 +956,8 @@ def run_create_workflow(
             "Delete local root",
             non_interactive=non_interactive,
             default_fallback="false",
-        ) or "false",
+        )
+        or "false",
         # DeletionPolicy requires "Retain" or "Delete", not bool.
         "REGSUB_SAVE_FSX": (
             "Delete"
@@ -846,11 +970,13 @@ def run_create_workflow(
                     default_fallback="Delete",
                 )
                 or "false"
-            ).lower() in ("true", "1", "yes", "delete")
+            ).lower()
+            in ("true", "1", "yes", "delete")
             else "Retain"
         ),
         # Tag values must be quoted strings, not bare YAML booleans.
-        "REGSUB_ENFORCE_BUDGET": '"' + (
+        "REGSUB_ENFORCE_BUDGET": '"'
+        + (
             _resolve_config_value(
                 cfg,
                 "enforce_budget",
@@ -859,7 +985,8 @@ def run_create_workflow(
                 default_fallback="true",
             )
             or "true"
-        ) + '"',
+        )
+        + '"',
         "REGSUB_AWS_ACCOUNT_ID": f"aws_profile-{aws_ctx.profile}",
         "REGSUB_ALLOCATION_STRATEGY": _resolve_config_value(
             cfg,
@@ -867,7 +994,8 @@ def run_create_workflow(
             "Spot allocation strategy",
             non_interactive=non_interactive,
             default_fallback="capacity-optimized",
-        ) or "capacity-optimized",
+        )
+        or "capacity-optimized",
         # Tag value must be non-empty (AWS min length = 1).
         "REGSUB_DAYLILY_GIT_DEETS": "none",
         "REGSUB_MAX_COUNT_8I": str(max_8i),
@@ -879,18 +1007,20 @@ def run_create_workflow(
             "Headnode instance type",
             non_interactive=non_interactive,
             default_fallback="m5.xlarge",
-        ) or "m5.xlarge",
+        )
+        or "m5.xlarge",
         "REGSUB_HEARTBEAT_EMAIL": post_create_inputs.heartbeat_email,
         "REGSUB_HEARTBEAT_SCHEDULE": post_create_inputs.heartbeat_schedule,
-        "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": (
-            post_create_inputs.heartbeat_scheduler_role_arn
-        ),
+        "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": (post_create_inputs.heartbeat_scheduler_role_arn),
     }
 
     ui.step("Rendering YAML template ...")
     try:
         _yaml_init, init_template_path = write_init_artifacts(
-            cluster_name, ts, template_yaml, substitutions,
+            cluster_name,
+            ts,
+            template_yaml,
+            substitutions,
         )
     except (FileNotFoundError, ValueError) as exc:
         logger.error("YAML render failed: %s", exc)
@@ -898,9 +1028,7 @@ def run_create_workflow(
         return EXIT_VALIDATION_FAILURE
 
     # 4b. Apply spot prices
-    cluster_yaml_path = str(
-        CONFIG_DIR / f"{cluster_name}_cluster_{ts}.yaml"
-    )
+    cluster_yaml_path = str(CONFIG_DIR / f"{cluster_name}_cluster_{ts}.yaml")
     ui.step("Applying spot prices ...")
     try:
         apply_spot_prices(
@@ -921,7 +1049,9 @@ def run_create_workflow(
     ui.phase("DRY-RUN VALIDATION")
     ui.step("Running pcluster dry-run ...")
     dry_result = dry_run_create(
-        cluster_name, cluster_yaml_path, aws_ctx.region,
+        cluster_name,
+        cluster_yaml_path,
+        aws_ctx.region,
         profile=aws_ctx.profile,
     )
     if not dry_result.success:
@@ -939,7 +1069,9 @@ def run_create_workflow(
     ui.phase("CREATE CLUSTER")
     ui.step(f"Submitting cluster creation: {cluster_name} ...")
     create_result = pcluster_create(
-        cluster_name, cluster_yaml_path, aws_ctx.region,
+        cluster_name,
+        cluster_yaml_path,
+        aws_ctx.region,
         profile=aws_ctx.profile,
     )
     if not create_result.success:
@@ -956,7 +1088,9 @@ def run_create_workflow(
     ui.phase("MONITOR")
     ui.step("Waiting for CREATE_COMPLETE ...")
     monitor_result = wait_for_creation(
-        cluster_name, aws_ctx.region, profile=aws_ctx.profile,
+        cluster_name,
+        aws_ctx.region,
+        profile=aws_ctx.profile,
     )
     if not monitor_result.success:
         logger.error(
@@ -1019,7 +1153,9 @@ def run_create_workflow(
     ui.step("Ensuring budgets ...")
     try:
         global_budget = ensure_global_budget(
-            budgets_client, s3_client, aws_ctx.account_id,
+            budgets_client,
+            s3_client,
+            aws_ctx.account_id,
             amount=post_create_inputs.global_budget_amount,
             cluster_name=cluster_name,
             email=post_create_inputs.budget_email,
@@ -1029,7 +1165,9 @@ def run_create_workflow(
             allowed_users=post_create_inputs.allowed_budget_users,
         )
         cluster_budget = ensure_cluster_budget(
-            budgets_client, s3_client, aws_ctx.account_id,
+            budgets_client,
+            s3_client,
+            aws_ctx.account_id,
             amount=post_create_inputs.budget_amount,
             cluster_name=cluster_name,
             email=post_create_inputs.budget_email,
@@ -1059,7 +1197,8 @@ def run_create_workflow(
         sns_client = aws_ctx.client("sns")
         scheduler_client = aws_ctx.client("scheduler")
         hb_result = ensure_heartbeat(
-            sns_client, scheduler_client,
+            sns_client,
+            scheduler_client,
             cluster_name=cluster_name,
             region=aws_ctx.region,
             account_id=aws_ctx.account_id,
@@ -1097,9 +1236,7 @@ def run_create_workflow(
         "allowed_budget_users": post_create_inputs.allowed_budget_users,
         "heartbeat_email": post_create_inputs.heartbeat_email,
         "heartbeat_schedule": post_create_inputs.heartbeat_schedule,
-        "heartbeat_scheduler_role_arn": (
-            post_create_inputs.heartbeat_scheduler_role_arn
-        ),
+        "heartbeat_scheduler_role_arn": (post_create_inputs.heartbeat_scheduler_role_arn),
     }
     next_run_path = CONFIG_DIR / f"{cluster_name}_next_run_{ts}.yaml"
     write_next_run_template(cfg, final_values, next_run_path)
@@ -1300,9 +1437,9 @@ def configure_headnode(
                 f"cd ~/projects/{repo_name} && "
                 "bash -lc '"
                 "set -euo pipefail; "
-                "test \"$(whoami)\" = ubuntu; "
-                "test \"${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}\" = 1; "
-                "test \"${CONDA_DEFAULT_ENV:-}\" = DAY-EC; "
+                'test "$(whoami)" = ubuntu; '
+                'test "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" = 1; '
+                'test "${CONDA_DEFAULT_ENV:-}" = DAY-EC; '
                 "command -v daylily-ec >/dev/null 2>&1; "
                 "command -v day-clone >/dev/null 2>&1; "
                 "day-clone --list >/dev/null'"
@@ -1393,6 +1530,7 @@ def run_preflight_only(
 
     preflight_steps: List[PreflightStep] = [
         make_iam_preflight_step(aws_ctx, interactive=not non_interactive),
+        make_repository_catalog_preflight_step(),
         make_quota_preflight_step(
             aws_ctx,
             max_count_8i=max_8i,
@@ -1411,7 +1549,9 @@ def run_preflight_only(
     ]
 
     report = run_preflight(
-        report, pass_on_warn=pass_on_warn, steps=preflight_steps,
+        report,
+        pass_on_warn=pass_on_warn,
+        steps=preflight_steps,
     )
 
     # Always write the report
