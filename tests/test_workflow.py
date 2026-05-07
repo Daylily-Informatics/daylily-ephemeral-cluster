@@ -507,7 +507,10 @@ class TestConfigureHeadnode:
             in mock_run_shell.call_args_list[3].args[2]
         )
         assert "bash -lc" in mock_run_shell.call_args_list[4].args[2]
+        assert "script -q -c" in mock_run_shell.call_args_list[4].args[2]
         assert "whoami" in mock_run_shell.call_args_list[4].args[2]
+        assert "stty -a" in mock_run_shell.call_args_list[4].args[2]
+        assert "-ixon" in mock_run_shell.call_args_list[4].args[2]
         mock_write_remote_text.assert_not_called()
 
     @patch("daylily_ec.aws.ssm.write_remote_text")

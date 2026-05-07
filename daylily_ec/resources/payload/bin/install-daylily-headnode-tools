@@ -49,6 +49,8 @@ repo_root="$HOME/projects/daylily-ephemeral-cluster"
 activate_script="$repo_root/activate"
 user_bin_dir="$HOME/.local/bin"
 
+stty -ixon -ixoff 2>/dev/null || true
+
 case ":$PATH:" in
     *":${user_bin_dir}:"*) ;;
     *) export PATH="${user_bin_dir}:$PATH" ;;

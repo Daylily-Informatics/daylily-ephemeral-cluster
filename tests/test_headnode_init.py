@@ -413,6 +413,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     bootstrap_text = bootstrap_file.read_text(encoding="utf-8")
     assert 'repo_root="$HOME/projects/daylily-ephemeral-cluster"' in bootstrap_text
     assert 'case ":$PATH:" in' in bootstrap_text
+    assert "stty -ixon -ixoff 2>/dev/null || true" in bootstrap_text
     assert "DAYLILY_EC_HEADNODE_BOOTSTRAPPED" in bootstrap_text
     assert 'source "$activate_script"' in bootstrap_text
     assert "conda activate DAY-EC" in bootstrap_text
@@ -521,6 +522,13 @@ def test_active_runtime_paths_no_longer_invoke_dyinit() -> None:
         text = (REPO_ROOT / rel_path).read_text(encoding="utf-8")
         assert "source dyinit" not in text
         assert ". dyinit" not in text
+
+
+def test_packaged_install_headnode_tools_matches_source() -> None:
+    source = REPO_ROOT / "bin/install-daylily-headnode-tools"
+    packaged = REPO_ROOT / "daylily_ec/resources/payload/bin/install-daylily-headnode-tools"
+
+    assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")
 
 
 def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> None:
