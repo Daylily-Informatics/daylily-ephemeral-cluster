@@ -22,6 +22,16 @@ from daylily_ec.aws.ssm import (
 )
 
 
+def _assert_flow_control_guard_command(mock_popen: MagicMock) -> None:
+    guard_cmd = mock_popen.call_args.args[0]
+    assert guard_cmd[1] == "-c"
+    assert "stty" in guard_cmd[2]
+    assert "-ixon" in guard_cmd[2]
+    assert "-ixoff" in guard_cmd[2]
+    assert "/dev/tty" in guard_cmd[2]
+    assert "time.sleep(0.1)" in guard_cmd[2]
+
+
 class TestRequireSessionManagerPlugin:
     @patch("daylily_ec.aws.ssm.shutil.which", return_value="/usr/local/bin/session-manager-plugin")
     def test_present(self, _mock_which):
@@ -405,12 +415,62 @@ class TestStartSession:
         assert rc == 0
         assert mock_run.call_args_list[1].args[0] == ["stty", "-ixon", "-ixoff"]
         assert mock_run.call_args_list[2].args[0][:3] == ["aws", "ssm", "start-session"]
-        guard_cmd = mock_popen.call_args.args[0]
-        assert guard_cmd[1] == "-c"
-        assert "stty" in guard_cmd[2]
-        assert "-ixon" in guard_cmd[2]
+        _assert_flow_control_guard_command(mock_popen)
         guard.terminate.assert_called_once_with()
         guard.wait.assert_called_once_with(timeout=2)
+
+    @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
+    @patch("daylily_ec.aws.ssm.os.execvpe")
+    @patch("daylily_ec.aws.ssm.os.isatty", return_value=True)
+    @patch("daylily_ec.aws.ssm.subprocess.Popen")
+    @patch("daylily_ec.aws.ssm.subprocess.run")
+    def test_replace_process_keeps_flow_control_guard_running_through_exec(
+        self,
+        mock_run,
+        mock_popen,
+        _mock_isatty,
+        mock_execvpe,
+        _mock_require_plugin,
+    ):
+        class ExecCalled(Exception):
+            pass
+
+        order: list[str] = []
+        guard = MagicMock()
+
+        def start_guard(*args, **kwargs):
+            order.append("guard")
+            return guard
+
+        def exec_session(*args, **kwargs):
+            order.append("exec")
+            raise ExecCalled()
+
+        mock_popen.side_effect = start_guard
+        mock_execvpe.side_effect = exec_session
+        mock_run.side_effect = [
+            subprocess.CompletedProcess(
+                args=[],
+                returncode=0,
+                stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }"}}}',
+                stderr="",
+            ),
+            subprocess.CompletedProcess(args=["stty"], returncode=0, stdout="", stderr=""),
+        ]
+
+        with pytest.raises(ExecCalled):
+            start_session(
+                "i-abc123",
+                "us-west-2",
+                profile="dev",
+                replace_process=True,
+            )
+
+        assert order == ["guard", "exec"]
+        assert mock_run.call_args_list[1].args[0] == ["stty", "-ixon", "-ixoff"]
+        _assert_flow_control_guard_command(mock_popen)
+        guard.terminate.assert_not_called()
+        guard.wait.assert_not_called()
 
     @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
     @patch("daylily_ec.aws.ssm.subprocess.run")
