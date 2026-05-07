@@ -65,6 +65,8 @@ daylily-ec samples stage \
 # - legacy Illumina rows can still use R1_FQ/R2_FQ
 # - aligned inputs can be supplied directly through ULTIMA_CRAM, ONT_CRAM,
 #   PB_BAM, ONT_BAM, or ROCHE_BAM columns
+# - ONT_FASTQ_PREFIX stages one S3 fastq_pass/<tag>/ prefix into ONT_R1_PATH,
+#   with ONT_R2_PATH=na; set ONT_FLOWCELL_ID when the prefix has multiple flowcells
 # - hybrid units populate multiple source groups on one row
 
 # Use the "Remote FSx stage directory" printed by the staging helper.

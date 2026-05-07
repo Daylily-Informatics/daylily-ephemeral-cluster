@@ -2,14 +2,22 @@
 
 These examples are staging inputs for `daylily-ec samples stage`. Each
 `analysis_samples_manifest.tsv` is derived from a working
-`daylily-omics-analysis` fixture and rewrites source data to the mk-gotime3
-reference bucket:
+`daylily-omics-analysis` fixture. Most examples rewrite source data to the
+mk-gotime3 reference bucket:
 
 `s3://lsmc-dayoa-omics-analysis-us-west-2/data/...`
+
+The ONT FASTQ example intentionally points at the PCA100 sequencing-data bucket
+so prefix parsing is exercised against the observed ONT run layout.
 
 Every row uses `STAGE_DIRECTIVE=stage_data`, so raw reads, aligned artifacts,
 and concordance data are copied into the timestamped remote stage before the
 generated `samples.tsv` and `units.tsv` point at FSx paths.
+
+ONT FASTQ prefix rows use `ONT_FASTQ_PREFIX=s3://.../fastq_pass/<tag>/`.
+The staging helper parses ONT shard filenames, filters to one flowcell when
+`ONT_FLOWCELL_ID` is set, concatenates the selected shards into one
+`ONT_R1_PATH`, and writes `ONT_R2_PATH=na`.
 
 Each example is intentionally limited to three manifest rows. Because one
 manifest row becomes one generated `units.tsv` row, these examples exercise the
@@ -40,6 +48,14 @@ daylily-ec samples stage examples/staging/ont_solo/analysis_samples_manifest.tsv
   --region us-west-2 \
   --reference-bucket s3://lsmc-dayoa-omics-analysis-us-west-2 \
   --config-dir tmp-stage-config/examples/ont_solo
+```
+
+```bash
+daylily-ec samples stage examples/staging/ont_fastq_solo/analysis_samples_manifest.tsv \
+  --profile lsmc \
+  --region us-west-2 \
+  --reference-bucket s3://lsmc-dayoa-omics-analysis-us-west-2 \
+  --config-dir tmp-stage-config/examples/ont_fastq_solo
 ```
 
 ```bash

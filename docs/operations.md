@@ -86,6 +86,8 @@ Operational notes:
 - the input file is `analysis_samples.tsv`
 - the bundled template at `etc/analysis_samples_template.tsv` now supports legacy Illumina rows plus Complete Genomics/MGI, ONT, Ultima, PacBio, Roche, and hybrid source columns
 - one manifest row normally becomes one output unit row; multi-lane Illumina rows with the same unit identity are still merged into one staged unit
+- ONT FASTQ prefix rows use `ONT_FASTQ_PREFIX=s3://.../fastq_pass/<tag>/`; the helper stages one run plus flowcell plus tag per row and writes `ONT_R1_PATH` with `ONT_R2_PATH=na`
+- set `ONT_FLOWCELL_ID` explicitly when an ONT FASTQ prefix contains more than one flowcell
 - the helper writes workflow manifests into `--config-dir`
 - raw read inputs are staged into the remote stage; aligned artifacts stay pass-through unless `STAGE_DIRECTIVE=stage_data`
 - the helper prints the remote stage directory under `/fsx/data/staged_sample_data/...`
