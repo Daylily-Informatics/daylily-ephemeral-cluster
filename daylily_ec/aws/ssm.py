@@ -23,7 +23,9 @@ PENDING_STATUSES = {"Pending", "InProgress", "Delayed"}
 SUCCESS_STATUS = "Success"
 SUPPORTED_REMOTE_USER = "ubuntu"
 SUPPORTED_SESSION_HOME = f"/home/{SUPPORTED_REMOTE_USER}"
-SUPPORTED_SESSION_SHELL_PROFILE = f"cd {SUPPORTED_SESSION_HOME} && exec bash -l"
+SUPPORTED_SESSION_SHELL_PROFILE = (
+    f"cd {SUPPORTED_SESSION_HOME} && {{ stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }}"
+)
 
 
 class SsmError(RuntimeError):
@@ -466,6 +468,23 @@ def ensure_ubuntu_session_preferences(
     _require_ubuntu_session_preferences(region, profile=profile)
 
 
+def _disable_local_software_flow_control() -> None:
+    """Let interactive tools receive Ctrl-S/Ctrl-Q through the local terminal."""
+    if not os.isatty(0):
+        return
+    try:
+        result = subprocess.run(
+            ["stty", "-ixon", "-ixoff"],
+            capture_output=True,
+            text=True,
+        )
+    except FileNotFoundError as exc:
+        raise SsmError("stty not found on PATH; unable to prepare local terminal.") from exc
+    if result.returncode != 0:
+        detail = result.stderr.strip() or result.stdout.strip() or "unknown error"
+        raise SsmError(f"Unable to disable local terminal software flow control: {detail}")
+
+
 def start_session(
     instance_id: str,
     region: str,
@@ -476,6 +495,7 @@ def start_session(
     """Start an interactive Session Manager shell."""
     require_session_manager_plugin()
     ensure_ubuntu_session_preferences(region, profile=profile)
+    _disable_local_software_flow_control()
     cmd = [
         "aws",
         "ssm",

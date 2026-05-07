@@ -82,15 +82,18 @@ The repo hard-fails unless that document is configured to:
 - set `runAsDefaultUser` to `ubuntu`
 - change directory to `/home/ubuntu` and source a login shell for `ubuntu`
   through `shellProfile.linux`
+- disable terminal software flow control before starting the login shell so
+  interactive tools receive key chords such as `Ctrl-S`
 
 The supported shell profile is:
 
 ```text
-cd /home/ubuntu && exec bash -l
+cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }
 ```
 
 Equivalent forms that `cd` to the ubuntu home directory before starting the
-login shell are also accepted. A bare `exec bash -l` is not sufficient because
+login shell are also accepted. They should also disable XON/XOFF flow control
+with `stty -ixon -ixoff`. A bare `exec bash -l` is not sufficient because
 Session Manager starts in the SSM agent working directory.
 
 If this document is missing or misconfigured, `daylily-ec headnode connect` and other supported SSM flows will fail on purpose.

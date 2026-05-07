@@ -1435,14 +1435,15 @@ def configure_headnode(
             region,
             (
                 f"cd ~/projects/{repo_name} && "
-                "bash -lc '"
+                "script -q -c \"bash -lc '"
                 "set -euo pipefail; "
                 'test "$(whoami)" = ubuntu; '
                 'test "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" = 1; '
                 'test "${CONDA_DEFAULT_ENV:-}" = DAY-EC; '
                 "command -v daylily-ec >/dev/null 2>&1; "
                 "command -v day-clone >/dev/null 2>&1; "
-                "day-clone --list >/dev/null'"
+                'stty -a 2>/dev/null | grep -Eq \\"(^|[[:space:];])-ixon([[:space:];]|$)\\"; '
+                "day-clone --list >/dev/null'\" /dev/null"
             ),
             profile=profile,
             timeout=None,

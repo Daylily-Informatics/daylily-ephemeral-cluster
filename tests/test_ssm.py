@@ -288,17 +288,19 @@ class TestWriteRemoteText:
 
 class TestStartSession:
     @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
+    @patch("daylily_ec.aws.ssm.os.isatty", return_value=False)
     @patch("daylily_ec.aws.ssm.subprocess.run")
     def test_validates_session_manager_run_as_ubuntu_and_starts_session(
         self,
         mock_run,
+        _mock_isatty,
         _mock_require_plugin,
     ):
         mock_run.side_effect = [
             subprocess.CompletedProcess(
                 args=[],
                 returncode=0,
-                stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"cd /home/ubuntu && exec bash -l"}}}',
+                stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }"}}}',
                 stderr="",
             ),
             subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr=""),
@@ -329,10 +331,12 @@ class TestStartSession:
 
     @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
     @patch("daylily_ec.aws.ssm.os.execvpe")
+    @patch("daylily_ec.aws.ssm.os.isatty", return_value=False)
     @patch("daylily_ec.aws.ssm.subprocess.run")
     def test_can_replace_process_for_interactive_sessions(
         self,
         mock_run,
+        _mock_isatty,
         mock_execvpe,
         _mock_require_plugin,
     ):
@@ -342,7 +346,7 @@ class TestStartSession:
         mock_run.return_value = subprocess.CompletedProcess(
             args=[],
             returncode=0,
-            stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"cd /home/ubuntu && exec bash -l"}}}',
+            stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }"}}}',
             stderr="",
         )
         mock_execvpe.side_effect = ExecCalled()
@@ -371,6 +375,32 @@ class TestStartSession:
         ]
         assert env["AWS_PROFILE"] == "dev"
         assert env["AWS_REGION"] == "us-west-2"
+
+    @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
+    @patch("daylily_ec.aws.ssm.os.isatty", return_value=True)
+    @patch("daylily_ec.aws.ssm.subprocess.run")
+    def test_disables_local_software_flow_control_before_session(
+        self,
+        mock_run,
+        _mock_isatty,
+        _mock_require_plugin,
+    ):
+        mock_run.side_effect = [
+            subprocess.CompletedProcess(
+                args=[],
+                returncode=0,
+                stdout='{"inputs":{"runAsEnabled":true,"runAsDefaultUser":"ubuntu","shellProfile":{"linux":"cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }"}}}',
+                stderr="",
+            ),
+            subprocess.CompletedProcess(args=["stty"], returncode=0, stdout="", stderr=""),
+            subprocess.CompletedProcess(args=[], returncode=0, stdout="", stderr=""),
+        ]
+
+        rc = start_session("i-abc123", "us-west-2", profile="dev")
+
+        assert rc == 0
+        assert mock_run.call_args_list[1].args[0] == ["stty", "-ixon", "-ixoff"]
+        assert mock_run.call_args_list[2].args[0][:3] == ["aws", "ssm", "start-session"]
 
     @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
     @patch("daylily_ec.aws.ssm.subprocess.run")
