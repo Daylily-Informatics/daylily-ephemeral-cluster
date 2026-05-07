@@ -11,6 +11,8 @@ import csv
 import datetime as dt
 import json
 import os
+import re
+import shutil
 import subprocess
 import sys
 import tempfile
@@ -47,6 +49,8 @@ PACBIO_R1_FQ = "PACBIO_R1_FQ"
 PACBIO_R2_FQ = "PACBIO_R2_FQ"
 ONT_R1_FQ = "ONT_R1_FQ"
 ONT_R2_FQ = "ONT_R2_FQ"
+ONT_FASTQ_PREFIX = "ONT_FASTQ_PREFIX"
+ONT_FLOWCELL_ID = "ONT_FLOWCELL_ID"
 UG_R1_FQ = "UG_R1_FQ"
 UG_R2_FQ = "UG_R2_FQ"
 ULTIMA_CRAM = "ULTIMA_CRAM"
@@ -81,6 +85,12 @@ EXTERNAL_SAMPLE_ID = "EXTERNAL_SAMPLE_ID"
 SAMPLEUSE = "SAMPLEUSE"
 BWA_KMER = "BWA_KMER"
 DEEP_MODEL = "DEEP_MODEL"
+
+S3_MULTIPART_MIN_PART_SIZE = 5 * 1024 * 1024
+ONT_FASTQ_SHARD_RE = re.compile(
+    r"^(?P<flowcell_id>[^_]+)_pass_(?P<tag>barcode[0-9]+|unclassified)_"
+    r"(?P<protocol_run>[^_]+)_(?P<acquisition>[^_]+)_(?P<shard_index>[0-9]+)\.fastq\.gz$"
+)
 
 KEY_FIELDS = [
     RUN_ID,
@@ -161,6 +171,8 @@ ALLOWED_MANIFEST_FIELDS = {
     PACBIO_R2_FQ,
     ONT_R1_FQ,
     ONT_R2_FQ,
+    ONT_FASTQ_PREFIX,
+    ONT_FLOWCELL_ID,
     UG_R1_FQ,
     UG_R2_FQ,
     ULTIMA_CRAM,
@@ -325,6 +337,36 @@ class ManifestRow:
     original: Mapping[str, str]
 
 
+@dataclass(frozen=True)
+class S3ObjectSummary:
+    uri: str
+    key: str
+    size: int
+
+
+@dataclass(frozen=True)
+class OntFastqShard:
+    uri: str
+    key: str
+    size: int
+    filename: str
+    flowcell_id: str
+    run_id: str
+    tag: str
+    shard_index: int
+    gzip_compressed: bool
+
+
+@dataclass(frozen=True)
+class OntFastqPrefixPlan:
+    prefix: str
+    tag: str
+    flowcell_id: str
+    run_id: str
+    shards: Tuple[OntFastqShard, ...]
+    gzip_compressed: bool
+
+
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description="Stage analysis samples into FSx from the local workstation.",
@@ -463,6 +505,35 @@ def aws_command(
     return run_command(command, env=aws_env, capture_output=capture_output)
 
 
+def aws_command_binary_to_handle(
+    args: Sequence[str],
+    handle,
+    *,
+    aws_env: Dict[str, str],
+    debug: bool = False,
+) -> None:
+    command = ["aws", *args]
+    if debug:
+        print("[DEBUG]", " ".join(command))
+    try:
+        with subprocess.Popen(
+            command,
+            env=aws_env,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        ) as proc:
+            assert proc.stdout is not None
+            shutil.copyfileobj(proc.stdout, handle)
+            _stdout, stderr = proc.communicate()
+            if proc.returncode != 0:
+                message = f"Command failed ({proc.returncode}): {' '.join(command)}"
+                if stderr:
+                    message += f"\nSTDERR:\n{stderr.decode(errors='replace').strip()}"
+                raise CommandError(message)
+    except OSError as exc:  # pragma: no cover - runtime path
+        raise CommandError(f"Command failed: {' '.join(command)}\n{exc}") from exc
+
+
 def check_local_path(path: str, *, allow_directory: bool = False) -> None:
     expanded = os.path.expanduser(path)
     if allow_directory and os.path.isdir(expanded):
@@ -481,6 +552,55 @@ def check_s3_path(
     result = aws_command(args, aws_env=aws_env, debug=debug, capture_output=True)
     if not result.stdout.strip():
         raise CommandError(f"S3 object or prefix not accessible: {uri}")
+
+
+def normalise_s3_prefix_uri(uri: str) -> str:
+    bucket, key = parse_s3_uri(uri)
+    key = key.strip("/")
+    if key:
+        return f"s3://{bucket}/{key}/"
+    return f"s3://{bucket}/"
+
+
+def list_s3_objects(
+    prefix_uri: str,
+    *,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> List[S3ObjectSummary]:
+    bucket, prefix = parse_s3_uri(normalise_s3_prefix_uri(prefix_uri))
+    objects: List[S3ObjectSummary] = []
+    continuation_token: Optional[str] = None
+    while True:
+        args = ["s3api", "list-objects-v2", "--bucket", bucket, "--prefix", prefix]
+        if continuation_token:
+            args.extend(["--continuation-token", continuation_token])
+        result = aws_command(args, aws_env=aws_env, debug=debug, capture_output=True)
+        payload = json.loads(result.stdout or "{}")
+        for item in payload.get("Contents", []):
+            if not isinstance(item, dict):
+                continue
+            key = str(item.get("Key", ""))
+            size = int(item.get("Size") or 0)
+            if not key or key.endswith("/"):
+                continue
+            objects.append(S3ObjectSummary(uri=f"s3://{bucket}/{key}", key=key, size=size))
+        if not payload.get("IsTruncated"):
+            break
+        continuation_token = payload.get("NextContinuationToken")
+        if not continuation_token:
+            raise CommandError(f"S3 listing for {prefix_uri} was truncated without a continuation token.")
+    return objects
+
+
+def read_s3_text(
+    uri: str,
+    *,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> str:
+    result = aws_command(["s3", "cp", uri, "-"], aws_env=aws_env, debug=debug, capture_output=True)
+    return result.stdout or ""
 
 
 def is_headnode_visible_path(path: str) -> bool:
@@ -575,6 +695,10 @@ def normalise_identifier(value: str) -> str:
     return value.replace("_", "-")
 
 
+def normalise_run_id(value: str) -> str:
+    return normalise_identifier(value).replace(".", "-")
+
+
 def canonical_manifest_libprep(value: str, *, vendor: str) -> str:
     normalized = normalise_identifier(value)
     if vendor == "ILMN" and normalized.upper() in {
@@ -644,6 +768,248 @@ def source_copy_reference(source: str, *, reference_bucket: str) -> str:
     if is_headnode_visible_path(source):
         return build_reference_uri(source, reference_bucket)
     return os.path.expanduser(source)
+
+
+def parse_ont_fastq_prefix(prefix_uri: str) -> Tuple[str, str, str, str]:
+    prefix_uri = normalise_s3_prefix_uri(prefix_uri)
+    bucket, key = parse_s3_uri(prefix_uri)
+    parts = [part for part in key.strip("/").split("/") if part]
+    if len(parts) < 2 or parts[-2] != "fastq_pass" or not parts[-1]:
+        raise CommandError(
+            f"{ONT_FASTQ_PREFIX} must point to an S3 fastq_pass/<tag>/ prefix: {prefix_uri}"
+        )
+    run_id_candidates = [
+        part for part in parts[:-2] if re.match(r"^[0-9]{8}_ONT(?:_|$)", part)
+    ]
+    if not run_id_candidates:
+        raise CommandError(
+            f"{ONT_FASTQ_PREFIX} must be under an ONT run directory like YYYYMMDD_ONT_*: {prefix_uri}"
+        )
+    run_output_key = "/".join(parts[:-2])
+    return (
+        prefix_uri,
+        normalise_identifier(parts[-1]),
+        normalise_run_id(run_id_candidates[-1]),
+        f"s3://{bucket}/{run_output_key}/",
+    )
+
+
+def _strip_fastq_suffix(filename: str) -> Tuple[str, bool]:
+    match = re.match(r"^(?P<stem>.+)\.(?P<ext>fastq|fq)(?P<gz>\.gz)?$", filename)
+    if not match:
+        raise CommandError(f"ONT shard filename is not FASTQ: {filename}")
+    return match.group("stem"), bool(match.group("gz"))
+
+
+def parse_ont_fastq_shard(
+    obj: S3ObjectSummary,
+    *,
+    expected_tag: str,
+    run_id: str,
+) -> OntFastqShard:
+    filename = os.path.basename(obj.key)
+    _stem, gzip_compressed = _strip_fastq_suffix(filename)
+    match = ONT_FASTQ_SHARD_RE.match(filename)
+    if not match:
+        raise CommandError(
+            f"Could not parse ONT shard filename {filename}; expected "
+            "<flowcell>_pass_<tag>_<protocol-run>_<acquisition>_<shard>.fastq.gz."
+        )
+    shard_tag = normalise_identifier(match.group("tag"))
+    if shard_tag != expected_tag:
+        raise CommandError(
+            f"ONT shard {filename} belongs to tag {shard_tag}, not prefix tag {expected_tag}."
+        )
+    return OntFastqShard(
+        uri=obj.uri,
+        key=obj.key,
+        size=obj.size,
+        filename=filename,
+        flowcell_id=normalise_identifier(match.group("flowcell_id")),
+        run_id=run_id,
+        tag=shard_tag,
+        shard_index=int(match.group("shard_index")),
+        gzip_compressed=gzip_compressed,
+    )
+
+
+def parse_key_value_text(text: str) -> Dict[str, str]:
+    values: Dict[str, str] = {}
+    for line in text.splitlines():
+        if "=" not in line:
+            continue
+        key, value = line.split("=", 1)
+        values[key.strip()] = value.strip()
+    return values
+
+
+def validate_ont_run_output(
+    run_output_prefix: str,
+    *,
+    flowcell_id: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> None:
+    objects = list_s3_objects(run_output_prefix, aws_env=aws_env, debug=debug)
+    if not objects:
+        raise CommandError(f"ONT run output prefix is empty: {run_output_prefix}")
+
+    keys = [obj.key for obj in objects]
+    basenames = {os.path.basename(key) for key in keys}
+    required_markers = {
+        "fastq_pass/": "fastq_pass",
+        "pod5_pass/": "pod5_pass",
+    }
+    for marker, label in required_markers.items():
+        if not any(marker in key for key in keys):
+            raise CommandError(f"ONT run output {run_output_prefix} is missing {label} data.")
+
+    final_summaries = [
+        obj
+        for obj in objects
+        if os.path.basename(obj.key).startswith("final_summary_")
+        and os.path.basename(obj.key).endswith(".txt")
+    ]
+    sample_sheets = [name for name in basenames if name.startswith("sample_sheet_")]
+    sequencing_summaries = [name for name in basenames if name.startswith("sequencing_summary_")]
+    reports = [name for name in basenames if name.startswith("report_")]
+    if not final_summaries:
+        raise CommandError(f"ONT run output {run_output_prefix} is missing final_summary_*.txt.")
+    if not sample_sheets:
+        raise CommandError(f"ONT run output {run_output_prefix} is missing sample_sheet_*.")
+    if not sequencing_summaries:
+        raise CommandError(f"ONT run output {run_output_prefix} is missing sequencing_summary_*.")
+    if not reports:
+        raise CommandError(f"ONT run output {run_output_prefix} is missing report_* outputs.")
+
+    matching_summaries = [
+        obj for obj in final_summaries if flowcell_id in os.path.basename(obj.key)
+    ]
+    if not matching_summaries:
+        raise CommandError(
+            f"ONT run output {run_output_prefix} has no final summary for flowcell {flowcell_id}."
+        )
+    summary = parse_key_value_text(
+        read_s3_text(matching_summaries[0].uri, aws_env=aws_env, debug=debug)
+    )
+    summary_flowcell = summary.get("flow_cell_id", "")
+    if summary_flowcell and normalise_identifier(summary_flowcell) != flowcell_id:
+        raise CommandError(
+            f"ONT final summary flow_cell_id={summary_flowcell} does not match {flowcell_id}."
+        )
+    if summary.get("basecalling_enabled") not in {"1", "true", "True"}:
+        raise CommandError(f"ONT final summary for {flowcell_id} does not show basecalling enabled.")
+    if safe_int(summary.get("fastq_files_in_final_dest", "0")) <= 0:
+        raise CommandError(f"ONT final summary for {flowcell_id} reports no delivered FASTQs.")
+    observed_fastqs = sum(
+        1
+        for key in keys
+        if ("/fastq_pass/" in key or "/fastq_fail/" in key)
+        and os.path.basename(key).startswith(f"{flowcell_id}_")
+        and os.path.basename(key).endswith(".fastq.gz")
+    )
+    expected_fastqs = safe_int(summary.get("fastq_files_in_final_dest", "0"))
+    if observed_fastqs != expected_fastqs:
+        raise CommandError(
+            f"ONT final summary for {flowcell_id} reports {expected_fastqs} FASTQs, "
+            f"but S3 contains {observed_fastqs}."
+        )
+    if "pod5_files_in_final_dest" in summary:
+        observed_pod5 = sum(
+            1
+            for key in keys
+            if ("/pod5_pass/" in key or "/pod5_fail/" in key)
+            and os.path.basename(key).startswith(f"{flowcell_id}_")
+            and os.path.basename(key).endswith(".pod5")
+        )
+        expected_pod5 = safe_int(summary.get("pod5_files_in_final_dest", "0"))
+        if observed_pod5 != expected_pod5:
+            raise CommandError(
+                f"ONT final summary for {flowcell_id} reports {expected_pod5} POD5 files, "
+                f"but S3 contains {observed_pod5}."
+            )
+    for field in ("fallback_fastq_files_in_final_dest", "fallback_pod5_files_in_final_dest"):
+        if field in summary and safe_int(summary[field]) != 0:
+            raise CommandError(
+                f"ONT final summary for {flowcell_id} reports {field}={summary[field]}."
+            )
+
+
+def resolve_ont_fastq_prefix_plan(
+    prefix_uri: str,
+    *,
+    flowcell_id: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> OntFastqPrefixPlan:
+    prefix_uri, tag, run_id, run_output_prefix = parse_ont_fastq_prefix(prefix_uri)
+    objects = list_s3_objects(prefix_uri, aws_env=aws_env, debug=debug)
+    if not objects:
+        raise CommandError(f"No ONT FASTQ shards found under {prefix_uri}")
+    zero_byte_objects = [os.path.basename(obj.key) for obj in objects if obj.size == 0]
+    if zero_byte_objects:
+        raise CommandError(
+            f"{ONT_FASTQ_PREFIX} {prefix_uri} contains zero-byte objects: "
+            + ", ".join(sorted(zero_byte_objects))
+        )
+    fastq_objects = [obj for obj in objects if obj.key.endswith(".fastq.gz")]
+    if len(fastq_objects) != len(objects):
+        unexpected = sorted(os.path.basename(obj.key) for obj in objects if obj not in fastq_objects)
+        raise CommandError(
+            f"{ONT_FASTQ_PREFIX} {prefix_uri} contains non-FASTQ objects: {', '.join(unexpected)}"
+        )
+    shards = [
+        parse_ont_fastq_shard(obj, expected_tag=tag, run_id=run_id) for obj in fastq_objects
+    ]
+
+    flowcells = sorted({shard.flowcell_id for shard in shards})
+    requested_flowcell = normalise_identifier(flowcell_id) if flowcell_id else ""
+    if len(flowcells) > 1 and not requested_flowcell:
+        raise CommandError(
+            f"{ONT_FASTQ_PREFIX} {prefix_uri} contains multiple flowcells "
+            f"({', '.join(flowcells)}); populate {ONT_FLOWCELL_ID} explicitly."
+        )
+    if requested_flowcell:
+        selected = [shard for shard in shards if shard.flowcell_id == requested_flowcell]
+        if not selected:
+            raise CommandError(
+                f"{ONT_FLOWCELL_ID}={requested_flowcell} did not match any FASTQ shards under {prefix_uri}."
+            )
+    else:
+        selected = shards
+
+    selected_tags = sorted({shard.tag for shard in selected})
+    if selected_tags != [tag]:
+        raise CommandError(
+            f"{ONT_FASTQ_PREFIX} {prefix_uri} must resolve to one tag; found {', '.join(selected_tags)}."
+        )
+    compression_modes = sorted({shard.gzip_compressed for shard in selected})
+    if len(compression_modes) != 1:
+        raise CommandError(f"ONT FASTQ shards under {prefix_uri} mix gzip and plain FASTQ files.")
+
+    selected = sorted(selected, key=lambda shard: (shard.shard_index, shard.filename))
+    shard_indexes = [shard.shard_index for shard in selected]
+    expected_indexes = list(range(0, len(selected)))
+    if shard_indexes != expected_indexes:
+        raise CommandError(
+            f"ONT FASTQ shard indexes under {prefix_uri} must be contiguous from 0; "
+            f"found {', '.join(str(index) for index in shard_indexes)}."
+        )
+    validate_ont_run_output(
+        run_output_prefix,
+        flowcell_id=selected[0].flowcell_id,
+        aws_env=aws_env,
+        debug=debug,
+    )
+
+    return OntFastqPrefixPlan(
+        prefix=prefix_uri,
+        tag=tag,
+        flowcell_id=selected[0].flowcell_id,
+        run_id=run_id,
+        shards=tuple(selected),
+        gzip_compressed=compression_modes[0],
+    )
 
 
 def require_headnode_visible_path(path: str, *, field: str) -> None:
@@ -777,6 +1143,150 @@ def multipart_concatenate(
         raise
 
 
+def _write_bundle_file(
+    sources: Sequence[OntFastqShard],
+    bundle_path: Path,
+    *,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> None:
+    with bundle_path.open("wb") as bundle_handle:
+        for source in sources:
+            aws_command_binary_to_handle(
+                ["s3", "cp", source.uri, "-"],
+                bundle_handle,
+                aws_env=aws_env,
+                debug=debug,
+            )
+
+
+def _upload_concat_bundle(
+    sources: Sequence[OntFastqShard],
+    *,
+    bundle_s3_dir: str,
+    sample_prefix: str,
+    bundle_number: int,
+    suffix: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> S3ObjectSummary:
+    bundle_name = f"{sample_prefix}_ont_bundle{bundle_number}_{uuid.uuid4().hex}{suffix}"
+    bundle_uri = f"{bundle_s3_dir}/{bundle_name}"
+    size = sum(source.size for source in sources)
+    with tempfile.NamedTemporaryFile(delete=False) as handle:
+        bundle_path = Path(handle.name)
+    try:
+        _write_bundle_file(sources, bundle_path, aws_env=aws_env, debug=debug)
+        aws_copy(str(bundle_path), bundle_uri, aws_env=aws_env, debug=debug)
+    except Exception:
+        cleanup_s3_objects([bundle_uri], aws_env=aws_env, debug=debug)
+        raise
+    finally:
+        try:
+            bundle_path.unlink()
+        except FileNotFoundError:
+            pass
+    _bucket, key = parse_s3_uri(bundle_uri)
+    return S3ObjectSummary(uri=bundle_uri, key=key, size=size)
+
+
+def build_size_aware_concat_sources(
+    shards: Sequence[OntFastqShard],
+    *,
+    bundle_s3_dir: str,
+    sample_prefix: str,
+    suffix: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> Tuple[List[S3ObjectSummary], List[str]]:
+    concat_sources: List[S3ObjectSummary] = []
+    uploaded_bundles: List[str] = []
+    pending_bundle: List[OntFastqShard] = []
+    pending_size = 0
+    bundle_number = 1
+
+    def flush_pending() -> None:
+        nonlocal bundle_number, pending_bundle, pending_size
+        if not pending_bundle:
+            return
+        bundle = _upload_concat_bundle(
+            pending_bundle,
+            bundle_s3_dir=bundle_s3_dir,
+            sample_prefix=sample_prefix,
+            bundle_number=bundle_number,
+            suffix=suffix,
+            aws_env=aws_env,
+            debug=debug,
+        )
+        concat_sources.append(bundle)
+        uploaded_bundles.append(bundle.uri)
+        bundle_number += 1
+        pending_bundle = []
+        pending_size = 0
+
+    try:
+        for shard in shards:
+            if pending_bundle:
+                pending_bundle.append(shard)
+                pending_size += shard.size
+                if pending_size >= S3_MULTIPART_MIN_PART_SIZE:
+                    flush_pending()
+                continue
+
+            if shard.size >= S3_MULTIPART_MIN_PART_SIZE:
+                concat_sources.append(S3ObjectSummary(uri=shard.uri, key=shard.key, size=shard.size))
+                continue
+
+            pending_bundle.append(shard)
+            pending_size += shard.size
+
+        flush_pending()
+    except Exception:
+        cleanup_s3_objects(uploaded_bundles, aws_env=aws_env, debug=debug)
+        raise
+
+    return concat_sources, uploaded_bundles
+
+
+def concatenate_ont_fastq_shards(
+    plan: OntFastqPrefixPlan,
+    destination: str,
+    *,
+    bundle_s3_dir: str,
+    sample_prefix: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> None:
+    suffix = ".fastq.gz" if plan.gzip_compressed else ".fastq"
+    if len(plan.shards) == 1:
+        aws_copy(plan.shards[0].uri, destination, aws_env=aws_env, debug=debug)
+        return
+
+    concat_sources, uploaded_bundles = build_size_aware_concat_sources(
+        plan.shards,
+        bundle_s3_dir=bundle_s3_dir,
+        sample_prefix=sample_prefix,
+        suffix=suffix,
+        aws_env=aws_env,
+        debug=debug,
+    )
+    try:
+        if len(concat_sources) == 1:
+            aws_copy(concat_sources[0].uri, destination, aws_env=aws_env, debug=debug)
+        else:
+            multipart_concatenate(
+                [source.uri for source in concat_sources],
+                destination,
+                aws_env=aws_env,
+                debug=debug,
+            )
+    except Exception:
+        cleanup_s3_objects([destination], aws_env=aws_env, debug=debug)
+        raise
+    finally:
+        cleanup_s3_objects(uploaded_bundles, aws_env=aws_env, debug=debug)
+
+
 def stage_concordance(
     source: str,
     dest_fsx: str,
@@ -878,6 +1388,41 @@ def stage_multi_lane(
     remote_r1_fsx = f"{dest_fsx_dir}/{merged_r1_name}"
     remote_r2_fsx = f"{dest_fsx_dir}/{merged_r2_name}"
     return remote_r1_fsx, remote_r2_fsx
+
+
+def stage_ont_fastq_prefix(
+    prefix: str,
+    *,
+    flowcell_id: str,
+    sample_prefix: str,
+    dest_fsx_dir: str,
+    dest_s3_dir: str,
+    reference_bucket: Optional[str] = None,
+    plan: Optional[OntFastqPrefixPlan] = None,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> Tuple[str, List[str]]:
+    del reference_bucket
+    if plan is None:
+        plan = resolve_ont_fastq_prefix_plan(
+            prefix,
+            flowcell_id=flowcell_id,
+            aws_env=aws_env,
+            debug=debug,
+        )
+    suffix = ".fastq.gz" if plan.gzip_compressed else ".fastq"
+    filename = f"{plan.run_id}-{plan.flowcell_id}-{plan.tag}-R1{suffix}"
+    remote_r1_fsx = f"{dest_fsx_dir}/{filename}"
+    remote_r1_s3 = f"{dest_s3_dir}/{filename}"
+    concatenate_ont_fastq_shards(
+        plan,
+        remote_r1_s3,
+        bundle_s3_dir=f"{dest_s3_dir}/_parts",
+        sample_prefix=sample_prefix,
+        aws_env=aws_env,
+        debug=debug,
+    )
+    return remote_r1_fsx, [remote_r1_fsx]
 
 
 def stage_path(
@@ -1072,11 +1617,29 @@ def validate_manifest_row(
     debug: bool,
 ) -> None:
     raw_groups = raw_groups_present(normalized)
+    ont_fastq_prefix = get_entry_value(normalized, ONT_FASTQ_PREFIX)
+    directive = normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
     aligned_fields = [
         field for field in ALIGNED_SOURCE_FIELDS if get_entry_value(normalized, field)
     ]
-    if not raw_groups and not aligned_fields:
+    if not raw_groups and not ont_fastq_prefix and not aligned_fields:
         raise CommandError(f"Row {row_number} does not define any supported data source columns.")
+    if ont_fastq_prefix:
+        vendor = normalise_identifier(get_entry_value(normalized, SEQ_VENDOR)).upper()
+        if vendor != "ONT":
+            raise CommandError(f"Row {row_number} requires {SEQ_VENDOR}=ONT for {ONT_FASTQ_PREFIX}.")
+        ont_conflicts = [
+            field
+            for field in (ONT_R1_FQ, ONT_R2_FQ, ONT_CRAM, ONT_BAM)
+            if get_entry_value(normalized, field)
+        ]
+        if raw_groups or aligned_fields or ont_conflicts:
+            raise CommandError(
+                f"Row {row_number} must not combine {ONT_FASTQ_PREFIX} with other staged data source columns."
+            )
+        if directive == "pass_through":
+            raise CommandError(f"Row {row_number} requires STAGE_DIRECTIVE=stage_data for {ONT_FASTQ_PREFIX}.")
+        parse_ont_fastq_prefix(ont_fastq_prefix)
 
     for r1_field, r2_field, _unit_r1, _unit_r2 in raw_groups:
         r1_value = get_entry_value(normalized, r1_field)
@@ -1096,7 +1659,6 @@ def validate_manifest_row(
             debug=debug,
         )
 
-    directive = normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
     concordance_source = resolve_concordance_source(normalized)
     if is_populated_path(concordance_source):
         check_source_path(
@@ -1235,16 +1797,26 @@ def build_manifest_row(normalized: Mapping[str, str]) -> ManifestRow:
         external_sample_id=get_entry_value(normalized, EXTERNAL_SAMPLE_ID) or "na",
     )
     vendor = normalise_identifier(get_entry_value(normalized, SEQ_VENDOR)).upper()
+    ont_fastq_prefix = get_entry_value(normalized, ONT_FASTQ_PREFIX)
+    if ont_fastq_prefix:
+        _prefix_uri, ont_tag, ont_run_id, _run_output_prefix = parse_ont_fastq_prefix(
+            ont_fastq_prefix
+        )
+    else:
+        ont_tag = ""
+        ont_run_id = ""
     unit = UnitMetadata(
-        run_id=normalise_identifier(get_entry_value(normalized, RUN_ID)),
+        run_id=ont_run_id or normalise_run_id(get_entry_value(normalized, RUN_ID)),
         experiment_id=normalise_identifier(get_entry_value(normalized, EXPERIMENT_ID)),
         lib_prep=canonical_manifest_libprep(get_entry_value(normalized, LIB_PREP), vendor=vendor),
         seq_vendor=vendor,
         seq_platform=canonical_manifest_seq_platform(
             get_entry_value(normalized, SEQ_PLATFORM), vendor=vendor
         ),
-        lane=normalise_identifier(get_entry_value(normalized, LANE)),
-        seqbc_id=normalise_identifier(get_entry_value(normalized, SEQBC_ID)),
+        lane=normalise_identifier(
+            get_entry_value(normalized, ONT_FLOWCELL_ID) or get_entry_value(normalized, LANE)
+        ),
+        seqbc_id=ont_tag or normalise_identifier(get_entry_value(normalized, SEQBC_ID)),
     )
     staging = StagingOptions(
         stage_directive=normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE)),
@@ -1262,6 +1834,8 @@ def build_manifest_row(normalized: Mapping[str, str]) -> ManifestRow:
             PACBIO_R2_FQ,
             ONT_R1_FQ,
             ONT_R2_FQ,
+            ONT_FASTQ_PREFIX,
+            ONT_FLOWCELL_ID,
             UG_R1_FQ,
             UG_R2_FQ,
             ULTIMA_CRAM,
@@ -1341,6 +1915,7 @@ def _row_source_groups(row: Mapping[str, str]) -> set[str]:
     if (
         get_entry_value(row, ONT_R1_FQ)
         or get_entry_value(row, ONT_R2_FQ)
+        or get_entry_value(row, ONT_FASTQ_PREFIX)
         or get_entry_value(row, ONT_CRAM)
         or get_entry_value(row, ONT_BAM)
     ):
@@ -1447,6 +2022,20 @@ def build_sample_context(
     )
     sample_name = f"{row.unit.run_id}_{composite_sample_id}"
     sample_prefix = f"{row.unit.run_id}_{composite_sample_id}_{row.unit.seqbc_id}_0"
+    dest_fsx_dir = sample_prefix
+    return composite_sample_id, sample_name, sample_prefix, dest_fsx_dir
+
+
+def build_ont_fastq_sample_context(
+    row: ManifestRow,
+    plan: OntFastqPrefixPlan,
+) -> Tuple[str, str, str, str]:
+    composite_sample_id = (
+        f"{row.sample.sample_id}-{row.unit.seq_platform}-{row.unit.lib_prep}-"
+        f"{row.sample.sample_type}-{row.unit.experiment_id}"
+    )
+    sample_name = f"{plan.run_id}_{composite_sample_id}"
+    sample_prefix = f"{plan.run_id}_{composite_sample_id}_{plan.flowcell_id}_{plan.tag}_0"
     dest_fsx_dir = sample_prefix
     return composite_sample_id, sample_name, sample_prefix, dest_fsx_dir
 
@@ -1589,6 +2178,7 @@ def process_samples(
     sample_concordance_sources: Dict[str, str] = {}
     sample_concordance_paths: Dict[str, str] = {}
     staged_raw_pairs: Dict[Tuple[str, str, str, str, str], Dict[str, str]] = {}
+    staged_ont_prefixes: Dict[Tuple[str, str], Dict[str, str]] = {}
     staged_aligned_sources: Dict[Tuple[str, str, str, Tuple[str, ...]], str] = {}
 
     def staged_concordance_for_sample(
@@ -1684,6 +2274,18 @@ def process_samples(
 
         for entry in entries:
             _composite_sample_id, sample_name, sample_prefix, _unused = build_sample_context(entry)
+            ont_fastq_prefix = get_entry_value(entry.sources, ONT_FASTQ_PREFIX)
+            ont_plan: Optional[OntFastqPrefixPlan] = None
+            if ont_fastq_prefix:
+                ont_plan = resolve_ont_fastq_prefix_plan(
+                    ont_fastq_prefix,
+                    flowcell_id=get_entry_value(entry.sources, ONT_FLOWCELL_ID),
+                    aws_env=aws_env,
+                    debug=debug,
+                )
+                _composite_sample_id, sample_name, sample_prefix, _unused = (
+                    build_ont_fastq_sample_context(entry, ont_plan)
+                )
             dest_fsx_dir = f"{stage.remote_fsx_stage}/{sample_prefix}"
             dest_s3_dir = f"{stage.remote_s3_stage}/{sample_prefix}"
             source_values: Dict[str, str] = {}
@@ -1711,6 +2313,36 @@ def process_samples(
                         debug=debug,
                     )
                     staged_raw_pairs[raw_cache_key] = staged_source_values
+                source_values.update(staged_source_values)
+                created_files.extend(staged_created_files)
+
+            if ont_plan:
+                ont_cache_key = (
+                    ont_plan.prefix,
+                    ont_plan.flowcell_id,
+                )
+                if ont_cache_key in staged_ont_prefixes:
+                    staged_source_values = staged_ont_prefixes[ont_cache_key]
+                    staged_created_files = []
+                else:
+                    staged_r1_path, staged_created_files = stage_ont_fastq_prefix(
+                        ont_plan.prefix,
+                        flowcell_id=ont_plan.flowcell_id,
+                        sample_prefix=sample_prefix,
+                        dest_fsx_dir=dest_fsx_dir,
+                        dest_s3_dir=dest_s3_dir,
+                        reference_bucket=reference_bucket,
+                        plan=ont_plan,
+                        aws_env=aws_env,
+                        debug=debug,
+                    )
+                    staged_source_values = {
+                        "RUNID": ont_plan.run_id,
+                        "BARCODEID": ont_plan.tag,
+                        "ONT_R1_PATH": staged_r1_path,
+                        "ONT_R2_PATH": "na",
+                    }
+                    staged_ont_prefixes[ont_cache_key] = staged_source_values
                 source_values.update(staged_source_values)
                 created_files.extend(staged_created_files)
 
@@ -1764,7 +2396,7 @@ def process_samples(
             units_rows.append(
                 build_units_row_from_manifest(
                     entry,
-                    lane_id=entry.unit.lane,
+                    lane_id=ont_plan.flowcell_id if ont_plan else entry.unit.lane,
                     source_values=source_values,
                 )
             )
@@ -1775,7 +2407,7 @@ def process_samples(
             if existing and existing != samples_row:
                 raise CommandError(f"Duplicate SAMPLEID with conflicting metadata: {sample_id}")
             samples_rows[sample_id] = samples_row
-            run_ids.add(entry.unit.run_id)
+            run_ids.add(ont_plan.run_id if ont_plan else entry.unit.run_id)
 
     sorted_samples = [samples_rows[sample_id] for sample_id in sorted(samples_rows.keys())]
     return sorted_samples, units_rows, sorted(created_files), sorted(run_ids)

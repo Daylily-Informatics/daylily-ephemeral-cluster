@@ -540,6 +540,243 @@ def test_process_samples_emits_ont_cram_rows(
     assert units_rows[0]["DEEP_MODEL"] == "ONT_R104"
 
 
+def _ont_prefix() -> str:
+    return (
+        "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/"
+        "20260424_ONT_100ul/FC1/20260424_2252_1F_PBK85691_9b079e46/"
+        "fastq_pass/barcode03/"
+    )
+
+
+def _ont_run_root() -> str:
+    return (
+        "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/"
+        "20260424_ONT_100ul/FC1/20260424_2252_1F_PBK85691_9b079e46/"
+    )
+
+
+def _s3_obj(uri: str, size: int) -> module.S3ObjectSummary:
+    _bucket, key = module.parse_s3_uri(uri)
+    return module.S3ObjectSummary(uri=uri, key=key, size=size)
+
+
+def _valid_ont_objects(prefix: str) -> list[module.S3ObjectSummary]:
+    return [
+        _s3_obj(f"{prefix}PBK85691_pass_barcode03_9b079e46_1709963d_0.fastq.gz", 10),
+        _s3_obj(f"{prefix}PBK85691_pass_barcode03_9b079e46_1709963d_1.fastq.gz", 20),
+        _s3_obj(f"{prefix}PBK85691_pass_barcode03_9b079e46_1709963d_2.fastq.gz", 30),
+    ]
+
+
+def _valid_ont_root_objects(prefix: str) -> list[module.S3ObjectSummary]:
+    root = _ont_run_root()
+    return [
+        *_valid_ont_objects(prefix),
+        _s3_obj(f"{root}pod5_pass/barcode03/PBK85691_pass_barcode03_9b079e46_1709963d_0.pod5", 40),
+        _s3_obj(f"{root}final_summary_PBK85691_9b079e46.txt", 1),
+        _s3_obj(f"{root}sample_sheet_PBK85691_9b079e46.csv", 1),
+        _s3_obj(f"{root}sequencing_summary_PBK85691_9b079e46.txt", 1),
+        _s3_obj(f"{root}report_PBK85691_9b079e46.json", 1),
+    ]
+
+
+def test_process_samples_emits_ont_fastq_prefix_rows(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    prefix = _ont_prefix()
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "ONT_FASTQ_PREFIX",
+                "ONT_FLOWCELL_ID",
+                "STAGE_DIRECTIVE",
+                "DEEP_MODEL",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "manifest.run_id",
+                    "HG003",
+                    "pca100",
+                    "blood",
+                    "SQK-LSK114",
+                    "ONT",
+                    "PROMETHION",
+                    "placeholder",
+                    "placeholder",
+                    "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
+                    prefix,
+                    "PBK85691",
+                    "stage_data",
+                    "ONT_R104",
+                ]
+            )
+        ],
+    )
+
+    def fake_list_s3_objects(uri: str, **_kwargs: object) -> list[module.S3ObjectSummary]:
+        if uri == module.normalise_s3_prefix_uri(prefix):
+            return _valid_ont_objects(prefix)
+        if uri == _ont_run_root():
+            return _valid_ont_root_objects(prefix)
+        raise AssertionError(uri)
+
+    concatenated: list[list[str]] = []
+
+    def fake_concatenate(
+        plan: module.OntFastqPrefixPlan,
+        destination: str,
+        **_kwargs: object,
+    ) -> None:
+        concatenated.append([shard.uri for shard in plan.shards])
+        assert destination.endswith("20260424-ONT-100ul-PBK85691-barcode03-R1.fastq.gz")
+
+    monkeypatch.setattr(module, "list_s3_objects", fake_list_s3_objects)
+    monkeypatch.setattr(
+        module,
+        "read_s3_text",
+        lambda *_args, **_kwargs: "\n".join(
+            [
+                "flow_cell_id=PBK85691",
+                "basecalling_enabled=1",
+                "fastq_files_in_final_dest=3",
+                "pod5_files_in_final_dest=1",
+                "fallback_fastq_files_in_final_dest=0",
+                "fallback_pod5_files_in_final_dest=0",
+            ]
+        ),
+    )
+    monkeypatch.setattr(module, "concatenate_ont_fastq_shards", fake_concatenate)
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+    monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
+
+    _samples_rows, units_rows, created_files, run_ids = module.process_samples(
+        analysis_samples,
+        _stage_paths(),
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert module.detect_manifest_data_modes(analysis_samples) == ["ont_solo"]
+    assert run_ids == ["20260424-ONT-100ul"]
+    assert concatenated == [[obj.uri for obj in _valid_ont_objects(prefix)]]
+    assert created_files == [
+        "/data/staged_sample_data/remote_stage_test/"
+        "20260424-ONT-100ul_HG003-PROMETHION-SQK-LSK114-blood-pca100_PBK85691_barcode03_0/"
+        "20260424-ONT-100ul-PBK85691-barcode03-R1.fastq.gz"
+    ]
+    units_row = units_rows[0]
+    assert units_row["RUNID"] == "20260424-ONT-100ul"
+    assert units_row["LANEID"] == "PBK85691"
+    assert units_row["BARCODEID"] == "barcode03"
+    assert units_row["ONT_R1_PATH"].endswith("20260424-ONT-100ul-PBK85691-barcode03-R1.fastq.gz")
+    assert units_row["ONT_R2_PATH"] == "na"
+    assert units_row["DEEP_MODEL"] == "ONT_R104"
+
+
+def test_ont_fastq_prefix_requires_flowcell_for_mixed_prefix(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    prefix = _ont_prefix()
+
+    def fake_list_s3_objects(uri: str, **_kwargs: object) -> list[module.S3ObjectSummary]:
+        assert uri == module.normalise_s3_prefix_uri(prefix)
+        return [
+            _s3_obj(f"{prefix}PBK85691_pass_barcode03_9b079e46_1709963d_0.fastq.gz", 10),
+            _s3_obj(f"{prefix}PBK93388_pass_barcode03_9b079e46_1709963d_0.fastq.gz", 10),
+        ]
+
+    monkeypatch.setattr(module, "list_s3_objects", fake_list_s3_objects)
+
+    with pytest.raises(module.CommandError, match="contains multiple flowcells"):
+        module.resolve_ont_fastq_prefix_plan(
+            prefix,
+            flowcell_id="",
+            aws_env={},
+            debug=False,
+        )
+
+
+def test_ont_fastq_prefix_rejects_missing_run_output_metadata(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    prefix = _ont_prefix()
+
+    def fake_list_s3_objects(uri: str, **_kwargs: object) -> list[module.S3ObjectSummary]:
+        if uri == module.normalise_s3_prefix_uri(prefix):
+            return _valid_ont_objects(prefix)
+        if uri == _ont_run_root():
+            return [
+                *_valid_ont_objects(prefix),
+                _s3_obj(f"{_ont_run_root()}pod5_pass/barcode03/PBK85691_pass_barcode03_9b079e46_1709963d_0.pod5", 40),
+            ]
+        raise AssertionError(uri)
+
+    monkeypatch.setattr(module, "list_s3_objects", fake_list_s3_objects)
+
+    with pytest.raises(module.CommandError, match="missing final_summary"):
+        module.resolve_ont_fastq_prefix_plan(
+            prefix,
+            flowcell_id="PBK85691",
+            aws_env={},
+            debug=False,
+        )
+
+
+def test_ont_fastq_concat_bundles_small_shards(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    prefix = _ont_prefix()
+    shards = [
+        module.parse_ont_fastq_shard(obj, expected_tag="barcode03", run_id="20260424-ONT-100ul")
+        for obj in _valid_ont_objects(prefix)
+    ]
+    uploaded_groups: list[list[str]] = []
+
+    def fake_upload_bundle(
+        sources: list[module.OntFastqShard],
+        *,
+        bundle_s3_dir: str,
+        bundle_number: int,
+        **_kwargs: object,
+    ) -> module.S3ObjectSummary:
+        uploaded_groups.append([source.filename for source in sources])
+        return module.S3ObjectSummary(
+            uri=f"{bundle_s3_dir}/bundle-{bundle_number}.fastq.gz",
+            key=f"_parts/bundle-{bundle_number}.fastq.gz",
+            size=sum(source.size for source in sources),
+        )
+
+    monkeypatch.setattr(module, "_upload_concat_bundle", fake_upload_bundle)
+
+    concat_sources, uploaded = module.build_size_aware_concat_sources(
+        shards,
+        bundle_s3_dir="s3://bucket/stage/_parts",
+        sample_prefix="sample",
+        suffix=".fastq.gz",
+        aws_env={},
+        debug=False,
+    )
+
+    assert uploaded_groups == [[shard.filename for shard in shards]]
+    assert [source.uri for source in concat_sources] == ["s3://bucket/stage/_parts/bundle-1.fastq.gz"]
+    assert uploaded == ["s3://bucket/stage/_parts/bundle-1.fastq.gz"]
+
+
 def test_process_samples_emits_hybrid_ilmn_ont_rows(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

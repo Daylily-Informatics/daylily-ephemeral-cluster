@@ -496,6 +496,8 @@ Manifest notes:
 - the shipped template is `etc/analysis_samples_template.tsv`
 - legacy Illumina rows can still use `R1_FQ` / `R2_FQ`
 - multi-modality rows can also populate `ILMN_*`, `CG_*`, `ONT_*`, `UG_*`, `ULTIMA_CRAM*`, `ONT_CRAM*`, `PB_BAM*`, `ONT_BAM*`, and `ROCHE_BAM*`
+- ONT FASTQ rows can populate `ONT_FASTQ_PREFIX` with an S3 prefix ending in `fastq_pass/<tag>/`; the helper parses the ONT shard filenames, selects one run plus flowcell plus tag, concatenates the shards into one `ONT_R1_PATH`, and writes `ONT_R2_PATH=na`
+- populate `ONT_FLOWCELL_ID` when the ONT FASTQ prefix contains shards from more than one flowcell
 - raw reads are staged into the remote stage; aligned artifacts remain pass-through unless `STAGE_DIRECTIVE=stage_data`
 - one manifest row normally maps to one `units.tsv` row; multi-lane Illumina rows with the same unit identity are merged
 
