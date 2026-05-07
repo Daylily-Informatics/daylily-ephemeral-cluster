@@ -378,13 +378,17 @@ class TestStartSession:
 
     @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
     @patch("daylily_ec.aws.ssm.os.isatty", return_value=True)
+    @patch("daylily_ec.aws.ssm.subprocess.Popen")
     @patch("daylily_ec.aws.ssm.subprocess.run")
     def test_disables_local_software_flow_control_before_session(
         self,
         mock_run,
+        mock_popen,
         _mock_isatty,
         _mock_require_plugin,
     ):
+        guard = MagicMock()
+        mock_popen.return_value = guard
         mock_run.side_effect = [
             subprocess.CompletedProcess(
                 args=[],
@@ -401,6 +405,12 @@ class TestStartSession:
         assert rc == 0
         assert mock_run.call_args_list[1].args[0] == ["stty", "-ixon", "-ixoff"]
         assert mock_run.call_args_list[2].args[0][:3] == ["aws", "ssm", "start-session"]
+        guard_cmd = mock_popen.call_args.args[0]
+        assert guard_cmd[1] == "-c"
+        assert "stty" in guard_cmd[2]
+        assert "-ixon" in guard_cmd[2]
+        guard.terminate.assert_called_once_with()
+        guard.wait.assert_called_once_with(timeout=2)
 
     @patch("daylily_ec.aws.ssm.require_session_manager_plugin")
     @patch("daylily_ec.aws.ssm.subprocess.run")

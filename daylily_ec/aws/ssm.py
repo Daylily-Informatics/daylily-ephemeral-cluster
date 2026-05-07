@@ -9,6 +9,7 @@ import os
 import shlex
 import shutil
 import subprocess
+import sys
 import time
 from dataclasses import dataclass
 from pathlib import PurePosixPath
@@ -485,6 +486,36 @@ def _disable_local_software_flow_control() -> None:
         raise SsmError(f"Unable to disable local terminal software flow control: {detail}")
 
 
+def _start_local_software_flow_control_guard() -> subprocess.Popen[str] | None:
+    """Keep local XON/XOFF disabled while Session Manager initializes the PTY."""
+    if not os.isatty(0):
+        return None
+    script = (
+        "import os, subprocess, sys, time; "
+        "parent = int(sys.argv[1]); "
+        "cmd = ['stty', '-ixon', '-ixoff']; "
+        "devnull = subprocess.DEVNULL; "
+        "\nwhile True:\n"
+        "    try:\n"
+        "        os.kill(parent, 0)\n"
+        "    except OSError:\n"
+        "        break\n"
+        "    try:\n"
+        "        with open('/dev/tty', 'rb', buffering=0) as tty:\n"
+        "            subprocess.run(cmd, stdin=tty, stdout=devnull, stderr=devnull)\n"
+        "    except Exception:\n"
+        "        pass\n"
+        "    time.sleep(0.1)\n"
+    )
+    return subprocess.Popen(
+        [sys.executable, "-c", script, str(os.getpid())],
+        stdin=subprocess.DEVNULL,
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+        text=True,
+    )
+
+
 def start_session(
     instance_id: str,
     region: str,
@@ -496,6 +527,7 @@ def start_session(
     require_session_manager_plugin()
     ensure_ubuntu_session_preferences(region, profile=profile)
     _disable_local_software_flow_control()
+    flow_control_guard = _start_local_software_flow_control_guard()
     cmd = [
         "aws",
         "ssm",
@@ -512,8 +544,20 @@ def start_session(
         try:
             os.execvpe(cmd[0], cmd, env)
         except FileNotFoundError as exc:
+            if flow_control_guard is not None:
+                flow_control_guard.terminate()
             raise SsmError("aws CLI not found on PATH.") from exc
         except OSError as exc:
+            if flow_control_guard is not None:
+                flow_control_guard.terminate()
             raise SsmError(f"Unable to start Session Manager session: {exc}") from exc
-    result = subprocess.run(cmd, env=env)
-    return int(result.returncode)
+    try:
+        result = subprocess.run(cmd, env=env)
+        return int(result.returncode)
+    finally:
+        if flow_control_guard is not None:
+            flow_control_guard.terminate()
+            try:
+                flow_control_guard.wait(timeout=2)
+            except subprocess.TimeoutExpired:
+                flow_control_guard.kill()
