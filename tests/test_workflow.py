@@ -349,6 +349,71 @@ class TestWorkflowResolutionHelpers:
         mock_prompt.assert_called_once()
 
 
+class TestClusterNameValidation:
+    @pytest.mark.parametrize(
+        "cluster_name",
+        ["frz-260509", "cluster1", "A2345", "a-1-b"],
+    )
+    def test_cluster_names_allow_numbers_after_first_character(self, cluster_name):
+        assert _validate_cluster_name(cluster_name) == cluster_name
+
+    @pytest.mark.parametrize(
+        ("cluster_name", "message"),
+        [
+            ("260509-frz", "start with a letter"),
+            ("frz_260509", "contain only letters, digits, and hyphens"),
+            ("frz", "5-25 characters"),
+            ("frz-260509-abcdefghijklmnop", "5-25 characters"),
+        ],
+    )
+    def test_invalid_cluster_names_fail_with_actionable_rules(self, cluster_name, message):
+        with pytest.raises(ValueError, match=message):
+            _validate_cluster_name(cluster_name)
+
+    def test_resolve_cluster_name_rejects_invalid_config_before_aws(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"cluster_name": ["USESETVALUE", "", "260509-frz"]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        with pytest.raises(ValueError, match="start with a letter"):
+            _resolve_cluster_name(cfg, non_interactive=True)
+
+    @patch("daylily_ec.aws.context.AWSContext.build")
+    def test_create_workflow_rejects_invalid_cluster_name_before_aws(
+        self, mock_build, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+        config_path = tmp_path / "invalid_cluster.yaml"
+        config_path.write_text(
+            "\n".join(
+                [
+                    "ephemeral_cluster:",
+                    "  config:",
+                    "    cluster_name: [USESETVALUE, '', 260509-frz]",
+                    "  template_defaults: {}",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        from daylily_ec.workflow.create_cluster import run_create_workflow
+
+        rc = run_create_workflow(
+            "us-west-2b",
+            profile="test",
+            config_path=str(config_path),
+            non_interactive=True,
+        )
+
+        assert rc == EXIT_VALIDATION_FAILURE
+        mock_build.assert_not_called()
+
+
 # ── Module exports ──────────────────────────────────────────────────────
 
 

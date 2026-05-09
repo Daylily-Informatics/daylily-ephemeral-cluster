@@ -529,7 +529,7 @@ def create(
         debug=debug,
         non_interactive=non_interactive,
     )
-    raise typer.Exit(rc)
+    raise SystemExit(rc)
 
 
 def preflight(
