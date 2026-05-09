@@ -93,9 +93,15 @@ class TestBuildBudgetDict:
         ]
         ct = d["CostTypes"]
         for key in [
-            "IncludeCredit", "IncludeDiscount", "IncludeOtherSubscription",
-            "IncludeRecurring", "IncludeRefund", "IncludeSubscription",
-            "IncludeSupport", "IncludeTax", "IncludeUpfront",
+            "IncludeCredit",
+            "IncludeDiscount",
+            "IncludeOtherSubscription",
+            "IncludeRecurring",
+            "IncludeRefund",
+            "IncludeSubscription",
+            "IncludeSupport",
+            "IncludeTax",
+            "IncludeUpfront",
         ]:
             assert ct[key] is True
         assert ct["UseBlended"] is False
@@ -172,7 +178,13 @@ class TestCreateBudget:
         create_budget(c, "111", "b1", "200", "p1", "c1")
         c.create_budget.assert_called_once()
         call_kw = c.create_budget.call_args
-        budget_arg = call_kw[1]["Budget"] if "Budget" in (call_kw[1] or {}) else call_kw[0][1] if len(call_kw[0]) > 1 else call_kw.kwargs["Budget"]
+        budget_arg = (
+            call_kw[1]["Budget"]
+            if "Budget" in (call_kw[1] or {})
+            else call_kw[0][1]
+            if len(call_kw[0]) > 1
+            else call_kw.kwargs["Budget"]
+        )
         assert budget_arg["BudgetName"] == "b1"
         assert budget_arg["BudgetLimit"]["Amount"] == "200"
 
@@ -233,6 +245,18 @@ class TestUpdateTagsFile:
         update_tags_file(c, "special-bucket", "p", "u", "r")
         assert c.put_object.call_args.kwargs["Bucket"] == "special-bucket"
 
+    def test_ubuntu_default_is_not_duplicated(self):
+        c = _s3_client(existing_body=None)
+        update_tags_file(c, "b", "p", "ubuntu", "r")
+        body = c.put_object.call_args.kwargs["Body"].decode("utf-8")
+        assert body == "p\tubuntu\n"
+
+    def test_ubuntu_is_prepended_to_explicit_users(self):
+        c = _s3_client(existing_body=None)
+        update_tags_file(c, "b", "p", "alice,bob", "r")
+        body = c.put_object.call_args.kwargs["Body"].decode("utf-8")
+        assert body == "p\tubuntu,alice,bob\n"
+
 
 # ===================================================================
 # ensure_global_budget
@@ -244,10 +268,16 @@ class TestEnsureGlobalBudget:
         bc = _budgets_client([])
         sc = _s3_client(existing_body=None)
         name = ensure_global_budget(
-            bc, sc, "111",
-            amount="500", cluster_name="cl", email="a@b.com",
-            region="us-west-2", region_az="us-west-2b",
-            bucket_name="bkt", allowed_users="u1",
+            bc,
+            sc,
+            "111",
+            amount="500",
+            cluster_name="cl",
+            email="a@b.com",
+            region="us-west-2",
+            region_az="us-west-2b",
+            bucket_name="bkt",
+            allowed_users="u1",
         )
         assert name == GLOBAL_BUDGET_NAME
         bc.create_budget.assert_called_once()
@@ -259,10 +289,16 @@ class TestEnsureGlobalBudget:
         bc = _budgets_client([{"BudgetName": GLOBAL_BUDGET_NAME}])
         sc = _s3_client()
         name = ensure_global_budget(
-            bc, sc, "111",
-            amount="500", cluster_name="cl", email="a@b.com",
-            region="us-west-2", region_az="us-west-2b",
-            bucket_name="bkt", allowed_users="u1",
+            bc,
+            sc,
+            "111",
+            amount="500",
+            cluster_name="cl",
+            email="a@b.com",
+            region="us-west-2",
+            region_az="us-west-2b",
+            bucket_name="bkt",
+            allowed_users="u1",
         )
         assert name == GLOBAL_BUDGET_NAME
         bc.create_budget.assert_not_called()
@@ -278,10 +314,16 @@ class TestEnsureClusterBudget:
         bc = _budgets_client([])
         sc = _s3_client(existing_body=None)
         name = ensure_cluster_budget(
-            bc, sc, "111",
-            amount="200", cluster_name="cl1", email="a@b.com",
-            region="us-west-2", region_az="us-west-2b",
-            bucket_name="bkt", allowed_users="u1",
+            bc,
+            sc,
+            "111",
+            amount="200",
+            cluster_name="cl1",
+            email="a@b.com",
+            region="us-west-2",
+            region_az="us-west-2b",
+            bucket_name="bkt",
+            allowed_users="u1",
         )
         assert name == "da-us-west-2b-cl1"
         bc.create_budget.assert_called_once()
@@ -293,10 +335,16 @@ class TestEnsureClusterBudget:
         bc = _budgets_client([{"BudgetName": "da-us-west-2b-cl1"}])
         sc = _s3_client()
         name = ensure_cluster_budget(
-            bc, sc, "111",
-            amount="200", cluster_name="cl1", email="a@b.com",
-            region="us-west-2", region_az="us-west-2b",
-            bucket_name="bkt", allowed_users="u1",
+            bc,
+            sc,
+            "111",
+            amount="200",
+            cluster_name="cl1",
+            email="a@b.com",
+            region="us-west-2",
+            region_az="us-west-2b",
+            bucket_name="bkt",
+            allowed_users="u1",
         )
         assert name == "da-us-west-2b-cl1"
         bc.create_budget.assert_not_called()
@@ -309,12 +357,17 @@ class TestEnsureClusterBudget:
 
 class TestMakeBudgetPreflightStep:
     def test_both_exist_pass(self):
-        bc = _budgets_client([
-            {"BudgetName": GLOBAL_BUDGET_NAME},
-            {"BudgetName": "da-us-west-2b-cl"},
-        ])
+        bc = _budgets_client(
+            [
+                {"BudgetName": GLOBAL_BUDGET_NAME},
+                {"BudgetName": "da-us-west-2b-cl"},
+            ]
+        )
         r = make_budget_preflight_step(
-            bc, "111", cluster_name="cl", region_az="us-west-2b",
+            bc,
+            "111",
+            cluster_name="cl",
+            region_az="us-west-2b",
         )
         assert r.status == CheckStatus.PASS
         assert r.id == "budget.readiness"
@@ -324,7 +377,10 @@ class TestMakeBudgetPreflightStep:
     def test_global_only_warn(self):
         bc = _budgets_client([{"BudgetName": GLOBAL_BUDGET_NAME}])
         r = make_budget_preflight_step(
-            bc, "111", cluster_name="cl", region_az="us-west-2b",
+            bc,
+            "111",
+            cluster_name="cl",
+            region_az="us-west-2b",
         )
         assert r.status == CheckStatus.WARN
         assert "da-us-west-2b-cl" in r.remediation
@@ -332,7 +388,10 @@ class TestMakeBudgetPreflightStep:
     def test_neither_exist_warn(self):
         bc = _budgets_client([])
         r = make_budget_preflight_step(
-            bc, "111", cluster_name="cl", region_az="us-west-2b",
+            bc,
+            "111",
+            cluster_name="cl",
+            region_az="us-west-2b",
         )
         assert r.status == CheckStatus.WARN
         assert GLOBAL_BUDGET_NAME in r.remediation
@@ -341,7 +400,10 @@ class TestMakeBudgetPreflightStep:
     def test_cluster_only_warn(self):
         bc = _budgets_client([{"BudgetName": "da-us-west-2b-cl"}])
         r = make_budget_preflight_step(
-            bc, "111", cluster_name="cl", region_az="us-west-2b",
+            bc,
+            "111",
+            cluster_name="cl",
+            region_az="us-west-2b",
         )
         assert r.status == CheckStatus.WARN
         assert GLOBAL_BUDGET_NAME in r.remediation
@@ -372,10 +434,12 @@ class TestMakeBudgetPreflightStep:
     def test_details_keys(self):
         bc = _budgets_client([])
         r = make_budget_preflight_step(
-            bc, "111", cluster_name="cl", region_az="us-west-2b",
+            bc,
+            "111",
+            cluster_name="cl",
+            region_az="us-west-2b",
         )
         assert "global_budget" in r.details
         assert "global_exists" in r.details
         assert "cluster_budget" in r.details
         assert "cluster_exists" in r.details
-

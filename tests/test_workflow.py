@@ -47,6 +47,7 @@ from daylily_ec.workflow.create_cluster import (
     _noop_heartbeat_result,
     _require_values,
     _resolve_config_value,
+    _resolve_post_create_inputs,
     configure_headnode,
     make_repository_catalog_preflight_step,
     run_preflight,
@@ -235,6 +236,20 @@ class TestWorkflowResolutionHelpers:
     def test_require_values_reports_missing_labels(self):
         msg = _require_values({"bucket": "b", "public subnet": "", "IAM policy ARN": ""})
         assert msg == "Missing required values: public subnet, IAM policy ARN"
+
+    def test_post_create_inputs_default_allowed_budget_user_is_ubuntu(self):
+        cfg = ConfigFile.model_validate(
+            {"ephemeral_cluster": {"config": {}, "template_defaults": {}}}
+        )
+
+        values = _resolve_post_create_inputs(
+            cfg,
+            non_interactive=True,
+            budget_email_default="ops@example.com",
+            allowed_budget_users_default="ubuntu",
+        )
+
+        assert values.allowed_budget_users == "ubuntu"
 
     def test_build_connection_command_uses_ssm_helper(self):
         cmd = _build_connection_command(

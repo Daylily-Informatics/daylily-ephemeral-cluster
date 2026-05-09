@@ -192,7 +192,8 @@ def update_tags_file(
     except Exception:
         log.debug("Tags file not found; will create a new one")
 
-    new_line = f"{project_name}\tubuntu,{users}\n"
+    allowed_users = _normalize_allowed_budget_users(users)
+    new_line = f"{project_name}\t{allowed_users}\n"
     body = existing + new_line
 
     s3_client.put_object(
@@ -201,6 +202,18 @@ def update_tags_file(
         Body=body.encode("utf-8"),
     )
     log.info("Updated tags file s3://%s/%s", bucket_name, key)
+
+
+def _normalize_allowed_budget_users(users: str) -> str:
+    values = ["ubuntu"]
+    seen = {"ubuntu"}
+    for item in users.split(","):
+        value = item.strip()
+        if not value or value in seen:
+            continue
+        values.append(value)
+        seen.add(value)
+    return ",".join(values)
 
 
 # ---------------------------------------------------------------------------
@@ -233,12 +246,8 @@ def ensure_global_budget(
     name = GLOBAL_BUDGET_NAME
     already = budget_exists(budgets_client, account_id, name)
     if not already:
-        create_budget(
-            budgets_client, account_id, name, amount, name, cluster_name
-        )
-        create_notifications(
-            budgets_client, account_id, name, GLOBAL_THRESHOLDS, email
-        )
+        create_budget(budgets_client, account_id, name, amount, name, cluster_name)
+        create_notifications(budgets_client, account_id, name, GLOBAL_THRESHOLDS, email)
         update_tags_file(s3_client, bucket_name, name, allowed_users, region)
     else:
         log.info("Global budget '%s' already exists", name)
@@ -265,12 +274,8 @@ def ensure_cluster_budget(
     name = cluster_budget_name(region_az, cluster_name)
     already = budget_exists(budgets_client, account_id, name)
     if not already:
-        create_budget(
-            budgets_client, account_id, name, amount, name, cluster_name
-        )
-        create_notifications(
-            budgets_client, account_id, name, CLUSTER_THRESHOLDS, email
-        )
+        create_budget(budgets_client, account_id, name, amount, name, cluster_name)
+        create_notifications(budgets_client, account_id, name, CLUSTER_THRESHOLDS, email)
         update_tags_file(s3_client, bucket_name, name, allowed_users, region)
     else:
         log.info("Cluster budget '%s' already exists", name)
@@ -327,4 +332,3 @@ def make_budget_preflight_step(
         details=details,
         remediation=f"Budgets will be created: {', '.join(missing)}",
     )
-

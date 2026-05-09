@@ -66,11 +66,13 @@ class TestTripletParsing:
         assert t.action == "PROMPTUSER"
 
     def test_map_format(self):
-        t = Triplet.model_validate({
-            "action": "USESETVALUE",
-            "default_value": "",
-            "set_value": "subnet-abc123",
-        })
+        t = Triplet.model_validate(
+            {
+                "action": "USESETVALUE",
+                "default_value": "",
+                "set_value": "subnet-abc123",
+            }
+        )
         assert t.action == "USESETVALUE"
         assert t.set_value == "subnet-abc123"
 
@@ -263,9 +265,7 @@ class TestEnsureRequiredKeys:
 
     def test_no_change_when_all_present(self):
         config_data = {k: ["PROMPTUSER", "", ""] for k in REQUIRED_CONFIG_KEYS}
-        cfg = ConfigFile(
-            ephemeral_cluster={"config": config_data, "template_defaults": {}}
-        )
+        cfg = ConfigFile(ephemeral_cluster={"config": config_data, "template_defaults": {}})
         added = ensure_required_keys(cfg)
         assert added is False
 
@@ -291,14 +291,16 @@ class TestLoadConfig:
 
     def test_load_from_yaml(self, tmp_path):
         p = tmp_path / "test.yaml"
-        p.write_text(textwrap.dedent("""\
+        p.write_text(
+            textwrap.dedent("""\
             ephemeral_cluster:
               config:
                 s3_bucket_name: [USESETVALUE, "", "my-bucket"]
                 cluster_name: PROMPTUSER
               template_defaults:
                 fsx_fs_size: "7200"
-        """))
+        """)
+        )
         cfg = load_config(p)
         assert cfg.ephemeral_cluster.config["s3_bucket_name"].set_value == "my-bucket"
         assert cfg.ephemeral_cluster.config["cluster_name"].action == "PROMPTUSER"
@@ -310,7 +312,11 @@ class TestLoadConfig:
 
     def test_load_template_file(self):
         """AC-1: load the actual template YAML from the repo."""
-        tpl = Path(__file__).resolve().parent.parent / "config" / "daylily_ephemeral_cluster_template.yaml"
+        tpl = (
+            Path(__file__).resolve().parent.parent
+            / "config"
+            / "daylily_ephemeral_cluster_template.yaml"
+        )
         if not tpl.exists():
             pytest.skip("template file not found")
         cfg = load_config(tpl)
@@ -318,6 +324,8 @@ class TestLoadConfig:
         assert len(ec.config) == 24
         assert "ssh_key_name" not in ec.config
         assert ec.config["budget_amount"].default_value == "200"
+        assert ec.config["allowed_budget_users"].default_value == "ubuntu"
+        assert ec.config["global_allowed_budget_users"].default_value == "ubuntu"
         assert ec.template_defaults["fsx_fs_size"] == "7200"
 
 

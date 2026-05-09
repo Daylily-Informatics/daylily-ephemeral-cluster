@@ -907,7 +907,7 @@ def run_create_workflow(
         cfg,
         non_interactive=non_interactive,
         budget_email_default=_os.environ.get("DAY_CONTACT_EMAIL", ""),
-        allowed_budget_users_default=aws_ctx.iam_username,
+        allowed_budget_users_default="ubuntu",
     )
 
     # -- 5. RENDER YAML (Phase 2a) -------------------------------------------
