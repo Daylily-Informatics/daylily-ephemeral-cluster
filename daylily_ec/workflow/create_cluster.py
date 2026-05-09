@@ -24,6 +24,7 @@ from __future__ import annotations
 
 import logging
 import os as _os
+import re
 import shlex
 import subprocess
 from dataclasses import dataclass
@@ -45,6 +46,14 @@ EXIT_VALIDATION_FAILURE = 1
 EXIT_AWS_FAILURE = 2
 EXIT_DRIFT = 3
 EXIT_TOOLCHAIN = 4
+
+CLUSTER_NAME_MIN_LENGTH = 5
+CLUSTER_NAME_MAX_LENGTH = 25
+CLUSTER_NAME_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9-]*$")
+CLUSTER_NAME_RULE_TEXT = (
+    f"{CLUSTER_NAME_MIN_LENGTH}-{CLUSTER_NAME_MAX_LENGTH} characters, start with a letter, "
+    "and contain only letters, digits, and hyphens"
+)
 
 # ---------------------------------------------------------------------------
 # Preflight gate ordering — validators are registered in spec §10.5 order
@@ -465,6 +474,44 @@ def _resolve_config_value(
         typer.echo(f"{label} cannot be empty.")
 
 
+def _validate_cluster_name(cluster_name: str) -> str:
+    """Validate the Daylily-supported ParallelCluster cluster name contract."""
+    value = (cluster_name or "").strip()
+    if not value:
+        raise ValueError(f"Cluster name is required. It must be {CLUSTER_NAME_RULE_TEXT}.")
+    if len(value) < CLUSTER_NAME_MIN_LENGTH or len(value) > CLUSTER_NAME_MAX_LENGTH:
+        raise ValueError(f"Invalid cluster name '{value}'. It must be {CLUSTER_NAME_RULE_TEXT}.")
+    if not CLUSTER_NAME_PATTERN.fullmatch(value):
+        raise ValueError(
+            f"Invalid cluster name '{value}'. It must be {CLUSTER_NAME_RULE_TEXT}. "
+            "Numbers are allowed after the first character."
+        )
+    return value
+
+
+def _resolve_cluster_name(cfg: Any, *, non_interactive: bool) -> str:
+    """Resolve and validate the cluster name before any AWS work begins."""
+    from daylily_ec.config.triplets import get_effective_default, resolve_value
+
+    triplet = cfg.ephemeral_cluster.config.get("cluster_name")
+    if triplet is not None:
+        resolved = resolve_value(triplet)
+        if resolved:
+            return _validate_cluster_name(resolved)
+
+    default_value = get_effective_default(cfg, "cluster_name", "prod") or "prod"
+    if non_interactive:
+        return _validate_cluster_name(default_value)
+
+    prompt_default = default_value if default_value else None
+    while True:
+        value = typer.prompt("Cluster name", default=prompt_default).strip()
+        try:
+            return _validate_cluster_name(value)
+        except ValueError as exc:
+            typer.echo(str(exc))
+
+
 def _require_values(values: Dict[str, str]) -> Optional[str]:
     """Return an error message if any required values are blank."""
     missing = [label for label, value in values.items() if not value]
@@ -682,16 +729,12 @@ def run_create_workflow(
     cfg = load_config(effective_config)
     ec = cfg.ephemeral_cluster
 
-    cluster_name = (
-        _resolve_config_value(
-            cfg,
-            "cluster_name",
-            "Cluster name",
-            non_interactive=non_interactive,
-            default_fallback="prod",
-        )
-        or "prod"
-    )
+    try:
+        cluster_name = _resolve_cluster_name(cfg, non_interactive=non_interactive)
+    except ValueError as exc:
+        logger.error("Cluster name validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
 
     ui.phase(f"INIT · {cluster_name}")
 
