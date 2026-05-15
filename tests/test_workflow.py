@@ -42,8 +42,10 @@ from daylily_ec.workflow.create_cluster import (
     EXIT_VALIDATION_FAILURE,
     _build_connection_command,
     _is_valid_fsx_size,
+    _is_valid_headnode_instance_type,
     _extract_selected,
     _resolve_fsx_size,
+    _resolve_headnode_instance_type,
     _noop_heartbeat_result,
     _require_values,
     _resolve_cluster_name,
@@ -346,6 +348,64 @@ class TestWorkflowResolutionHelpers:
         ):
             assert _resolve_fsx_size(cfg, non_interactive=False) == "9600"
 
+        mock_prompt.assert_called_once()
+
+    def test_valid_headnode_instance_types_are_ordered_smallest_to_largest(self):
+        assert _is_valid_headnode_instance_type("r7i.2xlarge") is True
+        assert _is_valid_headnode_instance_type("r7i.16xlarge") is True
+        assert _is_valid_headnode_instance_type("m5.xlarge") is False
+
+    def test_resolve_headnode_instance_type_uses_approved_configured_value(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"headnode_instance_type": ["USESETVALUE", "", "r7i.8xlarge"]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        assert _resolve_headnode_instance_type(cfg, non_interactive=True) == "r7i.8xlarge"
+
+    def test_resolve_headnode_instance_type_rejects_unapproved_value(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"headnode_instance_type": ["USESETVALUE", "", "m5.xlarge"]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        with pytest.raises(ValueError, match="approved headnode instance types"):
+            _resolve_headnode_instance_type(cfg, non_interactive=True)
+
+    def test_resolve_headnode_instance_type_prompts_with_approved_menu(self):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"headnode_instance_type": ["PROMPTUSER", "r7i.2xlarge", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        with (
+            patch(
+                "daylily_ec.workflow.create_cluster.typer.prompt",
+                return_value="3",
+            ) as mock_prompt,
+            patch("daylily_ec.workflow.create_cluster.typer.echo") as mock_echo,
+        ):
+            assert _resolve_headnode_instance_type(cfg, non_interactive=False) == "r7i.8xlarge"
+
+        assert [call.args[0] for call in mock_echo.call_args_list] == [
+            "Choose headnode instance type (approved types, smallest to largest).",
+            "  [1] r7i.2xlarge (default)",
+            "  [2] r7i.4xlarge",
+            "  [3] r7i.8xlarge",
+            "  [4] r7i.16xlarge",
+        ]
         mock_prompt.assert_called_once()
 
 
@@ -1039,7 +1099,7 @@ def _build_workflow_config(template_path: Path) -> ConfigFile:
                         "",
                         "capacity-optimized",
                     ],
-                    "headnode_instance_type": ["USESETVALUE", "", "m5.xlarge"],
+                    "headnode_instance_type": ["USESETVALUE", "", "r7i.2xlarge"],
                     "budget_email": ["PROMPTUSER", "johnm@lsmc.com", ""],
                     "budget_amount": ["PROMPTUSER", "200", ""],
                     "global_budget_amount": ["PROMPTUSER", "200", ""],

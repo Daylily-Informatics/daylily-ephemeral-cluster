@@ -35,7 +35,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.targets == ["produce_snv_concordances", "produce_alignstats"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "0.7.704"
+    assert command.git_tag == "0.7.754"
     assert command.compatible_platforms == ["ILMN"]
     assert command.compatible_data_modes == ["ilmn_solo"]
     assert "bin/day_run" in command.dy_command
@@ -44,7 +44,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     launch_argv = command.launch_argv(destination="run-1", cluster="cluster-a")
     assert "--dy-command" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "0.7.704" in launch_argv
+    assert "0.7.754" in launch_argv
 
 
 def test_repository_catalog_commands_have_run_metadata() -> None:
@@ -68,7 +68,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "0.7.704"
+        assert command.git_tag == "0.7.754"
 
     complete_genomics = catalog.get_command("complete_genomics_mgi_snv_concordance")
     assert complete_genomics.compatible_platforms == ["CG/MGI"]

@@ -378,6 +378,15 @@ FSX_PROMPT_OPTIONS = [
     "14400",
 ]
 FSX_SIZE_RULE_TEXT = "1200 GiB, 2400 GiB, or any value >= 4800 GiB divisible by 2400 GiB"
+APPROVED_HEADNODE_INSTANCE_TYPES = (
+    "r7i.2xlarge",
+    "r7i.4xlarge",
+    "r7i.8xlarge",
+    "r7i.16xlarge",
+)
+HEADNODE_INSTANCE_TYPE_RULE_TEXT = "one of the approved headnode instance types: " + ", ".join(
+    APPROVED_HEADNODE_INSTANCE_TYPES
+)
 
 
 def _is_valid_fsx_size(value: str) -> bool:
@@ -435,6 +444,64 @@ def _resolve_fsx_size(cfg: Any, *, non_interactive: bool) -> str:
         typer.echo(
             "Invalid FSx size. Enter one of the listed numbers or a value matching: "
             f"{FSX_SIZE_RULE_TEXT}."
+        )
+
+
+def _is_valid_headnode_instance_type(value: str) -> bool:
+    """Return True when *value* is an approved headnode instance type."""
+    return value in APPROVED_HEADNODE_INSTANCE_TYPES
+
+
+def _resolve_headnode_instance_type(cfg: Any, *, non_interactive: bool) -> str:
+    """Resolve the headnode instance type from the approved type menu."""
+    from daylily_ec.config.triplets import get_effective_default, resolve_value
+
+    triplet = cfg.ephemeral_cluster.config.get("headnode_instance_type")
+    configured = resolve_value(triplet) if triplet is not None else ""
+    default_value = (
+        get_effective_default(cfg, "headnode_instance_type", APPROVED_HEADNODE_INSTANCE_TYPES[0])
+        or APPROVED_HEADNODE_INSTANCE_TYPES[0]
+    )
+
+    if configured:
+        configured = configured.strip()
+        if _is_valid_headnode_instance_type(configured):
+            return configured
+        raise ValueError(
+            f"Invalid headnode instance type '{configured}'. It must be "
+            f"{HEADNODE_INSTANCE_TYPE_RULE_TEXT}."
+        )
+
+    if default_value:
+        default_value = default_value.strip()
+        if not _is_valid_headnode_instance_type(default_value):
+            raise ValueError(
+                f"Invalid headnode instance type '{default_value}'. It must be "
+                f"{HEADNODE_INSTANCE_TYPE_RULE_TEXT}."
+            )
+
+    if non_interactive:
+        return default_value
+
+    typer.echo("Choose headnode instance type (approved types, smallest to largest).")
+    for idx, option in enumerate(APPROVED_HEADNODE_INSTANCE_TYPES, start=1):
+        default_suffix = " (default)" if option == default_value else ""
+        typer.echo(f"  [{idx}] {option}{default_suffix}")
+
+    while True:
+        raw = typer.prompt(
+            "Enter selection number or approved instance type",
+            default=default_value,
+        ).strip()
+        if raw.isdigit():
+            index = int(raw)
+            if 1 <= index <= len(APPROVED_HEADNODE_INSTANCE_TYPES):
+                return APPROVED_HEADNODE_INSTANCE_TYPES[index - 1]
+        if _is_valid_headnode_instance_type(raw):
+            return raw
+        typer.echo(
+            "Invalid headnode instance type. Enter one of the listed numbers or "
+            f"{HEADNODE_INSTANCE_TYPE_RULE_TEXT}."
         )
 
 
@@ -1044,14 +1111,10 @@ def run_create_workflow(
         "REGSUB_MAX_COUNT_8I": str(max_8i),
         "REGSUB_MAX_COUNT_128I": str(max_128i),
         "REGSUB_MAX_COUNT_192I": str(max_192i),
-        "REGSUB_HEADNODE_INSTANCE_TYPE": _resolve_config_value(
+        "REGSUB_HEADNODE_INSTANCE_TYPE": _resolve_headnode_instance_type(
             cfg,
-            "headnode_instance_type",
-            "Headnode instance type",
             non_interactive=non_interactive,
-            default_fallback="m5.xlarge",
-        )
-        or "m5.xlarge",
+        ),
         "REGSUB_HEARTBEAT_EMAIL": post_create_inputs.heartbeat_email,
         "REGSUB_HEARTBEAT_SCHEDULE": post_create_inputs.heartbeat_schedule,
         "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": (post_create_inputs.heartbeat_scheduler_role_arn),
