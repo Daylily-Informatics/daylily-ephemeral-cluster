@@ -1,9 +1,13 @@
 from __future__ import annotations
 
+from pathlib import Path
+
 from daylily_ec.aws.context import AWSContext
 from daylily_ec.render.renderer import write_init_artifacts
 from daylily_ec.resources import resource_path
 from daylily_ec.workflow import create_cluster
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_create_workflow_loads_default_config_outside_repo(tmp_path, monkeypatch):
@@ -53,3 +57,9 @@ def test_write_init_artifacts_accepts_packaged_template(tmp_path, monkeypatch):
     assert yaml_init == str(tmp_path / "out" / "test_cluster_20260101000000.yaml.init")
     assert init_template == str(tmp_path / "out" / "test_init_template_20260101000000.yaml")
 
+
+def test_packaged_global_config_matches_source_config() -> None:
+    source = REPO_ROOT / "config" / "daylily_cli_global.yaml"
+    packaged = REPO_ROOT / "daylily_ec/resources/payload/config/daylily_cli_global.yaml"
+
+    assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")
