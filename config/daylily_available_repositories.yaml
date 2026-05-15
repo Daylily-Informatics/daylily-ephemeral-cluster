@@ -35,6 +35,34 @@ repositories:
           - ilmn_solo
         git_tag: 0.7.755
         no_containerized: false
+      - command_id: illumina_snv_alignstats_relatedness_vep_multiqc
+        display_name: "Illumina SNV + Alignstats + Relatedness + VEP MultiQC"
+        description: "Illumina WGS Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, and final MultiQC launch profile."
+        datasource: Illumina
+        launcher: workflow_launch
+        targets:
+          - produce_alignstats
+          - produce_snv_concordances
+          - produce_relatedness
+          - produce_vep
+          - produce_multiqc_final
+        genome: hg38_broad
+        jobs: 100
+        aligners:
+          - sent
+        dedupers:
+          - dppl
+        snv_callers:
+          - sentd
+        sv_callers: []
+        dy_command: "bin/day_run produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_final --config 'aligners=[\"sent\"]' 'dedupers=[\"dppl\"]' 'snv_callers=[\"sentd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k"
+        dryrun_dy_command: "bin/day_run produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_final --config 'aligners=[\"sent\"]' 'dedupers=[\"dppl\"]' 'snv_callers=[\"sentd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n"
+        compatible_platforms:
+          - ILMN
+        compatible_data_modes:
+          - ilmn_solo
+        git_tag: 0.7.755
+        no_containerized: false
       - command_id: ultima_snv_alignstats
         display_name: "Ultima SNV + Alignstats"
         description: "Ultima CRAM/FASTQ Sentieon DNAscope and alignment-statistics launch profile."

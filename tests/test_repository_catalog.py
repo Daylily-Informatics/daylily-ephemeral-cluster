@@ -53,6 +53,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     command_ids = {command.command_id for command in catalog.commands()}
     assert {
         "illumina_snv_alignstats",
+        "illumina_snv_alignstats_relatedness_vep_multiqc",
         "ultima_snv_alignstats",
         "ont_snv_alignstats",
         "pacbio_snv_alignstats",
@@ -75,6 +76,17 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert complete_genomics.compatible_data_modes == ["complete_genomics_solo"]
     assert "produce_cgt7p_vcf" in complete_genomics.dy_command
     assert "aligners=['sentcg']" in complete_genomics.dy_command
+
+    vep_multiqc = catalog.get_command("illumina_snv_alignstats_relatedness_vep_multiqc")
+    assert vep_multiqc.targets == [
+        "produce_alignstats",
+        "produce_snv_concordances",
+        "produce_relatedness",
+        "produce_vep",
+        "produce_multiqc_final",
+    ]
+    assert "multiqc_qc=" in vep_multiqc.dy_command
+    assert "enable_tools" in vep_multiqc.dy_command
 
 
 def test_repository_catalog_requires_catalog_version(tmp_path: Path) -> None:
