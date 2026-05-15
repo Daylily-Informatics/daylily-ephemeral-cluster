@@ -7,7 +7,7 @@ repositories:
     description: "Primary whole genome and multiomics workflows."
     https_url: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
     ssh_url: git@github.com:Daylily-Informatics/daylily-omics-analysis.git
-    default_ref: 0.7.754
+    default_ref: 0.7.755
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: illumina_snv_alignstats
@@ -33,7 +33,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 0.7.754
+        git_tag: 0.7.755
         no_containerized: false
       - command_id: ultima_snv_alignstats
         display_name: "Ultima SNV + Alignstats"
@@ -59,7 +59,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - ultima_solo
-        git_tag: 0.7.754
+        git_tag: 0.7.755
         no_containerized: false
       - command_id: ont_snv_alignstats
         display_name: "ONT SNV + Alignstats"
@@ -86,7 +86,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - ont_solo
-        git_tag: 0.7.754
+        git_tag: 0.7.755
         no_containerized: false
       - command_id: pacbio_snv_alignstats
         display_name: "PacBio SNV + Alignstats"
@@ -112,7 +112,7 @@ repositories:
           - PACBIO
         compatible_data_modes:
           - pacbio_solo
-        git_tag: 0.7.754
+        git_tag: 0.7.755
         no_containerized: false
       - command_id: roche_snv_alignstats
         display_name: "Roche SNV + Alignstats"
@@ -137,7 +137,7 @@ repositories:
           - ROCHE
         compatible_data_modes:
           - roche_solo
-        git_tag: 0.7.754
+        git_tag: 0.7.755
         no_containerized: false
       - command_id: hybrid_ilmn_ont_snv
         display_name: "Hybrid ILMN+ONT SNV/SV"
@@ -165,7 +165,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 0.7.754
+        git_tag: 0.7.755
         no_containerized: false
       - command_id: hybrid_ultima_ont_snv
         display_name: "Hybrid Ultima+ONT SNV"
@@ -192,7 +192,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ug_ont
-        git_tag: 0.7.754
+        git_tag: 0.7.755
         no_containerized: false
       - command_id: complete_genomics_mgi_snv_concordance
         display_name: "Complete Genomics/MGI SNV + Concordance"
@@ -218,7 +218,7 @@ repositories:
           - CG/MGI
         compatible_data_modes:
           - complete_genomics_solo
-        git_tag: 0.7.754
+        git_tag: 0.7.755
         no_containerized: false
   rna-seq-star-deseq2:
     display_name: "RNA-seq STAR + DESeq2"
