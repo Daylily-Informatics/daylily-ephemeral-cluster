@@ -22,7 +22,6 @@ from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
-
 RUN_ID = "RUN_ID"
 SAMPLE_ID = "SAMPLE_ID"
 EXPERIMENT_ID = "EXPERIMENTID"
@@ -335,6 +334,7 @@ class ManifestRow:
     sources: Mapping[str, str]
     units_passthrough: Mapping[str, str]
     original: Mapping[str, str]
+    row_number: int = 0
 
 
 @dataclass(frozen=True)
@@ -365,6 +365,28 @@ class OntFastqPrefixPlan:
     run_id: str
     shards: Tuple[OntFastqShard, ...]
     gzip_compressed: bool
+
+
+@dataclass(frozen=True)
+class PrecheckIssue:
+    row_number: int
+    sample_id: str
+    run_id: str
+    field: str
+    path: str
+    message: str
+
+
+@dataclass(frozen=True)
+class PrecheckReport:
+    rows_checked: int
+    samples_checked: int
+    source_objects_checked: int
+    concordance_dirs_checked: int
+    issues: Tuple[PrecheckIssue, ...]
+
+
+GIAB_TRUTH_SUFFIXES = (".bed", ".vcf.gz", ".vcf.gz.tbi")
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -400,6 +422,11 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         "--debug",
         action="store_true",
         help="Print AWS CLI commands before execution",
+    )
+    parser.add_argument(
+        "--precheck-only",
+        action="store_true",
+        help="Validate the manifest and exit without staging or writing generated configs.",
     )
     return parser.parse_args(argv)
 
@@ -589,7 +616,9 @@ def list_s3_objects(
             break
         continuation_token = payload.get("NextContinuationToken")
         if not continuation_token:
-            raise CommandError(f"S3 listing for {prefix_uri} was truncated without a continuation token.")
+            raise CommandError(
+                f"S3 listing for {prefix_uri} was truncated without a continuation token."
+            )
     return objects
 
 
@@ -727,10 +756,18 @@ def is_giab_control(entry: Mapping[str, str]) -> bool:
 def resolve_positive_control(entry: Mapping[str, str]) -> str:
     raw = get_entry_value(entry, IS_POS_CTRL).lower()
     if raw in {"true", "false"}:
-        if raw == "false" and is_giab_control(entry):
-            return "true"
         return raw
     return "true" if is_giab_control(entry) else "false"
+
+
+def should_precheck_giab_truth(entry: Mapping[str, str]) -> bool:
+    raw = get_entry_value(entry, IS_POS_CTRL).lower()
+    concordance = resolve_concordance_source(entry)
+    if raw == "true":
+        return is_populated_path(concordance)
+    if raw == "false":
+        return False
+    return is_giab_control(entry)
 
 
 def resolve_negative_control(entry: Mapping[str, str]) -> str:
@@ -778,9 +815,7 @@ def parse_ont_fastq_prefix(prefix_uri: str) -> Tuple[str, str, str, str]:
         raise CommandError(
             f"{ONT_FASTQ_PREFIX} must point to an S3 fastq_pass/<tag>/ prefix: {prefix_uri}"
         )
-    run_id_candidates = [
-        part for part in parts[:-2] if re.match(r"^[0-9]{8}_ONT(?:_|$)", part)
-    ]
+    run_id_candidates = [part for part in parts[:-2] if re.match(r"^[0-9]{8}_ONT(?:_|$)", part)]
     if not run_id_candidates:
         raise CommandError(
             f"{ONT_FASTQ_PREFIX} must be under an ONT run directory like YYYYMMDD_ONT_*: {prefix_uri}"
@@ -898,7 +933,9 @@ def validate_ont_run_output(
             f"ONT final summary flow_cell_id={summary_flowcell} does not match {flowcell_id}."
         )
     if summary.get("basecalling_enabled") not in {"1", "true", "True"}:
-        raise CommandError(f"ONT final summary for {flowcell_id} does not show basecalling enabled.")
+        raise CommandError(
+            f"ONT final summary for {flowcell_id} does not show basecalling enabled."
+        )
     if safe_int(summary.get("fastq_files_in_final_dest", "0")) <= 0:
         raise CommandError(f"ONT final summary for {flowcell_id} reports no delivered FASTQs.")
     observed_fastqs = sum(
@@ -954,13 +991,13 @@ def resolve_ont_fastq_prefix_plan(
         )
     fastq_objects = [obj for obj in objects if obj.key.endswith(".fastq.gz")]
     if len(fastq_objects) != len(objects):
-        unexpected = sorted(os.path.basename(obj.key) for obj in objects if obj not in fastq_objects)
+        unexpected = sorted(
+            os.path.basename(obj.key) for obj in objects if obj not in fastq_objects
+        )
         raise CommandError(
             f"{ONT_FASTQ_PREFIX} {prefix_uri} contains non-FASTQ objects: {', '.join(unexpected)}"
         )
-    shards = [
-        parse_ont_fastq_shard(obj, expected_tag=tag, run_id=run_id) for obj in fastq_objects
-    ]
+    shards = [parse_ont_fastq_shard(obj, expected_tag=tag, run_id=run_id) for obj in fastq_objects]
 
     flowcells = sorted({shard.flowcell_id for shard in shards})
     requested_flowcell = normalise_identifier(flowcell_id) if flowcell_id else ""
@@ -1234,7 +1271,9 @@ def build_size_aware_concat_sources(
                 continue
 
             if shard.size >= S3_MULTIPART_MIN_PART_SIZE:
-                concat_sources.append(S3ObjectSummary(uri=shard.uri, key=shard.key, size=shard.size))
+                concat_sources.append(
+                    S3ObjectSummary(uri=shard.uri, key=shard.key, size=shard.size)
+                )
                 continue
 
             pending_bundle.append(shard)
@@ -1615,161 +1654,21 @@ def validate_manifest_row(
     reference_bucket: str,
     aws_env: Dict[str, str],
     debug: bool,
+    check_access: bool = True,
 ) -> None:
-    raw_groups = raw_groups_present(normalized)
-    ont_fastq_prefix = get_entry_value(normalized, ONT_FASTQ_PREFIX)
-    directive = normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
-    aligned_fields = [
-        field for field in ALIGNED_SOURCE_FIELDS if get_entry_value(normalized, field)
-    ]
-    if not raw_groups and not ont_fastq_prefix and not aligned_fields:
-        raise CommandError(f"Row {row_number} does not define any supported data source columns.")
-    if ont_fastq_prefix:
-        vendor = normalise_identifier(get_entry_value(normalized, SEQ_VENDOR)).upper()
-        if vendor != "ONT":
-            raise CommandError(f"Row {row_number} requires {SEQ_VENDOR}=ONT for {ONT_FASTQ_PREFIX}.")
-        ont_conflicts = [
-            field
-            for field in (ONT_R1_FQ, ONT_R2_FQ, ONT_CRAM, ONT_BAM)
-            if get_entry_value(normalized, field)
-        ]
-        if raw_groups or aligned_fields or ont_conflicts:
-            raise CommandError(
-                f"Row {row_number} must not combine {ONT_FASTQ_PREFIX} with other staged data source columns."
-            )
-        if directive == "pass_through":
-            raise CommandError(f"Row {row_number} requires STAGE_DIRECTIVE=stage_data for {ONT_FASTQ_PREFIX}.")
-        parse_ont_fastq_prefix(ont_fastq_prefix)
-
-    for r1_field, r2_field, _unit_r1, _unit_r2 in raw_groups:
-        r1_value = get_entry_value(normalized, r1_field)
-        r2_value = get_entry_value(normalized, r2_field)
-        if not r1_value or not r2_value:
-            raise CommandError(f"Row {row_number} must populate both {r1_field} and {r2_field}.")
-        check_source_path(
-            r1_value,
-            reference_bucket=reference_bucket,
-            aws_env=aws_env,
-            debug=debug,
-        )
-        check_source_path(
-            r2_value,
-            reference_bucket=reference_bucket,
-            aws_env=aws_env,
-            debug=debug,
-        )
-
-    concordance_source = resolve_concordance_source(normalized)
-    if is_populated_path(concordance_source):
-        check_source_path(
-            concordance_source,
-            reference_bucket=reference_bucket,
-            aws_env=aws_env,
-            debug=debug,
-            allow_directory=True,
-        )
-
-    if get_entry_value(normalized, ULTIMA_CRAM):
-        check_source_path(
-            get_entry_value(normalized, ULTIMA_CRAM),
-            reference_bucket=reference_bucket,
-            aws_env=aws_env,
-            debug=debug,
-        )
-        validate_sidecar_paths(
-            get_entry_value(normalized, ULTIMA_CRAM),
-            sidecar_suffixes=(".crai",),
-            reference_bucket=reference_bucket,
-            aws_env=aws_env,
-            debug=debug,
-        )
-        aligner = get_entry_value(normalized, ULTIMA_CRAM_ALIGNER).lower()
-        if aligner not in {"ug", "hyb"}:
-            raise CommandError(
-                f"Row {row_number} requires {ULTIMA_CRAM_ALIGNER} to be one of ug, hyb when {ULTIMA_CRAM} is populated."
-            )
-        if directive != "stage_data":
-            require_headnode_visible_path(
-                get_entry_value(normalized, ULTIMA_CRAM), field=ULTIMA_CRAM
-            )
-
-    if get_entry_value(normalized, ONT_CRAM):
-        check_source_path(
-            get_entry_value(normalized, ONT_CRAM),
-            reference_bucket=reference_bucket,
-            aws_env=aws_env,
-            debug=debug,
-        )
-        validate_sidecar_paths(
-            get_entry_value(normalized, ONT_CRAM),
-            sidecar_suffixes=(".crai",),
-            reference_bucket=reference_bucket,
-            aws_env=aws_env,
-            debug=debug,
-        )
-        aligner = get_entry_value(normalized, ONT_CRAM_ALIGNER).lower()
-        if aligner != "ont":
-            raise CommandError(
-                f"Row {row_number} requires {ONT_CRAM_ALIGNER}=ont when {ONT_CRAM} is populated."
-            )
-        if directive != "stage_data":
-            require_headnode_visible_path(get_entry_value(normalized, ONT_CRAM), field=ONT_CRAM)
-
-    if get_entry_value(normalized, PB_BAM):
-        check_source_path(
-            get_entry_value(normalized, PB_BAM),
-            reference_bucket=reference_bucket,
-            aws_env=aws_env,
-            debug=debug,
-        )
-        aligner = get_entry_value(normalized, PB_BAM_ALIGNER).lower()
-        if aligner not in {"pb", "sentmm2"}:
-            raise CommandError(
-                f"Row {row_number} requires {PB_BAM_ALIGNER} to be one of pb, sentmm2 when {PB_BAM} is populated."
-            )
-        if aligner == "pb":
-            validate_sidecar_paths(
-                get_entry_value(normalized, PB_BAM),
-                sidecar_suffixes=(".csi",),
-                reference_bucket=reference_bucket,
-                aws_env=aws_env,
-                debug=debug,
-            )
-        if directive != "stage_data":
-            require_headnode_visible_path(get_entry_value(normalized, PB_BAM), field=PB_BAM)
-
-    if get_entry_value(normalized, ONT_BAM):
-        check_source_path(
-            get_entry_value(normalized, ONT_BAM),
-            reference_bucket=reference_bucket,
-            aws_env=aws_env,
-            debug=debug,
-        )
-        aligner = get_entry_value(normalized, ONT_BAM_ALIGNER).lower()
-        if aligner != "sentmm2ont":
-            raise CommandError(
-                f"Row {row_number} requires {ONT_BAM_ALIGNER}=sentmm2ont when {ONT_BAM} is populated."
-            )
-        if directive != "stage_data":
-            require_headnode_visible_path(get_entry_value(normalized, ONT_BAM), field=ONT_BAM)
-
-    if get_entry_value(normalized, ROCHE_BAM):
-        check_source_path(
-            get_entry_value(normalized, ROCHE_BAM),
-            reference_bucket=reference_bucket,
-            aws_env=aws_env,
-            debug=debug,
-        )
-        aligner = get_entry_value(normalized, ROCHE_BAM_ALIGNER).lower()
-        if aligner != "roche":
-            raise CommandError(
-                f"Row {row_number} requires {ROCHE_BAM_ALIGNER}=roche when {ROCHE_BAM} is populated."
-            )
-        if directive != "stage_data":
-            require_headnode_visible_path(get_entry_value(normalized, ROCHE_BAM), field=ROCHE_BAM)
+    issues = collect_manifest_row_issues(
+        normalized,
+        row_number=row_number,
+        reference_bucket=reference_bucket,
+        aws_env=aws_env,
+        debug=debug,
+        check_access=check_access,
+    )
+    if issues:
+        raise CommandError(issues[0].message)
 
 
-def build_manifest_row(normalized: Mapping[str, str]) -> ManifestRow:
+def build_manifest_row(normalized: Mapping[str, str], *, row_number: int = 0) -> ManifestRow:
     sample_type = normalise_identifier(get_entry_value(normalized, SAMPLE_TYPE))
     sample_source = get_entry_value(normalized, SAMPLESOURCE) or sample_type
     sample_class = get_entry_value(normalized, SAMPLECLASS) or "research"
@@ -1857,6 +1756,7 @@ def build_manifest_row(normalized: Mapping[str, str]) -> ManifestRow:
         sources=sources,
         units_passthrough=units_passthrough,
         original=dict(normalized),
+        row_number=row_number,
     )
 
 
@@ -1895,9 +1795,785 @@ def load_manifest_rows(
                 aws_env=aws_env,
                 debug=debug,
             )
-            rows.append(build_manifest_row(normalized))
+            rows.append(build_manifest_row(normalized, row_number=row_number))
 
     return rows
+
+
+def _row_issue(
+    normalized: Mapping[str, str],
+    *,
+    row_number: int,
+    field: str,
+    path: str = "",
+    message: str,
+) -> PrecheckIssue:
+    sample_id = normalise_identifier(get_entry_value(normalized, SAMPLE_ID)) or "na"
+    run_id = normalise_run_id(get_entry_value(normalized, RUN_ID)) or "na"
+    message = re.sub(rf"^Row {row_number}\s+", "", message).strip()
+    return PrecheckIssue(
+        row_number=row_number,
+        sample_id=sample_id,
+        run_id=run_id,
+        field=field,
+        path=path,
+        message=message,
+    )
+
+
+def _issue_from_exception(
+    normalized: Mapping[str, str],
+    *,
+    row_number: int,
+    default_field: str,
+    default_path: str = "",
+    exc: Exception,
+) -> PrecheckIssue:
+    message = str(exc)
+    field = default_field
+    path = default_path
+    for candidate in sorted(ALLOWED_MANIFEST_FIELDS, key=len, reverse=True):
+        if candidate in message:
+            field = candidate
+            path = get_entry_value(normalized, candidate) or path
+            break
+    return _row_issue(
+        normalized,
+        row_number=row_number,
+        field=field,
+        path=path,
+        message=message,
+    )
+
+
+def collect_manifest_row_issues(
+    normalized: Mapping[str, str],
+    *,
+    row_number: int,
+    reference_bucket: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+    check_access: bool = True,
+) -> List[PrecheckIssue]:
+    issues: List[PrecheckIssue] = []
+
+    def add_issue(field: str, message: str, path: str = "") -> None:
+        issues.append(
+            _row_issue(
+                normalized,
+                row_number=row_number,
+                field=field,
+                path=path,
+                message=message,
+            )
+        )
+
+    def add_exception(field: str, exc: Exception, path: str = "") -> None:
+        issues.append(
+            _issue_from_exception(
+                normalized,
+                row_number=row_number,
+                default_field=field,
+                default_path=path,
+                exc=exc,
+            )
+        )
+
+    def maybe_check_source_path(
+        field: str,
+        path: str,
+        *,
+        allow_directory: bool = False,
+    ) -> None:
+        if not check_access or not path:
+            return
+        try:
+            check_source_path(
+                path,
+                reference_bucket=reference_bucket,
+                aws_env=aws_env,
+                debug=debug,
+                allow_directory=allow_directory,
+            )
+        except CommandError as exc:
+            add_issue(field, str(exc), path)
+
+    def maybe_validate_sidecars(
+        field: str,
+        path: str,
+        *,
+        sidecar_suffixes: Sequence[str],
+    ) -> None:
+        if not check_access or not path:
+            return
+        for suffix in sidecar_suffixes:
+            sidecar = f"{path}{suffix}"
+            try:
+                check_source_path(
+                    sidecar,
+                    reference_bucket=reference_bucket,
+                    aws_env=aws_env,
+                    debug=debug,
+                )
+            except CommandError as exc:
+                add_issue(f"{field}{suffix}", str(exc), sidecar)
+
+    raw_groups = raw_groups_present(normalized)
+    ont_fastq_prefix = get_entry_value(normalized, ONT_FASTQ_PREFIX)
+    aligned_fields = [
+        field for field in ALIGNED_SOURCE_FIELDS if get_entry_value(normalized, field)
+    ]
+
+    try:
+        directive = normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
+    except CommandError as exc:
+        directive = ""
+        add_exception(STAGE_DIRECTIVE, exc, get_entry_value(normalized, STAGE_DIRECTIVE))
+
+    if not raw_groups and not ont_fastq_prefix and not aligned_fields:
+        add_issue(
+            "data source",
+            f"Row {row_number} does not define any supported data source columns.",
+        )
+
+    if ont_fastq_prefix:
+        vendor = normalise_identifier(get_entry_value(normalized, SEQ_VENDOR)).upper()
+        if vendor != "ONT":
+            add_issue(
+                SEQ_VENDOR,
+                f"Row {row_number} requires {SEQ_VENDOR}=ONT for {ONT_FASTQ_PREFIX}.",
+                get_entry_value(normalized, SEQ_VENDOR),
+            )
+        ont_conflicts = [
+            field
+            for field in (ONT_R1_FQ, ONT_R2_FQ, ONT_CRAM, ONT_BAM)
+            if get_entry_value(normalized, field)
+        ]
+        if raw_groups or aligned_fields or ont_conflicts:
+            add_issue(
+                ONT_FASTQ_PREFIX,
+                (
+                    f"Row {row_number} must not combine {ONT_FASTQ_PREFIX} "
+                    "with other staged data source columns."
+                ),
+                ont_fastq_prefix,
+            )
+        if directive == "pass_through":
+            add_issue(
+                STAGE_DIRECTIVE,
+                f"Row {row_number} requires STAGE_DIRECTIVE=stage_data for {ONT_FASTQ_PREFIX}.",
+                get_entry_value(normalized, STAGE_DIRECTIVE),
+            )
+        try:
+            parse_ont_fastq_prefix(ont_fastq_prefix)
+        except CommandError as exc:
+            add_issue(ONT_FASTQ_PREFIX, str(exc), ont_fastq_prefix)
+
+    for r1_field, r2_field, _unit_r1, _unit_r2 in raw_groups:
+        r1_value = get_entry_value(normalized, r1_field)
+        r2_value = get_entry_value(normalized, r2_field)
+        if not r1_value or not r2_value:
+            add_issue(
+                f"{r1_field}/{r2_field}",
+                f"Row {row_number} must populate both {r1_field} and {r2_field}.",
+                r1_value or r2_value,
+            )
+        maybe_check_source_path(r1_field, r1_value)
+        maybe_check_source_path(r2_field, r2_value)
+        if directive == "pass_through":
+            for field, value in ((r1_field, r1_value), (r2_field, r2_value)):
+                if not value:
+                    continue
+                try:
+                    require_headnode_visible_path(value, field=field)
+                except CommandError as exc:
+                    add_issue(field, str(exc), value)
+
+    try:
+        concordance_source = resolve_concordance_source(normalized)
+    except CommandError as exc:
+        concordance_source = "na"
+        add_exception(CONCORDANCE_CONTROL_PATH, exc)
+    if is_populated_path(concordance_source):
+        maybe_check_source_path(CONCORDANCE_CONTROL_PATH, concordance_source, allow_directory=True)
+
+    if get_entry_value(normalized, ULTIMA_CRAM):
+        source = get_entry_value(normalized, ULTIMA_CRAM)
+        maybe_check_source_path(ULTIMA_CRAM, source)
+        maybe_validate_sidecars(ULTIMA_CRAM, source, sidecar_suffixes=(".crai",))
+        aligner = get_entry_value(normalized, ULTIMA_CRAM_ALIGNER).lower()
+        if aligner not in {"ug", "hyb"}:
+            add_issue(
+                ULTIMA_CRAM_ALIGNER,
+                (
+                    f"Row {row_number} requires {ULTIMA_CRAM_ALIGNER} to be one of ug, hyb "
+                    f"when {ULTIMA_CRAM} is populated."
+                ),
+                get_entry_value(normalized, ULTIMA_CRAM_ALIGNER),
+            )
+        if directive != "stage_data":
+            try:
+                require_headnode_visible_path(source, field=ULTIMA_CRAM)
+            except CommandError as exc:
+                add_issue(ULTIMA_CRAM, str(exc), source)
+
+    if get_entry_value(normalized, ONT_CRAM):
+        source = get_entry_value(normalized, ONT_CRAM)
+        maybe_check_source_path(ONT_CRAM, source)
+        maybe_validate_sidecars(ONT_CRAM, source, sidecar_suffixes=(".crai",))
+        aligner = get_entry_value(normalized, ONT_CRAM_ALIGNER).lower()
+        if aligner != "ont":
+            add_issue(
+                ONT_CRAM_ALIGNER,
+                f"Row {row_number} requires {ONT_CRAM_ALIGNER}=ont when {ONT_CRAM} is populated.",
+                get_entry_value(normalized, ONT_CRAM_ALIGNER),
+            )
+        if directive != "stage_data":
+            try:
+                require_headnode_visible_path(source, field=ONT_CRAM)
+            except CommandError as exc:
+                add_issue(ONT_CRAM, str(exc), source)
+
+    if get_entry_value(normalized, PB_BAM):
+        source = get_entry_value(normalized, PB_BAM)
+        maybe_check_source_path(PB_BAM, source)
+        aligner = get_entry_value(normalized, PB_BAM_ALIGNER).lower()
+        if aligner not in {"pb", "sentmm2"}:
+            add_issue(
+                PB_BAM_ALIGNER,
+                (
+                    f"Row {row_number} requires {PB_BAM_ALIGNER} to be one of pb, sentmm2 "
+                    f"when {PB_BAM} is populated."
+                ),
+                get_entry_value(normalized, PB_BAM_ALIGNER),
+            )
+        if aligner == "pb":
+            maybe_validate_sidecars(PB_BAM, source, sidecar_suffixes=(".csi",))
+        if directive != "stage_data":
+            try:
+                require_headnode_visible_path(source, field=PB_BAM)
+            except CommandError as exc:
+                add_issue(PB_BAM, str(exc), source)
+
+    if get_entry_value(normalized, ONT_BAM):
+        source = get_entry_value(normalized, ONT_BAM)
+        maybe_check_source_path(ONT_BAM, source)
+        aligner = get_entry_value(normalized, ONT_BAM_ALIGNER).lower()
+        if aligner != "sentmm2ont":
+            add_issue(
+                ONT_BAM_ALIGNER,
+                (
+                    f"Row {row_number} requires {ONT_BAM_ALIGNER}=sentmm2ont "
+                    f"when {ONT_BAM} is populated."
+                ),
+                get_entry_value(normalized, ONT_BAM_ALIGNER),
+            )
+        if directive != "stage_data":
+            try:
+                require_headnode_visible_path(source, field=ONT_BAM)
+            except CommandError as exc:
+                add_issue(ONT_BAM, str(exc), source)
+
+    if get_entry_value(normalized, ROCHE_BAM):
+        source = get_entry_value(normalized, ROCHE_BAM)
+        maybe_check_source_path(ROCHE_BAM, source)
+        aligner = get_entry_value(normalized, ROCHE_BAM_ALIGNER).lower()
+        if aligner != "roche":
+            add_issue(
+                ROCHE_BAM_ALIGNER,
+                f"Row {row_number} requires {ROCHE_BAM_ALIGNER}=roche when {ROCHE_BAM} is populated.",
+                get_entry_value(normalized, ROCHE_BAM_ALIGNER),
+            )
+        if directive != "stage_data":
+            try:
+                require_headnode_visible_path(source, field=ROCHE_BAM)
+            except CommandError as exc:
+                add_issue(ROCHE_BAM, str(exc), source)
+
+    return issues
+
+
+def _source_checks_for_precheck(normalized: Mapping[str, str]) -> List[Tuple[str, str]]:
+    checks: List[Tuple[str, str]] = []
+    for r1_field, r2_field, _unit_r1, _unit_r2 in raw_groups_present(normalized):
+        r1_value = get_entry_value(normalized, r1_field)
+        r2_value = get_entry_value(normalized, r2_field)
+        if r1_value:
+            checks.append((r1_field, r1_value))
+        if r2_value:
+            checks.append((r2_field, r2_value))
+
+    aligned_sidecars = (
+        (ULTIMA_CRAM, (".crai",)),
+        (ONT_CRAM, (".crai",)),
+        (
+            PB_BAM,
+            (".csi",) if get_entry_value(normalized, PB_BAM_ALIGNER).lower() == "pb" else (),
+        ),
+        (ONT_BAM, ()),
+        (ROCHE_BAM, ()),
+    )
+    for field, sidecars in aligned_sidecars:
+        source = get_entry_value(normalized, field)
+        if not source:
+            continue
+        checks.append((field, source))
+        for suffix in sidecars:
+            checks.append((f"{field}{suffix}", f"{source}{suffix}"))
+    return checks
+
+
+def _concordance_source_field(normalized: Mapping[str, str]) -> Tuple[str, str]:
+    for field in (PATH_TO_CONCORDANCE, CONCORDANCE_CONTROL_PATH, TRUTH_DATA_DIR):
+        value = get_entry_value(normalized, field)
+        if is_populated_path(value):
+            return field, value
+    return PATH_TO_CONCORDANCE, "na"
+
+
+def _s3_child_directories(
+    prefix_uri: str,
+    *,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> List[str]:
+    normalized_prefix = normalise_s3_prefix_uri(prefix_uri)
+    _bucket, prefix = parse_s3_uri(normalized_prefix)
+    base_prefix = prefix.strip("/")
+    if base_prefix:
+        base_prefix += "/"
+    child_dirs: set[str] = set()
+    for obj in list_s3_objects(normalized_prefix, aws_env=aws_env, debug=debug):
+        if base_prefix and not obj.key.startswith(base_prefix):
+            continue
+        relative = obj.key[len(base_prefix) :] if base_prefix else obj.key
+        parts = [part for part in relative.split("/") if part]
+        if len(parts) > 1:
+            child_dirs.add(parts[0])
+    return sorted(child_dirs)
+
+
+def detect_giab_roi_dirs(
+    concordance_source: str,
+    *,
+    reference_bucket: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> List[str]:
+    if concordance_source.startswith("s3://"):
+        return _s3_child_directories(concordance_source, aws_env=aws_env, debug=debug)
+    if is_headnode_visible_path(concordance_source):
+        return _s3_child_directories(
+            build_reference_uri(concordance_source, reference_bucket),
+            aws_env=aws_env,
+            debug=debug,
+        )
+
+    source_path = Path(os.path.expanduser(concordance_source))
+    if not source_path.is_dir():
+        return []
+    try:
+        return sorted(path.name for path in source_path.iterdir() if path.is_dir())
+    except OSError as exc:
+        raise CommandError(
+            f"Could not inspect local concordance directory {concordance_source}: {exc}"
+        ) from exc
+
+
+def _precheck_giab_truth_files(
+    normalized: Mapping[str, str],
+    *,
+    row_number: int,
+    concordance_source: str,
+    reference_bucket: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> Tuple[List[PrecheckIssue], int]:
+    try:
+        should_check = should_precheck_giab_truth(normalized)
+        has_giab_path = is_giab_control(normalized)
+    except CommandError:
+        return [], 0
+    if not should_check:
+        return [], 0
+
+    issues: List[PrecheckIssue] = []
+    checked = 0
+    if get_entry_value(normalized, IS_POS_CTRL).lower() == "true" and not has_giab_path:
+        return [
+            _row_issue(
+                normalized,
+                row_number=row_number,
+                field=IS_POS_CTRL,
+                path=concordance_source,
+                message=(
+                    "IS_POS_CTRL=true requires a GIAB concordance path under /controls/giab/ "
+                    "for truth validation."
+                ),
+            )
+        ], checked
+
+    external_sample_id = get_entry_value(normalized, EXTERNAL_SAMPLE_ID)
+    if not external_sample_id or external_sample_id.lower() == "na":
+        return [
+            _row_issue(
+                normalized,
+                row_number=row_number,
+                field=EXTERNAL_SAMPLE_ID,
+                message="Positive GIAB controls require EXTERNAL_SAMPLE_ID for truth file lookup.",
+            )
+        ], checked
+
+    try:
+        roi_dirs = detect_giab_roi_dirs(
+            concordance_source,
+            reference_bucket=reference_bucket,
+            aws_env=aws_env,
+            debug=debug,
+        )
+    except CommandError as exc:
+        return [
+            _row_issue(
+                normalized,
+                row_number=row_number,
+                field=CONCORDANCE_CONTROL_PATH,
+                path=concordance_source,
+                message=f"Could not inspect GIAB ROI directories: {exc}",
+            )
+        ], checked
+
+    if not roi_dirs:
+        return [
+            _row_issue(
+                normalized,
+                row_number=row_number,
+                field=CONCORDANCE_CONTROL_PATH,
+                path=concordance_source,
+                message="Positive GIAB control has no detected ROI directories.",
+            )
+        ], checked
+
+    for roi in roi_dirs:
+        missing_suffixes: List[str] = []
+        truth_base = f"{concordance_source.rstrip('/')}/{roi}/{external_sample_id}"
+        for suffix in GIAB_TRUTH_SUFFIXES:
+            checked += 1
+            truth_path = f"{truth_base}{suffix}"
+            try:
+                check_source_path(
+                    truth_path,
+                    reference_bucket=reference_bucket,
+                    aws_env=aws_env,
+                    debug=debug,
+                )
+            except CommandError:
+                missing_suffixes.append(suffix)
+        if missing_suffixes:
+            issues.append(
+                _row_issue(
+                    normalized,
+                    row_number=row_number,
+                    field=EXTERNAL_SAMPLE_ID,
+                    path=truth_base,
+                    message=(
+                        f"GIAB truth files missing for EXTERNAL_SAMPLE_ID={external_sample_id} "
+                        f"in ROI {roi}: {', '.join(missing_suffixes)}."
+                    ),
+                )
+            )
+    return issues, checked
+
+
+def _precheck_manifest_groups(rows: Sequence[ManifestRow]) -> List[PrecheckIssue]:
+    issues: List[PrecheckIssue] = []
+
+    grouped_rows: Dict[Tuple[str, ...], List[ManifestRow]] = defaultdict(list)
+    for row in rows:
+        grouped_rows[merge_grouping_key(row)].append(row)
+    for entries in grouped_rows.values():
+        first = entries[0]
+        try:
+            if should_merge_rows(entries):
+                _composite_sample_id, sample_name, _sample_prefix, _unused = build_sample_context(
+                    first
+                )
+                if first.unit.lane == "0":
+                    raise CommandError(f"Invalid LANE=0 for multi-lane sample: {sample_name}")
+                reject_duplicate_multi_lane_sources(entries, sample_name=sample_name)
+        except CommandError as exc:
+            issues.append(
+                _issue_from_exception(
+                    first.original,
+                    row_number=first.row_number or 0,
+                    default_field="multi-lane group",
+                    exc=exc,
+                )
+            )
+
+    sample_concordance_sources: Dict[str, str] = {}
+    sample_rows: Dict[str, Dict[str, str]] = {}
+    for row in rows:
+        sample_id = row.sample.sample_id
+        source = row.sample.path_to_concordance
+        existing_source = sample_concordance_sources.get(sample_id)
+        if existing_source is not None and existing_source != source:
+            issues.append(
+                _row_issue(
+                    row.original,
+                    row_number=row.row_number or 0,
+                    field=CONCORDANCE_CONTROL_PATH,
+                    path=source,
+                    message=f"Duplicate SAMPLEID with conflicting concordance source: {sample_id}",
+                )
+            )
+        sample_concordance_sources.setdefault(sample_id, source)
+
+        samples_row = build_samples_row(row, concordance_path=source)
+        existing_row = sample_rows.get(sample_id)
+        if existing_row is not None and existing_row != samples_row:
+            issues.append(
+                _row_issue(
+                    row.original,
+                    row_number=row.row_number or 0,
+                    field=SAMPLE_ID,
+                    path=sample_id,
+                    message=f"Duplicate SAMPLEID with conflicting metadata: {sample_id}",
+                )
+            )
+        sample_rows.setdefault(sample_id, samples_row)
+
+    return issues
+
+
+def precheck_manifest(
+    analysis_samples: Path,
+    *,
+    reference_bucket: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> Tuple[PrecheckReport, List[ManifestRow]]:
+    rows: List[ManifestRow] = []
+    issues: List[PrecheckIssue] = []
+    samples_checked: set[str] = set()
+    rows_checked = 0
+    source_objects_checked = 0
+    concordance_dirs_checked = 0
+
+    with analysis_samples.open(newline="") as ff:
+        reader = csv.DictReader(ff, delimiter="\t")
+        if reader.fieldnames is None:
+            issues.append(
+                PrecheckIssue(
+                    row_number=1,
+                    sample_id="na",
+                    run_id="na",
+                    field="header",
+                    path=str(analysis_samples),
+                    message="Input TSV is missing a header row.",
+                )
+            )
+            report = PrecheckReport(0, 0, 0, 0, tuple(issues))
+            return report, rows
+
+        header_fields = [field.strip() for field in reader.fieldnames if field and field.strip()]
+        unknown_fields = sorted(set(header_fields) - ALLOWED_MANIFEST_FIELDS)
+        missing_fields = [field for field in MANIFEST_REQUIRED_FIELDS if field not in header_fields]
+        for field_group, message in (
+            (unknown_fields, "Unknown columns in analysis samples manifest"),
+            (missing_fields, "Missing required columns"),
+        ):
+            if not field_group:
+                continue
+            issues.append(
+                PrecheckIssue(
+                    row_number=1,
+                    sample_id="na",
+                    run_id="na",
+                    field="header",
+                    path=str(analysis_samples),
+                    message=f"{message}: {', '.join(field_group)}",
+                )
+            )
+        if issues:
+            report = PrecheckReport(0, 0, 0, 0, tuple(issues))
+            return report, rows
+
+        for row_number, row in enumerate(reader, start=2):
+            if not row:
+                continue
+            try:
+                normalized = normalize_manifest_row(row, row_number=row_number)
+            except CommandError as exc:
+                placeholder = {key: value or "" for key, value in row.items() if key}
+                issues.append(
+                    _issue_from_exception(
+                        placeholder,
+                        row_number=row_number,
+                        default_field="manifest row",
+                        exc=exc,
+                    )
+                )
+                continue
+            if not any(normalized.values()):
+                continue
+
+            rows_checked += 1
+            sample_id = normalise_identifier(get_entry_value(normalized, SAMPLE_ID))
+            if sample_id:
+                samples_checked.add(sample_id)
+
+            row_issues = collect_manifest_row_issues(
+                normalized,
+                row_number=row_number,
+                reference_bucket=reference_bucket,
+                aws_env=aws_env,
+                debug=debug,
+                check_access=False,
+            )
+            issues.extend(row_issues)
+
+            row_has_structural_issues = bool(row_issues)
+
+            for field, path in _source_checks_for_precheck(normalized):
+                source_objects_checked += 1
+                try:
+                    check_source_path(
+                        path,
+                        reference_bucket=reference_bucket,
+                        aws_env=aws_env,
+                        debug=debug,
+                    )
+                except CommandError as exc:
+                    issues.append(
+                        _row_issue(
+                            normalized,
+                            row_number=row_number,
+                            field=field,
+                            path=path,
+                            message=str(exc),
+                        )
+                    )
+
+            ont_fastq_prefix = get_entry_value(normalized, ONT_FASTQ_PREFIX)
+            if ont_fastq_prefix:
+                try:
+                    parse_ont_fastq_prefix(ont_fastq_prefix)
+                    can_resolve_ont_prefix = True
+                except CommandError:
+                    can_resolve_ont_prefix = False
+                if can_resolve_ont_prefix:
+                    source_objects_checked += 1
+                    try:
+                        plan = resolve_ont_fastq_prefix_plan(
+                            ont_fastq_prefix,
+                            flowcell_id=get_entry_value(normalized, ONT_FLOWCELL_ID),
+                            aws_env=aws_env,
+                            debug=debug,
+                        )
+                        source_objects_checked += max(len(plan.shards) - 1, 0)
+                    except CommandError as exc:
+                        issues.append(
+                            _row_issue(
+                                normalized,
+                                row_number=row_number,
+                                field=ONT_FASTQ_PREFIX,
+                                path=ont_fastq_prefix,
+                                message=str(exc),
+                            )
+                        )
+
+            concordance_field, concordance_source = _concordance_source_field(normalized)
+            concordance_accessible = True
+            if is_populated_path(concordance_source):
+                concordance_dirs_checked += 1
+                try:
+                    check_source_path(
+                        concordance_source,
+                        reference_bucket=reference_bucket,
+                        aws_env=aws_env,
+                        debug=debug,
+                        allow_directory=True,
+                    )
+                except CommandError as exc:
+                    concordance_accessible = False
+                    issues.append(
+                        _row_issue(
+                            normalized,
+                            row_number=row_number,
+                            field=concordance_field,
+                            path=concordance_source,
+                            message=str(exc),
+                        )
+                    )
+            if concordance_accessible and is_populated_path(concordance_source):
+                giab_issues, giab_checked = _precheck_giab_truth_files(
+                    normalized,
+                    row_number=row_number,
+                    concordance_source=concordance_source,
+                    reference_bucket=reference_bucket,
+                    aws_env=aws_env,
+                    debug=debug,
+                )
+                issues.extend(giab_issues)
+                source_objects_checked += giab_checked
+
+            if row_has_structural_issues:
+                continue
+
+            try:
+                rows.append(build_manifest_row(normalized, row_number=row_number))
+            except CommandError as exc:
+                issues.append(
+                    _issue_from_exception(
+                        normalized,
+                        row_number=row_number,
+                        default_field="manifest row",
+                        exc=exc,
+                    )
+                )
+
+    issues.extend(_precheck_manifest_groups(rows))
+    report = PrecheckReport(
+        rows_checked=rows_checked,
+        samples_checked=len(samples_checked),
+        source_objects_checked=source_objects_checked,
+        concordance_dirs_checked=concordance_dirs_checked,
+        issues=tuple(issues),
+    )
+    return report, rows
+
+
+def format_precheck_success(report: PrecheckReport) -> str:
+    return (
+        "Precheck passed: "
+        f"rows checked={report.rows_checked}, "
+        f"samples checked={report.samples_checked}, "
+        f"source objects checked={report.source_objects_checked}, "
+        f"concordance directories checked={report.concordance_dirs_checked}."
+    )
+
+
+def format_precheck_failure(report: PrecheckReport) -> str:
+    lines = [
+        "Precheck failed; no files were copied.",
+        (
+            "Summary: "
+            f"rows checked={report.rows_checked}, "
+            f"samples checked={report.samples_checked}, "
+            f"source objects checked={report.source_objects_checked}, "
+            f"concordance directories checked={report.concordance_dirs_checked}."
+        ),
+        "Blockers:",
+    ]
+    grouped: Dict[Tuple[int, str, str], List[PrecheckIssue]] = defaultdict(list)
+    for issue in report.issues:
+        grouped[(issue.row_number, issue.sample_id, issue.run_id)].append(issue)
+    for row_number, sample_id, run_id in sorted(grouped):
+        lines.append(f"- row {row_number}; SAMPLE_ID={sample_id}; RUN_ID={run_id}")
+        for issue in grouped[(row_number, sample_id, run_id)]:
+            path_suffix = f"; path={issue.path}" if issue.path else ""
+            lines.append(f"  - field={issue.field}{path_suffix}: {issue.message}")
+    return "\n".join(lines)
 
 
 def _row_source_groups(row: Mapping[str, str]) -> set[str]:
@@ -2159,14 +2835,8 @@ def process_samples(
     reference_bucket: str,
     aws_env: Dict[str, str],
     debug: bool,
+    rows: Sequence[ManifestRow],
 ) -> Tuple[List[Dict[str, str]], List[Dict[str, str]], List[str], List[str]]:
-    rows = load_manifest_rows(
-        analysis_samples,
-        reference_bucket=reference_bucket,
-        aws_env=aws_env,
-        debug=debug,
-    )
-
     grouped_rows: Dict[Tuple[str, ...], List[ManifestRow]] = defaultdict(list)
     for row in rows:
         grouped_rows[merge_grouping_key(row)].append(row)
@@ -2351,9 +3021,11 @@ def process_samples(
                 (ONT_CRAM, (".crai",)),
                 (
                     PB_BAM,
-                    (".csi",)
-                    if get_entry_value(entry.units_passthrough, PB_BAM_ALIGNER).lower() == "pb"
-                    else (),
+                    (
+                        (".csi",)
+                        if get_entry_value(entry.units_passthrough, PB_BAM_ALIGNER).lower() == "pb"
+                        else ()
+                    ),
                 ),
                 (ONT_BAM, ()),
                 (ROCHE_BAM, ()),
@@ -2423,6 +3095,19 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     aws_env = build_aws_env(aws_config)
 
     stage = build_stage_paths(args.stage_target, args.reference_bucket)
+    precheck_report, prechecked_rows = precheck_manifest(
+        analysis_samples,
+        reference_bucket=args.reference_bucket,
+        aws_env=aws_env,
+        debug=args.debug,
+    )
+    if precheck_report.issues:
+        print(format_precheck_failure(precheck_report), file=sys.stderr)
+        return 1
+    print(format_precheck_success(precheck_report))
+    if args.precheck_only:
+        return 0
+
     ensure_remote_stage_writable(stage, aws_env=aws_env, debug=args.debug)
 
     samples_rows, units_rows, created_files, _run_ids = process_samples(
@@ -2431,6 +3116,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         reference_bucket=args.reference_bucket,
         aws_env=aws_env,
         debug=args.debug,
+        rows=prechecked_rows,
     )
 
     timestamp = stage.remote_stage_name.replace("remote_stage_", "")

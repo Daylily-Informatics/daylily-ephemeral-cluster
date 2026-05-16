@@ -241,7 +241,7 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--genome", default="hg38")
     parser.add_argument("--jobs", type=int, default=6)
     parser.add_argument("--aligners", default="bwa2a")
-    parser.add_argument("--dedupers", default="dppl")
+    parser.add_argument("--dedupers", default="dmd")
     parser.add_argument("--snv-callers", default="deep")
     parser.add_argument("--sv-callers", default="")
     parser.add_argument("--target", default="produce_snv_concordances")

@@ -75,7 +75,7 @@ if [[ ! -d daylily-omics-analysis/.git ]]; then
 fi
 session_name={session_name}
 tmux new-session -d -s "$session_name" \
-  "bash -lc 'source ~/.bashrc && source ~/projects/daylily-ephemeral-cluster/activate && eval \"$(daylily-ec headnode init --emit-shell --non-interactive)\" && cd /fsx/analysis_results/ubuntu/daylily_remote_test/daylily-omics-analysis && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=true ./bin/day_run produce_snv_concordances -p -k -j 2 --config aligners=[\\\"strobe\\\",\\\"bwa2a\\\"] dedupers=[\\\"dppl\\\"] genome_build=\\\"hg38\\\" snv_callers=[\\\"deep\\\"]; bash'"
+  "bash -lc 'source ~/.bashrc && source ~/projects/daylily-ephemeral-cluster/activate && eval \"$(daylily-ec headnode init --emit-shell --non-interactive)\" && cd /fsx/analysis_results/ubuntu/daylily_remote_test/daylily-omics-analysis && source bin/day_activate slurm hg38 remote && DAY_CONTAINERIZED=true ./bin/day_run produce_bwa2a_align produce_strobe_align produce_dmd_dedup_cram produce_deep19_snv_vcf produce_snv_concordances -p -k -j 2 --config genome_build=\\\"hg38\\\"; bash'"
 echo "__DAYLILY_SESSION__=$session_name"
 """
 

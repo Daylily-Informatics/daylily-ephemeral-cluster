@@ -32,7 +32,15 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert catalog.command_catalog_version == 1
     assert command.repository == "daylily-omics-analysis"
     assert command.datasource == "Illumina"
-    assert command.targets == ["produce_snv_concordances", "produce_alignstats"]
+    assert command.targets == [
+        "produce_sent_align",
+        "produce_dmd_dedup_cram",
+        "produce_sentd_snv_vcf",
+        "produce_snv_concordances",
+        "produce_alignstats",
+    ]
+    assert command.aligners == ["sent"]
+    assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
     assert command.git_tag == "0.7.755"
@@ -74,19 +82,30 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     complete_genomics = catalog.get_command("complete_genomics_mgi_snv_concordance")
     assert complete_genomics.compatible_platforms == ["CG/MGI"]
     assert complete_genomics.compatible_data_modes == ["complete_genomics_solo"]
-    assert "produce_cgt7p_vcf" in complete_genomics.dy_command
-    assert "aligners=['sentcg']" in complete_genomics.dy_command
+    assert "produce_cgt7p_snv_vcf" in complete_genomics.dy_command
+    assert "produce_sentcg_align" in complete_genomics.dy_command
+    assert "produce_smd_dedup_cram" in complete_genomics.dy_command
+    assert "aligners=['sentcg']" not in complete_genomics.dy_command
 
     vep_multiqc = catalog.get_command("illumina_snv_alignstats_relatedness_vep_multiqc")
     assert vep_multiqc.targets == [
+        "produce_sent_align",
+        "produce_dmd_dedup_cram",
+        "produce_sentd_snv_vcf",
         "produce_alignstats",
         "produce_snv_concordances",
         "produce_relatedness",
         "produce_vep",
-        "produce_multiqc_final",
+        "produce_multiqc_all",
     ]
     assert "multiqc_qc=" in vep_multiqc.dy_command
     assert "enable_tools" in vep_multiqc.dy_command
+
+    ont = catalog.get_command("ont_snv_alignstats")
+    assert ont.aligners == ["ont"]
+    assert "produce_sentdont_snv_vcf" in ont.dy_command
+    assert "produce_sentmm2ont_align" not in ont.dy_command
+    assert "produce_na_dedup_cram" not in ont.dy_command
 
 
 def test_repository_catalog_requires_catalog_version(tmp_path: Path) -> None:

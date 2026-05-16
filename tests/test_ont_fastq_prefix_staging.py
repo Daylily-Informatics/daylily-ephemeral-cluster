@@ -294,12 +294,21 @@ def test_process_samples_emits_r1_only_ont_prefix_row_and_sanitizes_run_id(
     monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
     monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
 
+    report, rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+    assert report.issues == (), module.format_precheck_failure(report)
+
     samples_rows, units_rows, created_files, run_ids = module.process_samples(
         analysis_samples,
         _stage_paths(),
         reference_bucket="s3://bucket",
         aws_env={},
         debug=False,
+        rows=rows,
     )
 
     assert run_ids == ["20260401-ONT-run-01"]

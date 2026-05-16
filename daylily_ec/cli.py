@@ -1691,6 +1691,11 @@ def samples_stage(
         "--debug",
         help="Print AWS CLI commands before execution.",
     ),
+    precheck_only: bool = typer.Option(
+        False,
+        "--precheck-only",
+        help="Validate the manifest and exit without staging or writing generated configs.",
+    ),
 ) -> None:
     """Stage analysis samples and generate workflow manifests."""
 
@@ -1710,6 +1715,8 @@ def samples_stage(
         argv.extend(["--region", region])
     if debug:
         argv.append("--debug")
+    if precheck_only:
+        argv.append("--precheck-only")
 
     try:
         rc = _invoke_stage_samples(argv)
@@ -1938,7 +1945,7 @@ def workflow_launch(
     genome: str = typer.Option("hg38", "--genome", help="Genome build."),
     jobs: int = typer.Option(6, "--jobs", help="Snakemake job count."),
     aligners: str = typer.Option("bwa2a", "--aligners", help="Comma-separated aligner list."),
-    dedupers: str = typer.Option("dppl", "--dedupers", help="Comma-separated deduper list."),
+    dedupers: str = typer.Option("dmd", "--dedupers", help="Comma-separated deduper list."),
     snv_callers: str = typer.Option(
         "deep",
         "--snv-callers",

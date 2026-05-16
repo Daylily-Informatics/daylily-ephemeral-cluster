@@ -39,61 +39,61 @@ class WorkflowCommandSpec:
 WORKFLOW_COMMANDS = {
     "ilmn_solo": WorkflowCommandSpec(
         dy_command=(
-            "bin/day_run produce_snv_concordances produce_alignstats "
-            "--config aligners=['sent'] dedupers=['dppl'] snv_callers=['sentd'] "
+            "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf "
+            "produce_snv_concordances produce_alignstats "
             "-p -k -j 2"
         ),
         dryrun_dy_command=(
-            "bin/day_run produce_snv_concordances produce_alignstats "
-            "--config aligners=['sent'] dedupers=['dppl'] snv_callers=['sentd'] "
+            "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf "
+            "produce_snv_concordances produce_alignstats "
             "-p -k -j 2 -n"
         ),
     ),
     "ultima_solo": WorkflowCommandSpec(
         dy_command=(
-            "bin/day_run produce_alignstats produce_sentdug_vcf --config dppl=['na'] -p -j 20 -k"
+            "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf -p -j 20 -k"
         ),
         dryrun_dy_command=(
-            "bin/day_run produce_alignstats produce_sentdug_vcf --config dppl=['na'] -p -j 20 -k -n"
+            "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf -p -j 20 -k -n"
         ),
     ),
     "ont_solo": WorkflowCommandSpec(
         dy_command=(
-            "bin/day_run produce_alignstats produce_sentmm2ont_align_sort "
-            "produce_sentdont_vcf --config dedupers=['na'] -p -j 5 -k"
+            "bin/day_run produce_alignstats produce_sentdont_snv_vcf -p -j 5 -k"
         ),
         dryrun_dy_command=(
-            "bin/day_run produce_alignstats produce_sentmm2ont_align_sort "
-            "produce_sentdont_vcf --config dedupers=['na'] -p -j 5 -k -n"
+            "bin/day_run produce_alignstats produce_sentdont_snv_vcf -p -j 5 -k -n"
         ),
     ),
     "hybrid_ilmn_ont": WorkflowCommandSpec(
         dy_command=(
             "bin/day_run produce_snv_concordances produce_sentdhiom_sv "
-            "produce_sentdhiom_vcf -p -j 100 -k"
+            "produce_sentdhiom_snv_vcf -p -j 100 -k"
         ),
         dryrun_dy_command=(
             "bin/day_run produce_snv_concordances produce_sentdhiom_sv "
-            "produce_sentdhiom_vcf -p -j 100 -k -n"
+            "produce_sentdhiom_snv_vcf -p -j 100 -k -n"
         ),
     ),
     "pacbio_solo": WorkflowCommandSpec(
         dy_command=(
-            "bin/day_run produce_sentdpb_vcf produce_alignstats produce_snv_concordances "
+            "bin/day_run produce_sentmm2_align produce_na_dedup_cram "
+            "produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances "
             "-p -j 2 -k -T 1"
         ),
         dryrun_dy_command=(
-            "bin/day_run produce_sentdpb_vcf produce_alignstats produce_snv_concordances "
+            "bin/day_run produce_sentmm2_align produce_na_dedup_cram "
+            "produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances "
             "-p -j 2 -k -T 1 -n"
         ),
     ),
     "roche_solo": WorkflowCommandSpec(
         dy_command=(
-            "bin/day_run produce_alignstats produce_rochehc_vcf --config dedupers=['na'] -p -j 5 -k"
+            "bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf -p -j 5 -k"
         ),
-        # Roche HC dry-run asks Snakemake to resolve a private Roche container
-        # even in -n mode. The full non-dry-run command stays covered above.
-        dryrun_dy_command="bin/day_run produce_alignstats --config dedupers=['na'] -p -j 5 -k -n",
+        dryrun_dy_command=(
+            "bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf -p -j 5 -k -n"
+        ),
     ),
 }
 

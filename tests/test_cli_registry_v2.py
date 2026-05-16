@@ -1138,6 +1138,7 @@ def test_samples_stage_calls_python_staging_entrypoint(monkeypatch, tmp_path) ->
             "--region",
             "us-west-2",
             "--debug",
+            "--precheck-only",
         ],
     )
 
@@ -1155,6 +1156,7 @@ def test_samples_stage_calls_python_staging_entrypoint(monkeypatch, tmp_path) ->
         "--region",
         "us-west-2",
         "--debug",
+        "--precheck-only",
     ]
 
 
@@ -1282,10 +1284,12 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "--destination" in launch_argv
     assert "cg-run" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "0.7.754" in launch_argv
+    assert "0.7.755" in launch_argv
     assert "--dy-command" in launch_argv
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
-    assert "produce_cgt7p_vcf" in dy_command
+    assert "produce_cgt7p_snv_vcf" in dy_command
+    assert "produce_sentcg_align" in dy_command
+    assert "produce_smd_dedup_cram" in dy_command
     assert dy_command.endswith(" -n")
     assert "--stage-dir" in launch_argv
     assert "/fsx/data/staged_sample_data/remote_stage_20260425T000000Z" in launch_argv

@@ -78,7 +78,7 @@ daylily-ec workflow launch \
   --destination "<analysis-run-id>" \
   --git-tag main \
   --aligners sent \
-  --dedupers dppl \
+  --dedupers dmd \
   --snv-callers sentd
 
 # Or use a catalog command to stage and launch in one CLI call.

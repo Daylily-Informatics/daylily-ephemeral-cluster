@@ -250,6 +250,15 @@ def test_staging_example_manifests_mock_stage_expected_outputs(
     )
     monkeypatch.setattr(module, "resolve_ont_fastq_prefix_plan", _fake_ont_plan)
     monkeypatch.setattr(module, "stage_concordance", fake_stage_concordance)
+    monkeypatch.setattr(module, "detect_giab_roi_dirs", lambda *args, **kwargs: ["giabHC"])
+
+    report, rows = module.precheck_manifest(
+        _manifest_path(example_name),
+        reference_bucket="s3://lsmc-dayoa-omics-analysis-us-west-2",
+        aws_env={},
+        debug=False,
+    )
+    assert report.issues == (), module.format_precheck_failure(report)
 
     samples_rows, units_rows, created_files, run_ids = module.process_samples(
         _manifest_path(example_name),
@@ -257,6 +266,7 @@ def test_staging_example_manifests_mock_stage_expected_outputs(
         reference_bucket="s3://lsmc-dayoa-omics-analysis-us-west-2",
         aws_env={},
         debug=False,
+        rows=rows,
     )
 
     assert len(samples_rows) == 1

@@ -163,7 +163,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     )
     parser.add_argument(
         "--workflow-dedupers",
-        default="dppl",
+        default="dmd",
         help="Comma-separated deduper list passed through to the headnode workflow launcher",
     )
     parser.add_argument(

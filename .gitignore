@@ -27,6 +27,11 @@ tmp-e2e-inputs/
 tmp-e2e-results/
 tmp-stage-config/
 
+# Generated operational artifacts
+/exports/*/fsx_export.yaml
+/processing_prod_data/*_analysis_sample_manifest.tsv
+/processing_prod_data/staged/*/
+
 # macOS filesystem metadata
 .DS_Store
 

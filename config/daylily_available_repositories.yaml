@@ -16,6 +16,9 @@ repositories:
         datasource: Illumina
         launcher: workflow_launch
         targets:
+          - produce_sent_align
+          - produce_dmd_dedup_cram
+          - produce_sentd_snv_vcf
           - produce_snv_concordances
           - produce_alignstats
         genome: hg38_broad
@@ -23,12 +26,12 @@ repositories:
         aligners:
           - sent
         dedupers:
-          - dppl
+          - dmd
         snv_callers:
           - sentd
         sv_callers: []
-        dy_command: "bin/day_run produce_snv_concordances produce_alignstats --config aligners=['sent'] dedupers=['dppl'] snv_callers=['sentd'] -p -k -j 20"
-        dryrun_dy_command: "bin/day_run produce_snv_concordances produce_alignstats --config aligners=['sent'] dedupers=['dppl'] snv_callers=['sentd'] -p -k -j 20 -n"
+        dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20"
+        dryrun_dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20 -n"
         compatible_platforms:
           - ILMN
         compatible_data_modes:
@@ -41,22 +44,25 @@ repositories:
         datasource: Illumina
         launcher: workflow_launch
         targets:
+          - produce_sent_align
+          - produce_dmd_dedup_cram
+          - produce_sentd_snv_vcf
           - produce_alignstats
           - produce_snv_concordances
           - produce_relatedness
           - produce_vep
-          - produce_multiqc_final
+          - produce_multiqc_all
         genome: hg38_broad
         jobs: 100
         aligners:
           - sent
         dedupers:
-          - dppl
+          - dmd
         snv_callers:
           - sentd
         sv_callers: []
-        dy_command: "bin/day_run produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_final --config 'aligners=[\"sent\"]' 'dedupers=[\"dppl\"]' 'snv_callers=[\"sentd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k"
-        dryrun_dy_command: "bin/day_run produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_final --config 'aligners=[\"sent\"]' 'dedupers=[\"dppl\"]' 'snv_callers=[\"sentd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n"
+        dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k"
+        dryrun_dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n"
         compatible_platforms:
           - ILMN
         compatible_data_modes:
@@ -70,7 +76,8 @@ repositories:
         launcher: workflow_launch
         targets:
           - produce_alignstats
-          - produce_sentdug_vcf
+          - produce_na_dedup_cram
+          - produce_sentdug_snv_vcf
           - produce_snv_concordances
         genome: hg38_broad
         jobs: 20
@@ -81,8 +88,8 @@ repositories:
         snv_callers:
           - sentdug
         sv_callers: []
-        dy_command: "bin/day_run produce_alignstats produce_sentdug_vcf produce_snv_concordances --config dppl=['na'] -p -j 20 -k"
-        dryrun_dy_command: "bin/day_run produce_alignstats produce_sentdug_vcf produce_snv_concordances --config dppl=['na'] -p -j 20 -k -n"
+        dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k"
+        dryrun_dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k -n"
         compatible_platforms:
           - ULTIMA
         compatible_data_modes:
@@ -96,20 +103,19 @@ repositories:
         launcher: workflow_launch
         targets:
           - produce_alignstats
-          - produce_sentmm2ont_align_sort
-          - produce_sentdont_vcf
+          - produce_sentdont_snv_vcf
           - produce_snv_concordances
         genome: hg38_broad
         jobs: 5
         aligners:
-          - sentmm2ont
+          - ont
         dedupers:
           - na
         snv_callers:
           - sentdont
         sv_callers: []
-        dy_command: "bin/day_run produce_alignstats produce_sentmm2ont_align_sort produce_sentdont_vcf produce_snv_concordances --config dedupers=['na'] -p -j 5 -k"
-        dryrun_dy_command: "bin/day_run produce_alignstats produce_sentmm2ont_align_sort produce_sentdont_vcf produce_snv_concordances --config dedupers=['na'] -p -j 5 -k -n"
+        dy_command: "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k"
+        dryrun_dy_command: "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k -n"
         compatible_platforms:
           - ONT
         compatible_data_modes:
@@ -122,7 +128,9 @@ repositories:
         datasource: PacBio
         launcher: workflow_launch
         targets:
-          - produce_sentdpb_vcf
+          - produce_sentmm2_align
+          - produce_na_dedup_cram
+          - produce_sentdpb_snv_vcf
           - produce_alignstats
           - produce_snv_concordances
         genome: hg38_broad
@@ -134,8 +142,8 @@ repositories:
         snv_callers:
           - sentdpb
         sv_callers: []
-        dy_command: "bin/day_run produce_sentdpb_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1"
-        dryrun_dy_command: "bin/day_run produce_sentdpb_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1 -n"
+        dy_command: "bin/day_run produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1"
+        dryrun_dy_command: "bin/day_run produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1 -n"
         compatible_platforms:
           - PACBIO
         compatible_data_modes:
@@ -149,7 +157,8 @@ repositories:
         launcher: workflow_launch
         targets:
           - produce_alignstats
-          - produce_rochehc_vcf
+          - produce_na_dedup_cram
+          - produce_rochehc_snv_vcf
         genome: hg38_broad
         jobs: 5
         aligners:
@@ -159,8 +168,8 @@ repositories:
         snv_callers:
           - rochehc
         sv_callers: []
-        dy_command: "bin/day_run produce_alignstats produce_rochehc_vcf --config dedupers=['na'] -p -j 5 -k"
-        dryrun_dy_command: "bin/day_run produce_alignstats --config dedupers=['na'] -p -j 5 -k -n"
+        dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf -p -j 5 -k"
+        dryrun_dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf -p -j 5 -k -n"
         compatible_platforms:
           - ROCHE
         compatible_data_modes:
@@ -175,7 +184,7 @@ repositories:
         targets:
           - produce_snv_concordances
           - produce_sentdhiom_sv
-          - produce_sentdhiom_vcf
+          - produce_sentdhiom_snv_vcf
         genome: hg38_broad
         jobs: 100
         aligners:
@@ -186,8 +195,8 @@ repositories:
           - sentdhiom
         sv_callers:
           - sentdhiom
-        dy_command: "bin/day_run produce_snv_concordances produce_sentdhiom_sv produce_sentdhiom_vcf -p -j 100 -k"
-        dryrun_dy_command: "bin/day_run produce_snv_concordances produce_sentdhiom_sv produce_sentdhiom_vcf -p -j 100 -k -n"
+        dy_command: "bin/day_run produce_snv_concordances produce_sentdhiom_sv produce_sentdhiom_snv_vcf -p -j 100 -k"
+        dryrun_dy_command: "bin/day_run produce_snv_concordances produce_sentdhiom_sv produce_sentdhiom_snv_vcf -p -j 100 -k -n"
         compatible_platforms:
           - ILMN
           - ONT
@@ -201,7 +210,7 @@ repositories:
         datasource: Hybrid Ultima+ONT
         launcher: workflow_launch
         targets:
-          - produce_sentdhuom_vcf
+          - produce_sentdhuom_snv_vcf
           - produce_alignstats
           - produce_snv_concordances
         genome: hg38_broad
@@ -213,8 +222,8 @@ repositories:
         snv_callers:
           - sentdhuom
         sv_callers: []
-        dy_command: "bin/day_run produce_sentdhuom_vcf produce_alignstats produce_snv_concordances -p -j 100 -k"
-        dryrun_dy_command: "bin/day_run produce_sentdhuom_vcf produce_alignstats produce_snv_concordances -p -j 100 -k -n"
+        dy_command: "bin/day_run produce_sentdhuom_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k"
+        dryrun_dy_command: "bin/day_run produce_sentdhuom_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k -n"
         compatible_platforms:
           - ULTIMA
           - ONT
@@ -228,8 +237,10 @@ repositories:
         datasource: Complete Genomics/MGI
         launcher: workflow_launch
         targets:
+          - produce_sentcg_align
+          - produce_smd_dedup_cram
+          - produce_cgt7p_snv_vcf
           - produce_alignstats
-          - produce_cgt7p_vcf
           - produce_snv_concordances
         genome: hg38_broad
         jobs: 20
@@ -240,8 +251,8 @@ repositories:
         snv_callers:
           - cgt7p
         sv_callers: []
-        dy_command: "bin/day_run produce_alignstats produce_cgt7p_vcf produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete --config aligners=['sentcg'] dedupers=['smd'] snv_callers=['cgt7p']"
-        dryrun_dy_command: "bin/day_run produce_alignstats produce_cgt7p_vcf produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete --config aligners=['sentcg'] dedupers=['smd'] snv_callers=['cgt7p'] -n"
+        dy_command: "bin/day_run produce_sentcg_align produce_smd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete"
+        dryrun_dy_command: "bin/day_run produce_sentcg_align produce_smd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete -n"
         compatible_platforms:
           - CG/MGI
         compatible_data_modes:

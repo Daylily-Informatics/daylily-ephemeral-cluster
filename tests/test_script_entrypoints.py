@@ -159,7 +159,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             genome="hg38",
             jobs=8,
             aligners=["bwa2a", "strobe"],
-            dedupers=["dppl"],
+            dedupers=["dmd"],
             snv_callers=["deep"],
             sv_callers=["tiddit"],
             containerized=False,

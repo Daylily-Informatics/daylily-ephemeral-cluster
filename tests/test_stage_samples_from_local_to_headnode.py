@@ -22,6 +22,52 @@ def _write_manifest(tmp_path: Path, header: str, rows: list[str]) -> Path:
     return path
 
 
+def _prechecked_rows(
+    monkeypatch: pytest.MonkeyPatch,
+    analysis_samples: Path,
+    *,
+    reference_bucket: str = "s3://bucket",
+    aws_env: dict[str, str] | None = None,
+    debug: bool = False,
+) -> list[module.ManifestRow]:
+    monkeypatch.setattr(module, "detect_giab_roi_dirs", lambda *args, **kwargs: ["giabHC"])
+    report, rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket=reference_bucket,
+        aws_env=aws_env or {},
+        debug=debug,
+    )
+    assert report.issues == (), module.format_precheck_failure(report)
+    return rows
+
+
+def _process_samples(
+    monkeypatch: pytest.MonkeyPatch,
+    analysis_samples: Path,
+    stage: module.StagePaths,
+    *,
+    reference_bucket: str = "s3://bucket",
+    aws_env: dict[str, str] | None = None,
+    debug: bool = False,
+) -> tuple[list[dict[str, str]], list[dict[str, str]], list[str], list[str]]:
+    resolved_aws_env = aws_env or {}
+    rows = _prechecked_rows(
+        monkeypatch,
+        analysis_samples,
+        reference_bucket=reference_bucket,
+        aws_env=resolved_aws_env,
+        debug=debug,
+    )
+    return module.process_samples(
+        analysis_samples,
+        stage,
+        reference_bucket=reference_bucket,
+        aws_env=resolved_aws_env,
+        debug=debug,
+        rows=rows,
+    )
+
+
 def test_headnode_visible_path_maps_data_prefix_to_fsx() -> None:
     assert module.headnode_visible_path("/data") == "/fsx/data"
     assert (
@@ -29,6 +75,18 @@ def test_headnode_visible_path_maps_data_prefix_to_fsx() -> None:
         == "/fsx/data/staged_sample_data/remote_stage_1"
     )
     assert module.headnode_visible_path("/tmp/local") == "/tmp/local"
+
+
+def test_process_samples_requires_prechecked_rows(tmp_path: Path) -> None:
+    analysis_samples = tmp_path / "analysis_samples.tsv"
+    with pytest.raises(TypeError, match="rows"):
+        module.process_samples(
+            analysis_samples,
+            _stage_paths(),
+            reference_bucket="s3://bucket",
+            aws_env={},
+            debug=False,
+        )
 
 
 def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
@@ -100,12 +158,10 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
     )
     monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
 
-    samples_rows, units_rows, created_files, run_ids = module.process_samples(
+    samples_rows, units_rows, created_files, run_ids = _process_samples(
+        monkeypatch,
         analysis_samples,
         _stage_paths(),
-        reference_bucket="s3://bucket",
-        aws_env={},
-        debug=False,
     )
 
     assert module.ILMN_TRIM_READ_LENGTH in module.UNITS_HEADER
@@ -123,7 +179,7 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
             "SAMPLECLASS": "research",
             "BIOLOGICAL_SEX": "male",
             "CONCORDANCE_CONTROL_PATH": "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
-            "IS_POSITIVE_CONTROL": "true",
+            "IS_POSITIVE_CONTROL": "false",
             "IS_NEGATIVE_CONTROL": "false",
             "SAMPLE_TYPE": "blood",
             "TUM_NRM_SAMPLEID_MATCH": "na",
@@ -145,7 +201,7 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
     assert units_row["SEQ_PLATFORM"] == "NOVASEQ"
     assert units_row["ILMN_R1_PATH"].endswith("HG002_0.1x_R1.fastq.gz")
     assert units_row["ILMN_R2_PATH"].endswith("HG002_0.1x_R2.fastq.gz")
-    assert units_row["SAMPLEUSE"] == "posControl"
+    assert units_row["SAMPLEUSE"] == "sample"
     assert units_row["BWA_KMER"] == "19"
     assert units_row["ONT_CRAM"] == ""
     assert units_row["PB_BAM"] == ""
@@ -207,12 +263,10 @@ def test_process_samples_emits_complete_genomics_fastq_rows(
     )
     monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
 
-    samples_rows, units_rows, _created_files, run_ids = module.process_samples(
+    samples_rows, units_rows, _created_files, run_ids = _process_samples(
+        monkeypatch,
         analysis_samples,
         _stage_paths(),
-        reference_bucket="s3://bucket",
-        aws_env={},
-        debug=False,
     )
 
     assert module.detect_manifest_data_modes(analysis_samples) == ["complete_genomics_solo"]
@@ -269,14 +323,16 @@ def test_process_samples_rejects_incomplete_complete_genomics_fastq_pair(
 
     monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
 
-    with pytest.raises(module.CommandError, match="must populate both CG_R1_FQ and CG_R2_FQ"):
-        module.process_samples(
-            analysis_samples,
-            _stage_paths(),
-            reference_bucket="s3://bucket",
-            aws_env={},
-            debug=False,
-        )
+    report, _rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert any(
+        "must populate both CG_R1_FQ and CG_R2_FQ" in issue.message for issue in report.issues
+    )
 
 
 def test_process_samples_rejects_duplicate_multi_lane_fastq_pairs(
@@ -360,14 +416,16 @@ def test_process_samples_rejects_duplicate_multi_lane_fastq_pairs(
 
     monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
 
-    with pytest.raises(module.CommandError, match="Duplicate FASTQ lane sources are not supported"):
-        module.process_samples(
-            analysis_samples,
-            _stage_paths(),
-            reference_bucket="s3://bucket",
-            aws_env={},
-            debug=False,
-        )
+    report, _rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert any(
+        "Duplicate FASTQ lane sources are not supported" in issue.message for issue in report.issues
+    )
 
 
 def test_process_samples_emits_ultima_cram_unit_rows(
@@ -429,12 +487,10 @@ def test_process_samples_emits_ultima_cram_unit_rows(
     monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
     monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
 
-    samples_rows, units_rows, created_files, run_ids = module.process_samples(
+    samples_rows, units_rows, created_files, run_ids = _process_samples(
+        monkeypatch,
         analysis_samples,
         _stage_paths(),
-        reference_bucket="s3://bucket",
-        aws_env={},
-        debug=False,
     )
 
     assert run_ids == ["Ug1"]
@@ -521,12 +577,10 @@ def test_process_samples_emits_ont_cram_rows(
     monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
     monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
 
-    _samples_rows, units_rows, created_files, run_ids = module.process_samples(
+    _samples_rows, units_rows, created_files, run_ids = _process_samples(
+        monkeypatch,
         analysis_samples,
         _stage_paths(),
-        reference_bucket="s3://bucket",
-        aws_env={},
-        debug=False,
     )
 
     assert run_ids == ["On1"]
@@ -603,6 +657,7 @@ def test_process_samples_emits_ont_fastq_prefix_rows(
                 "ONT_FLOWCELL_ID",
                 "STAGE_DIRECTIVE",
                 "DEEP_MODEL",
+                "EXTERNAL_SAMPLE_ID",
             ]
         ),
         [
@@ -622,6 +677,7 @@ def test_process_samples_emits_ont_fastq_prefix_rows(
                     "PBK85691",
                     "stage_data",
                     "ONT_R104",
+                    "HG003",
                 ]
             )
         ],
@@ -663,12 +719,10 @@ def test_process_samples_emits_ont_fastq_prefix_rows(
     monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
     monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
 
-    _samples_rows, units_rows, created_files, run_ids = module.process_samples(
+    _samples_rows, units_rows, created_files, run_ids = _process_samples(
+        monkeypatch,
         analysis_samples,
         _stage_paths(),
-        reference_bucket="s3://bucket",
-        aws_env={},
-        debug=False,
     )
 
     assert module.detect_manifest_data_modes(analysis_samples) == ["ont_solo"]
@@ -722,7 +776,10 @@ def test_ont_fastq_prefix_rejects_missing_run_output_metadata(
         if uri == _ont_run_root():
             return [
                 *_valid_ont_objects(prefix),
-                _s3_obj(f"{_ont_run_root()}pod5_pass/barcode03/PBK85691_pass_barcode03_9b079e46_1709963d_0.pod5", 40),
+                _s3_obj(
+                    f"{_ont_run_root()}pod5_pass/barcode03/PBK85691_pass_barcode03_9b079e46_1709963d_0.pod5",
+                    40,
+                ),
             ]
         raise AssertionError(uri)
 
@@ -773,7 +830,9 @@ def test_ont_fastq_concat_bundles_small_shards(
     )
 
     assert uploaded_groups == [[shard.filename for shard in shards]]
-    assert [source.uri for source in concat_sources] == ["s3://bucket/stage/_parts/bundle-1.fastq.gz"]
+    assert [source.uri for source in concat_sources] == [
+        "s3://bucket/stage/_parts/bundle-1.fastq.gz"
+    ]
     assert uploaded == ["s3://bucket/stage/_parts/bundle-1.fastq.gz"]
 
 
@@ -861,12 +920,10 @@ def test_process_samples_emits_hybrid_ilmn_ont_rows(
     )
     monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
 
-    _samples_rows, units_rows, created_files, _run_ids = module.process_samples(
+    _samples_rows, units_rows, created_files, _run_ids = _process_samples(
+        monkeypatch,
         analysis_samples,
         _stage_paths(),
-        reference_bucket="s3://bucket",
-        aws_env={},
-        debug=False,
     )
 
     assert units_rows[0]["ILMN_R1_PATH"].endswith("HG003_1x_R1.fastq.gz")
@@ -971,12 +1028,10 @@ def test_process_samples_emits_pacbio_and_roche_rows(
     monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
     monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
 
-    _samples_rows, units_rows, created_files, run_ids = module.process_samples(
+    _samples_rows, units_rows, created_files, run_ids = _process_samples(
+        monkeypatch,
         analysis_samples,
         _stage_paths(),
-        reference_bucket="s3://bucket",
-        aws_env={},
-        debug=False,
     )
 
     assert created_files == []
@@ -1035,14 +1090,14 @@ def test_process_samples_rejects_ultima_cram_without_crai(
         ],
     )
 
-    with pytest.raises(module.CommandError, match="Local path not found"):
-        module.process_samples(
-            analysis_samples,
-            _stage_paths(),
-            reference_bucket="s3://bucket",
-            aws_env={},
-            debug=False,
-        )
+    report, _rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert any("Local path not found" in issue.message for issue in report.issues)
 
 
 def test_stage_path_with_sidecars_stages_cram_before_crai(
@@ -1075,3 +1130,574 @@ def test_stage_path_with_sidecars_stages_cram_before_crai(
         "/data/staged_sample_data/remote_stage_test/sample/sample.cram",
         "/data/staged_sample_data/remote_stage_test/sample/sample.cram.crai",
     ]
+
+
+def _minimal_ilmn_header() -> str:
+    return "\t".join(
+        [
+            "RUN_ID",
+            "SAMPLE_ID",
+            "EXPERIMENTID",
+            "SAMPLE_TYPE",
+            "LIB_PREP",
+            "SEQ_VENDOR",
+            "SEQ_PLATFORM",
+            "LANE",
+            "SEQBC_ID",
+            "ILMN_R1_FQ",
+            "ILMN_R2_FQ",
+            "STAGE_DIRECTIVE",
+        ]
+    )
+
+
+def _minimal_ilmn_row(
+    *,
+    run_id: str = "R1",
+    sample_id: str = "S1",
+    r1: str = "s3://bucket/S1_R1.fastq.gz",
+    r2: str = "s3://bucket/S1_R2.fastq.gz",
+) -> str:
+    return "\t".join(
+        [
+            run_id,
+            sample_id,
+            "exp1",
+            "blood",
+            "PCR-FREE",
+            "ILMN",
+            "NOVASEQ",
+            "1",
+            "BC1",
+            r1,
+            r2,
+            "stage_data",
+        ]
+    )
+
+
+def test_precheck_manifest_collects_multiple_row_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        _minimal_ilmn_header(),
+        [
+            _minimal_ilmn_row(sample_id="S1", r1="s3://missing/S1_R1.fastq.gz"),
+            _minimal_ilmn_row(sample_id="S2", r2="s3://missing/S2_R2.fastq.gz"),
+        ],
+    )
+
+    def fake_check_source_path(path: str, **_kwargs: object) -> None:
+        if path.startswith("s3://missing/"):
+            raise module.CommandError(f"S3 object or prefix not accessible: {path}")
+
+    monkeypatch.setattr(module, "check_source_path", fake_check_source_path)
+
+    report, rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert len(rows) == 2
+    assert report.rows_checked == 2
+    assert report.samples_checked == 2
+    assert report.source_objects_checked == 4
+    assert [(issue.row_number, issue.sample_id, issue.field) for issue in report.issues] == [
+        (2, "S1", "ILMN_R1_FQ"),
+        (3, "S2", "ILMN_R2_FQ"),
+    ]
+    failure = module.format_precheck_failure(report)
+    assert "Precheck failed; no files were copied." in failure
+    assert "SAMPLE_ID=S1" in failure
+    assert "SAMPLE_ID=S2" in failure
+
+
+def test_precheck_manifest_collects_multiple_structural_errors_in_one_row(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "ONT_FASTQ_PREFIX",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "R1",
+                    "S1",
+                    "exp1",
+                    "blood",
+                    "PCR-FREE",
+                    "ILMN",
+                    "NOVASEQ",
+                    "1",
+                    "BC1",
+                    "s3://bucket/S1_R1.fastq.gz",
+                    "s3://bucket/S1_R2.fastq.gz",
+                    "s3://bucket/not_an_ont_run/fastq_pass/barcode01/",
+                    "pass_through",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+
+    report, _rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    messages = [issue.message for issue in report.issues if issue.row_number == 2]
+    assert any("requires SEQ_VENDOR=ONT" in message for message in messages)
+    assert any("must not combine ONT_FASTQ_PREFIX" in message for message in messages)
+    assert any("requires STAGE_DIRECTIVE=stage_data" in message for message in messages)
+
+
+def test_precheck_manifest_rejects_giab_replicate_external_id(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    header = "\t".join(
+        [
+            "RUN_ID",
+            "SAMPLE_ID",
+            "EXPERIMENTID",
+            "SAMPLE_TYPE",
+            "LIB_PREP",
+            "SEQ_VENDOR",
+            "SEQ_PLATFORM",
+            "LANE",
+            "SEQBC_ID",
+            "PATH_TO_CONCORDANCE_DATA_DIR",
+            "ILMN_R1_FQ",
+            "ILMN_R2_FQ",
+            "STAGE_DIRECTIVE",
+            "IS_POS_CTRL",
+            "EXTERNAL_SAMPLE_ID",
+        ]
+    )
+    concordance = (
+        "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/"
+        "controls/giab/snv/v4.2.1/HG001"
+    )
+
+    def row(external_sample_id: str) -> str:
+        return "\t".join(
+            [
+                "R1",
+                "HG001-a",
+                "exp1",
+                "blood",
+                "PCR-FREE",
+                "ILMN",
+                "NOVASEQ",
+                "1",
+                "BC1",
+                concordance,
+                "s3://bucket/HG001-a_R1.fastq.gz",
+                "s3://bucket/HG001-a_R2.fastq.gz",
+                "stage_data",
+                "true",
+                external_sample_id,
+            ]
+        )
+
+    def fake_check_source_path(path: str, **_kwargs: object) -> None:
+        if path.startswith("s3://bucket/") or path == concordance:
+            return
+        if any(path.endswith(f"/giabHC/HG001{suffix}") for suffix in module.GIAB_TRUTH_SUFFIXES):
+            return
+        raise module.CommandError(f"Path not accessible: {path}")
+
+    monkeypatch.setattr(module, "check_source_path", fake_check_source_path)
+    monkeypatch.setattr(module, "detect_giab_roi_dirs", lambda *args, **kwargs: ["giabHC"])
+
+    bad_manifest = _write_manifest(tmp_path, header, [row("HG001-a")])
+    bad_report, _bad_rows = module.precheck_manifest(
+        bad_manifest,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert len(bad_report.issues) == 1
+    assert bad_report.issues[0].field == "EXTERNAL_SAMPLE_ID"
+    assert "EXTERNAL_SAMPLE_ID=HG001-a" in bad_report.issues[0].message
+
+    good_manifest = _write_manifest(tmp_path, header, [row("HG001")])
+    good_report, _good_rows = module.precheck_manifest(
+        good_manifest,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert good_report.issues == ()
+    assert good_report.source_objects_checked == 5
+    assert good_report.concordance_dirs_checked == 1
+
+
+def test_precheck_manifest_respects_explicit_false_positive_control(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    concordance = (
+        "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/"
+        "controls/giab/snv/v4.2.1/HG001"
+    )
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "STAGE_DIRECTIVE",
+                "IS_POS_CTRL",
+                "EXTERNAL_SAMPLE_ID",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "R1",
+                    "HG001-a",
+                    "exp1",
+                    "blood",
+                    "PCR-FREE",
+                    "ILMN",
+                    "NOVASEQ",
+                    "1",
+                    "BC1",
+                    concordance,
+                    "s3://bucket/HG001-a_R1.fastq.gz",
+                    "s3://bucket/HG001-a_R2.fastq.gz",
+                    "stage_data",
+                    "false",
+                    "HG001-a",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        module,
+        "detect_giab_roi_dirs",
+        lambda *args, **kwargs: pytest.fail("IS_POS_CTRL=false must not run GIAB truth checks"),
+    )
+
+    report, rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert report.issues == ()
+    assert rows[0].sample.is_pos_ctrl == "false"
+
+
+def test_precheck_manifest_infers_positive_control_when_flag_is_omitted(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    concordance = (
+        "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/"
+        "controls/giab/snv/v4.2.1/HG001"
+    )
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "STAGE_DIRECTIVE",
+                "EXTERNAL_SAMPLE_ID",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "R1",
+                    "HG001",
+                    "exp1",
+                    "blood",
+                    "PCR-FREE",
+                    "ILMN",
+                    "NOVASEQ",
+                    "1",
+                    "BC1",
+                    concordance,
+                    "s3://bucket/HG001_R1.fastq.gz",
+                    "s3://bucket/HG001_R2.fastq.gz",
+                    "stage_data",
+                    "HG001",
+                ]
+            )
+        ],
+    )
+
+    def fake_check_source_path(path: str, **_kwargs: object) -> None:
+        if path.startswith("s3://bucket/") or path == concordance:
+            return
+        if any(path.endswith(f"/giabHC/HG001{suffix}") for suffix in module.GIAB_TRUTH_SUFFIXES):
+            return
+        raise module.CommandError(f"Path not accessible: {path}")
+
+    monkeypatch.setattr(module, "check_source_path", fake_check_source_path)
+    monkeypatch.setattr(module, "detect_giab_roi_dirs", lambda *args, **kwargs: ["giabHC"])
+
+    report, rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert report.issues == ()
+    assert rows[0].sample.is_pos_ctrl == "true"
+
+
+def test_precheck_manifest_rejects_explicit_positive_control_with_non_giab_path(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    concordance = "/fsx/data/non_giab_controls/HG001"
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "STAGE_DIRECTIVE",
+                "IS_POS_CTRL",
+                "EXTERNAL_SAMPLE_ID",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "R1",
+                    "HG001",
+                    "exp1",
+                    "blood",
+                    "PCR-FREE",
+                    "ILMN",
+                    "NOVASEQ",
+                    "1",
+                    "BC1",
+                    concordance,
+                    "s3://bucket/HG001_R1.fastq.gz",
+                    "s3://bucket/HG001_R2.fastq.gz",
+                    "stage_data",
+                    "true",
+                    "HG001",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+
+    report, _rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert any(
+        issue.field == "IS_POS_CTRL" and "requires a GIAB concordance path" in issue.message
+        for issue in report.issues
+    )
+
+
+def test_main_precheck_failure_does_not_stage_or_write_configs(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        _minimal_ilmn_header(),
+        [_minimal_ilmn_row(r1="s3://missing/S1_R1.fastq.gz")],
+    )
+    forbidden_calls: list[str] = []
+
+    def forbidden(name: str):
+        def _inner(*_args: object, **_kwargs: object) -> object:
+            forbidden_calls.append(name)
+            raise AssertionError(f"{name} should not run after a failed precheck")
+
+        return _inner
+
+    def fake_check_source_path(path: str, **_kwargs: object) -> None:
+        if path.startswith("s3://missing/"):
+            raise module.CommandError(f"S3 object or prefix not accessible: {path}")
+
+    monkeypatch.setattr(module, "check_source_path", fake_check_source_path)
+    monkeypatch.setattr(module, "ensure_remote_stage_writable", forbidden("write-test"))
+    monkeypatch.setattr(module, "stage_single_lane", forbidden("stage_single_lane"))
+    monkeypatch.setattr(module, "stage_path_with_sidecars", forbidden("stage_path_with_sidecars"))
+    monkeypatch.setattr(module, "stage_concordance", forbidden("stage_concordance"))
+    monkeypatch.setattr(module, "aws_copy", forbidden("aws_copy"))
+    monkeypatch.setattr(module, "write_tsv", forbidden("write_tsv"))
+
+    rc = module.main(
+        [
+            str(analysis_samples),
+            "--reference-bucket",
+            "s3://bucket",
+            "--profile",
+            "test",
+            "--region",
+            "us-west-2",
+            "--config-dir",
+            str(tmp_path / "config"),
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert rc == 1
+    assert "Precheck failed; no files were copied." in captured.err
+    assert "Precheck passed" not in captured.out
+    assert forbidden_calls == []
+    assert not (tmp_path / "config").exists()
+
+
+def test_main_precheck_only_clean_manifest_exits_without_copies(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        _minimal_ilmn_header(),
+        [_minimal_ilmn_row()],
+    )
+
+    def forbidden(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("precheck-only should not stage, write configs, or upload")
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+    monkeypatch.setattr(module, "ensure_remote_stage_writable", forbidden)
+    monkeypatch.setattr(module, "stage_single_lane", forbidden)
+    monkeypatch.setattr(module, "stage_path_with_sidecars", forbidden)
+    monkeypatch.setattr(module, "stage_concordance", forbidden)
+    monkeypatch.setattr(module, "aws_copy", forbidden)
+    monkeypatch.setattr(module, "write_tsv", forbidden)
+
+    rc = module.main(
+        [
+            str(analysis_samples),
+            "--reference-bucket",
+            "s3://bucket",
+            "--profile",
+            "test",
+            "--region",
+            "us-west-2",
+            "--precheck-only",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert rc == 0
+    assert "Precheck passed:" in captured.out
+    assert captured.err == ""
+
+
+def test_main_precheck_only_bad_manifest_reports_aggregated_errors(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        _minimal_ilmn_header(),
+        [
+            _minimal_ilmn_row(sample_id="S1", r1="s3://missing/S1_R1.fastq.gz"),
+            _minimal_ilmn_row(sample_id="S2", r2="s3://missing/S2_R2.fastq.gz"),
+        ],
+    )
+
+    def fake_check_source_path(path: str, **_kwargs: object) -> None:
+        if path.startswith("s3://missing/"):
+            raise module.CommandError(f"S3 object or prefix not accessible: {path}")
+
+    monkeypatch.setattr(module, "check_source_path", fake_check_source_path)
+    monkeypatch.setattr(
+        module,
+        "ensure_remote_stage_writable",
+        lambda *args, **kwargs: pytest.fail("precheck failure must not run write test"),
+    )
+
+    rc = module.main(
+        [
+            str(analysis_samples),
+            "--reference-bucket",
+            "s3://bucket",
+            "--profile",
+            "test",
+            "--region",
+            "us-west-2",
+            "--precheck-only",
+        ]
+    )
+
+    captured = capsys.readouterr()
+    assert rc == 1
+    assert "Precheck failed; no files were copied." in captured.err
+    assert "SAMPLE_ID=S1" in captured.err
+    assert "SAMPLE_ID=S2" in captured.err

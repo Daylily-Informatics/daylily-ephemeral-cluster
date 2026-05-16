@@ -449,7 +449,7 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
     assert "--aligners" in commands_by_name["launch-workflow"]
     assert "bwa2a" in commands_by_name["launch-workflow"]
     assert "--dedupers" in commands_by_name["launch-workflow"]
-    assert "dppl" in commands_by_name["launch-workflow"]
+    assert "dmd" in commands_by_name["launch-workflow"]
     assert "--snv-callers" in commands_by_name["launch-workflow"]
     assert "deep" in commands_by_name["launch-workflow"]
     assert "--jobs" in commands_by_name["launch-workflow"]
@@ -661,7 +661,7 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
             "--workflow-aligners",
             "sent",
             "--workflow-dedupers",
-            "dppl",
+            "dmd",
             "--workflow-snv-callers",
             "sentd",
             "--workflow-jobs",
@@ -678,7 +678,7 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
     assert "--aligners" in launch
     assert "sent" in launch
     assert "--dedupers" in launch
-    assert "dppl" in launch
+    assert "dmd" in launch
     assert "--snv-callers" in launch
     assert "sentd" in launch
     assert "--jobs" in launch
