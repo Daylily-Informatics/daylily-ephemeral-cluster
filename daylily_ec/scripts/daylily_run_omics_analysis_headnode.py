@@ -18,6 +18,9 @@ from daylily_ec.aws.ssm import (
 from daylily_ec.scripts.common import CommandError, need_cmd, resolve_cluster, resolve_region
 
 
+STAGE_CONFIG_DISCOVERY_TIMEOUT_SECONDS = 180
+
+
 @dataclass
 class RemoteConfig:
     stage_dir: str
@@ -136,7 +139,7 @@ echo "__DAYLILY_STAGE_UNITS__=$units_file"
         region,
         script,
         profile=profile,
-        timeout=60,
+        timeout=STAGE_CONFIG_DISCOVERY_TIMEOUT_SECONDS,
         comment="Discover staged config",
     )
     if result.stdout:

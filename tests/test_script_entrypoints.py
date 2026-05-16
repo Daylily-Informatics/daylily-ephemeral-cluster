@@ -199,6 +199,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
 
         script = mock_run_shell.call_args.args[2]
         assert "/home/ubuntu/stage/run-1" in script
+        assert (
+            mock_run_shell.call_args.kwargs["timeout"]
+            == run_omics_module.STAGE_CONFIG_DISCOVERY_TIMEOUT_SECONDS
+        )
         assert config.stage_dir == "/home/ubuntu/stage/run-1"
         assert "__DAYLILY_STAGE_DIR__=/home/ubuntu/stage/run-1" in capsys.readouterr().out
 
