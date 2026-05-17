@@ -57,6 +57,12 @@ EXPECTED_COMMANDS = {
     ("workflow", "status"),
     ("workflow", "logs"),
     ("repositories", "commands"),
+    ("mounts", "list"),
+    ("mounts", "create"),
+    ("mounts", "describe"),
+    ("mounts", "delete"),
+    ("mounts", "verify"),
+    ("mount", "rundir"),
     ("state", "list"),
     ("state", "show"),
 }
@@ -133,6 +139,12 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     workflow_status_cmd = registry.get_command(("workflow", "status"))
     workflow_logs_cmd = registry.get_command(("workflow", "logs"))
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
+    mounts_list_cmd = registry.get_command(("mounts", "list"))
+    mounts_create_cmd = registry.get_command(("mounts", "create"))
+    mounts_describe_cmd = registry.get_command(("mounts", "describe"))
+    mounts_delete_cmd = registry.get_command(("mounts", "delete"))
+    mounts_verify_cmd = registry.get_command(("mounts", "verify"))
+    mount_rundir_cmd = registry.get_command(("mount", "rundir"))
     state_list_cmd = registry.get_command(("state", "list"))
     state_show_cmd = registry.get_command(("state", "show"))
     pricing_snapshot_cmd = registry.get_command(("pricing", "snapshot"))
@@ -234,6 +246,31 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert repositories_commands_cmd is not None
     assert repositories_commands_cmd.policy.supports_json is True
     assert repositories_commands_cmd.policy.runtime_guard == "exempt"
+
+    assert mounts_list_cmd is not None
+    assert mounts_list_cmd.policy.supports_json is True
+
+    assert mounts_create_cmd is not None
+    assert mounts_create_cmd.policy.supports_json is True
+    assert mounts_create_cmd.policy.mutates_state is True
+    assert mounts_create_cmd.policy.long_running is True
+
+    assert mounts_describe_cmd is not None
+    assert mounts_describe_cmd.policy.supports_json is True
+
+    assert mounts_delete_cmd is not None
+    assert mounts_delete_cmd.policy.supports_json is True
+    assert mounts_delete_cmd.policy.mutates_state is True
+    assert mounts_delete_cmd.policy.long_running is True
+
+    assert mounts_verify_cmd is not None
+    assert mounts_verify_cmd.policy.supports_json is True
+    assert mounts_verify_cmd.policy.long_running is True
+
+    assert mount_rundir_cmd is not None
+    assert mount_rundir_cmd.policy.supports_json is True
+    assert mount_rundir_cmd.policy.mutates_state is True
+    assert mount_rundir_cmd.policy.long_running is True
 
     assert state_list_cmd is not None
     assert state_list_cmd.policy.supports_json is True
@@ -1451,6 +1488,45 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "tiddit" in argv
     assert "--strict-project-check" in argv
     assert "--dry-run" in argv
+
+
+def test_workflow_launch_forwards_run_context_file(monkeypatch, tmp_path) -> None:
+    import daylily_ec.scripts.daylily_run_omics_analysis_headnode as launch_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    run_context = tmp_path / "runs.tsv"
+    run_context.write_text("RUNID\tPLATFORM\nRUN-1\tILMN\n", encoding="utf-8")
+
+    def fake_launch(argv: list[str]) -> int:
+        calls["argv"] = argv
+        return 0
+
+    monkeypatch.setattr(launch_module, "main", fake_launch)
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "launch",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--run-context-file",
+            str(run_context),
+            "--destination",
+            "run-1",
+        ],
+    )
+
+    assert result.exit_code == 0
+    argv = calls["argv"]
+    assert "--run-context-file" in argv
+    assert str(run_context) in argv
+    assert "--stage-dir" not in argv
 
 
 def test_workflow_launch_requires_destination(monkeypatch) -> None:

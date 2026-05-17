@@ -500,6 +500,8 @@ Manifest notes:
 - ONT FASTQ rows can populate `ONT_FASTQ_PREFIX` with an S3 prefix ending in `fastq_pass/<tag>/`; the helper parses the ONT shard filenames, selects one run plus flowcell plus tag, concatenates the shards into one `ONT_R1_PATH`, and writes `ONT_R2_PATH=na`
 - populate `ONT_FLOWCELL_ID` when the ONT FASTQ prefix contains shards from more than one flowcell
 - raw reads are staged into the remote stage; aligned artifacts remain pass-through unless `STAGE_DIRECTIVE=stage_data`
+- run-directory mounted inputs use `STAGE_DIRECTIVE=mounted_readonly` plus `MOUNT_ID`; source paths must be under `/fsx/run_dir_mounts/<MOUNT_ID>/...` or `/run_dir_mounts/<MOUNT_ID>/...`
+- mounted-readonly rows preserve FASTQ/CRAM/BAM paths in generated `units.tsv` and do not copy source bytes into the reference bucket
 - one manifest row normally maps to one `units.tsv` row; multi-lane Illumina rows with the same unit identity are merged
 - run-metric staging copies FOFN-listed files under `runs/<RUN_UID>/` in the same remote stage; relative FOFN entries preserve their relative directories, while absolute, S3, and FSx entries use their basename
 
@@ -552,6 +554,64 @@ daylily-ec samples run "$ANALYSIS_SAMPLES" \
   --dry-run
 ```
 
+## `daylily-ec mounts`
+
+Creates and inspects FSx for Lustre Data Repository Associations for run-directory mounts.
+
+Subcommands:
+
+- `create`
+- `list`
+- `describe`
+- `delete`
+- `verify`
+
+Important inputs:
+
+- `--s3-uri`
+- `--mount-id`
+- `--run-id`
+- `--platform`
+- `--cluster` or `--fsx-file-system-id`
+- `--region`
+- `--profile`
+- `--file-system-path`
+- `--read-only/--no-read-only`
+- `--auto-import`
+- `--auto-export`
+- `--allow-writeback-admin`
+- `--wait/--no-wait`
+
+Default mount behavior is read-only by policy: no AutoExport is configured. `--auto-export` is rejected unless paired with `--allow-writeback-admin` and `--no-read-only`.
+
+Example:
+
+```bash
+daylily-ec --json mounts create \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --s3-uri "s3://sequencer-runs/RUN123/" \
+  --mount-id RUN123 \
+  --run-id RUN123 \
+  --platform ILMN \
+  --wait
+
+daylily-ec --json mounts verify \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --mount-id RUN123
+
+daylily-ec --json mounts delete \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --mount-id RUN123
+```
+
+`daylily-ec mount rundir` is an alias for `daylily-ec mounts create`.
+
 ## `daylily-ec workflow`
 
 Headnode workflow launch and inspection helpers.
@@ -571,6 +631,14 @@ daylily-ec workflow launch \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
   --destination dayoa
+
+daylily-ec workflow launch \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --run-context-file ./runs.tsv \
+  --destination dayoa-run-qc \
+  --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv"
 
 daylily-ec --json workflow status \
   --profile "$AWS_PROFILE" \

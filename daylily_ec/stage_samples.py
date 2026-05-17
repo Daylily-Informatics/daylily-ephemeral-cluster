@@ -72,6 +72,10 @@ ROCHE_BAM_SNV_CALLER = "ROCHE_BAM_SNV_CALLER"
 ROCHE_DOWNSAMPLE_RATIO = "ROCHE_DOWNSAMPLE_RATIO"
 STAGE_DIRECTIVE = "STAGE_DIRECTIVE"
 STAGE_TARGET = "STAGE_TARGET"
+MOUNT_ID = "MOUNT_ID"
+MOUNT_SOURCE_S3_URI = "MOUNT_SOURCE_S3_URI"
+MOUNT_FSX_PATH = "MOUNT_FSX_PATH"
+DATA_LOCALITY = "DATA_LOCALITY"
 SUBSAMPLE_PCT = "SUBSAMPLE_PCT"
 ILMN_TRIM_READ_LENGTH = "ILMN_TRIM_READ_LENGTH"
 LONGREADTRIM_READ_LENGTH = "LONGREADTRIM_READ_LENGTH"
@@ -86,6 +90,8 @@ BWA_KMER = "BWA_KMER"
 DEEP_MODEL = "DEEP_MODEL"
 
 S3_MULTIPART_MIN_PART_SIZE = 5 * 1024 * 1024
+MOUNT_PATH_ROOTS = ("/fsx/run_dir_mounts", "/run_dir_mounts")
+MOUNT_ID_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9_.-]*$")
 ONT_FASTQ_SHARD_RE = re.compile(
     r"^(?P<flowcell_id>[^_]+)_pass_(?P<tag>barcode[0-9]+|unclassified)_"
     r"(?P<protocol_run>[^_]+)_(?P<acquisition>[^_]+)_(?P<shard_index>[0-9]+)\.fastq\.gz$"
@@ -128,6 +134,12 @@ ALIGNED_SOURCE_FIELDS = (
     ONT_BAM,
     ROCHE_BAM,
 )
+
+MOUNTED_READONLY_SOURCE_FIELDS = {
+    field
+    for raw_spec in RAW_SOURCE_SPECS
+    for field in raw_spec[:2]
+} | set(ALIGNED_SOURCE_FIELDS)
 
 MANIFEST_UNITS_PASSTHROUGH_FIELDS = [
     SAMPLEUSE,
@@ -194,6 +206,10 @@ ALLOWED_MANIFEST_FIELDS = {
     ROCHE_DOWNSAMPLE_RATIO,
     STAGE_DIRECTIVE,
     STAGE_TARGET,
+    MOUNT_ID,
+    MOUNT_SOURCE_S3_URI,
+    MOUNT_FSX_PATH,
+    DATA_LOCALITY,
     SUBSAMPLE_PCT,
     ILMN_TRIM_READ_LENGTH,
     LONGREADTRIM_READ_LENGTH,
@@ -508,6 +524,72 @@ def headnode_visible_path(path: str) -> str:
     return path
 
 
+def is_mounted_run_dir_path(path: str) -> bool:
+    return any(path == root or path.startswith(f"{root}/") for root in MOUNT_PATH_ROOTS)
+
+
+def validate_mount_id(value: str) -> str:
+    mount_id = (value or "").strip()
+    if not mount_id:
+        raise CommandError(f"{MOUNT_ID} is required for STAGE_DIRECTIVE=mounted_readonly.")
+    if mount_id in {".", ".."} or not MOUNT_ID_RE.fullmatch(mount_id):
+        raise CommandError(
+            f"{MOUNT_ID} must be a safe path component containing only letters, numbers, "
+            f"underscore, dash, or dot: {value}"
+        )
+    return mount_id
+
+
+def parse_mounted_run_dir_path(path: str, *, field: str) -> Tuple[str, str, Tuple[str, ...]]:
+    for root in MOUNT_PATH_ROOTS:
+        if path != root and not path.startswith(f"{root}/"):
+            continue
+        relative = path[len(root) :]
+        if relative.startswith("/"):
+            relative = relative[1:]
+        if relative.endswith("/"):
+            relative = relative[:-1]
+        parts = tuple(relative.split("/")) if relative else ()
+        if not parts:
+            raise CommandError(
+                f"{field} must include {MOUNT_ID} under /fsx/run_dir_mounts/ "
+                f"or /run_dir_mounts/: {path}"
+            )
+        if any(part in {"", ".", ".."} for part in parts):
+            raise CommandError(
+                f"{field} mounted path must not contain empty, '.', or '..' components: {path}"
+            )
+        mount_id = validate_mount_id(parts[0])
+        return root, mount_id, parts[1:]
+    raise CommandError(
+        f"{field} must be under /fsx/run_dir_mounts/<{MOUNT_ID}>/ "
+        f"or /run_dir_mounts/<{MOUNT_ID}>/: {path}"
+    )
+
+
+def require_mounted_source_path(path: str, *, field: str, expected_mount_id: str) -> None:
+    _root, actual_mount_id, relative_parts = parse_mounted_run_dir_path(path, field=field)
+    if actual_mount_id != expected_mount_id:
+        raise CommandError(
+            f"{field} uses mount ID {actual_mount_id}, but {MOUNT_ID} is {expected_mount_id}: {path}"
+        )
+    if not relative_parts or path.endswith("/"):
+        raise CommandError(
+            f"{field} must name a file below the mount root for {MOUNT_ID}={expected_mount_id}: {path}"
+        )
+
+
+def require_mounted_root_path(path: str, *, expected_mount_id: str) -> None:
+    _root, actual_mount_id, relative_parts = parse_mounted_run_dir_path(path, field=MOUNT_FSX_PATH)
+    if actual_mount_id != expected_mount_id:
+        raise CommandError(
+            f"{MOUNT_FSX_PATH} uses mount ID {actual_mount_id}, "
+            f"but {MOUNT_ID} is {expected_mount_id}: {path}"
+        )
+    if relative_parts:
+        raise CommandError(f"{MOUNT_FSX_PATH} must be the mount root, not a child path: {path}")
+
+
 def build_aws_env(config: AwsConfig) -> Dict[str, str]:
     env = dict(os.environ)
     env["AWS_PROFILE"] = config.profile
@@ -662,10 +744,13 @@ def is_headnode_visible_path(path: str) -> bool:
         or path.startswith("/fsx/data/")
         or path == "/data"
         or path.startswith("/data/")
+        or is_mounted_run_dir_path(path)
     )
 
 
 def build_reference_uri(path: str, reference_bucket: str) -> str:
+    if is_mounted_run_dir_path(path):
+        raise CommandError(f"Mounted run-directory paths are not reference-bucket objects: {path}")
     if path == "/data":
         relative = "data"
     elif path.startswith("/data/"):
@@ -689,6 +774,9 @@ def check_source_path(
         return
     if path.startswith("s3://"):
         check_s3_path(path, aws_env=aws_env, debug=debug)
+        return
+    if is_mounted_run_dir_path(path):
+        parse_mounted_run_dir_path(path, field="source path")
         return
     if is_headnode_visible_path(path):
         check_s3_path(
@@ -983,6 +1071,8 @@ def cleanup_s3_objects(uris: Sequence[str], *, aws_env: Dict[str, str], debug: b
 def source_copy_reference(source: str, *, reference_bucket: str) -> str:
     if source.startswith("s3://"):
         return source
+    if is_mounted_run_dir_path(source):
+        return headnode_visible_path(source)
     if is_headnode_visible_path(source):
         return build_reference_uri(source, reference_bucket)
     return os.path.expanduser(source)
@@ -1811,10 +1901,11 @@ def normalize_stage_directive(value: str) -> str:
     directive = (value or "").strip().lower()
     if directive in {"", "na"}:
         return ""
-    if directive in {"stage_data", "pass_through"}:
+    if directive in {"stage_data", "pass_through", "mounted_readonly"}:
         return directive
     raise CommandError(
-        f"Unsupported STAGE_DIRECTIVE '{value}'. Supported values are stage_data, pass_through, or blank."
+        f"Unsupported STAGE_DIRECTIVE '{value}'. Supported values are "
+        "stage_data, pass_through, mounted_readonly, or blank."
     )
 
 
@@ -1854,6 +1945,15 @@ def validate_sidecar_paths(
             aws_env=aws_env,
             debug=debug,
         )
+
+
+def mounted_readonly_source_paths(normalized: Mapping[str, str]) -> List[Tuple[str, str]]:
+    paths: List[Tuple[str, str]] = []
+    for field in MOUNTED_READONLY_SOURCE_FIELDS:
+        value = get_entry_value(normalized, field)
+        if value:
+            paths.append((field, value))
+    return sorted(paths)
 
 
 def validate_manifest_row(
@@ -2096,6 +2196,8 @@ def collect_manifest_row_issues(
     ) -> None:
         if not check_access or not path:
             return
+        if directive == "mounted_readonly" and field in MOUNTED_READONLY_SOURCE_FIELDS:
+            return
         try:
             check_source_path(
                 path,
@@ -2114,6 +2216,8 @@ def collect_manifest_row_issues(
         sidecar_suffixes: Sequence[str],
     ) -> None:
         if not check_access or not path:
+            return
+        if directive == "mounted_readonly" and field in MOUNTED_READONLY_SOURCE_FIELDS:
             return
         for suffix in sidecar_suffixes:
             sidecar = f"{path}{suffix}"
@@ -2144,6 +2248,64 @@ def collect_manifest_row_issues(
             "data source",
             f"Row {row_number} does not define any supported data source columns.",
         )
+
+    if directive == "mounted_readonly":
+        expected_mount_id = ""
+        try:
+            expected_mount_id = validate_mount_id(get_entry_value(normalized, MOUNT_ID))
+        except CommandError as exc:
+            add_issue(MOUNT_ID, str(exc), get_entry_value(normalized, MOUNT_ID))
+
+        mount_source_s3_uri = get_entry_value(normalized, MOUNT_SOURCE_S3_URI)
+        if mount_source_s3_uri:
+            try:
+                bucket, _key = parse_s3_uri(mount_source_s3_uri)
+                if not bucket:
+                    raise CommandError(f"{MOUNT_SOURCE_S3_URI} must include an S3 bucket.")
+            except CommandError as exc:
+                add_issue(MOUNT_SOURCE_S3_URI, str(exc), mount_source_s3_uri)
+
+        mount_fsx_path = get_entry_value(normalized, MOUNT_FSX_PATH)
+        if mount_fsx_path:
+            try:
+                if expected_mount_id:
+                    require_mounted_root_path(
+                        mount_fsx_path,
+                        expected_mount_id=expected_mount_id,
+                    )
+                else:
+                    _root, _mount_id, relative_parts = parse_mounted_run_dir_path(
+                        mount_fsx_path,
+                        field=MOUNT_FSX_PATH,
+                    )
+                    if relative_parts:
+                        raise CommandError(
+                            f"{MOUNT_FSX_PATH} must be the mount root, not a child path: "
+                            f"{mount_fsx_path}"
+                        )
+            except CommandError as exc:
+                add_issue(MOUNT_FSX_PATH, str(exc), mount_fsx_path)
+
+        if ont_fastq_prefix:
+            add_issue(
+                ONT_FASTQ_PREFIX,
+                (
+                    f"Row {row_number} uses STAGE_DIRECTIVE=mounted_readonly, which requires "
+                    "mounted FASTQ/CRAM/BAM file paths instead of ONT_FASTQ_PREFIX."
+                ),
+                ont_fastq_prefix,
+            )
+
+        if expected_mount_id:
+            for field, path in mounted_readonly_source_paths(normalized):
+                try:
+                    require_mounted_source_path(
+                        path,
+                        field=field,
+                        expected_mount_id=expected_mount_id,
+                    )
+                except CommandError as exc:
+                    add_issue(field, str(exc), path)
 
     if ont_fastq_prefix:
         vendor = normalise_identifier(get_entry_value(normalized, SEQ_VENDOR)).upper()
@@ -2304,6 +2466,11 @@ def collect_manifest_row_issues(
 
 def _source_checks_for_precheck(normalized: Mapping[str, str]) -> List[Tuple[str, str]]:
     checks: List[Tuple[str, str]] = []
+    try:
+        if normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE)) == "mounted_readonly":
+            return checks
+    except CommandError:
+        pass
     for r1_field, r2_field, _unit_r1, _unit_r2 in raw_groups_present(normalized):
         r1_value = get_entry_value(normalized, r1_field)
         r2_value = get_entry_value(normalized, r2_field)
@@ -2371,6 +2538,8 @@ def detect_giab_roi_dirs(
 ) -> List[str]:
     if concordance_source.startswith("s3://"):
         return _s3_child_directories(concordance_source, aws_env=aws_env, debug=debug)
+    if is_mounted_run_dir_path(concordance_source):
+        return []
     if is_headnode_visible_path(concordance_source):
         return _s3_child_directories(
             build_reference_uri(concordance_source, reference_bucket),
@@ -2664,7 +2833,11 @@ def precheck_manifest(
                     )
 
             ont_fastq_prefix = get_entry_value(normalized, ONT_FASTQ_PREFIX)
-            if ont_fastq_prefix:
+            try:
+                directive = normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
+            except CommandError:
+                directive = ""
+            if ont_fastq_prefix and directive != "mounted_readonly":
                 try:
                     parse_ont_fastq_prefix(ont_fastq_prefix)
                     can_resolve_ont_prefix = True
@@ -2895,6 +3068,8 @@ def should_merge_rows(entries: Sequence[ManifestRow]) -> bool:
             raise CommandError(
                 "Multi-lane Illumina inputs require staging and cannot use STAGE_DIRECTIVE=pass_through."
             )
+        if entry.staging.stage_directive == "mounted_readonly":
+            return False
     return True
 
 
@@ -2938,7 +3113,7 @@ def emit_single_raw_group(
     r1_field, r2_field, unit_r1_field, unit_r2_field = spec
     r1 = get_entry_value(row.sources, r1_field)
     r2 = get_entry_value(row.sources, r2_field)
-    if row.staging.stage_directive == "pass_through":
+    if row.staging.stage_directive in {"pass_through", "mounted_readonly"}:
         require_headnode_visible_path(r1, field=r1_field)
         require_headnode_visible_path(r2, field=r2_field)
         return {

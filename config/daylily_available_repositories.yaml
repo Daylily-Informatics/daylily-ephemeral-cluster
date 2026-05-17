@@ -1,5 +1,5 @@
 ---
-command_catalog_version: 1
+command_catalog_version: 2
 default_repository: daylily-omics-analysis
 repositories:
   daylily-omics-analysis:
@@ -15,6 +15,11 @@ repositories:
         description: "Illumina WGS Sentieon DNAscope and alignment-statistics launch profile."
         datasource: Illumina
         launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
         targets:
           - produce_sent_align
           - produce_dmd_dedup_cram
@@ -43,6 +48,11 @@ repositories:
         description: "Illumina WGS Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, and final MultiQC launch profile."
         datasource: Illumina
         launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
         targets:
           - produce_sent_align
           - produce_dmd_dedup_cram
@@ -74,6 +84,11 @@ repositories:
         description: "Ultima CRAM/FASTQ Sentieon DNAscope and alignment-statistics launch profile."
         datasource: Ultima
         launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
         targets:
           - produce_alignstats
           - produce_na_dedup_cram
@@ -101,6 +116,11 @@ repositories:
         description: "ONT alignment, Sentieon DNAscope, and alignment-statistics launch profile."
         datasource: ONT
         launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
         targets:
           - produce_alignstats
           - produce_sentdont_snv_vcf
@@ -127,6 +147,11 @@ repositories:
         description: "PacBio HiFi Sentieon DeepVariant and alignment-statistics launch profile."
         datasource: PacBio
         launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
         targets:
           - produce_sentmm2_align
           - produce_na_dedup_cram
@@ -155,6 +180,11 @@ repositories:
         description: "Roche aligned BAM HaplotypeCaller and alignment-statistics launch profile."
         datasource: Roche
         launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
         targets:
           - produce_alignstats
           - produce_na_dedup_cram
@@ -181,6 +211,11 @@ repositories:
         description: "Hybrid Illumina plus ONT modular Sentieon SNV/SV launch profile."
         datasource: Hybrid ILMN+ONT
         launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
         targets:
           - produce_snv_concordances
           - produce_sentdhiom_sv
@@ -209,6 +244,11 @@ repositories:
         description: "Hybrid Ultima plus ONT modular Sentieon SNV launch profile."
         datasource: Hybrid Ultima+ONT
         launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
         targets:
           - produce_sentdhuom_snv_vcf
           - produce_alignstats
@@ -236,6 +276,11 @@ repositories:
         description: "Complete Genomics/MGI Sentieon sentcg/smd/cgt7p launch profile."
         datasource: Complete Genomics/MGI
         launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
         targets:
           - produce_sentcg_align
           - produce_smd_dedup_cram
@@ -258,6 +303,114 @@ repositories:
         compatible_data_modes:
           - complete_genomics_solo
         git_tag: 0.7.758
+        no_containerized: false
+      - command_id: illumina_run_qc
+        display_name: "Illumina Run QC"
+        description: "Illumina run-folder QC from a mounted or explicit S3 run context."
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: run_analysis
+        input_contract: run_context
+        requires_staging: false
+        requires_run_mount: true
+        runtime_parameters:
+          run_context_file: config/runs.tsv
+        targets:
+          - produce_illumina_run_qc
+        genome: hg38_broad
+        jobs: 5
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: "bin/day_run produce_illumina_run_qc -p -j 5 -k"
+        dryrun_dy_command: "bin/day_run produce_illumina_run_qc -p -j 5 -k -n"
+        compatible_platforms:
+          - ILMN
+        compatible_data_modes:
+          - run_directory_mount
+        git_tag: 0.7.763
+        no_containerized: false
+      - command_id: illumina_bclconvert
+        display_name: "Illumina BCL Convert"
+        description: "Illumina BCL Convert from a mounted run directory with generated units table output."
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: run_analysis
+        input_contract: run_context
+        requires_staging: false
+        requires_run_mount: true
+        runtime_parameters:
+          run_context_file: config/runs.tsv
+        targets:
+          - produce_bclconvert_fastqs_and_metrics
+        genome: hg38_broad
+        jobs: 20
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k"
+        dryrun_dy_command: "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k -n"
+        compatible_platforms:
+          - ILMN
+        compatible_data_modes:
+          - run_directory_mount
+        git_tag: 0.7.763
+        no_containerized: false
+      - command_id: ont_run_qc
+        display_name: "ONT Run QC"
+        description: "ONT run-folder QC from a mounted run context."
+        datasource: ONT
+        launcher: workflow_launch
+        command_class: run_analysis
+        input_contract: run_context
+        requires_staging: false
+        requires_run_mount: true
+        runtime_parameters:
+          run_context_file: config/runs.tsv
+        targets:
+          - produce_ont_run_qc
+        genome: hg38_broad
+        jobs: 5
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: "bin/day_run produce_ont_run_qc -p -j 5 -k"
+        dryrun_dy_command: "bin/day_run produce_ont_run_qc -p -j 5 -k -n"
+        compatible_platforms:
+          - ONT
+        compatible_data_modes:
+          - run_directory_mount
+        git_tag: 0.7.763
+        no_containerized: false
+      - command_id: ultima_run_qc
+        display_name: "Ultima Run QC"
+        description: "Ultima run-folder QC from a mounted run context."
+        datasource: Ultima
+        launcher: workflow_launch
+        command_class: run_analysis
+        input_contract: run_context
+        requires_staging: false
+        requires_run_mount: true
+        runtime_parameters:
+          run_context_file: config/runs.tsv
+        targets:
+          - produce_ultima_run_qc
+        genome: hg38_broad
+        jobs: 5
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: "bin/day_run produce_ultima_run_qc -p -j 5 -k"
+        dryrun_dy_command: "bin/day_run produce_ultima_run_qc -p -j 5 -k -n"
+        compatible_platforms:
+          - ULTIMA
+        compatible_data_modes:
+          - run_directory_mount
+        git_tag: 0.7.763
         no_containerized: false
   rna-seq-star-deseq2:
     display_name: "RNA-seq STAR + DESeq2"

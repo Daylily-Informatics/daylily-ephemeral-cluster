@@ -83,6 +83,16 @@ daylily-ec workflow launch \
   --dedupers dmd \
   --snv-callers sentd
 
+# For mounted run-directory analysis, pass a local runs.tsv. The launcher
+# writes it to config/runs.tsv inside the remote analysis checkout.
+daylily-ec workflow launch \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --run-context-file ./runs.tsv \
+  --destination "<run-analysis-id>" \
+  --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv"
+
 # Or use a catalog command to stage and launch in one CLI call.
 daylily-ec samples run \
   "$ANALYSIS_SAMPLES" \
