@@ -7,7 +7,7 @@ repositories:
     description: "Primary whole genome and multiomics workflows."
     https_url: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
     ssh_url: git@github.com:Daylily-Informatics/daylily-omics-analysis.git
-    default_ref: 1.0.2
+    default_ref: 1.0.3
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: illumina_snv_alignstats
