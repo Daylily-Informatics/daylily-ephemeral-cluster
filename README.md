@@ -68,6 +68,8 @@ daylily-ec samples stage \
 # - ONT_FASTQ_PREFIX stages one S3 fastq_pass/<tag>/ prefix into ONT_R1_PATH,
 #   with ONT_R2_PATH=na; set ONT_FLOWCELL_ID when the prefix has multiple flowcells
 # - hybrid units populate multiple source groups on one row
+# - add --run-metric-staging RUN_UID:PLATFORM:FOFN to copy run-level metric
+#   sidecars under runs/<RUN_UID>/ in the same remote stage
 
 # Use the "Remote FSx stage directory" printed by the staging helper.
 daylily-ec workflow launch \
@@ -133,10 +135,11 @@ daylily-ec delete \
 - `daylily-ec headnode jobs`: Slurm queue output using the same format as the headnode `sq` alias
 - `daylily-ec aws validate permissions|quotas|all`: read-only AWS readiness validation with optional admin gap reports
 - `daylily-ec cluster list/describe/wait`: ParallelCluster inspection helpers
-- `daylily-ec samples stage`: translator and staging helper that turns a multi-modality `analysis_samples.tsv` into workflow-ready `samples.tsv` and `units.tsv`
+- `daylily-ec samples stage`: translator and staging helper that turns a multi-modality `analysis_samples.tsv` into workflow-ready `samples.tsv` and `units.tsv`, with optional run-metric sidecar staging
 - `daylily-ec workflow launch/status/logs`: remote launcher and run-state inspection helpers
 - `daylily-ec state list/show`: local state-file inspection helpers
 - `daylily_ec/ssh_to_ssm_e2e_runner.py`: AWS-backed end-to-end runner that exercises the supported lifecycle through the repo CLI/helpers
+- `bin/utils/ilmn/extract_undetermined_indexes`: Illumina Undetermined/Unclassified FASTQ index triage utility for ranking or splitting observed dual-index pairs from local paths, S3 URIs, or presigned URLs
 
 ## AWS And Local Prerequisites
 
@@ -178,6 +181,3 @@ If any of this is missing, cluster creation will fail in annoying ways. Run `day
 - [docs/DAY_EC_ENVIRONMENT.md](docs/DAY_EC_ENVIRONMENT.md): `DAY-EC` checkout environment contract
 - [docs/pip_install.md](docs/pip_install.md): pip-install path and external prerequisites
 - [docs/archive/README.md](docs/archive/README.md): historical material, pre-rewrite snapshot, and unsupported legacy appendix
- 
- 
- 

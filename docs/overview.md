@@ -32,6 +32,7 @@ The supported control-plane surfaces are:
 - `daylily-ec state list`
 - `daylily-ec state show`
 - `python -m daylily_ec.ssh_to_ssm_e2e_runner`
+- `bin/utils/ilmn/extract_undetermined_indexes`
 
 `daylily-ec` is the main CLI. It owns:
 
@@ -67,7 +68,18 @@ The manifest is additive and multi-modality. Legacy Illumina rows can still use
 and explicit hybrid units with the modality-specific columns in the bundled
 template.
 
+Run-level metric files can travel with the staged manifests by passing
+repeatable `--run-metric-staging RUN_UID:PLATFORM:FOFN` options to
+`daylily-ec samples stage` or `daylily-ec samples run`. Each FOFN lists one
+metric file per line. Relative FOFN entries keep their relative path under
+`runs/<RUN_UID>/`; absolute, S3, and FSx entries copy by basename.
+
 The helper prints the remote FSx stage directory. The launcher uses that path through `--stage-dir` so the workflow starts from the exact staged manifest set you just generated.
+
+For Illumina run triage before staging, `bin/utils/ilmn/extract_undetermined_indexes`
+streams Undetermined or Unclassified FASTQs from local paths, S3 URIs, or
+presigned URLs and emits ranked index-pair TSVs. With `--split-fastqs`, it can
+also write one R1/R2 FASTQ pair per selected tag pair.
 
 ## Headnode Bootstrap Model
 

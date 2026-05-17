@@ -126,6 +126,7 @@ Manifest notes:
 - start from `etc/analysis_samples_template.tsv`
 - legacy Illumina rows still work with `R1_FQ` / `R2_FQ`
 - ONT, Ultima, PacBio, Roche, and hybrid rows use the modality-specific columns on the same TSV header
+- optional run-level metric sidecars use repeatable `--run-metric-staging RUN_UID:PLATFORM:FOFN` options and are copied under `runs/<RUN_UID>/` in the remote stage
 
 Sanity checks:
 

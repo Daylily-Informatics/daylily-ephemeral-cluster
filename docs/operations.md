@@ -90,8 +90,32 @@ Operational notes:
 - set `ONT_FLOWCELL_ID` explicitly when an ONT FASTQ prefix contains more than one flowcell
 - the helper writes workflow manifests into `--config-dir`
 - raw read inputs are staged into the remote stage; aligned artifacts stay pass-through unless `STAGE_DIRECTIVE=stage_data`
+- run-level metric sidecars can be copied with repeatable `--run-metric-staging RUN_UID:PLATFORM:FOFN` options
 - the helper prints the remote stage directory under `/fsx/data/staged_sample_data/...`
 - use that exact printed directory for the next step
+
+### Stage Run-Level Metrics
+
+Use run-metric staging when run-level QC, BCL Convert, DRAGEN, or instrument
+sidecars need to sit beside the generated manifests in the same timestamped
+remote stage.
+
+```bash
+daylily-ec samples stage "$ANALYSIS_SAMPLES" \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --reference-bucket "$REF_BUCKET" \
+  --run-metric-staging "RUN123:ILMN:/path/to/run_metrics.fofn" \
+  --config-dir "$STAGE_CFG_DIR"
+```
+
+FOFN rules:
+
+- each non-empty line names one file to copy
+- relative entries resolve beside the FOFN and preserve their relative directory under `runs/<RUN_UID>/`
+- absolute local paths, S3 URIs, and FSx-visible paths copy by basename
+- a run UID can appear in multiple specs only when the normalized platform is the same
+- duplicate destination paths for the same run UID are rejected before copying
 
 Useful local checks:
 
@@ -99,6 +123,38 @@ Useful local checks:
 ls -lh "$STAGE_CFG_DIR"
 head -n 5 "$STAGE_CFG_DIR"/*_samples.tsv
 head -n 5 "$STAGE_CFG_DIR"/*_units.tsv
+```
+
+## Illumina Undetermined Index Triage
+
+Use the Illumina utility when you need to inspect Undetermined or Unclassified
+FASTQs before deciding whether to stage recovered read pairs.
+
+```bash
+bin/utils/ilmn/extract_undetermined_indexes \
+  s3://bucket/path/Undetermined_S0_L001_R1_001.fastq.gz \
+  s3://bucket/path/Undetermined_S0_L002_R1_001.fastq.gz \
+  --mode uncalled \
+  --top 100 \
+  --output indexes.tsv
+```
+
+The output TSV contains `rank`, `index`, `index2`, `count`,
+`pct_of_all_reads`, and `lanes_detected`. Inputs may be local `.fastq.gz`
+files, `s3://` URIs, or presigned HTTP(S) URLs. The utility uses `gcc`,
+`sort`, and `gzip` or `pigz`; S3 inputs also require the AWS CLI.
+
+To split selected tag pairs into recovered R1/R2 FASTQs, pass matching R2
+inputs plus an allowlist:
+
+```bash
+bin/utils/ilmn/extract_undetermined_indexes \
+  s3://bucket/path/Undetermined_S0_L001_R1_001.fastq.gz \
+  --read2-inputs s3://bucket/path/Undetermined_S0_L001_R2_001.fastq.gz \
+  --split-fastqs \
+  --tag-pairs-tsv selected_indexes.tsv \
+  --fastq-out-dir recovered-fastqs \
+  --output recovered-fastqs/split_summary.tsv
 ```
 
 ## Launch A Workflow

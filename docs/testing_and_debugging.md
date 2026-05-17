@@ -37,6 +37,7 @@ pytest -q tests/test_ssm.py
 pytest -q tests/test_script_entrypoints.py
 pytest -q tests/test_ssm_e2e_runner.py
 pytest -q tests/test_workflow.py
+pytest -q tests/test_stage_samples_from_local_to_headnode.py
 ```
 
 When you are editing a specific module, keep the test loop narrow. Run the whole suite later.
@@ -126,6 +127,20 @@ Important runner flags:
 The runner is non-destructive by default. Delete requires both delete flags.
 
 ## Where To Look When Something Fails
+
+### Illumina index triage utility
+
+Check the utility help when debugging Undetermined or Unclassified FASTQ
+forensics:
+
+```bash
+bin/utils/ilmn/extract_undetermined_indexes --help
+```
+
+The utility is independent of the main `daylily-ec` Typer CLI. It streams
+gzipped FASTQs from local paths, S3 URIs, or presigned HTTP(S) URLs; ranks
+observed index pairs; and can split paired R1/R2 FASTQs by selected tags with
+`--split-fastqs`.
 
 ### Create/preflight failures
 

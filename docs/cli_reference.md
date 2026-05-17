@@ -655,4 +655,50 @@ bin/daylily-cfg-headnode \
   --cluster "$CLUSTER_NAME"
 ```
 
+### `bin/utils/ilmn/extract_undetermined_indexes`
+
+Illumina Undetermined/Unclassified FASTQ index triage utility. It streams
+gzipped R1 FASTQs from local paths, S3 URIs, or presigned HTTP(S) URLs, extracts
+the index token from each FASTQ header, and writes a ranked TSV of observed
+dual-index pairs. It can also split matched paired FASTQs into one R1/R2 output
+pair per selected tag.
+
+Important options:
+
+- positional `inputs`: R1 `.fastq.gz` local paths, S3 URIs, or presigned URLs
+- `--mode all|uncalled|called`
+- `--top`
+- `--total-reads`
+- `--tmp-dir`
+- `--sort-memory`
+- `--split-fastqs`
+- `--read2-inputs`
+- `--fastq-out-dir`
+- `--tag-pairs-tsv`
+- `--split-all-tags`
+- `--overwrite-fastqs`
+
+Count observed uncalled index pairs:
+
+```bash
+bin/utils/ilmn/extract_undetermined_indexes \
+  s3://bucket/path/Undetermined_S0_L001_R1_001.fastq.gz \
+  s3://bucket/path/Undetermined_S0_L002_R1_001.fastq.gz \
+  --mode uncalled \
+  --top 100 \
+  --output indexes.tsv
+```
+
+Split selected tag pairs into recovered FASTQs:
+
+```bash
+bin/utils/ilmn/extract_undetermined_indexes \
+  s3://bucket/path/Undetermined_S0_L001_R1_001.fastq.gz \
+  --read2-inputs s3://bucket/path/Undetermined_S0_L001_R2_001.fastq.gz \
+  --split-fastqs \
+  --tag-pairs-tsv selected_indexes.tsv \
+  --fastq-out-dir recovered-fastqs \
+  --output recovered-fastqs/split_summary.tsv
+```
+
 For end-to-end live validation, see [testing_and_debugging.md](testing_and_debugging.md).
