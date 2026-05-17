@@ -9,6 +9,7 @@ from daylily_ec.aws.s3 import (
     BUCKET_NAME_FILTER,
     CORE_REFERENCE_PREFIXES,
     _resolve_bucket_region,
+    _standard_s3_config,
     bucket_url,
     list_candidate_buckets,
     make_s3_bucket_preflight_step,
@@ -132,6 +133,17 @@ class TestListCandidateBuckets:
         )
         result = list_candidate_buckets(ctx)
         assert result == ["my-omics-analysis-us-west-2"]
+
+    def test_discovery_disables_s3_accelerate(self):
+        ctx = _make_aws_ctx(
+            buckets=["my-omics-analysis-us-west-2"],
+            locations={"my-omics-analysis-us-west-2": "us-west-2"},
+            region="us-west-2",
+        )
+
+        list_candidate_buckets(ctx)
+
+        assert ctx.client.call_args.kwargs["config"].s3["use_accelerate_endpoint"] is False
 
     def test_none_location_maps_to_us_east_1(self):
         ctx = _make_aws_ctx(
@@ -297,6 +309,11 @@ class TestVerifyReferenceBundle:
 
         verify_reference_bundle("bucket")
         mock_client_factory.assert_called_once_with(profile="", region="")
+
+
+class TestStandardS3Config:
+    def test_disables_accelerate_endpoint(self):
+        assert _standard_s3_config().s3["use_accelerate_endpoint"] is False
 
 
 # ---------------------------------------------------------------------------
