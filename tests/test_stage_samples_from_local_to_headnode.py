@@ -1132,6 +1132,219 @@ def test_stage_path_with_sidecars_stages_cram_before_crai(
     ]
 
 
+def test_parse_run_metric_staging_specs_normalizes_run_uid_and_platform(tmp_path: Path) -> None:
+    first = tmp_path / "run1.fofn"
+    second = tmp_path / "run2.fofn"
+
+    specs = module.parse_run_metric_staging_specs(
+        [
+            f"RUN_1:ilmn:{first}",
+            f"RUN.2:ont:{second}",
+        ]
+    )
+
+    assert [(spec.run_uid, spec.platform, spec.fofn) for spec in specs] == [
+        ("RUN-1", "ILMN", first),
+        ("RUN-2", "ONT", second),
+    ]
+
+
+def test_precheck_run_metrics_preserves_relative_dirs_and_uses_basename(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    relative_metric = tmp_path / "qc" / "summary.txt"
+    relative_metric.parent.mkdir()
+    relative_metric.write_text("relative\n", encoding="utf-8")
+    absolute_metric = tmp_path / "absolute" / "instrument.csv"
+    absolute_metric.parent.mkdir()
+    absolute_metric.write_text("absolute\n", encoding="utf-8")
+    fofn = tmp_path / "metrics.fofn"
+    fofn.write_text(
+        "\n".join(
+            [
+                "qc/summary.txt",
+                str(absolute_metric),
+                "s3://source-bucket/metrics/report.json",
+                "/fsx/data/run_metrics/headnode.txt",
+            ]
+        )
+        + "\n",
+        encoding="utf-8",
+    )
+    checked_paths: list[str] = []
+
+    def fake_check_source_path(path: str, **_kwargs: object) -> None:
+        checked_paths.append(path)
+
+    monkeypatch.setattr(module, "check_source_path", fake_check_source_path)
+
+    specs = module.parse_run_metric_staging_specs([f"RUN.1:ilmn:{fofn}"])
+    files = module.precheck_run_metrics(
+        specs,
+        reference_bucket="s3://reference",
+        aws_env={},
+        debug=False,
+    )
+
+    assert checked_paths == [
+        str(relative_metric.resolve()),
+        str(absolute_metric),
+        "s3://source-bucket/metrics/report.json",
+        "/fsx/data/run_metrics/headnode.txt",
+    ]
+    assert [(item.source, item.destination_relative_path) for item in files] == [
+        (str(relative_metric.resolve()), "qc/summary.txt"),
+        (str(absolute_metric), "instrument.csv"),
+        ("s3://source-bucket/metrics/report.json", "report.json"),
+        ("/fsx/data/run_metrics/headnode.txt", "headnode.txt"),
+    ]
+    assert all(item.spec.run_uid == "RUN-1" for item in files)
+    assert all(item.spec.platform == "ILMN" for item in files)
+
+
+def test_stage_run_metrics_copies_under_runs_subdir(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    spec = module.RunMetricStagingSpec(run_uid="RUN-1", platform="ILMN", fofn=tmp_path / "x.fofn")
+    files = [
+        module.RunMetricFile(
+            spec=spec,
+            source="/fsx/data/run_metrics/headnode.txt",
+            destination_relative_path="headnode.txt",
+        ),
+        module.RunMetricFile(
+            spec=spec,
+            source="s3://source-bucket/metrics/report.json",
+            destination_relative_path="qc/report.json",
+        ),
+    ]
+    copies: list[tuple[str, str]] = []
+
+    def fake_aws_copy(source: str, destination: str, **_kwargs: object) -> None:
+        copies.append((source, destination))
+
+    monkeypatch.setattr(module, "aws_copy", fake_aws_copy)
+
+    created = module.stage_run_metrics(
+        files,
+        _stage_paths(),
+        reference_bucket="s3://reference-bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert copies == [
+        (
+            "s3://reference-bucket/data/run_metrics/headnode.txt",
+            "s3://bucket/data/staged_sample_data/remote_stage_test/runs/RUN-1/headnode.txt",
+        ),
+        (
+            "s3://source-bucket/metrics/report.json",
+            "s3://bucket/data/staged_sample_data/remote_stage_test/runs/RUN-1/qc/report.json",
+        ),
+    ]
+    assert created == [
+        "/data/staged_sample_data/remote_stage_test/runs/RUN-1/headnode.txt",
+        "/data/staged_sample_data/remote_stage_test/runs/RUN-1/qc/report.json",
+    ]
+
+
+def test_precheck_run_metrics_rejects_duplicate_destination_paths(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    first = tmp_path / "a" / "metrics.txt"
+    second = tmp_path / "b" / "metrics.txt"
+    first.parent.mkdir()
+    second.parent.mkdir()
+    first.write_text("first\n", encoding="utf-8")
+    second.write_text("second\n", encoding="utf-8")
+    fofn = tmp_path / "metrics.fofn"
+    fofn.write_text(f"{first}\n{second}\n", encoding="utf-8")
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+
+    specs = module.parse_run_metric_staging_specs([f"RUN1:ILMN:{fofn}"])
+    with pytest.raises(module.CommandError, match="maps multiple sources"):
+        module.precheck_run_metrics(
+            specs,
+            reference_bucket="s3://reference",
+            aws_env={},
+            debug=False,
+        )
+
+
+def test_precheck_run_metrics_rejects_parent_relative_destination(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    fofn = tmp_path / "metrics.fofn"
+    fofn.write_text("../metrics.txt\n", encoding="utf-8")
+    checked_paths: list[str] = []
+
+    def fake_check_source_path(path: str, **_kwargs: object) -> None:
+        checked_paths.append(path)
+
+    monkeypatch.setattr(module, "check_source_path", fake_check_source_path)
+
+    specs = module.parse_run_metric_staging_specs([f"RUN1:ILMN:{fofn}"])
+    with pytest.raises(module.CommandError, match="must not contain '..'"):
+        module.precheck_run_metrics(
+            specs,
+            reference_bucket="s3://reference",
+            aws_env={},
+            debug=False,
+        )
+    assert checked_paths == []
+
+
+def test_main_precheck_only_validates_run_metrics_without_copying(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = tmp_path / "analysis_samples.tsv"
+    analysis_samples.write_text("RUN_ID\tSAMPLE_ID\n", encoding="utf-8")
+    metric = tmp_path / "metric.txt"
+    metric.write_text("metric\n", encoding="utf-8")
+    fofn = tmp_path / "metrics.fofn"
+    fofn.write_text("metric.txt\n", encoding="utf-8")
+    checked_paths: list[str] = []
+
+    def fake_precheck_manifest(
+        *_args: object, **_kwargs: object
+    ) -> tuple[module.PrecheckReport, list[module.ManifestRow]]:
+        return module.PrecheckReport(0, 0, 0, 0, ()), []
+
+    def fake_check_source_path(path: str, **_kwargs: object) -> None:
+        checked_paths.append(path)
+
+    def unexpected_copy_step(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("precheck-only must not copy files")
+
+    monkeypatch.setattr(module, "precheck_manifest", fake_precheck_manifest)
+    monkeypatch.setattr(module, "check_source_path", fake_check_source_path)
+    monkeypatch.setattr(module, "ensure_remote_stage_writable", unexpected_copy_step)
+    monkeypatch.setattr(module, "stage_run_metrics", unexpected_copy_step)
+
+    rc = module.main(
+        [
+            str(analysis_samples),
+            "--reference-bucket",
+            "s3://reference",
+            "--profile",
+            "dev",
+            "--run-metric-staging",
+            f"RUN1:ILMN:{fofn}",
+            "--precheck-only",
+        ]
+    )
+
+    assert rc == 0
+    assert checked_paths == [str(metric.resolve())]
+
+
 def _minimal_ilmn_header() -> str:
     return "\t".join(
         [
@@ -1299,8 +1512,7 @@ def test_precheck_manifest_rejects_giab_replicate_external_id(
         ]
     )
     concordance = (
-        "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/"
-        "controls/giab/snv/v4.2.1/HG001"
+        "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
     )
 
     def row(external_sample_id: str) -> str:
@@ -1364,8 +1576,7 @@ def test_precheck_manifest_respects_explicit_false_positive_control(
     tmp_path: Path,
 ) -> None:
     concordance = (
-        "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/"
-        "controls/giab/snv/v4.2.1/HG001"
+        "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
     )
     analysis_samples = _write_manifest(
         tmp_path,
@@ -1434,8 +1645,7 @@ def test_precheck_manifest_infers_positive_control_when_flag_is_omitted(
     tmp_path: Path,
 ) -> None:
     concordance = (
-        "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/"
-        "controls/giab/snv/v4.2.1/HG001"
+        "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
     )
     analysis_samples = _write_manifest(
         tmp_path,

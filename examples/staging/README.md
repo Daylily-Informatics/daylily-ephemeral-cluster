@@ -14,6 +14,11 @@ Every row uses `STAGE_DIRECTIVE=stage_data`, so raw reads, aligned artifacts,
 and concordance data are copied into the timestamped remote stage before the
 generated `samples.tsv` and `units.tsv` point at FSx paths.
 
+Run-level metric files can be copied into the same timestamped stage with a
+repeatable `--run-metric-staging RUN_UID:PLATFORM:FOFN` option. Each FOFN line
+names one metric file; relative entries preserve their directories under
+`runs/<RUN_UID>/`, while absolute, S3, and FSx entries copy by basename.
+
 ONT FASTQ prefix rows use `ONT_FASTQ_PREFIX=s3://.../fastq_pass/<tag>/`.
 The staging helper parses ONT shard filenames, filters to one flowcell when
 `ONT_FLOWCELL_ID` is set, concatenates the selected shards into one
@@ -31,6 +36,7 @@ daylily-ec samples stage examples/staging/ilmn_solo/analysis_samples_manifest.ts
   --profile lsmc \
   --region us-west-2 \
   --reference-bucket s3://lsmc-dayoa-omics-analysis-us-west-2 \
+  --run-metric-staging "RUN123:ILMN:/path/to/run_metrics.fofn" \
   --config-dir tmp-stage-config/examples/ilmn_solo
 ```
 

@@ -19,7 +19,7 @@ import tempfile
 import uuid
 from collections import defaultdict
 from dataclasses import dataclass
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 RUN_ID = "RUN_ID"
@@ -386,6 +386,20 @@ class PrecheckReport:
     issues: Tuple[PrecheckIssue, ...]
 
 
+@dataclass(frozen=True)
+class RunMetricStagingSpec:
+    run_uid: str
+    platform: str
+    fofn: Path
+
+
+@dataclass(frozen=True)
+class RunMetricFile:
+    spec: RunMetricStagingSpec
+    source: str
+    destination_relative_path: str
+
+
 GIAB_TRUTH_SUFFIXES = (".bed", ".vcf.gz", ".vcf.gz.tbi")
 
 
@@ -427,6 +441,16 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         "--precheck-only",
         action="store_true",
         help="Validate the manifest and exit without staging or writing generated configs.",
+    )
+    parser.add_argument(
+        "--run-metric-staging",
+        action="append",
+        default=[],
+        metavar="RUN_UID:PLATFORM:FOFN",
+        help=(
+            "Copy run-level metric files listed in FOFN under runs/<RUN_UID>/ in the "
+            "remote stage. Can be specified multiple times."
+        ),
     )
     return parser.parse_args(argv)
 
@@ -726,6 +750,163 @@ def normalise_identifier(value: str) -> str:
 
 def normalise_run_id(value: str) -> str:
     return normalise_identifier(value).replace(".", "-")
+
+
+def _validate_run_metric_component(value: str, *, label: str) -> None:
+    if not value:
+        raise CommandError(f"Run metric staging {label} is required.")
+    if "/" in value or "\\" in value:
+        raise CommandError(f"Run metric staging {label} must not contain path separators: {value}")
+
+
+def parse_run_metric_staging_spec(value: str) -> RunMetricStagingSpec:
+    parts = value.split(":", 2)
+    if len(parts) != 3:
+        raise CommandError(
+            f"Run metric staging spec must be RUN_UID:PLATFORM:FOFN; received: {value}"
+        )
+    raw_run_uid, raw_platform, raw_fofn = (part.strip() for part in parts)
+    run_uid = normalise_run_id(raw_run_uid)
+    platform = normalise_identifier(raw_platform).upper()
+    _validate_run_metric_component(run_uid, label="RUN_UID")
+    _validate_run_metric_component(platform, label="PLATFORM")
+    if not raw_fofn:
+        raise CommandError("Run metric staging FOFN is required.")
+    return RunMetricStagingSpec(
+        run_uid=run_uid,
+        platform=platform,
+        fofn=Path(raw_fofn).expanduser(),
+    )
+
+
+def parse_run_metric_staging_specs(values: Sequence[str]) -> Tuple[RunMetricStagingSpec, ...]:
+    return tuple(parse_run_metric_staging_spec(value) for value in values)
+
+
+def _normalise_run_metric_relative_destination(path: str) -> str:
+    if path.endswith("/"):
+        raise CommandError(f"Run metric FOFN entry must name a file, not a directory: {path}")
+    rel_path = PurePosixPath(path)
+    if rel_path.is_absolute():
+        raise CommandError(f"Run metric destination must be relative: {path}")
+    parts = tuple(part for part in rel_path.parts if part not in {"", "."})
+    if not parts:
+        raise CommandError(f"Run metric FOFN entry has no destination filename: {path}")
+    if any(part == ".." for part in parts):
+        raise CommandError(f"Run metric FOFN entry must not contain '..': {path}")
+    return "/".join(parts)
+
+
+def _run_metric_source_basename(source: str) -> str:
+    if source.endswith("/"):
+        raise CommandError(f"Run metric source must name a file, not a directory: {source}")
+    if source.startswith("s3://"):
+        _bucket, key = parse_s3_uri(source)
+        name = PurePosixPath(key).name
+    else:
+        name = Path(source).name
+    if not name:
+        raise CommandError(f"Run metric source has no destination filename: {source}")
+    return name
+
+
+def _is_fofn_relative_source(source: str) -> bool:
+    if source.startswith("s3://"):
+        return False
+    return not Path(source).expanduser().is_absolute()
+
+
+def _resolve_run_metric_file(
+    spec: RunMetricStagingSpec,
+    source: str,
+    *,
+    line_number: int,
+) -> RunMetricFile:
+    source = source.strip()
+    if not source:
+        raise CommandError(f"Run metric FOFN {spec.fofn} line {line_number} is empty.")
+    if _is_fofn_relative_source(source):
+        destination_relative_path = _normalise_run_metric_relative_destination(source)
+        resolved_source = str((spec.fofn.parent / source).expanduser().resolve())
+    else:
+        destination_relative_path = _run_metric_source_basename(source)
+        resolved_source = source
+    return RunMetricFile(
+        spec=spec,
+        source=resolved_source,
+        destination_relative_path=destination_relative_path,
+    )
+
+
+def precheck_run_metrics(
+    specs: Sequence[RunMetricStagingSpec],
+    *,
+    reference_bucket: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> List[RunMetricFile]:
+    resolved_files: List[RunMetricFile] = []
+    destinations_by_run: Dict[Tuple[str, str], str] = {}
+    platforms_by_run: Dict[str, str] = {}
+
+    for spec in specs:
+        fofn = spec.fofn
+        if not fofn.exists():
+            raise CommandError(f"Run metric FOFN not found: {fofn}")
+        if not fofn.is_file():
+            raise CommandError(f"Run metric FOFN is not a file: {fofn}")
+
+        existing_platform = platforms_by_run.get(spec.run_uid)
+        if existing_platform is not None and existing_platform != spec.platform:
+            raise CommandError(
+                f"Run metric staging for RUN_UID={spec.run_uid} uses conflicting platforms: "
+                f"{existing_platform} and {spec.platform}."
+            )
+        platforms_by_run.setdefault(spec.run_uid, spec.platform)
+
+        files_for_spec = 0
+        with fofn.open(encoding="utf-8") as handle:
+            for line_number, line in enumerate(handle, start=1):
+                source = line.strip()
+                if not source:
+                    continue
+                metric_file = _resolve_run_metric_file(
+                    spec,
+                    source,
+                    line_number=line_number,
+                )
+                destination_key = (spec.run_uid, metric_file.destination_relative_path)
+                existing_source = destinations_by_run.get(destination_key)
+                if existing_source is not None:
+                    raise CommandError(
+                        f"Run metric staging for RUN_UID={spec.run_uid} maps multiple sources "
+                        f"to runs/{spec.run_uid}/{metric_file.destination_relative_path}: "
+                        f"{existing_source}, {metric_file.source}"
+                    )
+                check_source_path(
+                    metric_file.source,
+                    reference_bucket=reference_bucket,
+                    aws_env=aws_env,
+                    debug=debug,
+                )
+                destinations_by_run[destination_key] = metric_file.source
+                resolved_files.append(metric_file)
+                files_for_spec += 1
+        if files_for_spec == 0:
+            raise CommandError(f"Run metric FOFN contains no files: {fofn}")
+
+    return resolved_files
+
+
+def format_run_metric_precheck_success(
+    specs: Sequence[RunMetricStagingSpec],
+    files: Sequence[RunMetricFile],
+) -> str:
+    return (
+        "Run metric precheck passed: "
+        f"run specs checked={len(specs)}, "
+        f"metric files checked={len(files)}."
+    )
 
 
 def canonical_manifest_libprep(value: str, *, vendor: str) -> str:
@@ -1515,6 +1696,34 @@ def stage_path_with_sidecars(
         )
         created.extend(sidecar_created)
     return remote_path, created
+
+
+def stage_run_metrics(
+    files: Sequence[RunMetricFile],
+    stage: StagePaths,
+    *,
+    reference_bucket: str,
+    aws_env: Dict[str, str],
+    debug: bool,
+) -> List[str]:
+    created: List[str] = []
+    for metric_file in files:
+        remote_fsx = (
+            f"{stage.remote_fsx_stage}/runs/{metric_file.spec.run_uid}/"
+            f"{metric_file.destination_relative_path}"
+        )
+        remote_s3 = (
+            f"{stage.remote_s3_stage}/runs/{metric_file.spec.run_uid}/"
+            f"{metric_file.destination_relative_path}"
+        )
+        aws_copy(
+            source_copy_reference(metric_file.source, reference_bucket=reference_bucket),
+            remote_s3,
+            aws_env=aws_env,
+            debug=debug,
+        )
+        created.append(remote_fsx)
+    return created
 
 
 def reject_duplicate_multi_lane_sources(
@@ -3095,6 +3304,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     aws_env = build_aws_env(aws_config)
 
     stage = build_stage_paths(args.stage_target, args.reference_bucket)
+    run_metric_specs = parse_run_metric_staging_specs(args.run_metric_staging)
     precheck_report, prechecked_rows = precheck_manifest(
         analysis_samples,
         reference_bucket=args.reference_bucket,
@@ -3105,6 +3315,14 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         print(format_precheck_failure(precheck_report), file=sys.stderr)
         return 1
     print(format_precheck_success(precheck_report))
+    run_metric_files = precheck_run_metrics(
+        run_metric_specs,
+        reference_bucket=args.reference_bucket,
+        aws_env=aws_env,
+        debug=args.debug,
+    )
+    if run_metric_specs:
+        print(format_run_metric_precheck_success(run_metric_specs, run_metric_files))
     if args.precheck_only:
         return 0
 
@@ -3117,6 +3335,15 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         aws_env=aws_env,
         debug=args.debug,
         rows=prechecked_rows,
+    )
+    created_files.extend(
+        stage_run_metrics(
+            run_metric_files,
+            stage,
+            reference_bucket=args.reference_bucket,
+            aws_env=aws_env,
+            debug=args.debug,
+        )
     )
 
     timestamp = stage.remote_stage_name.replace("remote_stage_", "")

@@ -1676,6 +1676,14 @@ def samples_stage(
         "--stage-target",
         help="FSx staging base directory.",
     ),
+    run_metric_staging: Optional[List[str]] = typer.Option(
+        None,
+        "--run-metric-staging",
+        help=(
+            "Copy run metric files into runs/<RUN_UID>/ from RUN_UID:PLATFORM:FOFN. "
+            "Can be specified multiple times."
+        ),
+    ),
     profile: Optional[str] = typer.Option(
         None,
         "--profile",
@@ -1707,6 +1715,8 @@ def samples_stage(
         "--stage-target",
         stage_target,
     ]
+    for spec in run_metric_staging or []:
+        argv.extend(["--run-metric-staging", spec])
     if config_dir:
         argv.extend(["--config-dir", str(config_dir)])
     if profile:
@@ -1754,6 +1764,14 @@ def samples_run(
         "/data/staged_sample_data",
         "--stage-target",
         help="FSx staging base directory.",
+    ),
+    run_metric_staging: Optional[List[str]] = typer.Option(
+        None,
+        "--run-metric-staging",
+        help=(
+            "Copy run metric files into runs/<RUN_UID>/ from RUN_UID:PLATFORM:FOFN. "
+            "Can be specified multiple times."
+        ),
     ),
     profile: Optional[str] = typer.Option(
         None,
@@ -1831,6 +1849,8 @@ def samples_run(
             "--stage-target",
             stage_target,
         ]
+        for spec in run_metric_staging or []:
+            stage_argv.extend(["--run-metric-staging", spec])
         resolved_config_dir = config_dir.expanduser() if config_dir else analysis_path.parent
         stage_argv.extend(["--config-dir", str(resolved_config_dir)])
         stage_argv.extend(["--profile", resolved_profile])

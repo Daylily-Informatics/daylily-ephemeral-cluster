@@ -487,6 +487,7 @@ Important inputs:
 - `--reference-bucket`
 - `--config-dir`
 - `--stage-target`
+- repeatable `--run-metric-staging RUN_UID:PLATFORM:FOFN`
 - `--profile`
 - `--region`
 - `--debug`
@@ -500,6 +501,7 @@ Manifest notes:
 - populate `ONT_FLOWCELL_ID` when the ONT FASTQ prefix contains shards from more than one flowcell
 - raw reads are staged into the remote stage; aligned artifacts remain pass-through unless `STAGE_DIRECTIVE=stage_data`
 - one manifest row normally maps to one `units.tsv` row; multi-lane Illumina rows with the same unit identity are merged
+- run-metric staging copies FOFN-listed files under `runs/<RUN_UID>/` in the same remote stage; relative FOFN entries preserve their relative directories, while absolute, S3, and FSx entries use their basename
 
 Example:
 
@@ -508,6 +510,7 @@ daylily-ec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --reference-bucket "$REF_BUCKET" \
+  --run-metric-staging "RUN123:ILMN:/path/to/run_metrics.fofn" \
   --config-dir "$STAGE_CFG_DIR"
 ```
 
@@ -523,6 +526,7 @@ Important inputs:
 - `--destination`
 - `--reference-bucket`
 - `--config-dir`
+- repeatable `--run-metric-staging RUN_UID:PLATFORM:FOFN`
 - `--profile`
 - `--region`
 - `--cluster`
