@@ -22,6 +22,10 @@ import tempfile
 from collections import Counter, defaultdict
 from pathlib import Path
 
+DNA_RE = re.compile(r"^[ACGTN]+$", re.IGNORECASE)
+SAMPLESHEET_DATA_SECTION = "[BCLConvert_Data]"
+RC_TABLE = str.maketrans("ACGTNacgtn", "TGCANtgcan")
+
 
 FILTER_SOURCE = r'''
 #include <stdio.h>
@@ -502,6 +506,31 @@ def parse_args() -> argparse.Namespace:
         ),
     )
     parser.add_argument(
+        "--samplesheet",
+        default=None,
+        help=(
+            "BCL Convert SampleSheet.csv. When supplied, output includes exact and "
+            "reverse-complement diagnostic match columns."
+        ),
+    )
+    parser.add_argument(
+        "--top-not-in-samplesheet",
+        type=int,
+        default=None,
+        help=(
+            "Emit the top N observed tag pairs whose exact index/index2 pair is absent "
+            "from --samplesheet. Requires --samplesheet."
+        ),
+    )
+    parser.add_argument(
+        "--tag-pairs-out",
+        default=None,
+        help=(
+            "Write the selected ranked rows as an index/index2 TSV usable as "
+            "--tag-pairs-tsv for a split pass. The file must not already exist."
+        ),
+    )
+    parser.add_argument(
         "--split-all-tags",
         action="store_true",
         help=(
@@ -533,6 +562,89 @@ def require_tool(name: str) -> str:
     if not path:
         raise SystemExit(f"required command not found on PATH: {name}")
     return path
+
+
+def normalize_index(value: str, *, label: str, row_number: int) -> str:
+    index = value.strip().upper()
+    if not index:
+        raise ValueError(f"missing {label} in sample sheet row {row_number}")
+    if not DNA_RE.fullmatch(index):
+        raise ValueError(f"invalid {label} {index!r} in sample sheet row {row_number}")
+    return index
+
+
+def reverse_complement(index: str) -> str:
+    return index.translate(RC_TABLE)[::-1]
+
+
+def parse_samplesheet(path: Path) -> set[str]:
+    if not path.is_file():
+        raise ValueError(f"sample sheet not found: {path}")
+
+    with path.open("r", newline="", encoding="utf-8-sig") as fh:
+        rows = list(csv.reader(fh))
+
+    in_data = False
+    seen_data_section = False
+    header: list[str] | None = None
+    index_col = -1
+    index2_col = -1
+    tags: set[str] = set()
+
+    for row_number, row in enumerate(rows, 1):
+        if not row or all(not field.strip() for field in row):
+            continue
+        first = row[0].strip()
+        if first.startswith("[") and first.endswith("]"):
+            if in_data and header is not None:
+                break
+            in_data = first == SAMPLESHEET_DATA_SECTION
+            seen_data_section = seen_data_section or in_data
+            header = None
+            continue
+        if not in_data:
+            continue
+        if header is None:
+            header = [field.strip() for field in row]
+            lowered = [field.lower() for field in header]
+            if "index" not in lowered or "index2" not in lowered:
+                raise ValueError(
+                    f"{SAMPLESHEET_DATA_SECTION} must include Index and Index2 columns"
+                )
+            index_col = lowered.index("index")
+            index2_col = lowered.index("index2")
+            continue
+        if max(index_col, index2_col) >= len(row):
+            raise ValueError(f"sample sheet row {row_number} is missing Index or Index2")
+        index = normalize_index(row[index_col], label="Index", row_number=row_number)
+        index2 = normalize_index(row[index2_col], label="Index2", row_number=row_number)
+        tag = f"{index}+{index2}"
+        if tag in tags:
+            raise ValueError(f"duplicate sample sheet index/index2 pair in row {row_number}: {tag}")
+        tags.add(tag)
+
+    if not seen_data_section:
+        raise ValueError(f"{SAMPLESHEET_DATA_SECTION} section not found in {path}")
+    if header is None or not tags:
+        raise ValueError(f"{SAMPLESHEET_DATA_SECTION} contains no index/index2 rows in {path}")
+    return tags
+
+
+def diagnostics_for_tag(tag: str, sample_sheet_tags: set[str] | None) -> dict[str, bool]:
+    if sample_sheet_tags is None:
+        return {}
+    index, index2 = tag.split("+", 1) if "+" in tag else (tag, "")
+    return {
+        "matches_samplesheet_exact": tag in sample_sheet_tags,
+        "matches_samplesheet_i2_rc": f"{index}+{reverse_complement(index2)}"
+        in sample_sheet_tags,
+        "matches_samplesheet_both_rc": f"{reverse_complement(index)}+{reverse_complement(index2)}"
+        in sample_sheet_tags,
+    }
+
+
+def bool_text(value: bool) -> str:
+    return "true" if value else "false"
 
 
 def compile_filter(work_dir: Path, quiet: bool) -> Path:
@@ -584,6 +696,8 @@ def producer_command(input_ref: str) -> list[str]:
             "1024",
             input_ref,
         ]
+    if not Path(input_ref).is_file():
+        raise SystemExit(f"input FASTQ not found: {input_ref}")
     cat = require_tool("cat")
     return [cat, input_ref]
 
@@ -676,15 +790,37 @@ def load_counts(paths_by_lane: list[tuple[str, Path]]) -> tuple[Counter[str], di
     return counts, lanes_by_index
 
 
-def write_tsv(
-    output: str,
+def selected_ranked_rows(
     *,
     counts: Counter[str],
     lanes_by_index: dict[str, set[str]],
-    denominator: int,
     top: int,
+    sample_sheet_tags: set[str] | None,
+    top_not_in_samplesheet: int | None,
+) -> list[tuple[int, str, int]]:
+    del lanes_by_index
+    rows = sorted(counts.items(), key=lambda item: (-item[1], item[0]))
+    if top_not_in_samplesheet is not None:
+        if sample_sheet_tags is None:
+            raise ValueError("--top-not-in-samplesheet requires --samplesheet")
+        rows = [
+            (tag, count)
+            for tag, count in rows
+            if not diagnostics_for_tag(tag, sample_sheet_tags)["matches_samplesheet_exact"]
+        ][:top_not_in_samplesheet]
+    else:
+        rows = rows[:top]
+    return [(rank, tag, count) for rank, (tag, count) in enumerate(rows, 1)]
+
+
+def write_tsv(
+    output: str,
+    *,
+    rows: list[tuple[int, str, int]],
+    lanes_by_index: dict[str, set[str]],
+    denominator: int,
+    sample_sheet_tags: set[str] | None,
 ) -> None:
-    rows = sorted(counts.items(), key=lambda item: (-item[1], item[0]))[:top]
     if output == "-":
         fh = sys.stdout
         close = False
@@ -693,26 +829,55 @@ def write_tsv(
         close = True
     try:
         writer = csv.writer(fh, delimiter="\t")
-        writer.writerow(["rank", "index", "index2", "count", "pct_of_all_reads", "lanes_detected"])
-        for rank, (index_pair, count) in enumerate(rows, 1):
+        header = ["rank", "index", "index2", "count", "pct_of_all_reads", "lanes_detected"]
+        if sample_sheet_tags is not None:
+            header.extend(
+                [
+                    "matches_samplesheet_exact",
+                    "matches_samplesheet_i2_rc",
+                    "matches_samplesheet_both_rc",
+                ]
+            )
+        writer.writerow(header)
+        for rank, index_pair, count in rows:
             if "+" in index_pair:
                 index, index2 = index_pair.split("+", 1)
             else:
                 index, index2 = index_pair, ""
             pct = (count / denominator * 100.0) if denominator else 0.0
-            writer.writerow(
-                [
-                    rank,
-                    index,
-                    index2,
-                    count,
-                    f"{pct:.8f}",
-                    len(lanes_by_index[index_pair]),
-                ]
-            )
+            row = [
+                rank,
+                index,
+                index2,
+                count,
+                f"{pct:.8f}",
+                len(lanes_by_index[index_pair]),
+            ]
+            diagnostics = diagnostics_for_tag(index_pair, sample_sheet_tags)
+            if diagnostics:
+                row.extend(
+                    [
+                        bool_text(diagnostics["matches_samplesheet_exact"]),
+                        bool_text(diagnostics["matches_samplesheet_i2_rc"]),
+                        bool_text(diagnostics["matches_samplesheet_both_rc"]),
+                    ]
+                )
+            writer.writerow(row)
     finally:
         if close:
             fh.close()
+
+
+def write_tag_pairs_out(path: Path, *, rows: list[tuple[int, str, int]]) -> None:
+    if path.exists():
+        raise ValueError(f"--tag-pairs-out already exists: {path}")
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv.writer(fh, delimiter="\t")
+        writer.writerow(["rank", "index", "index2", "count"])
+        for rank, tag, count in rows:
+            index, index2 = tag.split("+", 1)
+            writer.writerow([rank, index, index2, count])
 
 
 def parse_tag_pairs(path: Path) -> list[str]:
@@ -750,14 +915,39 @@ def parse_tag_pairs(path: Path) -> list[str]:
     return unique_tags
 
 
-def write_allowlist(args: argparse.Namespace, work_dir: Path) -> tuple[Path | None, int]:
+def sanitized_stem(tag: str) -> str:
+    safe = []
+    for char in tag:
+        if char == "+":
+            safe.append("__")
+        elif char.isalnum() or char in {"-", "_"}:
+            safe.append(char)
+        else:
+            safe.append("_")
+    return "".join(safe)
+
+
+def validate_output_stems(tags: list[str]) -> None:
+    stems: dict[str, str] = {}
+    for tag in tags:
+        stem = sanitized_stem(tag)
+        previous = stems.get(stem)
+        if previous and previous != tag:
+            raise ValueError(
+                f"tag pairs {previous!r} and {tag!r} would write the same FASTQ stem {stem!r}"
+            )
+        stems[stem] = tag
+
+
+def write_allowlist(args: argparse.Namespace, work_dir: Path) -> tuple[Path | None, int, list[str]]:
     if args.tag_pairs_tsv:
         tags = parse_tag_pairs(Path(args.tag_pairs_tsv))
+        validate_output_stems(tags)
         allowlist = work_dir / "tag_pairs.allowlist.txt"
         allowlist.write_text("\n".join(tags) + "\n", encoding="utf-8")
-        return allowlist, len(tags)
+        return allowlist, len(tags), tags
     if args.split_all_tags:
-        return None, args.max_split_tags
+        return None, args.max_split_tags, []
     raise SystemExit(
         "--split-fastqs requires --tag-pairs-tsv, or --split-all-tags if you "
         "really want one FASTQ pair per observed tag pair."
@@ -858,15 +1048,7 @@ def load_split_summaries(paths_by_lane: list[tuple[str, Path]]) -> tuple[Counter
 
 
 def fastq_paths_for_tag(out_dir: Path, tag: str) -> tuple[Path, Path]:
-    safe = []
-    for char in tag:
-        if char == "+":
-            safe.append("__")
-        elif char.isalnum() or char in {"-", "_"}:
-            safe.append(char)
-        else:
-            safe.append("_")
-    stem = "".join(safe)
+    stem = sanitized_stem(tag)
     return out_dir / f"{stem}_R1.fastq.gz", out_dir / f"{stem}_R2.fastq.gz"
 
 
@@ -931,7 +1113,7 @@ def run_split_fastqs(args: argparse.Namespace, work_dir: Path) -> None:
         raise SystemExit("--max-split-tags must be positive")
 
     fastq_out_dir = prepare_fastq_out_dir(args.fastq_out_dir, overwrite=args.overwrite_fastqs)
-    allowlist, max_tags = write_allowlist(args, work_dir)
+    allowlist, max_tags, expected_tags = write_allowlist(args, work_dir)
     splitter_binary = compile_splitter(work_dir, args.quiet)
     summaries: list[tuple[str, Path]] = []
     for ordinal, (read1_ref, read2_ref) in enumerate(zip(args.inputs, args.read2_inputs), 1):
@@ -951,6 +1133,10 @@ def run_split_fastqs(args: argparse.Namespace, work_dir: Path) -> None:
         summaries.append((lane, summary))
 
     counts, lanes_by_index, scanned, matched = load_split_summaries(summaries)
+    missing_tags = [tag for tag in expected_tags if counts.get(tag, 0) == 0]
+    if missing_tags:
+        examples = ", ".join(missing_tags[:5])
+        raise RuntimeError(f"allowlisted tag pairs were not recovered from split FASTQs: {examples}")
     denominator = args.total_reads if args.total_reads is not None else scanned
     write_split_tsv(
         args.output,
@@ -971,6 +1157,10 @@ def main() -> int:
     args = parse_args()
     if args.top < 1:
         raise SystemExit("--top must be positive")
+    if args.top_not_in_samplesheet is not None and args.top_not_in_samplesheet < 1:
+        raise SystemExit("--top-not-in-samplesheet must be positive")
+    if args.top_not_in_samplesheet is not None and not args.samplesheet:
+        raise SystemExit("--top-not-in-samplesheet requires --samplesheet")
 
     base_tmp = Path(args.tmp_dir) if args.tmp_dir else Path(tempfile.mkdtemp(prefix="ilmn-indexes-"))
     base_tmp.mkdir(parents=True, exist_ok=True)
@@ -998,15 +1188,25 @@ def main() -> int:
             count_paths.append((lane, count_path))
             scanned_records += headers
 
+        sample_sheet_tags = parse_samplesheet(Path(args.samplesheet)) if args.samplesheet else None
         counts, lanes_by_index = load_counts(count_paths)
         denominator = args.total_reads if args.total_reads is not None else scanned_records
-        write_tsv(
-            args.output,
+        rows = selected_ranked_rows(
             counts=counts,
             lanes_by_index=lanes_by_index,
-            denominator=denominator,
             top=args.top,
+            sample_sheet_tags=sample_sheet_tags,
+            top_not_in_samplesheet=args.top_not_in_samplesheet,
         )
+        write_tsv(
+            args.output,
+            rows=rows,
+            lanes_by_index=lanes_by_index,
+            denominator=denominator,
+            sample_sheet_tags=sample_sheet_tags,
+        )
+        if args.tag_pairs_out:
+            write_tag_pairs_out(Path(args.tag_pairs_out), rows=rows)
         log(
             f"counted {sum(counts.values())} {args.mode} index observations "
             f"across {len(counts)} unique index pairs",

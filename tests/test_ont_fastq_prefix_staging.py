@@ -430,6 +430,139 @@ def test_stage_ont_fastq_prefix_bundles_small_shards_before_multipart_copy(
     )
 
 
+def test_validate_ont_run_output_accepts_final_destination_pod5_directory(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = "s3://bucket/ont/HG003/20260401_ONT_run.01/"
+    objects = [
+        module.S3ObjectSummary(
+            uri=f"{root}fastq_pass/barcode01/FLO-PRO114M_pass_barcode01_proto_acq_0.fastq.gz",
+            key="ont/HG003/20260401_ONT_run.01/fastq_pass/barcode01/"
+            "FLO-PRO114M_pass_barcode01_proto_acq_0.fastq.gz",
+            size=1024,
+        ),
+        module.S3ObjectSummary(
+            uri=f"{root}pod5/FLO-PRO114M_proto_acq_0.pod5",
+            key="ont/HG003/20260401_ONT_run.01/pod5/FLO-PRO114M_proto_acq_0.pod5",
+            size=1024,
+        ),
+        module.S3ObjectSummary(
+            uri=f"{root}final_summary_FLO-PRO114M.txt",
+            key="ont/HG003/20260401_ONT_run.01/final_summary_FLO-PRO114M.txt",
+            size=128,
+        ),
+        module.S3ObjectSummary(
+            uri=f"{root}sample_sheet_20260401.csv",
+            key="ont/HG003/20260401_ONT_run.01/sample_sheet_20260401.csv",
+            size=128,
+        ),
+        module.S3ObjectSummary(
+            uri=f"{root}sequencing_summary_FLO-PRO114M.txt",
+            key="ont/HG003/20260401_ONT_run.01/sequencing_summary_FLO-PRO114M.txt",
+            size=128,
+        ),
+        module.S3ObjectSummary(
+            uri=f"{root}report_FLO-PRO114M.html",
+            key="ont/HG003/20260401_ONT_run.01/report_FLO-PRO114M.html",
+            size=128,
+        ),
+    ]
+
+    monkeypatch.setattr(module, "list_s3_objects", lambda *_args, **_kwargs: objects)
+    monkeypatch.setattr(
+        module,
+        "read_s3_text",
+        lambda *_args, **_kwargs: (
+            "flow_cell_id=FLO-PRO114M\n"
+            "basecalling_enabled=1\n"
+            "fastq_files_in_final_dest=1\n"
+            "pod5_files_in_final_dest=1\n"
+            "fallback_fastq_files_in_final_dest=0\n"
+            "fallback_pod5_files_in_final_dest=0\n"
+        ),
+    )
+
+    module.validate_ont_run_output(root, flowcell_id="FLO-PRO114M", aws_env={}, debug=False)
+
+
+def test_validate_ont_run_output_rejects_missing_pod5_data(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    root = "s3://bucket/ont/HG003/20260401_ONT_run.01/"
+    objects = [
+        module.S3ObjectSummary(
+            uri=f"{root}fastq_pass/barcode01/FLO-PRO114M_pass_barcode01_proto_acq_0.fastq.gz",
+            key="ont/HG003/20260401_ONT_run.01/fastq_pass/barcode01/"
+            "FLO-PRO114M_pass_barcode01_proto_acq_0.fastq.gz",
+            size=1024,
+        ),
+        module.S3ObjectSummary(
+            uri=f"{root}final_summary_FLO-PRO114M.txt",
+            key="ont/HG003/20260401_ONT_run.01/final_summary_FLO-PRO114M.txt",
+            size=128,
+        ),
+        module.S3ObjectSummary(
+            uri=f"{root}sample_sheet_20260401.csv",
+            key="ont/HG003/20260401_ONT_run.01/sample_sheet_20260401.csv",
+            size=128,
+        ),
+        module.S3ObjectSummary(
+            uri=f"{root}sequencing_summary_FLO-PRO114M.txt",
+            key="ont/HG003/20260401_ONT_run.01/sequencing_summary_FLO-PRO114M.txt",
+            size=128,
+        ),
+        module.S3ObjectSummary(
+            uri=f"{root}report_FLO-PRO114M.html",
+            key="ont/HG003/20260401_ONT_run.01/report_FLO-PRO114M.html",
+            size=128,
+        ),
+    ]
+
+    monkeypatch.setattr(module, "list_s3_objects", lambda *_args, **_kwargs: objects)
+    monkeypatch.setattr(
+        module,
+        "read_s3_text",
+        lambda *_args, **_kwargs: (
+            "flow_cell_id=FLO-PRO114M\n"
+            "basecalling_enabled=1\n"
+            "fastq_files_in_final_dest=1\n"
+            "pod5_files_in_final_dest=1\n"
+            "fallback_fastq_files_in_final_dest=0\n"
+            "fallback_pod5_files_in_final_dest=0\n"
+        ),
+    )
+
+    with pytest.raises(module.CommandError, match="reports 1 POD5 files, but S3 contains 0"):
+        module.validate_ont_run_output(root, flowcell_id="FLO-PRO114M", aws_env={}, debug=False)
+
+
+def test_resolve_ont_fastq_prefix_rejects_shards_from_another_barcode(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    prefix = "s3://bucket/ont/HG003/20260401_ONT_run.01/fastq_pass/barcode01/"
+
+    monkeypatch.setattr(
+        module,
+        "list_s3_objects",
+        lambda *_args, **_kwargs: [
+            module.S3ObjectSummary(
+                uri=f"{prefix}FLO-PRO114M_pass_barcode02_proto_acq_0.fastq.gz",
+                key="ont/HG003/20260401_ONT_run.01/fastq_pass/barcode01/"
+                "FLO-PRO114M_pass_barcode02_proto_acq_0.fastq.gz",
+                size=1024,
+            )
+        ],
+    )
+
+    with pytest.raises(module.CommandError, match="belongs to tag barcode02"):
+        module.resolve_ont_fastq_prefix_plan(
+            prefix,
+            flowcell_id="FLO-PRO114M",
+            aws_env={},
+            debug=False,
+        )
+
+
 def test_stage_ont_fastq_prefix_rejects_mixed_flowcells_without_ont_flowcell_id(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

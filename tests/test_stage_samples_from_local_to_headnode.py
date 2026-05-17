@@ -83,6 +83,26 @@ def test_headnode_visible_path_maps_data_prefix_to_fsx() -> None:
     assert module.headnode_visible_path("/tmp/local") == "/tmp/local"
 
 
+def test_normalise_samples_paths_rewrites_staged_concordance_paths() -> None:
+    rows = [
+        {
+            "SAMPLEID": "HG003",
+            "CONCORDANCE_CONTROL_PATH": "/data/staged_sample_data/run/concordance_data",
+            "TRUTH_DATA_DIR": "/data/staged_sample_data/run/concordance_data",
+        }
+    ]
+
+    module.normalise_samples_paths(rows)
+
+    assert rows == [
+        {
+            "SAMPLEID": "HG003",
+            "CONCORDANCE_CONTROL_PATH": "/fsx/data/staged_sample_data/run/concordance_data",
+            "TRUTH_DATA_DIR": "/fsx/data/staged_sample_data/run/concordance_data",
+        }
+    ]
+
+
 def test_check_source_path_accepts_mounted_paths_without_reference_translation(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:

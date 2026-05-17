@@ -481,7 +481,7 @@ mkdir -p "$run_dir"
 export DAYLILY_RUN_DIR="$run_dir"
 export DAYLILY_REPO_PATH="$repo_path"
 export DAYLILY_TMUX_LOG="$tmux_log"
-if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+if tmux has-session -t "=$SESSION_NAME" 2>/dev/null; then
   echo "__DAYLILY_ERROR__=session_exists"
   exit 8
 fi
@@ -495,7 +495,7 @@ nohup tmux new-session -d -s "$SESSION_NAME" \
   -e "DAYLILY_TMUX_LOG=$tmux_log" \
   "bash -lc 'source \"$work_script\" >>\"$tmux_log\" 2>&1'" >"$bootstrap_log" 2>&1 &
 sleep 2
-if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+if ! tmux has-session -t "=$SESSION_NAME" 2>/dev/null; then
   if [[ -s "$bootstrap_log" ]]; then
     cat "$bootstrap_log" >&2
   fi

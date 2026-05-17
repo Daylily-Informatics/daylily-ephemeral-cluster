@@ -1164,7 +1164,6 @@ def validate_ont_run_output(
     basenames = {os.path.basename(key) for key in keys}
     required_markers = {
         "fastq_pass/": "fastq_pass",
-        "pod5_pass/": "pod5_pass",
     }
     for marker, label in required_markers.items():
         if not any(marker in key for key in keys):
@@ -1226,7 +1225,7 @@ def validate_ont_run_output(
         observed_pod5 = sum(
             1
             for key in keys
-            if ("/pod5_pass/" in key or "/pod5_fail/" in key)
+            if ("/pod5_pass/" in key or "/pod5_fail/" in key or "/pod5/" in key)
             and os.path.basename(key).startswith(f"{flowcell_id}_")
             and os.path.basename(key).endswith(".pod5")
         )
@@ -1865,6 +1864,16 @@ def normalise_units_paths(rows: Sequence[Dict[str, str]]) -> None:
         for field, value in list(row.items()):
             if not isinstance(value, str):
                 continue
+            if value.startswith("/data/"):
+                row[field] = f"/fsx{value}"
+            elif value == "/data":
+                row[field] = "/fsx/data"
+
+
+def normalise_samples_paths(rows: Sequence[Dict[str, str]]) -> None:
+    for row in rows:
+        for field in (CONCORDANCE_CONTROL_PATH, TRUTH_DATA_DIR):
+            value = row.get(field, "")
             if value.startswith("/data/"):
                 row[field] = f"/fsx{value}"
             elif value == "/data":
@@ -3533,6 +3542,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     samples_path = config_dir / samples_filename
     units_path = config_dir / units_filename
     unique_samples_rows = deduplicate_rows(samples_rows, SAMPLES_HEADER)
+    normalise_samples_paths(unique_samples_rows)
     normalise_units_paths(units_rows)
 
     write_tsv(samples_path, SAMPLES_HEADER, unique_samples_rows)

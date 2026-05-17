@@ -263,7 +263,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert '-e "DAYLILY_RUN_DIR=$run_dir"' in script
         assert '-e "DAYLILY_REPO_PATH=$repo_path"' in script
         assert '-e "DAYLILY_TMUX_LOG=$tmux_log"' in script
-        assert "tmux has-session" in script
+        assert 'tmux has-session -t "=$SESSION_NAME"' in script
         assert 'repo_key = "daylily-omics-analysis"' in script
         assert "DAY_CONTAINERIZED=true" in script
         assert "DY_COMMAND='DAY_CONTAINERIZED=true" in script

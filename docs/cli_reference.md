@@ -743,6 +743,9 @@ Important options:
 - `--read2-inputs`
 - `--fastq-out-dir`
 - `--tag-pairs-tsv`
+- `--samplesheet`
+- `--top-not-in-samplesheet`
+- `--tag-pairs-out`
 - `--split-all-tags`
 - `--overwrite-fastqs`
 
@@ -755,6 +758,20 @@ bin/utils/ilmn/extract_undetermined_indexes \
   --mode uncalled \
   --top 100 \
   --output indexes.tsv
+```
+
+Report the top observed pairs absent from a BCL Convert sample sheet and write
+an allowlist for a split pass:
+
+```bash
+bin/utils/ilmn/extract_undetermined_indexes \
+  s3://bucket/path/Undetermined_S0_L001_R1_001.fastq.gz \
+  s3://bucket/path/Undetermined_S0_L002_R1_001.fastq.gz \
+  --mode called \
+  --samplesheet SampleSheet.csv \
+  --top-not-in-samplesheet 50 \
+  --output top50_not_in_samplesheet.tsv \
+  --tag-pairs-out top50_tag_pairs.tsv
 ```
 
 Split selected tag pairs into recovered FASTQs:

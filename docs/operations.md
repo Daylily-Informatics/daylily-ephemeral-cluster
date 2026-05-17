@@ -144,6 +144,20 @@ The output TSV contains `rank`, `index`, `index2`, `count`,
 files, `s3://` URIs, or presigned HTTP(S) URLs. The utility uses `gcc`,
 `sort`, and `gzip` or `pigz`; S3 inputs also require the AWS CLI.
 
+To find barcode pairs that were not present in the BCL Convert sample sheet,
+pass the sample sheet and emit a split allowlist:
+
+```bash
+bin/utils/ilmn/extract_undetermined_indexes \
+  s3://bucket/path/Undetermined_S0_L001_R1_001.fastq.gz \
+  s3://bucket/path/Undetermined_S0_L002_R1_001.fastq.gz \
+  --mode called \
+  --samplesheet SampleSheet.csv \
+  --top-not-in-samplesheet 50 \
+  --output top50_not_in_samplesheet.tsv \
+  --tag-pairs-out top50_tag_pairs.tsv
+```
+
 To split selected tag pairs into recovered R1/R2 FASTQs, pass matching R2
 inputs plus an allowlist:
 
