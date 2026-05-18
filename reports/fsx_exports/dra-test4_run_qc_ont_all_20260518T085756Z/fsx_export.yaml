@@ -1,0 +1,21 @@
+fsx_export:
+  schema_version: 3
+  status: error
+  phase: detach
+  cluster_name: dra-test4
+  region: us-west-2
+  analysis_dir: run_qc_ont_all
+  source_path: /analysis_results/ubuntu/run_qc_ont_all/
+  headnode_path: /fsx/analysis_results/ubuntu/run_qc_ont_all/
+  destination_s3_uri: s3://lsmc-dayoa-omics-analysis-us-west-2/analysis_results/ubuntu/run_qc_ont_all/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details:
+    message: 'Unable to start FSx export task: An error occurred (BadRequest) when
+      calling the CreateDataRepositoryTask operation: The report path provided is
+      not associated with a data repository linked to this file system.'
+  fsx_file_system_id: fs-0bcf5a60d9b48f03e
+  file_system_path: /analysis_results/ubuntu/run_qc_ont_all/
+  association_id: dra-013f59a28f338ae60
+  lifecycle: AVAILABLE
+  detach_lifecycle: DELETED

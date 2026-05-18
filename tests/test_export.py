@@ -242,9 +242,8 @@ def test_run_export_task_starts_exact_analysis_path_and_report() -> None:
     assert fake.created_task["Type"] == "EXPORT_TO_REPOSITORY"
     assert fake.created_task["Paths"] == ["/analysis_results/ubuntu/illumina_run_qc/"]
     assert fake.created_task["Report"]["Path"].startswith(
-        "s3://bucket/daylily-monitor/fsx-export/illumina_run_qc/"
+        "s3://bucket/analysis_results/ubuntu/illumina_run_qc/_daylily_monitor/fsx-export/"
     )
-    assert "/analysis_results/ubuntu/illumina_run_qc/" not in fake.created_task["Report"]["Path"]
 
 
 def test_run_export_workflow_success_writes_v3_receipt(tmp_path, monkeypatch) -> None:
