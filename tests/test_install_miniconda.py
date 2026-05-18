@@ -167,28 +167,56 @@ def _base_env(tmp_path: Path) -> tuple[dict[str, str], Path, Path]:
 
 
 @pytest.mark.parametrize(
-    ("system_name", "machine_name", "expected"),
+    ("system_name", "machine_name", "expected_url"),
     [
-        ("Darwin", "arm64", "apple_silicon"),
-        ("Darwin", "x86_64", "intel_mac"),
-        ("Linux", "arm64", "linux_arm"),
-        ("Linux", "x86_64", "linux_x86"),
+        (
+            "Darwin",
+            "arm64",
+            "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh",
+        ),
+        (
+            "Darwin",
+            "x86_64",
+            "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh",
+        ),
+        (
+            "Linux",
+            "arm64",
+            "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh",
+        ),
+        (
+            "Linux",
+            "x86_64",
+            "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh",
+        ),
     ],
 )
-def test_detect_machine_returns_expected_class(
+def test_install_miniconda_selects_expected_installer_url(
     tmp_path: Path,
     system_name: str,
     machine_name: str,
-    expected: str,
+    expected_url: str,
 ) -> None:
-    env, _fake_bin, _log_path = _base_env(tmp_path)
+    env, fake_bin, log_path = _base_env(tmp_path)
     env["DAY_TEST_UNAME_S"] = system_name
     env["DAY_TEST_UNAME_M"] = machine_name
+    _write_executable(fake_bin / "curl", _fake_downloader_script("curl"))
 
-    result = _run_bash(f'source "{SCRIPT_PATH}" && detect_machine', env)
+    result = _run_bash(f'"{SCRIPT_PATH}"', env)
 
     assert result.returncode == 0, result.stderr
-    assert result.stdout.strip() == expected
+    assert f"curl:-fsSL {expected_url}" in log_path.read_text(encoding="utf-8")
+
+
+def test_install_miniconda_rejects_sourcing(tmp_path: Path) -> None:
+    env, _fake_bin, _log_path = _base_env(tmp_path)
+    env["DAY_TEST_UNAME_S"] = "Linux"
+    env["DAY_TEST_UNAME_M"] = "x86_64"
+
+    result = _run_bash(f'source "{SCRIPT_PATH}"', env)
+
+    assert result.returncode == 2
+    assert "install_miniconda must be run, not sourced" in result.stderr
 
 
 def test_install_miniconda_uses_curl_with_unset_machine(tmp_path: Path) -> None:

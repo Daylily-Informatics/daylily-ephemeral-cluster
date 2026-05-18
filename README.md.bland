@@ -1,8 +1,13 @@
 # Daylily Ephemeral Cluster
 
-Daylily creates a short-lived AWS ParallelCluster, finishes the headnode bootstrap after `pcluster` completes, stages laptop-side workflow inputs into the bucket-backed FSx filesystem, launches the workflow on the headnode, exports results back to S3, and then deletes the cluster when the operator is done.
+DayEC creates short-lived AWS ParallelCluster environments for Daylily analysis work. Current clusters use a DRA-backed FSx for Lustre filesystem:
 
-Supported remote access is Session Manager landing directly in the `ubuntu` login shell. The cluster is ephemeral. The bucket is durable. Export before delete.
+- references: `/fsx/data`
+- run folders: `/fsx/run_dir_mounts/<mount_id>`
+- workflow outputs: `/fsx/analysis_results/...`
+- selected export payloads: `/fsx/exports/<export_id>`
+
+The cluster is disposable. S3 is durable. Export and verify `fsx_export.yaml` before delete.
 
 ## Happy Path
 
@@ -15,71 +20,75 @@ export REGION_AZ=us-west-2d
 export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
 export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
+export ANALYSIS_BUCKET=s3://lsmc-dayoa-analysis-results-us-west-2
 export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
 export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
 export EXPORT_DIR="$PWD/tmp-export/$CLUSTER_NAME"
+export EXPORT_ID="${CLUSTER_NAME}-results"
+export EXPORT_S3_URI="$ANALYSIS_BUCKET/$EXPORT_ID/"
 
-daylily-ec preflight \
-  --profile "$AWS_PROFILE" \
-  --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG"
+dyec preflight --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
+dyec create --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
+dyec headnode connect --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 
-daylily-ec create \
-  --profile "$AWS_PROFILE" \
-  --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG"
-
-bin/daylily-ssh-into-headnode \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
-
-bin/daylily-stage-samples-from-local-to-headnode \
+dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --reference-bucket "$REF_BUCKET" \
-  --config-dir "$STAGE_CFG_DIR" \
-  "$ANALYSIS_SAMPLES"
+  --config-dir "$STAGE_CFG_DIR"
 
-bin/daylily-run-omics-analysis-headnode \
+dyec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>"
+  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
+  --destination dayoa \
+  --git-tag 1.0.7
 
-daylily-ec export \
+dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME" \
-  --target-uri analysis_results/ubuntu \
+  --cluster "$CLUSTER_NAME" \
+  --export-id "$EXPORT_ID" \
+  --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" \
+  --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 
 cat "$EXPORT_DIR/fsx_export.yaml"
 
-daylily-ec delete \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME"
+dyec delete --dry-run --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec delete --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
-## What Matters
+## Run Folder Inputs
 
-- `source ./activate` is the supported checkout bootstrap. It creates or repairs `DAY-EC` and installs the repo editable with dev extras.
-- `daylily-ec create` is only complete when the CLI returns after the Daylily headnode configuration and validation steps finish.
-- `bin/daylily-ssh-into-headnode` is the supported connect path. Its name is historical; the behavior is Session Manager.
-- `environment.yaml` is the Conda/system layer. `pyproject.toml` owns Python package dependencies.
-- `daylily-ec export` writes `fsx_export.yaml`. Treat that file as the export receipt before teardown.
+Attach only the run prefixes needed for the current work:
+
+```bash
+dyec --json mounts create \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --s3-uri "s3://sequencer-run-bucket/runs/RUN123/" \
+  --mount-id RUN123 \
+  --run-id RUN123 \
+  --platform ILMN \
+  --read-only \
+  --wait
+
+dyec --json mounts verify \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --mount-id RUN123
+```
+
+Run mounts are input-oriented. Do not write outputs into `/fsx/run_dir_mounts`. Export selected results from `/fsx/exports/<export_id>` instead.
 
 ## Read More
 
-- [docs/overview.md](docs/overview.md)
-- [docs/ultra_rapid_start.md](docs/ultra_rapid_start.md)
+- [docs/dra_fsx_strategy.md](docs/dra_fsx_strategy.md)
 - [docs/quickest_start.md](docs/quickest_start.md)
 - [docs/operations.md](docs/operations.md)
-- [docs/aws_setup.md](docs/aws_setup.md)
 - [docs/cli_reference.md](docs/cli_reference.md)
-- [docs/testing_and_debugging.md](docs/testing_and_debugging.md)
-- [docs/monitoring_and_troubleshooting.md](docs/monitoring_and_troubleshooting.md)
-- [docs/DAY_EC_ENVIRONMENT.md](docs/DAY_EC_ENVIRONMENT.md)
-- [docs/pip_install.md](docs/pip_install.md)
 - [docs/archive/README.md](docs/archive/README.md)

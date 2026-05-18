@@ -74,7 +74,29 @@ def test_headnode_visible_path_maps_data_prefix_to_fsx() -> None:
         module.headnode_visible_path("/data/staged_sample_data/remote_stage_1")
         == "/fsx/data/staged_sample_data/remote_stage_1"
     )
+    assert module.is_headnode_visible_path("/fsx/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
+    assert module.is_headnode_visible_path("/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
+    assert (
+        module.headnode_visible_path("/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
+        == "/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz"
+    )
     assert module.headnode_visible_path("/tmp/local") == "/tmp/local"
+
+
+def test_check_source_path_accepts_mounted_paths_without_reference_translation(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    def forbidden_aws(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("mounted run-directory paths must not use AWS reference lookups")
+
+    monkeypatch.setattr(module, "aws_command", forbidden_aws)
+
+    module.check_source_path(
+        "/fsx/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz",
+        reference_bucket="s3://reference",
+        aws_env={},
+        debug=False,
+    )
 
 
 def test_process_samples_requires_prechecked_rows(tmp_path: Path) -> None:
@@ -592,6 +614,148 @@ def test_process_samples_emits_ont_cram_rows(
     assert units_rows[0]["ONT_CRAM_ALIGNER"] == "ont"
     assert units_rows[0]["ONT_CRAM_SNV_CALLER"] == "sentdont"
     assert units_rows[0]["DEEP_MODEL"] == "ONT_R104"
+
+
+def test_process_samples_mounted_readonly_preserves_fastq_paths_without_copying(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    r1 = "/fsx/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz"
+    r2 = "/fsx/run_dir_mounts/RUN123/fastqs/S1_R2.fastq.gz"
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "STAGE_DIRECTIVE",
+                "MOUNT_ID",
+                "MOUNT_SOURCE_S3_URI",
+                "MOUNT_FSX_PATH",
+                "DATA_LOCALITY",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN123",
+                    "S1",
+                    "exp1",
+                    "blood",
+                    "PCR-FREE",
+                    "ILMN",
+                    "NOVASEQ",
+                    "1",
+                    "BC1",
+                    r1,
+                    r2,
+                    "mounted_readonly",
+                    "RUN123",
+                    "s3://sequencer-runs/RUN123/",
+                    "/fsx/run_dir_mounts/RUN123/",
+                    "mounted_readonly",
+                ]
+            )
+        ],
+    )
+
+    def forbidden_copy(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("mounted_readonly source bytes must not be staged or copied")
+
+    monkeypatch.setattr(module, "aws_copy", forbidden_copy)
+    monkeypatch.setattr(module, "stage_single_lane", forbidden_copy)
+    monkeypatch.setattr(module, "stage_multi_lane", forbidden_copy)
+    monkeypatch.setattr(module, "stage_path_with_sidecars", forbidden_copy)
+
+    _samples_rows, units_rows, created_files, run_ids = _process_samples(
+        monkeypatch,
+        analysis_samples,
+        _stage_paths(),
+    )
+
+    assert created_files == []
+    assert run_ids == ["RUN123"]
+    assert units_rows[0]["ILMN_R1_PATH"] == r1
+    assert units_rows[0]["ILMN_R2_PATH"] == r2
+
+
+def test_process_samples_mounted_readonly_preserves_cram_paths_without_copying(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    cram = "/run_dir_mounts/RUN123/crams/S1.ont.cram"
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "ONT_CRAM",
+                "ONT_CRAM_ALIGNER",
+                "ONT_CRAM_SNV_CALLER",
+                "STAGE_DIRECTIVE",
+                "MOUNT_ID",
+                "MOUNT_FSX_PATH",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN123",
+                    "S1",
+                    "exp1",
+                    "blood",
+                    "PF",
+                    "ONT",
+                    "PROMETHION",
+                    "1",
+                    "BC1",
+                    cram,
+                    "ont",
+                    "sentdont",
+                    "mounted_readonly",
+                    "RUN123",
+                    "/run_dir_mounts/RUN123/",
+                ]
+            )
+        ],
+    )
+
+    def forbidden_copy(*_args: object, **_kwargs: object) -> object:
+        raise AssertionError("mounted_readonly aligned bytes must not be staged or copied")
+
+    monkeypatch.setattr(module, "aws_copy", forbidden_copy)
+    monkeypatch.setattr(module, "stage_single_lane", forbidden_copy)
+    monkeypatch.setattr(module, "stage_multi_lane", forbidden_copy)
+    monkeypatch.setattr(module, "stage_path_with_sidecars", forbidden_copy)
+
+    _samples_rows, units_rows, created_files, run_ids = _process_samples(
+        monkeypatch,
+        analysis_samples,
+        _stage_paths(),
+    )
+
+    assert created_files == []
+    assert run_ids == ["RUN123"]
+    assert units_rows[0]["ONT_CRAM"] == cram
+    assert units_rows[0]["ONT_CRAM_ALIGNER"] == "ont"
+    assert units_rows[0]["ONT_CRAM_SNV_CALLER"] == "sentdont"
 
 
 def _ont_prefix() -> str:
@@ -1386,6 +1550,106 @@ def _minimal_ilmn_row(
             r2,
             "stage_data",
         ]
+    )
+
+
+def _mounted_ilmn_header() -> str:
+    return "\t".join(
+        [
+            "RUN_ID",
+            "SAMPLE_ID",
+            "EXPERIMENTID",
+            "SAMPLE_TYPE",
+            "LIB_PREP",
+            "SEQ_VENDOR",
+            "SEQ_PLATFORM",
+            "LANE",
+            "SEQBC_ID",
+            "ILMN_R1_FQ",
+            "ILMN_R2_FQ",
+            "STAGE_DIRECTIVE",
+            "MOUNT_ID",
+        ]
+    )
+
+
+def _mounted_ilmn_row(
+    *,
+    r1: str = "/fsx/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz",
+    r2: str = "/fsx/run_dir_mounts/RUN123/fastqs/S1_R2.fastq.gz",
+    mount_id: str = "RUN123",
+) -> str:
+    return "\t".join(
+        [
+            "RUN123",
+            "S1",
+            "exp1",
+            "blood",
+            "PCR-FREE",
+            "ILMN",
+            "NOVASEQ",
+            "1",
+            "BC1",
+            r1,
+            r2,
+            "mounted_readonly",
+            mount_id,
+        ]
+    )
+
+
+def test_precheck_manifest_rejects_mounted_readonly_paths_outside_run_dir_mounts(
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        _mounted_ilmn_header(),
+        [
+            _mounted_ilmn_row(
+                r1="/fsx/data/staged_sample_data/S1_R1.fastq.gz",
+            )
+        ],
+    )
+
+    report, rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert rows == []
+    assert any(
+        issue.field == module.ILMN_R1_FQ and "must be under /fsx/run_dir_mounts" in issue.message
+        for issue in report.issues
+    )
+
+
+def test_precheck_manifest_rejects_mounted_readonly_mount_id_mismatch(
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        _mounted_ilmn_header(),
+        [
+            _mounted_ilmn_row(
+                r1="/fsx/run_dir_mounts/RUN999/fastqs/S1_R1.fastq.gz",
+            )
+        ],
+    )
+
+    report, rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert rows == []
+    assert any(
+        issue.field == module.ILMN_R1_FQ
+        and "uses mount ID RUN999, but MOUNT_ID is RUN123" in issue.message
+        for issue in report.issues
     )
 
 

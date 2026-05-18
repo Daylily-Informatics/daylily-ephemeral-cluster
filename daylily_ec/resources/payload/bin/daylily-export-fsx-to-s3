@@ -1,107 +1,20 @@
-#!/usr/bin/env bash
+#!/usr/bin/env python3
+"""Removed legacy positional FSx export wrapper."""
 
-set -euo pipefail
+from __future__ import annotations
 
-usage() {
-    cat <<'EOF'
-Usage: daylily-export-fsx-to-s3 <cluster_name> <region> <export_path>
-
-Start an FSx (Lustre) EXPORT_TO_REPOSITORY task for the given directory path.
-
-Environment:
-  AWS_PROFILE  AWS CLI profile to use (required)
-EOF
-}
-
-if [[ "${1:-}" == "-h" || "${1:-}" == "--help" ]]; then
-    usage
-    exit 0
-fi
-
-cluster_name="${1:-}"
-region="${2:-}"
-EXPORT_PATH="${3:-}"
-EXPORT_PATH=$(echo "$EXPORT_PATH" | sed 's|^/*\(.*\)/*$|\1|')
-
-if [[ -z "$cluster_name" || -z "$region" ]]; then
-    usage
-    exit 1
-fi
-
-if [[ -z "$AWS_PROFILE" ]]; then
-    echo "Error: AWS_PROFILE is not set."
-    exit 1
-fi
-
-if [[ -z "$EXPORT_PATH" ]]; then
-    echo "Error: <export_path> is not set."
-    exit 1
-fi
-
-# FSx File System ID
-script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-read FSX_ID IMPORT_S3 EXPORT_S3 <<<"$("${script_dir}/daylily-return-fsx-filesystem-for-cluster" "$cluster_name" "$region")"
-
-echo "FSX_ID: $FSX_ID"
-echo "IMPORT_PATH: $IMPORT_S3"
-echo "EXPORT_PATH: $EXPORT_S3"
-if [[ -z "$FSX_ID" || -z "$IMPORT_S3" || -z "$EXPORT_S3" ]]; then
-    echo "Error: Failed to retrieve FSx details. Check the cluster name and region."
-    exit 1
-fi
-
-# Polling interval (seconds)
-POLL_INTERVAL=15
-
-# Start the export task
-echo "Starting FSx export task for directory: ${EXPORT_PATH}"
-
-TASK_ID=$(aws fsx create-data-repository-task \
-    --profile "$AWS_PROFILE" \
-    --region "$region" \
-    --file-system-id "${FSX_ID}" \
-    --type EXPORT_TO_REPOSITORY \
-    --paths "${EXPORT_PATH}" \
-    --report "Enabled=true,Path=${EXPORT_S3}/export-report,Format=REPORT_CSV_20191124,Scope=FAILED_FILES_ONLY" \
-    --query "DataRepositoryTask.TaskId" \
-    --output text)
-    
-
-if [[ -z "${TASK_ID}" ]]; then
-    echo "Error: Failed to create data repository task."
-    exit 1
-fi
-
-echo "Export task started with Task ID: ${TASK_ID}"
+import sys
 
 
-# Monitor the task status
-while true; do
-    TASK_STATUS=$(aws fsx describe-data-repository-tasks \
-        --task-ids "${TASK_ID}" \
-        --profile "$AWS_PROFILE" \
-        --region "$region" \
-        --query "DataRepositoryTasks[0].Lifecycle" \
-        --output text 2>/dev/null)
+def main() -> int:
+    sys.stderr.write(
+        "Legacy positional FSx export is removed. Use `daylily-ec export "
+        "--export-id ID --source-path /exports/ID/... "
+        "--destination-s3-uri s3://bucket/prefix/ --cluster-name CLUSTER "
+        "--region REGION --output-dir DIR`.\n"
+    )
+    return 2
 
-    if [[ $? -ne 0 ]]; then
-        echo "Error: Failed to describe task status. Retrying..."
-        sleep "${POLL_INTERVAL}"
-        continue
-    fi
 
-    echo "Task ${TASK_ID} is currently in state: ${TASK_STATUS}"
-
-    if [[ "${TASK_STATUS}" == "SUCCEEDED" ]]; then
-        echo "Task ${TASK_ID} completed successfully."
-        exit 0
-    elif [[ "${TASK_STATUS}" == "FAILED" || "${TASK_STATUS}" == "CANCELED" ]]; then
-        echo "Task ${TASK_ID} failed or was canceled."
-        exit 1
-    fi
-
-    echo "Waiting ${POLL_INTERVAL} seconds before checking again..."
-    sleep "${POLL_INTERVAL}"
-done
-
-echo "...fin"
+if __name__ == "__main__":
+    raise SystemExit(main())

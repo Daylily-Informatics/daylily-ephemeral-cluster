@@ -33,6 +33,9 @@ EXPECTED_COMMANDS = {
     ("cluster", "describe"),
     ("cluster", "wait"),
     ("export",),
+    ("exports", "attach"),
+    ("exports", "run"),
+    ("exports", "detach"),
     ("delete",),
     ("resources-dir",),
     ("env", "status"),
@@ -57,6 +60,12 @@ EXPECTED_COMMANDS = {
     ("workflow", "status"),
     ("workflow", "logs"),
     ("repositories", "commands"),
+    ("mounts", "list"),
+    ("mounts", "create"),
+    ("mounts", "describe"),
+    ("mounts", "delete"),
+    ("mounts", "verify"),
+    ("mount", "rundir"),
     ("state", "list"),
     ("state", "show"),
 }
@@ -111,6 +120,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     drift_cmd = registry.get_command(("drift",))
     delete_cmd = registry.get_command(("delete",))
     export_cmd = registry.get_command(("export",))
+    exports_attach_cmd = registry.get_command(("exports", "attach"))
+    exports_run_cmd = registry.get_command(("exports", "run"))
+    exports_detach_cmd = registry.get_command(("exports", "detach"))
     resources_dir_cmd = registry.get_command(("resources-dir",))
     cluster_info_cmd = registry.get_command(("cluster-info",))
     cluster_list_cmd = registry.get_command(("cluster", "list"))
@@ -133,6 +145,12 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     workflow_status_cmd = registry.get_command(("workflow", "status"))
     workflow_logs_cmd = registry.get_command(("workflow", "logs"))
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
+    mounts_list_cmd = registry.get_command(("mounts", "list"))
+    mounts_create_cmd = registry.get_command(("mounts", "create"))
+    mounts_describe_cmd = registry.get_command(("mounts", "describe"))
+    mounts_delete_cmd = registry.get_command(("mounts", "delete"))
+    mounts_verify_cmd = registry.get_command(("mounts", "verify"))
+    mount_rundir_cmd = registry.get_command(("mount", "rundir"))
     state_list_cmd = registry.get_command(("state", "list"))
     state_show_cmd = registry.get_command(("state", "show"))
     pricing_snapshot_cmd = registry.get_command(("pricing", "snapshot"))
@@ -162,6 +180,12 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
 
     assert export_cmd is not None
     assert export_cmd.policy.mutates_state is True
+
+    for exports_cmd in (exports_attach_cmd, exports_run_cmd, exports_detach_cmd):
+        assert exports_cmd is not None
+        assert exports_cmd.policy.supports_json is True
+        assert exports_cmd.policy.mutates_state is True
+        assert exports_cmd.policy.long_running is True
 
     assert resources_dir_cmd is not None
     assert resources_dir_cmd.policy.runtime_guard == "exempt"
@@ -234,6 +258,31 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert repositories_commands_cmd is not None
     assert repositories_commands_cmd.policy.supports_json is True
     assert repositories_commands_cmd.policy.runtime_guard == "exempt"
+
+    assert mounts_list_cmd is not None
+    assert mounts_list_cmd.policy.supports_json is True
+
+    assert mounts_create_cmd is not None
+    assert mounts_create_cmd.policy.supports_json is True
+    assert mounts_create_cmd.policy.mutates_state is True
+    assert mounts_create_cmd.policy.long_running is True
+
+    assert mounts_describe_cmd is not None
+    assert mounts_describe_cmd.policy.supports_json is True
+
+    assert mounts_delete_cmd is not None
+    assert mounts_delete_cmd.policy.supports_json is True
+    assert mounts_delete_cmd.policy.mutates_state is True
+    assert mounts_delete_cmd.policy.long_running is True
+
+    assert mounts_verify_cmd is not None
+    assert mounts_verify_cmd.policy.supports_json is True
+    assert mounts_verify_cmd.policy.long_running is True
+
+    assert mount_rundir_cmd is not None
+    assert mount_rundir_cmd.policy.supports_json is True
+    assert mount_rundir_cmd.policy.mutates_state is True
+    assert mount_rundir_cmd.policy.long_running is True
 
     assert state_list_cmd is not None
     assert state_list_cmd.policy.supports_json is True
@@ -494,8 +543,12 @@ def test_export_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
             "export",
             "--cluster-name",
             "cluster-a",
-            "--target-uri",
-            "analysis_results/ubuntu",
+            "--export-id",
+            "export-1",
+            "--source-path",
+            "/exports/export-1/analysis_results/ubuntu/",
+            "--destination-s3-uri",
+            "s3://bucket/exports/export-1/",
             "--region",
             "us-west-2",
             "--output-dir",
@@ -510,7 +563,9 @@ def test_export_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
     assert calls["verbose"] is True
     options = calls["options"]
     assert options.cluster_name == "cluster-a"
-    assert options.target_uri == "analysis_results/ubuntu"
+    assert options.export_id == "export-1"
+    assert options.source_path == "/exports/export-1/analysis_results/ubuntu/"
+    assert options.destination_s3_uri == "s3://bucket/exports/export-1/"
     assert options.region == "us-west-2"
     assert options.profile == "dev"
     assert options.output_dir == tmp_path.resolve()
@@ -1296,7 +1351,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "--destination" in launch_argv
     assert "cg-run" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "0.7.758" in launch_argv
+    assert "1.0.7" in launch_argv
     assert "--dy-command" in launch_argv
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
     assert "produce_cgt7p_snv_vcf" in dy_command
@@ -1451,6 +1506,45 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "tiddit" in argv
     assert "--strict-project-check" in argv
     assert "--dry-run" in argv
+
+
+def test_workflow_launch_forwards_run_context_file(monkeypatch, tmp_path) -> None:
+    import daylily_ec.scripts.daylily_run_omics_analysis_headnode as launch_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    run_context = tmp_path / "runs.tsv"
+    run_context.write_text("RUNID\tPLATFORM\nRUN-1\tILMN\n", encoding="utf-8")
+
+    def fake_launch(argv: list[str]) -> int:
+        calls["argv"] = argv
+        return 0
+
+    monkeypatch.setattr(launch_module, "main", fake_launch)
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "launch",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--run-context-file",
+            str(run_context),
+            "--destination",
+            "run-1",
+        ],
+    )
+
+    assert result.exit_code == 0
+    argv = calls["argv"]
+    assert "--run-context-file" in argv
+    assert str(run_context) in argv
+    assert "--stage-dir" not in argv
 
 
 def test_workflow_launch_requires_destination(monkeypatch) -> None:

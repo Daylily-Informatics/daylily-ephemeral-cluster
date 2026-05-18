@@ -1,6 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+is_sourced=0
+if [[ -n "${BASH_VERSION:-}" ]]; then
+    if [[ "${BASH_SOURCE[0]}" != "$0" ]]; then
+        is_sourced=1
+    fi
+elif [[ -n "${ZSH_VERSION:-}" ]]; then
+    case "${ZSH_EVAL_CONTEXT:-}" in
+        *:file|*:file:*) is_sourced=1 ;;
+    esac
+fi
+
+die() {
+    local msg="$1"
+    local code="${2:-1}"
+    echo "$msg" >&2
+    if [[ "$is_sourced" -eq 1 ]]; then
+        return "$code"
+    fi
+    exit "$code"
+}
+
 usage() {
     cat <<'EOF'
 Usage: install_miniconda [-h|--help]
@@ -8,6 +29,7 @@ Usage: install_miniconda [-h|--help]
 Downloads and installs Miniconda into ~/miniconda3 (interactive-ish).
 
 Notes:
+  - Run this script; do not source it.
   - This script is primarily intended for Linux/macOS environments.
   - It does not require a repo checkout; it can be run from packaged resources.
 EOF
@@ -178,6 +200,8 @@ main() {
     fi
 }
 
-if [[ "${BASH_SOURCE[0]}" == "$0" ]]; then
-    main "$@"
+if [[ "$is_sourced" -eq 1 ]]; then
+    die "Error: install_miniconda must be run, not sourced. Use: ./bin/install_miniconda" 2
 fi
+
+main "$@"

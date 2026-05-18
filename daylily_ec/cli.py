@@ -944,16 +944,31 @@ def cluster_wait(
 
 
 def export(
-    cluster_name: str = typer.Option(
-        ...,
+    cluster_name: Optional[str] = typer.Option(
+        None,
         "--cluster-name",
         "--cluster",
-        help="ParallelCluster name.",
+        help="ParallelCluster name used to resolve the FSx file system.",
     ),
-    target_uri: str = typer.Option(
+    fsx_file_system_id: Optional[str] = typer.Option(
+        None,
+        "--fsx-file-system-id",
+        help="Explicit FSx file system id. Required when --cluster is omitted.",
+    ),
+    export_id: str = typer.Option(
         ...,
-        "--target-uri",
-        help="FSx relative path or S3 URI to export.",
+        "--export-id",
+        help="Safe export id mounted under /fsx/exports/<export-id>/.",
+    ),
+    source_path: str = typer.Option(
+        ...,
+        "--source-path",
+        help="Explicit FSx API path to export, under /exports/<export-id>/.",
+    ),
+    destination_s3_uri: str = typer.Option(
+        ...,
+        "--destination-s3-uri",
+        help="S3 URI backing the temporary export DRA.",
     ),
     region: str = typer.Option(
         ...,
@@ -975,8 +990,10 @@ def export(
         "--verbose",
         help="Enable verbose export logging.",
     ),
+    wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for DRA/task/detach."),
+    timeout_seconds: int = typer.Option(3600, "--timeout-seconds", help="Wait timeout."),
 ) -> None:
-    """Export FSx results back to the backing S3 repository."""
+    """Export FSx outputs through an explicit temporary DRA."""
 
     from daylily_ec.workflow.export_data import (
         ExportOptions,
@@ -989,13 +1006,141 @@ def export(
     rc = run_export_workflow(
         ExportOptions(
             cluster_name=cluster_name,
-            target_uri=target_uri,
+            fsx_file_system_id=fsx_file_system_id,
+            export_id=export_id,
+            source_path=source_path,
+            destination_s3_uri=destination_s3_uri,
             region=region,
             profile=profile,
             output_dir=output_dir.expanduser().resolve(),
+            wait=wait,
+            timeout_seconds=timeout_seconds,
         )
     )
     raise typer.Exit(rc)
+
+
+def _emit_export_payload(payload: Any, *, text: str) -> None:
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(text)
+
+
+def exports_attach(
+    cluster_name: Optional[str] = typer.Option(None, "--cluster-name", "--cluster"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    export_id: str = typer.Option(..., "--export-id"),
+    destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
+) -> None:
+    """Attach a temporary output DRA under /fsx/exports/<export-id>/."""
+
+    from daylily_ec.workflow.export_data import attach_export_dra
+
+    try:
+        record = attach_export_dra(
+            cluster_name=cluster_name,
+            fsx_file_system_id=fsx_file_system_id,
+            export_id=export_id,
+            destination_s3_uri=destination_s3_uri,
+            region=region,
+            profile=profile,
+            wait=wait,
+            timeout_seconds=timeout_seconds,
+        )
+        _emit_export_payload(
+            record.to_payload(),
+            text=(
+                f"Export DRA attached: {record.association_id}\n"
+                f"Headnode path: {record.headnode_path}\n"
+                f"S3 destination: {record.destination_s3_uri}"
+            ),
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def exports_run(
+    cluster_name: Optional[str] = typer.Option(None, "--cluster-name", "--cluster"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    export_id: str = typer.Option(..., "--export-id"),
+    source_path: str = typer.Option(..., "--source-path"),
+    destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    timeout_seconds: int = typer.Option(3600, "--timeout-seconds"),
+) -> None:
+    """Run an explicit FSx export task for /exports/<export-id>/ paths."""
+
+    from daylily_ec.workflow.export_data import (
+        _create_session,
+        resolve_export_fsx_id,
+        run_export_task,
+    )
+
+    try:
+        client = _create_session(region, profile).client("fsx")
+        resolved_fsx_id = resolve_export_fsx_id(
+            client,
+            cluster_name=cluster_name,
+            fsx_file_system_id=fsx_file_system_id,
+        )
+        payload = run_export_task(
+            fsx_file_system_id=resolved_fsx_id,
+            export_id=export_id,
+            source_path=source_path,
+            destination_s3_uri=destination_s3_uri,
+            wait=wait,
+            timeout_seconds=timeout_seconds,
+            fsx_client=client,
+        )
+        payload["fsx_file_system_id"] = resolved_fsx_id
+        _emit_export_payload(
+            payload,
+            text=(
+                f"Export task started: {payload['task_id']}\n"
+                f"Lifecycle: {payload['task_lifecycle']}\n"
+                f"Report path: {payload['report_path']}"
+            ),
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def exports_detach(
+    association_id: str = typer.Option(..., "--association-id"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
+) -> None:
+    """Detach an output DRA without deleting cached FSx data."""
+
+    from daylily_ec.workflow.export_data import detach_export_dra
+
+    try:
+        payload = detach_export_dra(
+            association_id=association_id,
+            region=region,
+            profile=profile,
+            wait=wait,
+            timeout_seconds=timeout_seconds,
+        )
+        _emit_export_payload(
+            payload,
+            text=(
+                f"Export DRA detached: {association_id}\n"
+                f"Lifecycle: {payload['detach_lifecycle']}\n"
+                "DeleteDataInFileSystem: false"
+            ),
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
 
 
 def delete(
@@ -1934,6 +2079,11 @@ def workflow_launch(
         "--stage-dir",
         help="Specific staging directory containing generated manifests.",
     ),
+    run_context_file: Optional[Path] = typer.Option(
+        None,
+        "--run-context-file",
+        help="Local runs.tsv file to copy to config/runs.tsv for run-analysis workflows.",
+    ),
     stage_base: str = typer.Option(
         "/fsx/staged_sample_data",
         "--stage-base",
@@ -2009,6 +2159,7 @@ def workflow_launch(
         ("--region", region),
         ("--cluster", cluster),
         ("--stage-dir", stage_dir),
+        ("--run-context-file", str(run_context_file.expanduser()) if run_context_file else None),
         ("--stage-base", stage_base),
         ("--session-name", session_name),
         ("--destination", destination),
@@ -2088,6 +2239,309 @@ def repositories_commands(
             output.emit_json(payload)
             return
         typer.echo(json.dumps(payload, indent=2, sort_keys=False))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def _emit_mount_payload(payload: Any, *, text: str) -> None:
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(text)
+
+
+def _create_mount_payload(
+    *,
+    cluster: Optional[str],
+    fsx_file_system_id: Optional[str],
+    region: str,
+    profile: Optional[str],
+    source_s3_uri: str,
+    mount_id: Optional[str],
+    run_id: Optional[str],
+    platform: str,
+    file_system_path: Optional[str],
+    read_only: bool,
+    batch_import_metadata_on_create: bool,
+    auto_import: str,
+    auto_export: Optional[str],
+    allow_writeback_admin: bool,
+    wait: bool,
+    timeout_seconds: int,
+    tag: List[str],
+) -> Any:
+    from daylily_ec.run_mounts import (
+        CreateRunMountRequest,
+        create_run_mount,
+        parse_auto_export_events,
+        parse_auto_import_events,
+        parse_tags,
+    )
+
+    auto_export_events = parse_auto_export_events(
+        auto_export,
+        allow_writeback_admin=allow_writeback_admin,
+        read_only=read_only,
+    )
+    request = CreateRunMountRequest(
+        cluster_name=cluster,
+        fsx_file_system_id=fsx_file_system_id,
+        region=region,
+        profile=profile,
+        source_s3_uri=source_s3_uri,
+        mount_id=mount_id,
+        run_id=run_id,
+        platform=platform,
+        file_system_path=file_system_path,
+        read_only=read_only,
+        batch_import_metadata_on_create=batch_import_metadata_on_create,
+        auto_import_events=parse_auto_import_events(auto_import),
+        auto_export_events=auto_export_events,
+        allow_writeback_admin=allow_writeback_admin,
+        wait=wait,
+        timeout_seconds=timeout_seconds,
+        tags=parse_tags(tag),
+    )
+    return create_run_mount(request)
+
+
+def mounts_create(
+    source_s3_uri: str = typer.Option(..., "--s3-uri", help="S3 run-directory URI to mount."),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name used to resolve the FSx file system.",
+    ),
+    fsx_file_system_id: Optional[str] = typer.Option(
+        None,
+        "--fsx-file-system-id",
+        help="Explicit FSx file system id. Required when --cluster is omitted.",
+    ),
+    region: str = typer.Option(..., "--region", help="AWS region."),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS profile."),
+    mount_id: Optional[str] = typer.Option(None, "--mount-id", help="Safe mount id."),
+    run_id: Optional[str] = typer.Option(None, "--run-id", help="Run id for local records."),
+    platform: str = typer.Option("OTHER", "--platform", help="Run platform."),
+    file_system_path: Optional[str] = typer.Option(
+        None,
+        "--file-system-path",
+        help="FSx API path, normally /run_dir_mounts/<mount_id>/.",
+    ),
+    read_only: bool = typer.Option(
+        True,
+        "--read-only/--no-read-only",
+        help="Keep the source S3 run directory read-only by policy.",
+    ),
+    batch_import_metadata_on_create: bool = typer.Option(
+        True,
+        "--batch-import-metadata-on-create/--no-batch-import-metadata-on-create",
+        help="Ask FSx to import metadata when the DRA is created.",
+    ),
+    auto_import: str = typer.Option(
+        "NEW,CHANGED",
+        "--auto-import",
+        help="Comma-separated FSx AutoImport events, none, or all.",
+    ),
+    auto_export: Optional[str] = typer.Option(
+        None,
+        "--auto-export",
+        help="Forbidden unless --allow-writeback-admin and --no-read-only are set.",
+    ),
+    allow_writeback_admin: bool = typer.Option(
+        False,
+        "--allow-writeback-admin",
+        help="Explicit admin override allowing AutoExport writeback policy.",
+    ),
+    wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for AVAILABLE."),
+    timeout_seconds: int = typer.Option(900, "--timeout-seconds", help="Wait timeout."),
+    tag: List[str] = typer.Option([], "--tag", help="Repeatable KEY=VALUE DRA tag."),
+) -> None:
+    """Create a read-only FSx DRA for a sequencer run directory."""
+
+    from daylily_ec.run_mounts import format_mount_created
+
+    try:
+        record = _create_mount_payload(
+            cluster=cluster,
+            fsx_file_system_id=fsx_file_system_id,
+            region=region,
+            profile=profile,
+            source_s3_uri=source_s3_uri,
+            mount_id=mount_id,
+            run_id=run_id,
+            platform=platform,
+            file_system_path=file_system_path,
+            read_only=read_only,
+            batch_import_metadata_on_create=batch_import_metadata_on_create,
+            auto_import=auto_import,
+            auto_export=auto_export,
+            allow_writeback_admin=allow_writeback_admin,
+            wait=wait,
+            timeout_seconds=timeout_seconds,
+            tag=tag,
+        )
+        _emit_mount_payload(record.to_output_payload(), text=format_mount_created(record))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def mount_rundir(
+    source_s3_uri: str = typer.Option(..., "--s3-uri", help="S3 run-directory URI to mount."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+    mount_id: Optional[str] = typer.Option(None, "--mount-id"),
+    run_id: Optional[str] = typer.Option(None, "--run-id"),
+    platform: str = typer.Option("OTHER", "--platform"),
+    file_system_path: Optional[str] = typer.Option(None, "--file-system-path"),
+    read_only: bool = typer.Option(True, "--read-only/--no-read-only"),
+    batch_import_metadata_on_create: bool = typer.Option(
+        True,
+        "--batch-import-metadata-on-create/--no-batch-import-metadata-on-create",
+    ),
+    auto_import: str = typer.Option("NEW,CHANGED", "--auto-import"),
+    auto_export: Optional[str] = typer.Option(None, "--auto-export"),
+    allow_writeback_admin: bool = typer.Option(False, "--allow-writeback-admin"),
+    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
+    tag: List[str] = typer.Option([], "--tag"),
+) -> None:
+    """Alias for `daylily-ec mounts create`."""
+
+    from daylily_ec.run_mounts import format_mount_created
+
+    try:
+        record = _create_mount_payload(
+            cluster=cluster,
+            fsx_file_system_id=fsx_file_system_id,
+            region=region,
+            profile=profile,
+            source_s3_uri=source_s3_uri,
+            mount_id=mount_id,
+            run_id=run_id,
+            platform=platform,
+            file_system_path=file_system_path,
+            read_only=read_only,
+            batch_import_metadata_on_create=batch_import_metadata_on_create,
+            auto_import=auto_import,
+            auto_export=auto_export,
+            allow_writeback_admin=allow_writeback_admin,
+            wait=wait,
+            timeout_seconds=timeout_seconds,
+            tag=tag,
+        )
+        _emit_mount_payload(record.to_output_payload(), text=format_mount_created(record))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def mounts_list(
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+) -> None:
+    """List FSx run directory mounts."""
+
+    from daylily_ec.run_mounts import format_mount_list, list_run_mounts
+
+    try:
+        records = list_run_mounts(
+            cluster_name=cluster,
+            fsx_file_system_id=fsx_file_system_id,
+            region=region,
+            profile=profile,
+        )
+        payload = {"mounts": [record.to_output_payload() for record in records]}
+        _emit_mount_payload(payload, text=format_mount_list(records))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def mounts_describe(
+    mount_id: Optional[str] = typer.Option(None, "--mount-id"),
+    association_id: Optional[str] = typer.Option(None, "--association-id"),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+) -> None:
+    """Describe one FSx run directory mount."""
+
+    from daylily_ec.run_mounts import describe_run_mount, format_mount_described
+
+    try:
+        record = describe_run_mount(
+            mount_id=mount_id,
+            association_id=association_id,
+            cluster_name=cluster,
+            fsx_file_system_id=fsx_file_system_id,
+            region=region,
+            profile=profile,
+        )
+        _emit_mount_payload(record.to_output_payload(), text=format_mount_described(record))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def mounts_delete(
+    mount_id: Optional[str] = typer.Option(None, "--mount-id"),
+    association_id: Optional[str] = typer.Option(None, "--association-id"),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
+) -> None:
+    """Delete one FSx DRA without deleting S3 objects or cached FSx data."""
+
+    from daylily_ec.run_mounts import delete_run_mount, format_mount_deleted
+
+    try:
+        record = delete_run_mount(
+            mount_id=mount_id,
+            association_id=association_id,
+            cluster_name=cluster,
+            fsx_file_system_id=fsx_file_system_id,
+            region=region,
+            profile=profile,
+            wait=wait,
+            timeout_seconds=timeout_seconds,
+        )
+        _emit_mount_payload(record.to_output_payload(), text=format_mount_deleted(record))
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def mounts_verify(
+    mount_id: Optional[str] = typer.Option(None, "--mount-id"),
+    association_id: Optional[str] = typer.Option(None, "--association-id"),
+    cluster: str = typer.Option(..., "--cluster", "--cluster-name"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+    platform: Optional[str] = typer.Option(None, "--platform"),
+    timeout_seconds: int = typer.Option(300, "--timeout-seconds"),
+) -> None:
+    """Verify a run mount path is usable on the cluster headnode."""
+
+    from daylily_ec.run_mounts import format_mount_verified, verify_run_mount
+
+    try:
+        payload = verify_run_mount(
+            mount_id=mount_id,
+            association_id=association_id,
+            cluster_name=cluster,
+            fsx_file_system_id=fsx_file_system_id,
+            region=region,
+            profile=profile,
+            platform=platform,
+            timeout_seconds=timeout_seconds,
+        )
+        _emit_mount_payload(payload, text=format_mount_verified(payload))
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
 
@@ -2361,7 +2815,7 @@ def register(registry, cli_spec) -> None:
         registry,
         "export",
         export,
-        REQUIRED_MUTATING_LONG_RUNNING,
+        required_policy(mutates_state=True, long_running=True),
     )
     register_root_command(
         registry,
@@ -2451,6 +2905,60 @@ def register(registry, cli_spec) -> None:
         "repositories",
         "Repository catalog and blessed analysis command helpers.",
         [("commands", repositories_commands, EXEMPT_JSON)],
+    )
+    register_group_commands(
+        registry,
+        "exports",
+        "Explicit FSx output DRA export helpers.",
+        [
+            (
+                "attach",
+                exports_attach,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "run",
+                exports_run,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "detach",
+                exports_detach,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "mounts",
+        "FSx run-directory mount helpers.",
+        [
+            ("list", mounts_list, REQUIRED_JSON),
+            (
+                "create",
+                mounts_create,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            ("describe", mounts_describe, REQUIRED_JSON),
+            (
+                "delete",
+                mounts_delete,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            ("verify", mounts_verify, required_policy(supports_json=True, long_running=True)),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "mount",
+        "Run-directory mount aliases.",
+        [
+            (
+                "rundir",
+                mount_rundir,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            )
+        ],
     )
     register_group_commands(
         registry,

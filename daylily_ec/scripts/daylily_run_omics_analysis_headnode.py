@@ -8,6 +8,7 @@ import os
 import shlex
 import sys
 from dataclasses import dataclass
+from pathlib import Path
 from typing import List, Optional
 
 from daylily_ec.aws.ssm import (
@@ -203,6 +204,10 @@ def build_parser() -> argparse.ArgumentParser:
         help="Specific staging directory containing *_samples.tsv and *_units.tsv",
     )
     parser.add_argument(
+        "--run-context-file",
+        help="Local runs.tsv file to write as config/runs.tsv for run-analysis workflows",
+    )
+    parser.add_argument(
         "--stage-base",
         default="/fsx/staged_sample_data",
         help="Base staging directory to scan when --stage-dir is omitted",
@@ -274,13 +279,23 @@ def main(argv: Optional[List[str]] = None) -> int:
     target = resolve_headnode_instance_id(cluster_name, region, profile=args.profile)
     wait_for_ssm_online(target.instance_id, region, profile=args.profile, timeout=120)
 
-    stage_config = discover_stage_config(
-        target.instance_id,
-        args.profile,
-        region,
-        args.stage_dir,
-        args.stage_base,
-    )
+    run_context_content: Optional[str] = None
+    if args.run_context_file:
+        if args.stage_dir:
+            raise CommandError("--stage-dir cannot be used with --run-context-file.")
+        run_context_path = Path(args.run_context_file).expanduser()
+        if not run_context_path.is_file():
+            raise CommandError(f"Run context file not found: {run_context_path}")
+        run_context_content = run_context_path.read_text(encoding="utf-8")
+        stage_config = None
+    else:
+        stage_config = discover_stage_config(
+            target.instance_id,
+            args.profile,
+            region,
+            args.stage_dir,
+            args.stage_base,
+        )
 
     if args.dy_command:
         dy_command = args.dy_command
@@ -302,6 +317,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     repository_literal = json.dumps(args.repository)
     dy_command_literal = shlex.quote(dy_command)
     skip_check = "true" if args.skip_project_check else "false"
+    run_context_mode = run_context_content is not None
+    run_context_mode_literal = "true" if run_context_mode else "false"
+    run_context_payload = shlex.quote(run_context_content or "")
+    if stage_config is None:
+        stage_samples_path = ""
+        stage_units_path = ""
+    else:
+        stage_samples_path = stage_config.samples_path
+        stage_units_path = stage_config.units_path
     write_status_python = shlex.quote(
         "import json, os, pathlib; "
         "path = pathlib.Path(os.environ['DAYLILY_STATUS_FILE']); "
@@ -324,13 +348,15 @@ set -euo pipefail
 if [[ "$(id -un)" != "ubuntu" ]]; then
   echo "__DAYLILY_ERROR__=wrong_user"
   exit 6
-fi
-SESSION_NAME={shlex.quote(args.session_name)}
-STAGE_SAMPLES={shlex.quote(stage_config.samples_path)}
-STAGE_UNITS={shlex.quote(stage_config.units_path)}
-PROJECT_VALUE={project_arg if project_arg else ""}
-SKIP_PROJECT_CHECK={skip_check}
-DY_COMMAND={dy_command_literal}
+	fi
+	SESSION_NAME={shlex.quote(args.session_name)}
+	RUN_CONTEXT_MODE={run_context_mode_literal}
+	RUN_CONTEXT_PAYLOAD={run_context_payload}
+	STAGE_SAMPLES={shlex.quote(stage_samples_path)}
+	STAGE_UNITS={shlex.quote(stage_units_path)}
+	PROJECT_VALUE={project_arg if project_arg else ""}
+	SKIP_PROJECT_CHECK={skip_check}
+	DY_COMMAND={dy_command_literal}
 STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
 TMUX_LOG="${{DAYLILY_TMUX_LOG}}"
 
@@ -356,10 +382,14 @@ day-clone \
   --destination {shlex.quote(args.destination)} \
   --repository {shlex.quote(args.repository)} \
   --git-tag {shlex.quote(args.git_tag)}
-cd "$repo_path"
-mkdir -p config
-cp "$STAGE_SAMPLES" config/samples.tsv
-cp "$STAGE_UNITS" config/units.tsv
+	cd "$repo_path"
+	mkdir -p config
+	if [[ "$RUN_CONTEXT_MODE" == "true" ]]; then
+	  printf '%s' "$RUN_CONTEXT_PAYLOAD" > config/runs.tsv
+	else
+	  cp "$STAGE_SAMPLES" config/samples.tsv
+	  cp "$STAGE_UNITS" config/units.tsv
+	fi
 
 if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then
   echo "[ERROR] Missing conda profile script at $HOME/miniconda3/etc/profile.d/conda.sh"

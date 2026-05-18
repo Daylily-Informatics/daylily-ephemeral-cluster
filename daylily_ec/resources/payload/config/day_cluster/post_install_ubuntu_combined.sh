@@ -35,6 +35,8 @@ region="$1"
 bucket="$2"  # specified in the cluster yaml, bucket-name, no s3:// prefix
 apptainer_deb="/fsx/data/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
+reference_wait_timeout_seconds=1800
+reference_wait_interval_seconds=30
 
 echo "[$timestamp] Running post_install_ubuntu_combined.sh ${region} ${bucket} on $(hostname) as ${node_type}"
 echo "[$timestamp] Local log: ${local_log_fn}"
@@ -112,6 +114,40 @@ link_cached_entries() {
   done
 }
 
+wait_for_reference_data() {
+  local start
+  local elapsed
+  start="$(date +%s)"
+  echo "Waiting for required /fsx/data reference entries from the FSx DRA"
+  while true; do
+    if [ -s "${apptainer_deb}" ] \
+      && [ -s /fsx/data/tool_specific_resources/cromwell_87.jar ] \
+      && [ -s /fsx/data/tool_specific_resources/womtool_87.jar ] \
+      && [ -d /fsx/data/cached_envs/conda ]; then
+      echo "Required /fsx/data reference entries are visible"
+      return 0
+    fi
+
+    elapsed="$(($(date +%s) - start))"
+    if [ "${elapsed}" -ge "${reference_wait_timeout_seconds}" ]; then
+      echo "ERROR: required /fsx/data reference entries did not appear within ${reference_wait_timeout_seconds}s" >&2
+      ls -la /fsx /fsx/data /fsx/data/cached_envs /fsx/data/tool_specific_resources >&2 || true
+      exit 1
+    fi
+    echo "Reference entries not visible yet after ${elapsed}s; sleeping ${reference_wait_interval_seconds}s"
+    sleep "${reference_wait_interval_seconds}"
+  done
+}
+
+make_reference_data_read_only() {
+  if [ ! -d /fsx/data ]; then
+    echo "ERROR: reference data directory not found: /fsx/data" >&2
+    exit 1
+  fi
+  chmod a-w /fsx/data
+  stat -c "Reference data permissions: %A %n" /fsx/data
+}
+
 
 # GLOBAL ACTIONS HeadNode and ComputeFleet
 
@@ -119,6 +155,8 @@ mkdir -p /tmp/jobs
 chmod -R a+wrx /tmp/jobs
 mkdir -p /fsx/scratch
 chmod -R a+wrx /fsx/scratch
+wait_for_reference_data
+make_reference_data_read_only
 
 # Configure hugepages and namespaces (common to both head and compute nodes)
 echo "vm.nr_hugepages=2048" | tee -a /etc/sysctl.conf

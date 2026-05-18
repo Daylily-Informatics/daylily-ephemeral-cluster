@@ -25,6 +25,7 @@ import logging
 from typing import Any, List, Optional
 
 import boto3
+from botocore.config import Config
 import typer
 
 from daylily_ec.config.triplets import is_auto_select_disabled, should_auto_apply
@@ -33,6 +34,11 @@ from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 logger = logging.getLogger(__name__)
 
 BUCKET_NAME_FILTER = "omics-analysis"
+
+
+def _standard_s3_config() -> Config:
+    """Return an S3 client config suitable for bucket metadata reads."""
+    return Config(s3={"use_accelerate_endpoint": False})
 
 
 # ---------------------------------------------------------------------------
@@ -49,8 +55,8 @@ def _resolve_bucket_region(s3_client: Any, bucket_name: str) -> Optional[str]:
         resp = s3_client.get_bucket_location(Bucket=bucket_name)
         loc = resp.get("LocationConstraint")
         return "us-east-1" if loc is None else str(loc)
-    except Exception:
-        logger.debug("Could not resolve region for bucket %s", bucket_name)
+    except Exception as exc:
+        logger.debug("Could not resolve region for bucket %s: %s", bucket_name, exc)
         return None
 
 
@@ -64,7 +70,7 @@ def list_candidate_buckets(
     If *target_region* is ``None``, falls back to ``aws_ctx.region``.
     """
     region = target_region or aws_ctx.region
-    s3 = aws_ctx.client("s3")
+    s3 = aws_ctx.client("s3", config=_standard_s3_config())
 
     try:
         resp = s3.list_buckets()
@@ -155,7 +161,7 @@ def _reference_bucket_s3_client(*, profile: str = "", region: str = "") -> Any:
         profile_name=profile or None,
         region_name=region or None,
     )
-    return session.client("s3")
+    return session.client("s3", config=_standard_s3_config())
 
 
 def _reference_bucket_exists(s3_client: Any, bucket_name: str) -> bool:

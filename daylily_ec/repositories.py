@@ -11,7 +11,10 @@ from pydantic import BaseModel, ConfigDict, Field, field_validator, model_valida
 from daylily_ec.resources import resource_path
 
 
-CATALOG_VERSION = 1
+CATALOG_VERSION = 2
+SUPPORTED_CATALOG_VERSIONS = {1, CATALOG_VERSION}
+COMMAND_CLASSES = {"sample_analysis", "run_analysis"}
+INPUT_CONTRACTS = {"sample_manifest", "run_context", "none"}
 
 
 def _clean_id(value: str, *, field_name: str) -> str:
@@ -56,6 +59,11 @@ class AnalysisCommand(BaseModel):
     description: str = ""
     datasource: str
     launcher: str = "workflow_launch"
+    command_class: str
+    input_contract: str
+    requires_staging: bool
+    requires_run_mount: bool
+    runtime_parameters: Dict[str, Any] = Field(default_factory=dict)
     targets: List[str]
     genome: str
     jobs: int = Field(gt=0)
@@ -77,6 +85,8 @@ class AnalysisCommand(BaseModel):
         "display_name",
         "datasource",
         "launcher",
+        "command_class",
+        "input_contract",
         "genome",
         "dy_command",
         "dryrun_dy_command",
@@ -109,10 +119,39 @@ class AnalysisCommand(BaseModel):
             return None
         return _clean_id(value, field_name="destination")
 
+    @field_validator("runtime_parameters")
+    @classmethod
+    def _validate_runtime_parameters(cls, values: Dict[str, Any]) -> Dict[str, Any]:
+        for key in values:
+            _clean_id(key, field_name="runtime_parameters key")
+        return values
+
     @model_validator(mode="after")
     def _validate_launcher(self) -> "AnalysisCommand":
         if self.launcher != "workflow_launch":
             raise ValueError("launcher must be workflow_launch")
+        if self.command_class not in COMMAND_CLASSES:
+            raise ValueError(
+                "command_class must be one of: " + ", ".join(sorted(COMMAND_CLASSES))
+            )
+        if self.input_contract not in INPUT_CONTRACTS:
+            raise ValueError(
+                "input_contract must be one of: " + ", ".join(sorted(INPUT_CONTRACTS))
+            )
+        if self.command_class == "sample_analysis":
+            if self.input_contract != "sample_manifest":
+                raise ValueError("sample_analysis commands must use sample_manifest input")
+            if not self.requires_staging:
+                raise ValueError("sample_analysis commands must require staging")
+            if self.requires_run_mount:
+                raise ValueError("sample_analysis commands must not require run mounts")
+        if self.command_class == "run_analysis":
+            if self.input_contract != "run_context":
+                raise ValueError("run_analysis commands must use run_context input")
+            if self.requires_staging:
+                raise ValueError("run_analysis commands must not require sample staging")
+            if not self.requires_run_mount:
+                raise ValueError("run_analysis commands must require run mounts")
         if not self.compatible_platforms:
             raise ValueError("compatible_platforms must not be empty")
         if not self.compatible_data_modes:
@@ -148,6 +187,7 @@ class AnalysisCommand(BaseModel):
         stage_dir: Optional[str] = None,
         session_name: Optional[str] = None,
         project: Optional[str] = None,
+        run_context_file: Optional[str] = None,
         dry_run: bool = False,
         skip_project_check: bool = True,
     ) -> List[str]:
@@ -158,6 +198,14 @@ class AnalysisCommand(BaseModel):
             raise ValueError("destination is required to render a workflow launch command")
         resolved_git_tag = git_tag or self.git_tag
         dy_command = self.dryrun_dy_command if dry_run else self.dy_command
+        if self.input_contract == "run_context":
+            if not run_context_file:
+                raise ValueError("run_context_file is required for run_analysis commands")
+            dy_command = f"{dy_command} --config run_context_file=config/runs.tsv"
+        elif run_context_file:
+            raise ValueError("run_context_file is only valid for run_analysis commands")
+        if stage_dir and not self.requires_staging:
+            raise ValueError("stage_dir is only valid for commands that require staging")
         argv = [
             "workflow",
             "launch",
@@ -177,6 +225,7 @@ class AnalysisCommand(BaseModel):
             ("--region", region),
             ("--cluster", cluster),
             ("--stage-dir", stage_dir),
+            ("--run-context-file", run_context_file),
             ("--session-name", session_name),
             ("--project", project),
         ):
@@ -221,9 +270,10 @@ class RepositoryCatalog(BaseModel):
 
     @model_validator(mode="after")
     def _validate_catalog(self) -> "RepositoryCatalog":
-        if self.command_catalog_version != CATALOG_VERSION:
+        if self.command_catalog_version not in SUPPORTED_CATALOG_VERSIONS:
             raise ValueError(
-                f"command_catalog_version must be {CATALOG_VERSION}; "
+                f"command_catalog_version must be one of "
+                f"{sorted(SUPPORTED_CATALOG_VERSIONS)}; "
                 f"got {self.command_catalog_version}"
             )
         if self.default_repository not in self.repositories:
@@ -266,6 +316,39 @@ def default_catalog_path() -> Path:
     return resource_path("config/daylily_available_repositories.yaml")
 
 
+def _migrate_v1_analysis_commands(raw: Dict[str, Any]) -> Dict[str, Any]:
+    if raw.get("command_catalog_version") != 1:
+        return raw
+    migrated = dict(raw)
+    repositories = migrated.get("repositories")
+    if not isinstance(repositories, dict):
+        return migrated
+    migrated_repositories: Dict[str, Any] = {}
+    for repo_key, repo_value in repositories.items():
+        if not isinstance(repo_value, dict):
+            migrated_repositories[repo_key] = repo_value
+            continue
+        repo = dict(repo_value)
+        commands = repo.get("analysis_commands")
+        if isinstance(commands, list):
+            migrated_commands = []
+            for command_value in commands:
+                if not isinstance(command_value, dict):
+                    migrated_commands.append(command_value)
+                    continue
+                command = dict(command_value)
+                command["command_class"] = "sample_analysis"
+                command["input_contract"] = "sample_manifest"
+                command["requires_staging"] = True
+                command["requires_run_mount"] = False
+                command["runtime_parameters"] = {}
+                migrated_commands.append(command)
+            repo["analysis_commands"] = migrated_commands
+        migrated_repositories[repo_key] = repo
+    migrated["repositories"] = migrated_repositories
+    return migrated
+
+
 def load_repository_catalog(path: Optional[Path] = None) -> RepositoryCatalog:
     catalog_path = Path(path).expanduser() if path is not None else default_catalog_path()
     raw = yaml.safe_load(catalog_path.read_text(encoding="utf-8"))
@@ -273,4 +356,4 @@ def load_repository_catalog(path: Optional[Path] = None) -> RepositoryCatalog:
         raise ValueError(f"Repository catalog must be a YAML mapping: {catalog_path}")
     if "command_catalog_version" not in raw:
         raise ValueError("Repository catalog is missing command_catalog_version")
-    return RepositoryCatalog.model_validate(raw)
+    return RepositoryCatalog.model_validate(_migrate_v1_analysis_commands(raw))

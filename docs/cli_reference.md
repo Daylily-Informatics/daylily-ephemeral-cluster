@@ -1,14 +1,14 @@
 # CLI Reference
 
-This reference is grounded in the current `daylily-ec --help` surface and the supported helper scripts that still belong to the operator workflow.
+This reference is grounded in the current `dyec` / `daylily-ec` command surface. Both executable names use the same entrypoint.
 
-## Root Command
+## Root Commands
 
 ```bash
-daylily-ec --help
+dyec --help
 ```
 
-Current root commands:
+Current commands:
 
 - `version`
 - `info`
@@ -16,7 +16,6 @@ Current root commands:
 - `preflight`
 - `drift`
 - `cluster-info`
-- `cluster`
 - `export`
 - `delete`
 - `resources-dir`
@@ -24,681 +23,264 @@ Current root commands:
 - `runtime`
 - `pricing`
 - `aws`
+- `cluster`
 - `headnode`
 - `samples`
 - `workflow`
+- `repositories`
+- `exports`
+- `mounts`
+- `mount`
 - `state`
 
-## `daylily-ec version`
+Use global `--json` for machine-readable output where supported.
 
-Show the CLI version:
-
-```bash
-daylily-ec version
-```
-
-## `daylily-ec info`
-
-Show the current runtime and Daylily paths:
+## Create And Preflight
 
 ```bash
-daylily-ec info
+dyec preflight \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG"
+
+dyec create \
+  --profile "$AWS_PROFILE" \
+  --region-az "$REGION_AZ" \
+  --config "$DAY_EX_CFG"
 ```
 
-Use this when you need to confirm:
-
-- config directory
-- state directory
-- cache directory
-- project root
-- runtime backend
-
-## `daylily-ec preflight`
-
-Runs validation only. No cluster mutation happens here.
-
-Required:
-
-- `--region-az`
+`create` runs preflight, renders the ParallelCluster YAML, creates the cluster, waits for the headnode, configures DayEC on the headnode over SSM, and validates the supported `ubuntu` login shell.
 
 Important options:
 
+- `--region-az`
 - `--profile`
 - `--config`
 - `--pass-on-warn`
 - `--debug`
 - `--non-interactive`
 
-Example:
+## Cluster
 
 ```bash
-daylily-ec preflight \
-  --profile "$AWS_PROFILE" \
-  --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG"
+dyec cluster list --profile "$AWS_PROFILE" --region "$REGION" --verbose
+dyec --json cluster describe --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec cluster wait --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
-## `daylily-ec create`
+`cluster-info` remains available, but `cluster list` is the preferred current operator surface.
 
-Runs the full create workflow:
-
-- preflight
-- config rendering
-- ParallelCluster create
-- Daylily headnode configuration
-- bootstrap validation
-
-Required:
-
-- `--region-az`
-
-Important options:
-
-- `--profile`
-- `--config`
-- `--pass-on-warn`
-- `--debug`
-- `--repo-override <repo-key>:<git-ref>`
-- `--non-interactive`
-
-Example:
+## Headnode
 
 ```bash
-daylily-ec create \
-  --profile "$AWS_PROFILE" \
-  --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG"
+dyec headnode connect --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec headnode configure --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec headnode info --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec headnode jobs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
-## `daylily-ec cluster-info`
+Supported headnode command payloads run as `ubuntu`. Interactive sessions use `SSM-SessionManagerRunShell` and must land in `/home/ubuntu` in a bash login shell.
 
-Lists clusters in a region and their basic status. Prefer `daylily-ec cluster list` for new operator usage.
+## Samples
 
-Required:
-
-- `--region`
-
-Optional:
-
-- `--profile`
-
-Example:
+`samples stage` translates `analysis_samples.tsv` into workflow-ready staged manifests:
 
 ```bash
-daylily-ec cluster-info \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION"
-```
-
-## `daylily-ec cluster`
-
-ParallelCluster inspection helpers. `cluster list` describes each cluster so the
-default operator table includes cluster name, region, and public IP. Add
-`--verbose` to include status, create time, last update time, headnode launch
-time, and whether the Daylily headnode configuration check passes. Repeat
-`--region` once per requested region to combine clusters into one table.
-
-Subcommands:
-
-- `list`
-- `describe`
-- `wait`
-
-Examples:
-
-```bash
-daylily-ec cluster list \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION"
-
-daylily-ec cluster list \
-  --profile "$AWS_PROFILE" \
-  --region us-west-2 \
-  --region us-east-1 \
-  --verbose
-
-daylily-ec cluster list \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --details
-
-daylily-ec --json cluster describe \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
-
-daylily-ec cluster wait \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --status CREATE_COMPLETE
-```
-
-## `daylily-ec export`
-
-Exports FSx content back to the attached S3 repository and writes `fsx_export.yaml`.
-
-Required:
-
-- `--cluster-name` or `--cluster`
-- `--target-uri`
-- `--region`
-- `--output-dir`
-
-Optional:
-
-- `--profile`
-- `--verbose`
-
-Example:
-
-```bash
-daylily-ec export \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME" \
-  --target-uri analysis_results/ubuntu \
-  --output-dir "$EXPORT_DIR"
-```
-
-## `daylily-ec delete`
-
-Deletes a cluster and monitors teardown.
-
-Optional inputs:
-
-- `--cluster-name`
-- `--region`
-- `--profile`
-- `--state-file`
-- `--yes`
-- `--dry-run`
-
-For supported automation, pass the cluster and region explicitly instead of relying on prompts:
-
-```bash
-daylily-ec delete --dry-run \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME"
-
-daylily-ec delete \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME"
-```
-
-Use `--yes` only when the delete has already been intentionally approved.
-
-## `daylily-ec drift`
-
-Runs a drift check against a previous state file.
-
-Required:
-
-- `--state-file`
-
-Optional:
-
-- `--profile`
-- `--debug`
-
-Example:
-
-```bash
-daylily-ec drift \
-  --profile "$AWS_PROFILE" \
-  --state-file ~/.config/daylily/state/<state-file>.json
-```
-
-## `daylily-ec resources-dir`
-
-Print the extracted resource directory used by the installed package:
-
-```bash
-daylily-ec resources-dir
-```
-
-Useful when debugging packaged resource resolution.
-
-## `daylily-ec env`
-
-Subcommands:
-
-- `status`
-- `activate`
-- `deactivate`
-- `reset`
-
-Examples:
-
-```bash
-daylily-ec env status
-daylily-ec env activate
-daylily-ec env deactivate
-daylily-ec env reset
-```
-
-These commands print guidance and environment state. They do not replace `source ./activate` for the supported checkout flow.
-
-## `daylily-ec runtime`
-
-Subcommands:
-
-- `status`
-- `check`
-- `explain`
-
-Examples:
-
-```bash
-daylily-ec runtime status
-daylily-ec runtime check
-daylily-ec runtime explain
-```
-
-Use them to confirm:
-
-- the active backend
-- runtime prerequisites
-- the expected activation command
-
-## `daylily-ec pricing snapshot`
-
-Current pricing-related subcommand:
-
-- `snapshot`
-
-Important options:
-
-- `--region` (repeatable)
-- `--partition` (repeatable)
-- `--config`
-- `--profile`
-
-Example:
-
-```bash
-daylily-ec pricing snapshot \
-  --profile "$AWS_PROFILE" \
-  --region us-west-2 \
-  --partition all_clusters
-```
-
-## `daylily-ec aws validate`
-
-Read-only AWS readiness validation for the selected profile and AZ.
-
-Subcommands:
-
-- `permissions`
-- `quotas`
-- `all`
-
-Required:
-
-- `--profile`
-- `--region-az`
-
-Optional:
-
-- `--config`
-- `--gap-analysis`
-
-Examples:
-
-```bash
-daylily-ec aws validate permissions \
-  --profile "$AWS_PROFILE" \
-  --region-az "$REGION_AZ" \
-  --gap-analysis aws_permissions_gap.md
-
-daylily-ec aws validate quotas \
-  --profile "$AWS_PROFILE" \
-  --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG" \
-  --gap-analysis aws_quota_gap.md
-
-daylily-ec --json aws validate all \
-  --profile "$AWS_PROFILE" \
-  --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG"
-```
-
-The command rejects `--profile default` and does not use implicit profile or
-region discovery. It never creates, updates, deletes, sends SSM commands, starts
-SSM sessions, or runs `pcluster create`. `--gap-analysis PATH` writes a Markdown
-report for AWS admins with every passing permission/quota check, denied actions,
-quota codes, rendered cluster demand, and WARN/FAIL remediation guidance.
-ParallelCluster UI is not part of current validation; the repo uses the
-`pcluster` CLI directly.
-
-## `daylily-ec headnode init`
-
-Initializes headnode shell state and can emit shell code for bootstrap flows.
-
-Important options:
-
-- `--project`
-- `--profile`
-- `--skip-project-check`
-- `--non-interactive`
-- `--emit-shell`
-
-Examples:
-
-```bash
-daylily-ec headnode init --project dayoa --skip-project-check
-daylily-ec headnode init --emit-shell
-```
-
-This command is about shell/bootstrap state. To configure a live cluster headnode over Session Manager from the operator machine, use `daylily-ec headnode configure`.
-
-```bash
-daylily-ec headnode configure --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
-```
-
-## `daylily-ec headnode connect`
-
-Opens a Session Manager shell on the cluster headnode. The shell must land as
-`ubuntu` in `/home/ubuntu` in a bash login shell.
-
-Important options:
-
-- `--profile`
-- `--region`
-- `--cluster` / `--cluster-name`
-- `--dry-run`
-
-Example:
-
-```bash
-daylily-ec headnode connect \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
-```
-
-## `daylily-ec headnode info`
-
-Returns the full `pcluster describe-cluster` payload for one cluster. Use global `--json` for machine-readable output.
-
-Important options:
-
-- `--profile`
-- `--region`
-- `--cluster` / `--cluster-name`
-
-Example:
-
-```bash
-daylily-ec --json headnode info \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
-```
-
-## `daylily-ec headnode jobs`
-
-Runs a read-only Slurm queue check on the headnode using the same format as the headnode `sq` alias.
-
-Important options:
-
-- `--profile`
-- `--region`
-- `--cluster` / `--cluster-name`
-
-Example:
-
-```bash
-daylily-ec headnode jobs \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
-```
-
-## `daylily-ec headnode configure`
-
-Re-runs the supported Daylily headnode bootstrap over SSM.
-
-Important options:
-
-- `--profile`
-- `--region`
-- `--cluster` / `--cluster-name`
-- `--repo-overrides`
-
-Example:
-
-```bash
-daylily-ec headnode configure \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
-```
-
-## `daylily-ec samples stage`
-
-Stages local `analysis_samples.tsv` inputs into the FSx-backed data repository and writes workflow-ready manifests.
-
-Important inputs:
-
-- positional `analysis_samples`
-- `--reference-bucket`
-- `--config-dir`
-- `--stage-target`
-- repeatable `--run-metric-staging RUN_UID:PLATFORM:FOFN`
-- `--profile`
-- `--region`
-- `--debug`
-
-Manifest notes:
-
-- the shipped template is `etc/analysis_samples_template.tsv`
-- legacy Illumina rows can still use `R1_FQ` / `R2_FQ`
-- multi-modality rows can also populate `ILMN_*`, `CG_*`, `ONT_*`, `UG_*`, `ULTIMA_CRAM*`, `ONT_CRAM*`, `PB_BAM*`, `ONT_BAM*`, and `ROCHE_BAM*`
-- ONT FASTQ rows can populate `ONT_FASTQ_PREFIX` with an S3 prefix ending in `fastq_pass/<tag>/`; the helper parses the ONT shard filenames, selects one run plus flowcell plus tag, concatenates the shards into one `ONT_R1_PATH`, and writes `ONT_R2_PATH=na`
-- populate `ONT_FLOWCELL_ID` when the ONT FASTQ prefix contains shards from more than one flowcell
-- raw reads are staged into the remote stage; aligned artifacts remain pass-through unless `STAGE_DIRECTIVE=stage_data`
-- one manifest row normally maps to one `units.tsv` row; multi-lane Illumina rows with the same unit identity are merged
-- run-metric staging copies FOFN-listed files under `runs/<RUN_UID>/` in the same remote stage; relative FOFN entries preserve their relative directories, while absolute, S3, and FSx entries use their basename
-
-Example:
-
-```bash
-daylily-ec samples stage "$ANALYSIS_SAMPLES" \
+dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --reference-bucket "$REF_BUCKET" \
-  --run-metric-staging "RUN123:ILMN:/path/to/run_metrics.fofn" \
   --config-dir "$STAGE_CFG_DIR"
 ```
 
-## `daylily-ec samples run`
-
-Stages a manifest, validates it against a repository catalog command, and
-launches the compatible workflow with the staged manifests.
-
-Important inputs:
-
-- positional `analysis_samples`
-- `--command-id`
-- `--destination`
-- `--reference-bucket`
-- `--config-dir`
-- repeatable `--run-metric-staging RUN_UID:PLATFORM:FOFN`
-- `--profile`
-- `--region`
-- `--cluster`
-- `--git-tag`
-- `--dry-run`
-
-The command writes a timestamped `*_samples_run_receipt.json` next to the
-generated `samples.tsv` and `units.tsv`. Complete Genomics/MGI inputs use
-`CG_R1_FQ` / `CG_R2_FQ` in the staging manifest; generated `units.tsv` rows
-still point DayOA at `ILMN_R1_PATH` / `ILMN_R2_PATH` with
-`SEQ_VENDOR=CG` and `SEQ_PLATFORM=DNBSEQ`.
-
-Example:
+`samples run` stages the manifest, validates it against a catalog command, and launches the workflow:
 
 ```bash
-daylily-ec samples run "$ANALYSIS_SAMPLES" \
+dyec samples run "$ANALYSIS_SAMPLES" \
   --command-id complete_genomics_mgi_snv_concordance \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --reference-bucket "$REF_BUCKET" \
-  --destination "$ANALYSIS_RUN_ID" \
+  --destination dayoa \
   --dry-run
 ```
 
-## `daylily-ec workflow`
-
-Headnode workflow launch and inspection helpers.
-
-Subcommands:
-
-- `launch`
-- `status`
-- `logs`
-
-Examples:
-
-```bash
-daylily-ec workflow launch \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination dayoa
-
-daylily-ec --json workflow status \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --session daylily-omics-analysis
-
-daylily-ec workflow logs \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --session daylily-omics-analysis \
-  --lines 100
-```
-
-## `daylily-ec state`
-
-Local state-file inspection helpers.
-
-Subcommands:
-
-- `list`
-- `show`
-
-Examples:
-
-```bash
-daylily-ec --json state list
-daylily-ec state show --cluster-name "$CLUSTER_NAME"
-daylily-ec --json state show --state-file ~/.config/daylily/state_<cluster>_<run>.json
-```
-
-## Helper Scripts
-
-These helpers remain callable, but the preferred operator surface is now `daylily-ec`.
-
-### `bin/daylily-ssh-into-headnode`
-
-Prefer `daylily-ec headnode connect` for operator use.
-
-```bash
-bin/daylily-ssh-into-headnode \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
-```
-
-### `bin/daylily-stage-samples-from-local-to-headnode`
-
-Prefer `daylily-ec samples stage` for operator use.
-
-```bash
-bin/daylily-stage-samples-from-local-to-headnode \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --reference-bucket "$REF_BUCKET" \
-  --config-dir "$STAGE_CFG_DIR" \
-  "$ANALYSIS_SAMPLES"
-```
-
-### `bin/daylily-run-omics-analysis-headnode`
-
-Prefer `daylily-ec workflow launch` for operator use.
-
-```bash
-bin/daylily-run-omics-analysis-headnode \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination dayoa
-```
-
-### `bin/daylily-cfg-headnode`
-
-Prefer `daylily-ec headnode configure` for operator use.
-
-```bash
-bin/daylily-cfg-headnode \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
-```
-
-### `bin/utils/ilmn/extract_undetermined_indexes`
-
-Illumina Undetermined/Unclassified FASTQ index triage utility. It streams
-gzipped R1 FASTQs from local paths, S3 URIs, or presigned HTTP(S) URLs, extracts
-the index token from each FASTQ header, and writes a ranked TSV of observed
-dual-index pairs. It can also split matched paired FASTQs into one R1/R2 output
-pair per selected tag.
-
 Important options:
 
-- positional `inputs`: R1 `.fastq.gz` local paths, S3 URIs, or presigned URLs
-- `--mode all|uncalled|called`
-- `--top`
-- `--total-reads`
-- `--tmp-dir`
-- `--sort-memory`
-- `--split-fastqs`
-- `--read2-inputs`
-- `--fastq-out-dir`
-- `--tag-pairs-tsv`
-- `--split-all-tags`
-- `--overwrite-fastqs`
+- `--reference-bucket`
+- `--config-dir`
+- `--stage-target`
+- `--run-metric-staging RUN_UID:PLATFORM:FOFN`
+- `--command-id`
+- `--destination`
+- `--git-tag`
 
-Count observed uncalled index pairs:
+## Run Mounts
+
+Run mounts are FSx Data Repository Associations from selected S3 run prefixes to `/run_dir_mounts/<mount_id>/`, visible on the headnode as `/fsx/run_dir_mounts/<mount_id>/`.
 
 ```bash
-bin/utils/ilmn/extract_undetermined_indexes \
-  s3://bucket/path/Undetermined_S0_L001_R1_001.fastq.gz \
-  s3://bucket/path/Undetermined_S0_L002_R1_001.fastq.gz \
-  --mode uncalled \
-  --top 100 \
-  --output indexes.tsv
+dyec --json mounts create \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --s3-uri "s3://sequencer-run-bucket/runs/RUN123/" \
+  --mount-id RUN123 \
+  --run-id RUN123 \
+  --platform ILMN \
+  --read-only \
+  --batch-import-metadata-on-create \
+  --auto-import NEW,CHANGED \
+  --wait
+
+dyec --json mounts list \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+
+dyec --json mounts describe \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --mount-id RUN123
+
+dyec --json mounts verify \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --mount-id RUN123
+
+dyec --json mounts delete \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --mount-id RUN123 \
+  --wait
 ```
 
-Split selected tag pairs into recovered FASTQs:
+`mounts verify` is currently headnode-only. It returns exit code `0` when the `/fsx/...` path is usable and nonzero when it is not.
+
+`dyec mount rundir` is an alias for `dyec mounts create`.
+
+Default behavior is read-oriented:
+
+- no AutoExport policy
+- no source S3 writeback
+- no deletion of S3 objects on detach
+- overlapping active FSx paths or S3 prefixes are rejected
+
+## Workflow
+
+Sample-manifest launch:
 
 ```bash
-bin/utils/ilmn/extract_undetermined_indexes \
-  s3://bucket/path/Undetermined_S0_L001_R1_001.fastq.gz \
-  --read2-inputs s3://bucket/path/Undetermined_S0_L001_R2_001.fastq.gz \
-  --split-fastqs \
-  --tag-pairs-tsv selected_indexes.tsv \
-  --fastq-out-dir recovered-fastqs \
-  --output recovered-fastqs/split_summary.tsv
+dyec workflow launch \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
+  --destination dayoa \
+  --git-tag 1.0.7
 ```
 
-For end-to-end live validation, see [testing_and_debugging.md](testing_and_debugging.md).
+Run-context launch:
+
+```bash
+dyec workflow launch \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --run-context-file ./runs.tsv \
+  --destination run-qc \
+  --git-tag 1.0.7 \
+  --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
+```
+
+Inspect:
+
+```bash
+dyec --json workflow status --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session>
+dyec workflow logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session> --lines 100
+```
+
+## Repository Catalog
+
+```bash
+dyec repositories commands
+dyec repositories commands --config config/daylily_available_repositories.yaml
+dyec repositories commands --command-id illumina_run_qc
+```
+
+The catalog is version 2. DayOA repository and command pins are `1.0.7`.
+
+Command classes:
+
+- `sample_analysis`: uses `analysis_samples.tsv`, staging, `samples.tsv`, and `units.tsv`
+- `run_analysis`: uses `runs.tsv` and requires a run mount
+
+## Export
+
+Root export runs the complete explicit output-DRA workflow:
+
+```bash
+dyec export \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --export-id "$EXPORT_ID" \
+  --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" \
+  --destination-s3-uri "$EXPORT_S3_URI" \
+  --output-dir "$EXPORT_DIR"
+```
+
+Required:
+
+- `--cluster` or `--fsx-file-system-id`
+- `--export-id`
+- `--source-path`
+- `--destination-s3-uri`
+- `--region`
+- `--output-dir`
+
+The source path must be under `/exports/<export_id>/`. Run mounts under `/run_dir_mounts/` are input paths and are rejected as export sources.
+
+Lower-level helpers:
+
+```bash
+dyec --json exports attach --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --export-id "$EXPORT_ID" --destination-s3-uri "$EXPORT_S3_URI"
+dyec --json exports run --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --export-id "$EXPORT_ID" --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" --destination-s3-uri "$EXPORT_S3_URI"
+dyec --json exports detach --profile "$AWS_PROFILE" --region "$REGION" --association-id "$EXPORT_DRA_ID"
+```
+
+## Delete
+
+```bash
+dyec delete --dry-run --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec delete --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+```
+
+Use `--yes` only when the destructive delete has already been approved.
+
+## AWS Validation
+
+```bash
+dyec aws validate permissions --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --gap-analysis aws_permissions_gap.md
+dyec aws validate quotas --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG" --gap-analysis aws_quota_gap.md
+dyec --json aws validate all --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
+```
+
+Validation is read-only.
+
+## Runtime, Environment, State, And Pricing
+
+```bash
+dyec runtime status
+dyec runtime check
+dyec runtime explain
+dyec env status
+dyec resources-dir
+dyec --json state list
+dyec state show --cluster "$CLUSTER_NAME"
+dyec pricing snapshot --profile "$AWS_PROFILE" --region "$REGION"
+```

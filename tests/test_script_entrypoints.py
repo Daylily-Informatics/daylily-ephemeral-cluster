@@ -300,6 +300,72 @@ class TestRunOmicsAnalysisHeadnodeScript:
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
+        return_value=SimpleNamespace(
+            stdout=(
+                "__DAYLILY_SESSION__=run-qc\n"
+                "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/run-qc\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/run-qc/daylily-omics-analysis\n"
+            ),
+            stderr="",
+        ),
+    )
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.discover_stage_config")
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.wait_for_ssm_online")
+    @patch(
+        "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_headnode_instance_id",
+        return_value=HeadNodeTarget("cluster-a", "us-west-2", "i-abc123"),
+    )
+    @patch(
+        "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_cluster",
+        return_value="cluster-a",
+    )
+    @patch(
+        "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_region",
+        return_value="us-west-2",
+    )
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.need_cmd")
+    def test_main_launches_run_context_workflow(
+        self,
+        _mock_need_cmd,
+        _mock_region,
+        _mock_cluster,
+        _mock_target,
+        _mock_wait,
+        mock_discover,
+        mock_run_shell,
+        tmp_path,
+    ):
+        run_context = tmp_path / "runs.tsv"
+        run_context.write_text(
+            "RUNID\tPLATFORM\tRUN_DIR\nRUN-1\tILMN\t/fsx/runs/RUN-1\n",
+            encoding="utf-8",
+        )
+
+        rc = run_omics_module.main(
+            [
+                "--profile",
+                "dev",
+                "--destination",
+                "run-qc",
+                "--session-name",
+                "run-qc",
+                "--run-context-file",
+                str(run_context),
+                "--dy-command",
+                "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv",
+            ]
+        )
+
+        assert rc == 0
+        mock_discover.assert_not_called()
+        script = mock_run_shell.call_args.args[2]
+        assert "RUN_CONTEXT_MODE=true" in script
+        assert "RUN-1" in script
+        assert "printf '%s' \"$RUN_CONTEXT_PAYLOAD\" > config/runs.tsv" in script
+        assert "run_context_file=config/runs.tsv" in script
+
+    @patch(
+        "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
         return_value=SimpleNamespace(stdout="", stderr=""),
     )
     @patch(

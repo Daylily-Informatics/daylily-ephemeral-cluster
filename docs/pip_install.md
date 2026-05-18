@@ -1,73 +1,52 @@
 # Pip Install
 
-The supported operator path for a repo checkout is still:
+The preferred development and operator path from a checkout is:
 
 ```bash
 source ./activate
 ```
 
-That path gives you the full `DAY-EC` Conda environment and installs this repo editable.
+Use pip install only when building an external environment that will provide the same prerequisites.
 
-This document covers the other path: installing the Python package directly.
+## Install
 
-## What Pip Installation Owns
+```bash
+python -m pip install -e .
+```
 
-`pyproject.toml` is the Python dependency source of truth. A pip install gives you:
+The package exposes:
 
 - `daylily-ec`
-- `dyec`, a shorter alias for the same CLI entrypoint
-- the package runtime dependencies
-- `aws-parallelcluster`, which provides `pcluster`
+- `dyec`
 
-For an editable checkout install:
+Both commands call `daylily_ec.cli:main`.
 
-```bash
-python -m pip install --editable "."
-```
+## External Prerequisites
 
-For a non-editable install:
+The shell still needs:
 
-```bash
-python -m pip install .
-```
+- AWS CLI
+- AWS Session Manager plugin
+- ParallelCluster CLI compatible with this repo
+- Conda or another Python environment with the package dependencies installed
 
-## What Pip Installation Does Not Own
-
-The pip install path does not provide the non-Python operator tooling that `environment.yaml` carries. Most importantly, you still need:
-
-- `aws`
-- `session-manager-plugin`
-- a shell environment in which those tools are available
-
-If you want the fully supported local operator environment, use the Conda path instead.
-
-## Minimal Example
+Verify:
 
 ```bash
-python -m venv .venv
-. .venv/bin/activate
-python -m pip install --upgrade pip
-python -m pip install --editable "."
-daylily-ec version
 dyec version
+daylily-ec version
 pcluster version
-```
-
-If `pcluster version` fails in that environment, your Python install path is incomplete.
-
-Then verify the external tools:
-
-```bash
 aws --version
 session-manager-plugin
 ```
 
-## When To Use This Path
+## Catalog Resources
 
-Use pip installation when you:
+Installed packages use packaged resources under `daylily_ec/resources/payload/`. The packaged repository catalog must match the source catalog. Current DayOA pins are `1.0.7`.
 
-- are developing on a custom Python environment
-- want package-only inspection without Conda bootstrapping
-- are integrating the CLI into an existing environment you already control
+For local development after changing catalog or resource files:
 
-Do not use it if you want the least-friction supported operator shell. In that case, use `source ./activate`.
+```bash
+python -m pip install -e .
+dyec repositories commands --command-id illumina_run_qc
+```

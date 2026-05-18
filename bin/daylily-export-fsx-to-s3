@@ -1,61 +1,19 @@
 #!/usr/bin/env python3
-"""Compatibility wrapper for positional FSx export invocations."""
+"""Removed legacy positional FSx export wrapper."""
 
 from __future__ import annotations
 
-import argparse
-import os
-import shutil
 import sys
-from pathlib import Path
 
 
-def _build_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("cluster_name")
-    parser.add_argument("region")
-    parser.add_argument("export_path")
-    parser.add_argument("--profile")
-    parser.add_argument("--output-dir", default=".")
-    parser.add_argument("--verbose", action="store_true")
-    return parser
-
-
-def _resolve_entrypoint() -> list[str]:
-    cli = shutil.which("daylily-ec")
-    if cli:
-        return [cli]
-
-    repo_root = Path(__file__).resolve().parents[1]
-    if (repo_root / "daylily_ec" / "__main__.py").is_file():
-        os.chdir(repo_root)
-        return [sys.executable, "-m", "daylily_ec"]
-
-    raise SystemExit("Error: daylily-ec is not available. Run 'source ./activate' first.")
-
-
-def main(argv: list[str] | None = None) -> int:
-    args = _build_parser().parse_args(argv)
-    cmd = [
-        *_resolve_entrypoint(),
-        "export",
-        "--cluster-name",
-        args.cluster_name,
-        "--region",
-        args.region,
-        "--target-uri",
-        args.export_path.strip("/"),
-        "--output-dir",
-        str(Path(args.output_dir).expanduser()),
-    ]
-    profile = args.profile or os.environ.get("AWS_PROFILE")
-    if profile:
-        cmd.extend(["--profile", profile])
-    if args.verbose:
-        cmd.append("--verbose")
-
-    os.execvp(cmd[0], cmd)
-    return 1
+def main() -> int:
+    sys.stderr.write(
+        "Legacy positional FSx export is removed. Use `daylily-ec export "
+        "--export-id ID --source-path /exports/ID/... "
+        "--destination-s3-uri s3://bucket/prefix/ --cluster-name CLUSTER "
+        "--region REGION --output-dir DIR`.\n"
+    )
+    return 2
 
 
 if __name__ == "__main__":
