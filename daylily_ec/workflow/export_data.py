@@ -287,12 +287,10 @@ def run_export_task(
         destination_s3_uri,
         source_path=normalized_source,
     )
-    destination_parts = urlparse(destination)
-    analysis_dir = analysis_dir_from_source_path(normalized_source)
     timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     report_path = (
-        f"s3://{destination_parts.netloc}/daylily-monitor/fsx-export/"
-        f"{analysis_dir}/{timestamp}/export-report/"
+        f"{destination.rstrip('/')}/_daylily_monitor/fsx-export/"
+        f"{timestamp}/export-report/"
     )
     try:
         response = fsx_client.create_data_repository_task(
