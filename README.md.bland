@@ -5,7 +5,7 @@ DayEC creates short-lived AWS ParallelCluster environments for Daylily analysis 
 - references: `/fsx/data`
 - run folders: `/fsx/run_dir_mounts/<mount_id>`
 - workflow outputs: `/fsx/analysis_results/...`
-- selected export payloads: `/fsx/exports/<export_id>`
+- direct export source: `/fsx/analysis_results/ubuntu/<analysis_dir>`
 
 The cluster is disposable. S3 is durable. Export and verify `fsx_export.yaml` before delete.
 
@@ -21,11 +21,11 @@ export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
 export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
 export ANALYSIS_BUCKET=s3://lsmc-dayoa-analysis-results-us-west-2
+export ANALYSIS_DIR=dayoa
 export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
 export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
-export EXPORT_DIR="$PWD/tmp-export/$CLUSTER_NAME"
-export EXPORT_ID="${CLUSTER_NAME}-results"
-export EXPORT_S3_URI="$ANALYSIS_BUCKET/$EXPORT_ID/"
+export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_DIR"
+export EXPORT_S3_URI="$ANALYSIS_BUCKET/analysis_results/ubuntu/$ANALYSIS_DIR/"
 
 dyec preflight --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
 dyec create --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
@@ -42,15 +42,14 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination dayoa \
+  --destination "$ANALYSIS_DIR" \
   --git-tag 1.0.7
 
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --export-id "$EXPORT_ID" \
-  --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" \
+  --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" \
   --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 
@@ -83,7 +82,7 @@ dyec --json mounts verify \
   --mount-id RUN123
 ```
 
-Run mounts are input-oriented. Do not write outputs into `/fsx/run_dir_mounts`. Export selected results from `/fsx/exports/<export_id>` instead.
+Run mounts are input-oriented. Do not write outputs into `/fsx/run_dir_mounts`. Export completed analysis directories from `/fsx/analysis_results/ubuntu/<analysis_dir>` instead.
 
 ## Read More
 

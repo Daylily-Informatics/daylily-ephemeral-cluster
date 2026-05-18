@@ -955,15 +955,10 @@ def export(
         "--fsx-file-system-id",
         help="Explicit FSx file system id. Required when --cluster is omitted.",
     ),
-    export_id: str = typer.Option(
-        ...,
-        "--export-id",
-        help="Safe export id mounted under /fsx/exports/<export-id>/.",
-    ),
     source_path: str = typer.Option(
         ...,
         "--source-path",
-        help="Explicit FSx API path to export, under /exports/<export-id>/.",
+        help="Completed analysis directory under /fsx/analysis_results/ubuntu/<analysis-dir>/.",
     ),
     destination_s3_uri: str = typer.Option(
         ...,
@@ -1007,7 +1002,6 @@ def export(
         ExportOptions(
             cluster_name=cluster_name,
             fsx_file_system_id=fsx_file_system_id,
-            export_id=export_id,
             source_path=source_path,
             destination_s3_uri=destination_s3_uri,
             region=region,
@@ -1030,14 +1024,14 @@ def _emit_export_payload(payload: Any, *, text: str) -> None:
 def exports_attach(
     cluster_name: Optional[str] = typer.Option(None, "--cluster-name", "--cluster"),
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
-    export_id: str = typer.Option(..., "--export-id"),
+    source_path: str = typer.Option(..., "--source-path"),
     destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
     region: str = typer.Option(..., "--region"),
     profile: Optional[str] = typer.Option(None, "--profile"),
     wait: bool = typer.Option(True, "--wait/--no-wait"),
     timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
 ) -> None:
-    """Attach a temporary output DRA under /fsx/exports/<export-id>/."""
+    """Attach a temporary output DRA to a completed analysis directory."""
 
     from daylily_ec.workflow.export_data import attach_export_dra
 
@@ -1045,7 +1039,7 @@ def exports_attach(
         record = attach_export_dra(
             cluster_name=cluster_name,
             fsx_file_system_id=fsx_file_system_id,
-            export_id=export_id,
+            source_path=source_path,
             destination_s3_uri=destination_s3_uri,
             region=region,
             profile=profile,
@@ -1067,7 +1061,6 @@ def exports_attach(
 def exports_run(
     cluster_name: Optional[str] = typer.Option(None, "--cluster-name", "--cluster"),
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
-    export_id: str = typer.Option(..., "--export-id"),
     source_path: str = typer.Option(..., "--source-path"),
     destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
     region: str = typer.Option(..., "--region"),
@@ -1075,7 +1068,7 @@ def exports_run(
     wait: bool = typer.Option(True, "--wait/--no-wait"),
     timeout_seconds: int = typer.Option(3600, "--timeout-seconds"),
 ) -> None:
-    """Run an explicit FSx export task for /exports/<export-id>/ paths."""
+    """Run an explicit FSx export task for an analysis directory."""
 
     from daylily_ec.workflow.export_data import (
         _create_session,
@@ -1092,7 +1085,6 @@ def exports_run(
         )
         payload = run_export_task(
             fsx_file_system_id=resolved_fsx_id,
-            export_id=export_id,
             source_path=source_path,
             destination_s3_uri=destination_s3_uri,
             wait=wait,

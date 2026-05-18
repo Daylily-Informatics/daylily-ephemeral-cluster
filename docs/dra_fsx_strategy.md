@@ -9,9 +9,9 @@ This is the current DayEC data-plane model. FSx for Lustre is the high-performan
 | Reference data | `/fsx/data/` | `/data/` | `<reference-bucket>/data/` | Created with the cluster |
 | Run inputs | `/fsx/run_dir_mounts/<mount_id>/` | `/run_dir_mounts/<mount_id>/` | selected run prefix | Created and deleted on demand |
 | Workflow outputs | `/fsx/analysis_results/...` | `/analysis_results/...` | none by default | Local to the FSx filesystem until exported |
-| Export staging | `/fsx/exports/<export_id>/` | `/exports/<export_id>/` | selected analysis bucket/prefix | Temporary output DRA |
+| Direct analysis export | `/fsx/analysis_results/ubuntu/<analysis_dir>/` | `/analysis_results/ubuntu/<analysis_dir>/` | `s3://bucket/analysis_results/ubuntu/<analysis_dir>/` | Temporary output DRA |
 
-Run-directory DRAs are read-oriented by default. They configure AutoImport events and no AutoExport policy. Export DRAs are created only for selected output payloads and are detached after the FSx export task completes.
+Run-directory DRAs are read-oriented by default. They configure AutoImport events and no AutoExport policy. Export DRAs are created directly on one completed analysis directory, run one explicit FSx export task, and are detached after the task completes.
 
 ## Cluster And Run Lifecycle
 
@@ -35,10 +35,10 @@ sequenceDiagram
   Op->>DyEC: workflow launch
   DyEC->>DayOA: start tmux workflow
   DayOA->>FSx: read /fsx/data and /fsx/run_dir_mounts
-  DayOA->>FSx: write /fsx/analysis_results
-  Op->>FSx: copy selected outputs to /fsx/exports/<export_id>
-  Op->>DyEC: export --destination-s3-uri
-  FSx-->>Out: EXPORT_TO_REPOSITORY task
+  DayOA->>FSx: write /fsx/analysis_results/ubuntu/<analysis_dir>
+  Op->>DyEC: export --source-path /fsx/analysis_results/ubuntu/<analysis_dir>
+  DyEC->>FSx: create temporary DRA at /analysis_results/ubuntu/<analysis_dir>/
+  FSx-->>Out: EXPORT_TO_REPOSITORY task to /analysis_results/ubuntu/<analysis_dir>/
   DyEC->>FSx: detach export DRA
   Op->>DyEC: delete after receipt verification
 ```
@@ -51,7 +51,7 @@ flowchart LR
     Ref["Reference bucket /data/"]
     RunA["Run bucket prefix RUN_A"]
     RunB["Run bucket prefix RUN_B"]
-    Analysis["Analysis bucket /exports/<export_id>/"]
+    Analysis["Analysis bucket /analysis_results/ubuntu/<analysis_dir>/"]
   end
 
   subgraph Lustre["FSx for Lustre mounted at /fsx"]
@@ -59,7 +59,7 @@ flowchart LR
     MntA["/fsx/run_dir_mounts/RUN_A"]
     MntB["/fsx/run_dir_mounts/RUN_B"]
     Results["/fsx/analysis_results/..."]
-    Export["/fsx/exports/<export_id>"]
+    Export["temporary DRA on /fsx/analysis_results/ubuntu/<analysis_dir>"]
   end
 
   Ref -->|reference DRA| Data
@@ -68,7 +68,7 @@ flowchart LR
   Data --> Results
   MntA --> Results
   MntB --> Results
-  Results -->|operator-selected copy| Export
+  Results -->|exact completed analysis dir| Export
   Export -->|FSx export task| Analysis
 ```
 
@@ -100,8 +100,9 @@ flowchart TB
 
 Export is not automatic writeback from the run mount or reference mount. The supported export flow is:
 
-1. choose the outputs under `/fsx/analysis_results/...`
-2. copy them into `/fsx/exports/<export_id>/...`
-3. run `dyec export --source-path /exports/<export_id>/... --destination-s3-uri s3://...`
-4. keep `fsx_export.yaml`
-5. delete the cluster only after the receipt shows `status: success` and `detached: true`
+1. choose one completed directory under `/fsx/analysis_results/ubuntu/<analysis_dir>`
+2. run `dyec export --source-path /fsx/analysis_results/ubuntu/<analysis_dir> --destination-s3-uri s3://bucket/analysis_results/ubuntu/<analysis_dir>/`
+3. keep `fsx_export.yaml`
+4. delete the cluster only after the receipt shows `status: success`, `task_lifecycle: SUCCEEDED`, and `detached: true`
+
+The bucket is always explicit. DayEC validates that the S3 key suffix matches the normalized source analysis directory and writes FSx task reports outside the exported prefix under `daylily-monitor/fsx-export/<analysis_dir>/...`.

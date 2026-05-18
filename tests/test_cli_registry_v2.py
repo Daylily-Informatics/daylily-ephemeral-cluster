@@ -543,12 +543,10 @@ def test_export_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
             "export",
             "--cluster-name",
             "cluster-a",
-            "--export-id",
-            "export-1",
             "--source-path",
-            "/exports/export-1/analysis_results/ubuntu/",
+            "/fsx/analysis_results/ubuntu/illumina_run_qc",
             "--destination-s3-uri",
-            "s3://bucket/exports/export-1/",
+            "s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
             "--region",
             "us-west-2",
             "--output-dir",
@@ -563,9 +561,9 @@ def test_export_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
     assert calls["verbose"] is True
     options = calls["options"]
     assert options.cluster_name == "cluster-a"
-    assert options.export_id == "export-1"
-    assert options.source_path == "/exports/export-1/analysis_results/ubuntu/"
-    assert options.destination_s3_uri == "s3://bucket/exports/export-1/"
+    assert not hasattr(options, "export_id")
+    assert options.source_path == "/fsx/analysis_results/ubuntu/illumina_run_qc"
+    assert options.destination_s3_uri == "s3://bucket/analysis_results/ubuntu/illumina_run_qc/"
     assert options.region == "us-west-2"
     assert options.profile == "dev"
     assert options.output_dir == tmp_path.resolve()

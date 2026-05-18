@@ -221,15 +221,14 @@ Command classes:
 
 ## Export
 
-Root export runs the complete explicit output-DRA workflow:
+Root export runs the complete explicit output-DRA workflow on one completed analysis directory:
 
 ```bash
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --export-id "$EXPORT_ID" \
-  --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" \
+  --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" \
   --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 ```
@@ -237,19 +236,18 @@ dyec export \
 Required:
 
 - `--cluster` or `--fsx-file-system-id`
-- `--export-id`
 - `--source-path`
 - `--destination-s3-uri`
 - `--region`
 - `--output-dir`
 
-The source path must be under `/exports/<export_id>/`. Run mounts under `/run_dir_mounts/` are input paths and are rejected as export sources.
+The source path must be `/fsx/analysis_results/ubuntu/<analysis_dir>` or `/analysis_results/ubuntu/<analysis_dir>`. The destination must be an explicit S3 URI ending in `analysis_results/ubuntu/<analysis_dir>/`. Run mounts, reference data, nested paths, and old export staging paths are rejected as export sources.
 
 Lower-level helpers:
 
 ```bash
-dyec --json exports attach --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --export-id "$EXPORT_ID" --destination-s3-uri "$EXPORT_S3_URI"
-dyec --json exports run --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --export-id "$EXPORT_ID" --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" --destination-s3-uri "$EXPORT_S3_URI"
+dyec --json exports attach --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" --destination-s3-uri "$EXPORT_S3_URI"
+dyec --json exports run --profile "$AWS_PROFILE" --region "$REGION" --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" --destination-s3-uri "$EXPORT_S3_URI" --fsx-file-system-id "$FSX_FILE_SYSTEM_ID"
 dyec --json exports detach --profile "$AWS_PROFILE" --region "$REGION" --association-id "$EXPORT_DRA_ID"
 ```
 

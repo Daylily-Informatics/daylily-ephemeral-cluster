@@ -1,13 +1,14 @@
-"""Explicit FSx DRA export workflow for the ``daylily-ec export`` command."""
+"""Direct analysis-directory FSx DRA export workflow."""
 
 from __future__ import annotations
 
 import dataclasses
 import logging
-import shlex
 import time
+from datetime import datetime, timezone
 from pathlib import PurePosixPath, Path
-from typing import Any, Dict, Optional
+from typing import Any, Callable, Dict, Optional
+from urllib.parse import urlparse
 
 import boto3
 from botocore.exceptions import BotoCoreError, ClientError
@@ -16,8 +17,11 @@ import yaml
 from daylily_ec import ui
 from daylily_ec.run_mounts import (
     RunMountError,
+    association_is_active,
     describe_fsx_file_system,
+    describe_data_repository_associations,
     normalize_s3_uri,
+    paths_overlap,
     resolve_fsx_file_system_id,
     validate_dra_compatible_file_system,
     wait_for_association,
@@ -26,10 +30,10 @@ from daylily_ec.run_mounts import (
 
 LOGGER = logging.getLogger("daylily.export_fsx")
 
-EXPORT_ROOT = "/exports/"
-HEADNODE_EXPORT_ROOT = "/fsx/exports/"
+ANALYSIS_EXPORT_ROOT = "/analysis_results/ubuntu/"
+HEADNODE_ANALYSIS_EXPORT_ROOT = "/fsx/analysis_results/ubuntu/"
 STATUS_FILENAME = "fsx_export.yaml"
-EXPORT_SCHEMA_VERSION = 2
+EXPORT_SCHEMA_VERSION = 3
 EXPORT_PURPOSE_TAG = "output-export"
 POLL_INTERVAL_SECONDS = 30
 
@@ -42,7 +46,6 @@ class ExportError(RuntimeError):
 class ExportOptions:
     cluster_name: Optional[str]
     fsx_file_system_id: Optional[str]
-    export_id: str
     source_path: str
     destination_s3_uri: str
     region: str
@@ -54,7 +57,7 @@ class ExportOptions:
 
 @dataclasses.dataclass(frozen=True)
 class ExportDraRecord:
-    export_id: str
+    analysis_dir: str
     cluster_name: Optional[str]
     region: str
     fsx_file_system_id: str
@@ -81,31 +84,45 @@ def _create_session(region: str, profile: Optional[str]):
     return boto3.Session(**session_kwargs)
 
 
-def normalize_export_id(export_id: str) -> str:
-    candidate = str(export_id or "").strip()
+def _safe_analysis_dir(candidate: str) -> str:
     if not candidate:
-        raise ExportError("export_id is required.")
+        raise ExportError("source_path must include one analysis directory.")
     if candidate in {".", ".."} or ".." in candidate or "/" in candidate or "%" in candidate:
-        raise ExportError("export_id must be a single safe path component.")
+        raise ExportError("analysis_dir must be a single safe path component.")
     return candidate
 
 
-def export_file_system_path(export_id: str) -> str:
-    return f"{EXPORT_ROOT}{normalize_export_id(export_id)}/"
+def analysis_headnode_path(source_path: str) -> str:
+    normalized = normalize_export_source_path(source_path)
+    return f"{HEADNODE_ANALYSIS_EXPORT_ROOT}{analysis_dir_from_source_path(normalized)}/"
 
 
-def export_headnode_path(export_id: str) -> str:
-    return f"{HEADNODE_EXPORT_ROOT}{normalize_export_id(export_id)}/"
+def analysis_dir_from_source_path(source_path: str) -> str:
+    normalized = normalize_export_source_path(source_path)
+    suffix = normalized[len(ANALYSIS_EXPORT_ROOT) :].strip("/")
+    return _safe_analysis_dir(suffix)
 
 
-def normalize_export_source_path(source_path: str, *, export_id: str) -> str:
+def normalize_export_source_path(source_path: str) -> str:
     raw = str(source_path or "").strip()
     if not raw:
         raise ExportError("source_path is required.")
-    if raw.startswith(HEADNODE_EXPORT_ROOT):
-        raw = EXPORT_ROOT + raw[len(HEADNODE_EXPORT_ROOT) :]
-    if raw.startswith("/fsx/run_dir_mounts/") or raw.startswith("/run_dir_mounts/"):
+    if raw.startswith("/fsx/run_dir_mounts/") or raw == "/fsx/run_dir_mounts":
         raise ExportError("Run-directory mounts are read-oriented inputs, not export sources.")
+    if raw.startswith("/fsx/data/") or raw == "/fsx/data":
+        raise ExportError("Reference data under /fsx/data is not an export source.")
+    if raw.startswith("/fsx/exports/") or raw == "/fsx/exports":
+        raise ExportError("The /fsx/exports staging namespace is not supported.")
+    if raw.startswith(HEADNODE_ANALYSIS_EXPORT_ROOT):
+        raw = ANALYSIS_EXPORT_ROOT + raw[len(HEADNODE_ANALYSIS_EXPORT_ROOT) :]
+    elif raw.startswith("/fsx/"):
+        raise ExportError("source_path must be under /fsx/analysis_results/ubuntu/<analysis_dir>.")
+    if raw.startswith("/run_dir_mounts/"):
+        raise ExportError("Run-directory mounts are read-oriented inputs, not export sources.")
+    if raw.startswith("/data/") or raw == "/data":
+        raise ExportError("Reference data under /fsx/data is not an export source.")
+    if raw.startswith("/exports/") or raw == "/exports":
+        raise ExportError("The /fsx/exports staging namespace is not supported.")
     if not raw.startswith("/"):
         raise ExportError("source_path must be an absolute FSx path.")
     if "//" in raw:
@@ -114,10 +131,25 @@ def normalize_export_source_path(source_path: str, *, export_id: str) -> str:
     if ".." in parts:
         raise ExportError("source_path must not contain '..'.")
     normalized = "/" + "/".join(part for part in parts if part != "/")
-    required_root = export_file_system_path(export_id)
-    if not normalized.rstrip("/").startswith(required_root.rstrip("/")):
-        raise ExportError(f"source_path must be under {required_root}.")
+    if not normalized.startswith(ANALYSIS_EXPORT_ROOT):
+        raise ExportError("source_path must be under /analysis_results/ubuntu/<analysis_dir>.")
+    suffix = normalized[len(ANALYSIS_EXPORT_ROOT) :].strip("/")
+    _safe_analysis_dir(suffix)
     return normalized.rstrip("/") + "/"
+
+
+def validate_export_destination_s3_uri(destination_s3_uri: str, *, source_path: str) -> str:
+    destination = normalize_s3_uri(destination_s3_uri)
+    parsed = urlparse(destination)
+    key = parsed.path.lstrip("/")
+    analysis_dir = analysis_dir_from_source_path(source_path)
+    expected_key = f"analysis_results/ubuntu/{analysis_dir}/"
+    if key != expected_key:
+        raise ExportError(
+            "destination_s3_uri must end with "
+            f"{expected_key!r}; got s3://{parsed.netloc}/{key}"
+        )
+    return destination
 
 
 def resolve_export_fsx_id(
@@ -133,19 +165,46 @@ def resolve_export_fsx_id(
     return resolve_fsx_file_system_id(client, cluster_name)
 
 
+def validate_no_overlapping_export_dra(
+    client: Any,
+    *,
+    fsx_file_system_id: str,
+    source_path: str,
+) -> None:
+    try:
+        associations = describe_data_repository_associations(
+            client,
+            filters=[{"Name": "file-system-id", "Values": [fsx_file_system_id]}],
+        )
+    except (BotoCoreError, ClientError, RunMountError) as exc:
+        raise ExportError(f"Unable to inspect existing FSx data repository associations: {exc}") from exc
+    normalized_source = normalize_export_source_path(source_path)
+    for association in associations:
+        if not association_is_active(association):
+            continue
+        existing_path = str(association.get("FileSystemPath") or "")
+        if existing_path and paths_overlap(existing_path, normalized_source):
+            association_id = str(association.get("AssociationId") or "unknown")
+            raise ExportError(
+                "source_path overlaps existing FSx data repository association "
+                f"{association_id} at {existing_path}."
+            )
+
+
 def attach_export_dra(
     *,
     cluster_name: Optional[str],
     fsx_file_system_id: Optional[str],
-    export_id: str,
+    source_path: str,
     destination_s3_uri: str,
     region: str,
     profile: Optional[str],
     wait: bool,
     timeout_seconds: int,
     fsx_client: Optional[Any] = None,
+    on_created: Optional[Callable[[ExportDraRecord], None]] = None,
 ) -> ExportDraRecord:
-    """Create an output DRA under /exports/<export_id>/ without AutoExport."""
+    """Create an output DRA directly on an analysis directory without AutoExport."""
     session = None if fsx_client is not None else _create_session(region, profile)
     client = fsx_client or session.client("fsx")
     resolved_fsx_id = resolve_export_fsx_id(
@@ -154,8 +213,16 @@ def attach_export_dra(
         fsx_file_system_id=fsx_file_system_id,
     )
     validate_dra_compatible_file_system(describe_fsx_file_system(client, resolved_fsx_id))
-    file_system_path = export_file_system_path(export_id)
-    destination = normalize_s3_uri(destination_s3_uri)
+    file_system_path = normalize_export_source_path(source_path)
+    destination = validate_export_destination_s3_uri(
+        destination_s3_uri,
+        source_path=file_system_path,
+    )
+    validate_no_overlapping_export_dra(
+        client,
+        fsx_file_system_id=resolved_fsx_id,
+        source_path=file_system_path,
+    )
     try:
         response = client.create_data_repository_association(
             FileSystemId=resolved_fsx_id,
@@ -164,7 +231,7 @@ def attach_export_dra(
             BatchImportMetaDataOnCreate=False,
             Tags=[
                 {"Key": "lsmc:purpose", "Value": EXPORT_PURPOSE_TAG},
-                {"Key": "Name", "Value": normalize_export_id(export_id)},
+                {"Key": "Name", "Value": analysis_dir_from_source_path(file_system_path)},
             ],
         )
     except (BotoCoreError, ClientError) as exc:
@@ -173,6 +240,19 @@ def attach_export_dra(
     association_id = str(association.get("AssociationId") or "")
     if not association_id:
         raise ExportError("FSx did not return an export data repository association id.")
+    created_record = ExportDraRecord(
+        analysis_dir=analysis_dir_from_source_path(file_system_path),
+        cluster_name=cluster_name,
+        region=region,
+        fsx_file_system_id=resolved_fsx_id,
+        file_system_path=str(association.get("FileSystemPath") or file_system_path),
+        headnode_path=analysis_headnode_path(file_system_path),
+        destination_s3_uri=destination,
+        association_id=association_id,
+        lifecycle=str(association.get("Lifecycle") or "UNKNOWN"),
+    )
+    if on_created is not None:
+        on_created(created_record)
     if wait:
         association = wait_for_association(
             client,
@@ -181,12 +261,12 @@ def attach_export_dra(
             timeout_seconds=timeout_seconds,
         )
     return ExportDraRecord(
-        export_id=normalize_export_id(export_id),
+        analysis_dir=analysis_dir_from_source_path(file_system_path),
         cluster_name=cluster_name,
         region=region,
         fsx_file_system_id=resolved_fsx_id,
         file_system_path=str(association.get("FileSystemPath") or file_system_path),
-        headnode_path=export_headnode_path(export_id),
+        headnode_path=analysis_headnode_path(file_system_path),
         destination_s3_uri=destination,
         association_id=association_id,
         lifecycle=str(association.get("Lifecycle") or "UNKNOWN"),
@@ -196,17 +276,23 @@ def attach_export_dra(
 def run_export_task(
     *,
     fsx_file_system_id: str,
-    export_id: str,
     source_path: str,
     destination_s3_uri: str,
     wait: bool,
     timeout_seconds: int,
     fsx_client: Any,
 ) -> Dict[str, Any]:
-    normalized_source = normalize_export_source_path(source_path, export_id=export_id)
+    normalized_source = normalize_export_source_path(source_path)
+    destination = validate_export_destination_s3_uri(
+        destination_s3_uri,
+        source_path=normalized_source,
+    )
+    destination_parts = urlparse(destination)
+    analysis_dir = analysis_dir_from_source_path(normalized_source)
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%dT%H%M%SZ")
     report_path = (
-        normalize_s3_uri(destination_s3_uri).rstrip("/")
-        + f"/daylily-monitor/{int(time.time())}/export-report"
+        f"s3://{destination_parts.netloc}/daylily-monitor/fsx-export/"
+        f"{analysis_dir}/{timestamp}/export-report/"
     )
     try:
         response = fsx_client.create_data_repository_task(
@@ -309,6 +395,7 @@ def _write_status(options: ExportOptions, payload: Dict[str, Any]) -> None:
 
 
 def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
+    normalized_source = normalize_export_source_path(options.source_path)
     return {
         "fsx_export": {
             "schema_version": EXPORT_SCHEMA_VERSION,
@@ -316,13 +403,15 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
             "phase": "attach",
             "cluster_name": options.cluster_name,
             "region": options.region,
-            "export_id": normalize_export_id(options.export_id),
-            "source_path": normalize_export_source_path(
-                options.source_path,
-                export_id=options.export_id,
+            "analysis_dir": analysis_dir_from_source_path(normalized_source),
+            "source_path": normalized_source,
+            "headnode_path": analysis_headnode_path(normalized_source),
+            "destination_s3_uri": validate_export_destination_s3_uri(
+                options.destination_s3_uri,
+                source_path=normalized_source,
             ),
-            "destination_s3_uri": normalize_s3_uri(options.destination_s3_uri),
             "detached": False,
+            "delete_data_in_file_system": False,
             "failure_details": {},
         }
     }
@@ -331,7 +420,7 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
 def run_export_workflow(options: ExportOptions) -> int:
     """Attach an output DRA, run an explicit FSx export task, detach the DRA."""
     ui.phase("EXPORT")
-    ui.step(f"Preparing explicit FSx export for '{options.export_id}'")
+    ui.step("Preparing direct FSx export DRA")
 
     try:
         receipt = _base_receipt(options)
@@ -343,8 +432,10 @@ def run_export_workflow(options: ExportOptions) -> int:
                 "phase": "validate",
                 "cluster_name": options.cluster_name,
                 "region": options.region,
-                "export_id": options.export_id,
+                "source_path": options.source_path,
+                "destination_s3_uri": options.destination_s3_uri,
                 "detached": False,
+                "delete_data_in_file_system": False,
                 "failure_details": {"message": str(exc)},
             }
         }
@@ -360,16 +451,22 @@ def run_export_workflow(options: ExportOptions) -> int:
     message = ""
 
     try:
+        def _capture_created_dra(created_record: ExportDraRecord) -> None:
+            nonlocal record
+            record = created_record
+            receipt["fsx_export"].update(created_record.to_payload())
+
         record = attach_export_dra(
             cluster_name=options.cluster_name,
             fsx_file_system_id=options.fsx_file_system_id,
-            export_id=options.export_id,
+            source_path=options.source_path,
             destination_s3_uri=options.destination_s3_uri,
             region=options.region,
             profile=options.profile,
             wait=options.wait,
             timeout_seconds=options.timeout_seconds,
             fsx_client=client,
+            on_created=_capture_created_dra,
         )
         receipt["fsx_export"].update(record.to_payload())
         receipt["fsx_export"]["phase"] = "run"
@@ -377,8 +474,7 @@ def run_export_workflow(options: ExportOptions) -> int:
 
         task_payload = run_export_task(
             fsx_file_system_id=record.fsx_file_system_id,
-            export_id=record.export_id,
-            source_path=options.source_path,
+            source_path=record.file_system_path,
             destination_s3_uri=record.destination_s3_uri,
             wait=options.wait,
             timeout_seconds=options.timeout_seconds,
@@ -395,7 +491,10 @@ def run_export_workflow(options: ExportOptions) -> int:
     except (ClientError, BotoCoreError, RuntimeError, RunMountError, ExportError) as exc:
         message = str(exc)
         receipt["fsx_export"]["status"] = "error"
-        receipt["fsx_export"]["failure_details"] = {"message": message}
+        failure_details = {"message": message}
+        if task_payload.get("failure_details"):
+            failure_details["task_failure_details"] = task_payload["failure_details"]
+        receipt["fsx_export"]["failure_details"] = failure_details
         LOGGER.error("FSx export failed: %s", exc)
     finally:
         if record is not None:
@@ -438,5 +537,5 @@ def run_export_workflow(options: ExportOptions) -> int:
 
 
 def shell_copy_hint(record: ExportDraRecord) -> str:
-    """Return a copy command hint for operators who need the export path."""
-    return f"cp -a {shlex.quote('<outputs>')} {shlex.quote(record.headnode_path)}"
+    """Return the analysis directory path exported by *record*."""
+    return record.headnode_path

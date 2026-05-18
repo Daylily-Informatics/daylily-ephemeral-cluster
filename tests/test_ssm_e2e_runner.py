@@ -162,15 +162,15 @@ def test_record_step_writes_machine_readable_summary(tmp_path: Path) -> None:
 def _write_success_export_receipt(path: Path) -> None:
     path.write_text(
         "fsx_export:\n"
-        "  schema_version: 2\n"
+        "  schema_version: 3\n"
         "  status: success\n"
         "  fsx_file_system_id: fs-123\n"
         "  association_id: dra-export\n"
         "  task_id: task-123\n"
         "  task_lifecycle: SUCCEEDED\n"
         "  detached: true\n"
-        "  source_path: /exports/export-1/analysis_results/ubuntu/\n"
-        "  destination_s3_uri: s3://bucket/exports/export-1/\n",
+        "  source_path: /analysis_results/ubuntu/illumina_run_qc/\n"
+        "  destination_s3_uri: s3://bucket/analysis_results/ubuntu/illumina_run_qc/\n",
         encoding="utf-8",
     )
 
@@ -181,8 +181,8 @@ def test_validate_export_artifact_requires_success_and_expected_target(tmp_path:
 
     payload = runner_module._validate_export_artifact(
         export_yaml,
-        expected_source_path="/exports/export-1/analysis_results/ubuntu/",
-        expected_destination_s3_uri="s3://bucket/exports/export-1/",
+        expected_source_path="/fsx/analysis_results/ubuntu/illumina_run_qc",
+        expected_destination_s3_uri="s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
     )
 
     assert payload["status"] == "success"
@@ -425,12 +425,10 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
             str(analysis_samples),
             "--export-output-dir",
             str(export_dir),
-            "--export-id",
-            "export-1",
             "--export-source-path",
-            "/exports/export-1/analysis_results/ubuntu/",
+            "/analysis_results/ubuntu/illumina_run_qc/",
             "--export-destination-s3-uri",
-            "s3://bucket/exports/export-1/",
+            "s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
             "--output-json",
             str(output_json),
             "--workflow-live",
@@ -563,12 +561,10 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
             str(analysis_samples),
             "--export-output-dir",
             str(export_dir),
-            "--export-id",
-            "export-1",
             "--export-source-path",
-            "/exports/export-1/analysis_results/ubuntu/",
+            "/analysis_results/ubuntu/illumina_run_qc/",
             "--export-destination-s3-uri",
-            "s3://bucket/exports/export-1/",
+            "s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
             "--output-json",
             str(output_json),
             "--workflow-live",
@@ -669,12 +665,10 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
             str(analysis_samples),
             "--export-output-dir",
             str(export_dir),
-            "--export-id",
-            "export-1",
             "--export-source-path",
-            "/exports/export-1/analysis_results/ubuntu/",
+            "/analysis_results/ubuntu/illumina_run_qc/",
             "--export-destination-s3-uri",
-            "s3://bucket/exports/export-1/",
+            "s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
             "--output-json",
             str(output_json),
             "--workflow-live",

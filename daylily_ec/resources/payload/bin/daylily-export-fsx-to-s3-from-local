@@ -14,7 +14,6 @@ def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--cluster", "--cluster-name", dest="cluster_name")
     parser.add_argument("--fsx-file-system-id")
-    parser.add_argument("--export-id", required=True)
     parser.add_argument("--source-path", required=True)
     parser.add_argument("--destination-s3-uri", required=True)
     parser.add_argument("--region", required=True)
@@ -29,7 +28,7 @@ def _resolve_entrypoint() -> list[str]:
     if cli:
         return [cli]
 
-    repo_root = Path(__file__).resolve().parents[4]
+    repo_root = Path(__file__).resolve().parents[1]
     if (repo_root / "daylily_ec" / "__main__.py").is_file():
         os.chdir(repo_root)
         return [sys.executable, "-m", "daylily_ec"]
@@ -42,8 +41,6 @@ def main(argv: list[str] | None = None) -> int:
     cmd = [
         *_resolve_entrypoint(),
         "export",
-        "--export-id",
-        args.export_id,
         "--source-path",
         args.source_path,
         "--destination-s3-uri",

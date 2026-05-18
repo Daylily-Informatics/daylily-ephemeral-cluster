@@ -10,8 +10,7 @@ The current codebase is DRA-first:
 2. Cluster creation adds a `reference-data` DRA from the reference bucket `data/` prefix to FSx API path `/data/`, visible as `/fsx/data`.
 3. `dyec mounts create` can attach selected S3 run prefixes as ephemeral run DRAs under `/run_dir_mounts/<mount_id>`, visible as `/fsx/run_dir_mounts/<mount_id>`.
 4. `dyec workflow launch` starts DayOA work in tmux on the headnode and writes outputs under `/fsx/analysis_results/...`.
-5. Operators copy selected outputs to `/fsx/exports/<export_id>/...`.
-6. `dyec export` creates a temporary output DRA, runs an FSx `EXPORT_TO_REPOSITORY` task, writes `fsx_export.yaml`, and detaches the DRA.
+5. `dyec export` creates a temporary output DRA directly on `/fsx/analysis_results/ubuntu/<analysis_dir>`, runs an FSx `EXPORT_TO_REPOSITORY` task, writes `fsx_export.yaml`, and detaches the DRA.
 7. `dyec delete` tears down the cluster after export verification.
 
 ## Control Plane
@@ -43,9 +42,8 @@ The namespace is intentionally explicit:
 | `/fsx/data` | Reference data from the cluster-created reference DRA |
 | `/fsx/run_dir_mounts/<mount_id>` | Read-oriented run-folder input DRA |
 | `/fsx/analysis_results/...` | Workflow checkout and result workspace |
-| `/fsx/exports/<export_id>` | Temporary export staging namespace |
 
-Run-directory mounts are inputs. They do not define the export destination and are rejected as export sources. Export is a separate output DRA task from `/exports/<export_id>/...` to the requested S3 URI.
+Run-directory mounts are inputs. They do not define the export destination and are rejected as export sources. Export is a separate output DRA task from `/analysis_results/ubuntu/<analysis_dir>/` to the requested S3 URI ending in the same `analysis_results/ubuntu/<analysis_dir>/` suffix.
 
 ## Workflow Plane
 

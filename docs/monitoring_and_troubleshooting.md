@@ -112,15 +112,14 @@ Run-state files live under `/home/ubuntu/daylily-runs/<session>/`.
 
 ## 7. Export Failures
 
-Export reads from `/exports/<export_id>/...` and writes through an explicit temporary output DRA.
+Export reads from one completed analysis directory and writes through an explicit temporary output DRA.
 
 ```bash
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --export-id "$EXPORT_ID" \
-  --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" \
+  --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" \
   --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 

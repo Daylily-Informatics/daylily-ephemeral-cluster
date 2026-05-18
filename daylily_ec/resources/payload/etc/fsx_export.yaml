@@ -1,3 +1,18 @@
 fsx_export:
+  schema_version: 3
   status: success
-  s3_uri: s3://lsmc-dayoa-omics-analysis-us-west-2/FSxLustre20251015T090232Z/analysis_results/ubuntu/test_help
+  phase: complete
+  cluster_name: dra-test4
+  region: us-west-2
+  analysis_dir: illumina_run_qc
+  source_path: /analysis_results/ubuntu/illumina_run_qc/
+  headnode_path: /fsx/analysis_results/ubuntu/illumina_run_qc/
+  destination_s3_uri: s3://lsmc-dayoa-omics-analysis-us-west-2/analysis_results/ubuntu/illumina_run_qc/
+  fsx_file_system_id: fs-1234567890abcdef0
+  association_id: dra-1234567890abcdef0
+  task_id: task-1234567890abcdef0
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-dayoa-omics-analysis-us-west-2/daylily-monitor/fsx-export/illumina_run_qc/20260518T000000Z/export-report/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details: {}
