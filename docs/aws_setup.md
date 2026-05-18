@@ -77,7 +77,7 @@ Current FSx DRA strategy:
 
 - reference data DRA: `<reference-bucket>/data/` to `/fsx/data`
 - run input DRA: selected S3 run prefix to `/fsx/run_dir_mounts/<mount_id>`
-- export DRA: `/fsx/exports/<export_id>` to the requested S3 analysis destination
+- export DRA: one completed `/fsx/analysis_results/ubuntu/<analysis_dir>` to the requested S3 analysis destination
 
 The reference bucket is not automatically the export bucket. `dyec export` takes an explicit `--destination-s3-uri`.
 

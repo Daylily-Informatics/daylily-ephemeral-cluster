@@ -31,11 +31,11 @@ export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
 export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
 export ANALYSIS_BUCKET=s3://lsmc-dayoa-analysis-results-us-west-2
+export ANALYSIS_DIR=dayoa
 export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
 export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
-export EXPORT_DIR="$PWD/tmp-export/$CLUSTER_NAME"
-export EXPORT_ID="${CLUSTER_NAME}-results"
-export EXPORT_S3_URI="$ANALYSIS_BUCKET/$EXPORT_ID/"
+export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_DIR"
+export EXPORT_S3_URI="$ANALYSIS_BUCKET/analysis_results/ubuntu/$ANALYSIS_DIR/"
 ```
 
 Sanity checks:
@@ -110,7 +110,7 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination dayoa \
+  --destination "$ANALYSIS_DIR" \
   --git-tag 1.0.7
 ```
 
@@ -167,24 +167,16 @@ dyec workflow logs \
   --lines 50
 ```
 
-## 8. Export Selected Results
+## 8. Export Completed Analysis Directory
 
-Copy only selected outputs into the export namespace on the headnode:
-
-```bash
-mkdir -p /fsx/exports/$EXPORT_ID/analysis_results/ubuntu/
-cp -a /fsx/analysis_results/ubuntu/<analysis-run-id>/ /fsx/exports/$EXPORT_ID/analysis_results/ubuntu/
-```
-
-Then export from the operator machine:
+Export directly from the completed analysis directory on FSx:
 
 ```bash
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --export-id "$EXPORT_ID" \
-  --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" \
+  --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" \
   --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 
@@ -195,8 +187,9 @@ Expected receipt values:
 
 - `status: success`
 - `detached: true`
-- `source_path` under `/exports/<export_id>/`
-- `destination_s3_uri` matching the requested analysis bucket/prefix
+- `delete_data_in_file_system: false`
+- `source_path: /analysis_results/ubuntu/<analysis_dir>/`
+- `destination_s3_uri` matching `s3://bucket/analysis_results/ubuntu/<analysis_dir>/`
 
 ## 9. Delete
 

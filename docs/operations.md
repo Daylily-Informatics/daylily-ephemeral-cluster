@@ -176,14 +176,7 @@ squeue
 
 ## Export Results
 
-Export is a separate output DRA flow. It does not write back through the reference DRA or run-input DRA.
-
-On the headnode, copy selected outputs into `/fsx/exports/<export_id>/...`:
-
-```bash
-mkdir -p /fsx/exports/$EXPORT_ID/analysis_results/ubuntu/
-cp -a /fsx/analysis_results/ubuntu/<analysis-run-id>/ /fsx/exports/$EXPORT_ID/analysis_results/ubuntu/
-```
+Export is a separate output DRA flow. It does not write back through the reference DRA or run-input DRA. It attaches a temporary DRA directly to one completed analysis directory.
 
 From the operator machine:
 
@@ -192,8 +185,7 @@ dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --export-id "$EXPORT_ID" \
-  --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" \
+  --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" \
   --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 ```
@@ -204,7 +196,7 @@ Verify:
 cat "$EXPORT_DIR/fsx_export.yaml"
 ```
 
-Success means `status: success`, `detached: true`, and a completed FSx export task id.
+Success means `status: success`, `task_lifecycle: SUCCEEDED`, `detached: true`, `delete_data_in_file_system: false`, and a completed FSx export task id. The destination must be an explicit S3 URI ending in `analysis_results/ubuntu/<analysis_dir>/`.
 
 ## Delete
 

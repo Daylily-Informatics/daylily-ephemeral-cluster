@@ -131,14 +131,9 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Directory for export artifacts (default: tmp-e2e-export/<cluster>)",
     )
     parser.add_argument(
-        "--export-id",
-        default=None,
-        help="Explicit export DRA id mounted under /fsx/exports/<id>/.",
-    )
-    parser.add_argument(
         "--export-source-path",
         default=None,
-        help="Explicit FSx API path under /exports/<export-id>/ to export.",
+        help="Completed analysis directory under /fsx/analysis_results/ubuntu/<analysis-dir>/.",
     )
     parser.add_argument(
         "--export-destination-s3-uri",
@@ -660,6 +655,11 @@ def _validate_export_artifact(
     expected_source_path: str,
     expected_destination_s3_uri: str,
 ) -> dict[str, object]:
+    from daylily_ec.workflow.export_data import (
+        normalize_export_source_path,
+        validate_export_destination_s3_uri,
+    )
+
     if not export_yaml.is_file():
         raise CommandError(f"Export did not write expected artifact: {export_yaml}")
     payload = yaml.safe_load(export_yaml.read_text(encoding="utf-8")) or {}
@@ -667,16 +667,21 @@ def _validate_export_artifact(
     status = str(export_payload.get("status") or "")
     if status != "success":
         raise CommandError(f"Export status is not success in {export_yaml}: {status or 'missing'}")
+    normalized_expected_source = normalize_export_source_path(expected_source_path)
+    normalized_expected_destination = validate_export_destination_s3_uri(
+        expected_destination_s3_uri,
+        source_path=normalized_expected_source,
+    )
     destination = str(export_payload.get("destination_s3_uri") or "")
-    if destination.rstrip("/") != expected_destination_s3_uri.rstrip("/"):
+    if destination != normalized_expected_destination:
         raise CommandError(
             f"Export destination {destination!r} does not match "
-            f"{expected_destination_s3_uri!r}."
+            f"{normalized_expected_destination!r}."
         )
     source = str(export_payload.get("source_path") or "")
-    if source.rstrip("/") != expected_source_path.rstrip("/"):
+    if source != normalized_expected_source:
         raise CommandError(
-            f"Export source {source!r} does not match {expected_source_path!r}."
+            f"Export source {source!r} does not match {normalized_expected_source!r}."
         )
     if not export_payload.get("association_id") or not export_payload.get("task_id"):
         raise CommandError(
@@ -947,9 +952,9 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.skip_export:
         _record_step(summary, output_json, "export-results", "skipped", reason="--skip-export")
     else:
-        if not args.export_id or not args.export_source_path or not args.export_destination_s3_uri:
+        if not args.export_source_path or not args.export_destination_s3_uri:
             raise CommandError(
-                "--export-id, --export-source-path, and --export-destination-s3-uri "
+                "--export-source-path and --export-destination-s3-uri "
                 "are required unless --skip-export is set."
             )
         export_output_dir.mkdir(parents=True, exist_ok=True)
@@ -960,8 +965,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             args.cluster_name,
             "--region",
             args.region,
-            "--export-id",
-            args.export_id,
             "--source-path",
             args.export_source_path,
             "--destination-s3-uri",

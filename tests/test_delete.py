@@ -98,8 +98,8 @@ class TestDeleteHelpers:
                 },
                 {
                     "AssociationId": "dra-old",
-                    "FileSystemPath": "/exports/old/",
-                    "DataRepositoryPath": "s3://bucket/old/",
+                    "FileSystemPath": "/analysis_results/ubuntu/old/",
+                    "DataRepositoryPath": "s3://bucket/analysis_results/ubuntu/old/",
                     "Lifecycle": "DELETED",
                 },
             ]
@@ -110,7 +110,7 @@ class TestDeleteHelpers:
                     "TaskId": "task-1",
                     "Type": "EXPORT_TO_REPOSITORY",
                     "Lifecycle": "EXECUTING",
-                    "Paths": ["/exports/export-1/results/"],
+                    "Paths": ["/analysis_results/ubuntu/export_1/"],
                 },
                 {
                     "TaskId": "task-2",
@@ -248,7 +248,7 @@ class TestDeleteWorkflow:
             "export_tasks": [
                 {
                     "task_id": "task-1",
-                    "paths": ["/exports/export-1/results/"],
+                    "paths": ["/analysis_results/ubuntu/export_1/"],
                     "lifecycle": "EXECUTING",
                 }
             ],

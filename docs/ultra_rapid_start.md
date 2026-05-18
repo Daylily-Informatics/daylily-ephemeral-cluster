@@ -12,11 +12,11 @@ export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
 export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
 export ANALYSIS_BUCKET=s3://lsmc-dayoa-analysis-results-us-west-2
+export ANALYSIS_DIR=dayoa
 export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
 export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
-export EXPORT_DIR="$PWD/tmp-export/$CLUSTER_NAME"
-export EXPORT_ID="${CLUSTER_NAME}-results"
-export EXPORT_S3_URI="$ANALYSIS_BUCKET/$EXPORT_ID/"
+export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_DIR"
+export EXPORT_S3_URI="$ANALYSIS_BUCKET/analysis_results/ubuntu/$ANALYSIS_DIR/"
 
 dyec preflight --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
 dyec create --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
@@ -32,16 +32,14 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination dayoa \
+  --destination "$ANALYSIS_DIR" \
   --git-tag 1.0.7
 
-# Copy selected outputs into /fsx/exports/$EXPORT_ID/... on the headnode first.
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --export-id "$EXPORT_ID" \
-  --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" \
+  --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" \
   --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 
