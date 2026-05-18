@@ -543,6 +543,13 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'exec > >(tee -a "${local_log_fn}" "${fsx_log_fn}") 2>&1' in script
     assert "apptainer_1.4.5_amd64.deb" in script
     assert "70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05" in script
+    assert "reference_wait_timeout_seconds=1800" in script
+    assert "wait_for_reference_data" in script
+    assert "Required /fsx/data reference entries are visible" in script
+    assert "required /fsx/data reference entries did not appear" in script
+    assert "make_reference_data_read_only" in script
+    assert "chmod a-w /fsx/data" in script
+    assert 'stat -c "Reference data permissions: %A %n" /fsx/data' in script
     assert "cached Apptainer deb not found" in script
     assert 'apt-get install -y "${apptainer_deb}"' in script
     assert 'ln -sfn "$(command -v apptainer)" /usr/local/bin/singularity' in script
