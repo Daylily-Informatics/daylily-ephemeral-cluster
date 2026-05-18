@@ -118,16 +118,13 @@ Important options:
 
 ## Run Mounts
 
-Run mounts are FSx Data Repository Associations from selected S3 run prefixes to `/run_dir_mounts/<mount_id>/`, visible on the headnode as `/fsx/run_dir_mounts/<mount_id>/`.
+Run mounts are FSx Data Repository Associations from selected S3 run prefixes to `/run_dir_mounts/<mount_id>/`, visible on the headnode as `/fsx/run_dir_mounts/<mount_id>/`. The mount id defaults to the final folder in the S3 URI.
 
 ```bash
-dyec --json mounts create \
+dyec --json mounts create "s3://sequencer-run-bucket/runs/RUN123/" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --s3-uri "s3://sequencer-run-bucket/runs/RUN123/" \
-  --mount-id RUN123 \
-  --run-id RUN123 \
   --platform ILMN \
   --read-only \
   --batch-import-metadata-on-create \
@@ -181,7 +178,7 @@ dyec workflow launch \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
   --destination dayoa \
-  --git-tag 1.0.7
+  --git-tag 1.0.9
 ```
 
 Run-context launch:
@@ -193,7 +190,7 @@ dyec workflow launch \
   --cluster "$CLUSTER_NAME" \
   --run-context-file ./runs.tsv \
   --destination run-qc \
-  --git-tag 1.0.7 \
+  --git-tag 1.0.9 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
 
@@ -212,7 +209,7 @@ dyec repositories commands --config config/daylily_available_repositories.yaml
 dyec repositories commands --command-id illumina_run_qc
 ```
 
-The catalog is version 2. DayOA repository and command pins are `1.0.7`.
+The catalog is version 2. DayOA repository and command pins are `1.0.9`.
 
 Command classes:
 

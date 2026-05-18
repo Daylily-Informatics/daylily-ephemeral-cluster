@@ -30,7 +30,7 @@ sequenceDiagram
   DyEC->>PC: render config and create cluster
   PC->>FSx: mount /fsx
   Ref-->>FSx: reference-data DRA /data/
-  Op->>DyEC: mounts create --s3-uri run prefix
+  Op->>DyEC: mounts create s3://.../RUN_ID/
   Run-->>FSx: run DRA /run_dir_mounts/<mount_id>/
   Op->>DyEC: workflow launch
   DyEC->>DayOA: start tmux workflow
@@ -74,11 +74,11 @@ flowchart LR
 
 ## Pipeline Catalog Flow
 
-`config/daylily_available_repositories.yaml` defines repositories and launch profiles. The DayOA repository and every DayOA command are pinned to `1.0.7`.
+`config/daylily_available_repositories.yaml` defines repositories and launch profiles. The DayOA repository and every DayOA command are pinned to `1.0.9`.
 
 ```mermaid
 flowchart TB
-  Catalog["Repository catalog v2"] --> Repo["daylily-omics-analysis @ 1.0.7"]
+  Catalog["Repository catalog v2"] --> Repo["daylily-omics-analysis @ 1.0.9"]
   Repo --> Sample["sample_analysis"]
   Repo --> Run["run_analysis"]
 

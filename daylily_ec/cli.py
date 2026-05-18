@@ -2298,7 +2298,11 @@ def _create_mount_payload(
 
 
 def mounts_create(
-    source_s3_uri: str = typer.Option(..., "--s3-uri", help="S3 run-directory URI to mount."),
+    source_s3_uri: str = typer.Argument(
+        ...,
+        metavar="S3_URI",
+        help="S3 run-directory URI to mount; the final folder becomes the mount id.",
+    ),
     cluster: Optional[str] = typer.Option(
         None,
         "--cluster",
@@ -2379,7 +2383,11 @@ def mounts_create(
 
 
 def mount_rundir(
-    source_s3_uri: str = typer.Option(..., "--s3-uri", help="S3 run-directory URI to mount."),
+    source_s3_uri: str = typer.Argument(
+        ...,
+        metavar="S3_URI",
+        help="S3 run-directory URI to mount; the final folder becomes the mount id.",
+    ),
     cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
     region: str = typer.Option(..., "--region"),

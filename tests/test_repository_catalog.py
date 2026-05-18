@@ -30,12 +30,50 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     command = catalog.get_command("illumina_snv_alignstats")
 
     assert catalog.command_catalog_version == 2
+    manifest_contract = catalog.input_contracts["sample_manifest"]
+    assert manifest_contract.source_table is not None
+    assert manifest_contract.source_table.path == "analysis_samples.tsv"
+    assert manifest_contract.source_table.required_columns == [
+        "RUN_ID",
+        "SAMPLE_ID",
+        "EXPERIMENTID",
+        "SAMPLE_TYPE",
+        "LIB_PREP",
+        "SEQ_VENDOR",
+        "SEQ_PLATFORM",
+        "LANE",
+        "SEQBC_ID",
+    ]
+    assert manifest_contract.generated_tables["samples_tsv"].path == "config/samples.tsv"
+    assert manifest_contract.generated_tables["samples_tsv"].required_columns == [
+        "SAMPLEID",
+        "SAMPLESOURCE",
+        "SAMPLECLASS",
+        "BIOLOGICAL_SEX",
+        "CONCORDANCE_CONTROL_PATH",
+        "IS_POSITIVE_CONTROL",
+        "IS_NEGATIVE_CONTROL",
+        "SAMPLE_TYPE",
+        "TUM_NRM_SAMPLEID_MATCH",
+        "EXTERNAL_SAMPLE_ID",
+        "N_X",
+        "N_Y",
+        "TRUTH_DATA_DIR",
+    ]
+    assert manifest_contract.generated_tables["units_tsv"].path == "config/units.tsv"
+    assert "RUNID" in manifest_contract.generated_tables["units_tsv"].required_columns
+    assert "SAMPLEID" in manifest_contract.generated_tables["units_tsv"].required_columns
+    assert "ONT_CRAM" in manifest_contract.generated_tables["units_tsv"].required_columns
     assert command.repository == "daylily-omics-analysis"
     assert command.command_class == "sample_analysis"
     assert command.input_contract == "sample_manifest"
     assert command.requires_staging is True
     assert command.requires_run_mount is False
     assert command.runtime_parameters == {}
+    assert command.input_requirements.required_source_columns == [
+        "ILMN_R1_FQ",
+        "ILMN_R2_FQ",
+    ]
     assert command.datasource == "Illumina"
     assert command.targets == [
         "produce_sent_align",
@@ -48,7 +86,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "1.0.8"
+    assert command.git_tag == "1.0.9"
     assert command.compatible_platforms == ["ILMN"]
     assert command.compatible_data_modes == ["ilmn_solo"]
     assert "bin/day_run" in command.dy_command
@@ -57,7 +95,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     launch_argv = command.launch_argv(destination="run-1", cluster="cluster-a")
     assert "--dy-command" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "1.0.8" in launch_argv
+    assert "1.0.9" in launch_argv
 
 
 def test_repository_catalog_commands_have_run_metadata() -> None:
@@ -84,15 +122,38 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "1.0.8"
+        assert command.git_tag == "1.0.9"
+        assert (
+            command.input_requirements.required_source_columns
+            or command.input_requirements.accepted_source_column_sets
+        )
 
     complete_genomics = catalog.get_command("complete_genomics_mgi_snv_concordance")
     assert complete_genomics.compatible_platforms == ["CG/MGI"]
     assert complete_genomics.compatible_data_modes == ["complete_genomics_solo"]
+    assert complete_genomics.aligners == ["sentcg"]
+    assert complete_genomics.dedupers == ["dmd"]
     assert "produce_cgt7p_snv_vcf" in complete_genomics.dy_command
     assert "produce_sentcg_align" in complete_genomics.dy_command
-    assert "produce_smd_dedup_cram" in complete_genomics.dy_command
+    assert "produce_dmd_dedup_cram" in complete_genomics.dy_command
+    assert "produce_smd_dedup_cram" not in complete_genomics.dy_command
     assert "aligners=['sentcg']" not in complete_genomics.dy_command
+
+    hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_snv")
+    assert hybrid_ilmn_ont.aligners == ["sent"]
+    assert hybrid_ilmn_ont.dedupers == ["dmd"]
+    assert "sentdhiom" in hybrid_ilmn_ont.snv_callers
+    assert "dedupers=[" in hybrid_ilmn_ont.dy_command
+
+    hybrid_ultima_ont = catalog.get_command("hybrid_ultima_ont_snv")
+    assert hybrid_ultima_ont.aligners == ["ug"]
+    assert hybrid_ultima_ont.dedupers == ["na"]
+
+    for command in catalog.commands():
+        if command.command_class != "sample_analysis":
+            continue
+        assert not (set(command.dedupers) & {"dppl", "dppl_sent", "smd"})
+        assert not (set(command.aligners) & {"sentdhiom", "sentdhuom"})
 
     vep_multiqc = catalog.get_command("illumina_snv_alignstats_relatedness_vep_multiqc")
     assert vep_multiqc.targets == [
@@ -113,17 +174,37 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_sentdont_snv_vcf" in ont.dy_command
     assert "produce_sentmm2ont_align" not in ont.dy_command
     assert "produce_na_dedup_cram" not in ont.dy_command
+    assert ["ONT_CRAM", "ONT_CRAM_ALIGNER", "ONT_CRAM_SNV_CALLER"] in (
+        ont.input_requirements.accepted_source_column_sets
+    )
 
 
 def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     catalog = load_repository_catalog(CATALOG_PATH)
 
     command = catalog.get_command("illumina_run_qc")
+    run_context_contract = catalog.input_contracts["run_context"]
+    assert run_context_contract.source_table is not None
+    assert run_context_contract.source_table.path == "config/runs.tsv"
+    assert run_context_contract.source_table.required_columns == [
+        "RUNID",
+        "PLATFORM",
+        "RUN_DIR",
+        "SOURCE_S3_URI",
+        "MOUNT_ID",
+        "SAMPLE_SHEET",
+        "BASECALLING_STATE",
+        "RUN_STATUS",
+        "OUTPUT_ROOT",
+        "REGION",
+        "PROFILE",
+    ]
     assert command.command_class == "run_analysis"
     assert command.input_contract == "run_context"
     assert command.requires_staging is False
     assert command.requires_run_mount is True
     assert command.runtime_parameters == {"run_context_file": "config/runs.tsv"}
+    assert command.input_requirements.required_run_context_values == {"PLATFORM": "ILMN"}
     assert command.targets == ["produce_illumina_run_qc"]
     assert command.compatible_platforms == ["ILMN"]
 
@@ -180,6 +261,7 @@ def test_repository_catalog_v1_migrates_to_sample_analysis(tmp_path: Path) -> No
     assert command.requires_staging is True
     assert command.requires_run_mount is False
     assert command.runtime_parameters == {}
+    assert command.input_requirements.required_source_columns == []
 
 
 def test_repository_catalog_v2_requires_command_class(tmp_path: Path) -> None:
@@ -252,6 +334,23 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
+    assert payload["input_contracts"]["sample_manifest"]["source_table"][
+        "required_columns"
+    ] == [
+        "RUN_ID",
+        "SAMPLE_ID",
+        "EXPERIMENTID",
+        "SAMPLE_TYPE",
+        "LIB_PREP",
+        "SEQ_VENDOR",
+        "SEQ_PLATFORM",
+        "LANE",
+        "SEQBC_ID",
+    ]
     assert [item["command_id"] for item in payload["commands"]] == ["illumina_snv_alignstats"]
     assert payload["commands"][0]["compatible_platforms"] == ["ILMN"]
     assert payload["commands"][0]["command_class"] == "sample_analysis"
+    assert payload["commands"][0]["input_requirements"]["required_source_columns"] == [
+        "ILMN_R1_FQ",
+        "ILMN_R2_FQ",
+    ]

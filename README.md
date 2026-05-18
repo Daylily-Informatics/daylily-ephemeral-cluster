@@ -68,16 +68,13 @@ dyec workflow launch \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
   --destination "$ANALYSIS_DIR" \
-  --git-tag 1.0.7
+  --git-tag 1.0.9
 
 # For run-folder work, attach only the S3 prefix you need.
-dyec --json mounts create \
+dyec --json mounts create "s3://sequencer-run-bucket/runs/RUN123/" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --s3-uri "s3://sequencer-run-bucket/runs/RUN123/" \
-  --mount-id RUN123 \
-  --run-id RUN123 \
   --platform ILMN \
   --read-only \
   --wait
@@ -94,7 +91,7 @@ dyec workflow launch \
   --cluster "$CLUSTER_NAME" \
   --run-context-file ./runs.tsv \
   --destination "<run-analysis-id>" \
-  --git-tag 1.0.7 \
+  --git-tag 1.0.9 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 
 dyec export \
@@ -143,7 +140,7 @@ Key rules:
 
 `config/daylily_available_repositories.yaml` is the source of truth for repositories and blessed launch profiles. The packaged copy under `daylily_ec/resources/payload/config/` must match it.
 
-The current DayOA pin is `1.0.7` for the repository default and every DayOA command. Catalog v2 separates:
+The current DayOA pin is `1.0.9` for the repository default and every DayOA command. Catalog v2 separates:
 
 - `sample_analysis`: uses `analysis_samples.tsv`, stages inputs, and writes `samples.tsv` / `units.tsv`.
 - `run_analysis`: uses `runs.tsv`, requires a run DRA, and launches run-folder workflows such as Illumina run QC and BCL Convert.

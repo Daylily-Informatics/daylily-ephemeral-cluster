@@ -48,6 +48,96 @@ class AnalysisCommandFeature(BaseModel):
         return cleaned
 
 
+class TableSchema(BaseModel):
+    """Tabular file contract exposed by the repository catalog."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    path: str
+    required_columns: List[str]
+
+    @field_validator("path")
+    @classmethod
+    def _validate_path(cls, value: str) -> str:
+        return _clean_id(value, field_name="path")
+
+    @field_validator("required_columns")
+    @classmethod
+    def _validate_required_columns(cls, values: List[str]) -> List[str]:
+        cleaned = [str(value).strip() for value in values]
+        if any(not value for value in cleaned):
+            raise ValueError("required_columns values must not be empty")
+        if len(set(cleaned)) != len(cleaned):
+            raise ValueError("required_columns values must be unique")
+        return cleaned
+
+
+class InputContractDefinition(BaseModel):
+    """Input and generated-table contract for a catalog command class."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    description: str = ""
+    source_table: Optional[TableSchema] = None
+    generated_tables: Dict[str, TableSchema] = Field(default_factory=dict)
+
+    @field_validator("generated_tables")
+    @classmethod
+    def _validate_generated_tables(
+        cls, values: Dict[str, TableSchema]
+    ) -> Dict[str, TableSchema]:
+        for key in values:
+            _clean_id(key, field_name="generated_tables key")
+        return values
+
+
+class CommandInputRequirements(BaseModel):
+    """Command-specific input requirements beyond the shared contract."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    required_source_columns: List[str] = Field(default_factory=list)
+    accepted_source_column_sets: List[List[str]] = Field(default_factory=list)
+    required_run_context_values: Dict[str, str] = Field(default_factory=dict)
+
+    @field_validator("required_source_columns")
+    @classmethod
+    def _validate_required_source_columns(cls, values: List[str]) -> List[str]:
+        cleaned = [str(value).strip() for value in values]
+        if any(not value for value in cleaned):
+            raise ValueError("required_source_columns values must not be empty")
+        if len(set(cleaned)) != len(cleaned):
+            raise ValueError("required_source_columns values must be unique")
+        return cleaned
+
+    @field_validator("accepted_source_column_sets")
+    @classmethod
+    def _validate_accepted_source_column_sets(
+        cls, values: List[List[str]]
+    ) -> List[List[str]]:
+        cleaned_sets: List[List[str]] = []
+        for column_set in values:
+            cleaned = [str(value).strip() for value in column_set]
+            if any(not value for value in cleaned):
+                raise ValueError("accepted_source_column_sets values must not be empty")
+            if len(set(cleaned)) != len(cleaned):
+                raise ValueError("accepted_source_column_sets values must be unique")
+            cleaned_sets.append(cleaned)
+        return cleaned_sets
+
+    @field_validator("required_run_context_values")
+    @classmethod
+    def _validate_required_run_context_values(
+        cls, values: Dict[str, str]
+    ) -> Dict[str, str]:
+        return {
+            _clean_id(key, field_name="required_run_context_values key"): _clean_id(
+                value, field_name="required_run_context_values value"
+            )
+            for key, value in values.items()
+        }
+
+
 class AnalysisCommand(BaseModel):
     """Structured daylily-ec workflow launch profile."""
 
@@ -64,6 +154,9 @@ class AnalysisCommand(BaseModel):
     requires_staging: bool
     requires_run_mount: bool
     runtime_parameters: Dict[str, Any] = Field(default_factory=dict)
+    input_requirements: CommandInputRequirements = Field(
+        default_factory=CommandInputRequirements
+    )
     targets: List[str]
     genome: str
     jobs: int = Field(gt=0)
@@ -266,6 +359,7 @@ class RepositoryCatalog(BaseModel):
 
     command_catalog_version: int
     default_repository: str
+    input_contracts: Dict[str, InputContractDefinition] = Field(default_factory=dict)
     repositories: Dict[str, RepositoryDefinition]
 
     @model_validator(mode="after")
@@ -278,6 +372,12 @@ class RepositoryCatalog(BaseModel):
             )
         if self.default_repository not in self.repositories:
             raise ValueError(f"default_repository {self.default_repository!r} is not configured")
+        unknown_contracts = set(self.input_contracts) - INPUT_CONTRACTS
+        if unknown_contracts:
+            raise ValueError(
+                "input_contracts contains unknown contract id(s): "
+                + ", ".join(sorted(unknown_contracts))
+            )
         seen: set[str] = set()
         for repo_key, repo in self.repositories.items():
             for command in repo.analysis_commands:
@@ -285,6 +385,10 @@ class RepositoryCatalog(BaseModel):
                     raise ValueError(f"Duplicate analysis command id: {command.command_id}")
                 seen.add(command.command_id)
                 command.repository = repo_key
+                if command.input_contract != "none" and command.input_contract not in self.input_contracts:
+                    raise ValueError(
+                        f"Missing input_contracts definition for {command.input_contract!r}"
+                    )
         return self
 
     def commands(self) -> List[AnalysisCommand]:
@@ -304,6 +408,10 @@ class RepositoryCatalog(BaseModel):
         return {
             "command_catalog_version": self.command_catalog_version,
             "default_repository": self.default_repository,
+            "input_contracts": {
+                key: contract.model_dump(mode="json")
+                for key, contract in self.input_contracts.items()
+            },
             "repositories": {
                 repo_key: repo.model_dump(mode="json")
                 for repo_key, repo in self.repositories.items()
@@ -320,6 +428,14 @@ def _migrate_v1_analysis_commands(raw: Dict[str, Any]) -> Dict[str, Any]:
     if raw.get("command_catalog_version") != 1:
         return raw
     migrated = dict(raw)
+    migrated.setdefault(
+        "input_contracts",
+        {
+            "sample_manifest": {
+                "description": "Migrated v1 sample manifest contract.",
+            }
+        },
+    )
     repositories = migrated.get("repositories")
     if not isinstance(repositories, dict):
         return migrated

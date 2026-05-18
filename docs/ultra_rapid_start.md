@@ -33,7 +33,7 @@ dyec workflow launch \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
   --destination "$ANALYSIS_DIR" \
-  --git-tag 1.0.7
+  --git-tag 1.0.9
 
 dyec export \
   --profile "$AWS_PROFILE" \

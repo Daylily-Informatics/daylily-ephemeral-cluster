@@ -166,12 +166,10 @@ Current behavior:
 Canonical command:
 
 ```bash
-daylily-ec mounts create \
+daylily-ec mounts create s3://sequencer-run-bucket/runs/250517_A00123_0456_AHFG7MDSX7/ \
   --cluster lsmc-prod-wgs-01 \
   --region us-east-1 \
   --profile lsmc-prod \
-  --s3-uri s3://sequencer-run-bucket/runs/250517_A00123_0456_AHFG7MDSX7/ \
-  --mount-id 250517_A00123_0456_AHFG7MDSX7 \
   --platform ILMN \
   --read-only \
   --batch-import-metadata-on-create \
@@ -181,12 +179,10 @@ daylily-ec mounts create \
 Alias command for the requested mental model:
 
 ```bash
-daylily-ec mount rundir \
+daylily-ec mount rundir s3://sequencer-run-bucket/runs/250517_A00123_0456_AHFG7MDSX7/ \
   --cluster lsmc-prod-wgs-01 \
   --region us-east-1 \
   --profile lsmc-prod \
-  --s3-uri s3://sequencer-run-bucket/runs/250517_A00123_0456_AHFG7MDSX7/ \
-  --run-id 250517_A00123_0456_AHFG7MDSX7 \
   --platform ILMN \
   --wait
 ```
@@ -390,8 +386,8 @@ Arguments/options:
 --fsx-file-system-id              optional explicit override
 --region                          required
 --profile                         optional, follows existing DayEC behavior
---s3-uri                          required, bucket or prefix
---mount-id                        optional, derived from run_id or S3 basename
+S3_URI                            required positional bucket or prefix; final folder becomes mount id
+--mount-id                        optional override for the S3 basename
 --run-id                          optional metadata
 --platform                        optional enum: ILMN, ONT, ULTIMA, PACBIO, OTHER
 --file-system-path                optional override; default /run_dir_mounts/<mount_id>/

@@ -427,8 +427,41 @@ def test_mounts_create_cli_emits_stable_json(monkeypatch) -> None:
         read_only=True,
     )
 
-    monkeypatch.setattr(cli_module, "_create_mount_payload", lambda **_kwargs: record)
+    captured: dict[str, object] = {}
 
+    def fake_create_mount_payload(**kwargs: object) -> run_mounts.RunMountRecord:
+        captured.update(kwargs)
+        return record
+
+    monkeypatch.setattr(cli_module, "_create_mount_payload", fake_create_mount_payload)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "mounts",
+            "create",
+            "s3://bucket/RUN123/",
+            "--cluster",
+            "cluster-a",
+            "--region",
+            "us-west-2",
+            "--profile",
+            "lsmc",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout
+    payload = json.loads(result.stdout)
+    assert payload["mount_id"] == "RUN123"
+    assert payload["headnode_path"] == "/fsx/run_dir_mounts/RUN123/"
+    assert payload["read_only"] is True
+    assert captured["source_s3_uri"] == "s3://bucket/RUN123/"
+    assert captured["mount_id"] is None
+    assert captured["run_id"] is None
+
+
+def test_mounts_create_cli_rejects_s3_uri_option() -> None:
     result = runner.invoke(
         app,
         [
@@ -446,11 +479,8 @@ def test_mounts_create_cli_emits_stable_json(monkeypatch) -> None:
         ],
     )
 
-    assert result.exit_code == 0, result.stdout
-    payload = json.loads(result.stdout)
-    assert payload["mount_id"] == "RUN123"
-    assert payload["headnode_path"] == "/fsx/run_dir_mounts/RUN123/"
-    assert payload["read_only"] is True
+    assert result.exit_code != 0
+    assert "No such option: --s3-uri" in result.stderr
 
 
 def test_mounts_verify_cli_accepts_association_id_json(monkeypatch) -> None:

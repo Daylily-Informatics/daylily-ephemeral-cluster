@@ -1,13 +1,105 @@
 ---
 command_catalog_version: 2
 default_repository: daylily-omics-analysis
+input_contracts:
+  sample_manifest:
+    description: "DayEC stages analysis_samples.tsv into DayOA config/samples.tsv and config/units.tsv."
+    source_table:
+      path: analysis_samples.tsv
+      required_columns:
+        - RUN_ID
+        - SAMPLE_ID
+        - EXPERIMENTID
+        - SAMPLE_TYPE
+        - LIB_PREP
+        - SEQ_VENDOR
+        - SEQ_PLATFORM
+        - LANE
+        - SEQBC_ID
+    generated_tables:
+      samples_tsv:
+        path: config/samples.tsv
+        required_columns:
+          - SAMPLEID
+          - SAMPLESOURCE
+          - SAMPLECLASS
+          - BIOLOGICAL_SEX
+          - CONCORDANCE_CONTROL_PATH
+          - IS_POSITIVE_CONTROL
+          - IS_NEGATIVE_CONTROL
+          - SAMPLE_TYPE
+          - TUM_NRM_SAMPLEID_MATCH
+          - EXTERNAL_SAMPLE_ID
+          - N_X
+          - N_Y
+          - TRUTH_DATA_DIR
+      units_tsv:
+        path: config/units.tsv
+        required_columns:
+          - RUNID
+          - SAMPLEID
+          - EXPERIMENTID
+          - LANEID
+          - BARCODEID
+          - LIBPREP
+          - SEQ_VENDOR
+          - SEQ_PLATFORM
+          - ILMN_R1_PATH
+          - ILMN_R2_PATH
+          - PACBIO_R1_PATH
+          - PACBIO_R2_PATH
+          - ONT_R1_PATH
+          - ONT_R2_PATH
+          - UG_R1_PATH
+          - UG_R2_PATH
+          - SUBSAMPLE_PCT
+          - ILMN_TRIM_READ_LENGTH
+          - SAMPLEUSE
+          - BWA_KMER
+          - DEEP_MODEL
+          - ULTIMA_CRAM
+          - ULTIMA_CRAM_ALIGNER
+          - ULTIMA_CRAM_SNV_CALLER
+          - ONT_CRAM
+          - ONT_CRAM_ALIGNER
+          - ONT_CRAM_SNV_CALLER
+          - PB_BAM
+          - PB_BAM_ALIGNER
+          - PB_BAM_SNV_CALLER
+          - ROCHE_BAM
+          - ROCHE_BAM_ALIGNER
+          - ROCHE_BAM_SNV_CALLER
+          - ROCHE_DOWNSAMPLE_RATIO
+          - LONGREADTRIM_READ_LENGTH
+          - LONGREADTRIM_MODE
+          - ULTIMA_SUBSAMPLE_PCT
+          - ONT_SUBSAMPLE_PCT
+          - ONT_BAM
+          - ONT_BAM_ALIGNER
+          - ONT_BAM_SNV_CALLER
+  run_context:
+    description: "DayOA run-analysis commands consume config/runs.tsv rows for mounted or S3 run directories."
+    source_table:
+      path: config/runs.tsv
+      required_columns:
+        - RUNID
+        - PLATFORM
+        - RUN_DIR
+        - SOURCE_S3_URI
+        - MOUNT_ID
+        - SAMPLE_SHEET
+        - BASECALLING_STATE
+        - RUN_STATUS
+        - OUTPUT_ROOT
+        - REGION
+        - PROFILE
 repositories:
   daylily-omics-analysis:
     display_name: "Daylily Omics Analysis"
     description: "Primary whole genome and multiomics workflows."
     https_url: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
     ssh_url: git@github.com:Daylily-Informatics/daylily-omics-analysis.git
-    default_ref: 1.0.8
+    default_ref: 1.0.9
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: illumina_snv_alignstats
@@ -20,6 +112,10 @@ repositories:
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+            - ILMN_R1_FQ
+            - ILMN_R2_FQ
         targets:
           - produce_sent_align
           - produce_dmd_dedup_cram
@@ -41,7 +137,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
       - command_id: illumina_snv_alignstats_relatedness_vep_multiqc
         display_name: "Illumina SNV + Alignstats + Relatedness + VEP MultiQC"
@@ -53,6 +149,10 @@ repositories:
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+            - ILMN_R1_FQ
+            - ILMN_R2_FQ
         targets:
           - produce_sent_align
           - produce_dmd_dedup_cram
@@ -77,7 +177,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
       - command_id: ultima_snv_alignstats
         display_name: "Ultima SNV + Alignstats"
@@ -89,6 +189,10 @@ repositories:
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+            - [UG_R1_FQ, UG_R2_FQ]
+            - [ULTIMA_CRAM, ULTIMA_CRAM_ALIGNER, ULTIMA_CRAM_SNV_CALLER]
         targets:
           - produce_alignstats
           - produce_na_dedup_cram
@@ -109,7 +213,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - ultima_solo
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
       - command_id: ont_snv_alignstats
         display_name: "ONT SNV + Alignstats"
@@ -121,6 +225,12 @@ repositories:
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+            - [ONT_R1_FQ, ONT_R2_FQ]
+            - [ONT_FASTQ_PREFIX]
+            - [ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
+            - [ONT_BAM, ONT_BAM_ALIGNER, ONT_BAM_SNV_CALLER]
         targets:
           - produce_alignstats
           - produce_sentdont_snv_vcf
@@ -140,7 +250,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - ont_solo
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
       - command_id: pacbio_snv_alignstats
         display_name: "PacBio SNV + Alignstats"
@@ -152,6 +262,10 @@ repositories:
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+            - [PACBIO_R1_FQ, PACBIO_R2_FQ]
+            - [PB_BAM, PB_BAM_ALIGNER, PB_BAM_SNV_CALLER]
         targets:
           - produce_sentmm2_align
           - produce_na_dedup_cram
@@ -173,7 +287,7 @@ repositories:
           - PACBIO
         compatible_data_modes:
           - pacbio_solo
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
       - command_id: roche_snv_alignstats
         display_name: "Roche SNV + Alignstats"
@@ -185,6 +299,11 @@ repositories:
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+            - ROCHE_BAM
+            - ROCHE_BAM_ALIGNER
+            - ROCHE_BAM_SNV_CALLER
         targets:
           - produce_alignstats
           - produce_na_dedup_cram
@@ -204,7 +323,7 @@ repositories:
           - ROCHE
         compatible_data_modes:
           - roche_solo
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
       - command_id: hybrid_ilmn_ont_snv
         display_name: "Hybrid ILMN+ONT SNV/SV"
@@ -216,6 +335,13 @@ repositories:
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+            - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_CRAM
+            - ONT_CRAM_ALIGNER
+            - ONT_CRAM_SNV_CALLER
         targets:
           - produce_snv_concordances
           - produce_sentdhiom_sv
@@ -223,21 +349,21 @@ repositories:
         genome: hg38_broad
         jobs: 100
         aligners:
-          - sentdhiom
+          - sent
         dedupers:
-          - na
+          - dmd
         snv_callers:
           - sentdhiom
         sv_callers:
           - sentdhiom
-        dy_command: "bin/day_run produce_snv_concordances produce_sentdhiom_sv produce_sentdhiom_snv_vcf -p -j 100 -k"
-        dryrun_dy_command: "bin/day_run produce_snv_concordances produce_sentdhiom_sv produce_sentdhiom_snv_vcf -p -j 100 -k -n"
+        dy_command: "bin/day_run produce_snv_concordances produce_sentdhiom_sv produce_sentdhiom_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k"
+        dryrun_dy_command: "bin/day_run produce_snv_concordances produce_sentdhiom_sv produce_sentdhiom_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k -n"
         compatible_platforms:
           - ILMN
           - ONT
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
       - command_id: hybrid_ultima_ont_snv
         display_name: "Hybrid Ultima+ONT SNV"
@@ -249,6 +375,14 @@ repositories:
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+            - ULTIMA_CRAM
+            - ULTIMA_CRAM_ALIGNER
+            - ULTIMA_CRAM_SNV_CALLER
+            - ONT_CRAM
+            - ONT_CRAM_ALIGNER
+            - ONT_CRAM_SNV_CALLER
         targets:
           - produce_sentdhuom_snv_vcf
           - produce_alignstats
@@ -256,7 +390,7 @@ repositories:
         genome: hg38_broad
         jobs: 100
         aligners:
-          - sentdhuom
+          - ug
         dedupers:
           - na
         snv_callers:
@@ -269,11 +403,11 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ug_ont
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
       - command_id: complete_genomics_mgi_snv_concordance
         display_name: "Complete Genomics/MGI SNV + Concordance"
-        description: "Complete Genomics/MGI Sentieon sentcg/smd/cgt7p launch profile."
+        description: "Complete Genomics/MGI Sentieon sentcg/dmd/cgt7p launch profile."
         datasource: Complete Genomics/MGI
         launcher: workflow_launch
         command_class: sample_analysis
@@ -281,9 +415,13 @@ repositories:
         requires_staging: true
         requires_run_mount: false
         runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+            - CG_R1_FQ
+            - CG_R2_FQ
         targets:
           - produce_sentcg_align
-          - produce_smd_dedup_cram
+          - produce_dmd_dedup_cram
           - produce_cgt7p_snv_vcf
           - produce_alignstats
           - produce_snv_concordances
@@ -292,17 +430,17 @@ repositories:
         aligners:
           - sentcg
         dedupers:
-          - smd
+          - dmd
         snv_callers:
           - cgt7p
         sv_callers: []
-        dy_command: "bin/day_run produce_sentcg_align produce_smd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete"
-        dryrun_dy_command: "bin/day_run produce_sentcg_align produce_smd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete -n"
+        dy_command: "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete"
+        dryrun_dy_command: "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete -n"
         compatible_platforms:
           - CG/MGI
         compatible_data_modes:
           - complete_genomics_solo
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
       - command_id: illumina_run_qc
         display_name: "Illumina Run QC"
@@ -315,6 +453,9 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
+        input_requirements:
+          required_run_context_values:
+            PLATFORM: ILMN
         targets:
           - produce_illumina_run_qc
         genome: hg38_broad
@@ -329,7 +470,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
       - command_id: illumina_bclconvert
         display_name: "Illumina BCL Convert"
@@ -342,6 +483,9 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
+        input_requirements:
+          required_run_context_values:
+            PLATFORM: ILMN
         targets:
           - produce_bclconvert_fastqs_and_metrics
         genome: hg38_broad
@@ -356,7 +500,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
       - command_id: ont_run_qc
         display_name: "ONT Run QC"
@@ -369,6 +513,9 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
+        input_requirements:
+          required_run_context_values:
+            PLATFORM: ONT
         targets:
           - produce_ont_run_qc
         genome: hg38_broad
@@ -383,7 +530,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
       - command_id: ultima_run_qc
         display_name: "Ultima Run QC"
@@ -396,6 +543,9 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
+        input_requirements:
+          required_run_context_values:
+            PLATFORM: ULTIMA
         targets:
           - produce_ultima_run_qc
         genome: hg38_broad
@@ -410,7 +560,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 1.0.8
+        git_tag: 1.0.9
         no_containerized: false
   rna-seq-star-deseq2:
     display_name: "RNA-seq STAR + DESeq2"
