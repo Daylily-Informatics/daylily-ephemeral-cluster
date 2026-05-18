@@ -178,7 +178,7 @@ dyec workflow launch \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
   --destination dayoa \
-  --git-tag 1.0.11
+  --git-tag 1.0.12
 ```
 
 Run-context launch:
@@ -190,7 +190,7 @@ dyec workflow launch \
   --cluster "$CLUSTER_NAME" \
   --run-context-file ./runs.tsv \
   --destination run-qc \
-  --git-tag 1.0.11 \
+  --git-tag 1.0.12 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
 
@@ -209,7 +209,7 @@ dyec repositories commands --config config/daylily_available_repositories.yaml
 dyec repositories commands --command-id illumina_run_qc
 ```
 
-The catalog is version 2. DayOA repository and command pins are `1.0.11`.
+The catalog is version 2. DayOA repository and command pins are `1.0.12`.
 
 Command classes:
 

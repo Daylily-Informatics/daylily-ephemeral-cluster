@@ -111,7 +111,7 @@ dyec workflow launch \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
   --destination "$ANALYSIS_DIR" \
-  --git-tag 1.0.11
+  --git-tag 1.0.12
 ```
 
 ## 6. Run-Folder Analysis
@@ -143,7 +143,7 @@ dyec workflow launch \
   --cluster "$CLUSTER_NAME" \
   --run-context-file ./runs.tsv \
   --destination run-qc \
-  --git-tag 1.0.11 \
+  --git-tag 1.0.12 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
 

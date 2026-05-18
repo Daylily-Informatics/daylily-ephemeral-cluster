@@ -86,7 +86,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "1.0.11"
+    assert command.git_tag == "1.0.12"
     assert command.compatible_platforms == ["ILMN"]
     assert command.compatible_data_modes == ["ilmn_solo"]
     assert "bin/day_run" in command.dy_command
@@ -95,7 +95,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     launch_argv = command.launch_argv(destination="run-1", cluster="cluster-a")
     assert "--dy-command" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "1.0.11" in launch_argv
+    assert "1.0.12" in launch_argv
 
 
 def test_repository_catalog_commands_have_run_metadata() -> None:
@@ -122,7 +122,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "1.0.11"
+        assert command.git_tag == "1.0.12"
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets

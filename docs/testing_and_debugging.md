@@ -56,7 +56,7 @@ The source and packaged catalogs must match:
 cmp -s config/daylily_available_repositories.yaml daylily_ec/resources/payload/config/daylily_available_repositories.yaml
 ```
 
-The current DayOA pin should be `1.0.11` everywhere in the catalog:
+The current DayOA pin should be `1.0.12` everywhere in the catalog:
 
 ```bash
 rg -n "0\\.7\\.758|\\b1\\.0\\.[0-9]\\b" \
