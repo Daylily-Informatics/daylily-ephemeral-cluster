@@ -1,26 +1,17 @@
 # Operations
 
-This is the day-2 operator runbook for the supported path: connect, validate, restage, run, monitor, export, and delete.
+This is the day-2 runbook for current DayEC clusters.
 
-## Connect To The Headnode
-
-Use the supported CLI command:
+## Connect
 
 ```bash
-daylily-ec headnode connect \
+dyec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
 ```
 
-What this does:
-
-- resolves the headnode instance ID
-- checks Session Manager plugin availability
-- validates `SSM-SessionManagerRunShell`
-- opens the interactive shell
-
-Once connected, the shell should already be correct:
+Expected on the headnode:
 
 ```bash
 whoami
@@ -29,179 +20,153 @@ command -v day-clone
 command -v tmux
 ```
 
-Expected:
-
-- `whoami` prints `ubuntu`
-- `pwd` prints `/home/ubuntu`
-- `day-clone` resolves on `PATH`
-
-If that is not true, stop and fix the bootstrap. Do not continue a supported workflow from the wrong user context.
-
-`day-clone` uses HTTPS by default for workflow clones. For editable development clones
-where you need to push back to GitHub, select SSH explicitly:
-
-```bash
-day-clone -d dayoa-dev --repository daylily-omics-analysis -w ssh
-```
-
-Useful headnode status commands:
-
-```bash
-daylily-ec headnode info \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
-
-daylily-ec headnode jobs \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
-```
+The supported user is `ubuntu` and the supported working directory is `/home/ubuntu`.
 
 ## Re-run Headnode Configuration
 
-If cluster creation succeeded but you need to re-apply the supported headnode configuration:
-
 ```bash
-daylily-ec headnode configure \
+dyec headnode configure \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
 ```
 
-This is the supported repair path when the headnode needs to be brought back to the expected Daylily state.
+Use this after a cluster exists but the DayEC headnode tools, catalog, or login shell need repair.
 
-## Restage Inputs From The Laptop
+## Inspect Cluster And Jobs
 
 ```bash
-daylily-ec samples stage "$ANALYSIS_SAMPLES" \
+dyec cluster list --profile "$AWS_PROFILE" --region "$REGION" --verbose
+dyec --json cluster describe --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec headnode jobs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+```
+
+## Stage Sample Inputs
+
+Use `samples stage` for sample-manifest workflows:
+
+```bash
+dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --reference-bucket "$REF_BUCKET" \
   --config-dir "$STAGE_CFG_DIR"
 ```
 
-Operational notes:
+The helper writes local staged config files and prints a remote stage directory under `/fsx/data/staged_sample_data/...`.
 
-- the input file is `analysis_samples.tsv`
-- the bundled template at `etc/analysis_samples_template.tsv` now supports legacy Illumina rows plus Complete Genomics/MGI, ONT, Ultima, PacBio, Roche, and hybrid source columns
-- one manifest row normally becomes one output unit row; multi-lane Illumina rows with the same unit identity are still merged into one staged unit
-- ONT FASTQ prefix rows use `ONT_FASTQ_PREFIX=s3://.../fastq_pass/<tag>/`; the helper stages one run plus flowcell plus tag per row and writes `ONT_R1_PATH` with `ONT_R2_PATH=na`
-- set `ONT_FLOWCELL_ID` explicitly when an ONT FASTQ prefix contains more than one flowcell
-- the helper writes workflow manifests into `--config-dir`
-- raw read inputs are staged into the remote stage; aligned artifacts stay pass-through unless `STAGE_DIRECTIVE=stage_data`
-- run-level metric sidecars can be copied with repeatable `--run-metric-staging RUN_UID:PLATFORM:FOFN` options
-- the helper prints the remote stage directory under `/fsx/data/staged_sample_data/...`
-- use that exact printed directory for the next step
-
-### Stage Run-Level Metrics
-
-Use run-metric staging when run-level QC, BCL Convert, DRAGEN, or instrument
-sidecars need to sit beside the generated manifests in the same timestamped
-remote stage.
+For catalog-driven sample launches:
 
 ```bash
-daylily-ec samples stage "$ANALYSIS_SAMPLES" \
+dyec samples run "$ANALYSIS_SAMPLES" \
+  --command-id complete_genomics_mgi_snv_concordance \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
   --reference-bucket "$REF_BUCKET" \
-  --run-metric-staging "RUN123:ILMN:/path/to/run_metrics.fofn" \
-  --config-dir "$STAGE_CFG_DIR"
+  --destination dayoa \
+  --dry-run
 ```
 
-FOFN rules:
+The catalog pin for DayOA commands is `1.0.7`.
 
-- each non-empty line names one file to copy
-- relative entries resolve beside the FOFN and preserve their relative directory under `runs/<RUN_UID>/`
-- absolute local paths, S3 URIs, and FSx-visible paths copy by basename
-- a run UID can appear in multiple specs only when the normalized platform is the same
-- duplicate destination paths for the same run UID are rejected before copying
+## Attach Run Folders
 
-Useful local checks:
+Use run DRAs for raw run folders that should stay in S3 until read by the workflow:
 
 ```bash
-ls -lh "$STAGE_CFG_DIR"
-head -n 5 "$STAGE_CFG_DIR"/*_samples.tsv
-head -n 5 "$STAGE_CFG_DIR"/*_units.tsv
+dyec --json mounts create \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --s3-uri "s3://sequencer-run-bucket/runs/RUN123/" \
+  --mount-id RUN123 \
+  --run-id RUN123 \
+  --platform ILMN \
+  --read-only \
+  --batch-import-metadata-on-create \
+  --auto-import NEW,CHANGED \
+  --wait
 ```
 
-## Illumina Undetermined Index Triage
+Rules:
 
-Use the Illumina utility when you need to inspect Undetermined or Unclassified
-FASTQs before deciding whether to stage recovered read pairs.
+- FSx API path is `/run_dir_mounts/<mount_id>/`.
+- Headnode path is `/fsx/run_dir_mounts/<mount_id>/`.
+- AutoExport is not configured by default.
+- Source prefixes and FSx paths must not overlap active DRAs.
+- Run mounts are input paths, not result paths.
+
+Verify on the headnode:
 
 ```bash
-bin/utils/ilmn/extract_undetermined_indexes \
-  s3://bucket/path/Undetermined_S0_L001_R1_001.fastq.gz \
-  s3://bucket/path/Undetermined_S0_L002_R1_001.fastq.gz \
-  --mode uncalled \
-  --top 100 \
-  --output indexes.tsv
+dyec --json mounts verify \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --mount-id RUN123
 ```
 
-The output TSV contains `rank`, `index`, `index2`, `count`,
-`pct_of_all_reads`, and `lanes_detected`. Inputs may be local `.fastq.gz`
-files, `s3://` URIs, or presigned HTTP(S) URLs. The utility uses `gcc`,
-`sort`, and `gzip` or `pigz`; S3 inputs also require the AWS CLI.
-
-To split selected tag pairs into recovered R1/R2 FASTQs, pass matching R2
-inputs plus an allowlist:
+Detach when done:
 
 ```bash
-bin/utils/ilmn/extract_undetermined_indexes \
-  s3://bucket/path/Undetermined_S0_L001_R1_001.fastq.gz \
-  --read2-inputs s3://bucket/path/Undetermined_S0_L001_R2_001.fastq.gz \
-  --split-fastqs \
-  --tag-pairs-tsv selected_indexes.tsv \
-  --fastq-out-dir recovered-fastqs \
-  --output recovered-fastqs/split_summary.tsv
+dyec --json mounts delete \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --mount-id RUN123 \
+  --wait
 ```
 
-## Launch A Workflow
+Deletion detaches the DRA with `DeleteDataInFileSystem=False`; it does not delete S3 objects.
+
+## Launch Workflows
+
+Sample-manifest workflow:
 
 ```bash
-daylily-ec workflow launch \
+dyec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination dayoa
+  --destination dayoa \
+  --git-tag 1.0.7
 ```
 
-Useful launch options:
-
-- `--destination`: controls the target workspace under `/fsx/analysis_results/ubuntu`
-- `--aligners`
-- `--dedupers`
-- `--snv-callers`
-- `--jobs`
-- `--dy-command`: full override if you need a specific workflow command
-- `--dry-run`: useful for launch smoke tests
-
-The launcher writes the run-state directory:
-
-```text
-/home/ubuntu/daylily-runs/<session>/
-```
-
-Expected files:
-
-- `launch.sh`
-- `tmux.log`
-- `status.json`
-
-## Inspect Tmux And Runtime State
-
-Reconnect if needed:
+Run-folder workflow:
 
 ```bash
-daylily-ec headnode connect \
+dyec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
+  --cluster "$CLUSTER_NAME" \
+  --run-context-file ./runs.tsv \
+  --destination run-qc \
+  --git-tag 1.0.7 \
+  --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
 
-Then inspect:
+The launcher creates `/home/ubuntu/daylily-runs/<session>/` with `launch.sh`, `tmux.log`, and `status.json`.
+
+## Monitor
+
+```bash
+dyec --json workflow status \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --session <session>
+
+dyec workflow logs \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --session <session> \
+  --lines 100
+```
+
+Inside the headnode shell:
 
 ```bash
 tmux ls
@@ -209,78 +174,50 @@ tmux attach -t <session>
 squeue
 ```
 
-Useful local CLI checks:
-
-```bash
-daylily-ec runtime status
-daylily-ec runtime check
-daylily-ec runtime explain
-daylily-ec info
-daylily-ec cluster list --profile "$AWS_PROFILE" --region "$REGION"
-daylily-ec --json workflow status --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session>
-daylily-ec workflow logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session> --lines 100
-```
-
 ## Export Results
 
-The supported export scope is `analysis_results/ubuntu` unless you have a deliberate reason to choose a narrower or different path.
+Export is a separate output DRA flow. It does not write back through the reference DRA or run-input DRA.
+
+On the headnode, copy selected outputs into `/fsx/exports/<export_id>/...`:
 
 ```bash
-daylily-ec export \
+mkdir -p /fsx/exports/$EXPORT_ID/analysis_results/ubuntu/
+cp -a /fsx/analysis_results/ubuntu/<analysis-run-id>/ /fsx/exports/$EXPORT_ID/analysis_results/ubuntu/
+```
+
+From the operator machine:
+
+```bash
+dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME" \
-  --target-uri analysis_results/ubuntu \
+  --cluster "$CLUSTER_NAME" \
+  --export-id "$EXPORT_ID" \
+  --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" \
+  --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 ```
 
-Then verify the receipt:
+Verify:
 
 ```bash
 cat "$EXPORT_DIR/fsx_export.yaml"
 ```
 
-Success means:
+Success means `status: success`, `detached: true`, and a completed FSx export task id.
 
-- `status: success`
-- `s3_uri:` points to the expected path under the filesystem export root
-
-## Delete The Cluster
-
-Deletion is destructive. The supported flow is:
-
-1. export first
-2. verify `fsx_export.yaml`
-3. then delete
-
-Command:
+## Delete
 
 ```bash
-daylily-ec delete --dry-run \
+dyec delete --dry-run \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME"
+  --cluster "$CLUSTER_NAME"
 
-daylily-ec delete \
+dyec delete \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME"
+  --cluster "$CLUSTER_NAME"
 ```
 
-For scripted teardown, `--yes` skips the final FSx deletion confirmation prompt. Use that only when the delete has already been intentionally approved.
-
-## A Useful Read-Only Loop
-
-When you are watching a live run from the operator machine:
-
-```bash
-watch -n 30 "daylily-ec cluster list --profile $AWS_PROFILE --region $REGION"
-```
-
-When you are watching from the headnode:
-
-```bash
-watch -n 30 "squeue && echo && tail -n 40 /home/ubuntu/daylily-runs/<session>/tmux.log"
-```
-
-If things go sideways, continue with [monitoring_and_troubleshooting.md](monitoring_and_troubleshooting.md).
+Use `--yes` only after the exact delete has already been approved.

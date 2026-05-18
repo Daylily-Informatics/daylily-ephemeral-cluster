@@ -33,6 +33,9 @@ EXPECTED_COMMANDS = {
     ("cluster", "describe"),
     ("cluster", "wait"),
     ("export",),
+    ("exports", "attach"),
+    ("exports", "run"),
+    ("exports", "detach"),
     ("delete",),
     ("resources-dir",),
     ("env", "status"),
@@ -117,6 +120,9 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     drift_cmd = registry.get_command(("drift",))
     delete_cmd = registry.get_command(("delete",))
     export_cmd = registry.get_command(("export",))
+    exports_attach_cmd = registry.get_command(("exports", "attach"))
+    exports_run_cmd = registry.get_command(("exports", "run"))
+    exports_detach_cmd = registry.get_command(("exports", "detach"))
     resources_dir_cmd = registry.get_command(("resources-dir",))
     cluster_info_cmd = registry.get_command(("cluster-info",))
     cluster_list_cmd = registry.get_command(("cluster", "list"))
@@ -174,6 +180,12 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
 
     assert export_cmd is not None
     assert export_cmd.policy.mutates_state is True
+
+    for exports_cmd in (exports_attach_cmd, exports_run_cmd, exports_detach_cmd):
+        assert exports_cmd is not None
+        assert exports_cmd.policy.supports_json is True
+        assert exports_cmd.policy.mutates_state is True
+        assert exports_cmd.policy.long_running is True
 
     assert resources_dir_cmd is not None
     assert resources_dir_cmd.policy.runtime_guard == "exempt"
@@ -531,8 +543,12 @@ def test_export_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
             "export",
             "--cluster-name",
             "cluster-a",
-            "--target-uri",
-            "analysis_results/ubuntu",
+            "--export-id",
+            "export-1",
+            "--source-path",
+            "/exports/export-1/analysis_results/ubuntu/",
+            "--destination-s3-uri",
+            "s3://bucket/exports/export-1/",
             "--region",
             "us-west-2",
             "--output-dir",
@@ -547,7 +563,9 @@ def test_export_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
     assert calls["verbose"] is True
     options = calls["options"]
     assert options.cluster_name == "cluster-a"
-    assert options.target_uri == "analysis_results/ubuntu"
+    assert options.export_id == "export-1"
+    assert options.source_path == "/exports/export-1/analysis_results/ubuntu/"
+    assert options.destination_s3_uri == "s3://bucket/exports/export-1/"
     assert options.region == "us-west-2"
     assert options.profile == "dev"
     assert options.output_dir == tmp_path.resolve()
@@ -1333,7 +1351,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "--destination" in launch_argv
     assert "cg-run" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "0.7.758" in launch_argv
+    assert "1.0.7" in launch_argv
     assert "--dy-command" in launch_argv
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
     assert "produce_cgt7p_snv_vcf" in dy_command

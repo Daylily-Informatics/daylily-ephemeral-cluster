@@ -229,11 +229,15 @@ SharedStorage:  # This is the local FS which is expensive but fast, could be swa
     Name: fsx-REGSUB_CLUSTER_NAME  # WARNING, EDIT NAME WILL DEL EXISTING DATA
     StorageType: FsxLustre
     FsxLustreSettings:
-      ImportPath: REGSUB_S3_BUCKET_REF/data/
       StorageCapacity: REGSUB_FSX_SIZE 
       DeploymentType: SCRATCH_2
-      AutoImportPolicy: NEW_CHANGED_DELETED
       DeletionPolicy: REGSUB_SAVE_FSX  # Set to true to keep the FSX after the cluster is deleted
+      DataRepositoryAssociations:
+        - Name: reference-data
+          FileSystemPath: /data/
+          DataRepositoryPath: REGSUB_S3_BUCKET_REF/data/
+          BatchImportMetaDataOnCreate: true
+          AutoImportPolicy: [NEW, CHANGED, DELETED]
 Tags:  # TAGs necessary for per-user/project/job cost tracking 
   - Key: aws-parallelcluster-username
     Value: REGSUB_USERNAME

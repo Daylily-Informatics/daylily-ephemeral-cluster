@@ -1,74 +1,43 @@
 # AWS Setup
 
-This is the account and operator prerequisite guide for the current supported Daylily flow.
+This is the account and operator prerequisite guide for current DayEC.
 
-## 1. AWS Profile And Credential Model
+## Profile And Region
 
-Daylily expects a named AWS CLI profile and uses standard AWS SDK/CLI resolution. The simplest supported pattern is:
+Use an explicit named profile and region:
 
 ```bash
 export AWS_PROFILE=daylily-service-lsmc
 export AWS_REGION=us-west-2
-```
-
-Sanity check:
-
-```bash
 aws sts get-caller-identity --profile "$AWS_PROFILE"
 ```
 
-If that fails, stop there. Nothing in Daylily will work until the base AWS identity is correct.
+If the identity check fails, fix AWS credentials before running DayEC.
 
-## 2. IAM Expectations
+## IAM Expectations
 
-The current code checks for:
+The operator path needs permissions for:
 
-- a global Daylily policy attachment
-- a regional Daylily policy attachment
-- the presence or creation of the `pcluster-omics-analysis` policy
+- STS identity inspection
+- IAM inspection and DayEC bootstrap policy checks
+- Service Quotas reads
+- EC2 and VPC inspection
+- CloudFormation
+- ParallelCluster operations
+- FSx for Lustre, including data repository associations and data repository tasks
+- S3 list/read for reference and run buckets
+- S3 write for selected analysis export destinations
+- Systems Manager command and interactive sessions
+- Budgets and tagging paths used by DayEC cost controls
 
-The current bootstrap helpers for account administrators are:
+Admin bootstrap helpers are packaged under:
 
 - `daylily_ec/resources/payload/bin/admin/daylily_ephemeral_cluster_bootstrap_global.sh`
 - `daylily_ec/resources/payload/bin/admin/daylily_ephemeral_cluster_bootstrap_region.sh`
 
-The global bootstrap helper creates or updates `DaylilyGlobalEClusterPolicy` and is intended to be run once per account. The regional bootstrap helper creates or updates `DaylilyRegionalEClusterPolicy-<region>` and is intended to be run once per target region.
+The intended model is group-based policy attachment for operator IAM users.
 
-The current policy surface allows the Daylily operator flow to use:
-
-- STS identity inspection
-- IAM inspection and bootstrap
-- Service Quotas reads
-- EC2/VPC inspection
-- CloudFormation
-- FSx
-- S3
-- Budgets and related tagging
-- Systems Manager
-- ParallelCluster-related services
-
-## 3. IAM Group Model
-
-The packaged admin helpers are group-oriented. The intended model is:
-
-1. attach Daylily managed policies to an IAM group
-2. ensure the operator IAM user is a member of that group
-
-That keeps account setup cleaner than attaching everything directly to individual users.
-
-## 4. Service-Linked Role Requirements
-
-The Daylily bootstrap policy allows creation of service-linked roles required by the current workflow. In practice, your AWS organization must permit the account to create or use the service-linked roles needed by:
-
-- Spot
-- FSx
-- the FSx S3 data-source integration
-- image builder related paths used by ParallelCluster
-- EC2 and Lambda support paths referenced by the bootstrap policy
-
-If your organization blocks service-linked role creation, pre-create or delegate them before running Daylily.
-
-## 5. Session Manager Requirements
+## Session Manager
 
 The supported connect path requires the regional document:
 
@@ -76,132 +45,83 @@ The supported connect path requires the regional document:
 SSM-SessionManagerRunShell
 ```
 
-The repo hard-fails unless that document is configured to:
+It must:
 
-- set `runAsEnabled` to true
-- set `runAsDefaultUser` to `ubuntu`
-- change directory to `/home/ubuntu` and source a login shell for `ubuntu`
-  through `shellProfile.linux`
-- disable terminal software flow control before starting the login shell so
-  interactive tools receive key chords such as `Ctrl-S`
+- enable `runAs`
+- set default user to `ubuntu`
+- start in `/home/ubuntu`
+- launch a bash login shell
+- disable terminal software flow control before the shell starts
 
-The supported shell profile is:
+Supported shell profile shape:
 
 ```text
 cd /home/ubuntu && { stty -ixon -ixoff 2>/dev/null || true; exec bash -l; }
 ```
 
-Equivalent forms that `cd` to the ubuntu home directory before starting the
-login shell are also accepted. They should also disable XON/XOFF flow control
-with `stty -ixon -ixoff`. A bare `exec bash -l` is not sufficient because
-Session Manager starts in the SSM agent working directory.
+`dyec headnode connect` and SSM-backed command helpers fail if this surface is wrong.
 
-If this document is missing or misconfigured, `daylily-ec headnode connect` and other supported SSM flows will fail on purpose.
-
-## 6. Region, Availability Zone, And Bucket Alignment
+## S3 And FSx Layout
 
 Choose:
 
-- one target region
+- one target AWS region
 - one target AZ in that region
 - one reference bucket in that region
+- one or more run-data buckets/prefixes, preferably in the same region
+- one analysis-result bucket/prefix for exports
 
-The bucket is not just an arbitrary storage destination. It is the durable backing store for the FSx filesystem and the place exports return to.
+S3 buckets are regional, not AZ-scoped. Co-locate buckets and FSx in the same AWS region for the expected low-latency, lower-cost path. Cross-region reads or exports are possible only if AWS permissions and network paths allow them, and should be treated as slower and more expensive.
 
-Sanity checks:
+Current FSx DRA strategy:
 
-```bash
-aws s3 ls "s3://your-reference-bucket" --profile "$AWS_PROFILE" --region "$REGION"
-daylily-ec aws validate all \
-  --profile "$AWS_PROFILE" \
-  --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG" \
-  --gap-analysis aws_gap.md
-daylily-ec preflight --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
-```
+- reference data DRA: `<reference-bucket>/data/` to `/fsx/data`
+- run input DRA: selected S3 run prefix to `/fsx/run_dir_mounts/<mount_id>`
+- export DRA: `/fsx/exports/<export_id>` to the requested S3 analysis destination
 
-`daylily-ec aws validate permissions|quotas|all` is read-only. It requires an
-explicit `--profile` and `--region-az`, rejects the implicit `default` profile,
-derives the region from the AZ, and does not create, update, delete, send SSM
-commands, start sessions, or run `pcluster create`. Use `--gap-analysis PATH`
-when an AWS admin needs a comprehensive Markdown validation log: every passing
-permission and quota check is recorded with details, and WARN/FAIL entries also
-include remediation guidance. The global `--json` flag remains the
-machine-readable output path.
+The reference bucket is not automatically the export bucket. `dyec export` takes an explicit `--destination-s3-uri`.
 
-## 7. Quotas The Repo Checks
-
-The quota validator checks the preflight quota set plus the rendered
-ParallelCluster shape. The current baseline quota set is:
-
-- On-Demand vCPU Max: 20
-- Spot vCPU Max: 192
-- VPCs: 5
-- Elastic IPs: 5
-- NAT Gateways: 5
-- Internet Gateways: 5
-
-Spot demand in preflight is computed from the cluster config `max_count_*`
-values. `daylily-ec aws validate quotas` also renders the selected
-ParallelCluster template in memory and validates rendered Spot vCPU demand,
-On-Demand vCPU demand, requested instance-type offerings in the target AZ,
-visible Spot price signal, EBS gp3 storage, FSx for Lustre storage, and first
-network-stack quota needs when the baseline stack is absent.
-
-## 8. Network And Region Policy Expectations
-
-Preflight also validates baseline network resources and region policy selection. The current flow expects the repo to be able to discover or create what it needs rather than relying on an older manual bootstrap script.
-
-Operationally, that means:
-
-- do not assume the account is "ready" just because one cluster worked once
-- rerun preflight when moving regions or changing configs
-
-## 9. Local Toolchain In DAY-EC
-
-The supported local shell should provide:
-
-- `daylily-ec`
-- `aws`
-- `pcluster`
-- `session-manager-plugin`
-- `jq`
-- `yq`
-- `rclone`
-- `node`
-
-The supported repo checkout path is:
+## Readiness Validation
 
 ```bash
-source ./activate
-```
-
-Verify:
-
-```bash
-daylily-ec runtime status
-aws --version
-pcluster version
-session-manager-plugin
-```
-
-## 10. First Real Validation
-
-After account/bootstrap work is complete, the next commands should be:
-
-```bash
-daylily-ec aws validate all \
+dyec aws validate all \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG" \
   --gap-analysis aws_gap.md
 
-daylily-ec preflight \
+dyec preflight \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG"
 ```
 
-Treat `aws validate` as the account-admin readiness check and preflight as the
-final operator setup validator. If either fails, fix the reported setup gap
-before attempting create.
+`aws validate` is read-only and intended for account readiness checks. `preflight` is the final operator validator before create.
+
+## Quotas
+
+Quota validation covers the rendered cluster shape and baseline resources, including:
+
+- On-Demand and Spot vCPU demand
+- requested instance type offerings in the target AZ
+- VPC, subnet, Elastic IP, NAT, and Internet Gateway headroom
+- EBS gp3 storage
+- FSx for Lustre capacity
+- visible Spot price signal
+
+Rerun validation when moving regions, changing AZs, changing cluster size, or changing the cluster template.
+
+## Local Toolchain
+
+Use:
+
+```bash
+source ./activate
+dyec runtime status
+dyec runtime check
+aws --version
+pcluster version
+session-manager-plugin
+```
+
+The supported checkout environment is `DAY-EC`.

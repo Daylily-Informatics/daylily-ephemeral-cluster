@@ -5,7 +5,6 @@ from __future__ import annotations
 import dataclasses
 import getpass
 import json
-import os
 import re
 import shlex
 import time
@@ -29,6 +28,10 @@ TERMINAL_FAILURE_LIFECYCLES = {"FAILED", "MISCONFIGURED"}
 INACTIVE_LIFECYCLES = {"DELETED", "DELETING", "DELETE_IN_PROGRESS", "FAILED"}
 RUN_MOUNT_PURPOSE_TAG = "run-dir-mount"
 STATE_SCHEMA_VERSION = 1
+LOCAL_PROJECTION_CREATED = "created"
+LOCAL_PROJECTION_PRESENT = "present"
+LOCAL_PROJECTION_MISSING = "missing"
+LOCAL_PROJECTION_UNKNOWN = "unknown"
 
 
 class RunMountError(RuntimeError):
@@ -60,6 +63,7 @@ class RunMountRecord:
     created_by: str = ""
     tags: Dict[str, str] = dataclasses.field(default_factory=dict)
     warnings: Sequence[str] = dataclasses.field(default_factory=tuple)
+    local_projection_status: str = LOCAL_PROJECTION_UNKNOWN
 
     @property
     def data_repository_path(self) -> str:
@@ -95,6 +99,7 @@ class RunMountRecord:
             payload["tags"] = dict(self.tags)
         if self.warnings:
             payload["warnings"] = list(self.warnings)
+        payload["local_projection_status"] = self.local_projection_status
         return payload
 
     def to_state_payload(self) -> Dict[str, Any]:
@@ -305,7 +310,6 @@ def create_run_mount(
     run_id = validate_mount_id(request.run_id) if request.run_id else mount_id
     platform = _normalize_platform(request.platform)
     file_system_path = normalize_file_system_path(request.file_system_path, mount_id=mount_id)
-    headnode_path = headnode_path_from_file_system_path(file_system_path)
     auto_import_events = list(request.auto_import_events)
     auto_export_events = list(request.auto_export_events)
     read_only = bool(request.read_only and not auto_export_events)
@@ -314,6 +318,8 @@ def create_run_mount(
         client,
         request.cluster_name or "",
     )
+    filesystem = describe_fsx_file_system(client, fsx_file_system_id)
+    validate_dra_compatible_file_system(filesystem)
     associations = list_data_repository_associations(client, fsx_file_system_id)
     active_count = sum(1 for association in associations if association_is_active(association))
     if active_count >= 8:
@@ -369,6 +375,7 @@ def create_run_mount(
         batch_import_metadata_on_create=request.batch_import_metadata_on_create,
         tags=request.tags,
         warnings=warnings,
+        local_projection_status=LOCAL_PROJECTION_CREATED,
     )
     write_mount_record(record)
     return record
@@ -414,6 +421,9 @@ def list_run_mounts(
                     local.batch_import_metadata_on_create if local else True
                 ),
                 tags=local.tags if local else {},
+                local_projection_status=(
+                    LOCAL_PROJECTION_PRESENT if local else LOCAL_PROJECTION_MISSING
+                ),
             )
         )
     return sorted(records, key=lambda record: (record.mount_id, record.association_id))
@@ -458,6 +468,7 @@ def describe_run_mount(
                 local.batch_import_metadata_on_create if local else True
             ),
             tags=local.tags if local else {},
+            local_projection_status=LOCAL_PROJECTION_PRESENT if local else LOCAL_PROJECTION_MISSING,
         )
 
     valid_mount_id = validate_mount_id(mount_id or "")
@@ -471,14 +482,6 @@ def describe_run_mount(
     for record in records:
         if record.mount_id == valid_mount_id:
             return record
-    local = _load_mount_record(
-        region=region,
-        cluster_name=cluster_name,
-        fsx_file_system_id=fsx_file_system_id,
-        mount_id=valid_mount_id,
-    )
-    if local is not None:
-        return local
     raise RunMountError(f"Run mount not found: {valid_mount_id}")
 
 
@@ -532,6 +535,7 @@ def delete_run_mount(
         read_only=existing.read_only,
         batch_import_metadata_on_create=existing.batch_import_metadata_on_create,
         tags=existing.tags,
+        local_projection_status=LOCAL_PROJECTION_PRESENT,
     )
     write_mount_record(record)
     return record
@@ -539,21 +543,28 @@ def delete_run_mount(
 
 def verify_run_mount(
     *,
-    mount_id: str,
+    mount_id: Optional[str] = None,
+    association_id: Optional[str] = None,
     cluster_name: str,
     fsx_file_system_id: Optional[str],
     region: str,
     profile: Optional[str],
     platform: Optional[str] = None,
+    scope: str = "headnode",
     timeout_seconds: int = 300,
     fsx_client: Optional[Any] = None,
     headnode_resolver: Optional[Any] = None,
     shell_runner: Optional[Any] = None,
 ) -> Dict[str, Any]:
-    """Verify a run mount path on the headnode through SSM."""
+    """Verify a run mount path is usable on the headnode through SSM."""
+    if bool(mount_id) == bool(association_id):
+        raise RunMountError("Provide exactly one of --mount-id or --association-id.")
+    normalized_scope = str(scope or "").strip().lower()
+    if normalized_scope != "headnode":
+        raise RunMountError("Run mount verification is headnode-only.")
     record = describe_run_mount(
         mount_id=mount_id,
-        association_id=None,
+        association_id=association_id,
         cluster_name=cluster_name,
         fsx_file_system_id=fsx_file_system_id,
         region=region,
@@ -564,16 +575,15 @@ def verify_run_mount(
     runner = shell_runner or _run_headnode_shell
     target = resolver(cluster_name, region, profile=profile)
     verify_platform = _normalize_platform(platform or record.platform)
-    script = _verification_script(record.headnode_path, verify_platform)
     result = runner(
         target.instance_id,
         region,
-        script,
+        _verification_script(record.headnode_path, verify_platform),
         profile=profile,
         timeout=timeout_seconds,
-        comment=f"Verify run mount {record.mount_id}",
+        comment=f"Verify run mount {record.mount_id} on headnode",
     )
-    verification = _parse_verification_stdout(result.stdout)
+
     payload = record.to_output_payload()
     payload["verified"] = True
     payload["verification"] = {
@@ -581,7 +591,7 @@ def verify_run_mount(
         "command_id": result.command_id,
         "stdout": result.stdout,
         "stderr": result.stderr,
-        **verification,
+        **_parse_verification_stdout(result.stdout),
     }
     return payload
 
@@ -599,6 +609,7 @@ def record_from_association(
     batch_import_metadata_on_create: bool,
     tags: Dict[str, str],
     warnings: Optional[Sequence[str]] = None,
+    local_projection_status: str = LOCAL_PROJECTION_UNKNOWN,
 ) -> RunMountRecord:
     """Build a stable local record from an FSx association payload."""
     file_system_path = normalize_file_system_path(
@@ -634,6 +645,7 @@ def record_from_association(
         created_by=getpass.getuser(),
         tags=dict(tags),
         warnings=tuple(warnings or ()),
+        local_projection_status=local_projection_status,
     )
 
 
@@ -680,9 +692,6 @@ def resolve_fsx_file_system_id(client: Any, cluster_name: str) -> str:
     try:
         paginator = client.get_paginator("describe_file_systems")
         pages = paginator.paginate()
-    except Exception:
-        pages = [client.describe_file_systems()]
-    try:
         for page in pages:
             for filesystem in page.get("FileSystems", []) or []:
                 tags = {
@@ -694,7 +703,7 @@ def resolve_fsx_file_system_id(client: Any, cluster_name: str) -> str:
                     filesystem_id = str(filesystem.get("FileSystemId") or "")
                     if filesystem_id:
                         matches.append(filesystem_id)
-    except (BotoCoreError, ClientError) as exc:
+    except Exception as exc:  # noqa: BLE001
         raise RunMountError(f"Unable to describe FSx file systems: {exc}") from exc
 
     if not matches:
@@ -702,6 +711,50 @@ def resolve_fsx_file_system_id(client: Any, cluster_name: str) -> str:
     if len(matches) > 1:
         raise RunMountError(f"Multiple FSx file systems found for cluster {cluster_name!r}.")
     return matches[0]
+
+
+def describe_fsx_file_system(client: Any, fsx_file_system_id: str) -> Dict[str, Any]:
+    """Describe one FSx filesystem by id and fail hard if AWS cannot prove it exists."""
+    if not str(fsx_file_system_id or "").strip():
+        raise RunMountError("fsx_file_system_id is required.")
+    try:
+        response = client.describe_file_systems(FileSystemIds=[fsx_file_system_id])
+    except Exception as exc:  # noqa: BLE001
+        raise RunMountError(f"Unable to describe FSx file system {fsx_file_system_id}: {exc}") from exc
+    filesystems = response.get("FileSystems") or []
+    if len(filesystems) != 1:
+        raise RunMountError(f"Unable to describe exactly one FSx file system: {fsx_file_system_id}")
+    filesystem = filesystems[0]
+    if not isinstance(filesystem, dict):
+        raise RunMountError(f"Malformed FSx describe response for {fsx_file_system_id}.")
+    return filesystem
+
+
+def validate_dra_compatible_file_system(filesystem: Dict[str, Any]) -> None:
+    """Reject FSx filesystems that cannot accept additional DRA mounts."""
+    fsx_id = str(filesystem.get("FileSystemId") or "unknown")
+    fsx_type = str(filesystem.get("FileSystemType") or "").upper()
+    if fsx_type != "LUSTRE":
+        raise RunMountError(
+            f"FSx file system {fsx_id} is {fsx_type or 'UNKNOWN'}; DRA mounts require Lustre."
+        )
+    lifecycle = str(filesystem.get("Lifecycle") or "").upper()
+    if lifecycle and lifecycle != "AVAILABLE":
+        raise RunMountError(
+            f"FSx file system {fsx_id} lifecycle is {lifecycle}; DRA mounts require AVAILABLE."
+        )
+    lustre = filesystem.get("LustreConfiguration") or {}
+    if not isinstance(lustre, dict):
+        raise RunMountError(f"FSx file system {fsx_id} is missing LustreConfiguration.")
+    deployment_type = str(lustre.get("DeploymentType") or "").upper()
+    if deployment_type == "SCRATCH_1":
+        raise RunMountError(f"FSx file system {fsx_id} uses SCRATCH_1, which does not support DRAs.")
+    legacy_repo_config = lustre.get("DataRepositoryConfiguration")
+    if legacy_repo_config:
+        raise RunMountError(
+            f"FSx file system {fsx_id} has legacy LustreConfiguration.DataRepositoryConfiguration; "
+            "create a DRA-backed filesystem before adding run mounts."
+        )
 
 
 def list_data_repository_associations(client: Any, fsx_file_system_id: str) -> List[Dict[str, Any]]:
@@ -1101,6 +1154,9 @@ def _record_from_state_payload(payload: Dict[str, Any]) -> RunMountRecord:
         created_by=str(payload.get("created_by") or ""),
         tags=dict(payload.get("tags") or {}),
         warnings=tuple(payload.get("warnings") or ()),
+        local_projection_status=str(
+            payload.get("local_projection_status") or LOCAL_PROJECTION_PRESENT
+        ),
     )
 
 
@@ -1154,36 +1210,25 @@ def _run_headnode_shell(
 
 def _verification_script(headnode_path: str, platform: str) -> str:
     path = shlex.quote(headnode_path)
-    platform_literal = shlex.quote(platform)
+    _ = platform
     python_code = "\n".join(
         [
             "import json, os, pathlib",
             "root = pathlib.Path(os.environ['DAYLILY_VERIFY_ROOT'])",
-            "platform = os.environ['DAYLILY_VERIFY_PLATFORM']",
-            "markers = {'exists': root.is_dir()}",
-            "if platform == 'ILMN':",
-            "    markers['RunInfo.xml'] = (root / 'RunInfo.xml').is_file()",
-            "    markers['RunParameters.xml'] = (root / 'RunParameters.xml').is_file() or (root / 'runParameters.xml').is_file()",
-            "    markers['InterOp'] = (root / 'InterOp').is_dir()",
-            "    markers['BaseCalls'] = (root / 'Data' / 'Intensities' / 'BaseCalls').is_dir()",
-            "elif platform == 'ONT':",
-            "    patterns = ['final_summary*.txt', 'sequencing_summary*.txt', '*.pod5', '*.fastq.gz', 'report*.html']",
-            "    markers['ont_marker'] = any(next(root.glob(pattern), None) is not None for pattern in patterns)",
-            "elif platform == 'ULTIMA':",
-            "    markers['ultima_marker'] = any(root.glob('*.csv')) or any(root.glob('*.json')) or any(root.glob('*.fastq.gz')) or any(root.glob('*.cram'))",
-            "print(json.dumps(markers, sort_keys=True))",
+            "print(json.dumps({'path': str(root), 'usable': True}, sort_keys=True))",
         ]
     )
     return "\n".join(
         [
             "set -euo pipefail",
             f"root={path}",
-            f"platform={platform_literal}",
-            'test -d "$root"',
+            'case "$root" in /fsx|/fsx/*) ;; *) echo "Verify path is not under /fsx: $root" >&2; exit 1 ;; esac',
+            'if [ ! -d "$root" ]; then echo "Verify path is not a directory: $root" >&2; exit 1; fi',
+            'if [ ! -r "$root" ] || [ ! -x "$root" ]; then echo "Verify path is not readable/executable: $root" >&2; exit 1; fi',
+            'cd "$root"',
+            'ls -A . >/dev/null',
             f"export DAYLILY_VERIFY_ROOT={path}",
-            f"export DAYLILY_VERIFY_PLATFORM={platform_literal}",
             f"python3 -c {shlex.quote(python_code)}",
-            'find "$root" -maxdepth 2 | head',
         ]
     )
 
@@ -1198,5 +1243,8 @@ def _parse_verification_stdout(stdout: str) -> Dict[str, Any]:
         except json.JSONDecodeError:
             continue
         if isinstance(payload, dict):
-            return {"markers": payload}
-    return {"markers": {}}
+            return {
+                "path": str(payload.get("path") or ""),
+                "usable": bool(payload.get("usable")),
+            }
+    return {"path": "", "usable": False}

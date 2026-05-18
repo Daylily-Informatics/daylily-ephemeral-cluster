@@ -30,7 +30,6 @@ from daylily_ec.scripts.common import CommandError, aws_env, need_cmd, run_comma
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "daylily" / "daylily_ephemeral_cluster.yaml"
-DEFAULT_EXPORT_TARGET = "analysis_results/ubuntu"
 CLUSTER_NAME_PREFIX = "day-ssm-e2e"
 MAX_CLUSTER_NAME_LEN = 26
 
@@ -132,9 +131,19 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Directory for export artifacts (default: tmp-e2e-export/<cluster>)",
     )
     parser.add_argument(
-        "--export-target-uri",
-        default=DEFAULT_EXPORT_TARGET,
-        help=f"FSx export target path (default: {DEFAULT_EXPORT_TARGET})",
+        "--export-id",
+        default=None,
+        help="Explicit export DRA id mounted under /fsx/exports/<id>/.",
+    )
+    parser.add_argument(
+        "--export-source-path",
+        default=None,
+        help="Explicit FSx API path under /exports/<export-id>/ to export.",
+    )
+    parser.add_argument(
+        "--export-destination-s3-uri",
+        default=None,
+        help="S3 URI backing the temporary export DRA.",
     )
     parser.add_argument(
         "--pass-on-warn",
@@ -645,20 +654,36 @@ def _wait_for_workflow_completion(
     raise CommandError(message)
 
 
-def _validate_export_artifact(export_yaml: Path, expected_target_uri: str) -> dict[str, object]:
+def _validate_export_artifact(
+    export_yaml: Path,
+    *,
+    expected_source_path: str,
+    expected_destination_s3_uri: str,
+) -> dict[str, object]:
     if not export_yaml.is_file():
         raise CommandError(f"Export did not write expected artifact: {export_yaml}")
     payload = yaml.safe_load(export_yaml.read_text(encoding="utf-8")) or {}
     export_payload = payload.get("fsx_export") or {}
     status = str(export_payload.get("status") or "")
-    s3_uri = str(export_payload.get("s3_uri") or "")
     if status != "success":
         raise CommandError(f"Export status is not success in {export_yaml}: {status or 'missing'}")
-    expected_suffix = expected_target_uri.strip("/")
-    if expected_suffix and not s3_uri.rstrip("/").endswith(expected_suffix):
+    destination = str(export_payload.get("destination_s3_uri") or "")
+    if destination.rstrip("/") != expected_destination_s3_uri.rstrip("/"):
         raise CommandError(
-            f"Export S3 URI {s3_uri!r} does not end with the expected target {expected_suffix!r}."
+            f"Export destination {destination!r} does not match "
+            f"{expected_destination_s3_uri!r}."
         )
+    source = str(export_payload.get("source_path") or "")
+    if source.rstrip("/") != expected_source_path.rstrip("/"):
+        raise CommandError(
+            f"Export source {source!r} does not match {expected_source_path!r}."
+        )
+    if not export_payload.get("association_id") or not export_payload.get("task_id"):
+        raise CommandError(
+            f"Export receipt is missing association/task ids: {export_yaml}"
+        )
+    if export_payload.get("detached") is not True:
+        raise CommandError(f"Export DRA did not detach in {export_yaml}.")
     return export_payload
 
 
@@ -922,6 +947,11 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.skip_export:
         _record_step(summary, output_json, "export-results", "skipped", reason="--skip-export")
     else:
+        if not args.export_id or not args.export_source_path or not args.export_destination_s3_uri:
+            raise CommandError(
+                "--export-id, --export-source-path, and --export-destination-s3-uri "
+                "are required unless --skip-export is set."
+            )
         export_output_dir.mkdir(parents=True, exist_ok=True)
         export_cmd = [
             "daylily-ec",
@@ -930,21 +960,30 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
             args.cluster_name,
             "--region",
             args.region,
-            "--target-uri",
-            args.export_target_uri,
+            "--export-id",
+            args.export_id,
+            "--source-path",
+            args.export_source_path,
+            "--destination-s3-uri",
+            args.export_destination_s3_uri,
             "--output-dir",
             str(export_output_dir),
         ]
         _run_local_command(summary, output_json, "export-results", export_cmd, env=env)
         export_yaml = export_output_dir / "fsx_export.yaml"
-        export_payload = _validate_export_artifact(export_yaml, args.export_target_uri)
+        export_payload = _validate_export_artifact(
+            export_yaml,
+            expected_source_path=args.export_source_path,
+            expected_destination_s3_uri=args.export_destination_s3_uri,
+        )
         _record_step(
             summary,
             output_json,
             "verify-export-artifact",
             "passed",
             fsx_export_yaml=str(export_yaml),
-            s3_uri=str(export_payload.get("s3_uri") or ""),
+            destination_s3_uri=str(export_payload.get("destination_s3_uri") or ""),
+            source_path=str(export_payload.get("source_path") or ""),
         )
 
     if args.delete_cluster:

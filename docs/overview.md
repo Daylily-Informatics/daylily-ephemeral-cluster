@@ -1,156 +1,90 @@
 # Overview
 
-This repo is an operator-facing control plane for disposable AWS ParallelCluster environments used to run Daylily bioinformatics workflows. The current supported path is repo-driven and Session-Manager-first:
+DayEC is an operator-facing control plane for disposable AWS ParallelCluster environments. It creates the cluster, configures the headnode over Session Manager as `ubuntu`, launches Daylily workflows, and exports selected FSx results back to S3 before teardown.
 
-1. validate the local environment and AWS prerequisites
-2. create the cluster
-3. finish headnode bootstrap over Session Manager as `ubuntu`
-4. stage local inputs into the bucket-backed FSx namespace
-5. launch the workflow in tmux on the headnode
-6. monitor runtime state until the run is complete
-7. export `/fsx/analysis_results/ubuntu` back to S3
-8. tear the cluster down
+## Current Model
+
+The current codebase is DRA-first:
+
+1. `dyec create` renders a ParallelCluster template with FSx for Lustre mounted at `/fsx`.
+2. Cluster creation adds a `reference-data` DRA from the reference bucket `data/` prefix to FSx API path `/data/`, visible as `/fsx/data`.
+3. `dyec mounts create` can attach selected S3 run prefixes as ephemeral run DRAs under `/run_dir_mounts/<mount_id>`, visible as `/fsx/run_dir_mounts/<mount_id>`.
+4. `dyec workflow launch` starts DayOA work in tmux on the headnode and writes outputs under `/fsx/analysis_results/...`.
+5. Operators copy selected outputs to `/fsx/exports/<export_id>/...`.
+6. `dyec export` creates a temporary output DRA, runs an FSx `EXPORT_TO_REPOSITORY` task, writes `fsx_export.yaml`, and detaches the DRA.
+7. `dyec delete` tears down the cluster after export verification.
 
 ## Control Plane
 
-The supported control-plane surfaces are:
+The supported operator surface is the CLI:
 
-- `daylily-ec`
-- `activate`
-- `daylily-ec cluster list`
-- `daylily-ec cluster describe`
-- `daylily-ec cluster wait`
-- `daylily-ec headnode connect`
-- `daylily-ec headnode info`
-- `daylily-ec headnode jobs`
-- `daylily-ec headnode configure`
-- `daylily-ec samples stage`
-- `daylily-ec samples run`
-- `daylily-ec workflow launch`
-- `daylily-ec workflow status`
-- `daylily-ec workflow logs`
-- `daylily-ec state list`
-- `daylily-ec state show`
-- `python -m daylily_ec.ssh_to_ssm_e2e_runner`
-- `bin/utils/ilmn/extract_undetermined_indexes`
+- `dyec preflight`
+- `dyec create`
+- `dyec cluster list|describe|wait`
+- `dyec headnode connect|configure|info|jobs`
+- `dyec samples stage|run`
+- `dyec mounts create|list|describe|verify|delete`
+- `dyec mount rundir`
+- `dyec workflow launch|status|logs`
+- `dyec repositories commands`
+- `dyec export`
+- `dyec exports attach|run|detach`
+- `dyec state list|show`
+- `dyec delete`
 
-`daylily-ec` is the main CLI. It owns:
-
-- environment/runtime introspection
-- preflight
-- cluster create
-- cluster listing/info/wait
-- headnode connect/configure/jobs/info
-- sample staging and catalog-driven stage+run
-- workflow launch/status/logs
-- export
-- delete
-- state inspection
-- pricing snapshots
-
-The `bin/` helpers remain callable during the transition, but new operator workflows should use `daylily-ec ...` commands.
+Historical helper scripts may still exist for packaging or compatibility tests, but current operator docs should use the CLI surface above.
 
 ## Data Plane
 
-The data model is simple on purpose:
+The namespace is intentionally explicit:
 
-- the cluster is temporary
-- the reference bucket is durable
-- FSx for Lustre is the performance layer mounted into the cluster
+| Path | Role |
+|---|---|
+| `/fsx/data` | Reference data from the cluster-created reference DRA |
+| `/fsx/run_dir_mounts/<mount_id>` | Read-oriented run-folder input DRA |
+| `/fsx/analysis_results/...` | Workflow checkout and result workspace |
+| `/fsx/exports/<export_id>` | Temporary export staging namespace |
 
-The staging helper reads a local `analysis_samples.tsv`, validates the referenced sources, uploads or references them in the bucket-backed namespace, and writes workflow manifests that the headnode launcher can consume:
+Run-directory mounts are inputs. They do not define the export destination and are rejected as export sources. Export is a separate output DRA task from `/exports/<export_id>/...` to the requested S3 URI.
 
-- `<timestamp>_samples.tsv`
-- `<timestamp>_units.tsv`
+## Workflow Plane
 
-The manifest is additive and multi-modality. Legacy Illumina rows can still use
-`R1_FQ` / `R2_FQ`, while newer rows can describe ONT, Ultima, PacBio, Roche,
-and explicit hybrid units with the modality-specific columns in the bundled
-template.
+`config/daylily_available_repositories.yaml` is the source of truth for workflow repositories and blessed command profiles. The packaged copy under `daylily_ec/resources/payload/config/` must match it.
 
-Run-level metric files can travel with the staged manifests by passing
-repeatable `--run-metric-staging RUN_UID:PLATFORM:FOFN` options to
-`daylily-ec samples stage` or `daylily-ec samples run`. Each FOFN lists one
-metric file per line. Relative FOFN entries keep their relative path under
-`runs/<RUN_UID>/`; absolute, S3, and FSx entries copy by basename.
+Catalog v2 splits commands by input contract:
 
-The helper prints the remote FSx stage directory. The launcher uses that path through `--stage-dir` so the workflow starts from the exact staged manifest set you just generated.
+- `sample_analysis` commands use `analysis_samples.tsv`; `dyec samples stage` writes `samples.tsv` and `units.tsv`.
+- `run_analysis` commands use `runs.tsv`; run input must be mounted under `/fsx/run_dir_mounts/<mount_id>`.
 
-For Illumina run triage before staging, `bin/utils/ilmn/extract_undetermined_indexes`
-streams Undetermined or Unclassified FASTQs from local paths, S3 URIs, or
-presigned URLs and emits ranked index-pair TSVs. With `--split-fastqs`, it can
-also write one R1/R2 FASTQ pair per selected tag pair.
+The current DayOA catalog pin is `1.0.7` for the repository default and all DayOA command `git_tag` values.
 
-## Headnode Bootstrap Model
+## Headnode Model
 
-The cluster create flow does more than call `pcluster create-cluster`.
+Headnode work is Session-Manager-first:
 
-After infrastructure creation, Daylily:
+- interactive sessions use `dyec headnode connect`
+- command payloads run as `ubuntu`
+- the supported shell is a login bash shell in `/home/ubuntu`
+- `day-clone` clones configured repositories under the FSx analysis root
 
-- resolves the headnode instance
-- waits for Systems Manager readiness
-- configures the headnode over Session Manager
-- installs and validates the user-scoped Daylily bootstrap under `/home/ubuntu`
-- verifies a fresh `ubuntu` login shell
+Manual root sessions or user switching are not part of the supported path.
 
-That last point matters. The supported shell must already be correct when the operator connects. The repo does not treat manual user switching as part of the supported workflow.
+## Receipts
 
-Session Manager is only considered valid when the regional document `SSM-SessionManagerRunShell` is configured to:
+DayEC writes operational artifacts that should be kept with the run record:
 
-- run shell sessions as `ubuntu`
-- start in `/home/ubuntu`
-- source a login shell for `ubuntu`
+- preflight and state files in the DayEC config/state directory
+- local staged `*_samples.tsv` and `*_units.tsv`
+- headnode `/home/ubuntu/daylily-runs/<session>/status.json`
+- headnode `/home/ubuntu/daylily-runs/<session>/tmux.log`
+- local `fsx_export.yaml`
 
-## Workflow Launch Model
+`fsx_export.yaml` is the proof that the explicit export task completed and the temporary export DRA was detached.
 
-`daylily-ec workflow launch` is the supported launcher. It:
+## Further Reading
 
-1. discovers the staged config files from `--stage-dir`
-2. ensures the target repo exists under `/fsx/analysis_results/ubuntu/<destination>/...`
-3. copies staged `samples.tsv` and `units.tsv` into the workflow repo
-4. creates `/home/ubuntu/daylily-runs/<session>/`
-5. writes `launch.sh`, `tmux.log`, and `status.json`
-6. starts the tmux session
-
-`status.json` is the durable machine-readable run receipt for the launcher. It records:
-
-- `session_name`
-- `repo_path`
-- `started_at`
-- `completed_at`
-- `exit_code`
-- `command`
-
-## Create, Export, And E2E Artifacts
-
-The current codebase writes several operator-useful artifacts:
-
-### Create
-
-- preflight report JSON under the Daylily XDG state/config tree
-- state record JSON for create/delete workflows
-- rendered cluster config and related local workflow state
-
-### Workflow launch
-
-- stage manifest files in the chosen local `--config-dir`
-- remote workflow run directory under `/home/ubuntu/daylily-runs/<session>/`
-
-### Export
-
-- `fsx_export.yaml` in the chosen `--output-dir`
-
-### E2E runner
-
-- generated config copy for the run
-- per-stage JSON summary, defaulting to `tmp-e2e-results/<cluster>.json`
-- stage config directory and export output directory when not overridden
-
-## Mental Model
-
-If you remember only four things, remember these:
-
-1. `source ./activate` is the supported way into the local toolchain.
-2. `daylily-ec create` is not done until the Daylily post-create headnode steps succeed.
-3. `daylily-ec headnode connect` is Session Manager into the `ubuntu` login shell.
-4. Export is the handoff from ephemeral compute back to durable storage.
+- [dra_fsx_strategy.md](dra_fsx_strategy.md)
+- [quickest_start.md](quickest_start.md)
+- [operations.md](operations.md)
+- [cli_reference.md](cli_reference.md)
+- [monitoring_and_troubleshooting.md](monitoring_and_troubleshooting.md)

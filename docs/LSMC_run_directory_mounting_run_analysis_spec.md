@@ -1,4 +1,9 @@
-# LSMC Run Directory Mounting & Run-Level Analysis Specification
+# Historical: LSMC Run Directory Mounting & Run-Level Analysis Specification
+
+> Historical implementation specification. This file is preserved for design
+> provenance and cross-repo context. It is no longer the current DayEC operator
+> guide. Use `docs/dra_fsx_strategy.md`, `docs/operations.md`, and
+> `docs/cli_reference.md` for current DRA, mount, export, and catalog behavior.
 
 **Status:** implementation specification v0.1  
 **Date:** 2026-05-17  

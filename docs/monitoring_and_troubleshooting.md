@@ -1,103 +1,97 @@
 # Monitoring And Troubleshooting
 
-Use this runbook when the cluster exists but something in the supported lifecycle is failing or unclear.
+Use this when a current DayEC cluster exists but behavior is unclear or failing.
 
-## 1. Confirm Local Runtime Health
-
-Start locally:
+## 1. Local Runtime
 
 ```bash
 source ./activate
-daylily-ec runtime status
-daylily-ec runtime check
-daylily-ec runtime explain
-daylily-ec info
+dyec runtime status
+dyec runtime check
+dyec runtime explain
+dyec info
 ```
 
-If the local runtime is broken, fix that first.
-
-## 2. Confirm Cluster State
-
-Use both the Daylily view and the ParallelCluster view:
+If the local runtime points at the wrong editable checkout, refresh it:
 
 ```bash
-daylily-ec cluster list --profile "$AWS_PROFILE" --region "$REGION"
-pcluster describe-cluster --region "$REGION" -n "$CLUSTER_NAME"
+python -m pip install -e .
 ```
 
-Key point: infrastructure existence does not prove Daylily readiness. `daylily-ec create` still has post-create bootstrap work to finish after the underlying cluster first appears.
-
-## 3. Session Manager Readiness
-
-If connect fails, check the document:
+## 2. Cluster State
 
 ```bash
-aws ssm get-document \
-  --name SSM-SessionManagerRunShell \
-  --document-format JSON \
-  --query Content \
-  --output text \
-  --region "$REGION" \
-  --profile "$AWS_PROFILE"
+dyec cluster list --profile "$AWS_PROFILE" --region "$REGION" --verbose
+pcluster describe-cluster --region "$REGION" --cluster-name "$CLUSTER_NAME"
 ```
 
-Check the local plugin:
+Infrastructure existence is not the final readiness point. DayEC readiness is when `dyec create` has returned after headnode configuration and validation.
+
+## 3. Headnode Access
 
 ```bash
-session-manager-plugin
-```
-
-If the shell opens but the environment feels wrong, reconnect and verify:
-
-```bash
-whoami
-command -v day-clone
-```
-
-Expected:
-
-- `ubuntu`
-- `day-clone` on `PATH`
-
-## 4. Headnode Shell Bootstrap Problems
-
-When the login shell is incomplete:
-
-```bash
-daylily-ec headnode configure \
+dyec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
 ```
 
-Then reconnect and check again:
+Expected:
 
 ```bash
 whoami
+pwd
 command -v day-clone
-command -v tmux
 ```
 
-The supported path does not continue from another user context.
+`whoami` must be `ubuntu`.
 
-## 5. Workflow Monitoring
-
-The current launcher creates a durable run directory on the headnode:
-
-```text
-/home/ubuntu/daylily-runs/<session>/
-```
-
-Inspect it:
+If the shell is incomplete:
 
 ```bash
-daylily-ec --json workflow status \
+dyec headnode configure \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME"
+```
+
+## 4. Reference DRA
+
+The cluster template creates `/fsx/data` from the reference bucket `data/` prefix. If reference files are missing, check:
+
+```bash
+dyec headnode connect --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+ls -lah /fsx/data
+```
+
+Bootstrap waits for required reference entries and hard-fails if the DRA never becomes visible.
+
+## 5. Run DRA Mounts
+
+List and verify run mounts:
+
+```bash
+dyec --json mounts list --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec --json mounts verify --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --mount-id RUN123
+```
+
+Common failures:
+
+- source S3 prefix overlaps an active DRA
+- FSx path overlaps an active DRA
+- filesystem was created with incompatible repository configuration
+- headnode path under `/fsx/run_dir_mounts/<mount_id>` is not usable
+
+## 6. Workflow State
+
+```bash
+dyec --json workflow status \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --session <session>
 
-daylily-ec workflow logs \
+dyec workflow logs \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
@@ -105,105 +99,55 @@ daylily-ec workflow logs \
   --lines 100
 ```
 
-Attach if needed:
+On the headnode:
 
 ```bash
 tmux ls
 tmux attach -t <session>
-```
-
-Slurm checks:
-
-```bash
 squeue
 sacct | tail -n 20
 ```
 
-## 6. Staging Issues
+Run-state files live under `/home/ubuntu/daylily-runs/<session>/`.
 
-If workflow launch cannot find manifests or staged data, rerun staging and pay attention to the printed remote stage directory:
+## 7. Export Failures
+
+Export reads from `/exports/<export_id>/...` and writes through an explicit temporary output DRA.
 
 ```bash
-daylily-ec samples stage "$ANALYSIS_SAMPLES" \
+dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --reference-bucket "$REF_BUCKET" \
-  --config-dir "$STAGE_CFG_DIR"
-```
-
-Local manifest checks:
-
-```bash
-ls -lh "$STAGE_CFG_DIR"
-head -n 5 "$STAGE_CFG_DIR"/*_samples.tsv
-head -n 5 "$STAGE_CFG_DIR"/*_units.tsv
-```
-
-Then relaunch using the exact printed `--stage-dir`.
-
-## 7. Export Verification
-
-Run export:
-
-```bash
-daylily-ec export \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME" \
-  --target-uri analysis_results/ubuntu \
+  --cluster "$CLUSTER_NAME" \
+  --export-id "$EXPORT_ID" \
+  --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" \
+  --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
-```
 
-Then inspect:
-
-```bash
 cat "$EXPORT_DIR/fsx_export.yaml"
 ```
 
-If export failed, that file should tell you whether the problem was path normalization, FSx task startup, or task completion.
+If the export failed, `fsx_export.yaml` records the phase, failure message, source path, destination S3 URI, task id when available, and detach state.
 
-## 8. Teardown Checks
+## 8. Delete Checks
 
-Before delete:
+Before deletion:
 
-- verify export succeeded
-- verify the destination S3 URI looks correct
-
-Delete:
-
-```bash
-daylily-ec delete --dry-run \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME"
-
-daylily-ec delete \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME"
-```
-
-After delete, confirm:
+- run mounts that are no longer needed should be detached
+- selected results should be exported
+- `fsx_export.yaml` should show `status: success` and `detached: true`
 
 ```bash
-daylily-ec cluster list --profile "$AWS_PROFILE" --region "$REGION"
+dyec delete --dry-run --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec delete --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
-If the cluster is still present, inspect the ParallelCluster side directly:
-
-```bash
-pcluster describe-cluster --region "$REGION" -n "$CLUSTER_NAME"
-```
-
-## 9. When To Stop Guessing
-
-Use the following escalation order:
+## 9. Escalation Order
 
 1. local runtime checks
-2. preflight with `--debug`
-3. `daylily-ec cluster list` plus `pcluster describe-cluster`
+2. `dyec preflight --debug`
+3. `dyec cluster list` and `pcluster describe-cluster`
 4. Session Manager document verification
-5. headnode run-state inspection under `/home/ubuntu/daylily-runs/`
-6. export receipt inspection
-
-That path stays aligned with the actual code rather than drifting into folklore.
+5. run mount list/verify
+6. workflow `status.json` and `tmux.log`
+7. `fsx_export.yaml`

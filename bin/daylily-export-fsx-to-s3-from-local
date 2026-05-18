@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Compatibility wrapper for ``daylily-ec export``."""
+"""Forward explicit DRA export invocations to ``daylily-ec export``."""
 
 from __future__ import annotations
 
@@ -12,8 +12,11 @@ from pathlib import Path
 
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--cluster", "--cluster-name", dest="cluster_name", required=True)
-    parser.add_argument("--target-uri", required=True)
+    parser.add_argument("--cluster", "--cluster-name", dest="cluster_name")
+    parser.add_argument("--fsx-file-system-id")
+    parser.add_argument("--export-id", required=True)
+    parser.add_argument("--source-path", required=True)
+    parser.add_argument("--destination-s3-uri", required=True)
     parser.add_argument("--region", required=True)
     parser.add_argument("--profile")
     parser.add_argument("--output-dir", required=True)
@@ -39,15 +42,21 @@ def main(argv: list[str] | None = None) -> int:
     cmd = [
         *_resolve_entrypoint(),
         "export",
-        "--cluster-name",
-        args.cluster_name,
-        "--target-uri",
-        args.target_uri,
+        "--export-id",
+        args.export_id,
+        "--source-path",
+        args.source_path,
+        "--destination-s3-uri",
+        args.destination_s3_uri,
         "--region",
         args.region,
         "--output-dir",
         str(Path(args.output_dir).expanduser()),
     ]
+    if args.cluster_name:
+        cmd.extend(["--cluster-name", args.cluster_name])
+    if args.fsx_file_system_id:
+        cmd.extend(["--fsx-file-system-id", args.fsx_file_system_id])
     if args.profile:
         cmd.extend(["--profile", args.profile])
     if args.verbose:

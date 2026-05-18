@@ -159,19 +159,35 @@ def test_record_step_writes_machine_readable_summary(tmp_path: Path) -> None:
     ]
 
 
-def test_validate_export_artifact_requires_success_and_expected_target(tmp_path: Path) -> None:
-    export_yaml = tmp_path / "fsx_export.yaml"
-    export_yaml.write_text(
+def _write_success_export_receipt(path: Path) -> None:
+    path.write_text(
         "fsx_export:\n"
+        "  schema_version: 2\n"
         "  status: success\n"
-        "  s3_uri: s3://bucket/FSxLustre20260412T103705Z/analysis_results/ubuntu\n",
+        "  fsx_file_system_id: fs-123\n"
+        "  association_id: dra-export\n"
+        "  task_id: task-123\n"
+        "  task_lifecycle: SUCCEEDED\n"
+        "  detached: true\n"
+        "  source_path: /exports/export-1/analysis_results/ubuntu/\n"
+        "  destination_s3_uri: s3://bucket/exports/export-1/\n",
         encoding="utf-8",
     )
 
-    payload = runner_module._validate_export_artifact(export_yaml, "analysis_results/ubuntu")
+
+def test_validate_export_artifact_requires_success_and_expected_target(tmp_path: Path) -> None:
+    export_yaml = tmp_path / "fsx_export.yaml"
+    _write_success_export_receipt(export_yaml)
+
+    payload = runner_module._validate_export_artifact(
+        export_yaml,
+        expected_source_path="/exports/export-1/analysis_results/ubuntu/",
+        expected_destination_s3_uri="s3://bucket/exports/export-1/",
+    )
 
     assert payload["status"] == "success"
-    assert payload["s3_uri"].endswith("analysis_results/ubuntu")
+    assert payload["task_id"] == "task-123"
+    assert payload["detached"] is True
 
 
 def test_wait_for_workflow_completion_passes_on_zero_exit(monkeypatch, tmp_path: Path) -> None:
@@ -385,12 +401,7 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
             return stdout
         if name == "export-results":
             export_dir.mkdir(parents=True, exist_ok=True)
-            (export_dir / "fsx_export.yaml").write_text(
-                "fsx_export:\n"
-                "  status: success\n"
-                "  s3_uri: s3://bucket/FSxLustre20260412T103705Z/analysis_results/ubuntu\n",
-                encoding="utf-8",
-            )
+            _write_success_export_receipt(export_dir / "fsx_export.yaml")
         runner_module._record_step(summary, output_path, name, "passed", command=" ".join(command))
         return ""
 
@@ -414,6 +425,12 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
             str(analysis_samples),
             "--export-output-dir",
             str(export_dir),
+            "--export-id",
+            "export-1",
+            "--export-source-path",
+            "/exports/export-1/analysis_results/ubuntu/",
+            "--export-destination-s3-uri",
+            "s3://bucket/exports/export-1/",
             "--output-json",
             str(output_json),
             "--workflow-live",
@@ -454,7 +471,10 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
     assert "deep" in commands_by_name["launch-workflow"]
     assert "--jobs" in commands_by_name["launch-workflow"]
     assert "6" in commands_by_name["launch-workflow"]
-    assert "analysis_results/ubuntu" in commands_by_name["export-results"]
+    assert any(
+        "analysis_results/ubuntu" in value
+        for value in commands_by_name["export-results"]
+    )
     assert calls.count("smoke-interactive-session") == 1
     assert "create-cluster" in calls
     assert "export-results" in calls
@@ -522,12 +542,7 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
             return stdout
         if name == "export-results":
             export_dir.mkdir(parents=True, exist_ok=True)
-            (export_dir / "fsx_export.yaml").write_text(
-                "fsx_export:\n"
-                "  status: success\n"
-                "  s3_uri: s3://bucket/FSxLustre20260412T103705Z/analysis_results/ubuntu\n",
-                encoding="utf-8",
-            )
+            _write_success_export_receipt(export_dir / "fsx_export.yaml")
         runner_module._record_step(summary, output_path, name, "passed", command=" ".join(command))
         return ""
 
@@ -548,6 +563,12 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
             str(analysis_samples),
             "--export-output-dir",
             str(export_dir),
+            "--export-id",
+            "export-1",
+            "--export-source-path",
+            "/exports/export-1/analysis_results/ubuntu/",
+            "--export-destination-s3-uri",
+            "s3://bucket/exports/export-1/",
             "--output-json",
             str(output_json),
             "--workflow-live",
@@ -627,12 +648,7 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
             return stdout
         if name == "export-results":
             export_dir.mkdir(parents=True, exist_ok=True)
-            (export_dir / "fsx_export.yaml").write_text(
-                "fsx_export:\n"
-                "  status: success\n"
-                "  s3_uri: s3://bucket/FSxLustre20260412T103705Z/analysis_results/ubuntu\n",
-                encoding="utf-8",
-            )
+            _write_success_export_receipt(export_dir / "fsx_export.yaml")
         runner_module._record_step(summary, output_path, name, "passed", command=" ".join(command))
         return ""
 
@@ -653,6 +669,12 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
             str(analysis_samples),
             "--export-output-dir",
             str(export_dir),
+            "--export-id",
+            "export-1",
+            "--export-source-path",
+            "/exports/export-1/analysis_results/ubuntu/",
+            "--export-destination-s3-uri",
+            "s3://bucket/exports/export-1/",
             "--output-json",
             str(output_json),
             "--workflow-live",

@@ -2,12 +2,21 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import yaml
+
 from daylily_ec.aws.context import AWSContext
 from daylily_ec.render.renderer import write_init_artifacts
 from daylily_ec.resources import resource_path
 from daylily_ec.workflow import create_cluster
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+ACTIVE_CLUSTER_TEMPLATES = (
+    "config/day_cluster/prod_cluster.yaml",
+    "config/day_cluster/prod_cluster_dragen.yaml",
+    "config/day_cluster/prod_cluster_variant.yaml",
+    "config/day_cluster/cromwell_test.yaml",
+    "config/day_cluster/regions/all_clusters.yaml",
+)
 
 
 def test_create_workflow_loads_default_config_outside_repo(tmp_path, monkeypatch):
@@ -63,3 +72,38 @@ def test_packaged_global_config_matches_source_config() -> None:
     packaged = REPO_ROOT / "daylily_ec/resources/payload/config/daylily_cli_global.yaml"
 
     assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")
+
+
+def test_active_cluster_templates_use_reference_data_dra_only() -> None:
+    for relative_path in ACTIVE_CLUSTER_TEMPLATES:
+        text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        assert "ImportPath:" not in text
+        assert "ExportPath:" not in text
+        payload = yaml.safe_load(text)
+        fsx_settings = next(
+            item["FsxLustreSettings"]
+            for item in payload["SharedStorage"]
+            if item["StorageType"] == "FsxLustre"
+        )
+        assert "AutoExportPolicy" not in fsx_settings
+        assert "AutoImportPolicy" not in fsx_settings
+        assert fsx_settings["DataRepositoryAssociations"] == [
+            {
+                "Name": "reference-data",
+                "FileSystemPath": "/data/",
+                "DataRepositoryPath": fsx_settings["DataRepositoryAssociations"][0][
+                    "DataRepositoryPath"
+                ],
+                "BatchImportMetaDataOnCreate": True,
+                "AutoImportPolicy": ["NEW", "CHANGED", "DELETED"],
+            }
+        ]
+
+
+def test_packaged_cluster_templates_match_source_templates() -> None:
+    for relative_path in ACTIVE_CLUSTER_TEMPLATES:
+        source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        packaged = (
+            REPO_ROOT / "daylily_ec/resources/payload" / relative_path
+        ).read_text(encoding="utf-8")
+        assert packaged == source

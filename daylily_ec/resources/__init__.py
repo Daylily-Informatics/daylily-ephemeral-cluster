@@ -58,6 +58,20 @@ def _validate_resources_dir(root: Path) -> None:
         )
 
 
+def _resources_need_refresh(dest: Path, src: Path) -> bool:
+    for rel in (
+        "config/daylily_available_repositories.yaml",
+        "config/day_cluster/prod_cluster.yaml",
+    ):
+        dest_file = dest / rel
+        src_file = src / rel
+        if not dest_file.is_file() or not src_file.is_file():
+            return True
+        if dest_file.read_bytes() != src_file.read_bytes():
+            return True
+    return False
+
+
 def ensure_extracted() -> Path:
     """Return the filesystem directory containing extracted resources.
 
@@ -73,13 +87,13 @@ def ensure_extracted() -> Path:
     dest = _xdg_config_home() / "daylily" / "resources" / version
     marker = dest / ".complete"
 
-    if marker.is_file():
-        return dest
-
     payload = ir.files(__name__).joinpath("payload")
     with ir.as_file(payload) as src:
+        if marker.is_file() and not _resources_need_refresh(dest, src):
+            return dest
+
         # If a previous extraction partially succeeded, replace it cleanly.
-        if dest.exists() and not marker.exists():
+        if dest.exists():
             shutil.rmtree(dest, ignore_errors=True)
 
         dest.parent.mkdir(parents=True, exist_ok=True)

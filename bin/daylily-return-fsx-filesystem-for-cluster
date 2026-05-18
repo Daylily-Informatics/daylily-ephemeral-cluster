@@ -6,10 +6,10 @@ usage() {
     cat <<'EOF'
 Usage: daylily-return-fsx-filesystem-for-cluster <cluster_name> <region>
 
-Print the FSx filesystem id and import/export S3 paths associated with a cluster.
+Print FSx filesystem ids and current Data Repository Associations for a cluster.
 
 Environment:
-  AWS_PROFILE  AWS CLI profile to use (defaults to "default")
+  AWS_PROFILE  AWS CLI profile to use
 EOF
 }
 
@@ -20,9 +20,9 @@ fi
 
 CLUSTER_NAME="${1:-}"
 REGION="${2:-}"
-AWS_PROFILE="${AWS_PROFILE:-default}"
+AWS_PROFILE="${AWS_PROFILE:-}"
 
-if [[ -z "$CLUSTER_NAME" || -z "$REGION" ]]; then
+if [[ -z "$CLUSTER_NAME" || -z "$REGION" || -z "$AWS_PROFILE" ]]; then
     usage
     exit 1
 fi
@@ -40,14 +40,15 @@ FSX_IDS=$(aws fsx describe-file-systems \
     --output text)
  
 
-IMPORT_EXPORT=$(aws fsx describe-file-systems \
-    --profile "$AWS_PROFILE" \
-    --region "$REGION" \
-    --query "FileSystems[].LustreConfiguration.DataRepositoryConfiguration.[ImportPath, ExportPath]" \
-    --output text )
-
-
-
-# Output the FSx IDs
 echo "FSx IDs associated with cluster '$CLUSTER_NAME':" >&2
-echo -e "$FSX_IDS\t"$IMPORT_EXPORT
+echo "$FSX_IDS"
+
+for fsx_id in $FSX_IDS; do
+    echo "Data Repository Associations for $fsx_id:" >&2
+    aws fsx describe-data-repository-associations \
+        --profile "$AWS_PROFILE" \
+        --region "$REGION" \
+        --filters Name=file-system-id,Values="$fsx_id" \
+        --query "Associations[].{AssociationId:AssociationId,FileSystemPath:FileSystemPath,DataRepositoryPath:DataRepositoryPath,Lifecycle:Lifecycle}" \
+        --output table
+done

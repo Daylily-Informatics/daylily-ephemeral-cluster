@@ -944,16 +944,31 @@ def cluster_wait(
 
 
 def export(
-    cluster_name: str = typer.Option(
-        ...,
+    cluster_name: Optional[str] = typer.Option(
+        None,
         "--cluster-name",
         "--cluster",
-        help="ParallelCluster name.",
+        help="ParallelCluster name used to resolve the FSx file system.",
     ),
-    target_uri: str = typer.Option(
+    fsx_file_system_id: Optional[str] = typer.Option(
+        None,
+        "--fsx-file-system-id",
+        help="Explicit FSx file system id. Required when --cluster is omitted.",
+    ),
+    export_id: str = typer.Option(
         ...,
-        "--target-uri",
-        help="FSx relative path or S3 URI to export.",
+        "--export-id",
+        help="Safe export id mounted under /fsx/exports/<export-id>/.",
+    ),
+    source_path: str = typer.Option(
+        ...,
+        "--source-path",
+        help="Explicit FSx API path to export, under /exports/<export-id>/.",
+    ),
+    destination_s3_uri: str = typer.Option(
+        ...,
+        "--destination-s3-uri",
+        help="S3 URI backing the temporary export DRA.",
     ),
     region: str = typer.Option(
         ...,
@@ -975,8 +990,10 @@ def export(
         "--verbose",
         help="Enable verbose export logging.",
     ),
+    wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for DRA/task/detach."),
+    timeout_seconds: int = typer.Option(3600, "--timeout-seconds", help="Wait timeout."),
 ) -> None:
-    """Export FSx results back to the backing S3 repository."""
+    """Export FSx outputs through an explicit temporary DRA."""
 
     from daylily_ec.workflow.export_data import (
         ExportOptions,
@@ -989,13 +1006,141 @@ def export(
     rc = run_export_workflow(
         ExportOptions(
             cluster_name=cluster_name,
-            target_uri=target_uri,
+            fsx_file_system_id=fsx_file_system_id,
+            export_id=export_id,
+            source_path=source_path,
+            destination_s3_uri=destination_s3_uri,
             region=region,
             profile=profile,
             output_dir=output_dir.expanduser().resolve(),
+            wait=wait,
+            timeout_seconds=timeout_seconds,
         )
     )
     raise typer.Exit(rc)
+
+
+def _emit_export_payload(payload: Any, *, text: str) -> None:
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(text)
+
+
+def exports_attach(
+    cluster_name: Optional[str] = typer.Option(None, "--cluster-name", "--cluster"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    export_id: str = typer.Option(..., "--export-id"),
+    destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
+) -> None:
+    """Attach a temporary output DRA under /fsx/exports/<export-id>/."""
+
+    from daylily_ec.workflow.export_data import attach_export_dra
+
+    try:
+        record = attach_export_dra(
+            cluster_name=cluster_name,
+            fsx_file_system_id=fsx_file_system_id,
+            export_id=export_id,
+            destination_s3_uri=destination_s3_uri,
+            region=region,
+            profile=profile,
+            wait=wait,
+            timeout_seconds=timeout_seconds,
+        )
+        _emit_export_payload(
+            record.to_payload(),
+            text=(
+                f"Export DRA attached: {record.association_id}\n"
+                f"Headnode path: {record.headnode_path}\n"
+                f"S3 destination: {record.destination_s3_uri}"
+            ),
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def exports_run(
+    cluster_name: Optional[str] = typer.Option(None, "--cluster-name", "--cluster"),
+    fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
+    export_id: str = typer.Option(..., "--export-id"),
+    source_path: str = typer.Option(..., "--source-path"),
+    destination_s3_uri: str = typer.Option(..., "--destination-s3-uri"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    timeout_seconds: int = typer.Option(3600, "--timeout-seconds"),
+) -> None:
+    """Run an explicit FSx export task for /exports/<export-id>/ paths."""
+
+    from daylily_ec.workflow.export_data import (
+        _create_session,
+        resolve_export_fsx_id,
+        run_export_task,
+    )
+
+    try:
+        client = _create_session(region, profile).client("fsx")
+        resolved_fsx_id = resolve_export_fsx_id(
+            client,
+            cluster_name=cluster_name,
+            fsx_file_system_id=fsx_file_system_id,
+        )
+        payload = run_export_task(
+            fsx_file_system_id=resolved_fsx_id,
+            export_id=export_id,
+            source_path=source_path,
+            destination_s3_uri=destination_s3_uri,
+            wait=wait,
+            timeout_seconds=timeout_seconds,
+            fsx_client=client,
+        )
+        payload["fsx_file_system_id"] = resolved_fsx_id
+        _emit_export_payload(
+            payload,
+            text=(
+                f"Export task started: {payload['task_id']}\n"
+                f"Lifecycle: {payload['task_lifecycle']}\n"
+                f"Report path: {payload['report_path']}"
+            ),
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+
+def exports_detach(
+    association_id: str = typer.Option(..., "--association-id"),
+    region: str = typer.Option(..., "--region"),
+    profile: Optional[str] = typer.Option(None, "--profile"),
+    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
+) -> None:
+    """Detach an output DRA without deleting cached FSx data."""
+
+    from daylily_ec.workflow.export_data import detach_export_dra
+
+    try:
+        payload = detach_export_dra(
+            association_id=association_id,
+            region=region,
+            profile=profile,
+            wait=wait,
+            timeout_seconds=timeout_seconds,
+        )
+        _emit_export_payload(
+            payload,
+            text=(
+                f"Export DRA detached: {association_id}\n"
+                f"Lifecycle: {payload['detach_lifecycle']}\n"
+                "DeleteDataInFileSystem: false"
+            ),
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
 
 
 def delete(
@@ -2372,7 +2517,8 @@ def mounts_delete(
 
 
 def mounts_verify(
-    mount_id: str = typer.Option(..., "--mount-id"),
+    mount_id: Optional[str] = typer.Option(None, "--mount-id"),
+    association_id: Optional[str] = typer.Option(None, "--association-id"),
     cluster: str = typer.Option(..., "--cluster", "--cluster-name"),
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
     region: str = typer.Option(..., "--region"),
@@ -2380,13 +2526,14 @@ def mounts_verify(
     platform: Optional[str] = typer.Option(None, "--platform"),
     timeout_seconds: int = typer.Option(300, "--timeout-seconds"),
 ) -> None:
-    """Verify a run mount path on the cluster headnode."""
+    """Verify a run mount path is usable on the cluster headnode."""
 
     from daylily_ec.run_mounts import format_mount_verified, verify_run_mount
 
     try:
         payload = verify_run_mount(
             mount_id=mount_id,
+            association_id=association_id,
             cluster_name=cluster,
             fsx_file_system_id=fsx_file_system_id,
             region=region,
@@ -2668,7 +2815,7 @@ def register(registry, cli_spec) -> None:
         registry,
         "export",
         export,
-        REQUIRED_MUTATING_LONG_RUNNING,
+        required_policy(mutates_state=True, long_running=True),
     )
     register_root_command(
         registry,
@@ -2758,6 +2905,28 @@ def register(registry, cli_spec) -> None:
         "repositories",
         "Repository catalog and blessed analysis command helpers.",
         [("commands", repositories_commands, EXEMPT_JSON)],
+    )
+    register_group_commands(
+        registry,
+        "exports",
+        "Explicit FSx output DRA export helpers.",
+        [
+            (
+                "attach",
+                exports_attach,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "run",
+                exports_run,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "detach",
+                exports_detach,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+        ],
     )
     register_group_commands(
         registry,

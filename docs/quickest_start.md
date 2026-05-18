@@ -1,15 +1,15 @@
 # Quickest Start
 
-This is the supported operator walkthrough with sanity checks after each stage. It is longer than [ultra_rapid_start.md](ultra_rapid_start.md), but it is the better first runbook for a fresh operator session.
+This is the guided current operator path. It includes checks after each stage and uses the DRA-backed FSx model.
 
-## 1. Activate The Repo Environment
+## 1. Activate The Checkout
 
 ```bash
 cd /path/to/daylily-ephemeral-cluster
 source ./activate
-daylily-ec version
-daylily-ec runtime status
-daylily-ec info
+dyec version
+dyec runtime status
+dyec info
 aws --version
 pcluster version
 session-manager-plugin
@@ -17,12 +17,11 @@ session-manager-plugin
 
 Expected:
 
-- `daylily-ec` resolves successfully
-- `dyec` resolves successfully as the short alias for the same CLI
+- `dyec` and `daylily-ec` resolve to the same CLI
 - runtime backend is `day-ec-conda`
-- `aws`, `pcluster`, and `session-manager-plugin` are available in the shell
+- `aws`, `pcluster`, and `session-manager-plugin` are available
 
-## 2. Set The Working Variables
+## 2. Set Variables
 
 ```bash
 export AWS_PROFILE=daylily-service-lsmc
@@ -31,140 +30,136 @@ export REGION_AZ=us-west-2d
 export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
 export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
+export ANALYSIS_BUCKET=s3://lsmc-dayoa-analysis-results-us-west-2
 export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
 export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
 export EXPORT_DIR="$PWD/tmp-export/$CLUSTER_NAME"
+export EXPORT_ID="${CLUSTER_NAME}-results"
+export EXPORT_S3_URI="$ANALYSIS_BUCKET/$EXPORT_ID/"
 ```
 
-Sanity check:
+Sanity checks:
 
 ```bash
 aws sts get-caller-identity --profile "$AWS_PROFILE"
 aws s3 ls "$REF_BUCKET" --profile "$AWS_PROFILE" --region "$REGION"
 ```
 
-## 3. Run Preflight
+## 3. Preflight
 
 ```bash
-daylily-ec preflight \
+dyec preflight \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG"
 ```
 
-What preflight is checking:
+Preflight checks identity, IAM, quotas, repository catalog validity, bucket access, network resources, and rendered cluster demand.
 
-- local toolchain
-- AWS identity
-- IAM permissions
-- config validity
-- quota headroom
-- bucket discovery/access
-- baseline network resources and region policy selection
-
-Do not skip this unless you enjoy slow failures later.
-
-## 4. Create The Cluster
+## 4. Create
 
 ```bash
-daylily-ec create \
+dyec create \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
   --config "$DAY_EX_CFG"
 ```
 
-Important:
+Wait for the CLI to return successfully. The cluster is not DayEC-ready just because ParallelCluster reports that infrastructure exists.
 
-- this may take a long time
-- `pcluster` success is not the final readiness point
-- wait for the Daylily CLI to return successfully
-
-Sanity checks after create:
+Sanity checks:
 
 ```bash
-daylily-ec cluster list --profile "$AWS_PROFILE" --region "$REGION"
+dyec cluster list --profile "$AWS_PROFILE" --region "$REGION" --verbose
 
-daylily-ec headnode connect \
+dyec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
 ```
 
-Once connected, verify the login shell:
+On the headnode:
 
 ```bash
 whoami
+pwd
 command -v day-clone
 command -v tmux
-command -v python3
 exit
 ```
 
-Expected:
+Expected user is `ubuntu` and working directory is `/home/ubuntu`.
 
-- `whoami` prints `ubuntu`
-- `day-clone` resolves on `PATH`
+## 5. Sample-Manifold Analysis
 
-## 5. Stage The Analysis Inputs From The Laptop
+Use this path when inputs are represented by `analysis_samples.tsv`.
 
 ```bash
-daylily-ec samples stage "$ANALYSIS_SAMPLES" \
+dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --reference-bucket "$REF_BUCKET" \
   --config-dir "$STAGE_CFG_DIR"
 ```
 
-This prints:
-
-- the remote FSx stage directory
-- the staged file list
-- the generated manifest filenames
-
-Manifest notes:
-
-- start from `etc/analysis_samples_template.tsv`
-- legacy Illumina rows still work with `R1_FQ` / `R2_FQ`
-- ONT, Ultima, PacBio, Roche, and hybrid rows use the modality-specific columns on the same TSV header
-- optional run-level metric sidecars use repeatable `--run-metric-staging RUN_UID:PLATFORM:FOFN` options and are copied under `runs/<RUN_UID>/` in the remote stage
-
-Sanity checks:
-
-```bash
-ls -1 "$STAGE_CFG_DIR"
-```
-
-You should see one `*_samples.tsv` and one `*_units.tsv`.
-
-## 6. Launch The Workflow
-
 Use the exact remote stage directory printed by the staging helper:
 
 ```bash
-daylily-ec workflow launch \
+dyec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination dayoa
+  --destination dayoa \
+  --git-tag 1.0.7
 ```
 
-The launcher prints:
+## 6. Run-Folder Analysis
 
-- `__DAYLILY_SESSION__`
-- `__DAYLILY_RUN_DIR__`
-- `__DAYLILY_REPO_PATH__`
-
-Sanity checks:
+Use this path when raw run directories should stay in S3 and be read through an ephemeral run DRA.
 
 ```bash
-daylily-ec --json workflow status \
+dyec --json mounts create \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --s3-uri "s3://sequencer-run-bucket/runs/RUN123/" \
+  --mount-id RUN123 \
+  --run-id RUN123 \
+  --platform ILMN \
+  --read-only \
+  --wait
+
+dyec --json mounts verify \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --mount-id RUN123
+```
+
+Create a local `runs.tsv` for DayOA run-analysis commands, then launch:
+
+```bash
+dyec workflow launch \
+  --profile "$AWS_PROFILE" \
+  --region "$REGION" \
+  --cluster "$CLUSTER_NAME" \
+  --run-context-file ./runs.tsv \
+  --destination run-qc \
+  --git-tag 1.0.7 \
+  --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
+```
+
+## 7. Monitor
+
+```bash
+dyec --json workflow status \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --session <session>
 
-daylily-ec workflow logs \
+dyec workflow logs \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
@@ -172,38 +167,49 @@ daylily-ec workflow logs \
   --lines 50
 ```
 
-## 7. Export Results
+## 8. Export Selected Results
+
+Copy only selected outputs into the export namespace on the headnode:
 
 ```bash
-daylily-ec export \
+mkdir -p /fsx/exports/$EXPORT_ID/analysis_results/ubuntu/
+cp -a /fsx/analysis_results/ubuntu/<analysis-run-id>/ /fsx/exports/$EXPORT_ID/analysis_results/ubuntu/
+```
+
+Then export from the operator machine:
+
+```bash
+dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME" \
-  --target-uri analysis_results/ubuntu \
+  --cluster "$CLUSTER_NAME" \
+  --export-id "$EXPORT_ID" \
+  --source-path "/exports/$EXPORT_ID/analysis_results/ubuntu/" \
+  --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 
 cat "$EXPORT_DIR/fsx_export.yaml"
 ```
 
-Expected:
+Expected receipt values:
 
 - `status: success`
-- an `s3_uri` pointing under the filesystem export root
+- `detached: true`
+- `source_path` under `/exports/<export_id>/`
+- `destination_s3_uri` matching the requested analysis bucket/prefix
 
-## 8. Delete The Cluster
+## 9. Delete
 
 Delete only after export verification:
 
 ```bash
-daylily-ec delete --dry-run \
+dyec delete --dry-run \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME"
+  --cluster "$CLUSTER_NAME"
 
-daylily-ec delete \
+dyec delete \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --cluster-name "$CLUSTER_NAME"
+  --cluster "$CLUSTER_NAME"
 ```
-
-If you want the longer debugging and monitoring playbook, continue with [operations.md](operations.md) and [monitoring_and_troubleshooting.md](monitoring_and_troubleshooting.md).

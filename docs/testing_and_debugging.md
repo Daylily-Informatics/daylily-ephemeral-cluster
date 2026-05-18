@@ -1,91 +1,85 @@
 # Testing And Debugging
 
-This repo has three distinct validation layers:
+This repo has four validation layers:
 
-1. local environment/runtime checks
-2. unit and policy tests
-3. AWS-backed end-to-end validation
+1. local environment checks
+2. unit and contract tests
+3. static sweeps for stale docs/config
+4. optional AWS-backed end-to-end validation
 
-## Build And Activate `DAY-EC`
-
-The supported checkout entry point is:
+## Activate
 
 ```bash
 source ./activate
-```
-
-Quick sanity checks:
-
-```bash
-daylily-ec version
-daylily-ec runtime status
+dyec version
+dyec runtime status
 aws --version
 pcluster version
 session-manager-plugin
 ```
 
-If that shell is wrong, fix the environment first. Do not debug AWS behavior from a broken local toolchain.
-
-## Targeted Pytest Runs
-
-Useful targeted tests:
+If the active editable install is stale, refresh it:
 
 ```bash
-pytest -q tests/test_supported_no_pem_refs.py
-pytest -q tests/test_environment_contract.py
-pytest -q tests/test_ssm.py
-pytest -q tests/test_script_entrypoints.py
-pytest -q tests/test_ssm_e2e_runner.py
-pytest -q tests/test_workflow.py
-pytest -q tests/test_stage_samples_from_local_to_headnode.py
+python -m pip install -e .
 ```
 
-When you are editing a specific module, keep the test loop narrow. Run the whole suite later.
+## Focused Tests
 
-## Broader Test Runs
-
-Typical broader runs:
+For the DRA docs and DayOA pin cutover:
 
 ```bash
-pytest -q
-pytest --maxfail=1 -q
-pytest -q tests/test_ssm.py tests/test_workflow.py tests/test_ssm_e2e_runner.py
+python -m pytest \
+  tests/test_repository_catalog.py \
+  tests/test_cli_registry_v2.py \
+  tests/test_packaged_defaults.py \
+  tests/test_run_mounts.py \
+  tests/test_export.py \
+  tests/test_environment_contract.py \
+  -q
 ```
 
-## Policy Tests
-
-Two repo policy tests matter for the supported doc/runtime contract:
+Other useful focused runs:
 
 ```bash
-pytest -q tests/test_supported_no_pem_refs.py
-pytest -q tests/test_environment_contract.py
+python -m pytest tests/test_ssm.py -q
+python -m pytest tests/test_script_entrypoints.py -q
+python -m pytest tests/test_ssm_e2e_runner.py -q
+python -m pytest tests/test_stage_samples_from_local_to_headnode.py -q
 ```
 
-They guard:
+## Catalog Checks
 
-- supported docs and scripts staying free of retired key-file guidance
-- the `environment.yaml` and `pyproject.toml` contract
-- legacy env files staying archived/quarantined
+The source and packaged catalogs must match:
 
-## AWS-Backed End-To-End Runner
+```bash
+cmp -s config/daylily_available_repositories.yaml daylily_ec/resources/payload/config/daylily_available_repositories.yaml
+```
 
-The repo ships a real AWS-backed acceptance runner:
+The current DayOA pin should be `1.0.7` everywhere in the catalog:
+
+```bash
+rg -n "0\\.7\\.758|git_tag: 1\\.0\\.0|default_ref: 1\\.0\\.0" \
+  config/daylily_available_repositories.yaml \
+  daylily_ec/resources/payload/config/daylily_available_repositories.yaml \
+  tests
+```
+
+That command should return no stale runtime pin hits after the cutover.
+
+## Docs Sweeps
+
+Active docs should not carry retired export/template options or stale run-mount flags. Use the stale-term sweep recorded in the execution ledger, and keep any old evidence in `docs/archive/**` or historical ledgers rather than active operator docs.
+
+## AWS-Backed E2E Runner
+
+The E2E runner exercises the supported lifecycle through the CLI:
 
 ```bash
 python -m daylily_ec.ssh_to_ssm_e2e_runner --help
 ```
 
-It exercises the supported lifecycle through the actual CLI/helpers:
-
-- `daylily-ec preflight`
-- `daylily-ec create`
-- `daylily-ec headnode connect`
-- `daylily-ec samples stage`
-- `daylily-ec workflow launch`
-- `daylily-ec export`
-- optionally `daylily-ec delete`
-
-### Example: Reuse An Existing Cluster
+Reuse an existing cluster:
 
 ```bash
 AWS_PROFILE="$AWS_PROFILE" python -m daylily_ec.ssh_to_ssm_e2e_runner \
@@ -99,132 +93,17 @@ AWS_PROFILE="$AWS_PROFILE" python -m daylily_ec.ssh_to_ssm_e2e_runner \
   --output-json "$PWD/tmp-e2e-results/$CLUSTER_NAME.json"
 ```
 
-### Example: Full Lifecycle Run
+Cluster deletion from the runner requires explicit delete flags.
 
-```bash
-AWS_PROFILE="$AWS_PROFILE" python -m daylily_ec.ssh_to_ssm_e2e_runner \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --region-az "$REGION_AZ" \
-  --config "$DAY_EX_CFG" \
-  --reference-bucket "$REF_BUCKET" \
-  --analysis-samples "$ANALYSIS_SAMPLES" \
-  --workflow-live \
-  --output-json "$PWD/tmp-e2e-results/run.json"
-```
+## Failure Triage
 
-Important runner flags:
-
-- `--reuse-existing-cluster`
-- `--cluster-name`
-- `--workflow-live`
-- `--workflow-timeout-minutes`
-- `--interactive-session-smoke`
-- `--skip-export`
-- `--delete-cluster`
-- `--allow-destroy`
-
-The runner is non-destructive by default. Delete requires both delete flags.
-
-## Where To Look When Something Fails
-
-### Illumina index triage utility
-
-Check the utility help when debugging Undetermined or Unclassified FASTQ
-forensics:
-
-```bash
-bin/utils/ilmn/extract_undetermined_indexes --help
-```
-
-The utility is independent of the main `daylily-ec` Typer CLI. It streams
-gzipped FASTQs from local paths, S3 URIs, or presigned HTTP(S) URLs; ranks
-observed index pairs; and can split paired R1/R2 FASTQs by selected tags with
-`--split-fastqs`.
-
-### Create/preflight failures
-
-Start here:
-
-```bash
-daylily-ec preflight --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG" --debug
-daylily-ec info
-daylily-ec runtime explain
-```
-
-Then inspect:
-
-- the terminal output from preflight/create
-- Daylily state/config directories reported by `daylily-ec info`
-- `pcluster describe-cluster --region "$REGION" -n "$CLUSTER_NAME"`
-
-### Session Manager failures
-
-Check:
-
-```bash
-aws ssm get-document \
-  --name SSM-SessionManagerRunShell \
-  --document-format JSON \
-  --query Content \
-  --output text \
-  --region "$REGION" \
-  --profile "$AWS_PROFILE"
-```
-
-Also verify the local plugin:
-
-```bash
-session-manager-plugin
-```
-
-### Headnode bootstrap issues
-
-Try:
-
-```bash
-daylily-ec headnode configure \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
-```
-
-Then reconnect and check:
-
-```bash
-whoami
-command -v day-clone
-```
-
-### Workflow launch failures
-
-Inspect on the headnode:
-
-```bash
-daylily-ec headnode jobs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
-daylily-ec --json workflow status --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session>
-daylily-ec workflow logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session> --lines 100
-```
-
-### Export failures
-
-Inspect:
-
-```bash
-cat "$EXPORT_DIR/fsx_export.yaml"
-```
-
-That file is the first place to look because it records success/error and the target path.
-
-## A Good Debugging Sequence
-
-When the failure is ambiguous, use this order:
+Use this order:
 
 1. `source ./activate`
-2. `daylily-ec runtime status`
-3. `daylily-ec preflight --debug ...`
-4. `daylily-ec cluster list ...`
-5. `daylily-ec headnode connect ...`
-6. inspect `/home/ubuntu/daylily-runs/<session>/`
-
-That sequence is usually faster than jumping directly into AWS console tabs.
+2. `dyec runtime status`
+3. `dyec preflight --debug ...`
+4. `dyec cluster list ...`
+5. `dyec headnode connect ...`
+6. `dyec --json mounts list ...`
+7. `dyec --json workflow status ...`
+8. inspect `fsx_export.yaml`

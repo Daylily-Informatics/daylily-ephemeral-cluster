@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import boto3
 import typer
@@ -99,6 +99,51 @@ def find_fsx_associations(fsx_client, cluster_name: str) -> list[str]:
     return associations
 
 
+def find_active_fsx_repository_activity(fsx_client, fsx_ids: list[str]) -> dict[str, Any]:
+    """Return active DRAs and export tasks for the FSx filesystems being deleted."""
+    active_lifecycles = {"AVAILABLE", "CREATING", "UPDATING", "MISCONFIGURED"}
+    active_task_lifecycles = {"PENDING", "EXECUTING"}
+    activity: dict[str, Any] = {"associations": [], "export_tasks": []}
+    for fsx_id in fsx_ids:
+        assoc_response = fsx_client.describe_data_repository_associations(
+            Filters=[{"Name": "file-system-id", "Values": [fsx_id]}]
+        )
+        for association in assoc_response.get("Associations", []) or []:
+            lifecycle = str(association.get("Lifecycle") or "")
+            if lifecycle.upper() not in active_lifecycles:
+                continue
+            s3_config = association.get("S3") or {}
+            auto_export = (s3_config.get("AutoExportPolicy") or {}).get("Events") or []
+            activity["associations"].append(
+                {
+                    "association_id": association.get("AssociationId"),
+                    "file_system_id": fsx_id,
+                    "file_system_path": association.get("FileSystemPath"),
+                    "data_repository_path": association.get("DataRepositoryPath"),
+                    "lifecycle": lifecycle,
+                    "auto_export_events": list(auto_export),
+                }
+            )
+        task_response = fsx_client.describe_data_repository_tasks(
+            Filters=[{"Name": "file-system-id", "Values": [fsx_id]}]
+        )
+        for task in task_response.get("DataRepositoryTasks", []) or []:
+            lifecycle = str(task.get("Lifecycle") or "")
+            if lifecycle.upper() not in active_task_lifecycles:
+                continue
+            if str(task.get("Type") or "") != "EXPORT_TO_REPOSITORY":
+                continue
+            activity["export_tasks"].append(
+                {
+                    "task_id": task.get("TaskId"),
+                    "file_system_id": fsx_id,
+                    "lifecycle": lifecycle,
+                    "paths": list(task.get("Paths") or []),
+                }
+            )
+    return activity
+
+
 def confirm_delete(fsx_ids: list[str], *, yes: bool, prompt_fn=typer.prompt) -> bool:
     """Return ``True`` when deletion should proceed."""
     if not fsx_ids:
@@ -174,6 +219,25 @@ def run_delete_workflow(options: DeleteOptions) -> int:
         return 1
 
     fsx_ids = find_fsx_associations(session.client("fsx"), resolved.cluster_name)
+    repository_activity = find_active_fsx_repository_activity(
+        session.client("fsx"),
+        fsx_ids,
+    )
+    if repository_activity["associations"] or repository_activity["export_tasks"]:
+        ui.warn("Active FSx data repository activity exists on the cluster filesystem:")
+        for association in repository_activity["associations"]:
+            ui.detail(
+                "DRA",
+                "%s %s -> %s (%s)"
+                % (
+                    association["association_id"],
+                    association["file_system_path"],
+                    association["data_repository_path"],
+                    association["lifecycle"],
+                ),
+            )
+        for task in repository_activity["export_tasks"]:
+            ui.detail("Export task", f"{task['task_id']} {task['paths']} ({task['lifecycle']})")
     if not confirm_delete(fsx_ids, yes=resolved.yes):
         ui.warn("Aborting cluster deletion.")
         return 1
@@ -240,7 +304,9 @@ def run_delete_dry_run(options: DeleteOptions) -> int:
         profile_name=resolved.profile,
         region_name=resolved.region,
     )
-    fsx_ids = find_fsx_associations(session.client("fsx"), resolved.cluster_name)
+    fsx_client = session.client("fsx")
+    fsx_ids = find_fsx_associations(fsx_client, resolved.cluster_name)
+    repository_activity = find_active_fsx_repository_activity(fsx_client, fsx_ids)
 
     ui.info("No AWS resources were changed.")
     ui.detail("Cluster", resolved.cluster_name)
@@ -254,6 +320,26 @@ def run_delete_dry_run(options: DeleteOptions) -> int:
         for fsx_id in fsx_ids:
             ui.detail("FSx", fsx_id)
         ui.info("Export results with `daylily-ec export` before deleting if needed.")
+        if repository_activity["associations"]:
+            ui.warn("Active FSx data repository associations are still attached:")
+            for association in repository_activity["associations"]:
+                auto_export = association["auto_export_events"]
+                suffix = f" AutoExport={auto_export}" if auto_export else ""
+                ui.detail(
+                    "DRA",
+                    "%s %s -> %s (%s)%s"
+                    % (
+                        association["association_id"],
+                        association["file_system_path"],
+                        association["data_repository_path"],
+                        association["lifecycle"],
+                        suffix,
+                    ),
+                )
+        if repository_activity["export_tasks"]:
+            ui.warn("Active FSx export tasks are still running:")
+            for task in repository_activity["export_tasks"]:
+                ui.detail("Export task", f"{task['task_id']} {task['paths']} ({task['lifecycle']})")
     else:
         ui.info("No FSx filesystems associated with the cluster.")
     return 0

@@ -15,7 +15,9 @@ from daylily_ec.workflow.delete_cluster import (
     ResolvedDeleteOptions,
     _resolve_delete_options,
     confirm_delete,
+    find_active_fsx_repository_activity,
     find_fsx_associations,
+    run_delete_dry_run,
     run_delete_workflow,
 )
 
@@ -83,6 +85,46 @@ class TestDeleteHelpers:
 
         assert find_fsx_associations(fsx_client, "alpha") == ["fs-match"]
 
+    def test_find_active_fsx_repository_activity_reports_dras_and_tasks(self):
+        fsx_client = MagicMock()
+        fsx_client.describe_data_repository_associations.return_value = {
+            "Associations": [
+                {
+                    "AssociationId": "dra-run",
+                    "FileSystemPath": "/run_dir_mounts/RUN123/",
+                    "DataRepositoryPath": "s3://bucket/RUN123/",
+                    "Lifecycle": "AVAILABLE",
+                    "S3": {},
+                },
+                {
+                    "AssociationId": "dra-old",
+                    "FileSystemPath": "/exports/old/",
+                    "DataRepositoryPath": "s3://bucket/old/",
+                    "Lifecycle": "DELETED",
+                },
+            ]
+        }
+        fsx_client.describe_data_repository_tasks.return_value = {
+            "DataRepositoryTasks": [
+                {
+                    "TaskId": "task-1",
+                    "Type": "EXPORT_TO_REPOSITORY",
+                    "Lifecycle": "EXECUTING",
+                    "Paths": ["/exports/export-1/results/"],
+                },
+                {
+                    "TaskId": "task-2",
+                    "Type": "EXPORT_TO_REPOSITORY",
+                    "Lifecycle": "SUCCEEDED",
+                },
+            ]
+        }
+
+        activity = find_active_fsx_repository_activity(fsx_client, ["fs-123"])
+
+        assert [item["association_id"] for item in activity["associations"]] == ["dra-run"]
+        assert [item["task_id"] for item in activity["export_tasks"]] == ["task-1"]
+
 
 class TestDeleteWorkflow:
     @patch("daylily_ec.workflow.delete_cluster.wait_for_deletion")
@@ -130,6 +172,7 @@ class TestDeleteWorkflow:
         )
 
     @patch("daylily_ec.workflow.delete_cluster.start_delete_cluster")
+    @patch("daylily_ec.workflow.delete_cluster.find_active_fsx_repository_activity")
     @patch("daylily_ec.workflow.delete_cluster.find_fsx_associations")
     @patch("daylily_ec.workflow.delete_cluster.get_cluster_status")
     @patch("daylily_ec.workflow.delete_cluster.boto3.Session")
@@ -138,6 +181,7 @@ class TestDeleteWorkflow:
         mock_session,
         mock_status,
         mock_find_fsx,
+        mock_activity,
         mock_start_delete,
     ):
         resolved = ResolvedDeleteOptions(
@@ -151,6 +195,7 @@ class TestDeleteWorkflow:
         mock_session.return_value = MagicMock()
         mock_status.return_value = "CREATE_COMPLETE"
         mock_find_fsx.return_value = ["fs-123"]
+        mock_activity.return_value = {"associations": [], "export_tasks": []}
 
         with (
             patch(
@@ -166,6 +211,59 @@ class TestDeleteWorkflow:
 
         assert rc == 1
         mock_start_delete.assert_not_called()
+
+    @patch("daylily_ec.workflow.delete_cluster.find_active_fsx_repository_activity")
+    @patch("daylily_ec.workflow.delete_cluster.find_fsx_associations")
+    @patch("daylily_ec.workflow.delete_cluster.get_cluster_status")
+    @patch("daylily_ec.workflow.delete_cluster.boto3.Session")
+    def test_run_delete_dry_run_reports_active_dras(
+        self,
+        mock_session,
+        mock_status,
+        mock_find_fsx,
+        mock_activity,
+        capsys,
+    ):
+        resolved = ResolvedDeleteOptions(
+            cluster_name="alpha",
+            region="us-west-2",
+            profile="prof",
+            state_file=None,
+            yes=False,
+            poll_interval=0.01,
+        )
+        mock_session.return_value = MagicMock()
+        mock_status.return_value = "CREATE_COMPLETE"
+        mock_find_fsx.return_value = ["fs-123"]
+        mock_activity.return_value = {
+            "associations": [
+                {
+                    "association_id": "dra-run",
+                    "file_system_path": "/run_dir_mounts/RUN123/",
+                    "data_repository_path": "s3://bucket/RUN123/",
+                    "lifecycle": "AVAILABLE",
+                    "auto_export_events": [],
+                }
+            ],
+            "export_tasks": [
+                {
+                    "task_id": "task-1",
+                    "paths": ["/exports/export-1/results/"],
+                    "lifecycle": "EXECUTING",
+                }
+            ],
+        }
+
+        with patch(
+            "daylily_ec.workflow.delete_cluster._resolve_delete_options",
+            return_value=(resolved, None),
+        ):
+            rc = run_delete_dry_run(DeleteOptions(None, None, None))
+
+        assert rc == 0
+        captured = capsys.readouterr().out
+        assert "dra-run" in captured
+        assert "task-1" in captured
 
 
 class TestDeleteCli:
