@@ -4,7 +4,7 @@ Date opened: 2026-05-19T08:40:33Z
 
 ## Control
 
-Controlling request: run a fresh FSx-to-S3 export of the ILMN 0006 DayOA directory now that final MultiQC exists, provide a CloudFront URL to the MultiQC report, and prepare to delete the current cluster plus `dra-test4`.
+Controlling request: run a fresh FSx-to-S3 export of the ILMN 0006 DayOA directory now that final MultiQC exists, provide a CloudFront URL to the MultiQC report, prepare to delete the current cluster plus `dra-test4`, then after separate explicit confirmation delete both clusters.
 
 Ledger path: `/Users/jmajor/projects/daylily/daylily-ephemeral-cluster/docs/plans/20260519T084033Z_ilmn0006_final_multiqc_export_and_delete_prep_ledger.md`
 
@@ -23,6 +23,7 @@ Scope:
 Hard boundary:
 - Preparing cluster deletion is allowed.
 - Live deletion of `may26-d` or `dra-test4` is destructive and requires a separate explicit confirmation after the exact effect is stated.
+- Separate explicit confirmation received: `Confirm delete may26-d and dra-test4 in us-west-2 using profile lsmc`.
 
 ## Gate 0 Baseline
 
@@ -51,7 +52,13 @@ Hard boundary:
 - Final delete dry-runs:
   - `may26-d`: `CREATE_COMPLETE`, FSx still associated: `fs-0c43ddf4b70dc87d8`; no active export-task warning after the fresh export completed.
   - `dra-test4`: `CREATE_COMPLETE`, dry-run reported no associated FSx filesystems.
-- No live cluster deletion was performed.
+- Live deletes:
+  - `daylily-ec delete --profile lsmc --region us-west-2 --cluster-name dra-test4 --yes` completed; `daylily-ec` reported `Cluster deleted`.
+  - `daylily-ec delete --profile lsmc --region us-west-2 --cluster-name may26-d --yes` completed; `daylily-ec` reported `Cluster deleted`.
+- Post-delete CloudFormation evidence:
+  - `dra-test4`: `DELETE_COMPLETE`, `DeletionTime=2026-05-19T09:13:23.039Z`.
+  - `may26-d`: `DELETE_COMPLETE`, `DeletionTime=2026-05-19T09:13:23.680Z`.
+- Post-delete ParallelCluster active-list check with `AWS_PROFILE=lsmc` returned no matching active clusters for `may26-d` or `dra-test4`.
 
 ## Control Ledger
 
@@ -61,5 +68,6 @@ Hard boundary:
 | EXP-001 | AWS FSx | Run a fresh AWS CLI single-DRA export task for the ILMN 0006 DayOA directory. | SUCCESS | feature_implementation | Gate 1 | orchestrator | AWS CLI `create-data-repository-task` created `task-0220446f053914e0d`; final lifecycle `SUCCEEDED`, `7527/7527` files, `0` failures. |  | Fresh export completed after final MultiQC generation. |
 | EXP-002 | AWS S3 | Verify the final MultiQC HTML object exists at the expected S3 key after export. | SUCCESS | contract_test | Gate 2 | orchestrator | `head-object` for the final report returned `ContentLength=96071925`, `ContentType=text/html; charset=utf-8`, `LastModified=2026-05-19T08:43:03+00:00`. |  | S3 now contains the final MultiQC HTML. |
 | CF-001 | AWS CloudFront | Verify/provide CloudFront URL for the final MultiQC HTML. | SUCCESS | contract_test | Gate 3 | orchestrator | Targeted invalidation `I48NVRQ4BIJJ1F9IJD1DETUESD` completed; unauthenticated `HEAD` returned `401`; authenticated `HEAD` returned `200` and `ContentLength=96071925`. |  | CloudFront URL is live behind the existing Basic-auth gate. |
-| DELPREP-001 | AWS ParallelCluster | Prepare deletion of `may26-d` and `dra-test4` with read-only inventory/dry-run only. | BLOCKED | legitimate_safety_handling | Gate 4 | orchestrator | `daylily-ec delete --dry-run` for `may26-d` reported `CREATE_COMPLETE` and FSx `fs-0c43ddf4b70dc87d8`; `dra-test4` reported `CREATE_COMPLETE` and no associated FSx filesystems. | Separate explicit confirmation is required before destructive AWS cluster deletion. | Prepared only; live deletion awaits confirmation. |
-| FINAL-001 | DayEC/AWS | Terminalize ledger and report export receipt, CloudFront URL, and deletion confirmation requirement. | SUCCESS | contract_test | Gate 5 | orchestrator | Terminal Evidence section. |  | Export and CloudFront are complete; cluster deletion remains gated. |
+| DELPREP-001 | AWS ParallelCluster | Prepare deletion of `may26-d` and `dra-test4` with read-only inventory/dry-run only. | SUCCESS | legitimate_safety_handling | Gate 4 | orchestrator | `daylily-ec delete --dry-run` for `may26-d` reported `CREATE_COMPLETE` and FSx `fs-0c43ddf4b70dc87d8`; `dra-test4` reported `CREATE_COMPLETE` and no associated FSx filesystems. | Separate explicit confirmation was required before destructive AWS cluster deletion. | Prepared only until the user provided separate explicit confirmation. |
+| DEL-001 | AWS ParallelCluster | Delete `may26-d` and `dra-test4` only after separate explicit confirmation. | SUCCESS | destructive_operation | Gate 4A | orchestrator | `daylily-ec delete --yes` completed for both clusters; CloudFormation lists both stacks as `DELETE_COMPLETE`; active ParallelCluster listing returned no matching clusters. |  | Live deletion completed after explicit confirmation. |
+| FINAL-001 | DayEC/AWS | Terminalize ledger and report export receipt, CloudFront URL, and deletion outcome. | SUCCESS | contract_test | Gate 5 | orchestrator | Terminal Evidence section. |  | Export, CloudFront, and confirmed cluster deletion are complete. |
