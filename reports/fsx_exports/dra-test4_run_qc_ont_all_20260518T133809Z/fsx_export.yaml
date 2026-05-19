@@ -1,0 +1,21 @@
+fsx_export:
+  schema_version: 3
+  status: success
+  phase: complete
+  cluster_name: dra-test4
+  region: us-west-2
+  analysis_dir: run_qc_ont_all
+  source_path: /analysis_results/ubuntu/run_qc_ont_all/
+  headnode_path: /fsx/analysis_results/ubuntu/run_qc_ont_all/
+  destination_s3_uri: s3://lsmc-dayoa-omics-analysis-us-west-2/analysis_results/ubuntu/run_qc_ont_all/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details: {}
+  fsx_file_system_id: fs-0bcf5a60d9b48f03e
+  file_system_path: /analysis_results/ubuntu/run_qc_ont_all/
+  association_id: dra-0a1d444f47e53de71
+  lifecycle: AVAILABLE
+  task_id: task-092aab06bcc1b24d5
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-dayoa-omics-analysis-us-west-2/analysis_results/ubuntu/run_qc_ont_all/_daylily_monitor/fsx-export/20260518T134029Z/export-report/
+  detach_lifecycle: DELETED

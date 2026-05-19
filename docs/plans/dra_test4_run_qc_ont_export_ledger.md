@@ -38,3 +38,17 @@ Export the dra-test4 headnode path `/fsx/analysis_results/ubuntu/run_qc_ont_all`
 - Export receipt: `reports/fsx_exports/dra-test4_run_qc_ont_all_20260518T090219Z/fsx_export.yaml`
 - S3 destination: `s3://lsmc-dayoa-omics-analysis-us-west-2/analysis_results/ubuntu/run_qc_ont_all/`
 - Focused test: `pytest tests/test_export.py -q -> 17 passed`
+
+## Rerun: 2026-05-18T13:38:09Z
+
+User confirmed a fresh export to the corrected destination
+`s3://lsmc-dayoa-omics-analysis-us-west-2/analysis_results/ubuntu/run_qc_ont_all/`
+after rejecting the misspelled `analyis_results` prefix.
+
+- Source precheck: `/fsx/analysis_results/ubuntu/run_qc_ont_all` existed on `dra-test4` as `ubuntu`, owner `ubuntu:ubuntu`, mtime `2026-05-18 13:33:16 +0000`, with `3557` regular files and `13,998,766,551` bytes.
+- Command: `dyec export --profile lsmc --region us-west-2 --cluster dra-test4 --source-path /fsx/analysis_results/ubuntu/run_qc_ont_all/ --destination-s3-uri s3://lsmc-dayoa-omics-analysis-us-west-2/analysis_results/ubuntu/run_qc_ont_all/ --output-dir reports/fsx_exports/dra-test4_run_qc_ont_all_20260518T133809Z --wait --timeout-seconds 7200`.
+- Receipt: `reports/fsx_exports/dra-test4_run_qc_ont_all_20260518T133809Z/fsx_export.yaml`.
+- Temporary DRA: `dra-0a1d444f47e53de71`, final `detach_lifecycle: DELETED`.
+- Export task: `task-092aab06bcc1b24d5`, `SUCCEEDED`, `TotalCount=3611`, `SucceededCount=3611`, `FailedCount=0`.
+- Failed-file report prefix: `s3://lsmc-dayoa-omics-analysis-us-west-2/analysis_results/ubuntu/run_qc_ont_all/_daylily_monitor/fsx-export/20260518T134029Z/export-report/` contained `0` objects.
+- Destination prefix after export: `3825` objects, total size `13.0 GiB` by `aws s3 ls --summarize --human-readable`.
