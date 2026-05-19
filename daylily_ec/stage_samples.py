@@ -1941,15 +1941,25 @@ def deduplicate_rows(rows: Sequence[Dict[str, str]], header: Sequence[str]) -> L
     return unique_rows
 
 
+def _normalise_headnode_data_path(value: str) -> str:
+    if value.startswith("/data/"):
+        return f"/fsx{value}"
+    if value == "/data":
+        return "/fsx/data"
+    return value
+
+
 def normalise_units_paths(rows: Sequence[Dict[str, str]]) -> None:
     for row in rows:
         for field, value in list(row.items()):
             if not isinstance(value, str):
                 continue
-            if value.startswith("/data/"):
-                row[field] = f"/fsx{value}"
-            elif value == "/data":
-                row[field] = "/fsx/data"
+            if "," in value:
+                parts = [part.strip() for part in value.split(",")]
+                if any(part.startswith("/data/") or part == "/data" for part in parts):
+                    row[field] = ",".join(_normalise_headnode_data_path(part) for part in parts)
+                continue
+            row[field] = _normalise_headnode_data_path(value)
 
 
 def normalize_manifest_row(

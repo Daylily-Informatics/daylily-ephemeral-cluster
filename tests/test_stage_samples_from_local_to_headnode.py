@@ -310,10 +310,11 @@ def test_process_samples_emits_comma_separated_ilmn_unit_paths(
 
     assert run_ids == ["MULTILANE"]
     assert len(created_files) == 6
+    module.normalise_units_paths(units_rows)
     units_row = units_rows[0]
     assert units_row["ILMN_R1_PATH"] == ",".join(
         [
-            "/data/staged_sample_data/remote_stage_test/"
+            "/fsx/data/staged_sample_data/remote_stage_test/"
             "MULTILANE_HG002-NOVASEQ-PCR-FREE-blood-split1x_S1_0/"
             f"lane{lane}/HG002_L{lane}_R1.fastq.gz"
             for lane in range(1, 4)
@@ -321,7 +322,7 @@ def test_process_samples_emits_comma_separated_ilmn_unit_paths(
     )
     assert units_row["ILMN_R2_PATH"] == ",".join(
         [
-            "/data/staged_sample_data/remote_stage_test/"
+            "/fsx/data/staged_sample_data/remote_stage_test/"
             "MULTILANE_HG002-NOVASEQ-PCR-FREE-blood-split1x_S1_0/"
             f"lane{lane}/HG002_L{lane}_R2.fastq.gz"
             for lane in range(1, 4)
