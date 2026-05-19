@@ -10,14 +10,18 @@ import os
 import shlex
 import subprocess
 import sys
+import traceback
 import time
 from pathlib import Path
 from typing import Any, List, Optional
 
+import click
 import typer
 from cli_core_yo import output
-from cli_core_yo.app import create_app, run
+from cli_core_yo.app import create_app
+from cli_core_yo.errors import CliCoreYoError
 from cli_core_yo.runtime import get_context
+from cli_core_yo.runtime import _reset as _reset_cli_core_runtime
 from cli_core_yo.spec import (
     BackendDetectSpec,
     BackendValidationSpec,
@@ -3098,8 +3102,35 @@ def register(registry, cli_spec) -> None:
 app = create_app(spec)
 
 
+def _run_cli(argv: Optional[List[str]] = None) -> int:
+    """Run the CLI and preserve command callback integer return codes."""
+    _reset_cli_core_runtime()
+    args = list(argv if argv is not None else sys.argv[1:])
+    try:
+        cli_app = create_app(spec)
+        result = cli_app(args, standalone_mode=False)
+        return result if isinstance(result, int) else 0
+    except click.exceptions.NoArgsIsHelpError:
+        return 0
+    except click.ClickException as exc:
+        exc.show(file=sys.stderr)
+        return exc.exit_code
+    except SystemExit as exc:
+        return exc.code if isinstance(exc.code, int) else 0
+    except CliCoreYoError as exc:
+        output.error(str(exc))
+        return exc.exit_code
+    except KeyboardInterrupt:
+        return 130
+    except Exception as exc:  # pragma: no cover - exercised only on unexpected failures
+        if os.environ.get("CLI_CORE_YO_DEBUG") == "1":
+            traceback.print_exc(file=sys.stderr)
+        output.error(f"Unexpected error: {exc}")
+        return 1
+
+
 def main() -> None:
-    raise SystemExit(run(spec))
+    raise SystemExit(_run_cli())
 
 
 if __name__ == "__main__":

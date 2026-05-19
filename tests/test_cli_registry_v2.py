@@ -4,6 +4,7 @@ from importlib.metadata import version as dist_version
 import json
 from pathlib import Path
 from subprocess import CompletedProcess
+import sys
 from types import SimpleNamespace
 
 import pytest
@@ -104,6 +105,43 @@ def test_cli_spec_uses_platform_v2_runtime() -> None:
         "day-ec-conda-active-env": "warn",
         "day-ec-conda-env-name": "warn",
     }
+
+
+def test_main_propagates_command_return_code(monkeypatch, tmp_path) -> None:
+    import daylily_ec.cli as cli
+
+    _activate_dayec_runtime(monkeypatch)
+    monkeypatch.setattr(
+        sys,
+        "argv",
+        [
+            "dyec",
+            "export",
+            "--cluster-name",
+            "alpha",
+            "--source-path",
+            "/fsx/analysis_results/johnm/a",
+            "--destination-s3-uri",
+            "s3://bucket/johnm/a/",
+            "--region",
+            "us-west-2",
+            "--output-dir",
+            str(tmp_path),
+        ],
+    )
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data.configure_logging",
+        lambda _verbose: None,
+    )
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data.run_export_workflow",
+        lambda _options: 1,
+    )
+
+    with pytest.raises(SystemExit) as exc_info:
+        cli.main()
+
+    assert exc_info.value.code == 1
 
 
 def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
