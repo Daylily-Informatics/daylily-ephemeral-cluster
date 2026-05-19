@@ -296,6 +296,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'echo "[ERROR] day_activate failed with status $activate_status"' in script
         assert ". bin/day_activate slurm hg38 remote" in script
         assert "bin/day_run" in script
+        assert "env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export" in script
+        assert "dyec export \\\n      --profile" not in script
         assert "exec bash -il" in script
         assert '--which-one "$TRANSPORT"' not in script
         out = capsys.readouterr().out

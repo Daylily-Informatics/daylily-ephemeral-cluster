@@ -502,8 +502,7 @@ if [[ "$should_export" == "true" ]]; then
   else
     mkdir -p "$DAYLILY_RUN_DIR/export"
     set +e
-    dyec export \
-      --profile {shlex.quote(args.profile)} \
+    env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export \
       --region {shlex.quote(region)} \
       --cluster {shlex.quote(cluster_name)} \
       --source-path "$clone_root" \
