@@ -96,6 +96,7 @@ ONT_FASTQ_SHARD_RE = re.compile(
     r"^(?P<flowcell_id>[^_]+)_pass_(?P<tag>barcode[0-9]+|unclassified)_"
     r"(?P<protocol_run>[^_]+)_(?P<acquisition>[^_]+)_(?P<shard_index>[0-9]+)\.fastq\.gz$"
 )
+EMPTY_PATH_TOKENS = {"", "na", "none", "null"}
 
 KEY_FIELDS = [
     RUN_ID,
@@ -1840,6 +1841,86 @@ def reject_duplicate_multi_lane_sources(
         )
 
 
+def split_fastq_path_list(value: str, *, field: str) -> List[str]:
+    text = (value or "").strip()
+    if text.lower() in EMPTY_PATH_TOKENS:
+        return []
+    try:
+        paths = next(csv.reader([text], skipinitialspace=True))
+    except csv.Error as exc:
+        raise CommandError(f"{field} has an invalid comma-separated FASTQ list: {exc}") from exc
+    cleaned = [path.strip() for path in paths]
+    empty_positions = [
+        str(index + 1)
+        for index, path in enumerate(cleaned)
+        if path.lower() in EMPTY_PATH_TOKENS
+    ]
+    if empty_positions:
+        raise CommandError(
+            f"{field} has empty FASTQ path(s) at position(s): {', '.join(empty_positions)}"
+        )
+    return cleaned
+
+
+def paired_fastq_path_lists(
+    r1_value: str,
+    r2_value: str,
+    *,
+    r1_field: str,
+    r2_field: str,
+    row_number: int,
+) -> Tuple[List[str], List[str]]:
+    r1_paths = split_fastq_path_list(r1_value, field=r1_field)
+    r2_paths = split_fastq_path_list(r2_value, field=r2_field)
+    if not r1_paths and not r2_paths:
+        return [], []
+    if not r1_paths or not r2_paths:
+        raise CommandError(f"Row {row_number} must populate both {r1_field} and {r2_field}.")
+    if len(r1_paths) != len(r2_paths):
+        raise CommandError(
+            f"Row {row_number} {r1_field}/{r2_field} comma-separated lists must have the "
+            f"same number of entries (R1={len(r1_paths)}, R2={len(r2_paths)})."
+        )
+    return r1_paths, r2_paths
+
+
+def _strip_fastq_name_suffix(path: str) -> str:
+    name = os.path.basename(path)
+    for suffix in (".fastq.gz", ".fq.gz", ".fastq", ".fq"):
+        if name.lower().endswith(suffix):
+            return name[: -len(suffix)]
+    return name
+
+
+def _fastq_mate_signature(path: str, *, mate: str) -> str:
+    stem = _strip_fastq_name_suffix(path)
+    mate_pattern = re.compile(rf"(?i)(^|[._-]){mate}(?=([._-]|$))")
+    signature, replacements = mate_pattern.subn(r"\1<MATE>", stem, count=1)
+    if replacements != 1:
+        raise CommandError(
+            f"Cannot identify {mate} mate token in FASTQ path for pair-order validation: {path}"
+        )
+    return signature
+
+
+def validate_fastq_pair_order(
+    r1_paths: Sequence[str],
+    r2_paths: Sequence[str],
+    *,
+    row_number: int,
+    r1_field: str,
+    r2_field: str,
+) -> None:
+    for index, (r1_path, r2_path) in enumerate(zip(r1_paths, r2_paths), start=1):
+        r1_signature = _fastq_mate_signature(r1_path, mate="R1")
+        r2_signature = _fastq_mate_signature(r2_path, mate="R2")
+        if r1_signature != r2_signature:
+            raise CommandError(
+                f"Row {row_number} {r1_field}/{r2_field} pair {index} is out of order "
+                f"or not mate-matched: {r1_path} vs {r2_path}"
+            )
+
+
 def write_tsv(path: Path, header: Sequence[str], rows: Sequence[Dict[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="") as handle:
@@ -1952,7 +2033,11 @@ def mounted_readonly_source_paths(normalized: Mapping[str, str]) -> List[Tuple[s
     for field in MOUNTED_READONLY_SOURCE_FIELDS:
         value = get_entry_value(normalized, field)
         if value:
-            paths.append((field, value))
+            try:
+                for path in split_fastq_path_list(value, field=field):
+                    paths.append((field, path))
+            except CommandError:
+                paths.append((field, value))
     return sorted(paths)
 
 
@@ -2343,16 +2428,47 @@ def collect_manifest_row_issues(
     for r1_field, r2_field, _unit_r1, _unit_r2 in raw_groups:
         r1_value = get_entry_value(normalized, r1_field)
         r2_value = get_entry_value(normalized, r2_field)
-        if not r1_value or not r2_value:
-            add_issue(
-                f"{r1_field}/{r2_field}",
-                f"Row {row_number} must populate both {r1_field} and {r2_field}.",
-                r1_value or r2_value,
+        try:
+            r1_paths, r2_paths = paired_fastq_path_lists(
+                r1_value,
+                r2_value,
+                r1_field=r1_field,
+                r2_field=r2_field,
+                row_number=row_number,
             )
-        maybe_check_source_path(r1_field, r1_value)
-        maybe_check_source_path(r2_field, r2_value)
+            if len(r1_paths) > 1 and (r1_field, r2_field) != (ILMN_R1_FQ, ILMN_R2_FQ):
+                add_issue(
+                    f"{r1_field}/{r2_field}",
+                    (
+                        f"Row {row_number} comma-separated FASTQ lists are only supported for "
+                        f"{ILMN_R1_FQ}/{ILMN_R2_FQ}."
+                    ),
+                    r1_value,
+                )
+            if len(r1_paths) > 1:
+                try:
+                    validate_fastq_pair_order(
+                        r1_paths,
+                        r2_paths,
+                        row_number=row_number,
+                        r1_field=r1_field,
+                        r2_field=r2_field,
+                    )
+                except CommandError as exc:
+                    add_issue(f"{r1_field}/{r2_field}", str(exc), r1_value)
+        except CommandError as exc:
+            r1_paths = [r1_value] if r1_value else []
+            r2_paths = [r2_value] if r2_value else []
+            add_issue(f"{r1_field}/{r2_field}", str(exc), r1_value or r2_value)
+        for source_path in r1_paths:
+            maybe_check_source_path(r1_field, source_path)
+        for source_path in r2_paths:
+            maybe_check_source_path(r2_field, source_path)
         if directive == "pass_through":
-            for field, value in ((r1_field, r1_value), (r2_field, r2_value)):
+            for field, value in (
+                *((r1_field, path) for path in r1_paths),
+                *((r2_field, path) for path in r2_paths),
+            ):
                 if not value:
                     continue
                 try:
@@ -2474,10 +2590,18 @@ def _source_checks_for_precheck(normalized: Mapping[str, str]) -> List[Tuple[str
     for r1_field, r2_field, _unit_r1, _unit_r2 in raw_groups_present(normalized):
         r1_value = get_entry_value(normalized, r1_field)
         r2_value = get_entry_value(normalized, r2_field)
-        if r1_value:
-            checks.append((r1_field, r1_value))
-        if r2_value:
-            checks.append((r2_field, r2_value))
+        try:
+            r1_paths = split_fastq_path_list(r1_value, field=r1_field)
+        except CommandError:
+            r1_paths = [r1_value] if r1_value else []
+        try:
+            r2_paths = split_fastq_path_list(r2_value, field=r2_field)
+        except CommandError:
+            r2_paths = [r2_value] if r2_value else []
+        for path in r1_paths:
+            checks.append((r1_field, path))
+        for path in r2_paths:
+            checks.append((r2_field, path))
 
     aligned_sidecars = (
         (ULTIMA_CRAM, (".crai",)),
@@ -3113,16 +3237,61 @@ def emit_single_raw_group(
     r1_field, r2_field, unit_r1_field, unit_r2_field = spec
     r1 = get_entry_value(row.sources, r1_field)
     r2 = get_entry_value(row.sources, r2_field)
-    if row.staging.stage_directive in {"pass_through", "mounted_readonly"}:
-        require_headnode_visible_path(r1, field=r1_field)
-        require_headnode_visible_path(r2, field=r2_field)
-        return {
-            unit_r1_field: headnode_visible_path(r1),
-            unit_r2_field: headnode_visible_path(r2),
-        }, []
-    remote_r1, remote_r2 = stage_single_lane(
+    r1_paths, r2_paths = paired_fastq_path_lists(
         r1,
         r2,
+        r1_field=r1_field,
+        r2_field=r2_field,
+        row_number=row.row_number,
+    )
+    if len(r1_paths) > 1:
+        if (r1_field, r2_field) != (ILMN_R1_FQ, ILMN_R2_FQ):
+            raise CommandError(
+                f"Row {row.row_number} comma-separated FASTQ lists are only supported for "
+                f"{ILMN_R1_FQ}/{ILMN_R2_FQ}."
+            )
+        validate_fastq_pair_order(
+            r1_paths,
+            r2_paths,
+            row_number=row.row_number,
+            r1_field=r1_field,
+            r2_field=r2_field,
+        )
+    if row.staging.stage_directive in {"pass_through", "mounted_readonly"}:
+        for path in r1_paths:
+            require_headnode_visible_path(path, field=r1_field)
+        for path in r2_paths:
+            require_headnode_visible_path(path, field=r2_field)
+        return {
+            unit_r1_field: ",".join(headnode_visible_path(path) for path in r1_paths),
+            unit_r2_field: ",".join(headnode_visible_path(path) for path in r2_paths),
+        }, []
+    if len(r1_paths) > 1:
+        remote_r1_paths: List[str] = []
+        remote_r2_paths: List[str] = []
+        created: List[str] = []
+        for index, (r1_path, r2_path) in enumerate(zip(r1_paths, r2_paths), start=1):
+            lane_fsx_dir = f"{dest_fsx_dir}/lane{index}"
+            lane_s3_dir = f"{dest_s3_dir}/lane{index}"
+            remote_r1, remote_r2 = stage_single_lane(
+                r1_path,
+                r2_path,
+                lane_fsx_dir,
+                lane_s3_dir,
+                reference_bucket=reference_bucket,
+                aws_env=aws_env,
+                debug=debug,
+            )
+            remote_r1_paths.append(remote_r1)
+            remote_r2_paths.append(remote_r2)
+            created.extend([remote_r1, remote_r2])
+        return {
+            unit_r1_field: ",".join(remote_r1_paths),
+            unit_r2_field: ",".join(remote_r2_paths),
+        }, created
+    remote_r1, remote_r2 = stage_single_lane(
+        r1_paths[0],
+        r2_paths[0],
         dest_fsx_dir,
         dest_s3_dir,
         reference_bucket=reference_bucket,

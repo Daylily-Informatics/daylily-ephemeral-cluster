@@ -230,6 +230,213 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
     assert units_row["ROCHE_BAM"] == ""
 
 
+def test_process_samples_emits_comma_separated_ilmn_unit_paths(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    r1s = [f"s3://bucket/HG002_L{lane}_R1.fastq.gz" for lane in range(1, 4)]
+    r2s = [f"s3://bucket/HG002_L{lane}_R2.fastq.gz" for lane in range(1, 4)]
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "STAGE_DIRECTIVE",
+                "IS_POS_CTRL",
+                "IS_NEG_CTRL",
+                "N_X",
+                "N_Y",
+                "EXTERNAL_SAMPLE_ID",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "MULTILANE",
+                    "HG002",
+                    "split1x",
+                    "blood",
+                    "PCR-FREE",
+                    "ILMN",
+                    "NOVASEQX",
+                    "0",
+                    "S1",
+                    "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
+                    ",".join(r1s),
+                    ",".join(r2s),
+                    "stage_data",
+                    "false",
+                    "false",
+                    "1",
+                    "1",
+                    "HG002",
+                ]
+            )
+        ],
+    )
+
+    def fake_stage_single_lane(
+        r1: str,
+        r2: str,
+        dest_fsx_dir: str,
+        *_args: object,
+        **_kwargs: object,
+    ) -> tuple[str, str]:
+        return (
+            f"{dest_fsx_dir}/{Path(r1).name}",
+            f"{dest_fsx_dir}/{Path(r2).name}",
+        )
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+    monkeypatch.setattr(module, "stage_single_lane", fake_stage_single_lane)
+    monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
+
+    _samples_rows, units_rows, created_files, run_ids = _process_samples(
+        monkeypatch,
+        analysis_samples,
+        _stage_paths(),
+    )
+
+    assert run_ids == ["MULTILANE"]
+    assert len(created_files) == 6
+    units_row = units_rows[0]
+    assert units_row["ILMN_R1_PATH"] == ",".join(
+        [
+            "/data/staged_sample_data/remote_stage_test/"
+            "MULTILANE_HG002-NOVASEQ-PCR-FREE-blood-split1x_S1_0/"
+            f"lane{lane}/HG002_L{lane}_R1.fastq.gz"
+            for lane in range(1, 4)
+        ]
+    )
+    assert units_row["ILMN_R2_PATH"] == ",".join(
+        [
+            "/data/staged_sample_data/remote_stage_test/"
+            "MULTILANE_HG002-NOVASEQ-PCR-FREE-blood-split1x_S1_0/"
+            f"lane{lane}/HG002_L{lane}_R2.fastq.gz"
+            for lane in range(1, 4)
+        ]
+    )
+
+
+def test_precheck_rejects_mismatched_comma_separated_ilmn_counts(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN1",
+                    "HG002",
+                    "split1x",
+                    "blood",
+                    "PCR-FREE",
+                    "ILMN",
+                    "NOVASEQX",
+                    "0",
+                    "S1",
+                    "s3://bucket/HG002_L1_R1.fastq.gz,s3://bucket/HG002_L2_R1.fastq.gz",
+                    "s3://bucket/HG002_L1_R2.fastq.gz",
+                    "stage_data",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+
+    report, _rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert any("same number of entries" in issue.message for issue in report.issues)
+
+
+def test_precheck_rejects_out_of_order_comma_separated_ilmn_pairs(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN1",
+                    "HG002",
+                    "split1x",
+                    "blood",
+                    "PCR-FREE",
+                    "ILMN",
+                    "NOVASEQX",
+                    "0",
+                    "S1",
+                    "s3://bucket/HG002_L1_R1.fastq.gz,s3://bucket/HG002_L2_R1.fastq.gz",
+                    "s3://bucket/HG002_L1_R2.fastq.gz,s3://bucket/HG002_L3_R2.fastq.gz",
+                    "stage_data",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+
+    report, _rows = module.precheck_manifest(
+        analysis_samples,
+        reference_bucket="s3://bucket",
+        aws_env={},
+        debug=False,
+    )
+
+    assert any("pair 2 is out of order" in issue.message for issue in report.issues)
+
+
 def test_process_samples_emits_complete_genomics_fastq_rows(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
