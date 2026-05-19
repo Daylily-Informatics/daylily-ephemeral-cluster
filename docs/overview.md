@@ -54,7 +54,7 @@ Catalog v2 splits commands by input contract:
 - `sample_analysis` commands use `analysis_samples.tsv`; `dyec samples stage` writes `samples.tsv` and `units.tsv`.
 - `run_analysis` commands use `runs.tsv`; run input must be mounted under `/fsx/run_dir_mounts/<mount_id>`.
 
-The current DayOA catalog pin is `1.0.12` for the repository default and all DayOA command `git_tag` values.
+The current DayOA catalog pin is `1.0.16` for the repository default and all DayOA command `git_tag` values.
 
 ## Headnode Model
 
