@@ -4,6 +4,7 @@
 import argparse
 import getpass
 import os
+import re
 import subprocess
 import sys
 from typing import Any, Dict, List, Optional, Tuple
@@ -14,6 +15,7 @@ import yaml
 CONFIG_DIR = os.path.expanduser("~/.config/daylily")
 GLOBAL_CONFIG_PATH = os.path.join(CONFIG_DIR, "daylily_cli_global.yaml")
 AVAILABLE_REPOS_PATH = os.path.join(CONFIG_DIR, "daylily_available_repositories.yaml")
+SAFE_SEGMENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
 
 
 class ConfigError(RuntimeError):
@@ -56,6 +58,20 @@ def load_available_repos() -> Tuple[str, Dict[str, Dict[str, Any]]]:
 
 def ensure_directory(path: str) -> None:
     os.makedirs(path, exist_ok=True)
+
+
+def safe_path_segment(value: str, *, field_name: str) -> str:
+    text = str(value or "").strip()
+    if not text:
+        raise ConfigError(f"{field_name} is required.")
+    if not SAFE_SEGMENT_RE.fullmatch(text):
+        raise ConfigError(
+            f"{field_name} must be a single path-safe segment matching "
+            f"{SAFE_SEGMENT_RE.pattern!r}: {text!r}"
+        )
+    if text in {".", ".."} or ".." in text or "/" in text or "%" in text:
+        raise ConfigError(f"{field_name} must not contain path traversal.")
+    return text
 
 
 def clone_repository(
@@ -132,9 +148,8 @@ def main(argv: List[str]) -> int:
         help="Root directory where analysis workspaces are created. Defaults to the configured analysis_root.",
     )
     parser.add_argument(
-        "-u",
-        "--user-name",
-        help="User directory to create within the clone root. Defaults to the current user.",
+        "--executing-entity",
+        help="Entity directory to create within the clone root. Defaults to $USER.",
     )
     parser.add_argument(
         "--repository",
@@ -175,11 +190,20 @@ def main(argv: List[str]) -> int:
         )
         return 1
 
-    user_name = args.user_name or os.environ.get("USER") or getpass.getuser()
-    user_root = os.path.join(clone_root, user_name)
+    try:
+        executing_entity = safe_path_segment(
+            args.executing_entity or os.environ.get("USER") or getpass.getuser(),
+            field_name="executing_entity",
+        )
+        destination = safe_path_segment(args.destination, field_name="destination")
+    except ConfigError as err:
+        print(f"Error: {err}", file=sys.stderr)
+        return 1
+
+    user_root = os.path.join(clone_root, executing_entity)
     ensure_directory(user_root)
 
-    destination_root = os.path.join(user_root, args.destination)
+    destination_root = os.path.join(user_root, destination)
     if os.path.exists(destination_root):
         print(
             f"Error: destination '{destination_root}' already exists.",

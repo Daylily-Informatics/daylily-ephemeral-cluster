@@ -131,7 +131,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         with pytest.raises(CommandError, match="Remote lookup failed: missing_stage_dir"):
             run_omics_module.parse_remote_config("__DAYLILY_ERROR__=missing_stage_dir")
 
-    def test_main_requires_destination(self):
+    def test_main_requires_analysis_identity(self):
         with pytest.raises(SystemExit) as exc:
             run_omics_module.main(["--profile", "dev"])
 
@@ -143,7 +143,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 [
                     "__DAYLILY_SESSION__=sess-1",
                     "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1",
-                    "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis",
+                    "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
                 ]
             )
             + "\n"
@@ -212,7 +212,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             stdout=(
                 "__DAYLILY_SESSION__=sess-1\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
-                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/analysis/daylily-omics-analysis\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/analysis/daylily-omics-analysis\n"
             ),
             stderr="",
         ),
@@ -250,7 +250,17 @@ class TestRunOmicsAnalysisHeadnodeScript:
         mock_run_shell,
         capsys,
     ):
-        rc = run_omics_module.main(["--profile", "dev", "--destination", "analysis", "--dry-run"])
+        rc = run_omics_module.main(
+            [
+                "--profile",
+                "dev",
+                "--analysis-id",
+                "analysis",
+                "--executing-entity",
+                "johnm",
+                "--dry-run",
+            ]
+        )
 
         assert rc == 0
         script = mock_run_shell.call_args.args[2]
@@ -270,10 +280,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'mkdir -p "$(dirname "$clone_root")"' in script
         assert 'mkdir -p "$clone_root"' not in script
         assert "day-clone" in script
-        assert "--destination analysis" in script
+        assert '--destination "$ANALYSIS_ID"' in script
+        assert '--executing-entity "$EXECUTING_ENTITY"' in script
         assert "--repository daylily-omics-analysis" in script
         assert "--git-tag main" in script
-        assert "__DAYLILY_ERROR__=destination_exists_without_repo" not in script
+        assert "__DAYLILY_ERROR__=analysis_dir_exists" in script
         assert 'if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then' in script
         assert '. "$HOME/miniconda3/etc/profile.d/conda.sh"' in script
         assert "unset PROJECT || true" in script
@@ -290,7 +301,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         out = capsys.readouterr().out
         assert "Run state directory: /home/ubuntu/daylily-runs/sess-1" in out
         assert (
-            "Workflow repo path: /fsx/analysis_results/ubuntu/analysis/daylily-omics-analysis"
+            "Workflow repo path: /fsx/analysis_results/johnm/analysis/daylily-omics-analysis"
             in out
         )
         assert (
@@ -304,7 +315,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             stdout=(
                 "__DAYLILY_SESSION__=run-qc\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/run-qc\n"
-                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/run-qc/daylily-omics-analysis\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/run-qc/daylily-omics-analysis\n"
             ),
             stderr="",
         ),
@@ -345,8 +356,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
             [
                 "--profile",
                 "dev",
-                "--destination",
+                "--analysis-id",
                 "run-qc",
+                "--executing-entity",
+                "johnm",
                 "--session-name",
                 "run-qc",
                 "--run-context-file",
@@ -401,7 +414,16 @@ class TestRunOmicsAnalysisHeadnodeScript:
         _mock_run_shell,
     ):
         with pytest.raises(CommandError, match="did not report success"):
-            run_omics_module.main(["--profile", "dev", "--destination", "analysis"])
+            run_omics_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--analysis-id",
+                    "analysis",
+                    "--executing-entity",
+                    "johnm",
+                ]
+            )
 
 
 class TestCfgHeadnodeScript:

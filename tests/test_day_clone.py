@@ -85,6 +85,55 @@ def test_day_clone_defaults_to_https_transport(monkeypatch, tmp_path):
     ]
 
 
+def test_day_clone_uses_explicit_executing_entity(monkeypatch, tmp_path):
+    module = _load_day_clone()
+    global_config, available_repos, clone_root = _write_configs(tmp_path)
+    _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
+    monkeypatch.setenv("USER", "ubuntu")
+    clone_calls: list[list[str]] = []
+
+    def fake_run(cmd, check):
+        clone_calls.append(cmd)
+        assert check is True
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+
+    rc = module.main(
+        [
+            "--destination",
+            "analysis",
+            "--executing-entity",
+            "ursa",
+            "--repository",
+            "test-repo",
+        ]
+    )
+
+    assert rc == 0
+    assert clone_calls[0][-1] == str(clone_root / "ursa" / "analysis" / "test-repo")
+
+
+def test_day_clone_rejects_unsafe_executing_entity(monkeypatch, tmp_path, capsys):
+    module = _load_day_clone()
+    global_config, available_repos, _clone_root = _write_configs(tmp_path)
+    _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
+
+    rc = module.main(
+        [
+            "--destination",
+            "analysis",
+            "--executing-entity",
+            "../bad",
+            "--repository",
+            "test-repo",
+        ]
+    )
+
+    assert rc == 1
+    assert "executing_entity" in capsys.readouterr().err
+
+
 def test_day_clone_ssh_transport_uses_ssh_url(monkeypatch, tmp_path):
     module = _load_day_clone()
     global_config, available_repos, clone_root = _write_configs(tmp_path)

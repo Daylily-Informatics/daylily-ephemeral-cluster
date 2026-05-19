@@ -64,7 +64,8 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --reference-bucket "$REF_BUCKET" \
-  --destination dayoa \
+  --analysis-id dayoa \
+  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --dry-run
 ```
 
@@ -127,7 +128,8 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination dayoa \
+  --analysis-id dayoa \
+  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --git-tag 1.0.16
 ```
 
@@ -139,7 +141,8 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --run-context-file ./runs.tsv \
-  --destination run-qc \
+  --analysis-id run-qc \
+  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --git-tag 1.0.16 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
@@ -182,7 +185,7 @@ dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" \
+  --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
   --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 ```
@@ -193,7 +196,7 @@ Verify:
 cat "$EXPORT_DIR/fsx_export.yaml"
 ```
 
-Success means `status: success`, `task_lifecycle: SUCCEEDED`, `detached: true`, `delete_data_in_file_system: false`, and a completed FSx export task id. The destination must be an explicit S3 URI ending in `analysis_results/ubuntu/<analysis_dir>/`.
+Success means `status: success`, `task_lifecycle: SUCCEEDED`, `detached: true`, `delete_data_in_file_system: false`, and a completed FSx export task id. The destination must be an explicit S3 URI ending in `<executing_entity>/<analysis_id>/`.
 
 ## Delete
 

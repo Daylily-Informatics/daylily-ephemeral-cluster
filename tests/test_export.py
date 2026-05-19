@@ -17,6 +17,7 @@ from daylily_ec.workflow.export_data import (
     run_export_task,
     run_export_workflow,
     validate_export_destination_s3_uri,
+    validate_s3_destination_prefix_empty,
 )
 
 runner = CliRunner()
@@ -84,9 +85,9 @@ class FakeFsxClient:
                 {
                     "AssociationId": "dra-export",
                     "FileSystemId": "fs-123",
-                    "FileSystemPath": "/analysis_results/ubuntu/illumina_run_qc/",
+                    "FileSystemPath": "/analysis_results/johnm/illumina_run_qc/",
                     "DataRepositoryPath": (
-                        "s3://bucket/analysis_results/ubuntu/illumina_run_qc/"
+                        "s3://bucket/analysis_results/johnm/illumina_run_qc/"
                     ),
                     "Lifecycle": lifecycle,
                 }
@@ -124,17 +125,30 @@ class FakeFsxClient:
 class FakeSession:
     def __init__(self, client: FakeFsxClient) -> None:
         self._client = client
+        self._s3_client = FakeS3Client()
 
-    def client(self, service: str) -> FakeFsxClient:
+    def client(self, service: str) -> Any:
+        if service == "s3":
+            return self._s3_client
         assert service == "fsx"
         return self._client
+
+
+class FakeS3Client:
+    def __init__(self, *, key_count: int = 0) -> None:
+        self.key_count = key_count
+        self.list_calls: list[dict[str, Any]] = []
+
+    def list_objects_v2(self, **params: Any) -> dict[str, Any]:
+        self.list_calls.append(params)
+        return {"KeyCount": self.key_count}
 
 
 @pytest.mark.parametrize(
     ("raw", "expected"),
     [
-        ("/fsx/analysis_results/ubuntu/illumina_run_qc", "/analysis_results/ubuntu/illumina_run_qc/"),
-        ("/analysis_results/ubuntu/illumina_run_qc/", "/analysis_results/ubuntu/illumina_run_qc/"),
+        ("/fsx/analysis_results/johnm/illumina_run_qc", "/analysis_results/johnm/illumina_run_qc/"),
+        ("/analysis_results/johnm/illumina_run_qc/", "/analysis_results/johnm/illumina_run_qc/"),
     ],
 )
 def test_normalize_export_source_accepts_analysis_dir(raw: str, expected: str) -> None:
@@ -147,7 +161,7 @@ def test_normalize_export_source_accepts_analysis_dir(raw: str, expected: str) -
         "/fsx/exports/export-1/",
         "/fsx/run_dir_mounts/RUN123/fastqs/",
         "/fsx/data/cached_envs/",
-        "/analysis_results/ubuntu/illumina_run_qc/nested/",
+        "/analysis_results/johnm/illumina_run_qc/nested/",
         "/analysis_results/ubuntu/../illumina_run_qc/",
         "/analysis_results/ubuntu//illumina_run_qc/",
     ],
@@ -160,16 +174,35 @@ def test_normalize_export_source_rejects_non_analysis_dir(raw: str) -> None:
 def test_validate_export_destination_requires_matching_suffix() -> None:
     assert (
         validate_export_destination_s3_uri(
-            "s3://bucket/analysis_results/ubuntu/illumina_run_qc",
-            source_path="/fsx/analysis_results/ubuntu/illumina_run_qc",
+            "s3://bucket/derived/lsmc/ssf-hq/johnm/illumina_run_qc",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
         )
-        == "s3://bucket/analysis_results/ubuntu/illumina_run_qc/"
+        == "s3://bucket/derived/lsmc/ssf-hq/johnm/illumina_run_qc/"
     )
     with pytest.raises(RuntimeError, match="destination_s3_uri must end with"):
         validate_export_destination_s3_uri(
             "s3://bucket/analysis_results/ubuntu/other/",
-            source_path="/fsx/analysis_results/ubuntu/illumina_run_qc",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
         )
+
+
+def test_validate_s3_destination_prefix_rejects_existing_objects() -> None:
+    fake_s3 = FakeS3Client(key_count=1)
+
+    with pytest.raises(RuntimeError, match="not empty"):
+        validate_s3_destination_prefix_empty(
+            fake_s3,
+            "s3://bucket/derived/lsmc/ssf-hq/johnm/illumina_run_qc/",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+        )
+
+    assert fake_s3.list_calls == [
+        {
+            "Bucket": "bucket",
+            "Prefix": "derived/lsmc/ssf-hq/johnm/illumina_run_qc/",
+            "MaxKeys": 1,
+        }
+    ]
 
 
 def test_attach_export_dra_uses_analysis_dir_without_auto_export_policy() -> None:
@@ -178,8 +211,8 @@ def test_attach_export_dra_uses_analysis_dir_without_auto_export_policy() -> Non
     record = attach_export_dra(
         cluster_name="alpha",
         fsx_file_system_id="fs-123",
-        source_path="/fsx/analysis_results/ubuntu/illumina_run_qc",
-        destination_s3_uri="s3://bucket/analysis_results/ubuntu/illumina_run_qc",
+        source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+        destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc",
         region="us-west-2",
         profile="prof",
         wait=True,
@@ -188,12 +221,12 @@ def test_attach_export_dra_uses_analysis_dir_without_auto_export_policy() -> Non
     )
 
     assert record.association_id == "dra-export"
-    assert record.analysis_dir == "illumina_run_qc"
+    assert record.analysis_dir == "johnm/illumina_run_qc"
     assert fake.created_association is not None
-    assert fake.created_association["FileSystemPath"] == "/analysis_results/ubuntu/illumina_run_qc/"
+    assert fake.created_association["FileSystemPath"] == "/analysis_results/johnm/illumina_run_qc/"
     assert (
         fake.created_association["DataRepositoryPath"]
-        == "s3://bucket/analysis_results/ubuntu/illumina_run_qc/"
+        == "s3://bucket/analysis_results/johnm/illumina_run_qc/"
     )
     assert fake.created_association["BatchImportMetaDataOnCreate"] is False
     assert "S3" not in fake.created_association
@@ -204,7 +237,7 @@ def test_attach_export_dra_rejects_overlapping_existing_dra() -> None:
         existing_associations=[
             {
                 "AssociationId": "dra-existing",
-                "FileSystemPath": "/analysis_results/ubuntu/illumina_run_qc/",
+                "FileSystemPath": "/analysis_results/johnm/illumina_run_qc/",
                 "Lifecycle": "AVAILABLE",
             }
         ]
@@ -214,8 +247,8 @@ def test_attach_export_dra_rejects_overlapping_existing_dra() -> None:
         attach_export_dra(
             cluster_name="alpha",
             fsx_file_system_id="fs-123",
-            source_path="/fsx/analysis_results/ubuntu/illumina_run_qc",
-            destination_s3_uri="s3://bucket/analysis_results/ubuntu/illumina_run_qc",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+            destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc",
             region="us-west-2",
             profile="prof",
             wait=True,
@@ -229,8 +262,8 @@ def test_run_export_task_starts_exact_analysis_path_and_report() -> None:
 
     payload = run_export_task(
         fsx_file_system_id="fs-123",
-        source_path="/analysis_results/ubuntu/illumina_run_qc/",
-        destination_s3_uri="s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
+        source_path="/analysis_results/johnm/illumina_run_qc/",
+        destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc/",
         wait=True,
         timeout_seconds=1,
         fsx_client=fake,
@@ -240,9 +273,9 @@ def test_run_export_task_starts_exact_analysis_path_and_report() -> None:
     assert payload["task_lifecycle"] == "SUCCEEDED"
     assert fake.created_task is not None
     assert fake.created_task["Type"] == "EXPORT_TO_REPOSITORY"
-    assert fake.created_task["Paths"] == ["/analysis_results/ubuntu/illumina_run_qc/"]
+    assert fake.created_task["Paths"] == ["/analysis_results/johnm/illumina_run_qc/"]
     assert fake.created_task["Report"]["Path"].startswith(
-        "s3://bucket/analysis_results/ubuntu/illumina_run_qc/_daylily_monitor/fsx-export/"
+        "s3://bucket/analysis_results/johnm/illumina_run_qc/_daylily_monitor/fsx-export/"
     )
 
 
@@ -257,8 +290,8 @@ def test_run_export_workflow_success_writes_v3_receipt(tmp_path, monkeypatch) ->
         ExportOptions(
             cluster_name="alpha",
             fsx_file_system_id="fs-123",
-            source_path="/fsx/analysis_results/ubuntu/illumina_run_qc",
-            destination_s3_uri="s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+            destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc/",
             region="us-west-2",
             profile="prof",
             output_dir=tmp_path,
@@ -270,10 +303,10 @@ def test_run_export_workflow_success_writes_v3_receipt(tmp_path, monkeypatch) ->
     receipt = payload["fsx_export"]
     assert receipt["schema_version"] == 3
     assert receipt["status"] == "success"
-    assert receipt["analysis_dir"] == "illumina_run_qc"
-    assert receipt["source_path"] == "/analysis_results/ubuntu/illumina_run_qc/"
-    assert receipt["headnode_path"] == "/fsx/analysis_results/ubuntu/illumina_run_qc/"
-    assert receipt["destination_s3_uri"] == "s3://bucket/analysis_results/ubuntu/illumina_run_qc/"
+    assert receipt["analysis_dir"] == "johnm/illumina_run_qc"
+    assert receipt["source_path"] == "/analysis_results/johnm/illumina_run_qc/"
+    assert receipt["headnode_path"] == "/fsx/analysis_results/johnm/illumina_run_qc/"
+    assert receipt["destination_s3_uri"] == "s3://bucket/analysis_results/johnm/illumina_run_qc/"
     assert receipt["fsx_file_system_id"] == "fs-123"
     assert receipt["association_id"] == "dra-export"
     assert receipt["task_id"] == "task-123"
@@ -294,8 +327,8 @@ def test_run_export_workflow_task_failure_still_detaches(tmp_path, monkeypatch) 
         ExportOptions(
             cluster_name="alpha",
             fsx_file_system_id="fs-123",
-            source_path="/fsx/analysis_results/ubuntu/illumina_run_qc",
-            destination_s3_uri="s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+            destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc/",
             region="us-west-2",
             profile="prof",
             output_dir=tmp_path,
@@ -323,8 +356,8 @@ def test_run_export_workflow_attach_timeout_still_detaches(tmp_path, monkeypatch
         ExportOptions(
             cluster_name="alpha",
             fsx_file_system_id="fs-123",
-            source_path="/fsx/analysis_results/ubuntu/illumina_run_qc",
-            destination_s3_uri="s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+            destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc/",
             region="us-west-2",
             profile="prof",
             output_dir=tmp_path,
@@ -357,8 +390,8 @@ def test_run_export_workflow_detach_failure_surfaces_association(tmp_path, monke
         ExportOptions(
             cluster_name="alpha",
             fsx_file_system_id="fs-123",
-            source_path="/fsx/analysis_results/ubuntu/illumina_run_qc",
-            destination_s3_uri="s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+            destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc/",
             region="us-west-2",
             profile="prof",
             output_dir=tmp_path,
@@ -390,9 +423,9 @@ def test_cli_export_passes_direct_analysis_options(tmp_path, monkeypatch):
                 "--cluster-name",
                 "alpha",
                 "--source-path",
-                "/fsx/analysis_results/ubuntu/illumina_run_qc",
+                "/fsx/analysis_results/johnm/illumina_run_qc",
                 "--destination-s3-uri",
-                "s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
+                "s3://bucket/analysis_results/johnm/illumina_run_qc/",
                 "--region",
                 "us-west-2",
                 "--output-dir",
@@ -408,8 +441,8 @@ def test_cli_export_passes_direct_analysis_options(tmp_path, monkeypatch):
     options = mock_run.call_args.args[0]
     assert options.cluster_name == "alpha"
     assert not hasattr(options, "export_id")
-    assert options.source_path == "/fsx/analysis_results/ubuntu/illumina_run_qc"
-    assert options.destination_s3_uri == "s3://bucket/analysis_results/ubuntu/illumina_run_qc/"
+    assert options.source_path == "/fsx/analysis_results/johnm/illumina_run_qc"
+    assert options.destination_s3_uri == "s3://bucket/analysis_results/johnm/illumina_run_qc/"
     assert options.region == "us-west-2"
     assert options.profile == "prof"
     assert options.output_dir == Path(tmp_path).resolve()

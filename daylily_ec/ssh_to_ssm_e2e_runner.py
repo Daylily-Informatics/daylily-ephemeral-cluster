@@ -133,7 +133,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--export-source-path",
         default=None,
-        help="Completed analysis directory under /fsx/analysis_results/ubuntu/<analysis-dir>/.",
+        help="Completed analysis directory under /fsx/analysis_results/<entity>/<analysis-id>/.",
     )
     parser.add_argument(
         "--export-destination-s3-uri",
@@ -151,9 +151,14 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Launch the workflow without --dry-run",
     )
     parser.add_argument(
-        "--workflow-destination",
+        "--workflow-analysis-id",
         required=True,
-        help="Workspace destination passed through to the headnode workflow launcher",
+        help="Analysis identifier passed through to the headnode workflow launcher",
+    )
+    parser.add_argument(
+        "--workflow-executing-entity",
+        required=True,
+        help="Executing entity passed through to the headnode workflow launcher",
     )
     parser.add_argument(
         "--workflow-git-tag",
@@ -895,8 +900,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         args.cluster_name,
         "--stage-dir",
         remote_stage_dir,
-        "--destination",
-        args.workflow_destination,
+        "--analysis-id",
+        args.workflow_analysis_id,
+        "--executing-entity",
+        args.workflow_executing_entity,
         "--git-tag",
         args.workflow_git_tag,
         "--aligners",

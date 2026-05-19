@@ -102,7 +102,8 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --reference-bucket "$REF_BUCKET" \
-  --destination dayoa \
+  --analysis-id dayoa \
+  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --dry-run
 ```
 
@@ -113,7 +114,11 @@ Important options:
 - `--stage-target`
 - `--run-metric-staging RUN_UID:PLATFORM:FOFN`
 - `--command-id`
-- `--destination`
+- `--analysis-id`
+- `--executing-entity`
+- `--export-destination-s3-uri`
+- `--export-trigger`
+- `--delete-on-export-success`
 - `--git-tag`
 
 ## Run Mounts
@@ -177,7 +182,8 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination dayoa \
+  --analysis-id dayoa \
+  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --git-tag 1.0.16
 ```
 
@@ -189,10 +195,19 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --run-context-file ./runs.tsv \
-  --destination run-qc \
+  --analysis-id run-qc \
+  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --git-tag 1.0.16 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
+
+Workflow launch requires `--analysis-id` and `--executing-entity`; both must be safe path segments. The headnode checkout root is `/fsx/analysis_results/<executing_entity>/<analysis_id>/`, and the repository checkout sits below it.
+
+Auto-export options:
+
+- `--export-destination-s3-uri`: full S3 destination prefix ending in `<executing_entity>/<analysis_id>/`
+- `--export-trigger`: one of `none`, `on-success`, `on-fail`, or `all`; default `none`
+- `--delete-on-export-success`: deletes only the FSx analysis directory after a successful requested export
 
 Inspect:
 
@@ -225,7 +240,7 @@ dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" \
+  --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
   --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 ```
@@ -238,13 +253,13 @@ Required:
 - `--region`
 - `--output-dir`
 
-The source path must be `/fsx/analysis_results/ubuntu/<analysis_dir>` or `/analysis_results/ubuntu/<analysis_dir>`. The destination must be an explicit S3 URI ending in `analysis_results/ubuntu/<analysis_dir>/`. Run mounts, reference data, nested paths, and old export staging paths are rejected as export sources.
+The source path must be `/fsx/analysis_results/<executing_entity>/<analysis_id>` or `/analysis_results/<executing_entity>/<analysis_id>`. The destination must be an explicit S3 URI ending in `<executing_entity>/<analysis_id>/`. Run mounts, reference data, nested paths, old export staging paths, unsafe path segments, and non-empty destination prefixes are rejected.
 
 Lower-level helpers:
 
 ```bash
-dyec --json exports attach --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" --destination-s3-uri "$EXPORT_S3_URI"
-dyec --json exports run --profile "$AWS_PROFILE" --region "$REGION" --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" --destination-s3-uri "$EXPORT_S3_URI" --fsx-file-system-id "$FSX_FILE_SYSTEM_ID"
+dyec --json exports attach --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" --destination-s3-uri "$EXPORT_S3_URI"
+dyec --json exports run --profile "$AWS_PROFILE" --region "$REGION" --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" --destination-s3-uri "$EXPORT_S3_URI" --fsx-file-system-id "$FSX_FILE_SYSTEM_ID"
 dyec --json exports detach --profile "$AWS_PROFILE" --region "$REGION" --association-id "$EXPORT_DRA_ID"
 ```
 

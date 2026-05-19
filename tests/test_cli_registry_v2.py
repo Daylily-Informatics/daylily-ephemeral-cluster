@@ -544,9 +544,9 @@ def test_export_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
             "--cluster-name",
             "cluster-a",
             "--source-path",
-            "/fsx/analysis_results/ubuntu/illumina_run_qc",
+            "/fsx/analysis_results/johnm/illumina_run_qc",
             "--destination-s3-uri",
-            "s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
+            "s3://bucket/analysis_results/johnm/illumina_run_qc/",
             "--region",
             "us-west-2",
             "--output-dir",
@@ -562,8 +562,8 @@ def test_export_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
     options = calls["options"]
     assert options.cluster_name == "cluster-a"
     assert not hasattr(options, "export_id")
-    assert options.source_path == "/fsx/analysis_results/ubuntu/illumina_run_qc"
-    assert options.destination_s3_uri == "s3://bucket/analysis_results/ubuntu/illumina_run_qc/"
+    assert options.source_path == "/fsx/analysis_results/johnm/illumina_run_qc"
+    assert options.destination_s3_uri == "s3://bucket/analysis_results/johnm/illumina_run_qc/"
     assert options.region == "us-west-2"
     assert options.profile == "dev"
     assert options.output_dir == tmp_path.resolve()
@@ -1293,7 +1293,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
         calls["launch_argv"] = argv
         print("__DAYLILY_SESSION__=cg-session")
         print("__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/cg-session")
-        print("__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/cg-run/daylily-omics-analysis")
+        print("__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/cg-run/daylily-omics-analysis")
         return 0
 
     monkeypatch.setattr(cli_module, "_invoke_stage_samples", fake_stage)
@@ -1309,8 +1309,10 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
             str(catalog),
             "--command-id",
             "complete_genomics_mgi_snv_concordance",
-            "--destination",
+            "--analysis-id",
             "cg-run",
+            "--executing-entity",
+            "johnm",
             "--profile",
             "dev",
             "--region",
@@ -1346,8 +1348,10 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
         "us-west-2",
     ]
     launch_argv = calls["launch_argv"]
-    assert "--destination" in launch_argv
+    assert "--analysis-id" in launch_argv
     assert "cg-run" in launch_argv
+    assert "--executing-entity" in launch_argv
+    assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
     assert "1.0.16" in launch_argv
     assert "--dy-command" in launch_argv
@@ -1365,7 +1369,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert payload["workflow_launch"]["session_name"] == "cg-session"
 
 
-def test_samples_run_requires_destination(monkeypatch, tmp_path) -> None:
+def test_samples_run_requires_analysis_identity(monkeypatch, tmp_path) -> None:
     _activate_dayec_runtime(monkeypatch)
     manifest = tmp_path / "analysis_samples.tsv"
     _write_complete_genomics_manifest(manifest)
@@ -1386,7 +1390,45 @@ def test_samples_run_requires_destination(monkeypatch, tmp_path) -> None:
     )
 
     assert result.exit_code != 0
-    assert "destination" in result.output
+    assert "analysis-id" in result.output
+
+
+def test_samples_run_rejects_export_policy_before_staging(monkeypatch, tmp_path) -> None:
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    manifest = tmp_path / "analysis_samples.tsv"
+    _write_complete_genomics_manifest(manifest)
+
+    def fake_stage(argv: list[str]) -> int:
+        calls["stage_argv"] = argv
+        return 0
+
+    monkeypatch.setattr(cli_module, "_invoke_stage_samples", fake_stage)
+
+    result = runner.invoke(
+        app,
+        [
+            "samples",
+            "run",
+            str(manifest),
+            "--command-id",
+            "complete_genomics_mgi_snv_concordance",
+            "--analysis-id",
+            "cg-run",
+            "--executing-entity",
+            "johnm",
+            "--profile",
+            "dev",
+            "--reference-bucket",
+            "s3://bucket",
+            "--export-destination-s3-uri",
+            "s3://bucket/derived/johnm/cg-run/",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "export-trigger" in result.output
+    assert "stage_argv" not in calls
 
 
 def test_samples_run_rejects_unknown_command(monkeypatch, tmp_path) -> None:
@@ -1402,8 +1444,10 @@ def test_samples_run_rejects_unknown_command(monkeypatch, tmp_path) -> None:
             str(manifest),
             "--command-id",
             "missing",
-            "--destination",
+            "--analysis-id",
             "cg-run",
+            "--executing-entity",
+            "johnm",
             "--profile",
             "dev",
             "--reference-bucket",
@@ -1435,8 +1479,10 @@ def test_samples_run_rejects_incompatible_catalog_command(monkeypatch, tmp_path)
             str(manifest),
             "--command-id",
             "illumina_snv_alignstats",
-            "--destination",
+            "--analysis-id",
             "cg-run",
+            "--executing-entity",
+            "johnm",
             "--profile",
             "dev",
             "--reference-bucket",
@@ -1474,12 +1520,19 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "cluster-a",
             "--stage-dir",
             "/fsx/stage/run-1",
-            "--destination",
+            "--analysis-id",
             "run-1",
+            "--executing-entity",
+            "johnm",
             "--git-tag",
             "release-1",
             "--session-name",
             "sess-1",
+            "--export-destination-s3-uri",
+            "s3://bucket/derived/johnm/run-1/",
+            "--export-trigger",
+            "on-success",
+            "--delete-on-export-success",
             "--sv-callers",
             "tiddit",
             "--strict-project-check",
@@ -1495,12 +1548,19 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "cluster-a" in argv
     assert "--stage-dir" in argv
     assert "/fsx/stage/run-1" in argv
-    assert "--destination" in argv
+    assert "--analysis-id" in argv
     assert "run-1" in argv
+    assert "--executing-entity" in argv
+    assert "johnm" in argv
     assert "--git-tag" in argv
     assert "release-1" in argv
     assert "--session-name" in argv
     assert "sess-1" in argv
+    assert "--export-destination-s3-uri" in argv
+    assert "s3://bucket/derived/johnm/run-1/" in argv
+    assert "--export-trigger" in argv
+    assert "on-success" in argv
+    assert "--delete-on-export-success" in argv
     assert "--sv-callers" in argv
     assert "tiddit" in argv
     assert "--strict-project-check" in argv
@@ -1534,8 +1594,10 @@ def test_workflow_launch_forwards_run_context_file(monkeypatch, tmp_path) -> Non
             "cluster-a",
             "--run-context-file",
             str(run_context),
-            "--destination",
+            "--analysis-id",
             "run-1",
+            "--executing-entity",
+            "johnm",
         ],
     )
 
@@ -1546,7 +1608,7 @@ def test_workflow_launch_forwards_run_context_file(monkeypatch, tmp_path) -> Non
     assert "--stage-dir" not in argv
 
 
-def test_workflow_launch_requires_destination(monkeypatch) -> None:
+def test_workflow_launch_requires_analysis_identity(monkeypatch) -> None:
     _activate_dayec_runtime(monkeypatch)
 
     result = runner.invoke(
@@ -1566,7 +1628,44 @@ def test_workflow_launch_requires_destination(monkeypatch) -> None:
     )
 
     assert result.exit_code != 0
-    assert "destination" in result.output
+    assert "analysis-id" in result.output
+
+
+def test_workflow_launch_rejects_unsafe_analysis_id_before_entrypoint(monkeypatch) -> None:
+    import daylily_ec.scripts.daylily_run_omics_analysis_headnode as launch_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+
+    def fake_launch(argv: list[str]) -> int:
+        calls["argv"] = argv
+        return 0
+
+    monkeypatch.setattr(launch_module, "main", fake_launch)
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "launch",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--stage-dir",
+            "/fsx/stage/run-1",
+            "--analysis-id",
+            "../bad",
+            "--executing-entity",
+            "johnm",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "analysis_id" in result.output
+    assert "argv" not in calls
 
 
 def test_workflow_status_reads_status_json_via_ssm(monkeypatch) -> None:

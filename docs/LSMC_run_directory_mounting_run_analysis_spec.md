@@ -230,7 +230,8 @@ daylily-ec workflow launch \
   --region us-east-1 \
   --profile lsmc-prod \
   --repository daylily-omics-analysis \
-  --destination s3://lsmc-results/dayoa/ \
+  --analysis-id 250517_A00123_0456_AHFG7MDSX7_run_qc \
+  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --git-tag <dayoa-tag> \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 8 -k"
 ```
@@ -262,7 +263,8 @@ daylily-ec workflow launch \
   --region us-east-1 \
   --profile lsmc-prod \
   --repository daylily-omics-analysis \
-  --destination s3://lsmc-results/dayoa/ \
+  --analysis-id 250517_A00123_0456_AHFG7MDSX7_bclconvert \
+  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --git-tag <dayoa-tag> \
   --dy-command "bin/day_run produce_bclconvert_fastqs_and_metrics --config run_context_file=config/runs.tsv -p -j 20 -k"
 ```

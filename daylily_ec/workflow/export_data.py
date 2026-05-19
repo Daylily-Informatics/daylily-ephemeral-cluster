@@ -14,6 +14,7 @@ import boto3
 from botocore.exceptions import BotoCoreError, ClientError
 import yaml
 
+from daylily_ec.analysis_identity import validate_analysis_segment
 from daylily_ec import ui
 from daylily_ec.run_mounts import (
     RunMountError,
@@ -30,8 +31,8 @@ from daylily_ec.run_mounts import (
 
 LOGGER = logging.getLogger("daylily.export_fsx")
 
-ANALYSIS_EXPORT_ROOT = "/analysis_results/ubuntu/"
-HEADNODE_ANALYSIS_EXPORT_ROOT = "/fsx/analysis_results/ubuntu/"
+ANALYSIS_EXPORT_ROOT = "/analysis_results/"
+HEADNODE_ANALYSIS_EXPORT_ROOT = "/fsx/analysis_results/"
 STATUS_FILENAME = "fsx_export.yaml"
 EXPORT_SCHEMA_VERSION = 3
 EXPORT_PURPOSE_TAG = "output-export"
@@ -85,11 +86,12 @@ def _create_session(region: str, profile: Optional[str]):
 
 
 def _safe_analysis_dir(candidate: str) -> str:
-    if not candidate:
-        raise ExportError("source_path must include one analysis directory.")
-    if candidate in {".", ".."} or ".." in candidate or "/" in candidate or "%" in candidate:
-        raise ExportError("analysis_dir must be a single safe path component.")
-    return candidate
+    parts = [part for part in str(candidate or "").strip("/").split("/") if part]
+    if len(parts) != 2:
+        raise ExportError("source_path must include <executing_entity>/<analysis_id>.")
+    entity = validate_analysis_segment(parts[0], field_name="executing_entity")
+    analysis_id = validate_analysis_segment(parts[1], field_name="analysis_id")
+    return f"{entity}/{analysis_id}"
 
 
 def analysis_headnode_path(source_path: str) -> str:
@@ -116,7 +118,9 @@ def normalize_export_source_path(source_path: str) -> str:
     if raw.startswith(HEADNODE_ANALYSIS_EXPORT_ROOT):
         raw = ANALYSIS_EXPORT_ROOT + raw[len(HEADNODE_ANALYSIS_EXPORT_ROOT) :]
     elif raw.startswith("/fsx/"):
-        raise ExportError("source_path must be under /fsx/analysis_results/ubuntu/<analysis_dir>.")
+        raise ExportError(
+            "source_path must be under /fsx/analysis_results/<executing_entity>/<analysis_id>."
+        )
     if raw.startswith("/run_dir_mounts/"):
         raise ExportError("Run-directory mounts are read-oriented inputs, not export sources.")
     if raw.startswith("/data/") or raw == "/data":
@@ -132,7 +136,9 @@ def normalize_export_source_path(source_path: str) -> str:
         raise ExportError("source_path must not contain '..'.")
     normalized = "/" + "/".join(part for part in parts if part != "/")
     if not normalized.startswith(ANALYSIS_EXPORT_ROOT):
-        raise ExportError("source_path must be under /analysis_results/ubuntu/<analysis_dir>.")
+        raise ExportError(
+            "source_path must be under /analysis_results/<executing_entity>/<analysis_id>."
+        )
     suffix = normalized[len(ANALYSIS_EXPORT_ROOT) :].strip("/")
     _safe_analysis_dir(suffix)
     return normalized.rstrip("/") + "/"
@@ -143,12 +149,35 @@ def validate_export_destination_s3_uri(destination_s3_uri: str, *, source_path: 
     parsed = urlparse(destination)
     key = parsed.path.lstrip("/")
     analysis_dir = analysis_dir_from_source_path(source_path)
-    expected_key = f"analysis_results/ubuntu/{analysis_dir}/"
-    if key != expected_key:
+    expected_key = f"{analysis_dir}/"
+    if not key.endswith(expected_key):
         raise ExportError(
             "destination_s3_uri must end with "
             f"{expected_key!r}; got s3://{parsed.netloc}/{key}"
         )
+    return destination
+
+
+def validate_s3_destination_prefix_empty(
+    client: Any,
+    destination_s3_uri: str,
+    *,
+    source_path: str,
+) -> str:
+    """Validate the destination suffix and fail if the S3 prefix already has objects."""
+    destination = validate_export_destination_s3_uri(
+        destination_s3_uri,
+        source_path=source_path,
+    )
+    parsed = urlparse(destination)
+    bucket = parsed.netloc
+    prefix = parsed.path.lstrip("/")
+    try:
+        response = client.list_objects_v2(Bucket=bucket, Prefix=prefix, MaxKeys=1)
+    except (BotoCoreError, ClientError) as exc:
+        raise ExportError(f"Unable to inspect S3 destination prefix {destination}: {exc}") from exc
+    if response.get("KeyCount", 0):
+        raise ExportError(f"S3 destination prefix is not empty: {destination}")
     return destination
 
 
@@ -442,6 +471,7 @@ def run_export_workflow(options: ExportOptions) -> int:
         return 1
     session = _create_session(options.region, options.profile)
     client = session.client("fsx")
+    s3_client = session.client("s3")
     record: Optional[ExportDraRecord] = None
     task_payload: Dict[str, Any] = {}
     detach_payload: Dict[str, Any] = {}
@@ -449,6 +479,12 @@ def run_export_workflow(options: ExportOptions) -> int:
     message = ""
 
     try:
+        receipt["fsx_export"]["phase"] = "preflight"
+        validate_s3_destination_prefix_empty(
+            s3_client,
+            options.destination_s3_uri,
+            source_path=options.source_path,
+        )
         def _capture_created_dra(created_record: ExportDraRecord) -> None:
             nonlocal record
             record = created_record

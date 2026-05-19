@@ -92,10 +92,45 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "bin/day_run" in command.dy_command
     assert command.dryrun_dy_command.endswith(" -n")
 
-    launch_argv = command.launch_argv(destination="run-1", cluster="cluster-a")
+    launch_argv = command.launch_argv(
+        analysis_id="run-1",
+        executing_entity="johnm",
+        cluster="cluster-a",
+    )
     assert "--dy-command" in launch_argv
+    assert "--analysis-id" in launch_argv
+    assert "run-1" in launch_argv
+    assert "--executing-entity" in launch_argv
+    assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
     assert "1.0.16" in launch_argv
+
+    export_argv = command.launch_argv(
+        analysis_id="run-1",
+        executing_entity="johnm",
+        export_destination_s3_uri="s3://bucket/derived/johnm/run-1/",
+        export_trigger="all",
+        delete_on_export_success=True,
+    )
+    assert "--export-destination-s3-uri" in export_argv
+    assert "s3://bucket/derived/johnm/run-1/" in export_argv
+    assert "--export-trigger" in export_argv
+    assert "all" in export_argv
+    assert "--delete-on-export-success" in export_argv
+
+    with pytest.raises(ValueError, match="export_trigger"):
+        command.launch_argv(
+            analysis_id="run-1",
+            executing_entity="johnm",
+            export_destination_s3_uri="s3://bucket/derived/johnm/run-1/",
+        )
+
+    with pytest.raises(ValueError, match="delete_on_export_success"):
+        command.launch_argv(
+            analysis_id="run-1",
+            executing_entity="johnm",
+            delete_on_export_success=True,
+        )
 
 
 def test_repository_catalog_commands_have_run_metadata() -> None:
@@ -209,10 +244,11 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert command.compatible_platforms == ["ILMN"]
 
     with pytest.raises(ValueError, match="run_context_file is required"):
-        command.launch_argv(destination="s3://bucket/results")
+        command.launch_argv(analysis_id="run-qc", executing_entity="johnm")
 
     launch_argv = command.launch_argv(
-        destination="s3://bucket/results",
+        analysis_id="run-qc",
+        executing_entity="johnm",
         run_context_file="config/runs.tsv",
         dry_run=True,
     )

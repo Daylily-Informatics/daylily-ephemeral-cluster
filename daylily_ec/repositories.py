@@ -8,6 +8,7 @@ from typing import Any, Dict, Iterable, List, Optional, Sequence
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from daylily_ec.analysis_identity import validate_analysis_segment
 from daylily_ec.resources import resource_path
 
 
@@ -15,6 +16,7 @@ CATALOG_VERSION = 2
 SUPPORTED_CATALOG_VERSIONS = {1, CATALOG_VERSION}
 COMMAND_CLASSES = {"sample_analysis", "run_analysis"}
 INPUT_CONTRACTS = {"sample_manifest", "run_context", "none"}
+EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 
 
 def _clean_id(value: str, *, field_name: str) -> str:
@@ -168,7 +170,6 @@ class AnalysisCommand(BaseModel):
     dryrun_dy_command: str
     compatible_platforms: List[str]
     compatible_data_modes: List[str]
-    destination: Optional[str] = None
     git_tag: str = "main"
     no_containerized: bool = False
     optional_features: Dict[str, AnalysisCommandFeature] = Field(default_factory=dict)
@@ -204,13 +205,6 @@ class AnalysisCommand(BaseModel):
         if any(not value for value in cleaned):
             raise ValueError("list values must not be empty")
         return cleaned
-
-    @field_validator("destination")
-    @classmethod
-    def _validate_optional_destination(cls, value: Optional[str]) -> Optional[str]:
-        if value is None:
-            return None
-        return _clean_id(value, field_name="destination")
 
     @field_validator("runtime_parameters")
     @classmethod
@@ -272,7 +266,8 @@ class AnalysisCommand(BaseModel):
     def launch_argv(
         self,
         *,
-        destination: Optional[str] = None,
+        analysis_id: str,
+        executing_entity: str,
         git_tag: Optional[str] = None,
         profile: Optional[str] = None,
         region: Optional[str] = None,
@@ -283,13 +278,27 @@ class AnalysisCommand(BaseModel):
         run_context_file: Optional[str] = None,
         dry_run: bool = False,
         skip_project_check: bool = True,
+        export_destination_s3_uri: Optional[str] = None,
+        export_trigger: str = "none",
+        delete_on_export_success: bool = False,
     ) -> List[str]:
         """Render a daylily-ec workflow launch argv for this profile."""
 
-        resolved_destination = destination or self.destination
-        if not resolved_destination:
-            raise ValueError("destination is required to render a workflow launch command")
+        resolved_analysis_id = validate_analysis_segment(analysis_id, field_name="analysis_id")
+        resolved_executing_entity = validate_analysis_segment(
+            executing_entity, field_name="executing_entity"
+        )
         resolved_git_tag = git_tag or self.git_tag
+        if export_trigger not in EXPORT_TRIGGERS:
+            raise ValueError(
+                "export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS))
+            )
+        if export_destination_s3_uri and export_trigger == "none":
+            raise ValueError(
+                "export_trigger must not be 'none' when export_destination_s3_uri is set"
+            )
+        if delete_on_export_success and not export_destination_s3_uri:
+            raise ValueError("delete_on_export_success requires export_destination_s3_uri")
         dy_command = self.dryrun_dy_command if dry_run else self.dy_command
         if self.input_contract == "run_context":
             if not run_context_file:
@@ -304,8 +313,10 @@ class AnalysisCommand(BaseModel):
             "launch",
             "--repository",
             self.repository,
-            "--destination",
-            resolved_destination,
+            "--analysis-id",
+            resolved_analysis_id,
+            "--executing-entity",
+            resolved_executing_entity,
             "--git-tag",
             resolved_git_tag,
             "--genome",
@@ -327,6 +338,12 @@ class AnalysisCommand(BaseModel):
         argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
         if self.no_containerized:
             argv.append("--no-containerized")
+        if export_destination_s3_uri:
+            argv.extend(["--export-destination-s3-uri", export_destination_s3_uri])
+        if export_trigger != "none":
+            argv.extend(["--export-trigger", export_trigger])
+        if delete_on_export_success:
+            argv.append("--delete-on-export-success")
         if dry_run:
             argv.append("--dry-run")
         return argv
