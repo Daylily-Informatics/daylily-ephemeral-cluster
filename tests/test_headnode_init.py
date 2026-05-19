@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -505,6 +506,84 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
     assert result.returncode != 0
     assert "install_miniconda" not in result.stdout
     assert not (home_dir / ".config" / "daylily" / "daylily-headnode-bootstrap.sh").exists()
+
+
+def test_install_headnode_tools_prefers_checkout_over_installed_resources(
+    tmp_path: Path,
+) -> None:
+    repo_root = tmp_path / "repo"
+    installed_resources = tmp_path / "installed-resources"
+    fake_bin = tmp_path / "fake-bin"
+
+    for root, marker in ((repo_root, "checkout"), (installed_resources, "installed")):
+        for path in (
+            root / "bin" / "headnode_utils",
+            root / "config",
+            root / "etc",
+        ):
+            path.mkdir(parents=True, exist_ok=True)
+        (root / "config" / "daylily_cli_global.yaml").write_text(
+            "daylily: {}\n",
+            encoding="utf-8",
+        )
+        (root / "config" / "daylily_available_repositories.yaml").write_text(
+            "default_repository: daylily-omics-analysis\nrepositories: {}\n",
+            encoding="utf-8",
+        )
+        (root / "etc" / "analysis_samples_template.tsv").write_text(
+            "<REF-BUCKET-NAME>\n",
+            encoding="utf-8",
+        )
+        _write_executable(
+            root / "bin" / "headnode_utils" / "day-clone",
+            f"#!/usr/bin/env bash\necho {marker}\n",
+        )
+    _write_executable(
+        repo_root / "bin" / "install_miniconda",
+        "#!/usr/bin/env bash\nexit 42\n",
+    )
+    fake_bin.mkdir(parents=True, exist_ok=True)
+    _write_executable(
+        fake_bin / "daylily-ec",
+        (
+            "#!/usr/bin/env bash\n"
+            'if [[ "$1" == "resources-dir" ]]; then\n'
+            f"  printf '%s\\n' {shlex.quote(str(installed_resources))}\n"
+            "  exit 0\n"
+            "fi\n"
+            "exit 1\n"
+        ),
+    )
+
+    script_source = (REPO_ROOT / "bin" / "install-daylily-headnode-tools").read_text(
+        encoding="utf-8"
+    )
+    script_path = repo_root / "bin" / "install-daylily-headnode-tools"
+    script_path.write_text(script_source, encoding="utf-8")
+    script_path.chmod(0o755)
+
+    env = os.environ.copy()
+    env.update(
+        {
+            "DAYLILY_EC_RESOURCES_DIR": "",
+            "DAYLILY_EC_CLUSTER_CONFIG_PATH": str(tmp_path / "missing-cluster-config.yaml"),
+            "HOME": str(tmp_path / "home"),
+            "PATH": f"{fake_bin}:{env.get('PATH', '')}",
+        }
+    )
+
+    result = subprocess.run(
+        ["bash", str(script_path)],
+        cwd=repo_root,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    installed_day_clone = tmp_path / "home" / ".local" / "bin" / "day-clone"
+    assert installed_day_clone.read_text(encoding="utf-8").endswith("echo checkout\n")
 
 
 def test_active_runtime_paths_no_longer_invoke_dyinit() -> None:

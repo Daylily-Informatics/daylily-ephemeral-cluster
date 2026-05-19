@@ -25,15 +25,15 @@ resolve_daylily_res_dir() {
         echo "${DAYLILY_EC_RESOURCES_DIR}"
         return 0
     fi
-    if command -v daylily-ec >/dev/null 2>&1; then
-        daylily-ec resources-dir
-        return 0
-    fi
     local script_dir repo_root
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     repo_root="$(cd "${script_dir}/.." && pwd)"
     if [[ -d "${repo_root}/config" && -d "${repo_root}/bin" ]]; then
         echo "${repo_root}"
+        return 0
+    fi
+    if command -v daylily-ec >/dev/null 2>&1; then
+        daylily-ec resources-dir
         return 0
     fi
     echo "Error: could not resolve Daylily resources dir. Set DAYLILY_EC_RESOURCES_DIR or install daylily-ephemeral-cluster." >&2
