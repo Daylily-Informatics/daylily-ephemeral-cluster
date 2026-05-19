@@ -113,7 +113,7 @@ dyec workflow launch \
   --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 1.0.16
+  --git-tag 1.0.17
 ```
 
 ## 6. Run-Folder Analysis
@@ -146,7 +146,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 1.0.16 \
+  --git-tag 1.0.17 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
 
