@@ -19,6 +19,14 @@
 
 - Use the repo activation flow before running Daylily commands. If the `DAY-EC` Conda environment is not present or dependencies are missing, run `source ./activate` from the repo root to create/activate it, then use the `DAY-EC` environment for tests and CLI commands.
 
+# Working Docs And Plan Ledgers
+
+- Every repo should have a `docs/plans/` directory. Create it when it is missing.
+- Store plans, ledger plans, execution ledgers, and AI working documents used to carry out repo work under `docs/plans/`.
+- Treat these files as durable repo artifacts: check them in and preserve them with the repo unless the user explicitly asks to remove or archive one.
+- Name plan and ledger files with a datetime in the filename, such as `YYYYMMDDTHHMMSSZ_<short_slug>_ledger.md` or `YYYYMMDD_<short_slug>.md`.
+- Do not keep the authoritative plan or execution ledger only in chat, temporary directories, or agent-local scratch space.
+
 # ParallelCluster CLI
 
 - `pcluster` is not an `aws` CLI subcommand. Do not pass AWS CLI-only flags such as `--json` to `pcluster`; ParallelCluster commands emit JSON by default.
