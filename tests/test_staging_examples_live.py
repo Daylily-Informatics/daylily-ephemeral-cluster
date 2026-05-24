@@ -67,12 +67,12 @@ WORKFLOW_COMMANDS = {
     ),
     "hybrid_ilmn_ont": WorkflowCommandSpec(
         dy_command=(
-            "bin/day_run produce_snv_concordances produce_sentdhiom_sv "
-            "produce_sentdhiom_snv_vcf -p -j 100 -k"
+            "bin/day_run produce_snv_concordances produce_sentdhiomr_sv "
+            "produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k"
         ),
         dryrun_dy_command=(
-            "bin/day_run produce_snv_concordances produce_sentdhiom_sv "
-            "produce_sentdhiom_snv_vcf -p -j 100 -k -n"
+            "bin/day_run produce_snv_concordances produce_sentdhiomr_sv "
+            "produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k -n"
         ),
     ),
     "pacbio_solo": WorkflowCommandSpec(

@@ -177,7 +177,12 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_snv")
     assert hybrid_ilmn_ont.aligners == ["sent"]
     assert hybrid_ilmn_ont.dedupers == ["dmd"]
-    assert "sentdhiom" in hybrid_ilmn_ont.snv_callers
+    assert hybrid_ilmn_ont.snv_callers == ["sentdhiomr"]
+    assert hybrid_ilmn_ont.sv_callers == ["sentdhiomr"]
+    assert "produce_sentdhiomr_sv" in hybrid_ilmn_ont.dy_command
+    assert "produce_sentdhiomr_snv_vcf" in hybrid_ilmn_ont.dy_command
+    assert "produce_sentdhiom_sv" not in hybrid_ilmn_ont.dy_command
+    assert "produce_sentdhiom_snv_vcf" not in hybrid_ilmn_ont.dy_command
     assert "dedupers=[" in hybrid_ilmn_ont.dy_command
 
     hybrid_ultima_ont = catalog.get_command("hybrid_ultima_ont_snv")
@@ -189,6 +194,10 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             continue
         assert not (set(command.dedupers) & {"dppl", "dppl_sent", "smd"})
         assert not (set(command.aligners) & {"sentdhiom", "sentdhuom"})
+        assert "sentdhiom" not in set(command.snv_callers) - {"sentdhiomr"}
+        assert "sentdhiom" not in set(command.sv_callers) - {"sentdhiomr"}
+        assert "produce_sentdhiom_sv" not in command.dy_command
+        assert "produce_sentdhiom_snv_vcf" not in command.dy_command
 
     vep_multiqc = catalog.get_command("illumina_snv_alignstats_relatedness_vep_multiqc")
     assert vep_multiqc.targets == [
