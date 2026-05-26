@@ -1408,6 +1408,8 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
         "dev",
         "--region",
         "us-west-2",
+        "--cluster",
+        "cluster-a",
     ]
     launch_argv = calls["launch_argv"]
     assert "--analysis-id" in launch_argv

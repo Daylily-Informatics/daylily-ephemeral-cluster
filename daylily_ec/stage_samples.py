@@ -480,6 +480,22 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="AWS region to use for CLI commands (defaults to environment)",
     )
     parser.add_argument(
+        "--cluster",
+        "--cluster-name",
+        dest="cluster_name",
+        help="ParallelCluster name for creating the staged-prefix FSx DRA.",
+    )
+    parser.add_argument(
+        "--fsx-file-system-id",
+        help="FSx file system id for creating the staged-prefix DRA without resolving a cluster.",
+    )
+    parser.add_argument(
+        "--staging-mount-timeout-seconds",
+        type=int,
+        default=900,
+        help="Seconds to wait for the staged-prefix DRA to become available.",
+    )
+    parser.add_argument(
         "--debug",
         action="store_true",
         help="Print AWS CLI commands before execution",
@@ -559,6 +575,49 @@ def build_stage_paths(stage_target: str, bucket_uri: str) -> StagePaths:
         remote_fsx_stage=remote_fsx_stage,
         remote_s3_stage=remote_s3_stage,
     )
+
+
+def create_staged_prefix_mount(
+    stage: StagePaths,
+    *,
+    cluster_name: Optional[str],
+    fsx_file_system_id: Optional[str],
+    profile: Optional[str],
+    region: Optional[str],
+    timeout_seconds: int,
+):
+    """Attach only the staged remote prefix as a runtime staging DRA."""
+    if not cluster_name and not fsx_file_system_id:
+        return None
+    if not region:
+        raise CommandError("AWS region is required to create the staged-prefix DRA.")
+    if timeout_seconds <= 0:
+        raise CommandError("--staging-mount-timeout-seconds must be positive.")
+    file_system_path = stage.remote_fsx_stage.removeprefix("/fsx")
+    from daylily_ec import run_mounts
+
+    try:
+        return run_mounts.create_run_mount(
+            run_mounts.CreateRunMountRequest(
+                cluster_name=cluster_name,
+                fsx_file_system_id=fsx_file_system_id,
+                region=region,
+                profile=profile,
+                source_s3_uri=stage.remote_s3_stage,
+                mount_id=stage.remote_stage_name,
+                run_id=stage.remote_stage_name,
+                purpose=run_mounts.MOUNT_PURPOSE_STAGING,
+                platform="STAGING",
+                file_system_path=file_system_path,
+                read_only=True,
+                batch_import_metadata_on_create=True,
+                wait=True,
+                timeout_seconds=timeout_seconds,
+                tags={"daylily:staging-root": ACTIVE_EXTERNAL_STAGE_ROOT},
+            )
+        )
+    except run_mounts.RunMountError as exc:
+        raise CommandError(f"Unable to create staged-prefix FSx DRA: {exc}") from exc
 
 
 def headnode_visible_path(path: str) -> str:
@@ -3821,8 +3880,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     aws_copy(str(samples_path), remote_samples_path, aws_env=aws_env, debug=args.debug)
     aws_copy(str(units_path), remote_units_path, aws_env=aws_env, debug=args.debug)
 
+    staging_mount = create_staged_prefix_mount(
+        stage,
+        cluster_name=args.cluster_name,
+        fsx_file_system_id=args.fsx_file_system_id,
+        profile=aws_config.profile,
+        region=aws_config.region,
+        timeout_seconds=args.staging_mount_timeout_seconds,
+    )
+
     print("Remote staging completed successfully.")
     print(f"Remote FSx stage directory: {headnode_visible_path(stage.remote_fsx_stage)}")
+    if staging_mount is not None:
+        print(f"Staging DRA: {staging_mount.association_id}")
+        print(f"Staging DRA lifecycle: {staging_mount.lifecycle}")
     print(f"Staged files ({len(created_files)}):")
     for path in created_files:
         print(f"  {headnode_visible_path(path)}")

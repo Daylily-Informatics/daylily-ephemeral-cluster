@@ -1902,6 +1902,22 @@ def samples_stage(
         "--region",
         help="AWS region. Defaults to AWS_REGION/AWS_DEFAULT_REGION.",
     ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name for creating the staged-prefix FSx DRA.",
+    ),
+    fsx_file_system_id: Optional[str] = typer.Option(
+        None,
+        "--fsx-file-system-id",
+        help="FSx file system id for creating the staged-prefix DRA.",
+    ),
+    staging_mount_timeout_seconds: int = typer.Option(
+        900,
+        "--staging-mount-timeout-seconds",
+        help="Seconds to wait for the staged-prefix DRA to become available.",
+    ),
     debug: bool = typer.Option(
         False,
         "--debug",
@@ -1937,6 +1953,12 @@ def samples_stage(
         argv.extend(["--profile", profile])
     if region:
         argv.extend(["--region", region])
+    if cluster:
+        argv.extend(["--cluster", cluster])
+    if fsx_file_system_id:
+        argv.extend(["--fsx-file-system-id", fsx_file_system_id])
+    if staging_mount_timeout_seconds != 900:
+        argv.extend(["--staging-mount-timeout-seconds", str(staging_mount_timeout_seconds)])
     if debug:
         argv.append("--debug")
     if precheck_only:
@@ -2118,6 +2140,8 @@ def samples_run(
         stage_argv.extend(["--profile", resolved_profile])
         if resolved_region:
             stage_argv.extend(["--region", resolved_region])
+        if cluster:
+            stage_argv.extend(["--cluster", cluster])
         if debug:
             stage_argv.append("--debug")
 

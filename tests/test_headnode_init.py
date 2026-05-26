@@ -626,13 +626,12 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "wait_for_reference_data" in script
     assert "runtime_assets_root=\"/fsx/runtime_assets\"" in script
     assert "references_root=\"/fsx/references\"" in script
-    assert "control_data_root=\"/fsx/control_data\"" in script
-    assert "staging_root=\"/fsx/staging\"" in script
+    assert "control_data_root=\"/fsx/control_data\"" not in script
     assert "Required DayOA role entries are visible" in script
     assert "required DayOA role entries did not appear" in script
     assert "[ -d \"${references_root}/genomic_data\" ]" in script
-    assert "[ -d \"${control_data_root}/genomic_data\" ]" in script
-    assert "[ -d \"${staging_root}\" ]" in script
+    assert "[ -d \"${control_data_root}/genomic_data\" ]" not in script
+    assert "[ -d \"${staging_root}\" ]" not in script
     assert "make_role_data_read_only" in script
     assert "chmod a-w \"${role_root}\"" in script
     assert 'stat -c "Role data permissions: %A %n" "${role_root}"' in script

@@ -35,8 +35,6 @@ region="$1"
 boot_s3_uri="${2%/}"  # s3://.../cluster_boot_config
 runtime_assets_root="/fsx/runtime_assets"
 references_root="/fsx/references"
-control_data_root="/fsx/control_data"
-staging_root="/fsx/staging"
 apptainer_deb="${runtime_assets_root}/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
 reference_wait_timeout_seconds=1800
@@ -128,9 +126,7 @@ wait_for_reference_data() {
       && [ -s "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar" ] \
       && [ -s "${runtime_assets_root}/tool_specific_resources/womtool_87.jar" ] \
       && [ -d "${runtime_assets_root}/cached_envs/conda" ] \
-      && [ -d "${references_root}/genomic_data" ] \
-      && [ -d "${control_data_root}/genomic_data" ] \
-      && [ -d "${staging_root}" ]; then
+      && [ -d "${references_root}/genomic_data" ]; then
       echo "Required DayOA role entries are visible"
       return 0
     fi
@@ -138,7 +134,7 @@ wait_for_reference_data() {
     elapsed="$(($(date +%s) - start))"
     if [ "${elapsed}" -ge "${reference_wait_timeout_seconds}" ]; then
       echo "ERROR: required DayOA role entries did not appear within ${reference_wait_timeout_seconds}s" >&2
-      ls -la /fsx "${references_root}" "${control_data_root}" "${runtime_assets_root}" "${runtime_assets_root}/cached_envs" "${runtime_assets_root}/tool_specific_resources" "${staging_root}" >&2 || true
+      ls -la /fsx "${references_root}" "${runtime_assets_root}" "${runtime_assets_root}/cached_envs" "${runtime_assets_root}/tool_specific_resources" >&2 || true
       exit 1
     fi
     echo "DayOA role entries not visible yet after ${elapsed}s; sleeping ${reference_wait_interval_seconds}s"
@@ -147,7 +143,7 @@ wait_for_reference_data() {
 }
 
 make_role_data_read_only() {
-  for role_root in "${references_root}" "${control_data_root}" "${runtime_assets_root}"; do
+  for role_root in "${references_root}" "${runtime_assets_root}"; do
     if [ ! -d "${role_root}" ]; then
       echo "ERROR: role data directory not found: ${role_root}" >&2
       exit 1

@@ -95,6 +95,54 @@ def test_headnode_visible_path_rejects_legacy_data_prefix() -> None:
     assert module.headnode_visible_path("/tmp/local") == "/tmp/local"
 
 
+def test_create_staged_prefix_mount_uses_runtime_staging_dra(monkeypatch: pytest.MonkeyPatch) -> None:
+    from daylily_ec import run_mounts
+
+    calls: dict[str, object] = {}
+
+    def fake_create_run_mount(request: run_mounts.CreateRunMountRequest):
+        calls["request"] = request
+        return run_mounts.RunMountRecord(
+            mount_id=request.mount_id or "",
+            purpose=request.purpose,
+            run_id=request.run_id or "",
+            platform=request.platform,
+            cluster_name=request.cluster_name,
+            region=request.region,
+            source_s3_uri=request.source_s3_uri,
+            fsx_file_system_id=request.fsx_file_system_id or "fs-123",
+            file_system_path=request.file_system_path or "",
+            headnode_path="/fsx/staging/staged_external_sequencing_data/remote_stage_test/",
+            association_id="dra-123",
+            lifecycle="AVAILABLE",
+            read_only=True,
+        )
+
+    monkeypatch.setattr(run_mounts, "create_run_mount", fake_create_run_mount)
+
+    record = module.create_staged_prefix_mount(
+        _stage_paths(),
+        cluster_name="cluster-a",
+        fsx_file_system_id=None,
+        profile="lsmc",
+        region="us-west-2",
+        timeout_seconds=120,
+    )
+
+    request = calls["request"]
+    assert isinstance(request, run_mounts.CreateRunMountRequest)
+    assert request.cluster_name == "cluster-a"
+    assert request.source_s3_uri == (
+        "s3://stage-bucket/staging/staged_external_sequencing_data/remote_stage_test"
+    )
+    assert request.mount_id == "remote_stage_test"
+    assert request.purpose == run_mounts.MOUNT_PURPOSE_STAGING
+    assert request.file_system_path == "/staging/staged_external_sequencing_data/remote_stage_test"
+    assert request.batch_import_metadata_on_create is True
+    assert record is not None
+    assert record.association_id == "dra-123"
+
+
 def test_retired_staging_paths_are_rejected() -> None:
     for path in (
         "/fsx/staging/staged_sample_data",

@@ -90,22 +90,18 @@ def test_active_cluster_templates_use_contract_role_dras() -> None:
         associations = fsx_settings["DataRepositoryAssociations"]
         assert [item["Name"] for item in associations] == [
             "reference-data",
-            "control-data",
             "runtime-assets",
-            "staging",
         ]
         assert [item["FileSystemPath"] for item in associations] == [
             "/references/",
-            "/control_data/",
             "/runtime_assets/",
-            "/staging/",
         ]
         assert [item["DataRepositoryPath"] for item in associations] == [
             "${REGSUB_S3_REFERENCE_URI}/",
-            "${REGSUB_S3_CONTROL_DATA_URI}/",
             "${REGSUB_S3_RUNTIME_ASSETS_URI}/",
-            "${REGSUB_S3_STAGE_URI}/",
         ]
+        assert "${REGSUB_S3_CONTROL_DATA_URI}/" not in text
+        assert "${REGSUB_S3_STAGE_URI}/" not in text
         assert all(item["BatchImportMetaDataOnCreate"] is True for item in associations)
         assert all(
             item["AutoImportPolicy"] == ["NEW", "CHANGED", "DELETED"]
