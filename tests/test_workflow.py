@@ -78,6 +78,56 @@ class TestExitCodes:
         assert EXIT_TOOLCHAIN == 4
 
 
+class TestClusterBootConfigPublish:
+    def test_publishes_expected_boot_files(self, tmp_path):
+        source_dir = tmp_path / "boot"
+        source_dir.mkdir()
+        for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES:
+            (source_dir / name).write_text(f"content for {name}\n", encoding="utf-8")
+
+        calls = []
+
+        class FakeS3:
+            def put_object(self, **kwargs):
+                calls.append(kwargs)
+
+        uploaded = create_cluster_module.publish_cluster_boot_config(
+            FakeS3(),
+            cluster_boot_s3_uri="s3://runtime-assets/prefix/cluster_boot_config",
+            source_dir=source_dir,
+        )
+
+        assert uploaded == [
+            f"s3://runtime-assets/prefix/cluster_boot_config/{name}"
+            for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES
+        ]
+        assert [call["Bucket"] for call in calls] == ["runtime-assets"] * len(calls)
+        assert [call["Key"] for call in calls] == [
+            f"prefix/cluster_boot_config/{name}"
+            for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES
+        ]
+
+    def test_rejects_legacy_fsx_data_boot_file(self, tmp_path):
+        source_dir = tmp_path / "boot"
+        source_dir.mkdir()
+        for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES:
+            body = "echo ok\n"
+            if name == "sbatch":
+                body = "ls /fsx/data\n"
+            (source_dir / name).write_text(body, encoding="utf-8")
+
+        class FakeS3:
+            def put_object(self, **_kwargs):
+                raise AssertionError("legacy boot file must not be uploaded")
+
+        with pytest.raises(ValueError, match="/fsx/data"):
+            create_cluster_module.publish_cluster_boot_config(
+                FakeS3(),
+                cluster_boot_s3_uri="s3://runtime-assets/cluster_boot_config",
+                source_dir=source_dir,
+            )
+
+
 # ── _extract_selected ───────────────────────────────────────────────────
 
 
@@ -1190,6 +1240,7 @@ def _run_stubbed_create_workflow(
         "echoes": [],
         "prompt_labels": [],
         "subprocess_calls": [],
+        "boot_config_publishes": [],
     }
     cfg = _build_workflow_config(template_path)
 
@@ -1428,6 +1479,14 @@ def _run_stubbed_create_workflow(
             role_arn="",
             error="skipped",
         ),
+    )
+    monkeypatch.setattr(
+        create_cluster_module,
+        "publish_cluster_boot_config",
+        lambda _s3_client, *, cluster_boot_s3_uri, source_dir: records[
+            "boot_config_publishes"
+        ].append((cluster_boot_s3_uri, str(source_dir)))
+        or [f"{cluster_boot_s3_uri}/post_install_ubuntu_combined.sh"],
     )
 
     import daylily_ec.aws.budgets as budgets

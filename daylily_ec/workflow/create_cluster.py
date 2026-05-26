@@ -31,6 +31,7 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
+from urllib.parse import urlparse
 
 import typer
 
@@ -66,6 +67,12 @@ PreflightStep = Callable[[PreflightReport], PreflightReport]
 
 # Ordered list — filled by register_preflight_step or directly in wire_workflow
 _PREFLIGHT_STEPS: List[PreflightStep] = []
+
+CLUSTER_BOOT_CONFIG_FILENAMES = (
+    "post_install_ubuntu_combined.sh",
+    "sbatch",
+    "sleep_test.sh",
+)
 
 
 @dataclass(frozen=True)
@@ -369,6 +376,46 @@ def _s3_uri_join(base_uri: str, *parts: str) -> str:
     base = base_uri.rstrip("/")
     suffix = "/".join(part.strip("/") for part in parts if part.strip("/"))
     return f"{base}/{suffix}" if suffix else base
+
+
+def _parse_s3_destination(uri: str) -> tuple[str, str]:
+    parsed = urlparse(str(uri or ""))
+    if parsed.scheme != "s3" or not parsed.netloc:
+        raise ValueError(f"Expected s3:// bucket URI, got {uri!r}")
+    if parsed.params or parsed.query or parsed.fragment:
+        raise ValueError(f"S3 URI must not include params, query, or fragment: {uri!r}")
+    return parsed.netloc, parsed.path.lstrip("/").rstrip("/")
+
+
+def publish_cluster_boot_config(
+    s3_client: Any,
+    *,
+    cluster_boot_s3_uri: str,
+    source_dir: Path,
+) -> list[str]:
+    """Publish current packaged cluster boot scripts to runtime assets.
+
+    The cluster template executes these files directly from
+    ``runtime_assets/cluster_boot_config``. Treat stale or legacy boot scripts
+    as invalid because they can fail cluster creation after expensive FSx setup.
+    """
+    bucket, prefix = _parse_s3_destination(cluster_boot_s3_uri)
+    bodies: list[tuple[str, bytes]] = []
+    for filename in CLUSTER_BOOT_CONFIG_FILENAMES:
+        source = source_dir / filename
+        if not source.is_file():
+            raise FileNotFoundError(f"Cluster boot config source not found: {source}")
+        body = source.read_bytes()
+        if b"/fsx/data" in body:
+            raise ValueError(f"Cluster boot config contains legacy /fsx/data path: {source}")
+        bodies.append((filename, body))
+
+    uploaded: list[str] = []
+    for filename, body in bodies:
+        key = f"{prefix}/{filename}" if prefix else filename
+        s3_client.put_object(Bucket=bucket, Key=key, Body=body)
+        uploaded.append(f"s3://{bucket}/{key}")
+    return uploaded
 
 
 def _noop_heartbeat_result() -> Any:
@@ -1074,6 +1121,25 @@ def run_create_workflow(
     ui.detail("Staging", stage_s3_uri)
     ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
     ui.detail("Policy", policy_arn)
+
+    ui.step("Publishing cluster boot config to runtime assets ...")
+    try:
+        uploaded_boot_config = publish_cluster_boot_config(
+            aws_ctx.client("s3"),
+            cluster_boot_s3_uri=cluster_boot_s3_uri,
+            source_dir=resource_path("config/day_cluster"),
+        )
+    except (FileNotFoundError, ValueError, OSError) as exc:
+        logger.error("Cluster boot config publish failed: %s", exc)
+        ui.fail(f"Cluster boot config publish: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    except Exception as exc:
+        logger.error("Cluster boot config publish failed: %s", exc)
+        ui.fail(f"Cluster boot config publish: {exc}")
+        return EXIT_AWS_FAILURE
+    ui.ok(f"Cluster boot config published: {cluster_boot_s3_uri}")
+    for uploaded_uri in uploaded_boot_config:
+        ui.detail("Boot config", uploaded_uri)
 
     # -- 4. PRE-CREATE: Prompt-only operational inputs -----------------------
     ui.phase("PRE-CREATE: BUDGETS & HEARTBEAT")
