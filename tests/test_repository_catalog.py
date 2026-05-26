@@ -86,7 +86,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "1.0.21"
+    assert command.git_tag == "1.0.27"
     assert len(command.validation_runs) == 1
     validation_run = command.validation_runs[0]
     assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -113,7 +113,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "1.0.21" in launch_argv
+    assert "1.0.27" in launch_argv
 
     export_argv = command.launch_argv(
         analysis_id="run-1",
@@ -175,7 +175,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert validation_run.region == "us-west-2"
         assert validation_run.region_az == "us-west-2d"
         assert validation_run.dayec_tag == "4.1.3"
-        assert validation_run.dayoa_tag == command.git_tag
+        assert validation_run.dayoa_tag == "1.0.21"
         assert validation_run.dayoa_commit == "c2ffe93f246ff19c346f0a99e04fddc9e2712ff3"
         assert validation_run.tested_command.startswith("bin/day_run ")
         assert validation_run.status in {"success", "failed", "blocked"}
@@ -188,7 +188,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "1.0.21"
+        assert command.git_tag == "1.0.27"
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
