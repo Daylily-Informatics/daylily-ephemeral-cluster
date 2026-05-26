@@ -9,20 +9,25 @@ from daylily_ec.aws.ssm import SsmCommandResult, run_shell
 
 
 DEFAULT_HEADNODE_REPO_NAME = "daylily-ephemeral-cluster"
-REQUIRED_REFERENCE_FILES = (
-    "/fsx/data/cached_envs/apptainer_1.4.5_amd64.deb",
-    "/fsx/data/tool_specific_resources/cromwell_87.jar",
-    "/fsx/data/tool_specific_resources/womtool_87.jar",
+REQUIRED_ROLE_FILES = (
+    "/fsx/runtime_assets/cached_envs/apptainer_1.4.5_amd64.deb",
+    "/fsx/runtime_assets/tool_specific_resources/cromwell_87.jar",
+    "/fsx/runtime_assets/tool_specific_resources/womtool_87.jar",
 )
-REQUIRED_REFERENCE_DIRECTORIES = ("/fsx/data/cached_envs/conda",)
+REQUIRED_ROLE_DIRECTORIES = (
+    "/fsx/references/genomic_data",
+    "/fsx/control_data/genomic_data",
+    "/fsx/runtime_assets/cached_envs/conda",
+    "/fsx/staging",
+)
 
 
 def build_headnode_readiness_script(repo_name: str = DEFAULT_HEADNODE_REPO_NAME) -> str:
     """Return the remote script that proves the headnode is ready for workflows."""
 
     repo_name_q = shlex.quote(repo_name)
-    file_checks = "\n".join(f"test -s {path}" for path in REQUIRED_REFERENCE_FILES)
-    dir_checks = "\n".join(f"test -d {path}" for path in REQUIRED_REFERENCE_DIRECTORIES)
+    file_checks = "\n".join(f"test -s {path}" for path in REQUIRED_ROLE_FILES)
+    dir_checks = "\n".join(f"test -d {path}" for path in REQUIRED_ROLE_DIRECTORIES)
     return f"""
 set -euo pipefail
 repo_dir="$HOME/projects"/{repo_name_q}
@@ -37,7 +42,6 @@ command -v daylily-ec >/dev/null 2>&1
 command -v day-clone >/dev/null 2>&1
 stty -a 2>/dev/null | grep -Eq '(^|[[:space:];])-ixon([[:space:];]|$)'
 df -P /fsx >/dev/null
-test -d /fsx/data
 {file_checks}
 {dir_checks}
 day-clone --list >/dev/null

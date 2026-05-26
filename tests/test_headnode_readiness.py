@@ -7,8 +7,8 @@ import pytest
 
 from daylily_ec.aws.ssm import SsmCommandFailedError, SsmCommandResult
 from daylily_ec.headnode_readiness import (
-    REQUIRED_REFERENCE_DIRECTORIES,
-    REQUIRED_REFERENCE_FILES,
+    REQUIRED_ROLE_DIRECTORIES,
+    REQUIRED_ROLE_FILES,
     build_headnode_readiness_script,
     validate_headnode_readiness,
 )
@@ -28,11 +28,11 @@ def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
     assert "stty -a" in script
     assert "-ixon" in script
     assert "df -P /fsx >/dev/null" in script
-    assert "test -d /fsx/data" in script
     assert "test -d /data" not in script
-    for path in REQUIRED_REFERENCE_FILES:
+    assert "/fsx/data" not in script
+    for path in REQUIRED_ROLE_FILES:
         assert f"test -s {path}" in script
-    for path in REQUIRED_REFERENCE_DIRECTORIES:
+    for path in REQUIRED_ROLE_DIRECTORIES:
         assert f"test -d {path}" in script
 
 
@@ -53,7 +53,9 @@ def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
     assert instance_id == "i-abc123"
     assert region == "us-west-2"
     assert "day-clone --list" in script
-    assert "/fsx/data/tool_specific_resources/cromwell_87.jar" in script
+    assert "/fsx/runtime_assets/tool_specific_resources/cromwell_87.jar" in script
+    assert "/fsx/references/genomic_data" in script
+    assert "/fsx/control_data/genomic_data" in script
     assert mock_run_shell.call_args.kwargs == {
         "profile": "test",
         "as_user": "ubuntu",
@@ -71,7 +73,7 @@ def test_validate_headnode_readiness_propagates_ssm_failures():
             status="Failed",
             response_code=1,
             stdout="",
-            stderr="missing /fsx/data/cached_envs/conda",
+            stderr="missing /fsx/runtime_assets/cached_envs/conda",
         ),
     )
 

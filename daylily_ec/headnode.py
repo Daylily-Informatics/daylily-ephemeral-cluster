@@ -26,7 +26,7 @@ from daylily_ec.aws.budgets import (
 DEFAULT_CONTACT_EMAIL = "john@daylilyinformatics.com"
 CFNCONFIG_PATH = Path("/etc/parallelcluster/cfnconfig")
 CLUSTER_CONFIG_PATH = Path("/opt/parallelcluster/shared/cluster-config.yaml")
-BUDGET_TAGS_PATH = Path("/fsx/data/budget_tags/pcluster-project-budget-tags.tsv")
+BUDGET_TAGS_PATH = Path("/fsx/runtime_assets/budget_tags/pcluster-project-budget-tags.tsv")
 SQUEUE_FORMAT = "%i  %P  %C  %t  %N  %c  %T  %m  %M  %D  %j"
 EMAIL_REGEX = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 

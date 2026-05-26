@@ -33,7 +33,7 @@ GLOBAL_THRESHOLDS: List[int] = [25, 50, 75, 99]
 CLUSTER_THRESHOLDS: List[int] = [75]
 """Notification thresholds for per-cluster budgets (percent)."""
 
-TAGS_FILE_S3_SUFFIX = "data/budget_tags/pcluster-project-budget-tags.tsv"
+TAGS_FILE_S3_SUFFIX = "budget_tags/pcluster-project-budget-tags.tsv"
 """Relative path under the S3 bucket for the budget tags TSV."""
 
 
@@ -180,7 +180,7 @@ def update_tags_file(
 ) -> None:
     """Append a line to the S3 budget-tags TSV (Bash ``write_or_append_tags_to_s3``).
 
-    File path: ``s3://<bucket>/data/budget_tags/pcluster-project-budget-tags.tsv``
+    File path: ``s3://<runtime-assets-bucket>/budget_tags/pcluster-project-budget-tags.tsv``
 
     Each line: ``<project_name>\\tubuntu,<users>``
     """
