@@ -672,8 +672,8 @@ repositories:
             stage_or_context: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
             failure_cause: "Dry-run failed: WorkflowError reported config/units.tsv was not found and requested config/units.tsv or --config units_table=/path/to/units.tsv."
       - command_id: illumina_bclconvert
-        display_name: "Illumina BCL Convert"
-        description: "Illumina BCL Convert from a mounted run directory with generated units table output."
+        display_name: "Illumina nf-core BCL Convert"
+        description: "Illumina demultiplexing through the pinned nf-core/bclconvert 4.0.3 container from a mounted run directory, with generated units table, demux metric TSVs, and focused BCL Convert MultiQC. This command does not run FastQC."
         datasource: Illumina
         launcher: workflow_launch
         command_class: run_analysis
@@ -723,8 +723,8 @@ repositories:
             stage_or_context: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
             failure_cause: "Dry-run failed: WorkflowError reported no read pairs specified for analysis unit 20260514_LH01106_0009_B23TVLGLT4."
       - command_id: illumina_run_qc_bclconvert
-        display_name: "Illumina Run QC + BCL Convert"
-        description: "Mounted Illumina run-folder QC plus BCL Convert demux, generated units, demux metric TSVs, and focused BCL Convert MultiQC in one run-analysis output tree."
+        display_name: "Illumina Run QC + nf-core BCL Convert"
+        description: "Mounted Illumina run-folder QC plus demultiplexing through the pinned nf-core/bclconvert 4.0.3 container, generated units, demux metric TSVs, and focused BCL Convert MultiQC in one run-analysis output tree. This command does not run FastQC."
         datasource: Illumina
         launcher: workflow_launch
         command_class: run_analysis
