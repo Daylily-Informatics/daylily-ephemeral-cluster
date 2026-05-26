@@ -25,6 +25,7 @@ from daylily_ec.aws.ssm import (
     run_shell,
     wait_for_ssm_online,
 )
+from daylily_ec.headnode_readiness import validate_headnode_readiness
 from daylily_ec.scripts.common import CommandError, aws_env, need_cmd, run_command
 
 
@@ -387,32 +388,19 @@ def _validate_headnode_bootstrap(
     profile: str,
     region: str,
 ) -> None:
-    validation_script = """
-set -euo pipefail
-bash -lc '
-set -euo pipefail
-test "$(whoami)" = ubuntu
-test "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" = 1
-test "${CONDA_DEFAULT_ENV:-}" = DAY-EC
-command -v daylily-ec >/dev/null 2>&1
-command -v day-clone >/dev/null 2>&1
-day-clone --list >/dev/null
-'
-"""
-    result = run_shell(
+    result = validate_headnode_readiness(
         instance_id,
         region,
-        validation_script,
         profile=profile,
         timeout=120,
-        comment="Daylily SSH-to-SSM E2E bootstrap validation",
+        comment="Daylily SSH-to-SSM E2E headnode readiness validation",
     )
     _record_step(
         summary,
         output_path,
         "validate-headnode-bootstrap",
         "passed",
-        command="ssm:bootstrap-validation",
+        command="ssm:headnode-readiness",
         command_id=result.command_id,
     )
 

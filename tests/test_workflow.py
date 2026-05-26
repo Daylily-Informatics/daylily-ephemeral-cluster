@@ -610,9 +610,17 @@ class TestRunCreateWorkflow:
 
 
 class TestConfigureHeadnode:
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
-    def test_success_path(self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch):
+    def test_success_path(
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
+    ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
         monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
@@ -622,8 +630,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="", stderr=""),
         ]
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
 
         ok = configure_headnode(
             cluster_name="test-cluster",
@@ -632,9 +640,8 @@ class TestConfigureHeadnode:
             profile="test",
         )
         assert ok is True
-        assert mock_run_shell.call_count == 5
+        assert mock_run_shell.call_count == 4
         assert [call.kwargs["timeout"] for call in mock_run_shell.call_args_list] == [
-            None,
             None,
             None,
             None,
@@ -648,17 +655,26 @@ class TestConfigureHeadnode:
             "source ~/projects/daylily-ephemeral-cluster/activate"
             in mock_run_shell.call_args_list[3].args[2]
         )
-        assert "bash -lc" in mock_run_shell.call_args_list[4].args[2]
-        assert "script -q -c" in mock_run_shell.call_args_list[4].args[2]
-        assert "whoami" in mock_run_shell.call_args_list[4].args[2]
-        assert "stty -a" in mock_run_shell.call_args_list[4].args[2]
-        assert "-ixon" in mock_run_shell.call_args_list[4].args[2]
+        mock_validate_headnode_readiness.assert_called_once_with(
+            "i-abc123",
+            "us-west-2",
+            profile="test",
+            timeout=120,
+            comment="Validate DAY-EC headnode readiness",
+            repo_name="daylily-ephemeral-cluster",
+        )
         mock_write_remote_text.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_login_shell_validation_failure_is_fatal(
-        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
     ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
@@ -669,18 +685,18 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SsmCommandFailedError(
-                "validation failed",
-                SsmCommandResult(
-                    command_id="cmd-1",
-                    instance_id="i-abc123",
-                    status="Failed",
-                    response_code=1,
-                    stdout="",
-                    stderr="whoami: command not found",
-                ),
-            ),
         ]
+        mock_validate_headnode_readiness.side_effect = SsmCommandFailedError(
+            "validation failed",
+            SsmCommandResult(
+                command_id="cmd-1",
+                instance_id="i-abc123",
+                status="Failed",
+                response_code=1,
+                stdout="",
+                stderr="CONDA_DEFAULT_ENV not DAY-EC",
+            ),
+        )
 
         ok = configure_headnode(
             cluster_name="test-cluster",
@@ -689,13 +705,20 @@ class TestConfigureHeadnode:
             profile="test",
         )
         assert ok is False
-        assert mock_run_shell.call_count == 5
+        assert mock_run_shell.call_count == 4
+        mock_validate_headnode_readiness.assert_called_once()
         mock_write_remote_text.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_conda_tos_acceptance_failure_is_fatal(
-        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
     ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
@@ -725,12 +748,19 @@ class TestConfigureHeadnode:
         )
         assert ok is False
         assert mock_run_shell.call_count == 3
+        mock_validate_headnode_readiness.assert_not_called()
         mock_write_remote_text.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_step_failure_is_fatal(
-        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
     ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
@@ -745,12 +775,19 @@ class TestConfigureHeadnode:
             profile="test",
         )
         assert ok is False
+        mock_validate_headnode_readiness.assert_not_called()
         mock_write_remote_text.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_repo_override_deployment_uses_remote_write(
-        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
     ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
@@ -761,8 +798,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="", stderr=""),
         ]
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
 
         ok = configure_headnode(
             cluster_name="test-cluster",
@@ -772,20 +809,26 @@ class TestConfigureHeadnode:
             repo_overrides={"daylily-omics-analysis": "feature/refactor"},
         )
         assert ok is True
-        assert mock_run_shell.call_count == 5
+        assert mock_run_shell.call_count == 4
         mock_write_remote_text.assert_called_once()
+        mock_validate_headnode_readiness.assert_called_once()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text", side_effect=RuntimeError("nope"))
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_repo_override_write_failure_is_fatal(
-        self, mock_run_shell, _mock_write_remote_text, tmp_path, monkeypatch
+        self,
+        mock_run_shell,
+        _mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
     ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
         monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
 
         mock_run_shell.side_effect = [
-            SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
@@ -800,11 +843,18 @@ class TestConfigureHeadnode:
             repo_overrides={"daylily-omics-analysis": "feature/refactor"},
         )
         assert ok is False
+        mock_validate_headnode_readiness.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_repo_override_requires_available_repo_config(
-        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
     ):
         import daylily_ec.resources as resources_module
 
@@ -826,7 +876,6 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="", stderr=""),
         ]
 
         ok = configure_headnode(
@@ -837,8 +886,10 @@ class TestConfigureHeadnode:
             repo_overrides={"daylily-omics-analysis": "feature/refactor"},
         )
         assert ok is False
+        mock_validate_headnode_readiness.assert_not_called()
         mock_write_remote_text.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     @patch("daylily_ec.workflow.create_cluster.subprocess.run")
@@ -847,6 +898,7 @@ class TestConfigureHeadnode:
         mock_subprocess_run,
         mock_run_shell,
         mock_write_remote_text,
+        mock_validate_headnode_readiness,
         tmp_path,
         monkeypatch,
     ):
@@ -885,8 +937,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="", stderr=""),
         ]
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
 
         ok = configure_headnode(
             cluster_name="test-cluster",
@@ -896,15 +948,17 @@ class TestConfigureHeadnode:
         )
 
         assert ok is True
-        assert mock_run_shell.call_count == 5
+        assert mock_run_shell.call_count == 4
         clone_cmd = mock_run_shell.call_args_list[0].args[2]
         assert "repo already cloned" not in clone_cmd
         assert "git clone https://example.com/daylily.git daylily-ephemeral-cluster" in clone_cmd
         assert "git fetch origin --tags --prune" in clone_cmd
         assert "git clean -fdx" in clone_cmd
         assert "git checkout -B daylily-managed origin/codex/ssh-to-ssm-refactor" in clone_cmd
+        mock_validate_headnode_readiness.assert_called_once()
         mock_write_remote_text.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     @patch("daylily_ec.workflow.create_cluster.subprocess.run")
@@ -926,6 +980,7 @@ class TestConfigureHeadnode:
         mock_subprocess_run,
         mock_run_shell,
         mock_write_remote_text,
+        mock_validate_headnode_readiness,
         origin_url,
         expected_url,
         tmp_path,
@@ -966,8 +1021,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="", stderr=""),
         ]
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
 
         ok = configure_headnode(
             cluster_name="test-cluster",
@@ -981,6 +1036,7 @@ class TestConfigureHeadnode:
         assert f"git clone {expected_url} daylily-ephemeral-cluster" in clone_cmd
         assert "git@github.com" not in clone_cmd
         assert "ssh://git@github.com" not in clone_cmd
+        mock_validate_headnode_readiness.assert_called_once()
         mock_write_remote_text.assert_not_called()
 
     @patch("daylily_ec.aws.ssm.write_remote_text")

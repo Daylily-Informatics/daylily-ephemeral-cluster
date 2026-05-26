@@ -17,6 +17,7 @@ from daylily_ec.aws.ssm import (
     wait_for_ssm_online,
 )
 from daylily_ec.analysis_identity import analysis_source_path, validate_analysis_segment
+from daylily_ec.headnode_readiness import validate_headnode_readiness
 from daylily_ec.scripts.common import CommandError, need_cmd, resolve_cluster, resolve_region
 
 
@@ -333,6 +334,13 @@ def main(argv: Optional[List[str]] = None) -> int:
         )
     target = resolve_headnode_instance_id(cluster_name, region, profile=args.profile)
     wait_for_ssm_online(target.instance_id, region, profile=args.profile, timeout=120)
+    validate_headnode_readiness(
+        target.instance_id,
+        region,
+        profile=args.profile,
+        timeout=120,
+        comment="Validate DAY-EC headnode readiness before workflow launch",
+    )
 
     run_context_content: Optional[str] = None
     if args.run_context_file:

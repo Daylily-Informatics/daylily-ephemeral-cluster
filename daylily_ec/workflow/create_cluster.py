@@ -35,6 +35,7 @@ from typing import Any, Callable, Dict, List, Optional
 import typer
 
 from daylily_ec import ui
+from daylily_ec.headnode_readiness import validate_headnode_readiness
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport, StateRecord
 from daylily_ec.state.store import write_preflight_report, write_state_record
 
@@ -1534,30 +1535,19 @@ def configure_headnode(
             logger.error("  ✗ Available repos config not found: %s", avail_repos_path)
             return False
 
-    logger.info("  ▸ Validating fresh ubuntu login shell ...")
+    logger.info("  ▸ Validating DAY-EC headnode readiness ...")
     try:
-        run_shell(
+        validate_headnode_readiness(
             head_node_instance_id,
             region,
-            (
-                f"cd ~/projects/{repo_name} && "
-                "script -q -c \"bash -lc '"
-                "set -euo pipefail; "
-                'test "$(whoami)" = ubuntu; '
-                'test "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" = 1; '
-                'test "${CONDA_DEFAULT_ENV:-}" = DAY-EC; '
-                "command -v daylily-ec >/dev/null 2>&1; "
-                "command -v day-clone >/dev/null 2>&1; "
-                'stty -a 2>/dev/null | grep -Eq \\"(^|[[:space:];])-ixon([[:space:];]|$)\\"; '
-                "day-clone --list >/dev/null'\" /dev/null"
-            ),
             profile=profile,
-            timeout=None,
-            comment="Validate fresh ubuntu login shell",
+            timeout=120,
+            comment="Validate DAY-EC headnode readiness",
+            repo_name=repo_name,
         )
-        logger.info("  ✓ Fresh ubuntu login shell validated")
+        logger.info("  ✓ DAY-EC headnode readiness validated")
     except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
-        logger.error("  ✗ Fresh ubuntu login shell validation failed: %s", exc)
+        logger.error("  ✗ DAY-EC headnode readiness validation failed: %s", exc)
         return False
 
     logger.info(

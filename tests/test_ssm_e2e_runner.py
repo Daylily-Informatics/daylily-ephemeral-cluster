@@ -159,6 +159,60 @@ def test_record_step_writes_machine_readable_summary(tmp_path: Path) -> None:
     ]
 
 
+def test_validate_headnode_bootstrap_uses_shared_readiness_helper(
+    monkeypatch, tmp_path: Path
+) -> None:
+    summary = runner_module.RunnerSummary(
+        cluster_name="cluster-a",
+        region="us-west-2",
+        region_az="us-west-2d",
+        profile="dev",
+        config_path="/tmp/daylily.yaml",
+        analysis_samples="/tmp/analysis_samples.tsv",
+        output_json=str(tmp_path / "summary.json"),
+        started_at="2026-04-12T00:00:00+00:00",
+    )
+    output_path = tmp_path / "summary.json"
+    calls = []
+
+    def fake_validate(instance_id, region, **kwargs):
+        calls.append((instance_id, region, kwargs))
+        return type("Result", (), {"command_id": "cmd-ready"})()
+
+    monkeypatch.setattr(runner_module, "validate_headnode_readiness", fake_validate)
+
+    runner_module._validate_headnode_bootstrap(
+        summary,
+        output_path,
+        instance_id="i-abc123",
+        profile="dev",
+        region="us-west-2",
+    )
+
+    assert calls == [
+        (
+            "i-abc123",
+            "us-west-2",
+            {
+                "profile": "dev",
+                "timeout": 120,
+                "comment": "Daylily SSH-to-SSM E2E headnode readiness validation",
+            },
+        )
+    ]
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["steps"] == [
+        {
+            "name": "validate-headnode-bootstrap",
+            "status": "passed",
+            "details": {
+                "command": "ssm:headnode-readiness",
+                "command_id": "cmd-ready",
+            },
+        }
+    ]
+
+
 def _write_success_export_receipt(path: Path) -> None:
     path.write_text(
         "fsx_export:\n"

@@ -225,6 +225,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             units_path="/fsx/stage/run-1/foo_units.tsv",
         ),
     )
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.validate_headnode_readiness")
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.wait_for_ssm_online")
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_headnode_instance_id",
@@ -246,10 +247,26 @@ class TestRunOmicsAnalysisHeadnodeScript:
         _mock_cluster,
         _mock_target,
         _mock_wait,
-        _mock_discover,
+        mock_validate_headnode_readiness,
+        mock_discover,
         mock_run_shell,
         capsys,
     ):
+        events = []
+        mock_validate_headnode_readiness.side_effect = lambda *args, **kwargs: events.append(
+            "readiness"
+        )
+        mock_discover.side_effect = lambda *args, **kwargs: events.append(
+            "discover"
+        ) or run_omics_module.RemoteConfig(
+            stage_dir="/fsx/stage/run-1",
+            samples_path="/fsx/stage/run-1/foo_samples.tsv",
+            units_path="/fsx/stage/run-1/foo_units.tsv",
+        )
+
+        tmux_result = mock_run_shell.return_value
+        mock_run_shell.side_effect = lambda *args, **kwargs: events.append("tmux") or tmux_result
+
         rc = run_omics_module.main(
             [
                 "--profile",
@@ -263,6 +280,14 @@ class TestRunOmicsAnalysisHeadnodeScript:
         )
 
         assert rc == 0
+        assert events == ["readiness", "discover", "tmux"]
+        mock_validate_headnode_readiness.assert_called_once_with(
+            "i-abc123",
+            "us-west-2",
+            profile="dev",
+            timeout=120,
+            comment="Validate DAY-EC headnode readiness before workflow launch",
+        )
         script = mock_run_shell.call_args.args[2]
         assert 'run_dir="/home/ubuntu/daylily-runs/$SESSION_NAME"' in script
         assert 'work_script="$run_dir/launch.sh"' in script
@@ -323,6 +348,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         ),
     )
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.discover_stage_config")
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.validate_headnode_readiness")
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.wait_for_ssm_online")
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_headnode_instance_id",
@@ -344,10 +370,17 @@ class TestRunOmicsAnalysisHeadnodeScript:
         _mock_cluster,
         _mock_target,
         _mock_wait,
+        mock_validate_headnode_readiness,
         mock_discover,
         mock_run_shell,
         tmp_path,
     ):
+        events = []
+        mock_validate_headnode_readiness.side_effect = lambda *args, **kwargs: events.append(
+            "readiness"
+        )
+        tmux_result = mock_run_shell.return_value
+        mock_run_shell.side_effect = lambda *args, **kwargs: events.append("tmux") or tmux_result
         run_context = tmp_path / "runs.tsv"
         run_context.write_text(
             "RUNID\tPLATFORM\tRUN_DIR\nRUN-1\tILMN\t/fsx/runs/RUN-1\n",
@@ -372,6 +405,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         )
 
         assert rc == 0
+        assert events == ["readiness", "tmux"]
         mock_discover.assert_not_called()
         script = mock_run_shell.call_args.args[2]
         assert "RUN_CONTEXT_MODE=true" in script
@@ -391,6 +425,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             units_path="/fsx/stage/run-1/foo_units.tsv",
         ),
     )
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.validate_headnode_readiness")
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.wait_for_ssm_online")
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_headnode_instance_id",
@@ -412,6 +447,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         _mock_cluster,
         _mock_target,
         _mock_wait,
+        _mock_validate_headnode_readiness,
         _mock_discover,
         _mock_run_shell,
     ):
