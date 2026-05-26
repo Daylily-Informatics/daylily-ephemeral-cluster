@@ -27,8 +27,8 @@ Publish the local Altair v1 reportable-range BED as a new GIAB subset named `alt
 |---|---|---|---|---|---|---|---|---|---|
 | G0-001 | Inventory | Record local source BED, active bucket, version resolution, sample targets, and no-overwrite safety rule. | SUCCESS | contract_test | Gate 0 | orchestrator | Gate 0 Baseline above. |  | Baseline complete. |
 | PRE-001 | S3 preflight | Verify all source `hg38/<sample>.vcf.gz` and `.tbi` objects exist and no destination `altair-v1.1` object exists. | SUCCESS | legitimate_safety_handling | Gate 1 | orchestrator | Boto3 preflight in DayEC env against `lsmc`/`us-west-2` found all 14 source objects for HG001-HG007, all 21 destination objects absent, no errors. Source BED SHA256 `394c3ef2ed8d81933bc94a8c41bff82ee2e538aad51f2d75521ba55cf28ef793`. |  | Safe to publish additively. |
-| PUB-001 | S3 publish | Upload `<sample>.bed` from local Altair BED and copy hg38 VCF/TBI to each `altair-v1.1/` directory. | IN_PROGRESS | feature_implementation | Gate 2 | orchestrator | Preflight passed; publish starting. |  |  |
-| VERIFY-001 | S3 verify | Re-read destination object sizes/ETags for all 21 expected objects. | OPEN | contract_test | Gate 3 | orchestrator |  |  |  |
+| PUB-001 | S3 publish | Upload `<sample>.bed` from local Altair BED and copy hg38 VCF/TBI to each `altair-v1.1/` directory. | SUCCESS | feature_implementation | Gate 2 | orchestrator | Boto3 publication uploaded 7 BED files and copied 14 VCF/TBI files with `published_count=21`, `errors=[]`. Each BED is `5,475,200` bytes with ETag `98195d53f883870190f341343a1552be`. |  | Published additively; no overwrite or delete. |
+| VERIFY-001 | S3 verify | Re-read destination object sizes/ETags for all 21 expected objects. | SUCCESS | contract_test | Gate 3 | orchestrator | Independent S3 HEAD verification found `verified_count=21`, `errors=[]`; every BED carries metadata `source-sha256=394c3ef2ed8d81933bc94a8c41bff82ee2e538aad51f2d75521ba55cf28ef793`. |  | All expected objects visible in S3. |
 
 ## Target Object Pattern
 
@@ -44,7 +44,13 @@ s3://lsmc-dayoa-omics-analysis-us-west-2/data/genomic_data/organism_annotations/
 
 - `2026-05-26T06:46:26Z`: Created ledger after resolving the active GIAB truth version and sample set.
 - `2026-05-26T06:48Z`: Preflight passed: all source `hg38` VCF/TBI objects exist; no `altair-v1.1` destination objects exist; local BED SHA256 is `394c3ef2ed8d81933bc94a8c41bff82ee2e538aad51f2d75521ba55cf28ef793`.
+- `2026-05-26T06:49Z`: Published 21 objects under `altair-v1.1/`: for each of HG001-HG007, uploaded `<sample>.bed` from the local Altair BED and copied `hg38/<sample>.vcf.gz` plus `.tbi`.
+- `2026-05-26T06:50Z`: Verification pass re-read all 21 destination objects with S3 HEAD; no missing objects and no BED size mismatches.
 
 ## Final Report
 
-Pending.
+- Published in `s3://lsmc-dayoa-omics-analysis-us-west-2/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/`.
+- Created `altair-v1.1/` subsets for `HG001`, `HG002`, `HG003`, `HG004`, `HG005`, `HG006`, and `HG007`.
+- Each subset contains `<sample>.bed`, `<sample>.vcf.gz`, and `<sample>.vcf.gz.tbi`.
+- The local BED source was `/Users/jmajor/Downloads/Altair_v1_reportable_range (1).bed`, size `5,475,200` bytes, SHA256 `394c3ef2ed8d81933bc94a8c41bff82ee2e538aad51f2d75521ba55cf28ef793`.
+- No separate LSMC control-data bucket existed at publication time, so the additive copy landed in the current active monolith control-data prefix.
