@@ -112,7 +112,15 @@ def normalize_export_source_path(source_path: str) -> str:
     if raw.startswith("/fsx/run_dir_mounts/") or raw == "/fsx/run_dir_mounts":
         raise ExportError("Run-directory mounts are read-oriented inputs, not export sources.")
     if raw.startswith("/fsx/data/") or raw == "/fsx/data":
-        raise ExportError("Reference data under /fsx/data is not an export source.")
+        raise ExportError("Legacy /fsx/data is not an export source.")
+    for role_root in (
+        "/fsx/references",
+        "/fsx/control_data",
+        "/fsx/runtime_assets",
+        "/fsx/staging",
+    ):
+        if raw == role_root or raw.startswith(f"{role_root}/"):
+            raise ExportError(f"{role_root} is not an export source.")
     if raw.startswith("/fsx/exports/") or raw == "/fsx/exports":
         raise ExportError("The /fsx/exports staging namespace is not supported.")
     if raw.startswith(HEADNODE_ANALYSIS_EXPORT_ROOT):
@@ -124,7 +132,10 @@ def normalize_export_source_path(source_path: str) -> str:
     if raw.startswith("/run_dir_mounts/"):
         raise ExportError("Run-directory mounts are read-oriented inputs, not export sources.")
     if raw.startswith("/data/") or raw == "/data":
-        raise ExportError("Reference data under /fsx/data is not an export source.")
+        raise ExportError("Legacy /data is not an export source.")
+    for role_root in ("/references", "/control_data", "/runtime_assets", "/staging"):
+        if raw == role_root or raw.startswith(f"{role_root}/"):
+            raise ExportError(f"{role_root} is not an export source.")
     if raw.startswith("/exports/") or raw == "/exports":
         raise ExportError("The /fsx/exports staging namespace is not supported.")
     if not raw.startswith("/"):

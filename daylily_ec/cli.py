@@ -1857,7 +1857,22 @@ def samples_stage(
     reference_bucket: str = typer.Option(
         ...,
         "--reference-bucket",
-        help="S3 URI mapped to the FSx data repository.",
+        help="S3 URI mapped to /fsx/references.",
+    ),
+    control_data_bucket: str = typer.Option(
+        ...,
+        "--control-data-bucket",
+        help="S3 URI mapped to /fsx/control_data.",
+    ),
+    runtime_assets_bucket: str = typer.Option(
+        ...,
+        "--runtime-assets-bucket",
+        help="S3 URI mapped to /fsx/runtime_assets.",
+    ),
+    stage_bucket: str = typer.Option(
+        ...,
+        "--stage-bucket",
+        help="S3 URI mapped to /fsx/staging.",
     ),
     config_dir: Optional[Path] = typer.Option(
         None,
@@ -1865,7 +1880,7 @@ def samples_stage(
         help="Directory for generated samples.tsv and units.tsv.",
     ),
     stage_target: str = typer.Option(
-        "/data/staged_sample_data",
+        "/fsx/staging/staged_sample_data",
         "--stage-target",
         help="FSx staging base directory.",
     ),
@@ -1905,6 +1920,12 @@ def samples_stage(
         str(analysis_samples),
         "--reference-bucket",
         reference_bucket,
+        "--control-data-bucket",
+        control_data_bucket,
+        "--runtime-assets-bucket",
+        runtime_assets_bucket,
+        "--stage-bucket",
+        stage_bucket,
         "--stage-target",
         stage_target,
     ]
@@ -1951,7 +1972,22 @@ def samples_run(
     reference_bucket: str = typer.Option(
         ...,
         "--reference-bucket",
-        help="S3 URI mapped to the FSx data repository.",
+        help="S3 URI mapped to /fsx/references.",
+    ),
+    control_data_bucket: str = typer.Option(
+        ...,
+        "--control-data-bucket",
+        help="S3 URI mapped to /fsx/control_data.",
+    ),
+    runtime_assets_bucket: str = typer.Option(
+        ...,
+        "--runtime-assets-bucket",
+        help="S3 URI mapped to /fsx/runtime_assets.",
+    ),
+    stage_bucket: str = typer.Option(
+        ...,
+        "--stage-bucket",
+        help="S3 URI mapped to /fsx/staging.",
     ),
     config_dir: Optional[Path] = typer.Option(
         None,
@@ -1959,7 +1995,7 @@ def samples_run(
         help="Directory for generated samples.tsv, units.tsv, and run receipt.",
     ),
     stage_target: str = typer.Option(
-        "/data/staged_sample_data",
+        "/fsx/staging/staged_sample_data",
         "--stage-target",
         help="FSx staging base directory.",
     ),
@@ -2066,6 +2102,12 @@ def samples_run(
             str(analysis_path),
             "--reference-bucket",
             reference_bucket,
+            "--control-data-bucket",
+            control_data_bucket,
+            "--runtime-assets-bucket",
+            runtime_assets_bucket,
+            "--stage-bucket",
+            stage_bucket,
             "--stage-target",
             stage_target,
         ]
@@ -2377,6 +2419,7 @@ def _create_mount_payload(
     region: str,
     profile: Optional[str],
     source_s3_uri: str,
+    purpose: str,
     mount_id: Optional[str],
     run_id: Optional[str],
     platform: str,
@@ -2409,6 +2452,7 @@ def _create_mount_payload(
         region=region,
         profile=profile,
         source_s3_uri=source_s3_uri,
+        purpose=purpose,
         mount_id=mount_id,
         run_id=run_id,
         platform=platform,
@@ -2420,7 +2464,7 @@ def _create_mount_payload(
         allow_writeback_admin=allow_writeback_admin,
         wait=wait,
         timeout_seconds=timeout_seconds,
-        tags=parse_tags(tag),
+        tags=parse_tags(tag, purpose=purpose),
     )
     return create_run_mount(request)
 
@@ -2430,6 +2474,11 @@ def mounts_create(
         ...,
         metavar="S3_URI",
         help="S3 run-directory URI to mount; the final folder becomes the mount id.",
+    ),
+    purpose: str = typer.Option(
+        "run",
+        "--purpose",
+        help="Mount purpose: run, reference, control-data, runtime-assets, staging, or custom.",
     ),
     cluster: Optional[str] = typer.Option(
         None,
@@ -2492,6 +2541,7 @@ def mounts_create(
             region=region,
             profile=profile,
             source_s3_uri=source_s3_uri,
+            purpose=purpose,
             mount_id=mount_id,
             run_id=run_id,
             platform=platform,
@@ -2547,6 +2597,7 @@ def mount_rundir(
             region=region,
             profile=profile,
             source_s3_uri=source_s3_uri,
+            purpose="run",
             mount_id=mount_id,
             run_id=run_id,
             platform=platform,
@@ -2570,8 +2621,9 @@ def mounts_list(
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
     region: str = typer.Option(..., "--region"),
     profile: Optional[str] = typer.Option(None, "--profile"),
+    purpose: Optional[str] = typer.Option(None, "--purpose"),
 ) -> None:
-    """List FSx run directory mounts."""
+    """List managed FSx DRA mounts."""
 
     from daylily_ec.run_mounts import format_mount_list, list_run_mounts
 
@@ -2581,6 +2633,7 @@ def mounts_list(
             fsx_file_system_id=fsx_file_system_id,
             region=region,
             profile=profile,
+            purpose=purpose,
         )
         payload = {"mounts": [record.to_output_payload() for record in records]}
         _emit_mount_payload(payload, text=format_mount_list(records))

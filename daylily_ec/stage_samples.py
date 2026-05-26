@@ -417,6 +417,14 @@ class RunMetricFile:
     destination_relative_path: str
 
 
+@dataclass(frozen=True)
+class BucketRoles:
+    reference_bucket: str
+    control_data_bucket: str = ""
+    runtime_assets_bucket: str = ""
+    stage_bucket: str = ""
+
+
 GIAB_TRUTH_SUFFIXES = (".bed", ".vcf.gz", ".vcf.gz.tbi")
 
 
@@ -427,13 +435,28 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("analysis_samples", help="Path to analysis_samples.tsv")
     parser.add_argument(
         "--stage-target",
-        default="/data/staged_sample_data",
+        default="/fsx/staging/staged_sample_data",
         help="FSx staging base directory (default: %(default)s)",
     )
     parser.add_argument(
         "--reference-bucket",
         required=True,
-        help="S3 URI (s3://bucket[/prefix]) mapped to the FSx data repository",
+        help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/references",
+    )
+    parser.add_argument(
+        "--control-data-bucket",
+        required=True,
+        help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/control_data",
+    )
+    parser.add_argument(
+        "--runtime-assets-bucket",
+        required=True,
+        help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/runtime_assets",
+    )
+    parser.add_argument(
+        "--stage-bucket",
+        required=True,
+        help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/staging",
     )
     parser.add_argument(
         "--config-dir",
@@ -491,8 +514,12 @@ def parse_s3_uri(uri: str) -> Tuple[str, str]:
 
 def normalise_stage_target(stage_target: str) -> str:
     stage_target = stage_target.strip()
-    if not stage_target.startswith("/data"):
-        raise CommandError("Stage target must be an FSx path (expected to start with /data).")
+    if stage_target == "/data" or stage_target.startswith("/data/"):
+        raise CommandError("Stage target must use /fsx/staging; /data is not supported.")
+    if stage_target == "/fsx/data" or stage_target.startswith("/fsx/data/"):
+        raise CommandError("Stage target must use /fsx/staging; /fsx/data is not supported.")
+    if not (stage_target == "/fsx/staging" or stage_target.startswith("/fsx/staging/")):
+        raise CommandError("Stage target must be under /fsx/staging.")
     return stage_target.rstrip("/")
 
 
@@ -504,7 +531,7 @@ def build_stage_paths(stage_target: str, bucket_uri: str) -> StagePaths:
 
     bucket, prefix = parse_s3_uri(bucket_uri.rstrip("/"))
     prefix = prefix.rstrip("/")
-    fsx_relative = stage_target.lstrip("/")
+    fsx_relative = stage_target.removeprefix("/fsx/").lstrip("/")
     if prefix:
         remote_s3_stage = f"s3://{bucket}/{prefix}/{fsx_relative}/{remote_stage_name}"
     else:
@@ -518,10 +545,8 @@ def build_stage_paths(stage_target: str, bucket_uri: str) -> StagePaths:
 
 
 def headnode_visible_path(path: str) -> str:
-    if path == "/data":
-        return "/fsx/data"
-    if path.startswith("/data/"):
-        return f"/fsx{path}"
+    if path == "/data" or path.startswith("/data/") or path == "/fsx/data" or path.startswith("/fsx/data/"):
+        raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
     return path
 
 
@@ -741,26 +766,53 @@ def read_s3_text(
 
 def is_headnode_visible_path(path: str) -> bool:
     return (
-        path == "/fsx/data"
-        or path.startswith("/fsx/data/")
-        or path == "/data"
-        or path.startswith("/data/")
+        path == "/fsx/references"
+        or path.startswith("/fsx/references/")
+        or path == "/fsx/control_data"
+        or path.startswith("/fsx/control_data/")
+        or path == "/fsx/runtime_assets"
+        or path.startswith("/fsx/runtime_assets/")
+        or path == "/fsx/staging"
+        or path.startswith("/fsx/staging/")
         or is_mounted_run_dir_path(path)
     )
 
 
-def build_reference_uri(path: str, reference_bucket: str) -> str:
+def _coerce_bucket_roles(reference_bucket: str | BucketRoles) -> BucketRoles:
+    if isinstance(reference_bucket, BucketRoles):
+        return reference_bucket
+    return BucketRoles(reference_bucket=str(reference_bucket or ""))
+
+
+def _role_relative(path: str, root: str) -> str:
+    if path == root:
+        return ""
+    return path.removeprefix(f"{root}/").lstrip("/")
+
+
+def _join_s3_uri(base: str, relative: str) -> str:
+    if not base:
+        raise CommandError("Missing required S3 role bucket for path resolution.")
+    base = base.rstrip("/")
+    relative = relative.lstrip("/")
+    return f"{base}/{relative}" if relative else base
+
+
+def build_reference_uri(path: str, reference_bucket: str | BucketRoles) -> str:
+    roles = _coerce_bucket_roles(reference_bucket)
     if is_mounted_run_dir_path(path):
         raise CommandError(f"Mounted run-directory paths are not reference-bucket objects: {path}")
-    if path == "/data":
-        relative = "data"
-    elif path.startswith("/data/"):
-        relative = path.lstrip("/")
-    elif path.startswith("/fsx/"):
-        relative = path[len("/fsx/") :]
-    else:
-        raise CommandError(f"Path is not in the FSx data namespace: {path}")
-    return f"{reference_bucket.rstrip('/')}/{relative.lstrip('/')}"
+    if path == "/data" or path.startswith("/data/") or path == "/fsx/data" or path.startswith("/fsx/data/"):
+        raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
+    if path == "/fsx/references" or path.startswith("/fsx/references/"):
+        return _join_s3_uri(roles.reference_bucket, _role_relative(path, "/fsx/references"))
+    if path == "/fsx/control_data" or path.startswith("/fsx/control_data/"):
+        return _join_s3_uri(roles.control_data_bucket, _role_relative(path, "/fsx/control_data"))
+    if path == "/fsx/runtime_assets" or path.startswith("/fsx/runtime_assets/"):
+        return _join_s3_uri(roles.runtime_assets_bucket, _role_relative(path, "/fsx/runtime_assets"))
+    if path == "/fsx/staging" or path.startswith("/fsx/staging/"):
+        return _join_s3_uri(roles.stage_bucket, _role_relative(path, "/fsx/staging"))
+    raise CommandError(f"Path is not in a DayOA FSx role namespace: {path}")
 
 
 def check_source_path(
@@ -1942,10 +1994,8 @@ def deduplicate_rows(rows: Sequence[Dict[str, str]], header: Sequence[str]) -> L
 
 
 def _normalise_headnode_data_path(value: str) -> str:
-    if value.startswith("/data/"):
-        return f"/fsx{value}"
-    if value == "/data":
-        return "/fsx/data"
+    if value == "/data" or value.startswith("/data/") or value == "/fsx/data" or value.startswith("/fsx/data/"):
+        raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
     return value
 
 
@@ -1956,7 +2006,13 @@ def normalise_units_paths(rows: Sequence[Dict[str, str]]) -> None:
                 continue
             if "," in value:
                 parts = [part.strip() for part in value.split(",")]
-                if any(part.startswith("/data/") or part == "/data" for part in parts):
+                if any(
+                    part.startswith("/data/")
+                    or part == "/data"
+                    or part.startswith("/fsx/data/")
+                    or part == "/fsx/data"
+                    for part in parts
+                ):
                     row[field] = ",".join(_normalise_headnode_data_path(part) for part in parts)
                 continue
             row[field] = _normalise_headnode_data_path(value)
@@ -3657,11 +3713,17 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     aws_config = AwsConfig(profile=ensure_profile(args.profile), region=args.region)
     aws_env = build_aws_env(aws_config)
 
-    stage = build_stage_paths(args.stage_target, args.reference_bucket)
+    bucket_roles = BucketRoles(
+        reference_bucket=args.reference_bucket,
+        control_data_bucket=args.control_data_bucket,
+        runtime_assets_bucket=args.runtime_assets_bucket,
+        stage_bucket=args.stage_bucket,
+    )
+    stage = build_stage_paths(args.stage_target, args.stage_bucket)
     run_metric_specs = parse_run_metric_staging_specs(args.run_metric_staging)
     precheck_report, prechecked_rows = precheck_manifest(
         analysis_samples,
-        reference_bucket=args.reference_bucket,
+        reference_bucket=bucket_roles,
         aws_env=aws_env,
         debug=args.debug,
     )
@@ -3671,7 +3733,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(format_precheck_success(precheck_report))
     run_metric_files = precheck_run_metrics(
         run_metric_specs,
-        reference_bucket=args.reference_bucket,
+        reference_bucket=bucket_roles,
         aws_env=aws_env,
         debug=args.debug,
     )
@@ -3685,7 +3747,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     samples_rows, units_rows, created_files, _run_ids = process_samples(
         analysis_samples,
         stage,
-        reference_bucket=args.reference_bucket,
+        reference_bucket=bucket_roles,
         aws_env=aws_env,
         debug=args.debug,
         rows=prechecked_rows,
@@ -3694,7 +3756,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         stage_run_metrics(
             run_metric_files,
             stage,
-            reference_bucket=args.reference_bucket,
+            reference_bucket=bucket_roles,
             aws_env=aws_env,
             debug=args.debug,
         )

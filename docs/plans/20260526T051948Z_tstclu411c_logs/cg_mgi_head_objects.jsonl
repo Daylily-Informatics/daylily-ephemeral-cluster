@@ -1,0 +1,23 @@
+{
+    "Key": "ML150002521_L01_UDB-386_1.fq.gz",
+    "Size": 90600002744,
+    "ETag": "\"07896c267e809e97cf23dce9adf98cf0-5401\"",
+    "LastModified": "Tue, 10 Feb 2026 09:52:45 GMT",
+    "Metadata": {}
+}
+{
+    "Key": "ML150002521_L01_UDB-386_2.fq.gz",
+    "Size": 10794018984,
+    "ETag": "\"d494187eb25439210e8671c33829a140-81\"",
+    "LastModified": "Wed, 11 Feb 2026 11:03:28 GMT",
+    "Metadata": {
+        "mtime": "1761930042"
+    }
+}
+{
+    "Key": "ML150002521_L01_UDB-388_2.fq.gz",
+    "Size": 97844317264,
+    "ETag": "\"57625af895eb3f60eba87b9190d3b998-5832\"",
+    "LastModified": "Tue, 10 Feb 2026 09:52:45 GMT",
+    "Metadata": {}
+}

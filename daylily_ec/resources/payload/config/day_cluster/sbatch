@@ -14,8 +14,8 @@ slurm_command=$(basename "$0")
 
 if [ -z "${project}" ]; then
     echo "ERROR: Please specify a project/budget name with the comment flag. '--comment ProjectName' to proceed with any sbatch command." >&2
-    echo "Available budgets/projects in /fsx/data/budget_tags/pcluster-project-budget-tags.tsv are:" >&2
-    cat /fsx/data/budget_tags/pcluster-project-budget-tags.tsv  >&2
+    echo "Available budgets/projects in /fsx/runtime_assets/budget_tags/pcluster-project-budget-tags.tsv are:" >&2
+    cat /fsx/runtime_assets/budget_tags/pcluster-project-budget-tags.tsv  >&2
     echo ""  >&2
     echo "you may modify this script to fully block unknown projects, for now this will tag with the specified project and proceed."  >&2
     echo "a log of warnings/errors will be written to ./sbatch_errs.log"  >&2
@@ -24,7 +24,7 @@ if [ -z "${project}" ]; then
 fi
 
 # Path to the file containing budget names and users
-budget_file="/fsx/data/budget_tags/pcluster-project-budget-tags.tsv"
+budget_file="/fsx/runtime_assets/budget_tags/pcluster-project-budget-tags.tsv"
 
 # Default value for the modified project name
 modified_project="${project}"

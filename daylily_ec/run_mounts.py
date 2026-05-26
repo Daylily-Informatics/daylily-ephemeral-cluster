@@ -943,11 +943,24 @@ def association_is_active(association: Dict[str, Any]) -> bool:
     return lifecycle not in INACTIVE_LIFECYCLES
 
 
+def purpose_from_file_system_path(file_system_path: str) -> Optional[str]:
+    try:
+        normalized = _normalize_absolute_fsx_api_path(str(file_system_path or ""))
+    except RunMountError:
+        return None
+    for purpose, root in PURPOSE_FSX_ROOTS.items():
+        if normalized.startswith(root):
+            return purpose
+    return MOUNT_PURPOSE_CUSTOM
+
+
 def extract_mount_id(file_system_path: str) -> str:
-    normalized = normalize_file_system_path(file_system_path, mount_id="_validated")
-    if not normalized.startswith(FSX_RUN_MOUNT_ROOT):
-        raise RunMountError(f"File-system path is not a run mount path: {file_system_path}")
-    suffix = normalized[len(FSX_RUN_MOUNT_ROOT) :].strip("/")
+    normalized = _normalize_absolute_fsx_api_path(file_system_path)
+    purpose = purpose_from_file_system_path(normalized)
+    if purpose in PURPOSE_FSX_ROOTS:
+        suffix = normalized[len(PURPOSE_FSX_ROOTS[purpose]) :].strip("/")
+    else:
+        suffix = normalized.strip("/")
     first = suffix.split("/", 1)[0]
     return validate_mount_id(first)
 
@@ -955,7 +968,8 @@ def extract_mount_id(file_system_path: str) -> str:
 def format_mount_created(record: RunMountRecord) -> str:
     return "\n".join(
         [
-            f"Run directory mounted: {record.mount_id}",
+            f"Mount created: {record.mount_id}",
+            f"Purpose: {record.purpose}",
             f"Association ID: {record.association_id}",
             f"FSx file system: {record.fsx_file_system_id}",
             f"FSx API path: {record.file_system_path}",
@@ -969,7 +983,8 @@ def format_mount_created(record: RunMountRecord) -> str:
 def format_mount_deleted(record: RunMountRecord) -> str:
     return "\n".join(
         [
-            f"Run directory mount deleted: {record.mount_id}",
+            f"Mount deleted: {record.mount_id}",
+            f"Purpose: {record.purpose}",
             f"Association ID: {record.association_id}",
             f"FSx file system: {record.fsx_file_system_id}",
             f"Lifecycle: {record.lifecycle}",
@@ -983,13 +998,13 @@ def format_mount_described(record: RunMountRecord) -> str:
 
 def format_mount_list(records: Sequence[RunMountRecord]) -> str:
     if not records:
-        return "No run directory mounts found."
+        return "No mounts found."
     lines = [
         "%-32s %-32s %-8s %-16s %-18s %-38s %-36s %-20s"
         % (
             "MOUNT_ID",
             "RUN_ID",
-            "PLATFORM",
+            "PURPOSE",
             "LIFECYCLE",
             "ASSOCIATION_ID",
             "HEADNODE_PATH",
@@ -1013,8 +1028,8 @@ def format_mount_list(records: Sequence[RunMountRecord]) -> str:
             "%-32s %-32s %-8s %-16s %-18s %-38s %-36s %-20s"
             % (
                 record.mount_id,
-                record.run_id,
-                record.platform,
+            record.run_id,
+            record.purpose,
                 record.lifecycle,
                 record.association_id,
                 record.headnode_path,
@@ -1028,7 +1043,8 @@ def format_mount_list(records: Sequence[RunMountRecord]) -> str:
 def format_mount_verified(payload: Dict[str, Any]) -> str:
     return "\n".join(
         [
-            f"Run directory mount verified: {payload['mount_id']}",
+            f"Mount verified: {payload['mount_id']}",
+            f"Purpose: {payload.get('purpose', 'run')}",
             f"Association ID: {payload['association_id']}",
             f"Headnode path: {payload['headnode_path']}",
             f"Lifecycle: {payload['lifecycle']}",
@@ -1210,6 +1226,7 @@ def _record_from_state_payload(payload: Dict[str, Any]) -> RunMountRecord:
         raise RunMountError("Unsupported run mount state schema version.")
     return RunMountRecord(
         mount_id=str(payload["mount_id"]),
+        purpose=str(payload["purpose"]),
         run_id=str(payload["run_id"]),
         platform=str(payload.get("platform") or "OTHER"),
         cluster_name=payload.get("cluster_name"),
