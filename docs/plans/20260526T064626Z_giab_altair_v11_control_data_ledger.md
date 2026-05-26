@@ -26,8 +26,8 @@ Publish the local Altair v1 reportable-range BED as a new GIAB subset named `alt
 | ID | Area | Requirement | Status | Category | Approval Gate | Owner | Evidence | Root Cause | Terminal Note |
 |---|---|---|---|---|---|---|---|---|---|
 | G0-001 | Inventory | Record local source BED, active bucket, version resolution, sample targets, and no-overwrite safety rule. | SUCCESS | contract_test | Gate 0 | orchestrator | Gate 0 Baseline above. |  | Baseline complete. |
-| PRE-001 | S3 preflight | Verify all source `hg38/<sample>.vcf.gz` and `.tbi` objects exist and no destination `altair-v1.1` object exists. | OPEN | legitimate_safety_handling | Gate 1 | orchestrator |  |  |  |
-| PUB-001 | S3 publish | Upload `<sample>.bed` from local Altair BED and copy hg38 VCF/TBI to each `altair-v1.1/` directory. | OPEN | feature_implementation | Gate 2 | orchestrator |  |  |  |
+| PRE-001 | S3 preflight | Verify all source `hg38/<sample>.vcf.gz` and `.tbi` objects exist and no destination `altair-v1.1` object exists. | SUCCESS | legitimate_safety_handling | Gate 1 | orchestrator | Boto3 preflight in DayEC env against `lsmc`/`us-west-2` found all 14 source objects for HG001-HG007, all 21 destination objects absent, no errors. Source BED SHA256 `394c3ef2ed8d81933bc94a8c41bff82ee2e538aad51f2d75521ba55cf28ef793`. |  | Safe to publish additively. |
+| PUB-001 | S3 publish | Upload `<sample>.bed` from local Altair BED and copy hg38 VCF/TBI to each `altair-v1.1/` directory. | IN_PROGRESS | feature_implementation | Gate 2 | orchestrator | Preflight passed; publish starting. |  |  |
 | VERIFY-001 | S3 verify | Re-read destination object sizes/ETags for all 21 expected objects. | OPEN | contract_test | Gate 3 | orchestrator |  |  |  |
 
 ## Target Object Pattern
@@ -43,6 +43,7 @@ s3://lsmc-dayoa-omics-analysis-us-west-2/data/genomic_data/organism_annotations/
 ## Evidence Log
 
 - `2026-05-26T06:46:26Z`: Created ledger after resolving the active GIAB truth version and sample set.
+- `2026-05-26T06:48Z`: Preflight passed: all source `hg38` VCF/TBI objects exist; no `altair-v1.1` destination objects exist; local BED SHA256 is `394c3ef2ed8d81933bc94a8c41bff82ee2e538aad51f2d75521ba55cf28ef793`.
 
 ## Final Report
 
