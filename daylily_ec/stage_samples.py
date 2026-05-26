@@ -801,7 +801,7 @@ def _join_s3_uri(base: str, relative: str) -> str:
 def build_reference_uri(path: str, reference_bucket: str | BucketRoles) -> str:
     roles = _coerce_bucket_roles(reference_bucket)
     if is_mounted_run_dir_path(path):
-        raise CommandError(f"Mounted run-directory paths are not reference-bucket objects: {path}")
+        raise CommandError(f"Mounted run-directory paths are not static role-bucket objects: {path}")
     if path == "/data" or path.startswith("/data/") or path == "/fsx/data" or path.startswith("/fsx/data/"):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
     if path == "/fsx/references" or path.startswith("/fsx/references/"):

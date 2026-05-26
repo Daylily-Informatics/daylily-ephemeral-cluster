@@ -61,6 +61,9 @@ dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --reference-bucket "$REF_BUCKET" \
+  --control-data-bucket "$CONTROL_DATA_BUCKET" \
+  --runtime-assets-bucket "$RUNTIME_ASSETS_BUCKET" \
+  --stage-bucket "$STAGE_BUCKET" \
   --config-dir "$STAGE_CFG_DIR"
 
 dyec workflow launch \

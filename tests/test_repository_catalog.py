@@ -160,6 +160,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     } <= command_ids
 
     for command in catalog.commands():
+        if not command.validation_runs:
+            assert command.command_id in {"illumina_run_qc_bclconvert"}
+            continue
         assert len(command.validation_runs) == 1
         validation_run = command.validation_runs[0]
         assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -315,6 +318,37 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
         "samples_table=.test_data/data/samples.tsv "
         "units_table=.test_data/data/units.tsv"
     )
+
+    combined = catalog.get_command("illumina_run_qc_bclconvert")
+    assert combined.command_class == "run_analysis"
+    assert combined.targets == ["produce_illumina_run_qc_and_bclconvert"]
+    assert combined.runtime_parameters == {
+        "run_context_file": "config/runs.tsv",
+        "samples_table": ".test_data/data/bclconvert/samples.tsv",
+        "units_table": ".test_data/data/bclconvert/units.tsv",
+    }
+    combined_argv = combined.launch_argv(
+        analysis_id="run-qc-bclconvert",
+        executing_entity="johnm",
+        run_context_file="config/runs.tsv",
+        dry_run=True,
+    )
+    combined_dy_command = combined_argv[combined_argv.index("--dy-command") + 1]
+    assert "produce_illumina_run_qc_and_bclconvert" in combined_dy_command
+    assert "samples_table=.test_data/data/bclconvert/samples.tsv" in combined_dy_command
+    assert "units_table=.test_data/data/bclconvert/units.tsv" in combined_dy_command
+
+    ont = catalog.get_command("ont_run_qc")
+    assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc"]
+    ont_argv = ont.launch_argv(
+        analysis_id="ont-run-qc",
+        executing_entity="johnm",
+        run_context_file="config/runs.tsv",
+        dry_run=True,
+    )
+    ont_dy_command = ont_argv[ont_argv.index("--dy-command") + 1]
+    assert "produce_ont_run_qc_and_demux_multiqc" in ont_dy_command
+    assert "run_context_file=config/runs.tsv" in ont_dy_command
 
 
 def test_repository_catalog_v1_migrates_to_sample_analysis(tmp_path: Path) -> None:

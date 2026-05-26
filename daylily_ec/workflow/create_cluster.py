@@ -371,14 +371,6 @@ def _s3_uri_join(base_uri: str, *parts: str) -> str:
     return f"{base}/{suffix}" if suffix else base
 
 
-def _s3_access_block(buckets: List[str], *, indent: int = 6) -> str:
-    spaces = " " * indent
-    return "\n".join(
-        f"{spaces}- BucketName: {bucket}\n{spaces}  EnableWriteAccess: false"
-        for bucket in sorted(set(bucket for bucket in buckets if bucket))
-    )
-
-
 def _noop_heartbeat_result() -> Any:
     """Return a stub HeartbeatResult-like object for the no-op path."""
     from types import SimpleNamespace
@@ -1112,23 +1104,16 @@ def run_create_workflow(
         "REGSUB_REGION": aws_ctx.region,
         "REGSUB_PUB_SUBNET": public_subnet,
         "REGSUB_S3_BUCKET_INIT": cluster_boot_s3_uri,
-        "REGSUB_S3_BUCKET_NAME": runtime_assets_bucket_name,
         "REGSUB_S3_IAM_POLICY": policy_arn,
         "REGSUB_PRIVATE_SUBNET": private_subnet,
-        "REGSUB_S3_BUCKET_REF": reference_s3_uri.rstrip("/"),
+        "REGSUB_S3_REFERENCE_BUCKET": _role_bucket(s3_roles, "reference"),
+        "REGSUB_S3_CONTROL_DATA_BUCKET": _role_bucket(s3_roles, "control_data"),
+        "REGSUB_S3_RUNTIME_ASSETS_BUCKET": _role_bucket(s3_roles, "runtime_assets"),
+        "REGSUB_S3_STAGE_BUCKET": _role_bucket(s3_roles, "staging"),
         "REGSUB_S3_REFERENCE_URI": reference_s3_uri.rstrip("/"),
         "REGSUB_S3_CONTROL_DATA_URI": control_data_s3_uri.rstrip("/"),
         "REGSUB_S3_RUNTIME_ASSETS_URI": runtime_assets_s3_uri.rstrip("/"),
         "REGSUB_S3_STAGE_URI": stage_s3_uri.rstrip("/"),
-        "REGSUB_S3_ACCESS_BLOCK": _s3_access_block(
-            [
-                _role_bucket(s3_roles, "reference"),
-                _role_bucket(s3_roles, "control_data"),
-                _role_bucket(s3_roles, "runtime_assets"),
-                _role_bucket(s3_roles, "staging"),
-            ],
-            indent=6,
-        ),
         "REGSUB_FSX_SIZE": _resolve_fsx_size(
             cfg,
             non_interactive=non_interactive,

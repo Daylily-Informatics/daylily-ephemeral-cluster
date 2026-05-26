@@ -88,6 +88,9 @@ AWS_PROFILE="$AWS_PROFILE" python -m daylily_ec.ssh_to_ssm_e2e_runner \
   --cluster-name "$CLUSTER_NAME" \
   --reuse-existing-cluster \
   --reference-bucket "$REF_BUCKET" \
+  --control-data-bucket "$CONTROL_DATA_BUCKET" \
+  --runtime-assets-bucket "$RUNTIME_ASSETS_BUCKET" \
+  --stage-bucket "$STAGE_BUCKET" \
   --analysis-samples "$ANALYSIS_SAMPLES" \
   --workflow-live \
   --output-json "$PWD/tmp-e2e-results/$CLUSTER_NAME.json"

@@ -68,6 +68,9 @@ Choose:
 - one target AWS region
 - one target AZ in that region
 - one reference bucket in that region
+- one control/validation data bucket or prefix in that region
+- one runtime-assets bucket or prefix in that region
+- one mutable staging bucket or prefix in that region
 - one or more run-data buckets/prefixes, preferably in the same region
 - one analysis-result bucket/prefix for exports
 
@@ -75,11 +78,14 @@ S3 buckets are regional, not AZ-scoped. Co-locate buckets and FSx in the same AW
 
 Current FSx DRA strategy:
 
-- reference data DRA: `<reference-bucket>/data/` to `/fsx/references`
+- reference data DRA: `<reference-bucket-or-prefix>/` to `/fsx/references`
+- control/validation data DRA: `<control-data-bucket-or-prefix>/` to `/fsx/control_data`
+- runtime-assets DRA: `<runtime-assets-bucket-or-prefix>/` to `/fsx/runtime_assets`
+- staging DRA: `<stage-bucket-or-prefix>/` to `/fsx/staging`
 - run input DRA: selected S3 run prefix to `/fsx/run_dir_mounts/<mount_id>`
 - export DRA: one completed `/fsx/analysis_results/<executing_entity>/<analysis_id>` to the requested S3 analysis destination ending in `<executing_entity>/<analysis_id>/`
 
-The reference bucket is not automatically the export bucket. `dyec export` takes an explicit `--destination-s3-uri`.
+The reference bucket is not the control-data, runtime-assets, staging, or export bucket. `dyec export` takes an explicit `--destination-s3-uri`.
 
 ## Readiness Validation
 

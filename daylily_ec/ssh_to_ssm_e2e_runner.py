@@ -114,7 +114,22 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--reference-bucket",
         required=True,
-        help="S3 URI backing the FSx data repository for laptop-side staging",
+        help="S3 URI mapped to /fsx/references for laptop-side staging",
+    )
+    parser.add_argument(
+        "--control-data-bucket",
+        required=True,
+        help="S3 URI mapped to /fsx/control_data for laptop-side staging",
+    )
+    parser.add_argument(
+        "--runtime-assets-bucket",
+        required=True,
+        help="S3 URI mapped to /fsx/runtime_assets for laptop-side staging",
+    )
+    parser.add_argument(
+        "--stage-bucket",
+        required=True,
+        help="S3 URI mapped to /fsx/staging for laptop-side staging",
     )
     parser.add_argument(
         "--analysis-samples",
@@ -864,6 +879,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         args.region,
         "--reference-bucket",
         args.reference_bucket,
+        "--control-data-bucket",
+        args.control_data_bucket,
+        "--runtime-assets-bucket",
+        args.runtime_assets_bucket,
+        "--stage-bucket",
+        args.stage_bucket,
         "--config-dir",
         str(stage_config_dir),
         str(analysis_samples),

@@ -1,11 +1,11 @@
-Region: REGSUB_REGION  #us-west-2
+Region: ${REGSUB_REGION}  #us-west-2
 Image:
   Os: ubuntu2204
 HeadNode:
   InstanceType: r5n.4xlarge
   Networking:
     ElasticIp: true
-    SubnetId: REGSUB_PUB_SUBNET  # subnet-018d25d2f208a83a2
+    SubnetId: ${REGSUB_PUB_SUBNET}  # subnet-018d25d2f208a83a2
   DisableSimultaneousMultithreading: false
   Dcv:
     Enabled: true
@@ -19,15 +19,22 @@ HeadNode:
       MountDir: /head_root
   CustomActions:
     OnNodeConfigured:
-      Script: REGSUB_S3_BUCKET_INIT/cluster_boot_config/post_install.sh
+      Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
       Args:
-        - REGSUB_S3_BUCKET_NAME
+        - ${REGSUB_REGION}
+        - ${REGSUB_S3_BUCKET_INIT}
   Iam:
-    S3Access:
-      - BucketName: REGSUB_S3_BUCKET_NAME  # daylily-ref
-        EnableWriteAccess: False
+    S3Access: &dayoa_s3_access
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_RUNTIME_ASSETS_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
     AdditionalIamPolicies:
-      - Policy: REGSUB_S3_IAM_POLICY  # arn:aws:iam::670484050738:policy/pclusterTagsAndBudget
+      - Policy: ${REGSUB_S3_IAM_POLICY}  # arn:aws:iam::670484050738:policy/pclusterTagsAndBudget
 Scheduling:
   Scheduler: slurm
   SlurmSettings:
@@ -57,16 +64,17 @@ Scheduling:
             Enabled: false
       Networking:
         SubnetIds:
-          - REGSUB_PRIVATE_SUBNET
+          - ${REGSUB_PRIVATE_SUBNET}
       CustomActions:
         OnNodeConfigured:
-          Script: REGSUB_S3_BUCKET_INIT/cluster_boot_config/post_install.sh
+          Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+          Args:
+            - ${REGSUB_REGION}
+            - ${REGSUB_S3_BUCKET_INIT}
       Iam:
-        S3Access:
-          - BucketName: REGSUB_S3_BUCKET_NAME
-            EnableWriteAccess: False
+        S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
-          - Policy: REGSUB_S3_IAM_POLICY
+          - Policy: ${REGSUB_S3_IAM_POLICY}
     - Name: i4-5
       CapacityType: SPOT
       AllocationStrategy: lowest-price
@@ -87,16 +95,17 @@ Scheduling:
             Enabled: false
       Networking:
         SubnetIds:
-          - REGSUB_PRIVATE_SUBNET
+          - ${REGSUB_PRIVATE_SUBNET}
       CustomActions:
         OnNodeConfigured:
-          Script: REGSUB_S3_BUCKET_INIT/cluster_boot_config/post_install.sh
+          Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+          Args:
+            - ${REGSUB_REGION}
+            - ${REGSUB_S3_BUCKET_INIT}
       Iam:
-        S3Access:
-          - BucketName: REGSUB_S3_BUCKET_NAME
-            EnableWriteAccess: False
+        S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
-          - Policy: REGSUB_S3_IAM_POLICY
+          - Policy: ${REGSUB_S3_IAM_POLICY}
 Monitoring:
   Logs:
     CloudWatch:
@@ -111,8 +120,23 @@ SharedStorage:  # This is the local FS which is expensive but fast, could be swa
       DeploymentType: SCRATCH_2
       DataRepositoryAssociations:
         - Name: reference-data
-          FileSystemPath: /data/
-          DataRepositoryPath: REGSUB_S3_BUCKET_REF/data/
+          FileSystemPath: /references/
+          DataRepositoryPath: ${REGSUB_S3_REFERENCE_URI}/
+          BatchImportMetaDataOnCreate: true
+          AutoImportPolicy: [NEW, CHANGED, DELETED]
+        - Name: control-data
+          FileSystemPath: /control_data/
+          DataRepositoryPath: ${REGSUB_S3_CONTROL_DATA_URI}/
+          BatchImportMetaDataOnCreate: true
+          AutoImportPolicy: [NEW, CHANGED, DELETED]
+        - Name: runtime-assets
+          FileSystemPath: /runtime_assets/
+          DataRepositoryPath: ${REGSUB_S3_RUNTIME_ASSETS_URI}/
+          BatchImportMetaDataOnCreate: true
+          AutoImportPolicy: [NEW, CHANGED, DELETED]
+        - Name: staging
+          FileSystemPath: /staging/
+          DataRepositoryPath: ${REGSUB_S3_STAGE_URI}/
           BatchImportMetaDataOnCreate: true
           AutoImportPolicy: [NEW, CHANGED, DELETED]
 Tags:  # TAGs necessary for per-user/project/job cost tracking

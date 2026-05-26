@@ -722,9 +722,42 @@ repositories:
             dryrun_analysis_id: tvb_illumina_bclconvert_1021_dryrun
             stage_or_context: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
             failure_cause: "Dry-run failed: WorkflowError reported no read pairs specified for analysis unit 20260514_LH01106_0009_B23TVLGLT4."
+      - command_id: illumina_run_qc_bclconvert
+        display_name: "Illumina Run QC + BCL Convert"
+        description: "Mounted Illumina run-folder QC plus BCL Convert demux, generated units, demux metric TSVs, and focused BCL Convert MultiQC in one run-analysis output tree."
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: run_analysis
+        input_contract: run_context
+        requires_staging: false
+        requires_run_mount: true
+        runtime_parameters:
+          run_context_file: config/runs.tsv
+          samples_table: .test_data/data/bclconvert/samples.tsv
+          units_table: .test_data/data/bclconvert/units.tsv
+        input_requirements:
+          required_run_context_values:
+            PLATFORM: ILMN
+        targets:
+          - produce_illumina_run_qc_and_bclconvert
+        genome: hg38_broad
+        jobs: 20
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: "bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k"
+        dryrun_dy_command: "bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k -n"
+        compatible_platforms:
+          - ILMN
+        compatible_data_modes:
+          - run_directory_mount
+        git_tag: 1.0.21
+        no_containerized: false
+        validation_runs: []
       - command_id: ont_run_qc
-        display_name: "ONT Run QC"
-        description: "ONT run-folder QC from a mounted run context."
+        display_name: "ONT Run QC + Demux MultiQC"
+        description: "ONT mounted run-folder QC plus demux FASTQ SeqKit/Nanoq/NanoStat/NanoPlot outputs and focused demux MultiQC in one run-analysis output tree."
         datasource: ONT
         launcher: workflow_launch
         command_class: run_analysis
@@ -739,15 +772,15 @@ repositories:
           required_run_context_values:
             PLATFORM: ONT
         targets:
-          - produce_ont_run_qc
+          - produce_ont_run_qc_and_demux_multiqc
         genome: hg38_broad
         jobs: 5
         aligners: []
         dedupers: []
         snv_callers: []
         sv_callers: []
-        dy_command: "bin/day_run produce_ont_run_qc -p -j 5 -k"
-        dryrun_dy_command: "bin/day_run produce_ont_run_qc -p -j 5 -k -n"
+        dy_command: "bin/day_run produce_ont_run_qc_and_demux_multiqc -p -j 5 -k"
+        dryrun_dy_command: "bin/day_run produce_ont_run_qc_and_demux_multiqc -p -j 5 -k -n"
         compatible_platforms:
           - ONT
         compatible_data_modes:

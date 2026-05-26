@@ -31,8 +31,23 @@ def pytest_addoption(parser: pytest.Parser) -> None:
     )
     group.addoption(
         "--live-staging-reference-bucket",
-        default="s3://lsmc-dayoa-omics-analysis-us-west-2",
+        default="",
         help="Reference bucket URI for live staging example tests.",
+    )
+    group.addoption(
+        "--live-staging-control-data-bucket",
+        default="",
+        help="Control/validation data bucket URI for live staging example tests.",
+    )
+    group.addoption(
+        "--live-staging-runtime-assets-bucket",
+        default="",
+        help="Runtime-assets bucket URI for live staging example tests.",
+    )
+    group.addoption(
+        "--live-staging-stage-bucket",
+        default="",
+        help="Staging bucket URI for live staging example tests.",
     )
     group.addoption(
         "--live-staging-non-dryrun",

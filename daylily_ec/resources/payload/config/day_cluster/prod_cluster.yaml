@@ -24,7 +24,14 @@ HeadNode:
         - ${REGSUB_S3_BUCKET_INIT}
   Iam:
     S3Access: &dayoa_s3_access
-${REGSUB_S3_ACCESS_BLOCK}
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_RUNTIME_ASSETS_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
+        EnableWriteAccess: false
     AdditionalIamPolicies:
       - Policy: ${REGSUB_S3_IAM_POLICY} 
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore

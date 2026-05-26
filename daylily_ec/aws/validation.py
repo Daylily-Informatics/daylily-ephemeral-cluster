@@ -1476,12 +1476,6 @@ def _validation_substitutions(
         _effective_config_value(cfg, "stage_bucket", "daylily-validation-staging"),
         role="staging",
     )
-    s3_access_block = "\n".join(
-        f"      - BucketName: {bucket}\n        EnableWriteAccess: false"
-        for bucket in sorted(
-            {reference.bucket, control_data.bucket, runtime_assets.bucket, staging.bucket}
-        )
-    )
     cluster_boot_s3_uri = f"{runtime_assets.uri.rstrip('/')}/cluster_boot_config"
     substitutions = {
         "REGSUB_REGION": aws_ctx.region,
@@ -1492,7 +1486,6 @@ def _validation_substitutions(
         ),
         "REGSUB_KEYNAME": "daylily-validation",
         "REGSUB_S3_BUCKET_INIT": cluster_boot_s3_uri,
-        "REGSUB_S3_BUCKET_NAME": runtime_assets.bucket,
         "REGSUB_S3_IAM_POLICY": _effective_config_value(
             cfg,
             "iam_policy_arn",
@@ -1503,12 +1496,14 @@ def _validation_substitutions(
             "private_subnet_id",
             "subnet-validation-private",
         ),
-        "REGSUB_S3_BUCKET_REF": reference.uri.rstrip("/"),
+        "REGSUB_S3_REFERENCE_BUCKET": reference.bucket,
+        "REGSUB_S3_CONTROL_DATA_BUCKET": control_data.bucket,
+        "REGSUB_S3_RUNTIME_ASSETS_BUCKET": runtime_assets.bucket,
+        "REGSUB_S3_STAGE_BUCKET": staging.bucket,
         "REGSUB_S3_REFERENCE_URI": reference.uri.rstrip("/"),
         "REGSUB_S3_CONTROL_DATA_URI": control_data.uri.rstrip("/"),
         "REGSUB_S3_RUNTIME_ASSETS_URI": runtime_assets.uri.rstrip("/"),
         "REGSUB_S3_STAGE_URI": staging.uri.rstrip("/"),
-        "REGSUB_S3_ACCESS_BLOCK": s3_access_block,
         "REGSUB_FSX_SIZE": _effective_config_value(cfg, "fsx_fs_size", "4800"),
         "REGSUB_DETAILED_MONITORING": _effective_config_value(
             cfg,

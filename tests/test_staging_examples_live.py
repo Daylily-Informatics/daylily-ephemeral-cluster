@@ -26,6 +26,9 @@ class LiveStagingOptions:
     region: str
     cluster: str
     reference_bucket: str
+    control_data_bucket: str
+    runtime_assets_bucket: str
+    stage_bucket: str
     non_dryrun: bool
     workflow_timeout_minutes: int
 
@@ -102,11 +105,23 @@ WORKFLOW_COMMANDS = {
 def live_staging_options(pytestconfig: pytest.Config) -> LiveStagingOptions:
     if not pytestconfig.getoption("--run-live-staging-examples"):
         pytest.skip("live staging examples require --run-live-staging-examples")
+    required_options = {
+        "--live-staging-reference-bucket": pytestconfig.getoption("--live-staging-reference-bucket"),
+        "--live-staging-control-data-bucket": pytestconfig.getoption("--live-staging-control-data-bucket"),
+        "--live-staging-runtime-assets-bucket": pytestconfig.getoption("--live-staging-runtime-assets-bucket"),
+        "--live-staging-stage-bucket": pytestconfig.getoption("--live-staging-stage-bucket"),
+    }
+    missing = [name for name, value in required_options.items() if not value]
+    if missing:
+        pytest.fail("Live staging requires explicit role buckets: " + ", ".join(missing))
     return LiveStagingOptions(
         profile=pytestconfig.getoption("--live-staging-profile"),
         region=pytestconfig.getoption("--live-staging-region"),
         cluster=pytestconfig.getoption("--live-staging-cluster"),
         reference_bucket=pytestconfig.getoption("--live-staging-reference-bucket"),
+        control_data_bucket=pytestconfig.getoption("--live-staging-control-data-bucket"),
+        runtime_assets_bucket=pytestconfig.getoption("--live-staging-runtime-assets-bucket"),
+        stage_bucket=pytestconfig.getoption("--live-staging-stage-bucket"),
         non_dryrun=pytestconfig.getoption("--live-staging-non-dryrun"),
         workflow_timeout_minutes=pytestconfig.getoption("--live-staging-workflow-timeout-minutes"),
     )
@@ -318,6 +333,12 @@ def test_live_staging_example_dryrun_or_workflow(
             options.region,
             "--reference-bucket",
             options.reference_bucket,
+            "--control-data-bucket",
+            options.control_data_bucket,
+            "--runtime-assets-bucket",
+            options.runtime_assets_bucket,
+            "--stage-bucket",
+            options.stage_bucket,
             "--config-dir",
             str(config_dir),
         ],
