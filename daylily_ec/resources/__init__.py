@@ -62,6 +62,9 @@ def _resources_need_refresh(dest: Path, src: Path) -> bool:
     for rel in (
         "config/daylily_available_repositories.yaml",
         "config/day_cluster/prod_cluster.yaml",
+        "config/day_cluster/post_install_ubuntu_combined.sh",
+        "config/day_cluster/sbatch",
+        "config/day_cluster/sleep_test.sh",
     ):
         dest_file = dest / rel
         src_file = src / rel

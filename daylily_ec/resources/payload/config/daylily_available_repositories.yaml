@@ -99,7 +99,7 @@ repositories:
     description: "Primary whole genome and multiomics workflows."
     https_url: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
     ssh_url: git@github.com:Daylily-Informatics/daylily-omics-analysis.git
-    default_ref: 2.0.0
+    default_ref: 2.0.1
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: illumina_snv_alignstats
@@ -137,7 +137,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -197,7 +197,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -253,7 +253,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - ultima_solo
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -275,6 +275,45 @@ repositories:
             live_analysis_id: tvb_ultima_snv_alignstats_5x_1021
             stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T072907Z
             notes: "Live run completed with VCF, alignstats, and concordance outputs."
+      - command_id: ultima_snv_alignstats_kitchensink
+        display_name: "Ultima SNV + Alignstats Kitchen Sink"
+        description: "Ultima CRAM/FASTQ Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, and final MultiQC launch profile."
+        datasource: Ultima
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+            - [UG_R1_FQ, UG_R2_FQ]
+            - [ULTIMA_CRAM, ULTIMA_CRAM_ALIGNER, ULTIMA_CRAM_SNV_CALLER]
+        targets:
+          - produce_alignstats
+          - produce_na_dedup_cram
+          - produce_sentdug_snv_vcf
+          - produce_snv_concordances
+          - produce_relatedness
+          - produce_vep
+          - produce_multiqc_all
+        genome: hg38_broad
+        jobs: 100
+        aligners:
+          - ug
+        dedupers:
+          - na
+        snv_callers:
+          - sentdug
+        sv_callers: []
+        dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k"
+        dryrun_dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n"
+        compatible_platforms:
+          - ULTIMA
+        compatible_data_modes:
+          - ultima_solo
+        git_tag: 2.0.1
+        no_containerized: false
       - command_id: ont_snv_alignstats
         display_name: "ONT SNV + Alignstats"
         description: "ONT alignment, Sentieon DNAscope, and alignment-statistics launch profile."
@@ -310,7 +349,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - ont_solo
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -332,6 +371,46 @@ repositories:
             live_analysis_id: tvb_ont_snv_alignstats_5x_1021
             stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T073112Z
             notes: "Live run completed with VCF, alignstats, and concordance outputs."
+      - command_id: ont_snv_alignstats_kitchensink
+        display_name: "ONT SNV + Alignstats Kitchen Sink"
+        description: "ONT alignment, Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, and final MultiQC launch profile."
+        datasource: ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+            - [ONT_R1_FQ, ONT_R2_FQ]
+            - [ONT_FASTQ_PREFIX]
+            - [ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
+            - [ONT_BAM, ONT_BAM_ALIGNER, ONT_BAM_SNV_CALLER]
+        targets:
+          - produce_alignstats
+          - produce_sentdont_snv_vcf
+          - produce_snv_concordances
+          - produce_relatedness
+          - produce_vep
+          - produce_multiqc_all
+        genome: hg38_broad
+        jobs: 5
+        aligners:
+          - ont
+        dedupers:
+          - na
+        snv_callers:
+          - sentdont
+        sv_callers: []
+        dy_command: "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k"
+        dryrun_dy_command: "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k -n"
+        compatible_platforms:
+          - ONT
+        compatible_data_modes:
+          - ont_solo
+        git_tag: 2.0.1
+        no_containerized: false
       - command_id: pacbio_snv_alignstats
         display_name: "PacBio SNV + Alignstats"
         description: "PacBio HiFi Sentieon DeepVariant and alignment-statistics launch profile."
@@ -367,7 +446,7 @@ repositories:
           - PACBIO
         compatible_data_modes:
           - pacbio_solo
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -423,7 +502,7 @@ repositories:
           - ROCHE
         compatible_data_modes:
           - roche_solo
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -482,7 +561,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -504,6 +583,49 @@ repositories:
             live_analysis_id: tvb_hybrid_ilmn_ont_snv_5x5x_1021
             stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T074001Z
             notes: "Live run completed with sentdhiomr SNV/SV and concordance outputs."
+      - command_id: hybrid_ilmn_ont_snv_kitchensink
+        display_name: "Hybrid ILMN+ONT HIOMR SNV/SV Kitchen Sink"
+        description: "Hybrid Illumina plus ONT refactored Sentieon HIOMR SNV/SV, relatedness, VEP annotation, and final MultiQC launch profile."
+        datasource: Hybrid ILMN+ONT
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+            - ILMN_R1_FQ
+            - ILMN_R2_FQ
+            - ONT_CRAM
+            - ONT_CRAM_ALIGNER
+            - ONT_CRAM_SNV_CALLER
+        targets:
+          - produce_snv_concordances
+          - produce_sentdhiomr_sv
+          - produce_sentdhiomr_snv_vcf
+          - produce_relatedness
+          - produce_vep
+          - produce_multiqc_all
+        genome: hg38_broad
+        jobs: 100
+        aligners:
+          - sent
+        dedupers:
+          - dmd
+        snv_callers:
+          - sentdhiomr
+        sv_callers:
+          - sentdhiomr
+        dy_command: "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config 'dedupers=[\"dmd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k"
+        dryrun_dy_command: "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config 'dedupers=[\"dmd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n"
+        compatible_platforms:
+          - ILMN
+          - ONT
+        compatible_data_modes:
+          - hybrid_ilmn_ont
+        git_tag: 2.0.1
+        no_containerized: false
       - command_id: hybrid_ultima_ont_snv
         display_name: "Hybrid Ultima+ONT HUOMR SNV"
         description: "Hybrid Ultima plus ONT refactored modular Sentieon HUOMR SNV launch profile."
@@ -542,7 +664,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ug_ont
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -600,7 +722,7 @@ repositories:
           - CG/MGI
         compatible_data_modes:
           - complete_genomics_solo
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -650,7 +772,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -701,7 +823,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -752,7 +874,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs: []
       - command_id: ont_run_qc
@@ -785,7 +907,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -836,7 +958,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.0
+        git_tag: 2.0.1
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation

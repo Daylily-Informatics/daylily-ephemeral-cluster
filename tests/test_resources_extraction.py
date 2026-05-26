@@ -27,3 +27,17 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
     p = resource_path("config/day_cluster/prod_cluster.yaml")
     assert isinstance(p, Path)
     assert p.is_file()
+
+
+def test_ensure_extracted_refreshes_stale_boot_scripts(tmp_path, monkeypatch):
+    monkeypatch.delenv("DAYLILY_EC_RESOURCES_DIR", raising=False)
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
+
+    root = ensure_extracted()
+    boot_script = root / "config/day_cluster/post_install_ubuntu_combined.sh"
+    boot_script.write_text("stale boot script\n", encoding="utf-8")
+
+    refreshed = ensure_extracted()
+
+    assert refreshed == root
+    assert "stale boot script" not in boot_script.read_text(encoding="utf-8")

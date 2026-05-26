@@ -20,8 +20,7 @@ local_log_dir="/var/log/daylily"
 local_log_fn="${local_log_dir}/$(hostname)_${node_type_slug}_${timestamp}_postinstall.log"
 mkdir -p "${local_log_dir}"
 if [ -d /fsx ]; then
-  mkdir -p /fsx/logs
-  chmod -R a+wrx /fsx/logs
+  install -d -m 1777 /fsx/logs
   fsx_log_fn="/fsx/logs/$(hostname)_${node_type_slug}_${timestamp}.log"
   exec > >(tee -a "${local_log_fn}" "${fsx_log_fn}") 2>&1
 else
@@ -39,7 +38,7 @@ apptainer_deb="${runtime_assets_root}/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
 reference_wait_timeout_seconds=1800
 reference_wait_interval_seconds=30
-sbatch_wrapper_sha256="8615b65be2174949ee33783039579b3144025d378d1737d362f789bf3810bba0"
+sbatch_wrapper_sha256="8c5d8eb0cb7f34784c872c4c70848fa442894165b7b5459cf6206a3f09c70369"
 sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
 
 echo "[$timestamp] Running post_install_ubuntu_combined.sh ${region} ${boot_s3_uri} on $(hostname) as ${node_type}"
@@ -90,34 +89,6 @@ append_once() {
   grep -Fxq "$line" "$file" 2>/dev/null || echo "$line" >> "$file"
 }
 
-link_cached_entries() {
-  local source_dir="$1"
-  local dest_dir="$2"
-  local requirement="${3:-required}"
-
-  mkdir -p "$dest_dir"
-  shopt -s nullglob
-  local source_paths=("${source_dir}"/*)
-  shopt -u nullglob
-  if [ "${#source_paths[@]}" -eq 0 ]; then
-    if [ "${requirement}" = "optional" ]; then
-      echo "No optional cached entries found under ${source_dir}; skipping"
-      return 0
-    fi
-    echo "ERROR: no cached entries found under ${source_dir}" >&2
-    exit 1
-  fi
-
-  for source_path in "${source_paths[@]}"; do
-    local dest_path="${dest_dir}/$(basename "${source_path}")"
-    if [ -e "${dest_path}" ] || [ -L "${dest_path}" ]; then
-      echo "Cached entry already present, leaving in place: ${dest_path}"
-    else
-      ln -s "${source_path}" "${dest_path}"
-    fi
-  done
-}
-
 wait_for_reference_data() {
   local start
   local elapsed
@@ -155,6 +126,24 @@ make_role_data_read_only() {
   done
 }
 
+prepare_common_writable_dirs() {
+  install -d -m 1777 /tmp/jobs
+  if [ -d /fsx ]; then
+    install -d -m 1777 /fsx/scratch /fsx/tmp
+    stat -c "Writable DayOA directory: %A %U:%G %n" /fsx/scratch /fsx/tmp
+  fi
+}
+
+prepare_headnode_writable_dirs() {
+  install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/ubuntu
+  install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/cromwell_executions
+  install -d -m 0775 -o daylily -g daylily /fsx/analysis_results/daylily
+  stat -c "Writable DayOA result directory: %A %U:%G %n" \
+    /fsx/analysis_results/ubuntu \
+    /fsx/analysis_results/cromwell_executions \
+    /fsx/analysis_results/daylily
+}
+
 install_verified_s3_executable() {
   local s3_key="$1"
   local destination="$2"
@@ -171,10 +160,7 @@ install_verified_s3_executable() {
 
 # GLOBAL ACTIONS HeadNode and ComputeFleet
 
-mkdir -p /tmp/jobs
-chmod -R a+wrx /tmp/jobs
-mkdir -p /fsx/scratch
-chmod -R a+wrx /fsx/scratch
+prepare_common_writable_dirs
 wait_for_reference_data
 make_role_data_read_only
 
@@ -223,26 +209,8 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   echo "[$(date +%Y%m%d_%H%M%S)] Running HeadNode post-install actions"
   
 
-  # Create necessary directories
-  mkdir -p /fsx/analysis_results/cromwell_executions  
-  mkdir -p /fsx/analysis_results/ubuntu  
-  mkdir -p /fsx/analysis_results/daylily              
-  mkdir -p /fsx/tmp
-  mkdir -p /fsx/scratch
-  mkdir -p /fsx/resources/environments/containers/{ubuntu,daylily}/$(hostname)/
-  mkdir -p /fsx/resources/environments/conda/{ubuntu,daylily}/$(hostname)/
-  chmod -R a+wrx /fsx/analysis_results
-  chmod -R a+wrx /fsx/scratch
-  chmod -R a+wrx /fsx/tmp
-  chmod -R a+wrx /fsx/resources
-
-
-  # Copy cached data from S3
-
-  link_cached_entries "${runtime_assets_root}/cached_envs/conda" /fsx/resources/environments/conda/ubuntu/$(hostname) required
-  link_cached_entries "${runtime_assets_root}/cached_envs/containers" /fsx/resources/environments/containers/ubuntu/$(hostname) optional
-  link_cached_entries "${runtime_assets_root}/cached_envs/conda" /fsx/resources/environments/conda/daylily/$(hostname) required
-  link_cached_entries "${runtime_assets_root}/cached_envs/containers" /fsx/resources/environments/containers/daylily/$(hostname) optional
+  prepare_headnode_writable_dirs
+  echo "DayOA conda and container caches are read directly from ${runtime_assets_root}/cached_envs"
 
 
   if [ ! -e /opt/slurm/sbin/sbatch ]; then

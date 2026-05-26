@@ -23,6 +23,12 @@ PACKAGED_CATALOG_PATH = (
     / "config"
     / "daylily_available_repositories.yaml"
 )
+UNVALIDATED_COMMAND_IDS = {
+    "illumina_run_qc_bclconvert",
+    "ultima_snv_alignstats_kitchensink",
+    "ont_snv_alignstats_kitchensink",
+    "hybrid_ilmn_ont_snv_kitchensink",
+}
 
 
 def test_repository_catalog_loads_initial_blessed_command() -> None:
@@ -86,7 +92,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "2.0.0"
+    assert command.git_tag == "2.0.1"
     assert len(command.validation_runs) == 1
     validation_run = command.validation_runs[0]
     assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -113,7 +119,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.0" in launch_argv
+    assert "2.0.1" in launch_argv
 
     export_argv = command.launch_argv(
         analysis_id="run-1",
@@ -151,17 +157,20 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "illumina_snv_alignstats",
         "illumina_snv_alignstats_relatedness_vep_multiqc",
         "ultima_snv_alignstats",
+        "ultima_snv_alignstats_kitchensink",
         "ont_snv_alignstats",
+        "ont_snv_alignstats_kitchensink",
         "pacbio_snv_alignstats",
         "roche_snv_alignstats",
         "hybrid_ilmn_ont_snv",
+        "hybrid_ilmn_ont_snv_kitchensink",
         "hybrid_ultima_ont_snv",
         "complete_genomics_mgi_snv_concordance",
     } <= command_ids
 
     for command in catalog.commands():
         if not command.validation_runs:
-            assert command.command_id in {"illumina_run_qc_bclconvert"}
+            assert command.command_id in UNVALIDATED_COMMAND_IDS
             continue
         assert len(command.validation_runs) == 1
         validation_run = command.validation_runs[0]
@@ -188,7 +197,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "2.0.0"
+        assert command.git_tag == "2.0.1"
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
@@ -252,6 +261,24 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "multiqc_qc=" in vep_multiqc.dy_command
     assert "enable_tools" in vep_multiqc.dy_command
 
+    ultima_kitchensink = catalog.get_command("ultima_snv_alignstats_kitchensink")
+    assert ultima_kitchensink.validation_runs == []
+    assert ultima_kitchensink.targets == [
+        "produce_alignstats",
+        "produce_na_dedup_cram",
+        "produce_sentdug_snv_vcf",
+        "produce_snv_concordances",
+        "produce_relatedness",
+        "produce_vep",
+        "produce_multiqc_all",
+    ]
+    assert ultima_kitchensink.aligners == ["ug"]
+    assert ultima_kitchensink.dedupers == ["na"]
+    assert ultima_kitchensink.snv_callers == ["sentdug"]
+    assert "produce_multiqc_all" in ultima_kitchensink.dy_command
+    assert "multiqc_qc=" in ultima_kitchensink.dy_command
+    assert "enable_tools" in ultima_kitchensink.dy_command
+
     ont = catalog.get_command("ont_snv_alignstats")
     assert ont.aligners == ["ont"]
     assert "produce_sentdont_snv_vcf" in ont.dy_command
@@ -260,6 +287,44 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert ["ONT_CRAM", "ONT_CRAM_ALIGNER", "ONT_CRAM_SNV_CALLER"] in (
         ont.input_requirements.accepted_source_column_sets
     )
+
+    ont_kitchensink = catalog.get_command("ont_snv_alignstats_kitchensink")
+    assert ont_kitchensink.validation_runs == []
+    assert ont_kitchensink.targets == [
+        "produce_alignstats",
+        "produce_sentdont_snv_vcf",
+        "produce_snv_concordances",
+        "produce_relatedness",
+        "produce_vep",
+        "produce_multiqc_all",
+    ]
+    assert ont_kitchensink.aligners == ["ont"]
+    assert ont_kitchensink.dedupers == ["na"]
+    assert ont_kitchensink.snv_callers == ["sentdont"]
+    assert "produce_sentmm2ont_align" not in ont_kitchensink.dy_command
+    assert "produce_multiqc_all" in ont_kitchensink.dy_command
+    assert "multiqc_qc=" in ont_kitchensink.dy_command
+
+    hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_snv_kitchensink")
+    assert hybrid_kitchensink.validation_runs == []
+    assert hybrid_kitchensink.targets == [
+        "produce_snv_concordances",
+        "produce_sentdhiomr_sv",
+        "produce_sentdhiomr_snv_vcf",
+        "produce_relatedness",
+        "produce_vep",
+        "produce_multiqc_all",
+    ]
+    assert hybrid_kitchensink.aligners == ["sent"]
+    assert hybrid_kitchensink.dedupers == ["dmd"]
+    assert hybrid_kitchensink.snv_callers == ["sentdhiomr"]
+    assert hybrid_kitchensink.sv_callers == ["sentdhiomr"]
+    assert "produce_sentdhiomr_sv" in hybrid_kitchensink.dy_command
+    assert "produce_sentdhiomr_snv_vcf" in hybrid_kitchensink.dy_command
+    assert "produce_sentdhiom_sv" not in hybrid_kitchensink.dy_command
+    assert "produce_sentdhiom_snv_vcf" not in hybrid_kitchensink.dy_command
+    assert "produce_multiqc_all" in hybrid_kitchensink.dy_command
+    assert "multiqc_qc=" in hybrid_kitchensink.dy_command
 
 
 def test_repository_catalog_run_analysis_commands_require_run_context() -> None:

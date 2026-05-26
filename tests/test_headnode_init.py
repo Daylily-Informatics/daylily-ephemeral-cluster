@@ -195,6 +195,13 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
     )
     assert "export DAY_PROJECT=da-us-west-2b-demo" in shell_code
     assert "export DAY_AWS_REGION=us-west-2" in shell_code
+    assert 'export APPTAINER_HOME="${APPTAINER_HOME:-/fsx/tmp/apptainer_home/$USER}"' in shell_code
+    assert (
+        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-/fsx/tmp/apptainer_cache/$USER}"'
+        in shell_code
+    )
+    assert 'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-$APPTAINER_CACHEDIR}"' in shell_code
+    assert "/fsx/resources/environments" not in shell_code
     assert 'export DAY_ROOT="${PWD}"' in shell_code
     assert "reference_s3_uri=reference-bucket" in shell_code
     assert 'alias dy-b="${DAYLILY_EC_REPO_ROOT}/bin/init_dayec"' in shell_code
@@ -636,7 +643,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "chmod a-w \"${role_root}\"" in script
     assert 'stat -c "Role data permissions: %A %n" "${role_root}"' in script
     assert "fd-find ripgrep docker.io" in script
-    assert "8615b65be2174949ee33783039579b3144025d378d1737d362f789bf3810bba0" in script
+    assert "8c5d8eb0cb7f34784c872c4c70848fa442894165b7b5459cf6206a3f09c70369" in script
     assert "024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae" in script
     assert "cached Apptainer deb not found" in script
     assert 'apt-get install -y "${apptainer_deb}"' in script
@@ -649,11 +656,17 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
         'ln -sfn "${runtime_assets_root}/tool_specific_resources/womtool_87.jar"'
         in script
     )
-    assert 'link_cached_entries "${runtime_assets_root}/cached_envs/conda"' in script
-    assert "required" in script
-    assert "optional" in script
-    assert "No optional cached entries found under" in script
-    assert "Cached entry already present, leaving in place" in script
+    assert "prepare_common_writable_dirs" in script
+    assert "prepare_headnode_writable_dirs" in script
+    assert "install -d -m 1777 /fsx/scratch /fsx/tmp" in script
+    assert "install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/ubuntu" in script
+    assert (
+        "DayOA conda and container caches are read directly from "
+        "${runtime_assets_root}/cached_envs" in script
+    )
+    assert "link_cached_entries" not in script
+    assert "/fsx/resources/environments" not in script
+    assert "chmod -R a+wrx /fsx" not in script
     assert "Original sbatch already present" in script
     assert "Original srun already present" in script
     assert "ln -sfn /opt/slurm/bin/sbatch /opt/slurm/bin/srun" in script
