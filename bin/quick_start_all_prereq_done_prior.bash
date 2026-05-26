@@ -17,10 +17,9 @@ printf 'Cluster name [daylily-demo-cluster]: '
 read -r CLUSTER_NAME
 CLUSTER_NAME="${CLUSTER_NAME:-daylily-demo-cluster}"
 
-REF_BUCKET_URL="${REF_BUCKET_URL:-${REF_BUCKET:-}}"
-CONTROL_DATA_BUCKET_URL="${CONTROL_DATA_BUCKET_URL:-${CONTROL_DATA_BUCKET:-}}"
-RUNTIME_ASSETS_BUCKET_URL="${RUNTIME_ASSETS_BUCKET_URL:-${RUNTIME_ASSETS_BUCKET:-}}"
-STAGE_BUCKET_URL="${STAGE_BUCKET_URL:-${STAGE_BUCKET:-}}"
+REF_S3_URI="${REF_S3_URI:-}"
+CONTROL_DATA_S3_URI="${CONTROL_DATA_S3_URI:-}"
+STAGE_S3_URI="${STAGE_S3_URI:-}"
 DAY_CONTACT_EMAIL=""
 
 export AWS_PROFILE REGION REGION_AZ CLUSTER_NAME
@@ -65,7 +64,7 @@ prompt_required_s3_uri() {
   local value
   eval "value=\"\${${var_name}:-}\""
   while [ -z "$value" ]; do
-    printf '%s (s3://bucket[/prefix]): ' "$label"
+    printf '%s (s3://...): ' "$label"
     read -r value
   done
   value="${value%/}"
@@ -76,10 +75,9 @@ prompt_required_s3_uri() {
   eval "${var_name}=\"\$value\""
 }
 
-prompt_required_s3_uri REF_BUCKET_URL "Reference bucket URL"
-prompt_required_s3_uri CONTROL_DATA_BUCKET_URL "Control data bucket URL"
-prompt_required_s3_uri RUNTIME_ASSETS_BUCKET_URL "Runtime assets bucket URL"
-prompt_required_s3_uri STAGE_BUCKET_URL "Staging bucket URL"
+prompt_required_s3_uri REF_S3_URI "Reference S3 URI"
+prompt_required_s3_uri CONTROL_DATA_S3_URI "Control-data S3 URI"
+prompt_required_s3_uri STAGE_S3_URI "Staging S3 URI"
 
 while [ -z "${DAY_CONTACT_EMAIL:-}" ]; do
   printf 'Budget / heartbeat email'
@@ -89,7 +87,7 @@ while [ -z "${DAY_CONTACT_EMAIL:-}" ]; do
   DAY_CONTACT_EMAIL="${DAY_CONTACT_EMAIL:-$DEFAULT_DAY_CONTACT_EMAIL}"
 done
 
-export REF_BUCKET_URL CONTROL_DATA_BUCKET_URL RUNTIME_ASSETS_BUCKET_URL STAGE_BUCKET_URL DAY_CONTACT_EMAIL
+export REF_S3_URI CONTROL_DATA_S3_URI STAGE_S3_URI DAY_CONTACT_EMAIL
 
 python3 -c '
 import os
@@ -98,10 +96,9 @@ from daylily_ec.config import load_config, write_config
 cfg = load_config(os.environ["DAY_EX_CFG"])
 updates = {
     "cluster_name": os.environ["CLUSTER_NAME"],
-    "reference_bucket": os.environ["REF_BUCKET_URL"],
-    "control_data_bucket": os.environ["CONTROL_DATA_BUCKET_URL"],
-    "runtime_assets_bucket": os.environ["RUNTIME_ASSETS_BUCKET_URL"],
-    "stage_bucket": os.environ["STAGE_BUCKET_URL"],
+    "reference_s3_uri": os.environ["REF_S3_URI"],
+    "control_data_s3_uri": os.environ["CONTROL_DATA_S3_URI"],
+    "stage_s3_uri": os.environ["STAGE_S3_URI"],
     "budget_email": os.environ["DAY_CONTACT_EMAIL"],
     "heartbeat_email": os.environ["DAY_CONTACT_EMAIL"],
 }

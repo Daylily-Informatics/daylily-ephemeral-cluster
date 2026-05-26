@@ -7,7 +7,7 @@ source ./activate
 daylily-ec preflight --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
 daylily-ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG"
 bin/daylily-ssh-into-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
-bin/daylily-stage-samples-from-local-to-headnode --profile "$AWS_PROFILE" --region "$REGION" --reference-bucket "s3://bucket" ./analysis_samples.tsv
+bin/daylily-stage-samples-from-local-to-headnode --profile "$AWS_PROFILE" --region "$REGION" --reference-s3-uri "s3://bucket" ./analysis_samples.tsv
 bin/daylily-run-omics-analysis-headnode --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --stage-dir /fsx/staging/staged_sample_data/remote_stage_<timestamp>
 daylily-ec export --cluster-name "$CLUSTER_NAME" --region "$REGION" --target-uri analysis_results/ubuntu --output-dir .
 daylily-ec delete --cluster-name "$CLUSTER_NAME" --region "$REGION"

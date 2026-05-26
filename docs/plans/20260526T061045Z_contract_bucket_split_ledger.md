@@ -14,8 +14,8 @@ Companion DayOA ledger: `/Users/jmajor/projects/daylily/daylily-omics-analysis/d
 - DayOA branch: `codex/tstclu411c-hybrid-env-python`
 - DayOA HEAD: `bc27487d62d190efe47ba5933a574812426a2b39`
 - DayOA status: dirty before this work; pre-existing modified docs/plans and untracked HG003 ledger/report files existed.
-- Sweep: `rg -n "/fsx/references|/fsx/staging/staged_sample_data|reference-bucket|reference_bucket|s3_bucket_name|REGSUB_S3_BUCKET" daylily_ec config tests docs README.md pyproject.toml | wc -l` -> `1282`
-- DayOA sweep: `rg -n "/fsx/references|/fsx/staging/staged_sample_data|reference-bucket|reference_bucket|genomic_data|cached_envs|staged_sample_data" README.md dyoainit config workflow tests docs bin | wc -l` -> `657`
+- Sweep: `rg -n "/fsx/references|/fsx/staging/staged_sample_data|reference-bucket|reference_s3_uri|s3_bucket_name|REGSUB_S3_BUCKET" daylily_ec config tests docs README.md pyproject.toml | wc -l` -> `1282`
+- DayOA sweep: `rg -n "/fsx/references|/fsx/staging/staged_sample_data|reference-bucket|reference_s3_uri|genomic_data|cached_envs|staged_sample_data" README.md dyoainit config workflow tests docs bin | wc -l` -> `657`
 - Live AWS scope at Gate 0: no live S3 copy, bucket creation, lifecycle change, destructive action, or real cluster create was approved at initial implementation time.
 - Assumption: active contracts move to `/fsx/references`, `/fsx/control_data`, `/fsx/runtime_assets`, and `/fsx/staging`; no `/fsx/references` compatibility mount or fallback bucket discovery is allowed.
 

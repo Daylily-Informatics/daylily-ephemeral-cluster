@@ -54,6 +54,7 @@ from daylily_ec.workflow.create_cluster import (
     configure_headnode,
     make_repository_catalog_preflight_step,
     run_preflight,
+    validate_startup_dra_contract,
     _validate_cluster_name,
 )
 
@@ -126,6 +127,48 @@ class TestClusterBootConfigPublish:
                 cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
                 source_dir=source_dir,
             )
+
+
+class TestStartupDraContract:
+    def test_accepts_exactly_one_references_startup_dra(self, tmp_path):
+        config = tmp_path / "cluster.yaml"
+        config.write_text(
+            """
+SharedStorage:
+  - Name: fsx
+    StorageType: FsxLustre
+    FsxLustreSettings:
+      DataRepositoryAssociations:
+        - Name: reference-data
+          FileSystemPath: /references/
+          DataRepositoryPath: s3://references/
+""",
+            encoding="utf-8",
+        )
+
+        validate_startup_dra_contract(config)
+
+    def test_rejects_any_non_reference_startup_dra(self, tmp_path):
+        config = tmp_path / "cluster.yaml"
+        config.write_text(
+            """
+SharedStorage:
+  - Name: fsx
+    StorageType: FsxLustre
+    FsxLustreSettings:
+      DataRepositoryAssociations:
+        - Name: reference-data
+          FileSystemPath: /references/
+          DataRepositoryPath: s3://references/
+        - Name: control-data
+          FileSystemPath: /control_data/
+          DataRepositoryPath: s3://control-data/
+""",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(ValueError, match="exactly one FSx DRA: /references/"):
+            validate_startup_dra_contract(config)
 
 
 # ── _extract_selected ───────────────────────────────────────────────────
@@ -462,7 +505,7 @@ class TestWorkflowResolutionHelpers:
 class TestClusterNameValidation:
     @pytest.mark.parametrize(
         "cluster_name",
-        ["frz-260509", "cluster1", "A2345", "a-1-b"],
+        ["frz-260509", "cluster1", "A2345", "a-1-b", "splitdra-ref-20260526"],
     )
     def test_cluster_names_allow_numbers_after_first_character(self, cluster_name):
         assert _validate_cluster_name(cluster_name) == cluster_name
@@ -474,6 +517,7 @@ class TestClusterNameValidation:
             ("frz_260509", "contain only letters, digits, and hyphens"),
             ("frz", "5-25 characters"),
             ("frz-260509-abcdefghijklmnop", "5-25 characters"),
+            ("splitdra-refassets-20260526", "5-25 characters"),
         ],
     )
     def test_invalid_cluster_names_fail_with_actionable_rules(self, cluster_name, message):
@@ -514,6 +558,36 @@ class TestClusterNameValidation:
         from daylily_ec.workflow.create_cluster import run_create_workflow
 
         rc = run_create_workflow(
+            "us-west-2b",
+            profile="test",
+            config_path=str(config_path),
+            non_interactive=True,
+        )
+
+        assert rc == EXIT_VALIDATION_FAILURE
+        mock_build.assert_not_called()
+
+    @patch("daylily_ec.aws.context.AWSContext.build")
+    def test_preflight_rejects_too_long_cluster_name_before_aws(
+        self, mock_build, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+        config_path = tmp_path / "too_long_cluster.yaml"
+        config_path.write_text(
+            "\n".join(
+                [
+                    "ephemeral_cluster:",
+                    "  config:",
+                    "    cluster_name: [USESETVALUE, '', splitdra-refassets-20260526]",
+                    "  template_defaults: {}",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        from daylily_ec.workflow.create_cluster import run_preflight_only
+
+        rc = run_preflight_only(
             "us-west-2b",
             profile="test",
             config_path=str(config_path),
@@ -1191,9 +1265,9 @@ def _build_workflow_config(template_path: Path) -> ConfigFile:
             "ephemeral_cluster": {
                 "config": {
                     "cluster_name": ["USESETVALUE", "", "majors-cluster"],
-                    "reference_bucket": ["USESETVALUE", "", "s3://dayoa-references"],
-                    "control_data_bucket": ["USESETVALUE", "", "s3://dayoa-control-data"],
-                    "stage_bucket": ["USESETVALUE", "", "s3://dayoa-staging"],
+                    "reference_s3_uri": ["USESETVALUE", "", "s3://dayoa-references"],
+                    "control_data_s3_uri": ["USESETVALUE", "", "s3://dayoa-control-data"],
+                    "stage_s3_uri": ["USESETVALUE", "", "s3://dayoa-staging"],
                     "max_count_8I": ["USESETVALUE", "", "1"],
                     "max_count_128I": ["USESETVALUE", "", "1"],
                     "max_count_192I": ["USESETVALUE", "", "1"],
@@ -1417,7 +1491,22 @@ def _run_stubbed_create_workflow(
             str(tmp_path / "init-template.yaml"),
         ),
     )
-    monkeypatch.setattr(spot_pricing, "apply_spot_prices", lambda *_args, **_kwargs: None)
+    def fake_apply_spot_prices(_init_template_path, cluster_yaml_path, *_args, **_kwargs):
+        Path(cluster_yaml_path).write_text(
+            """
+SharedStorage:
+  - Name: fsx
+    StorageType: FsxLustre
+    FsxLustreSettings:
+      DataRepositoryAssociations:
+        - Name: reference-data
+          FileSystemPath: /references/
+          DataRepositoryPath: s3://references/
+""",
+            encoding="utf-8",
+        )
+
+    monkeypatch.setattr(spot_pricing, "apply_spot_prices", fake_apply_spot_prices)
     monkeypatch.setattr(
         pcluster_runner,
         "dry_run_create",

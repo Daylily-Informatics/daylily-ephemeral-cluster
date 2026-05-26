@@ -7,12 +7,12 @@ fsx_export:
   analysis_dir: johnm/illumina_run_qc
   source_path: /analysis_results/johnm/illumina_run_qc/
   headnode_path: /fsx/analysis_results/johnm/illumina_run_qc/
-  destination_s3_uri: s3://lsmc-dayoa-omics-analysis-us-west-2/derived/lsmc/ssf-hq/johnm/illumina_run_qc/
+  destination_s3_uri: s3://lsmc-dayoa-analysis-results-usw2/validation/example/ubuntu/example/illumina_run_qc/
   fsx_file_system_id: fs-1234567890abcdef0
   association_id: dra-1234567890abcdef0
   task_id: task-1234567890abcdef0
   task_lifecycle: SUCCEEDED
-  report_path: s3://lsmc-dayoa-omics-analysis-us-west-2/derived/lsmc/ssf-hq/johnm/illumina_run_qc/_daylily_monitor/fsx-export/20260518T000000Z/export-report/
+  report_path: s3://lsmc-dayoa-analysis-results-usw2/validation/example/ubuntu/example/illumina_run_qc/_daylily_monitor/fsx-export/20260518T000000Z/export-report/
   detached: true
   delete_data_in_file_system: false
   failure_details: {}

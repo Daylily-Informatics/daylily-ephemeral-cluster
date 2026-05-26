@@ -56,7 +56,7 @@ The source and packaged catalogs must match:
 cmp -s config/daylily_available_repositories.yaml daylily_ec/resources/payload/config/daylily_available_repositories.yaml
 ```
 
-The current DayOA pin should be `1.0.21` everywhere in the catalog:
+The current DayOA pin should be `2.0.0` everywhere in the catalog:
 
 ```bash
 rg -n "0\\.7\\.758|\\b1\\.0\\.[0-9]\\b" \
@@ -87,9 +87,9 @@ AWS_PROFILE="$AWS_PROFILE" python -m daylily_ec.ssh_to_ssm_e2e_runner \
   --region "$REGION" \
   --cluster-name "$CLUSTER_NAME" \
   --reuse-existing-cluster \
-  --reference-bucket "$REF_BUCKET" \
-  --control-data-bucket "$CONTROL_DATA_BUCKET" \
-  --stage-bucket "$STAGE_BUCKET" \
+  --reference-s3-uri "$REF_S3_URI" \
+  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
+  --stage-s3-uri "$STAGE_S3_URI" \
   --analysis-samples "$ANALYSIS_SAMPLES" \
   --workflow-live \
   --output-json "$PWD/tmp-e2e-results/$CLUSTER_NAME.json"

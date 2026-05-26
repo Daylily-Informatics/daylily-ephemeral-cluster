@@ -255,7 +255,9 @@ def normalize_file_system_path(
     if root and not normalized.startswith(root):
         raise RunMountError(f"FSx file-system path for purpose {normalized_purpose} must be under {root}.")
     if root and normalized == root:
-        raise RunMountError(f"FSx file-system path must not be the {normalized_purpose} mount root.")
+        if normalized_purpose not in {MOUNT_PURPOSE_CONTROL_DATA, MOUNT_PURPOSE_STAGING}:
+            raise RunMountError(f"FSx file-system path must not be the {normalized_purpose} mount root.")
+        return normalized
     if normalized_purpose == MOUNT_PURPOSE_CUSTOM and any(
         normalized == role_root or normalized.startswith(role_root)
         for role_root in STATIC_ROLE_ROOTS + (FSX_RUN_MOUNT_ROOT,)
@@ -270,6 +272,8 @@ def normalize_file_system_path(
 def headnode_path_from_file_system_path(file_system_path: str) -> str:
     normalized = _normalize_absolute_fsx_api_path(file_system_path)
     suffix = normalized.lstrip("/")
+    if normalized in {"/control_data/", "/staging/"}:
+        return f"/fsx/{suffix}"
     validate_mount_id(suffix.split("/", 1)[1].strip("/").split("/", 1)[0] if "/" in suffix else suffix)
     return f"/fsx/{suffix}"
 
@@ -473,6 +477,8 @@ def list_run_mounts(
             continue
         if normalized_purpose and inferred_purpose != normalized_purpose:
             continue
+        if _is_static_role_root_path(fsx_path):
+            continue
         mount_id = extract_mount_id(fsx_path)
         local = local_records.get(mount_id)
         records.append(
@@ -522,12 +528,18 @@ def describe_run_mount(
         if not associations:
             raise RunMountError(f"FSx data repository association not found: {association_id}")
         association = associations[0]
-        inferred_mount_id = extract_mount_id(str(association.get("FileSystemPath") or ""))
+        association_path = str(association.get("FileSystemPath") or "")
+        if _is_static_role_root_path(association_path):
+            raise RunMountError(
+                f"FSx data repository association {association_id} is a static role root, "
+                "not a managed dynamic mount."
+            )
+        inferred_mount_id = extract_mount_id(association_path)
         local = _find_local_record_by_association_id(region, association_id)
         return record_from_association(
             association,
             mount_id=local.mount_id if local else inferred_mount_id,
-            purpose=local.purpose if local else purpose_from_file_system_path(str(association.get("FileSystemPath") or "")) or MOUNT_PURPOSE_CUSTOM,
+            purpose=local.purpose if local else purpose_from_file_system_path(association_path) or MOUNT_PURPOSE_CUSTOM,
             run_id=local.run_id if local else inferred_mount_id,
             platform=local.platform if local else "OTHER",
             cluster_name=cluster_name if cluster_name is not None else (local.cluster_name if local else None),
@@ -950,6 +962,14 @@ def purpose_from_file_system_path(file_system_path: str) -> Optional[str]:
     return MOUNT_PURPOSE_CUSTOM
 
 
+def _is_static_role_root_path(file_system_path: str) -> bool:
+    try:
+        normalized = _normalize_absolute_fsx_api_path(str(file_system_path or ""))
+    except RunMountError:
+        return False
+    return normalized == "/references/"
+
+
 def extract_mount_id(file_system_path: str) -> str:
     normalized = _normalize_absolute_fsx_api_path(file_system_path)
     purpose = purpose_from_file_system_path(normalized)
@@ -957,7 +977,15 @@ def extract_mount_id(file_system_path: str) -> str:
         suffix = normalized[len(PURPOSE_FSX_ROOTS[purpose]) :].strip("/")
     else:
         suffix = normalized.strip("/")
-    first = suffix.split("/", 1)[0]
+    parts = suffix.split("/")
+    if not suffix:
+        if purpose == MOUNT_PURPOSE_CONTROL_DATA:
+            return "control_data"
+        if purpose == MOUNT_PURPOSE_STAGING:
+            return "staging"
+    if purpose == MOUNT_PURPOSE_STAGING and len(parts) > 1 and parts[0] == "staged_external_sequencing_data":
+        return validate_mount_id(parts[1])
+    first = parts[0]
     return validate_mount_id(first)
 
 
@@ -1140,7 +1168,7 @@ def _with_trailing_slash(value: str) -> str:
 
 def _normalize_platform(platform: Optional[str]) -> str:
     value = str(platform or "OTHER").strip().upper()
-    allowed = {"ILMN", "ONT", "ULTIMA", "PACBIO", "OTHER"}
+    allowed = {"ILMN", "ONT", "ULTIMA", "PACBIO", "STAGING", "OTHER"}
     if value not in allowed:
         raise RunMountError(
             f"Unsupported platform {platform!r}; expected one of {', '.join(sorted(allowed))}."

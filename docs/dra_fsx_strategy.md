@@ -6,10 +6,10 @@ This is the current DayEC data-plane model. FSx for Lustre is the high-performan
 
 | Purpose | Headnode path | FSx API path | S3 side | Lifecycle |
 |---|---|---|---|---|
-| Reference data | `/fsx/references/` | `/references/` | `<reference-bucket-or-prefix>/` | Created with the cluster |
-| Runtime assets | `/fsx/references/runtime_assets/` | `/references/runtime_assets/` | `<reference-bucket-or-prefix>/runtime_assets/` | Created with the reference DRA |
-| Control/validation data | `/fsx/control_data/...` | `/control_data/...` | `<control-data-bucket-or-prefix>/...` | Created on demand |
-| Staging | `/fsx/staging/...` | `/staging/...` | `<stage-bucket-or-prefix>/...` | Created on demand |
+| Reference data | `/fsx/references/` | `/references/` | `reference_s3_uri` | Created with the cluster |
+| Runtime assets | `/fsx/references/runtime_assets/` | `/references/runtime_assets/` | `reference_s3_uri/runtime_assets/` | Created with the reference DRA |
+| Control/validation data | `/fsx/control_data/...` | `/control_data/...` | `control_data_s3_uri/...` | Created on demand |
+| Staging | `/fsx/staging/staged_external_sequencing_data/...` | `/staging/staged_external_sequencing_data/...` | `<raw-seq-bucket>/staged_external_data/...` | Created on demand |
 | Run inputs | `/fsx/run_dir_mounts/<mount_id>/` | `/run_dir_mounts/<mount_id>/` | selected run prefix | Created and deleted on demand |
 | Workflow outputs | `/fsx/analysis_results/...` | `/analysis_results/...` | none by default | Local to the FSx filesystem until exported |
 | Direct analysis export | `/fsx/analysis_results/<executing_entity>/<analysis_id>/` | `/analysis_results/<executing_entity>/<analysis_id>/` | `s3://bucket/prefix/<executing_entity>/<analysis_id>/` | Temporary output DRA |
@@ -24,9 +24,9 @@ sequenceDiagram
   participant DyEC as dyec/daylily-ec
   participant PC as ParallelCluster
   participant FSx as FSx for Lustre
-  participant Ref as S3 reference bucket
-  participant Ctrl as S3 control bucket
-  participant Stage as S3 staging bucket
+  participant Ref as Reference S3 URI
+  participant Ctrl as Control-data S3 URI
+  participant Stage as S3 raw-seq staged_external_data prefix
   participant Run as S3 run bucket
   participant DayOA as DayOA on headnode
   participant Out as S3 analysis bucket
@@ -58,7 +58,7 @@ flowchart LR
   subgraph S3["Durable S3"]
     Ref["Reference bucket including runtime_assets/"]
     Ctrl["Control data bucket"]
-    Stage["Staging bucket"]
+    Stage["Raw seq bucket staged_external_data/"]
     RunA["Run bucket prefix RUN_A"]
     RunB["Run bucket prefix RUN_B"]
     Analysis["Analysis bucket prefix /<executing_entity>/<analysis_id>/"]
@@ -90,11 +90,11 @@ flowchart LR
 
 ## Pipeline Catalog Flow
 
-`config/daylily_available_repositories.yaml` defines repositories and launch profiles. The DayOA repository and every DayOA command are pinned to `1.0.18`.
+`config/daylily_available_repositories.yaml` defines repositories and launch profiles. The DayOA repository and every DayOA command are pinned to `2.0.0`.
 
 ```mermaid
 flowchart TB
-  Catalog["Repository catalog v2"] --> Repo["daylily-omics-analysis @ 1.0.18"]
+  Catalog["Repository catalog v2"] --> Repo["daylily-omics-analysis @ 2.0.0"]
   Repo --> Sample["sample_analysis"]
   Repo --> Run["run_analysis"]
 

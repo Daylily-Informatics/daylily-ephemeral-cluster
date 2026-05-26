@@ -11,9 +11,9 @@ The optional stage_target defaults to /fsx/staging/staged_external_sequencing_da
 EXAMPLE <analysis_samples.tsv> can be found in:
   $(daylily-ec resources-dir)/etc/analysis_samples_template.tsv
 
-You will need to replace <REF-BUCKET-NAME> with your actual S3 reference bucket name. However, in production you can use any s3 bucket you have read access to.
+You will need to replace <REF-S3-URI> with your actual reference S3 URI. However, in production you can use any S3 URI you have read access to.
 
-sed -i \"s|<REF-BUCKET-NAME>|$reference_bucket|g\"  ./etc/analysis_samples_template.tsv
+sed -i \"s|<REF-S3-URI>|$reference_s3_uri|g\"  ./etc/analysis_samples_template.tsv
 
 
 USAGE

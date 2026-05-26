@@ -57,7 +57,7 @@ dyec headnode configure \
 
 ## 4. Reference DRA
 
-The cluster template creates `/fsx/references` from the reference bucket `data/` prefix. If reference files are missing, check:
+The cluster template creates `/fsx/references` from `reference_s3_uri`. If reference files are missing, check:
 
 ```bash
 dyec headnode connect --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"

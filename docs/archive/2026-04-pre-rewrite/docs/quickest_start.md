@@ -22,7 +22,7 @@ export AWS_PROFILE=daylily-service-lsmc
 export REGION=us-west-2
 export REGION_AZ=us-west-2d
 export CLUSTER_NAME=daylily-demo-cluster
-export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
+export REF_S3_URI=s3://lsmc-dayoa-omics-analysis-us-west-2
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
 ```
 
@@ -80,7 +80,7 @@ eval "$(daylily-ec headnode init --emit-shell --non-interactive --skip-project-c
 bin/daylily-stage-samples-from-local-to-headnode \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --reference-bucket "$REF_BUCKET" \
+  --reference-s3-uri "$REF_S3_URI" \
   --config-dir ./generated-config \
   ./analysis_samples.tsv
 ```

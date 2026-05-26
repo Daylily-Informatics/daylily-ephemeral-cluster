@@ -29,21 +29,23 @@ export REGION=us-west-2
 export REGION_AZ=us-west-2d
 export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
-export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
-export ANALYSIS_BUCKET=s3://lsmc-dayoa-analysis-results-us-west-2
+export REF_S3_URI=s3://lsmc-dayoa-references-usw2
+export CONTROL_DATA_S3_URI=s3://lsmc-dayoa-control-data-usw2
+export STAGE_S3_URI=s3://lsmc-ssf-sequencing-data/staged_external_data
+export ANALYSIS_RESULTS_S3_URI=s3://lsmc-dayoa-analysis-results-usw2
 export EXECUTING_ENTITY="${USER:-ubuntu}"
 export ANALYSIS_ID=dayoa
 export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
 export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
 export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_ID"
-export EXPORT_S3_URI="$ANALYSIS_BUCKET/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID/"
+export EXPORT_S3_URI="$ANALYSIS_RESULTS_S3_URI/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID/"
 ```
 
 Sanity checks:
 
 ```bash
 aws sts get-caller-identity --profile "$AWS_PROFILE"
-aws s3 ls "$REF_BUCKET" --profile "$AWS_PROFILE" --region "$REGION"
+aws s3 ls "$REF_S3_URI" --profile "$AWS_PROFILE" --region "$REGION"
 ```
 
 ## 3. Preflight
@@ -99,9 +101,9 @@ Use this path when inputs are represented by `analysis_samples.tsv`.
 dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --reference-bucket "$REF_BUCKET" \
-  --control-data-bucket "$CONTROL_DATA_BUCKET" \
-  --stage-bucket "$STAGE_BUCKET" \
+  --reference-s3-uri "$REF_S3_URI" \
+  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
+  --stage-s3-uri "$STAGE_S3_URI" \
   --config-dir "$STAGE_CFG_DIR"
 ```
 
@@ -115,7 +117,7 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 1.0.18
+  --git-tag 2.0.0
 ```
 
 ## 6. Run-Folder Analysis
@@ -148,7 +150,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 1.0.18 \
+  --git-tag 2.0.0 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
 

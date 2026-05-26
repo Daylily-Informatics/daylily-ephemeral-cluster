@@ -89,9 +89,9 @@ Supported headnode command payloads run as `ubuntu`. Interactive sessions use `S
 dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --reference-bucket "$REF_BUCKET" \
-  --control-data-bucket "$CONTROL_DATA_BUCKET" \
-  --stage-bucket "$STAGE_BUCKET" \
+  --reference-s3-uri "$REF_S3_URI" \
+  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
+  --stage-s3-uri "$STAGE_S3_URI" \
   --config-dir "$STAGE_CFG_DIR"
 ```
 
@@ -103,9 +103,9 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --reference-bucket "$REF_BUCKET" \
-  --control-data-bucket "$CONTROL_DATA_BUCKET" \
-  --stage-bucket "$STAGE_BUCKET" \
+  --reference-s3-uri "$REF_S3_URI" \
+  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
+  --stage-s3-uri "$STAGE_S3_URI" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --dry-run
@@ -113,9 +113,9 @@ dyec samples run "$ANALYSIS_SAMPLES" \
 
 Important options:
 
-- `--reference-bucket`
-- `--control-data-bucket`
-- `--stage-bucket`
+- `--reference-s3-uri`
+- `--control-data-s3-uri`
+- `--stage-s3-uri`
 - `--config-dir`
 - `--stage-target`
 - `--run-metric-staging RUN_UID:PLATFORM:FOFN`
@@ -190,7 +190,7 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 1.0.27
+  --git-tag 2.0.0
 ```
 
 Run-context launch:
@@ -203,7 +203,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 1.0.27 \
+  --git-tag 2.0.0 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
 
@@ -230,7 +230,7 @@ dyec repositories commands --config config/daylily_available_repositories.yaml
 dyec repositories commands --command-id illumina_run_qc
 ```
 
-The catalog is version 2. DayOA repository and command pins are `1.0.27`.
+The catalog is version 2. DayOA repository and command pins are `2.0.0`.
 
 Command classes:
 

@@ -1854,20 +1854,20 @@ def samples_stage(
         ...,
         help="Path to analysis_samples.tsv.",
     ),
-    reference_bucket: str = typer.Option(
+    reference_s3_uri: str = typer.Option(
         ...,
-        "--reference-bucket",
+        "--reference-s3-uri",
         help="S3 URI mapped to /fsx/references.",
     ),
-    control_data_bucket: str = typer.Option(
+    control_data_s3_uri: str = typer.Option(
         ...,
-        "--control-data-bucket",
+        "--control-data-s3-uri",
         help="S3 URI mapped to /fsx/control_data.",
     ),
-    stage_bucket: str = typer.Option(
+    stage_s3_uri: str = typer.Option(
         ...,
-        "--stage-bucket",
-        help="S3 URI mapped to /fsx/staging.",
+        "--stage-s3-uri",
+        help="S3 URI used as the exact root for external staging remote_stage_* prefixes.",
     ),
     config_dir: Optional[Path] = typer.Option(
         None,
@@ -1929,12 +1929,12 @@ def samples_stage(
     _warn_if_dayec_env_inactive()
     argv = [
         str(analysis_samples),
-        "--reference-bucket",
-        reference_bucket,
-        "--control-data-bucket",
-        control_data_bucket,
-        "--stage-bucket",
-        stage_bucket,
+        "--reference-s3-uri",
+        reference_s3_uri,
+        "--control-data-s3-uri",
+        control_data_s3_uri,
+        "--stage-s3-uri",
+        stage_s3_uri,
         "--stage-target",
         stage_target,
     ]
@@ -1984,20 +1984,20 @@ def samples_run(
         "--executing-entity",
         help="User or system identifier used under /fsx/analysis_results.",
     ),
-    reference_bucket: str = typer.Option(
+    reference_s3_uri: str = typer.Option(
         ...,
-        "--reference-bucket",
+        "--reference-s3-uri",
         help="S3 URI mapped to /fsx/references.",
     ),
-    control_data_bucket: str = typer.Option(
+    control_data_s3_uri: str = typer.Option(
         ...,
-        "--control-data-bucket",
+        "--control-data-s3-uri",
         help="S3 URI mapped to /fsx/control_data.",
     ),
-    stage_bucket: str = typer.Option(
+    stage_s3_uri: str = typer.Option(
         ...,
-        "--stage-bucket",
-        help="S3 URI mapped to /fsx/staging.",
+        "--stage-s3-uri",
+        help="S3 URI used as the exact root for external staging remote_stage_* prefixes.",
     ),
     config_dir: Optional[Path] = typer.Option(
         None,
@@ -2110,12 +2110,12 @@ def samples_run(
 
         stage_argv = [
             str(analysis_path),
-            "--reference-bucket",
-            reference_bucket,
-            "--control-data-bucket",
-            control_data_bucket,
-            "--stage-bucket",
-            stage_bucket,
+            "--reference-s3-uri",
+            reference_s3_uri,
+            "--control-data-s3-uri",
+            control_data_s3_uri,
+            "--stage-s3-uri",
+            stage_s3_uri,
             "--stage-target",
             stage_target,
         ]

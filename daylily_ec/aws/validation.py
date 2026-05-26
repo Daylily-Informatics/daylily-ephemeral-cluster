@@ -1461,15 +1461,15 @@ def _validation_substitutions(
     cluster_name: str,
 ) -> dict[str, str]:
     reference = normalize_role_s3_uri(
-        _effective_config_value(cfg, "reference_bucket", "daylily-validation-references"),
+        _effective_config_value(cfg, "reference_s3_uri", "daylily-validation-references"),
         role="reference",
     )
     control_data = normalize_role_s3_uri(
-        _effective_config_value(cfg, "control_data_bucket", "daylily-validation-control-data"),
+        _effective_config_value(cfg, "control_data_s3_uri", "daylily-validation-control-data"),
         role="control_data",
     )
     staging = normalize_role_s3_uri(
-        _effective_config_value(cfg, "stage_bucket", "daylily-validation-staging"),
+        _effective_config_value(cfg, "stage_s3_uri", "daylily-validation-staging"),
         role="staging",
     )
     cluster_boot_s3_uri = f"{reference.uri.rstrip('/')}/runtime_assets/cluster_boot_config"

@@ -1,12 +1,12 @@
 ephemeral_cluster:
   config:
-    reference_bucket: [USESETVALUE, "s3://lsmc-dayoa-references-usw2", "s3://lsmc-dayoa-references-usw2"]
-    control_data_bucket: [USESETVALUE, "s3://lsmc-dayoa-control-data-usw2", "s3://lsmc-dayoa-control-data-usw2"]
-    stage_bucket: [USESETVALUE, "s3://lsmc-dayoa-staging-usw2", "s3://lsmc-dayoa-staging-usw2"]
+    reference_s3_uri: [USESETVALUE, "s3://lsmc-dayoa-references-usw2", "s3://lsmc-dayoa-references-usw2"]
+    control_data_s3_uri: [USESETVALUE, "s3://lsmc-dayoa-control-data-usw2", "s3://lsmc-dayoa-control-data-usw2"]
+    stage_s3_uri: [USESETVALUE, "s3://lsmc-ssf-sequencing-data/staged_external_data", "s3://lsmc-ssf-sequencing-data/staged_external_data"]
     public_subnet_id: [USESETVALUE, "subnet-0e9acb65aba5a0330", "subnet-0e9acb65aba5a0330"]
     private_subnet_id: [USESETVALUE, "subnet-087a4872d0c34e642", "subnet-087a4872d0c34e642"]
     iam_policy_arn: [USESETVALUE, "arn:aws:iam::108782052779:policy/pclusterTagsAndBudget", "arn:aws:iam::108782052779:policy/pclusterTagsAndBudget"]
-    cluster_name: [USESETVALUE, "splitdra-refassets-20260526", "splitdra-refassets-20260526"]
+    cluster_name: [USESETVALUE, "splitdra-ref-20260526", "splitdra-ref-20260526"]
     budget_email: [USESETVALUE, "johnm@lsmc.com", "johnm@lsmc.com"]
     allowed_budget_users: [USESETVALUE, "ubuntu", "ubuntu"]
     budget_amount: [USESETVALUE, "200", "200"]

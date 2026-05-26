@@ -27,12 +27,16 @@ from daylily_ec.aws.ssm import (
 )
 from daylily_ec.headnode_readiness import validate_headnode_readiness
 from daylily_ec.scripts.common import CommandError, aws_env, need_cmd, run_command
+from daylily_ec.workflow.create_cluster import (
+    CLUSTER_NAME_MAX_LENGTH,
+    validate_cluster_name as validate_parallelcluster_name,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "daylily" / "daylily_ephemeral_cluster.yaml"
-CLUSTER_NAME_PREFIX = "day-ssm-e2e"
-MAX_CLUSTER_NAME_LEN = 26
+CLUSTER_NAME_PREFIX = "dy-ssm-e2e"
+MAX_CLUSTER_NAME_LEN = CLUSTER_NAME_MAX_LENGTH
 
 
 @dataclass
@@ -81,13 +85,10 @@ def default_cluster_name() -> str:
 
 
 def validate_cluster_name(cluster_name: str) -> str:
-    if len(cluster_name) > MAX_CLUSTER_NAME_LEN:
-        raise CommandError(
-            "Cluster name "
-            f"'{cluster_name}' is too long for the supported template. "
-            f"Use {MAX_CLUSTER_NAME_LEN} characters or fewer so the derived FSx name stays valid."
-        )
-    return cluster_name
+    try:
+        return validate_parallelcluster_name(cluster_name)
+    except ValueError as exc:
+        raise CommandError(str(exc)) from exc
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -112,19 +113,19 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Resume an existing cluster instead of running preflight/create",
     )
     parser.add_argument(
-        "--reference-bucket",
+        "--reference-s3-uri",
         required=True,
         help="S3 URI mapped to /fsx/references for laptop-side staging",
     )
     parser.add_argument(
-        "--control-data-bucket",
+        "--control-data-s3-uri",
         required=True,
         help="S3 URI mapped to /fsx/control_data for laptop-side staging",
     )
     parser.add_argument(
-        "--stage-bucket",
+        "--stage-s3-uri",
         required=True,
-        help="S3 URI mapped to /fsx/staging for laptop-side staging",
+        help="S3 URI used as the exact root for external staging remote_stage_* prefixes",
     )
     parser.add_argument(
         "--analysis-samples",
@@ -872,12 +873,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         profile,
         "--region",
         args.region,
-        "--reference-bucket",
-        args.reference_bucket,
-        "--control-data-bucket",
-        args.control_data_bucket,
-        "--stage-bucket",
-        args.stage_bucket,
+        "--reference-s3-uri",
+        args.reference_s3_uri,
+        "--control-data-s3-uri",
+        args.control_data_s3_uri,
+        "--stage-s3-uri",
+        args.stage_s3_uri,
         "--config-dir",
         str(stage_config_dir),
         str(analysis_samples),

@@ -85,10 +85,10 @@ docs/plans/20260523T135957Z_fork_fixer_inputs/
 
 | Mode | Input source | Manifest / context |
 |---|---|---|
-| Illumina HG003 5x | `s3://lsmc-dayoa-omics-analysis-us-west-2/data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz` and `_R2.fastq.gz` | `illumina_hg003_5x.tsv` |
-| ONT HG003 5x | `s3://lsmc-dayoa-omics-analysis-us-west-2/data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ont/HG003_5x.cleaned.cram` plus `.crai` | `ont_hg003_5x.tsv` |
-| Ultima HG003 5x | `s3://lsmc-dayoa-omics-analysis-us-west-2/data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram` plus `.crai` | `ultima_hg003_5x.tsv` |
-| PacBio HG003 5x | `s3://lsmc-dayoa-omics-analysis-us-west-2/data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/pacbio/HG003/R0-HG003-D0-0-D0/5p0x/HG003_5p0x.bam` plus `.bai` | `pacbio_hg003_5x.tsv` |
+| Illumina HG003 5x | `s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz` and `_R2.fastq.gz` | `illumina_hg003_5x.tsv` |
+| ONT HG003 5x | `s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/H_sapiens/giab/agbt_2026/ont/HG003_5x.cleaned.cram` plus `.crai` | `ont_hg003_5x.tsv` |
+| Ultima HG003 5x | `s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram` plus `.crai` | `ultima_hg003_5x.tsv` |
+| PacBio HG003 5x | `s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/H_sapiens/giab/agbt_2026/pacbio/HG003/R0-HG003-D0-0-D0/5p0x/HG003_5p0x.bam` plus `.bai` | `pacbio_hg003_5x.tsv` |
 | Roche HG003 | Roche HG003 BAM/BAI, downsample requested with `ROCHE_DOWNSAMPLE_RATIO=0.086` | `roche_hg003_5x.tsv` |
 | Hybrid ILMN+ONT | Illumina HG003 5x FASTQ plus ONT HG003 5x CRAM/CRAI | `hybrid_ilmn_ont_hg003_5x5x.tsv` |
 | Hybrid Ultima+ONT | Ultima HG003 5x CRAM/CRAI plus ONT HG003 5x CRAM/CRAI | `hybrid_ultima_ont_hg003_5x5x.tsv` |

@@ -38,7 +38,7 @@ The EC2 / ParallelCluster nodes continue to mount the FSx file system once. New 
 ### Primary goals
 
 1. **Avoid unnecessary data movement.** Raw sequencing run directories should be read directly from S3 through FSx for run QC, demux/basecalling, and raw data inspection.
-2. **Keep sample staging intact.** The existing `daylily-ec samples stage` behavior must continue to copy staged sample data to the reference bucket and generate `samples.tsv` / `units.tsv`.
+2. **Keep sample staging intact.** The existing `daylily-ec samples stage` behavior must continue to materialize staged sample data under the configured `stage_s3_uri` and generate `samples.tsv` / `units.tsv`.
 3. **Add a mounted-input mode.** Sample manifests can point to files already visible under `/fsx/run_dir_mounts/...` and still produce valid `samples.tsv` / `units.tsv` without copying those files.
 4. **Separate sample analysis from run analysis.** Command catalog, Ursa UI/API, and DayOA workflows should clearly distinguish sample-level WGS analysis from run-level QC/demux/basecalling workflows.
 5. **Keep DayOA sample pipelines stable.** Existing sample-processing rules should require no semantic change when the generated `units.tsv` contains mounted local paths.
@@ -388,7 +388,7 @@ Arguments/options:
 --fsx-file-system-id              optional explicit override
 --region                          required
 --profile                         optional, follows existing DayEC behavior
-S3_URI                            required positional bucket or prefix; final folder becomes mount id
+S3_URI                            required positional storage role; final folder becomes mount id
 --mount-id                        optional override for the S3 basename
 --run-id                          optional metadata
 --platform                        optional enum: ILMN, ONT, ULTIMA, PACBIO, OTHER
@@ -551,7 +551,7 @@ STAGE_DIRECTIVE=mounted_readonly
 Semantics:
 
 - input bytes are already visible on the headnode/worker through `/fsx/run_dir_mounts/<mount_id>/...`;
-- DayEC must not copy these bytes to the reference bucket;
+- DayEC must not copy these bytes to reference storage;
 - DayEC must still create `samples.tsv` and `units.tsv`;
 - paths in `units.tsv` remain the mounted local paths;
 - generated config files are still staged/uploaded as today.

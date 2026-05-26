@@ -237,6 +237,99 @@ def test_create_describe_list_delete_run_mount_records(tmp_path, monkeypatch) ->
     assert deleted.lifecycle == "DELETING"
 
 
+def test_create_staging_mount_accepts_staging_platform(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    fake = FakeFsxClient()
+
+    record = run_mounts.create_run_mount(
+        run_mounts.CreateRunMountRequest(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            region="us-west-2",
+            profile="lsmc",
+            source_s3_uri="s3://stage-bucket/remote_stage_1",
+            mount_id="remote_stage_1",
+            run_id="remote_stage_1",
+            purpose=run_mounts.MOUNT_PURPOSE_STAGING,
+            platform="STAGING",
+            file_system_path="/staging/staged_external_sequencing_data/remote_stage_1",
+            wait=False,
+        ),
+        fsx_client=fake,
+    )
+
+    assert fake.created_params is not None
+    assert fake.created_params["FileSystemPath"] == (
+        "/staging/staged_external_sequencing_data/remote_stage_1/"
+    )
+    assert record.platform == "STAGING"
+    assert record.purpose == run_mounts.MOUNT_PURPOSE_STAGING
+    assert record.headnode_path == (
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_1/"
+    )
+
+
+def test_list_mounts_skips_only_static_references_root(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    fake = FakeFsxClient(
+        associations=[
+            _association(
+                association_id="dra-references",
+                file_system_path="/references/",
+                s3_uri="s3://reference-bucket/",
+            ),
+            _association(
+                association_id="dra-run",
+                file_system_path="/run_dir_mounts/RUN123/",
+                s3_uri="s3://seq-bucket/RUN123/",
+            ),
+            _association(
+                association_id="dra-control-root",
+                file_system_path="/control_data/",
+                s3_uri="s3://control-data/",
+            ),
+            _association(
+                association_id="dra-stage",
+                file_system_path="/staging/staged_external_sequencing_data/remote_stage_1/",
+                s3_uri="s3://stage-bucket/remote_stage_1/",
+            ),
+        ]
+    )
+
+    listed = run_mounts.list_run_mounts(
+        cluster_name="cluster-a",
+        fsx_file_system_id="fs-123",
+        region="us-west-2",
+        profile="lsmc",
+        fsx_client=fake,
+    )
+
+    assert [item.mount_id for item in listed] == ["RUN123", "control_data", "remote_stage_1"]
+
+
+def test_describe_static_role_root_by_association_id_is_not_managed_mount() -> None:
+    fake = FakeFsxClient(
+        associations=[
+            _association(
+                association_id="dra-references",
+                file_system_path="/references/",
+                s3_uri="s3://reference-bucket/",
+            )
+        ]
+    )
+
+    with pytest.raises(run_mounts.RunMountError, match="static role root"):
+        run_mounts.describe_run_mount(
+            mount_id=None,
+            association_id="dra-references",
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            region="us-west-2",
+            profile="lsmc",
+            fsx_client=fake,
+        )
+
+
 def test_create_run_mount_rejects_legacy_fsx_before_create() -> None:
     fake = FakeFsxClient(
         filesystem=_filesystem(

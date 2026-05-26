@@ -49,9 +49,9 @@ Use `samples stage` for sample-manifest workflows:
 dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --reference-bucket "$REF_BUCKET" \
-  --control-data-bucket "$CONTROL_DATA_BUCKET" \
-  --stage-bucket "$STAGE_BUCKET" \
+  --reference-s3-uri "$REF_S3_URI" \
+  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
+  --stage-s3-uri "$STAGE_S3_URI" \
   --config-dir "$STAGE_CFG_DIR"
 ```
 
@@ -65,15 +65,15 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --reference-bucket "$REF_BUCKET" \
-  --control-data-bucket "$CONTROL_DATA_BUCKET" \
-  --stage-bucket "$STAGE_BUCKET" \
+  --reference-s3-uri "$REF_S3_URI" \
+  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
+  --stage-s3-uri "$STAGE_S3_URI" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --dry-run
 ```
 
-The catalog pin for DayOA commands is `1.0.18`.
+The catalog pin for DayOA commands is `2.0.0`.
 
 ## Attach Run Folders
 
@@ -134,7 +134,7 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 1.0.18
+  --git-tag 2.0.0
 ```
 
 Run-folder workflow:
@@ -147,7 +147,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 1.0.18 \
+  --git-tag 2.0.0 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
 

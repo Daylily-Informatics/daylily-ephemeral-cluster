@@ -1,15 +1,15 @@
 """S3 role validation for Daylily cluster storage contracts.
 
 The cluster create path requires explicit S3 role inputs. It does not discover
-or auto-select buckets because the DayOA storage split has separate contracts
+or auto-select S3 storage because the DayOA storage split has separate contracts
 for references, control read data, and mutable staging. Runtime assets are part
 of the reference contract under ``runtime_assets/`` and are mounted through the
 single reference DRA.
 
 Public API
 ----------
-- :func:`normalize_role_s3_uri` — normalize bucket or S3 prefix values
-- :func:`verify_s3_roles` — verify role buckets/prefixes directly with boto3
+- :func:`normalize_role_s3_uri` — normalize storage role S3 URI values
+- :func:`verify_s3_roles` — verify role S3 URIs directly with boto3
 - :func:`make_s3_bucket_preflight_step` — factory returning a :data:`PreflightStep`
 """
 
@@ -125,7 +125,7 @@ ROLE_REQUIRED_PREFIXES: Dict[str, Tuple[str, ...]] = {
 }
 
 
-def _reference_bucket_s3_client(*, profile: str = "", region: str = "") -> Any:
+def _reference_role_s3_client(*, profile: str = "", region: str = "") -> Any:
     session = boto3.session.Session(
         profile_name=profile or None,
         region_name=region or None,
@@ -201,7 +201,7 @@ def _validate_role_s3_prefixes_do_not_overlap(specs: Dict[str, S3RoleSpec]) -> N
                 )
 
 
-def _reference_bucket_exists(s3_client: Any, bucket_name: str) -> bool:
+def _reference_role_bucket_exists(s3_client: Any, bucket_name: str) -> bool:
     try:
         s3_client.head_bucket(Bucket=bucket_name)
     except Exception:
@@ -209,7 +209,7 @@ def _reference_bucket_exists(s3_client: Any, bucket_name: str) -> bool:
     return True
 
 
-def _read_reference_bucket_version(s3_client: Any, bucket_name: str) -> Optional[str]:
+def _read_reference_role_version(s3_client: Any, bucket_name: str) -> Optional[str]:
     try:
         response = s3_client.get_object(Bucket=bucket_name, Key=REFERENCE_VERSION_KEY)
     except Exception:
@@ -233,7 +233,7 @@ def verify_s3_roles(
     profile: str = "",
     region: str = "",
 ) -> Tuple[bool, Dict[str, Any]]:
-    """Verify explicit DayOA role buckets and required prefixes.
+    """Verify explicit DayOA role S3 URIs and required prefixes.
 
     Returns ``(ok, details)``. Details always include normalized role URIs and
     an ``issues`` list suitable for a preflight remediation message.
@@ -243,7 +243,7 @@ def verify_s3_roles(
     except ValueError as exc:
         return False, {"roles": {}, "issues": [str(exc)]}
 
-    s3_client = _reference_bucket_s3_client(profile=profile, region=region)
+    s3_client = _reference_role_s3_client(profile=profile, region=region)
     issues: List[str] = []
     details: Dict[str, Any] = {
         "roles": {
@@ -255,13 +255,13 @@ def verify_s3_roles(
     }
 
     for role, spec in specs.items():
-        if not _reference_bucket_exists(s3_client, spec.bucket):
+        if not _reference_role_bucket_exists(s3_client, spec.bucket):
             issues.append(f"{role}: bucket does not exist or is not accessible: {spec.bucket}")
             continue
 
         if role == ROLE_REFERENCE:
             version_key = role_prefix_key(spec, REFERENCE_VERSION_KEY)
-            bucket_version = _read_reference_bucket_version_for_key(
+            bucket_version = _read_reference_role_version_for_key(
                 s3_client,
                 spec.bucket,
                 version_key,
@@ -282,7 +282,7 @@ def verify_s3_roles(
     return not issues, details
 
 
-def _read_reference_bucket_version_for_key(
+def _read_reference_role_version_for_key(
     s3_client: Any,
     bucket_name: str,
     key: str,
@@ -305,7 +305,7 @@ def verify_reference_bundle(
     profile: str = "",
     region: str = "",
 ) -> bool:
-    """Verify the selected reference bucket and return success.
+    """Verify the selected reference storage bucket and return success.
 
     Matches the previously delegated `daylily-omics-references verify
     --exclude-b37` contract by checking:
@@ -315,14 +315,14 @@ def verify_reference_bundle(
     - all required non-b37 prefixes have at least one object
     """
     try:
-        s3_client = _reference_bucket_s3_client(profile=profile, region=region)
-        if not _reference_bucket_exists(s3_client, bucket_name):
+        s3_client = _reference_role_s3_client(profile=profile, region=region)
+        if not _reference_role_bucket_exists(s3_client, bucket_name):
             logger.error("Reference verification failed: bucket %s does not exist.", bucket_name)
             return False
 
         issues: List[str] = []
 
-        bucket_version = _read_reference_bucket_version(s3_client, bucket_name)
+        bucket_version = _read_reference_role_version(s3_client, bucket_name)
         if bucket_version is None:
             issues.append("missing version marker")
         elif bucket_version != DEFAULT_REFERENCE_VERSION:
@@ -370,9 +370,9 @@ def bucket_url(bucket_name: str) -> str:
 def make_s3_bucket_preflight_step(
     aws_ctx: Any,
     *,
-    reference_bucket: str = "",
-    control_data_bucket: str = "",
-    stage_bucket: str = "",
+    reference_s3_uri: str = "",
+    control_data_s3_uri: str = "",
+    stage_s3_uri: str = "",
     profile: str = "",
     interactive: bool = False,
 ) -> Any:
@@ -391,9 +391,9 @@ def make_s3_bucket_preflight_step(
     def step(report: PreflightReport) -> PreflightReport:
         region = report.region or aws_ctx.region
         role_values = {
-            ROLE_REFERENCE: reference_bucket,
-            ROLE_CONTROL_DATA: control_data_bucket,
-            ROLE_STAGING: stage_bucket,
+            ROLE_REFERENCE: reference_s3_uri,
+            ROLE_CONTROL_DATA: control_data_s3_uri,
+            ROLE_STAGING: stage_s3_uri,
         }
         ok, details = verify_s3_roles(role_values, profile=profile, region=region)
         if not details.get("roles"):
@@ -403,8 +403,8 @@ def make_s3_bucket_preflight_step(
                     status=CheckStatus.FAIL,
                     details={"region": region, **details},
                     remediation=(
-                        "Set explicit reference_bucket, control_data_bucket, "
-                        "and stage_bucket values."
+                        "Set explicit reference_s3_uri, control_data_s3_uri, "
+                        "and stage_s3_uri values."
                     ),
                 )
             )

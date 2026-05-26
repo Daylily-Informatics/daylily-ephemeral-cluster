@@ -67,23 +67,23 @@ Choose:
 
 - one target AWS region
 - one target AZ in that region
-- one reference bucket in that region
-- one control/validation data bucket or prefix in that region
-- one mutable staging bucket or prefix in that region
+- one reference S3 URI in that region
+- one control/validation data S3 URI in that region
+- one mutable staging prefix in the raw sequencing bucket, for example `s3://lsmc-ssf-sequencing-data/staged_external_data/`
 - one or more run-data buckets/prefixes, preferably in the same region
-- one analysis-result bucket/prefix for exports
+- one analysis-result S3 URI for exports
 
 S3 buckets are regional, not AZ-scoped. Co-locate buckets and FSx in the same AWS region for the expected low-latency, lower-cost path. Cross-region reads or exports are possible only if AWS permissions and network paths allow them, and should be treated as slower and more expensive.
 
 Current FSx DRA strategy:
 
-- reference data DRA: `<reference-bucket-or-prefix>/` to `/fsx/references`, including runtime assets under `/fsx/references/runtime_assets`
-- control/validation data DRA: on demand from `<control-data-bucket-or-prefix>/` to `/fsx/control_data/...`
-- staging DRA: on demand from `<stage-bucket-or-prefix>/` to `/fsx/staging/...`
+- reference data DRA: `reference_s3_uri` to `/fsx/references`, including runtime assets under `/fsx/references/runtime_assets`
+- control/validation data DRA: on demand from `control_data_s3_uri` to `/fsx/control_data/...`
+- staging DRA: on demand from `<raw-seq-bucket>/staged_external_data/remote_stage_*/` to `/fsx/staging/staged_external_sequencing_data/remote_stage_*/`
 - run input DRA: selected S3 run prefix to `/fsx/run_dir_mounts/<mount_id>`
 - export DRA: one completed `/fsx/analysis_results/<executing_entity>/<analysis_id>` to the requested S3 analysis destination ending in `<executing_entity>/<analysis_id>/`
 
-The reference bucket is not the control-data, staging, or export bucket. `dyec export` takes an explicit `--destination-s3-uri`.
+The reference S3 URI is not the control-data S3 URI, staging S3 URI, or export destination. `dyec export` takes an explicit `--destination-s3-uri`.
 
 ## Readiness Validation
 

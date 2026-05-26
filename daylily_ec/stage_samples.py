@@ -418,10 +418,10 @@ class RunMetricFile:
 
 
 @dataclass(frozen=True)
-class BucketRoles:
-    reference_bucket: str
-    control_data_bucket: str = ""
-    stage_bucket: str = ""
+class S3RoleUris:
+    reference_s3_uri: str
+    control_data_s3_uri: str = ""
+    stage_s3_uri: str = ""
 
 
 GIAB_TRUTH_SUFFIXES = (".bed", ".vcf.gz", ".vcf.gz.tbi")
@@ -445,19 +445,22 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="FSx staging base directory (default: %(default)s)",
     )
     parser.add_argument(
-        "--reference-bucket",
+        "--reference-s3-uri",
         required=True,
         help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/references",
     )
     parser.add_argument(
-        "--control-data-bucket",
+        "--control-data-s3-uri",
         required=True,
         help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/control_data",
     )
     parser.add_argument(
-        "--stage-bucket",
+        "--stage-s3-uri",
         required=True,
-        help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/staging",
+        help=(
+            "S3 URI (s3://bucket[/prefix]) used as the exact root for external "
+            "staging remote_stage_* prefixes"
+        ),
     )
     parser.add_argument(
         "--config-dir",
@@ -553,16 +556,13 @@ def normalise_stage_target(stage_target: str) -> str:
 def build_stage_paths(stage_target: str, bucket_uri: str) -> StagePaths:
     stage_target = normalise_stage_target(stage_target)
     timestamp = dt.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-    remote_stage_name = f"remote_stage_{timestamp}"
+    remote_stage_name = f"remote_stage_{timestamp}_{uuid.uuid4().hex[:8]}"
     remote_fsx_stage = f"{stage_target}/{remote_stage_name}"
 
     bucket, prefix = parse_s3_uri(bucket_uri.rstrip("/"))
     prefix = prefix.rstrip("/")
-    fsx_relative = stage_target.removeprefix("/fsx/").lstrip("/")
-    if prefix:
-        remote_s3_stage = f"s3://{bucket}/{prefix}/{fsx_relative}/{remote_stage_name}"
-    else:
-        remote_s3_stage = f"s3://{bucket}/{fsx_relative}/{remote_stage_name}"
+    stage_root_uri = f"s3://{bucket}/{prefix}" if prefix else f"s3://{bucket}"
+    remote_s3_stage = _join_s3_uri(stage_root_uri, remote_stage_name)
     return StagePaths(
         remote_fsx_root=stage_target,
         remote_stage_name=remote_stage_name,
@@ -861,16 +861,28 @@ def is_headnode_visible_path(path: str) -> bool:
     )
 
 
-def _coerce_bucket_roles(reference_bucket: str | BucketRoles) -> BucketRoles:
-    if isinstance(reference_bucket, BucketRoles):
-        return reference_bucket
-    return BucketRoles(reference_bucket=str(reference_bucket or ""))
+def _coerce_s3_role_uris(reference_s3_uri: str | S3RoleUris) -> S3RoleUris:
+    if isinstance(reference_s3_uri, S3RoleUris):
+        return reference_s3_uri
+    return S3RoleUris(reference_s3_uri=str(reference_s3_uri or ""))
 
 
 def _role_relative(path: str, root: str) -> str:
     if path == root:
         return ""
     return path.removeprefix(f"{root}/").lstrip("/")
+
+
+def _staging_relative(path: str) -> str:
+    normalised = path.rstrip("/")
+    if normalised == ACTIVE_EXTERNAL_STAGE_ROOT:
+        return ""
+    if normalised.startswith(f"{ACTIVE_EXTERNAL_STAGE_ROOT}/"):
+        return normalised.removeprefix(f"{ACTIVE_EXTERNAL_STAGE_ROOT}/")
+    raise CommandError(
+        f"Stage path must be under {ACTIVE_EXTERNAL_STAGE_ROOT}; "
+        "other /fsx/staging subpaths are not supported."
+    )
 
 
 def _join_s3_uri(base: str, relative: str) -> str:
@@ -881,8 +893,8 @@ def _join_s3_uri(base: str, relative: str) -> str:
     return f"{base}/{relative}" if relative else base
 
 
-def build_reference_uri(path: str, reference_bucket: str | BucketRoles) -> str:
-    roles = _coerce_bucket_roles(reference_bucket)
+def build_reference_uri(path: str, reference_s3_uri: str | S3RoleUris) -> str:
+    roles = _coerce_s3_role_uris(reference_s3_uri)
     if is_mounted_run_dir_path(path):
         raise CommandError(f"Mounted run-directory paths are not static role-bucket objects: {path}")
     if path == "/data" or path.startswith("/data/") or path == "/fsx/data" or path.startswith("/fsx/data/"):
@@ -893,18 +905,18 @@ def build_reference_uri(path: str, reference_bucket: str | BucketRoles) -> str:
         )
     reject_retired_stage_path(path)
     if path == "/fsx/references" or path.startswith("/fsx/references/"):
-        return _join_s3_uri(roles.reference_bucket, _role_relative(path, "/fsx/references"))
+        return _join_s3_uri(roles.reference_s3_uri, _role_relative(path, "/fsx/references"))
     if path == "/fsx/control_data" or path.startswith("/fsx/control_data/"):
-        return _join_s3_uri(roles.control_data_bucket, _role_relative(path, "/fsx/control_data"))
+        return _join_s3_uri(roles.control_data_s3_uri, _role_relative(path, "/fsx/control_data"))
     if path == "/fsx/staging" or path.startswith("/fsx/staging/"):
-        return _join_s3_uri(roles.stage_bucket, _role_relative(path, "/fsx/staging"))
+        return _join_s3_uri(roles.stage_s3_uri, _staging_relative(path))
     raise CommandError(f"Path is not in a DayOA FSx role namespace: {path}")
 
 
 def check_source_path(
     path: str,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
     allow_directory: bool = False,
@@ -920,7 +932,7 @@ def check_source_path(
         return
     if is_headnode_visible_path(path):
         check_s3_path(
-            build_reference_uri(path, reference_bucket),
+            build_reference_uri(path, reference_s3_uri),
             aws_env=aws_env,
             debug=debug,
         )
@@ -1069,7 +1081,7 @@ def _resolve_run_metric_file(
 def precheck_run_metrics(
     specs: Sequence[RunMetricStagingSpec],
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> List[RunMetricFile]:
@@ -1113,7 +1125,7 @@ def precheck_run_metrics(
                     )
                 check_source_path(
                     metric_file.source,
-                    reference_bucket=reference_bucket,
+                    reference_s3_uri=reference_s3_uri,
                     aws_env=aws_env,
                     debug=debug,
                 )
@@ -1208,14 +1220,14 @@ def cleanup_s3_objects(uris: Sequence[str], *, aws_env: Dict[str, str], debug: b
             pass
 
 
-def source_copy_reference(source: str, *, reference_bucket: str) -> str:
+def source_copy_reference(source: str, *, reference_s3_uri: str) -> str:
     reject_retired_stage_path(source)
     if source.startswith("s3://"):
         return source
     if is_mounted_run_dir_path(source):
         return headnode_visible_path(source)
     if is_headnode_visible_path(source):
-        return build_reference_uri(source, reference_bucket)
+        return build_reference_uri(source, reference_s3_uri)
     return os.path.expanduser(source)
 
 
@@ -1476,7 +1488,7 @@ def ensure_s3_objects(
     *,
     dest_s3_dir: str,
     sample_prefix: str,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[List[str], List[str]]:
@@ -1488,7 +1500,7 @@ def ensure_s3_objects(
                 resolved.append(source)
                 continue
             if is_headnode_visible_path(source):
-                resolved.append(build_reference_uri(source, reference_bucket))
+                resolved.append(build_reference_uri(source, reference_s3_uri))
                 continue
             expanded = os.path.expanduser(source)
             part_name = f"{sample_prefix}_part{idx}_{uuid.uuid4().hex}_{Path(expanded).name}"
@@ -1744,14 +1756,14 @@ def stage_concordance(
     dest_fsx: str,
     dest_s3: str,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> str:
     source = source.strip()
     if not source or source.lower() == "na" or is_headnode_visible_path(source):
         return headnode_visible_path(source) if source else "na"
-    copy_source = source_copy_reference(source, reference_bucket=reference_bucket)
+    copy_source = source_copy_reference(source, reference_s3_uri=reference_s3_uri)
     if copy_source.startswith("s3://"):
         aws_copy(copy_source, dest_s3, aws_env=aws_env, debug=debug, recursive=True)
     else:
@@ -1768,7 +1780,7 @@ def stage_single_lane(
     dest_fsx_dir: str,
     dest_s3_dir: str,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, str]:
@@ -1779,13 +1791,13 @@ def stage_single_lane(
     remote_r1_s3 = f"{dest_s3_dir}/{r1_name}"
     remote_r2_s3 = f"{dest_s3_dir}/{r2_name}"
     aws_copy(
-        source_copy_reference(r1, reference_bucket=reference_bucket),
+        source_copy_reference(r1, reference_s3_uri=reference_s3_uri),
         remote_r1_s3,
         aws_env=aws_env,
         debug=debug,
     )
     aws_copy(
-        source_copy_reference(r2, reference_bucket=reference_bucket),
+        source_copy_reference(r2, reference_s3_uri=reference_s3_uri),
         remote_r2_s3,
         aws_env=aws_env,
         debug=debug,
@@ -1800,7 +1812,7 @@ def stage_multi_lane(
     dest_fsx_dir: str,
     dest_s3_dir: str,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, str]:
@@ -1813,7 +1825,7 @@ def stage_multi_lane(
         r1_files,
         dest_s3_dir=dest_s3_dir,
         sample_prefix=f"{sample_prefix}_R1",
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=aws_env,
         debug=debug,
     )
@@ -1822,7 +1834,7 @@ def stage_multi_lane(
             r2_files,
             dest_s3_dir=dest_s3_dir,
             sample_prefix=f"{sample_prefix}_R2",
-            reference_bucket=reference_bucket,
+            reference_s3_uri=reference_s3_uri,
             aws_env=aws_env,
             debug=debug,
         )
@@ -1849,12 +1861,12 @@ def stage_ont_fastq_prefix(
     sample_prefix: str,
     dest_fsx_dir: str,
     dest_s3_dir: str,
-    reference_bucket: Optional[str] = None,
+    reference_s3_uri: Optional[str] = None,
     plan: Optional[OntFastqPrefixPlan] = None,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, List[str]]:
-    del reference_bucket
+    del reference_s3_uri
     if plan is None:
         plan = resolve_ont_fastq_prefix_plan(
             prefix,
@@ -1882,7 +1894,7 @@ def stage_path(
     *,
     dest_fsx_dir: str,
     dest_s3_dir: str,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, List[str]]:
@@ -1890,7 +1902,7 @@ def stage_path(
     remote_fsx = f"{dest_fsx_dir}/{filename}"
     remote_s3 = f"{dest_s3_dir}/{filename}"
     aws_copy(
-        source_copy_reference(source, reference_bucket=reference_bucket),
+        source_copy_reference(source, reference_s3_uri=reference_s3_uri),
         remote_s3,
         aws_env=aws_env,
         debug=debug,
@@ -1904,7 +1916,7 @@ def stage_path_with_sidecars(
     sidecar_suffixes: Sequence[str],
     dest_fsx_dir: str,
     dest_s3_dir: str,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, List[str]]:
@@ -1912,7 +1924,7 @@ def stage_path_with_sidecars(
         source,
         dest_fsx_dir=dest_fsx_dir,
         dest_s3_dir=dest_s3_dir,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=aws_env,
         debug=debug,
     )
@@ -1922,7 +1934,7 @@ def stage_path_with_sidecars(
             sidecar,
             dest_fsx_dir=dest_fsx_dir,
             dest_s3_dir=dest_s3_dir,
-            reference_bucket=reference_bucket,
+            reference_s3_uri=reference_s3_uri,
             aws_env=aws_env,
             debug=debug,
         )
@@ -1934,7 +1946,7 @@ def stage_run_metrics(
     files: Sequence[RunMetricFile],
     stage: StagePaths,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> List[str]:
@@ -1949,7 +1961,7 @@ def stage_run_metrics(
             f"{metric_file.destination_relative_path}"
         )
         aws_copy(
-            source_copy_reference(metric_file.source, reference_bucket=reference_bucket),
+            source_copy_reference(metric_file.source, reference_s3_uri=reference_s3_uri),
             remote_s3,
             aws_env=aws_env,
             debug=debug,
@@ -2170,14 +2182,14 @@ def validate_sidecar_paths(
     path: str,
     *,
     sidecar_suffixes: Sequence[str],
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> None:
     for suffix in sidecar_suffixes:
         check_source_path(
             f"{path}{suffix}",
-            reference_bucket=reference_bucket,
+            reference_s3_uri=reference_s3_uri,
             aws_env=aws_env,
             debug=debug,
         )
@@ -2200,7 +2212,7 @@ def validate_manifest_row(
     normalized: Mapping[str, str],
     *,
     row_number: int,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
     check_access: bool = True,
@@ -2208,7 +2220,7 @@ def validate_manifest_row(
     issues = collect_manifest_row_issues(
         normalized,
         row_number=row_number,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=aws_env,
         debug=debug,
         check_access=check_access,
@@ -2312,7 +2324,7 @@ def build_manifest_row(normalized: Mapping[str, str], *, row_number: int = 0) ->
 def load_manifest_rows(
     analysis_samples: Path,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> List[ManifestRow]:
@@ -2340,7 +2352,7 @@ def load_manifest_rows(
             validate_manifest_row(
                 normalized,
                 row_number=row_number,
-                reference_bucket=reference_bucket,
+                reference_s3_uri=reference_s3_uri,
                 aws_env=aws_env,
                 debug=debug,
             )
@@ -2399,7 +2411,7 @@ def collect_manifest_row_issues(
     normalized: Mapping[str, str],
     *,
     row_number: int,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
     check_access: bool = True,
@@ -2441,7 +2453,7 @@ def collect_manifest_row_issues(
         try:
             check_source_path(
                 path,
-                reference_bucket=reference_bucket,
+                reference_s3_uri=reference_s3_uri,
                 aws_env=aws_env,
                 debug=debug,
                 allow_directory=allow_directory,
@@ -2464,7 +2476,7 @@ def collect_manifest_row_issues(
             try:
                 check_source_path(
                     sidecar,
-                    reference_bucket=reference_bucket,
+                    reference_s3_uri=reference_s3_uri,
                     aws_env=aws_env,
                     debug=debug,
                 )
@@ -2811,7 +2823,7 @@ def _s3_child_directories(
 def detect_giab_roi_dirs(
     concordance_source: str,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> List[str]:
@@ -2821,7 +2833,7 @@ def detect_giab_roi_dirs(
         return []
     if is_headnode_visible_path(concordance_source):
         return _s3_child_directories(
-            build_reference_uri(concordance_source, reference_bucket),
+            build_reference_uri(concordance_source, reference_s3_uri),
             aws_env=aws_env,
             debug=debug,
         )
@@ -2842,7 +2854,7 @@ def _precheck_giab_truth_files(
     *,
     row_number: int,
     concordance_source: str,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[List[PrecheckIssue], int]:
@@ -2884,7 +2896,7 @@ def _precheck_giab_truth_files(
     try:
         roi_dirs = detect_giab_roi_dirs(
             concordance_source,
-            reference_bucket=reference_bucket,
+            reference_s3_uri=reference_s3_uri,
             aws_env=aws_env,
             debug=debug,
         )
@@ -2919,7 +2931,7 @@ def _precheck_giab_truth_files(
             try:
                 check_source_path(
                     truth_path,
-                    reference_bucket=reference_bucket,
+                    reference_s3_uri=reference_s3_uri,
                     aws_env=aws_env,
                     debug=debug,
                 )
@@ -3005,7 +3017,7 @@ def _precheck_manifest_groups(rows: Sequence[ManifestRow]) -> List[PrecheckIssue
 def precheck_manifest(
     analysis_samples: Path,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[PrecheckReport, List[ManifestRow]]:
@@ -3082,7 +3094,7 @@ def precheck_manifest(
             row_issues = collect_manifest_row_issues(
                 normalized,
                 row_number=row_number,
-                reference_bucket=reference_bucket,
+                reference_s3_uri=reference_s3_uri,
                 aws_env=aws_env,
                 debug=debug,
                 check_access=False,
@@ -3096,7 +3108,7 @@ def precheck_manifest(
                 try:
                     check_source_path(
                         path,
-                        reference_bucket=reference_bucket,
+                        reference_s3_uri=reference_s3_uri,
                         aws_env=aws_env,
                         debug=debug,
                     )
@@ -3150,7 +3162,7 @@ def precheck_manifest(
                 try:
                     check_source_path(
                         concordance_source,
-                        reference_bucket=reference_bucket,
+                        reference_s3_uri=reference_s3_uri,
                         aws_env=aws_env,
                         debug=debug,
                         allow_directory=True,
@@ -3171,7 +3183,7 @@ def precheck_manifest(
                     normalized,
                     row_number=row_number,
                     concordance_source=concordance_source,
-                    reference_bucket=reference_bucket,
+                    reference_s3_uri=reference_s3_uri,
                     aws_env=aws_env,
                     debug=debug,
                 )
@@ -3385,7 +3397,7 @@ def emit_single_raw_group(
     spec: Tuple[str, str, str, str],
     dest_fsx_dir: str,
     dest_s3_dir: str,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[Dict[str, str], List[str]]:
@@ -3433,7 +3445,7 @@ def emit_single_raw_group(
                 r2_path,
                 lane_fsx_dir,
                 lane_s3_dir,
-                reference_bucket=reference_bucket,
+                reference_s3_uri=reference_s3_uri,
                 aws_env=aws_env,
                 debug=debug,
             )
@@ -3449,7 +3461,7 @@ def emit_single_raw_group(
         r2_paths[0],
         dest_fsx_dir,
         dest_s3_dir,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=aws_env,
         debug=debug,
     )
@@ -3463,7 +3475,7 @@ def emit_aligned_source(
     sidecar_suffixes: Sequence[str],
     dest_fsx_dir: str,
     dest_s3_dir: str,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, List[str]]:
@@ -3476,7 +3488,7 @@ def emit_aligned_source(
             sidecar_suffixes=sidecar_suffixes,
             dest_fsx_dir=dest_fsx_dir,
             dest_s3_dir=dest_s3_dir,
-            reference_bucket=reference_bucket,
+            reference_s3_uri=reference_s3_uri,
             aws_env=aws_env,
             debug=debug,
         )
@@ -3540,7 +3552,7 @@ def process_samples(
     analysis_samples: Path,
     stage: StagePaths,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
     rows: Sequence[ManifestRow],
@@ -3579,7 +3591,7 @@ def process_samples(
             concordance_source,
             concordance_fsx,
             concordance_s3,
-            reference_bucket=reference_bucket,
+            reference_s3_uri=reference_s3_uri,
             aws_env=aws_env,
             debug=debug,
         )
@@ -3615,7 +3627,7 @@ def process_samples(
                 sample_prefix,
                 dest_fsx_dir,
                 dest_s3_dir,
-                reference_bucket=reference_bucket,
+                reference_s3_uri=reference_s3_uri,
                 aws_env=aws_env,
                 debug=debug,
             )
@@ -3686,7 +3698,7 @@ def process_samples(
                         spec=spec,
                         dest_fsx_dir=dest_fsx_dir,
                         dest_s3_dir=dest_s3_dir,
-                        reference_bucket=reference_bucket,
+                        reference_s3_uri=reference_s3_uri,
                         aws_env=aws_env,
                         debug=debug,
                     )
@@ -3709,7 +3721,7 @@ def process_samples(
                         sample_prefix=sample_prefix,
                         dest_fsx_dir=dest_fsx_dir,
                         dest_s3_dir=dest_s3_dir,
-                        reference_bucket=reference_bucket,
+                        reference_s3_uri=reference_s3_uri,
                         plan=ont_plan,
                         aws_env=aws_env,
                         debug=debug,
@@ -3754,7 +3766,7 @@ def process_samples(
                         sidecar_suffixes=sidecars,
                         dest_fsx_dir=dest_fsx_dir,
                         dest_s3_dir=dest_s3_dir,
-                        reference_bucket=reference_bucket,
+                        reference_s3_uri=reference_s3_uri,
                         aws_env=aws_env,
                         debug=debug,
                     )
@@ -3802,16 +3814,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     aws_config = AwsConfig(profile=ensure_profile(args.profile), region=args.region)
     aws_env = build_aws_env(aws_config)
 
-    bucket_roles = BucketRoles(
-        reference_bucket=args.reference_bucket,
-        control_data_bucket=args.control_data_bucket,
-        stage_bucket=args.stage_bucket,
+    s3_role_uris = S3RoleUris(
+        reference_s3_uri=args.reference_s3_uri,
+        control_data_s3_uri=args.control_data_s3_uri,
+        stage_s3_uri=args.stage_s3_uri,
     )
-    stage = build_stage_paths(args.stage_target, args.stage_bucket)
+    stage = build_stage_paths(args.stage_target, args.stage_s3_uri)
     run_metric_specs = parse_run_metric_staging_specs(args.run_metric_staging)
     precheck_report, prechecked_rows = precheck_manifest(
         analysis_samples,
-        reference_bucket=bucket_roles,
+        reference_s3_uri=s3_role_uris,
         aws_env=aws_env,
         debug=args.debug,
     )
@@ -3821,7 +3833,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(format_precheck_success(precheck_report))
     run_metric_files = precheck_run_metrics(
         run_metric_specs,
-        reference_bucket=bucket_roles,
+        reference_s3_uri=s3_role_uris,
         aws_env=aws_env,
         debug=args.debug,
     )
@@ -3835,7 +3847,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     samples_rows, units_rows, created_files, _run_ids = process_samples(
         analysis_samples,
         stage,
-        reference_bucket=bucket_roles,
+        reference_s3_uri=s3_role_uris,
         aws_env=aws_env,
         debug=args.debug,
         rows=prechecked_rows,
@@ -3844,7 +3856,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         stage_run_metrics(
             run_metric_files,
             stage,
-            reference_bucket=bucket_roles,
+            reference_s3_uri=s3_role_uris,
             aws_env=aws_env,
             debug=args.debug,
         )

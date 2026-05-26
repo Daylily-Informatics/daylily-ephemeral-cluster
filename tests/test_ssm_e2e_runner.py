@@ -113,10 +113,11 @@ def test_default_cluster_name_fits_supported_template_limit() -> None:
 
     assert cluster_name.startswith(f"{runner_module.CLUSTER_NAME_PREFIX}-")
     assert len(cluster_name) <= runner_module.MAX_CLUSTER_NAME_LEN
+    assert runner_module.MAX_CLUSTER_NAME_LEN == 25
 
 
 def test_validate_cluster_name_rejects_too_long_values() -> None:
-    with pytest.raises(CommandError, match="too long for the supported template"):
+    with pytest.raises(CommandError, match="5-25 characters"):
         runner_module.validate_cluster_name("daylily-ssm-e2e-20260412103248")
 
 
@@ -473,11 +474,11 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
             str(base_config),
             "--cluster-name",
             "cluster-a",
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://bucket",
-            "--control-data-bucket",
+            "--control-data-s3-uri",
             "s3://control-data-bucket",
-            "--stage-bucket",
+            "--stage-s3-uri",
             "s3://stage-bucket",
             "--analysis-samples",
             str(analysis_samples),
@@ -617,11 +618,11 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
             "--cluster-name",
             "cluster-a",
             "--reuse-existing-cluster",
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://bucket",
-            "--control-data-bucket",
+            "--control-data-s3-uri",
             "s3://control-data-bucket",
-            "--stage-bucket",
+            "--stage-s3-uri",
             "s3://stage-bucket",
             "--analysis-samples",
             str(analysis_samples),
@@ -727,11 +728,11 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
             "--cluster-name",
             "cluster-a",
             "--reuse-existing-cluster",
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://bucket",
-            "--control-data-bucket",
+            "--control-data-s3-uri",
             "s3://control-data-bucket",
-            "--stage-bucket",
+            "--stage-s3-uri",
             "s3://stage-bucket",
             "--analysis-samples",
             str(analysis_samples),

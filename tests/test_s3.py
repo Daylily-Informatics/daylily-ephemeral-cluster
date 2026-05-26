@@ -97,7 +97,7 @@ def _role_values() -> dict[str, str]:
     return {
         ROLE_REFERENCE: "s3://dayoa-reference/references/",
         ROLE_CONTROL_DATA: "s3://dayoa-control/control/",
-        ROLE_STAGING: "s3://dayoa-staging/staging/",
+        ROLE_STAGING: "s3://dayoa-staging/staged_external_data/",
     }
 
 
@@ -239,7 +239,7 @@ class TestExplicitRoleUris:
             else:
                 raise AssertionError(f"expected ValueError for {value!r}")
 
-    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
     def test_verify_s3_roles_checks_required_role_prefixes(self, mock_client_factory):
         client = _make_reference_s3_client()
         mock_client_factory.return_value = client
@@ -279,14 +279,14 @@ class TestExplicitRoleUris:
 
 
 class TestVerifyReferenceBundle:
-    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
     def test_success(self, mock_client_factory):
         mock_client_factory.return_value = _make_reference_s3_client()
 
         assert verify_reference_bundle("my-bucket", profile="prof", region="us-west-2")
         mock_client_factory.assert_called_once_with(profile="prof", region="us-west-2")
 
-    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
     def test_failure_when_required_prefix_missing(self, mock_client_factory):
         mock_client_factory.return_value = _make_reference_s3_client(
             missing_prefixes={"runtime_assets/cluster_boot_config/"},
@@ -294,19 +294,19 @@ class TestVerifyReferenceBundle:
 
         assert not verify_reference_bundle("bad-bucket")
 
-    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
     def test_failure_when_version_marker_missing(self, mock_client_factory):
         mock_client_factory.return_value = _make_reference_s3_client(version=None)
 
         assert not verify_reference_bundle("any-bucket")
 
-    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
     def test_failure_when_bucket_missing(self, mock_client_factory):
         mock_client_factory.return_value = _make_reference_s3_client(bucket_exists=False)
 
         assert not verify_reference_bundle("bucket")
 
-    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
     def test_no_profile_no_region(self, mock_client_factory):
         mock_client_factory.return_value = _make_reference_s3_client()
 
@@ -359,9 +359,9 @@ class TestMakeS3BucketPreflightStep:
         step = make_s3_bucket_preflight_step(
             ctx,
             profile="myprof",
-            reference_bucket=_role_values()[ROLE_REFERENCE],
-            control_data_bucket=_role_values()[ROLE_CONTROL_DATA],
-            stage_bucket=_role_values()[ROLE_STAGING],
+            reference_s3_uri=_role_values()[ROLE_REFERENCE],
+            control_data_s3_uri=_role_values()[ROLE_CONTROL_DATA],
+            stage_s3_uri=_role_values()[ROLE_STAGING],
         )
         report = PreflightReport(region="us-west-2")
         report = step(report)
@@ -382,7 +382,7 @@ class TestMakeS3BucketPreflightStep:
         assert len(report.checks) == 1
         assert report.checks[0].id == "s3.role_config"
         assert report.checks[0].status == CheckStatus.FAIL
-        assert "explicit reference_bucket" in report.checks[0].remediation
+        assert "explicit reference_s3_uri" in report.checks[0].remediation
 
     @patch("daylily_ec.aws.s3.verify_s3_roles")
     def test_verification_failure_hard_gate(self, mock_verify):
@@ -400,9 +400,9 @@ class TestMakeS3BucketPreflightStep:
         ctx = _make_aws_ctx(region="us-west-2")
         step = make_s3_bucket_preflight_step(
             ctx,
-            reference_bucket=_role_values()[ROLE_REFERENCE],
-            control_data_bucket=_role_values()[ROLE_CONTROL_DATA],
-            stage_bucket=_role_values()[ROLE_STAGING],
+            reference_s3_uri=_role_values()[ROLE_REFERENCE],
+            control_data_s3_uri=_role_values()[ROLE_CONTROL_DATA],
+            stage_s3_uri=_role_values()[ROLE_STAGING],
         )
         report = PreflightReport(region="us-west-2")
         report = step(report)
@@ -422,9 +422,9 @@ class TestMakeS3BucketPreflightStep:
         ctx = _make_aws_ctx(region="us-west-2")
         step = make_s3_bucket_preflight_step(
             ctx,
-            reference_bucket=_role_values()[ROLE_REFERENCE],
-            control_data_bucket=_role_values()[ROLE_CONTROL_DATA],
-            stage_bucket=_role_values()[ROLE_STAGING],
+            reference_s3_uri=_role_values()[ROLE_REFERENCE],
+            control_data_s3_uri=_role_values()[ROLE_CONTROL_DATA],
+            stage_s3_uri=_role_values()[ROLE_STAGING],
         )
         report = PreflightReport(region="us-west-2")
         report.checks.append(
@@ -444,9 +444,9 @@ class TestMakeS3BucketPreflightStep:
         ctx = _make_aws_ctx(region="us-west-2")
         step = make_s3_bucket_preflight_step(
             ctx,
-            reference_bucket=_role_values()[ROLE_REFERENCE],
-            control_data_bucket=_role_values()[ROLE_CONTROL_DATA],
-            stage_bucket=_role_values()[ROLE_STAGING],
+            reference_s3_uri=_role_values()[ROLE_REFERENCE],
+            control_data_s3_uri=_role_values()[ROLE_CONTROL_DATA],
+            stage_s3_uri=_role_values()[ROLE_STAGING],
         )
         report = PreflightReport(region="eu-west-1")
         report = step(report)

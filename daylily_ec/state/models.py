@@ -143,9 +143,6 @@ class StateRecord(BaseModel):
 
     # -- Selected resources --------------------------------------------------
     bucket: str = ""
-    reference_bucket: str = ""
-    control_data_bucket: str = ""
-    stage_bucket: str = ""
     reference_s3_uri: str = ""
     control_data_s3_uri: str = ""
     stage_s3_uri: str = ""

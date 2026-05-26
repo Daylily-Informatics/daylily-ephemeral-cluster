@@ -53,7 +53,8 @@ CLUSTER_NAME_MIN_LENGTH = 5
 CLUSTER_NAME_MAX_LENGTH = 25
 CLUSTER_NAME_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9-]*$")
 CLUSTER_NAME_RULE_TEXT = (
-    f"{CLUSTER_NAME_MIN_LENGTH}-{CLUSTER_NAME_MAX_LENGTH} characters, start with a letter, "
+    f"ParallelCluster requires cluster names to be {CLUSTER_NAME_MIN_LENGTH}-"
+    f"{CLUSTER_NAME_MAX_LENGTH} characters, start with a letter, "
     "and contain only letters, digits, and hyphens"
 )
 
@@ -419,6 +420,32 @@ def publish_cluster_boot_config(
     return uploaded
 
 
+def validate_startup_dra_contract(cluster_yaml_path: str | Path) -> None:
+    """Fail cluster creation unless startup imports only the references DRA."""
+    import yaml
+
+    path = Path(cluster_yaml_path)
+    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    associations: list[dict[str, Any]] = []
+    for storage in payload.get("SharedStorage") or []:
+        if not isinstance(storage, dict) or storage.get("StorageType") != "FsxLustre":
+            continue
+        fsx_settings = storage.get("FsxLustreSettings") or {}
+        for association in fsx_settings.get("DataRepositoryAssociations") or []:
+            if isinstance(association, dict):
+                associations.append(association)
+
+    paths = [str(item.get("FileSystemPath") or "") for item in associations]
+    if paths != ["/references/"]:
+        raise ValueError(
+            "Cluster startup may import exactly one FSx DRA: /references/. "
+            f"Rendered DataRepositoryAssociations were: {paths}"
+        )
+    data_repository_path = str(associations[0].get("DataRepositoryPath") or "")
+    if not data_repository_path:
+        raise ValueError("The /references/ startup DRA must define DataRepositoryPath.")
+
+
 def _noop_heartbeat_result() -> Any:
     """Return a stub HeartbeatResult-like object for the no-op path."""
     from types import SimpleNamespace
@@ -622,7 +649,7 @@ def _resolve_config_value(
         typer.echo(f"{label} cannot be empty.")
 
 
-def _validate_cluster_name(cluster_name: str) -> str:
+def validate_cluster_name(cluster_name: str) -> str:
     """Validate the Daylily-supported ParallelCluster cluster name contract."""
     value = (cluster_name or "").strip()
     if not value:
@@ -635,6 +662,10 @@ def _validate_cluster_name(cluster_name: str) -> str:
             "Numbers are allowed after the first character."
         )
     return value
+
+
+def _validate_cluster_name(cluster_name: str) -> str:
+    return validate_cluster_name(cluster_name)
 
 
 def _resolve_cluster_name(cfg: Any, *, non_interactive: bool) -> str:
@@ -947,22 +978,22 @@ def run_create_workflow(
         or "1"
     )
 
-    reference_bucket = _resolve_config_value(
+    reference_s3_uri = _resolve_config_value(
         cfg,
-        "reference_bucket",
-        "Reference bucket or S3 prefix",
+        "reference_s3_uri",
+        "Reference S3 URI",
         non_interactive=non_interactive,
     )
-    control_data_bucket = _resolve_config_value(
+    control_data_s3_uri = _resolve_config_value(
         cfg,
-        "control_data_bucket",
-        "Control-data bucket or S3 prefix",
+        "control_data_s3_uri",
+        "Control-data S3 URI",
         non_interactive=non_interactive,
     )
-    stage_bucket = _resolve_config_value(
+    stage_s3_uri = _resolve_config_value(
         cfg,
-        "stage_bucket",
-        "Stage bucket or S3 prefix",
+        "stage_s3_uri",
+        "Stage S3 URI",
         non_interactive=non_interactive,
     )
 
@@ -985,9 +1016,9 @@ def run_create_workflow(
         # 6: S3 Role Validator
         make_s3_bucket_preflight_step(
             aws_ctx,
-            reference_bucket=reference_bucket,
-            control_data_bucket=control_data_bucket,
-            stage_bucket=stage_bucket,
+            reference_s3_uri=reference_s3_uri,
+            control_data_s3_uri=control_data_s3_uri,
+            stage_s3_uri=stage_s3_uri,
             profile=aws_ctx.profile,
             interactive=not non_interactive,
         ),
@@ -1012,7 +1043,7 @@ def run_create_workflow(
     reference_s3_uri = _role_uri(s3_roles, "reference")
     control_data_s3_uri = _role_uri(s3_roles, "control_data")
     stage_s3_uri = _role_uri(s3_roles, "staging")
-    reference_bucket_name = _role_bucket(s3_roles, "reference")
+    reference_storage_bucket_name = _role_bucket(s3_roles, "reference")
     cluster_boot_s3_uri = _s3_uri_join(
         reference_s3_uri,
         "runtime_assets",
@@ -1087,9 +1118,9 @@ def run_create_workflow(
 
     missing_resources = _require_values(
         {
-            "reference bucket": reference_s3_uri,
-            "control-data bucket": control_data_s3_uri,
-            "stage bucket": stage_s3_uri,
+            "reference S3 URI": reference_s3_uri,
+            "control-data S3 URI": control_data_s3_uri,
+            "stage S3 URI": stage_s3_uri,
             "public subnet": public_subnet,
             "private subnet": private_subnet,
             "IAM policy ARN": policy_arn,
@@ -1278,6 +1309,12 @@ def run_create_workflow(
 
     logger.info("Cluster YAML ready: %s", cluster_yaml_path)
     ui.ok(f"Cluster YAML ready: {cluster_yaml_path}")
+    try:
+        validate_startup_dra_contract(cluster_yaml_path)
+    except ValueError as exc:
+        logger.error("Startup DRA contract failed: %s", exc)
+        ui.fail(f"Startup DRA contract: {exc}")
+        return EXIT_VALIDATION_FAILURE
 
     # -- 6. DRY-RUN (Phase 2b) ------------------------------------------------
     ui.phase("DRY-RUN VALIDATION")
@@ -1395,7 +1432,7 @@ def run_create_workflow(
             email=post_create_inputs.budget_email,
             region=aws_ctx.region,
             region_az=region_az,
-            bucket_name=reference_bucket_name,
+            bucket_name=reference_storage_bucket_name,
             allowed_users=post_create_inputs.allowed_budget_users,
         )
         cluster_budget = ensure_cluster_budget(
@@ -1407,7 +1444,7 @@ def run_create_workflow(
             email=post_create_inputs.budget_email,
             region=aws_ctx.region,
             region_az=region_az,
-            bucket_name=reference_bucket_name,
+            bucket_name=reference_storage_bucket_name,
             allowed_users=post_create_inputs.allowed_budget_users,
         )
         logger.info("Budgets: global=%s cluster=%s", global_budget, cluster_budget)
@@ -1460,9 +1497,9 @@ def run_create_workflow(
     # Write next-run template
     final_values: Dict[str, str] = {
         "cluster_name": cluster_name,
-        "reference_bucket": reference_s3_uri,
-        "control_data_bucket": control_data_s3_uri,
-        "stage_bucket": stage_s3_uri,
+        "reference_s3_uri": reference_s3_uri,
+        "control_data_s3_uri": control_data_s3_uri,
+        "stage_s3_uri": stage_s3_uri,
         "public_subnet_id": public_subnet,
         "private_subnet_id": private_subnet,
         "iam_policy_arn": policy_arn,
@@ -1484,10 +1521,7 @@ def run_create_workflow(
         region_az=region_az,
         aws_profile=aws_ctx.profile,
         account_id=aws_ctx.account_id,
-        bucket=reference_bucket_name,
-        reference_bucket=_role_bucket(s3_roles, "reference"),
-        control_data_bucket=_role_bucket(s3_roles, "control_data"),
-        stage_bucket=_role_bucket(s3_roles, "staging"),
+        bucket=reference_storage_bucket_name,
         reference_s3_uri=reference_s3_uri,
         control_data_s3_uri=control_data_s3_uri,
         stage_s3_uri=stage_s3_uri,
@@ -1731,7 +1765,12 @@ def run_preflight_only(
         effective_config = str(resource_path(effective_config))
     cfg = load_config(effective_config)
 
-    cluster_name = get_effective_default(cfg, "cluster_name", "prod") or "prod"
+    try:
+        cluster_name = _resolve_cluster_name(cfg, non_interactive=True)
+    except ValueError as exc:
+        logger.error("Cluster name validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
 
     # AWS Context
     try:
@@ -1767,9 +1806,9 @@ def run_preflight_only(
         ),
         make_s3_bucket_preflight_step(
             aws_ctx,
-            reference_bucket=get_effective_default(cfg, "reference_bucket", ""),
-            control_data_bucket=get_effective_default(cfg, "control_data_bucket", ""),
-            stage_bucket=get_effective_default(cfg, "stage_bucket", ""),
+            reference_s3_uri=get_effective_default(cfg, "reference_s3_uri", ""),
+            control_data_s3_uri=get_effective_default(cfg, "control_data_s3_uri", ""),
+            stage_s3_uri=get_effective_default(cfg, "stage_s3_uri", ""),
             profile=aws_ctx.profile,
             interactive=not non_interactive,
         ),

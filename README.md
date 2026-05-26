@@ -33,7 +33,9 @@ export REGION=us-west-2
 export REGION_AZ=us-west-2d
 export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
-export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
+export REF_S3_URI=s3://lsmc-dayoa-references-usw2
+export CONTROL_DATA_S3_URI=s3://lsmc-dayoa-control-data-usw2
+export STAGE_S3_URI=s3://lsmc-ssf-sequencing-data/staged_external_data
 export ANALYSIS_BUCKET=s3://lsmc-dayoa-analysis-results-us-west-2
 export EXECUTING_ENTITY="${USER:-ubuntu}"
 export ANALYSIS_ID=dayoa
@@ -60,9 +62,9 @@ dyec headnode connect \
 dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --reference-bucket "$REF_BUCKET" \
-  --control-data-bucket "$CONTROL_DATA_BUCKET" \
-  --stage-bucket "$STAGE_BUCKET" \
+  --reference-s3-uri "$REF_S3_URI" \
+  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
+  --stage-s3-uri "$STAGE_S3_URI" \
   --config-dir "$STAGE_CFG_DIR"
 
 dyec workflow launch \
@@ -72,7 +74,7 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 1.0.18 \
+  --git-tag 2.0.0 \
   --export-destination-s3-uri "$EXPORT_S3_URI" \
   --export-trigger on-success
 
@@ -98,7 +100,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id "<run-analysis-id>" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 1.0.18 \
+  --git-tag 2.0.0 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 
 dyec export \
@@ -147,7 +149,7 @@ Key rules:
 
 `config/daylily_available_repositories.yaml` is the source of truth for repositories and blessed launch profiles. The packaged copy under `daylily_ec/resources/payload/config/` must match it.
 
-The current DayOA pin is `1.0.18` for the repository default and every DayOA command. Catalog v2 separates:
+The current DayOA pin is `2.0.0` for the repository default and every DayOA command. Catalog v2 separates:
 
 - `sample_analysis`: uses `analysis_samples.tsv`, stages inputs, and writes `samples.tsv` / `units.tsv`.
 - `run_analysis`: uses `runs.tsv`, requires a run DRA, and launches run-folder workflows such as Illumina run QC and BCL Convert.

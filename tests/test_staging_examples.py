@@ -10,7 +10,8 @@ import daylily_ec.stage_samples as module
 
 ROOT = Path(__file__).resolve().parents[1]
 EXAMPLE_ROOT = ROOT / "examples" / "staging"
-REFERENCE_ROOT = "s3://lsmc-dayoa-omics-analysis-us-west-2/data/"
+REFERENCE_ROOT = "s3://lsmc-dayoa-references-usw2/genomic_data/"
+CONTROL_DATA_ROOT = "s3://lsmc-dayoa-control-data-usw2/genomic_data/"
 SEQUENCING_ROOT = "s3://lsmc-ssf-sequencing-data/basecalls/"
 
 EXAMPLES = {
@@ -71,7 +72,7 @@ def _stage_paths() -> module.StagePaths:
         remote_fsx_root="/fsx/staging/staged_external_sequencing_data",
         remote_stage_name="remote_stage_test",
         remote_fsx_stage="/fsx/staging/staged_external_sequencing_data/remote_stage_test",
-        remote_s3_stage="s3://bucket/fsx/staging/staged_external_sequencing_data/remote_stage_test",
+        remote_s3_stage="s3://bucket/fsx/remote_stage_test",
     )
 
 
@@ -153,12 +154,14 @@ def test_staging_example_manifests_have_supported_schema_and_s3_sources() -> Non
             for field in SOURCE_PATH_FIELDS:
                 value = (row.get(field) or "").strip()
                 if value:
-                    allowed_root = (
-                        SEQUENCING_ROOT if field == module.ONT_FASTQ_PREFIX else REFERENCE_ROOT
+                    allowed_roots = (
+                        (SEQUENCING_ROOT,)
+                        if field == module.ONT_FASTQ_PREFIX
+                        else (REFERENCE_ROOT, CONTROL_DATA_ROOT)
                     )
-                    assert value.startswith(
-                        allowed_root
-                    ), f"{example_name} has non-reference source path in {field}: {value}"
+                    assert value.startswith(allowed_roots), (
+                        f"{example_name} has unsupported source path in {field}: {value}"
+                    )
 
 
 @pytest.mark.parametrize("example_name", EXAMPLES)
@@ -176,7 +179,7 @@ def test_staging_example_manifests_parse_and_validate_sidecars(
 
     parsed = module.load_manifest_rows(
         _manifest_path(example_name),
-        reference_bucket="s3://lsmc-dayoa-omics-analysis-us-west-2",
+        reference_s3_uri="s3://lsmc-dayoa-references-usw2",
         aws_env={},
         debug=False,
     )
@@ -254,7 +257,7 @@ def test_staging_example_manifests_mock_stage_expected_outputs(
 
     report, rows = module.precheck_manifest(
         _manifest_path(example_name),
-        reference_bucket="s3://lsmc-dayoa-omics-analysis-us-west-2",
+        reference_s3_uri="s3://lsmc-dayoa-references-usw2",
         aws_env={},
         debug=False,
     )
@@ -263,7 +266,7 @@ def test_staging_example_manifests_mock_stage_expected_outputs(
     samples_rows, units_rows, created_files, run_ids = module.process_samples(
         _manifest_path(example_name),
         _stage_paths(),
-        reference_bucket="s3://lsmc-dayoa-omics-analysis-us-west-2",
+        reference_s3_uri="s3://lsmc-dayoa-references-usw2",
         aws_env={},
         debug=False,
         rows=rows,

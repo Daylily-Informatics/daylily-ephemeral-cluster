@@ -96,7 +96,7 @@ def test_collect_headnode_state_reads_project_budget_and_bucket(
 
     assert state.region == "us-west-2"
     assert state.project == "da-us-west-2b-demo"
-    assert state.reference_bucket == "reference-bucket"
+    assert state.reference_s3_uri == "reference-bucket"
     assert state.aws_profile == "lsmc"
     assert state.aws_account_id == "123456789012"
     assert state.region_az_hint == "us-west-2b"
@@ -185,7 +185,7 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
         headnode.HeadnodeState(
             region="us-west-2",
             project="da-us-west-2b-demo",
-            reference_bucket="reference-bucket",
+            reference_s3_uri="reference-bucket",
         )
     )
 
@@ -196,7 +196,7 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
     assert "export DAY_PROJECT=da-us-west-2b-demo" in shell_code
     assert "export DAY_AWS_REGION=us-west-2" in shell_code
     assert 'export DAY_ROOT="${PWD}"' in shell_code
-    assert "reference_bucket=reference-bucket" in shell_code
+    assert "reference_s3_uri=reference-bucket" in shell_code
     assert 'alias dy-b="${DAYLILY_EC_REPO_ROOT}/bin/init_dayec"' in shell_code
     assert 'alias day-build-env="${DAYLILY_EC_REPO_ROOT}/bin/init_dayec"' in shell_code
     assert "alias sq=sqq" in shell_code
@@ -209,7 +209,7 @@ def test_run_headnode_init_emit_shell_non_interactive_sends_warnings_to_stderr(
     state = headnode.HeadnodeState(
         region="us-west-2",
         project="da-us-west-2b-demo",
-        reference_bucket="reference-bucket",
+        reference_s3_uri="reference-bucket",
         warnings=["Budget tags file not found."],
     )
     monkeypatch.setattr(headnode, "collect_headnode_state", lambda **kwargs: state)
@@ -227,7 +227,7 @@ def test_run_headnode_init_interactive_mode_prompts_for_missing_budget(monkeypat
     state = headnode.HeadnodeState(
         region="us-west-2",
         project="da-us-west-2b-demo",
-        reference_bucket="reference-bucket",
+        reference_s3_uri="reference-bucket",
         budget_summary=headnode.BudgetSummary(name="da-us-west-2b-demo", exists=False),
     )
     prompts: list[str] = []
@@ -311,7 +311,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         encoding="utf-8",
     )
     (resources_dir / "etc" / "analysis_samples_template.tsv").write_text(
-        "<REF-BUCKET-NAME>\n",
+        "<REF-S3-URI>\n",
         encoding="utf-8",
     )
     cluster_config_path = tmp_path / "cluster-config.yaml"
@@ -457,7 +457,7 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
         encoding="utf-8",
     )
     (resources_dir / "etc" / "analysis_samples_template.tsv").write_text(
-        "<REF-BUCKET-NAME>\n",
+        "<REF-S3-URI>\n",
         encoding="utf-8",
     )
     cluster_config_path = tmp_path / "cluster-config.yaml"
@@ -531,7 +531,7 @@ def test_install_headnode_tools_prefers_checkout_over_installed_resources(
             encoding="utf-8",
         )
         (root / "etc" / "analysis_samples_template.tsv").write_text(
-            "<REF-BUCKET-NAME>\n",
+            "<REF-S3-URI>\n",
             encoding="utf-8",
         )
         _write_executable(

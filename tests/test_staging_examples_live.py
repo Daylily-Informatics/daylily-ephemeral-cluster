@@ -25,9 +25,9 @@ class LiveStagingOptions:
     profile: str
     region: str
     cluster: str
-    reference_bucket: str
-    control_data_bucket: str
-    stage_bucket: str
+    reference_s3_uri: str
+    control_data_s3_uri: str
+    stage_s3_uri: str
     non_dryrun: bool
     workflow_timeout_minutes: int
 
@@ -105,20 +105,20 @@ def live_staging_options(pytestconfig: pytest.Config) -> LiveStagingOptions:
     if not pytestconfig.getoption("--run-live-staging-examples"):
         pytest.skip("live staging examples require --run-live-staging-examples")
     required_options = {
-        "--live-staging-reference-bucket": pytestconfig.getoption("--live-staging-reference-bucket"),
-        "--live-staging-control-data-bucket": pytestconfig.getoption("--live-staging-control-data-bucket"),
-        "--live-staging-stage-bucket": pytestconfig.getoption("--live-staging-stage-bucket"),
+        "--live-staging-reference-s3-uri": pytestconfig.getoption("--live-staging-reference-s3-uri"),
+        "--live-staging-control-data-s3-uri": pytestconfig.getoption("--live-staging-control-data-s3-uri"),
+        "--live-staging-stage-s3-uri": pytestconfig.getoption("--live-staging-stage-s3-uri"),
     }
     missing = [name for name, value in required_options.items() if not value]
     if missing:
-        pytest.fail("Live staging requires explicit role buckets: " + ", ".join(missing))
+        pytest.fail("Live staging requires explicit S3 role URIs: " + ", ".join(missing))
     return LiveStagingOptions(
         profile=pytestconfig.getoption("--live-staging-profile"),
         region=pytestconfig.getoption("--live-staging-region"),
         cluster=pytestconfig.getoption("--live-staging-cluster"),
-        reference_bucket=pytestconfig.getoption("--live-staging-reference-bucket"),
-        control_data_bucket=pytestconfig.getoption("--live-staging-control-data-bucket"),
-        stage_bucket=pytestconfig.getoption("--live-staging-stage-bucket"),
+        reference_s3_uri=pytestconfig.getoption("--live-staging-reference-s3-uri"),
+        control_data_s3_uri=pytestconfig.getoption("--live-staging-control-data-s3-uri"),
+        stage_s3_uri=pytestconfig.getoption("--live-staging-stage-s3-uri"),
         non_dryrun=pytestconfig.getoption("--live-staging-non-dryrun"),
         workflow_timeout_minutes=pytestconfig.getoption("--live-staging-workflow-timeout-minutes"),
     )
@@ -328,12 +328,12 @@ def test_live_staging_example_dryrun_or_workflow(
             options.profile,
             "--region",
             options.region,
-            "--reference-bucket",
-            options.reference_bucket,
-            "--control-data-bucket",
-            options.control_data_bucket,
-            "--stage-bucket",
-            options.stage_bucket,
+            "--reference-s3-uri",
+            options.reference_s3_uri,
+            "--control-data-s3-uri",
+            options.control_data_s3_uri,
+            "--stage-s3-uri",
+            options.stage_s3_uri,
             "--config-dir",
             str(config_dir),
         ],

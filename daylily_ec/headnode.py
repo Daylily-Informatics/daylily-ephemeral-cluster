@@ -45,7 +45,7 @@ class HeadnodeState:
     region: str = ""
     project: str = ""
     skip_project_check: bool = False
-    reference_bucket: str = ""
+    reference_s3_uri: str = ""
     day_contact_email: str = DEFAULT_CONTACT_EMAIL
     aws_profile: str = ""
     aws_account_id: str = ""
@@ -86,7 +86,7 @@ def _extract_cluster_config_value(tag_name: str, text: str) -> str:
     return ""
 
 
-def _extract_reference_bucket(text: str) -> str:
+def _extract_reference_s3_uri(text: str) -> str:
     match = re.search(r"Script:\s*s3://([^/\s]+)", text)
     return match.group(1).strip() if match else ""
 
@@ -106,10 +106,10 @@ def _read_cluster_project(cluster_config_path: Path = CLUSTER_CONFIG_PATH) -> st
     )
 
 
-def _read_reference_bucket(cluster_config_path: Path = CLUSTER_CONFIG_PATH) -> str:
+def _read_reference_s3_uri(cluster_config_path: Path = CLUSTER_CONFIG_PATH) -> str:
     if not cluster_config_path.is_file():
         return ""
-    return _extract_reference_bucket(_read_text(cluster_config_path))
+    return _extract_reference_s3_uri(_read_text(cluster_config_path))
 
 
 def _read_budget_tags(tags_path: Path = BUDGET_TAGS_PATH) -> dict[str, list[str]]:
@@ -209,8 +209,8 @@ def collect_headnode_state(
     if not cluster_project:
         warnings.append(f"Cluster project tag not found at {cluster_config_path}.")
 
-    reference_bucket = _read_reference_bucket(cluster_config_path)
-    if not reference_bucket:
+    reference_s3_uri = _read_reference_s3_uri(cluster_config_path)
+    if not reference_s3_uri:
         warnings.append(f"Reference bucket not found at {cluster_config_path}.")
 
     valid_projects = _read_budget_tags(budget_tags_path)
@@ -232,7 +232,7 @@ def collect_headnode_state(
         region=region,
         project=resolved_project,
         skip_project_check=skip_project_check,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         day_contact_email=os.environ.get("DAY_CONTACT_EMAIL", DEFAULT_CONTACT_EMAIL),
         aws_profile=resolved_profile,
         cluster_name_hint=_derive_region_az_and_cluster_name(resolved_project)[1],
@@ -283,7 +283,7 @@ def build_shell_code(state: HeadnodeState) -> str:
             'export DAY_ROOT="${PWD}"',
             'export ORIG_PATH="${ORIG_PATH:-$PATH}"',
             'export ORIG_PS1="${ORIG_PS1:-$PS1}"',
-            f"reference_bucket={shlex.quote(state.reference_bucket)}",
+            f"reference_s3_uri={shlex.quote(state.reference_s3_uri)}",
             'if [ -n "${DAYLILY_EC_REPO_ROOT:-}" ]; then',
             '    alias dy-b="${DAYLILY_EC_REPO_ROOT}/bin/init_dayec"',
             '    alias day-build-env="${DAYLILY_EC_REPO_ROOT}/bin/init_dayec"',
@@ -325,8 +325,8 @@ def _prompt_email(default: str) -> str:
         print("Invalid email format. Please use string@string.string format.")
 
 
-def _prompt_bucket_name(reference_bucket: str) -> str:
-    bucket_url = _prompt("Enter S3 bucket URL", f"s3://{reference_bucket}" if reference_bucket else "")
+def _prompt_bucket_name(reference_s3_uri: str) -> str:
+    bucket_url = _prompt("Enter S3 bucket URL", f"s3://{reference_s3_uri}" if reference_s3_uri else "")
     if bucket_url.startswith("s3://"):
         bucket_url = bucket_url[5:]
     return bucket_url.strip().strip("/")
@@ -417,8 +417,8 @@ def _print_state(state: HeadnodeState) -> None:
         print(f"Region: {state.region}")
     if state.aws_profile:
         print(f"AWS Profile: {state.aws_profile}")
-    if state.reference_bucket:
-        print(f"Reference bucket: {state.reference_bucket}")
+    if state.reference_s3_uri:
+        print(f"Reference bucket: {state.reference_s3_uri}")
     if state.valid_projects and not state.skip_project_check:
         print(f"Valid projects for {getpass.getuser()}: {', '.join(state.valid_projects)}")
     if state.budget_summary:
@@ -479,7 +479,7 @@ def run_headnode_init(
                 "Enter the cluster name for budget tagging",
                 "",
             )
-            bucket_name = _prompt_bucket_name(state.reference_bucket)
+            bucket_name = _prompt_bucket_name(state.reference_s3_uri)
             if region_az and cluster_name and bucket_name:
                 try:
                     state.budget_summary = _create_missing_budgets(

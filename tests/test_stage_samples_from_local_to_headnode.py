@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime as real_datetime
 from pathlib import Path
 
 import pytest
@@ -12,15 +13,86 @@ def _stage_paths() -> module.StagePaths:
         remote_fsx_root="/fsx/staging/staged_external_sequencing_data",
         remote_stage_name="remote_stage_test",
         remote_fsx_stage="/fsx/staging/staged_external_sequencing_data/remote_stage_test",
-        remote_s3_stage="s3://stage-bucket/staging/staged_external_sequencing_data/remote_stage_test",
+        remote_s3_stage="s3://stage-bucket/remote_stage_test",
     )
 
 
-def _bucket_roles() -> module.BucketRoles:
-    return module.BucketRoles(
-        reference_bucket="s3://reference-bucket",
-        control_data_bucket="s3://control-data-bucket",
-        stage_bucket="s3://stage-bucket",
+def _s3_role_uris() -> module.S3RoleUris:
+    return module.S3RoleUris(
+        reference_s3_uri="s3://reference-bucket",
+        control_data_s3_uri="s3://control-data-bucket",
+        stage_s3_uri="s3://stage-bucket",
+    )
+
+
+def test_build_stage_paths_uses_unique_remote_stage_names(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeDateTime:
+        @staticmethod
+        def utcnow() -> real_datetime:
+            return real_datetime(2026, 5, 26, 16, 18, 6)
+
+    class FakeUuid:
+        def __init__(self, value: str) -> None:
+            self.hex = value
+
+    values = iter(
+        [
+            FakeUuid("aaaaaaaa11111111"),
+            FakeUuid("bbbbbbbb22222222"),
+        ]
+    )
+    monkeypatch.setattr(module.dt, "datetime", FakeDateTime)
+    monkeypatch.setattr(module.uuid, "uuid4", lambda: next(values))
+
+    first = module.build_stage_paths(
+        "/fsx/staging/staged_external_sequencing_data",
+        "s3://stage-bucket",
+    )
+    second = module.build_stage_paths(
+        "/fsx/staging/staged_external_sequencing_data",
+        "s3://stage-bucket",
+    )
+
+    assert first.remote_stage_name == "remote_stage_20260526T161806Z_aaaaaaaa"
+    assert second.remote_stage_name == "remote_stage_20260526T161806Z_bbbbbbbb"
+    assert first.remote_stage_name != second.remote_stage_name
+    assert (
+        first.remote_fsx_stage
+        == "/fsx/staging/staged_external_sequencing_data/remote_stage_20260526T161806Z_aaaaaaaa"
+    )
+    assert (
+        first.remote_s3_stage
+        == "s3://stage-bucket/remote_stage_20260526T161806Z_aaaaaaaa"
+    )
+
+
+def test_build_stage_paths_uses_stage_s3_uri_as_exact_s3_root(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeDateTime:
+        @staticmethod
+        def utcnow() -> real_datetime:
+            return real_datetime(2026, 5, 26, 17, 40, 1)
+
+    class FakeUuid:
+        hex = "cccccccc33333333"
+
+    monkeypatch.setattr(module.dt, "datetime", FakeDateTime)
+    monkeypatch.setattr(module.uuid, "uuid4", lambda: FakeUuid())
+
+    stage = module.build_stage_paths(
+        "/fsx/staging/staged_external_sequencing_data",
+        "s3://lsmc-ssf-sequencing-data/staged_external_data",
+    )
+
+    assert stage.remote_fsx_stage == (
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_20260526T174001Z_cccccccc"
+    )
+    assert stage.remote_s3_stage == (
+        "s3://lsmc-ssf-sequencing-data/staged_external_data/"
+        "remote_stage_20260526T174001Z_cccccccc"
     )
 
 
@@ -34,14 +106,14 @@ def _prechecked_rows(
     monkeypatch: pytest.MonkeyPatch,
     analysis_samples: Path,
     *,
-    reference_bucket: str | module.BucketRoles = _bucket_roles(),
+    reference_s3_uri: str | module.S3RoleUris = _s3_role_uris(),
     aws_env: dict[str, str] | None = None,
     debug: bool = False,
 ) -> list[module.ManifestRow]:
     monkeypatch.setattr(module, "detect_giab_roi_dirs", lambda *args, **kwargs: ["giabHC"])
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=aws_env or {},
         debug=debug,
     )
@@ -54,7 +126,7 @@ def _process_samples(
     analysis_samples: Path,
     stage: module.StagePaths,
     *,
-    reference_bucket: str | module.BucketRoles = _bucket_roles(),
+    reference_s3_uri: str | module.S3RoleUris = _s3_role_uris(),
     aws_env: dict[str, str] | None = None,
     debug: bool = False,
 ) -> tuple[list[dict[str, str]], list[dict[str, str]], list[str], list[str]]:
@@ -62,14 +134,14 @@ def _process_samples(
     rows = _prechecked_rows(
         monkeypatch,
         analysis_samples,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=resolved_aws_env,
         debug=debug,
     )
     return module.process_samples(
         analysis_samples,
         stage,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=resolved_aws_env,
         debug=debug,
         rows=rows,
@@ -132,7 +204,7 @@ def test_create_staged_prefix_mount_uses_runtime_staging_dra(monkeypatch: pytest
     assert isinstance(request, run_mounts.CreateRunMountRequest)
     assert request.cluster_name == "cluster-a"
     assert request.source_s3_uri == (
-        "s3://stage-bucket/staging/staged_external_sequencing_data/remote_stage_test"
+        "s3://stage-bucket/remote_stage_test"
     )
     assert request.mount_id == "remote_stage_test"
     assert request.purpose == run_mounts.MOUNT_PURPOSE_STAGING
@@ -158,7 +230,7 @@ def test_retired_staging_paths_are_rejected() -> None:
         with pytest.raises(module.CommandError, match="retired staging path"):
             module.headnode_visible_path(path)
         with pytest.raises(module.CommandError, match="retired staging path"):
-            module.build_reference_uri(path, _bucket_roles())
+            module.build_reference_uri(path, _s3_role_uris())
 
 
 def test_stage_target_only_allows_external_sequencing_data_root() -> None:
@@ -180,7 +252,7 @@ def test_check_source_path_accepts_mounted_paths_without_reference_translation(
 
     module.check_source_path(
         "/fsx/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz",
-        reference_bucket="s3://reference",
+        reference_s3_uri="s3://reference",
         aws_env={},
         debug=False,
     )
@@ -192,7 +264,7 @@ def test_process_samples_requires_prechecked_rows(tmp_path: Path) -> None:
         module.process_samples(
             analysis_samples,
             _stage_paths(),
-            reference_bucket=_bucket_roles(),
+            reference_s3_uri=_s3_role_uris(),
             aws_env={},
             debug=False,
         )
@@ -463,7 +535,7 @@ def test_precheck_rejects_mismatched_comma_separated_ilmn_counts(
 
     report, _rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -517,7 +589,7 @@ def test_precheck_rejects_out_of_order_comma_separated_ilmn_pairs(
 
     report, _rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -642,7 +714,7 @@ def test_process_samples_rejects_incomplete_complete_genomics_fastq_pair(
 
     report, _rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -735,7 +807,7 @@ def test_process_samples_rejects_duplicate_multi_lane_fastq_pairs(
 
     report, _rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1551,7 +1623,7 @@ def test_process_samples_rejects_ultima_cram_without_crai(
 
     report, _rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1577,8 +1649,8 @@ def test_stage_path_with_sidecars_stages_cram_before_crai(
         "s3://bucket/sample.cram",
         sidecar_suffixes=(".crai",),
         dest_fsx_dir="/fsx/staging/staged_external_sequencing_data/remote_stage_test/sample",
-        dest_s3_dir="s3://stage-bucket/staging/staged_external_sequencing_data/remote_stage_test/sample",
-        reference_bucket="s3://reference",
+        dest_s3_dir="s3://stage-bucket/remote_stage_test/sample",
+        reference_s3_uri="s3://reference",
         aws_env={},
         debug=False,
     )
@@ -1625,7 +1697,7 @@ def test_precheck_run_metrics_preserves_relative_dirs_and_uses_basename(
                 "qc/summary.txt",
                 str(absolute_metric),
                 "s3://source-bucket/metrics/report.json",
-                "/fsx/staging/run_metrics/headnode.txt",
+                "/fsx/staging/staged_external_sequencing_data/remote_stage_existing/run_metrics/headnode.txt",
             ]
         )
         + "\n",
@@ -1641,7 +1713,7 @@ def test_precheck_run_metrics_preserves_relative_dirs_and_uses_basename(
     specs = module.parse_run_metric_staging_specs([f"RUN.1:ilmn:{fofn}"])
     files = module.precheck_run_metrics(
         specs,
-        reference_bucket="s3://reference",
+        reference_s3_uri="s3://reference",
         aws_env={},
         debug=False,
     )
@@ -1650,13 +1722,16 @@ def test_precheck_run_metrics_preserves_relative_dirs_and_uses_basename(
         str(relative_metric.resolve()),
         str(absolute_metric),
         "s3://source-bucket/metrics/report.json",
-        "/fsx/staging/run_metrics/headnode.txt",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_existing/run_metrics/headnode.txt",
     ]
     assert [(item.source, item.destination_relative_path) for item in files] == [
         (str(relative_metric.resolve()), "qc/summary.txt"),
         (str(absolute_metric), "instrument.csv"),
         ("s3://source-bucket/metrics/report.json", "report.json"),
-        ("/fsx/staging/run_metrics/headnode.txt", "headnode.txt"),
+        (
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_existing/run_metrics/headnode.txt",
+            "headnode.txt",
+        ),
     ]
     assert all(item.spec.run_uid == "RUN-1" for item in files)
     assert all(item.spec.platform == "ILMN" for item in files)
@@ -1670,7 +1745,7 @@ def test_stage_run_metrics_copies_under_runs_subdir(
     files = [
         module.RunMetricFile(
             spec=spec,
-            source="/fsx/staging/run_metrics/headnode.txt",
+            source="/fsx/staging/staged_external_sequencing_data/remote_stage_existing/run_metrics/headnode.txt",
             destination_relative_path="headnode.txt",
         ),
         module.RunMetricFile(
@@ -1689,19 +1764,19 @@ def test_stage_run_metrics_copies_under_runs_subdir(
     created = module.stage_run_metrics(
         files,
         _stage_paths(),
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
 
     assert copies == [
         (
-            "s3://stage-bucket/run_metrics/headnode.txt",
-            "s3://stage-bucket/staging/staged_external_sequencing_data/remote_stage_test/runs/RUN-1/headnode.txt",
+            "s3://stage-bucket/remote_stage_existing/run_metrics/headnode.txt",
+            "s3://stage-bucket/remote_stage_test/runs/RUN-1/headnode.txt",
         ),
         (
             "s3://source-bucket/metrics/report.json",
-            "s3://stage-bucket/staging/staged_external_sequencing_data/remote_stage_test/runs/RUN-1/qc/report.json",
+            "s3://stage-bucket/remote_stage_test/runs/RUN-1/qc/report.json",
         ),
     ]
     assert created == [
@@ -1729,7 +1804,7 @@ def test_precheck_run_metrics_rejects_duplicate_destination_paths(
     with pytest.raises(module.CommandError, match="maps multiple sources"):
         module.precheck_run_metrics(
             specs,
-            reference_bucket="s3://reference",
+            reference_s3_uri="s3://reference",
             aws_env={},
             debug=False,
         )
@@ -1752,7 +1827,7 @@ def test_precheck_run_metrics_rejects_parent_relative_destination(
     with pytest.raises(module.CommandError, match="must not contain '..'"):
         module.precheck_run_metrics(
             specs,
-            reference_bucket="s3://reference",
+            reference_s3_uri="s3://reference",
             aws_env={},
             debug=False,
         )
@@ -1790,11 +1865,11 @@ def test_main_precheck_only_validates_run_metrics_without_copying(
     rc = module.main(
         [
             str(analysis_samples),
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://reference",
-            "--control-data-bucket",
+            "--control-data-s3-uri",
             "s3://control-data",
-            "--stage-bucket",
+            "--stage-s3-uri",
             "s3://stage",
             "--profile",
             "dev",
@@ -1912,7 +1987,7 @@ def test_precheck_manifest_rejects_mounted_readonly_paths_outside_run_dir_mounts
 
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1939,7 +2014,7 @@ def test_precheck_manifest_rejects_mounted_readonly_mount_id_mismatch(
 
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1973,7 +2048,7 @@ def test_precheck_manifest_collects_multiple_row_errors(
 
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -2040,7 +2115,7 @@ def test_precheck_manifest_collects_multiple_structural_errors_in_one_row(
 
     report, _rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -2112,7 +2187,7 @@ def test_precheck_manifest_rejects_giab_replicate_external_id(
     bad_manifest = _write_manifest(tmp_path, header, [row("HG001-a")])
     bad_report, _bad_rows = module.precheck_manifest(
         bad_manifest,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -2124,7 +2199,7 @@ def test_precheck_manifest_rejects_giab_replicate_external_id(
     good_manifest = _write_manifest(tmp_path, header, [row("HG001")])
     good_report, _good_rows = module.precheck_manifest(
         good_manifest,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -2194,7 +2269,7 @@ def test_precheck_manifest_respects_explicit_false_positive_control(
 
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -2264,7 +2339,7 @@ def test_precheck_manifest_infers_positive_control_when_flag_is_omitted(
 
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -2326,7 +2401,7 @@ def test_precheck_manifest_rejects_explicit_positive_control_with_non_giab_path(
 
     report, _rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=_bucket_roles(),
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -2371,11 +2446,11 @@ def test_main_precheck_failure_does_not_stage_or_write_configs(
     rc = module.main(
         [
             str(analysis_samples),
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://bucket",
-            "--control-data-bucket",
+            "--control-data-s3-uri",
             "s3://control-data",
-            "--stage-bucket",
+            "--stage-s3-uri",
             "s3://stage",
             "--profile",
             "test",
@@ -2419,11 +2494,11 @@ def test_main_precheck_only_clean_manifest_exits_without_copies(
     rc = module.main(
         [
             str(analysis_samples),
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://bucket",
-            "--control-data-bucket",
+            "--control-data-s3-uri",
             "s3://control-data",
-            "--stage-bucket",
+            "--stage-s3-uri",
             "s3://stage",
             "--profile",
             "test",
@@ -2467,11 +2542,11 @@ def test_main_precheck_only_bad_manifest_reports_aggregated_errors(
     rc = module.main(
         [
             str(analysis_samples),
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://bucket",
-            "--control-data-bucket",
+            "--control-data-s3-uri",
             "s3://control-data",
-            "--stage-bucket",
+            "--stage-s3-uri",
             "s3://stage",
             "--profile",
             "test",

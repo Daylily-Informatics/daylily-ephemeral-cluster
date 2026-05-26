@@ -10,9 +10,9 @@ def build_noninteractive_cluster_config(
     *,
     cluster_name: str,
     ssh_key_name: str,
-    reference_bucket: str,
-    control_data_bucket: str,
-    stage_bucket: str,
+    reference_s3_uri: str,
+    control_data_s3_uri: str,
+    stage_s3_uri: str,
     contact_email: str | None = None,
 ) -> ConfigFile:
     """Build a non-interactive cluster request config with explicit S3 roles."""
@@ -20,9 +20,9 @@ def build_noninteractive_cluster_config(
     values = {
         "cluster_name": cluster_name,
         "ssh_key_name": ssh_key_name,
-        "reference_bucket": reference_bucket,
-        "control_data_bucket": control_data_bucket,
-        "stage_bucket": stage_bucket,
+        "reference_s3_uri": reference_s3_uri,
+        "control_data_s3_uri": control_data_s3_uri,
+        "stage_s3_uri": stage_s3_uri,
         "enforce_budget": "skip",
     }
     if contact_email:
@@ -44,9 +44,9 @@ def write_noninteractive_cluster_config(
     dest: str | Path,
     cluster_name: str,
     ssh_key_name: str,
-    reference_bucket: str,
-    control_data_bucket: str,
-    stage_bucket: str,
+    reference_s3_uri: str,
+    control_data_s3_uri: str,
+    stage_s3_uri: str,
     contact_email: str | None = None,
 ) -> Path:
     """Write a day-ec cluster request config and return the written path."""
@@ -55,9 +55,9 @@ def write_noninteractive_cluster_config(
     cfg = build_noninteractive_cluster_config(
         cluster_name=cluster_name,
         ssh_key_name=ssh_key_name,
-        reference_bucket=reference_bucket,
-        control_data_bucket=control_data_bucket,
-        stage_bucket=stage_bucket,
+        reference_s3_uri=reference_s3_uri,
+        control_data_s3_uri=control_data_s3_uri,
+        stage_s3_uri=stage_s3_uri,
         contact_email=contact_email,
     )
     write_config(cfg, path)
