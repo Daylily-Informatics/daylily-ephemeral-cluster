@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k -n",
+  "completed_at": "2026-05-25T07:30:54Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/johnm/tvb_ultima_snv_alignstats_5x_1021_dryrun/daylily-omics-analysis",
+  "session_name": "tvb_ultima_snv_alignstats_5x_1021_dryrun",
+  "started_at": "2026-05-25T07:30:28Z"
+}

@@ -139,6 +139,26 @@ repositories:
           - ilmn_solo
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20"
+            status: success
+            dryrun_status: success
+            live_status: success
+            dryrun_analysis_id: tvb_illumina_snv_alignstats_5x_1021_dryrun
+            live_analysis_id: tvb_illumina_snv_alignstats_5x_1021
+            stage_or_context: /fsx/data/staged_sample_data/remote_stage_20260525T071517Z
+            notes: "Live run completed with CRAM, VCF, alignstats, and concordance outputs."
       - command_id: illumina_snv_alignstats_relatedness_vep_multiqc
         display_name: "Illumina SNV + Alignstats + Relatedness + VEP MultiQC"
         description: "Illumina WGS Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, and final MultiQC launch profile."
@@ -179,6 +199,26 @@ repositories:
           - ilmn_solo
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k"
+            status: success
+            dryrun_status: success
+            live_status: success
+            dryrun_analysis_id: tvb_illumina_related_vep_multiqc_5x_1021_dryrun
+            live_analysis_id: tvb_illumina_related_vep_multiqc_5x_1021
+            stage_or_context: /fsx/data/staged_sample_data/remote_stage_20260525T072540Z
+            notes: "Live run completed with CRAM, VCF, alignstats, concordance, MultiQC, and relatedness outputs."
       - command_id: ultima_snv_alignstats
         display_name: "Ultima SNV + Alignstats"
         description: "Ultima CRAM/FASTQ Sentieon DNAscope and alignment-statistics launch profile."
@@ -215,6 +255,26 @@ repositories:
           - ultima_solo
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k"
+            status: success
+            dryrun_status: success
+            live_status: success
+            dryrun_analysis_id: tvb_ultima_snv_alignstats_5x_1021_dryrun
+            live_analysis_id: tvb_ultima_snv_alignstats_5x_1021
+            stage_or_context: /fsx/data/staged_sample_data/remote_stage_20260525T072907Z
+            notes: "Live run completed with VCF, alignstats, and concordance outputs."
       - command_id: ont_snv_alignstats
         display_name: "ONT SNV + Alignstats"
         description: "ONT alignment, Sentieon DNAscope, and alignment-statistics launch profile."
@@ -252,6 +312,26 @@ repositories:
           - ont_solo
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k"
+            status: success
+            dryrun_status: success
+            live_status: success
+            dryrun_analysis_id: tvb_ont_snv_alignstats_5x_1021_dryrun
+            live_analysis_id: tvb_ont_snv_alignstats_5x_1021
+            stage_or_context: /fsx/data/staged_sample_data/remote_stage_20260525T073112Z
+            notes: "Live run completed with VCF, alignstats, and concordance outputs."
       - command_id: pacbio_snv_alignstats
         display_name: "PacBio SNV + Alignstats"
         description: "PacBio HiFi Sentieon DeepVariant and alignment-statistics launch profile."
@@ -289,6 +369,26 @@ repositories:
           - pacbio_solo
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1"
+            status: success
+            dryrun_status: success
+            live_status: success
+            dryrun_analysis_id: tvb_pacbio_snv_alignstats_5x_1021_dryrun
+            live_analysis_id: tvb_pacbio_snv_alignstats_5x_1021
+            stage_or_context: /fsx/data/staged_sample_data/remote_stage_20260525T073306Z
+            notes: "Live run completed with CRAM, VCF, alignstats, and concordance outputs."
       - command_id: roche_snv_alignstats
         display_name: "Roche SNV + Alignstats"
         description: "Roche aligned BAM HaplotypeCaller and alignment-statistics launch profile."
@@ -325,6 +425,25 @@ repositories:
           - roche_solo
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf -p -j 5 -k"
+            status: failed
+            dryrun_status: failed
+            live_status: not_run
+            dryrun_analysis_id: tvb_roche_snv_alignstats_5x_1021_dryrun
+            stage_or_context: /fsx/data/staged_sample_data/remote_stage_20260525T073504Z
+            failure_cause: "Dry-run failed while preparing Roche/GATK containers: missing Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg."
       - command_id: hybrid_ilmn_ont_snv
         display_name: "Hybrid ILMN+ONT HIOMR SNV/SV"
         description: "Hybrid Illumina plus ONT refactored Sentieon HIOMR SNV/SV launch profile."
@@ -365,9 +484,29 @@ repositories:
           - hybrid_ilmn_ont
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k"
+            status: success
+            dryrun_status: success
+            live_status: success
+            dryrun_analysis_id: tvb_hybrid_ilmn_ont_snv_5x5x_1021_dryrun
+            live_analysis_id: tvb_hybrid_ilmn_ont_snv_5x5x_1021
+            stage_or_context: /fsx/data/staged_sample_data/remote_stage_20260525T074001Z
+            notes: "Live run completed with sentdhiomr SNV/SV and concordance outputs."
       - command_id: hybrid_ultima_ont_snv
-        display_name: "Hybrid Ultima+ONT SNV"
-        description: "Hybrid Ultima plus ONT modular Sentieon SNV launch profile."
+        display_name: "Hybrid Ultima+ONT HUOMR SNV"
+        description: "Hybrid Ultima plus ONT refactored modular Sentieon HUOMR SNV launch profile."
         datasource: Hybrid Ultima+ONT
         launcher: workflow_launch
         command_class: sample_analysis
@@ -384,7 +523,7 @@ repositories:
             - ONT_CRAM_ALIGNER
             - ONT_CRAM_SNV_CALLER
         targets:
-          - produce_sentdhuom_snv_vcf
+          - produce_sentdhuomr_snv_vcf
           - produce_alignstats
           - produce_snv_concordances
         genome: hg38_broad
@@ -394,10 +533,10 @@ repositories:
         dedupers:
           - na
         snv_callers:
-          - sentdhuom
+          - sentdhuomr
         sv_callers: []
-        dy_command: "bin/day_run produce_sentdhuom_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k"
-        dryrun_dy_command: "bin/day_run produce_sentdhuom_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k -n"
+        dy_command: "bin/day_run produce_sentdhuomr_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k"
+        dryrun_dy_command: "bin/day_run produce_sentdhuomr_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k -n"
         compatible_platforms:
           - ULTIMA
           - ONT
@@ -405,6 +544,27 @@ repositories:
           - hybrid_ug_ont
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_sentdhuomr_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k"
+            status: failed
+            dryrun_status: success
+            live_status: failed
+            dryrun_analysis_id: tvb_hybrid_ultima_ont_snv_5x5x_1021_dryrun
+            live_analysis_id: tvb_hybrid_ultima_ont_snv_5x5x_1021
+            stage_or_context: /fsx/data/staged_sample_data/remote_stage_20260525T074404Z
+            failure_cause: "Live run failed in sentdhuomr_hybrid_select: ModuleNotFoundError: No module named 'sentieon_cli' while resolving files('sentieon_cli.scripts').joinpath('hybrid_select.py')."
+            notes: "Dry-run passed; live failure was new after the r-suffix command and pass-through staging avoided the prior basename collision."
       - command_id: complete_genomics_mgi_snv_concordance
         display_name: "Complete Genomics/MGI SNV + Concordance"
         description: "Complete Genomics/MGI Sentieon sentcg/dmd/cgt7p launch profile."
@@ -442,6 +602,24 @@ repositories:
           - complete_genomics_solo
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete"
+            status: blocked
+            dryrun_status: blocked
+            live_status: blocked
+            stage_or_context: docs/plans/20260525T063158Z_tstver411b_inputs/complete_genomics_mgi_hg003_candidate_blocked.tsv
+            failure_cause: "Blocked before dry-run because the candidate mate pair was not verified: _386_1 was 90,600,002,744 bytes, _386_2 was 10,794,018,984 bytes, and nearby _388_2 was 97,844,317,264 bytes."
       - command_id: illumina_run_qc
         display_name: "Illumina Run QC"
         description: "Illumina run-folder QC from a mounted or explicit S3 run context."
@@ -453,6 +631,8 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
+          samples_table: .test_data/data/samples.tsv
+          units_table: .test_data/data/units.tsv
         input_requirements:
           required_run_context_values:
             PLATFORM: ILMN
@@ -472,6 +652,25 @@ repositories:
           - run_directory_mount
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_illumina_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv"
+            status: failed
+            dryrun_status: failed
+            live_status: not_run
+            dryrun_analysis_id: tvb_illumina_run_qc_1021_dryrun
+            stage_or_context: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+            failure_cause: "Dry-run failed: WorkflowError reported config/units.tsv was not found and requested config/units.tsv or --config units_table=/path/to/units.tsv."
       - command_id: illumina_bclconvert
         display_name: "Illumina BCL Convert"
         description: "Illumina BCL Convert from a mounted run directory with generated units table output."
@@ -483,6 +682,8 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
+          samples_table: .test_data/data/bclconvert/samples.tsv
+          units_table: .test_data/data/bclconvert/units.tsv
         input_requirements:
           required_run_context_values:
             PLATFORM: ILMN
@@ -502,6 +703,25 @@ repositories:
           - run_directory_mount
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/bclconvert/samples.tsv units_table=.test_data/data/bclconvert/units.tsv"
+            status: failed
+            dryrun_status: failed
+            live_status: not_run
+            dryrun_analysis_id: tvb_illumina_bclconvert_1021_dryrun
+            stage_or_context: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+            failure_cause: "Dry-run failed: WorkflowError reported no read pairs specified for analysis unit 20260514_LH01106_0009_B23TVLGLT4."
       - command_id: ont_run_qc
         display_name: "ONT Run QC"
         description: "ONT run-folder QC from a mounted run context."
@@ -513,6 +733,8 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
+          samples_table: .test_data/data/samples.tsv
+          units_table: .test_data/data/units.tsv
         input_requirements:
           required_run_context_values:
             PLATFORM: ONT
@@ -532,6 +754,25 @@ repositories:
           - run_directory_mount
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_ont_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv"
+            status: failed
+            dryrun_status: failed
+            live_status: not_run
+            dryrun_analysis_id: tvb_ont_run_qc_1021_dryrun
+            stage_or_context: /fsx/run_dir_mounts/20260513_ONT_HG003/
+            failure_cause: "Dry-run failed: WorkflowError reported config/units.tsv was not found and requested config/units.tsv or --config units_table=/path/to/units.tsv."
       - command_id: ultima_run_qc
         display_name: "Ultima Run QC"
         description: "Ultima run-folder QC from a mounted run context."
@@ -543,6 +784,8 @@ repositories:
         requires_run_mount: true
         runtime_parameters:
           run_context_file: config/runs.tsv
+          samples_table: .test_data/data/samples.tsv
+          units_table: .test_data/data/units.tsv
         input_requirements:
           required_run_context_values:
             PLATFORM: ULTIMA
@@ -562,6 +805,25 @@ repositories:
           - run_directory_mount
         git_tag: 1.0.21
         no_containerized: false
+        validation_runs:
+          - run_id: tstver411b_dayoa_catalog_recipe_validation
+            generated_at: "2026-05-25T20:04:39Z"
+            report_path: docs/tstver411b_command_catalog_test_results.md
+            ledger_path: docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md
+            cluster: tstVer4-1-1b
+            region: us-west-2
+            region_az: us-west-2d
+            dayec_tag: 4.1.3
+            dayec_commit: 012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4
+            dayoa_tag: 1.0.21
+            dayoa_commit: c2ffe93f246ff19c346f0a99e04fddc9e2712ff3
+            tested_command: "bin/day_run produce_ultima_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv"
+            status: failed
+            dryrun_status: failed
+            live_status: not_run
+            dryrun_analysis_id: tvb_ultima_run_qc_1021_dryrun
+            stage_or_context: /fsx/run_dir_mounts/602221-20260417_2346/
+            failure_cause: "Dry-run failed: WorkflowError reported config/units.tsv was not found and requested config/units.tsv or --config units_table=/path/to/units.tsv."
   rna-seq-star-deseq2:
     display_name: "RNA-seq STAR + DESeq2"
     description: "RNA sequencing alignment and differential expression analysis workflows."

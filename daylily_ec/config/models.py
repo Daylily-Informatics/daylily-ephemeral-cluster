@@ -120,7 +120,10 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "max_count_8I",
     "private_subnet_id",
     "public_subnet_id",
-    "s3_bucket_name",
+    "reference_bucket",
+    "control_data_bucket",
+    "runtime_assets_bucket",
+    "stage_bucket",
     "spot_instance_allocation_strategy",
 ]
 

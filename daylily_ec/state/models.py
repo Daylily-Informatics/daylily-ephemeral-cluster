@@ -143,6 +143,14 @@ class StateRecord(BaseModel):
 
     # -- Selected resources --------------------------------------------------
     bucket: str = ""
+    reference_bucket: str = ""
+    control_data_bucket: str = ""
+    runtime_assets_bucket: str = ""
+    stage_bucket: str = ""
+    reference_s3_uri: str = ""
+    control_data_s3_uri: str = ""
+    runtime_assets_s3_uri: str = ""
+    stage_s3_uri: str = ""
     keypair: str = ""
     public_subnet_id: str = ""
     private_subnet_id: str = ""
@@ -177,4 +185,3 @@ class StateRecord(BaseModel):
             indent=indent,
             sort_keys=True,
         )
-

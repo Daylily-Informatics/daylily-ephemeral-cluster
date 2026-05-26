@@ -1,0 +1,1 @@
+s3://lsmc-ssf-sequencing-data/derived/lsmc/ssf-hq/johnm/johnm_hg003_10x_ksink_20260519T130812Z/

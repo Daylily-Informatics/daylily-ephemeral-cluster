@@ -1,0 +1,7 @@
+[2026-05-25T08:56:02Z] LIVE_START illumina_snv_alignstats tvb_illumina_snv_alignstats_5x_1021
+[2026-05-25T08:56:20Z] LIVE_LAUNCH_RC illumina_snv_alignstats 0
+[2026-05-25T08:56:46Z] LIVE_WAIT illumina_snv_alignstats attempt=1
+[2026-05-25T09:03:22Z] LIVE_WAIT illumina_snv_alignstats attempt=11
+[2026-05-25T09:09:57Z] LIVE_WAIT illumina_snv_alignstats attempt=21
+[2026-05-25T09:17:10Z] LIVE_WAIT illumina_snv_alignstats attempt=31
+[2026-05-25T09:20:32Z] LIVE_COMPLETE illumina_snv_alignstats exit_code=0

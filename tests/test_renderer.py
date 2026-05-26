@@ -33,7 +33,7 @@ MINIMAL_SUBS = {
 
 
 def _full_subs() -> dict[str, str]:
-    """Return a substitutions dict covering all 29 known keys."""
+    """Return a substitutions dict covering all known keys."""
     return {k: f"val-{k}" for k in ALL_SUBSTITUTION_KEYS}
 
 
@@ -42,7 +42,7 @@ def _full_subs() -> dict[str, str]:
 
 class TestConstants:
     def test_all_keys_count(self):
-        assert len(ALL_SUBSTITUTION_KEYS) == 26
+        assert len(ALL_SUBSTITUTION_KEYS) == 31
 
     def test_required_keys_subset(self):
         assert REQUIRED_KEYS.issubset(ALL_SUBSTITUTION_KEYS)
@@ -140,8 +140,10 @@ class TestAllSubstitutionKeys:
         expected = {
             "REGSUB_REGION", "REGSUB_PUB_SUBNET", "REGSUB_KEYNAME",
             "REGSUB_S3_BUCKET_INIT", "REGSUB_S3_BUCKET_NAME",
-            "REGSUB_S3_IAM_POLICY", "REGSUB_PRIVATE_SUBNET",
-            "REGSUB_S3_BUCKET_REF",
+            "REGSUB_S3_ACCESS_BLOCK", "REGSUB_S3_IAM_POLICY",
+            "REGSUB_PRIVATE_SUBNET", "REGSUB_S3_BUCKET_REF",
+            "REGSUB_S3_REFERENCE_URI", "REGSUB_S3_CONTROL_DATA_URI",
+            "REGSUB_S3_RUNTIME_ASSETS_URI", "REGSUB_S3_STAGE_URI",
             "REGSUB_FSX_SIZE", "REGSUB_DETAILED_MONITORING",
             "REGSUB_CLUSTER_NAME", "REGSUB_USERNAME", "REGSUB_PROJECT",
             "REGSUB_DELETE_LOCAL_ROOT", "REGSUB_SAVE_FSX",

@@ -1,0 +1,10 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.11.15, pytest-9.0.3, pluggy-1.6.0
+rootdir: /Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster
+configfile: pyproject.toml
+plugins: cov-7.1.0, typeguard-2.13.3
+collected 8 items
+
+tests/test_repository_catalog.py ........                                [100%]
+
+============================== 8 passed in 0.20s ===============================

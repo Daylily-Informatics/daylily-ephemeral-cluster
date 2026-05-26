@@ -1,0 +1,57 @@
+{
+  "analysis_id": "tvb_ont_snv_alignstats_5x_1021_dryrun",
+  "analysis_samples": "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260525T063158Z_tstver411b_inputs/ont_hg003_5x.tsv",
+  "command_id": "ont_snv_alignstats",
+  "compatible_data_modes": [
+    "ont_solo"
+  ],
+  "delete_on_export_success": false,
+  "detected_data_modes": [
+    "ont_solo"
+  ],
+  "dry_run": true,
+  "dy_command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k -n",
+  "executing_entity": "johnm",
+  "export_destination_s3_uri": null,
+  "export_trigger": "none",
+  "git_tag": "1.0.21",
+  "remote_stage_dir": "/fsx/data/staged_sample_data/remote_stage_20260525T073112Z",
+  "samples_tsv": "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260525T063158Z_tstver411b_inputs/generated/ont_snv_alignstats/20260525T073112Z_samples.tsv",
+  "session_name": "tvb_ont_snv_alignstats_5x_1021_dryrun",
+  "units_tsv": "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260525T063158Z_tstver411b_inputs/generated/ont_snv_alignstats/20260525T073112Z_units.tsv",
+  "workflow_argv": [
+    "workflow",
+    "launch",
+    "--repository",
+    "daylily-omics-analysis",
+    "--analysis-id",
+    "tvb_ont_snv_alignstats_5x_1021_dryrun",
+    "--executing-entity",
+    "johnm",
+    "--git-tag",
+    "1.0.21",
+    "--genome",
+    "hg38_broad",
+    "--dy-command",
+    "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k -n",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "tstVer4-1-1b",
+    "--stage-dir",
+    "/fsx/data/staged_sample_data/remote_stage_20260525T073112Z",
+    "--session-name",
+    "tvb_ont_snv_alignstats_5x_1021_dryrun",
+    "--project",
+    "tstVer4-1-1b",
+    "--skip-project-check",
+    "--dry-run"
+  ],
+  "workflow_launch": {
+    "repo_path": "/fsx/analysis_results/johnm/tvb_ont_snv_alignstats_5x_1021_dryrun/daylily-omics-analysis",
+    "run_dir": "/home/ubuntu/daylily-runs/tvb_ont_snv_alignstats_5x_1021_dryrun",
+    "session_name": "tvb_ont_snv_alignstats_5x_1021_dryrun"
+  }
+}

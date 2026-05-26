@@ -339,6 +339,46 @@ def _extract_selected(
     return ""
 
 
+def _extract_s3_roles(report: PreflightReport) -> Dict[str, Dict[str, str]]:
+    """Pull normalized S3 role details from the preflight report."""
+    for chk in report.checks:
+        if chk.id == "s3.role_config":
+            roles = chk.details.get("roles", {})
+            if isinstance(roles, dict):
+                return {
+                    str(role): {
+                        "uri": str(detail.get("uri", "")),
+                        "bucket": str(detail.get("bucket", "")),
+                        "prefix": str(detail.get("prefix", "")),
+                    }
+                    for role, detail in roles.items()
+                    if isinstance(detail, dict)
+                }
+    return {}
+
+
+def _role_uri(roles: Dict[str, Dict[str, str]], role: str) -> str:
+    return str((roles.get(role) or {}).get("uri") or "")
+
+
+def _role_bucket(roles: Dict[str, Dict[str, str]], role: str) -> str:
+    return str((roles.get(role) or {}).get("bucket") or "")
+
+
+def _s3_uri_join(base_uri: str, *parts: str) -> str:
+    base = base_uri.rstrip("/")
+    suffix = "/".join(part.strip("/") for part in parts if part.strip("/"))
+    return f"{base}/{suffix}" if suffix else base
+
+
+def _s3_access_block(buckets: List[str], *, indent: int = 6) -> str:
+    spaces = " " * indent
+    return "\n".join(
+        f"{spaces}- BucketName: {bucket}\n{spaces}  EnableWriteAccess: false"
+        for bucket in sorted(set(bucket for bucket in buckets if bucket))
+    )
+
+
 def _noop_heartbeat_result() -> Any:
     """Return a stub HeartbeatResult-like object for the no-op path."""
     from types import SimpleNamespace
@@ -773,7 +813,6 @@ def run_create_workflow(
     from daylily_ec.config.triplets import (
         get_effective_default,
         load_config,
-        resolve_value,
         write_next_run_template,
     )
     from daylily_ec.pcluster.monitor import wait_for_creation
@@ -868,14 +907,30 @@ def run_create_workflow(
         or "1"
     )
 
-    s3_triplet = ec.config.get("s3_bucket_name")
-    s3_cfg_action = s3_triplet.action if s3_triplet else ""
-    s3_cfg_set = s3_triplet.set_value if s3_triplet else ""
-    s3_cfg_bucket_name = get_effective_default(cfg, "s3_bucket_name", "")
-    if s3_triplet is not None:
-        resolved_s3_value = resolve_value(s3_triplet)
-        if resolved_s3_value:
-            s3_cfg_bucket_name = resolved_s3_value
+    reference_bucket = _resolve_config_value(
+        cfg,
+        "reference_bucket",
+        "Reference bucket or S3 prefix",
+        non_interactive=non_interactive,
+    )
+    control_data_bucket = _resolve_config_value(
+        cfg,
+        "control_data_bucket",
+        "Control-data bucket or S3 prefix",
+        non_interactive=non_interactive,
+    )
+    runtime_assets_bucket = _resolve_config_value(
+        cfg,
+        "runtime_assets_bucket",
+        "Runtime-assets bucket or S3 prefix",
+        non_interactive=non_interactive,
+    )
+    stage_bucket = _resolve_config_value(
+        cfg,
+        "stage_bucket",
+        "Stage bucket or S3 prefix",
+        non_interactive=non_interactive,
+    )
 
     preflight_steps: List[PreflightStep] = [
         # 1-2: ToolchainValidator + AWS Identity — implicit via AWSContext.build
@@ -893,12 +948,13 @@ def run_create_workflow(
             max_count_192i=max_192i,
             non_interactive=non_interactive,
         ),
-        # 6: S3 Bucket Selector + Validator
+        # 6: S3 Role Validator
         make_s3_bucket_preflight_step(
             aws_ctx,
-            cfg_action=s3_cfg_action,
-            cfg_set_value=s3_cfg_set,
-            cfg_bucket_name=s3_cfg_bucket_name,
+            reference_bucket=reference_bucket,
+            control_data_bucket=control_data_bucket,
+            runtime_assets_bucket=runtime_assets_bucket,
+            stage_bucket=stage_bucket,
             profile=aws_ctx.profile,
             interactive=not non_interactive,
         ),
@@ -918,8 +974,14 @@ def run_create_workflow(
     # -- 3. RESOURCE RESOLUTION -----------------------------------------------
     ui.phase("RESOURCE RESOLUTION")
 
-    # Extract selected bucket from preflight report
-    bucket_name = _extract_selected(report, "s3.bucket_select", "selected")
+    # Extract normalized S3 role bindings from preflight report.
+    s3_roles = _extract_s3_roles(report)
+    reference_s3_uri = _role_uri(s3_roles, "reference")
+    control_data_s3_uri = _role_uri(s3_roles, "control_data")
+    runtime_assets_s3_uri = _role_uri(s3_roles, "runtime_assets")
+    stage_s3_uri = _role_uri(s3_roles, "staging")
+    runtime_assets_bucket_name = _role_bucket(s3_roles, "runtime_assets")
+    cluster_boot_s3_uri = _s3_uri_join(runtime_assets_s3_uri, "cluster_boot_config")
 
     # 3a. Baseline CFN stack
     ui.step("Ensuring baseline CFN stack ...")
@@ -989,7 +1051,10 @@ def run_create_workflow(
 
     missing_resources = _require_values(
         {
-            "bucket": bucket_name,
+            "reference bucket": reference_s3_uri,
+            "control-data bucket": control_data_s3_uri,
+            "runtime-assets bucket": runtime_assets_s3_uri,
+            "stage bucket": stage_s3_uri,
             "public subnet": public_subnet,
             "private subnet": private_subnet,
             "IAM policy ARN": policy_arn,
@@ -1001,14 +1066,20 @@ def run_create_workflow(
         return EXIT_VALIDATION_FAILURE
 
     logger.info(
-        "Resources: bucket=%s pub=%s priv=%s policy=%s",
-        bucket_name,
+        "Resources: reference=%s control_data=%s runtime_assets=%s staging=%s pub=%s priv=%s policy=%s",
+        reference_s3_uri,
+        control_data_s3_uri,
+        runtime_assets_s3_uri,
+        stage_s3_uri,
         public_subnet,
         private_subnet,
         policy_arn,
     )
     ui.ok("Resources resolved")
-    ui.detail("Bucket", bucket_name)
+    ui.detail("Reference", reference_s3_uri)
+    ui.detail("Control data", control_data_s3_uri)
+    ui.detail("Runtime assets", runtime_assets_s3_uri)
+    ui.detail("Staging", stage_s3_uri)
     ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
     ui.detail("Policy", policy_arn)
 
@@ -1024,7 +1095,6 @@ def run_create_workflow(
     # -- 5. RENDER YAML (Phase 2a) -------------------------------------------
     ui.phase("RENDER CLUSTER YAML")
 
-    bucket_url = f"s3://{bucket_name}" if bucket_name else ""
     template_yaml = (
         _resolve_config_value(
             cfg,
@@ -1041,11 +1111,24 @@ def run_create_workflow(
     substitutions: Dict[str, str] = {
         "REGSUB_REGION": aws_ctx.region,
         "REGSUB_PUB_SUBNET": public_subnet,
-        "REGSUB_S3_BUCKET_INIT": bucket_url,
-        "REGSUB_S3_BUCKET_NAME": bucket_name,
+        "REGSUB_S3_BUCKET_INIT": cluster_boot_s3_uri,
+        "REGSUB_S3_BUCKET_NAME": runtime_assets_bucket_name,
         "REGSUB_S3_IAM_POLICY": policy_arn,
         "REGSUB_PRIVATE_SUBNET": private_subnet,
-        "REGSUB_S3_BUCKET_REF": bucket_url,
+        "REGSUB_S3_BUCKET_REF": reference_s3_uri.rstrip("/"),
+        "REGSUB_S3_REFERENCE_URI": reference_s3_uri.rstrip("/"),
+        "REGSUB_S3_CONTROL_DATA_URI": control_data_s3_uri.rstrip("/"),
+        "REGSUB_S3_RUNTIME_ASSETS_URI": runtime_assets_s3_uri.rstrip("/"),
+        "REGSUB_S3_STAGE_URI": stage_s3_uri.rstrip("/"),
+        "REGSUB_S3_ACCESS_BLOCK": _s3_access_block(
+            [
+                _role_bucket(s3_roles, "reference"),
+                _role_bucket(s3_roles, "control_data"),
+                _role_bucket(s3_roles, "runtime_assets"),
+                _role_bucket(s3_roles, "staging"),
+            ],
+            indent=6,
+        ),
         "REGSUB_FSX_SIZE": _resolve_fsx_size(
             cfg,
             non_interactive=non_interactive,
@@ -1268,7 +1351,7 @@ def run_create_workflow(
             email=post_create_inputs.budget_email,
             region=aws_ctx.region,
             region_az=region_az,
-            bucket_name=bucket_name,
+            bucket_name=runtime_assets_bucket_name,
             allowed_users=post_create_inputs.allowed_budget_users,
         )
         cluster_budget = ensure_cluster_budget(
@@ -1280,7 +1363,7 @@ def run_create_workflow(
             email=post_create_inputs.budget_email,
             region=aws_ctx.region,
             region_az=region_az,
-            bucket_name=bucket_name,
+            bucket_name=runtime_assets_bucket_name,
             allowed_users=post_create_inputs.allowed_budget_users,
         )
         logger.info("Budgets: global=%s cluster=%s", global_budget, cluster_budget)
@@ -1333,7 +1416,10 @@ def run_create_workflow(
     # Write next-run template
     final_values: Dict[str, str] = {
         "cluster_name": cluster_name,
-        "s3_bucket_name": bucket_name,
+        "reference_bucket": reference_s3_uri,
+        "control_data_bucket": control_data_s3_uri,
+        "runtime_assets_bucket": runtime_assets_s3_uri,
+        "stage_bucket": stage_s3_uri,
         "public_subnet_id": public_subnet,
         "private_subnet_id": private_subnet,
         "iam_policy_arn": policy_arn,
@@ -1355,7 +1441,15 @@ def run_create_workflow(
         region_az=region_az,
         aws_profile=aws_ctx.profile,
         account_id=aws_ctx.account_id,
-        bucket=bucket_name,
+        bucket=runtime_assets_bucket_name,
+        reference_bucket=_role_bucket(s3_roles, "reference"),
+        control_data_bucket=_role_bucket(s3_roles, "control_data"),
+        runtime_assets_bucket=runtime_assets_bucket_name,
+        stage_bucket=_role_bucket(s3_roles, "staging"),
+        reference_s3_uri=reference_s3_uri,
+        control_data_s3_uri=control_data_s3_uri,
+        runtime_assets_s3_uri=runtime_assets_s3_uri,
+        stage_s3_uri=stage_s3_uri,
         keypair="",
         public_subnet_id=public_subnet,
         private_subnet_id=private_subnet,
@@ -1595,7 +1689,6 @@ def run_preflight_only(
 
         effective_config = str(resource_path(effective_config))
     cfg = load_config(effective_config)
-    ec = cfg.ephemeral_cluster
 
     cluster_name = get_effective_default(cfg, "cluster_name", "prod") or "prod"
 
@@ -1621,10 +1714,6 @@ def run_preflight_only(
     max_128i = int(get_effective_default(cfg, "max_count_128I", "1") or "1")
     max_192i = int(get_effective_default(cfg, "max_count_192I", "1") or "1")
 
-    s3_triplet = ec.config.get("s3_bucket_name")
-    s3_cfg_action = s3_triplet.action if s3_triplet else ""
-    s3_cfg_set = s3_triplet.set_value if s3_triplet else ""
-
     preflight_steps: List[PreflightStep] = [
         make_iam_preflight_step(aws_ctx, interactive=not non_interactive),
         make_repository_catalog_preflight_step(),
@@ -1637,9 +1726,10 @@ def run_preflight_only(
         ),
         make_s3_bucket_preflight_step(
             aws_ctx,
-            cfg_action=s3_cfg_action,
-            cfg_set_value=s3_cfg_set,
-            cfg_bucket_name=get_effective_default(cfg, "s3_bucket_name", ""),
+            reference_bucket=get_effective_default(cfg, "reference_bucket", ""),
+            control_data_bucket=get_effective_default(cfg, "control_data_bucket", ""),
+            runtime_assets_bucket=get_effective_default(cfg, "runtime_assets_bucket", ""),
+            stage_bucket=get_effective_default(cfg, "stage_bucket", ""),
             profile=aws_ctx.profile,
             interactive=not non_interactive,
         ),

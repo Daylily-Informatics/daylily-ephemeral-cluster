@@ -1,39 +1,52 @@
-"""S3 bucket discovery, selection, and reference-bundle verification.
+"""S3 role validation for Daylily cluster storage contracts.
 
-Preserves exact Bash behaviour:
-
-1. List all buckets via ``s3api list-buckets``.
-2. Filter candidates whose name contains ``omics-analysis``.
-3. Resolve each bucket's region via ``GetBucketLocation``
-   (``LocationConstraint=None`` → ``us-east-1``).
-4. Keep only buckets matching the target region.
-5. Auto-select based on config triplet / single-match / config fallback.
-6. Verify via direct boto3 checks against the expected reference-bucket layout.
-7. Hard-gate: FAIL if verification fails — never allow pcluster create.
+The cluster create path requires explicit S3 role inputs. It does not discover
+or auto-select buckets because the DayOA storage split has separate contracts
+for references, control read data, runtime assets, and mutable staging.
 
 Public API
 ----------
-- :func:`list_candidate_buckets` — steps 1-4
-- :func:`select_bucket` — step 5
-- :func:`verify_reference_bundle` — step 6
+- :func:`normalize_role_s3_uri` — normalize bucket or S3 prefix values
+- :func:`verify_s3_roles` — verify role buckets/prefixes directly with boto3
 - :func:`make_s3_bucket_preflight_step` — factory returning a :data:`PreflightStep`
 """
 
 from __future__ import annotations
 
+import dataclasses
 import logging
-from typing import Any, List, Optional
+from typing import Any, Dict, List, Optional, Sequence, Tuple
+from urllib.parse import urlparse
 
 import boto3
 from botocore.config import Config
-import typer
 
-from daylily_ec.config.triplets import is_auto_select_disabled, should_auto_apply
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 
 logger = logging.getLogger(__name__)
 
 BUCKET_NAME_FILTER = "omics-analysis"
+
+ROLE_REFERENCE = "reference"
+ROLE_CONTROL_DATA = "control_data"
+ROLE_RUNTIME_ASSETS = "runtime_assets"
+ROLE_STAGING = "staging"
+REQUIRED_S3_ROLES = (
+    ROLE_REFERENCE,
+    ROLE_CONTROL_DATA,
+    ROLE_RUNTIME_ASSETS,
+    ROLE_STAGING,
+)
+
+
+@dataclasses.dataclass(frozen=True)
+class S3RoleSpec:
+    """Normalized S3 role binding."""
+
+    role: str
+    uri: str
+    bucket: str
+    prefix: str
 
 
 def _standard_s3_config() -> Config:
@@ -91,69 +104,27 @@ def list_candidate_buckets(
 
 
 # ---------------------------------------------------------------------------
-# Bucket selection (config triplet + auto-select logic)
-# ---------------------------------------------------------------------------
-
-
-def select_bucket(
-    candidates: List[str],
-    *,
-    cfg_action: str = "",
-    cfg_set_value: str = "",
-    cfg_bucket_name: str = "",
-) -> Optional[str]:
-    """Choose a bucket from *candidates* using Bash-parity selection logic.
-
-    Precedence (exact Bash parity):
-
-    1. Config set_value if :func:`should_auto_apply` is True **and** value
-       is in *candidates*.
-    2. Single candidate auto-select (unless ``DAY_DISABLE_AUTO_SELECT=1``).
-    3. ``cfg_bucket_name`` fallback if it is in *candidates*.
-    4. ``None`` — caller should prompt interactively.
-    """
-    # 1. Triplet set_value auto-apply
-    if should_auto_apply(cfg_action, cfg_set_value):
-        if cfg_set_value in candidates:
-            return cfg_set_value
-
-    # 2. Single candidate auto-select
-    if len(candidates) == 1:
-        if not is_auto_select_disabled():
-            return candidates[0]
-
-    # 3. CONFIG_S3_BUCKET_NAME fallback
-    if cfg_bucket_name and cfg_bucket_name in candidates:
-        return cfg_bucket_name
-
-    # 4. Needs interactive prompt (not handled here)
-    return None
-
-
-# ---------------------------------------------------------------------------
 # Reference bundle verification
 # ---------------------------------------------------------------------------
 
 REFERENCE_VERSION_KEY = "s3_reference_data_version.info"
 DEFAULT_REFERENCE_VERSION = "0.7.131c"
-CORE_REFERENCE_PREFIXES = (
-    "cluster_boot_config/",
-    "data/cached_envs/",
-    "data/tool_specific_resources/",
-    "data/budget_tags/",
-)
-HG38_REFERENCE_PREFIXES = (
-    "data/genomic_data/organism_references/H_sapiens/hg38/",
-    "data/genomic_data/organism_annotations/H_sapiens/hg38/",
-)
-GIAB_REFERENCE_PREFIXES = (
-    "data/genomic_data/organism_reads/",
-)
-REQUIRED_REFERENCE_PREFIXES = (
-    *CORE_REFERENCE_PREFIXES,
-    *HG38_REFERENCE_PREFIXES,
-    *GIAB_REFERENCE_PREFIXES,
-)
+ROLE_REQUIRED_PREFIXES: Dict[str, Tuple[str, ...]] = {
+    ROLE_REFERENCE: (
+        "genomic_data/organism_references/H_sapiens/hg38/",
+        "genomic_data/organism_annotations/H_sapiens/hg38/",
+    ),
+    ROLE_CONTROL_DATA: (
+        "genomic_data/organism_reads/",
+    ),
+    ROLE_RUNTIME_ASSETS: (
+        "cluster_boot_config/",
+        "cached_envs/",
+        "tool_specific_resources/",
+        "budget_tags/",
+    ),
+    ROLE_STAGING: (),
+}
 
 
 def _reference_bucket_s3_client(*, profile: str = "", region: str = "") -> Any:
@@ -162,6 +133,74 @@ def _reference_bucket_s3_client(*, profile: str = "", region: str = "") -> Any:
         region_name=region or None,
     )
     return session.client("s3", config=_standard_s3_config())
+
+
+def normalize_role_s3_uri(value: str, *, role: str) -> S3RoleSpec:
+    """Normalize a required S3 role input.
+
+    Accepts either ``s3://bucket[/prefix]`` or explicit ``bucket[/prefix]``.
+    Empty values, non-S3 schemes, query strings, fragments, and bucketless
+    values fail hard.
+    """
+    raw = str(value or "").strip()
+    if not raw:
+        raise ValueError(f"{role} S3 URI is required.")
+    if "://" not in raw:
+        raw = f"s3://{raw}"
+    parsed = urlparse(raw)
+    if parsed.scheme != "s3" or not parsed.netloc:
+        raise ValueError(f"{role} must be an S3 bucket or s3:// URI, got {value!r}.")
+    if parsed.params or parsed.query or parsed.fragment:
+        raise ValueError(f"{role} S3 URI must not include params, query, or fragment.")
+    prefix = parsed.path.lstrip("/").rstrip("/")
+    uri = f"s3://{parsed.netloc}/{prefix}/" if prefix else f"s3://{parsed.netloc}/"
+    return S3RoleSpec(role=role, uri=uri, bucket=parsed.netloc, prefix=prefix)
+
+
+def bucket_name_from_role_value(value: str, *, role: str) -> str:
+    """Return only the bucket name from an explicit role value."""
+    return normalize_role_s3_uri(value, role=role).bucket
+
+
+def role_prefix_key(spec: S3RoleSpec, relative_key: str) -> str:
+    """Return a key relative to the role prefix."""
+    cleaned = relative_key.lstrip("/")
+    if spec.prefix:
+        return f"{spec.prefix.rstrip('/')}/{cleaned}"
+    return cleaned
+
+
+def _normalize_role_map(role_values: Dict[str, str]) -> Dict[str, S3RoleSpec]:
+    missing = [role for role in REQUIRED_S3_ROLES if not str(role_values.get(role, "")).strip()]
+    if missing:
+        raise ValueError(f"Missing required S3 role value(s): {', '.join(sorted(missing))}")
+    specs = {
+        role: normalize_role_s3_uri(role_values[role], role=role)
+        for role in REQUIRED_S3_ROLES
+    }
+    _validate_role_s3_prefixes_do_not_overlap(specs)
+    return specs
+
+
+def _s3_prefixes_overlap(left: S3RoleSpec, right: S3RoleSpec) -> bool:
+    if left.bucket != right.bucket:
+        return False
+    first = (left.prefix.rstrip("/") + "/") if left.prefix else ""
+    second = (right.prefix.rstrip("/") + "/") if right.prefix else ""
+    return first == second or first.startswith(second) or second.startswith(first)
+
+
+def _validate_role_s3_prefixes_do_not_overlap(specs: Dict[str, S3RoleSpec]) -> None:
+    roles = sorted(specs)
+    for idx, left_role in enumerate(roles):
+        for right_role in roles[idx + 1 :]:
+            left = specs[left_role]
+            right = specs[right_role]
+            if _s3_prefixes_overlap(left, right):
+                raise ValueError(
+                    "S3 role prefixes must not overlap: "
+                    f"{left.role}={left.uri} and {right.role}={right.uri}"
+                )
 
 
 def _reference_bucket_exists(s3_client: Any, bucket_name: str) -> bool:
@@ -188,6 +227,78 @@ def _read_reference_bucket_version(s3_client: Any, bucket_name: str) -> Optional
 def _reference_prefix_exists(s3_client: Any, bucket_name: str, prefix: str) -> bool:
     response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix, MaxKeys=1)
     return "Contents" in response and bool(response["Contents"])
+
+
+def verify_s3_roles(
+    role_values: Dict[str, str],
+    *,
+    profile: str = "",
+    region: str = "",
+) -> Tuple[bool, Dict[str, Any]]:
+    """Verify explicit DayOA role buckets and required prefixes.
+
+    Returns ``(ok, details)``. Details always include normalized role URIs and
+    an ``issues`` list suitable for a preflight remediation message.
+    """
+    try:
+        specs = _normalize_role_map(role_values)
+    except ValueError as exc:
+        return False, {"roles": {}, "issues": [str(exc)]}
+
+    s3_client = _reference_bucket_s3_client(profile=profile, region=region)
+    issues: List[str] = []
+    details: Dict[str, Any] = {
+        "roles": {
+            role: {"uri": spec.uri, "bucket": spec.bucket, "prefix": spec.prefix}
+            for role, spec in specs.items()
+        },
+        "buckets": sorted({spec.bucket for spec in specs.values()}),
+        "issues": issues,
+    }
+
+    for role, spec in specs.items():
+        if not _reference_bucket_exists(s3_client, spec.bucket):
+            issues.append(f"{role}: bucket does not exist or is not accessible: {spec.bucket}")
+            continue
+
+        if role == ROLE_REFERENCE:
+            version_key = role_prefix_key(spec, REFERENCE_VERSION_KEY)
+            bucket_version = _read_reference_bucket_version_for_key(
+                s3_client,
+                spec.bucket,
+                version_key,
+            )
+            if bucket_version is None:
+                issues.append(f"{role}: missing version marker {version_key}")
+            elif bucket_version != DEFAULT_REFERENCE_VERSION:
+                issues.append(
+                    f"{role}: version mismatch at {version_key} "
+                    f"(expected {DEFAULT_REFERENCE_VERSION}, found {bucket_version})"
+                )
+
+        for prefix in ROLE_REQUIRED_PREFIXES.get(role, ()):
+            key_prefix = role_prefix_key(spec, prefix)
+            if not _reference_prefix_exists(s3_client, spec.bucket, key_prefix):
+                issues.append(f"{role}: missing objects under {key_prefix}")
+
+    return not issues, details
+
+
+def _read_reference_bucket_version_for_key(
+    s3_client: Any,
+    bucket_name: str,
+    key: str,
+) -> Optional[str]:
+    try:
+        response = s3_client.get_object(Bucket=bucket_name, Key=key)
+    except Exception:
+        return None
+
+    body = response.get("Body")
+    if body is None:
+        return None
+
+    return body.read().decode("utf-8").strip()
 
 
 def verify_reference_bundle(
@@ -222,7 +333,16 @@ def verify_reference_bundle(
                 f"(expected {DEFAULT_REFERENCE_VERSION}, found {bucket_version})"
             )
 
-        for prefix in REQUIRED_REFERENCE_PREFIXES:
+        legacy_prefixes = (
+            "cluster_boot_config/",
+            "data/cached_envs/",
+            "data/tool_specific_resources/",
+            "data/budget_tags/",
+            "data/genomic_data/organism_references/H_sapiens/hg38/",
+            "data/genomic_data/organism_annotations/H_sapiens/hg38/",
+            "data/genomic_data/organism_reads/",
+        )
+        for prefix in legacy_prefixes:
             if not _reference_prefix_exists(s3_client, bucket_name, prefix):
                 issues.append(f"missing objects under {prefix}")
 
@@ -240,34 +360,9 @@ def verify_reference_bundle(
         return False
 
 
-# ---------------------------------------------------------------------------
-# Convenience
-# ---------------------------------------------------------------------------
-
-
 def bucket_url(bucket_name: str) -> str:
-    """Return ``s3://<bucket_name>`` (parity with Bash ``bucket_url``)."""
+    """Return ``s3://<bucket_name>``."""
     return f"s3://{bucket_name}"
-
-
-def _prompt_for_bucket(candidates: List[str]) -> Optional[str]:
-    """Prompt the user to choose one S3 bucket from *candidates*."""
-    if not candidates:
-        return None
-
-    typer.echo("Select an S3 reference bucket:")
-    for idx, candidate in enumerate(candidates, start=1):
-        typer.echo(f"  [{idx}] {candidate}")
-
-    while True:
-        choice = typer.prompt("Enter selection number", default="1").strip()
-        if not choice.isdigit():
-            typer.echo("Invalid selection. Enter a number.")
-            continue
-        index = int(choice)
-        if 1 <= index <= len(candidates):
-            return candidates[index - 1]
-        typer.echo("Invalid selection. Enter one of the listed numbers.")
 
 
 # ---------------------------------------------------------------------------
@@ -278,67 +373,43 @@ def _prompt_for_bucket(candidates: List[str]) -> Optional[str]:
 def make_s3_bucket_preflight_step(
     aws_ctx: Any,
     *,
-    cfg_action: str = "",
-    cfg_set_value: str = "",
-    cfg_bucket_name: str = "",
+    reference_bucket: str = "",
+    control_data_bucket: str = "",
+    runtime_assets_bucket: str = "",
+    stage_bucket: str = "",
     profile: str = "",
     interactive: bool = False,
 ) -> Any:
-    """Return a :data:`PreflightStep` that discovers, selects, and verifies.
+    """Return a :data:`PreflightStep` that verifies explicit S3 role bindings.
 
     The step appends two :class:`CheckResult` entries to the report:
 
-    - ``s3.bucket_select`` — candidate discovery + selection result
-    - ``s3.bucket_verify`` — reference bundle verification result
+    - ``s3.role_config`` — explicit role parsing and overlap validation
+    - ``s3.role_verify`` — live bucket/prefix verification result
 
-    Hard gate: if verification fails, status is FAIL and workflow must abort.
+    Hard gate: if any role is absent, malformed, overlapping, inaccessible, or
+    missing required prefixes, status is FAIL and workflow must abort.
     """
+    del interactive  # explicit role config is required; there is no bucket prompt.
+
     def step(report: PreflightReport) -> PreflightReport:
         region = report.region or aws_ctx.region
-
-        # -- Discovery -------------------------------------------------------
-        candidates = list_candidate_buckets(aws_ctx, target_region=region)
-
-        if not candidates:
+        role_values = {
+            ROLE_REFERENCE: reference_bucket,
+            ROLE_CONTROL_DATA: control_data_bucket,
+            ROLE_RUNTIME_ASSETS: runtime_assets_bucket,
+            ROLE_STAGING: stage_bucket,
+        }
+        ok, details = verify_s3_roles(role_values, profile=profile, region=region)
+        if not details.get("roles"):
             report.checks.append(
                 CheckResult(
-                    id="s3.bucket_select",
+                    id="s3.role_config",
                     status=CheckStatus.FAIL,
-                    details={"region": region, "candidates": []},
+                    details={"region": region, **details},
                     remediation=(
-                        f"No S3 buckets matching '{BUCKET_NAME_FILTER}' "
-                        f"found in region {region}."
-                    ),
-                )
-            )
-            return report
-
-        # -- Selection -------------------------------------------------------
-        selected = select_bucket(
-            candidates,
-            cfg_action=cfg_action,
-            cfg_set_value=cfg_set_value,
-            cfg_bucket_name=cfg_bucket_name,
-        )
-
-        if selected is None:
-            if interactive:
-                selected = _prompt_for_bucket(candidates)
-
-        if selected is None:
-            # Cannot auto-select — needs interactive prompt
-            # In non-interactive preflight, this is a FAIL
-            report.checks.append(
-                CheckResult(
-                    id="s3.bucket_select",
-                    status=CheckStatus.FAIL,
-                    details={
-                        "region": region,
-                        "candidates": candidates,
-                    },
-                    remediation=(
-                        "Multiple S3 buckets found and none could be "
-                        "auto-selected. Set s3_bucket_name in config."
+                        "Set explicit reference_bucket, control_data_bucket, "
+                        "runtime_assets_bucket, and stage_bucket values."
                     ),
                 )
             )
@@ -346,41 +417,31 @@ def make_s3_bucket_preflight_step(
 
         report.checks.append(
             CheckResult(
-                id="s3.bucket_select",
+                id="s3.role_config",
                 status=CheckStatus.PASS,
-                details={
-                    "region": region,
-                    "candidates": candidates,
-                    "selected": selected,
-                    "bucket_url": bucket_url(selected),
-                },
+                details={"region": region, "roles": details["roles"], "buckets": details["buckets"]},
             )
-        )
-
-        # -- Verification (hard gate) ---------------------------------------
-        ok = verify_reference_bundle(
-            selected, profile=profile, region=region,
         )
 
         if ok:
             report.checks.append(
                 CheckResult(
-                    id="s3.bucket_verify",
+                    id="s3.role_verify",
                     status=CheckStatus.PASS,
-                    details={"bucket": selected, "verified": True},
+                    details={"region": region, "verified": True, **details},
                 )
             )
         else:
             report.checks.append(
                 CheckResult(
-                    id="s3.bucket_verify",
+                    id="s3.role_verify",
                     status=CheckStatus.FAIL,
-                    details={"bucket": selected, "verified": False},
+                    details={"region": region, "verified": False, **details},
                     remediation=(
-                        f"Reference bundle verification failed for bucket '{selected}'. "
-                        "Confirm the bucket contains "
-                        f"{REFERENCE_VERSION_KEY}={DEFAULT_REFERENCE_VERSION} and the "
-                        "expected Daylily reference prefixes."
+                        "S3 role verification failed. Confirm every role bucket exists, "
+                        "reference contains "
+                        f"{REFERENCE_VERSION_KEY}={DEFAULT_REFERENCE_VERSION}, and role "
+                        "prefixes contain the required contract data."
                     ),
                 )
             )

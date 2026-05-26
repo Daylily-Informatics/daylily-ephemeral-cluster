@@ -1,0 +1,148 @@
+→ Creating cluster in us-west-2d ...
+
+── INIT · tstClu-4-1-1c ──
+    Account: 108782052779
+    User: root
+    Region: us-west-2 (us-west-2d)
+
+── PREFLIGHT ──
+  ✓ iam.policy.global
+  ✓ iam.policy.regional
+  ✓ iam.pcluster_omics_policy
+  ✓ config.repository_catalog
+  ✓ quota.ondemand_vcpu
+  ✓ quota.spot_vcpu
+  ✓ quota.vpcs
+  ✓ quota.elastic_ips
+  ✓ quota.nat_gateways
+  ✓ quota.internet_gateways
+  ✓ s3.bucket_select
+  ✓ s3.bucket_verify
+  ✓ Preflight passed — 12 checks OK
+
+── RESOURCE RESOLUTION ──
+  › Ensuring baseline CFN stack ...
+  ✓ CFN stack ready
+  ✓ Resources resolved
+    Bucket: lsmc-dayoa-omics-analysis-us-west-2
+    Subnets: pub=subnet-0e9acb65aba5a0330  priv=subnet-087a4872d0c34e642
+    Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+
+── PRE-CREATE: BUDGETS & HEARTBEAT ──
+
+── RENDER CLUSTER YAML ──
+  › Rendering YAML template ...
+  › Applying spot prices ...
+  ✓ Cluster YAML ready: 
+/Users/jmajor/.config/daylily/tstClu-4-1-1c_cluster_20260526052144.yaml
+
+── DRY-RUN VALIDATION ──
+  › Running pcluster dry-run ...
+  ✓ Dry-run passed
+
+── CREATE CLUSTER ──
+  › Submitting cluster creation: tstClu-4-1-1c ...
+  ✓ Cluster creation submitted
+
+── MONITOR ──
+  › Waiting for CREATE_COMPLETE ...
+  › Cluster creating ... 1s
+  › Cluster creating ... 33s
+  › Cluster creating ... 1m 4s
+  › Cluster creating ... 1m 36s
+  › Cluster creating ... 2m 7s
+  › Cluster creating ... 2m 39s
+  › Cluster creating ... 3m 10s
+  › Cluster creating ... 3m 42s
+  › Cluster creating ... 4m 14s
+  › Cluster creating ... 4m 46s
+  › Cluster creating ... 5m 17s
+  › Cluster creating ... 5m 49s
+  › Cluster creating ... 6m 21s
+  › Cluster creating ... 6m 52s
+  › Cluster creating ... 7m 24s
+  › Cluster creating ... 7m 55s
+  › Cluster creating ... 8m 27s
+  › Cluster creating ... 8m 58s
+  › Cluster creating ... 9m 30s
+  › Cluster creating ... 10m 1s
+  › Cluster creating ... 10m 33s
+  › Cluster creating ... 11m 5s
+  › Cluster creating ... 11m 36s
+  › Cluster creating ... 12m 8s
+  › Cluster creating ... 12m 39s
+  › Cluster creating ... 13m 11s
+  › Cluster creating ... 13m 43s
+  › Cluster creating ... 14m 14s
+  › Cluster creating ... 14m 45s
+  › Cluster creating ... 15m 17s
+  › Cluster creating ... 15m 49s
+  › Cluster creating ... 16m 21s
+  › Cluster creating ... 16m 52s
+  › Cluster creating ... 17m 24s
+  › Cluster creating ... 17m 56s
+  › Cluster creating ... 18m 28s
+  › Cluster creating ... 18m 59s
+  › Cluster creating ... 19m 31s
+  › Cluster creating ... 20m 3s
+  › Cluster creating ... 20m 34s
+  › Cluster creating ... 21m 6s
+  › Cluster creating ... 21m 38s
+  › Cluster creating ... 22m 10s
+  › Cluster creating ... 22m 41s
+  › Cluster creating ... 23m 13s
+  › Cluster creating ... 23m 45s
+  › Cluster creating ... 24m 16s
+  › Cluster creating ... 24m 48s
+  › Cluster creating ... 25m 20s
+  › Cluster creating ... 25m 51s
+  › Cluster creating ... 26m 23s
+  › Cluster creating ... 26m 55s
+  › Cluster creating ... 27m 27s
+  › Cluster creating ... 27m 58s
+  › Cluster creating ... 28m 30s
+  › Cluster creating ... 29m 2s
+  › Cluster creating ... 29m 34s
+  › Cluster creating ... 30m 5s
+  › Cluster creating ... 30m 37s
+  › Cluster creating ... 31m 9s
+  › Cluster creating ... 31m 40s
+  › Cluster creating ... 32m 12s
+  › Cluster creating ... 32m 44s
+  › Cluster creating ... 33m 15s
+  › Cluster creating ... 33m 47s
+  › Cluster creating ... 34m 19s
+  › Cluster creating ... 34m 50s
+  › Cluster creating ... 35m 22s
+  › Cluster creating ... 35m 54s
+  › Cluster creating ... 36m 26s
+  › Cluster creating ... 36m 57s
+  ✓ Cluster created in 37m 31s
+
+── HEADNODE CONFIGURATION ──
+  › Waiting for headnode SSM registration ...
+  › Configuring headnode ...
+  ✓ Headnode configured
+
+── POST-CREATE: BUDGETS ──
+  › Ensuring budgets ...
+  ✓ Budgets: global=daylily-global, cluster=da-us-west-2d-tstClu-4-1-1c
+
+── POST-CREATE: HEARTBEAT ──
+  › Configuring heartbeat ...
+  ✓ Heartbeat configured (source=existing_role:eventbridge-scheduler-to-sns)
+
+── STATE SNAPSHOT ──
+  › Writing state record ...
+  ✓ State written: 
+/Users/jmajor/.config/daylily/state_tstClu-4-1-1c_20260526052144.json
+
+╭───────────────────────── CLUSTER CREATION COMPLETE ──────────────────────────╮
+│                                                                              │
+│  Cluster:  tstClu-4-1-1c                                                     │
+│  Region:   us-west-2 (us-west-2d)                                            │
+│  Elapsed:  37m 31s                                                           │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster tstClu-4-1-1c
+...fin!

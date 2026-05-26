@@ -1,0 +1,1278 @@
+[
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws fsx list-tags-for-resource --resource-arn arn:aws:fsx:us-west-2:108782052779:association/fs-017ab7a7cdbf44c54/dra-0e036df15b52f3f85",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws fsx list-tags-for-resource --resource-arn arn:aws:fsx:us-west-2:108782052779:association/fs-017ab7a7cdbf44c54/dra-006ba927d666a551f",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws fsx list-tags-for-resource --resource-arn arn:aws:fsx:us-west-2:108782052779:association/fs-01c4180aab049f24c/dra-003eb0d22217d9dd0",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws fsx list-tags-for-resource --resource-arn arn:aws:fsx:us-west-2:108782052779:association/fs-01c4180aab049f24c/dra-0617879f7a8776f9b",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws fsx list-tags-for-resource --resource-arn arn:aws:fsx:us-west-2:108782052779:association/fs-017ab7a7cdbf44c54/dra-06d806e2e1413adf7",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws fsx list-tags-for-resource --resource-arn arn:aws:fsx:us-west-2:108782052779:association/fs-017ab7a7cdbf44c54/dra-02d344e4dc8840a90",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws fsx list-tags-for-resource --resource-arn arn:aws:fsx:us-west-2:108782052779:association/fs-017ab7a7cdbf44c54/dra-0c4d82481e4a4a417",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:dev-writer",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:staging-writer",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcok1-tapdb",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcq7-tapdb",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:dev",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:labcore-dev",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-west-2:108782052779:cluster:staging",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws elbv2 describe-tags --resource-arns arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecs list-clusters",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecs describe-clusters --clusters arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-dev-cluster --include TAGS",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecs describe-clusters --clusters arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-prod-cluster --include TAGS",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecs describe-clusters --clusters arn:aws:ecs:us-west-2:108782052779:cluster/aquarium-dev-cluster --include TAGS",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr describe-repositories",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/dayhoff/aws3041",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/lsmc-bio/labcore",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/cdk-hnb659fds-container-assets-108782052779-us-west-2",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/terrarium-dev-api",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/terrarium-prod-api",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/terrarium-dev-web",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/aquarium-dev-tailscale-sidecar",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/aquarium-dev-web",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/aquarium-dev-api",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/dayhoff/lsmcq7",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/lsmc-bio/runtime",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/terrarium-dev-tailscale-sidecar",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/terrarium-prod-tailscale-sidecar",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/terrarium-prod-web",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:db:auruse1-writer",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:db:dayhoff-staging-data-postgres9dc8bb04-avlkcyzjgnwo",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:db:dayhoff-x-data-postgres9dc8bb04-xgjwaetdu22b",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:db:dev-writer",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:cluster:auruse1",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws rds list-tags-for-resource --resource-name arn:aws:rds:us-east-1:108782052779:cluster:dev",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws elbv2 describe-tags --resource-arns arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws ecs list-clusters",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws ecr describe-repositories",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-east-1:108782052779:repository/cdk-hnb659fds-container-assets-108782052779-us-east-1",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-east-1:108782052779:repository/dayhoff/x",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws ecs list-clusters",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws ecr describe-repositories",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws fsx describe-data-repository-associations",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws elbv2 describe-load-balancers",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws ecs list-clusters",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws ecr describe-repositories",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws s3api list-buckets",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket aquarium-tfstate-dev",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket aquarium-tfstate-dev",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket aquarium-tfstate-dev",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket aquarium-tfstate-prod",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket aquarium-tfstate-prod",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket aquarium-tfstate-prod",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket asterism-note-screenshots-dev",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket asterism-note-screenshots-dev",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket asterism-note-screenshots-dev",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket cdk-hnb659fds-assets-108782052779-us-east-1",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket cdk-hnb659fds-assets-108782052779-us-east-1",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket cdk-hnb659fds-assets-108782052779-us-east-1",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket cdk-hnb659fds-assets-108782052779-us-west-2",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket cdk-hnb659fds-assets-108782052779-us-west-2",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket cdk-hnb659fds-assets-108782052779-us-west-2",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket cf-templates-pfrobpqqun1c-us-east-2",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket cf-templates-pfrobpqqun1c-us-east-2",
+    "region": "us-east-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket cf-templates-pfrobpqqun1c-us-east-2",
+    "region": "us-east-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket daylily-customer-lsmc-a0477268",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket daylily-customer-lsmc-a0477268",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket daylily-customer-lsmc-a0477268",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-atlas-demo",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-atlas-demo",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-atlas-demo",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-atlas-dev",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-atlas-dev",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-atlas-dev",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-copy-ultimagen-lsmc-cro-316",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-copy-ultimagen-lsmc-cro-316",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-copy-ultimagen-lsmc-cro-316",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-dayoa-omics-analysis-ap-south-1",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-omics-analysis-ap-south-1",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-omics-analysis-ap-south-1",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-dayoa-omics-analysis-eu-central-1",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-omics-analysis-eu-central-1",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-omics-analysis-eu-central-1",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-dayoa-omics-analysis-us-west-2",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-omics-analysis-us-west-2",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-omics-analysis-us-west-2",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-dewey-0",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dewey-0",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dewey-0",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-healthomics-failiover",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-healthomics-failiover",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-healthomics-failiover",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-healthomics-results",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-healthomics-results",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-healthomics-results",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-illumina-public-data",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-illumina-public-data",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-illumina-public-data",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-meridian-governance-registry",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-meridian-governance-registry",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-meridian-governance-registry",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-public-ont-data",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-public-ont-data",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-public-ont-data",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-ssf-sequencing-data",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-ssf-sequencing-data",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-ssf-sequencing-data",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-terraform-state",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-terraform-state",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-terraform-state",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket lsmc-ursa-customers-usw2",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-ursa-customers-usw2",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-ursa-customers-usw2",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket terrarium-dev-media",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-dev-media",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-dev-media",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket terrarium-dev-web",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-dev-web",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-dev-web",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket terrarium-prod-media",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-prod-media",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-prod-media",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket terrarium-prod-web",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-prod-web",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-prod-web",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket terrarium-tfstate-dev",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-tfstate-dev",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-tfstate-dev",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket terrarium-tfstate-prod",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-tfstate-prod",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-tfstate-prod",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket ursa-us-west-2-052779-default-customer-1d8c14",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket ursa-us-west-2-052779-default-customer-1d8c14",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket ursa-us-west-2-052779-default-customer-1d8c14",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-location --bucket zebra-day-cfg-us-west-2",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket zebra-day-cfg-us-west-2",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket zebra-day-cfg-us-west-2",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "pcluster list-clusters --region us-west-2",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "pcluster list-clusters --region us-east-1",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "pcluster list-clusters --region eu-central-1",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "pcluster list-clusters --region ap-south-1",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "af-south-1"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "af-south-1"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "af-south-1"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "af-south-1"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "af-south-1"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "af-south-1"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "af-south-1"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "ap-east-1"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "ap-east-1"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "ap-east-1"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "ap-east-1"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "ap-east-1"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "ap-east-1"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "ap-east-1"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "ap-northeast-1"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "ap-northeast-1"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "ap-northeast-1"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "ap-northeast-1"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "ap-northeast-1"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "ap-northeast-1"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "ap-northeast-1"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "ap-northeast-2"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "ap-northeast-2"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "ap-northeast-2"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "ap-northeast-2"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "ap-northeast-2"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "ap-northeast-2"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "ap-northeast-2"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "ap-northeast-3"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "ap-northeast-3"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "ap-northeast-3"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "ap-northeast-3"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "ap-northeast-3"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "ap-northeast-3"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "ap-northeast-3"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "ap-south-2"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "ap-south-2"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "ap-south-2"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "ap-south-2"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "ap-south-2"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "ap-south-2"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "ap-south-2"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "ap-southeast-1"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "ap-southeast-1"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "ap-southeast-1"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "ap-southeast-1"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "ap-southeast-1"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "ap-southeast-1"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "ap-southeast-1"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "ap-southeast-2"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "ap-southeast-2"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "ap-southeast-2"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "ap-southeast-2"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "ap-southeast-2"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "ap-southeast-2"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "ap-southeast-2"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "ap-southeast-3"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "ap-southeast-3"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "ap-southeast-3"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "ap-southeast-3"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "ap-southeast-3"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "ap-southeast-3"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "ap-southeast-3"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "ca-central-1"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "ca-central-1"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "ca-central-1"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "ca-central-1"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "ca-central-1"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "ca-central-1"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "ca-central-1"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "eu-north-1"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "eu-north-1"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "eu-north-1"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "eu-north-1"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "eu-north-1"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "eu-north-1"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "eu-north-1"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "eu-west-1"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "eu-west-1"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "eu-west-1"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "eu-west-1"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "eu-west-1"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "eu-west-1"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "eu-west-1"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "eu-west-2"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "eu-west-2"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "eu-west-2"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "eu-west-2"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "eu-west-2"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "eu-west-2"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "eu-west-2"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "eu-west-3"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "eu-west-3"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "eu-west-3"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "eu-west-3"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "eu-west-3"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "eu-west-3"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "eu-west-3"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "sa-east-1"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "sa-east-1"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "sa-east-1"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "sa-east-1"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "sa-east-1"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "sa-east-1"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "sa-east-1"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "us-east-2"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "us-east-2"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "us-east-2"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "us-east-2"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "us-east-2"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "us-east-2"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "us-east-2"
+  },
+  {
+    "cmd": "aws ec2 describe-instances",
+    "region": "us-west-1"
+  },
+  {
+    "cmd": "aws ec2 describe-volumes",
+    "region": "us-west-1"
+  },
+  {
+    "cmd": "aws ec2 describe-addresses",
+    "region": "us-west-1"
+  },
+  {
+    "cmd": "aws ec2 describe-nat-gateways",
+    "region": "us-west-1"
+  },
+  {
+    "cmd": "aws fsx describe-file-systems",
+    "region": "us-west-1"
+  },
+  {
+    "cmd": "aws rds describe-db-instances",
+    "region": "us-west-1"
+  },
+  {
+    "cmd": "aws rds describe-db-clusters",
+    "region": "us-west-1"
+  }
+]

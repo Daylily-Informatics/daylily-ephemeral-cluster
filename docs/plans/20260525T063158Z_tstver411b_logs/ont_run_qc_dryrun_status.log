@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_ont_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv -n",
+  "completed_at": "2026-05-25T08:52:05Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/johnm/tvb_ont_run_qc_1021_dryrun/daylily-omics-analysis",
+  "session_name": "tvb_ont_run_qc_1021_dryrun",
+  "started_at": "2026-05-25T08:51:45Z"
+}

@@ -1,0 +1,4 @@
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+91  i192  4  R  i192-dy-all-1  4  RUNNING  3000M  0:03  1  multiqc_final_wgs-multiqc_final

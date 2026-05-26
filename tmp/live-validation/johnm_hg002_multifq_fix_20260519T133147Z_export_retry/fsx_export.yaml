@@ -1,0 +1,21 @@
+fsx_export:
+  schema_version: 3
+  status: success
+  phase: complete
+  cluster_name: dra-enabled
+  region: us-west-2
+  analysis_dir: johnm/johnm_hg002_multifq_fix_20260519T133147Z
+  source_path: /analysis_results/johnm/johnm_hg002_multifq_fix_20260519T133147Z/
+  headnode_path: /fsx/analysis_results/johnm/johnm_hg002_multifq_fix_20260519T133147Z/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/lsmc/ssf-hq/johnm/johnm_hg002_multifq_fix_20260519T133147Z/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details: {}
+  fsx_file_system_id: fs-017ab7a7cdbf44c54
+  file_system_path: /analysis_results/johnm/johnm_hg002_multifq_fix_20260519T133147Z/
+  association_id: dra-0dac69e1d0d6d4505
+  lifecycle: AVAILABLE
+  task_id: task-0216906500aff6edd
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-ssf-sequencing-data/derived/lsmc/ssf-hq/johnm/johnm_hg002_multifq_fix_20260519T133147Z/_daylily_monitor/fsx-export/20260519T140935Z/export-report/
+  detach_lifecycle: DELETED

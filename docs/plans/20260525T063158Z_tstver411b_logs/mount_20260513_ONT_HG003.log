@@ -1,0 +1,7 @@
+Run directory mounted: 20260513_ONT_HG003
+Association ID: dra-062bb9457a8117d57
+FSx file system: fs-0445f465f1a8d6b48
+FSx API path: /run_dir_mounts/20260513_ONT_HG003/
+Headnode path: /fsx/run_dir_mounts/20260513_ONT_HG003/
+Source S3 URI: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/
+Lifecycle: AVAILABLE

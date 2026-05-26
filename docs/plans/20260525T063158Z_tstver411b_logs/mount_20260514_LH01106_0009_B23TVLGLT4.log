@@ -1,0 +1,7 @@
+Run directory mounted: 20260514_LH01106_0009_B23TVLGLT4
+Association ID: dra-073d8c1fbda87df4d
+FSx file system: fs-0445f465f1a8d6b48
+FSx API path: /run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+Headnode path: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+Source S3 URI: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/
+Lifecycle: AVAILABLE

@@ -173,7 +173,7 @@ log_spot_price
 # Update and install necessary packages
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y tmux emacs rclone parallel atop htop glances fd-find docker.io \
+apt-get install -y tmux emacs rclone parallel atop htop glances fd-find ripgrep docker.io \
                     build-essential libssl-dev uuid-dev libgpgme-dev squashfs-tools \
                     libseccomp-dev pkg-config openjdk-11-jdk wget unzip nasm yasm isal \
                     fuse2fs gocryptfs cpulimit golang-go numactl
