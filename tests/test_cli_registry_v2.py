@@ -1222,8 +1222,6 @@ def test_samples_stage_calls_python_staging_entrypoint(monkeypatch, tmp_path) ->
             "s3://reference-bucket",
             "--control-data-bucket",
             "s3://control-data-bucket",
-            "--runtime-assets-bucket",
-            "s3://runtime-assets-bucket",
             "--stage-bucket",
             "s3://stage-bucket",
             "--config-dir",
@@ -1250,8 +1248,6 @@ def test_samples_stage_calls_python_staging_entrypoint(monkeypatch, tmp_path) ->
         "s3://reference-bucket",
         "--control-data-bucket",
         "s3://control-data-bucket",
-        "--runtime-assets-bucket",
-        "s3://runtime-assets-bucket",
         "--stage-bucket",
         "s3://stage-bucket",
         "--stage-target",
@@ -1373,8 +1369,6 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
             "s3://reference-bucket",
             "--control-data-bucket",
             "s3://control-data-bucket",
-            "--runtime-assets-bucket",
-            "s3://runtime-assets-bucket",
             "--stage-bucket",
             "s3://stage-bucket",
             "--config-dir",
@@ -1394,8 +1388,6 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
         "s3://reference-bucket",
         "--control-data-bucket",
         "s3://control-data-bucket",
-        "--runtime-assets-bucket",
-        "s3://runtime-assets-bucket",
         "--stage-bucket",
         "s3://stage-bucket",
         "--stage-target",
@@ -1417,7 +1409,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "1.0.27" in launch_argv
+    assert "1.0.37" in launch_argv
     assert "--dy-command" in launch_argv
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
     assert "produce_cgt7p_snv_vcf" in dy_command
@@ -1452,8 +1444,6 @@ def test_samples_run_requires_analysis_identity(monkeypatch, tmp_path) -> None:
             "s3://reference-bucket",
             "--control-data-bucket",
             "s3://control-data-bucket",
-            "--runtime-assets-bucket",
-            "s3://runtime-assets-bucket",
             "--stage-bucket",
             "s3://stage-bucket",
         ],
@@ -1493,8 +1483,6 @@ def test_samples_run_rejects_export_policy_before_staging(monkeypatch, tmp_path)
             "s3://reference-bucket",
             "--control-data-bucket",
             "s3://control-data-bucket",
-            "--runtime-assets-bucket",
-            "s3://runtime-assets-bucket",
             "--stage-bucket",
             "s3://stage-bucket",
             "--export-destination-s3-uri",
@@ -1530,8 +1518,6 @@ def test_samples_run_rejects_unknown_command(monkeypatch, tmp_path) -> None:
             "s3://reference-bucket",
             "--control-data-bucket",
             "s3://control-data-bucket",
-            "--runtime-assets-bucket",
-            "s3://runtime-assets-bucket",
             "--stage-bucket",
             "s3://stage-bucket",
         ],
@@ -1571,8 +1557,6 @@ def test_samples_run_rejects_incompatible_catalog_command(monkeypatch, tmp_path)
             "s3://reference-bucket",
             "--control-data-bucket",
             "s3://control-data-bucket",
-            "--runtime-assets-bucket",
-            "s3://runtime-assets-bucket",
             "--stage-bucket",
             "s3://stage-bucket",
         ],

@@ -421,7 +421,6 @@ class RunMetricFile:
 class BucketRoles:
     reference_bucket: str
     control_data_bucket: str = ""
-    runtime_assets_bucket: str = ""
     stage_bucket: str = ""
 
 
@@ -454,11 +453,6 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         "--control-data-bucket",
         required=True,
         help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/control_data",
-    )
-    parser.add_argument(
-        "--runtime-assets-bucket",
-        required=True,
-        help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/runtime_assets",
     )
     parser.add_argument(
         "--stage-bucket",
@@ -861,8 +855,6 @@ def is_headnode_visible_path(path: str) -> bool:
         or path.startswith("/fsx/references/")
         or path == "/fsx/control_data"
         or path.startswith("/fsx/control_data/")
-        or path == "/fsx/runtime_assets"
-        or path.startswith("/fsx/runtime_assets/")
         or path == "/fsx/staging"
         or path.startswith("/fsx/staging/")
         or is_mounted_run_dir_path(path)
@@ -895,13 +887,15 @@ def build_reference_uri(path: str, reference_bucket: str | BucketRoles) -> str:
         raise CommandError(f"Mounted run-directory paths are not static role-bucket objects: {path}")
     if path == "/data" or path.startswith("/data/") or path == "/fsx/data" or path.startswith("/fsx/data/"):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
+    if path == "/fsx/runtime_assets" or path.startswith("/fsx/runtime_assets/"):
+        raise CommandError(
+            "The /fsx/runtime_assets namespace is not supported; use /fsx/references/runtime_assets."
+        )
     reject_retired_stage_path(path)
     if path == "/fsx/references" or path.startswith("/fsx/references/"):
         return _join_s3_uri(roles.reference_bucket, _role_relative(path, "/fsx/references"))
     if path == "/fsx/control_data" or path.startswith("/fsx/control_data/"):
         return _join_s3_uri(roles.control_data_bucket, _role_relative(path, "/fsx/control_data"))
-    if path == "/fsx/runtime_assets" or path.startswith("/fsx/runtime_assets/"):
-        return _join_s3_uri(roles.runtime_assets_bucket, _role_relative(path, "/fsx/runtime_assets"))
     if path == "/fsx/staging" or path.startswith("/fsx/staging/"):
         return _join_s3_uri(roles.stage_bucket, _role_relative(path, "/fsx/staging"))
     raise CommandError(f"Path is not in a DayOA FSx role namespace: {path}")
@@ -3811,7 +3805,6 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     bucket_roles = BucketRoles(
         reference_bucket=args.reference_bucket,
         control_data_bucket=args.control_data_bucket,
-        runtime_assets_bucket=args.runtime_assets_bucket,
         stage_bucket=args.stage_bucket,
     )
     stage = build_stage_paths(args.stage_target, args.stage_bucket)

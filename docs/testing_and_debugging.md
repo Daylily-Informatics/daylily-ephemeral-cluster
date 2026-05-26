@@ -89,7 +89,6 @@ AWS_PROFILE="$AWS_PROFILE" python -m daylily_ec.ssh_to_ssm_e2e_runner \
   --reuse-existing-cluster \
   --reference-bucket "$REF_BUCKET" \
   --control-data-bucket "$CONTROL_DATA_BUCKET" \
-  --runtime-assets-bucket "$RUNTIME_ASSETS_BUCKET" \
   --stage-bucket "$STAGE_BUCKET" \
   --analysis-samples "$ANALYSIS_SAMPLES" \
   --workflow-live \

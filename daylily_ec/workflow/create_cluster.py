@@ -393,11 +393,12 @@ def publish_cluster_boot_config(
     cluster_boot_s3_uri: str,
     source_dir: Path,
 ) -> list[str]:
-    """Publish current packaged cluster boot scripts to runtime assets.
+    """Publish current packaged cluster boot scripts under reference runtime assets.
 
     The cluster template executes these files directly from
-    ``runtime_assets/cluster_boot_config``. Treat stale or legacy boot scripts
-    as invalid because they can fail cluster creation after expensive FSx setup.
+    ``references/runtime_assets/cluster_boot_config``. Treat stale or legacy
+    boot scripts as invalid because they can fail cluster creation after
+    expensive FSx setup.
     """
     bucket, prefix = _parse_s3_destination(cluster_boot_s3_uri)
     bodies: list[tuple[str, bytes]] = []
@@ -958,12 +959,6 @@ def run_create_workflow(
         "Control-data bucket or S3 prefix",
         non_interactive=non_interactive,
     )
-    runtime_assets_bucket = _resolve_config_value(
-        cfg,
-        "runtime_assets_bucket",
-        "Runtime-assets bucket or S3 prefix",
-        non_interactive=non_interactive,
-    )
     stage_bucket = _resolve_config_value(
         cfg,
         "stage_bucket",
@@ -992,7 +987,6 @@ def run_create_workflow(
             aws_ctx,
             reference_bucket=reference_bucket,
             control_data_bucket=control_data_bucket,
-            runtime_assets_bucket=runtime_assets_bucket,
             stage_bucket=stage_bucket,
             profile=aws_ctx.profile,
             interactive=not non_interactive,
@@ -1017,10 +1011,13 @@ def run_create_workflow(
     s3_roles = _extract_s3_roles(report)
     reference_s3_uri = _role_uri(s3_roles, "reference")
     control_data_s3_uri = _role_uri(s3_roles, "control_data")
-    runtime_assets_s3_uri = _role_uri(s3_roles, "runtime_assets")
     stage_s3_uri = _role_uri(s3_roles, "staging")
-    runtime_assets_bucket_name = _role_bucket(s3_roles, "runtime_assets")
-    cluster_boot_s3_uri = _s3_uri_join(runtime_assets_s3_uri, "cluster_boot_config")
+    reference_bucket_name = _role_bucket(s3_roles, "reference")
+    cluster_boot_s3_uri = _s3_uri_join(
+        reference_s3_uri,
+        "runtime_assets",
+        "cluster_boot_config",
+    )
 
     # 3a. Baseline CFN stack
     ui.step("Ensuring baseline CFN stack ...")
@@ -1092,7 +1089,6 @@ def run_create_workflow(
         {
             "reference bucket": reference_s3_uri,
             "control-data bucket": control_data_s3_uri,
-            "runtime-assets bucket": runtime_assets_s3_uri,
             "stage bucket": stage_s3_uri,
             "public subnet": public_subnet,
             "private subnet": private_subnet,
@@ -1105,10 +1101,9 @@ def run_create_workflow(
         return EXIT_VALIDATION_FAILURE
 
     logger.info(
-        "Resources: reference=%s control_data=%s runtime_assets=%s staging=%s pub=%s priv=%s policy=%s",
+        "Resources: reference=%s control_data=%s staging=%s pub=%s priv=%s policy=%s",
         reference_s3_uri,
         control_data_s3_uri,
-        runtime_assets_s3_uri,
         stage_s3_uri,
         public_subnet,
         private_subnet,
@@ -1117,7 +1112,7 @@ def run_create_workflow(
     ui.ok("Resources resolved")
     ui.detail("Reference", reference_s3_uri)
     ui.detail("Control data", control_data_s3_uri)
-    ui.detail("Runtime assets", runtime_assets_s3_uri)
+    ui.detail("Runtime assets", _s3_uri_join(reference_s3_uri, "runtime_assets"))
     ui.detail("Staging", stage_s3_uri)
     ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
     ui.detail("Policy", policy_arn)
@@ -1174,11 +1169,9 @@ def run_create_workflow(
         "REGSUB_PRIVATE_SUBNET": private_subnet,
         "REGSUB_S3_REFERENCE_BUCKET": _role_bucket(s3_roles, "reference"),
         "REGSUB_S3_CONTROL_DATA_BUCKET": _role_bucket(s3_roles, "control_data"),
-        "REGSUB_S3_RUNTIME_ASSETS_BUCKET": _role_bucket(s3_roles, "runtime_assets"),
         "REGSUB_S3_STAGE_BUCKET": _role_bucket(s3_roles, "staging"),
         "REGSUB_S3_REFERENCE_URI": reference_s3_uri.rstrip("/"),
         "REGSUB_S3_CONTROL_DATA_URI": control_data_s3_uri.rstrip("/"),
-        "REGSUB_S3_RUNTIME_ASSETS_URI": runtime_assets_s3_uri.rstrip("/"),
         "REGSUB_S3_STAGE_URI": stage_s3_uri.rstrip("/"),
         "REGSUB_FSX_SIZE": _resolve_fsx_size(
             cfg,
@@ -1402,7 +1395,7 @@ def run_create_workflow(
             email=post_create_inputs.budget_email,
             region=aws_ctx.region,
             region_az=region_az,
-            bucket_name=runtime_assets_bucket_name,
+            bucket_name=reference_bucket_name,
             allowed_users=post_create_inputs.allowed_budget_users,
         )
         cluster_budget = ensure_cluster_budget(
@@ -1414,7 +1407,7 @@ def run_create_workflow(
             email=post_create_inputs.budget_email,
             region=aws_ctx.region,
             region_az=region_az,
-            bucket_name=runtime_assets_bucket_name,
+            bucket_name=reference_bucket_name,
             allowed_users=post_create_inputs.allowed_budget_users,
         )
         logger.info("Budgets: global=%s cluster=%s", global_budget, cluster_budget)
@@ -1469,7 +1462,6 @@ def run_create_workflow(
         "cluster_name": cluster_name,
         "reference_bucket": reference_s3_uri,
         "control_data_bucket": control_data_s3_uri,
-        "runtime_assets_bucket": runtime_assets_s3_uri,
         "stage_bucket": stage_s3_uri,
         "public_subnet_id": public_subnet,
         "private_subnet_id": private_subnet,
@@ -1492,14 +1484,12 @@ def run_create_workflow(
         region_az=region_az,
         aws_profile=aws_ctx.profile,
         account_id=aws_ctx.account_id,
-        bucket=runtime_assets_bucket_name,
+        bucket=reference_bucket_name,
         reference_bucket=_role_bucket(s3_roles, "reference"),
         control_data_bucket=_role_bucket(s3_roles, "control_data"),
-        runtime_assets_bucket=runtime_assets_bucket_name,
         stage_bucket=_role_bucket(s3_roles, "staging"),
         reference_s3_uri=reference_s3_uri,
         control_data_s3_uri=control_data_s3_uri,
-        runtime_assets_s3_uri=runtime_assets_s3_uri,
         stage_s3_uri=stage_s3_uri,
         keypair="",
         public_subnet_id=public_subnet,
@@ -1779,7 +1769,6 @@ def run_preflight_only(
             aws_ctx,
             reference_bucket=get_effective_default(cfg, "reference_bucket", ""),
             control_data_bucket=get_effective_default(cfg, "control_data_bucket", ""),
-            runtime_assets_bucket=get_effective_default(cfg, "runtime_assets_bucket", ""),
             stage_bucket=get_effective_default(cfg, "stage_bucket", ""),
             profile=aws_ctx.profile,
             interactive=not non_interactive,

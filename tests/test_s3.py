@@ -9,7 +9,6 @@ from daylily_ec.aws.s3 import (
     BUCKET_NAME_FILTER,
     ROLE_CONTROL_DATA,
     ROLE_REFERENCE,
-    ROLE_RUNTIME_ASSETS,
     ROLE_STAGING,
     _resolve_bucket_region,
     _standard_s3_config,
@@ -98,7 +97,6 @@ def _role_values() -> dict[str, str]:
     return {
         ROLE_REFERENCE: "s3://dayoa-reference/references/",
         ROLE_CONTROL_DATA: "s3://dayoa-control/control/",
-        ROLE_RUNTIME_ASSETS: "s3://dayoa-runtime/runtime/",
         ROLE_STAGING: "s3://dayoa-staging/staging/",
     }
 
@@ -225,10 +223,12 @@ class TestExplicitRoleUris:
         assert spec.prefix == "references"
 
     def test_normalize_bare_bucket_value(self):
-        spec = normalize_role_s3_uri("bucket-a/runtime", role=ROLE_RUNTIME_ASSETS)
+        spec = normalize_role_s3_uri("bucket-a/references", role=ROLE_REFERENCE)
 
-        assert spec.uri == "s3://bucket-a/runtime/"
-        assert role_prefix_key(spec, "cached_envs/") == "runtime/cached_envs/"
+        assert spec.uri == "s3://bucket-a/references/"
+        assert role_prefix_key(spec, "runtime_assets/cached_envs/") == (
+            "references/runtime_assets/cached_envs/"
+        )
 
     def test_rejects_missing_and_non_s3_values(self):
         for value in ("", "https://bucket/key"):
@@ -251,7 +251,6 @@ class TestExplicitRoleUris:
         assert details["buckets"] == [
             "dayoa-control",
             "dayoa-reference",
-            "dayoa-runtime",
             "dayoa-staging",
         ]
         assert client.get_object.call_args_list[0].kwargs == {
@@ -260,8 +259,8 @@ class TestExplicitRoleUris:
         }
         checked_prefixes = [call.kwargs["Prefix"] for call in client.list_objects_v2.call_args_list]
         assert "references/genomic_data/organism_references/H_sapiens/hg38/" in checked_prefixes
+        assert "references/runtime_assets/cached_envs/" in checked_prefixes
         assert "control/genomic_data/organism_reads/" in checked_prefixes
-        assert "runtime/cached_envs/" in checked_prefixes
 
     def test_verify_s3_roles_rejects_overlapping_role_prefixes(self):
         values = _role_values()
@@ -290,7 +289,7 @@ class TestVerifyReferenceBundle:
     @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
     def test_failure_when_required_prefix_missing(self, mock_client_factory):
         mock_client_factory.return_value = _make_reference_s3_client(
-            missing_prefixes={"cluster_boot_config/"},
+            missing_prefixes={"runtime_assets/cluster_boot_config/"},
         )
 
         assert not verify_reference_bundle("bad-bucket")
@@ -351,7 +350,6 @@ class TestMakeS3BucketPreflightStep:
                 "buckets": [
                     "dayoa-control",
                     "dayoa-reference",
-                    "dayoa-runtime",
                     "dayoa-staging",
                 ],
                 "issues": [],
@@ -363,7 +361,6 @@ class TestMakeS3BucketPreflightStep:
             profile="myprof",
             reference_bucket=_role_values()[ROLE_REFERENCE],
             control_data_bucket=_role_values()[ROLE_CONTROL_DATA],
-            runtime_assets_bucket=_role_values()[ROLE_RUNTIME_ASSETS],
             stage_bucket=_role_values()[ROLE_STAGING],
         )
         report = PreflightReport(region="us-west-2")
@@ -405,7 +402,6 @@ class TestMakeS3BucketPreflightStep:
             ctx,
             reference_bucket=_role_values()[ROLE_REFERENCE],
             control_data_bucket=_role_values()[ROLE_CONTROL_DATA],
-            runtime_assets_bucket=_role_values()[ROLE_RUNTIME_ASSETS],
             stage_bucket=_role_values()[ROLE_STAGING],
         )
         report = PreflightReport(region="us-west-2")
@@ -428,7 +424,6 @@ class TestMakeS3BucketPreflightStep:
             ctx,
             reference_bucket=_role_values()[ROLE_REFERENCE],
             control_data_bucket=_role_values()[ROLE_CONTROL_DATA],
-            runtime_assets_bucket=_role_values()[ROLE_RUNTIME_ASSETS],
             stage_bucket=_role_values()[ROLE_STAGING],
         )
         report = PreflightReport(region="us-west-2")
@@ -451,7 +446,6 @@ class TestMakeS3BucketPreflightStep:
             ctx,
             reference_bucket=_role_values()[ROLE_REFERENCE],
             control_data_bucket=_role_values()[ROLE_CONTROL_DATA],
-            runtime_assets_bucket=_role_values()[ROLE_RUNTIME_ASSETS],
             stage_bucket=_role_values()[ROLE_STAGING],
         )
         report = PreflightReport(region="eu-west-1")

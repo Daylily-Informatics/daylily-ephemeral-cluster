@@ -122,7 +122,6 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "public_subnet_id",
     "reference_bucket",
     "control_data_bucket",
-    "runtime_assets_bucket",
     "stage_bucket",
     "spot_instance_allocation_strategy",
 ]

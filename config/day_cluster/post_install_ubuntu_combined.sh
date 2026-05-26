@@ -33,7 +33,7 @@ touch /tmp/$(hostname).postinstallBEGIN
 
 region="$1"
 boot_s3_uri="${2%/}"  # s3://.../cluster_boot_config
-runtime_assets_root="/fsx/runtime_assets"
+runtime_assets_root="/fsx/references/runtime_assets"
 references_root="/fsx/references"
 apptainer_deb="${runtime_assets_root}/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"

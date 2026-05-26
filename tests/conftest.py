@@ -40,11 +40,6 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="Control/validation data bucket URI for live staging example tests.",
     )
     group.addoption(
-        "--live-staging-runtime-assets-bucket",
-        default="",
-        help="Runtime-assets bucket URI for live staging example tests.",
-    )
-    group.addoption(
         "--live-staging-stage-bucket",
         default="",
         help="Staging bucket URI for live staging example tests.",

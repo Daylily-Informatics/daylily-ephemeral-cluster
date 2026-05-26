@@ -7,9 +7,9 @@ This is the current DayEC data-plane model. FSx for Lustre is the high-performan
 | Purpose | Headnode path | FSx API path | S3 side | Lifecycle |
 |---|---|---|---|---|
 | Reference data | `/fsx/references/` | `/references/` | `<reference-bucket-or-prefix>/` | Created with the cluster |
-| Control/validation data | `/fsx/control_data/` | `/control_data/` | `<control-data-bucket-or-prefix>/` | Created with the cluster |
-| Runtime assets | `/fsx/runtime_assets/` | `/runtime_assets/` | `<runtime-assets-bucket-or-prefix>/` | Created with the cluster |
-| Staging | `/fsx/staging/` | `/staging/` | `<stage-bucket-or-prefix>/` | Created with the cluster |
+| Runtime assets | `/fsx/references/runtime_assets/` | `/references/runtime_assets/` | `<reference-bucket-or-prefix>/runtime_assets/` | Created with the reference DRA |
+| Control/validation data | `/fsx/control_data/...` | `/control_data/...` | `<control-data-bucket-or-prefix>/...` | Created on demand |
+| Staging | `/fsx/staging/...` | `/staging/...` | `<stage-bucket-or-prefix>/...` | Created on demand |
 | Run inputs | `/fsx/run_dir_mounts/<mount_id>/` | `/run_dir_mounts/<mount_id>/` | selected run prefix | Created and deleted on demand |
 | Workflow outputs | `/fsx/analysis_results/...` | `/analysis_results/...` | none by default | Local to the FSx filesystem until exported |
 | Direct analysis export | `/fsx/analysis_results/<executing_entity>/<analysis_id>/` | `/analysis_results/<executing_entity>/<analysis_id>/` | `s3://bucket/prefix/<executing_entity>/<analysis_id>/` | Temporary output DRA |
@@ -26,7 +26,6 @@ sequenceDiagram
   participant FSx as FSx for Lustre
   participant Ref as S3 reference bucket
   participant Ctrl as S3 control bucket
-  participant Runtime as S3 runtime bucket
   participant Stage as S3 staging bucket
   participant Run as S3 run bucket
   participant DayOA as DayOA on headnode
@@ -36,14 +35,13 @@ sequenceDiagram
   DyEC->>PC: render config and create cluster
   PC->>FSx: mount /fsx
   Ref-->>FSx: reference-data DRA /references/
-  Ctrl-->>FSx: control-data DRA /control_data/
-  Runtime-->>FSx: runtime-assets DRA /runtime_assets/
-  Stage-->>FSx: staging DRA /staging/
+  Op->>DyEC: samples stage
+  Stage-->>FSx: staging DRA /staging/staged_external_sequencing_data/remote_stage_*/
   Op->>DyEC: mounts create s3://.../RUN_ID/
   Run-->>FSx: run DRA /run_dir_mounts/<mount_id>/
   Op->>DyEC: workflow launch
   DyEC->>DayOA: start tmux workflow
-  DayOA->>FSx: read /fsx/references, /fsx/control_data, /fsx/runtime_assets, and /fsx/run_dir_mounts
+  DayOA->>FSx: read /fsx/references, /fsx/references/runtime_assets, staged data, and /fsx/run_dir_mounts
   DayOA->>FSx: write staged inputs under /fsx/staging
   DayOA->>FSx: write /fsx/analysis_results/<executing_entity>/<analysis_id>
   Op->>DyEC: export --source-path /fsx/analysis_results/<executing_entity>/<analysis_id>
@@ -58,9 +56,8 @@ sequenceDiagram
 ```mermaid
 flowchart LR
   subgraph S3["Durable S3"]
-    Ref["Reference bucket"]
+    Ref["Reference bucket including runtime_assets/"]
     Ctrl["Control data bucket"]
-    Runtime["Runtime assets bucket"]
     Stage["Staging bucket"]
     RunA["Run bucket prefix RUN_A"]
     RunB["Run bucket prefix RUN_B"]
@@ -69,9 +66,9 @@ flowchart LR
 
   subgraph Lustre["FSx for Lustre mounted at /fsx"]
     Data["/fsx/references"]
-    Control["/fsx/control_data"]
-    Assets["/fsx/runtime_assets"]
-    Staging["/fsx/staging"]
+    Assets["/fsx/references/runtime_assets"]
+    Control["/fsx/control_data/... on demand"]
+    Staging["/fsx/staging/... on demand"]
     MntA["/fsx/run_dir_mounts/RUN_A"]
     MntB["/fsx/run_dir_mounts/RUN_B"]
     Results["/fsx/analysis_results/..."]
@@ -79,9 +76,9 @@ flowchart LR
   end
 
   Ref -->|reference DRA| Data
-  Ctrl -->|control-data DRA| Control
-  Runtime -->|runtime-assets DRA| Assets
-  Stage -->|staging DRA| Staging
+  Data --> Assets
+  Ctrl -->|on-demand DRA| Control
+  Stage -->|on-demand DRA| Staging
   RunA -->|ephemeral read DRA| MntA
   RunB -->|ephemeral read DRA| MntB
   Data --> Results

@@ -10,15 +10,13 @@ from daylily_ec.aws.ssm import SsmCommandResult, run_shell
 
 DEFAULT_HEADNODE_REPO_NAME = "daylily-ephemeral-cluster"
 REQUIRED_ROLE_FILES = (
-    "/fsx/runtime_assets/cached_envs/apptainer_1.4.5_amd64.deb",
-    "/fsx/runtime_assets/tool_specific_resources/cromwell_87.jar",
-    "/fsx/runtime_assets/tool_specific_resources/womtool_87.jar",
+    "/fsx/references/runtime_assets/cached_envs/apptainer_1.4.5_amd64.deb",
+    "/fsx/references/runtime_assets/tool_specific_resources/cromwell_87.jar",
+    "/fsx/references/runtime_assets/tool_specific_resources/womtool_87.jar",
 )
 REQUIRED_ROLE_DIRECTORIES = (
     "/fsx/references/genomic_data",
-    "/fsx/control_data/genomic_data",
-    "/fsx/runtime_assets/cached_envs/conda",
-    "/fsx/staging",
+    "/fsx/references/runtime_assets/cached_envs/conda",
 )
 
 
@@ -44,6 +42,8 @@ stty -a 2>/dev/null | grep -Eq '(^|[[:space:];])-ixon([[:space:];]|$)'
 df -P /fsx >/dev/null
 {file_checks}
 {dir_checks}
+test ! -e /fsx/runtime_assets
+test ! -e /fsx/data
 day-clone --list >/dev/null
 echo "DAY-EC headnode readiness validated"
 DAYLILY_HEADNODE_READINESS

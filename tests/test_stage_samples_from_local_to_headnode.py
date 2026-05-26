@@ -20,7 +20,6 @@ def _bucket_roles() -> module.BucketRoles:
     return module.BucketRoles(
         reference_bucket="s3://reference-bucket",
         control_data_bucket="s3://control-data-bucket",
-        runtime_assets_bucket="s3://runtime-assets-bucket",
         stage_bucket="s3://stage-bucket",
     )
 
@@ -1795,8 +1794,6 @@ def test_main_precheck_only_validates_run_metrics_without_copying(
             "s3://reference",
             "--control-data-bucket",
             "s3://control-data",
-            "--runtime-assets-bucket",
-            "s3://runtime-assets",
             "--stage-bucket",
             "s3://stage",
             "--profile",
@@ -2378,8 +2375,6 @@ def test_main_precheck_failure_does_not_stage_or_write_configs(
             "s3://bucket",
             "--control-data-bucket",
             "s3://control-data",
-            "--runtime-assets-bucket",
-            "s3://runtime-assets",
             "--stage-bucket",
             "s3://stage",
             "--profile",
@@ -2428,8 +2423,6 @@ def test_main_precheck_only_clean_manifest_exits_without_copies(
             "s3://bucket",
             "--control-data-bucket",
             "s3://control-data",
-            "--runtime-assets-bucket",
-            "s3://runtime-assets",
             "--stage-bucket",
             "s3://stage",
             "--profile",
@@ -2478,8 +2471,6 @@ def test_main_precheck_only_bad_manifest_reports_aggregated_errors(
             "s3://bucket",
             "--control-data-bucket",
             "s3://control-data",
-            "--runtime-assets-bucket",
-            "s3://runtime-assets",
             "--stage-bucket",
             "s3://stage",
             "--profile",

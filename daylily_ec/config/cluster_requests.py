@@ -12,7 +12,6 @@ def build_noninteractive_cluster_config(
     ssh_key_name: str,
     reference_bucket: str,
     control_data_bucket: str,
-    runtime_assets_bucket: str,
     stage_bucket: str,
     contact_email: str | None = None,
 ) -> ConfigFile:
@@ -23,7 +22,6 @@ def build_noninteractive_cluster_config(
         "ssh_key_name": ssh_key_name,
         "reference_bucket": reference_bucket,
         "control_data_bucket": control_data_bucket,
-        "runtime_assets_bucket": runtime_assets_bucket,
         "stage_bucket": stage_bucket,
         "enforce_budget": "skip",
     }
@@ -48,7 +46,6 @@ def write_noninteractive_cluster_config(
     ssh_key_name: str,
     reference_bucket: str,
     control_data_bucket: str,
-    runtime_assets_bucket: str,
     stage_bucket: str,
     contact_email: str | None = None,
 ) -> Path:
@@ -60,7 +57,6 @@ def write_noninteractive_cluster_config(
         ssh_key_name=ssh_key_name,
         reference_bucket=reference_bucket,
         control_data_bucket=control_data_bucket,
-        runtime_assets_bucket=runtime_assets_bucket,
         stage_bucket=stage_bucket,
         contact_email=contact_email,
     )

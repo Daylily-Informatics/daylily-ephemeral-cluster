@@ -29,7 +29,7 @@ def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
     assert "-ixon" in script
     assert "df -P /fsx >/dev/null" in script
     assert "test -d /data" not in script
-    assert "/fsx/data" not in script
+    assert "test ! -e /fsx/data" in script
     for path in REQUIRED_ROLE_FILES:
         assert f"test -s {path}" in script
     for path in REQUIRED_ROLE_DIRECTORIES:
@@ -53,9 +53,11 @@ def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
     assert instance_id == "i-abc123"
     assert region == "us-west-2"
     assert "day-clone --list" in script
-    assert "/fsx/runtime_assets/tool_specific_resources/cromwell_87.jar" in script
+    assert "/fsx/references/runtime_assets/tool_specific_resources/cromwell_87.jar" in script
     assert "/fsx/references/genomic_data" in script
-    assert "/fsx/control_data/genomic_data" in script
+    assert "/fsx/control_data/genomic_data" not in script
+    assert "test ! -e /fsx/runtime_assets" in script
+    assert "test ! -e /fsx/data" in script
     assert mock_run_shell.call_args.kwargs == {
         "profile": "test",
         "as_user": "ubuntu",
@@ -73,7 +75,7 @@ def test_validate_headnode_readiness_propagates_ssm_failures():
             status="Failed",
             response_code=1,
             stdout="",
-            stderr="missing /fsx/runtime_assets/cached_envs/conda",
+            stderr="missing /fsx/references/runtime_assets/cached_envs/conda",
         ),
     )
 

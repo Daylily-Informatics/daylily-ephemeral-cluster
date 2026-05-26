@@ -2,7 +2,9 @@
 
 The cluster create path requires explicit S3 role inputs. It does not discover
 or auto-select buckets because the DayOA storage split has separate contracts
-for references, control read data, runtime assets, and mutable staging.
+for references, control read data, and mutable staging. Runtime assets are part
+of the reference contract under ``runtime_assets/`` and are mounted through the
+single reference DRA.
 
 Public API
 ----------
@@ -29,12 +31,10 @@ BUCKET_NAME_FILTER = "omics-analysis"
 
 ROLE_REFERENCE = "reference"
 ROLE_CONTROL_DATA = "control_data"
-ROLE_RUNTIME_ASSETS = "runtime_assets"
 ROLE_STAGING = "staging"
 REQUIRED_S3_ROLES = (
     ROLE_REFERENCE,
     ROLE_CONTROL_DATA,
-    ROLE_RUNTIME_ASSETS,
     ROLE_STAGING,
 )
 
@@ -113,15 +113,13 @@ ROLE_REQUIRED_PREFIXES: Dict[str, Tuple[str, ...]] = {
     ROLE_REFERENCE: (
         "genomic_data/organism_references/H_sapiens/hg38/",
         "genomic_data/organism_annotations/H_sapiens/hg38/",
+        "runtime_assets/cluster_boot_config/",
+        "runtime_assets/cached_envs/",
+        "runtime_assets/tool_specific_resources/",
+        "runtime_assets/budget_tags/",
     ),
     ROLE_CONTROL_DATA: (
         "genomic_data/organism_reads/",
-    ),
-    ROLE_RUNTIME_ASSETS: (
-        "cluster_boot_config/",
-        "cached_envs/",
-        "tool_specific_resources/",
-        "budget_tags/",
     ),
     ROLE_STAGING: (),
 }
@@ -334,13 +332,12 @@ def verify_reference_bundle(
             )
 
         legacy_prefixes = (
-            "cluster_boot_config/",
-            "data/cached_envs/",
-            "data/tool_specific_resources/",
-            "data/budget_tags/",
-            "data/genomic_data/organism_references/H_sapiens/hg38/",
-            "data/genomic_data/organism_annotations/H_sapiens/hg38/",
-            "data/genomic_data/organism_reads/",
+            "genomic_data/organism_references/H_sapiens/hg38/",
+            "genomic_data/organism_annotations/H_sapiens/hg38/",
+            "runtime_assets/cluster_boot_config/",
+            "runtime_assets/cached_envs/",
+            "runtime_assets/tool_specific_resources/",
+            "runtime_assets/budget_tags/",
         )
         for prefix in legacy_prefixes:
             if not _reference_prefix_exists(s3_client, bucket_name, prefix):
@@ -375,7 +372,6 @@ def make_s3_bucket_preflight_step(
     *,
     reference_bucket: str = "",
     control_data_bucket: str = "",
-    runtime_assets_bucket: str = "",
     stage_bucket: str = "",
     profile: str = "",
     interactive: bool = False,
@@ -397,7 +393,6 @@ def make_s3_bucket_preflight_step(
         role_values = {
             ROLE_REFERENCE: reference_bucket,
             ROLE_CONTROL_DATA: control_data_bucket,
-            ROLE_RUNTIME_ASSETS: runtime_assets_bucket,
             ROLE_STAGING: stage_bucket,
         }
         ok, details = verify_s3_roles(role_values, profile=profile, region=region)
@@ -409,7 +404,7 @@ def make_s3_bucket_preflight_step(
                     details={"region": region, **details},
                     remediation=(
                         "Set explicit reference_bucket, control_data_bucket, "
-                        "runtime_assets_bucket, and stage_bucket values."
+                        "and stage_bucket values."
                     ),
                 )
             )

@@ -624,7 +624,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05" in script
     assert "reference_wait_timeout_seconds=1800" in script
     assert "wait_for_reference_data" in script
-    assert "runtime_assets_root=\"/fsx/runtime_assets\"" in script
+    assert "runtime_assets_root=\"/fsx/references/runtime_assets\"" in script
     assert "references_root=\"/fsx/references\"" in script
     assert "control_data_root=\"/fsx/control_data\"" not in script
     assert "Required DayOA role entries are visible" in script
@@ -658,7 +658,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf' in script
     assert "mv /opt/slurm/bin/sbatch /opt/slurm/sbin/sbatch" in script
     assert "mv /opt/slurm/bin/srun /opt/slurm/sbin/srun" in script
-    assert "ln -s /fsx/runtime_assets/cached_envs/conda/*" not in script
+    assert "ln -s /fsx/references/runtime_assets/cached_envs/conda/*" not in script
     assert "Required /fsx/references reference entries are visible" not in script
     assert 'echo "PrologFlags=Alloc" >> /opt/slurm/etc/slurm.conf' not in script
     assert "ppa:apptainer/ppa" not in script

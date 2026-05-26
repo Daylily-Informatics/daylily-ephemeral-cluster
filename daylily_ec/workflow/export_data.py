@@ -116,7 +116,6 @@ def normalize_export_source_path(source_path: str) -> str:
     for role_root in (
         "/fsx/references",
         "/fsx/control_data",
-        "/fsx/runtime_assets",
         "/fsx/staging",
     ):
         if raw == role_root or raw.startswith(f"{role_root}/"):
@@ -133,7 +132,7 @@ def normalize_export_source_path(source_path: str) -> str:
         raise ExportError("Run-directory mounts are read-oriented inputs, not export sources.")
     if raw.startswith("/data/") or raw == "/data":
         raise ExportError("Legacy /data is not an export source.")
-    for role_root in ("/references", "/control_data", "/runtime_assets", "/staging"):
+    for role_root in ("/references", "/control_data", "/staging"):
         if raw == role_root or raw.startswith(f"{role_root}/"):
             raise ExportError(f"{role_root} is not an export source.")
     if raw.startswith("/exports/") or raw == "/exports":

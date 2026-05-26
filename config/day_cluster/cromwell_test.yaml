@@ -29,8 +29,6 @@ HeadNode:
         EnableWriteAccess: false
       - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
         EnableWriteAccess: false
-      - BucketName: ${REGSUB_S3_RUNTIME_ASSETS_BUCKET}
-        EnableWriteAccess: false
       - BucketName: ${REGSUB_S3_STAGE_BUCKET}
         EnableWriteAccess: false
     AdditionalIamPolicies:
@@ -122,11 +120,6 @@ SharedStorage:  # This is the local FS which is expensive but fast, could be swa
         - Name: reference-data
           FileSystemPath: /references/
           DataRepositoryPath: ${REGSUB_S3_REFERENCE_URI}/
-          BatchImportMetaDataOnCreate: true
-          AutoImportPolicy: [NEW, CHANGED, DELETED]
-        - Name: runtime-assets
-          FileSystemPath: /runtime_assets/
-          DataRepositoryPath: ${REGSUB_S3_RUNTIME_ASSETS_URI}/
           BatchImportMetaDataOnCreate: true
           AutoImportPolicy: [NEW, CHANGED, DELETED]
 Tags:  # TAGs necessary for per-user/project/job cost tracking

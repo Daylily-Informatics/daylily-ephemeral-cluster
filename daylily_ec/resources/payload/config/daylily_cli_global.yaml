@@ -4,6 +4,6 @@ daylily:
   git_ephemeral_cluster_repo_release_tag: 4.1.2
   git_ephemeral_cluster_repo: https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git
   analysis_root: /fsx/analysis_results/
-  sentieon_lic_path: /fsx/runtime_assets/cached_envs/x.lic
+  sentieon_lic_path: /fsx/references/runtime_assets/cached_envs/x.lic
   sentieon_tmpdir: /dev/shm/
-  sentieon_install_dir: /fsx/runtime_assets/cached_envs/sentieon-genomics-202503.01.rc1/
+  sentieon_install_dir: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.01.rc1/

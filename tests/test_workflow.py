@@ -93,17 +93,17 @@ class TestClusterBootConfigPublish:
 
         uploaded = create_cluster_module.publish_cluster_boot_config(
             FakeS3(),
-            cluster_boot_s3_uri="s3://runtime-assets/prefix/cluster_boot_config",
+            cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
             source_dir=source_dir,
         )
 
         assert uploaded == [
-            f"s3://runtime-assets/prefix/cluster_boot_config/{name}"
+            f"s3://references/runtime_assets/cluster_boot_config/{name}"
             for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES
         ]
-        assert [call["Bucket"] for call in calls] == ["runtime-assets"] * len(calls)
+        assert [call["Bucket"] for call in calls] == ["references"] * len(calls)
         assert [call["Key"] for call in calls] == [
-            f"prefix/cluster_boot_config/{name}"
+            f"runtime_assets/cluster_boot_config/{name}"
             for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES
         ]
 
@@ -123,7 +123,7 @@ class TestClusterBootConfigPublish:
         with pytest.raises(ValueError, match="/fsx/data"):
             create_cluster_module.publish_cluster_boot_config(
                 FakeS3(),
-                cluster_boot_s3_uri="s3://runtime-assets/cluster_boot_config",
+                cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
                 source_dir=source_dir,
             )
 
@@ -1193,7 +1193,6 @@ def _build_workflow_config(template_path: Path) -> ConfigFile:
                     "cluster_name": ["USESETVALUE", "", "majors-cluster"],
                     "reference_bucket": ["USESETVALUE", "", "s3://dayoa-references"],
                     "control_data_bucket": ["USESETVALUE", "", "s3://dayoa-control-data"],
-                    "runtime_assets_bucket": ["USESETVALUE", "", "s3://dayoa-runtime-assets"],
                     "stage_bucket": ["USESETVALUE", "", "s3://dayoa-staging"],
                     "max_count_8I": ["USESETVALUE", "", "1"],
                     "max_count_128I": ["USESETVALUE", "", "1"],
@@ -1302,11 +1301,6 @@ def _run_stubbed_create_workflow(
                         "control_data": {
                             "uri": "s3://dayoa-control-data",
                             "bucket": "dayoa-control-data",
-                            "prefix": "",
-                        },
-                        "runtime_assets": {
-                            "uri": "s3://dayoa-runtime-assets",
-                            "bucket": "dayoa-runtime-assets",
                             "prefix": "",
                         },
                         "staging": {

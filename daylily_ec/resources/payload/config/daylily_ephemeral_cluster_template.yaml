@@ -2,7 +2,6 @@ ephemeral_cluster:
   config:
     reference_bucket: [PROMPTUSER, "", ""]
     control_data_bucket: [PROMPTUSER, "", ""]
-    runtime_assets_bucket: [PROMPTUSER, "", ""]
     stage_bucket: [PROMPTUSER, "", ""]
     public_subnet_id: [PROMPTUSER, "", ""]
     private_subnet_id: [PROMPTUSER, "", ""]

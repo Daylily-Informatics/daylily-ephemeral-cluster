@@ -90,15 +90,12 @@ def test_active_cluster_templates_use_contract_role_dras() -> None:
         associations = fsx_settings["DataRepositoryAssociations"]
         assert [item["Name"] for item in associations] == [
             "reference-data",
-            "runtime-assets",
         ]
         assert [item["FileSystemPath"] for item in associations] == [
             "/references/",
-            "/runtime_assets/",
         ]
         assert [item["DataRepositoryPath"] for item in associations] == [
             "${REGSUB_S3_REFERENCE_URI}/",
-            "${REGSUB_S3_RUNTIME_ASSETS_URI}/",
         ]
         assert "${REGSUB_S3_CONTROL_DATA_URI}/" not in text
         assert "${REGSUB_S3_STAGE_URI}/" not in text

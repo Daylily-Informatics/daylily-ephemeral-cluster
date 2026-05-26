@@ -25,14 +25,12 @@ HEADNODE_RUN_MOUNT_ROOT = "/fsx/run_dir_mounts/"
 MOUNT_PURPOSE_RUN = "run"
 MOUNT_PURPOSE_REFERENCE = "reference"
 MOUNT_PURPOSE_CONTROL_DATA = "control-data"
-MOUNT_PURPOSE_RUNTIME_ASSETS = "runtime-assets"
 MOUNT_PURPOSE_STAGING = "staging"
 MOUNT_PURPOSE_CUSTOM = "custom"
 MOUNT_PURPOSES = (
     MOUNT_PURPOSE_RUN,
     MOUNT_PURPOSE_REFERENCE,
     MOUNT_PURPOSE_CONTROL_DATA,
-    MOUNT_PURPOSE_RUNTIME_ASSETS,
     MOUNT_PURPOSE_STAGING,
     MOUNT_PURPOSE_CUSTOM,
 )
@@ -40,13 +38,11 @@ PURPOSE_FSX_ROOTS = {
     MOUNT_PURPOSE_RUN: "/run_dir_mounts/",
     MOUNT_PURPOSE_REFERENCE: "/references/",
     MOUNT_PURPOSE_CONTROL_DATA: "/control_data/",
-    MOUNT_PURPOSE_RUNTIME_ASSETS: "/runtime_assets/",
     MOUNT_PURPOSE_STAGING: "/staging/",
 }
 STATIC_ROLE_ROOTS = (
     "/references/",
     "/control_data/",
-    "/runtime_assets/",
     "/staging/",
 )
 DEFAULT_AUTO_IMPORT_EVENTS = ("NEW", "CHANGED")
@@ -265,7 +261,7 @@ def normalize_file_system_path(
         for role_root in STATIC_ROLE_ROOTS + (FSX_RUN_MOUNT_ROOT,)
     ):
         raise RunMountError(
-            "Use a concrete --purpose for /references, /control_data, /runtime_assets, "
+            "Use a concrete --purpose for /references, /control_data, "
             "/staging, or /run_dir_mounts paths."
         )
     return normalized

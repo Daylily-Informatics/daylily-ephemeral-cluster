@@ -1864,11 +1864,6 @@ def samples_stage(
         "--control-data-bucket",
         help="S3 URI mapped to /fsx/control_data.",
     ),
-    runtime_assets_bucket: str = typer.Option(
-        ...,
-        "--runtime-assets-bucket",
-        help="S3 URI mapped to /fsx/runtime_assets.",
-    ),
     stage_bucket: str = typer.Option(
         ...,
         "--stage-bucket",
@@ -1938,8 +1933,6 @@ def samples_stage(
         reference_bucket,
         "--control-data-bucket",
         control_data_bucket,
-        "--runtime-assets-bucket",
-        runtime_assets_bucket,
         "--stage-bucket",
         stage_bucket,
         "--stage-target",
@@ -2000,11 +1993,6 @@ def samples_run(
         ...,
         "--control-data-bucket",
         help="S3 URI mapped to /fsx/control_data.",
-    ),
-    runtime_assets_bucket: str = typer.Option(
-        ...,
-        "--runtime-assets-bucket",
-        help="S3 URI mapped to /fsx/runtime_assets.",
     ),
     stage_bucket: str = typer.Option(
         ...,
@@ -2126,8 +2114,6 @@ def samples_run(
             reference_bucket,
             "--control-data-bucket",
             control_data_bucket,
-            "--runtime-assets-bucket",
-            runtime_assets_bucket,
             "--stage-bucket",
             stage_bucket,
             "--stage-target",
@@ -2502,7 +2488,7 @@ def mounts_create(
     purpose: str = typer.Option(
         "run",
         "--purpose",
-        help="Mount purpose: run, reference, control-data, runtime-assets, staging, or custom.",
+        help="Mount purpose: run, reference, control-data, staging, or custom.",
     ),
     cluster: Optional[str] = typer.Option(
         None,
