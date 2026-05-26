@@ -1,0 +1,55 @@
+{
+  "analysis_id": "jemilmn0p1ksdry1",
+  "analysis_samples": "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260526T213400Z_jem_bucktst3_ilmn_0p1x_kitchensink/analysis_samples.tsv",
+  "command_id": "illumina_snv_alignstats_relatedness_vep_multiqc",
+  "compatible_data_modes": [
+    "ilmn_solo"
+  ],
+  "delete_on_export_success": false,
+  "detected_data_modes": [
+    "ilmn_solo"
+  ],
+  "dry_run": true,
+  "dy_command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n",
+  "executing_entity": "johnm",
+  "export_destination_s3_uri": null,
+  "export_trigger": "none",
+  "git_tag": "2.0.1",
+  "remote_stage_dir": "/fsx/staging/staged_external_sequencing_data/remote_stage_20260526T213627Z_84c322b6",
+  "samples_tsv": "docs/plans/20260526T213400Z_jem_bucktst3_ilmn_0p1x_kitchensink/dryrun/20260526T213627Z_84c322b6_samples.tsv",
+  "session_name": "jemilmn0p1ksdry1",
+  "units_tsv": "docs/plans/20260526T213400Z_jem_bucktst3_ilmn_0p1x_kitchensink/dryrun/20260526T213627Z_84c322b6_units.tsv",
+  "workflow_argv": [
+    "workflow",
+    "launch",
+    "--repository",
+    "daylily-omics-analysis",
+    "--analysis-id",
+    "jemilmn0p1ksdry1",
+    "--executing-entity",
+    "johnm",
+    "--git-tag",
+    "2.0.1",
+    "--genome",
+    "hg38_broad",
+    "--dy-command",
+    "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "jem-bucktst3",
+    "--stage-dir",
+    "/fsx/staging/staged_external_sequencing_data/remote_stage_20260526T213627Z_84c322b6",
+    "--session-name",
+    "jemilmn0p1ksdry1",
+    "--skip-project-check",
+    "--dry-run"
+  ],
+  "workflow_launch": {
+    "repo_path": "/fsx/analysis_results/johnm/jemilmn0p1ksdry1/daylily-omics-analysis",
+    "run_dir": "/home/ubuntu/daylily-runs/jemilmn0p1ksdry1",
+    "session_name": "jemilmn0p1ksdry1"
+  }
+}

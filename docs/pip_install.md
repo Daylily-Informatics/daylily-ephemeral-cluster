@@ -42,7 +42,7 @@ session-manager-plugin
 
 ## Catalog Resources
 
-Installed packages use packaged resources under `daylily_ec/resources/payload/`. The packaged repository catalog must match the source catalog. Current DayOA pins are `2.0.1`.
+Installed packages use packaged resources under `daylily_ec/resources/payload/`. The packaged repository catalog must match the source catalog. Current DayOA pins are `2.0.2`.
 
 For local development after changing catalog or resource files:
 
