@@ -48,6 +48,31 @@ printf '{name}:%s\\n' "$*" >> "$log"
 """
 
 
+def _fake_sha256sum_script() -> str:
+    return """#!/usr/bin/env bash
+set -euo pipefail
+
+case "$(basename "$1")" in
+  Miniconda3-py312_25.7.0-2-MacOSX-arm64.sh)
+    printf '%s  %s\\n' '8d67e7824088d7aa3bde938a4fc4365bb39ba1f710104cfe7bd9cfb9a99bd8d2' "$1"
+    ;;
+  Miniconda3-py312_25.7.0-2-MacOSX-x86_64.sh)
+    printf '%s  %s\\n' 'e8f6aed58d708cc544ba6bacbebad86787cb8df56667ff4729ad2fe36af32846' "$1"
+    ;;
+  Miniconda3-py312_25.7.0-2-Linux-x86_64.sh)
+    printf '%s  %s\\n' '188b5d94ab3acefdeaebd7cb470d2fb74a3280563c77075de6e3e1d58d84ab0a' "$1"
+    ;;
+  Miniconda3-py312_25.7.0-2-Linux-aarch64.sh)
+    printf '%s  %s\\n' 'edc03373d75b3a06de594a7f819ad351bd2fa7602854f392107998e62468c783' "$1"
+    ;;
+  *)
+    printf 'unexpected file %s\\n' "$1" >&2
+    exit 1
+    ;;
+esac
+"""
+
+
 def _fake_installer_payload_writer() -> str:
     return """output=""
 while [[ $# -gt 0 ]]; do
@@ -151,6 +176,7 @@ def _base_env(tmp_path: Path) -> tuple[dict[str, str], Path, Path]:
     home_dir.mkdir()
 
     _write_executable(fake_bin / "uname", _fake_uname_script())
+    _write_executable(fake_bin / "sha256sum", _fake_sha256sum_script())
 
     env = os.environ.copy()
     env.update(
@@ -172,22 +198,22 @@ def _base_env(tmp_path: Path) -> tuple[dict[str, str], Path, Path]:
         (
             "Darwin",
             "arm64",
-            "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py312_25.7.0-2-MacOSX-arm64.sh",
         ),
         (
             "Darwin",
             "x86_64",
-            "https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py312_25.7.0-2-MacOSX-x86_64.sh",
         ),
         (
             "Linux",
             "arm64",
-            "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py312_25.7.0-2-Linux-aarch64.sh",
         ),
         (
             "Linux",
             "x86_64",
-            "https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh",
+            "https://repo.anaconda.com/miniconda/Miniconda3-py312_25.7.0-2-Linux-x86_64.sh",
         ),
     ],
 )
@@ -232,7 +258,8 @@ def test_install_miniconda_uses_curl_with_unset_machine(tmp_path: Path) -> None:
     assert "Miniconda installation successful." in result.stdout
 
     log_text = log_path.read_text(encoding="utf-8")
-    assert "curl:-fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh" in log_text
+    assert "curl:-fsSL https://repo.anaconda.com/miniconda/Miniconda3-py312_25.7.0-2-MacOSX-arm64.sh" in log_text
+    assert "latest" not in log_text
     assert "wget:" not in log_text
     assert "# >>> conda initialize >>>" in (Path(env["HOME"]) / ".bashrc").read_text(
         encoding="utf-8"
@@ -255,8 +282,9 @@ def test_install_miniconda_falls_back_to_wget_when_curl_fails(tmp_path: Path) ->
     assert result.returncode == 0, result.stderr
 
     log_text = log_path.read_text(encoding="utf-8")
-    assert "curl:-fsSL https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh" in log_text
-    assert "wget:-q https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh" in log_text
+    assert "curl:-fsSL https://repo.anaconda.com/miniconda/Miniconda3-py312_25.7.0-2-Linux-x86_64.sh" in log_text
+    assert "wget:-q https://repo.anaconda.com/miniconda/Miniconda3-py312_25.7.0-2-Linux-x86_64.sh" in log_text
+    assert "latest" not in log_text
 
 
 def test_install_miniconda_does_not_require_conda_config_accept_channel_terms(tmp_path: Path) -> None:

@@ -37,6 +37,8 @@ apptainer_deb="/fsx/data/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
 reference_wait_timeout_seconds=1800
 reference_wait_interval_seconds=30
+sbatch_wrapper_sha256="8615b65be2174949ee33783039579b3144025d378d1737d362f789bf3810bba0"
+sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
 
 echo "[$timestamp] Running post_install_ubuntu_combined.sh ${region} ${bucket} on $(hostname) as ${node_type}"
 echo "[$timestamp] Local log: ${local_log_fn}"
@@ -148,6 +150,19 @@ make_reference_data_read_only() {
   stat -c "Reference data permissions: %A %n" /fsx/data
 }
 
+install_verified_s3_executable() {
+  local s3_key="$1"
+  local destination="$2"
+  local expected_sha256="$3"
+  local temp_path
+
+  temp_path="$(mktemp "${destination}.download.XXXXXX")"
+  aws s3 cp "s3://${bucket}/${s3_key}" "${temp_path}"
+  echo "${expected_sha256}  ${temp_path}" | sha256sum -c -
+  install -m 0755 "${temp_path}" "${destination}"
+  rm -f "${temp_path}"
+}
+
 
 # GLOBAL ACTIONS HeadNode and ComputeFleet
 
@@ -230,8 +245,7 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   else
     echo "Original sbatch already present: /opt/slurm/sbin/sbatch"
   fi
-  aws s3 cp s3://${bucket}/cluster_boot_config/sbatch /opt/slurm/bin/sbatch
-  chmod +x /opt/slurm/bin/sbatch
+  install_verified_s3_executable "cluster_boot_config/sbatch" /opt/slurm/bin/sbatch "${sbatch_wrapper_sha256}"
 
   if [ ! -e /opt/slurm/sbin/srun ]; then
     mv /opt/slurm/bin/srun /opt/slurm/sbin/srun
@@ -240,8 +254,7 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   fi
   ln -sfn /opt/slurm/bin/sbatch /opt/slurm/bin/srun
 
-  aws s3 cp s3://${bucket}/cluster_boot_config/sleep_test.sh /opt/slurm/bin/sleep_test.sh
-  chmod a+x /opt/slurm/bin/sleep_test.sh
+  install_verified_s3_executable "cluster_boot_config/sleep_test.sh" /opt/slurm/bin/sleep_test.sh "${sleep_test_sha256}"
 
 
   # Restart SLURM Controller
