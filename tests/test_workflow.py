@@ -1141,6 +1141,10 @@ def _build_workflow_config(template_path: Path) -> ConfigFile:
             "ephemeral_cluster": {
                 "config": {
                     "cluster_name": ["USESETVALUE", "", "majors-cluster"],
+                    "reference_bucket": ["USESETVALUE", "", "s3://dayoa-references"],
+                    "control_data_bucket": ["USESETVALUE", "", "s3://dayoa-control-data"],
+                    "runtime_assets_bucket": ["USESETVALUE", "", "s3://dayoa-runtime-assets"],
+                    "stage_bucket": ["USESETVALUE", "", "s3://dayoa-staging"],
                     "max_count_8I": ["USESETVALUE", "", "1"],
                     "max_count_128I": ["USESETVALUE", "", "1"],
                     "max_count_192I": ["USESETVALUE", "", "1"],
@@ -1235,9 +1239,32 @@ def _run_stubbed_create_workflow(
     def fake_run_preflight(report: PreflightReport, **_kwargs):
         report.checks.append(
             CheckResult(
-                id="s3.bucket_select",
+                id="s3.role_config",
                 status=CheckStatus.PASS,
-                details={"selected": "bucket-a"},
+                details={
+                    "roles": {
+                        "reference": {
+                            "uri": "s3://dayoa-references",
+                            "bucket": "dayoa-references",
+                            "prefix": "",
+                        },
+                        "control_data": {
+                            "uri": "s3://dayoa-control-data",
+                            "bucket": "dayoa-control-data",
+                            "prefix": "",
+                        },
+                        "runtime_assets": {
+                            "uri": "s3://dayoa-runtime-assets",
+                            "bucket": "dayoa-runtime-assets",
+                            "prefix": "",
+                        },
+                        "staging": {
+                            "uri": "s3://dayoa-staging",
+                            "bucket": "dayoa-staging",
+                            "prefix": "",
+                        },
+                    }
+                },
             )
         )
         return report

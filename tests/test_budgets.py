@@ -72,7 +72,7 @@ class TestConstants:
         assert CLUSTER_THRESHOLDS == [75]
 
     def test_tags_file_suffix(self):
-        assert TAGS_FILE_S3_SUFFIX == "data/budget_tags/pcluster-project-budget-tags.tsv"
+        assert TAGS_FILE_S3_SUFFIX == "budget_tags/pcluster-project-budget-tags.tsv"
 
 
 # ===================================================================

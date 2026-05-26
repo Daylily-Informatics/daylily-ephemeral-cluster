@@ -74,7 +74,7 @@ def test_packaged_global_config_matches_source_config() -> None:
     assert packaged.read_text(encoding="utf-8") == source.read_text(encoding="utf-8")
 
 
-def test_active_cluster_templates_use_reference_data_dra_only() -> None:
+def test_active_cluster_templates_use_contract_role_dras() -> None:
     for relative_path in ACTIVE_CLUSTER_TEMPLATES:
         text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
         assert "ImportPath:" not in text
@@ -87,17 +87,30 @@ def test_active_cluster_templates_use_reference_data_dra_only() -> None:
         )
         assert "AutoExportPolicy" not in fsx_settings
         assert "AutoImportPolicy" not in fsx_settings
-        assert fsx_settings["DataRepositoryAssociations"] == [
-            {
-                "Name": "reference-data",
-                "FileSystemPath": "/data/",
-                "DataRepositoryPath": fsx_settings["DataRepositoryAssociations"][0][
-                    "DataRepositoryPath"
-                ],
-                "BatchImportMetaDataOnCreate": True,
-                "AutoImportPolicy": ["NEW", "CHANGED", "DELETED"],
-            }
+        associations = fsx_settings["DataRepositoryAssociations"]
+        assert [item["Name"] for item in associations] == [
+            "reference-data",
+            "control-data",
+            "runtime-assets",
+            "staging",
         ]
+        assert [item["FileSystemPath"] for item in associations] == [
+            "/references/",
+            "/control_data/",
+            "/runtime_assets/",
+            "/staging/",
+        ]
+        assert [item["DataRepositoryPath"] for item in associations] == [
+            "${REGSUB_S3_REFERENCE_URI}/",
+            "${REGSUB_S3_CONTROL_DATA_URI}/",
+            "${REGSUB_S3_RUNTIME_ASSETS_URI}/",
+            "${REGSUB_S3_STAGE_URI}/",
+        ]
+        assert all(item["BatchImportMetaDataOnCreate"] is True for item in associations)
+        assert all(
+            item["AutoImportPolicy"] == ["NEW", "CHANGED", "DELETED"]
+            for item in associations
+        )
 
 
 def test_packaged_cluster_templates_match_source_templates() -> None:
