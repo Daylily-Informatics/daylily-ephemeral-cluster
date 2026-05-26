@@ -426,6 +426,13 @@ class BucketRoles:
 
 
 GIAB_TRUTH_SUFFIXES = (".bed", ".vcf.gz", ".vcf.gz.tbi")
+ACTIVE_EXTERNAL_STAGE_ROOT = "/fsx/staging/staged_external_sequencing_data"
+RETIRED_STAGE_ROOTS = (
+    "/fsx/staging/staged_sample_data",
+    "/fsx/staging/staged",
+    "/fsx/staged_sample_data",
+    "/fsx/staged",
+)
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -435,7 +442,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("analysis_samples", help="Path to analysis_samples.tsv")
     parser.add_argument(
         "--stage-target",
-        default="/fsx/staging/staged_sample_data",
+        default=ACTIVE_EXTERNAL_STAGE_ROOT,
         help="FSx staging base directory (default: %(default)s)",
     )
     parser.add_argument(
@@ -518,9 +525,19 @@ def normalise_stage_target(stage_target: str) -> str:
         raise CommandError("Stage target must use /fsx/staging; /data is not supported.")
     if stage_target == "/fsx/data" or stage_target.startswith("/fsx/data/"):
         raise CommandError("Stage target must use /fsx/staging; /fsx/data is not supported.")
+    reject_retired_stage_path(stage_target)
     if not (stage_target == "/fsx/staging" or stage_target.startswith("/fsx/staging/")):
         raise CommandError("Stage target must be under /fsx/staging.")
-    return stage_target.rstrip("/")
+    stage_target = stage_target.rstrip("/")
+    if not (
+        stage_target == ACTIVE_EXTERNAL_STAGE_ROOT
+        or stage_target.startswith(f"{ACTIVE_EXTERNAL_STAGE_ROOT}/")
+    ):
+        raise CommandError(
+            f"Stage target must be under {ACTIVE_EXTERNAL_STAGE_ROOT}; "
+            "other /fsx/staging subpaths are not supported for external sequencing data."
+        )
+    return stage_target
 
 
 def build_stage_paths(stage_target: str, bucket_uri: str) -> StagePaths:
@@ -547,7 +564,20 @@ def build_stage_paths(stage_target: str, bucket_uri: str) -> StagePaths:
 def headnode_visible_path(path: str) -> str:
     if path == "/data" or path.startswith("/data/") or path == "/fsx/data" or path.startswith("/fsx/data/"):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
+    reject_retired_stage_path(path)
     return path
+
+
+def is_retired_stage_path(path: str) -> bool:
+    return any(path == root or path.startswith(f"{root}/") for root in RETIRED_STAGE_ROOTS)
+
+
+def reject_retired_stage_path(path: str) -> None:
+    if is_retired_stage_path(path):
+        raise CommandError(
+            f"The retired staging path {path} is not supported; "
+            f"use {ACTIVE_EXTERNAL_STAGE_ROOT} for external sequencing staging."
+        )
 
 
 def is_mounted_run_dir_path(path: str) -> bool:
@@ -765,6 +795,8 @@ def read_s3_text(
 
 
 def is_headnode_visible_path(path: str) -> bool:
+    if is_retired_stage_path(path):
+        return False
     return (
         path == "/fsx/references"
         or path.startswith("/fsx/references/")
@@ -804,6 +836,7 @@ def build_reference_uri(path: str, reference_bucket: str | BucketRoles) -> str:
         raise CommandError(f"Mounted run-directory paths are not static role-bucket objects: {path}")
     if path == "/data" or path.startswith("/data/") or path == "/fsx/data" or path.startswith("/fsx/data/"):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
+    reject_retired_stage_path(path)
     if path == "/fsx/references" or path.startswith("/fsx/references/"):
         return _join_s3_uri(roles.reference_bucket, _role_relative(path, "/fsx/references"))
     if path == "/fsx/control_data" or path.startswith("/fsx/control_data/"):
@@ -825,6 +858,7 @@ def check_source_path(
 ) -> None:
     if not path or path.lower() == "na":
         return
+    reject_retired_stage_path(path)
     if path.startswith("s3://"):
         check_s3_path(path, aws_env=aws_env, debug=debug)
         return
@@ -1122,6 +1156,7 @@ def cleanup_s3_objects(uris: Sequence[str], *, aws_env: Dict[str, str], debug: b
 
 
 def source_copy_reference(source: str, *, reference_bucket: str) -> str:
+    reject_retired_stage_path(source)
     if source.startswith("s3://"):
         return source
     if is_mounted_run_dir_path(source):
@@ -1374,6 +1409,7 @@ def resolve_ont_fastq_prefix_plan(
 
 
 def require_headnode_visible_path(path: str, *, field: str) -> None:
+    reject_retired_stage_path(path)
     if is_headnode_visible_path(path):
         return
     raise CommandError(

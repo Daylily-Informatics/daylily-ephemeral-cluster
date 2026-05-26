@@ -157,7 +157,7 @@ repositories:
             live_status: success
             dryrun_analysis_id: tvb_illumina_snv_alignstats_5x_1021_dryrun
             live_analysis_id: tvb_illumina_snv_alignstats_5x_1021
-            stage_or_context: /fsx/staging/staged_sample_data/remote_stage_20260525T071517Z
+            stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T071517Z
             notes: "Live run completed with CRAM, VCF, alignstats, and concordance outputs."
       - command_id: illumina_snv_alignstats_relatedness_vep_multiqc
         display_name: "Illumina SNV + Alignstats + Relatedness + VEP MultiQC"
@@ -217,7 +217,7 @@ repositories:
             live_status: success
             dryrun_analysis_id: tvb_illumina_related_vep_multiqc_5x_1021_dryrun
             live_analysis_id: tvb_illumina_related_vep_multiqc_5x_1021
-            stage_or_context: /fsx/staging/staged_sample_data/remote_stage_20260525T072540Z
+            stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T072540Z
             notes: "Live run completed with CRAM, VCF, alignstats, concordance, MultiQC, and relatedness outputs."
       - command_id: ultima_snv_alignstats
         display_name: "Ultima SNV + Alignstats"
@@ -273,7 +273,7 @@ repositories:
             live_status: success
             dryrun_analysis_id: tvb_ultima_snv_alignstats_5x_1021_dryrun
             live_analysis_id: tvb_ultima_snv_alignstats_5x_1021
-            stage_or_context: /fsx/staging/staged_sample_data/remote_stage_20260525T072907Z
+            stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T072907Z
             notes: "Live run completed with VCF, alignstats, and concordance outputs."
       - command_id: ont_snv_alignstats
         display_name: "ONT SNV + Alignstats"
@@ -330,7 +330,7 @@ repositories:
             live_status: success
             dryrun_analysis_id: tvb_ont_snv_alignstats_5x_1021_dryrun
             live_analysis_id: tvb_ont_snv_alignstats_5x_1021
-            stage_or_context: /fsx/staging/staged_sample_data/remote_stage_20260525T073112Z
+            stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T073112Z
             notes: "Live run completed with VCF, alignstats, and concordance outputs."
       - command_id: pacbio_snv_alignstats
         display_name: "PacBio SNV + Alignstats"
@@ -387,7 +387,7 @@ repositories:
             live_status: success
             dryrun_analysis_id: tvb_pacbio_snv_alignstats_5x_1021_dryrun
             live_analysis_id: tvb_pacbio_snv_alignstats_5x_1021
-            stage_or_context: /fsx/staging/staged_sample_data/remote_stage_20260525T073306Z
+            stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T073306Z
             notes: "Live run completed with CRAM, VCF, alignstats, and concordance outputs."
       - command_id: roche_snv_alignstats
         display_name: "Roche SNV + Alignstats"
@@ -442,7 +442,7 @@ repositories:
             dryrun_status: failed
             live_status: not_run
             dryrun_analysis_id: tvb_roche_snv_alignstats_5x_1021_dryrun
-            stage_or_context: /fsx/staging/staged_sample_data/remote_stage_20260525T073504Z
+            stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T073504Z
             failure_cause: "Dry-run failed while preparing Roche/GATK containers: missing Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg."
       - command_id: hybrid_ilmn_ont_snv
         display_name: "Hybrid ILMN+ONT HIOMR SNV/SV"
@@ -502,7 +502,7 @@ repositories:
             live_status: success
             dryrun_analysis_id: tvb_hybrid_ilmn_ont_snv_5x5x_1021_dryrun
             live_analysis_id: tvb_hybrid_ilmn_ont_snv_5x5x_1021
-            stage_or_context: /fsx/staging/staged_sample_data/remote_stage_20260525T074001Z
+            stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T074001Z
             notes: "Live run completed with sentdhiomr SNV/SV and concordance outputs."
       - command_id: hybrid_ultima_ont_snv
         display_name: "Hybrid Ultima+ONT HUOMR SNV"
@@ -562,7 +562,7 @@ repositories:
             live_status: failed
             dryrun_analysis_id: tvb_hybrid_ultima_ont_snv_5x5x_1021_dryrun
             live_analysis_id: tvb_hybrid_ultima_ont_snv_5x5x_1021
-            stage_or_context: /fsx/staging/staged_sample_data/remote_stage_20260525T074404Z
+            stage_or_context: /fsx/staging/staged_external_sequencing_data/remote_stage_20260525T074404Z
             failure_cause: "Live run failed in sentdhuomr_hybrid_select: ModuleNotFoundError: No module named 'sentieon_cli' while resolving files('sentieon_cli.scripts').joinpath('hybrid_select.py')."
             notes: "Dry-run passed; live failure was new after the r-suffix command and pass-through staging avoided the prior basename collision."
       - command_id: complete_genomics_mgi_snv_concordance

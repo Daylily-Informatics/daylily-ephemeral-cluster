@@ -1229,7 +1229,7 @@ def test_samples_stage_calls_python_staging_entrypoint(monkeypatch, tmp_path) ->
             "--config-dir",
             str(tmp_path / "cfg"),
             "--stage-target",
-            "/fsx/staging/staged_sample_data",
+            "/fsx/staging/staged_external_sequencing_data",
             "--run-metric-staging",
             "RUN1:ILMN:/tmp/run1.fofn",
             "--run-metric-staging",
@@ -1255,7 +1255,7 @@ def test_samples_stage_calls_python_staging_entrypoint(monkeypatch, tmp_path) ->
         "--stage-bucket",
         "s3://stage-bucket",
         "--stage-target",
-        "/fsx/staging/staged_sample_data",
+        "/fsx/staging/staged_external_sequencing_data",
         "--run-metric-staging",
         "RUN1:ILMN:/tmp/run1.fofn",
         "--run-metric-staging",
@@ -1335,7 +1335,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
         calls["stage_argv"] = argv
         print("Remote staging completed successfully.")
         print(
-            "Remote FSx stage directory: /fsx/staging/staged_sample_data/remote_stage_20260425T000000Z"
+            "Remote FSx stage directory: /fsx/staging/staged_external_sequencing_data/remote_stage_20260425T000000Z"
         )
         return 0
 
@@ -1399,7 +1399,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
         "--stage-bucket",
         "s3://stage-bucket",
         "--stage-target",
-        "/fsx/staging/staged_sample_data",
+        "/fsx/staging/staged_external_sequencing_data",
         "--run-metric-staging",
         "CGT7P:CG:/tmp/cgt7p.fofn",
         "--config-dir",
@@ -1424,7 +1424,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "produce_smd_dedup_cram" not in dy_command
     assert dy_command.endswith(" -n")
     assert "--stage-dir" in launch_argv
-    assert "/fsx/staging/staged_sample_data/remote_stage_20260425T000000Z" in launch_argv
+    assert "/fsx/staging/staged_external_sequencing_data/remote_stage_20260425T000000Z" in launch_argv
     receipt = config_dir / "20260425T000000Z_samples_run_receipt.json"
     payload = json.loads(receipt.read_text(encoding="utf-8"))
     assert payload["detected_data_modes"] == ["complete_genomics_solo"]

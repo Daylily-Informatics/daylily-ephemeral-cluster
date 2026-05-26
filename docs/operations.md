@@ -56,7 +56,7 @@ dyec samples stage "$ANALYSIS_SAMPLES" \
   --config-dir "$STAGE_CFG_DIR"
 ```
 
-The helper writes local staged config files and prints a remote stage directory under `/fsx/staging/staged_sample_data/...`.
+The helper writes local staged config files and prints a remote stage directory under `/fsx/staging/staged_external_sequencing_data/...`.
 
 For catalog-driven sample launches:
 
@@ -133,7 +133,7 @@ dyec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --stage-dir "/fsx/staging/staged_sample_data/remote_stage_<timestamp>" \
+  --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --git-tag 1.0.18

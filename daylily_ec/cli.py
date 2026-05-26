@@ -1880,7 +1880,7 @@ def samples_stage(
         help="Directory for generated samples.tsv and units.tsv.",
     ),
     stage_target: str = typer.Option(
-        "/fsx/staging/staged_sample_data",
+        "/fsx/staging/staged_external_sequencing_data",
         "--stage-target",
         help="FSx staging base directory.",
     ),
@@ -1995,7 +1995,7 @@ def samples_run(
         help="Directory for generated samples.tsv, units.tsv, and run receipt.",
     ),
     stage_target: str = typer.Option(
-        "/fsx/staging/staged_sample_data",
+        "/fsx/staging/staged_external_sequencing_data",
         "--stage-target",
         help="FSx staging base directory.",
     ),
@@ -2210,7 +2210,7 @@ def workflow_launch(
         help="Local runs.tsv file to copy to config/runs.tsv for run-analysis workflows.",
     ),
     stage_base: str = typer.Option(
-        "/fsx/staged_sample_data",
+        "/fsx/staging/staged_external_sequencing_data",
         "--stage-base",
         help="Base staging directory to scan when --stage-dir is omitted.",
     ),

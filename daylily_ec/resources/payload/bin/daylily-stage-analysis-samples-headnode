@@ -6,7 +6,7 @@ usage() {
 Usage: daylily-stage-analysis-samples-headnode <analysis_samples.tsv> [stage_target]
 
 Generate /fsx staging directories and config/{samples.tsv,units.tsv} from an analysis_samples TSV.
-The optional stage_target defaults to /fsx/staged_sample_data.
+The optional stage_target defaults to /fsx/staging/staged_external_sequencing_data.
 
 EXAMPLE <analysis_samples.tsv> can be found in:
   $(daylily-ec resources-dir)/etc/analysis_samples_template.tsv
@@ -35,6 +35,6 @@ if [[ ! -f "$ts" ]]; then
     exit 1
 fi
 
-stage_target="${2:-/fsx/staged_sample_data}"
+stage_target="${2:-/fsx/staging/staged_external_sequencing_data}"
 script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 python3 "${script_dir}/daylily-analysis-samples-to-manifest-new.py" "$ts" "$stage_target"

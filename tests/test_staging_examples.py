@@ -68,10 +68,10 @@ SOURCE_PATH_FIELDS = {
 
 def _stage_paths() -> module.StagePaths:
     return module.StagePaths(
-        remote_fsx_root="/fsx/staging/staged_sample_data",
+        remote_fsx_root="/fsx/staging/staged_external_sequencing_data",
         remote_stage_name="remote_stage_test",
-        remote_fsx_stage="/fsx/staging/staged_sample_data/remote_stage_test",
-        remote_s3_stage="s3://bucket/fsx/staging/staged_sample_data/remote_stage_test",
+        remote_fsx_stage="/fsx/staging/staged_external_sequencing_data/remote_stage_test",
+        remote_s3_stage="s3://bucket/fsx/staging/staged_external_sequencing_data/remote_stage_test",
     )
 
 
@@ -148,7 +148,7 @@ def test_staging_example_manifests_have_supported_schema_and_s3_sources() -> Non
         assert set(header) <= module.ALLOWED_MANIFEST_FIELDS
         for row in rows:
             assert row[module.STAGE_DIRECTIVE] == "stage_data"
-            assert row[module.STAGE_TARGET] == "/fsx/staging/staged_sample_data"
+            assert row[module.STAGE_TARGET] == "/fsx/staging/staged_external_sequencing_data"
             assert _has_source_group(row)
             for field in SOURCE_PATH_FIELDS:
                 value = (row.get(field) or "").strip()
@@ -278,7 +278,7 @@ def test_staging_example_manifests_mock_stage_expected_outputs(
     assert samples_rows[0]["BIOLOGICAL_SEX"] == "male"
     assert samples_rows[0]["SAMPLE_TYPE"] == "gdna"
     assert samples_rows[0]["CONCORDANCE_CONTROL_PATH"].startswith(
-        "/fsx/staging/staged_sample_data/remote_stage_test/"
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/"
     )
     assert not any(path.startswith("s3://") for path in created_files)
 

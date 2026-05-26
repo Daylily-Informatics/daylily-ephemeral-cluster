@@ -211,7 +211,7 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--stage-base",
-        default="/fsx/staged_sample_data",
+        default="/fsx/staging/staged_external_sequencing_data",
         help="Base staging directory to scan when --stage-dir is omitted",
     )
     parser.add_argument(

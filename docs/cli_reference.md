@@ -190,7 +190,7 @@ dyec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --stage-dir "/fsx/staging/staged_sample_data/remote_stage_<timestamp>" \
+  --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --git-tag 1.0.21

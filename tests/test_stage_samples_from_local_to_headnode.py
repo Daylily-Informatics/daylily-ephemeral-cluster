@@ -9,10 +9,10 @@ import daylily_ec.stage_samples as module
 
 def _stage_paths() -> module.StagePaths:
     return module.StagePaths(
-        remote_fsx_root="/fsx/staging/staged_sample_data",
+        remote_fsx_root="/fsx/staging/staged_external_sequencing_data",
         remote_stage_name="remote_stage_test",
-        remote_fsx_stage="/fsx/staging/staged_sample_data/remote_stage_test",
-        remote_s3_stage="s3://stage-bucket/staging/staged_sample_data/remote_stage_test",
+        remote_fsx_stage="/fsx/staging/staged_external_sequencing_data/remote_stage_test",
+        remote_s3_stage="s3://stage-bucket/staging/staged_external_sequencing_data/remote_stage_test",
     )
 
 
@@ -83,8 +83,8 @@ def test_headnode_visible_path_rejects_legacy_data_prefix() -> None:
     with pytest.raises(module.CommandError, match="explicit role roots"):
         module.headnode_visible_path("/fsx/data")
     assert (
-        module.headnode_visible_path("/fsx/staging/staged_sample_data/remote_stage_1")
-        == "/fsx/staging/staged_sample_data/remote_stage_1"
+        module.headnode_visible_path("/fsx/staging/staged_external_sequencing_data/remote_stage_1")
+        == "/fsx/staging/staged_external_sequencing_data/remote_stage_1"
     )
     assert module.is_headnode_visible_path("/fsx/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
     assert module.is_headnode_visible_path("/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
@@ -93,6 +93,34 @@ def test_headnode_visible_path_rejects_legacy_data_prefix() -> None:
         == "/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz"
     )
     assert module.headnode_visible_path("/tmp/local") == "/tmp/local"
+
+
+def test_retired_staging_paths_are_rejected() -> None:
+    for path in (
+        "/fsx/staging/staged_sample_data",
+        "/fsx/staging/staged_sample_data/remote_stage_1",
+        "/fsx/staging/staged",
+        "/fsx/staging/staged/old-run",
+        "/fsx/staged_sample_data",
+        "/fsx/staged_sample_data/remote_stage_1",
+        "/fsx/staged",
+        "/fsx/staged/old-run",
+    ):
+        with pytest.raises(module.CommandError, match="retired staging path"):
+            module.normalise_stage_target(path)
+        with pytest.raises(module.CommandError, match="retired staging path"):
+            module.headnode_visible_path(path)
+        with pytest.raises(module.CommandError, match="retired staging path"):
+            module.build_reference_uri(path, _bucket_roles())
+
+
+def test_stage_target_only_allows_external_sequencing_data_root() -> None:
+    assert (
+        module.normalise_stage_target("/fsx/staging/staged_external_sequencing_data/")
+        == "/fsx/staging/staged_external_sequencing_data"
+    )
+    with pytest.raises(module.CommandError, match="staged_external_sequencing_data"):
+        module.normalise_stage_target("/fsx/staging/custom")
 
 
 def test_check_source_path_accepts_mounted_paths_without_reference_translation(
@@ -169,7 +197,7 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
                     "/tmp/HG002_0.1x_R1.fastq.gz",
                     "/tmp/HG002_0.1x_R2.fastq.gz",
                     "stage_data",
-                    "/fsx/staged_sample_data/",
+                    "/fsx/staging/staged_external_sequencing_data/",
                     "na",
                     "false",
                     "false",
@@ -186,8 +214,8 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
         module,
         "stage_single_lane",
         lambda *args, **kwargs: (
-            "/fsx/staging/staged_sample_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R1.fastq.gz",
-            "/fsx/staging/staged_sample_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R2.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R1.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R2.fastq.gz",
         ),
     )
     monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
@@ -203,8 +231,8 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
     assert module.LONGREADTRIM_READ_LENGTH in module.UNITS_HEADER
     assert run_ids == ["R0"]
     assert created_files == [
-        "/fsx/staging/staged_sample_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R1.fastq.gz",
-        "/fsx/staging/staged_sample_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R2.fastq.gz",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R1.fastq.gz",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R2.fastq.gz",
     ]
     assert samples_rows == [
         {
@@ -326,7 +354,7 @@ def test_process_samples_emits_comma_separated_ilmn_unit_paths(
     units_row = units_rows[0]
     assert units_row["ILMN_R1_PATH"] == ",".join(
         [
-            "/fsx/staging/staged_sample_data/remote_stage_test/"
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/"
             "MULTILANE_HG002-NOVASEQ-PCR-FREE-blood-split1x_S1_0/"
             f"lane{lane}/HG002_L{lane}_R1.fastq.gz"
             for lane in range(1, 4)
@@ -334,7 +362,7 @@ def test_process_samples_emits_comma_separated_ilmn_unit_paths(
     )
     assert units_row["ILMN_R2_PATH"] == ",".join(
         [
-            "/fsx/staging/staged_sample_data/remote_stage_test/"
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/"
             "MULTILANE_HG002-NOVASEQ-PCR-FREE-blood-split1x_S1_0/"
             f"lane{lane}/HG002_L{lane}_R2.fastq.gz"
             for lane in range(1, 4)
@@ -499,8 +527,8 @@ def test_process_samples_emits_complete_genomics_fastq_rows(
         module,
         "stage_single_lane",
         lambda *args, **kwargs: (
-            "/fsx/staging/staged_sample_data/remote_stage_test/CGT7P_HG003-DNBSEQ-PCR-FREE-blood-T7PLUS_D0_0/HG003_CG_R1.fastq.gz",
-            "/fsx/staging/staged_sample_data/remote_stage_test/CGT7P_HG003-DNBSEQ-PCR-FREE-blood-T7PLUS_D0_0/HG003_CG_R2.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/CGT7P_HG003-DNBSEQ-PCR-FREE-blood-T7PLUS_D0_0/HG003_CG_R1.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/CGT7P_HG003-DNBSEQ-PCR-FREE-blood-T7PLUS_D0_0/HG003_CG_R2.fastq.gz",
         ),
     )
     monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
@@ -1113,7 +1141,7 @@ def test_process_samples_emits_ont_fastq_prefix_rows(
     assert run_ids == ["20260424-ONT-100ul"]
     assert concatenated == [[obj.uri for obj in _valid_ont_objects(prefix)]]
     assert created_files == [
-        "/fsx/staging/staged_sample_data/remote_stage_test/"
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/"
         "20260424-ONT-100ul_HG003-PROMETHION-SQK-LSK114-blood-pca100_PBK85691_barcode03_0/"
         "20260424-ONT-100ul-PBK85691-barcode03-R1.fastq.gz"
     ]
@@ -1287,18 +1315,18 @@ def test_process_samples_emits_hybrid_ilmn_ont_rows(
         module,
         "stage_single_lane",
         lambda *args, **kwargs: (
-            "/fsx/staging/staged_sample_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_1x_R1.fastq.gz",
-            "/fsx/staging/staged_sample_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_1x_R2.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_1x_R1.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_1x_R2.fastq.gz",
         ),
     )
     monkeypatch.setattr(
         module,
         "stage_path_with_sidecars",
         lambda *args, **kwargs: (
-            "/fsx/staging/staged_sample_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_3x.cleaned.cram",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_3x.cleaned.cram",
             [
-                "/fsx/staging/staged_sample_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_3x.cleaned.cram",
-                "/fsx/staging/staged_sample_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_3x.cleaned.cram.crai",
+                "/fsx/staging/staged_external_sequencing_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_3x.cleaned.cram",
+                "/fsx/staging/staged_external_sequencing_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_3x.cleaned.cram.crai",
             ],
         ),
     )
@@ -1501,8 +1529,8 @@ def test_stage_path_with_sidecars_stages_cram_before_crai(
     remote_path, created = module.stage_path_with_sidecars(
         "s3://bucket/sample.cram",
         sidecar_suffixes=(".crai",),
-        dest_fsx_dir="/fsx/staging/staged_sample_data/remote_stage_test/sample",
-        dest_s3_dir="s3://stage-bucket/staging/staged_sample_data/remote_stage_test/sample",
+        dest_fsx_dir="/fsx/staging/staged_external_sequencing_data/remote_stage_test/sample",
+        dest_s3_dir="s3://stage-bucket/staging/staged_external_sequencing_data/remote_stage_test/sample",
         reference_bucket="s3://reference",
         aws_env={},
         debug=False,
@@ -1511,8 +1539,8 @@ def test_stage_path_with_sidecars_stages_cram_before_crai(
     assert calls == ["s3://bucket/sample.cram", "s3://bucket/sample.cram.crai"]
     assert remote_path.endswith("/sample.cram")
     assert created == [
-        "/fsx/staging/staged_sample_data/remote_stage_test/sample/sample.cram",
-        "/fsx/staging/staged_sample_data/remote_stage_test/sample/sample.cram.crai",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/sample/sample.cram",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/sample/sample.cram.crai",
     ]
 
 
@@ -1622,16 +1650,16 @@ def test_stage_run_metrics_copies_under_runs_subdir(
     assert copies == [
         (
             "s3://stage-bucket/run_metrics/headnode.txt",
-            "s3://stage-bucket/staging/staged_sample_data/remote_stage_test/runs/RUN-1/headnode.txt",
+            "s3://stage-bucket/staging/staged_external_sequencing_data/remote_stage_test/runs/RUN-1/headnode.txt",
         ),
         (
             "s3://source-bucket/metrics/report.json",
-            "s3://stage-bucket/staging/staged_sample_data/remote_stage_test/runs/RUN-1/qc/report.json",
+            "s3://stage-bucket/staging/staged_external_sequencing_data/remote_stage_test/runs/RUN-1/qc/report.json",
         ),
     ]
     assert created == [
-        "/fsx/staging/staged_sample_data/remote_stage_test/runs/RUN-1/headnode.txt",
-        "/fsx/staging/staged_sample_data/remote_stage_test/runs/RUN-1/qc/report.json",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/runs/RUN-1/headnode.txt",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/runs/RUN-1/qc/report.json",
     ]
 
 
@@ -1832,7 +1860,7 @@ def test_precheck_manifest_rejects_mounted_readonly_paths_outside_run_dir_mounts
         _mounted_ilmn_header(),
         [
             _mounted_ilmn_row(
-                r1="/fsx/staging/staged_sample_data/S1_R1.fastq.gz",
+                r1="/fsx/staging/staged_external_sequencing_data/S1_R1.fastq.gz",
             )
         ],
     )
