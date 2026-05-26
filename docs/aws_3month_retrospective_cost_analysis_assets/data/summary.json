@@ -1,0 +1,1007 @@
+{
+  "blank_tag_costs": {
+    "tag_Name": 35043.24,
+    "tag_Project": 35043.24,
+    "tag_aws-parallelcluster-clustername": 11071.44,
+    "tag_aws-parallelcluster-project": 13321.3,
+    "tag_lsmc-project": 35043.24,
+    "tag_parallelcluster_cluster-name": 11071.44,
+    "tag_project": 35043.24
+  },
+  "current_parallelclusters": [
+    {
+      "cloudformationStackArn": "arn:aws:cloudformation:us-west-2:108782052779:stack/XL-pilot/66ef1a70-5324-11f1-9fa3-0235dd5e183f",
+      "cloudformationStackStatus": "CREATE_COMPLETE",
+      "clusterName": "XL-pilot",
+      "clusterStatus": "CREATE_COMPLETE",
+      "region": "us-west-2",
+      "scheduler": {
+        "type": "slurm"
+      },
+      "version": "3.13.2"
+    },
+    {
+      "cloudformationStackArn": "arn:aws:cloudformation:us-west-2:108782052779:stack/dra-enabled/89197230-527a-11f1-92e2-0617171b4d29",
+      "cloudformationStackStatus": "CREATE_COMPLETE",
+      "clusterName": "dra-enabled",
+      "clusterStatus": "CREATE_COMPLETE",
+      "region": "us-west-2",
+      "scheduler": {
+        "type": "slurm"
+      },
+      "version": "3.13.2"
+    }
+  ],
+  "generated_at": "2026-05-21T18:11:55.653503Z",
+  "inventory_error_count": 0,
+  "inventory_errors": [],
+  "live_resource_count": 142,
+  "low_spend_region_sweep": {
+    "found_by_region": {
+      "af-south-1": 0,
+      "ap-east-1": 0,
+      "ap-northeast-1": 0,
+      "ap-northeast-2": 0,
+      "ap-northeast-3": 0,
+      "ap-south-2": 0,
+      "ap-southeast-1": 0,
+      "ap-southeast-2": 0,
+      "ap-southeast-3": 0,
+      "ca-central-1": 0,
+      "eu-north-1": 0,
+      "eu-west-1": 0,
+      "eu-west-2": 0,
+      "eu-west-3": 0,
+      "sa-east-1": 0,
+      "us-east-2": 0,
+      "us-west-1": 0
+    },
+    "regions": [
+      "af-south-1",
+      "ap-east-1",
+      "ap-northeast-1",
+      "ap-northeast-2",
+      "ap-northeast-3",
+      "ap-south-2",
+      "ap-southeast-1",
+      "ap-southeast-2",
+      "ap-southeast-3",
+      "ca-central-1",
+      "eu-north-1",
+      "eu-west-1",
+      "eu-west-2",
+      "eu-west-3",
+      "sa-east-1",
+      "us-east-2",
+      "us-west-1"
+    ]
+  },
+  "monthly_totals": [
+    {
+      "amount_usd": 6178.49,
+      "month": "2026-02"
+    },
+    {
+      "amount_usd": 4244.84,
+      "month": "2026-03"
+    },
+    {
+      "amount_usd": 9334.55,
+      "month": "2026-04"
+    },
+    {
+      "amount_usd": 15285.37,
+      "month": "2026-05"
+    }
+  ],
+  "resource_counts_by_kind": {
+    "ebs_volume": 16,
+    "ec2_instance": 12,
+    "ecr_repository": 16,
+    "ecs_cluster": 3,
+    "eip": 19,
+    "fsx_dra": 7,
+    "fsx_file_system": 2,
+    "load_balancer": 2,
+    "nat_gateway": 10,
+    "rds_cluster": 7,
+    "rds_instance": 14,
+    "s3_bucket": 34
+  },
+  "resource_counts_by_service": {
+    "EBS": 16,
+    "EC2": 31,
+    "ECR": 16,
+    "ECS": 3,
+    "ELBv2": 2,
+    "FSx": 9,
+    "RDS": 21,
+    "S3": 34,
+    "VPC": 10
+  },
+  "tag_status_counts": {
+    "attributed": 18,
+    "completely_untagged": 41,
+    "missing_cluster_or_stack": 31,
+    "missing_name": 28,
+    "missing_project": 16,
+    "other_tags_only": 8
+  },
+  "top_aws_pcluster_project_tags": [
+    {
+      "amount_usd": 13321.3,
+      "key": "aws-parallelcluster-project$"
+    },
+    {
+      "amount_usd": 3208.02,
+      "key": "aws-parallelcluster-project$may26-d"
+    },
+    {
+      "amount_usd": 2579.17,
+      "key": "aws-parallelcluster-project$ifx-go"
+    },
+    {
+      "amount_usd": 2353.8,
+      "key": "aws-parallelcluster-project$da-us-west-2d-agbt-heavy"
+    },
+    {
+      "amount_usd": 1552.2,
+      "key": "aws-parallelcluster-project$mk-gotime3"
+    },
+    {
+      "amount_usd": 1387.14,
+      "key": "aws-parallelcluster-project$da-us-west-2d-agbt-12t-usw2d"
+    },
+    {
+      "amount_usd": 1047.07,
+      "key": "aws-parallelcluster-project$fk-260509-use"
+    },
+    {
+      "amount_usd": 1038.74,
+      "key": "aws-parallelcluster-project$inflextion-g24"
+    },
+    {
+      "amount_usd": 900.06,
+      "key": "aws-parallelcluster-project$daylily-omics-analysis-us-west-2"
+    },
+    {
+      "amount_usd": 873.66,
+      "key": "aws-parallelcluster-project$dra-enabled"
+    },
+    {
+      "amount_usd": 821.28,
+      "key": "aws-parallelcluster-project$dec219-cluster"
+    },
+    {
+      "amount_usd": 629.34,
+      "key": "aws-parallelcluster-project$at-sanity"
+    },
+    {
+      "amount_usd": 543.21,
+      "key": "aws-parallelcluster-project$daylily-1773059211"
+    },
+    {
+      "amount_usd": 521.51,
+      "key": "aws-parallelcluster-project$daylily-global"
+    },
+    {
+      "amount_usd": 474.78,
+      "key": "aws-parallelcluster-project$pilot-largecluster"
+    },
+    {
+      "amount_usd": 432.69,
+      "key": "aws-parallelcluster-project$mk-gotime"
+    },
+    {
+      "amount_usd": 390.59,
+      "key": "aws-parallelcluster-project$pilot-mk"
+    },
+    {
+      "amount_usd": 386.86,
+      "key": "aws-parallelcluster-project$daylily-1773057991"
+    },
+    {
+      "amount_usd": 327.3,
+      "key": "aws-parallelcluster-project$da-us-west-2d-fk-260509-use"
+    },
+    {
+      "amount_usd": 276.28,
+      "key": "aws-parallelcluster-project$lsmc-20260413"
+    },
+    {
+      "amount_usd": 266.48,
+      "key": "aws-parallelcluster-project$XL-pilot"
+    },
+    {
+      "amount_usd": 230.74,
+      "key": "aws-parallelcluster-project$majors-cluster"
+    },
+    {
+      "amount_usd": 200.67,
+      "key": "aws-parallelcluster-project$lsbio-fork-260509-124701"
+    },
+    {
+      "amount_usd": 189.14,
+      "key": "aws-parallelcluster-project$test-del-me"
+    },
+    {
+      "amount_usd": 176.08,
+      "key": "aws-parallelcluster-project$and-again"
+    },
+    {
+      "amount_usd": 169.5,
+      "key": "aws-parallelcluster-project$mk-majors-cluster"
+    },
+    {
+      "amount_usd": 143.2,
+      "key": "aws-parallelcluster-project$mk-test-202604-cluster"
+    },
+    {
+      "amount_usd": 108.31,
+      "key": "aws-parallelcluster-project$day-test-uswest2d"
+    },
+    {
+      "amount_usd": 93.43,
+      "key": "aws-parallelcluster-project$mk-cluster"
+    },
+    {
+      "amount_usd": 84.02,
+      "key": "aws-parallelcluster-project$day-forge-usw2d"
+    }
+  ],
+  "top_cluster_tags": [
+    {
+      "amount_usd": 11071.44,
+      "key": "parallelcluster:cluster-name$"
+    },
+    {
+      "amount_usd": 3868.35,
+      "key": "parallelcluster:cluster-name$agbt-heavy"
+    },
+    {
+      "amount_usd": 3688.69,
+      "key": "parallelcluster:cluster-name$may26-d"
+    },
+    {
+      "amount_usd": 2603.9,
+      "key": "parallelcluster:cluster-name$ifx-go"
+    },
+    {
+      "amount_usd": 1851.03,
+      "key": "parallelcluster:cluster-name$mk-gotime3"
+    },
+    {
+      "amount_usd": 1824.33,
+      "key": "parallelcluster:cluster-name$fk-260509-use"
+    },
+    {
+      "amount_usd": 1585.74,
+      "key": "parallelcluster:cluster-name$agbt-12t-usw2d"
+    },
+    {
+      "amount_usd": 1382.12,
+      "key": "parallelcluster:cluster-name$inflextion-g24"
+    },
+    {
+      "amount_usd": 917.87,
+      "key": "parallelcluster:cluster-name$dra-enabled"
+    },
+    {
+      "amount_usd": 830.78,
+      "key": "parallelcluster:cluster-name$at-sanity"
+    },
+    {
+      "amount_usd": 827.28,
+      "key": "parallelcluster:cluster-name$dec219-cluster"
+    },
+    {
+      "amount_usd": 615.55,
+      "key": "parallelcluster:cluster-name$daylily-1773059211"
+    },
+    {
+      "amount_usd": 474.78,
+      "key": "parallelcluster:cluster-name$pilot-largecluster"
+    },
+    {
+      "amount_usd": 432.69,
+      "key": "parallelcluster:cluster-name$mk-gotime"
+    },
+    {
+      "amount_usd": 390.59,
+      "key": "parallelcluster:cluster-name$pilot-mk"
+    },
+    {
+      "amount_usd": 386.86,
+      "key": "parallelcluster:cluster-name$daylily-1773057991"
+    },
+    {
+      "amount_usd": 363.48,
+      "key": "parallelcluster:cluster-name$XL-pilot"
+    },
+    {
+      "amount_usd": 276.28,
+      "key": "parallelcluster:cluster-name$lsmc-20260413"
+    },
+    {
+      "amount_usd": 230.74,
+      "key": "parallelcluster:cluster-name$majors-cluster"
+    },
+    {
+      "amount_usd": 200.67,
+      "key": "parallelcluster:cluster-name$lsbio-fork-260509-124701"
+    },
+    {
+      "amount_usd": 189.14,
+      "key": "parallelcluster:cluster-name$test-del-me"
+    },
+    {
+      "amount_usd": 176.08,
+      "key": "parallelcluster:cluster-name$and-again"
+    },
+    {
+      "amount_usd": 169.5,
+      "key": "parallelcluster:cluster-name$mk-majors-cluster"
+    },
+    {
+      "amount_usd": 143.2,
+      "key": "parallelcluster:cluster-name$mk-test-202604-cluster"
+    },
+    {
+      "amount_usd": 108.31,
+      "key": "parallelcluster:cluster-name$day-test-uswest2d"
+    },
+    {
+      "amount_usd": 93.43,
+      "key": "parallelcluster:cluster-name$mk-cluster"
+    },
+    {
+      "amount_usd": 84.02,
+      "key": "parallelcluster:cluster-name$day-forge-usw2d"
+    },
+    {
+      "amount_usd": 49.93,
+      "key": "parallelcluster:cluster-name$dec215-0426"
+    },
+    {
+      "amount_usd": 45.15,
+      "key": "parallelcluster:cluster-name$day-ssm-e2e-20260412103613"
+    },
+    {
+      "amount_usd": 33.5,
+      "key": "parallelcluster:cluster-name$mkdec219"
+    }
+  ],
+  "top_operations": [
+    {
+      "amount_usd": 11262.93,
+      "key": "RunInstances:SV080"
+    },
+    {
+      "amount_usd": 9562.84,
+      "key": "CreateFileSystem:Lustre"
+    },
+    {
+      "amount_usd": 4413.76,
+      "key": "StandardStorage"
+    },
+    {
+      "amount_usd": 4064.13,
+      "key": "RunInstances"
+    },
+    {
+      "amount_usd": 1188.92,
+      "key": "NatGateway"
+    },
+    {
+      "amount_usd": 1169.8,
+      "key": "CreateDBInstance:0021"
+    },
+    {
+      "amount_usd": 1037.64,
+      "key": "NoOperation"
+    },
+    {
+      "amount_usd": 970.91,
+      "key": "CreateVolume-Gp3"
+    },
+    {
+      "amount_usd": 385.69,
+      "key": "CreateDBInstance:0014"
+    },
+    {
+      "amount_usd": 173.84,
+      "key": "AssociateAddressVPC"
+    },
+    {
+      "amount_usd": 130.0,
+      "key": "RenewDomain"
+    },
+    {
+      "amount_usd": 102.32,
+      "key": "VpcEndpoint"
+    },
+    {
+      "amount_usd": 94.89,
+      "key": "FargateTask"
+    },
+    {
+      "amount_usd": 72.86,
+      "key": "GuardDuty-CloudTrailEvents"
+    },
+    {
+      "amount_usd": 49.66,
+      "key": "UploadPart"
+    },
+    {
+      "amount_usd": 42.43,
+      "key": "PutLogEvents"
+    },
+    {
+      "amount_usd": 41.57,
+      "key": "LoadBalancing:Application"
+    },
+    {
+      "amount_usd": 38.9,
+      "key": "HostedZone"
+    },
+    {
+      "amount_usd": 32.96,
+      "key": "LoadBalancing:Network"
+    },
+    {
+      "amount_usd": 24.87,
+      "key": "WebACLV2"
+    },
+    {
+      "amount_usd": 19.65,
+      "key": "GetObject"
+    },
+    {
+      "amount_usd": 18.44,
+      "key": "GuardDuty-S3DataEvents"
+    },
+    {
+      "amount_usd": 17.74,
+      "key": "PutObject"
+    },
+    {
+      "amount_usd": 17.25,
+      "key": "CopyPart"
+    },
+    {
+      "amount_usd": 15.54,
+      "key": "PublicIP-In"
+    }
+  ],
+  "top_regions": [
+    {
+      "amount_usd": 31764.92,
+      "key": "us-west-2"
+    },
+    {
+      "amount_usd": 1511.77,
+      "key": "us-east-1"
+    },
+    {
+      "amount_usd": 1016.09,
+      "key": "global"
+    },
+    {
+      "amount_usd": 376.49,
+      "key": "eu-central-1"
+    },
+    {
+      "amount_usd": 321.61,
+      "key": "ap-south-1"
+    },
+    {
+      "amount_usd": 4.36,
+      "key": "sa-east-1"
+    },
+    {
+      "amount_usd": 3.73,
+      "key": "ap-northeast-3"
+    },
+    {
+      "amount_usd": 3.65,
+      "key": "ap-northeast-1"
+    },
+    {
+      "amount_usd": 3.62,
+      "key": "ap-northeast-2"
+    },
+    {
+      "amount_usd": 3.62,
+      "key": "ap-southeast-2"
+    },
+    {
+      "amount_usd": 3.62,
+      "key": "ap-southeast-1"
+    },
+    {
+      "amount_usd": 3.62,
+      "key": "ca-central-1"
+    },
+    {
+      "amount_usd": 3.57,
+      "key": "eu-west-1"
+    },
+    {
+      "amount_usd": 3.56,
+      "key": "eu-west-2"
+    },
+    {
+      "amount_usd": 3.56,
+      "key": "eu-west-3"
+    },
+    {
+      "amount_usd": 3.55,
+      "key": "us-west-1"
+    },
+    {
+      "amount_usd": 3.5,
+      "key": "eu-north-1"
+    },
+    {
+      "amount_usd": 3.46,
+      "key": "us-east-2"
+    },
+    {
+      "amount_usd": 1.36,
+      "key": "ap-east-1"
+    },
+    {
+      "amount_usd": 1.29,
+      "key": "af-south-1"
+    }
+  ],
+  "top_service_operations": [
+    {
+      "amount_usd": 11262.93,
+      "key": "RunInstances:SV080"
+    },
+    {
+      "amount_usd": 9562.84,
+      "key": "CreateFileSystem:Lustre"
+    },
+    {
+      "amount_usd": 4413.76,
+      "key": "StandardStorage"
+    },
+    {
+      "amount_usd": 4064.13,
+      "key": "RunInstances"
+    },
+    {
+      "amount_usd": 1188.92,
+      "key": "NatGateway"
+    },
+    {
+      "amount_usd": 1169.8,
+      "key": "CreateDBInstance:0021"
+    },
+    {
+      "amount_usd": 1037.64,
+      "key": "NoOperation"
+    },
+    {
+      "amount_usd": 970.91,
+      "key": "CreateVolume-Gp3"
+    },
+    {
+      "amount_usd": 385.69,
+      "key": "CreateDBInstance:0014"
+    },
+    {
+      "amount_usd": 173.84,
+      "key": "AssociateAddressVPC"
+    },
+    {
+      "amount_usd": 130.0,
+      "key": "RenewDomain"
+    },
+    {
+      "amount_usd": 102.32,
+      "key": "VpcEndpoint"
+    },
+    {
+      "amount_usd": 94.89,
+      "key": "FargateTask"
+    },
+    {
+      "amount_usd": 72.86,
+      "key": "GuardDuty-CloudTrailEvents"
+    },
+    {
+      "amount_usd": 49.66,
+      "key": "UploadPart"
+    },
+    {
+      "amount_usd": 42.43,
+      "key": "PutLogEvents"
+    },
+    {
+      "amount_usd": 41.57,
+      "key": "LoadBalancing:Application"
+    },
+    {
+      "amount_usd": 38.9,
+      "key": "HostedZone"
+    },
+    {
+      "amount_usd": 32.96,
+      "key": "LoadBalancing:Network"
+    },
+    {
+      "amount_usd": 24.87,
+      "key": "WebACLV2"
+    },
+    {
+      "amount_usd": 19.65,
+      "key": "GetObject"
+    },
+    {
+      "amount_usd": 18.44,
+      "key": "GuardDuty-S3DataEvents"
+    },
+    {
+      "amount_usd": 17.74,
+      "key": "PutObject"
+    },
+    {
+      "amount_usd": 17.25,
+      "key": "CopyPart"
+    },
+    {
+      "amount_usd": 15.54,
+      "key": "PublicIP-In"
+    }
+  ],
+  "top_service_usage_types": [
+    {
+      "amount_usd": 9562.23,
+      "key": "USW2-Storage"
+    },
+    {
+      "amount_usd": 4241.27,
+      "key": "USW2-TimedStorage-ByteHrs"
+    },
+    {
+      "amount_usd": 3861.08,
+      "key": "USW2-SpotUsage:m7i.metal-48xl"
+    },
+    {
+      "amount_usd": 3200.77,
+      "key": "USW2-SpotUsage:m7i.48xlarge"
+    },
+    {
+      "amount_usd": 2713.55,
+      "key": "USW2-SpotUsage:r7i.48xlarge"
+    },
+    {
+      "amount_usd": 1637.02,
+      "key": "USW2-BoxUsage:r7i.2xlarge"
+    },
+    {
+      "amount_usd": 909.68,
+      "key": "USW2-EBS:VolumeUsage.gp3"
+    },
+    {
+      "amount_usd": 819.07,
+      "key": "Dollar"
+    },
+    {
+      "amount_usd": 560.33,
+      "key": "USW2-SpotUsage:c7i.48xlarge"
+    },
+    {
+      "amount_usd": 525.56,
+      "key": "BoxUsage:t3a.2xlarge"
+    },
+    {
+      "amount_usd": 491.71,
+      "key": "USW2-InstanceUsage:db.r6g.large"
+    },
+    {
+      "amount_usd": 447.66,
+      "key": "USW2-NatGateway-Hours"
+    },
+    {
+      "amount_usd": 398.61,
+      "key": "USW2-BoxUsage:r7i.16xlarge"
+    },
+    {
+      "amount_usd": 362.65,
+      "key": "USW2-SpotUsage:c7i.metal-48xl"
+    },
+    {
+      "amount_usd": 358.01,
+      "key": "USW2-BoxUsage:t3a.2xlarge"
+    },
+    {
+      "amount_usd": 295.73,
+      "key": "USW2-SpotUsage:r7i.metal-48xl"
+    },
+    {
+      "amount_usd": 266.78,
+      "key": "USW2-BoxUsage:m7i-flex.2xlarge"
+    },
+    {
+      "amount_usd": 241.92,
+      "key": "APS3-NatGateway-Hours"
+    },
+    {
+      "amount_usd": 236.98,
+      "key": "USW2-BoxUsage:t3.xlarge"
+    },
+    {
+      "amount_usd": 224.64,
+      "key": "EUC1-NatGateway-Hours"
+    },
+    {
+      "amount_usd": 221.64,
+      "key": "InstanceUsage:db.t3.medium"
+    },
+    {
+      "amount_usd": 217.13,
+      "key": "InstanceUsage:db.r6g.large"
+    },
+    {
+      "amount_usd": 173.31,
+      "key": "USW2-BoxUsage:r7i.4xlarge"
+    },
+    {
+      "amount_usd": 160.31,
+      "key": "USW2-SpotUsage:c6i.32xlarge"
+    },
+    {
+      "amount_usd": 153.88,
+      "key": "USW2-USE1-AWS-Out-Bytes"
+    }
+  ],
+  "top_services": [
+    {
+      "amount_usd": 15308.47,
+      "key": "Amazon Elastic Compute Cloud - Compute"
+    },
+    {
+      "amount_usd": 9562.84,
+      "key": "Amazon FSx"
+    },
+    {
+      "amount_usd": 4531.77,
+      "key": "Amazon Simple Storage Service"
+    },
+    {
+      "amount_usd": 2190.19,
+      "key": "EC2 - Other"
+    },
+    {
+      "amount_usd": 1522.72,
+      "key": "Amazon Relational Database Service"
+    },
+    {
+      "amount_usd": 819.07,
+      "key": "AWS Support (Developer)"
+    },
+    {
+      "amount_usd": 316.66,
+      "key": "AWS Security Hub"
+    },
+    {
+      "amount_usd": 301.08,
+      "key": "Amazon Virtual Private Cloud"
+    },
+    {
+      "amount_usd": 130.0,
+      "key": "Amazon Registrar"
+    },
+    {
+      "amount_usd": 94.89,
+      "key": "Amazon Elastic Container Service"
+    },
+    {
+      "amount_usd": 74.53,
+      "key": "Amazon Elastic Load Balancing"
+    },
+    {
+      "amount_usd": 51.47,
+      "key": "AmazonCloudWatch"
+    },
+    {
+      "amount_usd": 39.49,
+      "key": "Amazon Route 53"
+    },
+    {
+      "amount_usd": 36.52,
+      "key": "Amazon GuardDuty"
+    },
+    {
+      "amount_usd": 34.88,
+      "key": "AWS WAF"
+    },
+    {
+      "amount_usd": 14.34,
+      "key": "AWS Secrets Manager"
+    },
+    {
+      "amount_usd": 7.22,
+      "key": "AWS Key Management Service"
+    },
+    {
+      "amount_usd": 4.97,
+      "key": "AWS Cost Explorer"
+    },
+    {
+      "amount_usd": 1.3,
+      "key": "Amazon EC2 Container Registry (ECR)"
+    },
+    {
+      "amount_usd": 0.61,
+      "key": "AWS CloudTrail"
+    }
+  ],
+  "top_usage_types": [
+    {
+      "amount_usd": 9562.23,
+      "key": "USW2-Storage"
+    },
+    {
+      "amount_usd": 4241.27,
+      "key": "USW2-TimedStorage-ByteHrs"
+    },
+    {
+      "amount_usd": 3861.08,
+      "key": "USW2-SpotUsage:m7i.metal-48xl"
+    },
+    {
+      "amount_usd": 3200.77,
+      "key": "USW2-SpotUsage:m7i.48xlarge"
+    },
+    {
+      "amount_usd": 2713.55,
+      "key": "USW2-SpotUsage:r7i.48xlarge"
+    },
+    {
+      "amount_usd": 1637.02,
+      "key": "USW2-BoxUsage:r7i.2xlarge"
+    },
+    {
+      "amount_usd": 909.68,
+      "key": "USW2-EBS:VolumeUsage.gp3"
+    },
+    {
+      "amount_usd": 819.07,
+      "key": "Dollar"
+    },
+    {
+      "amount_usd": 560.33,
+      "key": "USW2-SpotUsage:c7i.48xlarge"
+    },
+    {
+      "amount_usd": 525.56,
+      "key": "BoxUsage:t3a.2xlarge"
+    },
+    {
+      "amount_usd": 491.71,
+      "key": "USW2-InstanceUsage:db.r6g.large"
+    },
+    {
+      "amount_usd": 447.66,
+      "key": "USW2-NatGateway-Hours"
+    },
+    {
+      "amount_usd": 398.61,
+      "key": "USW2-BoxUsage:r7i.16xlarge"
+    },
+    {
+      "amount_usd": 362.65,
+      "key": "USW2-SpotUsage:c7i.metal-48xl"
+    },
+    {
+      "amount_usd": 358.01,
+      "key": "USW2-BoxUsage:t3a.2xlarge"
+    },
+    {
+      "amount_usd": 295.73,
+      "key": "USW2-SpotUsage:r7i.metal-48xl"
+    },
+    {
+      "amount_usd": 266.78,
+      "key": "USW2-BoxUsage:m7i-flex.2xlarge"
+    },
+    {
+      "amount_usd": 241.92,
+      "key": "APS3-NatGateway-Hours"
+    },
+    {
+      "amount_usd": 236.98,
+      "key": "USW2-BoxUsage:t3.xlarge"
+    },
+    {
+      "amount_usd": 224.64,
+      "key": "EUC1-NatGateway-Hours"
+    },
+    {
+      "amount_usd": 221.64,
+      "key": "InstanceUsage:db.t3.medium"
+    },
+    {
+      "amount_usd": 217.13,
+      "key": "InstanceUsage:db.r6g.large"
+    },
+    {
+      "amount_usd": 173.31,
+      "key": "USW2-BoxUsage:r7i.4xlarge"
+    },
+    {
+      "amount_usd": 160.31,
+      "key": "USW2-SpotUsage:c6i.32xlarge"
+    },
+    {
+      "amount_usd": 153.88,
+      "key": "USW2-USE1-AWS-Out-Bytes"
+    }
+  ],
+  "total_cost_usd": 35043.24,
+  "untagged_or_gap_resource_count": 95,
+  "weekly_totals": [
+    {
+      "amount_usd": 3973.5,
+      "week_start": "2026-02-16"
+    },
+    {
+      "amount_usd": 2398.94,
+      "week_start": "2026-02-23"
+    },
+    {
+      "amount_usd": 494.99,
+      "week_start": "2026-03-02"
+    },
+    {
+      "amount_usd": 724.46,
+      "week_start": "2026-03-09"
+    },
+    {
+      "amount_usd": 704.98,
+      "week_start": "2026-03-16"
+    },
+    {
+      "amount_usd": 1744.57,
+      "week_start": "2026-03-23"
+    },
+    {
+      "amount_usd": 1760.18,
+      "week_start": "2026-03-30"
+    },
+    {
+      "amount_usd": 1576.46,
+      "week_start": "2026-04-06"
+    },
+    {
+      "amount_usd": 1712.46,
+      "week_start": "2026-04-13"
+    },
+    {
+      "amount_usd": 3109.65,
+      "week_start": "2026-04-20"
+    },
+    {
+      "amount_usd": 3090.58,
+      "week_start": "2026-04-27"
+    },
+    {
+      "amount_usd": 3473.68,
+      "week_start": "2026-05-04"
+    },
+    {
+      "amount_usd": 6578.64,
+      "week_start": "2026-05-11"
+    },
+    {
+      "amount_usd": 3700.16,
+      "week_start": "2026-05-18"
+    }
+  ],
+  "zombie_candidate_count": 18
+}

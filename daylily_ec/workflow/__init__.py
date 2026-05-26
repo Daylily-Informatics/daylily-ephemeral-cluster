@@ -12,6 +12,7 @@ from daylily_ec.workflow.create_cluster import (
     run_preflight,
     run_preflight_only,
     should_abort,
+    validate_cluster_name,
 )
 from daylily_ec.workflow.delete_cluster import DeleteOptions, run_delete_workflow
 from daylily_ec.workflow.export_data import ExportOptions, run_export_workflow
@@ -32,4 +33,5 @@ __all__ = [
     "run_preflight",
     "run_preflight_only",
     "should_abort",
+    "validate_cluster_name",
 ]

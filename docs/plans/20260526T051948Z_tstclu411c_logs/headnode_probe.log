@@ -1,0 +1,37 @@
+DAY-EC activated.
+DAY-EC activated.
+probe_started=2026-05-26T06:02:49Z
+user=ubuntu
+host=ip-10-0-0-213
+pwd=/home/ubuntu
+PATH=/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/home/ubuntu/.local/bin:/home/ubuntu/miniconda3/envs/DAY-EC/bin:/home/ubuntu/miniconda3/condabin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/opt/aws/bin:/opt/parallelcluster/pyenv/versions/3.12.8/envs/awsbatch_virtualenv/bin:/opt/slurm/bin:/opt/parallelcluster/pyenv/versions/3.12.8/envs/awsbatch_virtualenv/bin:/opt/slurm/bin
+--- df ---
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.107@tcp:/sxsjrb4v   11T  107M   11T   1% /fsx
+--- mounts ---
+TARGET SOURCE                   FSTYPE OPTIONS
+/fsx   10.0.1.107@tcp:/sxsjrb4v lustre rw,noatime,checksum,flock,user_xattr,lruresize,lazystatfs,nouser_fid2path,verbose,encrypt
+--- tools ---
+/home/ubuntu/.local/bin/day-clone
+/home/ubuntu/miniconda3/envs/DAY-EC/bin/dyec
+/opt/slurm/bin/sbatch
+/opt/slurm/bin/squeue
+/opt/slurm/bin/sinfo
+--- slurm partitions ---
+i8*|up|2|8|62259|(null)
+i128|up|3|128|249036+|(null)
+i192|up|1|192|373555|(null)
+i192mem|up|1|192|747110|(null)
+i192bigmem|up|1|192|1494220|(null)
+--- slurm queue ---
+--- data dirs ---
+drwxrwxrwt 10 root root 33280 May 26 05:58 /fsx
+drwxrwxrwx  5 root root 33280 May 26 05:58 /fsx/analysis_results
+dr-xr-xr-x 14 root root 33280 May 26 05:56 /fsx/references
+--- versions ---
+Daylily Ephemeral Cluster 4.1.4
+probe_completed=2026-05-26T06:02:49Z
+
+--- stderr ---
+ls: cannot access '/data': No such file or directory
+

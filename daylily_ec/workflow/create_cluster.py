@@ -31,10 +31,12 @@ from dataclasses import dataclass
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Callable, Dict, List, Optional
+from urllib.parse import urlparse
 
 import typer
 
 from daylily_ec import ui
+from daylily_ec.headnode_readiness import validate_headnode_readiness
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport, StateRecord
 from daylily_ec.state.store import write_preflight_report, write_state_record
 
@@ -51,7 +53,8 @@ CLUSTER_NAME_MIN_LENGTH = 5
 CLUSTER_NAME_MAX_LENGTH = 25
 CLUSTER_NAME_PATTERN = re.compile(r"^[A-Za-z][A-Za-z0-9-]*$")
 CLUSTER_NAME_RULE_TEXT = (
-    f"{CLUSTER_NAME_MIN_LENGTH}-{CLUSTER_NAME_MAX_LENGTH} characters, start with a letter, "
+    f"ParallelCluster requires cluster names to be {CLUSTER_NAME_MIN_LENGTH}-"
+    f"{CLUSTER_NAME_MAX_LENGTH} characters, start with a letter, "
     "and contain only letters, digits, and hyphens"
 )
 
@@ -65,6 +68,12 @@ PreflightStep = Callable[[PreflightReport], PreflightReport]
 
 # Ordered list — filled by register_preflight_step or directly in wire_workflow
 _PREFLIGHT_STEPS: List[PreflightStep] = []
+
+CLUSTER_BOOT_CONFIG_FILENAMES = (
+    "post_install_ubuntu_combined.sh",
+    "sbatch",
+    "sleep_test.sh",
+)
 
 
 @dataclass(frozen=True)
@@ -338,6 +347,105 @@ def _extract_selected(
     return ""
 
 
+def _extract_s3_roles(report: PreflightReport) -> Dict[str, Dict[str, str]]:
+    """Pull normalized S3 role details from the preflight report."""
+    for chk in report.checks:
+        if chk.id == "s3.role_config":
+            roles = chk.details.get("roles", {})
+            if isinstance(roles, dict):
+                return {
+                    str(role): {
+                        "uri": str(detail.get("uri", "")),
+                        "bucket": str(detail.get("bucket", "")),
+                        "prefix": str(detail.get("prefix", "")),
+                    }
+                    for role, detail in roles.items()
+                    if isinstance(detail, dict)
+                }
+    return {}
+
+
+def _role_uri(roles: Dict[str, Dict[str, str]], role: str) -> str:
+    return str((roles.get(role) or {}).get("uri") or "")
+
+
+def _role_bucket(roles: Dict[str, Dict[str, str]], role: str) -> str:
+    return str((roles.get(role) or {}).get("bucket") or "")
+
+
+def _s3_uri_join(base_uri: str, *parts: str) -> str:
+    base = base_uri.rstrip("/")
+    suffix = "/".join(part.strip("/") for part in parts if part.strip("/"))
+    return f"{base}/{suffix}" if suffix else base
+
+
+def _parse_s3_destination(uri: str) -> tuple[str, str]:
+    parsed = urlparse(str(uri or ""))
+    if parsed.scheme != "s3" or not parsed.netloc:
+        raise ValueError(f"Expected s3:// bucket URI, got {uri!r}")
+    if parsed.params or parsed.query or parsed.fragment:
+        raise ValueError(f"S3 URI must not include params, query, or fragment: {uri!r}")
+    return parsed.netloc, parsed.path.lstrip("/").rstrip("/")
+
+
+def publish_cluster_boot_config(
+    s3_client: Any,
+    *,
+    cluster_boot_s3_uri: str,
+    source_dir: Path,
+) -> list[str]:
+    """Publish current packaged cluster boot scripts under reference runtime assets.
+
+    The cluster template executes these files directly from
+    ``references/runtime_assets/cluster_boot_config``. Treat stale or legacy
+    boot scripts as invalid because they can fail cluster creation after
+    expensive FSx setup.
+    """
+    bucket, prefix = _parse_s3_destination(cluster_boot_s3_uri)
+    bodies: list[tuple[str, bytes]] = []
+    for filename in CLUSTER_BOOT_CONFIG_FILENAMES:
+        source = source_dir / filename
+        if not source.is_file():
+            raise FileNotFoundError(f"Cluster boot config source not found: {source}")
+        body = source.read_bytes()
+        if b"/fsx/data" in body:
+            raise ValueError(f"Cluster boot config contains legacy /fsx/data path: {source}")
+        bodies.append((filename, body))
+
+    uploaded: list[str] = []
+    for filename, body in bodies:
+        key = f"{prefix}/{filename}" if prefix else filename
+        s3_client.put_object(Bucket=bucket, Key=key, Body=body)
+        uploaded.append(f"s3://{bucket}/{key}")
+    return uploaded
+
+
+def validate_startup_dra_contract(cluster_yaml_path: str | Path) -> None:
+    """Fail cluster creation unless startup imports only the references DRA."""
+    import yaml
+
+    path = Path(cluster_yaml_path)
+    payload = yaml.safe_load(path.read_text(encoding="utf-8")) or {}
+    associations: list[dict[str, Any]] = []
+    for storage in payload.get("SharedStorage") or []:
+        if not isinstance(storage, dict) or storage.get("StorageType") != "FsxLustre":
+            continue
+        fsx_settings = storage.get("FsxLustreSettings") or {}
+        for association in fsx_settings.get("DataRepositoryAssociations") or []:
+            if isinstance(association, dict):
+                associations.append(association)
+
+    paths = [str(item.get("FileSystemPath") or "") for item in associations]
+    if paths != ["/references/"]:
+        raise ValueError(
+            "Cluster startup may import exactly one FSx DRA: /references/. "
+            f"Rendered DataRepositoryAssociations were: {paths}"
+        )
+    data_repository_path = str(associations[0].get("DataRepositoryPath") or "")
+    if not data_repository_path:
+        raise ValueError("The /references/ startup DRA must define DataRepositoryPath.")
+
+
 def _noop_heartbeat_result() -> Any:
     """Return a stub HeartbeatResult-like object for the no-op path."""
     from types import SimpleNamespace
@@ -541,7 +649,7 @@ def _resolve_config_value(
         typer.echo(f"{label} cannot be empty.")
 
 
-def _validate_cluster_name(cluster_name: str) -> str:
+def validate_cluster_name(cluster_name: str) -> str:
     """Validate the Daylily-supported ParallelCluster cluster name contract."""
     value = (cluster_name or "").strip()
     if not value:
@@ -554,6 +662,10 @@ def _validate_cluster_name(cluster_name: str) -> str:
             "Numbers are allowed after the first character."
         )
     return value
+
+
+def _validate_cluster_name(cluster_name: str) -> str:
+    return validate_cluster_name(cluster_name)
 
 
 def _resolve_cluster_name(cfg: Any, *, non_interactive: bool) -> str:
@@ -772,7 +884,6 @@ def run_create_workflow(
     from daylily_ec.config.triplets import (
         get_effective_default,
         load_config,
-        resolve_value,
         write_next_run_template,
     )
     from daylily_ec.pcluster.monitor import wait_for_creation
@@ -867,14 +978,24 @@ def run_create_workflow(
         or "1"
     )
 
-    s3_triplet = ec.config.get("s3_bucket_name")
-    s3_cfg_action = s3_triplet.action if s3_triplet else ""
-    s3_cfg_set = s3_triplet.set_value if s3_triplet else ""
-    s3_cfg_bucket_name = get_effective_default(cfg, "s3_bucket_name", "")
-    if s3_triplet is not None:
-        resolved_s3_value = resolve_value(s3_triplet)
-        if resolved_s3_value:
-            s3_cfg_bucket_name = resolved_s3_value
+    reference_s3_uri = _resolve_config_value(
+        cfg,
+        "reference_s3_uri",
+        "Reference S3 URI",
+        non_interactive=non_interactive,
+    )
+    control_data_s3_uri = _resolve_config_value(
+        cfg,
+        "control_data_s3_uri",
+        "Control-data S3 URI",
+        non_interactive=non_interactive,
+    )
+    stage_s3_uri = _resolve_config_value(
+        cfg,
+        "stage_s3_uri",
+        "Stage S3 URI",
+        non_interactive=non_interactive,
+    )
 
     preflight_steps: List[PreflightStep] = [
         # 1-2: ToolchainValidator + AWS Identity — implicit via AWSContext.build
@@ -892,12 +1013,12 @@ def run_create_workflow(
             max_count_192i=max_192i,
             non_interactive=non_interactive,
         ),
-        # 6: S3 Bucket Selector + Validator
+        # 6: S3 Role Validator
         make_s3_bucket_preflight_step(
             aws_ctx,
-            cfg_action=s3_cfg_action,
-            cfg_set_value=s3_cfg_set,
-            cfg_bucket_name=s3_cfg_bucket_name,
+            reference_s3_uri=reference_s3_uri,
+            control_data_s3_uri=control_data_s3_uri,
+            stage_s3_uri=stage_s3_uri,
             profile=aws_ctx.profile,
             interactive=not non_interactive,
         ),
@@ -917,8 +1038,17 @@ def run_create_workflow(
     # -- 3. RESOURCE RESOLUTION -----------------------------------------------
     ui.phase("RESOURCE RESOLUTION")
 
-    # Extract selected bucket from preflight report
-    bucket_name = _extract_selected(report, "s3.bucket_select", "selected")
+    # Extract normalized S3 role bindings from preflight report.
+    s3_roles = _extract_s3_roles(report)
+    reference_s3_uri = _role_uri(s3_roles, "reference")
+    control_data_s3_uri = _role_uri(s3_roles, "control_data")
+    stage_s3_uri = _role_uri(s3_roles, "staging")
+    reference_storage_bucket_name = _role_bucket(s3_roles, "reference")
+    cluster_boot_s3_uri = _s3_uri_join(
+        reference_s3_uri,
+        "runtime_assets",
+        "cluster_boot_config",
+    )
 
     # 3a. Baseline CFN stack
     ui.step("Ensuring baseline CFN stack ...")
@@ -988,7 +1118,9 @@ def run_create_workflow(
 
     missing_resources = _require_values(
         {
-            "bucket": bucket_name,
+            "reference S3 URI": reference_s3_uri,
+            "control-data S3 URI": control_data_s3_uri,
+            "stage S3 URI": stage_s3_uri,
             "public subnet": public_subnet,
             "private subnet": private_subnet,
             "IAM policy ARN": policy_arn,
@@ -1000,16 +1132,40 @@ def run_create_workflow(
         return EXIT_VALIDATION_FAILURE
 
     logger.info(
-        "Resources: bucket=%s pub=%s priv=%s policy=%s",
-        bucket_name,
+        "Resources: reference=%s control_data=%s staging=%s pub=%s priv=%s policy=%s",
+        reference_s3_uri,
+        control_data_s3_uri,
+        stage_s3_uri,
         public_subnet,
         private_subnet,
         policy_arn,
     )
     ui.ok("Resources resolved")
-    ui.detail("Bucket", bucket_name)
+    ui.detail("Reference", reference_s3_uri)
+    ui.detail("Control data", control_data_s3_uri)
+    ui.detail("Runtime assets", _s3_uri_join(reference_s3_uri, "runtime_assets"))
+    ui.detail("Staging", stage_s3_uri)
     ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
     ui.detail("Policy", policy_arn)
+
+    ui.step("Publishing cluster boot config to runtime assets ...")
+    try:
+        uploaded_boot_config = publish_cluster_boot_config(
+            aws_ctx.client("s3"),
+            cluster_boot_s3_uri=cluster_boot_s3_uri,
+            source_dir=resource_path("config/day_cluster"),
+        )
+    except (FileNotFoundError, ValueError, OSError) as exc:
+        logger.error("Cluster boot config publish failed: %s", exc)
+        ui.fail(f"Cluster boot config publish: {exc}")
+        return EXIT_VALIDATION_FAILURE
+    except Exception as exc:
+        logger.error("Cluster boot config publish failed: %s", exc)
+        ui.fail(f"Cluster boot config publish: {exc}")
+        return EXIT_AWS_FAILURE
+    ui.ok(f"Cluster boot config published: {cluster_boot_s3_uri}")
+    for uploaded_uri in uploaded_boot_config:
+        ui.detail("Boot config", uploaded_uri)
 
     # -- 4. PRE-CREATE: Prompt-only operational inputs -----------------------
     ui.phase("PRE-CREATE: BUDGETS & HEARTBEAT")
@@ -1023,7 +1179,6 @@ def run_create_workflow(
     # -- 5. RENDER YAML (Phase 2a) -------------------------------------------
     ui.phase("RENDER CLUSTER YAML")
 
-    bucket_url = f"s3://{bucket_name}" if bucket_name else ""
     template_yaml = (
         _resolve_config_value(
             cfg,
@@ -1040,11 +1195,15 @@ def run_create_workflow(
     substitutions: Dict[str, str] = {
         "REGSUB_REGION": aws_ctx.region,
         "REGSUB_PUB_SUBNET": public_subnet,
-        "REGSUB_S3_BUCKET_INIT": bucket_url,
-        "REGSUB_S3_BUCKET_NAME": bucket_name,
+        "REGSUB_S3_BUCKET_INIT": cluster_boot_s3_uri,
         "REGSUB_S3_IAM_POLICY": policy_arn,
         "REGSUB_PRIVATE_SUBNET": private_subnet,
-        "REGSUB_S3_BUCKET_REF": bucket_url,
+        "REGSUB_S3_REFERENCE_BUCKET": _role_bucket(s3_roles, "reference"),
+        "REGSUB_S3_CONTROL_DATA_BUCKET": _role_bucket(s3_roles, "control_data"),
+        "REGSUB_S3_STAGE_BUCKET": _role_bucket(s3_roles, "staging"),
+        "REGSUB_S3_REFERENCE_URI": reference_s3_uri.rstrip("/"),
+        "REGSUB_S3_CONTROL_DATA_URI": control_data_s3_uri.rstrip("/"),
+        "REGSUB_S3_STAGE_URI": stage_s3_uri.rstrip("/"),
         "REGSUB_FSX_SIZE": _resolve_fsx_size(
             cfg,
             non_interactive=non_interactive,
@@ -1150,6 +1309,12 @@ def run_create_workflow(
 
     logger.info("Cluster YAML ready: %s", cluster_yaml_path)
     ui.ok(f"Cluster YAML ready: {cluster_yaml_path}")
+    try:
+        validate_startup_dra_contract(cluster_yaml_path)
+    except ValueError as exc:
+        logger.error("Startup DRA contract failed: %s", exc)
+        ui.fail(f"Startup DRA contract: {exc}")
+        return EXIT_VALIDATION_FAILURE
 
     # -- 6. DRY-RUN (Phase 2b) ------------------------------------------------
     ui.phase("DRY-RUN VALIDATION")
@@ -1267,7 +1432,7 @@ def run_create_workflow(
             email=post_create_inputs.budget_email,
             region=aws_ctx.region,
             region_az=region_az,
-            bucket_name=bucket_name,
+            bucket_name=reference_storage_bucket_name,
             allowed_users=post_create_inputs.allowed_budget_users,
         )
         cluster_budget = ensure_cluster_budget(
@@ -1279,7 +1444,7 @@ def run_create_workflow(
             email=post_create_inputs.budget_email,
             region=aws_ctx.region,
             region_az=region_az,
-            bucket_name=bucket_name,
+            bucket_name=reference_storage_bucket_name,
             allowed_users=post_create_inputs.allowed_budget_users,
         )
         logger.info("Budgets: global=%s cluster=%s", global_budget, cluster_budget)
@@ -1332,7 +1497,9 @@ def run_create_workflow(
     # Write next-run template
     final_values: Dict[str, str] = {
         "cluster_name": cluster_name,
-        "s3_bucket_name": bucket_name,
+        "reference_s3_uri": reference_s3_uri,
+        "control_data_s3_uri": control_data_s3_uri,
+        "stage_s3_uri": stage_s3_uri,
         "public_subnet_id": public_subnet,
         "private_subnet_id": private_subnet,
         "iam_policy_arn": policy_arn,
@@ -1354,7 +1521,10 @@ def run_create_workflow(
         region_az=region_az,
         aws_profile=aws_ctx.profile,
         account_id=aws_ctx.account_id,
-        bucket=bucket_name,
+        bucket=reference_storage_bucket_name,
+        reference_s3_uri=reference_s3_uri,
+        control_data_s3_uri=control_data_s3_uri,
+        stage_s3_uri=stage_s3_uri,
         keypair="",
         public_subnet_id=public_subnet,
         private_subnet_id=private_subnet,
@@ -1534,30 +1704,19 @@ def configure_headnode(
             logger.error("  ✗ Available repos config not found: %s", avail_repos_path)
             return False
 
-    logger.info("  ▸ Validating fresh ubuntu login shell ...")
+    logger.info("  ▸ Validating DAY-EC headnode readiness ...")
     try:
-        run_shell(
+        validate_headnode_readiness(
             head_node_instance_id,
             region,
-            (
-                f"cd ~/projects/{repo_name} && "
-                "script -q -c \"bash -lc '"
-                "set -euo pipefail; "
-                'test "$(whoami)" = ubuntu; '
-                'test "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" = 1; '
-                'test "${CONDA_DEFAULT_ENV:-}" = DAY-EC; '
-                "command -v daylily-ec >/dev/null 2>&1; "
-                "command -v day-clone >/dev/null 2>&1; "
-                'stty -a 2>/dev/null | grep -Eq \\"(^|[[:space:];])-ixon([[:space:];]|$)\\"; '
-                "day-clone --list >/dev/null'\" /dev/null"
-            ),
             profile=profile,
-            timeout=None,
-            comment="Validate fresh ubuntu login shell",
+            timeout=120,
+            comment="Validate DAY-EC headnode readiness",
+            repo_name=repo_name,
         )
-        logger.info("  ✓ Fresh ubuntu login shell validated")
+        logger.info("  ✓ DAY-EC headnode readiness validated")
     except (SsmCommandFailedError, TimeoutError, RuntimeError) as exc:
-        logger.error("  ✗ Fresh ubuntu login shell validation failed: %s", exc)
+        logger.error("  ✗ DAY-EC headnode readiness validation failed: %s", exc)
         return False
 
     logger.info(
@@ -1605,9 +1764,13 @@ def run_preflight_only(
 
         effective_config = str(resource_path(effective_config))
     cfg = load_config(effective_config)
-    ec = cfg.ephemeral_cluster
 
-    cluster_name = get_effective_default(cfg, "cluster_name", "prod") or "prod"
+    try:
+        cluster_name = _resolve_cluster_name(cfg, non_interactive=True)
+    except ValueError as exc:
+        logger.error("Cluster name validation failed: %s", exc)
+        ui.fail(str(exc))
+        return EXIT_VALIDATION_FAILURE
 
     # AWS Context
     try:
@@ -1631,10 +1794,6 @@ def run_preflight_only(
     max_128i = int(get_effective_default(cfg, "max_count_128I", "1") or "1")
     max_192i = int(get_effective_default(cfg, "max_count_192I", "1") or "1")
 
-    s3_triplet = ec.config.get("s3_bucket_name")
-    s3_cfg_action = s3_triplet.action if s3_triplet else ""
-    s3_cfg_set = s3_triplet.set_value if s3_triplet else ""
-
     preflight_steps: List[PreflightStep] = [
         make_iam_preflight_step(aws_ctx, interactive=not non_interactive),
         make_repository_catalog_preflight_step(),
@@ -1647,9 +1806,9 @@ def run_preflight_only(
         ),
         make_s3_bucket_preflight_step(
             aws_ctx,
-            cfg_action=s3_cfg_action,
-            cfg_set_value=s3_cfg_set,
-            cfg_bucket_name=get_effective_default(cfg, "s3_bucket_name", ""),
+            reference_s3_uri=get_effective_default(cfg, "reference_s3_uri", ""),
+            control_data_s3_uri=get_effective_default(cfg, "control_data_s3_uri", ""),
+            stage_s3_uri=get_effective_default(cfg, "stage_s3_uri", ""),
             profile=aws_ctx.profile,
             interactive=not non_interactive,
         ),

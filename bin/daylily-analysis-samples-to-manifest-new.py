@@ -158,7 +158,7 @@ def determine_sex(n_x, n_y):
     return "na"
 
 def validate_and_stage_concordance_dir(concordance_dir, stage_target, sample_prefix):
-    if concordance_dir == "na" or concordance_dir.startswith("/fsx/data"):
+    if concordance_dir == "na" or concordance_dir.startswith("/fsx/references"):
         return concordance_dir
     target_concordance_dir = os.path.join(stage_target, sample_prefix, "concordance_data")
     os.makedirs(target_concordance_dir, exist_ok=True)

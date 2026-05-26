@@ -7,7 +7,7 @@ Daylily is an operator-focused control plane for AWS ParallelCluster environment
 The current codebase has three practical layers:
 
 1. Control plane: `daylily-ec` validates prerequisites, renders cluster config, creates the cluster, configures the head node, exports results, and deletes the cluster.
-2. Data plane: a region-scoped S3 bucket is mounted through FSx for Lustre so `/fsx/data`, `/fsx/resources`, and `/fsx/analysis_results` are shared across nodes and exportable back to S3.
+2. Data plane: a region-scoped S3 bucket is mounted through FSx for Lustre so `/fsx/references`, `/fsx/resources`, and `/fsx/analysis_results` are shared across nodes and exportable back to S3.
 3. Workflow plane: repository metadata in `config/daylily_available_repositories.yaml` drives `day-clone` and the workflow launcher on the head node.
 
 ## Supported Operator Lifecycle
@@ -27,7 +27,7 @@ The supported flow in the current repo is:
 
 The code and current headnode helpers assume these paths:
 
-- `/fsx/data`: staged inputs and shared data
+- `/fsx/references`: staged inputs and shared data
 - `/fsx/resources`: cached references and tool assets
 - `/fsx/analysis_results/ubuntu`: workflow clones, run directories, and results owned by `ubuntu`
 - `/home/ubuntu/daylily-runs/<session>`: durable launcher state for the tmux-based workflow helper

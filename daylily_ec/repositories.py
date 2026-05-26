@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import shlex
 from pathlib import Path
 from typing import Any, Dict, Iterable, List, Optional, Sequence
 
 import yaml
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
+from daylily_ec.analysis_identity import validate_analysis_segment
 from daylily_ec.resources import resource_path
 
 
@@ -15,6 +17,8 @@ CATALOG_VERSION = 2
 SUPPORTED_CATALOG_VERSIONS = {1, CATALOG_VERSION}
 COMMAND_CLASSES = {"sample_analysis", "run_analysis"}
 INPUT_CONTRACTS = {"sample_manifest", "run_context", "none"}
+EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
+VALIDATION_STATUSES = {"success", "failed", "blocked", "not_run"}
 
 
 def _clean_id(value: str, *, field_name: str) -> str:
@@ -138,6 +142,62 @@ class CommandInputRequirements(BaseModel):
         }
 
 
+class CommandValidationRun(BaseModel):
+    """A recorded validation attempt for a catalog command recipe."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    run_id: str
+    generated_at: str
+    report_path: str
+    ledger_path: str
+    cluster: str
+    region: str
+    region_az: str
+    dayec_tag: str
+    dayec_commit: str
+    dayoa_tag: str
+    dayoa_commit: str
+    tested_command: str
+    status: str
+    dryrun_status: str
+    live_status: str
+    dryrun_analysis_id: str = ""
+    live_analysis_id: str = ""
+    stage_or_context: str = ""
+    failure_cause: str = ""
+    notes: str = ""
+
+    @field_validator(
+        "run_id",
+        "generated_at",
+        "report_path",
+        "ledger_path",
+        "cluster",
+        "region",
+        "region_az",
+        "dayec_tag",
+        "dayec_commit",
+        "dayoa_tag",
+        "dayoa_commit",
+        "tested_command",
+    )
+    @classmethod
+    def _validate_required_strings(cls, value: str) -> str:
+        return _clean_id(value, field_name="validation_run value")
+
+    @field_validator("status", "dryrun_status", "live_status")
+    @classmethod
+    def _validate_status(cls, value: str) -> str:
+        cleaned = _clean_id(value, field_name="validation status").lower()
+        if cleaned not in VALIDATION_STATUSES:
+            raise ValueError(
+                "validation status must be one of: "
+                + ", ".join(sorted(VALIDATION_STATUSES))
+            )
+        return cleaned
+
+
 class AnalysisCommand(BaseModel):
     """Structured daylily-ec workflow launch profile."""
 
@@ -168,10 +228,10 @@ class AnalysisCommand(BaseModel):
     dryrun_dy_command: str
     compatible_platforms: List[str]
     compatible_data_modes: List[str]
-    destination: Optional[str] = None
     git_tag: str = "main"
     no_containerized: bool = False
     optional_features: Dict[str, AnalysisCommandFeature] = Field(default_factory=dict)
+    validation_runs: List[CommandValidationRun] = Field(default_factory=list)
 
     @field_validator(
         "command_id",
@@ -205,19 +265,15 @@ class AnalysisCommand(BaseModel):
             raise ValueError("list values must not be empty")
         return cleaned
 
-    @field_validator("destination")
-    @classmethod
-    def _validate_optional_destination(cls, value: Optional[str]) -> Optional[str]:
-        if value is None:
-            return None
-        return _clean_id(value, field_name="destination")
-
     @field_validator("runtime_parameters")
     @classmethod
     def _validate_runtime_parameters(cls, values: Dict[str, Any]) -> Dict[str, Any]:
-        for key in values:
-            _clean_id(key, field_name="runtime_parameters key")
-        return values
+        cleaned: Dict[str, str] = {}
+        for key, value in values.items():
+            cleaned_key = _clean_id(key, field_name="runtime_parameters key")
+            cleaned_value = _clean_id(str(value), field_name=f"runtime_parameters.{cleaned_key}")
+            cleaned[cleaned_key] = cleaned_value
+        return cleaned
 
     @model_validator(mode="after")
     def _validate_launcher(self) -> "AnalysisCommand":
@@ -272,7 +328,8 @@ class AnalysisCommand(BaseModel):
     def launch_argv(
         self,
         *,
-        destination: Optional[str] = None,
+        analysis_id: str,
+        executing_entity: str,
         git_tag: Optional[str] = None,
         profile: Optional[str] = None,
         region: Optional[str] = None,
@@ -283,18 +340,40 @@ class AnalysisCommand(BaseModel):
         run_context_file: Optional[str] = None,
         dry_run: bool = False,
         skip_project_check: bool = True,
+        export_destination_s3_uri: Optional[str] = None,
+        export_trigger: str = "none",
+        delete_on_export_success: bool = False,
     ) -> List[str]:
         """Render a daylily-ec workflow launch argv for this profile."""
 
-        resolved_destination = destination or self.destination
-        if not resolved_destination:
-            raise ValueError("destination is required to render a workflow launch command")
+        resolved_analysis_id = validate_analysis_segment(analysis_id, field_name="analysis_id")
+        resolved_executing_entity = validate_analysis_segment(
+            executing_entity, field_name="executing_entity"
+        )
         resolved_git_tag = git_tag or self.git_tag
+        if export_trigger not in EXPORT_TRIGGERS:
+            raise ValueError(
+                "export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS))
+            )
+        if export_destination_s3_uri and export_trigger == "none":
+            raise ValueError(
+                "export_trigger must not be 'none' when export_destination_s3_uri is set"
+            )
+        if delete_on_export_success and not export_destination_s3_uri:
+            raise ValueError("delete_on_export_success requires export_destination_s3_uri")
         dy_command = self.dryrun_dy_command if dry_run else self.dy_command
         if self.input_contract == "run_context":
             if not run_context_file:
                 raise ValueError("run_context_file is required for run_analysis commands")
-            dy_command = f"{dy_command} --config run_context_file=config/runs.tsv"
+            if "run_context_file" not in self.runtime_parameters:
+                raise ValueError(
+                    f"runtime_parameters.run_context_file is required for {self.command_id}"
+                )
+            runtime_config = " ".join(
+                shlex.quote(f"{key}={value}")
+                for key, value in self.runtime_parameters.items()
+            )
+            dy_command = f"{dy_command} --config {runtime_config}"
         elif run_context_file:
             raise ValueError("run_context_file is only valid for run_analysis commands")
         if stage_dir and not self.requires_staging:
@@ -304,8 +383,10 @@ class AnalysisCommand(BaseModel):
             "launch",
             "--repository",
             self.repository,
-            "--destination",
-            resolved_destination,
+            "--analysis-id",
+            resolved_analysis_id,
+            "--executing-entity",
+            resolved_executing_entity,
             "--git-tag",
             resolved_git_tag,
             "--genome",
@@ -327,6 +408,12 @@ class AnalysisCommand(BaseModel):
         argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
         if self.no_containerized:
             argv.append("--no-containerized")
+        if export_destination_s3_uri:
+            argv.extend(["--export-destination-s3-uri", export_destination_s3_uri])
+        if export_trigger != "none":
+            argv.extend(["--export-trigger", export_trigger])
+        if delete_on_export_success:
+            argv.append("--delete-on-export-success")
         if dry_run:
             argv.append("--dry-run")
         return argv

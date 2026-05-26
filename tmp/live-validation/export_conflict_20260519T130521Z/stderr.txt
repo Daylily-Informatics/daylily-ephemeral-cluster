@@ -1,0 +1,3 @@
+2026-05-19 06:05:22,064 INFO Found credentials in shared credentials file: ~/.aws/credentials
+2026-05-19 06:05:22,277 ERROR FSx export failed: S3 destination prefix is not empty: s3://lsmc-dayoa-omics-analysis-us-west-2/analysis_results/ubuntu/run_qc_ont_all/
+2026-05-19 06:05:22,278 INFO Wrote export status to /Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/tmp/live-validation/export_conflict_20260519T130521Z/fsx_export.yaml

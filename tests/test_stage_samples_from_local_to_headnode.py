@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime as real_datetime
 from pathlib import Path
 
 import pytest
@@ -9,10 +10,89 @@ import daylily_ec.stage_samples as module
 
 def _stage_paths() -> module.StagePaths:
     return module.StagePaths(
-        remote_fsx_root="/data/staged_sample_data",
+        remote_fsx_root="/fsx/staging/staged_external_sequencing_data",
         remote_stage_name="remote_stage_test",
-        remote_fsx_stage="/data/staged_sample_data/remote_stage_test",
-        remote_s3_stage="s3://bucket/data/staged_sample_data/remote_stage_test",
+        remote_fsx_stage="/fsx/staging/staged_external_sequencing_data/remote_stage_test",
+        remote_s3_stage="s3://stage-bucket/remote_stage_test",
+    )
+
+
+def _s3_role_uris() -> module.S3RoleUris:
+    return module.S3RoleUris(
+        reference_s3_uri="s3://reference-bucket",
+        control_data_s3_uri="s3://control-data-bucket",
+        stage_s3_uri="s3://stage-bucket",
+    )
+
+
+def test_build_stage_paths_uses_unique_remote_stage_names(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeDateTime:
+        @staticmethod
+        def utcnow() -> real_datetime:
+            return real_datetime(2026, 5, 26, 16, 18, 6)
+
+    class FakeUuid:
+        def __init__(self, value: str) -> None:
+            self.hex = value
+
+    values = iter(
+        [
+            FakeUuid("aaaaaaaa11111111"),
+            FakeUuid("bbbbbbbb22222222"),
+        ]
+    )
+    monkeypatch.setattr(module.dt, "datetime", FakeDateTime)
+    monkeypatch.setattr(module.uuid, "uuid4", lambda: next(values))
+
+    first = module.build_stage_paths(
+        "/fsx/staging/staged_external_sequencing_data",
+        "s3://stage-bucket",
+    )
+    second = module.build_stage_paths(
+        "/fsx/staging/staged_external_sequencing_data",
+        "s3://stage-bucket",
+    )
+
+    assert first.remote_stage_name == "remote_stage_20260526T161806Z_aaaaaaaa"
+    assert second.remote_stage_name == "remote_stage_20260526T161806Z_bbbbbbbb"
+    assert first.remote_stage_name != second.remote_stage_name
+    assert (
+        first.remote_fsx_stage
+        == "/fsx/staging/staged_external_sequencing_data/remote_stage_20260526T161806Z_aaaaaaaa"
+    )
+    assert (
+        first.remote_s3_stage
+        == "s3://stage-bucket/remote_stage_20260526T161806Z_aaaaaaaa"
+    )
+
+
+def test_build_stage_paths_uses_stage_s3_uri_as_exact_s3_root(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    class FakeDateTime:
+        @staticmethod
+        def utcnow() -> real_datetime:
+            return real_datetime(2026, 5, 26, 17, 40, 1)
+
+    class FakeUuid:
+        hex = "cccccccc33333333"
+
+    monkeypatch.setattr(module.dt, "datetime", FakeDateTime)
+    monkeypatch.setattr(module.uuid, "uuid4", lambda: FakeUuid())
+
+    stage = module.build_stage_paths(
+        "/fsx/staging/staged_external_sequencing_data",
+        "s3://lsmc-ssf-sequencing-data/staged_external_data",
+    )
+
+    assert stage.remote_fsx_stage == (
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_20260526T174001Z_cccccccc"
+    )
+    assert stage.remote_s3_stage == (
+        "s3://lsmc-ssf-sequencing-data/staged_external_data/"
+        "remote_stage_20260526T174001Z_cccccccc"
     )
 
 
@@ -26,14 +106,14 @@ def _prechecked_rows(
     monkeypatch: pytest.MonkeyPatch,
     analysis_samples: Path,
     *,
-    reference_bucket: str = "s3://bucket",
+    reference_s3_uri: str | module.S3RoleUris = _s3_role_uris(),
     aws_env: dict[str, str] | None = None,
     debug: bool = False,
 ) -> list[module.ManifestRow]:
     monkeypatch.setattr(module, "detect_giab_roi_dirs", lambda *args, **kwargs: ["giabHC"])
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=aws_env or {},
         debug=debug,
     )
@@ -46,7 +126,7 @@ def _process_samples(
     analysis_samples: Path,
     stage: module.StagePaths,
     *,
-    reference_bucket: str = "s3://bucket",
+    reference_s3_uri: str | module.S3RoleUris = _s3_role_uris(),
     aws_env: dict[str, str] | None = None,
     debug: bool = False,
 ) -> tuple[list[dict[str, str]], list[dict[str, str]], list[str], list[str]]:
@@ -54,25 +134,28 @@ def _process_samples(
     rows = _prechecked_rows(
         monkeypatch,
         analysis_samples,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=resolved_aws_env,
         debug=debug,
     )
     return module.process_samples(
         analysis_samples,
         stage,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=resolved_aws_env,
         debug=debug,
         rows=rows,
     )
 
 
-def test_headnode_visible_path_maps_data_prefix_to_fsx() -> None:
-    assert module.headnode_visible_path("/data") == "/fsx/data"
+def test_headnode_visible_path_rejects_legacy_data_prefix() -> None:
+    with pytest.raises(module.CommandError, match="explicit role roots"):
+        module.headnode_visible_path("/data")
+    with pytest.raises(module.CommandError, match="explicit role roots"):
+        module.headnode_visible_path("/fsx/data")
     assert (
-        module.headnode_visible_path("/data/staged_sample_data/remote_stage_1")
-        == "/fsx/data/staged_sample_data/remote_stage_1"
+        module.headnode_visible_path("/fsx/staging/staged_external_sequencing_data/remote_stage_1")
+        == "/fsx/staging/staged_external_sequencing_data/remote_stage_1"
     )
     assert module.is_headnode_visible_path("/fsx/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
     assert module.is_headnode_visible_path("/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
@@ -81,6 +164,82 @@ def test_headnode_visible_path_maps_data_prefix_to_fsx() -> None:
         == "/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz"
     )
     assert module.headnode_visible_path("/tmp/local") == "/tmp/local"
+
+
+def test_create_staged_prefix_mount_uses_runtime_staging_dra(monkeypatch: pytest.MonkeyPatch) -> None:
+    from daylily_ec import run_mounts
+
+    calls: dict[str, object] = {}
+
+    def fake_create_run_mount(request: run_mounts.CreateRunMountRequest):
+        calls["request"] = request
+        return run_mounts.RunMountRecord(
+            mount_id=request.mount_id or "",
+            purpose=request.purpose,
+            run_id=request.run_id or "",
+            platform=request.platform,
+            cluster_name=request.cluster_name,
+            region=request.region,
+            source_s3_uri=request.source_s3_uri,
+            fsx_file_system_id=request.fsx_file_system_id or "fs-123",
+            file_system_path=request.file_system_path or "",
+            headnode_path="/fsx/staging/staged_external_sequencing_data/remote_stage_test/",
+            association_id="dra-123",
+            lifecycle="AVAILABLE",
+            read_only=True,
+        )
+
+    monkeypatch.setattr(run_mounts, "create_run_mount", fake_create_run_mount)
+
+    record = module.create_staged_prefix_mount(
+        _stage_paths(),
+        cluster_name="cluster-a",
+        fsx_file_system_id=None,
+        profile="lsmc",
+        region="us-west-2",
+        timeout_seconds=120,
+    )
+
+    request = calls["request"]
+    assert isinstance(request, run_mounts.CreateRunMountRequest)
+    assert request.cluster_name == "cluster-a"
+    assert request.source_s3_uri == (
+        "s3://stage-bucket/remote_stage_test"
+    )
+    assert request.mount_id == "remote_stage_test"
+    assert request.purpose == run_mounts.MOUNT_PURPOSE_STAGING
+    assert request.file_system_path == "/staging/staged_external_sequencing_data/remote_stage_test"
+    assert request.batch_import_metadata_on_create is True
+    assert record is not None
+    assert record.association_id == "dra-123"
+
+
+def test_retired_staging_paths_are_rejected() -> None:
+    for path in (
+        "/fsx/staging/staged_sample_data",
+        "/fsx/staging/staged_sample_data/remote_stage_1",
+        "/fsx/staging/staged",
+        "/fsx/staging/staged/old-run",
+        "/fsx/staged_sample_data",
+        "/fsx/staged_sample_data/remote_stage_1",
+        "/fsx/staged",
+        "/fsx/staged/old-run",
+    ):
+        with pytest.raises(module.CommandError, match="retired staging path"):
+            module.normalise_stage_target(path)
+        with pytest.raises(module.CommandError, match="retired staging path"):
+            module.headnode_visible_path(path)
+        with pytest.raises(module.CommandError, match="retired staging path"):
+            module.build_reference_uri(path, _s3_role_uris())
+
+
+def test_stage_target_only_allows_external_sequencing_data_root() -> None:
+    assert (
+        module.normalise_stage_target("/fsx/staging/staged_external_sequencing_data/")
+        == "/fsx/staging/staged_external_sequencing_data"
+    )
+    with pytest.raises(module.CommandError, match="staged_external_sequencing_data"):
+        module.normalise_stage_target("/fsx/staging/custom")
 
 
 def test_check_source_path_accepts_mounted_paths_without_reference_translation(
@@ -93,7 +252,7 @@ def test_check_source_path_accepts_mounted_paths_without_reference_translation(
 
     module.check_source_path(
         "/fsx/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz",
-        reference_bucket="s3://reference",
+        reference_s3_uri="s3://reference",
         aws_env={},
         debug=False,
     )
@@ -105,7 +264,7 @@ def test_process_samples_requires_prechecked_rows(tmp_path: Path) -> None:
         module.process_samples(
             analysis_samples,
             _stage_paths(),
-            reference_bucket="s3://bucket",
+            reference_s3_uri=_s3_role_uris(),
             aws_env={},
             debug=False,
         )
@@ -153,11 +312,11 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
                     "NOVASEQX",
                     "0",
                     "S1",
-                    "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
+                    "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
                     "/tmp/HG002_0.1x_R1.fastq.gz",
                     "/tmp/HG002_0.1x_R2.fastq.gz",
                     "stage_data",
-                    "/fsx/staged_sample_data/",
+                    "/fsx/staging/staged_external_sequencing_data/",
                     "na",
                     "false",
                     "false",
@@ -174,8 +333,8 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
         module,
         "stage_single_lane",
         lambda *args, **kwargs: (
-            "/data/staged_sample_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R1.fastq.gz",
-            "/data/staged_sample_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R2.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R1.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R2.fastq.gz",
         ),
     )
     monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
@@ -191,8 +350,8 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
     assert module.LONGREADTRIM_READ_LENGTH in module.UNITS_HEADER
     assert run_ids == ["R0"]
     assert created_files == [
-        "/data/staged_sample_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R1.fastq.gz",
-        "/data/staged_sample_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R2.fastq.gz",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R1.fastq.gz",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/R0_HG002-NOVASEQ-PCR-FREE-blood-x0p1_S1_0/HG002_0.1x_R2.fastq.gz",
     ]
     assert samples_rows == [
         {
@@ -200,7 +359,7 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
             "SAMPLESOURCE": "blood",
             "SAMPLECLASS": "research",
             "BIOLOGICAL_SEX": "male",
-            "CONCORDANCE_CONTROL_PATH": "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
+            "CONCORDANCE_CONTROL_PATH": "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
             "IS_POSITIVE_CONTROL": "false",
             "IS_NEGATIVE_CONTROL": "false",
             "SAMPLE_TYPE": "blood",
@@ -208,7 +367,7 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
             "EXTERNAL_SAMPLE_ID": "HG002",
             "N_X": "1",
             "N_Y": "1",
-            "TRUTH_DATA_DIR": "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
+            "TRUTH_DATA_DIR": "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
         }
     ]
     assert len(units_rows) == 1
@@ -228,6 +387,214 @@ def test_process_samples_emits_dayoa_compatible_legacy_ilmn_rows(
     assert units_row["ONT_CRAM"] == ""
     assert units_row["PB_BAM"] == ""
     assert units_row["ROCHE_BAM"] == ""
+
+
+def test_process_samples_emits_comma_separated_ilmn_unit_paths(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    r1s = [f"s3://bucket/HG002_L{lane}_R1.fastq.gz" for lane in range(1, 4)]
+    r2s = [f"s3://bucket/HG002_L{lane}_R2.fastq.gz" for lane in range(1, 4)]
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "STAGE_DIRECTIVE",
+                "IS_POS_CTRL",
+                "IS_NEG_CTRL",
+                "N_X",
+                "N_Y",
+                "EXTERNAL_SAMPLE_ID",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "MULTILANE",
+                    "HG002",
+                    "split1x",
+                    "blood",
+                    "PCR-FREE",
+                    "ILMN",
+                    "NOVASEQX",
+                    "0",
+                    "S1",
+                    "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
+                    ",".join(r1s),
+                    ",".join(r2s),
+                    "stage_data",
+                    "false",
+                    "false",
+                    "1",
+                    "1",
+                    "HG002",
+                ]
+            )
+        ],
+    )
+
+    def fake_stage_single_lane(
+        r1: str,
+        r2: str,
+        dest_fsx_dir: str,
+        *_args: object,
+        **_kwargs: object,
+    ) -> tuple[str, str]:
+        return (
+            f"{dest_fsx_dir}/{Path(r1).name}",
+            f"{dest_fsx_dir}/{Path(r2).name}",
+        )
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+    monkeypatch.setattr(module, "stage_single_lane", fake_stage_single_lane)
+    monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
+
+    _samples_rows, units_rows, created_files, run_ids = _process_samples(
+        monkeypatch,
+        analysis_samples,
+        _stage_paths(),
+    )
+
+    assert run_ids == ["MULTILANE"]
+    assert len(created_files) == 6
+    module.normalise_units_paths(units_rows)
+    units_row = units_rows[0]
+    assert units_row["ILMN_R1_PATH"] == ",".join(
+        [
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/"
+            "MULTILANE_HG002-NOVASEQ-PCR-FREE-blood-split1x_S1_0/"
+            f"lane{lane}/HG002_L{lane}_R1.fastq.gz"
+            for lane in range(1, 4)
+        ]
+    )
+    assert units_row["ILMN_R2_PATH"] == ",".join(
+        [
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/"
+            "MULTILANE_HG002-NOVASEQ-PCR-FREE-blood-split1x_S1_0/"
+            f"lane{lane}/HG002_L{lane}_R2.fastq.gz"
+            for lane in range(1, 4)
+        ]
+    )
+
+
+def test_precheck_rejects_mismatched_comma_separated_ilmn_counts(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN1",
+                    "HG002",
+                    "split1x",
+                    "blood",
+                    "PCR-FREE",
+                    "ILMN",
+                    "NOVASEQX",
+                    "0",
+                    "S1",
+                    "s3://bucket/HG002_L1_R1.fastq.gz,s3://bucket/HG002_L2_R1.fastq.gz",
+                    "s3://bucket/HG002_L1_R2.fastq.gz",
+                    "stage_data",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+
+    report, _rows = module.precheck_manifest(
+        analysis_samples,
+        reference_s3_uri=_s3_role_uris(),
+        aws_env={},
+        debug=False,
+    )
+
+    assert any("same number of entries" in issue.message for issue in report.issues)
+
+
+def test_precheck_rejects_out_of_order_comma_separated_ilmn_pairs(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN1",
+                    "HG002",
+                    "split1x",
+                    "blood",
+                    "PCR-FREE",
+                    "ILMN",
+                    "NOVASEQX",
+                    "0",
+                    "S1",
+                    "s3://bucket/HG002_L1_R1.fastq.gz,s3://bucket/HG002_L2_R1.fastq.gz",
+                    "s3://bucket/HG002_L1_R2.fastq.gz,s3://bucket/HG002_L3_R2.fastq.gz",
+                    "stage_data",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+
+    report, _rows = module.precheck_manifest(
+        analysis_samples,
+        reference_s3_uri=_s3_role_uris(),
+        aws_env={},
+        debug=False,
+    )
+
+    assert any("pair 2 is out of order" in issue.message for issue in report.issues)
 
 
 def test_process_samples_emits_complete_genomics_fastq_rows(
@@ -279,8 +646,8 @@ def test_process_samples_emits_complete_genomics_fastq_rows(
         module,
         "stage_single_lane",
         lambda *args, **kwargs: (
-            "/data/staged_sample_data/remote_stage_test/CGT7P_HG003-DNBSEQ-PCR-FREE-blood-T7PLUS_D0_0/HG003_CG_R1.fastq.gz",
-            "/data/staged_sample_data/remote_stage_test/CGT7P_HG003-DNBSEQ-PCR-FREE-blood-T7PLUS_D0_0/HG003_CG_R2.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/CGT7P_HG003-DNBSEQ-PCR-FREE-blood-T7PLUS_D0_0/HG003_CG_R1.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/CGT7P_HG003-DNBSEQ-PCR-FREE-blood-T7PLUS_D0_0/HG003_CG_R2.fastq.gz",
         ),
     )
     monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
@@ -347,7 +714,7 @@ def test_process_samples_rejects_incomplete_complete_genomics_fastq_pair(
 
     report, _rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket="s3://bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -398,7 +765,7 @@ def test_process_samples_rejects_duplicate_multi_lane_fastq_pairs(
                     "NOVASEQX",
                     "1",
                     "S1",
-                    "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
+                    "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
                     "s3://bucket/HG002_1x_R1.fastq.gz",
                     "s3://bucket/HG002_1x_R2.fastq.gz",
                     "stage_data",
@@ -421,7 +788,7 @@ def test_process_samples_rejects_duplicate_multi_lane_fastq_pairs(
                     "NOVASEQX",
                     "2",
                     "S0",
-                    "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
+                    "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/",
                     "s3://bucket/HG002_1x_R1.fastq.gz",
                     "s3://bucket/HG002_1x_R2.fastq.gz",
                     "stage_data",
@@ -440,7 +807,7 @@ def test_process_samples_rejects_duplicate_multi_lane_fastq_pairs(
 
     report, _rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket="s3://bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -491,8 +858,8 @@ def test_process_samples_emits_ultima_cram_unit_rows(
                     "ULTIMA",
                     "1",
                     "D0",
-                    "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
-                    "/fsx/data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ug/HG003_1x.cleaned.cram",
+                    "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
+                    "/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ug/HG003_1x.cleaned.cram",
                     "ug",
                     "ug",
                     "WGS",
@@ -534,7 +901,7 @@ def test_process_samples_emits_ultima_cram_unit_rows(
     assert units_row["DEEP_MODEL"] == "WGS"
     assert (
         units_row["ULTIMA_CRAM"]
-        == "/fsx/data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ug/HG003_1x.cleaned.cram"
+        == "/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ug/HG003_1x.cleaned.cram"
     )
     assert units_row["ULTIMA_CRAM_ALIGNER"] == "ug"
     assert units_row["ULTIMA_CRAM_SNV_CALLER"] == "ug"
@@ -581,8 +948,8 @@ def test_process_samples_emits_ont_cram_rows(
                     "PROMETHION",
                     "2",
                     "D0",
-                    "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
-                    "/fsx/data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ont/HG003_3x.cleaned.cram",
+                    "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
+                    "/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ont/HG003_3x.cleaned.cram",
                     "ont",
                     "sentdont",
                     "ONT_R104",
@@ -609,7 +976,7 @@ def test_process_samples_emits_ont_cram_rows(
     assert created_files == []
     assert (
         units_rows[0]["ONT_CRAM"]
-        == "/fsx/data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ont/HG003_3x.cleaned.cram"
+        == "/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ont/HG003_3x.cleaned.cram"
     )
     assert units_rows[0]["ONT_CRAM_ALIGNER"] == "ont"
     assert units_rows[0]["ONT_CRAM_SNV_CALLER"] == "sentdont"
@@ -836,7 +1203,7 @@ def test_process_samples_emits_ont_fastq_prefix_rows(
                     "PROMETHION",
                     "placeholder",
                     "placeholder",
-                    "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
+                    "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
                     prefix,
                     "PBK85691",
                     "stage_data",
@@ -893,7 +1260,7 @@ def test_process_samples_emits_ont_fastq_prefix_rows(
     assert run_ids == ["20260424-ONT-100ul"]
     assert concatenated == [[obj.uri for obj in _valid_ont_objects(prefix)]]
     assert created_files == [
-        "/data/staged_sample_data/remote_stage_test/"
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/"
         "20260424-ONT-100ul_HG003-PROMETHION-SQK-LSK114-blood-pca100_PBK85691_barcode03_0/"
         "20260424-ONT-100ul-PBK85691-barcode03-R1.fastq.gz"
     ]
@@ -1044,10 +1411,10 @@ def test_process_samples_emits_hybrid_ilmn_ont_rows(
                     "NOVASEQ",
                     "1",
                     "D0",
-                    "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
+                    "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
                     "s3://bucket/HG003_1x_R1.fastq.gz",
                     "s3://bucket/HG003_1x_R2.fastq.gz",
-                    "/fsx/data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ont/HG003_3x.cleaned.cram",
+                    "/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ont/HG003_3x.cleaned.cram",
                     "ont",
                     "sentdont",
                     "WGS",
@@ -1067,18 +1434,18 @@ def test_process_samples_emits_hybrid_ilmn_ont_rows(
         module,
         "stage_single_lane",
         lambda *args, **kwargs: (
-            "/data/staged_sample_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_1x_R1.fastq.gz",
-            "/data/staged_sample_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_1x_R2.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_1x_R1.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_1x_R2.fastq.gz",
         ),
     )
     monkeypatch.setattr(
         module,
         "stage_path_with_sidecars",
         lambda *args, **kwargs: (
-            "/data/staged_sample_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_3x.cleaned.cram",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_3x.cleaned.cram",
             [
-                "/data/staged_sample_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_3x.cleaned.cram",
-                "/data/staged_sample_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_3x.cleaned.cram.crai",
+                "/fsx/staging/staged_external_sequencing_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_3x.cleaned.cram",
+                "/fsx/staging/staged_external_sequencing_data/remote_stage_test/HIOa_HG003-NOVASEQ-PF-blood-SR1x-ONT3x_D0_0/HG003_3x.cleaned.cram.crai",
             ],
         ),
     )
@@ -1143,8 +1510,8 @@ def test_process_samples_emits_pacbio_and_roche_rows(
                     "REVIO",
                     "0",
                     "rep1",
-                    "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
-                    "/fsx/data/genomic_data/organism_reads/H_sapiens/giab/pacbio/revio_2024Q4/GIAB_trio/HG003.bc2020.bam",
+                    "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
+                    "/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/pacbio/revio_2024Q4/GIAB_trio/HG003.bc2020.bam",
                     "sentmm2",
                     "sentdpb",
                     "",
@@ -1170,11 +1537,11 @@ def test_process_samples_emits_pacbio_and_roche_rows(
                     "SBX-DUPLEX",
                     "0",
                     "D0",
-                    "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
+                    "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/",
                     "",
                     "",
                     "",
-                    "/fsx/data/genomic_data/organism_reads/H_sapiens/giab/roche/HG003.bam",
+                    "/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/roche/HG003.bam",
                     "roche",
                     "rochehc",
                     "0.0172",
@@ -1256,7 +1623,7 @@ def test_process_samples_rejects_ultima_cram_without_crai(
 
     report, _rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket="s3://bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1281,9 +1648,9 @@ def test_stage_path_with_sidecars_stages_cram_before_crai(
     remote_path, created = module.stage_path_with_sidecars(
         "s3://bucket/sample.cram",
         sidecar_suffixes=(".crai",),
-        dest_fsx_dir="/data/staged_sample_data/remote_stage_test/sample",
-        dest_s3_dir="s3://bucket/data/staged_sample_data/remote_stage_test/sample",
-        reference_bucket="s3://reference",
+        dest_fsx_dir="/fsx/staging/staged_external_sequencing_data/remote_stage_test/sample",
+        dest_s3_dir="s3://stage-bucket/remote_stage_test/sample",
+        reference_s3_uri="s3://reference",
         aws_env={},
         debug=False,
     )
@@ -1291,8 +1658,8 @@ def test_stage_path_with_sidecars_stages_cram_before_crai(
     assert calls == ["s3://bucket/sample.cram", "s3://bucket/sample.cram.crai"]
     assert remote_path.endswith("/sample.cram")
     assert created == [
-        "/data/staged_sample_data/remote_stage_test/sample/sample.cram",
-        "/data/staged_sample_data/remote_stage_test/sample/sample.cram.crai",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/sample/sample.cram",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/sample/sample.cram.crai",
     ]
 
 
@@ -1330,7 +1697,7 @@ def test_precheck_run_metrics_preserves_relative_dirs_and_uses_basename(
                 "qc/summary.txt",
                 str(absolute_metric),
                 "s3://source-bucket/metrics/report.json",
-                "/fsx/data/run_metrics/headnode.txt",
+                "/fsx/staging/staged_external_sequencing_data/remote_stage_existing/run_metrics/headnode.txt",
             ]
         )
         + "\n",
@@ -1346,7 +1713,7 @@ def test_precheck_run_metrics_preserves_relative_dirs_and_uses_basename(
     specs = module.parse_run_metric_staging_specs([f"RUN.1:ilmn:{fofn}"])
     files = module.precheck_run_metrics(
         specs,
-        reference_bucket="s3://reference",
+        reference_s3_uri="s3://reference",
         aws_env={},
         debug=False,
     )
@@ -1355,13 +1722,16 @@ def test_precheck_run_metrics_preserves_relative_dirs_and_uses_basename(
         str(relative_metric.resolve()),
         str(absolute_metric),
         "s3://source-bucket/metrics/report.json",
-        "/fsx/data/run_metrics/headnode.txt",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_existing/run_metrics/headnode.txt",
     ]
     assert [(item.source, item.destination_relative_path) for item in files] == [
         (str(relative_metric.resolve()), "qc/summary.txt"),
         (str(absolute_metric), "instrument.csv"),
         ("s3://source-bucket/metrics/report.json", "report.json"),
-        ("/fsx/data/run_metrics/headnode.txt", "headnode.txt"),
+        (
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_existing/run_metrics/headnode.txt",
+            "headnode.txt",
+        ),
     ]
     assert all(item.spec.run_uid == "RUN-1" for item in files)
     assert all(item.spec.platform == "ILMN" for item in files)
@@ -1375,7 +1745,7 @@ def test_stage_run_metrics_copies_under_runs_subdir(
     files = [
         module.RunMetricFile(
             spec=spec,
-            source="/fsx/data/run_metrics/headnode.txt",
+            source="/fsx/staging/staged_external_sequencing_data/remote_stage_existing/run_metrics/headnode.txt",
             destination_relative_path="headnode.txt",
         ),
         module.RunMetricFile(
@@ -1394,24 +1764,24 @@ def test_stage_run_metrics_copies_under_runs_subdir(
     created = module.stage_run_metrics(
         files,
         _stage_paths(),
-        reference_bucket="s3://reference-bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
 
     assert copies == [
         (
-            "s3://reference-bucket/data/run_metrics/headnode.txt",
-            "s3://bucket/data/staged_sample_data/remote_stage_test/runs/RUN-1/headnode.txt",
+            "s3://stage-bucket/remote_stage_existing/run_metrics/headnode.txt",
+            "s3://stage-bucket/remote_stage_test/runs/RUN-1/headnode.txt",
         ),
         (
             "s3://source-bucket/metrics/report.json",
-            "s3://bucket/data/staged_sample_data/remote_stage_test/runs/RUN-1/qc/report.json",
+            "s3://stage-bucket/remote_stage_test/runs/RUN-1/qc/report.json",
         ),
     ]
     assert created == [
-        "/data/staged_sample_data/remote_stage_test/runs/RUN-1/headnode.txt",
-        "/data/staged_sample_data/remote_stage_test/runs/RUN-1/qc/report.json",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/runs/RUN-1/headnode.txt",
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/runs/RUN-1/qc/report.json",
     ]
 
 
@@ -1434,7 +1804,7 @@ def test_precheck_run_metrics_rejects_duplicate_destination_paths(
     with pytest.raises(module.CommandError, match="maps multiple sources"):
         module.precheck_run_metrics(
             specs,
-            reference_bucket="s3://reference",
+            reference_s3_uri="s3://reference",
             aws_env={},
             debug=False,
         )
@@ -1457,7 +1827,7 @@ def test_precheck_run_metrics_rejects_parent_relative_destination(
     with pytest.raises(module.CommandError, match="must not contain '..'"):
         module.precheck_run_metrics(
             specs,
-            reference_bucket="s3://reference",
+            reference_s3_uri="s3://reference",
             aws_env={},
             debug=False,
         )
@@ -1495,8 +1865,12 @@ def test_main_precheck_only_validates_run_metrics_without_copying(
     rc = module.main(
         [
             str(analysis_samples),
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://reference",
+            "--control-data-s3-uri",
+            "s3://control-data",
+            "--stage-s3-uri",
+            "s3://stage",
             "--profile",
             "dev",
             "--run-metric-staging",
@@ -1606,14 +1980,14 @@ def test_precheck_manifest_rejects_mounted_readonly_paths_outside_run_dir_mounts
         _mounted_ilmn_header(),
         [
             _mounted_ilmn_row(
-                r1="/fsx/data/staged_sample_data/S1_R1.fastq.gz",
+                r1="/fsx/staging/staged_external_sequencing_data/S1_R1.fastq.gz",
             )
         ],
     )
 
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket="s3://bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1640,7 +2014,7 @@ def test_precheck_manifest_rejects_mounted_readonly_mount_id_mismatch(
 
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket="s3://bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1674,7 +2048,7 @@ def test_precheck_manifest_collects_multiple_row_errors(
 
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket="s3://bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1741,7 +2115,7 @@ def test_precheck_manifest_collects_multiple_structural_errors_in_one_row(
 
     report, _rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket="s3://bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1776,7 +2150,7 @@ def test_precheck_manifest_rejects_giab_replicate_external_id(
         ]
     )
     concordance = (
-        "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
+        "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
     )
 
     def row(external_sample_id: str) -> str:
@@ -1813,7 +2187,7 @@ def test_precheck_manifest_rejects_giab_replicate_external_id(
     bad_manifest = _write_manifest(tmp_path, header, [row("HG001-a")])
     bad_report, _bad_rows = module.precheck_manifest(
         bad_manifest,
-        reference_bucket="s3://bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1825,7 +2199,7 @@ def test_precheck_manifest_rejects_giab_replicate_external_id(
     good_manifest = _write_manifest(tmp_path, header, [row("HG001")])
     good_report, _good_rows = module.precheck_manifest(
         good_manifest,
-        reference_bucket="s3://bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1840,7 +2214,7 @@ def test_precheck_manifest_respects_explicit_false_positive_control(
     tmp_path: Path,
 ) -> None:
     concordance = (
-        "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
+        "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
     )
     analysis_samples = _write_manifest(
         tmp_path,
@@ -1895,7 +2269,7 @@ def test_precheck_manifest_respects_explicit_false_positive_control(
 
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket="s3://bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1909,7 +2283,7 @@ def test_precheck_manifest_infers_positive_control_when_flag_is_omitted(
     tmp_path: Path,
 ) -> None:
     concordance = (
-        "/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
+        "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
     )
     analysis_samples = _write_manifest(
         tmp_path,
@@ -1965,7 +2339,7 @@ def test_precheck_manifest_infers_positive_control_when_flag_is_omitted(
 
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket="s3://bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -1978,7 +2352,7 @@ def test_precheck_manifest_rejects_explicit_positive_control_with_non_giab_path(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    concordance = "/fsx/data/non_giab_controls/HG001"
+    concordance = "/fsx/references/non_giab_controls/HG001"
     analysis_samples = _write_manifest(
         tmp_path,
         "\t".join(
@@ -2027,7 +2401,7 @@ def test_precheck_manifest_rejects_explicit_positive_control_with_non_giab_path(
 
     report, _rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket="s3://bucket",
+        reference_s3_uri=_s3_role_uris(),
         aws_env={},
         debug=False,
     )
@@ -2072,8 +2446,12 @@ def test_main_precheck_failure_does_not_stage_or_write_configs(
     rc = module.main(
         [
             str(analysis_samples),
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://bucket",
+            "--control-data-s3-uri",
+            "s3://control-data",
+            "--stage-s3-uri",
+            "s3://stage",
             "--profile",
             "test",
             "--region",
@@ -2116,8 +2494,12 @@ def test_main_precheck_only_clean_manifest_exits_without_copies(
     rc = module.main(
         [
             str(analysis_samples),
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://bucket",
+            "--control-data-s3-uri",
+            "s3://control-data",
+            "--stage-s3-uri",
+            "s3://stage",
             "--profile",
             "test",
             "--region",
@@ -2160,8 +2542,12 @@ def test_main_precheck_only_bad_manifest_reports_aggregated_errors(
     rc = module.main(
         [
             str(analysis_samples),
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://bucket",
+            "--control-data-s3-uri",
+            "s3://control-data",
+            "--stage-s3-uri",
+            "s3://stage",
             "--profile",
             "test",
             "--region",

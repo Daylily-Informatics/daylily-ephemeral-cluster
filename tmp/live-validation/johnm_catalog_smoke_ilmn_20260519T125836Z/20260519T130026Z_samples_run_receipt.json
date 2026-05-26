@@ -1,0 +1,55 @@
+{
+  "analysis_id": "johnm_catalog_smoke_ilmn_20260519T125836Z",
+  "analysis_samples": "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/tmp/live-validation/johnm_catalog_smoke_ilmn_20260519T125836Z/analysis_samples.hg002.tsv",
+  "command_id": "illumina_snv_alignstats",
+  "compatible_data_modes": [
+    "ilmn_solo"
+  ],
+  "delete_on_export_success": false,
+  "detected_data_modes": [
+    "ilmn_solo"
+  ],
+  "dry_run": true,
+  "dy_command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20 -n",
+  "executing_entity": "johnm",
+  "export_destination_s3_uri": null,
+  "export_trigger": "none",
+  "git_tag": "1.0.16",
+  "remote_stage_dir": "/fsx/data/staged_sample_data/remote_stage_20260519T130026Z",
+  "samples_tsv": "tmp/live-validation/johnm_catalog_smoke_ilmn_20260519T125836Z/20260519T130026Z_samples.tsv",
+  "session_name": "johnm_catalog_smoke_ilmn_20260519T125836Z",
+  "units_tsv": "tmp/live-validation/johnm_catalog_smoke_ilmn_20260519T125836Z/20260519T130026Z_units.tsv",
+  "workflow_argv": [
+    "workflow",
+    "launch",
+    "--repository",
+    "daylily-omics-analysis",
+    "--analysis-id",
+    "johnm_catalog_smoke_ilmn_20260519T125836Z",
+    "--executing-entity",
+    "johnm",
+    "--git-tag",
+    "1.0.16",
+    "--genome",
+    "hg38_broad",
+    "--dy-command",
+    "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20 -n",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "dra-enabled",
+    "--stage-dir",
+    "/fsx/data/staged_sample_data/remote_stage_20260519T130026Z",
+    "--session-name",
+    "johnm_catalog_smoke_ilmn_20260519T125836Z",
+    "--skip-project-check",
+    "--dry-run"
+  ],
+  "workflow_launch": {
+    "repo_path": "/fsx/analysis_results/johnm/johnm_catalog_smoke_ilmn_20260519T125836Z/daylily-omics-analysis",
+    "run_dir": "/home/ubuntu/daylily-runs/johnm_catalog_smoke_ilmn_20260519T125836Z",
+    "session_name": "johnm_catalog_smoke_ilmn_20260519T125836Z"
+  }
+}

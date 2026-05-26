@@ -1,0 +1,7 @@
+Run directory mounted: 602221-20260417_2346
+Association ID: dra-0a246cd72f629eeef
+FSx file system: fs-0445f465f1a8d6b48
+FSx API path: /run_dir_mounts/602221-20260417_2346/
+Headnode path: /fsx/run_dir_mounts/602221-20260417_2346/
+Source S3 URI: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/
+Lifecycle: AVAILABLE

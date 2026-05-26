@@ -7,10 +7,10 @@ DayEC is an operator-facing control plane for disposable AWS ParallelCluster env
 The current codebase is DRA-first:
 
 1. `dyec create` renders a ParallelCluster template with FSx for Lustre mounted at `/fsx`.
-2. Cluster creation adds a `reference-data` DRA from the reference bucket `data/` prefix to FSx API path `/data/`, visible as `/fsx/data`.
+2. Cluster creation adds exactly one startup `reference-data` DRA from `reference_s3_uri` to FSx API path `/references/`, visible as `/fsx/references`.
 3. `dyec mounts create <s3-uri>` can attach selected S3 run prefixes as ephemeral run DRAs under `/run_dir_mounts/<last-s3-folder>`, visible as `/fsx/run_dir_mounts/<last-s3-folder>`.
 4. `dyec workflow launch` starts DayOA work in tmux on the headnode and writes outputs under `/fsx/analysis_results/...`.
-5. `dyec export` creates a temporary output DRA directly on `/fsx/analysis_results/ubuntu/<analysis_dir>`, runs an FSx `EXPORT_TO_REPOSITORY` task, writes `fsx_export.yaml`, and detaches the DRA.
+5. `dyec export` creates a temporary output DRA directly on `/fsx/analysis_results/<executing_entity>/<analysis_id>`, runs an FSx `EXPORT_TO_REPOSITORY` task, writes `fsx_export.yaml`, and detaches the DRA.
 7. `dyec delete` tears down the cluster after export verification.
 
 ## Control Plane
@@ -39,11 +39,11 @@ The namespace is intentionally explicit:
 
 | Path | Role |
 |---|---|
-| `/fsx/data` | Reference data from the cluster-created reference DRA |
+| `/fsx/references` | Reference data from the cluster-created reference DRA |
 | `/fsx/run_dir_mounts/<mount_id>` | Read-oriented run-folder input DRA |
 | `/fsx/analysis_results/...` | Workflow checkout and result workspace |
 
-Run-directory mounts are inputs. They do not define the export destination and are rejected as export sources. Export is a separate output DRA task from `/analysis_results/ubuntu/<analysis_dir>/` to the requested S3 URI ending in the same `analysis_results/ubuntu/<analysis_dir>/` suffix.
+Run-directory mounts are inputs. They do not define the export destination and are rejected as export sources. Export is a separate output DRA task from `/analysis_results/<executing_entity>/<analysis_id>/` to the requested S3 URI ending in the same `<executing_entity>/<analysis_id>/` suffix.
 
 ## Workflow Plane
 
@@ -54,7 +54,7 @@ Catalog v2 splits commands by input contract:
 - `sample_analysis` commands use `analysis_samples.tsv`; `dyec samples stage` writes `samples.tsv` and `units.tsv`.
 - `run_analysis` commands use `runs.tsv`; run input must be mounted under `/fsx/run_dir_mounts/<mount_id>`.
 
-The current DayOA catalog pin is `1.0.16` for the repository default and all DayOA command `git_tag` values.
+The current DayOA catalog pin is `2.0.0` for the repository default and all DayOA command `git_tag` values.
 
 ## Headnode Model
 

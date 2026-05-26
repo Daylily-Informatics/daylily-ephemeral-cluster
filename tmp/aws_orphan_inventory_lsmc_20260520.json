@@ -1,0 +1,1688 @@
+{
+  "account": "108782052779",
+  "profile": "lsmc",
+  "regions": {
+    "ap-south-1": [
+      {
+        "create_time": "2026-02-11T09:49:46+00:00",
+        "id": "nat-05f85018216cac061",
+        "kind": "nat_gateway:available",
+        "reason": "NAT gateway is hourly billed plus data processing; verify it is still needed.",
+        "region": "ap-south-1",
+        "service": "ec2",
+        "severity": "high",
+        "subnet_id": "subnet-0b07e1f25896feb10",
+        "vpc_id": "vpc-00d723e354a9fad43"
+      },
+      {
+        "create_time": "2025-03-09T08:43:03+00:00",
+        "id": "nat-01dc061291fc51e75",
+        "kind": "nat_gateway:available",
+        "reason": "NAT gateway is hourly billed plus data processing; verify it is still needed.",
+        "region": "ap-south-1",
+        "service": "ec2",
+        "severity": "high",
+        "subnet_id": "subnet-01875fcdbe5088d13",
+        "vpc_id": "vpc-0bc1f7673947631f5"
+      },
+      {
+        "age_days": 430,
+        "description": "Created by CreateImage(i-0c4395677463ac1c9) for ami-09e64b5f4e44d9d85",
+        "id": "snap-053909bfd492a6457",
+        "kind": "snapshot:self",
+        "reason": "EBS snapshot storage may be stale; verify retention policy before deletion.",
+        "region": "ap-south-1",
+        "service": "ec2",
+        "severity": "low",
+        "size_gib": 421,
+        "start_time": "2025-03-16T08:02:29.228000+00:00"
+      }
+    ],
+    "eu-central-1": [
+      {
+        "create_time": "2025-03-13T12:48:07+00:00",
+        "id": "nat-0ec6ae9605269bef4",
+        "kind": "nat_gateway:available",
+        "reason": "NAT gateway is hourly billed plus data processing; verify it is still needed.",
+        "region": "eu-central-1",
+        "service": "ec2",
+        "severity": "high",
+        "subnet_id": "subnet-068be1b913ac8ad06",
+        "vpc_id": "vpc-07b70b8afc01cfc56"
+      },
+      {
+        "create_time": "2025-03-09T08:42:50+00:00",
+        "id": "nat-0a2bfbfedf38f8e87",
+        "kind": "nat_gateway:available",
+        "reason": "NAT gateway is hourly billed plus data processing; verify it is still needed.",
+        "region": "eu-central-1",
+        "service": "ec2",
+        "severity": "high",
+        "subnet_id": "subnet-0c292051fff6a7ebf",
+        "vpc_id": "vpc-024ad8e38de878432"
+      }
+    ],
+    "us-east-1": [
+      {
+        "age_days": 54,
+        "id": "i-0a77cc89134a27b93",
+        "instance_type": "t3a.2xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-03-26T22:24:46+00:00",
+        "name": "Dayhoff-x-Compute/Hostprimary (ifl-dev)",
+        "private_ip": "10.0.0.211",
+        "public_ip": "54.234.187.56",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-east-1",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "create_time": "2026-03-10T17:44:56+00:00",
+        "id": "nat-02c9c39356256ee15",
+        "kind": "nat_gateway:available",
+        "reason": "NAT gateway is hourly billed plus data processing; verify it is still needed.",
+        "region": "us-east-1",
+        "service": "ec2",
+        "severity": "high",
+        "subnet_id": "subnet-0b526aa5df3b8f6d0",
+        "vpc_id": "vpc-0b50bcaa0ca1f242e"
+      },
+      {
+        "create_time": "2026-03-26T22:10:14+00:00",
+        "id": "nat-0968cd814fed8bfff",
+        "kind": "nat_gateway:available",
+        "reason": "NAT gateway is hourly billed plus data processing; verify it is still needed.",
+        "region": "us-east-1",
+        "service": "ec2",
+        "severity": "high",
+        "subnet_id": "subnet-082b2afdafb6f6fa6",
+        "vpc_id": "vpc-031e57279c3ff783f"
+      },
+      {
+        "created_time": "2026-03-21T02:45:46.739000+00:00",
+        "id": "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679",
+        "kind": "load_balancer",
+        "name": "lsmc-privatelink-nlb",
+        "reason": "Load balancer has hourly cost; verify it has active targets/traffic.",
+        "region": "us-east-1",
+        "scheme": "internal",
+        "service": "elbv2",
+        "severity": "high"
+      },
+      {
+        "allocated_storage_gib": 1,
+        "db_class": "db.r6g.large",
+        "engine": "aurora-postgresql",
+        "id": "auruse1-writer",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-east-1",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "allocated_storage_gib": 100,
+        "db_class": "db.t3.medium",
+        "engine": "postgres",
+        "id": "dayhoff-staging-data-postgres9dc8bb04-avlkcyzjgnwo",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-east-1",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "allocated_storage_gib": 100,
+        "db_class": "db.t3.medium",
+        "engine": "postgres",
+        "id": "dayhoff-x-data-postgres9dc8bb04-xgjwaetdu22b",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-east-1",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "allocated_storage_gib": 1,
+        "db_class": "db.t4g.medium",
+        "engine": "aurora-postgresql",
+        "id": "dev-writer",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-east-1",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "engine": "aurora-postgresql",
+        "id": "auruse1",
+        "kind": "db_cluster:available",
+        "reason": "RDS/Aurora cluster may incur storage/compute cost; verify owner and recent use.",
+        "region": "us-east-1",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "engine": "aurora-postgresql",
+        "id": "dev",
+        "kind": "db_cluster:available",
+        "reason": "RDS/Aurora cluster may incur storage/compute cost; verify owner and recent use.",
+        "region": "us-east-1",
+        "service": "rds",
+        "severity": "high"
+      }
+    ],
+    "us-west-2": [
+      {
+        "age_days": 436,
+        "id": "i-02a5b297000e82966",
+        "instance_type": "m7i-flex.2xlarge",
+        "kind": "instance:stopped",
+        "launch_time": "2025-03-09T09:38:59+00:00",
+        "name": "lsmc-web",
+        "private_ip": "172.31.43.222",
+        "reason": "EC2 instance is stopped; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "medium"
+      },
+      {
+        "age_days": 8,
+        "id": "i-09126000eb19643b0",
+        "instance_type": "t3a.2xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-12T00:29:44+00:00",
+        "name": "Dayhoff-aws3041-Compute/Hostprimary",
+        "private_ip": "10.0.0.77",
+        "public_ip": "52.41.146.74",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 4,
+        "id": "i-071ccd80c69969d92",
+        "instance_type": "t3.micro",
+        "kind": "instance:running",
+        "launch_time": "2026-05-15T23:02:28+00:00",
+        "name": "terrarium-dev-tailscale-router",
+        "private_ip": "10.40.10.114",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 1,
+        "id": "i-09f66b3f11ea42c60",
+        "instance_type": "t3.small",
+        "kind": "instance:running",
+        "launch_time": "2026-05-18T17:12:05+00:00",
+        "name": "labplatform-mvp",
+        "private_ip": "172.31.32.6",
+        "public_ip": "54.191.122.113",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 6,
+        "id": "i-0a70e6af119b993f3",
+        "instance_type": "t3a.2xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-13T19:24:55+00:00",
+        "name": "Dayhoff-lsmcq7-Compute/Hostprimary",
+        "private_ip": "10.0.0.123",
+        "public_ip": "35.87.219.151",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 1,
+        "id": "i-03a38912d7d651f1a",
+        "instance_type": "t3.micro",
+        "kind": "instance:running",
+        "launch_time": "2026-05-18T21:32:41+00:00",
+        "name": "terrarium-prod-tailscale-router",
+        "private_ip": "10.40.10.97",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 2,
+        "id": "i-07ec9d66e9a88e538",
+        "instance_type": "r7i.8xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-18T05:42:56+00:00",
+        "name": "HeadNode",
+        "private_ip": "10.0.0.87",
+        "public_ip": "52.33.34.102",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 1,
+        "id": "i-084fb3cad014bfc37",
+        "instance_type": "r7i.2xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-19T01:58:54+00:00",
+        "name": "HeadNode",
+        "private_ip": "10.0.0.145",
+        "public_ip": "44.233.65.208",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-076ad3a4dd35ee5b5",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-19T17:57:04+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.73",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-088c1ab23139d2d93",
+        "instance_type": "c7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:24+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.199",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0dc38a66020f5f461",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:53+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.207",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-09cdc3314889cd951",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:53+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.160",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-05dcbe9ac9b02e5c1",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:53+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.5",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0ccce830906232a90",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:53+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.187",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0aa21bf742eb4bbf7",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:53+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.108",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-09bb3aae95835dd50",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:56+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.253",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0a384507cb610bbce",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:56+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.143",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-09a256b9643e035fe",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:56+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.243",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-071965416cc9a766c",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:56+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.212",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-06be519ccc8d7a4eb",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:56+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.21",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0310482ddf20f87a2",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:56+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.25",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0088b733539406742",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:56+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.192",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-034c1c88cff56c46d",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:56+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.65",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-09b38b9d9ec3a53df",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:56+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.193",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-06d899b25332ccec4",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:45:56+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.178",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0175d1abaecc5a657",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.152",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0f65b79684b1914a5",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.217",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0f2a013205ff9ac9a",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.54",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0e66dbc60875d4c2d",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.247",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-004ac7a183d6c0279",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.148",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0185e292ff2bcc10e",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.84",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0d1c35575bdb7be4c",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.174",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-014a469ec6feecba7",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.82",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0286eb03b5d7e6454",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.127",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0de3e809325f68279",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.188",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-01bd4013aac4668c0",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.156",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-031186ee67e867414",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.130",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-09eaf528a5c89dbbf",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.232",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-075e940519ed7532c",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.107",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0371a86359ca3935b",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.231",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0d356515b2197837d",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:shutting-down",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.200",
+        "reason": "EC2 instance is shutting-down; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "medium"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0c809fddb6caa4c3e",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.198",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-00f2cde95502d826e",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.38",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-068fb117a77f9d3c7",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.163",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0f5879e42539f12d5",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:30+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.229",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0252f223167ed5a19",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:26+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.77",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-06dfb843c94656a1f",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:27+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.241",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-09b06a898fb5e72d7",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:26+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.172",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-04003de1beba61469",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:31:27+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.244",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0afe87ec9a53d56c6",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:39:09+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.150",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0208f1a6c9c49d77f",
+        "instance_type": "r7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:46:00+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.158",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0b8465c19de68e2fd",
+        "instance_type": "r7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:46:00+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.128",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0f202858f08f51fd1",
+        "instance_type": "r7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:46:00+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.246",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-025ec47dde209219c",
+        "instance_type": "r7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:46:00+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.185",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-00d953ab62bbb28d0",
+        "instance_type": "r7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:46:00+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.90",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-05fd3c3831f3150a8",
+        "instance_type": "r7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:46:00+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.76",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0f2a60b8e52268e65",
+        "instance_type": "r7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:46:00+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.96",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0028d1851e3ccdcaa",
+        "instance_type": "r7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:46:00+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.211",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0befdcaa92c7e2336",
+        "instance_type": "r7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:46:00+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.52",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-08f872e3305bfcd4a",
+        "instance_type": "r7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T07:46:00+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.149",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0e37f393bfb749923",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T08:38:34+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.164",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-02a0a29c106a28ac3",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T08:38:34+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.55",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-032cde7560f0136dc",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T08:38:34+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.36",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-00777e719ffc26e17",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T08:38:34+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.137",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-01aacca65d31c61a6",
+        "instance_type": "m7i.metal-48xl",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T08:38:34+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.28",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-08b171cf7e7811ca5",
+        "instance_type": "m7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T08:39:05+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.146",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-08bb3e58d2cbe24a5",
+        "instance_type": "m7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T08:39:05+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.33",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-028d6c9f8573450af",
+        "instance_type": "m7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T08:39:05+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.225",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0cd0b443bc7c898df",
+        "instance_type": "m7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T08:39:05+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.204",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "age_days": 0,
+        "id": "i-0c0d87a432c4744cc",
+        "instance_type": "m7i.48xlarge",
+        "kind": "instance:running",
+        "launch_time": "2026-05-20T08:39:05+00:00",
+        "name": "Compute",
+        "private_ip": "10.0.1.165",
+        "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high"
+      },
+      {
+        "create_time": "2026-04-15T15:01:59.958000+00:00",
+        "id": "vol-0f5e5d7eec5982fa8",
+        "kind": "ebs_volume:unattached",
+        "reason": "EBS volume is unattached and still billed for storage.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high",
+        "size_gib": 421,
+        "volume_type": "gp3"
+      },
+      {
+        "create_time": "2026-03-23T02:15:51.287000+00:00",
+        "id": "vol-0c90d4fbaada3820a",
+        "kind": "ebs_volume:unattached",
+        "reason": "EBS volume is unattached and still billed for storage.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high",
+        "size_gib": 421,
+        "volume_type": "gp3"
+      },
+      {
+        "create_time": "2026-02-13T01:27:46.182000+00:00",
+        "id": "vol-067169329e7a92af1",
+        "kind": "ebs_volume:unattached",
+        "reason": "EBS volume is unattached and still billed for storage.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high",
+        "size_gib": 421,
+        "volume_type": "gp3"
+      },
+      {
+        "create_time": "2026-03-09T12:58:18.599000+00:00",
+        "id": "vol-042a5f5daead20490",
+        "kind": "ebs_volume:unattached",
+        "reason": "EBS volume is unattached and still billed for storage.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high",
+        "size_gib": 421,
+        "volume_type": "gp3"
+      },
+      {
+        "domain": "vpc",
+        "id": "eipalloc-02ef5760f8f8700fd",
+        "kind": "elastic_ip:unassociated",
+        "public_ip": "35.166.99.60",
+        "reason": "Elastic IP is allocated but not associated.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "medium"
+      },
+      {
+        "create_time": "2025-02-19T06:59:55+00:00",
+        "id": "nat-00f3c26e43ede9b10",
+        "kind": "nat_gateway:available",
+        "reason": "NAT gateway is hourly billed plus data processing; verify it is still needed.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high",
+        "subnet_id": "subnet-0e9acb65aba5a0330",
+        "vpc_id": "vpc-06b01782f2abece1c"
+      },
+      {
+        "create_time": "2026-05-12T00:25:15+00:00",
+        "id": "nat-00246c8ef3b9087f1",
+        "kind": "nat_gateway:available",
+        "reason": "NAT gateway is hourly billed plus data processing; verify it is still needed.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high",
+        "subnet_id": "subnet-01eb09c09e28c4b4a",
+        "vpc_id": "vpc-09b4eb852848a3334"
+      },
+      {
+        "create_time": "2026-02-11T21:23:34+00:00",
+        "id": "nat-00ac08b685fea726f",
+        "kind": "nat_gateway:available",
+        "reason": "NAT gateway is hourly billed plus data processing; verify it is still needed.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high",
+        "subnet_id": "subnet-03ca1d12bbf482510",
+        "vpc_id": "vpc-06371a3d9b0e6046c"
+      },
+      {
+        "create_time": "2026-02-05T04:45:08+00:00",
+        "id": "nat-0234e77781575cced",
+        "kind": "nat_gateway:available",
+        "reason": "NAT gateway is hourly billed plus data processing; verify it is still needed.",
+        "region": "us-west-2",
+        "service": "ec2",
+        "severity": "high",
+        "subnet_id": "subnet-047c1769789df8997",
+        "vpc_id": "vpc-0bafd56fbe290e4e8"
+      },
+      {
+        "allocated_storage_gib": 20,
+        "db_class": "db.t4g.micro",
+        "engine": "postgres",
+        "id": "aquarium-dev-db",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "allocated_storage_gib": 1,
+        "db_class": "db.r8g.large",
+        "engine": "aurora-postgresql",
+        "id": "dayhoff-lsmcok1-tapdb-writer",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "allocated_storage_gib": 1,
+        "db_class": "db.r8g.xlarge",
+        "engine": "aurora-postgresql",
+        "id": "dayhoff-lsmcq7-tapdb-reader-api",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "allocated_storage_gib": 1,
+        "db_class": "db.r8g.xlarge",
+        "engine": "aurora-postgresql",
+        "id": "dayhoff-lsmcq7-tapdb-reader-ha",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "allocated_storage_gib": 1,
+        "db_class": "db.r8g.2xlarge",
+        "engine": "aurora-postgresql",
+        "id": "dayhoff-lsmcq7-tapdb-writer",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "allocated_storage_gib": 1,
+        "db_class": "db.r6g.large",
+        "engine": "aurora-postgresql",
+        "id": "dev-writer",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "allocated_storage_gib": 1,
+        "db_class": "db.t4g.medium",
+        "engine": "aurora-postgresql",
+        "id": "staging-writer",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "allocated_storage_gib": 20,
+        "db_class": "db.t4g.micro",
+        "engine": "postgres",
+        "id": "terrarium-dev-db",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "allocated_storage_gib": 20,
+        "db_class": "db.t4g.micro",
+        "engine": "postgres",
+        "id": "terrarium-prod-db",
+        "kind": "db_instance:available",
+        "multi_az": false,
+        "reason": "RDS instance can incur compute/storage cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "engine": "aurora-postgresql",
+        "id": "dayhoff-lsmcok1-tapdb",
+        "kind": "db_cluster:available",
+        "reason": "RDS/Aurora cluster may incur storage/compute cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "engine": "aurora-postgresql",
+        "id": "dayhoff-lsmcq7-tapdb",
+        "kind": "db_cluster:available",
+        "reason": "RDS/Aurora cluster may incur storage/compute cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "engine": "aurora-postgresql",
+        "id": "dev",
+        "kind": "db_cluster:available",
+        "reason": "RDS/Aurora cluster may incur storage/compute cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "engine": "aurora-postgresql",
+        "id": "staging",
+        "kind": "db_cluster:available",
+        "reason": "RDS/Aurora cluster may incur storage/compute cost; verify owner and recent use.",
+        "region": "us-west-2",
+        "service": "rds",
+        "severity": "high"
+      },
+      {
+        "CreationTime": "2026-05-17 22:29:42.835000-07:00",
+        "DNSName": "fs-017ab7a7cdbf44c54.fsx.us-west-2.amazonaws.com",
+        "FileSystemId": "fs-017ab7a7cdbf44c54",
+        "FileSystemType": "LUSTRE",
+        "FileSystemTypeVersion": "2.15",
+        "Lifecycle": "AVAILABLE",
+        "LustreConfiguration": {
+          "CopyTagsToBackups": false,
+          "DataCompressionType": "NONE",
+          "DeploymentType": "SCRATCH_2",
+          "LogConfiguration": {
+            "Level": "DISABLED"
+          },
+          "MountName": "ycxj3b4v",
+          "WeeklyMaintenanceStartTime": "7:08:30"
+        },
+        "NetworkInterfaceIds": [
+          "eni-0687dbb3e214703b5",
+          "eni-08f595c37e0b21e10",
+          "eni-07d8dab25a7260128",
+          "eni-03dd73ac19d82e3c3",
+          "eni-060c81f7f471547de",
+          "eni-0886cdcbf52779de8"
+        ],
+        "OwnerId": "108782052779",
+        "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:file-system/fs-017ab7a7cdbf44c54",
+        "StorageCapacity": 12000,
+        "StorageType": "SSD",
+        "SubnetIds": [
+          "subnet-087a4872d0c34e642"
+        ],
+        "Tags": [
+          {
+            "Key": "aws:cloudformation:stack-name",
+            "Value": "dra-enabled"
+          },
+          {
+            "Key": "parallelcluster:version",
+            "Value": "3.13.2"
+          },
+          {
+            "Key": "aws-parallelcluster-enforce-budget",
+            "Value": "skip"
+          },
+          {
+            "Key": "aws:cloudformation:stack-id",
+            "Value": "arn:aws:cloudformation:us-west-2:108782052779:stack/dra-enabled/89197230-527a-11f1-92e2-0617171b4d29"
+          },
+          {
+            "Key": "aws-parallelcluster-clustername",
+            "Value": "dra-enabled"
+          },
+          {
+            "Key": "aws-parallelcluster-username",
+            "Value": "jmajor-root"
+          },
+          {
+            "Key": "Name",
+            "Value": "fsx-dra-enabled"
+          },
+          {
+            "Key": "aws-parallelcluster-daylily-git-deets",
+            "Value": "none"
+          },
+          {
+            "Key": "aws-parallelcluster-jobid",
+            "Value": "aws_profile-lsmc"
+          },
+          {
+            "Key": "aws-parallelcluster-monitor-bucket",
+            "Value": "s3://lsmc-dayoa-omics-analysis-us-west-2"
+          },
+          {
+            "Key": "parallelcluster:cluster-name",
+            "Value": "dra-enabled"
+          },
+          {
+            "Key": "aws:cloudformation:logical-id",
+            "Value": "FSX17db3c1e0b568ab4"
+          },
+          {
+            "Key": "aws-parallelcluster-project",
+            "Value": "dra-enabled"
+          }
+        ],
+        "VpcId": "vpc-06b01782f2abece1c",
+        "id": "fs-017ab7a7cdbf44c54",
+        "kind": "filesystem",
+        "reason": "fsx filesystem exists and may incur recurring cost; verify it is still in use.",
+        "region": "us-west-2",
+        "service": "fsx",
+        "severity": "high"
+      },
+      {
+        "CreationTime": "2026-05-18 18:45:40.087000-07:00",
+        "DNSName": "fs-01c4180aab049f24c.fsx.us-west-2.amazonaws.com",
+        "FileSystemId": "fs-01c4180aab049f24c",
+        "FileSystemType": "LUSTRE",
+        "FileSystemTypeVersion": "2.15",
+        "Lifecycle": "AVAILABLE",
+        "LustreConfiguration": {
+          "CopyTagsToBackups": false,
+          "DataCompressionType": "NONE",
+          "DeploymentType": "SCRATCH_2",
+          "LogConfiguration": {
+            "Level": "DISABLED"
+          },
+          "MountName": "77yj3b4v",
+          "WeeklyMaintenanceStartTime": "6:12:00"
+        },
+        "NetworkInterfaceIds": [
+          "eni-0d033b930788976be",
+          "eni-07a3ec8c3f9ea7089",
+          "eni-0a5b56ee321b2d529",
+          "eni-03bc478d1b873815b",
+          "eni-092a8c853977844e5",
+          "eni-0b82d1fcb76521a31",
+          "eni-00cf73fd1caf8f56b"
+        ],
+        "OwnerId": "108782052779",
+        "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:file-system/fs-01c4180aab049f24c",
+        "StorageCapacity": 14400,
+        "StorageType": "SSD",
+        "SubnetIds": [
+          "subnet-087a4872d0c34e642"
+        ],
+        "Tags": [
+          {
+            "Key": "aws:cloudformation:stack-name",
+            "Value": "XL-pilot"
+          },
+          {
+            "Key": "parallelcluster:version",
+            "Value": "3.13.2"
+          },
+          {
+            "Key": "aws-parallelcluster-enforce-budget",
+            "Value": "skip"
+          },
+          {
+            "Key": "aws:cloudformation:stack-id",
+            "Value": "arn:aws:cloudformation:us-west-2:108782052779:stack/XL-pilot/66ef1a70-5324-11f1-9fa3-0235dd5e183f"
+          },
+          {
+            "Key": "aws-parallelcluster-clustername",
+            "Value": "XL-pilot"
+          },
+          {
+            "Key": "aws-parallelcluster-username",
+            "Value": "michael.kennemer-mike-tmp"
+          },
+          {
+            "Key": "Name",
+            "Value": "fsx-XL-pilot"
+          },
+          {
+            "Key": "aws-parallelcluster-daylily-git-deets",
+            "Value": "none"
+          },
+          {
+            "Key": "aws-parallelcluster-jobid",
+            "Value": "aws_profile-daylily-service-lsmc"
+          },
+          {
+            "Key": "aws-parallelcluster-monitor-bucket",
+            "Value": "s3://lsmc-dayoa-omics-analysis-us-west-2"
+          },
+          {
+            "Key": "parallelcluster:cluster-name",
+            "Value": "XL-pilot"
+          },
+          {
+            "Key": "aws:cloudformation:logical-id",
+            "Value": "FSX4591099d9ffee5bf"
+          },
+          {
+            "Key": "aws-parallelcluster-project",
+            "Value": "XL-pilot"
+          }
+        ],
+        "VpcId": "vpc-06b01782f2abece1c",
+        "id": "fs-01c4180aab049f24c",
+        "kind": "filesystem",
+        "reason": "fsx filesystem exists and may incur recurring cost; verify it is still in use.",
+        "region": "us-west-2",
+        "service": "fsx",
+        "severity": "high"
+      },
+      {
+        "CreationTime": "2026-04-28 15:46:10-07:00",
+        "CreationToken": "aquarium-dev-tailscale-state",
+        "Encrypted": true,
+        "FileSystemArn": "arn:aws:elasticfilesystem:us-west-2:108782052779:file-system/fs-0266962e5cabeb0b1",
+        "FileSystemId": "fs-0266962e5cabeb0b1",
+        "FileSystemProtection": {
+          "ReplicationOverwriteProtection": "ENABLED"
+        },
+        "KmsKeyId": "arn:aws:kms:us-west-2:108782052779:key/d5942b82-fb41-4b19-8db5-6f538f664446",
+        "LifeCycleState": "available",
+        "Name": "aquarium-dev-tailscale-state",
+        "NumberOfMountTargets": 2,
+        "OwnerId": "108782052779",
+        "PerformanceMode": "generalPurpose",
+        "SizeInBytes": {
+          "Timestamp": "2026-05-20 01:42:54-07:00",
+          "Value": 86016,
+          "ValueInArchive": 0,
+          "ValueInIA": 0,
+          "ValueInStandard": 86016
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "dev"
+          },
+          {
+            "Key": "Name",
+            "Value": "aquarium-dev-tailscale-state"
+          },
+          {
+            "Key": "Project",
+            "Value": "aquarium"
+          }
+        ],
+        "ThroughputMode": "bursting",
+        "id": "fs-0266962e5cabeb0b1",
+        "kind": "filesystem",
+        "reason": "efs filesystem exists and may incur recurring cost; verify it is still in use.",
+        "region": "us-west-2",
+        "service": "efs",
+        "severity": "medium"
+      },
+      {
+        "CreationTime": "2026-04-03 11:05:35-07:00",
+        "CreationToken": "terrarium-prod-tailscale-state",
+        "Encrypted": true,
+        "FileSystemArn": "arn:aws:elasticfilesystem:us-west-2:108782052779:file-system/fs-0f2fd326e8b3e0bb8",
+        "FileSystemId": "fs-0f2fd326e8b3e0bb8",
+        "FileSystemProtection": {
+          "ReplicationOverwriteProtection": "ENABLED"
+        },
+        "KmsKeyId": "arn:aws:kms:us-west-2:108782052779:key/d5942b82-fb41-4b19-8db5-6f538f664446",
+        "LifeCycleState": "available",
+        "Name": "terrarium-prod-tailscale-state",
+        "NumberOfMountTargets": 2,
+        "OwnerId": "108782052779",
+        "PerformanceMode": "generalPurpose",
+        "SizeInBytes": {
+          "Timestamp": "2026-05-20 01:36:24-07:00",
+          "Value": 86016,
+          "ValueInArchive": 0,
+          "ValueInIA": 0,
+          "ValueInStandard": 86016
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "prod"
+          },
+          {
+            "Key": "Name",
+            "Value": "terrarium-prod-tailscale-state"
+          },
+          {
+            "Key": "Project",
+            "Value": "terrarium"
+          }
+        ],
+        "ThroughputMode": "bursting",
+        "id": "fs-0f2fd326e8b3e0bb8",
+        "kind": "filesystem",
+        "reason": "efs filesystem exists and may incur recurring cost; verify it is still in use.",
+        "region": "us-west-2",
+        "service": "efs",
+        "severity": "medium"
+      },
+      {
+        "CreationTime": "2026-04-03 10:42:26-07:00",
+        "CreationToken": "terrarium-dev-tailscale-state",
+        "Encrypted": true,
+        "FileSystemArn": "arn:aws:elasticfilesystem:us-west-2:108782052779:file-system/fs-03e6ba9c06e5cccc7",
+        "FileSystemId": "fs-03e6ba9c06e5cccc7",
+        "FileSystemProtection": {
+          "ReplicationOverwriteProtection": "ENABLED"
+        },
+        "KmsKeyId": "arn:aws:kms:us-west-2:108782052779:key/d5942b82-fb41-4b19-8db5-6f538f664446",
+        "LifeCycleState": "available",
+        "Name": "terrarium-dev-tailscale-state",
+        "NumberOfMountTargets": 2,
+        "OwnerId": "108782052779",
+        "PerformanceMode": "generalPurpose",
+        "SizeInBytes": {
+          "Timestamp": "2026-05-20 01:42:21-07:00",
+          "Value": 86016,
+          "ValueInArchive": 0,
+          "ValueInIA": 0,
+          "ValueInStandard": 86016
+        },
+        "Tags": [
+          {
+            "Key": "Environment",
+            "Value": "dev"
+          },
+          {
+            "Key": "Name",
+            "Value": "terrarium-dev-tailscale-state"
+          },
+          {
+            "Key": "Project",
+            "Value": "terrarium"
+          }
+        ],
+        "ThroughputMode": "bursting",
+        "id": "fs-03e6ba9c06e5cccc7",
+        "kind": "filesystem",
+        "reason": "efs filesystem exists and may incur recurring cost; verify it is still in use.",
+        "region": "us-west-2",
+        "service": "efs",
+        "severity": "medium"
+      },
+      {
+        "id": "arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-dev-cluster",
+        "kind": "cluster",
+        "reason": "ECS cluster exists; empty clusters are usually low cost but attached services/tasks can cost.",
+        "region": "us-west-2",
+        "service": "ecs",
+        "service_count": 1,
+        "severity": "medium"
+      },
+      {
+        "id": "arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-prod-cluster",
+        "kind": "cluster",
+        "reason": "ECS cluster exists; empty clusters are usually low cost but attached services/tasks can cost.",
+        "region": "us-west-2",
+        "service": "ecs",
+        "service_count": 1,
+        "severity": "medium"
+      },
+      {
+        "id": "arn:aws:ecs:us-west-2:108782052779:cluster/aquarium-dev-cluster",
+        "kind": "cluster",
+        "reason": "ECS cluster exists; empty clusters are usually low cost but attached services/tasks can cost.",
+        "region": "us-west-2",
+        "service": "ecs",
+        "service_count": 1,
+        "severity": "medium"
+      }
+    ]
+  }
+}

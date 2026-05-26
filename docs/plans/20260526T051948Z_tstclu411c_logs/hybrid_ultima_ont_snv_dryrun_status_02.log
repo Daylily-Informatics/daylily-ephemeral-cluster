@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_sentdhuomr_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k -n",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/tcc_hybrid_ultima_ont_snv_5x5x_fix_dryrun/daylily-omics-analysis",
+  "session_name": "tcc_hybrid_ultima_ont_snv_5x5x_fix_dryrun",
+  "started_at": "2026-05-26T06:27:27Z"
+}

@@ -1,0 +1,15 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_STAGE_DIR__=/fsx/staging/staged_sample_data/remote_stage_20260525T074001Z
+__DAYLILY_STAGE_SAMPLES__=/fsx/staging/staged_sample_data/remote_stage_20260525T074001Z/20260525T074001Z_samples.tsv
+__DAYLILY_STAGE_UNITS__=/fsx/staging/staged_sample_data/remote_stage_20260525T074001Z/20260525T074001Z_units.tsv
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=tvb_hybrid_ilmn_ont_snv_5x5x_1021
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/tvb_hybrid_ilmn_ont_snv_5x5x_1021
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/tvb_hybrid_ilmn_ont_snv_5x5x_1021/daylily-omics-analysis
+Tmux session 'tvb_hybrid_ilmn_ont_snv_5x5x_1021' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/tvb_hybrid_ilmn_ont_snv_5x5x_1021
+Workflow repo path: /fsx/analysis_results/johnm/tvb_hybrid_ilmn_ont_snv_5x5x_1021/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster tstVer4-1-1b
+Then run: tmux attach -t tvb_hybrid_ilmn_ont_snv_5x5x_1021

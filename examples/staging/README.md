@@ -3,9 +3,9 @@
 These examples are staging inputs for `daylily-ec samples stage`. Each
 `analysis_samples_manifest.tsv` is derived from a working
 `daylily-omics-analysis` fixture. Most examples rewrite source data to the
-mk-gotime3 reference bucket:
+explicit DayOA S3 role URIs:
 
-`s3://lsmc-dayoa-omics-analysis-us-west-2/data/...`
+`s3://dayoa-references/...`, `s3://dayoa-control-data/...`, and `s3://dayoa-staging/...`
 
 The ONT FASTQ example intentionally points at the PCA100 sequencing-data bucket
 so prefix parsing is exercised against the observed ONT run layout.
@@ -35,7 +35,9 @@ Run commands from the repository root:
 daylily-ec samples stage examples/staging/ilmn_solo/analysis_samples_manifest.tsv \
   --profile lsmc \
   --region us-west-2 \
-  --reference-bucket s3://lsmc-dayoa-omics-analysis-us-west-2 \
+  --reference-s3-uri s3://dayoa-references \
+  --control-data-s3-uri s3://dayoa-control-data \
+  --stage-s3-uri s3://dayoa-staging \
   --run-metric-staging "RUN123:ILMN:/path/to/run_metrics.fofn" \
   --config-dir tmp-stage-config/examples/ilmn_solo
 ```
@@ -44,7 +46,9 @@ daylily-ec samples stage examples/staging/ilmn_solo/analysis_samples_manifest.ts
 daylily-ec samples stage examples/staging/ultima_solo/analysis_samples_manifest.tsv \
   --profile lsmc \
   --region us-west-2 \
-  --reference-bucket s3://lsmc-dayoa-omics-analysis-us-west-2 \
+  --reference-s3-uri s3://dayoa-references \
+  --control-data-s3-uri s3://dayoa-control-data \
+  --stage-s3-uri s3://dayoa-staging \
   --config-dir tmp-stage-config/examples/ultima_solo
 ```
 
@@ -52,7 +56,9 @@ daylily-ec samples stage examples/staging/ultima_solo/analysis_samples_manifest.
 daylily-ec samples stage examples/staging/ont_solo/analysis_samples_manifest.tsv \
   --profile lsmc \
   --region us-west-2 \
-  --reference-bucket s3://lsmc-dayoa-omics-analysis-us-west-2 \
+  --reference-s3-uri s3://dayoa-references \
+  --control-data-s3-uri s3://dayoa-control-data \
+  --stage-s3-uri s3://dayoa-staging \
   --config-dir tmp-stage-config/examples/ont_solo
 ```
 
@@ -60,7 +66,9 @@ daylily-ec samples stage examples/staging/ont_solo/analysis_samples_manifest.tsv
 daylily-ec samples stage examples/staging/ont_fastq_solo/analysis_samples_manifest.tsv \
   --profile lsmc \
   --region us-west-2 \
-  --reference-bucket s3://lsmc-dayoa-omics-analysis-us-west-2 \
+  --reference-s3-uri s3://dayoa-references \
+  --control-data-s3-uri s3://dayoa-control-data \
+  --stage-s3-uri s3://dayoa-staging \
   --config-dir tmp-stage-config/examples/ont_fastq_solo
 ```
 
@@ -68,7 +76,9 @@ daylily-ec samples stage examples/staging/ont_fastq_solo/analysis_samples_manife
 daylily-ec samples stage examples/staging/hybrid_ilmn_ont/analysis_samples_manifest.tsv \
   --profile lsmc \
   --region us-west-2 \
-  --reference-bucket s3://lsmc-dayoa-omics-analysis-us-west-2 \
+  --reference-s3-uri s3://dayoa-references \
+  --control-data-s3-uri s3://dayoa-control-data \
+  --stage-s3-uri s3://dayoa-staging \
   --config-dir tmp-stage-config/examples/hybrid_ilmn_ont
 ```
 
@@ -76,7 +86,9 @@ daylily-ec samples stage examples/staging/hybrid_ilmn_ont/analysis_samples_manif
 daylily-ec samples stage examples/staging/pacbio_solo/analysis_samples_manifest.tsv \
   --profile lsmc \
   --region us-west-2 \
-  --reference-bucket s3://lsmc-dayoa-omics-analysis-us-west-2 \
+  --reference-s3-uri s3://dayoa-references \
+  --control-data-s3-uri s3://dayoa-control-data \
+  --stage-s3-uri s3://dayoa-staging \
   --config-dir tmp-stage-config/examples/pacbio_solo
 ```
 
@@ -84,7 +96,9 @@ daylily-ec samples stage examples/staging/pacbio_solo/analysis_samples_manifest.
 daylily-ec samples stage examples/staging/roche_solo/analysis_samples_manifest.tsv \
   --profile lsmc \
   --region us-west-2 \
-  --reference-bucket s3://lsmc-dayoa-omics-analysis-us-west-2 \
+  --reference-s3-uri s3://dayoa-references \
+  --control-data-s3-uri s3://dayoa-control-data \
+  --stage-s3-uri s3://dayoa-staging \
   --config-dir tmp-stage-config/examples/roche_solo
 ```
 
@@ -107,7 +121,9 @@ daylily-ec samples run examples/staging/ilmn_solo/analysis_samples_manifest.tsv 
   --profile lsmc \
   --region us-west-2 \
   --cluster mk-gotime3 \
-  --reference-bucket s3://lsmc-dayoa-omics-analysis-us-west-2 \
+  --reference-s3-uri s3://dayoa-references \
+  --control-data-s3-uri s3://dayoa-control-data \
+  --stage-s3-uri s3://dayoa-staging \
   --destination <analysis-run-id> \
   --dry-run
 ```
@@ -123,7 +139,10 @@ live flag is passed:
 pytest tests/test_staging_examples_live.py --run-live-staging-examples \
   --live-staging-profile daylily-service-lsmc \
   --live-staging-region us-west-2 \
-  --live-staging-cluster mk-gotime3
+  --live-staging-cluster mk-gotime3 \
+  --live-staging-reference-s3-uri s3://dayoa-references \
+  --live-staging-control-data-s3-uri s3://dayoa-control-data \
+  --live-staging-stage-s3-uri s3://dayoa-staging
 ```
 
 To run full workflows instead of dry-runs, pass the explicit non-dry-run flag:
@@ -133,6 +152,9 @@ pytest tests/test_staging_examples_live.py --run-live-staging-examples \
   --live-staging-profile daylily-service-lsmc \
   --live-staging-region us-west-2 \
   --live-staging-cluster mk-gotime3 \
+  --live-staging-reference-s3-uri s3://dayoa-references \
+  --live-staging-control-data-s3-uri s3://dayoa-control-data \
+  --live-staging-stage-s3-uri s3://dayoa-staging \
   --live-staging-non-dryrun \
   --live-staging-workflow-timeout-minutes 240
 ```

@@ -22,7 +22,6 @@ from typing import Any, Iterable
 import boto3
 from botocore.exceptions import ClientError
 
-BUCKET = "lsmc-dayoa-omics-analysis-us-west-2"
 EXPORTS = [
     "FSxLustre20260122T043503Z",
     "FSxLustre20260122T112533Z",
@@ -118,16 +117,17 @@ class InventoryRow:
 
 
 class S3Inventory:
-    def __init__(self, profile: str, region: str) -> None:
+    def __init__(self, profile: str, region: str, bucket: str) -> None:
         session = boto3.Session(profile_name=profile, region_name=region)
         self.s3 = session.client("s3")
         self.profile = profile
         self.region = region
+        self.bucket = bucket
 
     def list_common_prefixes(self, prefix: str, delimiter: str = "/") -> list[str]:
         paginator = self.s3.get_paginator("list_objects_v2")
         prefixes: list[str] = []
-        for page in paginator.paginate(Bucket=BUCKET, Prefix=prefix, Delimiter=delimiter):
+        for page in paginator.paginate(Bucket=self.bucket, Prefix=prefix, Delimiter=delimiter):
             for item in page.get("CommonPrefixes", []):
                 value = item.get("Prefix")
                 if value:
@@ -137,7 +137,7 @@ class S3Inventory:
     def list_keys(self, prefix: str, *, max_keys: int | None = None) -> list[str]:
         paginator = self.s3.get_paginator("list_objects_v2")
         keys: list[str] = []
-        for page in paginator.paginate(Bucket=BUCKET, Prefix=prefix):
+        for page in paginator.paginate(Bucket=self.bucket, Prefix=prefix):
             for item in page.get("Contents", []):
                 key = item.get("Key")
                 if key:
@@ -149,13 +149,13 @@ class S3Inventory:
     def count_objects(self, prefix: str) -> int:
         paginator = self.s3.get_paginator("list_objects_v2")
         count = 0
-        for page in paginator.paginate(Bucket=BUCKET, Prefix=prefix):
+        for page in paginator.paginate(Bucket=self.bucket, Prefix=prefix):
             count += len(page.get("Contents", []))
         return count
 
     def object_exists(self, key: str) -> bool:
         try:
-            self.s3.head_object(Bucket=BUCKET, Key=key)
+            self.s3.head_object(Bucket=self.bucket, Key=key)
         except ClientError as exc:
             code = exc.response.get("Error", {}).get("Code")
             if code in {"404", "NoSuchKey", "NotFound"}:
@@ -165,7 +165,7 @@ class S3Inventory:
 
     def read_text(self, key: str) -> tuple[str | None, str | None]:
         try:
-            head = self.s3.head_object(Bucket=BUCKET, Key=key)
+            head = self.s3.head_object(Bucket=self.bucket, Key=key)
         except ClientError as exc:
             code = exc.response.get("Error", {}).get("Code")
             if code in {"404", "NoSuchKey", "NotFound"}:
@@ -173,7 +173,7 @@ class S3Inventory:
             raise
 
         size = int(head.get("ContentLength") or 0)
-        kwargs: dict[str, Any] = {"Bucket": BUCKET, "Key": key}
+        kwargs: dict[str, Any] = {"Bucket": self.bucket, "Key": key}
         note = None
         if size > MAX_METADATA_BYTES:
             kwargs["Range"] = f"bytes={max(size - MAX_METADATA_BYTES, 0)}-{size - 1}"
@@ -415,11 +415,11 @@ def inventory_repo(
         fsx_export=fsx_export,
         export_month=export_month(fsx_export),
         analysis_code=analysis_code,
-        repo_s3_uri=f"s3://{BUCKET}/{repo_prefix}",
+        repo_s3_uri=f"s3://{client.bucket}/{repo_prefix}",
     )
 
     hg38_prefixes, hg38_count = hg38_prefixes_and_count(client, repo_prefix)
-    row.hg38_result_prefixes = ",".join(f"s3://{BUCKET}/{prefix}" for prefix in hg38_prefixes)
+    row.hg38_result_prefixes = ",".join(f"s3://{client.bucket}/{prefix}" for prefix in hg38_prefixes)
     row.hg38_result_object_count = hg38_count
     row.has_success_marker = client.object_exists(f"{repo_prefix}daylily.successful_run")
 
@@ -648,8 +648,8 @@ def write_runbook(rows: list[dict[str, Any]], commands: list[CommandEntry], outp
         "```bash",
         "mkdir -p config",
         "# Copy or regenerate the staged manifests:",
-        "cp /fsx/data/staged_sample_data/<stage-dir>/*_samples.tsv config/samples.tsv",
-        "cp /fsx/data/staged_sample_data/<stage-dir>/*_units.tsv config/units.tsv",
+        "cp /fsx/staging/staged_external_sequencing_data/<stage-dir>/*_samples.tsv config/samples.tsv",
+        "cp /fsx/staging/staged_external_sequencing_data/<stage-dir>/*_units.tsv config/units.tsv",
         "",
         "head -n 3 config/samples.tsv",
         "head -n 3 config/units.tsv",
@@ -752,7 +752,7 @@ def validate_outputs(rows: list[dict[str, Any]], tsv_path: Path, xlsx_path: Path
 def run(args: argparse.Namespace) -> int:
     output_dir = Path(args.output_dir).expanduser().resolve()
     output_dir.mkdir(parents=True, exist_ok=True)
-    client = S3Inventory(profile=args.profile, region=args.region)
+    client = S3Inventory(profile=args.profile, region=args.region, bucket=args.source_bucket)
     repos = discover_repo_prefixes(client)
 
     rows: list[InventoryRow] = []
@@ -782,7 +782,7 @@ def run(args: argparse.Namespace) -> int:
     write_workbook(row_payloads, commands, xlsx_path)
     write_runbook(row_payloads, commands, runbook_path)
     manifest = {
-        "bucket": BUCKET,
+        "bucket": args.source_bucket,
         "profile": args.profile,
         "region": args.region,
         "scan_time": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
@@ -809,6 +809,7 @@ def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--profile", default="daylily-service-lsmc")
     parser.add_argument("--region", default="us-west-2")
+    parser.add_argument("--source-bucket", required=True)
     parser.add_argument(
         "--output-dir",
         default="reports/dayoa-q1-2026-analysis-inventory",

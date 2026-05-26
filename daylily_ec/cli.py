@@ -10,14 +10,18 @@ import os
 import shlex
 import subprocess
 import sys
+import traceback
 import time
 from pathlib import Path
 from typing import Any, List, Optional
 
+import click
 import typer
 from cli_core_yo import output
-from cli_core_yo.app import create_app, run
+from cli_core_yo.app import create_app
+from cli_core_yo.errors import CliCoreYoError
 from cli_core_yo.runtime import get_context
+from cli_core_yo.runtime import _reset as _reset_cli_core_runtime
 from cli_core_yo.spec import (
     BackendDetectSpec,
     BackendValidationSpec,
@@ -44,6 +48,58 @@ from daylily_ec._registry_v2 import (
     required_policy,
 )
 from daylily_ec.resources import ensure_extracted
+
+
+EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
+
+
+def _validate_analysis_launch_options(
+    *,
+    analysis_id: str,
+    executing_entity: str,
+    export_destination_s3_uri: Optional[str],
+    export_trigger: str,
+    delete_on_export_success: bool,
+) -> None:
+    from daylily_ec.analysis_identity import analysis_source_path, validate_analysis_segment
+    from daylily_ec.workflow.export_data import validate_export_destination_s3_uri
+
+    try:
+        resolved_analysis_id = validate_analysis_segment(
+            analysis_id,
+            field_name="analysis_id",
+        )
+        resolved_executing_entity = validate_analysis_segment(
+            executing_entity,
+            field_name="executing_entity",
+        )
+        if export_trigger not in EXPORT_TRIGGERS:
+            raise ValueError(
+                "export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS))
+            )
+        if export_destination_s3_uri and export_trigger == "none":
+            raise ValueError(
+                "--export-trigger must not be none when --export-destination-s3-uri is set"
+            )
+        if export_trigger != "none" and not export_destination_s3_uri:
+            raise ValueError(
+                "--export-destination-s3-uri is required when --export-trigger is set"
+            )
+        if delete_on_export_success and not export_destination_s3_uri:
+            raise ValueError(
+                "--delete-on-export-success requires --export-destination-s3-uri"
+            )
+        if export_destination_s3_uri:
+            validate_export_destination_s3_uri(
+                export_destination_s3_uri,
+                source_path=analysis_source_path(
+                    executing_entity=resolved_executing_entity,
+                    analysis_id=resolved_analysis_id,
+                    headnode=True,
+                ),
+            )
+    except (RuntimeError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
 
 
 def _dayec_info_hook() -> list[tuple[str, str]]:
@@ -958,7 +1014,7 @@ def export(
     source_path: str = typer.Option(
         ...,
         "--source-path",
-        help="Completed analysis directory under /fsx/analysis_results/ubuntu/<analysis-dir>/.",
+        help="Completed analysis directory under /fsx/analysis_results/<executing-entity>/<analysis-id>/.",
     ),
     destination_s3_uri: str = typer.Option(
         ...,
@@ -1798,10 +1854,20 @@ def samples_stage(
         ...,
         help="Path to analysis_samples.tsv.",
     ),
-    reference_bucket: str = typer.Option(
+    reference_s3_uri: str = typer.Option(
         ...,
-        "--reference-bucket",
-        help="S3 URI mapped to the FSx data repository.",
+        "--reference-s3-uri",
+        help="S3 URI mapped to /fsx/references.",
+    ),
+    control_data_s3_uri: str = typer.Option(
+        ...,
+        "--control-data-s3-uri",
+        help="S3 URI mapped to /fsx/control_data.",
+    ),
+    stage_s3_uri: str = typer.Option(
+        ...,
+        "--stage-s3-uri",
+        help="S3 URI used as the exact root for external staging remote_stage_* prefixes.",
     ),
     config_dir: Optional[Path] = typer.Option(
         None,
@@ -1809,7 +1875,7 @@ def samples_stage(
         help="Directory for generated samples.tsv and units.tsv.",
     ),
     stage_target: str = typer.Option(
-        "/data/staged_sample_data",
+        "/fsx/staging/staged_external_sequencing_data",
         "--stage-target",
         help="FSx staging base directory.",
     ),
@@ -1831,6 +1897,22 @@ def samples_stage(
         "--region",
         help="AWS region. Defaults to AWS_REGION/AWS_DEFAULT_REGION.",
     ),
+    cluster: Optional[str] = typer.Option(
+        None,
+        "--cluster",
+        "--cluster-name",
+        help="ParallelCluster name for creating the staged-prefix FSx DRA.",
+    ),
+    fsx_file_system_id: Optional[str] = typer.Option(
+        None,
+        "--fsx-file-system-id",
+        help="FSx file system id for creating the staged-prefix DRA.",
+    ),
+    staging_mount_timeout_seconds: int = typer.Option(
+        900,
+        "--staging-mount-timeout-seconds",
+        help="Seconds to wait for the staged-prefix DRA to become available.",
+    ),
     debug: bool = typer.Option(
         False,
         "--debug",
@@ -1847,8 +1929,12 @@ def samples_stage(
     _warn_if_dayec_env_inactive()
     argv = [
         str(analysis_samples),
-        "--reference-bucket",
-        reference_bucket,
+        "--reference-s3-uri",
+        reference_s3_uri,
+        "--control-data-s3-uri",
+        control_data_s3_uri,
+        "--stage-s3-uri",
+        stage_s3_uri,
         "--stage-target",
         stage_target,
     ]
@@ -1860,6 +1946,12 @@ def samples_stage(
         argv.extend(["--profile", profile])
     if region:
         argv.extend(["--region", region])
+    if cluster:
+        argv.extend(["--cluster", cluster])
+    if fsx_file_system_id:
+        argv.extend(["--fsx-file-system-id", fsx_file_system_id])
+    if staging_mount_timeout_seconds != 900:
+        argv.extend(["--staging-mount-timeout-seconds", str(staging_mount_timeout_seconds)])
     if debug:
         argv.append("--debug")
     if precheck_only:
@@ -1882,15 +1974,30 @@ def samples_run(
         "--command-id",
         help="Repository catalog analysis command id to launch.",
     ),
-    destination: str = typer.Option(
+    analysis_id: str = typer.Option(
         ...,
-        "--destination",
-        help="Required day-clone destination for the analysis repository.",
+        "--analysis-id",
+        help="Required analysis identifier used for the FSx analysis directory.",
     ),
-    reference_bucket: str = typer.Option(
+    executing_entity: str = typer.Option(
         ...,
-        "--reference-bucket",
-        help="S3 URI mapped to the FSx data repository.",
+        "--executing-entity",
+        help="User or system identifier used under /fsx/analysis_results.",
+    ),
+    reference_s3_uri: str = typer.Option(
+        ...,
+        "--reference-s3-uri",
+        help="S3 URI mapped to /fsx/references.",
+    ),
+    control_data_s3_uri: str = typer.Option(
+        ...,
+        "--control-data-s3-uri",
+        help="S3 URI mapped to /fsx/control_data.",
+    ),
+    stage_s3_uri: str = typer.Option(
+        ...,
+        "--stage-s3-uri",
+        help="S3 URI used as the exact root for external staging remote_stage_* prefixes.",
     ),
     config_dir: Optional[Path] = typer.Option(
         None,
@@ -1898,7 +2005,7 @@ def samples_run(
         help="Directory for generated samples.tsv, units.tsv, and run receipt.",
     ),
     stage_target: str = typer.Option(
-        "/data/staged_sample_data",
+        "/fsx/staging/staged_external_sequencing_data",
         "--stage-target",
         help="FSx staging base directory.",
     ),
@@ -1935,7 +2042,7 @@ def samples_run(
     session_name: Optional[str] = typer.Option(
         None,
         "--session-name",
-        help="Tmux session name. Defaults to --destination.",
+        help="Tmux session name. Defaults to --analysis-id.",
     ),
     project: Optional[str] = typer.Option(None, "--project", help="Project/budget for dyoainit."),
     skip_project_check: bool = typer.Option(
@@ -1944,6 +2051,21 @@ def samples_run(
         help="Skip or enable upstream project validation in dyoainit.",
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Launch the catalog dry-run command."),
+    export_destination_s3_uri: Optional[str] = typer.Option(
+        None,
+        "--export-destination-s3-uri",
+        help="Full S3 prefix ending in <executing-entity>/<analysis-id>/ for auto-export.",
+    ),
+    export_trigger: str = typer.Option(
+        "none",
+        "--export-trigger",
+        help="Auto-export trigger: none, on-success, on-fail, or all.",
+    ),
+    delete_on_export_success: bool = typer.Option(
+        False,
+        "--delete-on-export-success",
+        help="Delete the FSx analysis directory after a successful requested export.",
+    ),
     catalog_config: Optional[Path] = typer.Option(
         None,
         "--catalog-config",
@@ -1964,6 +2086,13 @@ def samples_run(
     _warn_if_dayec_env_inactive()
     analysis_path = analysis_samples.expanduser().resolve()
     try:
+        _validate_analysis_launch_options(
+            analysis_id=analysis_id,
+            executing_entity=executing_entity,
+            export_destination_s3_uri=export_destination_s3_uri,
+            export_trigger=export_trigger,
+            delete_on_export_success=delete_on_export_success,
+        )
         catalog = load_repository_catalog(catalog_config)
         command = catalog.get_command(command_id)
         data_modes = detect_manifest_data_modes(analysis_path)
@@ -1981,8 +2110,12 @@ def samples_run(
 
         stage_argv = [
             str(analysis_path),
-            "--reference-bucket",
-            reference_bucket,
+            "--reference-s3-uri",
+            reference_s3_uri,
+            "--control-data-s3-uri",
+            control_data_s3_uri,
+            "--stage-s3-uri",
+            stage_s3_uri,
             "--stage-target",
             stage_target,
         ]
@@ -1993,6 +2126,8 @@ def samples_run(
         stage_argv.extend(["--profile", resolved_profile])
         if resolved_region:
             stage_argv.extend(["--region", resolved_region])
+        if cluster:
+            stage_argv.extend(["--cluster", cluster])
         if debug:
             stage_argv.append("--debug")
 
@@ -2006,10 +2141,11 @@ def samples_run(
             raise typer.Exit(stage_rc)
 
         remote_stage_dir = _parse_remote_stage_dir(stage_stdout)
-        resolved_session_name = session_name or destination
+        resolved_session_name = session_name or analysis_id
         resolved_git_tag = git_tag or command.git_tag
         workflow_cli_argv = command.launch_argv(
-            destination=destination,
+            analysis_id=analysis_id,
+            executing_entity=executing_entity,
             git_tag=resolved_git_tag,
             profile=resolved_profile,
             region=resolved_region,
@@ -2019,6 +2155,9 @@ def samples_run(
             project=project,
             dry_run=dry_run,
             skip_project_check=skip_project_check,
+            export_destination_s3_uri=export_destination_s3_uri,
+            export_trigger=export_trigger,
+            delete_on_export_success=delete_on_export_success,
         )
         launch_stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(launch_stdout_buffer):
@@ -2038,9 +2177,13 @@ def samples_run(
             "command_id": command.command_id,
             "compatible_data_modes": command.compatible_data_modes,
             "detected_data_modes": data_modes,
-            "destination": destination,
+            "analysis_id": analysis_id,
+            "executing_entity": executing_entity,
             "dry_run": dry_run,
             "dy_command": command.dryrun_dy_command if dry_run else command.dy_command,
+            "export_destination_s3_uri": export_destination_s3_uri,
+            "export_trigger": export_trigger,
+            "delete_on_export_success": delete_on_export_success,
             "git_tag": resolved_git_tag,
             "remote_stage_dir": remote_stage_dir,
             "samples_tsv": str(resolved_config_dir / f"{timestamp}_samples.tsv"),
@@ -2077,16 +2220,25 @@ def workflow_launch(
         help="Local runs.tsv file to copy to config/runs.tsv for run-analysis workflows.",
     ),
     stage_base: str = typer.Option(
-        "/fsx/staged_sample_data",
+        "/fsx/staging/staged_external_sequencing_data",
         "--stage-base",
         help="Base staging directory to scan when --stage-dir is omitted.",
     ),
-    session_name: str = typer.Option(
-        "daylily-omics-analysis",
+    session_name: Optional[str] = typer.Option(
+        None,
         "--session-name",
-        help="Tmux session name.",
+        help="Tmux session name. Defaults to --analysis-id.",
     ),
-    destination: str = typer.Option(..., "--destination", help="Required day-clone destination."),
+    analysis_id: str = typer.Option(
+        ...,
+        "--analysis-id",
+        help="Required analysis identifier used for the FSx analysis directory.",
+    ),
+    executing_entity: str = typer.Option(
+        ...,
+        "--executing-entity",
+        help="User or system identifier used under /fsx/analysis_results.",
+    ),
     repository: str = typer.Option(
         "daylily-omics-analysis",
         "--repository",
@@ -2138,6 +2290,21 @@ def workflow_launch(
         "--no-containerized",
         help="Disable DAY_CONTAINERIZED.",
     ),
+    export_destination_s3_uri: Optional[str] = typer.Option(
+        None,
+        "--export-destination-s3-uri",
+        help="Full S3 prefix ending in <executing-entity>/<analysis-id>/ for auto-export.",
+    ),
+    export_trigger: str = typer.Option(
+        "none",
+        "--export-trigger",
+        help="Auto-export trigger: none, on-success, on-fail, or all.",
+    ),
+    delete_on_export_success: bool = typer.Option(
+        False,
+        "--delete-on-export-success",
+        help="Delete the FSx analysis directory after a successful requested export.",
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
 ) -> None:
     """Launch daylily-omics-analysis inside tmux on the headnode."""
@@ -2145,6 +2312,14 @@ def workflow_launch(
     from daylily_ec.scripts.common import CommandError
 
     _warn_if_dayec_env_inactive()
+    _validate_analysis_launch_options(
+        analysis_id=analysis_id,
+        executing_entity=executing_entity,
+        export_destination_s3_uri=export_destination_s3_uri,
+        export_trigger=export_trigger,
+        delete_on_export_success=delete_on_export_success,
+    )
+    resolved_session_name = session_name or analysis_id
     argv: list[str] = []
     for flag, value in (
         ("--profile", profile),
@@ -2153,8 +2328,9 @@ def workflow_launch(
         ("--stage-dir", stage_dir),
         ("--run-context-file", str(run_context_file.expanduser()) if run_context_file else None),
         ("--stage-base", stage_base),
-        ("--session-name", session_name),
-        ("--destination", destination),
+        ("--session-name", resolved_session_name),
+        ("--analysis-id", analysis_id),
+        ("--executing-entity", executing_entity),
         ("--repository", repository),
         ("--git-tag", git_tag),
         ("--project", project),
@@ -2167,12 +2343,16 @@ def workflow_launch(
         ("--target", target),
         ("--dy-command", dy_command),
         ("--snakemake-extra", snakemake_extra),
+        ("--export-destination-s3-uri", export_destination_s3_uri),
+        ("--export-trigger", export_trigger),
     ):
         if value is not None:
             argv.extend([flag, value])
     argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
     if no_containerized:
         argv.append("--no-containerized")
+    if delete_on_export_success:
+        argv.append("--delete-on-export-success")
     if dry_run:
         argv.append("--dry-run")
 
@@ -2249,6 +2429,7 @@ def _create_mount_payload(
     region: str,
     profile: Optional[str],
     source_s3_uri: str,
+    purpose: str,
     mount_id: Optional[str],
     run_id: Optional[str],
     platform: str,
@@ -2281,6 +2462,7 @@ def _create_mount_payload(
         region=region,
         profile=profile,
         source_s3_uri=source_s3_uri,
+        purpose=purpose,
         mount_id=mount_id,
         run_id=run_id,
         platform=platform,
@@ -2292,7 +2474,7 @@ def _create_mount_payload(
         allow_writeback_admin=allow_writeback_admin,
         wait=wait,
         timeout_seconds=timeout_seconds,
-        tags=parse_tags(tag),
+        tags=parse_tags(tag, purpose=purpose),
     )
     return create_run_mount(request)
 
@@ -2302,6 +2484,11 @@ def mounts_create(
         ...,
         metavar="S3_URI",
         help="S3 run-directory URI to mount; the final folder becomes the mount id.",
+    ),
+    purpose: str = typer.Option(
+        "run",
+        "--purpose",
+        help="Mount purpose: run, reference, control-data, staging, or custom.",
     ),
     cluster: Optional[str] = typer.Option(
         None,
@@ -2364,6 +2551,7 @@ def mounts_create(
             region=region,
             profile=profile,
             source_s3_uri=source_s3_uri,
+            purpose=purpose,
             mount_id=mount_id,
             run_id=run_id,
             platform=platform,
@@ -2419,6 +2607,7 @@ def mount_rundir(
             region=region,
             profile=profile,
             source_s3_uri=source_s3_uri,
+            purpose="run",
             mount_id=mount_id,
             run_id=run_id,
             platform=platform,
@@ -2442,8 +2631,9 @@ def mounts_list(
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
     region: str = typer.Option(..., "--region"),
     profile: Optional[str] = typer.Option(None, "--profile"),
+    purpose: Optional[str] = typer.Option(None, "--purpose"),
 ) -> None:
-    """List FSx run directory mounts."""
+    """List managed FSx DRA mounts."""
 
     from daylily_ec.run_mounts import format_mount_list, list_run_mounts
 
@@ -2453,6 +2643,7 @@ def mounts_list(
             fsx_file_system_id=fsx_file_system_id,
             region=region,
             profile=profile,
+            purpose=purpose,
         )
         payload = {"mounts": [record.to_output_payload() for record in records]}
         _emit_mount_payload(payload, text=format_mount_list(records))
@@ -2974,8 +3165,35 @@ def register(registry, cli_spec) -> None:
 app = create_app(spec)
 
 
+def _run_cli(argv: Optional[List[str]] = None) -> int:
+    """Run the CLI and preserve command callback integer return codes."""
+    _reset_cli_core_runtime()
+    args = list(argv if argv is not None else sys.argv[1:])
+    try:
+        cli_app = create_app(spec)
+        result = cli_app(args, standalone_mode=False)
+        return result if isinstance(result, int) else 0
+    except click.exceptions.NoArgsIsHelpError:
+        return 0
+    except click.ClickException as exc:
+        exc.show(file=sys.stderr)
+        return exc.exit_code
+    except SystemExit as exc:
+        return exc.code if isinstance(exc.code, int) else 0
+    except CliCoreYoError as exc:
+        output.error(str(exc))
+        return exc.exit_code
+    except KeyboardInterrupt:
+        return 130
+    except Exception as exc:  # pragma: no cover - exercised only on unexpected failures
+        if os.environ.get("CLI_CORE_YO_DEBUG") == "1":
+            traceback.print_exc(file=sys.stderr)
+        output.error(f"Unexpected error: {exc}")
+        return 1
+
+
 def main() -> None:
-    raise SystemExit(run(spec))
+    raise SystemExit(_run_cli())
 
 
 if __name__ == "__main__":

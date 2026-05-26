@@ -23,6 +23,7 @@ from daylily_ec.aws.quotas import (
     _fetch_quota_value,
     check_all_quotas,
 )
+from daylily_ec.aws.s3 import normalize_role_s3_uri
 from daylily_ec.config.triplets import get_effective_default, load_config, resolve_value
 from daylily_ec.render.renderer import ALL_SUBSTITUTION_KEYS, render_template
 from daylily_ec.resources import resource_path
@@ -1459,8 +1460,19 @@ def _validation_substitutions(
     aws_ctx: AWSContext,
     cluster_name: str,
 ) -> dict[str, str]:
-    bucket = _effective_config_value(cfg, "s3_bucket_name", "daylily-validation-bucket")
-    bucket_url = f"s3://{bucket}" if bucket else "s3://daylily-validation-bucket"
+    reference = normalize_role_s3_uri(
+        _effective_config_value(cfg, "reference_s3_uri", "daylily-validation-references"),
+        role="reference",
+    )
+    control_data = normalize_role_s3_uri(
+        _effective_config_value(cfg, "control_data_s3_uri", "daylily-validation-control-data"),
+        role="control_data",
+    )
+    staging = normalize_role_s3_uri(
+        _effective_config_value(cfg, "stage_s3_uri", "daylily-validation-staging"),
+        role="staging",
+    )
+    cluster_boot_s3_uri = f"{reference.uri.rstrip('/')}/runtime_assets/cluster_boot_config"
     substitutions = {
         "REGSUB_REGION": aws_ctx.region,
         "REGSUB_PUB_SUBNET": _effective_config_value(
@@ -1469,8 +1481,7 @@ def _validation_substitutions(
             "subnet-validation-public",
         ),
         "REGSUB_KEYNAME": "daylily-validation",
-        "REGSUB_S3_BUCKET_INIT": bucket_url,
-        "REGSUB_S3_BUCKET_NAME": bucket or "daylily-validation-bucket",
+        "REGSUB_S3_BUCKET_INIT": cluster_boot_s3_uri,
         "REGSUB_S3_IAM_POLICY": _effective_config_value(
             cfg,
             "iam_policy_arn",
@@ -1481,7 +1492,12 @@ def _validation_substitutions(
             "private_subnet_id",
             "subnet-validation-private",
         ),
-        "REGSUB_S3_BUCKET_REF": bucket_url,
+        "REGSUB_S3_REFERENCE_BUCKET": reference.bucket,
+        "REGSUB_S3_CONTROL_DATA_BUCKET": control_data.bucket,
+        "REGSUB_S3_STAGE_BUCKET": staging.bucket,
+        "REGSUB_S3_REFERENCE_URI": reference.uri.rstrip("/"),
+        "REGSUB_S3_CONTROL_DATA_URI": control_data.uri.rstrip("/"),
+        "REGSUB_S3_STAGE_URI": staging.uri.rstrip("/"),
         "REGSUB_FSX_SIZE": _effective_config_value(cfg, "fsx_fs_size", "4800"),
         "REGSUB_DETAILED_MONITORING": _effective_config_value(
             cfg,

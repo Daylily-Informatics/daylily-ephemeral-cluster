@@ -1,0 +1,13 @@
+[2026-05-25T08:49:52Z] START illumina_run_qc tvb_illumina_run_qc_1021_dryrun
+[2026-05-25T08:50:04Z] LAUNCH_RC illumina_run_qc 0
+[2026-05-25T08:50:44Z] FAILED illumina_run_qc nonzero status
+[2026-05-25T08:50:45Z] START illumina_bclconvert tvb_illumina_bclconvert_1021_dryrun
+[2026-05-25T08:50:56Z] LAUNCH_RC illumina_bclconvert 0
+[2026-05-25T08:51:37Z] FAILED illumina_bclconvert nonzero status
+[2026-05-25T08:51:37Z] START ont_run_qc tvb_ont_run_qc_1021_dryrun
+[2026-05-25T08:51:49Z] LAUNCH_RC ont_run_qc 0
+[2026-05-25T08:52:29Z] FAILED ont_run_qc nonzero status
+[2026-05-25T08:52:29Z] START ultima_run_qc tvb_ultima_run_qc_1021_dryrun
+[2026-05-25T08:52:41Z] LAUNCH_RC ultima_run_qc 0
+[2026-05-25T08:53:22Z] FAILED ultima_run_qc nonzero status
+[2026-05-25T08:53:22Z] RUNQC_DRYRUN_BATCH_DONE failures=4

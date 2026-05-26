@@ -25,7 +25,9 @@ class LiveStagingOptions:
     profile: str
     region: str
     cluster: str
-    reference_bucket: str
+    reference_s3_uri: str
+    control_data_s3_uri: str
+    stage_s3_uri: str
     non_dryrun: bool
     workflow_timeout_minutes: int
 
@@ -67,12 +69,12 @@ WORKFLOW_COMMANDS = {
     ),
     "hybrid_ilmn_ont": WorkflowCommandSpec(
         dy_command=(
-            "bin/day_run produce_snv_concordances produce_sentdhiom_sv "
-            "produce_sentdhiom_snv_vcf -p -j 100 -k"
+            "bin/day_run produce_snv_concordances produce_sentdhiomr_sv "
+            "produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k"
         ),
         dryrun_dy_command=(
-            "bin/day_run produce_snv_concordances produce_sentdhiom_sv "
-            "produce_sentdhiom_snv_vcf -p -j 100 -k -n"
+            "bin/day_run produce_snv_concordances produce_sentdhiomr_sv "
+            "produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k -n"
         ),
     ),
     "pacbio_solo": WorkflowCommandSpec(
@@ -102,11 +104,21 @@ WORKFLOW_COMMANDS = {
 def live_staging_options(pytestconfig: pytest.Config) -> LiveStagingOptions:
     if not pytestconfig.getoption("--run-live-staging-examples"):
         pytest.skip("live staging examples require --run-live-staging-examples")
+    required_options = {
+        "--live-staging-reference-s3-uri": pytestconfig.getoption("--live-staging-reference-s3-uri"),
+        "--live-staging-control-data-s3-uri": pytestconfig.getoption("--live-staging-control-data-s3-uri"),
+        "--live-staging-stage-s3-uri": pytestconfig.getoption("--live-staging-stage-s3-uri"),
+    }
+    missing = [name for name, value in required_options.items() if not value]
+    if missing:
+        pytest.fail("Live staging requires explicit S3 role URIs: " + ", ".join(missing))
     return LiveStagingOptions(
         profile=pytestconfig.getoption("--live-staging-profile"),
         region=pytestconfig.getoption("--live-staging-region"),
         cluster=pytestconfig.getoption("--live-staging-cluster"),
-        reference_bucket=pytestconfig.getoption("--live-staging-reference-bucket"),
+        reference_s3_uri=pytestconfig.getoption("--live-staging-reference-s3-uri"),
+        control_data_s3_uri=pytestconfig.getoption("--live-staging-control-data-s3-uri"),
+        stage_s3_uri=pytestconfig.getoption("--live-staging-stage-s3-uri"),
         non_dryrun=pytestconfig.getoption("--live-staging-non-dryrun"),
         workflow_timeout_minutes=pytestconfig.getoption("--live-staging-workflow-timeout-minutes"),
     )
@@ -316,8 +328,12 @@ def test_live_staging_example_dryrun_or_workflow(
             options.profile,
             "--region",
             options.region,
-            "--reference-bucket",
-            options.reference_bucket,
+            "--reference-s3-uri",
+            options.reference_s3_uri,
+            "--control-data-s3-uri",
+            options.control_data_s3_uri,
+            "--stage-s3-uri",
+            options.stage_s3_uri,
             "--config-dir",
             str(config_dir),
         ],
@@ -330,7 +346,7 @@ def test_live_staging_example_dryrun_or_workflow(
     _assert_generated_config(config_dir, expected_units_rows=int(expected["rows"]))
 
     session_name = f"stg-ex-{example_name.replace('_', '-')}-{live_staging_run_id}"
-    destination = session_name
+    analysis_id = session_name
     workflow_spec = WORKFLOW_COMMANDS[example_name]
     dy_command = workflow_spec.dy_command if options.non_dryrun else workflow_spec.dryrun_dy_command
     launch_args = [
@@ -344,8 +360,10 @@ def test_live_staging_example_dryrun_or_workflow(
         options.cluster,
         "--stage-dir",
         remote_stage_dir,
-        "--destination",
-        destination,
+        "--analysis-id",
+        analysis_id,
+        "--executing-entity",
+        "ubuntu",
         "--git-tag",
         "main",
         "--session-name",

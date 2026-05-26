@@ -32,15 +32,17 @@ trap 'rc=$?; echo "[$(date +%Y%m%d_%H%M%S)] ERROR rc=${rc} line=${LINENO}: ${BAS
 touch /tmp/$(hostname).postinstallBEGIN
 
 region="$1"
-bucket="$2"  # specified in the cluster yaml, bucket-name, no s3:// prefix
-apptainer_deb="/fsx/data/cached_envs/apptainer_1.4.5_amd64.deb"
+boot_s3_uri="${2%/}"  # s3://.../cluster_boot_config
+runtime_assets_root="/fsx/references/runtime_assets"
+references_root="/fsx/references"
+apptainer_deb="${runtime_assets_root}/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
 reference_wait_timeout_seconds=1800
 reference_wait_interval_seconds=30
 sbatch_wrapper_sha256="8615b65be2174949ee33783039579b3144025d378d1737d362f789bf3810bba0"
 sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
 
-echo "[$timestamp] Running post_install_ubuntu_combined.sh ${region} ${bucket} on $(hostname) as ${node_type}"
+echo "[$timestamp] Running post_install_ubuntu_combined.sh ${region} ${boot_s3_uri} on $(hostname) as ${node_type}"
 echo "[$timestamp] Local log: ${local_log_fn}"
 if [ "${fsx_log_fn:-}" ]; then
   echo "[$timestamp] FSx log: ${fsx_log_fn}"
@@ -120,34 +122,37 @@ wait_for_reference_data() {
   local start
   local elapsed
   start="$(date +%s)"
-  echo "Waiting for required /fsx/data reference entries from the FSx DRA"
+  echo "Waiting for required DayOA role entries from FSx DRAs"
   while true; do
     if [ -s "${apptainer_deb}" ] \
-      && [ -s /fsx/data/tool_specific_resources/cromwell_87.jar ] \
-      && [ -s /fsx/data/tool_specific_resources/womtool_87.jar ] \
-      && [ -d /fsx/data/cached_envs/conda ]; then
-      echo "Required /fsx/data reference entries are visible"
+      && [ -s "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar" ] \
+      && [ -s "${runtime_assets_root}/tool_specific_resources/womtool_87.jar" ] \
+      && [ -d "${runtime_assets_root}/cached_envs/conda" ] \
+      && [ -d "${references_root}/genomic_data" ]; then
+      echo "Required DayOA role entries are visible"
       return 0
     fi
 
     elapsed="$(($(date +%s) - start))"
     if [ "${elapsed}" -ge "${reference_wait_timeout_seconds}" ]; then
-      echo "ERROR: required /fsx/data reference entries did not appear within ${reference_wait_timeout_seconds}s" >&2
-      ls -la /fsx /fsx/data /fsx/data/cached_envs /fsx/data/tool_specific_resources >&2 || true
+      echo "ERROR: required DayOA role entries did not appear within ${reference_wait_timeout_seconds}s" >&2
+      ls -la /fsx "${references_root}" "${runtime_assets_root}" "${runtime_assets_root}/cached_envs" "${runtime_assets_root}/tool_specific_resources" >&2 || true
       exit 1
     fi
-    echo "Reference entries not visible yet after ${elapsed}s; sleeping ${reference_wait_interval_seconds}s"
+    echo "DayOA role entries not visible yet after ${elapsed}s; sleeping ${reference_wait_interval_seconds}s"
     sleep "${reference_wait_interval_seconds}"
   done
 }
 
-make_reference_data_read_only() {
-  if [ ! -d /fsx/data ]; then
-    echo "ERROR: reference data directory not found: /fsx/data" >&2
-    exit 1
-  fi
-  chmod a-w /fsx/data
-  stat -c "Reference data permissions: %A %n" /fsx/data
+make_role_data_read_only() {
+  for role_root in "${references_root}" "${runtime_assets_root}"; do
+    if [ ! -d "${role_root}" ]; then
+      echo "ERROR: role data directory not found: ${role_root}" >&2
+      exit 1
+    fi
+    chmod a-w "${role_root}"
+    stat -c "Role data permissions: %A %n" "${role_root}"
+  done
 }
 
 install_verified_s3_executable() {
@@ -157,7 +162,7 @@ install_verified_s3_executable() {
   local temp_path
 
   temp_path="$(mktemp "${destination}.download.XXXXXX")"
-  aws s3 cp "s3://${bucket}/${s3_key}" "${temp_path}"
+  aws s3 cp "${boot_s3_uri}/${s3_key}" "${temp_path}"
   echo "${expected_sha256}  ${temp_path}" | sha256sum -c -
   install -m 0755 "${temp_path}" "${destination}"
   rm -f "${temp_path}"
@@ -171,7 +176,7 @@ chmod -R a+wrx /tmp/jobs
 mkdir -p /fsx/scratch
 chmod -R a+wrx /fsx/scratch
 wait_for_reference_data
-make_reference_data_read_only
+make_role_data_read_only
 
 # Configure hugepages and namespaces (common to both head and compute nodes)
 echo "vm.nr_hugepages=2048" | tee -a /etc/sysctl.conf
@@ -188,7 +193,7 @@ log_spot_price
 # Update and install necessary packages
 export DEBIAN_FRONTEND=noninteractive
 apt-get update
-apt-get install -y tmux emacs rclone parallel atop htop glances fd-find docker.io \
+apt-get install -y tmux emacs rclone parallel atop htop glances fd-find ripgrep docker.io \
                     build-essential libssl-dev uuid-dev libgpgme-dev squashfs-tools \
                     libseccomp-dev pkg-config openjdk-11-jdk wget unzip nasm yasm isal \
                     fuse2fs gocryptfs cpulimit golang-go numactl
@@ -196,7 +201,7 @@ apt-get install -y tmux emacs rclone parallel atop htop glances fd-find docker.i
 # Install Apptainer from the FSx/S3-backed cache. Do not depend on live Launchpad/PPA reachability.
 if [ ! -s "${apptainer_deb}" ]; then
   echo "ERROR: cached Apptainer deb not found: ${apptainer_deb}" >&2
-  echo "Expected S3 source: s3://${bucket}/data/cached_envs/$(basename "${apptainer_deb}")" >&2
+  echo "Expected S3 source under runtime assets cached_envs/$(basename "${apptainer_deb}")" >&2
   exit 1
 fi
 echo "${apptainer_deb_sha256}  ${apptainer_deb}" | sha256sum -c -
@@ -208,8 +213,8 @@ command -v apptainer
 command -v singularity
 
 # Install Cromwell and Go (using cached versions)
-ln -sfn /fsx/data/tool_specific_resources/cromwell_87.jar /usr/local/bin/cromwell.jar
-ln -sfn /fsx/data/tool_specific_resources/womtool_87.jar /usr/local/bin/womtool.jar
+ln -sfn "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar" /usr/local/bin/cromwell.jar
+ln -sfn "${runtime_assets_root}/tool_specific_resources/womtool_87.jar" /usr/local/bin/womtool.jar
 chmod a+r /usr/local/bin/cromwell.jar /usr/local/bin/womtool.jar
 
 
@@ -234,10 +239,10 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
 
   # Copy cached data from S3
 
-  link_cached_entries /fsx/data/cached_envs/conda /fsx/resources/environments/conda/ubuntu/$(hostname) required
-  link_cached_entries /fsx/data/cached_envs/containers /fsx/resources/environments/containers/ubuntu/$(hostname) optional
-  link_cached_entries /fsx/data/cached_envs/conda /fsx/resources/environments/conda/daylily/$(hostname) required
-  link_cached_entries /fsx/data/cached_envs/containers /fsx/resources/environments/containers/daylily/$(hostname) optional
+  link_cached_entries "${runtime_assets_root}/cached_envs/conda" /fsx/resources/environments/conda/ubuntu/$(hostname) required
+  link_cached_entries "${runtime_assets_root}/cached_envs/containers" /fsx/resources/environments/containers/ubuntu/$(hostname) optional
+  link_cached_entries "${runtime_assets_root}/cached_envs/conda" /fsx/resources/environments/conda/daylily/$(hostname) required
+  link_cached_entries "${runtime_assets_root}/cached_envs/containers" /fsx/resources/environments/containers/daylily/$(hostname) optional
 
 
   if [ ! -e /opt/slurm/sbin/sbatch ]; then
@@ -245,7 +250,7 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   else
     echo "Original sbatch already present: /opt/slurm/sbin/sbatch"
   fi
-  install_verified_s3_executable "cluster_boot_config/sbatch" /opt/slurm/bin/sbatch "${sbatch_wrapper_sha256}"
+  install_verified_s3_executable "sbatch" /opt/slurm/bin/sbatch "${sbatch_wrapper_sha256}"
 
   if [ ! -e /opt/slurm/sbin/srun ]; then
     mv /opt/slurm/bin/srun /opt/slurm/sbin/srun
@@ -254,7 +259,7 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   fi
   ln -sfn /opt/slurm/bin/sbatch /opt/slurm/bin/srun
 
-  install_verified_s3_executable "cluster_boot_config/sleep_test.sh" /opt/slurm/bin/sleep_test.sh "${sleep_test_sha256}"
+  install_verified_s3_executable "sleep_test.sh" /opt/slurm/bin/sleep_test.sh "${sleep_test_sha256}"
 
 
   # Restart SLURM Controller

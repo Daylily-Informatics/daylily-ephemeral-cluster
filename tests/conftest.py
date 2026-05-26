@@ -30,9 +30,19 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         help="Existing ParallelCluster name for live staging example tests.",
     )
     group.addoption(
-        "--live-staging-reference-bucket",
-        default="s3://lsmc-dayoa-omics-analysis-us-west-2",
-        help="Reference bucket URI for live staging example tests.",
+        "--live-staging-reference-s3-uri",
+        default="",
+        help="Reference S3 URI for live staging example tests.",
+    )
+    group.addoption(
+        "--live-staging-control-data-s3-uri",
+        default="",
+        help="Control/validation data S3 URI for live staging example tests.",
+    )
+    group.addoption(
+        "--live-staging-stage-s3-uri",
+        default="",
+        help="Staging S3 URI for live staging example tests.",
     )
     group.addoption(
         "--live-staging-non-dryrun",

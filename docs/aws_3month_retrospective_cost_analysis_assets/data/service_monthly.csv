@@ -1,0 +1,132 @@
+period_start,period_end,key,amount_usd,estimated
+2026-02-20,2026-03-01,AWS CloudFormation,0.0,False
+2026-02-20,2026-03-01,AWS Cost Explorer,0.2128493087,False
+2026-02-20,2026-03-01,AWS Glue,0.0,False
+2026-02-20,2026-03-01,AWS Key Management Service,0.0327380944,False
+2026-02-20,2026-03-01,AWS Lambda,9.272e-07,False
+2026-02-20,2026-03-01,AWS Secrets Manager,0.9088922925,False
+2026-02-20,2026-03-01,AWS Security Hub,0.42,False
+2026-02-20,2026-03-01,AWS Step Functions,0.0,False
+2026-02-20,2026-03-01,AWS WAF,2.249999964,False
+2026-02-20,2026-03-01,Amazon CloudFront,1.6079e-06,False
+2026-02-20,2026-03-01,Amazon Cognito,0.0,False
+2026-02-20,2026-03-01,Amazon DynamoDB,0.0076520588,False
+2026-02-20,2026-03-01,Amazon EC2 Container Registry (ECR),0.0868097115,False
+2026-02-20,2026-03-01,EC2 - Other,251.9695355727,False
+2026-02-20,2026-03-01,Amazon Elastic Compute Cloud - Compute,4693.2587227211,False
+2026-02-20,2026-03-01,Amazon Elastic Container Service,5.3512108567,False
+2026-02-20,2026-03-01,Amazon Elastic Load Balancing,5.310124258,False
+2026-02-20,2026-03-01,Amazon FSx,911.3490489239,False
+2026-02-20,2026-03-01,Amazon GuardDuty,0.0,False
+2026-02-20,2026-03-01,Amazon Inspector,0.0,False
+2026-02-20,2026-03-01,Amazon Relational Database Service,5.8969325993,False
+2026-02-20,2026-03-01,Amazon Route 53,0.0385332,False
+2026-02-20,2026-03-01,Amazon Simple Notification Service,0.0,False
+2026-02-20,2026-03-01,Amazon Simple Queue Service,0.0,False
+2026-02-20,2026-03-01,Amazon Simple Storage Service,284.760026923,False
+2026-02-20,2026-03-01,Amazon Virtual Private Cloud,15.744265305,False
+2026-02-20,2026-03-01,AmazonCloudWatch,0.888616076,False
+2026-02-20,2026-03-01,CloudWatch Events,0.0,False
+2026-03-01,2026-04-01,AWS CloudFormation,0.0,False
+2026-03-01,2026-04-01,AWS Cost Explorer,0.6489519141,False
+2026-03-01,2026-04-01,AWS Glue,0.0,False
+2026-03-01,2026-04-01,AWS Key Management Service,2.670698882,False
+2026-03-01,2026-04-01,AWS Lambda,2.31e-07,False
+2026-03-01,2026-04-01,AWS Secrets Manager,5.4245961302,False
+2026-03-01,2026-04-01,AWS Security Hub,107.4240765324,False
+2026-03-01,2026-04-01,AWS Service Catalog,0.0,False
+2026-03-01,2026-04-01,AWS Step Functions,1.62e-07,False
+2026-03-01,2026-04-01,AWS Support (Developer),121.1253131635,False
+2026-03-01,2026-04-01,AWS WAF,20.0924334752,False
+2026-03-01,2026-04-01,AWS X-Ray,0.0,False
+2026-03-01,2026-04-01,Amazon API Gateway,1.05e-05,False
+2026-03-01,2026-04-01,Amazon CloudFront,0.0001884781,False
+2026-03-01,2026-04-01,Amazon Cognito,0.0,False
+2026-03-01,2026-04-01,Amazon DynamoDB,0.0092272834,False
+2026-03-01,2026-04-01,Amazon EC2 Container Registry (ECR),0.3287918576,False
+2026-03-01,2026-04-01,EC2 - Other,698.9167932138,False
+2026-03-01,2026-04-01,Amazon Elastic Compute Cloud - Compute,986.4252821405,False
+2026-03-01,2026-04-01,Amazon Elastic Container Service,18.3915013149,False
+2026-03-01,2026-04-01,Amazon Elastic Load Balancing,39.4537475549,False
+2026-03-01,2026-04-01,Amazon FSx,863.2557962603,False
+2026-03-01,2026-04-01,Amazon Glacier,2.41e-07,False
+2026-03-01,2026-04-01,Amazon GuardDuty,7.0553161299,False
+2026-03-01,2026-04-01,Amazon Inspector,0.0,False
+2026-03-01,2026-04-01,Amazon Relational Database Service,352.3777445717,False
+2026-03-01,2026-04-01,Amazon Route 53,11.6616932,False
+2026-03-01,2026-04-01,Amazon Simple Notification Service,0.0,False
+2026-03-01,2026-04-01,Amazon Simple Queue Service,0.0,False
+2026-03-01,2026-04-01,Amazon Simple Storage Service,926.2921876833,False
+2026-03-01,2026-04-01,Amazon Virtual Private Cloud,82.070572438,False
+2026-03-01,2026-04-01,AmazonCloudWatch,1.2151768597,False
+2026-03-01,2026-04-01,CloudWatch Events,0.0,False
+2026-03-01,2026-04-01,Tax,0.0,False
+2026-04-01,2026-05-01,AWS Certificate Manager,0.0,False
+2026-04-01,2026-05-01,AWS CloudFormation,0.0,False
+2026-04-01,2026-05-01,AWS Cost Explorer,0.9391166236,False
+2026-04-01,2026-05-01,AWS Glue,0.0,False
+2026-04-01,2026-05-01,AWS Key Management Service,3.000000024,False
+2026-04-01,2026-05-01,AWS Lambda,1.3567e-06,False
+2026-04-01,2026-05-01,AWS Secrets Manager,4.4352410308,False
+2026-04-01,2026-05-01,AWS Security Hub,91.6659815437,False
+2026-04-01,2026-05-01,AWS Service Catalog,0.0,False
+2026-04-01,2026-05-01,AWS Step Functions,1.8823e-06,False
+2026-04-01,2026-05-01,AWS Support (Developer),261.0595463814,False
+2026-04-01,2026-05-01,AWS WAF,8.0212293499,False
+2026-04-01,2026-05-01,Amazon CloudFront,1.282e-07,False
+2026-04-01,2026-05-01,Amazon Cognito,0.14175,False
+2026-04-01,2026-05-01,Amazon DynamoDB,0.0256479646,False
+2026-04-01,2026-05-01,Amazon EC2 Container Registry (ECR),0.4761489983,False
+2026-04-01,2026-05-01,EC2 - Other,685.8035060286,False
+2026-04-01,2026-05-01,Amazon Elastic Compute Cloud - Compute,2038.3250046005,False
+2026-04-01,2026-05-01,Amazon Elastic Container Service,35.5698970163,False
+2026-04-01,2026-05-01,Amazon Elastic File System,4.52052e-05,False
+2026-04-01,2026-05-01,Amazon Elastic Load Balancing,18.9681630235,False
+2026-04-01,2026-05-01,Amazon FSx,3924.8280150815,False
+2026-04-01,2026-05-01,Amazon Glacier,2.6714e-06,False
+2026-04-01,2026-05-01,Amazon GuardDuty,15.268142109,False
+2026-04-01,2026-05-01,Amazon Inspector,0.0,False
+2026-04-01,2026-05-01,Amazon Registrar,130.0,False
+2026-04-01,2026-05-01,Amazon Relational Database Service,497.9875161126,False
+2026-04-01,2026-05-01,Amazon Route 53,14.3503452,False
+2026-04-01,2026-05-01,Amazon Simple Notification Service,0.0,False
+2026-04-01,2026-05-01,Amazon Simple Queue Service,0.0,False
+2026-04-01,2026-05-01,Amazon Simple Storage Service,1479.5929508039,False
+2026-04-01,2026-05-01,Amazon Virtual Private Cloud,119.2068503224,False
+2026-04-01,2026-05-01,AmazonCloudWatch,4.8825031081,False
+2026-04-01,2026-05-01,CloudWatch Events,0.0,False
+2026-04-01,2026-05-01,Tax,0.0,False
+2026-05-01,2026-05-21,AWS CloudFormation,0.0,True
+2026-05-01,2026-05-21,AWS CloudTrail,0.607729,True
+2026-05-01,2026-05-21,AWS Cost Explorer,3.1695464515,True
+2026-05-01,2026-05-21,AWS Glue,0.0,True
+2026-05-01,2026-05-21,AWS Key Management Service,1.515069922,True
+2026-05-01,2026-05-21,AWS Lambda,3.1398e-06,True
+2026-05-01,2026-05-21,AWS Secrets Manager,3.567302341,True
+2026-05-01,2026-05-21,AWS Security Hub,117.1507310995,True
+2026-05-01,2026-05-21,AWS Service Catalog,0.0,True
+2026-05-01,2026-05-21,AWS Step Functions,1.4809e-06,True
+2026-05-01,2026-05-21,AWS Support (Developer),436.8854558532,True
+2026-05-01,2026-05-21,AWS WAF,4.51612896,True
+2026-05-01,2026-05-21,Amazon CloudFront,0.0,True
+2026-05-01,2026-05-21,Amazon Cognito,0.02925,True
+2026-05-01,2026-05-21,Amazon DynamoDB,0.0273813715,True
+2026-05-01,2026-05-21,Amazon EC2 Container Registry (ECR),0.4053433664,True
+2026-05-01,2026-05-21,EC2 - Other,553.4957046254,True
+2026-05-01,2026-05-21,Amazon Elastic Compute Cloud - Compute,7590.4591357162,True
+2026-05-01,2026-05-21,Amazon Elastic Container Service,35.5760512789,True
+2026-05-01,2026-05-21,Amazon Elastic File System,4.6512e-05,True
+2026-05-01,2026-05-21,Amazon Elastic Load Balancing,10.8,True
+2026-05-01,2026-05-21,Amazon FSx,3863.4024821075,True
+2026-05-01,2026-05-21,Amazon Glacier,2.1082e-06,True
+2026-05-01,2026-05-21,Amazon GuardDuty,14.1993946039,True
+2026-05-01,2026-05-21,Amazon Inspector,0.0,True
+2026-05-01,2026-05-21,Amazon Relational Database Service,666.4556701764,True
+2026-05-01,2026-05-21,Amazon Route 53,13.43973,True
+2026-05-01,2026-05-21,Amazon Simple Notification Service,3.0177e-06,True
+2026-05-01,2026-05-21,Amazon Simple Queue Service,0.0,True
+2026-05-01,2026-05-21,Amazon Simple Storage Service,1841.1256610674,True
+2026-05-01,2026-05-21,Amazon Virtual Private Cloud,84.0587710418,True
+2026-05-01,2026-05-21,AmazonCloudWatch,44.4833161136,True
+2026-05-01,2026-05-21,CloudWatch Events,0.0,True
+2026-05-01,2026-05-21,Tax,0.0,True

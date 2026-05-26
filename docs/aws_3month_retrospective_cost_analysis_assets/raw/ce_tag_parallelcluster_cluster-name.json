@@ -1,0 +1,733 @@
+{
+  "DimensionValueAttributes": [],
+  "GroupDefinitions": [
+    {
+      "Key": "parallelcluster:cluster-name",
+      "Type": "TAG"
+    }
+  ],
+  "ResultsByTime": [
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "621.167438741",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$agbt-12t-usw2d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1585.7366780099",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$agbt-heavy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3868.3455429717",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$day-forge-usw2d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "84.0178121836",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$day-test-uswest2d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "19.2184884945",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-03-01",
+        "Start": "2026-02-20"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2670.3257783557",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$agbt-12t-usw2d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$agbt-heavy"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$day-test-uswest2d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "33.6799999968",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$daylily-1773057991"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "121.8678433898",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$daylily-1773059211"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "295.1507461086",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$ifx-go"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "428.7654140278",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$inflextion-g24"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "695.0503183388",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-04-01",
+        "Start": "2026-03-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": false,
+      "Groups": [
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3732.1218409717",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$and-again"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "88.6487299275",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$day-ssm-e2e-20260412103613"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "45.1525457917",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$day-test-uswest2d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "33.680000016",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$daylily-1773057991"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "168.0278835717",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$daylily-1773059211"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "201.7078845406",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dec215-0426"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "49.9288700111",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dec219-cluster"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "261.1381192921",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$ifx-go"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1377.7494923",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$inflextion-g24"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "687.0709572809",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$lsmc-20260413"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "276.2825767926",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$majors-cluster"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "50.8109184558",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$mk-cluster"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "93.4294675478",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$mk-gotime"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "432.6906184103",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$mk-gotime2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "5.8352330051",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$mk-gotime3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1283.9178601332",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$mk-majors-cluster"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "169.4985535496",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$mk-test-202604-cluster"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "143.1968127244",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$mk426dec215"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "32.7451569968",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$mkdec219"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "33.5036086645",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$test-del-me"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "167.4104765831",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-05-01",
+        "Start": "2026-04-01"
+      },
+      "Total": {}
+    },
+    {
+      "Estimated": true,
+      "Groups": [
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4047.8280569845",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$XL-pilot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "363.4799779182",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$XLpilot"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "4.6674282895",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$and-again"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "87.4345512797",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$at-sanity"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "830.7795637742",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$day-test-uswest2d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "21.729032256",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$daylily-1773057991"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "96.9647840438",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$daylily-1773059211"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "118.6950547782",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$daylily-demo-cluster"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "22.6138599602",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dec215-0426"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dec219-cluster"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "566.1391136468",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dra-enabled"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "917.8722544321",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dra-test2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0.1023229646",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$dra-test4"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "28.8278740925",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$fk-260509-use"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "1824.3304427752",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$ifx-go"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "797.3872363862",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$jemx2"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "2.023701266",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$lsbio-fork-260509-124701"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "200.6744907908",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$majors-cluster"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "179.9246578893",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$may26-d"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "3688.6922326333",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$mk-gotime"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$mk-gotime3"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "567.1078610703",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$mk426dec215"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$mkdec219"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "0",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$pilot-largecluster"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "474.7814166674",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$pilot-mk"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "390.5892564186",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$test-del-me"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "21.729032256",
+              "Unit": "USD"
+            }
+          }
+        },
+        {
+          "Keys": [
+            "parallelcluster:cluster-name$y260609-frz"
+          ],
+          "Metrics": {
+            "UnblendedCost": {
+              "Amount": "30.9957087814",
+              "Unit": "USD"
+            }
+          }
+        }
+      ],
+      "TimePeriod": {
+        "End": "2026-05-21",
+        "Start": "2026-05-01"
+      },
+      "Total": {}
+    }
+  ]
+}

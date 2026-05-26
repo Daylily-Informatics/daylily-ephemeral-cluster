@@ -1,6 +1,8 @@
 ephemeral_cluster:
   config:
-    s3_bucket_name: [PROMPTUSER, "", ""]
+    reference_s3_uri: [PROMPTUSER, "", ""]
+    control_data_s3_uri: [PROMPTUSER, "", ""]
+    stage_s3_uri: [PROMPTUSER, "", ""]
     public_subnet_id: [PROMPTUSER, "", ""]
     private_subnet_id: [PROMPTUSER, "", ""]
     iam_policy_arn: [PROMPTUSER, "", ""]

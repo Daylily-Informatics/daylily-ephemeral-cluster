@@ -17,8 +17,9 @@ printf 'Cluster name [daylily-demo-cluster]: '
 read -r CLUSTER_NAME
 CLUSTER_NAME="${CLUSTER_NAME:-daylily-demo-cluster}"
 
-S3_BUCKET_URL=""
-S3_BUCKET_NAME=""
+REF_S3_URI="${REF_S3_URI:-}"
+CONTROL_DATA_S3_URI="${CONTROL_DATA_S3_URI:-}"
+STAGE_S3_URI="${STAGE_S3_URI:-}"
 DAY_CONTACT_EMAIL=""
 
 export AWS_PROFILE REGION REGION_AZ CLUSTER_NAME
@@ -41,59 +42,6 @@ if [ ! -f "$DAY_EX_CFG" ]; then
   cp config/daylily_ephemeral_cluster_template.yaml "$DAY_EX_CFG"
 fi
 
-DEFAULT_S3_BUCKET_NAME="$(python3 -c '
-import os
-import boto3
-from daylily_ec.config import load_config, get_effective_default, resolve_value
-
-cfg = load_config(os.environ["DAY_EX_CFG"])
-triplet = cfg.ephemeral_cluster.config.get("s3_bucket_name")
-cfg_value = (resolve_value(triplet) if triplet else "") or get_effective_default(cfg, "s3_bucket_name", "")
-cfg_value = (cfg_value or "").removeprefix("s3://").split("/", 1)[0]
-profile = os.environ["AWS_PROFILE"]
-region = os.environ["REGION"]
-candidates = []
-non_public = []
-choice = ""
-
-try:
-    session = boto3.Session(profile_name=profile, region_name=region)
-    s3 = session.client("s3")
-    buckets = [bucket.get("Name", "") for bucket in s3.list_buckets().get("Buckets", [])]
-    for name in buckets:
-        if "omics-analysis" not in name:
-            continue
-        try:
-            loc = s3.get_bucket_location(Bucket=name).get("LocationConstraint")
-            bucket_region = "us-east-1" if loc is None else str(loc)
-        except Exception:
-            continue
-        if bucket_region == region:
-            candidates.append(name)
-    non_public = [candidate for candidate in sorted(candidates) if "public" not in candidate]
-except Exception:
-    candidates = []
-    non_public = []
-
-preferred = [
-    cfg_value,
-    f"{profile}-omics-analysis-{region}",
-    f"{profile}-dayoa-omics-analysis-{region}",
-]
-for candidate in preferred:
-    if candidate and candidate in candidates:
-        choice = candidate
-        break
-
-if not choice and len(non_public) == 1:
-    choice = non_public[0]
-if not choice and len(candidates) == 1:
-    choice = sorted(candidates)[0]
-if not choice and cfg_value:
-    choice = cfg_value
-
-print(choice, end="")
-')"
 DEFAULT_DAY_CONTACT_EMAIL="$(python3 -c '
 import os
 from daylily_ec.config import load_config, get_effective_default, resolve_value
@@ -109,24 +57,27 @@ value = (
 )
 print((value or ""), end="")
 ')"
-DEFAULT_S3_BUCKET_URL=""
-[ -n "$DEFAULT_S3_BUCKET_NAME" ] && DEFAULT_S3_BUCKET_URL="s3://${DEFAULT_S3_BUCKET_NAME}"
 
-if [ -z "${S3_BUCKET_URL:-}" ] && [ -n "$DEFAULT_S3_BUCKET_URL" ]; then
-  S3_BUCKET_URL="$DEFAULT_S3_BUCKET_URL"
-  printf 'Reference bucket URL [%s]\n' "$S3_BUCKET_URL"
-fi
-while [ -z "${S3_BUCKET_URL:-}" ]; do
-  printf 'Reference bucket URL (s3://bucket)'
-  [ -n "$DEFAULT_S3_BUCKET_URL" ] && printf ' [%s]' "$DEFAULT_S3_BUCKET_URL"
-  printf ': '
-  read -r S3_BUCKET_URL
-  S3_BUCKET_URL="${S3_BUCKET_URL:-$DEFAULT_S3_BUCKET_URL}"
-done
-S3_BUCKET_URL="${S3_BUCKET_URL%/}"
-S3_BUCKET_NAME="${S3_BUCKET_URL#s3://}"
-S3_BUCKET_NAME="${S3_BUCKET_NAME%%/*}"
-S3_BUCKET_URL="s3://${S3_BUCKET_NAME}"
+prompt_required_s3_uri() {
+  local var_name="$1"
+  local label="$2"
+  local value
+  eval "value=\"\${${var_name}:-}\""
+  while [ -z "$value" ]; do
+    printf '%s (s3://...): ' "$label"
+    read -r value
+  done
+  value="${value%/}"
+  if [[ "$value" != s3://* ]]; then
+    printf 'Error: %s must be an s3:// URI\n' "$label" >&2
+    exit 2
+  fi
+  eval "${var_name}=\"\$value\""
+}
+
+prompt_required_s3_uri REF_S3_URI "Reference S3 URI"
+prompt_required_s3_uri CONTROL_DATA_S3_URI "Control-data S3 URI"
+prompt_required_s3_uri STAGE_S3_URI "Staging S3 URI"
 
 while [ -z "${DAY_CONTACT_EMAIL:-}" ]; do
   printf 'Budget / heartbeat email'
@@ -136,7 +87,7 @@ while [ -z "${DAY_CONTACT_EMAIL:-}" ]; do
   DAY_CONTACT_EMAIL="${DAY_CONTACT_EMAIL:-$DEFAULT_DAY_CONTACT_EMAIL}"
 done
 
-export S3_BUCKET_URL S3_BUCKET_NAME DAY_CONTACT_EMAIL
+export REF_S3_URI CONTROL_DATA_S3_URI STAGE_S3_URI DAY_CONTACT_EMAIL
 
 python3 -c '
 import os
@@ -145,7 +96,9 @@ from daylily_ec.config import load_config, write_config
 cfg = load_config(os.environ["DAY_EX_CFG"])
 updates = {
     "cluster_name": os.environ["CLUSTER_NAME"],
-    "s3_bucket_name": os.environ["S3_BUCKET_NAME"],
+    "reference_s3_uri": os.environ["REF_S3_URI"],
+    "control_data_s3_uri": os.environ["CONTROL_DATA_S3_URI"],
+    "stage_s3_uri": os.environ["STAGE_S3_URI"],
     "budget_email": os.environ["DAY_CONTACT_EMAIL"],
     "heartbeat_email": os.environ["DAY_CONTACT_EMAIL"],
 }

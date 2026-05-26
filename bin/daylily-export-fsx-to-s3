@@ -9,8 +9,8 @@ import sys
 def main() -> int:
     sys.stderr.write(
         "Legacy positional FSx export is removed. Use `daylily-ec export "
-        "--source-path /fsx/analysis_results/ubuntu/ANALYSIS_DIR "
-        "--destination-s3-uri s3://bucket/analysis_results/ubuntu/ANALYSIS_DIR/ "
+        "--source-path /fsx/analysis_results/EXECUTING_ENTITY/ANALYSIS_ID "
+        "--destination-s3-uri s3://bucket/prefix/EXECUTING_ENTITY/ANALYSIS_ID/ "
         "--cluster-name CLUSTER --region REGION --output-dir DIR`.\n"
     )
     return 2

@@ -1,0 +1,122 @@
+DAY-EC activated.
+DAY-EC activated.
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project tstClu-4-1-1c .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/tcc_hybrid_ultima_ont_snv_5x5x_fix/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/tcc_hybrid_ultima_ont_snv_5x5x_fix/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/tcc_hybrid_ultima_ont_snv_5x5x_fix/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+WARNING: sentieon lic file /fsx/data/cached_envs/x.lic not found.
+Detected sentieon license file: /fsx/data/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic will be used and overrides what is in ~/.config/daylily/daylily_cli_global.yaml
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad  
+       _______ GREAT SUCCESS _______       
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/tcc_hybrid_ultima_ont_snv_5x5x_fix/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+...AUTO-CONFIG: snv_callers=sentdhuomr (from target rules → env)
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/tcc_hybrid_ultima_ont_snv_5x5x_fix/daylily-omics-analysis/config/day_profiles/slurm produce_sentdhuomr_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k
+loading global: /fsx/analysis_results/ubuntu/tcc_hybrid_ultima_ont_snv_5x5x_fix/daylily-omics-analysis/config/global_AWSPC.yaml
+loading profile rule_config: /fsx/analysis_results/ubuntu/tcc_hybrid_ultima_ont_snv_5x5x_fix/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentdhuomr']
+SNV Callers (final): [sentdhuomr]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/tcc_hybrid_ultima_ont_snv_5x5x_fix/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/tcc_hybrid_ultima_ont_snv_5x5x_fix/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+PREP CRAM:: results/day/hg38_broad//TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/ ... 
+PREP CRAM:: results/day/hg38_broad//TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/ ... 
+PREP CRAM:: results/day/hg38_broad//TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ont/ ... 
+All Wildcards:    all snv_CALLERS:  ['sentdhuomr']  all ALIGNERS:  []  all CRAM_ALIGNERS:  ['ont', 'ug']  all samples:  {'TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA': ['TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA']}  all concordance samples:  dict_keys(['TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA'])
+Creating conda environment workflow/envs/rtgtools_v0.1.yaml...
+Downloading and installing remote packages.
+Environment for /fsx/analysis_results/ubuntu/tcc_hybrid_ultima_ont_snv_5x5x_fix/daylily-omics-analysis/workflow/rules/../envs/rtgtools_v0.1.yaml created (location: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-213/23c507b3638beb2f2ea5fa9dd9b021ea_)
+Creating conda environment workflow/envs/prep_input_sample_files_v0.1.yaml...
+Downloading and installing remote packages.
+Environment for /fsx/analysis_results/ubuntu/tcc_hybrid_ultima_ont_snv_5x5x_fix/daylily-omics-analysis/workflow/rules/../envs/prep_input_sample_files_v0.1.yaml created (location: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-213/abe2ade95f19c26f9509295065b732fa_)
+Creating conda environment workflow/envs/alignstats_v0.2.yaml...
+Downloading and installing remote packages.

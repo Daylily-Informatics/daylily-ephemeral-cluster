@@ -25,13 +25,18 @@ from daylily_ec.aws.ssm import (
     run_shell,
     wait_for_ssm_online,
 )
+from daylily_ec.headnode_readiness import validate_headnode_readiness
 from daylily_ec.scripts.common import CommandError, aws_env, need_cmd, run_command
+from daylily_ec.workflow.create_cluster import (
+    CLUSTER_NAME_MAX_LENGTH,
+    validate_cluster_name as validate_parallelcluster_name,
+)
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_CONFIG_PATH = Path.home() / ".config" / "daylily" / "daylily_ephemeral_cluster.yaml"
-CLUSTER_NAME_PREFIX = "day-ssm-e2e"
-MAX_CLUSTER_NAME_LEN = 26
+CLUSTER_NAME_PREFIX = "dy-ssm-e2e"
+MAX_CLUSTER_NAME_LEN = CLUSTER_NAME_MAX_LENGTH
 
 
 @dataclass
@@ -80,13 +85,10 @@ def default_cluster_name() -> str:
 
 
 def validate_cluster_name(cluster_name: str) -> str:
-    if len(cluster_name) > MAX_CLUSTER_NAME_LEN:
-        raise CommandError(
-            "Cluster name "
-            f"'{cluster_name}' is too long for the supported template. "
-            f"Use {MAX_CLUSTER_NAME_LEN} characters or fewer so the derived FSx name stays valid."
-        )
-    return cluster_name
+    try:
+        return validate_parallelcluster_name(cluster_name)
+    except ValueError as exc:
+        raise CommandError(str(exc)) from exc
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -111,9 +113,19 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Resume an existing cluster instead of running preflight/create",
     )
     parser.add_argument(
-        "--reference-bucket",
+        "--reference-s3-uri",
         required=True,
-        help="S3 URI backing the FSx data repository for laptop-side staging",
+        help="S3 URI mapped to /fsx/references for laptop-side staging",
+    )
+    parser.add_argument(
+        "--control-data-s3-uri",
+        required=True,
+        help="S3 URI mapped to /fsx/control_data for laptop-side staging",
+    )
+    parser.add_argument(
+        "--stage-s3-uri",
+        required=True,
+        help="S3 URI used as the exact root for external staging remote_stage_* prefixes",
     )
     parser.add_argument(
         "--analysis-samples",
@@ -133,7 +145,7 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument(
         "--export-source-path",
         default=None,
-        help="Completed analysis directory under /fsx/analysis_results/ubuntu/<analysis-dir>/.",
+        help="Completed analysis directory under /fsx/analysis_results/<entity>/<analysis-id>/.",
     )
     parser.add_argument(
         "--export-destination-s3-uri",
@@ -151,9 +163,14 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Launch the workflow without --dry-run",
     )
     parser.add_argument(
-        "--workflow-destination",
+        "--workflow-analysis-id",
         required=True,
-        help="Workspace destination passed through to the headnode workflow launcher",
+        help="Analysis identifier passed through to the headnode workflow launcher",
+    )
+    parser.add_argument(
+        "--workflow-executing-entity",
+        required=True,
+        help="Executing entity passed through to the headnode workflow launcher",
     )
     parser.add_argument(
         "--workflow-git-tag",
@@ -382,32 +399,19 @@ def _validate_headnode_bootstrap(
     profile: str,
     region: str,
 ) -> None:
-    validation_script = """
-set -euo pipefail
-bash -lc '
-set -euo pipefail
-test "$(whoami)" = ubuntu
-test "${DAYLILY_EC_HEADNODE_BOOTSTRAPPED:-0}" = 1
-test "${CONDA_DEFAULT_ENV:-}" = DAY-EC
-command -v daylily-ec >/dev/null 2>&1
-command -v day-clone >/dev/null 2>&1
-day-clone --list >/dev/null
-'
-"""
-    result = run_shell(
+    result = validate_headnode_readiness(
         instance_id,
         region,
-        validation_script,
         profile=profile,
         timeout=120,
-        comment="Daylily SSH-to-SSM E2E bootstrap validation",
+        comment="Daylily SSH-to-SSM E2E headnode readiness validation",
     )
     _record_step(
         summary,
         output_path,
         "validate-headnode-bootstrap",
         "passed",
-        command="ssm:bootstrap-validation",
+        command="ssm:headnode-readiness",
         command_id=result.command_id,
     )
 
@@ -869,8 +873,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         profile,
         "--region",
         args.region,
-        "--reference-bucket",
-        args.reference_bucket,
+        "--reference-s3-uri",
+        args.reference_s3_uri,
+        "--control-data-s3-uri",
+        args.control_data_s3_uri,
+        "--stage-s3-uri",
+        args.stage_s3_uri,
         "--config-dir",
         str(stage_config_dir),
         str(analysis_samples),
@@ -895,8 +903,10 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         args.cluster_name,
         "--stage-dir",
         remote_stage_dir,
-        "--destination",
-        args.workflow_destination,
+        "--analysis-id",
+        args.workflow_analysis_id,
+        "--executing-entity",
+        args.workflow_executing_entity,
         "--git-tag",
         args.workflow_git_tag,
         "--aligners",

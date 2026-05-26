@@ -1,0 +1,2824 @@
+[
+  {
+    "arn": "",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#InstanceDetails:instanceId=i-071ccd80c69969d92",
+    "created_at": "2026-05-15T23:02:28.000Z",
+    "details": {
+      "instance_type": "t3.micro",
+      "launch_time": "2026-05-15T23:02:28.000Z"
+    },
+    "id": "i-071ccd80c69969d92",
+    "kind": "ec2_instance",
+    "name": "terrarium-dev-tailscale-router",
+    "name_present": true,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "EC2",
+    "state": "running",
+    "tag_count": 3,
+    "tag_keys": [
+      "Environment",
+      "Name",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Name": "terrarium-dev-tailscale-router",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#InstanceDetails:instanceId=i-09f66b3f11ea42c60",
+    "created_at": "2026-05-18T17:12:05.000Z",
+    "details": {
+      "instance_type": "t3.small",
+      "launch_time": "2026-05-18T17:12:05.000Z"
+    },
+    "id": "i-09f66b3f11ea42c60",
+    "kind": "ec2_instance",
+    "name": "labplatform-mvp",
+    "name_present": true,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "EC2",
+    "state": "running",
+    "tag_count": 1,
+    "tag_keys": [
+      "Name"
+    ],
+    "tag_status": "missing_project",
+    "tags": {
+      "Name": "labplatform-mvp"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#InstanceDetails:instanceId=i-03a38912d7d651f1a",
+    "created_at": "2026-05-18T21:32:41.000Z",
+    "details": {
+      "instance_type": "t3.micro",
+      "launch_time": "2026-05-18T21:32:41.000Z"
+    },
+    "id": "i-03a38912d7d651f1a",
+    "kind": "ec2_instance",
+    "name": "terrarium-prod-tailscale-router",
+    "name_present": true,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "EC2",
+    "state": "running",
+    "tag_count": 3,
+    "tag_keys": [
+      "Environment",
+      "Name",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "prod",
+      "Name": "terrarium-prod-tailscale-router",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#VolumeDetails:volumeId=vol-067169329e7a92af1",
+    "created_at": "2026-02-13T01:27:46.182Z",
+    "details": {
+      "attachments": 0,
+      "size_gib": 421,
+      "volume_type": "gp3"
+    },
+    "id": "vol-067169329e7a92af1",
+    "kind": "ebs_volume",
+    "name": "vol-067169329e7a92af1",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "EBS",
+    "state": "available",
+    "tag_count": 10,
+    "tag_keys": [
+      "aws-parallelcluster-clustername",
+      "aws-parallelcluster-daylily-git-deets",
+      "aws-parallelcluster-enforce-budget",
+      "aws-parallelcluster-jobid",
+      "aws-parallelcluster-monitor-bucket",
+      "aws-parallelcluster-project",
+      "aws-parallelcluster-username",
+      "parallelcluster:cluster-name",
+      "parallelcluster:node-type",
+      "parallelcluster:version"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "aws-parallelcluster-clustername": "day-test-uswest2d",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "true",
+      "aws-parallelcluster-jobid": "aws_profile-daylily-service-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-omics-analysis-us-west-2",
+      "aws-parallelcluster-project": "day-test-uswest2d",
+      "aws-parallelcluster-username": "jmajor-daylily-service",
+      "parallelcluster:cluster-name": "day-test-uswest2d",
+      "parallelcluster:node-type": "HeadNode",
+      "parallelcluster:version": "3.13.2"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#VolumeDetails:volumeId=vol-0f5e5d7eec5982fa8",
+    "created_at": "2026-04-15T15:01:59.958Z",
+    "details": {
+      "attachments": 0,
+      "size_gib": 421,
+      "volume_type": "gp3"
+    },
+    "id": "vol-0f5e5d7eec5982fa8",
+    "kind": "ebs_volume",
+    "name": "vol-0f5e5d7eec5982fa8",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "EBS",
+    "state": "available",
+    "tag_count": 10,
+    "tag_keys": [
+      "aws-parallelcluster-clustername",
+      "aws-parallelcluster-daylily-git-deets",
+      "aws-parallelcluster-enforce-budget",
+      "aws-parallelcluster-jobid",
+      "aws-parallelcluster-monitor-bucket",
+      "aws-parallelcluster-project",
+      "aws-parallelcluster-username",
+      "parallelcluster:cluster-name",
+      "parallelcluster:node-type",
+      "parallelcluster:version"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "aws-parallelcluster-clustername": "test-del-me",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "aws_profile-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-omics-analysis-us-west-2",
+      "aws-parallelcluster-project": "test-del-me",
+      "aws-parallelcluster-username": "jmajor-root",
+      "parallelcluster:cluster-name": "test-del-me",
+      "parallelcluster:node-type": "HeadNode",
+      "parallelcluster:version": "3.13.2"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#VolumeDetails:volumeId=vol-0c90d4fbaada3820a",
+    "created_at": "2026-03-23T02:15:51.287Z",
+    "details": {
+      "attachments": 0,
+      "size_gib": 421,
+      "volume_type": "gp3"
+    },
+    "id": "vol-0c90d4fbaada3820a",
+    "kind": "ebs_volume",
+    "name": "vol-0c90d4fbaada3820a",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "EBS",
+    "state": "available",
+    "tag_count": 10,
+    "tag_keys": [
+      "aws-parallelcluster-clustername",
+      "aws-parallelcluster-daylily-git-deets",
+      "aws-parallelcluster-enforce-budget",
+      "aws-parallelcluster-jobid",
+      "aws-parallelcluster-monitor-bucket",
+      "aws-parallelcluster-project",
+      "aws-parallelcluster-username",
+      "parallelcluster:cluster-name",
+      "parallelcluster:node-type",
+      "parallelcluster:version"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "aws-parallelcluster-clustername": "ifx-go",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "aws_profile-daylily-service-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-omics-analysis-us-west-2",
+      "aws-parallelcluster-project": "ifx-go",
+      "aws-parallelcluster-username": "jmajor-daylily-service",
+      "parallelcluster:cluster-name": "ifx-go",
+      "parallelcluster:node-type": "HeadNode",
+      "parallelcluster:version": "3.13.2"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#VolumeDetails:volumeId=vol-042a5f5daead20490",
+    "created_at": "2026-03-09T12:58:18.599Z",
+    "details": {
+      "attachments": 0,
+      "size_gib": 421,
+      "volume_type": "gp3"
+    },
+    "id": "vol-042a5f5daead20490",
+    "kind": "ebs_volume",
+    "name": "vol-042a5f5daead20490",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "EBS",
+    "state": "available",
+    "tag_count": 10,
+    "tag_keys": [
+      "aws-parallelcluster-clustername",
+      "aws-parallelcluster-daylily-git-deets",
+      "aws-parallelcluster-enforce-budget",
+      "aws-parallelcluster-jobid",
+      "aws-parallelcluster-monitor-bucket",
+      "aws-parallelcluster-project",
+      "aws-parallelcluster-username",
+      "parallelcluster:cluster-name",
+      "parallelcluster:node-type",
+      "parallelcluster:version"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "aws-parallelcluster-clustername": "daylily-1773059211",
+      "aws-parallelcluster-daylily-git-deets": "none",
+      "aws-parallelcluster-enforce-budget": "skip",
+      "aws-parallelcluster-jobid": "aws_profile-lsmc",
+      "aws-parallelcluster-monitor-bucket": "s3://lsmc-dayoa-omics-analysis-us-west-2",
+      "aws-parallelcluster-project": "daylily-1773059211",
+      "aws-parallelcluster-username": "jmajor-root",
+      "parallelcluster:cluster-name": "daylily-1773059211",
+      "parallelcluster:node-type": "HeadNode",
+      "parallelcluster:version": "3.13.2"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/vpcconsole/home?region=us-west-2#NatGatewayDetails:natGatewayId=nat-00f3c26e43ede9b10",
+    "created_at": "2025-02-19T06:59:55.000Z",
+    "details": {
+      "vpc_id": "vpc-06b01782f2abece1c"
+    },
+    "id": "nat-00f3c26e43ede9b10",
+    "kind": "nat_gateway",
+    "name": "nat-00f3c26e43ede9b10",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "VPC",
+    "state": "available",
+    "tag_count": 3,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name"
+    ],
+    "tag_status": "missing_project",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGateway",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/pcluster-vpc-stack-2d/12bfabe0-ee8f-11ef-91a4-0a3f3530209f",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-2d"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/vpcconsole/home?region=us-west-2#NatGatewayDetails:natGatewayId=nat-00ac08b685fea726f",
+    "created_at": "2026-02-11T21:23:34.000Z",
+    "details": {
+      "vpc_id": "vpc-06371a3d9b0e6046c"
+    },
+    "id": "nat-00ac08b685fea726f",
+    "kind": "nat_gateway",
+    "name": "terrarium-prod-us-west-2a",
+    "name_present": true,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "VPC",
+    "state": "available",
+    "tag_count": 3,
+    "tag_keys": [
+      "Environment",
+      "Name",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "prod",
+      "Name": "terrarium-prod-us-west-2a",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/vpcconsole/home?region=us-west-2#NatGatewayDetails:natGatewayId=nat-0234e77781575cced",
+    "created_at": "2026-02-05T04:45:08.000Z",
+    "details": {
+      "vpc_id": "vpc-0bafd56fbe290e4e8"
+    },
+    "id": "nat-0234e77781575cced",
+    "kind": "nat_gateway",
+    "name": "terrarium-dev-us-west-2a",
+    "name_present": true,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "VPC",
+    "state": "available",
+    "tag_count": 3,
+    "tag_keys": [
+      "Environment",
+      "Name",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Name": "terrarium-dev-us-west-2a",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:fsx:us-west-2:108782052779:association/fs-017ab7a7cdbf44c54/dra-0e036df15b52f3f85",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/fsx/home?region=us-west-2#data-repository-association-details/dra-0e036df15b52f3f85",
+    "created_at": "1779260518.375",
+    "details": {
+      "data_repository_path": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/",
+      "file_system_id": "fs-017ab7a7cdbf44c54",
+      "file_system_path": "/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/"
+    },
+    "id": "dra-0e036df15b52f3f85",
+    "kind": "fsx_dra",
+    "name": "dra-0e036df15b52f3f85",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "FSx",
+    "state": "AVAILABLE",
+    "tag_count": 1,
+    "tag_keys": [
+      "lsmc:purpose"
+    ],
+    "tag_status": "other_tags_only",
+    "tags": {
+      "lsmc:purpose": "run-dir-mount"
+    }
+  },
+  {
+    "arn": "arn:aws:fsx:us-west-2:108782052779:association/fs-017ab7a7cdbf44c54/dra-006ba927d666a551f",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/fsx/home?region=us-west-2#data-repository-association-details/dra-006ba927d666a551f",
+    "created_at": "1779256580.742",
+    "details": {
+      "data_repository_path": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/",
+      "file_system_id": "fs-017ab7a7cdbf44c54",
+      "file_system_path": "/run_dir_mounts/20260513_ONT_HG003/"
+    },
+    "id": "dra-006ba927d666a551f",
+    "kind": "fsx_dra",
+    "name": "dra-006ba927d666a551f",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "FSx",
+    "state": "AVAILABLE",
+    "tag_count": 1,
+    "tag_keys": [
+      "lsmc:purpose"
+    ],
+    "tag_status": "other_tags_only",
+    "tags": {
+      "lsmc:purpose": "run-dir-mount"
+    }
+  },
+  {
+    "arn": "arn:aws:fsx:us-west-2:108782052779:association/fs-01c4180aab049f24c/dra-003eb0d22217d9dd0",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/fsx/home?region=us-west-2#data-repository-association-details/dra-003eb0d22217d9dd0",
+    "created_at": "1779157797.457",
+    "details": {
+      "data_repository_path": "s3://lsmc-ssf-sequencing-data/raw/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0008_A23TVNWLT4/",
+      "file_system_id": "fs-01c4180aab049f24c",
+      "file_system_path": "/run_dir_mounts/20260514_LH01106_0008_A23TVNWLT4/"
+    },
+    "id": "dra-003eb0d22217d9dd0",
+    "kind": "fsx_dra",
+    "name": "dra-003eb0d22217d9dd0",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "FSx",
+    "state": "AVAILABLE",
+    "tag_count": 1,
+    "tag_keys": [
+      "lsmc:purpose"
+    ],
+    "tag_status": "other_tags_only",
+    "tags": {
+      "lsmc:purpose": "run-dir-mount"
+    }
+  },
+  {
+    "arn": "arn:aws:fsx:us-west-2:108782052779:association/fs-017ab7a7cdbf44c54/dra-06d806e2e1413adf7",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/fsx/home?region=us-west-2#data-repository-association-details/dra-06d806e2e1413adf7",
+    "created_at": "1779092409.663",
+    "details": {
+      "data_repository_path": "s3://lsmc-ssf-sequencing-data/raw/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0008_A23TVNWLT4/",
+      "file_system_id": "fs-017ab7a7cdbf44c54",
+      "file_system_path": "/run_dir_mounts/20260514_LH01106_0008_A23TVNWLT4/"
+    },
+    "id": "dra-06d806e2e1413adf7",
+    "kind": "fsx_dra",
+    "name": "dra-06d806e2e1413adf7",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "FSx",
+    "state": "AVAILABLE",
+    "tag_count": 1,
+    "tag_keys": [
+      "lsmc:purpose"
+    ],
+    "tag_status": "other_tags_only",
+    "tags": {
+      "lsmc:purpose": "run-dir-mount"
+    }
+  },
+  {
+    "arn": "arn:aws:fsx:us-west-2:108782052779:association/fs-017ab7a7cdbf44c54/dra-02d344e4dc8840a90",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/fsx/home?region=us-west-2#data-repository-association-details/dra-02d344e4dc8840a90",
+    "created_at": "1779092405.418",
+    "details": {
+      "data_repository_path": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260512_LH01106_0006_A23K3H2LT4/",
+      "file_system_id": "fs-017ab7a7cdbf44c54",
+      "file_system_path": "/run_dir_mounts/20260512_LH01106_0006_A23K3H2LT4/"
+    },
+    "id": "dra-02d344e4dc8840a90",
+    "kind": "fsx_dra",
+    "name": "dra-02d344e4dc8840a90",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "FSx",
+    "state": "AVAILABLE",
+    "tag_count": 1,
+    "tag_keys": [
+      "lsmc:purpose"
+    ],
+    "tag_status": "other_tags_only",
+    "tags": {
+      "lsmc:purpose": "run-dir-mount"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:aquarium-dev-db",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=aquarium-dev-db;is-cluster=false",
+    "created_at": "2026-04-28T23:00:59.696Z",
+    "details": {
+      "allocated_storage_gib": 20,
+      "class": "db.t4g.micro",
+      "engine": "postgres"
+    },
+    "id": "aquarium-dev-db",
+    "kind": "rds_instance",
+    "name": "aquarium-dev-db",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Project": "aquarium"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcok1-tapdb-writer",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=dayhoff-lsmcok1-tapdb-writer;is-cluster=false",
+    "created_at": "2026-05-19T07:26:32.992Z",
+    "details": {
+      "allocated_storage_gib": 1,
+      "class": "db.r8g.large",
+      "engine": "aurora-postgresql"
+    },
+    "id": "dayhoff-lsmcok1-tapdb-writer",
+    "kind": "rds_instance",
+    "name": "dayhoff-lsmcok1-tapdb-writer",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 7,
+    "tag_keys": [
+      "Environment",
+      "Owner",
+      "Project",
+      "System",
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "Environment": "lsmcok1",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "WriterInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcok1-Data/80940010-5353-11f1-84e9-0679063ee0d5",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcok1-Data"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-api",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=dayhoff-lsmcq7-tapdb-reader-api;is-cluster=false",
+    "created_at": "2026-05-17T13:00:17.281Z",
+    "details": {
+      "allocated_storage_gib": 1,
+      "class": "db.r8g.xlarge",
+      "engine": "aurora-postgresql"
+    },
+    "id": "dayhoff-lsmcq7-tapdb-reader-api",
+    "kind": "rds_instance",
+    "name": "dayhoff-lsmcq7-tapdb-reader-api",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 11,
+    "tag_keys": [
+      "CostCenter",
+      "Environment",
+      "Owner",
+      "Project",
+      "Role",
+      "System",
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "lsmcq7",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Role": "reader-api",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "ApiReaderInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcq7-Data/c931b3a0-51ee-11f1-835f-061daeca8d2f",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcq7-Data",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-reader-ha",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=dayhoff-lsmcq7-tapdb-reader-ha;is-cluster=false",
+    "created_at": "2026-05-17T13:00:02.061Z",
+    "details": {
+      "allocated_storage_gib": 1,
+      "class": "db.r8g.xlarge",
+      "engine": "aurora-postgresql"
+    },
+    "id": "dayhoff-lsmcq7-tapdb-reader-ha",
+    "kind": "rds_instance",
+    "name": "dayhoff-lsmcq7-tapdb-reader-ha",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 11,
+    "tag_keys": [
+      "CostCenter",
+      "Environment",
+      "Owner",
+      "Project",
+      "Role",
+      "System",
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "lsmcq7",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Role": "reader-ha",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "HaReaderInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcq7-Data/c931b3a0-51ee-11f1-835f-061daeca8d2f",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcq7-Data",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dayhoff-lsmcq7-tapdb-writer",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=dayhoff-lsmcq7-tapdb-writer;is-cluster=false",
+    "created_at": "2026-05-17T12:54:49.276Z",
+    "details": {
+      "allocated_storage_gib": 1,
+      "class": "db.r8g.2xlarge",
+      "engine": "aurora-postgresql"
+    },
+    "id": "dayhoff-lsmcq7-tapdb-writer",
+    "kind": "rds_instance",
+    "name": "dayhoff-lsmcq7-tapdb-writer",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 11,
+    "tag_keys": [
+      "CostCenter",
+      "Environment",
+      "Owner",
+      "Project",
+      "Role",
+      "System",
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "lsmcq7",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "Role": "writer",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "WriterInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcq7-Data/c931b3a0-51ee-11f1-835f-061daeca8d2f",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcq7-Data",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:dev-writer",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=dev-writer;is-cluster=false",
+    "created_at": "2026-03-03T04:58:31.873Z",
+    "details": {
+      "allocated_storage_gib": 1,
+      "class": "db.r6g.large",
+      "engine": "aurora-postgresql"
+    },
+    "id": "dev-writer",
+    "kind": "rds_instance",
+    "name": "dev-writer",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 5,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "aws:cloudformation:logical-id": "WriterInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/tapdb-dev/13b49db0-16bd-11f1-ac4f-02ee9e12c98f",
+      "aws:cloudformation:stack-name": "tapdb-dev",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-west-2"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:labcore-dev-instance-1",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=labcore-dev-instance-1;is-cluster=false",
+    "created_at": "2026-05-20T23:13:58.533Z",
+    "details": {
+      "allocated_storage_gib": 1,
+      "class": "db.serverless",
+      "engine": "aurora-postgresql"
+    },
+    "id": "labcore-dev-instance-1",
+    "kind": "rds_instance",
+    "name": "labcore-dev-instance-1",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:staging-writer",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=staging-writer;is-cluster=false",
+    "created_at": "2026-05-12T00:41:03.376Z",
+    "details": {
+      "allocated_storage_gib": 1,
+      "class": "db.t4g.medium",
+      "engine": "aurora-postgresql"
+    },
+    "id": "staging-writer",
+    "kind": "rds_instance",
+    "name": "staging-writer",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 5,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "aws:cloudformation:logical-id": "WriterInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/tapdb-staging/a149d9b0-4d9a-11f1-9577-0a57bdb61851",
+      "aws:cloudformation:stack-name": "tapdb-staging",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-west-2"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:terrarium-dev-db",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=terrarium-dev-db;is-cluster=false",
+    "created_at": "2026-02-05T05:21:09.171Z",
+    "details": {
+      "allocated_storage_gib": 20,
+      "class": "db.t4g.micro",
+      "engine": "postgres"
+    },
+    "id": "terrarium-dev-db",
+    "kind": "rds_instance",
+    "name": "terrarium-dev-db",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:db:terrarium-prod-db",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=terrarium-prod-db;is-cluster=false",
+    "created_at": "2026-02-11T18:15:21.081Z",
+    "details": {
+      "allocated_storage_gib": 20,
+      "class": "db.t4g.micro",
+      "engine": "postgres"
+    },
+    "id": "terrarium-prod-db",
+    "kind": "rds_instance",
+    "name": "terrarium-prod-db",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "prod",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcok1-tapdb",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=dayhoff-lsmcok1-tapdb;is-cluster=true",
+    "created_at": "2026-05-19T07:22:52.881Z",
+    "details": {
+      "engine": "aurora-postgresql",
+      "members": 1
+    },
+    "id": "dayhoff-lsmcok1-tapdb",
+    "kind": "rds_cluster",
+    "name": "dayhoff-lsmcok1-tapdb",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 7,
+    "tag_keys": [
+      "Environment",
+      "Owner",
+      "Project",
+      "System",
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "Environment": "lsmcok1",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "DatabaseCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcok1-Data/80940010-5353-11f1-84e9-0679063ee0d5",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcok1-Data"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:cluster:dayhoff-lsmcq7-tapdb",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=dayhoff-lsmcq7-tapdb;is-cluster=true",
+    "created_at": "2026-05-17T12:50:11.918Z",
+    "details": {
+      "engine": "aurora-postgresql",
+      "members": 3
+    },
+    "id": "dayhoff-lsmcq7-tapdb",
+    "kind": "rds_cluster",
+    "name": "dayhoff-lsmcq7-tapdb",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 10,
+    "tag_keys": [
+      "CostCenter",
+      "Environment",
+      "Owner",
+      "Project",
+      "System",
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "lsmcq7",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "AuroraCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Dayhoff-lsmcq7-Data/c931b3a0-51ee-11f1-835f-061daeca8d2f",
+      "aws:cloudformation:stack-name": "Dayhoff-lsmcq7-Data",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:cluster:dev",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=dev;is-cluster=true",
+    "created_at": "2026-03-03T04:54:50.955Z",
+    "details": {
+      "engine": "aurora-postgresql",
+      "members": 1
+    },
+    "id": "dev",
+    "kind": "rds_cluster",
+    "name": "dev",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 5,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "aws:cloudformation:logical-id": "AuroraCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/tapdb-dev/13b49db0-16bd-11f1-ac4f-02ee9e12c98f",
+      "aws:cloudformation:stack-name": "tapdb-dev",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-west-2"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:cluster:labcore-dev",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=labcore-dev;is-cluster=true",
+    "created_at": "2026-05-20T23:09:19.716Z",
+    "details": {
+      "engine": "aurora-postgresql",
+      "members": 1
+    },
+    "id": "labcore-dev",
+    "kind": "rds_cluster",
+    "name": "labcore-dev",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:rds:us-west-2:108782052779:cluster:staging",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-west-2.console.aws.amazon.com/rds/home?region=us-west-2#database:id=staging;is-cluster=true",
+    "created_at": "2026-05-12T00:36:50.838Z",
+    "details": {
+      "engine": "aurora-postgresql",
+      "members": 1
+    },
+    "id": "staging",
+    "kind": "rds_cluster",
+    "name": "staging",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 5,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "aws:cloudformation:logical-id": "AuroraCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/tapdb-staging/a149d9b0-4d9a-11f1-9577-0a57bdb61851",
+      "aws:cloudformation:stack-name": "tapdb-staging",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-west-2"
+    }
+  },
+  {
+    "arn": "arn:aws:elasticloadbalancing:us-west-2:108782052779:loadbalancer/app/lsmc-mvp-dev-alb/e86b7b9ac25ed9d8",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#LoadBalancer:loadBalancerArn=arn%3Aaws%3Aelasticloadbalancing%3Aus-west-2%3A108782052779%3Aloadbalancer%2Fapp%2Flsmc-mvp-dev-alb%2Fe86b7b9ac25ed9d8",
+    "created_at": "2026-05-21T13:44:14.384Z",
+    "details": {
+      "scheme": "internet-facing",
+      "type": "application"
+    },
+    "id": "lsmc-mvp-dev-alb",
+    "kind": "load_balancer",
+    "name": "lsmc-mvp-dev-alb",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "ELBv2",
+    "state": "active",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-dev-cluster",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecs/v2/clusters/terrarium-dev-cluster/services?region=us-west-2",
+    "created_at": "",
+    "details": {
+      "active_services_count": 1,
+      "running_tasks_count": 1
+    },
+    "id": "terrarium-dev-cluster",
+    "kind": "ecs_cluster",
+    "name": "terrarium-dev-cluster",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECS",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecs:us-west-2:108782052779:cluster/terrarium-prod-cluster",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecs/v2/clusters/terrarium-prod-cluster/services?region=us-west-2",
+    "created_at": "",
+    "details": {
+      "active_services_count": 1,
+      "running_tasks_count": 1
+    },
+    "id": "terrarium-prod-cluster",
+    "kind": "ecs_cluster",
+    "name": "terrarium-prod-cluster",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECS",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "prod",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecs:us-west-2:108782052779:cluster/aquarium-dev-cluster",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecs/v2/clusters/aquarium-dev-cluster/services?region=us-west-2",
+    "created_at": "",
+    "details": {
+      "active_services_count": 1,
+      "running_tasks_count": 1
+    },
+    "id": "aquarium-dev-cluster",
+    "kind": "ecs_cluster",
+    "name": "aquarium-dev-cluster",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECS",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Project": "aquarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/dayhoff/aws3041",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/dayhoff%2Faws3041?region=us-west-2",
+    "created_at": "1778545632.175",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/dayhoff/aws3041"
+    },
+    "id": "dayhoff/aws3041",
+    "kind": "ecr_repository",
+    "name": "dayhoff/aws3041",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 9,
+    "tag_keys": [
+      "CostCenter",
+      "Environment",
+      "Owner",
+      "Project",
+      "System",
+      "dayhoff-lock",
+      "dayhoff-user",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "aws3041",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "jmajor",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2"
+    }
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/lsmc-bio/labcore",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/lsmc-bio%2Flabcore?region=us-west-2",
+    "created_at": "1779300020.62",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/lsmc-bio/labcore"
+    },
+    "id": "lsmc-bio/labcore",
+    "kind": "ecr_repository",
+    "name": "lsmc-bio/labcore",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/cdk-hnb659fds-container-assets-108782052779-us-west-2",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/cdk-hnb659fds-container-assets-108782052779-us-west-2?region=us-west-2",
+    "created_at": "1769783689.644",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/cdk-hnb659fds-container-assets-108782052779-us-west-2"
+    },
+    "id": "cdk-hnb659fds-container-assets-108782052779-us-west-2",
+    "kind": "ecr_repository",
+    "name": "cdk-hnb659fds-container-assets-108782052779-us-west-2",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/terrarium-dev-api",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/terrarium-dev-api?region=us-west-2",
+    "created_at": "1770266693.578",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/terrarium-dev-api"
+    },
+    "id": "terrarium-dev-api",
+    "kind": "ecr_repository",
+    "name": "terrarium-dev-api",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/terrarium-prod-api",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/terrarium-prod-api?region=us-west-2",
+    "created_at": "1770833491.175",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/terrarium-prod-api"
+    },
+    "id": "terrarium-prod-api",
+    "kind": "ecr_repository",
+    "name": "terrarium-prod-api",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "prod",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/terrarium-dev-web",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/terrarium-dev-web?region=us-west-2",
+    "created_at": "1775179088.402",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/terrarium-dev-web"
+    },
+    "id": "terrarium-dev-web",
+    "kind": "ecr_repository",
+    "name": "terrarium-dev-web",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/aquarium-dev-tailscale-sidecar",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/aquarium-dev-tailscale-sidecar?region=us-west-2",
+    "created_at": "1777416370.368",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/aquarium-dev-tailscale-sidecar"
+    },
+    "id": "aquarium-dev-tailscale-sidecar",
+    "kind": "ecr_repository",
+    "name": "aquarium-dev-tailscale-sidecar",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Project": "aquarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/aquarium-dev-web",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/aquarium-dev-web?region=us-west-2",
+    "created_at": "1777416370.393",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/aquarium-dev-web"
+    },
+    "id": "aquarium-dev-web",
+    "kind": "ecr_repository",
+    "name": "aquarium-dev-web",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Project": "aquarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/aquarium-dev-api",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/aquarium-dev-api?region=us-west-2",
+    "created_at": "1777416370.409",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/aquarium-dev-api"
+    },
+    "id": "aquarium-dev-api",
+    "kind": "ecr_repository",
+    "name": "aquarium-dev-api",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Project": "aquarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/dayhoff/lsmcq7",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/dayhoff%2Flsmcq7?region=us-west-2",
+    "created_at": "1778700143.421",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/dayhoff/lsmcq7"
+    },
+    "id": "dayhoff/lsmcq7",
+    "kind": "ecr_repository",
+    "name": "dayhoff/lsmcq7",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 9,
+    "tag_keys": [
+      "CostCenter",
+      "Environment",
+      "Owner",
+      "Project",
+      "System",
+      "dayhoff-lock",
+      "dayhoff-user",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "lsmcq7",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "dayhoff-lock": "false",
+      "dayhoff-user": "ubuntu",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-west-2"
+    }
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/lsmc-bio/runtime",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/lsmc-bio%2Fruntime?region=us-west-2",
+    "created_at": "1779363816.977",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/lsmc-bio/runtime"
+    },
+    "id": "lsmc-bio/runtime",
+    "kind": "ecr_repository",
+    "name": "lsmc-bio/runtime",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/terrarium-dev-tailscale-sidecar",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/terrarium-dev-tailscale-sidecar?region=us-west-2",
+    "created_at": "1775179088.401",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/terrarium-dev-tailscale-sidecar"
+    },
+    "id": "terrarium-dev-tailscale-sidecar",
+    "kind": "ecr_repository",
+    "name": "terrarium-dev-tailscale-sidecar",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/terrarium-prod-tailscale-sidecar",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/terrarium-prod-tailscale-sidecar?region=us-west-2",
+    "created_at": "1775190990.507",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/terrarium-prod-tailscale-sidecar"
+    },
+    "id": "terrarium-prod-tailscale-sidecar",
+    "kind": "ecr_repository",
+    "name": "terrarium-prod-tailscale-sidecar",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "prod",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/terrarium-prod-web",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/terrarium-prod-web?region=us-west-2",
+    "created_at": "1775190990.507",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/terrarium-prod-web"
+    },
+    "id": "terrarium-prod-web",
+    "kind": "ecr_repository",
+    "name": "terrarium-prod-web",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "prod",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-east-1:108782052779:db:auruse1-writer",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-east-1.console.aws.amazon.com/rds/home?region=us-east-1#database:id=auruse1-writer;is-cluster=false",
+    "created_at": "2026-04-16T05:21:39.285Z",
+    "details": {
+      "allocated_storage_gib": 1,
+      "class": "db.r6g.large",
+      "engine": "aurora-postgresql"
+    },
+    "id": "auruse1-writer",
+    "kind": "rds_instance",
+    "name": "auruse1-writer",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-east-1",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 5,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "aws:cloudformation:logical-id": "WriterInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/tapdb-auruse1/81988040-3953-11f1-b01d-0ecde9c2e61b",
+      "aws:cloudformation:stack-name": "tapdb-auruse1",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-east-1"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-east-1:108782052779:db:dayhoff-staging-data-postgres9dc8bb04-avlkcyzjgnwo",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-east-1.console.aws.amazon.com/rds/home?region=us-east-1#database:id=dayhoff-staging-data-postgres9dc8bb04-avlkcyzjgnwo;is-cluster=false",
+    "created_at": "2026-03-10T17:51:05.344Z",
+    "details": {
+      "allocated_storage_gib": 100,
+      "class": "db.t3.medium",
+      "engine": "postgres"
+    },
+    "id": "dayhoff-staging-data-postgres9dc8bb04-avlkcyzjgnwo",
+    "kind": "rds_instance",
+    "name": "dayhoff-staging-data-postgres9dc8bb04-avlkcyzjgnwo",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-east-1",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 10,
+    "tag_keys": [
+      "CostCenter",
+      "Environment",
+      "Owner",
+      "Project",
+      "System",
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "staging",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "Postgres9DC8BB04",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-staging-Data/3344e580-1ca9-11f1-bfc4-0e7ed1ba6b35",
+      "aws:cloudformation:stack-name": "Dayhoff-staging-Data",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-east-1"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-east-1:108782052779:db:dayhoff-x-data-postgres9dc8bb04-xgjwaetdu22b",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-east-1.console.aws.amazon.com/rds/home?region=us-east-1#database:id=dayhoff-x-data-postgres9dc8bb04-xgjwaetdu22b;is-cluster=false",
+    "created_at": "2026-03-26T22:16:09.588Z",
+    "details": {
+      "allocated_storage_gib": 100,
+      "class": "db.t3.medium",
+      "engine": "postgres"
+    },
+    "id": "dayhoff-x-data-postgres9dc8bb04-xgjwaetdu22b",
+    "kind": "rds_instance",
+    "name": "dayhoff-x-data-postgres9dc8bb04-xgjwaetdu22b",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-east-1",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 10,
+    "tag_keys": [
+      "CostCenter",
+      "Environment",
+      "Owner",
+      "Project",
+      "System",
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "x",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "aws:cloudformation:logical-id": "Postgres9DC8BB04",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/Dayhoff-x-Data/e05d5bd0-2960-11f1-a82b-0afff903502f",
+      "aws:cloudformation:stack-name": "Dayhoff-x-Data",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-east-1"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-east-1:108782052779:db:dev-writer",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-east-1.console.aws.amazon.com/rds/home?region=us-east-1#database:id=dev-writer;is-cluster=false",
+    "created_at": "2026-02-28T11:26:11.299Z",
+    "details": {
+      "allocated_storage_gib": 1,
+      "class": "db.t4g.medium",
+      "engine": "aurora-postgresql"
+    },
+    "id": "dev-writer",
+    "kind": "rds_instance",
+    "name": "dev-writer",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-east-1",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 5,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "aws:cloudformation:logical-id": "WriterInstance",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/tapdb-dev/bae9fcb0-1497-11f1-828d-0affd19328cd",
+      "aws:cloudformation:stack-name": "tapdb-dev",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-east-1"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-east-1:108782052779:cluster:auruse1",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-east-1.console.aws.amazon.com/rds/home?region=us-east-1#database:id=auruse1;is-cluster=true",
+    "created_at": "2026-04-16T05:17:21.022Z",
+    "details": {
+      "engine": "aurora-postgresql",
+      "members": 1
+    },
+    "id": "auruse1",
+    "kind": "rds_cluster",
+    "name": "auruse1",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-east-1",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 5,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "aws:cloudformation:logical-id": "AuroraCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/tapdb-auruse1/81988040-3953-11f1-b01d-0ecde9c2e61b",
+      "aws:cloudformation:stack-name": "tapdb-auruse1",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-east-1"
+    }
+  },
+  {
+    "arn": "arn:aws:rds:us-east-1:108782052779:cluster:dev",
+    "cluster_or_stack_present": true,
+    "console_url": "https://us-east-1.console.aws.amazon.com/rds/home?region=us-east-1#database:id=dev;is-cluster=true",
+    "created_at": "2026-02-28T11:22:29.409Z",
+    "details": {
+      "engine": "aurora-postgresql",
+      "members": 1
+    },
+    "id": "dev",
+    "kind": "rds_cluster",
+    "name": "dev",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-east-1",
+    "service": "RDS",
+    "state": "available",
+    "tag_count": 5,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "aws:cloudformation:logical-id": "AuroraCluster",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/tapdb-dev/bae9fcb0-1497-11f1-828d-0affd19328cd",
+      "aws:cloudformation:stack-name": "tapdb-dev",
+      "lsmc-cost-center": "global",
+      "lsmc-project": "tapdb-us-east-1"
+    }
+  },
+  {
+    "arn": "arn:aws:elasticloadbalancing:us-east-1:108782052779:loadbalancer/net/lsmc-privatelink-nlb/4ead0a65121bd679",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-east-1.console.aws.amazon.com/ec2/home?region=us-east-1#LoadBalancer:loadBalancerArn=arn%3Aaws%3Aelasticloadbalancing%3Aus-east-1%3A108782052779%3Aloadbalancer%2Fnet%2Flsmc-privatelink-nlb%2F4ead0a65121bd679",
+    "created_at": "2026-03-21T02:45:46.739Z",
+    "details": {
+      "scheme": "internal",
+      "type": "network"
+    },
+    "id": "lsmc-privatelink-nlb",
+    "kind": "load_balancer",
+    "name": "lsmc-privatelink-nlb",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-east-1",
+    "service": "ELBv2",
+    "state": "active",
+    "tag_count": 3,
+    "tag_keys": [
+      "Environment",
+      "Project",
+      "System"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "staging",
+      "Project": "LSMC",
+      "System": "dayhoff"
+    }
+  },
+  {
+    "arn": "arn:aws:ecr:us-east-1:108782052779:repository/cdk-hnb659fds-container-assets-108782052779-us-east-1",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-east-1.console.aws.amazon.com/ecr/repositories/private/108782052779/cdk-hnb659fds-container-assets-108782052779-us-east-1?region=us-east-1",
+    "created_at": "1769808266.621",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-east-1.amazonaws.com/cdk-hnb659fds-container-assets-108782052779-us-east-1"
+    },
+    "id": "cdk-hnb659fds-container-assets-108782052779-us-east-1",
+    "kind": "ecr_repository",
+    "name": "cdk-hnb659fds-container-assets-108782052779-us-east-1",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-east-1",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:ecr:us-east-1:108782052779:repository/dayhoff/x",
+    "cluster_or_stack_present": false,
+    "console_url": "https://us-east-1.console.aws.amazon.com/ecr/repositories/private/108782052779/dayhoff%2Fx?region=us-east-1",
+    "created_at": "1774563734.803",
+    "details": {
+      "uri": "108782052779.dkr.ecr.us-east-1.amazonaws.com/dayhoff/x"
+    },
+    "id": "dayhoff/x",
+    "kind": "ecr_repository",
+    "name": "dayhoff/x",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-east-1",
+    "service": "ECR",
+    "state": "ACTIVE",
+    "tag_count": 7,
+    "tag_keys": [
+      "CostCenter",
+      "Environment",
+      "Owner",
+      "Project",
+      "System",
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "CostCenter": "platform",
+      "Environment": "x",
+      "Owner": "platform",
+      "Project": "LSMC",
+      "System": "dayhoff",
+      "lsmc-cost-center": "platform",
+      "lsmc-project": "dayhoff+us-east-1"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": true,
+    "console_url": "https://eu-central-1.console.aws.amazon.com/vpcconsole/home?region=eu-central-1#NatGatewayDetails:natGatewayId=nat-0ec6ae9605269bef4",
+    "created_at": "2025-03-13T12:48:07.000Z",
+    "details": {
+      "vpc_id": "vpc-07b70b8afc01cfc56"
+    },
+    "id": "nat-0ec6ae9605269bef4",
+    "kind": "nat_gateway",
+    "name": "nat-0ec6ae9605269bef4",
+    "name_present": false,
+    "project_present": false,
+    "region": "eu-central-1",
+    "service": "VPC",
+    "state": "available",
+    "tag_count": 3,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name"
+    ],
+    "tag_status": "missing_project",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGateway",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:eu-central-1:108782052779:stack/pcluster-vpc-stack-1a/5c28aa80-0009-11f0-b2da-023a831da7a7",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-1a"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": true,
+    "console_url": "https://eu-central-1.console.aws.amazon.com/vpcconsole/home?region=eu-central-1#NatGatewayDetails:natGatewayId=nat-0a2bfbfedf38f8e87",
+    "created_at": "2025-03-09T08:42:50.000Z",
+    "details": {
+      "vpc_id": "vpc-024ad8e38de878432"
+    },
+    "id": "nat-0a2bfbfedf38f8e87",
+    "kind": "nat_gateway",
+    "name": "nat-0a2bfbfedf38f8e87",
+    "name_present": false,
+    "project_present": false,
+    "region": "eu-central-1",
+    "service": "VPC",
+    "state": "available",
+    "tag_count": 3,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name"
+    ],
+    "tag_status": "missing_project",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGateway",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:eu-central-1:108782052779:stack/pcluster-vpc-stack-1c/6ecb58d0-fcc2-11ef-9f3b-02eaee40b12f",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-1c"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": true,
+    "console_url": "https://ap-south-1.console.aws.amazon.com/vpcconsole/home?region=ap-south-1#NatGatewayDetails:natGatewayId=nat-05f85018216cac061",
+    "created_at": "2026-02-11T09:49:46.000Z",
+    "details": {
+      "vpc_id": "vpc-00d723e354a9fad43"
+    },
+    "id": "nat-05f85018216cac061",
+    "kind": "nat_gateway",
+    "name": "nat-05f85018216cac061",
+    "name_present": false,
+    "project_present": false,
+    "region": "ap-south-1",
+    "service": "VPC",
+    "state": "available",
+    "tag_count": 3,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name"
+    ],
+    "tag_status": "missing_project",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGateway",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:ap-south-1:108782052779:stack/pcluster-vpc-stack-1c/f2fd90b0-072e-11f1-9298-02a68a59f20b",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-1c"
+    }
+  },
+  {
+    "arn": "",
+    "cluster_or_stack_present": true,
+    "console_url": "https://ap-south-1.console.aws.amazon.com/vpcconsole/home?region=ap-south-1#NatGatewayDetails:natGatewayId=nat-01dc061291fc51e75",
+    "created_at": "2025-03-09T08:43:03.000Z",
+    "details": {
+      "vpc_id": "vpc-0bc1f7673947631f5"
+    },
+    "id": "nat-01dc061291fc51e75",
+    "kind": "nat_gateway",
+    "name": "nat-01dc061291fc51e75",
+    "name_present": false,
+    "project_present": false,
+    "region": "ap-south-1",
+    "service": "VPC",
+    "state": "available",
+    "tag_count": 3,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name"
+    ],
+    "tag_status": "missing_project",
+    "tags": {
+      "aws:cloudformation:logical-id": "NatGateway",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:ap-south-1:108782052779:stack/pcluster-vpc-stack-1a/769891e0-fcc2-11ef-9a8e-0ad1d3b859f3",
+      "aws:cloudformation:stack-name": "pcluster-vpc-stack-1a"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::aquarium-tfstate-dev",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/aquarium-tfstate-dev?region=us-west-2&bucketType=general",
+    "created_at": "2026-04-27T16:20:00.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-04-27T16:20:00.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "aquarium-tfstate-dev",
+    "kind": "s3_bucket",
+    "name": "aquarium-tfstate-dev",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::aquarium-tfstate-prod",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/aquarium-tfstate-prod?region=us-west-2&bucketType=general",
+    "created_at": "2026-04-27T16:20:38.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-04-27T16:20:38.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "aquarium-tfstate-prod",
+    "kind": "s3_bucket",
+    "name": "aquarium-tfstate-prod",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::asterism-note-screenshots-dev",
+    "cluster_or_stack_present": true,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/asterism-note-screenshots-dev?region=us-west-2&bucketType=general",
+    "created_at": "2026-01-30T14:35:58.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-01-30T14:35:58.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "asterism-note-screenshots-dev",
+    "kind": "s3_bucket",
+    "name": "asterism-note-screenshots-dev",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 7,
+    "tag_keys": [
+      "Environment",
+      "ManagedBy",
+      "Project",
+      "aws-cdk:auto-delete-objects",
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name"
+    ],
+    "tag_status": "missing_name",
+    "tags": {
+      "Environment": "dev",
+      "ManagedBy": "cdk",
+      "Project": "asterism",
+      "aws-cdk:auto-delete-objects": "true",
+      "aws:cloudformation:logical-id": "ScreenshotBucketFF8D3867",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/Asterism-Storage-dev/f7067180-fde8-11f0-9a7f-0292663bc4bf",
+      "aws:cloudformation:stack-name": "Asterism-Storage-dev"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp",
+    "cluster_or_stack_present": true,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp?region=us-east-1&bucketType=general",
+    "created_at": "2026-03-08T08:34:16.000Z",
+    "details": {
+      "bucket_region": "us-east-1",
+      "created_at": "2026-03-08T08:34:16.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp",
+    "kind": "s3_bucket",
+    "name": "aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-east-1",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 4,
+    "tag_keys": [
+      "ManagedStackSource",
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name"
+    ],
+    "tag_status": "missing_project",
+    "tags": {
+      "ManagedStackSource": "AwsSamCli",
+      "aws:cloudformation:logical-id": "SamCliSourceBucket",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/aws-sam-cli-managed-default/8b3dd530-1ac9-11f1-b879-12196f819c81",
+      "aws:cloudformation:stack-name": "aws-sam-cli-managed-default"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::cdk-hnb659fds-assets-108782052779-us-east-1",
+    "cluster_or_stack_present": true,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/cdk-hnb659fds-assets-108782052779-us-east-1?region=us-east-1&bucketType=general",
+    "created_at": "2026-01-30T21:24:29.000Z",
+    "details": {
+      "bucket_region": "us-east-1",
+      "created_at": "2026-01-30T21:24:29.000Z",
+      "lifecycle_rules": 2
+    },
+    "id": "cdk-hnb659fds-assets-108782052779-us-east-1",
+    "kind": "s3_bucket",
+    "name": "cdk-hnb659fds-assets-108782052779-us-east-1",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-east-1",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 3,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name"
+    ],
+    "tag_status": "missing_project",
+    "tags": {
+      "aws:cloudformation:logical-id": "StagingBucket",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-east-1:108782052779:stack/CDKToolkit/07fd2860-fe22-11f0-801d-0e746ff49753",
+      "aws:cloudformation:stack-name": "CDKToolkit"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::cdk-hnb659fds-assets-108782052779-us-west-2",
+    "cluster_or_stack_present": true,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/cdk-hnb659fds-assets-108782052779-us-west-2?region=us-west-2&bucketType=general",
+    "created_at": "2026-01-30T14:34:52.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-01-30T14:34:52.000Z",
+      "lifecycle_rules": 2
+    },
+    "id": "cdk-hnb659fds-assets-108782052779-us-west-2",
+    "kind": "s3_bucket",
+    "name": "cdk-hnb659fds-assets-108782052779-us-west-2",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 3,
+    "tag_keys": [
+      "aws:cloudformation:logical-id",
+      "aws:cloudformation:stack-id",
+      "aws:cloudformation:stack-name"
+    ],
+    "tag_status": "missing_project",
+    "tags": {
+      "aws:cloudformation:logical-id": "StagingBucket",
+      "aws:cloudformation:stack-id": "arn:aws:cloudformation:us-west-2:108782052779:stack/CDKToolkit/cf6ca810-fde8-11f0-8dfc-02fdeda563e9",
+      "aws:cloudformation:stack-name": "CDKToolkit"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::cf-templates-pfrobpqqun1c-us-east-2",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/cf-templates-pfrobpqqun1c-us-east-2?region=us-east-2&bucketType=general",
+    "created_at": "2026-02-05T19:06:57.000Z",
+    "details": {
+      "bucket_region": "us-east-2",
+      "created_at": "2026-02-05T19:06:57.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "cf-templates-pfrobpqqun1c-us-east-2",
+    "kind": "s3_bucket",
+    "name": "cf-templates-pfrobpqqun1c-us-east-2",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-east-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::daylily-customer-lsmc-a0477268",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/daylily-customer-lsmc-a0477268?region=us-west-2&bucketType=general",
+    "created_at": "2026-04-15T08:09:10.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-04-15T08:09:10.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "daylily-customer-lsmc-a0477268",
+    "kind": "s3_bucket",
+    "name": "daylily-customer-lsmc-a0477268",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 3,
+    "tag_keys": [
+      "CostCenter",
+      "Customer",
+      "ManagedBy"
+    ],
+    "tag_status": "other_tags_only",
+    "tags": {
+      "CostCenter": "GENa",
+      "Customer": "lsmc-a0477268",
+      "ManagedBy": "daylily-ursa"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-atlas-demo",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-atlas-demo?region=us-west-2&bucketType=general",
+    "created_at": "2026-04-09T06:18:48.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-04-09T06:18:48.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-atlas-demo",
+    "kind": "s3_bucket",
+    "name": "lsmc-atlas-demo",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-atlas-dev",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-atlas-dev?region=us-west-2&bucketType=general",
+    "created_at": "2026-02-27T00:56:38.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-02-27T00:56:38.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-atlas-dev",
+    "kind": "s3_bucket",
+    "name": "lsmc-atlas-dev",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-copy-ultimagen-lsmc-cro-316",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-copy-ultimagen-lsmc-cro-316?region=us-west-2&bucketType=general",
+    "created_at": "2025-03-04T23:09:21.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2025-03-04T23:09:21.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-copy-ultimagen-lsmc-cro-316",
+    "kind": "s3_bucket",
+    "name": "lsmc-copy-ultimagen-lsmc-cro-316",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 1,
+    "tag_keys": [
+      "lsmc-project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "lsmc-project": "ultima-wgs"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-dayoa-omics-analysis-ap-south-1",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-dayoa-omics-analysis-ap-south-1?region=ap-south-1&bucketType=general",
+    "created_at": "2025-02-19T06:19:24.000Z",
+    "details": {
+      "bucket_region": "ap-south-1",
+      "created_at": "2025-02-19T06:19:24.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-dayoa-omics-analysis-ap-south-1",
+    "kind": "s3_bucket",
+    "name": "lsmc-dayoa-omics-analysis-ap-south-1",
+    "name_present": false,
+    "project_present": false,
+    "region": "ap-south-1",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-dayoa-omics-analysis-eu-central-1",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-dayoa-omics-analysis-eu-central-1?region=eu-central-1&bucketType=general",
+    "created_at": "2025-02-19T06:19:47.000Z",
+    "details": {
+      "bucket_region": "eu-central-1",
+      "created_at": "2025-02-19T06:19:47.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-dayoa-omics-analysis-eu-central-1",
+    "kind": "s3_bucket",
+    "name": "lsmc-dayoa-omics-analysis-eu-central-1",
+    "name_present": false,
+    "project_present": false,
+    "region": "eu-central-1",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-dayoa-omics-analysis-us-west-2",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-dayoa-omics-analysis-us-west-2?region=us-west-2&bucketType=general",
+    "created_at": "2025-02-19T06:18:41.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2025-02-19T06:18:41.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-dayoa-omics-analysis-us-west-2",
+    "kind": "s3_bucket",
+    "name": "lsmc-dayoa-omics-analysis-us-west-2",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-dewey-0",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-dewey-0?region=us-west-2&bucketType=general",
+    "created_at": "2025-05-09T04:43:12.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2025-05-09T04:43:12.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-dewey-0",
+    "kind": "s3_bucket",
+    "name": "lsmc-dewey-0",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-healthomics-failiover",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-healthomics-failiover?region=us-west-2&bucketType=general",
+    "created_at": "2025-06-23T19:37:01.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2025-06-23T19:37:01.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-healthomics-failiover",
+    "kind": "s3_bucket",
+    "name": "lsmc-healthomics-failiover",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-healthomics-results",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-healthomics-results?region=us-west-2&bucketType=general",
+    "created_at": "2025-06-23T19:52:27.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2025-06-23T19:52:27.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-healthomics-results",
+    "kind": "s3_bucket",
+    "name": "lsmc-healthomics-results",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-illumina-public-data",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-illumina-public-data?region=us-west-2&bucketType=general",
+    "created_at": "2025-05-06T03:15:27.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2025-05-06T03:15:27.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-illumina-public-data",
+    "kind": "s3_bucket",
+    "name": "lsmc-illumina-public-data",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-meridian-governance-registry",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-meridian-governance-registry?region=us-west-2&bucketType=general",
+    "created_at": "2026-04-01T07:40:43.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-04-01T07:40:43.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-meridian-governance-registry",
+    "kind": "s3_bucket",
+    "name": "lsmc-meridian-governance-registry",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-public-ont-data",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-public-ont-data?region=us-west-2&bucketType=general",
+    "created_at": "2025-03-13T06:58:23.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2025-03-13T06:58:23.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-public-ont-data",
+    "kind": "s3_bucket",
+    "name": "lsmc-public-ont-data",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-ssf-sequencing-data",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-ssf-sequencing-data?region=us-west-2&bucketType=general",
+    "created_at": "2026-04-04T02:22:03.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-04-04T02:22:03.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-ssf-sequencing-data",
+    "kind": "s3_bucket",
+    "name": "lsmc-ssf-sequencing-data",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-terraform-state",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-terraform-state?region=us-west-2&bucketType=general",
+    "created_at": "2026-03-06T01:35:36.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-03-06T01:35:36.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-terraform-state",
+    "kind": "s3_bucket",
+    "name": "lsmc-terraform-state",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 1,
+    "tag_keys": [
+      "ManagedBy"
+    ],
+    "tag_status": "other_tags_only",
+    "tags": {
+      "ManagedBy": "terraform"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::lsmc-ursa-customers-usw2",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/lsmc-ursa-customers-usw2?region=us-west-2&bucketType=general",
+    "created_at": "2026-01-10T17:17:02.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-01-10T17:17:02.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "lsmc-ursa-customers-usw2",
+    "kind": "s3_bucket",
+    "name": "lsmc-ursa-customers-usw2",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::parallelcluster-4da281c1dc024f1c-v1-do-not-delete",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/parallelcluster-4da281c1dc024f1c-v1-do-not-delete?region=us-west-2&bucketType=general",
+    "created_at": "2025-02-19T07:13:14.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2025-02-19T07:13:14.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "parallelcluster-4da281c1dc024f1c-v1-do-not-delete",
+    "kind": "s3_bucket",
+    "name": "parallelcluster-4da281c1dc024f1c-v1-do-not-delete",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::parallelcluster-730cb6d53cf2deec-v1-do-not-delete",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/parallelcluster-730cb6d53cf2deec-v1-do-not-delete?region=eu-central-1&bucketType=general",
+    "created_at": "2025-03-09T08:48:09.000Z",
+    "details": {
+      "bucket_region": "eu-central-1",
+      "created_at": "2025-03-09T08:48:09.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "parallelcluster-730cb6d53cf2deec-v1-do-not-delete",
+    "kind": "s3_bucket",
+    "name": "parallelcluster-730cb6d53cf2deec-v1-do-not-delete",
+    "name_present": false,
+    "project_present": false,
+    "region": "eu-central-1",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::parallelcluster-e781c59d26140bab-v1-do-not-delete",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/parallelcluster-e781c59d26140bab-v1-do-not-delete?region=ap-south-1&bucketType=general",
+    "created_at": "2025-03-09T08:47:59.000Z",
+    "details": {
+      "bucket_region": "ap-south-1",
+      "created_at": "2025-03-09T08:47:59.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "parallelcluster-e781c59d26140bab-v1-do-not-delete",
+    "kind": "s3_bucket",
+    "name": "parallelcluster-e781c59d26140bab-v1-do-not-delete",
+    "name_present": false,
+    "project_present": false,
+    "region": "ap-south-1",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::terrarium-dev-media",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/terrarium-dev-media?region=us-west-2&bucketType=general",
+    "created_at": "2026-02-27T20:07:21.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-02-27T20:07:21.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "terrarium-dev-media",
+    "kind": "s3_bucket",
+    "name": "terrarium-dev-media",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::terrarium-dev-web",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/terrarium-dev-web?region=us-west-2&bucketType=general",
+    "created_at": "2026-02-05T04:44:54.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-02-05T04:44:54.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "terrarium-dev-web",
+    "kind": "s3_bucket",
+    "name": "terrarium-dev-web",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "dev",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::terrarium-prod-media",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/terrarium-prod-media?region=us-west-2&bucketType=general",
+    "created_at": "2026-03-04T05:53:21.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-03-04T05:53:21.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "terrarium-prod-media",
+    "kind": "s3_bucket",
+    "name": "terrarium-prod-media",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "prod",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::terrarium-prod-web",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/terrarium-prod-web?region=us-west-2&bucketType=general",
+    "created_at": "2026-02-11T18:11:32.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-02-11T18:11:32.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "terrarium-prod-web",
+    "kind": "s3_bucket",
+    "name": "terrarium-prod-web",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "Environment",
+      "Project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "Environment": "prod",
+      "Project": "terrarium"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::terrarium-tfstate-dev",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/terrarium-tfstate-dev?region=us-west-2&bucketType=general",
+    "created_at": "2026-02-06T05:57:17.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-02-06T05:57:17.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "terrarium-tfstate-dev",
+    "kind": "s3_bucket",
+    "name": "terrarium-tfstate-dev",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::terrarium-tfstate-prod",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/terrarium-tfstate-prod?region=us-west-2&bucketType=general",
+    "created_at": "2026-02-11T05:43:55.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-02-11T05:43:55.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "terrarium-tfstate-prod",
+    "kind": "s3_bucket",
+    "name": "terrarium-tfstate-prod",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 0,
+    "tag_keys": [],
+    "tag_status": "completely_untagged",
+    "tags": {}
+  },
+  {
+    "arn": "arn:aws:s3:::ursa-us-west-2-052779-default-customer-1d8c14",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/ursa-us-west-2-052779-default-customer-1d8c14?region=us-west-2&bucketType=general",
+    "created_at": "2026-03-09T10:54:26.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-03-09T10:54:26.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "ursa-us-west-2-052779-default-customer-1d8c14",
+    "kind": "s3_bucket",
+    "name": "ursa-us-west-2-052779-default-customer-1d8c14",
+    "name_present": false,
+    "project_present": false,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "ManagedBy",
+      "ProvisionedBy"
+    ],
+    "tag_status": "other_tags_only",
+    "tags": {
+      "ManagedBy": "Ursa",
+      "ProvisionedBy": "PortalOnboarding"
+    }
+  },
+  {
+    "arn": "arn:aws:s3:::zebra-day-cfg-us-west-2",
+    "cluster_or_stack_present": false,
+    "console_url": "https://s3.console.aws.amazon.com/s3/buckets/zebra-day-cfg-us-west-2?region=us-west-2&bucketType=general",
+    "created_at": "2026-02-06T11:16:45.000Z",
+    "details": {
+      "bucket_region": "us-west-2",
+      "created_at": "2026-02-06T11:16:45.000Z",
+      "lifecycle_rules": 0
+    },
+    "id": "zebra-day-cfg-us-west-2",
+    "kind": "s3_bucket",
+    "name": "zebra-day-cfg-us-west-2",
+    "name_present": false,
+    "project_present": true,
+    "region": "us-west-2",
+    "service": "S3",
+    "state": "ACTIVE",
+    "tag_count": 2,
+    "tag_keys": [
+      "lsmc-cost-center",
+      "lsmc-project"
+    ],
+    "tag_status": "missing_cluster_or_stack",
+    "tags": {
+      "lsmc-cost-center": "global",
+      "lsmc-project": "zebra-day+us-west-2"
+    }
+  }
+]

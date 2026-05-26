@@ -1,0 +1,267 @@
+[
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket aquarium-tfstate-dev",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket aquarium-tfstate-dev",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket aquarium-tfstate-prod",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket aquarium-tfstate-prod",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket asterism-note-screenshots-dev",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket aws-sam-cli-managed-default-samclisourcebucket-wyvracmmocbp",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-east-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket cf-templates-pfrobpqqun1c-us-east-2",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-east-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket cf-templates-pfrobpqqun1c-us-east-2",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-east-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket daylily-customer-lsmc-a0477268",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-atlas-demo",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-atlas-demo",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-atlas-dev",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-atlas-dev",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-copy-ultimagen-lsmc-cro-316",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-omics-analysis-ap-south-1",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-omics-analysis-ap-south-1",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-omics-analysis-eu-central-1",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-omics-analysis-eu-central-1",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dayoa-omics-analysis-us-west-2",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dayoa-omics-analysis-us-west-2",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-dewey-0",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-dewey-0",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-healthomics-failiover",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-healthomics-failiover",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-healthomics-results",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-healthomics-results",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-illumina-public-data",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-illumina-public-data",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-meridian-governance-registry",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-meridian-governance-registry",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-public-ont-data",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-public-ont-data",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-ssf-sequencing-data",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-ssf-sequencing-data",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-terraform-state",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket lsmc-ursa-customers-usw2",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket lsmc-ursa-customers-usw2",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-4da281c1dc024f1c-v1-do-not-delete",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-730cb6d53cf2deec-v1-do-not-delete",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "eu-central-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket parallelcluster-e781c59d26140bab-v1-do-not-delete",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "ap-south-1"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-dev-media",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-dev-web",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-prod-media",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-prod-web",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-tfstate-dev",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-tfstate-dev",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-tagging --bucket terrarium-tfstate-prod",
+    "error": "An error occurred (NoSuchTagSet) when calling the GetBucketTagging operation: The TagSet does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket terrarium-tfstate-prod",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket ursa-us-west-2-052779-default-customer-1d8c14",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  },
+  {
+    "cmd": "aws s3api get-bucket-lifecycle-configuration --bucket zebra-day-cfg-us-west-2",
+    "error": "An error occurred (NoSuchLifecycleConfiguration) when calling the GetBucketLifecycleConfiguration operation: The lifecycle configuration does not exist",
+    "region": "us-west-2"
+  }
+]

@@ -25,15 +25,15 @@ resolve_daylily_res_dir() {
         echo "${DAYLILY_EC_RESOURCES_DIR}"
         return 0
     fi
-    if command -v daylily-ec >/dev/null 2>&1; then
-        daylily-ec resources-dir
-        return 0
-    fi
     local script_dir repo_root
     script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
     repo_root="$(cd "${script_dir}/.." && pwd)"
     if [[ -d "${repo_root}/config" && -d "${repo_root}/bin" ]]; then
         echo "${repo_root}"
+        return 0
+    fi
+    if command -v daylily-ec >/dev/null 2>&1; then
+        daylily-ec resources-dir
         return 0
     fi
     echo "Error: could not resolve Daylily resources dir. Set DAYLILY_EC_RESOURCES_DIR or install daylily-ephemeral-cluster." >&2
@@ -162,19 +162,20 @@ write_login_bootstrap "$BOOTSTRAP_FILE"
 install_managed_login_block "$HOME/.bashrc" "$BOOTSTRAP_FILE"
 install_managed_login_block "$HOME/.bash_profile" "$BOOTSTRAP_FILE"
 
-reference_bucket="$(grep -m1 -oE 's3://[^[:space:]]+' "$CLUSTER_CONFIG_PATH" | sed -E 's#^s3://([^/]+).*$#\1#')"
-if [[ -z "$reference_bucket" ]]; then
-    echo "Error: could not determine reference bucket from $CLUSTER_CONFIG_PATH" >&2
+reference_storage_bucket_name="$(grep -m1 -oE 's3://[^[:space:]]+' "$CLUSTER_CONFIG_PATH" | sed -E 's#^s3://([^/]+).*$#\1#')"
+if [[ -z "$reference_storage_bucket_name" ]]; then
+    echo "Error: could not determine reference storage from $CLUSTER_CONFIG_PATH" >&2
     exit 1
 fi
-python3 - "$REPO_ROOT/etc/analysis_samples_template.tsv" "$reference_bucket" <<'PY'
+reference_s3_uri="s3://${reference_storage_bucket_name}"
+python3 - "$REPO_ROOT/etc/analysis_samples_template.tsv" "$reference_s3_uri" <<'PY'
 from pathlib import Path
 import sys
 
 path = Path(sys.argv[1])
-bucket = sys.argv[2]
+reference_s3_uri = sys.argv[2]
 text = path.read_text(encoding="utf-8")
-path.write_text(text.replace("<REF-BUCKET-NAME>", bucket), encoding="utf-8")
+path.write_text(text.replace("<REF-S3-URI>", reference_s3_uri), encoding="utf-8")
 PY
 
 source "$BOOTSTRAP_FILE"

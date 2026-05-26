@@ -1,0 +1,11 @@
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+
+╭─────────────────────────────── Export failed ────────────────────────────────╮
+│                                                                              │
+│  S3 destination prefix is not empty:                                         │
+│  s3://lsmc-dayoa-omics-analysis-us-west-2/analysis_results/ubuntu/run_qc_on  │
+│  t_all/                                                                      │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯

@@ -6,7 +6,7 @@ Error: daylily-stage-analysis-samples-local-experimental has been retired.
 
 Supported replacements:
   1. Laptop-side staging without PEMs:
-     bin/daylily-stage-samples-from-local-to-headnode --profile <profile> --region <region> --reference-bucket s3://<bucket> <analysis_samples.tsv>
+     bin/daylily-stage-samples-from-local-to-headnode --profile <profile> --region <region> --reference-s3-uri s3://references --control-data-s3-uri s3://control-data --stage-s3-uri s3://staging <analysis_samples.tsv>
   2. Headnode-side staging after connecting through SSM:
      bin/daylily-ssh-into-headnode --profile <profile> --region <region> --cluster <cluster>
      cd ~/projects/daylily-ephemeral-cluster

@@ -16,6 +16,8 @@ from daylily_ec.aws.ssm import (
     run_shell,
     wait_for_ssm_online,
 )
+from daylily_ec.analysis_identity import analysis_source_path, validate_analysis_segment
+from daylily_ec.headnode_readiness import validate_headnode_readiness
 from daylily_ec.scripts.common import CommandError, need_cmd, resolve_cluster, resolve_region
 
 
@@ -209,18 +211,22 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--stage-base",
-        default="/fsx/staged_sample_data",
+        default="/fsx/staging/staged_external_sequencing_data",
         help="Base staging directory to scan when --stage-dir is omitted",
     )
     parser.add_argument(
         "--session-name",
-        default="daylily-omics-analysis",
-        help="Name of the tmux session to create on the head node",
+        help="Name of the tmux session to create on the head node. Defaults to --analysis-id.",
     )
     parser.add_argument(
-        "--destination",
+        "--analysis-id",
         required=True,
-        help="Workspace destination passed to day-clone",
+        help="Analysis identifier passed to day-clone -d and used under /fsx/analysis_results.",
+    )
+    parser.add_argument(
+        "--executing-entity",
+        required=True,
+        help="User or system identifier used under /fsx/analysis_results.",
     )
     parser.add_argument(
         "--repository",
@@ -260,6 +266,21 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Disable DAY_CONTAINERIZED (enabled by default)",
     )
+    parser.add_argument(
+        "--export-destination-s3-uri",
+        help="Full S3 prefix ending in <executing-entity>/<analysis-id>/ for auto-export",
+    )
+    parser.add_argument(
+        "--export-trigger",
+        choices=("none", "on-success", "on-fail", "all"),
+        default="none",
+        help="Auto-export trigger after the workflow exits",
+    )
+    parser.add_argument(
+        "--delete-on-export-success",
+        action="store_true",
+        help="Delete the FSx analysis directory after a successful requested export",
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.set_defaults(skip_project_check=True)
     return parser
@@ -271,13 +292,55 @@ def main(argv: Optional[List[str]] = None) -> int:
     if not args.profile:
         raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
 
+    analysis_id = validate_analysis_segment(args.analysis_id, field_name="analysis_id")
+    executing_entity = validate_analysis_segment(
+        args.executing_entity,
+        field_name="executing_entity",
+    )
+    source_path = analysis_source_path(
+        executing_entity=executing_entity,
+        analysis_id=analysis_id,
+        headnode=True,
+    )
+    if not args.session_name:
+        args.session_name = analysis_id
+    if args.export_destination_s3_uri and args.export_trigger == "none":
+        raise CommandError("--export-trigger must not be none when auto-export is requested.")
+    if args.export_trigger != "none" and not args.export_destination_s3_uri:
+        raise CommandError("--export-destination-s3-uri is required when --export-trigger is set.")
+    if args.delete_on_export_success and not args.export_destination_s3_uri:
+        raise CommandError("--delete-on-export-success requires --export-destination-s3-uri.")
+
     need_cmd("aws")
     need_cmd("pcluster")
 
     region = resolve_region(args.profile, args.region)
     cluster_name = resolve_cluster(args.profile, region, args.cluster)
+    if args.export_destination_s3_uri:
+        from daylily_ec.workflow.export_data import (
+            _create_session,
+            validate_export_destination_s3_uri,
+            validate_s3_destination_prefix_empty,
+        )
+
+        validate_export_destination_s3_uri(
+            args.export_destination_s3_uri,
+            source_path=source_path,
+        )
+        validate_s3_destination_prefix_empty(
+            _create_session(region, args.profile).client("s3"),
+            args.export_destination_s3_uri,
+            source_path=source_path,
+        )
     target = resolve_headnode_instance_id(cluster_name, region, profile=args.profile)
     wait_for_ssm_online(target.instance_id, region, profile=args.profile, timeout=120)
+    validate_headnode_readiness(
+        target.instance_id,
+        region,
+        profile=args.profile,
+        timeout=120,
+        comment="Validate DAY-EC headnode readiness before workflow launch",
+    )
 
     run_context_content: Optional[str] = None
     if args.run_context_file:
@@ -320,6 +383,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     run_context_mode = run_context_content is not None
     run_context_mode_literal = "true" if run_context_mode else "false"
     run_context_payload = shlex.quote(run_context_content or "")
+    export_destination_literal = shlex.quote(args.export_destination_s3_uri or "")
+    delete_on_export_success = "true" if args.delete_on_export_success else "false"
     if stage_config is None:
         stage_samples_path = ""
         stage_units_path = ""
@@ -350,6 +415,8 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
   exit 6
 	fi
 	SESSION_NAME={shlex.quote(args.session_name)}
+	ANALYSIS_ID={shlex.quote(analysis_id)}
+	EXECUTING_ENTITY={shlex.quote(executing_entity)}
 	RUN_CONTEXT_MODE={run_context_mode_literal}
 	RUN_CONTEXT_PAYLOAD={run_context_payload}
 	STAGE_SAMPLES={shlex.quote(stage_samples_path)}
@@ -357,6 +424,9 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	PROJECT_VALUE={project_arg if project_arg else ""}
 	SKIP_PROJECT_CHECK={skip_check}
 	DY_COMMAND={dy_command_literal}
+	EXPORT_DESTINATION_S3_URI={export_destination_literal}
+	EXPORT_TRIGGER={shlex.quote(args.export_trigger)}
+	DELETE_ON_EXPORT_SUCCESS={delete_on_export_success}
 STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
 TMUX_LOG="${{DAYLILY_TMUX_LOG}}"
 
@@ -379,7 +449,8 @@ clone_root="$(dirname "${{DAYLILY_REPO_PATH}}")"
 repo_path="${{DAYLILY_REPO_PATH}}"
 mkdir -p "$(dirname "$clone_root")"
 day-clone \
-  --destination {shlex.quote(args.destination)} \
+  --destination "$ANALYSIS_ID" \
+  --executing-entity "$EXECUTING_ENTITY" \
   --repository {shlex.quote(args.repository)} \
   --git-tag {shlex.quote(args.git_tag)}
 	cd "$repo_path"
@@ -424,6 +495,38 @@ set +e
 eval "$DY_COMMAND"
 workflow_status=$?
 set -e
+should_export=false
+case "$EXPORT_TRIGGER" in
+  none) should_export=false ;;
+  on-success) [[ "$workflow_status" -eq 0 ]] && should_export=true ;;
+  on-fail) [[ "$workflow_status" -ne 0 ]] && should_export=true ;;
+  all) should_export=true ;;
+  *) echo "[ERROR] Invalid EXPORT_TRIGGER=$EXPORT_TRIGGER"; workflow_status=20 ;;
+esac
+if [[ "$should_export" == "true" ]]; then
+  if [[ -z "$EXPORT_DESTINATION_S3_URI" ]]; then
+    echo "[ERROR] Export requested but EXPORT_DESTINATION_S3_URI is empty"
+    workflow_status=21
+  else
+    mkdir -p "$DAYLILY_RUN_DIR/export"
+    set +e
+    env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export \
+      --region {shlex.quote(region)} \
+      --cluster {shlex.quote(cluster_name)} \
+      --source-path "$clone_root" \
+      --destination-s3-uri "$EXPORT_DESTINATION_S3_URI" \
+      --output-dir "$DAYLILY_RUN_DIR/export"
+    export_status=$?
+    set -e
+    if [[ "$export_status" -ne 0 ]]; then
+      echo "[ERROR] Export failed with status $export_status"
+      workflow_status="$export_status"
+    elif [[ "$DELETE_ON_EXPORT_SUCCESS" == "true" ]]; then
+      rm -rf -- "$clone_root"
+      echo "[INFO] Deleted FSx analysis directory after successful export: $clone_root"
+    fi
+  fi
+fi
 export DAYLILY_STATUS_FINALIZED=1
 export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
 export DAYLILY_STATUS_EXIT_CODE="$workflow_status"
@@ -435,7 +538,8 @@ exec bash -il
     tmux_script = f"""
 set -euo pipefail
 SESSION_NAME={shlex.quote(args.session_name)}
-DESTINATION={shlex.quote(args.destination)}
+ANALYSIS_ID={shlex.quote(analysis_id)}
+EXECUTING_ENTITY={shlex.quote(executing_entity)}
 REPO_KEY={shlex.quote(args.repository)}
 analysis_root=$(python3 - <<'PYCONFIG'
 from pathlib import Path
@@ -472,16 +576,21 @@ PYREPOS
 )
 analysis_root=${{analysis_root%/}}
 run_dir="/home/ubuntu/daylily-runs/$SESSION_NAME"
-repo_path="$analysis_root/$(whoami)/$DESTINATION/$repo_relative"
+clone_root="$analysis_root/$EXECUTING_ENTITY/$ANALYSIS_ID"
+repo_path="$clone_root/$repo_relative"
 work_script="$run_dir/launch.sh"
 tmux_log="$run_dir/tmux.log"
 bootstrap_log="$run_dir/tmux-bootstrap.log"
 mkdir -p "$run_dir"
 : >"$tmux_log"
+if [[ -e "$clone_root" ]]; then
+  echo "__DAYLILY_ERROR__=analysis_dir_exists"
+  exit 8
+fi
 export DAYLILY_RUN_DIR="$run_dir"
 export DAYLILY_REPO_PATH="$repo_path"
 export DAYLILY_TMUX_LOG="$tmux_log"
-if tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+if tmux has-session -t "=$SESSION_NAME" 2>/dev/null; then
   echo "__DAYLILY_ERROR__=session_exists"
   exit 8
 fi
@@ -495,7 +604,7 @@ nohup tmux new-session -d -s "$SESSION_NAME" \
   -e "DAYLILY_TMUX_LOG=$tmux_log" \
   "bash -lc 'source \"$work_script\" >>\"$tmux_log\" 2>&1'" >"$bootstrap_log" 2>&1 &
 sleep 2
-if ! tmux has-session -t "$SESSION_NAME" 2>/dev/null; then
+if ! tmux has-session -t "=$SESSION_NAME" 2>/dev/null; then
   if [[ -s "$bootstrap_log" ]]; then
     cat "$bootstrap_log" >&2
   fi

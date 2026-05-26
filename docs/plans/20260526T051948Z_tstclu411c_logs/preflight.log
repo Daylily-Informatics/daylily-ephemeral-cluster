@@ -1,0 +1,14 @@
+→ Running preflight for us-west-2d ...
+  ✓ iam.policy.global
+  ✓ iam.policy.regional
+  ✓ iam.pcluster_omics_policy
+  ✓ config.repository_catalog
+  ✓ quota.ondemand_vcpu
+  ✓ quota.spot_vcpu
+  ✓ quota.vpcs
+  ✓ quota.elastic_ips
+  ✓ quota.nat_gateways
+  ✓ quota.internet_gateways
+  ✓ s3.bucket_select
+  ✓ s3.bucket_verify
+  ✓ Preflight passed — 12 checks OK

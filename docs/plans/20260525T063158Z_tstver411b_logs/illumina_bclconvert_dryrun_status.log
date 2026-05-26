@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv -n",
+  "completed_at": "2026-05-25T08:51:13Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/johnm/tvb_illumina_bclconvert_1021_dryrun/daylily-omics-analysis",
+  "session_name": "tvb_illumina_bclconvert_1021_dryrun",
+  "started_at": "2026-05-25T08:50:53Z"
+}

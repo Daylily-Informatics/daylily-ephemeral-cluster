@@ -96,6 +96,7 @@ ONT_FASTQ_SHARD_RE = re.compile(
     r"^(?P<flowcell_id>[^_]+)_pass_(?P<tag>barcode[0-9]+|unclassified)_"
     r"(?P<protocol_run>[^_]+)_(?P<acquisition>[^_]+)_(?P<shard_index>[0-9]+)\.fastq\.gz$"
 )
+EMPTY_PATH_TOKENS = {"", "na", "none", "null"}
 
 KEY_FIELDS = [
     RUN_ID,
@@ -416,7 +417,21 @@ class RunMetricFile:
     destination_relative_path: str
 
 
+@dataclass(frozen=True)
+class S3RoleUris:
+    reference_s3_uri: str
+    control_data_s3_uri: str = ""
+    stage_s3_uri: str = ""
+
+
 GIAB_TRUTH_SUFFIXES = (".bed", ".vcf.gz", ".vcf.gz.tbi")
+ACTIVE_EXTERNAL_STAGE_ROOT = "/fsx/staging/staged_external_sequencing_data"
+RETIRED_STAGE_ROOTS = (
+    "/fsx/staging/staged_sample_data",
+    "/fsx/staging/staged",
+    "/fsx/staged_sample_data",
+    "/fsx/staged",
+)
 
 
 def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
@@ -426,13 +441,26 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     parser.add_argument("analysis_samples", help="Path to analysis_samples.tsv")
     parser.add_argument(
         "--stage-target",
-        default="/data/staged_sample_data",
+        default=ACTIVE_EXTERNAL_STAGE_ROOT,
         help="FSx staging base directory (default: %(default)s)",
     )
     parser.add_argument(
-        "--reference-bucket",
+        "--reference-s3-uri",
         required=True,
-        help="S3 URI (s3://bucket[/prefix]) mapped to the FSx data repository",
+        help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/references",
+    )
+    parser.add_argument(
+        "--control-data-s3-uri",
+        required=True,
+        help="S3 URI (s3://bucket[/prefix]) mapped to /fsx/control_data",
+    )
+    parser.add_argument(
+        "--stage-s3-uri",
+        required=True,
+        help=(
+            "S3 URI (s3://bucket[/prefix]) used as the exact root for external "
+            "staging remote_stage_* prefixes"
+        ),
     )
     parser.add_argument(
         "--config-dir",
@@ -447,6 +475,22 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         "--region",
         default=os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION"),
         help="AWS region to use for CLI commands (defaults to environment)",
+    )
+    parser.add_argument(
+        "--cluster",
+        "--cluster-name",
+        dest="cluster_name",
+        help="ParallelCluster name for creating the staged-prefix FSx DRA.",
+    )
+    parser.add_argument(
+        "--fsx-file-system-id",
+        help="FSx file system id for creating the staged-prefix DRA without resolving a cluster.",
+    )
+    parser.add_argument(
+        "--staging-mount-timeout-seconds",
+        type=int,
+        default=900,
+        help="Seconds to wait for the staged-prefix DRA to become available.",
     )
     parser.add_argument(
         "--debug",
@@ -490,24 +534,35 @@ def parse_s3_uri(uri: str) -> Tuple[str, str]:
 
 def normalise_stage_target(stage_target: str) -> str:
     stage_target = stage_target.strip()
-    if not stage_target.startswith("/data"):
-        raise CommandError("Stage target must be an FSx path (expected to start with /data).")
-    return stage_target.rstrip("/")
+    if stage_target == "/data" or stage_target.startswith("/data/"):
+        raise CommandError("Stage target must use /fsx/staging; /data is not supported.")
+    if stage_target == "/fsx/data" or stage_target.startswith("/fsx/data/"):
+        raise CommandError("Stage target must use /fsx/staging; /fsx/data is not supported.")
+    reject_retired_stage_path(stage_target)
+    if not (stage_target == "/fsx/staging" or stage_target.startswith("/fsx/staging/")):
+        raise CommandError("Stage target must be under /fsx/staging.")
+    stage_target = stage_target.rstrip("/")
+    if not (
+        stage_target == ACTIVE_EXTERNAL_STAGE_ROOT
+        or stage_target.startswith(f"{ACTIVE_EXTERNAL_STAGE_ROOT}/")
+    ):
+        raise CommandError(
+            f"Stage target must be under {ACTIVE_EXTERNAL_STAGE_ROOT}; "
+            "other /fsx/staging subpaths are not supported for external sequencing data."
+        )
+    return stage_target
 
 
 def build_stage_paths(stage_target: str, bucket_uri: str) -> StagePaths:
     stage_target = normalise_stage_target(stage_target)
     timestamp = dt.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
-    remote_stage_name = f"remote_stage_{timestamp}"
+    remote_stage_name = f"remote_stage_{timestamp}_{uuid.uuid4().hex[:8]}"
     remote_fsx_stage = f"{stage_target}/{remote_stage_name}"
 
     bucket, prefix = parse_s3_uri(bucket_uri.rstrip("/"))
     prefix = prefix.rstrip("/")
-    fsx_relative = stage_target.lstrip("/")
-    if prefix:
-        remote_s3_stage = f"s3://{bucket}/{prefix}/{fsx_relative}/{remote_stage_name}"
-    else:
-        remote_s3_stage = f"s3://{bucket}/{fsx_relative}/{remote_stage_name}"
+    stage_root_uri = f"s3://{bucket}/{prefix}" if prefix else f"s3://{bucket}"
+    remote_s3_stage = _join_s3_uri(stage_root_uri, remote_stage_name)
     return StagePaths(
         remote_fsx_root=stage_target,
         remote_stage_name=remote_stage_name,
@@ -516,12 +571,66 @@ def build_stage_paths(stage_target: str, bucket_uri: str) -> StagePaths:
     )
 
 
+def create_staged_prefix_mount(
+    stage: StagePaths,
+    *,
+    cluster_name: Optional[str],
+    fsx_file_system_id: Optional[str],
+    profile: Optional[str],
+    region: Optional[str],
+    timeout_seconds: int,
+):
+    """Attach only the staged remote prefix as a runtime staging DRA."""
+    if not cluster_name and not fsx_file_system_id:
+        return None
+    if not region:
+        raise CommandError("AWS region is required to create the staged-prefix DRA.")
+    if timeout_seconds <= 0:
+        raise CommandError("--staging-mount-timeout-seconds must be positive.")
+    file_system_path = stage.remote_fsx_stage.removeprefix("/fsx")
+    from daylily_ec import run_mounts
+
+    try:
+        return run_mounts.create_run_mount(
+            run_mounts.CreateRunMountRequest(
+                cluster_name=cluster_name,
+                fsx_file_system_id=fsx_file_system_id,
+                region=region,
+                profile=profile,
+                source_s3_uri=stage.remote_s3_stage,
+                mount_id=stage.remote_stage_name,
+                run_id=stage.remote_stage_name,
+                purpose=run_mounts.MOUNT_PURPOSE_STAGING,
+                platform="STAGING",
+                file_system_path=file_system_path,
+                read_only=True,
+                batch_import_metadata_on_create=True,
+                wait=True,
+                timeout_seconds=timeout_seconds,
+                tags={"daylily:staging-root": ACTIVE_EXTERNAL_STAGE_ROOT},
+            )
+        )
+    except run_mounts.RunMountError as exc:
+        raise CommandError(f"Unable to create staged-prefix FSx DRA: {exc}") from exc
+
+
 def headnode_visible_path(path: str) -> str:
-    if path == "/data":
-        return "/fsx/data"
-    if path.startswith("/data/"):
-        return f"/fsx{path}"
+    if path == "/data" or path.startswith("/data/") or path == "/fsx/data" or path.startswith("/fsx/data/"):
+        raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
+    reject_retired_stage_path(path)
     return path
+
+
+def is_retired_stage_path(path: str) -> bool:
+    return any(path == root or path.startswith(f"{root}/") for root in RETIRED_STAGE_ROOTS)
+
+
+def reject_retired_stage_path(path: str) -> None:
+    if is_retired_stage_path(path):
+        raise CommandError(
+            f"The retired staging path {path} is not supported; "
+            f"use {ACTIVE_EXTERNAL_STAGE_ROOT} for external sequencing staging."
+        )
 
 
 def is_mounted_run_dir_path(path: str) -> bool:
@@ -739,39 +848,82 @@ def read_s3_text(
 
 
 def is_headnode_visible_path(path: str) -> bool:
+    if is_retired_stage_path(path):
+        return False
     return (
-        path == "/fsx/data"
-        or path.startswith("/fsx/data/")
-        or path == "/data"
-        or path.startswith("/data/")
+        path == "/fsx/references"
+        or path.startswith("/fsx/references/")
+        or path == "/fsx/control_data"
+        or path.startswith("/fsx/control_data/")
+        or path == "/fsx/staging"
+        or path.startswith("/fsx/staging/")
         or is_mounted_run_dir_path(path)
     )
 
 
-def build_reference_uri(path: str, reference_bucket: str) -> str:
+def _coerce_s3_role_uris(reference_s3_uri: str | S3RoleUris) -> S3RoleUris:
+    if isinstance(reference_s3_uri, S3RoleUris):
+        return reference_s3_uri
+    return S3RoleUris(reference_s3_uri=str(reference_s3_uri or ""))
+
+
+def _role_relative(path: str, root: str) -> str:
+    if path == root:
+        return ""
+    return path.removeprefix(f"{root}/").lstrip("/")
+
+
+def _staging_relative(path: str) -> str:
+    normalised = path.rstrip("/")
+    if normalised == ACTIVE_EXTERNAL_STAGE_ROOT:
+        return ""
+    if normalised.startswith(f"{ACTIVE_EXTERNAL_STAGE_ROOT}/"):
+        return normalised.removeprefix(f"{ACTIVE_EXTERNAL_STAGE_ROOT}/")
+    raise CommandError(
+        f"Stage path must be under {ACTIVE_EXTERNAL_STAGE_ROOT}; "
+        "other /fsx/staging subpaths are not supported."
+    )
+
+
+def _join_s3_uri(base: str, relative: str) -> str:
+    if not base:
+        raise CommandError("Missing required S3 role bucket for path resolution.")
+    base = base.rstrip("/")
+    relative = relative.lstrip("/")
+    return f"{base}/{relative}" if relative else base
+
+
+def build_reference_uri(path: str, reference_s3_uri: str | S3RoleUris) -> str:
+    roles = _coerce_s3_role_uris(reference_s3_uri)
     if is_mounted_run_dir_path(path):
-        raise CommandError(f"Mounted run-directory paths are not reference-bucket objects: {path}")
-    if path == "/data":
-        relative = "data"
-    elif path.startswith("/data/"):
-        relative = path.lstrip("/")
-    elif path.startswith("/fsx/"):
-        relative = path[len("/fsx/") :]
-    else:
-        raise CommandError(f"Path is not in the FSx data namespace: {path}")
-    return f"{reference_bucket.rstrip('/')}/{relative.lstrip('/')}"
+        raise CommandError(f"Mounted run-directory paths are not static role-bucket objects: {path}")
+    if path == "/data" or path.startswith("/data/") or path == "/fsx/data" or path.startswith("/fsx/data/"):
+        raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
+    if path == "/fsx/runtime_assets" or path.startswith("/fsx/runtime_assets/"):
+        raise CommandError(
+            "The /fsx/runtime_assets namespace is not supported; use /fsx/references/runtime_assets."
+        )
+    reject_retired_stage_path(path)
+    if path == "/fsx/references" or path.startswith("/fsx/references/"):
+        return _join_s3_uri(roles.reference_s3_uri, _role_relative(path, "/fsx/references"))
+    if path == "/fsx/control_data" or path.startswith("/fsx/control_data/"):
+        return _join_s3_uri(roles.control_data_s3_uri, _role_relative(path, "/fsx/control_data"))
+    if path == "/fsx/staging" or path.startswith("/fsx/staging/"):
+        return _join_s3_uri(roles.stage_s3_uri, _staging_relative(path))
+    raise CommandError(f"Path is not in a DayOA FSx role namespace: {path}")
 
 
 def check_source_path(
     path: str,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
     allow_directory: bool = False,
 ) -> None:
     if not path or path.lower() == "na":
         return
+    reject_retired_stage_path(path)
     if path.startswith("s3://"):
         check_s3_path(path, aws_env=aws_env, debug=debug)
         return
@@ -780,7 +932,7 @@ def check_source_path(
         return
     if is_headnode_visible_path(path):
         check_s3_path(
-            build_reference_uri(path, reference_bucket),
+            build_reference_uri(path, reference_s3_uri),
             aws_env=aws_env,
             debug=debug,
         )
@@ -929,7 +1081,7 @@ def _resolve_run_metric_file(
 def precheck_run_metrics(
     specs: Sequence[RunMetricStagingSpec],
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> List[RunMetricFile]:
@@ -973,7 +1125,7 @@ def precheck_run_metrics(
                     )
                 check_source_path(
                     metric_file.source,
-                    reference_bucket=reference_bucket,
+                    reference_s3_uri=reference_s3_uri,
                     aws_env=aws_env,
                     debug=debug,
                 )
@@ -1068,13 +1220,14 @@ def cleanup_s3_objects(uris: Sequence[str], *, aws_env: Dict[str, str], debug: b
             pass
 
 
-def source_copy_reference(source: str, *, reference_bucket: str) -> str:
+def source_copy_reference(source: str, *, reference_s3_uri: str) -> str:
+    reject_retired_stage_path(source)
     if source.startswith("s3://"):
         return source
     if is_mounted_run_dir_path(source):
         return headnode_visible_path(source)
     if is_headnode_visible_path(source):
-        return build_reference_uri(source, reference_bucket)
+        return build_reference_uri(source, reference_s3_uri)
     return os.path.expanduser(source)
 
 
@@ -1321,6 +1474,7 @@ def resolve_ont_fastq_prefix_plan(
 
 
 def require_headnode_visible_path(path: str, *, field: str) -> None:
+    reject_retired_stage_path(path)
     if is_headnode_visible_path(path):
         return
     raise CommandError(
@@ -1334,7 +1488,7 @@ def ensure_s3_objects(
     *,
     dest_s3_dir: str,
     sample_prefix: str,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[List[str], List[str]]:
@@ -1346,7 +1500,7 @@ def ensure_s3_objects(
                 resolved.append(source)
                 continue
             if is_headnode_visible_path(source):
-                resolved.append(build_reference_uri(source, reference_bucket))
+                resolved.append(build_reference_uri(source, reference_s3_uri))
                 continue
             expanded = os.path.expanduser(source)
             part_name = f"{sample_prefix}_part{idx}_{uuid.uuid4().hex}_{Path(expanded).name}"
@@ -1602,14 +1756,14 @@ def stage_concordance(
     dest_fsx: str,
     dest_s3: str,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> str:
     source = source.strip()
     if not source or source.lower() == "na" or is_headnode_visible_path(source):
         return headnode_visible_path(source) if source else "na"
-    copy_source = source_copy_reference(source, reference_bucket=reference_bucket)
+    copy_source = source_copy_reference(source, reference_s3_uri=reference_s3_uri)
     if copy_source.startswith("s3://"):
         aws_copy(copy_source, dest_s3, aws_env=aws_env, debug=debug, recursive=True)
     else:
@@ -1626,7 +1780,7 @@ def stage_single_lane(
     dest_fsx_dir: str,
     dest_s3_dir: str,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, str]:
@@ -1637,13 +1791,13 @@ def stage_single_lane(
     remote_r1_s3 = f"{dest_s3_dir}/{r1_name}"
     remote_r2_s3 = f"{dest_s3_dir}/{r2_name}"
     aws_copy(
-        source_copy_reference(r1, reference_bucket=reference_bucket),
+        source_copy_reference(r1, reference_s3_uri=reference_s3_uri),
         remote_r1_s3,
         aws_env=aws_env,
         debug=debug,
     )
     aws_copy(
-        source_copy_reference(r2, reference_bucket=reference_bucket),
+        source_copy_reference(r2, reference_s3_uri=reference_s3_uri),
         remote_r2_s3,
         aws_env=aws_env,
         debug=debug,
@@ -1658,7 +1812,7 @@ def stage_multi_lane(
     dest_fsx_dir: str,
     dest_s3_dir: str,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, str]:
@@ -1671,7 +1825,7 @@ def stage_multi_lane(
         r1_files,
         dest_s3_dir=dest_s3_dir,
         sample_prefix=f"{sample_prefix}_R1",
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=aws_env,
         debug=debug,
     )
@@ -1680,7 +1834,7 @@ def stage_multi_lane(
             r2_files,
             dest_s3_dir=dest_s3_dir,
             sample_prefix=f"{sample_prefix}_R2",
-            reference_bucket=reference_bucket,
+            reference_s3_uri=reference_s3_uri,
             aws_env=aws_env,
             debug=debug,
         )
@@ -1707,12 +1861,12 @@ def stage_ont_fastq_prefix(
     sample_prefix: str,
     dest_fsx_dir: str,
     dest_s3_dir: str,
-    reference_bucket: Optional[str] = None,
+    reference_s3_uri: Optional[str] = None,
     plan: Optional[OntFastqPrefixPlan] = None,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, List[str]]:
-    del reference_bucket
+    del reference_s3_uri
     if plan is None:
         plan = resolve_ont_fastq_prefix_plan(
             prefix,
@@ -1740,7 +1894,7 @@ def stage_path(
     *,
     dest_fsx_dir: str,
     dest_s3_dir: str,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, List[str]]:
@@ -1748,7 +1902,7 @@ def stage_path(
     remote_fsx = f"{dest_fsx_dir}/{filename}"
     remote_s3 = f"{dest_s3_dir}/{filename}"
     aws_copy(
-        source_copy_reference(source, reference_bucket=reference_bucket),
+        source_copy_reference(source, reference_s3_uri=reference_s3_uri),
         remote_s3,
         aws_env=aws_env,
         debug=debug,
@@ -1762,7 +1916,7 @@ def stage_path_with_sidecars(
     sidecar_suffixes: Sequence[str],
     dest_fsx_dir: str,
     dest_s3_dir: str,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, List[str]]:
@@ -1770,7 +1924,7 @@ def stage_path_with_sidecars(
         source,
         dest_fsx_dir=dest_fsx_dir,
         dest_s3_dir=dest_s3_dir,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=aws_env,
         debug=debug,
     )
@@ -1780,7 +1934,7 @@ def stage_path_with_sidecars(
             sidecar,
             dest_fsx_dir=dest_fsx_dir,
             dest_s3_dir=dest_s3_dir,
-            reference_bucket=reference_bucket,
+            reference_s3_uri=reference_s3_uri,
             aws_env=aws_env,
             debug=debug,
         )
@@ -1792,7 +1946,7 @@ def stage_run_metrics(
     files: Sequence[RunMetricFile],
     stage: StagePaths,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> List[str]:
@@ -1807,7 +1961,7 @@ def stage_run_metrics(
             f"{metric_file.destination_relative_path}"
         )
         aws_copy(
-            source_copy_reference(metric_file.source, reference_bucket=reference_bucket),
+            source_copy_reference(metric_file.source, reference_s3_uri=reference_s3_uri),
             remote_s3,
             aws_env=aws_env,
             debug=debug,
@@ -1840,6 +1994,86 @@ def reject_duplicate_multi_lane_sources(
         )
 
 
+def split_fastq_path_list(value: str, *, field: str) -> List[str]:
+    text = (value or "").strip()
+    if text.lower() in EMPTY_PATH_TOKENS:
+        return []
+    try:
+        paths = next(csv.reader([text], skipinitialspace=True))
+    except csv.Error as exc:
+        raise CommandError(f"{field} has an invalid comma-separated FASTQ list: {exc}") from exc
+    cleaned = [path.strip() for path in paths]
+    empty_positions = [
+        str(index + 1)
+        for index, path in enumerate(cleaned)
+        if path.lower() in EMPTY_PATH_TOKENS
+    ]
+    if empty_positions:
+        raise CommandError(
+            f"{field} has empty FASTQ path(s) at position(s): {', '.join(empty_positions)}"
+        )
+    return cleaned
+
+
+def paired_fastq_path_lists(
+    r1_value: str,
+    r2_value: str,
+    *,
+    r1_field: str,
+    r2_field: str,
+    row_number: int,
+) -> Tuple[List[str], List[str]]:
+    r1_paths = split_fastq_path_list(r1_value, field=r1_field)
+    r2_paths = split_fastq_path_list(r2_value, field=r2_field)
+    if not r1_paths and not r2_paths:
+        return [], []
+    if not r1_paths or not r2_paths:
+        raise CommandError(f"Row {row_number} must populate both {r1_field} and {r2_field}.")
+    if len(r1_paths) != len(r2_paths):
+        raise CommandError(
+            f"Row {row_number} {r1_field}/{r2_field} comma-separated lists must have the "
+            f"same number of entries (R1={len(r1_paths)}, R2={len(r2_paths)})."
+        )
+    return r1_paths, r2_paths
+
+
+def _strip_fastq_name_suffix(path: str) -> str:
+    name = os.path.basename(path)
+    for suffix in (".fastq.gz", ".fq.gz", ".fastq", ".fq"):
+        if name.lower().endswith(suffix):
+            return name[: -len(suffix)]
+    return name
+
+
+def _fastq_mate_signature(path: str, *, mate: str) -> str:
+    stem = _strip_fastq_name_suffix(path)
+    mate_pattern = re.compile(rf"(?i)(^|[._-]){mate}(?=([._-]|$))")
+    signature, replacements = mate_pattern.subn(r"\1<MATE>", stem, count=1)
+    if replacements != 1:
+        raise CommandError(
+            f"Cannot identify {mate} mate token in FASTQ path for pair-order validation: {path}"
+        )
+    return signature
+
+
+def validate_fastq_pair_order(
+    r1_paths: Sequence[str],
+    r2_paths: Sequence[str],
+    *,
+    row_number: int,
+    r1_field: str,
+    r2_field: str,
+) -> None:
+    for index, (r1_path, r2_path) in enumerate(zip(r1_paths, r2_paths), start=1):
+        r1_signature = _fastq_mate_signature(r1_path, mate="R1")
+        r2_signature = _fastq_mate_signature(r2_path, mate="R2")
+        if r1_signature != r2_signature:
+            raise CommandError(
+                f"Row {row_number} {r1_field}/{r2_field} pair {index} is out of order "
+                f"or not mate-matched: {r1_path} vs {r2_path}"
+            )
+
+
 def write_tsv(path: Path, header: Sequence[str], rows: Sequence[Dict[str, str]]) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="") as handle:
@@ -1860,15 +2094,29 @@ def deduplicate_rows(rows: Sequence[Dict[str, str]], header: Sequence[str]) -> L
     return unique_rows
 
 
+def _normalise_headnode_data_path(value: str) -> str:
+    if value == "/data" or value.startswith("/data/") or value == "/fsx/data" or value.startswith("/fsx/data/"):
+        raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
+    return value
+
+
 def normalise_units_paths(rows: Sequence[Dict[str, str]]) -> None:
     for row in rows:
         for field, value in list(row.items()):
             if not isinstance(value, str):
                 continue
-            if value.startswith("/data/"):
-                row[field] = f"/fsx{value}"
-            elif value == "/data":
-                row[field] = "/fsx/data"
+            if "," in value:
+                parts = [part.strip() for part in value.split(",")]
+                if any(
+                    part.startswith("/data/")
+                    or part == "/data"
+                    or part.startswith("/fsx/data/")
+                    or part == "/fsx/data"
+                    for part in parts
+                ):
+                    row[field] = ",".join(_normalise_headnode_data_path(part) for part in parts)
+                continue
+            row[field] = _normalise_headnode_data_path(value)
 
 
 def normalize_manifest_row(
@@ -1934,14 +2182,14 @@ def validate_sidecar_paths(
     path: str,
     *,
     sidecar_suffixes: Sequence[str],
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> None:
     for suffix in sidecar_suffixes:
         check_source_path(
             f"{path}{suffix}",
-            reference_bucket=reference_bucket,
+            reference_s3_uri=reference_s3_uri,
             aws_env=aws_env,
             debug=debug,
         )
@@ -1952,7 +2200,11 @@ def mounted_readonly_source_paths(normalized: Mapping[str, str]) -> List[Tuple[s
     for field in MOUNTED_READONLY_SOURCE_FIELDS:
         value = get_entry_value(normalized, field)
         if value:
-            paths.append((field, value))
+            try:
+                for path in split_fastq_path_list(value, field=field):
+                    paths.append((field, path))
+            except CommandError:
+                paths.append((field, value))
     return sorted(paths)
 
 
@@ -1960,7 +2212,7 @@ def validate_manifest_row(
     normalized: Mapping[str, str],
     *,
     row_number: int,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
     check_access: bool = True,
@@ -1968,7 +2220,7 @@ def validate_manifest_row(
     issues = collect_manifest_row_issues(
         normalized,
         row_number=row_number,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=aws_env,
         debug=debug,
         check_access=check_access,
@@ -2072,7 +2324,7 @@ def build_manifest_row(normalized: Mapping[str, str], *, row_number: int = 0) ->
 def load_manifest_rows(
     analysis_samples: Path,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> List[ManifestRow]:
@@ -2100,7 +2352,7 @@ def load_manifest_rows(
             validate_manifest_row(
                 normalized,
                 row_number=row_number,
-                reference_bucket=reference_bucket,
+                reference_s3_uri=reference_s3_uri,
                 aws_env=aws_env,
                 debug=debug,
             )
@@ -2159,7 +2411,7 @@ def collect_manifest_row_issues(
     normalized: Mapping[str, str],
     *,
     row_number: int,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
     check_access: bool = True,
@@ -2201,7 +2453,7 @@ def collect_manifest_row_issues(
         try:
             check_source_path(
                 path,
-                reference_bucket=reference_bucket,
+                reference_s3_uri=reference_s3_uri,
                 aws_env=aws_env,
                 debug=debug,
                 allow_directory=allow_directory,
@@ -2224,7 +2476,7 @@ def collect_manifest_row_issues(
             try:
                 check_source_path(
                     sidecar,
-                    reference_bucket=reference_bucket,
+                    reference_s3_uri=reference_s3_uri,
                     aws_env=aws_env,
                     debug=debug,
                 )
@@ -2343,16 +2595,47 @@ def collect_manifest_row_issues(
     for r1_field, r2_field, _unit_r1, _unit_r2 in raw_groups:
         r1_value = get_entry_value(normalized, r1_field)
         r2_value = get_entry_value(normalized, r2_field)
-        if not r1_value or not r2_value:
-            add_issue(
-                f"{r1_field}/{r2_field}",
-                f"Row {row_number} must populate both {r1_field} and {r2_field}.",
-                r1_value or r2_value,
+        try:
+            r1_paths, r2_paths = paired_fastq_path_lists(
+                r1_value,
+                r2_value,
+                r1_field=r1_field,
+                r2_field=r2_field,
+                row_number=row_number,
             )
-        maybe_check_source_path(r1_field, r1_value)
-        maybe_check_source_path(r2_field, r2_value)
+            if len(r1_paths) > 1 and (r1_field, r2_field) != (ILMN_R1_FQ, ILMN_R2_FQ):
+                add_issue(
+                    f"{r1_field}/{r2_field}",
+                    (
+                        f"Row {row_number} comma-separated FASTQ lists are only supported for "
+                        f"{ILMN_R1_FQ}/{ILMN_R2_FQ}."
+                    ),
+                    r1_value,
+                )
+            if len(r1_paths) > 1:
+                try:
+                    validate_fastq_pair_order(
+                        r1_paths,
+                        r2_paths,
+                        row_number=row_number,
+                        r1_field=r1_field,
+                        r2_field=r2_field,
+                    )
+                except CommandError as exc:
+                    add_issue(f"{r1_field}/{r2_field}", str(exc), r1_value)
+        except CommandError as exc:
+            r1_paths = [r1_value] if r1_value else []
+            r2_paths = [r2_value] if r2_value else []
+            add_issue(f"{r1_field}/{r2_field}", str(exc), r1_value or r2_value)
+        for source_path in r1_paths:
+            maybe_check_source_path(r1_field, source_path)
+        for source_path in r2_paths:
+            maybe_check_source_path(r2_field, source_path)
         if directive == "pass_through":
-            for field, value in ((r1_field, r1_value), (r2_field, r2_value)):
+            for field, value in (
+                *((r1_field, path) for path in r1_paths),
+                *((r2_field, path) for path in r2_paths),
+            ):
                 if not value:
                     continue
                 try:
@@ -2474,10 +2757,18 @@ def _source_checks_for_precheck(normalized: Mapping[str, str]) -> List[Tuple[str
     for r1_field, r2_field, _unit_r1, _unit_r2 in raw_groups_present(normalized):
         r1_value = get_entry_value(normalized, r1_field)
         r2_value = get_entry_value(normalized, r2_field)
-        if r1_value:
-            checks.append((r1_field, r1_value))
-        if r2_value:
-            checks.append((r2_field, r2_value))
+        try:
+            r1_paths = split_fastq_path_list(r1_value, field=r1_field)
+        except CommandError:
+            r1_paths = [r1_value] if r1_value else []
+        try:
+            r2_paths = split_fastq_path_list(r2_value, field=r2_field)
+        except CommandError:
+            r2_paths = [r2_value] if r2_value else []
+        for path in r1_paths:
+            checks.append((r1_field, path))
+        for path in r2_paths:
+            checks.append((r2_field, path))
 
     aligned_sidecars = (
         (ULTIMA_CRAM, (".crai",)),
@@ -2532,7 +2823,7 @@ def _s3_child_directories(
 def detect_giab_roi_dirs(
     concordance_source: str,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> List[str]:
@@ -2542,7 +2833,7 @@ def detect_giab_roi_dirs(
         return []
     if is_headnode_visible_path(concordance_source):
         return _s3_child_directories(
-            build_reference_uri(concordance_source, reference_bucket),
+            build_reference_uri(concordance_source, reference_s3_uri),
             aws_env=aws_env,
             debug=debug,
         )
@@ -2563,7 +2854,7 @@ def _precheck_giab_truth_files(
     *,
     row_number: int,
     concordance_source: str,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[List[PrecheckIssue], int]:
@@ -2605,7 +2896,7 @@ def _precheck_giab_truth_files(
     try:
         roi_dirs = detect_giab_roi_dirs(
             concordance_source,
-            reference_bucket=reference_bucket,
+            reference_s3_uri=reference_s3_uri,
             aws_env=aws_env,
             debug=debug,
         )
@@ -2640,7 +2931,7 @@ def _precheck_giab_truth_files(
             try:
                 check_source_path(
                     truth_path,
-                    reference_bucket=reference_bucket,
+                    reference_s3_uri=reference_s3_uri,
                     aws_env=aws_env,
                     debug=debug,
                 )
@@ -2726,7 +3017,7 @@ def _precheck_manifest_groups(rows: Sequence[ManifestRow]) -> List[PrecheckIssue
 def precheck_manifest(
     analysis_samples: Path,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[PrecheckReport, List[ManifestRow]]:
@@ -2803,7 +3094,7 @@ def precheck_manifest(
             row_issues = collect_manifest_row_issues(
                 normalized,
                 row_number=row_number,
-                reference_bucket=reference_bucket,
+                reference_s3_uri=reference_s3_uri,
                 aws_env=aws_env,
                 debug=debug,
                 check_access=False,
@@ -2817,7 +3108,7 @@ def precheck_manifest(
                 try:
                     check_source_path(
                         path,
-                        reference_bucket=reference_bucket,
+                        reference_s3_uri=reference_s3_uri,
                         aws_env=aws_env,
                         debug=debug,
                     )
@@ -2871,7 +3162,7 @@ def precheck_manifest(
                 try:
                     check_source_path(
                         concordance_source,
-                        reference_bucket=reference_bucket,
+                        reference_s3_uri=reference_s3_uri,
                         aws_env=aws_env,
                         debug=debug,
                         allow_directory=True,
@@ -2892,7 +3183,7 @@ def precheck_manifest(
                     normalized,
                     row_number=row_number,
                     concordance_source=concordance_source,
-                    reference_bucket=reference_bucket,
+                    reference_s3_uri=reference_s3_uri,
                     aws_env=aws_env,
                     debug=debug,
                 )
@@ -3106,26 +3397,71 @@ def emit_single_raw_group(
     spec: Tuple[str, str, str, str],
     dest_fsx_dir: str,
     dest_s3_dir: str,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[Dict[str, str], List[str]]:
     r1_field, r2_field, unit_r1_field, unit_r2_field = spec
     r1 = get_entry_value(row.sources, r1_field)
     r2 = get_entry_value(row.sources, r2_field)
-    if row.staging.stage_directive in {"pass_through", "mounted_readonly"}:
-        require_headnode_visible_path(r1, field=r1_field)
-        require_headnode_visible_path(r2, field=r2_field)
-        return {
-            unit_r1_field: headnode_visible_path(r1),
-            unit_r2_field: headnode_visible_path(r2),
-        }, []
-    remote_r1, remote_r2 = stage_single_lane(
+    r1_paths, r2_paths = paired_fastq_path_lists(
         r1,
         r2,
+        r1_field=r1_field,
+        r2_field=r2_field,
+        row_number=row.row_number,
+    )
+    if len(r1_paths) > 1:
+        if (r1_field, r2_field) != (ILMN_R1_FQ, ILMN_R2_FQ):
+            raise CommandError(
+                f"Row {row.row_number} comma-separated FASTQ lists are only supported for "
+                f"{ILMN_R1_FQ}/{ILMN_R2_FQ}."
+            )
+        validate_fastq_pair_order(
+            r1_paths,
+            r2_paths,
+            row_number=row.row_number,
+            r1_field=r1_field,
+            r2_field=r2_field,
+        )
+    if row.staging.stage_directive in {"pass_through", "mounted_readonly"}:
+        for path in r1_paths:
+            require_headnode_visible_path(path, field=r1_field)
+        for path in r2_paths:
+            require_headnode_visible_path(path, field=r2_field)
+        return {
+            unit_r1_field: ",".join(headnode_visible_path(path) for path in r1_paths),
+            unit_r2_field: ",".join(headnode_visible_path(path) for path in r2_paths),
+        }, []
+    if len(r1_paths) > 1:
+        remote_r1_paths: List[str] = []
+        remote_r2_paths: List[str] = []
+        created: List[str] = []
+        for index, (r1_path, r2_path) in enumerate(zip(r1_paths, r2_paths), start=1):
+            lane_fsx_dir = f"{dest_fsx_dir}/lane{index}"
+            lane_s3_dir = f"{dest_s3_dir}/lane{index}"
+            remote_r1, remote_r2 = stage_single_lane(
+                r1_path,
+                r2_path,
+                lane_fsx_dir,
+                lane_s3_dir,
+                reference_s3_uri=reference_s3_uri,
+                aws_env=aws_env,
+                debug=debug,
+            )
+            remote_r1_paths.append(remote_r1)
+            remote_r2_paths.append(remote_r2)
+            created.extend([remote_r1, remote_r2])
+        return {
+            unit_r1_field: ",".join(remote_r1_paths),
+            unit_r2_field: ",".join(remote_r2_paths),
+        }, created
+    remote_r1, remote_r2 = stage_single_lane(
+        r1_paths[0],
+        r2_paths[0],
         dest_fsx_dir,
         dest_s3_dir,
-        reference_bucket=reference_bucket,
+        reference_s3_uri=reference_s3_uri,
         aws_env=aws_env,
         debug=debug,
     )
@@ -3139,7 +3475,7 @@ def emit_aligned_source(
     sidecar_suffixes: Sequence[str],
     dest_fsx_dir: str,
     dest_s3_dir: str,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
 ) -> Tuple[str, List[str]]:
@@ -3152,7 +3488,7 @@ def emit_aligned_source(
             sidecar_suffixes=sidecar_suffixes,
             dest_fsx_dir=dest_fsx_dir,
             dest_s3_dir=dest_s3_dir,
-            reference_bucket=reference_bucket,
+            reference_s3_uri=reference_s3_uri,
             aws_env=aws_env,
             debug=debug,
         )
@@ -3216,7 +3552,7 @@ def process_samples(
     analysis_samples: Path,
     stage: StagePaths,
     *,
-    reference_bucket: str,
+    reference_s3_uri: str,
     aws_env: Dict[str, str],
     debug: bool,
     rows: Sequence[ManifestRow],
@@ -3255,7 +3591,7 @@ def process_samples(
             concordance_source,
             concordance_fsx,
             concordance_s3,
-            reference_bucket=reference_bucket,
+            reference_s3_uri=reference_s3_uri,
             aws_env=aws_env,
             debug=debug,
         )
@@ -3291,7 +3627,7 @@ def process_samples(
                 sample_prefix,
                 dest_fsx_dir,
                 dest_s3_dir,
-                reference_bucket=reference_bucket,
+                reference_s3_uri=reference_s3_uri,
                 aws_env=aws_env,
                 debug=debug,
             )
@@ -3362,7 +3698,7 @@ def process_samples(
                         spec=spec,
                         dest_fsx_dir=dest_fsx_dir,
                         dest_s3_dir=dest_s3_dir,
-                        reference_bucket=reference_bucket,
+                        reference_s3_uri=reference_s3_uri,
                         aws_env=aws_env,
                         debug=debug,
                     )
@@ -3385,7 +3721,7 @@ def process_samples(
                         sample_prefix=sample_prefix,
                         dest_fsx_dir=dest_fsx_dir,
                         dest_s3_dir=dest_s3_dir,
-                        reference_bucket=reference_bucket,
+                        reference_s3_uri=reference_s3_uri,
                         plan=ont_plan,
                         aws_env=aws_env,
                         debug=debug,
@@ -3430,7 +3766,7 @@ def process_samples(
                         sidecar_suffixes=sidecars,
                         dest_fsx_dir=dest_fsx_dir,
                         dest_s3_dir=dest_s3_dir,
-                        reference_bucket=reference_bucket,
+                        reference_s3_uri=reference_s3_uri,
                         aws_env=aws_env,
                         debug=debug,
                     )
@@ -3478,11 +3814,16 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     aws_config = AwsConfig(profile=ensure_profile(args.profile), region=args.region)
     aws_env = build_aws_env(aws_config)
 
-    stage = build_stage_paths(args.stage_target, args.reference_bucket)
+    s3_role_uris = S3RoleUris(
+        reference_s3_uri=args.reference_s3_uri,
+        control_data_s3_uri=args.control_data_s3_uri,
+        stage_s3_uri=args.stage_s3_uri,
+    )
+    stage = build_stage_paths(args.stage_target, args.stage_s3_uri)
     run_metric_specs = parse_run_metric_staging_specs(args.run_metric_staging)
     precheck_report, prechecked_rows = precheck_manifest(
         analysis_samples,
-        reference_bucket=args.reference_bucket,
+        reference_s3_uri=s3_role_uris,
         aws_env=aws_env,
         debug=args.debug,
     )
@@ -3492,7 +3833,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     print(format_precheck_success(precheck_report))
     run_metric_files = precheck_run_metrics(
         run_metric_specs,
-        reference_bucket=args.reference_bucket,
+        reference_s3_uri=s3_role_uris,
         aws_env=aws_env,
         debug=args.debug,
     )
@@ -3506,7 +3847,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     samples_rows, units_rows, created_files, _run_ids = process_samples(
         analysis_samples,
         stage,
-        reference_bucket=args.reference_bucket,
+        reference_s3_uri=s3_role_uris,
         aws_env=aws_env,
         debug=args.debug,
         rows=prechecked_rows,
@@ -3515,7 +3856,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         stage_run_metrics(
             run_metric_files,
             stage,
-            reference_bucket=args.reference_bucket,
+            reference_s3_uri=s3_role_uris,
             aws_env=aws_env,
             debug=args.debug,
         )
@@ -3544,8 +3885,20 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     aws_copy(str(samples_path), remote_samples_path, aws_env=aws_env, debug=args.debug)
     aws_copy(str(units_path), remote_units_path, aws_env=aws_env, debug=args.debug)
 
+    staging_mount = create_staged_prefix_mount(
+        stage,
+        cluster_name=args.cluster_name,
+        fsx_file_system_id=args.fsx_file_system_id,
+        profile=aws_config.profile,
+        region=aws_config.region,
+        timeout_seconds=args.staging_mount_timeout_seconds,
+    )
+
     print("Remote staging completed successfully.")
     print(f"Remote FSx stage directory: {headnode_visible_path(stage.remote_fsx_stage)}")
+    if staging_mount is not None:
+        print(f"Staging DRA: {staging_mount.association_id}")
+        print(f"Staging DRA lifecycle: {staging_mount.lifecycle}")
     print(f"Staged files ({len(created_files)}):")
     for path in created_files:
         print(f"  {headnode_visible_path(path)}")

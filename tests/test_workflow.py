@@ -54,6 +54,7 @@ from daylily_ec.workflow.create_cluster import (
     configure_headnode,
     make_repository_catalog_preflight_step,
     run_preflight,
+    validate_startup_dra_contract,
     _validate_cluster_name,
 )
 
@@ -76,6 +77,98 @@ class TestExitCodes:
 
     def test_exit_toolchain(self):
         assert EXIT_TOOLCHAIN == 4
+
+
+class TestClusterBootConfigPublish:
+    def test_publishes_expected_boot_files(self, tmp_path):
+        source_dir = tmp_path / "boot"
+        source_dir.mkdir()
+        for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES:
+            (source_dir / name).write_text(f"content for {name}\n", encoding="utf-8")
+
+        calls = []
+
+        class FakeS3:
+            def put_object(self, **kwargs):
+                calls.append(kwargs)
+
+        uploaded = create_cluster_module.publish_cluster_boot_config(
+            FakeS3(),
+            cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
+            source_dir=source_dir,
+        )
+
+        assert uploaded == [
+            f"s3://references/runtime_assets/cluster_boot_config/{name}"
+            for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES
+        ]
+        assert [call["Bucket"] for call in calls] == ["references"] * len(calls)
+        assert [call["Key"] for call in calls] == [
+            f"runtime_assets/cluster_boot_config/{name}"
+            for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES
+        ]
+
+    def test_rejects_legacy_fsx_data_boot_file(self, tmp_path):
+        source_dir = tmp_path / "boot"
+        source_dir.mkdir()
+        for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES:
+            body = "echo ok\n"
+            if name == "sbatch":
+                body = "ls /fsx/data\n"
+            (source_dir / name).write_text(body, encoding="utf-8")
+
+        class FakeS3:
+            def put_object(self, **_kwargs):
+                raise AssertionError("legacy boot file must not be uploaded")
+
+        with pytest.raises(ValueError, match="/fsx/data"):
+            create_cluster_module.publish_cluster_boot_config(
+                FakeS3(),
+                cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
+                source_dir=source_dir,
+            )
+
+
+class TestStartupDraContract:
+    def test_accepts_exactly_one_references_startup_dra(self, tmp_path):
+        config = tmp_path / "cluster.yaml"
+        config.write_text(
+            """
+SharedStorage:
+  - Name: fsx
+    StorageType: FsxLustre
+    FsxLustreSettings:
+      DataRepositoryAssociations:
+        - Name: reference-data
+          FileSystemPath: /references/
+          DataRepositoryPath: s3://references/
+""",
+            encoding="utf-8",
+        )
+
+        validate_startup_dra_contract(config)
+
+    def test_rejects_any_non_reference_startup_dra(self, tmp_path):
+        config = tmp_path / "cluster.yaml"
+        config.write_text(
+            """
+SharedStorage:
+  - Name: fsx
+    StorageType: FsxLustre
+    FsxLustreSettings:
+      DataRepositoryAssociations:
+        - Name: reference-data
+          FileSystemPath: /references/
+          DataRepositoryPath: s3://references/
+        - Name: control-data
+          FileSystemPath: /control_data/
+          DataRepositoryPath: s3://control-data/
+""",
+            encoding="utf-8",
+        )
+
+        with pytest.raises(ValueError, match="exactly one FSx DRA: /references/"):
+            validate_startup_dra_contract(config)
 
 
 # ── _extract_selected ───────────────────────────────────────────────────
@@ -412,7 +505,7 @@ class TestWorkflowResolutionHelpers:
 class TestClusterNameValidation:
     @pytest.mark.parametrize(
         "cluster_name",
-        ["frz-260509", "cluster1", "A2345", "a-1-b"],
+        ["frz-260509", "cluster1", "A2345", "a-1-b", "splitdra-ref-20260526"],
     )
     def test_cluster_names_allow_numbers_after_first_character(self, cluster_name):
         assert _validate_cluster_name(cluster_name) == cluster_name
@@ -424,6 +517,7 @@ class TestClusterNameValidation:
             ("frz_260509", "contain only letters, digits, and hyphens"),
             ("frz", "5-25 characters"),
             ("frz-260509-abcdefghijklmnop", "5-25 characters"),
+            ("splitdra-refassets-20260526", "5-25 characters"),
         ],
     )
     def test_invalid_cluster_names_fail_with_actionable_rules(self, cluster_name, message):
@@ -464,6 +558,36 @@ class TestClusterNameValidation:
         from daylily_ec.workflow.create_cluster import run_create_workflow
 
         rc = run_create_workflow(
+            "us-west-2b",
+            profile="test",
+            config_path=str(config_path),
+            non_interactive=True,
+        )
+
+        assert rc == EXIT_VALIDATION_FAILURE
+        mock_build.assert_not_called()
+
+    @patch("daylily_ec.aws.context.AWSContext.build")
+    def test_preflight_rejects_too_long_cluster_name_before_aws(
+        self, mock_build, tmp_path, monkeypatch
+    ):
+        monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+        config_path = tmp_path / "too_long_cluster.yaml"
+        config_path.write_text(
+            "\n".join(
+                [
+                    "ephemeral_cluster:",
+                    "  config:",
+                    "    cluster_name: [USESETVALUE, '', splitdra-refassets-20260526]",
+                    "  template_defaults: {}",
+                ]
+            ),
+            encoding="utf-8",
+        )
+
+        from daylily_ec.workflow.create_cluster import run_preflight_only
+
+        rc = run_preflight_only(
             "us-west-2b",
             profile="test",
             config_path=str(config_path),
@@ -610,9 +734,17 @@ class TestRunCreateWorkflow:
 
 
 class TestConfigureHeadnode:
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
-    def test_success_path(self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch):
+    def test_success_path(
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
+    ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
         monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
@@ -622,8 +754,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="", stderr=""),
         ]
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
 
         ok = configure_headnode(
             cluster_name="test-cluster",
@@ -632,9 +764,8 @@ class TestConfigureHeadnode:
             profile="test",
         )
         assert ok is True
-        assert mock_run_shell.call_count == 5
+        assert mock_run_shell.call_count == 4
         assert [call.kwargs["timeout"] for call in mock_run_shell.call_args_list] == [
-            None,
             None,
             None,
             None,
@@ -648,17 +779,26 @@ class TestConfigureHeadnode:
             "source ~/projects/daylily-ephemeral-cluster/activate"
             in mock_run_shell.call_args_list[3].args[2]
         )
-        assert "bash -lc" in mock_run_shell.call_args_list[4].args[2]
-        assert "script -q -c" in mock_run_shell.call_args_list[4].args[2]
-        assert "whoami" in mock_run_shell.call_args_list[4].args[2]
-        assert "stty -a" in mock_run_shell.call_args_list[4].args[2]
-        assert "-ixon" in mock_run_shell.call_args_list[4].args[2]
+        mock_validate_headnode_readiness.assert_called_once_with(
+            "i-abc123",
+            "us-west-2",
+            profile="test",
+            timeout=120,
+            comment="Validate DAY-EC headnode readiness",
+            repo_name="daylily-ephemeral-cluster",
+        )
         mock_write_remote_text.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_login_shell_validation_failure_is_fatal(
-        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
     ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
@@ -669,18 +809,18 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SsmCommandFailedError(
-                "validation failed",
-                SsmCommandResult(
-                    command_id="cmd-1",
-                    instance_id="i-abc123",
-                    status="Failed",
-                    response_code=1,
-                    stdout="",
-                    stderr="whoami: command not found",
-                ),
-            ),
         ]
+        mock_validate_headnode_readiness.side_effect = SsmCommandFailedError(
+            "validation failed",
+            SsmCommandResult(
+                command_id="cmd-1",
+                instance_id="i-abc123",
+                status="Failed",
+                response_code=1,
+                stdout="",
+                stderr="CONDA_DEFAULT_ENV not DAY-EC",
+            ),
+        )
 
         ok = configure_headnode(
             cluster_name="test-cluster",
@@ -689,13 +829,20 @@ class TestConfigureHeadnode:
             profile="test",
         )
         assert ok is False
-        assert mock_run_shell.call_count == 5
+        assert mock_run_shell.call_count == 4
+        mock_validate_headnode_readiness.assert_called_once()
         mock_write_remote_text.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_conda_tos_acceptance_failure_is_fatal(
-        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
     ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
@@ -725,12 +872,19 @@ class TestConfigureHeadnode:
         )
         assert ok is False
         assert mock_run_shell.call_count == 3
+        mock_validate_headnode_readiness.assert_not_called()
         mock_write_remote_text.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_step_failure_is_fatal(
-        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
     ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
@@ -745,12 +899,19 @@ class TestConfigureHeadnode:
             profile="test",
         )
         assert ok is False
+        mock_validate_headnode_readiness.assert_not_called()
         mock_write_remote_text.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_repo_override_deployment_uses_remote_write(
-        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
     ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
@@ -761,8 +922,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="", stderr=""),
         ]
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
 
         ok = configure_headnode(
             cluster_name="test-cluster",
@@ -772,20 +933,26 @@ class TestConfigureHeadnode:
             repo_overrides={"daylily-omics-analysis": "feature/refactor"},
         )
         assert ok is True
-        assert mock_run_shell.call_count == 5
+        assert mock_run_shell.call_count == 4
         mock_write_remote_text.assert_called_once()
+        mock_validate_headnode_readiness.assert_called_once()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text", side_effect=RuntimeError("nope"))
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_repo_override_write_failure_is_fatal(
-        self, mock_run_shell, _mock_write_remote_text, tmp_path, monkeypatch
+        self,
+        mock_run_shell,
+        _mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
     ):
         monkeypatch.setenv("HOME", str(tmp_path))
         monkeypatch.chdir(tmp_path)
         monkeypatch.delenv("DAYLILY_EC_REPO_ROOT", raising=False)
 
         mock_run_shell.side_effect = [
-            SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
@@ -800,11 +967,18 @@ class TestConfigureHeadnode:
             repo_overrides={"daylily-omics-analysis": "feature/refactor"},
         )
         assert ok is False
+        mock_validate_headnode_readiness.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     def test_repo_override_requires_available_repo_config(
-        self, mock_run_shell, mock_write_remote_text, tmp_path, monkeypatch
+        self,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
     ):
         import daylily_ec.resources as resources_module
 
@@ -826,7 +1000,6 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="", stderr=""),
         ]
 
         ok = configure_headnode(
@@ -837,8 +1010,10 @@ class TestConfigureHeadnode:
             repo_overrides={"daylily-omics-analysis": "feature/refactor"},
         )
         assert ok is False
+        mock_validate_headnode_readiness.assert_not_called()
         mock_write_remote_text.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     @patch("daylily_ec.workflow.create_cluster.subprocess.run")
@@ -847,6 +1022,7 @@ class TestConfigureHeadnode:
         mock_subprocess_run,
         mock_run_shell,
         mock_write_remote_text,
+        mock_validate_headnode_readiness,
         tmp_path,
         monkeypatch,
     ):
@@ -885,8 +1061,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="", stderr=""),
         ]
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
 
         ok = configure_headnode(
             cluster_name="test-cluster",
@@ -896,15 +1072,17 @@ class TestConfigureHeadnode:
         )
 
         assert ok is True
-        assert mock_run_shell.call_count == 5
+        assert mock_run_shell.call_count == 4
         clone_cmd = mock_run_shell.call_args_list[0].args[2]
         assert "repo already cloned" not in clone_cmd
         assert "git clone https://example.com/daylily.git daylily-ephemeral-cluster" in clone_cmd
         assert "git fetch origin --tags --prune" in clone_cmd
         assert "git clean -fdx" in clone_cmd
         assert "git checkout -B daylily-managed origin/codex/ssh-to-ssm-refactor" in clone_cmd
+        mock_validate_headnode_readiness.assert_called_once()
         mock_write_remote_text.assert_not_called()
 
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
     @patch("daylily_ec.aws.ssm.write_remote_text")
     @patch("daylily_ec.aws.ssm.run_shell")
     @patch("daylily_ec.workflow.create_cluster.subprocess.run")
@@ -926,6 +1104,7 @@ class TestConfigureHeadnode:
         mock_subprocess_run,
         mock_run_shell,
         mock_write_remote_text,
+        mock_validate_headnode_readiness,
         origin_url,
         expected_url,
         tmp_path,
@@ -966,8 +1145,8 @@ class TestConfigureHeadnode:
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
             SimpleNamespace(stdout="", stderr=""),
-            SimpleNamespace(stdout="", stderr=""),
         ]
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
 
         ok = configure_headnode(
             cluster_name="test-cluster",
@@ -981,6 +1160,7 @@ class TestConfigureHeadnode:
         assert f"git clone {expected_url} daylily-ephemeral-cluster" in clone_cmd
         assert "git@github.com" not in clone_cmd
         assert "ssh://git@github.com" not in clone_cmd
+        mock_validate_headnode_readiness.assert_called_once()
         mock_write_remote_text.assert_not_called()
 
     @patch("daylily_ec.aws.ssm.write_remote_text")
@@ -1085,6 +1265,9 @@ def _build_workflow_config(template_path: Path) -> ConfigFile:
             "ephemeral_cluster": {
                 "config": {
                     "cluster_name": ["USESETVALUE", "", "majors-cluster"],
+                    "reference_s3_uri": ["USESETVALUE", "", "s3://dayoa-references"],
+                    "control_data_s3_uri": ["USESETVALUE", "", "s3://dayoa-control-data"],
+                    "stage_s3_uri": ["USESETVALUE", "", "s3://dayoa-staging"],
                     "max_count_8I": ["USESETVALUE", "", "1"],
                     "max_count_128I": ["USESETVALUE", "", "1"],
                     "max_count_192I": ["USESETVALUE", "", "1"],
@@ -1130,6 +1313,7 @@ def _run_stubbed_create_workflow(
         "echoes": [],
         "prompt_labels": [],
         "subprocess_calls": [],
+        "boot_config_publishes": [],
     }
     cfg = _build_workflow_config(template_path)
 
@@ -1179,9 +1363,27 @@ def _run_stubbed_create_workflow(
     def fake_run_preflight(report: PreflightReport, **_kwargs):
         report.checks.append(
             CheckResult(
-                id="s3.bucket_select",
+                id="s3.role_config",
                 status=CheckStatus.PASS,
-                details={"selected": "bucket-a"},
+                details={
+                    "roles": {
+                        "reference": {
+                            "uri": "s3://dayoa-references",
+                            "bucket": "dayoa-references",
+                            "prefix": "",
+                        },
+                        "control_data": {
+                            "uri": "s3://dayoa-control-data",
+                            "bucket": "dayoa-control-data",
+                            "prefix": "",
+                        },
+                        "staging": {
+                            "uri": "s3://dayoa-staging",
+                            "bucket": "dayoa-staging",
+                            "prefix": "",
+                        },
+                    }
+                },
             )
         )
         return report
@@ -1289,7 +1491,22 @@ def _run_stubbed_create_workflow(
             str(tmp_path / "init-template.yaml"),
         ),
     )
-    monkeypatch.setattr(spot_pricing, "apply_spot_prices", lambda *_args, **_kwargs: None)
+    def fake_apply_spot_prices(_init_template_path, cluster_yaml_path, *_args, **_kwargs):
+        Path(cluster_yaml_path).write_text(
+            """
+SharedStorage:
+  - Name: fsx
+    StorageType: FsxLustre
+    FsxLustreSettings:
+      DataRepositoryAssociations:
+        - Name: reference-data
+          FileSystemPath: /references/
+          DataRepositoryPath: s3://references/
+""",
+            encoding="utf-8",
+        )
+
+    monkeypatch.setattr(spot_pricing, "apply_spot_prices", fake_apply_spot_prices)
     monkeypatch.setattr(
         pcluster_runner,
         "dry_run_create",
@@ -1345,6 +1562,14 @@ def _run_stubbed_create_workflow(
             role_arn="",
             error="skipped",
         ),
+    )
+    monkeypatch.setattr(
+        create_cluster_module,
+        "publish_cluster_boot_config",
+        lambda _s3_client, *, cluster_boot_s3_uri, source_dir: records[
+            "boot_config_publishes"
+        ].append((cluster_boot_s3_uri, str(source_dir)))
+        or [f"{cluster_boot_s3_uri}/post_install_ubuntu_combined.sh"],
     )
 
     import daylily_ec.aws.budgets as budgets

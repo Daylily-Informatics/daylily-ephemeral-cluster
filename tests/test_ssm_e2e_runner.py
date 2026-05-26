@@ -33,12 +33,12 @@ def test_write_runner_config_sets_cluster_name_triplet(tmp_path: Path) -> None:
 def test_parse_remote_stage_dir_extracts_path() -> None:
     stdout = (
         "Remote staging completed successfully.\n"
-        "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_20260412T120000Z\n"
+        "Remote FSx stage directory: /fsx/staging/staged_external_sequencing_data/remote_stage_20260412T120000Z\n"
     )
 
     assert (
         runner_module.parse_remote_stage_dir(stdout)
-        == "/fsx/data/staged_sample_data/remote_stage_20260412T120000Z"
+        == "/fsx/staging/staged_external_sequencing_data/remote_stage_20260412T120000Z"
     )
 
 
@@ -46,7 +46,7 @@ def test_parse_tmux_session_extracts_session_name() -> None:
     stdout = (
         "__DAYLILY_SESSION__=daylily-omics-analysis\n"
         "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/daylily-omics-analysis\n"
-        "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis\n"
+        "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis\n"
     )
 
     assert runner_module.parse_tmux_session(stdout) == "daylily-omics-analysis"
@@ -56,7 +56,7 @@ def test_parse_workflow_launch_extracts_run_dir_and_repo_path() -> None:
     stdout = (
         "__DAYLILY_SESSION__=sess-1\n"
         "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
-        "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis\n"
+        "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis\n"
     )
 
     launch = runner_module.parse_workflow_launch(stdout)
@@ -69,7 +69,7 @@ def test_parse_workflow_launch_extracts_run_dir_and_repo_path() -> None:
 def test_parse_workflow_status_extracts_payload_and_tail() -> None:
     stdout = (
         '__DAYLILY_STATUS__={"command":"bin/day_run","completed_at":"2026-04-13T00:05:00Z","exit_code":0,'
-        '"repo_path":"/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis","session_name":"sess-1",'
+        '"repo_path":"/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis","session_name":"sess-1",'
         '"started_at":"2026-04-13T00:00:00Z"}\n'
         "__DAYLILY_LOG_TAIL_START__\n"
         "log line 1\n"
@@ -113,10 +113,11 @@ def test_default_cluster_name_fits_supported_template_limit() -> None:
 
     assert cluster_name.startswith(f"{runner_module.CLUSTER_NAME_PREFIX}-")
     assert len(cluster_name) <= runner_module.MAX_CLUSTER_NAME_LEN
+    assert runner_module.MAX_CLUSTER_NAME_LEN == 25
 
 
 def test_validate_cluster_name_rejects_too_long_values() -> None:
-    with pytest.raises(CommandError, match="too long for the supported template"):
+    with pytest.raises(CommandError, match="5-25 characters"):
         runner_module.validate_cluster_name("daylily-ssm-e2e-20260412103248")
 
 
@@ -159,6 +160,60 @@ def test_record_step_writes_machine_readable_summary(tmp_path: Path) -> None:
     ]
 
 
+def test_validate_headnode_bootstrap_uses_shared_readiness_helper(
+    monkeypatch, tmp_path: Path
+) -> None:
+    summary = runner_module.RunnerSummary(
+        cluster_name="cluster-a",
+        region="us-west-2",
+        region_az="us-west-2d",
+        profile="dev",
+        config_path="/tmp/daylily.yaml",
+        analysis_samples="/tmp/analysis_samples.tsv",
+        output_json=str(tmp_path / "summary.json"),
+        started_at="2026-04-12T00:00:00+00:00",
+    )
+    output_path = tmp_path / "summary.json"
+    calls = []
+
+    def fake_validate(instance_id, region, **kwargs):
+        calls.append((instance_id, region, kwargs))
+        return type("Result", (), {"command_id": "cmd-ready"})()
+
+    monkeypatch.setattr(runner_module, "validate_headnode_readiness", fake_validate)
+
+    runner_module._validate_headnode_bootstrap(
+        summary,
+        output_path,
+        instance_id="i-abc123",
+        profile="dev",
+        region="us-west-2",
+    )
+
+    assert calls == [
+        (
+            "i-abc123",
+            "us-west-2",
+            {
+                "profile": "dev",
+                "timeout": 120,
+                "comment": "Daylily SSH-to-SSM E2E headnode readiness validation",
+            },
+        )
+    ]
+    payload = json.loads(output_path.read_text(encoding="utf-8"))
+    assert payload["steps"] == [
+        {
+            "name": "validate-headnode-bootstrap",
+            "status": "passed",
+            "details": {
+                "command": "ssm:headnode-readiness",
+                "command_id": "cmd-ready",
+            },
+        }
+    ]
+
+
 def _write_success_export_receipt(path: Path) -> None:
     path.write_text(
         "fsx_export:\n"
@@ -169,8 +224,8 @@ def _write_success_export_receipt(path: Path) -> None:
         "  task_id: task-123\n"
         "  task_lifecycle: SUCCEEDED\n"
         "  detached: true\n"
-        "  source_path: /analysis_results/ubuntu/illumina_run_qc/\n"
-        "  destination_s3_uri: s3://bucket/analysis_results/ubuntu/illumina_run_qc/\n",
+        "  source_path: /analysis_results/johnm/illumina_run_qc/\n"
+        "  destination_s3_uri: s3://bucket/analysis_results/johnm/illumina_run_qc/\n",
         encoding="utf-8",
     )
 
@@ -181,8 +236,8 @@ def test_validate_export_artifact_requires_success_and_expected_target(tmp_path:
 
     payload = runner_module._validate_export_artifact(
         export_yaml,
-        expected_source_path="/fsx/analysis_results/ubuntu/illumina_run_qc",
-        expected_destination_s3_uri="s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
+        expected_source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+        expected_destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc/",
     )
 
     assert payload["status"] == "success"
@@ -204,7 +259,7 @@ def test_wait_for_workflow_completion_passes_on_zero_exit(monkeypatch, tmp_path:
     launch = runner_module.WorkflowLaunchInfo(
         session_name="sess-1",
         run_dir="/home/ubuntu/daylily-runs/sess-1",
-        repo_path="/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis",
+        repo_path="/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
     )
 
     monkeypatch.setattr(
@@ -252,7 +307,7 @@ def test_wait_for_workflow_completion_raises_on_nonzero_exit(monkeypatch, tmp_pa
     launch = runner_module.WorkflowLaunchInfo(
         session_name="sess-1",
         run_dir="/home/ubuntu/daylily-runs/sess-1",
-        repo_path="/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis",
+        repo_path="/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
     )
 
     monkeypatch.setattr(
@@ -299,7 +354,7 @@ def test_wait_for_workflow_completion_raises_on_timeout(monkeypatch, tmp_path: P
     launch = runner_module.WorkflowLaunchInfo(
         session_name="sess-1",
         run_dir="/home/ubuntu/daylily-runs/sess-1",
-        repo_path="/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis",
+        repo_path="/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
     )
 
     monkeypatch.setattr(
@@ -384,7 +439,7 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
         calls.append(name)
         commands_by_name[name] = list(command)
         if name == "stage-from-laptop":
-            stdout = "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_1\n"
+            stdout = "Remote FSx stage directory: /fsx/staging/staged_external_sequencing_data/remote_stage_1\n"
             runner_module._record_step(
                 summary, output_path, name, "passed", command=" ".join(command)
             )
@@ -393,7 +448,7 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
             stdout = (
                 "__DAYLILY_SESSION__=sess-1\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
-                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis\n"
             )
             runner_module._record_step(
                 summary, output_path, name, "passed", command=" ".join(command)
@@ -419,21 +474,27 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
             str(base_config),
             "--cluster-name",
             "cluster-a",
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://bucket",
+            "--control-data-s3-uri",
+            "s3://control-data-bucket",
+            "--stage-s3-uri",
+            "s3://stage-bucket",
             "--analysis-samples",
             str(analysis_samples),
             "--export-output-dir",
             str(export_dir),
             "--export-source-path",
-            "/analysis_results/ubuntu/illumina_run_qc/",
+            "/analysis_results/johnm/illumina_run_qc/",
             "--export-destination-s3-uri",
-            "s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
+            "s3://bucket/analysis_results/johnm/illumina_run_qc/",
             "--output-json",
             str(output_json),
             "--workflow-live",
-            "--workflow-destination",
+            "--workflow-analysis-id",
             "run_deploy",
+            "--workflow-executing-entity",
+            "johnm",
             "--workflow-git-tag",
             "release-1",
             "--interactive-session-smoke",
@@ -455,10 +516,12 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
     assert "--non-interactive" in commands_by_name["preflight"]
     assert "--non-interactive" in commands_by_name["create-cluster"]
     assert "--stage-dir" in commands_by_name["launch-workflow"]
-    assert "/fsx/data/staged_sample_data/remote_stage_1" in commands_by_name["launch-workflow"]
+    assert "/fsx/staging/staged_external_sequencing_data/remote_stage_1" in commands_by_name["launch-workflow"]
     assert "--stage-base" not in commands_by_name["launch-workflow"]
-    assert "--destination" in commands_by_name["launch-workflow"]
+    assert "--analysis-id" in commands_by_name["launch-workflow"]
     assert "run_deploy" in commands_by_name["launch-workflow"]
+    assert "--executing-entity" in commands_by_name["launch-workflow"]
+    assert "johnm" in commands_by_name["launch-workflow"]
     assert "--git-tag" in commands_by_name["launch-workflow"]
     assert "release-1" in commands_by_name["launch-workflow"]
     assert "--aligners" in commands_by_name["launch-workflow"]
@@ -470,7 +533,7 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
     assert "--jobs" in commands_by_name["launch-workflow"]
     assert "6" in commands_by_name["launch-workflow"]
     assert any(
-        "analysis_results/ubuntu" in value
+        "analysis_results/johnm" in value
         for value in commands_by_name["export-results"]
     )
     assert calls.count("smoke-interactive-session") == 1
@@ -523,7 +586,7 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
         calls.append(name)
         commands_by_name[name] = list(command)
         if name == "stage-from-laptop":
-            stdout = "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_1\n"
+            stdout = "Remote FSx stage directory: /fsx/staging/staged_external_sequencing_data/remote_stage_1\n"
             runner_module._record_step(
                 summary, output_path, name, "passed", command=" ".join(command)
             )
@@ -532,7 +595,7 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
             stdout = (
                 "__DAYLILY_SESSION__=sess-1\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
-                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis\n"
             )
             runner_module._record_step(
                 summary, output_path, name, "passed", command=" ".join(command)
@@ -555,21 +618,27 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
             "--cluster-name",
             "cluster-a",
             "--reuse-existing-cluster",
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://bucket",
+            "--control-data-s3-uri",
+            "s3://control-data-bucket",
+            "--stage-s3-uri",
+            "s3://stage-bucket",
             "--analysis-samples",
             str(analysis_samples),
             "--export-output-dir",
             str(export_dir),
             "--export-source-path",
-            "/analysis_results/ubuntu/illumina_run_qc/",
+            "/analysis_results/johnm/illumina_run_qc/",
             "--export-destination-s3-uri",
-            "s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
+            "s3://bucket/analysis_results/johnm/illumina_run_qc/",
             "--output-json",
             str(output_json),
             "--workflow-live",
-            "--workflow-destination",
+            "--workflow-analysis-id",
             "dayoa",
+            "--workflow-executing-entity",
+            "johnm",
         ]
     )
 
@@ -627,7 +696,7 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
     def fake_run_local(summary, output_path, name, command, env):
         commands_by_name[name] = list(command)
         if name == "stage-from-laptop":
-            stdout = "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_1\n"
+            stdout = "Remote FSx stage directory: /fsx/staging/staged_external_sequencing_data/remote_stage_1\n"
             runner_module._record_step(
                 summary, output_path, name, "passed", command=" ".join(command)
             )
@@ -636,7 +705,7 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
             stdout = (
                 "__DAYLILY_SESSION__=sess-1\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
-                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/run_deploy/daylily-omics-analysis\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/run_deploy/daylily-omics-analysis\n"
             )
             runner_module._record_step(
                 summary, output_path, name, "passed", command=" ".join(command)
@@ -659,21 +728,27 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
             "--cluster-name",
             "cluster-a",
             "--reuse-existing-cluster",
-            "--reference-bucket",
+            "--reference-s3-uri",
             "s3://bucket",
+            "--control-data-s3-uri",
+            "s3://control-data-bucket",
+            "--stage-s3-uri",
+            "s3://stage-bucket",
             "--analysis-samples",
             str(analysis_samples),
             "--export-output-dir",
             str(export_dir),
             "--export-source-path",
-            "/analysis_results/ubuntu/illumina_run_qc/",
+            "/analysis_results/johnm/illumina_run_qc/",
             "--export-destination-s3-uri",
-            "s3://bucket/analysis_results/ubuntu/illumina_run_qc/",
+            "s3://bucket/analysis_results/johnm/illumina_run_qc/",
             "--output-json",
             str(output_json),
             "--workflow-live",
-            "--workflow-destination",
+            "--workflow-analysis-id",
             "run_deploy",
+            "--workflow-executing-entity",
+            "johnm",
             "--workflow-aligners",
             "sent",
             "--workflow-dedupers",
@@ -687,8 +762,10 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
 
     assert rc == 0
     launch = commands_by_name["launch-workflow"]
-    assert "--destination" in launch
+    assert "--analysis-id" in launch
     assert "run_deploy" in launch
+    assert "--executing-entity" in launch
+    assert "johnm" in launch
     assert "--git-tag" in launch
     assert "main" in launch
     assert "--aligners" in launch

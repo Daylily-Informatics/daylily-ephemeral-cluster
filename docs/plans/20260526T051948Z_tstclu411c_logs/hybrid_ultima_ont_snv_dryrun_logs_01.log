@@ -1,0 +1,4 @@
+Usage: dyec workflow logs [OPTIONS]
+Try 'dyec workflow logs --help' for help.
+
+Error: No such option '--tail'.

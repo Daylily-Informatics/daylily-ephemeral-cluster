@@ -29,6 +29,9 @@ dependencies = [
     "python-dateutil>=2.8.2",
     # Provides the `pcluster` CLI used by the control plane + scripts.
     "aws-parallelcluster==3.13.2",
+    # aws-cdk 1.x, pulled by aws-parallelcluster 3.13.x, still calls the
+    # typeguard 2.x check_type(..., argname=...) API.
+    "typeguard~=2.13.3",
     "pytest>=7.4.0",
     "pytest-cov>=4.1.0",
     "moto>=4.2.0",

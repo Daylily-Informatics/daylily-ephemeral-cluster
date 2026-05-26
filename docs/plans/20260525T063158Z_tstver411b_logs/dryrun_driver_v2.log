@@ -1,0 +1,21 @@
+[2026-05-25T07:29:07Z] START ultima_snv_alignstats tvb_ultima_snv_alignstats_5x_1021_dryrun
+[2026-05-25T07:30:31Z] LAUNCH_RC ultima_snv_alignstats 0
+[2026-05-25T07:31:12Z] COMPLETE ultima_snv_alignstats exit_code=0
+[2026-05-25T07:31:12Z] START ont_snv_alignstats tvb_ont_snv_alignstats_5x_1021_dryrun
+[2026-05-25T07:32:25Z] LAUNCH_RC ont_snv_alignstats 0
+[2026-05-25T07:33:06Z] COMPLETE ont_snv_alignstats exit_code=0
+[2026-05-25T07:33:06Z] START pacbio_snv_alignstats tvb_pacbio_snv_alignstats_5x_1021_dryrun
+[2026-05-25T07:34:22Z] LAUNCH_RC pacbio_snv_alignstats 0
+[2026-05-25T07:35:03Z] COMPLETE pacbio_snv_alignstats exit_code=0
+[2026-05-25T07:35:03Z] START roche_snv_alignstats tvb_roche_snv_alignstats_5x_1021_dryrun
+[2026-05-25T07:39:20Z] LAUNCH_RC roche_snv_alignstats 0
+[2026-05-25T07:40:01Z] FAILED roche_snv_alignstats nonzero status
+[2026-05-25T07:40:01Z] START hybrid_ilmn_ont_snv tvb_hybrid_ilmn_ont_snv_5x5x_1021_dryrun
+[2026-05-25T07:41:43Z] LAUNCH_RC hybrid_ilmn_ont_snv 0
+[2026-05-25T07:42:24Z] COMPLETE hybrid_ilmn_ont_snv exit_code=0
+[2026-05-25T07:42:24Z] SAMPLE_DRYRUN_BATCH_DONE failures=1
+[2026-05-25T07:44:04Z] START hybrid_ultima_ont_snv stage
+[2026-05-25T07:44:35Z] STAGE_RC hybrid_ultima_ont_snv 0
+[2026-05-25T07:45:22Z] START hybrid_ultima_ont_snv dryrun override
+[2026-05-25T07:45:41Z] LAUNCH_RC hybrid_ultima_ont_snv 0
+[2026-05-25T07:46:22Z] COMPLETE hybrid_ultima_ont_snv exit_code=0

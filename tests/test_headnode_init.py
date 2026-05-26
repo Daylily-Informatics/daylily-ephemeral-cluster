@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import shlex
 import subprocess
 from pathlib import Path
 
@@ -95,7 +96,7 @@ def test_collect_headnode_state_reads_project_budget_and_bucket(
 
     assert state.region == "us-west-2"
     assert state.project == "da-us-west-2b-demo"
-    assert state.reference_bucket == "reference-bucket"
+    assert state.reference_s3_uri == "reference-bucket"
     assert state.aws_profile == "lsmc"
     assert state.aws_account_id == "123456789012"
     assert state.region_az_hint == "us-west-2b"
@@ -184,7 +185,7 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
         headnode.HeadnodeState(
             region="us-west-2",
             project="da-us-west-2b-demo",
-            reference_bucket="reference-bucket",
+            reference_s3_uri="reference-bucket",
         )
     )
 
@@ -195,7 +196,7 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
     assert "export DAY_PROJECT=da-us-west-2b-demo" in shell_code
     assert "export DAY_AWS_REGION=us-west-2" in shell_code
     assert 'export DAY_ROOT="${PWD}"' in shell_code
-    assert "reference_bucket=reference-bucket" in shell_code
+    assert "reference_s3_uri=reference-bucket" in shell_code
     assert 'alias dy-b="${DAYLILY_EC_REPO_ROOT}/bin/init_dayec"' in shell_code
     assert 'alias day-build-env="${DAYLILY_EC_REPO_ROOT}/bin/init_dayec"' in shell_code
     assert "alias sq=sqq" in shell_code
@@ -208,7 +209,7 @@ def test_run_headnode_init_emit_shell_non_interactive_sends_warnings_to_stderr(
     state = headnode.HeadnodeState(
         region="us-west-2",
         project="da-us-west-2b-demo",
-        reference_bucket="reference-bucket",
+        reference_s3_uri="reference-bucket",
         warnings=["Budget tags file not found."],
     )
     monkeypatch.setattr(headnode, "collect_headnode_state", lambda **kwargs: state)
@@ -226,7 +227,7 @@ def test_run_headnode_init_interactive_mode_prompts_for_missing_budget(monkeypat
     state = headnode.HeadnodeState(
         region="us-west-2",
         project="da-us-west-2b-demo",
-        reference_bucket="reference-bucket",
+        reference_s3_uri="reference-bucket",
         budget_summary=headnode.BudgetSummary(name="da-us-west-2b-demo", exists=False),
     )
     prompts: list[str] = []
@@ -310,7 +311,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
         encoding="utf-8",
     )
     (resources_dir / "etc" / "analysis_samples_template.tsv").write_text(
-        "<REF-BUCKET-NAME>\n",
+        "<REF-S3-URI>\n",
         encoding="utf-8",
     )
     cluster_config_path = tmp_path / "cluster-config.yaml"
@@ -456,7 +457,7 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
         encoding="utf-8",
     )
     (resources_dir / "etc" / "analysis_samples_template.tsv").write_text(
-        "<REF-BUCKET-NAME>\n",
+        "<REF-S3-URI>\n",
         encoding="utf-8",
     )
     cluster_config_path = tmp_path / "cluster-config.yaml"
@@ -507,6 +508,84 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
     assert not (home_dir / ".config" / "daylily" / "daylily-headnode-bootstrap.sh").exists()
 
 
+def test_install_headnode_tools_prefers_checkout_over_installed_resources(
+    tmp_path: Path,
+) -> None:
+    repo_root = tmp_path / "repo"
+    installed_resources = tmp_path / "installed-resources"
+    fake_bin = tmp_path / "fake-bin"
+
+    for root, marker in ((repo_root, "checkout"), (installed_resources, "installed")):
+        for path in (
+            root / "bin" / "headnode_utils",
+            root / "config",
+            root / "etc",
+        ):
+            path.mkdir(parents=True, exist_ok=True)
+        (root / "config" / "daylily_cli_global.yaml").write_text(
+            "daylily: {}\n",
+            encoding="utf-8",
+        )
+        (root / "config" / "daylily_available_repositories.yaml").write_text(
+            "default_repository: daylily-omics-analysis\nrepositories: {}\n",
+            encoding="utf-8",
+        )
+        (root / "etc" / "analysis_samples_template.tsv").write_text(
+            "<REF-S3-URI>\n",
+            encoding="utf-8",
+        )
+        _write_executable(
+            root / "bin" / "headnode_utils" / "day-clone",
+            f"#!/usr/bin/env bash\necho {marker}\n",
+        )
+    _write_executable(
+        repo_root / "bin" / "install_miniconda",
+        "#!/usr/bin/env bash\nexit 42\n",
+    )
+    fake_bin.mkdir(parents=True, exist_ok=True)
+    _write_executable(
+        fake_bin / "daylily-ec",
+        (
+            "#!/usr/bin/env bash\n"
+            'if [[ "$1" == "resources-dir" ]]; then\n'
+            f"  printf '%s\\n' {shlex.quote(str(installed_resources))}\n"
+            "  exit 0\n"
+            "fi\n"
+            "exit 1\n"
+        ),
+    )
+
+    script_source = (REPO_ROOT / "bin" / "install-daylily-headnode-tools").read_text(
+        encoding="utf-8"
+    )
+    script_path = repo_root / "bin" / "install-daylily-headnode-tools"
+    script_path.write_text(script_source, encoding="utf-8")
+    script_path.chmod(0o755)
+
+    env = os.environ.copy()
+    env.update(
+        {
+            "DAYLILY_EC_RESOURCES_DIR": "",
+            "DAYLILY_EC_CLUSTER_CONFIG_PATH": str(tmp_path / "missing-cluster-config.yaml"),
+            "HOME": str(tmp_path / "home"),
+            "PATH": f"{fake_bin}:{env.get('PATH', '')}",
+        }
+    )
+
+    result = subprocess.run(
+        ["bash", str(script_path)],
+        cwd=repo_root,
+        env=env,
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+
+    assert result.returncode != 0
+    installed_day_clone = tmp_path / "home" / ".local" / "bin" / "day-clone"
+    assert installed_day_clone.read_text(encoding="utf-8").endswith("echo checkout\n")
+
+
 def test_active_runtime_paths_no_longer_invoke_dyinit() -> None:
     for rel_path in (
         "bin/daylily-cfg-headnode",
@@ -545,19 +624,32 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05" in script
     assert "reference_wait_timeout_seconds=1800" in script
     assert "wait_for_reference_data" in script
-    assert "Required /fsx/data reference entries are visible" in script
-    assert "required /fsx/data reference entries did not appear" in script
-    assert "make_reference_data_read_only" in script
-    assert "chmod a-w /fsx/data" in script
-    assert 'stat -c "Reference data permissions: %A %n" /fsx/data' in script
+    assert "runtime_assets_root=\"/fsx/references/runtime_assets\"" in script
+    assert "references_root=\"/fsx/references\"" in script
+    assert "control_data_root=\"/fsx/control_data\"" not in script
+    assert "Required DayOA role entries are visible" in script
+    assert "required DayOA role entries did not appear" in script
+    assert "[ -d \"${references_root}/genomic_data\" ]" in script
+    assert "[ -d \"${control_data_root}/genomic_data\" ]" not in script
+    assert "[ -d \"${staging_root}\" ]" not in script
+    assert "make_role_data_read_only" in script
+    assert "chmod a-w \"${role_root}\"" in script
+    assert 'stat -c "Role data permissions: %A %n" "${role_root}"' in script
+    assert "fd-find ripgrep docker.io" in script
     assert "8615b65be2174949ee33783039579b3144025d378d1737d362f789bf3810bba0" in script
     assert "024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae" in script
     assert "cached Apptainer deb not found" in script
     assert 'apt-get install -y "${apptainer_deb}"' in script
     assert 'ln -sfn "$(command -v apptainer)" /usr/local/bin/singularity' in script
-    assert "ln -sfn /fsx/data/tool_specific_resources/cromwell_87.jar" in script
-    assert "ln -sfn /fsx/data/tool_specific_resources/womtool_87.jar" in script
-    assert "link_cached_entries /fsx/data/cached_envs/conda" in script
+    assert (
+        'ln -sfn "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar"'
+        in script
+    )
+    assert (
+        'ln -sfn "${runtime_assets_root}/tool_specific_resources/womtool_87.jar"'
+        in script
+    )
+    assert 'link_cached_entries "${runtime_assets_root}/cached_envs/conda"' in script
     assert "required" in script
     assert "optional" in script
     assert "No optional cached entries found under" in script
@@ -566,10 +658,15 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "Original srun already present" in script
     assert "ln -sfn /opt/slurm/bin/sbatch /opt/slurm/bin/srun" in script
     assert "install_verified_s3_executable" in script
+    assert 'aws s3 cp "${boot_s3_uri}/${s3_key}" "${temp_path}"' in script
+    assert 'install_verified_s3_executable "sbatch"' in script
+    assert 'install_verified_s3_executable "sleep_test.sh"' in script
     assert 'install -m 0755 "${temp_path}" "${destination}"' in script
     assert 'append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf' in script
     assert "mv /opt/slurm/bin/sbatch /opt/slurm/sbin/sbatch" in script
     assert "mv /opt/slurm/bin/srun /opt/slurm/sbin/srun" in script
+    assert "ln -s /fsx/references/runtime_assets/cached_envs/conda/*" not in script
+    assert "Required /fsx/references reference entries are visible" not in script
     assert "chmod +x /opt/slurm/bin/sbatch" not in script
     assert "chmod a+x /opt/slurm/bin/sleep_test.sh" not in script
     assert "ln -s /fsx/data/cached_envs/conda/*" not in script

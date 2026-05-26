@@ -16,10 +16,10 @@ MIN_S3_MULTIPART_PART_SIZE = 5 * 1024 * 1024
 
 def _stage_paths() -> module.StagePaths:
     return module.StagePaths(
-        remote_fsx_root="/data/staged_sample_data",
+        remote_fsx_root="/fsx/staging/staged_external_sequencing_data",
         remote_stage_name="remote_stage_test",
-        remote_fsx_stage="/data/staged_sample_data/remote_stage_test",
-        remote_s3_stage="s3://bucket/data/staged_sample_data/remote_stage_test",
+        remote_fsx_stage="/fsx/staging/staged_external_sequencing_data/remote_stage_test",
+        remote_s3_stage="s3://bucket/fsx/remote_stage_test",
     )
 
 
@@ -236,9 +236,9 @@ def _stage_prefix_with_fake_s3(
         "s3://bucket/ont/HG003/20260401_ONT_run.01/fastq_pass/barcode01/",
         flowcell_id=flowcell_id,
         sample_prefix=sample_prefix,
-        dest_fsx_dir=f"/data/staged_sample_data/remote_stage_test/{sample_prefix}",
-        dest_s3_dir=f"s3://bucket/data/staged_sample_data/remote_stage_test/{sample_prefix}",
-        reference_bucket="s3://bucket",
+        dest_fsx_dir=f"/fsx/staging/staged_external_sequencing_data/remote_stage_test/{sample_prefix}",
+        dest_s3_dir=f"s3://bucket/fsx/remote_stage_test/{sample_prefix}",
+        reference_s3_uri="s3://bucket",
         aws_env={},
         debug=False,
     )
@@ -296,7 +296,7 @@ def test_process_samples_emits_r1_only_ont_prefix_row_and_sanitizes_run_id(
 
     report, rows = module.precheck_manifest(
         analysis_samples,
-        reference_bucket="s3://bucket",
+        reference_s3_uri="s3://bucket",
         aws_env={},
         debug=False,
     )
@@ -305,7 +305,7 @@ def test_process_samples_emits_r1_only_ont_prefix_row_and_sanitizes_run_id(
     samples_rows, units_rows, created_files, run_ids = module.process_samples(
         analysis_samples,
         _stage_paths(),
-        reference_bucket="s3://bucket",
+        reference_s3_uri="s3://bucket",
         aws_env={},
         debug=False,
         rows=rows,

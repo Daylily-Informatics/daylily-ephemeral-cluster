@@ -86,16 +86,61 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "1.0.16"
+    assert command.git_tag == "2.0.0"
+    assert len(command.validation_runs) == 1
+    validation_run = command.validation_runs[0]
+    assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
+    assert validation_run.dayec_tag == "4.1.3"
+    assert validation_run.dayec_commit == "012a3b5b30d2e69a07aa80dd4c224ad1ee26d3a4"
+    assert validation_run.dayoa_tag == "1.0.21"
+    assert validation_run.dayoa_commit == "c2ffe93f246ff19c346f0a99e04fddc9e2712ff3"
+    assert validation_run.status == "success"
+    assert validation_run.dryrun_status == "success"
+    assert validation_run.live_status == "success"
     assert command.compatible_platforms == ["ILMN"]
     assert command.compatible_data_modes == ["ilmn_solo"]
     assert "bin/day_run" in command.dy_command
     assert command.dryrun_dy_command.endswith(" -n")
 
-    launch_argv = command.launch_argv(destination="run-1", cluster="cluster-a")
+    launch_argv = command.launch_argv(
+        analysis_id="run-1",
+        executing_entity="johnm",
+        cluster="cluster-a",
+    )
     assert "--dy-command" in launch_argv
+    assert "--analysis-id" in launch_argv
+    assert "run-1" in launch_argv
+    assert "--executing-entity" in launch_argv
+    assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "1.0.16" in launch_argv
+    assert "2.0.0" in launch_argv
+
+    export_argv = command.launch_argv(
+        analysis_id="run-1",
+        executing_entity="johnm",
+        export_destination_s3_uri="s3://bucket/derived/johnm/run-1/",
+        export_trigger="all",
+        delete_on_export_success=True,
+    )
+    assert "--export-destination-s3-uri" in export_argv
+    assert "s3://bucket/derived/johnm/run-1/" in export_argv
+    assert "--export-trigger" in export_argv
+    assert "all" in export_argv
+    assert "--delete-on-export-success" in export_argv
+
+    with pytest.raises(ValueError, match="export_trigger"):
+        command.launch_argv(
+            analysis_id="run-1",
+            executing_entity="johnm",
+            export_destination_s3_uri="s3://bucket/derived/johnm/run-1/",
+        )
+
+    with pytest.raises(ValueError, match="delete_on_export_success"):
+        command.launch_argv(
+            analysis_id="run-1",
+            executing_entity="johnm",
+            delete_on_export_success=True,
+        )
 
 
 def test_repository_catalog_commands_have_run_metadata() -> None:
@@ -115,6 +160,27 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     } <= command_ids
 
     for command in catalog.commands():
+        if not command.validation_runs:
+            assert command.command_id in {"illumina_run_qc_bclconvert"}
+            continue
+        assert len(command.validation_runs) == 1
+        validation_run = command.validation_runs[0]
+        assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
+        assert validation_run.report_path == "docs/tstver411b_command_catalog_test_results.md"
+        assert (
+            validation_run.ledger_path
+            == "docs/plans/20260525T063158Z_tstver411b_dayoa_catalog_recipe_validation_ledger.md"
+        )
+        assert validation_run.cluster == "tstVer4-1-1b"
+        assert validation_run.region == "us-west-2"
+        assert validation_run.region_az == "us-west-2d"
+        assert validation_run.dayec_tag == "4.1.3"
+        assert validation_run.dayoa_tag == "1.0.21"
+        assert validation_run.dayoa_commit == "c2ffe93f246ff19c346f0a99e04fddc9e2712ff3"
+        assert validation_run.tested_command.startswith("bin/day_run ")
+        assert validation_run.status in {"success", "failed", "blocked"}
+        assert validation_run.dryrun_status in {"success", "failed", "blocked"}
+        assert validation_run.live_status in {"success", "failed", "blocked", "not_run"}
         if command.command_class != "sample_analysis":
             continue
         assert command.dy_command.startswith("bin/day_run ")
@@ -122,7 +188,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "1.0.16"
+        assert command.git_tag == "2.0.0"
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
@@ -142,18 +208,35 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_snv")
     assert hybrid_ilmn_ont.aligners == ["sent"]
     assert hybrid_ilmn_ont.dedupers == ["dmd"]
-    assert "sentdhiom" in hybrid_ilmn_ont.snv_callers
+    assert hybrid_ilmn_ont.snv_callers == ["sentdhiomr"]
+    assert hybrid_ilmn_ont.sv_callers == ["sentdhiomr"]
+    assert "produce_sentdhiomr_sv" in hybrid_ilmn_ont.dy_command
+    assert "produce_sentdhiomr_snv_vcf" in hybrid_ilmn_ont.dy_command
+    assert "produce_sentdhiom_sv" not in hybrid_ilmn_ont.dy_command
+    assert "produce_sentdhiom_snv_vcf" not in hybrid_ilmn_ont.dy_command
     assert "dedupers=[" in hybrid_ilmn_ont.dy_command
 
     hybrid_ultima_ont = catalog.get_command("hybrid_ultima_ont_snv")
     assert hybrid_ultima_ont.aligners == ["ug"]
     assert hybrid_ultima_ont.dedupers == ["na"]
+    assert hybrid_ultima_ont.snv_callers == ["sentdhuomr"]
+    assert "produce_sentdhuomr_snv_vcf" in hybrid_ultima_ont.dy_command
+    assert "produce_sentdhuom_snv_vcf" not in hybrid_ultima_ont.dy_command
+    assert hybrid_ultima_ont.validation_runs[0].status == "failed"
+    assert "sentdhuomr_hybrid_select" in hybrid_ultima_ont.validation_runs[0].failure_cause
 
     for command in catalog.commands():
         if command.command_class != "sample_analysis":
             continue
         assert not (set(command.dedupers) & {"dppl", "dppl_sent", "smd"})
         assert not (set(command.aligners) & {"sentdhiom", "sentdhuom"})
+        assert "sentdhiom" not in set(command.snv_callers) - {"sentdhiomr"}
+        assert "sentdhiom" not in set(command.sv_callers) - {"sentdhiomr"}
+        assert "sentdhuom" not in set(command.snv_callers) - {"sentdhuomr"}
+        assert "sentdhuom" not in set(command.sv_callers) - {"sentdhuomr"}
+        assert "produce_sentdhiom_sv" not in command.dy_command
+        assert "produce_sentdhiom_snv_vcf" not in command.dy_command
+        assert "produce_sentdhuom_snv_vcf" not in command.dy_command
 
     vep_multiqc = catalog.get_command("illumina_snv_alignstats_relatedness_vep_multiqc")
     assert vep_multiqc.targets == [
@@ -203,16 +286,21 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert command.input_contract == "run_context"
     assert command.requires_staging is False
     assert command.requires_run_mount is True
-    assert command.runtime_parameters == {"run_context_file": "config/runs.tsv"}
+    assert command.runtime_parameters == {
+        "run_context_file": "config/runs.tsv",
+        "samples_table": ".test_data/data/samples.tsv",
+        "units_table": ".test_data/data/units.tsv",
+    }
     assert command.input_requirements.required_run_context_values == {"PLATFORM": "ILMN"}
     assert command.targets == ["produce_illumina_run_qc"]
     assert command.compatible_platforms == ["ILMN"]
 
     with pytest.raises(ValueError, match="run_context_file is required"):
-        command.launch_argv(destination="s3://bucket/results")
+        command.launch_argv(analysis_id="run-qc", executing_entity="johnm")
 
     launch_argv = command.launch_argv(
-        destination="s3://bucket/results",
+        analysis_id="run-qc",
+        executing_entity="johnm",
         run_context_file="config/runs.tsv",
         dry_run=True,
     )
@@ -223,7 +311,44 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
     assert "produce_illumina_run_qc" in dy_command
     assert "run_context_file=config/runs.tsv" in dy_command
-    assert dy_command.endswith("--config run_context_file=config/runs.tsv")
+    assert "samples_table=.test_data/data/samples.tsv" in dy_command
+    assert "units_table=.test_data/data/units.tsv" in dy_command
+    assert dy_command.endswith(
+        "--config run_context_file=config/runs.tsv "
+        "samples_table=.test_data/data/samples.tsv "
+        "units_table=.test_data/data/units.tsv"
+    )
+
+    combined = catalog.get_command("illumina_run_qc_bclconvert")
+    assert combined.command_class == "run_analysis"
+    assert combined.targets == ["produce_illumina_run_qc_and_bclconvert"]
+    assert combined.runtime_parameters == {
+        "run_context_file": "config/runs.tsv",
+        "samples_table": ".test_data/data/bclconvert/samples.tsv",
+        "units_table": ".test_data/data/bclconvert/units.tsv",
+    }
+    combined_argv = combined.launch_argv(
+        analysis_id="run-qc-bclconvert",
+        executing_entity="johnm",
+        run_context_file="config/runs.tsv",
+        dry_run=True,
+    )
+    combined_dy_command = combined_argv[combined_argv.index("--dy-command") + 1]
+    assert "produce_illumina_run_qc_and_bclconvert" in combined_dy_command
+    assert "samples_table=.test_data/data/bclconvert/samples.tsv" in combined_dy_command
+    assert "units_table=.test_data/data/bclconvert/units.tsv" in combined_dy_command
+
+    ont = catalog.get_command("ont_run_qc")
+    assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc"]
+    ont_argv = ont.launch_argv(
+        analysis_id="ont-run-qc",
+        executing_entity="johnm",
+        run_context_file="config/runs.tsv",
+        dry_run=True,
+    )
+    ont_dy_command = ont_argv[ont_argv.index("--dy-command") + 1]
+    assert "produce_ont_run_qc_and_demux_multiqc" in ont_dy_command
+    assert "run_context_file=config/runs.tsv" in ont_dy_command
 
 
 def test_repository_catalog_v1_migrates_to_sample_analysis(tmp_path: Path) -> None:

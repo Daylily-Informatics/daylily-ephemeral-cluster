@@ -7,14 +7,18 @@ from unittest.mock import MagicMock, patch
 
 from daylily_ec.aws.s3 import (
     BUCKET_NAME_FILTER,
-    CORE_REFERENCE_PREFIXES,
+    ROLE_CONTROL_DATA,
+    ROLE_REFERENCE,
+    ROLE_STAGING,
     _resolve_bucket_region,
     _standard_s3_config,
     bucket_url,
     list_candidate_buckets,
     make_s3_bucket_preflight_step,
-    select_bucket,
+    normalize_role_s3_uri,
+    role_prefix_key,
     verify_reference_bundle,
+    verify_s3_roles,
 )
 from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 
@@ -87,6 +91,14 @@ def _make_reference_s3_client(
 
     client.list_objects_v2.side_effect = fake_list_objects_v2
     return client
+
+
+def _role_values() -> dict[str, str]:
+    return {
+        ROLE_REFERENCE: "s3://dayoa-reference/references/",
+        ROLE_CONTROL_DATA: "s3://dayoa-control/control/",
+        ROLE_STAGING: "s3://dayoa-staging/staged_external_data/",
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -197,77 +209,68 @@ class TestListCandidateBuckets:
         assert BUCKET_NAME_FILTER == "omics-analysis"
 
 # ---------------------------------------------------------------------------
-# select_bucket
+# explicit role URI validation
 # ---------------------------------------------------------------------------
 
 
-class TestSelectBucket:
-    def test_auto_apply_set_value_in_candidates(self):
-        result = select_bucket(
-            ["bucket-a", "bucket-b"],
-            cfg_action="USESETVALUE",
-            cfg_set_value="bucket-b",
+class TestExplicitRoleUris:
+    def test_normalize_bucket_and_prefix(self):
+        spec = normalize_role_s3_uri("s3://bucket-a/references", role=ROLE_REFERENCE)
+
+        assert spec.role == ROLE_REFERENCE
+        assert spec.uri == "s3://bucket-a/references/"
+        assert spec.bucket == "bucket-a"
+        assert spec.prefix == "references"
+
+    def test_normalize_bare_bucket_value(self):
+        spec = normalize_role_s3_uri("bucket-a/references", role=ROLE_REFERENCE)
+
+        assert spec.uri == "s3://bucket-a/references/"
+        assert role_prefix_key(spec, "runtime_assets/cached_envs/") == (
+            "references/runtime_assets/cached_envs/"
         )
-        assert result == "bucket-b"
 
-    def test_auto_apply_set_value_not_in_candidates(self):
-        result = select_bucket(
-            ["bucket-a"],
-            cfg_action="USESETVALUE",
-            cfg_set_value="bucket-missing",
-        )
-        # Falls through to single-candidate auto-select
-        assert result == "bucket-a"
+    def test_rejects_missing_and_non_s3_values(self):
+        for value in ("", "https://bucket/key"):
+            try:
+                normalize_role_s3_uri(value, role=ROLE_REFERENCE)
+            except ValueError as exc:
+                assert ROLE_REFERENCE in str(exc)
+            else:
+                raise AssertionError(f"expected ValueError for {value!r}")
 
-    def test_single_candidate_auto_select(self):
-        result = select_bucket(["only-bucket"])
-        assert result == "only-bucket"
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
+    def test_verify_s3_roles_checks_required_role_prefixes(self, mock_client_factory):
+        client = _make_reference_s3_client()
+        mock_client_factory.return_value = client
 
-    @patch.dict("os.environ", {"DAY_DISABLE_AUTO_SELECT": "1"})
-    def test_single_candidate_disabled_auto_select(self):
-        result = select_bucket(["only-bucket"])
-        assert result is None
+        ok, details = verify_s3_roles(_role_values(), profile="prof", region="us-west-2")
 
-    def test_cfg_bucket_name_fallback(self):
-        result = select_bucket(
-            ["bucket-a", "bucket-b"],
-            cfg_bucket_name="bucket-a",
-        )
-        assert result == "bucket-a"
+        assert ok is True
+        assert details["roles"][ROLE_REFERENCE]["uri"] == "s3://dayoa-reference/references/"
+        assert details["buckets"] == [
+            "dayoa-control",
+            "dayoa-reference",
+            "dayoa-staging",
+        ]
+        assert client.get_object.call_args_list[0].kwargs == {
+            "Bucket": "dayoa-reference",
+            "Key": "references/s3_reference_data_version.info",
+        }
+        checked_prefixes = [call.kwargs["Prefix"] for call in client.list_objects_v2.call_args_list]
+        assert "references/genomic_data/organism_references/H_sapiens/hg38/" in checked_prefixes
+        assert "references/runtime_assets/cached_envs/" in checked_prefixes
+        assert "control/genomic_data/organism_reads/" in checked_prefixes
 
-    def test_cfg_bucket_name_not_in_candidates(self):
-        result = select_bucket(
-            ["bucket-a", "bucket-b"],
-            cfg_bucket_name="bucket-c",
-        )
-        assert result is None
+    def test_verify_s3_roles_rejects_overlapping_role_prefixes(self):
+        values = _role_values()
+        values[ROLE_REFERENCE] = "s3://same-bucket/data/"
+        values[ROLE_CONTROL_DATA] = "s3://same-bucket/data/reads/"
 
-    def test_no_candidates_returns_none(self):
-        result = select_bucket([])
-        assert result is None
+        ok, details = verify_s3_roles(values)
 
-    def test_multiple_candidates_no_config_returns_none(self):
-        result = select_bucket(["bucket-a", "bucket-b"])
-        assert result is None
-
-    @patch.dict("os.environ", {"DAY_DISABLE_AUTO_SELECT": "1"})
-    def test_auto_select_disabled_skips_set_value(self):
-        """DAY_DISABLE_AUTO_SELECT=1 disables auto-apply of set_value."""
-        result = select_bucket(
-            ["bucket-a"],
-            cfg_action="USESETVALUE",
-            cfg_set_value="bucket-a",
-        )
-        assert result is None
-
-    def test_priority_set_value_over_single(self):
-        """set_value takes priority over single-candidate auto-select."""
-        result = select_bucket(
-            ["bucket-a"],
-            cfg_action="USESETVALUE",
-            cfg_set_value="bucket-a",
-        )
-        assert result == "bucket-a"
+        assert ok is False
+        assert "must not overlap" in details["issues"][0]
 
 
 # ---------------------------------------------------------------------------
@@ -276,34 +279,34 @@ class TestSelectBucket:
 
 
 class TestVerifyReferenceBundle:
-    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
     def test_success(self, mock_client_factory):
         mock_client_factory.return_value = _make_reference_s3_client()
 
         assert verify_reference_bundle("my-bucket", profile="prof", region="us-west-2")
         mock_client_factory.assert_called_once_with(profile="prof", region="us-west-2")
 
-    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
     def test_failure_when_required_prefix_missing(self, mock_client_factory):
         mock_client_factory.return_value = _make_reference_s3_client(
-            missing_prefixes={CORE_REFERENCE_PREFIXES[0]},
+            missing_prefixes={"runtime_assets/cluster_boot_config/"},
         )
 
         assert not verify_reference_bundle("bad-bucket")
 
-    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
     def test_failure_when_version_marker_missing(self, mock_client_factory):
         mock_client_factory.return_value = _make_reference_s3_client(version=None)
 
         assert not verify_reference_bundle("any-bucket")
 
-    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
     def test_failure_when_bucket_missing(self, mock_client_factory):
         mock_client_factory.return_value = _make_reference_s3_client(bucket_exists=False)
 
         assert not verify_reference_bundle("bucket")
 
-    @patch("daylily_ec.aws.s3._reference_bucket_s3_client")
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
     def test_no_profile_no_region(self, mock_client_factory):
         mock_client_factory.return_value = _make_reference_s3_client()
 
@@ -335,102 +338,94 @@ class TestBucketUrl:
 
 
 class TestMakeS3BucketPreflightStep:
-    @patch("daylily_ec.aws.s3.verify_reference_bundle", return_value=True)
+    @patch("daylily_ec.aws.s3.verify_s3_roles")
     def test_full_success(self, mock_verify):
-        """Happy path: single bucket found, verified, PASS."""
-        ctx = _make_aws_ctx(
-            buckets=["prod-omics-analysis-usw2"],
-            locations={"prod-omics-analysis-usw2": "us-west-2"},
-        )
-        step = make_s3_bucket_preflight_step(
-            ctx, profile="myprof",
-        )
-        report = PreflightReport(region="us-west-2")
-        report = step(report)
-
-        assert len(report.checks) == 2
-        assert report.checks[0].id == "s3.bucket_select"
-        assert report.checks[0].status == CheckStatus.PASS
-        assert report.checks[0].details["selected"] == "prod-omics-analysis-usw2"
-        assert report.checks[0].details["bucket_url"] == "s3://prod-omics-analysis-usw2"
-        assert report.checks[1].id == "s3.bucket_verify"
-        assert report.checks[1].status == CheckStatus.PASS
-
-    def test_no_candidates_fail(self):
-        """No matching buckets → FAIL."""
-        ctx = _make_aws_ctx(buckets=["unrelated"], region="us-west-2")
-        step = make_s3_bucket_preflight_step(ctx)
-        report = PreflightReport(region="us-west-2")
-        report = step(report)
-
-        assert len(report.checks) == 1
-        assert report.checks[0].id == "s3.bucket_select"
-        assert report.checks[0].status == CheckStatus.FAIL
-        assert "No S3 buckets" in report.checks[0].remediation
-
-    def test_multiple_no_config_fail(self):
-        """Multiple candidates, no auto-select config → FAIL."""
-        ctx = _make_aws_ctx(
-            buckets=["a-omics-analysis", "b-omics-analysis"],
-            locations={
-                "a-omics-analysis": "us-west-2",
-                "b-omics-analysis": "us-west-2",
+        mock_verify.return_value = (
+            True,
+            {
+                "roles": {
+                    role: {"uri": value if value.endswith("/") else f"{value}/", "bucket": value.split("/")[2], "prefix": ""}
+                    for role, value in _role_values().items()
+                },
+                "buckets": [
+                    "dayoa-control",
+                    "dayoa-reference",
+                    "dayoa-staging",
+                ],
+                "issues": [],
             },
         )
+        ctx = _make_aws_ctx(region="us-west-2")
+        step = make_s3_bucket_preflight_step(
+            ctx,
+            profile="myprof",
+            reference_s3_uri=_role_values()[ROLE_REFERENCE],
+            control_data_s3_uri=_role_values()[ROLE_CONTROL_DATA],
+            stage_s3_uri=_role_values()[ROLE_STAGING],
+        )
+        report = PreflightReport(region="us-west-2")
+        report = step(report)
+
+        assert len(report.checks) == 2
+        assert report.checks[0].id == "s3.role_config"
+        assert report.checks[0].status == CheckStatus.PASS
+        assert report.checks[1].id == "s3.role_verify"
+        assert report.checks[1].status == CheckStatus.PASS
+        mock_verify.assert_called_once_with(_role_values(), profile="myprof", region="us-west-2")
+
+    def test_missing_role_config_fails(self):
+        ctx = _make_aws_ctx(region="us-west-2")
         step = make_s3_bucket_preflight_step(ctx)
         report = PreflightReport(region="us-west-2")
         report = step(report)
 
         assert len(report.checks) == 1
+        assert report.checks[0].id == "s3.role_config"
         assert report.checks[0].status == CheckStatus.FAIL
-        assert "auto-selected" in report.checks[0].remediation
+        assert "explicit reference_s3_uri" in report.checks[0].remediation
 
-    @patch("daylily_ec.aws.s3.verify_reference_bundle", return_value=False)
+    @patch("daylily_ec.aws.s3.verify_s3_roles")
     def test_verification_failure_hard_gate(self, mock_verify):
-        """Verification failure → FAIL (hard gate)."""
-        ctx = _make_aws_ctx(
-            buckets=["omics-analysis-bucket"],
-            locations={"omics-analysis-bucket": "us-west-2"},
+        mock_verify.return_value = (
+            False,
+            {
+                "roles": {
+                    role: {"uri": value if value.endswith("/") else f"{value}/", "bucket": value.split("/")[2], "prefix": ""}
+                    for role, value in _role_values().items()
+                },
+                "buckets": ["dayoa-reference"],
+                "issues": ["reference: missing version marker"],
+            },
         )
-        step = make_s3_bucket_preflight_step(ctx)
+        ctx = _make_aws_ctx(region="us-west-2")
+        step = make_s3_bucket_preflight_step(
+            ctx,
+            reference_s3_uri=_role_values()[ROLE_REFERENCE],
+            control_data_s3_uri=_role_values()[ROLE_CONTROL_DATA],
+            stage_s3_uri=_role_values()[ROLE_STAGING],
+        )
         report = PreflightReport(region="us-west-2")
         report = step(report)
 
         assert len(report.checks) == 2
-        assert report.checks[0].status == CheckStatus.PASS  # select ok
-        assert report.checks[1].id == "s3.bucket_verify"
+        assert report.checks[0].status == CheckStatus.PASS
+        assert report.checks[1].id == "s3.role_verify"
         assert report.checks[1].status == CheckStatus.FAIL
         assert not report.passed
 
-    @patch("daylily_ec.aws.s3.verify_reference_bundle", return_value=True)
-    def test_config_set_value_selection(self, mock_verify):
-        """Config set_value selects correct bucket from multiple."""
-        ctx = _make_aws_ctx(
-            buckets=["a-omics-analysis", "b-omics-analysis"],
-            locations={
-                "a-omics-analysis": "us-west-2",
-                "b-omics-analysis": "us-west-2",
-            },
+    @patch("daylily_ec.aws.s3.verify_s3_roles")
+    def test_preserves_existing_checks(self, mock_verify):
+        mock_verify.return_value = (
+            True,
+            {"roles": {role: {"uri": value, "bucket": value.split("/")[2], "prefix": ""} for role, value in _role_values().items()}, "buckets": [], "issues": []},
         )
+        ctx = _make_aws_ctx(region="us-west-2")
         step = make_s3_bucket_preflight_step(
             ctx,
-            cfg_action="USESETVALUE",
-            cfg_set_value="b-omics-analysis",
+            reference_s3_uri=_role_values()[ROLE_REFERENCE],
+            control_data_s3_uri=_role_values()[ROLE_CONTROL_DATA],
+            stage_s3_uri=_role_values()[ROLE_STAGING],
         )
-        report = PreflightReport(region="us-west-2")
-        report = step(report)
-
-        assert report.checks[0].details["selected"] == "b-omics-analysis"
-        assert report.passed
-
-    @patch("daylily_ec.aws.s3.verify_reference_bundle", return_value=True)
-    def test_preserves_existing_checks(self, mock_verify):
-        """Step preserves checks already in the report."""
-        ctx = _make_aws_ctx(
-            buckets=["omics-analysis-x"],
-            locations={"omics-analysis-x": "us-west-2"},
-        )
-        step = make_s3_bucket_preflight_step(ctx)
         report = PreflightReport(region="us-west-2")
         report.checks.append(
             CheckResult(id="prior.check", status=CheckStatus.PASS)
@@ -440,20 +435,24 @@ class TestMakeS3BucketPreflightStep:
         assert len(report.checks) == 3
         assert report.checks[0].id == "prior.check"
 
-    @patch("daylily_ec.aws.s3.verify_reference_bundle", return_value=True)
+    @patch("daylily_ec.aws.s3.verify_s3_roles")
     def test_uses_report_region(self, mock_verify):
-        """Step uses report.region, not aws_ctx.region."""
-        ctx = _make_aws_ctx(
-            buckets=["omics-analysis-eu"],
-            locations={"omics-analysis-eu": "eu-west-1"},
-            region="us-west-2",
+        mock_verify.return_value = (
+            True,
+            {"roles": {role: {"uri": value, "bucket": value.split("/")[2], "prefix": ""} for role, value in _role_values().items()}, "buckets": [], "issues": []},
         )
-        step = make_s3_bucket_preflight_step(ctx)
+        ctx = _make_aws_ctx(region="us-west-2")
+        step = make_s3_bucket_preflight_step(
+            ctx,
+            reference_s3_uri=_role_values()[ROLE_REFERENCE],
+            control_data_s3_uri=_role_values()[ROLE_CONTROL_DATA],
+            stage_s3_uri=_role_values()[ROLE_STAGING],
+        )
         report = PreflightReport(region="eu-west-1")
         report = step(report)
 
         assert report.checks[0].status == CheckStatus.PASS
-        assert report.checks[0].details["selected"] == "omics-analysis-eu"
+        mock_verify.assert_called_once_with(_role_values(), profile="", region="eu-west-1")
 
     def test_returns_callable(self):
         ctx = _make_aws_ctx()

@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf -p -j 5 -k -n",
+  "completed_at": "2026-05-25T07:39:43Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/johnm/tvb_roche_snv_alignstats_5x_1021_dryrun/daylily-omics-analysis",
+  "session_name": "tvb_roche_snv_alignstats_5x_1021_dryrun",
+  "started_at": "2026-05-25T07:39:17Z"
+}

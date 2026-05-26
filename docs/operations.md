@@ -49,11 +49,13 @@ Use `samples stage` for sample-manifest workflows:
 dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --reference-bucket "$REF_BUCKET" \
+  --reference-s3-uri "$REF_S3_URI" \
+  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
+  --stage-s3-uri "$STAGE_S3_URI" \
   --config-dir "$STAGE_CFG_DIR"
 ```
 
-The helper writes local staged config files and prints a remote stage directory under `/fsx/data/staged_sample_data/...`.
+The helper writes local staged config files and prints a remote stage directory under `/fsx/staging/staged_external_sequencing_data/...`.
 
 For catalog-driven sample launches:
 
@@ -63,12 +65,15 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --reference-bucket "$REF_BUCKET" \
-  --destination dayoa \
+  --reference-s3-uri "$REF_S3_URI" \
+  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
+  --stage-s3-uri "$STAGE_S3_URI" \
+  --analysis-id dayoa \
+  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
   --dry-run
 ```
 
-The catalog pin for DayOA commands is `1.0.16`.
+The catalog pin for DayOA commands is `2.0.0`.
 
 ## Attach Run Folders
 
@@ -126,9 +131,10 @@ dyec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination dayoa \
-  --git-tag 1.0.16
+  --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
+  --analysis-id dayoa \
+  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
+  --git-tag 2.0.0
 ```
 
 Run-folder workflow:
@@ -139,8 +145,9 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --run-context-file ./runs.tsv \
-  --destination run-qc \
-  --git-tag 1.0.16 \
+  --analysis-id run-qc \
+  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
+  --git-tag 2.0.0 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
 
@@ -182,7 +189,7 @@ dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" \
+  --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
   --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 ```
@@ -193,7 +200,7 @@ Verify:
 cat "$EXPORT_DIR/fsx_export.yaml"
 ```
 
-Success means `status: success`, `task_lifecycle: SUCCEEDED`, `detached: true`, `delete_data_in_file_system: false`, and a completed FSx export task id. The destination must be an explicit S3 URI ending in `analysis_results/ubuntu/<analysis_dir>/`.
+Success means `status: success`, `task_lifecycle: SUCCEEDED`, `detached: true`, `delete_data_in_file_system: false`, and a completed FSx export task id. The destination must be an explicit S3 URI ending in `<executing_entity>/<analysis_id>/`.
 
 ## Delete
 

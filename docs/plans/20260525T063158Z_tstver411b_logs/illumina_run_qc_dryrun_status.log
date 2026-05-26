@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_illumina_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv -n",
+  "completed_at": "2026-05-25T08:50:20Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/johnm/tvb_illumina_run_qc_1021_dryrun/daylily-omics-analysis",
+  "session_name": "tvb_illumina_run_qc_1021_dryrun",
+  "started_at": "2026-05-25T08:50:01Z"
+}

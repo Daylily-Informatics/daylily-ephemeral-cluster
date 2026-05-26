@@ -1,0 +1,4 @@
+Usage: dyec workflow status [OPTIONS]
+Try 'dyec workflow status --help' for help.
+
+Error: No such option '--session-name'. (Did you mean one of: '--cluster-name', '--session'?)

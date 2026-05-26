@@ -18,13 +18,17 @@ HeadNode:
       MountDir: /head_root
   CustomActions:
     OnNodeConfigured:
-      Script: ${REGSUB_S3_BUCKET_INIT}/cluster_boot_config/post_install_ubuntu_combined.sh # head and each compute can have different scripts if desired
+      Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh # head and each compute can have different scripts if desired
       Args:
         - ${REGSUB_REGION}
-        - ${REGSUB_S3_BUCKET_NAME}
+        - ${REGSUB_S3_BUCKET_INIT}
   Iam:
-    S3Access:
-      - BucketName: ${REGSUB_S3_BUCKET_NAME}  
+    S3Access: &dayoa_s3_access
+      - BucketName: ${REGSUB_S3_REFERENCE_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_CONTROL_DATA_BUCKET}
+        EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_STAGE_BUCKET}
         EnableWriteAccess: false
     AdditionalIamPolicies:
       - Policy: ${REGSUB_S3_IAM_POLICY} 
@@ -69,14 +73,12 @@ Scheduling:
           - ${REGSUB_PRIVATE_SUBNET}
       CustomActions:
         OnNodeConfigured:
-          Script: ${REGSUB_S3_BUCKET_INIT}/cluster_boot_config/post_install_ubuntu_combined.sh
+          Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
           Args:
             - ${REGSUB_REGION}
-            - ${REGSUB_S3_BUCKET_NAME}
+            - ${REGSUB_S3_BUCKET_INIT}
       Iam:
-        S3Access:
-          - BucketName: ${REGSUB_S3_BUCKET_NAME}
-            EnableWriteAccess: false
+        S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
@@ -125,14 +127,12 @@ Scheduling:
           - ${REGSUB_PRIVATE_SUBNET}
       CustomActions:
         OnNodeConfigured:
-          Script: ${REGSUB_S3_BUCKET_INIT}/cluster_boot_config/post_install_ubuntu_combined.sh
+          Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
           Args:
             - ${REGSUB_REGION}
-            - ${REGSUB_S3_BUCKET_NAME}
+            - ${REGSUB_S3_BUCKET_INIT}
       Iam:
-        S3Access:
-          - BucketName: ${REGSUB_S3_BUCKET_NAME}
-            EnableWriteAccess: false
+        S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
@@ -161,14 +161,12 @@ Scheduling:
           - ${REGSUB_PRIVATE_SUBNET}
       CustomActions:
         OnNodeConfigured:
-          Script: ${REGSUB_S3_BUCKET_INIT}/cluster_boot_config/post_install_ubuntu_combined.sh
+          Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
           Args:
             - ${REGSUB_REGION}
-            - ${REGSUB_S3_BUCKET_NAME}
+            - ${REGSUB_S3_BUCKET_INIT}
       Iam:
-        S3Access:
-          - BucketName: ${REGSUB_S3_BUCKET_NAME}
-            EnableWriteAccess: false
+        S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
@@ -195,14 +193,12 @@ Scheduling:
           - ${REGSUB_PRIVATE_SUBNET}
       CustomActions:
         OnNodeConfigured:
-          Script: ${REGSUB_S3_BUCKET_INIT}/cluster_boot_config/post_install_ubuntu_combined.sh
+          Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
           Args:
             - ${REGSUB_REGION}
-            - ${REGSUB_S3_BUCKET_NAME}
+            - ${REGSUB_S3_BUCKET_INIT}
       Iam:
-        S3Access:
-          - BucketName: ${REGSUB_S3_BUCKET_NAME}
-            EnableWriteAccess: false
+        S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
@@ -227,14 +223,12 @@ Scheduling:
           - ${REGSUB_PRIVATE_SUBNET}
       CustomActions:
         OnNodeConfigured:
-          Script: ${REGSUB_S3_BUCKET_INIT}/cluster_boot_config/post_install_ubuntu_combined.sh
+          Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
           Args:
             - ${REGSUB_REGION}
-            - ${REGSUB_S3_BUCKET_NAME}
+            - ${REGSUB_S3_BUCKET_INIT}
       Iam:
-        S3Access:
-          - BucketName: ${REGSUB_S3_BUCKET_NAME}
-            EnableWriteAccess: false
+        S3Access: *dayoa_s3_access
         AdditionalIamPolicies:
           - Policy: ${REGSUB_S3_IAM_POLICY}
           - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
@@ -254,11 +248,11 @@ SharedStorage:  # This is the local FS which should not be kept idle for long
       DeletionPolicy: ${REGSUB_SAVE_FSX}  # Set to true to keep the FSX after the cluster is deleted
       DataRepositoryAssociations:
         - Name: reference-data
-          FileSystemPath: /data/
-          DataRepositoryPath: ${REGSUB_S3_BUCKET_REF}/data/
+          FileSystemPath: /references/
+          DataRepositoryPath: ${REGSUB_S3_REFERENCE_URI}/
           BatchImportMetaDataOnCreate: true
           AutoImportPolicy: [NEW, CHANGED, DELETED]
-Tags:  # TAGs necessary for per-user/project/job cost tracking 
+Tags:  # TAGs necessary for per-user/project/job cost tracking
   - Key: aws-parallelcluster-username
     Value: ${REGSUB_USERNAME}
   - Key: aws-parallelcluster-jobid

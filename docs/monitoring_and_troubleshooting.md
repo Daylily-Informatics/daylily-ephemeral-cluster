@@ -57,11 +57,11 @@ dyec headnode configure \
 
 ## 4. Reference DRA
 
-The cluster template creates `/fsx/data` from the reference bucket `data/` prefix. If reference files are missing, check:
+The cluster template creates `/fsx/references` from `reference_s3_uri`. If reference files are missing, check:
 
 ```bash
 dyec headnode connect --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
-ls -lah /fsx/data
+ls -lah /fsx/references
 ```
 
 Bootstrap waits for required reference entries and hard-fails if the DRA never becomes visible.
@@ -119,7 +119,7 @@ dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" \
+  --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
   --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 

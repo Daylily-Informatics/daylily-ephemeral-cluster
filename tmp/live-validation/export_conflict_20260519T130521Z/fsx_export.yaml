@@ -1,0 +1,14 @@
+fsx_export:
+  schema_version: 3
+  status: error
+  phase: preflight
+  cluster_name: dra-enabled
+  region: us-west-2
+  analysis_dir: ubuntu/run_qc_ont_all
+  source_path: /analysis_results/ubuntu/run_qc_ont_all/
+  headnode_path: /fsx/analysis_results/ubuntu/run_qc_ont_all/
+  destination_s3_uri: s3://lsmc-dayoa-omics-analysis-us-west-2/analysis_results/ubuntu/run_qc_ont_all/
+  detached: false
+  delete_data_in_file_system: false
+  failure_details:
+    message: 'S3 destination prefix is not empty: s3://lsmc-dayoa-omics-analysis-us-west-2/analysis_results/ubuntu/run_qc_ont_all/'

@@ -131,7 +131,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         with pytest.raises(CommandError, match="Remote lookup failed: missing_stage_dir"):
             run_omics_module.parse_remote_config("__DAYLILY_ERROR__=missing_stage_dir")
 
-    def test_main_requires_destination(self):
+    def test_main_requires_analysis_identity(self):
         with pytest.raises(SystemExit) as exc:
             run_omics_module.main(["--profile", "dev"])
 
@@ -143,7 +143,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
                 [
                     "__DAYLILY_SESSION__=sess-1",
                     "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1",
-                    "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/dayoa/daylily-omics-analysis",
+                    "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/dayoa/daylily-omics-analysis",
                 ]
             )
             + "\n"
@@ -212,7 +212,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             stdout=(
                 "__DAYLILY_SESSION__=sess-1\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sess-1\n"
-                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/analysis/daylily-omics-analysis\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/analysis/daylily-omics-analysis\n"
             ),
             stderr="",
         ),
@@ -225,6 +225,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             units_path="/fsx/stage/run-1/foo_units.tsv",
         ),
     )
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.validate_headnode_readiness")
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.wait_for_ssm_online")
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_headnode_instance_id",
@@ -246,13 +247,47 @@ class TestRunOmicsAnalysisHeadnodeScript:
         _mock_cluster,
         _mock_target,
         _mock_wait,
-        _mock_discover,
+        mock_validate_headnode_readiness,
+        mock_discover,
         mock_run_shell,
         capsys,
     ):
-        rc = run_omics_module.main(["--profile", "dev", "--destination", "analysis", "--dry-run"])
+        events = []
+        mock_validate_headnode_readiness.side_effect = lambda *args, **kwargs: events.append(
+            "readiness"
+        )
+        mock_discover.side_effect = lambda *args, **kwargs: events.append(
+            "discover"
+        ) or run_omics_module.RemoteConfig(
+            stage_dir="/fsx/stage/run-1",
+            samples_path="/fsx/stage/run-1/foo_samples.tsv",
+            units_path="/fsx/stage/run-1/foo_units.tsv",
+        )
+
+        tmux_result = mock_run_shell.return_value
+        mock_run_shell.side_effect = lambda *args, **kwargs: events.append("tmux") or tmux_result
+
+        rc = run_omics_module.main(
+            [
+                "--profile",
+                "dev",
+                "--analysis-id",
+                "analysis",
+                "--executing-entity",
+                "johnm",
+                "--dry-run",
+            ]
+        )
 
         assert rc == 0
+        assert events == ["readiness", "discover", "tmux"]
+        mock_validate_headnode_readiness.assert_called_once_with(
+            "i-abc123",
+            "us-west-2",
+            profile="dev",
+            timeout=120,
+            comment="Validate DAY-EC headnode readiness before workflow launch",
+        )
         script = mock_run_shell.call_args.args[2]
         assert 'run_dir="/home/ubuntu/daylily-runs/$SESSION_NAME"' in script
         assert 'work_script="$run_dir/launch.sh"' in script
@@ -263,17 +298,18 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert '-e "DAYLILY_RUN_DIR=$run_dir"' in script
         assert '-e "DAYLILY_REPO_PATH=$repo_path"' in script
         assert '-e "DAYLILY_TMUX_LOG=$tmux_log"' in script
-        assert "tmux has-session" in script
+        assert 'tmux has-session -t "=$SESSION_NAME"' in script
         assert 'repo_key = "daylily-omics-analysis"' in script
         assert "DAY_CONTAINERIZED=true" in script
         assert "DY_COMMAND='DAY_CONTAINERIZED=true" in script
         assert 'mkdir -p "$(dirname "$clone_root")"' in script
         assert 'mkdir -p "$clone_root"' not in script
         assert "day-clone" in script
-        assert "--destination analysis" in script
+        assert '--destination "$ANALYSIS_ID"' in script
+        assert '--executing-entity "$EXECUTING_ENTITY"' in script
         assert "--repository daylily-omics-analysis" in script
         assert "--git-tag main" in script
-        assert "__DAYLILY_ERROR__=destination_exists_without_repo" not in script
+        assert "__DAYLILY_ERROR__=analysis_dir_exists" in script
         assert 'if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then' in script
         assert '. "$HOME/miniconda3/etc/profile.d/conda.sh"' in script
         assert "unset PROJECT || true" in script
@@ -285,12 +321,14 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'echo "[ERROR] day_activate failed with status $activate_status"' in script
         assert ". bin/day_activate slurm hg38 remote" in script
         assert "bin/day_run" in script
+        assert "env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export" in script
+        assert "dyec export \\\n      --profile" not in script
         assert "exec bash -il" in script
         assert '--which-one "$TRANSPORT"' not in script
         out = capsys.readouterr().out
         assert "Run state directory: /home/ubuntu/daylily-runs/sess-1" in out
         assert (
-            "Workflow repo path: /fsx/analysis_results/ubuntu/analysis/daylily-omics-analysis"
+            "Workflow repo path: /fsx/analysis_results/johnm/analysis/daylily-omics-analysis"
             in out
         )
         assert (
@@ -304,12 +342,13 @@ class TestRunOmicsAnalysisHeadnodeScript:
             stdout=(
                 "__DAYLILY_SESSION__=run-qc\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/run-qc\n"
-                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/run-qc/daylily-omics-analysis\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/run-qc/daylily-omics-analysis\n"
             ),
             stderr="",
         ),
     )
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.discover_stage_config")
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.validate_headnode_readiness")
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.wait_for_ssm_online")
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_headnode_instance_id",
@@ -331,10 +370,17 @@ class TestRunOmicsAnalysisHeadnodeScript:
         _mock_cluster,
         _mock_target,
         _mock_wait,
+        mock_validate_headnode_readiness,
         mock_discover,
         mock_run_shell,
         tmp_path,
     ):
+        events = []
+        mock_validate_headnode_readiness.side_effect = lambda *args, **kwargs: events.append(
+            "readiness"
+        )
+        tmux_result = mock_run_shell.return_value
+        mock_run_shell.side_effect = lambda *args, **kwargs: events.append("tmux") or tmux_result
         run_context = tmp_path / "runs.tsv"
         run_context.write_text(
             "RUNID\tPLATFORM\tRUN_DIR\nRUN-1\tILMN\t/fsx/runs/RUN-1\n",
@@ -345,8 +391,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
             [
                 "--profile",
                 "dev",
-                "--destination",
+                "--analysis-id",
                 "run-qc",
+                "--executing-entity",
+                "johnm",
                 "--session-name",
                 "run-qc",
                 "--run-context-file",
@@ -357,6 +405,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         )
 
         assert rc == 0
+        assert events == ["readiness", "tmux"]
         mock_discover.assert_not_called()
         script = mock_run_shell.call_args.args[2]
         assert "RUN_CONTEXT_MODE=true" in script
@@ -376,6 +425,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
             units_path="/fsx/stage/run-1/foo_units.tsv",
         ),
     )
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.validate_headnode_readiness")
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.wait_for_ssm_online")
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_headnode_instance_id",
@@ -397,11 +447,21 @@ class TestRunOmicsAnalysisHeadnodeScript:
         _mock_cluster,
         _mock_target,
         _mock_wait,
+        _mock_validate_headnode_readiness,
         _mock_discover,
         _mock_run_shell,
     ):
         with pytest.raises(CommandError, match="did not report success"):
-            run_omics_module.main(["--profile", "dev", "--destination", "analysis"])
+            run_omics_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--analysis-id",
+                    "analysis",
+                    "--executing-entity",
+                    "johnm",
+                ]
+            )
 
 
 class TestCfgHeadnodeScript:

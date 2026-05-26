@@ -22,6 +22,29 @@ MOUNT_ID_RE = re.compile(r"^[A-Za-z0-9._-]+$")
 MAX_MOUNT_ID_LENGTH = 128
 FSX_RUN_MOUNT_ROOT = "/run_dir_mounts/"
 HEADNODE_RUN_MOUNT_ROOT = "/fsx/run_dir_mounts/"
+MOUNT_PURPOSE_RUN = "run"
+MOUNT_PURPOSE_REFERENCE = "reference"
+MOUNT_PURPOSE_CONTROL_DATA = "control-data"
+MOUNT_PURPOSE_STAGING = "staging"
+MOUNT_PURPOSE_CUSTOM = "custom"
+MOUNT_PURPOSES = (
+    MOUNT_PURPOSE_RUN,
+    MOUNT_PURPOSE_REFERENCE,
+    MOUNT_PURPOSE_CONTROL_DATA,
+    MOUNT_PURPOSE_STAGING,
+    MOUNT_PURPOSE_CUSTOM,
+)
+PURPOSE_FSX_ROOTS = {
+    MOUNT_PURPOSE_RUN: "/run_dir_mounts/",
+    MOUNT_PURPOSE_REFERENCE: "/references/",
+    MOUNT_PURPOSE_CONTROL_DATA: "/control_data/",
+    MOUNT_PURPOSE_STAGING: "/staging/",
+}
+STATIC_ROLE_ROOTS = (
+    "/references/",
+    "/control_data/",
+    "/staging/",
+)
 DEFAULT_AUTO_IMPORT_EVENTS = ("NEW", "CHANGED")
 ALL_AUTO_IMPORT_EVENTS = ("NEW", "CHANGED", "DELETED")
 TERMINAL_FAILURE_LIFECYCLES = {"FAILED", "MISCONFIGURED"}
@@ -43,6 +66,7 @@ class RunMountRecord:
     """Stable local projection of an FSx run directory mount."""
 
     mount_id: str
+    purpose: str
     run_id: str
     platform: str
     cluster_name: Optional[str]
@@ -73,6 +97,7 @@ class RunMountRecord:
         """Return stable JSON fields consumed by Ursa and operators."""
         payload: Dict[str, Any] = {
             "mount_id": self.mount_id,
+            "purpose": self.purpose,
             "run_id": self.run_id,
             "platform": self.platform,
             "cluster_name": self.cluster_name,
@@ -121,6 +146,7 @@ class CreateRunMountRequest:
     source_s3_uri: str
     mount_id: Optional[str] = None
     run_id: Optional[str] = None
+    purpose: str = MOUNT_PURPOSE_RUN
     platform: str = "OTHER"
     file_system_path: Optional[str] = None
     read_only: bool = True
@@ -186,40 +212,70 @@ def mount_id_from_request(
     return validate_mount_id(parts[-1])
 
 
-def normalize_file_system_path(path: Optional[str], *, mount_id: str) -> str:
-    """Normalize the FSx API path for a run mount."""
-    if path is None or not str(path).strip():
-        return f"{FSX_RUN_MOUNT_ROOT}{mount_id}/"
-
-    raw = str(path).strip()
-    if raw.startswith(HEADNODE_RUN_MOUNT_ROOT) or raw == HEADNODE_RUN_MOUNT_ROOT.rstrip("/"):
+def normalize_mount_purpose(purpose: str) -> str:
+    normalized = str(purpose or MOUNT_PURPOSE_RUN).strip().lower().replace("_", "-")
+    if normalized not in MOUNT_PURPOSES:
         raise RunMountError(
-            "FSx API path must use /run_dir_mounts/<mount_id>/, not /fsx/run_dir_mounts/."
+            "Mount purpose must be one of: " + ", ".join(MOUNT_PURPOSES)
         )
+    return normalized
+
+
+def _normalize_absolute_fsx_api_path(raw: str) -> str:
+    if raw.startswith("/fsx/") or raw == "/fsx":
+        raise RunMountError("FSx API path must not include the /fsx headnode prefix.")
     if not raw.startswith("/"):
         raise RunMountError("FSx file-system path must be absolute.")
     if raw == "/":
         raise RunMountError("FSx file-system path must not be '/'.")
-    if not raw.startswith(FSX_RUN_MOUNT_ROOT):
-        raise RunMountError(f"FSx file-system path must be under {FSX_RUN_MOUNT_ROOT}.")
     if "//" in raw:
         raise RunMountError("FSx file-system path must not contain duplicate slashes.")
     parts = PurePosixPath(raw).parts
     if ".." in parts:
         raise RunMountError("FSx file-system path must not contain '..'.")
-    normalized = "/" + "/".join(part for part in parts if part != "/")
-    if normalized == FSX_RUN_MOUNT_ROOT.rstrip("/"):
-        raise RunMountError("FSx file-system path must not be the run mount root.")
-    return normalized.rstrip("/") + "/"
+    return ("/" + "/".join(part for part in parts if part != "/")).rstrip("/") + "/"
+
+
+def normalize_file_system_path(
+    path: Optional[str],
+    *,
+    mount_id: str,
+    purpose: str = MOUNT_PURPOSE_RUN,
+) -> str:
+    """Normalize the FSx API path for a managed mount."""
+    normalized_purpose = normalize_mount_purpose(purpose)
+    root = PURPOSE_FSX_ROOTS.get(normalized_purpose)
+    if path is None or not str(path).strip():
+        if not root:
+            raise RunMountError("--file-system-path is required when --purpose custom is used.")
+        return f"{root}{mount_id}/"
+
+    raw = str(path).strip()
+    normalized = _normalize_absolute_fsx_api_path(raw)
+    if root and not normalized.startswith(root):
+        raise RunMountError(f"FSx file-system path for purpose {normalized_purpose} must be under {root}.")
+    if root and normalized == root:
+        if normalized_purpose not in {MOUNT_PURPOSE_CONTROL_DATA, MOUNT_PURPOSE_STAGING}:
+            raise RunMountError(f"FSx file-system path must not be the {normalized_purpose} mount root.")
+        return normalized
+    if normalized_purpose == MOUNT_PURPOSE_CUSTOM and any(
+        normalized == role_root or normalized.startswith(role_root)
+        for role_root in STATIC_ROLE_ROOTS + (FSX_RUN_MOUNT_ROOT,)
+    ):
+        raise RunMountError(
+            "Use a concrete --purpose for /references, /control_data, "
+            "/staging, or /run_dir_mounts paths."
+        )
+    return normalized
 
 
 def headnode_path_from_file_system_path(file_system_path: str) -> str:
-    normalized = normalize_file_system_path(file_system_path, mount_id="_validated")
-    if not normalized.startswith(FSX_RUN_MOUNT_ROOT):
-        raise RunMountError(f"FSx file-system path must be under {FSX_RUN_MOUNT_ROOT}.")
-    suffix = normalized[len(FSX_RUN_MOUNT_ROOT) :]
-    validate_mount_id(suffix.strip("/").split("/", 1)[0])
-    return f"{HEADNODE_RUN_MOUNT_ROOT}{suffix}"
+    normalized = _normalize_absolute_fsx_api_path(file_system_path)
+    suffix = normalized.lstrip("/")
+    if normalized in {"/control_data/", "/staging/"}:
+        return f"/fsx/{suffix}"
+    validate_mount_id(suffix.split("/", 1)[1].strip("/").split("/", 1)[0] if "/" in suffix else suffix)
+    return f"/fsx/{suffix}"
 
 
 def paths_overlap(left: str, right: str) -> bool:
@@ -277,8 +333,13 @@ def parse_auto_export_events(
     return _parse_event_tokens(raw, default=())
 
 
-def parse_tags(values: Optional[Sequence[str]]) -> Dict[str, str]:
-    tags: Dict[str, str] = {"lsmc:purpose": RUN_MOUNT_PURPOSE_TAG}
+def parse_tags(values: Optional[Sequence[str]], *, purpose: str = MOUNT_PURPOSE_RUN) -> Dict[str, str]:
+    normalized_purpose = normalize_mount_purpose(purpose)
+    tags: Dict[str, str] = {
+        "lsmc:purpose": (
+            RUN_MOUNT_PURPOSE_TAG if normalized_purpose == MOUNT_PURPOSE_RUN else normalized_purpose
+        )
+    }
     for value in values or []:
         if "=" not in value:
             raise RunMountError(f"Tag must be KEY=VALUE, got {value!r}.")
@@ -308,8 +369,13 @@ def create_run_mount(
         source_s3_uri=source_s3_uri,
     )
     run_id = validate_mount_id(request.run_id) if request.run_id else mount_id
+    purpose = normalize_mount_purpose(request.purpose)
     platform = _normalize_platform(request.platform)
-    file_system_path = normalize_file_system_path(request.file_system_path, mount_id=mount_id)
+    file_system_path = normalize_file_system_path(
+        request.file_system_path,
+        mount_id=mount_id,
+        purpose=purpose,
+    )
     auto_import_events = list(request.auto_import_events)
     auto_export_events = list(request.auto_export_events)
     read_only = bool(request.read_only and not auto_export_events)
@@ -366,6 +432,7 @@ def create_run_mount(
     record = record_from_association(
         association,
         mount_id=mount_id,
+        purpose=purpose,
         run_id=run_id,
         platform=platform,
         cluster_name=request.cluster_name,
@@ -388,6 +455,7 @@ def list_run_mounts(
     region: str,
     profile: Optional[str],
     fsx_client: Optional[Any] = None,
+    purpose: Optional[str] = None,
 ) -> List[RunMountRecord]:
     """List run mount DRAs for a cluster or FSx file system."""
     _require_region(region)
@@ -400,10 +468,16 @@ def list_run_mounts(
         cluster_name=cluster_name,
         fsx_file_system_id=resolved_fsx_id,
     )
+    normalized_purpose = normalize_mount_purpose(purpose) if purpose else None
     records: List[RunMountRecord] = []
     for association in list_data_repository_associations(client, resolved_fsx_id):
         fsx_path = str(association.get("FileSystemPath") or "")
-        if not fsx_path.startswith(FSX_RUN_MOUNT_ROOT):
+        inferred_purpose = purpose_from_file_system_path(fsx_path)
+        if not inferred_purpose:
+            continue
+        if normalized_purpose and inferred_purpose != normalized_purpose:
+            continue
+        if _is_static_role_root_path(fsx_path):
             continue
         mount_id = extract_mount_id(fsx_path)
         local = local_records.get(mount_id)
@@ -411,6 +485,7 @@ def list_run_mounts(
             record_from_association(
                 association,
                 mount_id=mount_id,
+                purpose=local.purpose if local else inferred_purpose,
                 run_id=local.run_id if local else mount_id,
                 platform=local.platform if local else "OTHER",
                 cluster_name=cluster_name if cluster_name is not None else (local.cluster_name if local else None),
@@ -453,11 +528,18 @@ def describe_run_mount(
         if not associations:
             raise RunMountError(f"FSx data repository association not found: {association_id}")
         association = associations[0]
-        inferred_mount_id = extract_mount_id(str(association.get("FileSystemPath") or ""))
+        association_path = str(association.get("FileSystemPath") or "")
+        if _is_static_role_root_path(association_path):
+            raise RunMountError(
+                f"FSx data repository association {association_id} is a static role root, "
+                "not a managed dynamic mount."
+            )
+        inferred_mount_id = extract_mount_id(association_path)
         local = _find_local_record_by_association_id(region, association_id)
         return record_from_association(
             association,
             mount_id=local.mount_id if local else inferred_mount_id,
+            purpose=local.purpose if local else purpose_from_file_system_path(association_path) or MOUNT_PURPOSE_CUSTOM,
             run_id=local.run_id if local else inferred_mount_id,
             platform=local.platform if local else "OTHER",
             cluster_name=cluster_name if cluster_name is not None else (local.cluster_name if local else None),
@@ -527,6 +609,7 @@ def delete_run_mount(
     record = record_from_association(
         association or _association_from_record(existing, lifecycle="DELETED"),
         mount_id=existing.mount_id,
+        purpose=existing.purpose,
         run_id=existing.run_id,
         platform=existing.platform,
         cluster_name=existing.cluster_name,
@@ -600,6 +683,7 @@ def record_from_association(
     association: Dict[str, Any],
     *,
     mount_id: str,
+    purpose: str,
     run_id: str,
     platform: str,
     cluster_name: Optional[str],
@@ -615,6 +699,7 @@ def record_from_association(
     file_system_path = normalize_file_system_path(
         str(association.get("FileSystemPath") or ""),
         mount_id=mount_id,
+        purpose=purpose,
     )
     s3_config = association.get("S3") or {}
     auto_import_events = tuple(
@@ -625,6 +710,7 @@ def record_from_association(
     )
     return RunMountRecord(
         mount_id=validate_mount_id(mount_id),
+        purpose=normalize_mount_purpose(purpose),
         run_id=validate_mount_id(run_id),
         platform=_normalize_platform(platform),
         cluster_name=cluster_name,
@@ -865,19 +951,49 @@ def association_is_active(association: Dict[str, Any]) -> bool:
     return lifecycle not in INACTIVE_LIFECYCLES
 
 
+def purpose_from_file_system_path(file_system_path: str) -> Optional[str]:
+    try:
+        normalized = _normalize_absolute_fsx_api_path(str(file_system_path or ""))
+    except RunMountError:
+        return None
+    for purpose, root in PURPOSE_FSX_ROOTS.items():
+        if normalized.startswith(root):
+            return purpose
+    return MOUNT_PURPOSE_CUSTOM
+
+
+def _is_static_role_root_path(file_system_path: str) -> bool:
+    try:
+        normalized = _normalize_absolute_fsx_api_path(str(file_system_path or ""))
+    except RunMountError:
+        return False
+    return normalized == "/references/"
+
+
 def extract_mount_id(file_system_path: str) -> str:
-    normalized = normalize_file_system_path(file_system_path, mount_id="_validated")
-    if not normalized.startswith(FSX_RUN_MOUNT_ROOT):
-        raise RunMountError(f"File-system path is not a run mount path: {file_system_path}")
-    suffix = normalized[len(FSX_RUN_MOUNT_ROOT) :].strip("/")
-    first = suffix.split("/", 1)[0]
+    normalized = _normalize_absolute_fsx_api_path(file_system_path)
+    purpose = purpose_from_file_system_path(normalized)
+    if purpose in PURPOSE_FSX_ROOTS:
+        suffix = normalized[len(PURPOSE_FSX_ROOTS[purpose]) :].strip("/")
+    else:
+        suffix = normalized.strip("/")
+    parts = suffix.split("/")
+    if not suffix:
+        if purpose == MOUNT_PURPOSE_CONTROL_DATA:
+            return "control_data"
+        if purpose == MOUNT_PURPOSE_STAGING:
+            return "staging"
+    if purpose == MOUNT_PURPOSE_STAGING and len(parts) > 1 and parts[0] == "staged_external_sequencing_data":
+        return validate_mount_id(parts[1])
+    first = parts[0]
     return validate_mount_id(first)
 
 
 def format_mount_created(record: RunMountRecord) -> str:
     return "\n".join(
         [
-            f"Run directory mounted: {record.mount_id}",
+            f"Mount created: {record.mount_id}",
+            f"Purpose: {record.purpose}",
             f"Association ID: {record.association_id}",
             f"FSx file system: {record.fsx_file_system_id}",
             f"FSx API path: {record.file_system_path}",
@@ -891,7 +1007,8 @@ def format_mount_created(record: RunMountRecord) -> str:
 def format_mount_deleted(record: RunMountRecord) -> str:
     return "\n".join(
         [
-            f"Run directory mount deleted: {record.mount_id}",
+            f"Mount deleted: {record.mount_id}",
+            f"Purpose: {record.purpose}",
             f"Association ID: {record.association_id}",
             f"FSx file system: {record.fsx_file_system_id}",
             f"Lifecycle: {record.lifecycle}",
@@ -905,13 +1022,13 @@ def format_mount_described(record: RunMountRecord) -> str:
 
 def format_mount_list(records: Sequence[RunMountRecord]) -> str:
     if not records:
-        return "No run directory mounts found."
+        return "No mounts found."
     lines = [
         "%-32s %-32s %-8s %-16s %-18s %-38s %-36s %-20s"
         % (
             "MOUNT_ID",
             "RUN_ID",
-            "PLATFORM",
+            "PURPOSE",
             "LIFECYCLE",
             "ASSOCIATION_ID",
             "HEADNODE_PATH",
@@ -935,8 +1052,8 @@ def format_mount_list(records: Sequence[RunMountRecord]) -> str:
             "%-32s %-32s %-8s %-16s %-18s %-38s %-36s %-20s"
             % (
                 record.mount_id,
-                record.run_id,
-                record.platform,
+            record.run_id,
+            record.purpose,
                 record.lifecycle,
                 record.association_id,
                 record.headnode_path,
@@ -950,7 +1067,8 @@ def format_mount_list(records: Sequence[RunMountRecord]) -> str:
 def format_mount_verified(payload: Dict[str, Any]) -> str:
     return "\n".join(
         [
-            f"Run directory mount verified: {payload['mount_id']}",
+            f"Mount verified: {payload['mount_id']}",
+            f"Purpose: {payload.get('purpose', 'run')}",
             f"Association ID: {payload['association_id']}",
             f"Headnode path: {payload['headnode_path']}",
             f"Lifecycle: {payload['lifecycle']}",
@@ -1050,7 +1168,7 @@ def _with_trailing_slash(value: str) -> str:
 
 def _normalize_platform(platform: Optional[str]) -> str:
     value = str(platform or "OTHER").strip().upper()
-    allowed = {"ILMN", "ONT", "ULTIMA", "PACBIO", "OTHER"}
+    allowed = {"ILMN", "ONT", "ULTIMA", "PACBIO", "STAGING", "OTHER"}
     if value not in allowed:
         raise RunMountError(
             f"Unsupported platform {platform!r}; expected one of {', '.join(sorted(allowed))}."
@@ -1132,6 +1250,7 @@ def _record_from_state_payload(payload: Dict[str, Any]) -> RunMountRecord:
         raise RunMountError("Unsupported run mount state schema version.")
     return RunMountRecord(
         mount_id=str(payload["mount_id"]),
+        purpose=str(payload["purpose"]),
         run_id=str(payload["run_id"]),
         platform=str(payload.get("platform") or "OTHER"),
         cluster_name=payload.get("cluster_name"),

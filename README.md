@@ -2,7 +2,7 @@
 
 [![Latest release](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_release_tag&label=latest%20release&cacheSeconds=300&color=teal)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/releases) [![Latest tag](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_tag&label=latest%20tag&color=pink&cacheSeconds=300)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/tags)
 
-DayEC is the operator control plane for short-lived AWS ParallelCluster environments that run Daylily analysis workloads on FSx for Lustre. The current data plane is DRA-first: the cluster starts with reference data mounted at `/fsx/data`, run folders are attached only when needed under `/fsx/run_dir_mounts/<mount_id>`, workflow outputs stay under `/fsx/analysis_results/ubuntu/<analysis_dir>`, and completed analysis directories are exported through a temporary direct DRA to a chosen S3 analysis bucket.
+DayEC is the operator control plane for short-lived AWS ParallelCluster environments that run Daylily analysis workloads on FSx for Lustre. The current data plane is DRA-first: the cluster starts with reference data mounted at `/fsx/references`, run folders are attached only when needed under `/fsx/run_dir_mounts/<mount_id>`, workflow outputs stay under `/fsx/analysis_results/<executing_entity>/<analysis_id>`, and completed analysis directories are exported through a temporary direct DRA to a chosen S3 analysis bucket.
 
 The cluster is ephemeral. S3 buckets are durable. Verify the export receipt before deleting the cluster.
 
@@ -16,7 +16,7 @@ Use the checkout environment and the CLI, not historical helper-script paths:
 4. `dyec headnode connect`
 5. `dyec samples stage` for sample-manifest inputs, or `dyec mounts create` for run-folder inputs
 6. `dyec workflow launch`
-7. `dyec export --source-path /fsx/analysis_results/ubuntu/<analysis_dir> --destination-s3-uri s3://bucket/analysis_results/ubuntu/<analysis_dir>/`
+7. `dyec export --source-path /fsx/analysis_results/<executing_entity>/<analysis_id> --destination-s3-uri s3://bucket/prefix/<executing_entity>/<analysis_id>/`
 8. inspect `fsx_export.yaml`
 9. `dyec delete --dry-run`
 10. `dyec delete`
@@ -33,13 +33,16 @@ export REGION=us-west-2
 export REGION_AZ=us-west-2d
 export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
-export REF_BUCKET=s3://lsmc-dayoa-omics-analysis-us-west-2
+export REF_S3_URI=s3://lsmc-dayoa-references-usw2
+export CONTROL_DATA_S3_URI=s3://lsmc-dayoa-control-data-usw2
+export STAGE_S3_URI=s3://lsmc-ssf-sequencing-data/staged_external_data
 export ANALYSIS_BUCKET=s3://lsmc-dayoa-analysis-results-us-west-2
-export ANALYSIS_DIR=dayoa
+export EXECUTING_ENTITY="${USER:-ubuntu}"
+export ANALYSIS_ID=dayoa
 export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
 export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
-export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_DIR"
-export EXPORT_S3_URI="$ANALYSIS_BUCKET/analysis_results/ubuntu/$ANALYSIS_DIR/"
+export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_ID"
+export EXPORT_S3_URI="$ANALYSIS_BUCKET/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID/"
 
 dyec preflight \
   --profile "$AWS_PROFILE" \
@@ -59,16 +62,21 @@ dyec headnode connect \
 dyec samples stage "$ANALYSIS_SAMPLES" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
-  --reference-bucket "$REF_BUCKET" \
+  --reference-s3-uri "$REF_S3_URI" \
+  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
+  --stage-s3-uri "$STAGE_S3_URI" \
   --config-dir "$STAGE_CFG_DIR"
 
 dyec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
-  --destination "$ANALYSIS_DIR" \
-  --git-tag 1.0.16
+  --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$EXECUTING_ENTITY" \
+  --git-tag 2.0.0 \
+  --export-destination-s3-uri "$EXPORT_S3_URI" \
+  --export-trigger on-success
 
 # For run-folder work, attach only the S3 prefix you need.
 dyec --json mounts create "s3://sequencer-run-bucket/runs/RUN123/" \
@@ -90,15 +98,16 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --run-context-file ./runs.tsv \
-  --destination "<run-analysis-id>" \
-  --git-tag 1.0.16 \
+  --analysis-id "<run-analysis-id>" \
+  --executing-entity "$EXECUTING_ENTITY" \
+  --git-tag 2.0.0 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --source-path "/fsx/analysis_results/ubuntu/$ANALYSIS_DIR" \
+  --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
   --destination-s3-uri "$EXPORT_S3_URI" \
   --output-dir "$EXPORT_DIR"
 
@@ -119,18 +128,18 @@ dyec delete \
 
 ```mermaid
 flowchart LR
-  Ref["S3 reference bucket /data/"] -->|reference-data DRA| Data["/fsx/data"]
+  Ref["S3 reference bucket /data/"] -->|reference-data DRA| Data["/fsx/references"]
   Run["S3 run prefix"] -->|ephemeral run DRA| Mount["/fsx/run_dir_mounts/<mount_id>"]
   Data --> Workflow["DayOA workflow"]
   Mount --> Workflow
   Workflow --> Results["/fsx/analysis_results/..."]
-  Results --> Export["temporary direct export DRA on /analysis_results/ubuntu/<analysis_dir>/"]
-  Export -->|EXPORT_TO_REPOSITORY| Analysis["S3 analysis bucket /analysis_results/ubuntu/<analysis_dir>/"]
+  Results --> Export["temporary direct export DRA on /analysis_results/<executing_entity>/<analysis_id>/"]
+  Export -->|EXPORT_TO_REPOSITORY| Analysis["S3 analysis bucket prefix /<executing_entity>/<analysis_id>/"]
 ```
 
 Key rules:
 
-- `/fsx/data` is the reference-data DRA created with the cluster.
+- `/fsx/references` is the reference-data DRA created with the cluster.
 - `/fsx/run_dir_mounts/<mount_id>` is for read-oriented run inputs and is not an export source.
 - `/fsx/analysis_results/...` is where workflow checkouts and outputs live.
 - `dyec export` creates a temporary DRA on the exact completed analysis directory, runs `EXPORT_TO_REPOSITORY`, and detaches it with `DeleteDataInFileSystem=false`.
@@ -140,7 +149,7 @@ Key rules:
 
 `config/daylily_available_repositories.yaml` is the source of truth for repositories and blessed launch profiles. The packaged copy under `daylily_ec/resources/payload/config/` must match it.
 
-The current DayOA pin is `1.0.16` for the repository default and every DayOA command. Catalog v2 separates:
+The current DayOA pin is `2.0.0` for the repository default and every DayOA command. Catalog v2 separates:
 
 - `sample_analysis`: uses `analysis_samples.tsv`, stages inputs, and writes `samples.tsv` / `units.tsv`.
 - `run_analysis`: uses `runs.tsv`, requires a run DRA, and launches run-folder workflows such as Illumina run QC and BCL Convert.

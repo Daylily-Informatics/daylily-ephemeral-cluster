@@ -1,0 +1,24 @@
+[
+  {
+    "cloudformationStackArn": "arn:aws:cloudformation:us-west-2:108782052779:stack/XL-pilot/66ef1a70-5324-11f1-9fa3-0235dd5e183f",
+    "cloudformationStackStatus": "CREATE_COMPLETE",
+    "clusterName": "XL-pilot",
+    "clusterStatus": "CREATE_COMPLETE",
+    "region": "us-west-2",
+    "scheduler": {
+      "type": "slurm"
+    },
+    "version": "3.13.2"
+  },
+  {
+    "cloudformationStackArn": "arn:aws:cloudformation:us-west-2:108782052779:stack/dra-enabled/89197230-527a-11f1-92e2-0617171b4d29",
+    "cloudformationStackStatus": "CREATE_COMPLETE",
+    "clusterName": "dra-enabled",
+    "clusterStatus": "CREATE_COMPLETE",
+    "region": "us-west-2",
+    "scheduler": {
+      "type": "slurm"
+    },
+    "version": "3.13.2"
+  }
+]
