@@ -1,9 +1,8 @@
 #!/bin/bash
 
-bucket=$1
-# Define the source and destination paths
-REF_PATH="daylily2:daylily-references-public/cluster_boot_config/"
-ACTIVE_PATH="daylily-service-lsmc:lsmc-dayoa-omics-analysis-us-west-2/cluster_boot_config/"
+# Define the public and active reference runtime-asset paths.
+REF_PATH="daylily2:daylily-dayoa-references-usw2/runtime_assets/cluster_boot_config/"
+ACTIVE_PATH="daylily-service-lsmc:lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/"
 
 # List of files to copy
 FILES=(
@@ -43,6 +42,5 @@ rclone ls "$REF_PATH"
 # List the contents of the remote active directory
 echo "Listing contents of $ACTIVE_PATH..."
 rclone ls "$ACTIVE_PATH"
-
 
 

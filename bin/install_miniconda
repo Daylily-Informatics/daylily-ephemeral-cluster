@@ -79,6 +79,28 @@ download_file() {
     return 1
 }
 
+verify_sha256() {
+    local path="$1"
+    local expected_sha256="$2"
+    local actual_sha256=""
+
+    if command -v sha256sum >/dev/null 2>&1; then
+        actual_sha256="$(sha256sum "$path" | awk '{print $1}')"
+    elif command -v shasum >/dev/null 2>&1; then
+        actual_sha256="$(shasum -a 256 "$path" | awk '{print $1}')"
+    else
+        echo "Neither sha256sum nor shasum is available for verifying ${path}."
+        return 1
+    fi
+
+    if [[ "$actual_sha256" != "$expected_sha256" ]]; then
+        echo "SHA-256 verification failed for ${path}."
+        echo "Expected: ${expected_sha256}"
+        echo "Actual:   ${actual_sha256}"
+        return 1
+    fi
+}
+
 copy_conda_block() {
     local source_file="$1"
     local target_file="$2"
@@ -96,6 +118,7 @@ main() {
     local installer_url=""
     local installer_script=""
     local installer_label=""
+    local installer_sha256=""
     local conda_bin=""
     local bashrc bash_profile
     local bashrc_has_block=false
@@ -127,23 +150,23 @@ main() {
         case "$MACHINE" in
             apple_silicon)
                 installer_label="Apple Silicon"
-                installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-arm64.sh"
-                installer_script="Miniconda3-MacOSX-arm64.sh"
+                installer_script="Miniconda3-py312_25.7.0-2-MacOSX-arm64.sh"
+                installer_sha256="8d67e7824088d7aa3bde938a4fc4365bb39ba1f710104cfe7bd9cfb9a99bd8d2"
                 ;;
             intel_mac)
                 installer_label="Intel Mac"
-                installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-MacOSX-x86_64.sh"
-                installer_script="Miniconda3-MacOSX-x86_64.sh"
+                installer_script="Miniconda3-py312_25.7.0-2-MacOSX-x86_64.sh"
+                installer_sha256="e8f6aed58d708cc544ba6bacbebad86787cb8df56667ff4729ad2fe36af32846"
                 ;;
             linux_x86)
                 installer_label="Linux x86"
-                installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-x86_64.sh"
-                installer_script="Miniconda3-Linux-x86_64.sh"
+                installer_script="Miniconda3-py312_25.7.0-2-Linux-x86_64.sh"
+                installer_sha256="188b5d94ab3acefdeaebd7cb470d2fb74a3280563c77075de6e3e1d58d84ab0a"
                 ;;
             linux_arm)
                 installer_label="Linux ARM"
-                installer_url="https://repo.anaconda.com/miniconda/Miniconda3-latest-Linux-aarch64.sh"
-                installer_script="Miniconda3-Linux-aarch64.sh"
+                installer_script="Miniconda3-py312_25.7.0-2-Linux-aarch64.sh"
+                installer_sha256="edc03373d75b3a06de594a7f819ad351bd2fa7602854f392107998e62468c783"
                 ;;
             *)
                 echo "Unsupported machine type: $MACHINE"
@@ -152,8 +175,10 @@ main() {
                 ;;
         esac
 
+        installer_url="https://repo.anaconda.com/miniconda/${installer_script}"
         echo "Autoinstalling Miniconda for ${installer_label}..."
         download_file "$installer_url" "$installer_script"
+        verify_sha256 "$installer_script" "$installer_sha256"
         chmod +x "$installer_script"
         "./$installer_script" -b -p "$HOME/miniconda3"
         rm -f "$installer_script"

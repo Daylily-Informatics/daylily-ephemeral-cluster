@@ -636,6 +636,8 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "chmod a-w \"${role_root}\"" in script
     assert 'stat -c "Role data permissions: %A %n" "${role_root}"' in script
     assert "fd-find ripgrep docker.io" in script
+    assert "8615b65be2174949ee33783039579b3144025d378d1737d362f789bf3810bba0" in script
+    assert "024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae" in script
     assert "cached Apptainer deb not found" in script
     assert 'apt-get install -y "${apptainer_deb}"' in script
     assert 'ln -sfn "$(command -v apptainer)" /usr/local/bin/singularity' in script
@@ -655,11 +657,19 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "Original sbatch already present" in script
     assert "Original srun already present" in script
     assert "ln -sfn /opt/slurm/bin/sbatch /opt/slurm/bin/srun" in script
+    assert "install_verified_s3_executable" in script
+    assert 'aws s3 cp "${boot_s3_uri}/${s3_key}" "${temp_path}"' in script
+    assert 'install_verified_s3_executable "sbatch"' in script
+    assert 'install_verified_s3_executable "sleep_test.sh"' in script
+    assert 'install -m 0755 "${temp_path}" "${destination}"' in script
     assert 'append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf' in script
     assert "mv /opt/slurm/bin/sbatch /opt/slurm/sbin/sbatch" in script
     assert "mv /opt/slurm/bin/srun /opt/slurm/sbin/srun" in script
     assert "ln -s /fsx/references/runtime_assets/cached_envs/conda/*" not in script
     assert "Required /fsx/references reference entries are visible" not in script
+    assert "chmod +x /opt/slurm/bin/sbatch" not in script
+    assert "chmod a+x /opt/slurm/bin/sleep_test.sh" not in script
+    assert "ln -s /fsx/data/cached_envs/conda/*" not in script
     assert 'echo "PrologFlags=Alloc" >> /opt/slurm/etc/slurm.conf' not in script
     assert "ppa:apptainer/ppa" not in script
     assert "command -v apptainer" in script
