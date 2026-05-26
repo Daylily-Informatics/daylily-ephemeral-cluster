@@ -295,14 +295,14 @@ class TestLoadConfig:
             textwrap.dedent("""\
             ephemeral_cluster:
               config:
-                s3_bucket_name: [USESETVALUE, "", "my-bucket"]
+                reference_bucket: [USESETVALUE, "", "my-bucket"]
                 cluster_name: PROMPTUSER
               template_defaults:
                 fsx_fs_size: "7200"
         """)
         )
         cfg = load_config(p)
-        assert cfg.ephemeral_cluster.config["s3_bucket_name"].set_value == "my-bucket"
+        assert cfg.ephemeral_cluster.config["reference_bucket"].set_value == "my-bucket"
         assert cfg.ephemeral_cluster.config["cluster_name"].action == "PROMPTUSER"
         assert cfg.ephemeral_cluster.template_defaults["fsx_fs_size"] == "7200"
 
@@ -321,7 +321,7 @@ class TestLoadConfig:
             pytest.skip("template file not found")
         cfg = load_config(tpl)
         ec = cfg.ephemeral_cluster
-        assert len(ec.config) == 24
+        assert len(ec.config) == 27
         assert "ssh_key_name" not in ec.config
         assert ec.config["budget_amount"].default_value == "200"
         assert ec.config["allowed_budget_users"].default_value == "ubuntu"
@@ -339,7 +339,7 @@ class TestWriteConfig:
         cfg = ConfigFile(
             ephemeral_cluster={
                 "config": {
-                    "s3_bucket_name": ["USESETVALUE", "def", "my-bucket"],
+                    "reference_bucket": ["USESETVALUE", "def", "my-bucket"],
                     "cluster_name": ["PROMPTUSER", "my-cluster", ""],
                 },
                 "template_defaults": {"fsx_fs_size": "7200"},
@@ -348,7 +348,7 @@ class TestWriteConfig:
         out = tmp_path / "out.yaml"
         write_config(cfg, out)
         loaded = load_config(out)
-        assert loaded.ephemeral_cluster.config["s3_bucket_name"].set_value == "my-bucket"
+        assert loaded.ephemeral_cluster.config["reference_bucket"].set_value == "my-bucket"
         assert loaded.ephemeral_cluster.config["cluster_name"].default_value == "my-cluster"
         assert loaded.ephemeral_cluster.template_defaults["fsx_fs_size"] == "7200"
 
@@ -372,35 +372,35 @@ class TestWriteNextRunTemplate:
         cfg = ConfigFile(
             ephemeral_cluster={
                 "config": {
-                    "s3_bucket_name": ["PROMPTUSER", "", ""],
+                    "reference_bucket": ["PROMPTUSER", "", ""],
                     "cluster_name": ["PROMPTUSER", "my-cluster", ""],
                 },
                 "template_defaults": {},
             }
         )
-        final = {"s3_bucket_name": "bucket-a", "cluster_name": "prod-cluster"}
+        final = {"reference_bucket": "bucket-a", "cluster_name": "prod-cluster"}
         dest = tmp_path / "next.yaml"
         result = write_next_run_template(cfg, final, dest)
         assert result == dest
         loaded = load_config(dest)
         # Actions become USESETVALUE when auto-select not disabled
-        assert loaded.ephemeral_cluster.config["s3_bucket_name"].action == "USESETVALUE"
-        assert loaded.ephemeral_cluster.config["s3_bucket_name"].set_value == "bucket-a"
+        assert loaded.ephemeral_cluster.config["reference_bucket"].action == "USESETVALUE"
+        assert loaded.ephemeral_cluster.config["reference_bucket"].set_value == "bucket-a"
         assert loaded.ephemeral_cluster.config["cluster_name"].set_value == "prod-cluster"
 
     def test_preserves_action_when_disabled(self, tmp_path, monkeypatch):
         monkeypatch.setenv("DAY_DISABLE_AUTO_SELECT", "1")
         cfg = ConfigFile(
             ephemeral_cluster={
-                "config": {"s3_bucket_name": ["PROMPTUSER", "", ""]},
+                "config": {"reference_bucket": ["PROMPTUSER", "", ""]},
                 "template_defaults": {},
             }
         )
         dest = tmp_path / "next.yaml"
-        write_next_run_template(cfg, {"s3_bucket_name": "k"}, dest)
+        write_next_run_template(cfg, {"reference_bucket": "k"}, dest)
         loaded = load_config(dest)
         # Action stays PROMPTUSER because auto-select is disabled
-        assert loaded.ephemeral_cluster.config["s3_bucket_name"].action == "PROMPTUSER"
+        assert loaded.ephemeral_cluster.config["reference_bucket"].action == "PROMPTUSER"
 
     def test_preserves_template_defaults(self, tmp_path, monkeypatch):
         monkeypatch.delenv("DAY_DISABLE_AUTO_SELECT", raising=False)

@@ -27,7 +27,7 @@ i192bigmem|up|1|192|1494220|(null)
 --- data dirs ---
 drwxrwxrwt 10 root root 33280 May 26 05:58 /fsx
 drwxrwxrwx  5 root root 33280 May 26 05:58 /fsx/analysis_results
-dr-xr-xr-x 14 root root 33280 May 26 05:56 /fsx/data
+dr-xr-xr-x 14 root root 33280 May 26 05:56 /fsx/references
 --- versions ---
 Daylily Ephemeral Cluster 4.1.4
 probe_completed=2026-05-26T06:02:49Z

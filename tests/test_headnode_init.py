@@ -659,8 +659,8 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'append_once "PrologFlags=Alloc" /opt/slurm/etc/slurm.conf' in script
     assert "mv /opt/slurm/bin/sbatch /opt/slurm/sbin/sbatch" in script
     assert "mv /opt/slurm/bin/srun /opt/slurm/sbin/srun" in script
-    assert "ln -s /fsx/data/cached_envs/conda/*" not in script
-    assert "Required /fsx/data reference entries are visible" not in script
+    assert "ln -s /fsx/runtime_assets/cached_envs/conda/*" not in script
+    assert "Required /fsx/references reference entries are visible" not in script
     assert 'echo "PrologFlags=Alloc" >> /opt/slurm/etc/slurm.conf' not in script
     assert "ppa:apptainer/ppa" not in script
     assert "command -v apptainer" in script

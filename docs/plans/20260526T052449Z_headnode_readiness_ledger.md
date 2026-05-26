@@ -2,7 +2,7 @@
 
 - Created: 2026-05-26T05:24:49Z
 - Orchestrator: Codex
-- Controlling request: harden post-create/headnode readiness so smoke workflows cannot start until a newly created cluster proves DAY-EC activation, `day-clone` availability, and `/fsx/data` reference visibility.
+- Controlling request: harden post-create/headnode readiness so smoke workflows cannot start until a newly created cluster proves DAY-EC activation, `day-clone` availability, and `/fsx/references` reference visibility.
 - Failure trail: `docs/plans/20260523T010341Z_tstver411_cluster_monitor_hg003_1x_ledger.md`
 - Primary repo: `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster`
 - Reference repo: `/Users/jmajor/projects/daylily/daylily-omics-references`
@@ -67,10 +67,10 @@ The DAY-EC readiness path must prove all of the following before workflow stagin
 - `daylily-ec` on `PATH`
 - `day-clone` on `PATH`
 - `day-clone --list` succeeds
-- `/fsx/data/cached_envs/apptainer_1.4.5_amd64.deb`
-- `/fsx/data/tool_specific_resources/cromwell_87.jar`
-- `/fsx/data/tool_specific_resources/womtool_87.jar`
-- `/fsx/data/cached_envs/conda/`
+- `/fsx/runtime_assets/cached_envs/apptainer_1.4.5_amd64.deb`
+- `/fsx/runtime_assets/tool_specific_resources/cromwell_87.jar`
+- `/fsx/runtime_assets/tool_specific_resources/womtool_87.jar`
+- `/fsx/runtime_assets/cached_envs/conda/`
 
 ## Verification Evidence
 

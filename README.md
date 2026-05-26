@@ -2,7 +2,7 @@
 
 [![Latest release](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_release_tag&label=latest%20release&cacheSeconds=300&color=teal)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/releases) [![Latest tag](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_tag&label=latest%20tag&color=pink&cacheSeconds=300)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/tags)
 
-DayEC is the operator control plane for short-lived AWS ParallelCluster environments that run Daylily analysis workloads on FSx for Lustre. The current data plane is DRA-first: the cluster starts with reference data mounted at `/fsx/data`, run folders are attached only when needed under `/fsx/run_dir_mounts/<mount_id>`, workflow outputs stay under `/fsx/analysis_results/<executing_entity>/<analysis_id>`, and completed analysis directories are exported through a temporary direct DRA to a chosen S3 analysis bucket.
+DayEC is the operator control plane for short-lived AWS ParallelCluster environments that run Daylily analysis workloads on FSx for Lustre. The current data plane is DRA-first: the cluster starts with reference data mounted at `/fsx/references`, run folders are attached only when needed under `/fsx/run_dir_mounts/<mount_id>`, workflow outputs stay under `/fsx/analysis_results/<executing_entity>/<analysis_id>`, and completed analysis directories are exported through a temporary direct DRA to a chosen S3 analysis bucket.
 
 The cluster is ephemeral. S3 buckets are durable. Verify the export receipt before deleting the cluster.
 
@@ -67,7 +67,7 @@ dyec workflow launch \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --stage-dir "/fsx/data/staged_sample_data/remote_stage_<timestamp>" \
+  --stage-dir "/fsx/staging/staged_sample_data/remote_stage_<timestamp>" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
   --git-tag 1.0.18 \
@@ -124,7 +124,7 @@ dyec delete \
 
 ```mermaid
 flowchart LR
-  Ref["S3 reference bucket /data/"] -->|reference-data DRA| Data["/fsx/data"]
+  Ref["S3 reference bucket /data/"] -->|reference-data DRA| Data["/fsx/references"]
   Run["S3 run prefix"] -->|ephemeral run DRA| Mount["/fsx/run_dir_mounts/<mount_id>"]
   Data --> Workflow["DayOA workflow"]
   Mount --> Workflow
@@ -135,7 +135,7 @@ flowchart LR
 
 Key rules:
 
-- `/fsx/data` is the reference-data DRA created with the cluster.
+- `/fsx/references` is the reference-data DRA created with the cluster.
 - `/fsx/run_dir_mounts/<mount_id>` is for read-oriented run inputs and is not an export source.
 - `/fsx/analysis_results/...` is where workflow checkouts and outputs live.
 - `dyec export` creates a temporary DRA on the exact completed analysis directory, runs `EXPORT_TO_REPOSITORY`, and detaches it with `DeleteDataInFileSystem=false`.

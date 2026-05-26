@@ -6,7 +6,7 @@ This is the current DayEC data-plane model. FSx for Lustre is the high-performan
 
 | Purpose | Headnode path | FSx API path | S3 side | Lifecycle |
 |---|---|---|---|---|
-| Reference data | `/fsx/data/` | `/data/` | `<reference-bucket>/data/` | Created with the cluster |
+| Reference data | `/fsx/references/` | `/data/` | `<reference-bucket>/data/` | Created with the cluster |
 | Run inputs | `/fsx/run_dir_mounts/<mount_id>/` | `/run_dir_mounts/<mount_id>/` | selected run prefix | Created and deleted on demand |
 | Workflow outputs | `/fsx/analysis_results/...` | `/analysis_results/...` | none by default | Local to the FSx filesystem until exported |
 | Direct analysis export | `/fsx/analysis_results/<executing_entity>/<analysis_id>/` | `/analysis_results/<executing_entity>/<analysis_id>/` | `s3://bucket/prefix/<executing_entity>/<analysis_id>/` | Temporary output DRA |
@@ -34,7 +34,7 @@ sequenceDiagram
   Run-->>FSx: run DRA /run_dir_mounts/<mount_id>/
   Op->>DyEC: workflow launch
   DyEC->>DayOA: start tmux workflow
-  DayOA->>FSx: read /fsx/data and /fsx/run_dir_mounts
+  DayOA->>FSx: read /fsx/references and /fsx/run_dir_mounts
   DayOA->>FSx: write /fsx/analysis_results/<executing_entity>/<analysis_id>
   Op->>DyEC: export --source-path /fsx/analysis_results/<executing_entity>/<analysis_id>
   DyEC->>FSx: create temporary DRA at /analysis_results/<executing_entity>/<analysis_id>/
@@ -55,7 +55,7 @@ flowchart LR
   end
 
   subgraph Lustre["FSx for Lustre mounted at /fsx"]
-    Data["/fsx/data"]
+    Data["/fsx/references"]
     MntA["/fsx/run_dir_mounts/RUN_A"]
     MntB["/fsx/run_dir_mounts/RUN_B"]
     Results["/fsx/analysis_results/..."]

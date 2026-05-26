@@ -33,12 +33,12 @@ def test_write_runner_config_sets_cluster_name_triplet(tmp_path: Path) -> None:
 def test_parse_remote_stage_dir_extracts_path() -> None:
     stdout = (
         "Remote staging completed successfully.\n"
-        "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_20260412T120000Z\n"
+        "Remote FSx stage directory: /fsx/staging/staged_sample_data/remote_stage_20260412T120000Z\n"
     )
 
     assert (
         runner_module.parse_remote_stage_dir(stdout)
-        == "/fsx/data/staged_sample_data/remote_stage_20260412T120000Z"
+        == "/fsx/staging/staged_sample_data/remote_stage_20260412T120000Z"
     )
 
 
@@ -438,7 +438,7 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
         calls.append(name)
         commands_by_name[name] = list(command)
         if name == "stage-from-laptop":
-            stdout = "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_1\n"
+            stdout = "Remote FSx stage directory: /fsx/staging/staged_sample_data/remote_stage_1\n"
             runner_module._record_step(
                 summary, output_path, name, "passed", command=" ".join(command)
             )
@@ -511,7 +511,7 @@ def test_main_runs_supported_lifecycle_and_writes_summary(monkeypatch, tmp_path:
     assert "--non-interactive" in commands_by_name["preflight"]
     assert "--non-interactive" in commands_by_name["create-cluster"]
     assert "--stage-dir" in commands_by_name["launch-workflow"]
-    assert "/fsx/data/staged_sample_data/remote_stage_1" in commands_by_name["launch-workflow"]
+    assert "/fsx/staging/staged_sample_data/remote_stage_1" in commands_by_name["launch-workflow"]
     assert "--stage-base" not in commands_by_name["launch-workflow"]
     assert "--analysis-id" in commands_by_name["launch-workflow"]
     assert "run_deploy" in commands_by_name["launch-workflow"]
@@ -581,7 +581,7 @@ def test_main_reuses_existing_cluster_and_skips_create(monkeypatch, tmp_path: Pa
         calls.append(name)
         commands_by_name[name] = list(command)
         if name == "stage-from-laptop":
-            stdout = "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_1\n"
+            stdout = "Remote FSx stage directory: /fsx/staging/staged_sample_data/remote_stage_1\n"
             runner_module._record_step(
                 summary, output_path, name, "passed", command=" ".join(command)
             )
@@ -687,7 +687,7 @@ def test_main_passes_custom_workflow_launch_arguments(monkeypatch, tmp_path: Pat
     def fake_run_local(summary, output_path, name, command, env):
         commands_by_name[name] = list(command)
         if name == "stage-from-laptop":
-            stdout = "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_1\n"
+            stdout = "Remote FSx stage directory: /fsx/staging/staged_sample_data/remote_stage_1\n"
             runner_module._record_step(
                 summary, output_path, name, "passed", command=" ".join(command)
             )

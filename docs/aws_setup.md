@@ -75,7 +75,7 @@ S3 buckets are regional, not AZ-scoped. Co-locate buckets and FSx in the same AW
 
 Current FSx DRA strategy:
 
-- reference data DRA: `<reference-bucket>/data/` to `/fsx/data`
+- reference data DRA: `<reference-bucket>/data/` to `/fsx/references`
 - run input DRA: selected S3 run prefix to `/fsx/run_dir_mounts/<mount_id>`
 - export DRA: one completed `/fsx/analysis_results/<executing_entity>/<analysis_id>` to the requested S3 analysis destination ending in `<executing_entity>/<analysis_id>/`
 

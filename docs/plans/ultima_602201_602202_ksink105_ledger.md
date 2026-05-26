@@ -17,7 +17,7 @@ Execution scope:
 - DayEC repo: `/Users/jmajor/projects/daylily/daylily-ephemeral-cluster`
 - DayOA repo: `/Users/jmajor/projects/daylily/daylily-omics-analysis`
 - Required DayOA ref: `1.0.5`
-- 602202 stage dir: `/fsx/data/staged_sample_data/remote_stage_20260517T132408Z`
+- 602202 stage dir: `/fsx/staging/staged_sample_data/remote_stage_20260517T132408Z`
 - 602202 destination: `ultima_602202_20260512_1805_ksink105_20260517T190121Z`
 
 Hard boundaries:
@@ -34,7 +34,7 @@ Hard boundaries:
 - Cluster check: `daylily-ec --json cluster-info --profile lsmc --region us-west-2` listed `may26-d` as `CREATE_COMPLETE`.
 - Headnode preflight command `0f3583d9-cb21-4427-9241-c1acfe745f57` on `i-0e7639ff46f207ae7`: user `ubuntu`, destination `/fsx/analysis_results/ubuntu/ultima_602202_20260512_1805_ksink105_20260517T190121Z` absent, stage manifests present with 13 lines each, `/fsx` has 8.7T available, `day-clone` is on PATH, `squeue -u ubuntu` had no jobs.
 - 602202 manifest: `reports/stage_three_latest_20260516T130229Z/manifests/602202-20260512_1805/analysis_samples.tsv` has 12 rows and passed `daylily-ec samples stage ... --precheck-only` with 24 source objects checked.
-- 602202 existing stage: `s3://lsmc-dayoa-omics-analysis-us-west-2/data/staged_sample_data/remote_stage_20260517T132408Z/` contains 26 objects, 1.3 TiB, including generated `20260517T132408Z_samples.tsv` and `20260517T132408Z_units.tsv`.
+- 602202 existing stage: `s3://lsmc-dayoa-omics-analysis-us-west-2/fsx/staging/staged_sample_data/remote_stage_20260517T132408Z/` contains 26 objects, 1.3 TiB, including generated `20260517T132408Z_samples.tsv` and `20260517T132408Z_units.tsv`.
 - 602201 source lookup: no local manifest under the current report tree; no matches in `processing_prod_data`; no source objects found under `s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602201/2026/602201-20260512_1507/`, `raw/lsmc/ssf-hq/RUN602201/2026/602201-20260512_1507/`, or bucket-wide object-key searches for `602201` / `20260512_1507` in the checked prefixes.
 
 ## Control Ledger

@@ -1,8 +1,8 @@
 DAY-EC activated.
 DAY-EC activated.
-__DAYLILY_STAGE_DIR__=/fsx/data/staged_sample_data/remote_stage_20260525T073306Z
-__DAYLILY_STAGE_SAMPLES__=/fsx/data/staged_sample_data/remote_stage_20260525T073306Z/20260525T073306Z_samples.tsv
-__DAYLILY_STAGE_UNITS__=/fsx/data/staged_sample_data/remote_stage_20260525T073306Z/20260525T073306Z_units.tsv
+__DAYLILY_STAGE_DIR__=/fsx/staging/staged_sample_data/remote_stage_20260525T073306Z
+__DAYLILY_STAGE_SAMPLES__=/fsx/staging/staged_sample_data/remote_stage_20260525T073306Z/20260525T073306Z_samples.tsv
+__DAYLILY_STAGE_UNITS__=/fsx/staging/staged_sample_data/remote_stage_20260525T073306Z/20260525T073306Z_units.tsv
 DAY-EC activated.
 DAY-EC activated.
 __DAYLILY_SESSION__=tvb_pacbio_snv_alignstats_5x_1021

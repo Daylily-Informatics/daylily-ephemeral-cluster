@@ -7,7 +7,7 @@ DayEC is an operator-facing control plane for disposable AWS ParallelCluster env
 The current codebase is DRA-first:
 
 1. `dyec create` renders a ParallelCluster template with FSx for Lustre mounted at `/fsx`.
-2. Cluster creation adds a `reference-data` DRA from the reference bucket `data/` prefix to FSx API path `/data/`, visible as `/fsx/data`.
+2. Cluster creation adds a `reference-data` DRA from the reference bucket `data/` prefix to FSx API path `/data/`, visible as `/fsx/references`.
 3. `dyec mounts create <s3-uri>` can attach selected S3 run prefixes as ephemeral run DRAs under `/run_dir_mounts/<last-s3-folder>`, visible as `/fsx/run_dir_mounts/<last-s3-folder>`.
 4. `dyec workflow launch` starts DayOA work in tmux on the headnode and writes outputs under `/fsx/analysis_results/...`.
 5. `dyec export` creates a temporary output DRA directly on `/fsx/analysis_results/<executing_entity>/<analysis_id>`, runs an FSx `EXPORT_TO_REPOSITORY` task, writes `fsx_export.yaml`, and detaches the DRA.
@@ -39,7 +39,7 @@ The namespace is intentionally explicit:
 
 | Path | Role |
 |---|---|
-| `/fsx/data` | Reference data from the cluster-created reference DRA |
+| `/fsx/references` | Reference data from the cluster-created reference DRA |
 | `/fsx/run_dir_mounts/<mount_id>` | Read-oriented run-folder input DRA |
 | `/fsx/analysis_results/...` | Workflow checkout and result workspace |
 

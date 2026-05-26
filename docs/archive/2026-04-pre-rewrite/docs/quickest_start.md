@@ -94,7 +94,7 @@ bin/daylily-run-omics-analysis-headnode \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --stage-dir /fsx/data/staged_sample_data/remote_stage_<timestamp>
+  --stage-dir /fsx/staging/staged_sample_data/remote_stage_<timestamp>
 ```
 
 The launcher prints:

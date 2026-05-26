@@ -160,7 +160,7 @@ def test_normalize_export_source_accepts_analysis_dir(raw: str, expected: str) -
     [
         "/fsx/exports/export-1/",
         "/fsx/run_dir_mounts/RUN123/fastqs/",
-        "/fsx/data/cached_envs/",
+        "/fsx/runtime_assets/cached_envs/",
         "/analysis_results/johnm/illumina_run_qc/nested/",
         "/analysis_results/ubuntu/../illumina_run_qc/",
         "/analysis_results/ubuntu//illumina_run_qc/",

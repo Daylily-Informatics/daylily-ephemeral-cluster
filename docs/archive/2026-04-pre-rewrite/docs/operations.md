@@ -58,7 +58,7 @@ bin/daylily-stage-samples-from-local-to-headnode \
 Important details:
 
 - the staging helper writes through the S3-backed FSx data repository
-- the default visible remote staging base is `/fsx/data/staged_sample_data`
+- the default visible remote staging base is `/fsx/staging/staged_sample_data`
 - the command prints the exact remote stage directory to pass into the launcher
 
 ## Launch The Workflow
@@ -68,7 +68,7 @@ bin/daylily-run-omics-analysis-headnode \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --stage-dir /fsx/data/staged_sample_data/remote_stage_<timestamp>
+  --stage-dir /fsx/staging/staged_sample_data/remote_stage_<timestamp>
 ```
 
 The supported launcher:

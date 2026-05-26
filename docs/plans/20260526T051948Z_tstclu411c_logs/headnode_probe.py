@@ -30,7 +30,7 @@ sinfo -h -o '%P|%a|%D|%c|%m|%G'
 echo "--- slurm queue ---"
 squeue -h || true
 echo "--- data dirs ---"
-ls -ld /fsx /data /fsx/data /fsx/analysis_results || true
+ls -ld /fsx /data /fsx/references /fsx/analysis_results || true
 echo "--- versions ---"
 dyec version || true
 echo "probe_completed=$(date -u +%Y-%m-%dT%H:%M:%SZ)"

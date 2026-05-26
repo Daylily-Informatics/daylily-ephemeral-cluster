@@ -93,12 +93,12 @@ Current behavior:
   - blank / default staging
   - `stage_data`
   - `pass_through`
-- `pass_through` currently expects inputs to be visible under `/fsx/data` or `/data`.
+- `pass_through` currently expects inputs to be visible under `/fsx/references` or `/data`.
 - `is_headnode_visible_path()` currently recognizes only:
 
 ```text
-/fsx/data
-/fsx/data/*
+/fsx/references
+/fsx/references/*
 /data
 /data/*
 ```
@@ -537,7 +537,7 @@ Do not break existing manifests. Existing users should be able to continue using
 
 - blank staging behavior;
 - `STAGE_DIRECTIVE=stage_data`;
-- `STAGE_DIRECTIVE=pass_through` for `/fsx/data` and `/data` paths;
+- `STAGE_DIRECTIVE=pass_through` for `/fsx/references` and `/data` paths;
 - current `samples.tsv` and `units.tsv` headers and contents.
 
 ### 6.2 Add explicit mounted-input directive
@@ -918,7 +918,7 @@ If `units.tsv` points to:
 /fsx/run_dir_mounts/<mount_id>/fastqs/...
 ```
 
-then DayOA should process those paths directly. No DayOA sample-rule changes should be necessary unless a rule incorrectly assumes `/fsx/data` or `/data` prefixes.
+then DayOA should process those paths directly. No DayOA sample-rule changes should be necessary unless a rule incorrectly assumes `/fsx/references` or `/data` prefixes.
 
 ---
 

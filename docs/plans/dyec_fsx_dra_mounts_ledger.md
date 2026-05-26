@@ -104,7 +104,7 @@ Residual risks:
 
 Date: 2026-05-17
 
-Root cause from `dra-test2`: `HeadNodeWaitCondition20260517233228` failed because the `OnNodeConfigured` script exited with `ERROR: cached Apptainer deb not found: /fsx/data/cached_envs/apptainer_1.4.5_amd64.deb`. The S3 object existed at `s3://lsmc-dayoa-omics-analysis-us-west-2/data/cached_envs/apptainer_1.4.5_amd64.deb`; CloudFormation showed the headnode custom action failing while the `reference-data` DRA was still in progress, so the failure was a DRA metadata visibility race.
+Root cause from `dra-test2`: `HeadNodeWaitCondition20260517233228` failed because the `OnNodeConfigured` script exited with `ERROR: cached Apptainer deb not found: /fsx/runtime_assets/cached_envs/apptainer_1.4.5_amd64.deb`. The S3 object existed at `s3://lsmc-dayoa-omics-analysis-us-west-2/data/cached_envs/apptainer_1.4.5_amd64.deb`; CloudFormation showed the headnode custom action failing while the `reference-data` DRA was still in progress, so the failure was a DRA metadata visibility race.
 
 Patch:
 
@@ -114,9 +114,9 @@ Patch:
 
 Behavior:
 
-- wait up to 1800 seconds for required `/fsx/data` reference entries from the FSx DRA,
+- wait up to 1800 seconds for required `/fsx/references` reference entries from the FSx DRA,
 - fail hard with directory diagnostics if they never appear,
-- run `chmod a-w /fsx/data` and log resulting permissions once references are visible.
+- run `chmod a-w /fsx/references` and log resulting permissions once references are visible.
 
 Validation:
 

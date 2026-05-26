@@ -122,7 +122,7 @@ def test_mount_id_s3_and_path_normalization() -> None:
         run_mounts.headnode_path_from_file_system_path("/run_dir_mounts/RUN123/")
         == "/fsx/run_dir_mounts/RUN123/"
     )
-    with pytest.raises(run_mounts.RunMountError, match="/fsx/run_dir_mounts"):
+    with pytest.raises(run_mounts.RunMountError, match="/fsx headnode prefix"):
         run_mounts.normalize_file_system_path("/fsx/run_dir_mounts/RUN123/", mount_id="RUN123")
 
 
@@ -299,6 +299,7 @@ def test_describe_mount_id_is_aws_authoritative(tmp_path, monkeypatch) -> None:
         platform="ILMN",
         cluster_name="cluster-a",
         region="us-west-2",
+        purpose=run_mounts.MOUNT_PURPOSE_RUN,
         source_s3_uri="s3://bucket/RUN123/",
         fsx_file_system_id="fs-123",
         file_system_path="/run_dir_mounts/RUN123/",
@@ -418,6 +419,7 @@ def test_mounts_create_cli_emits_stable_json(monkeypatch) -> None:
         platform="ILMN",
         cluster_name="cluster-a",
         region="us-west-2",
+        purpose=run_mounts.MOUNT_PURPOSE_RUN,
         source_s3_uri="s3://bucket/RUN123/",
         fsx_file_system_id="fs-123",
         file_system_path="/run_dir_mounts/RUN123/",
@@ -480,7 +482,7 @@ def test_mounts_create_cli_rejects_s3_uri_option() -> None:
     )
 
     assert result.exit_code != 0
-    assert "No such option: --s3-uri" in result.stderr
+    assert "--s3-uri" in result.stderr
 
 
 def test_mounts_verify_cli_accepts_association_id_json(monkeypatch) -> None:

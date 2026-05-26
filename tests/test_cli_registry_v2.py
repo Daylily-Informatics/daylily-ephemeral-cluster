@@ -1219,11 +1219,17 @@ def test_samples_stage_calls_python_staging_entrypoint(monkeypatch, tmp_path) ->
             "stage",
             str(samples),
             "--reference-bucket",
-            "s3://bucket",
+            "s3://reference-bucket",
+            "--control-data-bucket",
+            "s3://control-data-bucket",
+            "--runtime-assets-bucket",
+            "s3://runtime-assets-bucket",
+            "--stage-bucket",
+            "s3://stage-bucket",
             "--config-dir",
             str(tmp_path / "cfg"),
             "--stage-target",
-            "/data/staged_sample_data",
+            "/fsx/staging/staged_sample_data",
             "--run-metric-staging",
             "RUN1:ILMN:/tmp/run1.fofn",
             "--run-metric-staging",
@@ -1241,9 +1247,15 @@ def test_samples_stage_calls_python_staging_entrypoint(monkeypatch, tmp_path) ->
     assert calls["argv"] == [
         str(samples),
         "--reference-bucket",
-        "s3://bucket",
+        "s3://reference-bucket",
+        "--control-data-bucket",
+        "s3://control-data-bucket",
+        "--runtime-assets-bucket",
+        "s3://runtime-assets-bucket",
+        "--stage-bucket",
+        "s3://stage-bucket",
         "--stage-target",
-        "/data/staged_sample_data",
+        "/fsx/staging/staged_sample_data",
         "--run-metric-staging",
         "RUN1:ILMN:/tmp/run1.fofn",
         "--run-metric-staging",
@@ -1323,7 +1335,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
         calls["stage_argv"] = argv
         print("Remote staging completed successfully.")
         print(
-            "Remote FSx stage directory: /fsx/data/staged_sample_data/remote_stage_20260425T000000Z"
+            "Remote FSx stage directory: /fsx/staging/staged_sample_data/remote_stage_20260425T000000Z"
         )
         return 0
 
@@ -1358,7 +1370,13 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
             "--cluster",
             "cluster-a",
             "--reference-bucket",
-            "s3://bucket",
+            "s3://reference-bucket",
+            "--control-data-bucket",
+            "s3://control-data-bucket",
+            "--runtime-assets-bucket",
+            "s3://runtime-assets-bucket",
+            "--stage-bucket",
+            "s3://stage-bucket",
             "--config-dir",
             str(config_dir),
             "--run-metric-staging",
@@ -1373,9 +1391,15 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert calls["stage_argv"] == [
         str(manifest.resolve()),
         "--reference-bucket",
-        "s3://bucket",
+        "s3://reference-bucket",
+        "--control-data-bucket",
+        "s3://control-data-bucket",
+        "--runtime-assets-bucket",
+        "s3://runtime-assets-bucket",
+        "--stage-bucket",
+        "s3://stage-bucket",
         "--stage-target",
-        "/data/staged_sample_data",
+        "/fsx/staging/staged_sample_data",
         "--run-metric-staging",
         "CGT7P:CG:/tmp/cgt7p.fofn",
         "--config-dir",
@@ -1400,7 +1424,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "produce_smd_dedup_cram" not in dy_command
     assert dy_command.endswith(" -n")
     assert "--stage-dir" in launch_argv
-    assert "/fsx/data/staged_sample_data/remote_stage_20260425T000000Z" in launch_argv
+    assert "/fsx/staging/staged_sample_data/remote_stage_20260425T000000Z" in launch_argv
     receipt = config_dir / "20260425T000000Z_samples_run_receipt.json"
     payload = json.loads(receipt.read_text(encoding="utf-8"))
     assert payload["detected_data_modes"] == ["complete_genomics_solo"]
@@ -1423,7 +1447,13 @@ def test_samples_run_requires_analysis_identity(monkeypatch, tmp_path) -> None:
             "--profile",
             "dev",
             "--reference-bucket",
-            "s3://bucket",
+            "s3://reference-bucket",
+            "--control-data-bucket",
+            "s3://control-data-bucket",
+            "--runtime-assets-bucket",
+            "s3://runtime-assets-bucket",
+            "--stage-bucket",
+            "s3://stage-bucket",
         ],
     )
 
@@ -1458,7 +1488,13 @@ def test_samples_run_rejects_export_policy_before_staging(monkeypatch, tmp_path)
             "--profile",
             "dev",
             "--reference-bucket",
-            "s3://bucket",
+            "s3://reference-bucket",
+            "--control-data-bucket",
+            "s3://control-data-bucket",
+            "--runtime-assets-bucket",
+            "s3://runtime-assets-bucket",
+            "--stage-bucket",
+            "s3://stage-bucket",
             "--export-destination-s3-uri",
             "s3://bucket/derived/johnm/cg-run/",
         ],
@@ -1489,7 +1525,13 @@ def test_samples_run_rejects_unknown_command(monkeypatch, tmp_path) -> None:
             "--profile",
             "dev",
             "--reference-bucket",
-            "s3://bucket",
+            "s3://reference-bucket",
+            "--control-data-bucket",
+            "s3://control-data-bucket",
+            "--runtime-assets-bucket",
+            "s3://runtime-assets-bucket",
+            "--stage-bucket",
+            "s3://stage-bucket",
         ],
     )
 
@@ -1524,7 +1566,13 @@ def test_samples_run_rejects_incompatible_catalog_command(monkeypatch, tmp_path)
             "--profile",
             "dev",
             "--reference-bucket",
-            "s3://bucket",
+            "s3://reference-bucket",
+            "--control-data-bucket",
+            "s3://control-data-bucket",
+            "--runtime-assets-bucket",
+            "s3://runtime-assets-bucket",
+            "--stage-bucket",
+            "s3://stage-bucket",
         ],
     )
 
