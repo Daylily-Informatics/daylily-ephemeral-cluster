@@ -1,6 +1,6 @@
 # DayEC 5.0.9 Goodole3 Command Catalog Tests
 
-Generated: 2026-05-27T15:49:19Z
+Generated: 2026-05-27T16:10:28Z
 
 ## Summary
 
@@ -18,17 +18,26 @@ hybrid Ultima+ONT remained failed or blocked by upstream runtime/tool issues.
 Run-context catalog commands were not represented in the Goodole3 v206 sample
 driver.
 
+Current S3 readback for the Goodole3 export root reported `37,183` objects and
+`93,999,879,684` bytes under
+`s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/`.
+
 ## Version And Cluster Context
 
 | Field | Value |
 |---|---|
 | DayEC repo | `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster` |
-| Local git describe during report | `5.0.9-2-g1f834ea2-dirty` |
-| Local HEAD during report | `1f834ea2cdaeb2e6cc97cdf6362beacc3e46b417` |
+| Local branch during report | `codex/running-nextflow-pipes-doc` |
+| Local git describe during report | `5.0.9-3-g681a3c88-dirty` |
+| Local HEAD during report | `681a3c88b78862569e7b9d0bc93ab043e093ed91` |
 | DayEC cluster-create release | `5.0.4` |
 | DayEC export/IAM fixes referenced by report | `5.0.8`, `5.0.9` |
 | Live headnode DAY-EC package | `5.0.4` |
+| Local activated `dyec --json version` during worker readback | `5.0.7.dev0+g104fadf31.d20260527` |
 | DayOA workflow tag | `2.0.6` |
+| DayOA remote tags during worker readback | Present through `2.0.8`; v206 validation intentionally used `2.0.6` |
+| Source catalog DayOA pin at report time | `2.0.5` in source and packaged `daylily_available_repositories.yaml`; v206 launches explicitly overrode this with `--git-tag 2.0.6` |
+| Catalog parity | Source and packaged repository catalogs matched; source and packaged global configs matched |
 | DayOA clone commit observed in logs | `a073f31c6be04b88cc3f70dcfac77940f54e9282` |
 | AWS profile | `lsmc` |
 | AWS account | `108782052779` |
@@ -41,7 +50,7 @@ driver.
 | FSx filesystem | `fs-03509c3c3fcf86610` |
 | Requested FSx size | `4800` GiB |
 | `/fsx` readback | `4.4T` size, `104G` used, `4.3T` available, `3%` used |
-| Slurm readback | `squeue` empty; all configured partitions idle or idle-pending |
+| Slurm readback | `squeue` empty at `2026-05-27T16:08:01Z`; all configured partitions idle or idle-pending |
 | State file | `/Users/jmajor/.config/daylily/state_goodole3_20260527002251.json` |
 | Rendered cluster config | `/Users/jmajor/.config/daylily/goodole3_cluster_20260527002251.yaml` |
 | Next-run config | `/Users/jmajor/.config/daylily/goodole3_next_run_20260527002251.yaml` |
@@ -157,6 +166,54 @@ The launch driver copied pre-generated pass-through `samples.tsv` and
 `units.tsv` files to `/home/ubuntu/ds/gd3serialksv206/<analysis-id>/` and then
 called `dyec workflow launch`.
 
+## Data Staging Commands
+
+The general external-data staging CLI shape for the Goodole3 cluster is:
+
+```bash
+dyec samples stage <manifest.tsv> \
+  --reference-s3-uri s3://lsmc-dayoa-references-usw2 \
+  --control-data-s3-uri s3://lsmc-dayoa-control-data-usw2 \
+  --stage-s3-uri s3://lsmc-ssf-sequencing-data/staged_external_data \
+  --stage-target /fsx/staging/staged_external_sequencing_data \
+  --config-dir <generated-config-dir> \
+  --profile lsmc \
+  --region us-west-2 \
+  --cluster goodole3 \
+  --staging-mount-timeout-seconds <seconds>
+```
+
+The v206 sample-analysis driver did not create new staging DRAs for the final
+matrix. It reused generated pass-through configs whose paths point at mounted
+reference data, then copied those configs to the headnode with the DayEC SSM
+helpers:
+
+```python
+write_remote_text(
+    "i-0bd631af238bfac56",
+    "us-west-2",
+    "/home/ubuntu/ds/gd3serialksv206/<analysis-id>/a_samples.tsv",
+    samples_tsv_text,
+    profile="lsmc",
+)
+write_remote_text(
+    "i-0bd631af238bfac56",
+    "us-west-2",
+    "/home/ubuntu/ds/gd3serialksv206/<analysis-id>/a_units.tsv",
+    units_tsv_text,
+    profile="lsmc",
+)
+```
+
+Each remote stage directory was verified before launch:
+
+```bash
+test -s /home/ubuntu/ds/gd3serialksv206/<analysis-id>/a_samples.tsv
+test -s /home/ubuntu/ds/gd3serialksv206/<analysis-id>/a_units.tsv
+```
+
+## Launch And Monitoring Commands
+
 Exact launch shape:
 
 ```bash
@@ -193,6 +250,43 @@ After cloning, DayEC copied the staged config into the clone:
 ```bash
 cp "$STAGE_SAMPLES" config/samples.tsv
 cp "$STAGE_UNITS" config/units.tsv
+```
+
+Per-run monitoring commands:
+
+```bash
+dyec --json workflow status \
+  --profile lsmc \
+  --region us-west-2 \
+  --cluster goodole3 \
+  --session <analysis-id>
+
+dyec workflow logs \
+  --profile lsmc \
+  --region us-west-2 \
+  --cluster goodole3 \
+  --session <analysis-id> \
+  --lines 260
+
+dyec headnode jobs \
+  --profile lsmc \
+  --region us-west-2 \
+  --cluster goodole3
+```
+
+Headnode and export monitoring commands used for final readback:
+
+```bash
+squeue -o '%i|%P|%C|%t|%N|%m|%M|%j'
+df -h /fsx
+AWS_PROFILE=lsmc aws s3 ls <export-prefix> --recursive --summarize
+```
+
+Final live readback at report generation:
+
+```text
+/fsx: 4.4T size, 104G used, 4.3T available, 3% used
+squeue: header only, no queued or running jobs
 ```
 
 ## Successful Catalog Commands
@@ -432,7 +526,8 @@ dyec workflow launch --repository daylily-omics-analysis --analysis-id gd3v206-h
 | `bin/day_run` | `bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf -p -j 5 -k` |
 | Started / completed | `2026-05-27T06:17:21Z` / `2026-05-27T06:38:51Z` |
 | Exit code | `1` |
-| Final S3 export | None; export did not run because workflow failed |
+| Requested S3 export | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-rcbase5x/` |
+| S3 stats | `0` objects, `0` bytes; export did not run because workflow failed |
 
 Failure summary: Roche failed before successful image materialization. The first
 attempt was reported as a cache/temp/container setup failure around the Roche
@@ -456,7 +551,8 @@ dyec workflow launch --repository daylily-omics-analysis --analysis-id gd3v206-r
 | `bin/day_run` | `mkdir -p /fsx/tmp/apptainer_cache/ubuntu/${HOSTNAME}/containers/gd3v206-rcbase5xr1 /fsx/scratch/dayoa_apptainer_tmp/ubuntu/gd3v206-rcbase5xr1 && export APPTAINER_CACHEDIR=/fsx/tmp/apptainer_cache/ubuntu/${HOSTNAME} SINGULARITY_CACHEDIR=/fsx/tmp/apptainer_cache/ubuntu/${HOSTNAME} APPTAINER_TMPDIR=/fsx/scratch/dayoa_apptainer_tmp/ubuntu/gd3v206-rcbase5xr1 SINGULARITY_TMPDIR=/fsx/scratch/dayoa_apptainer_tmp/ubuntu/gd3v206-rcbase5xr1 && bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf -p -j 5 -k --singularity-prefix /fsx/tmp/apptainer_cache/ubuntu/${HOSTNAME}/containers/gd3v206-rcbase5xr1` |
 | Started / completed | `2026-05-27T06:45:57Z` / `2026-05-27T06:46:20Z` |
 | Exit code | `1` |
-| Final S3 export | None; export did not run because workflow failed |
+| Requested S3 export | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-rcbase5xr1/` |
+| S3 stats | `0` objects, `0` bytes; export did not run because workflow failed |
 
 Failure summary: the retry got past the writable-cache setup and then failed
 because the Roche image is private or unavailable:
@@ -478,7 +574,8 @@ requested access to the resource is denied
 | `bin/day_run` | `bin/day_run produce_sentdhuomr_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k` |
 | Started / completed | `2026-05-27T06:51:31Z` / `2026-05-27T08:15:55Z` |
 | Exit code | `1` |
-| Final S3 export | None; export did not run because workflow failed |
+| Requested S3 export | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-huobase5x/` |
+| S3 stats | `0` objects, `0` bytes; export did not run because workflow failed |
 
 Failure summary: Sentieon HybridStage1 failed and produced a truncated
 `stage1_hap.bam`. The live triage identified an internal assertion around
@@ -498,7 +595,8 @@ dyec workflow launch --repository daylily-omics-analysis --analysis-id gd3v206-h
 | Remote run script | `/home/ubuntu/ds/gd3serialksv206/gd3v206-huobase5xr1_patch_and_run.sh` |
 | Started / completed | `2026-05-27T08:23:01Z` / `2026-05-27T09:18:42Z` |
 | Exit code | `1` |
-| Final S3 export | None; export did not run because workflow failed |
+| Requested S3 export | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-huobase5xr1/` |
+| S3 stats | `0` objects, `0` bytes; export did not run because workflow failed |
 
 Failure summary: the retry patched run-local `sentdhuomr.threads=128` and
 `sentdhuomr.use_threads=120`, but still failed. Live evidence showed Sentieon
@@ -512,14 +610,14 @@ pass-through slim GIAB reads under `/fsx/references/genomic_data/organism_reads_
 It did not include the run-analysis command family or the unresolved CG/MGI
 candidate.
 
-| Command ID | Status in this report | Reason |
-|---|---|---|
-| `complete_genomics_mgi_snv_concordance` | Not run | Valid CG/MGI mate-pair input was not verified; prior evidence showed inconsistent candidate mate sizes, and no silent substitution was authorized. |
-| `illumina_run_qc` | Not run in v206 | Run-context commands were outside the v206 sample-analysis driver. |
-| `illumina_bclconvert` | Not run in v206 | Run-context commands were outside the v206 sample-analysis driver. |
-| `illumina_run_qc_bclconvert` | Not run in v206 | Run-context commands were outside the v206 sample-analysis driver. |
-| `ont_run_qc` | Not run in v206 | Run-context commands were outside the v206 sample-analysis driver. |
-| `ultima_run_qc` | Not run in v206 | Run-context commands were outside the v206 sample-analysis driver. |
+| Command ID | Catalog `bin/day_run` command | Status in this report | Reason |
+|---|---|---|---|
+| `complete_genomics_mgi_snv_concordance` | `bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete` | Not run | Valid CG/MGI mate-pair input was not verified; prior evidence showed inconsistent candidate mate sizes, and no silent substitution was authorized. |
+| `illumina_run_qc` | `bin/day_run produce_illumina_run_qc -p -j 5 -k` | Not run in v206 | Run-context commands were outside the v206 sample-analysis driver. |
+| `illumina_bclconvert` | `bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k` | Not run in v206 | Run-context commands were outside the v206 sample-analysis driver. |
+| `illumina_run_qc_bclconvert` | `bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k` | Not run in v206 | Run-context commands were outside the v206 sample-analysis driver. |
+| `ont_run_qc` | `bin/day_run produce_ont_run_qc_and_demux_multiqc -p -j 5 -k` | Not run in v206 | Run-context commands were outside the v206 sample-analysis driver. |
+| `ultima_run_qc` | `bin/day_run produce_ultima_run_qc -p -j 5 -k` | Not run in v206 | Run-context commands were outside the v206 sample-analysis driver. |
 
 ## Exports And Cleanup
 
@@ -548,21 +646,39 @@ using FSx `DeleteDataInFileSystem`.
 
 Successful export destinations:
 
-| Analysis ID | Final S3 URI |
-|---|---|
-| `gd3v206-ilmnbase5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-ilmnbase5x/` |
-| `gd3v206-ilmn5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-ilmn5x/` |
-| `gd3v206-ugbase5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-ugbase5x/` |
-| `gd3v206-ug5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-ug5x/` |
-| `gd3v206-ontbase5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-ontbase5x/` |
-| `gd3v206-ont5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-ont5x/` |
-| `gd3v206-pbbase5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-pbbase5x/` |
-| `gd3v206-hiobase5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-hiobase5x/` |
-| `gd3v206-hio5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-hio5x/` |
+| Analysis ID | Final S3 URI | Objects | Bytes |
+|---|---|---:|---:|
+| `gd3v206-ilmnbase5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-ilmnbase5x/` | `2,145` | `6,135,243,305` |
+| `gd3v206-ilmn5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-ilmn5x/` | `3,794` | `9,283,078,998` |
+| `gd3v206-ugbase5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-ugbase5x/` | `2,104` | `2,593,534,795` |
+| `gd3v206-ug5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-ug5x/` | `3,266` | `5,394,481,804` |
+| `gd3v206-ontbase5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-ontbase5x/` | `2,086` | `2,348,353,425` |
+| `gd3v206-ont5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-ont5x/` | `3,345` | `4,981,980,903` |
+| `gd3v206-pbbase5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-pbbase5x/` | `2,088` | `4,306,320,965` |
+| `gd3v206-hiobase5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-hiobase5x/` | `6,415` | `22,393,495,692` |
+| `gd3v206-hio5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-hio5x/` | `8,130` | `27,276,240,588` |
+
+Failed or blocked export destinations:
+
+| Analysis ID | Requested S3 URI | Objects | Bytes |
+|---|---|---:|---:|
+| `gd3v206-rcbase5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-rcbase5x/` | `0` | `0` |
+| `gd3v206-rcbase5xr1` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-rcbase5xr1/` | `0` | `0` |
+| `gd3v206-huobase5x` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-huobase5x/` | `0` | `0` |
+| `gd3v206-huobase5xr1` | `s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3v206-huobase5xr1/` | `0` | `0` |
 
 No cluster teardown, bucket deletion, prefix deletion, or destructive AWS cleanup
 is recorded in this report. The final live readback had an empty Slurm queue and
 the cluster still running.
+
+## Remaining Blockers
+
+| Command | Blocker | Required next action |
+|---|---|---|
+| `roche_snv_alignstats` | First run hit Apptainer temp/cache permission failure; retry with writable FSx cache then hit Docker access denial for `docker://roche/sbxd-small-variant-caller:latest`. | Provide an authorized Roche container image or approved mirror, then rerun the Roche row. |
+| `hybrid_ultima_ont_snv` | First run and thread-reduced retry both failed in Sentieon HybridStage1. Evidence included `ReadSequenceKmerGraphBuilder.h:101` assertion, refused license-server connections during retry, and truncated `stage1_hap.bam` missing EOF. | Stabilize Sentieon licensing on the cluster, then isolate/vendor-triage the HybridStage1 assertion on the Ultima+ONT input. |
+| `complete_genomics_mgi_snv_concordance` | Candidate mate pair was not credible: `_386_1` was `90,600,002,744` bytes while `_386_2` was `10,794,018,984` bytes; nearby `_388_2` was `97,844,317,264` bytes but was not an authorized substitute. | Obtain a verified CG/MGI mate pair and rerun this catalog row. |
+| Run-context rows | `illumina_run_qc`, `illumina_bclconvert`, `illumina_run_qc_bclconvert`, `ont_run_qc`, and `ultima_run_qc` were outside the v206 sample-analysis driver. | Run a separate Goodole3 run-context validation with explicit mounted run directories and per-command samples/units. |
 
 ## Verification Commands For This Report
 
@@ -580,6 +696,11 @@ AWS_PROFILE=lsmc pcluster describe-cluster \
 AWS_PROFILE=lsmc aws fsx describe-data-repository-associations \
   --region us-west-2 \
   --filters Name=file-system-id,Values=fs-03509c3c3fcf86610
+
+AWS_PROFILE=lsmc aws s3 ls \
+  s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/ \
+  --recursive \
+  --summarize
 ```
 
 Headnode evidence was read through `daylily_ec.aws.ssm.run_shell` as `ubuntu`,
