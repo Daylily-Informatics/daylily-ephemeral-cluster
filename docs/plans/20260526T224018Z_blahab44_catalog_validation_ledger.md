@@ -195,6 +195,15 @@ Ledger path: `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemer
 - ONT tmux tail captured the verifybamid2 contamination stage after `10 of 106 steps (9%) done`; Hybrid tmux tail captured restarted hybrid alignment/QC work without a terminal exit code in the status payload.
 - Headnode Slurm evidence via `daylily_ec.aws.ssm.run_shell` as `ubuntu` on `ip-10-0-0-224`: `RUNNING=2`, `CONFIGURING=0`, `PENDING=0`, `COMPLETING=0`, `TOTAL=2`; job `48` `verifybamid2_contam-TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION` and job `185` `verifybamid2_contam-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ` were both running on `i192mem-dy-all-1` with elapsed `10:26:21`.
 
+## 2026-05-27T16:14Z Destructive Cancellation Preflight
+
+- User requested killing active `verifybamid2` jobs because the workflow is being removed from active use permanently.
+- Re-read repo/global instructions, plan-ledger SOP, current ledger, and git state. Repo branch remains `main`; unrelated GoodOle3/cache/Kahlo/Sarek/Dewey files remain dirty or untracked and were not touched.
+- AWS identity evidence before live inspection: `AWS_PROFILE=lsmc`, region `us-west-2`, account `108782052779`, ARN `arn:aws:iam::108782052779:root`.
+- Non-destructive DAY-EC SSM helper preflight recorded candidate jobs in `docs/plans/20260526T224018Z_blahab44_logs/blahab44_verifybamid2_cancel_candidates_20260527T161000Z.log` and appended a `verifybamid2_cancel_preflight` event to `docs/plans/20260526T224018Z_blahab44_catalog_runs.jsonl`.
+- Candidate destructive command is `scancel 48 185` on `blahab44` as `ubuntu`. This would cancel running Slurm jobs `48` (`verifybamid2_contam-TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION`) and `185` (`verifybamid2_contam-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ`), both in `RUNNING` state on `i192mem-dy-all-1` at elapsed `11:03:38`.
+- No destructive action was executed; cancellation is blocked pending the required second explicit approval.
+
 ## Catalog Commands
 
 | # | Command ID | Class | Catalog Pin | Status | Evidence |
