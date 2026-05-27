@@ -210,6 +210,7 @@ def test_create_staged_prefix_mount_uses_runtime_staging_dra(monkeypatch: pytest
     assert request.purpose == run_mounts.MOUNT_PURPOSE_STAGING
     assert request.file_system_path == "/staging/staged_external_sequencing_data/remote_stage_test"
     assert request.batch_import_metadata_on_create is True
+    assert request.auto_import_events == ()
     assert record is not None
     assert record.association_id == "dra-123"
 

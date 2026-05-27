@@ -605,6 +605,7 @@ def create_staged_prefix_mount(
                 file_system_path=file_system_path,
                 read_only=True,
                 batch_import_metadata_on_create=True,
+                auto_import_events=(),
                 wait=True,
                 timeout_seconds=timeout_seconds,
                 tags={"daylily:staging-root": ACTIVE_EXTERNAL_STAGE_ROOT},
