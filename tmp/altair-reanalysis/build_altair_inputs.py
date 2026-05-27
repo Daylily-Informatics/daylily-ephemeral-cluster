@@ -208,7 +208,6 @@ def build_manifest(s3, run_id: str, analysis_id: str, *, hybrid_hg003_only: bool
             if ss_row.sample_id not in fastqs:
                 raise SystemExit(f"{run_id} {ss_row.sample_id}: no FASTQs found")
             r1s, r2s = validate_pairs(ss_row.sample_id, fastqs[ss_row.sample_id])
-            base = sample_base(ss_row.sample_id)
             meta = metadata_for(ss_row.sample_id)
             row = {
                 "RUN_ID": run_id,

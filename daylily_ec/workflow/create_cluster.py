@@ -882,7 +882,6 @@ def run_create_workflow(
     from daylily_ec.aws.ssm import wait_for_ssm_online
     from daylily_ec.aws.spot_pricing import apply_spot_prices
     from daylily_ec.config.triplets import (
-        get_effective_default,
         load_config,
         write_next_run_template,
     )
