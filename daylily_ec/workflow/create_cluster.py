@@ -995,6 +995,12 @@ def run_create_workflow(
         "Stage S3 URI",
         non_interactive=non_interactive,
     )
+    export_destination_s3_uri = _resolve_config_value(
+        cfg,
+        "export_destination_s3_uri",
+        "Export destination S3 URI",
+        non_interactive=non_interactive,
+    )
 
     preflight_steps: List[PreflightStep] = [
         # 1-2: ToolchainValidator + AWS Identity — implicit via AWSContext.build
@@ -1043,6 +1049,17 @@ def run_create_workflow(
     control_data_s3_uri = _role_uri(s3_roles, "control_data")
     stage_s3_uri = _role_uri(s3_roles, "staging")
     reference_storage_bucket_name = _role_bucket(s3_roles, "reference")
+    from daylily_ec.aws.s3 import normalize_role_s3_uri
+
+    try:
+        export_destination_spec = normalize_role_s3_uri(
+            export_destination_s3_uri,
+            role="export_destination",
+        )
+    except ValueError as exc:
+        ui.fail(f"Export destination S3 URI: {exc}")
+        return EXIT_VALIDATION_FAILURE
+
     cluster_boot_s3_uri = _s3_uri_join(
         reference_s3_uri,
         "runtime_assets",
@@ -1120,6 +1137,7 @@ def run_create_workflow(
             "reference S3 URI": reference_s3_uri,
             "control-data S3 URI": control_data_s3_uri,
             "stage S3 URI": stage_s3_uri,
+            "export destination S3 URI": export_destination_s3_uri,
             "public subnet": public_subnet,
             "private subnet": private_subnet,
             "IAM policy ARN": policy_arn,
@@ -1131,10 +1149,11 @@ def run_create_workflow(
         return EXIT_VALIDATION_FAILURE
 
     logger.info(
-        "Resources: reference=%s control_data=%s staging=%s pub=%s priv=%s policy=%s",
+        "Resources: reference=%s control_data=%s staging=%s export=%s pub=%s priv=%s policy=%s",
         reference_s3_uri,
         control_data_s3_uri,
         stage_s3_uri,
+        export_destination_s3_uri,
         public_subnet,
         private_subnet,
         policy_arn,
@@ -1144,6 +1163,7 @@ def run_create_workflow(
     ui.detail("Control data", control_data_s3_uri)
     ui.detail("Runtime assets", _s3_uri_join(reference_s3_uri, "runtime_assets"))
     ui.detail("Staging", stage_s3_uri)
+    ui.detail("Export destination", export_destination_s3_uri)
     ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
     ui.detail("Policy", policy_arn)
 
@@ -1200,6 +1220,7 @@ def run_create_workflow(
         "REGSUB_S3_REFERENCE_BUCKET": _role_bucket(s3_roles, "reference"),
         "REGSUB_S3_CONTROL_DATA_BUCKET": _role_bucket(s3_roles, "control_data"),
         "REGSUB_S3_STAGE_BUCKET": _role_bucket(s3_roles, "staging"),
+        "REGSUB_S3_EXPORT_BUCKET": export_destination_spec.bucket,
         "REGSUB_S3_REFERENCE_URI": reference_s3_uri.rstrip("/"),
         "REGSUB_S3_CONTROL_DATA_URI": control_data_s3_uri.rstrip("/"),
         "REGSUB_S3_STAGE_URI": stage_s3_uri.rstrip("/"),
@@ -1499,6 +1520,7 @@ def run_create_workflow(
         "reference_s3_uri": reference_s3_uri,
         "control_data_s3_uri": control_data_s3_uri,
         "stage_s3_uri": stage_s3_uri,
+        "export_destination_s3_uri": export_destination_s3_uri,
         "public_subnet_id": public_subnet,
         "private_subnet_id": private_subnet,
         "iam_policy_arn": policy_arn,
@@ -1524,6 +1546,7 @@ def run_create_workflow(
         reference_s3_uri=reference_s3_uri,
         control_data_s3_uri=control_data_s3_uri,
         stage_s3_uri=stage_s3_uri,
+        export_destination_s3_uri=export_destination_s3_uri,
         keypair="",
         public_subnet_id=public_subnet,
         private_subnet_id=private_subnet,

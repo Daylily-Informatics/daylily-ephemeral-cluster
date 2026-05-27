@@ -1268,6 +1268,11 @@ def _build_workflow_config(template_path: Path) -> ConfigFile:
                     "reference_s3_uri": ["USESETVALUE", "", "s3://dayoa-references"],
                     "control_data_s3_uri": ["USESETVALUE", "", "s3://dayoa-control-data"],
                     "stage_s3_uri": ["USESETVALUE", "", "s3://dayoa-staging"],
+                    "export_destination_s3_uri": [
+                        "USESETVALUE",
+                        "",
+                        "s3://dayoa-results/analysis_results/johnm/majors-cluster/",
+                    ],
                     "max_count_8I": ["USESETVALUE", "", "1"],
                     "max_count_128I": ["USESETVALUE", "", "1"],
                     "max_count_192I": ["USESETVALUE", "", "1"],

@@ -13,6 +13,7 @@ def build_noninteractive_cluster_config(
     reference_s3_uri: str,
     control_data_s3_uri: str,
     stage_s3_uri: str,
+    export_destination_s3_uri: str,
     contact_email: str | None = None,
 ) -> ConfigFile:
     """Build a non-interactive cluster request config with explicit S3 roles."""
@@ -23,6 +24,7 @@ def build_noninteractive_cluster_config(
         "reference_s3_uri": reference_s3_uri,
         "control_data_s3_uri": control_data_s3_uri,
         "stage_s3_uri": stage_s3_uri,
+        "export_destination_s3_uri": export_destination_s3_uri,
         "enforce_budget": "skip",
     }
     if contact_email:
@@ -47,6 +49,7 @@ def write_noninteractive_cluster_config(
     reference_s3_uri: str,
     control_data_s3_uri: str,
     stage_s3_uri: str,
+    export_destination_s3_uri: str,
     contact_email: str | None = None,
 ) -> Path:
     """Write a day-ec cluster request config and return the written path."""
@@ -58,6 +61,7 @@ def write_noninteractive_cluster_config(
         reference_s3_uri=reference_s3_uri,
         control_data_s3_uri=control_data_s3_uri,
         stage_s3_uri=stage_s3_uri,
+        export_destination_s3_uri=export_destination_s3_uri,
         contact_email=contact_email,
     )
     write_config(cfg, path)

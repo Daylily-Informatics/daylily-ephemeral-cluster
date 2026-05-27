@@ -123,6 +123,7 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "reference_s3_uri",
     "control_data_s3_uri",
     "stage_s3_uri",
+    "export_destination_s3_uri",
     "spot_instance_allocation_strategy",
 ]
 

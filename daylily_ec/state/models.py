@@ -146,6 +146,7 @@ class StateRecord(BaseModel):
     reference_s3_uri: str = ""
     control_data_s3_uri: str = ""
     stage_s3_uri: str = ""
+    export_destination_s3_uri: str = ""
     keypair: str = ""
     public_subnet_id: str = ""
     private_subnet_id: str = ""

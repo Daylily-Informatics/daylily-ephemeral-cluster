@@ -11,6 +11,7 @@ def test_write_noninteractive_cluster_config_uses_current_dayec_triplets(tmp_pat
         reference_s3_uri="dayoa-references",
         control_data_s3_uri="dayoa-control-data",
         stage_s3_uri="dayoa-staging",
+        export_destination_s3_uri="dayoa-results/analysis_results/ops/run-a/",
         contact_email="ops@example.com",
     )
 
@@ -22,6 +23,11 @@ def test_write_noninteractive_cluster_config_uses_current_dayec_triplets(tmp_pat
     assert values["reference_s3_uri"].to_list() == ["USESETVALUE", "", "dayoa-references"]
     assert values["control_data_s3_uri"].to_list() == ["USESETVALUE", "", "dayoa-control-data"]
     assert values["stage_s3_uri"].to_list() == ["USESETVALUE", "", "dayoa-staging"]
+    assert values["export_destination_s3_uri"].to_list() == [
+        "USESETVALUE",
+        "",
+        "dayoa-results/analysis_results/ops/run-a/",
+    ]
     assert values["budget_email"].to_list() == ["USESETVALUE", "", "ops@example.com"]
     assert values["enforce_budget"].to_list() == ["USESETVALUE", "", "skip"]
     assert values["cluster_template_yaml"].to_list() == ["PROMPTUSER", "", ""]

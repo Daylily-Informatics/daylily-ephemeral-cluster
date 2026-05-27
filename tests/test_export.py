@@ -6,6 +6,7 @@ from pathlib import Path
 from typing import Any
 from unittest.mock import patch
 
+from botocore.exceptions import ClientError
 import pytest
 import yaml
 from typer.testing import CliRunner
@@ -13,6 +14,7 @@ from typer.testing import CliRunner
 from daylily_ec.workflow.export_data import (
     ExportOptions,
     attach_export_dra,
+    detach_export_dra,
     normalize_export_source_path,
     run_export_task,
     run_export_workflow,
@@ -43,11 +45,13 @@ class FakeFsxClient:
         *,
         task_lifecycle: str = "SUCCEEDED",
         detach_fails: bool = False,
+        detach_not_found: bool = False,
         association_lifecycle: str = "AVAILABLE",
         existing_associations: list[dict[str, Any]] | None = None,
     ) -> None:
         self.task_lifecycle = task_lifecycle
         self.detach_fails = detach_fails
+        self.detach_not_found = detach_not_found
         self.association_lifecycle = association_lifecycle
         self.created_association: dict[str, Any] | None = None
         self.created_task: dict[str, Any] | None = None
@@ -117,6 +121,16 @@ class FakeFsxClient:
     def delete_data_repository_association(self, **params: Any) -> dict[str, Any]:
         if self.detach_fails:
             raise RuntimeError("detach failed")
+        if self.detach_not_found:
+            raise ClientError(
+                {
+                    "Error": {
+                        "Code": "DataRepositoryAssociationNotFound",
+                        "Message": "Data repository association does not exist.",
+                    }
+                },
+                "DeleteDataRepositoryAssociation",
+            )
         self.deleted_association_id = params["AssociationId"]
         assert params["DeleteDataInFileSystem"] is False
         return {"Association": {"AssociationId": params["AssociationId"], "Lifecycle": "DELETED"}}
@@ -406,6 +420,52 @@ def test_run_export_workflow_detach_failure_surfaces_association(tmp_path, monke
     assert receipt["status"] == "error"
     assert receipt["detached"] is False
     assert receipt["failure_details"]["message"] == "detach failed"
+
+
+def test_run_export_workflow_treats_created_dra_not_found_as_detached(
+    tmp_path, monkeypatch
+) -> None:
+    fake = FakeFsxClient(detach_not_found=True)
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(fake),
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="alpha",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+            destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc/",
+            region="us-west-2",
+            profile="prof",
+            output_dir=tmp_path,
+        )
+    )
+
+    assert rc == 0
+    receipt = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))[
+        "fsx_export"
+    ]
+    assert receipt["status"] == "success"
+    assert receipt["detached"] is True
+    assert receipt["detach_lifecycle"] == "NOT_FOUND"
+    assert receipt["detach_absent"] is True
+    assert fake.deleted_association_id is None
+
+
+def test_direct_detach_still_fails_when_requested_association_is_missing() -> None:
+    fake = FakeFsxClient(detach_not_found=True)
+
+    with pytest.raises(RuntimeError, match="Unable to detach export data repository association"):
+        detach_export_dra(
+            association_id="dra-missing",
+            region="us-west-2",
+            profile="prof",
+            wait=True,
+            timeout_seconds=1,
+            fsx_client=fake,
+        )
 
 
 def test_cli_export_passes_direct_analysis_options(tmp_path, monkeypatch):

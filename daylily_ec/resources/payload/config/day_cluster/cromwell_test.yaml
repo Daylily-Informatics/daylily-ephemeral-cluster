@@ -31,6 +31,8 @@ HeadNode:
         EnableWriteAccess: false
       - BucketName: ${REGSUB_S3_STAGE_BUCKET}
         EnableWriteAccess: false
+      - BucketName: ${REGSUB_S3_EXPORT_BUCKET}
+        EnableWriteAccess: true
     AdditionalIamPolicies:
       - Policy: ${REGSUB_S3_IAM_POLICY}  # arn:aws:iam::670484050738:policy/pclusterTagsAndBudget
 Scheduling:

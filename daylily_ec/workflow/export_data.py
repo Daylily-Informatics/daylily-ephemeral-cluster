@@ -400,6 +400,7 @@ def detach_export_dra(
     wait: bool,
     timeout_seconds: int,
     fsx_client: Optional[Any] = None,
+    allow_absent: bool = False,
 ) -> Dict[str, Any]:
     client = fsx_client or _create_session(region, profile).client("fsx")
     try:
@@ -407,7 +408,16 @@ def detach_export_dra(
             AssociationId=association_id,
             DeleteDataInFileSystem=False,
         )
-    except (BotoCoreError, ClientError) as exc:
+    except ClientError as exc:
+        if allow_absent and _is_association_not_found(exc):
+            return {
+                "association_id": association_id,
+                "detach_lifecycle": "NOT_FOUND",
+                "detach_absent": True,
+                "delete_data_in_file_system": False,
+            }
+        raise ExportError(f"Unable to detach export data repository association: {exc}") from exc
+    except BotoCoreError as exc:
         raise ExportError(f"Unable to detach export data repository association: {exc}") from exc
     association = response.get("Association") or {}
     if wait:
@@ -422,6 +432,11 @@ def detach_export_dra(
         "detach_lifecycle": str(association.get("Lifecycle") or "UNKNOWN"),
         "delete_data_in_file_system": False,
     }
+
+
+def _is_association_not_found(exc: ClientError) -> bool:
+    code = str((exc.response.get("Error") or {}).get("Code") or "")
+    return code == "DataRepositoryAssociationNotFound"
 
 
 def _write_status(options: ExportOptions, payload: Dict[str, Any]) -> None:
@@ -551,6 +566,7 @@ def run_export_workflow(options: ExportOptions) -> int:
                     wait=options.wait,
                     timeout_seconds=options.timeout_seconds,
                     fsx_client=client,
+                    allow_absent=True,
                 )
                 receipt["fsx_export"].update(detach_payload)
                 receipt["fsx_export"]["detached"] = True
