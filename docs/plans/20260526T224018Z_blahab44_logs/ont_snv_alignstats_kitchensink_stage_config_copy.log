@@ -1,0 +1,7 @@
+{
+  "remote_samples_path": "/home/ubuntu/ds/bb44/ebf1cb70/remote_stage_20260526T233916Z_6c2b7b02/a_samples.tsv",
+  "remote_stage_dir": "/home/ubuntu/ds/bb44/ebf1cb70/remote_stage_20260526T233916Z_6c2b7b02",
+  "remote_units_path": "/home/ubuntu/ds/bb44/ebf1cb70/remote_stage_20260526T233916Z_6c2b7b02/a_units.tsv",
+  "verify_stderr": "",
+  "verify_stdout": "DAY-EC activated.\nDAY-EC activated.\nREMOTE_STAGE_DIR=/home/ubuntu/ds/bb44/ebf1cb70/remote_stage_20260526T233916Z_6c2b7b02\n"
+}

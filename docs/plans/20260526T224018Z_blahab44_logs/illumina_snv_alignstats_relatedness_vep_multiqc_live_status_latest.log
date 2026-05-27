@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec",
+    "--json",
+    "workflow",
+    "status",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "blahab44",
+    "--session",
+    "bb44_illumina_snv_alignstats_relatedness_vep_multiqc"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "{\n  \"command\": \"bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\\\"enable_tools\\\":[\\\"vep\\\"]}' -p -j 100 -k\",\n  \"completed_at\": null,\n  \"exit_code\": null,\n  \"repo_path\": \"/fsx/analysis_results/ubuntu/bb44_illumina_snv_alignstats_relatedness_vep_multiqc/daylily-omics-analysis\",\n  \"session_name\": \"bb44_illumina_snv_alignstats_relatedness_vep_multiqc\",\n  \"started_at\": \"2026-05-27T01:06:44Z\"\n}\n"
+}

@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec",
+    "--json",
+    "workflow",
+    "status",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "goodole3",
+    "--session",
+    "gd3_ultima_snv_alignstats_dryrun"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "{\n  \"command\": \"bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k -n\",\n  \"completed_at\": \"2026-05-27T01:01:10Z\",\n  \"exit_code\": 1,\n  \"repo_path\": \"/fsx/analysis_results/ubuntu/gd3_ultima_snv_alignstats_dryrun/daylily-omics-analysis\",\n  \"session_name\": \"gd3_ultima_snv_alignstats_dryrun\",\n  \"started_at\": \"2026-05-27T01:00:48Z\"\n}\n"
+}

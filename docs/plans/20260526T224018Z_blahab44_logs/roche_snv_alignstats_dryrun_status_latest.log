@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec",
+    "--json",
+    "workflow",
+    "status",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "blahab44",
+    "--session",
+    "bb44_roche_snv_alignstats_dryrun"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "{\n  \"command\": \"bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf -p -j 5 -k -n\",\n  \"completed_at\": \"2026-05-26T23:45:28Z\",\n  \"exit_code\": 1,\n  \"repo_path\": \"/fsx/analysis_results/ubuntu/bb44_roche_snv_alignstats_dryrun/daylily-omics-analysis\",\n  \"session_name\": \"bb44_roche_snv_alignstats_dryrun\",\n  \"started_at\": \"2026-05-26T23:45:02Z\"\n}\n"
+}

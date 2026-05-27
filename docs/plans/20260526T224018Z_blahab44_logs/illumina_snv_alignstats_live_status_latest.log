@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec",
+    "--json",
+    "workflow",
+    "status",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "blahab44",
+    "--session",
+    "bb44_illumina_snv_alignstats"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "{\n  \"command\": \"bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20\",\n  \"completed_at\": null,\n  \"exit_code\": null,\n  \"repo_path\": \"/fsx/analysis_results/ubuntu/bb44_illumina_snv_alignstats/daylily-omics-analysis\",\n  \"session_name\": \"bb44_illumina_snv_alignstats\",\n  \"started_at\": \"2026-05-27T01:05:08Z\"\n}\n"
+}

@@ -36,6 +36,10 @@ Cluster request path: `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylil
 - `DAYOA_TAG=2.0.3`
 - `DYEC_INTERMEDIATE_TAG=5.0.3`
 - `DYEC_FINAL_TAG=5.0.4`
+- Post-live amendment: `DAYOA_PATCH_TAG=2.0.4` and `DYEC_PATCH_TAG=5.0.5`.
+  The 0.1x Goodole3/Jem validation exposed a same-file `.ped` copy bug in
+  DayOA low-data Peddy placeholder generation after `2.0.3` was already
+  published. Catalog validation now uses DayOA `2.0.4` through DYEC `5.0.5`.
 - `AWS_PROFILE=lsmc`
 - `REGION=us-west-2`
 - `REGION_AZ=us-west-2d`
@@ -45,23 +49,23 @@ Cluster request path: `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylil
 
 | # | Command ID | Class | Planned DayOA Tag | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| 1 | `illumina_snv_alignstats` | sample_analysis | `2.0.3` | OPEN | Low-coverage input source pending run. |
-| 2 | `illumina_snv_alignstats_relatedness_vep_multiqc` | sample_analysis | `2.0.3` | OPEN | Low-coverage input source pending run. |
-| 3 | `ultima_snv_alignstats` | sample_analysis | `2.0.3` | OPEN | Low-coverage input source pending run. |
-| 4 | `ultima_snv_alignstats_kitchensink` | sample_analysis | `2.0.3` | OPEN | Low-coverage input source pending run. |
-| 5 | `ont_snv_alignstats` | sample_analysis | `2.0.3` | OPEN | Low-coverage input source pending run. |
-| 6 | `ont_snv_alignstats_kitchensink` | sample_analysis | `2.0.3` | OPEN | Low-coverage input source pending run. |
-| 7 | `pacbio_snv_alignstats` | sample_analysis | `2.0.3` | OPEN | Low-coverage input source pending run. |
-| 8 | `roche_snv_alignstats` | sample_analysis | `2.0.3` | OPEN | Low-coverage input source pending run. |
-| 9 | `hybrid_ilmn_ont_snv` | sample_analysis | `2.0.3` | OPEN | Low-coverage input source pending run. |
-| 10 | `hybrid_ilmn_ont_snv_kitchensink` | sample_analysis | `2.0.3` | OPEN | Low-coverage input source pending run. |
-| 11 | `hybrid_ultima_ont_snv` | sample_analysis | `2.0.3` | OPEN | Low-coverage input source pending run. |
-| 12 | `complete_genomics_mgi_snv_concordance` | sample_analysis | `2.0.3` | OPEN | Candidate input `complete_genomics_mgi_hg003_candidate_blocked.tsv`; must fail hard if mate-pair contract remains unverifiable. |
-| 13 | `illumina_run_qc` | run_analysis | `2.0.3` | OPEN | Low-coverage run-context source pending run. |
-| 14 | `illumina_bclconvert` | run_analysis | `2.0.3` | OPEN | Low-coverage run-context source pending run. |
-| 15 | `illumina_run_qc_bclconvert` | run_analysis | `2.0.3` | OPEN | Low-coverage run-context source pending run. |
-| 16 | `ont_run_qc` | run_analysis | `2.0.3` | OPEN | Low-coverage run-context source pending run. |
-| 17 | `ultima_run_qc` | run_analysis | `2.0.3` | OPEN | Candidate input `ultima_run_context_candidate.tsv`; must fail hard if no valid run context is available. |
+| 1 | `illumina_snv_alignstats` | sample_analysis | `2.0.4` | OPEN | Low-coverage input source pending run. |
+| 2 | `illumina_snv_alignstats_relatedness_vep_multiqc` | sample_analysis | `2.0.4` | OPEN | Low-coverage input source pending run. |
+| 3 | `ultima_snv_alignstats` | sample_analysis | `2.0.4` | OPEN | Low-coverage input source pending run. |
+| 4 | `ultima_snv_alignstats_kitchensink` | sample_analysis | `2.0.4` | OPEN | Low-coverage input source pending run. |
+| 5 | `ont_snv_alignstats` | sample_analysis | `2.0.4` | OPEN | Low-coverage input source pending run. |
+| 6 | `ont_snv_alignstats_kitchensink` | sample_analysis | `2.0.4` | OPEN | Low-coverage input source pending run. |
+| 7 | `pacbio_snv_alignstats` | sample_analysis | `2.0.4` | OPEN | Low-coverage input source pending run. |
+| 8 | `roche_snv_alignstats` | sample_analysis | `2.0.4` | OPEN | Low-coverage input source pending run. |
+| 9 | `hybrid_ilmn_ont_snv` | sample_analysis | `2.0.4` | OPEN | Low-coverage input source pending run. |
+| 10 | `hybrid_ilmn_ont_snv_kitchensink` | sample_analysis | `2.0.4` | OPEN | Low-coverage input source pending run. |
+| 11 | `hybrid_ultima_ont_snv` | sample_analysis | `2.0.4` | OPEN | Low-coverage input source pending run. |
+| 12 | `complete_genomics_mgi_snv_concordance` | sample_analysis | `2.0.4` | OPEN | Candidate input `complete_genomics_mgi_hg003_candidate_blocked.tsv`; must fail hard if mate-pair contract remains unverifiable. |
+| 13 | `illumina_run_qc` | run_analysis | `2.0.4` | OPEN | Low-coverage run-context source pending run. |
+| 14 | `illumina_bclconvert` | run_analysis | `2.0.4` | OPEN | Low-coverage run-context source pending run. |
+| 15 | `illumina_run_qc_bclconvert` | run_analysis | `2.0.4` | OPEN | Low-coverage run-context source pending run. |
+| 16 | `ont_run_qc` | run_analysis | `2.0.4` | OPEN | Low-coverage run-context source pending run. |
+| 17 | `ultima_run_qc` | run_analysis | `2.0.4` | OPEN | Candidate input `ultima_run_context_candidate.tsv`; must fail hard if no valid run context is available. |
 
 ## Tracking Rows
 
@@ -70,7 +74,9 @@ Cluster request path: `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylil
 | G0-001 | Gate 0 | Record start-time gate, repo state, fetched tags, AWS identity, pcluster baseline, goodole3 absence, worker-agent assignment, version amendment, and live-system boundary. | SUCCESS | plan_amendment | Gate 0 | orchestrator | Gate 0 section above; `git fetch --tags` completed in both repos; `goodole3` absence recorded. |  | Gate 0 is complete; version plan amended from fetched current source. |
 | REL-001 | DayOA release | Test, commit, push, annotated-tag, and push the DayOA dirty peddy low-data changes as `2.0.3`. | SUCCESS | contract_test | Gate 1 | Agent 1 + orchestrator | Agent 1 reported `git diff --check -> 0`, focused tests `72 passed`, full tests `208 passed`; orchestrator reran `git diff --check`, focused tests `72 passed`, full tests `208 passed`; commit `970f4e1a8223bc594afe2b48eadf5c251cc65623` pushed to `origin/main`; annotated tag `2.0.3` pushed and remote readback showed `refs/tags/2.0.3`. |  | DayOA peddy low-data handling is published and addressable by tag `2.0.3`. |
 | REL-002 | DYEC release A | Update source and packaged DayOA catalog pins from `2.0.2` to `2.0.3`, include Goodole3 plan artifacts, validate parity/tests, commit, push, annotated-tag `5.0.3`, and push tag. | SUCCESS | config_or_startup_contract | Gate 2 | Agent 2 + orchestrator | Source and packaged catalogs, README, docs, and catalog tests changed to `2.0.3`; catalog `cmp` passed; focused DYEC tests passed `234 passed`; `git diff --check` passed; commit `875b360f0fe38677f1d3145c930a166113b223c1` pushed to `origin/main`; annotated tag `5.0.3` pushed. |  | DYEC catalog resolves all DayOA command clones to tag `2.0.3`. |
-| REL-003 | DYEC release B | Update source and packaged self-pins from `5.0.2` to final `5.0.4`, validate parity/tests/ruff/diff-check, commit, push, annotated-tag `5.0.4`, and push tag. | IN_PROGRESS | config_or_startup_contract | Gate 3 | Agent 2 + orchestrator | Source and packaged self-pins changed to `5.0.4`; global-config `cmp` passed; required pytest subset passed `104 passed`; initial `ruff check .` failed on unused imports/local in tracked files, minimal cleanup applied, rerun `ruff check . -> All checks passed`; `git diff --check` passed. Commit/tag pending. |  |  |
+| REL-003 | DYEC release B | Update source and packaged self-pins from `5.0.2` to final `5.0.4`, validate parity/tests/ruff/diff-check, commit, push, annotated-tag `5.0.4`, and push tag. | SUCCESS | config_or_startup_contract | Gate 3 | Agent 2 + orchestrator | Source and packaged self-pins changed to `5.0.4`; global-config `cmp` passed; required pytest subset passed `104 passed`; initial `ruff check .` failed on unused imports/local in tracked files, minimal cleanup applied, rerun `ruff check . -> All checks passed`; `git diff --check` passed; commit `2f6cc5027dff492c331868955398c0451947bfb5` and annotated tag `5.0.4` are present on `origin/main`. |  | DYEC `5.0.4` was published and used to build `goodole3`. |
+| REL-004 | DayOA patch release | Publish the same-file Peddy low-data `.ped` copy fix after live 0.1x validation exposed the bug. | SUCCESS | contract_test | Gate 4 | orchestrator | `git diff --check` passed; `pytest -q tests/test_peddy_low_data_outputs.py tests/test_giab_qc_contracts.py::test_peddy_rule_hard_fails_and_does_not_unconditionally_mark_done -> 2 passed`; commit `7d7ac739c408a6a77a9cf55d92667ebc7323b9a8` pushed to `origin/main`; annotated tag `2.0.4` pushed and read back from `origin`. |  | DayOA `2.0.4` supersedes `2.0.3` for remaining catalog validation. |
+| REL-005 | DYEC patch release | Repin source and packaged DayOA catalog entries from `2.0.3` to `2.0.4`, advance source and packaged DYEC self-pins from `5.0.4` to `5.0.5`, validate, commit, push, and tag. | SUCCESS | config_or_startup_contract | Gate 4 | orchestrator | Source/package catalog parity passed; source/package global-config parity passed; `pytest -q tests/test_repository_catalog.py tests/test_cli_registry_v2.py tests/test_packaged_defaults.py tests/test_resources_extraction.py tests/test_workflow.py tests/test_run_mounts.py tests/test_stage_samples_from_local_to_headnode.py tests/test_headnode_init.py tests/test_headnode_readiness.py tests/test_s3.py -> 282 passed`; `ruff check . -> All checks passed`; `git diff --check` passed. |  | DYEC catalog and self-pins are ready to publish as `5.0.5`; this row's release commit/tag publication is recorded by the surrounding git history. |
 | CLU-001 | Cluster create | Create `goodole3` from final DYEC tag `5.0.4`, then verify `CREATE_COMPLETE`, compute fleet `RUNNING`, SSM as `ubuntu`, `/fsx`, required CLI tools, Slurm, and installed/configured final tag. | OPEN | feature_implementation | Gate 3 | Agent 2 + orchestrator | `goodole3` does not exist; cluster request YAML created from `jem-bucktst3` shape with only cluster name changed. |  |  |
 | CAT-001 | Catalog validation | Run dry-run then live validation for all 17 catalog commands with low-coverage inputs; failed rows must enter `ATTEMPTING_BUGFIX` before `FAIL`; publish new tags if repo-grounded fixes are required. | OPEN | contract_test | Gate 4 | Agent 3 + orchestrator | Input directories exist; command matrix initialized above; execution pending final cluster readiness. |  |  |
 | FINAL-001 | Final report | Record terminal status counts, pushed refs, cluster state, command matrix, result paths, remaining blockers, and destructive-action boundary. | OPEN | contract_test | Gate 5 | orchestrator |  |  |  |

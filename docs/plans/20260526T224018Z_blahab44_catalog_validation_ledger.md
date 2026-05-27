@@ -38,27 +38,37 @@ Ledger path: `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemer
 - DAY-EC focused tests after pinning: `234 passed`.
 - No user-level `/Users/jmajor/.config/daylily/daylily_cli_global.yaml` was present, so cluster create will use the repo or packaged DAY-EC global config.
 
+## Post-Create Evidence
+
+- Pre-create target readback: `AWS_PROFILE=lsmc pcluster list-clusters --region us-west-2` showed no `blahab44`; `us-west-2d` was `available` with ZoneId `usw2-az4`.
+- Preflight command: `dyec preflight --profile lsmc --region-az us-west-2d --config docs/plans/20260526T224018Z_blahab44_cluster_request.yaml --non-interactive` passed 12 checks.
+- Create command: `dyec create --profile lsmc --region-az us-west-2d --config docs/plans/20260526T224018Z_blahab44_cluster_request.yaml --non-interactive`.
+- Create result: `blahab44` completed in `21m 6s`; headnode configured; state written to `/Users/jmajor/.config/daylily/state_blahab44_20260526224612.json`.
+- ParallelCluster readback: `clusterStatus=CREATE_COMPLETE`, `computeFleetStatus=RUNNING`, headnode `i-0bc04c4642b1c4b8d`, headnode type `r7i.2xlarge`, region `us-west-2`.
+- Headnode readiness via `daylily_ec.aws.ssm.run_shell` as `ubuntu`: `/fsx` mounted with about `4.4T` available, `/fsx/references/runtime_assets` present, `/fsx/references/genomic_data/organism_reads_slim` present, `/fsx/runtime_assets` absent, `/fsx/data` absent, `day-clone` present, `dyec version -> Daylily Ephemeral Cluster 5.0.2`, partitions `i8`, `i128`, `i192`, `i192mem`, and `i192bigmem` present, and `squeue -h` empty.
+- Catalog execution helper: `docs/plans/20260526T224018Z_blahab44_catalog_driver.py`; copied current one-DRA/reference-slim manifests into `docs/plans/20260526T224018Z_blahab44_inputs/`.
+
 ## Catalog Commands
 
 | # | Command ID | Class | Catalog Pin | Status | Evidence |
 | --- | --- | --- | --- | --- | --- |
-| 1 | `illumina_snv_alignstats` | sample_analysis | `2.0.1` | OPEN |  |
-| 2 | `illumina_snv_alignstats_relatedness_vep_multiqc` | sample_analysis | `2.0.1` | OPEN |  |
-| 3 | `ultima_snv_alignstats` | sample_analysis | `2.0.1` | OPEN |  |
-| 4 | `ultima_snv_alignstats_kitchensink` | sample_analysis | `2.0.1` | OPEN |  |
-| 5 | `ont_snv_alignstats` | sample_analysis | `2.0.1` | OPEN |  |
-| 6 | `ont_snv_alignstats_kitchensink` | sample_analysis | `2.0.1` | OPEN |  |
-| 7 | `pacbio_snv_alignstats` | sample_analysis | `2.0.1` | OPEN |  |
-| 8 | `roche_snv_alignstats` | sample_analysis | `2.0.1` | OPEN |  |
-| 9 | `hybrid_ilmn_ont_snv` | sample_analysis | `2.0.1` | OPEN |  |
-| 10 | `hybrid_ilmn_ont_snv_kitchensink` | sample_analysis | `2.0.1` | OPEN |  |
-| 11 | `hybrid_ultima_ont_snv` | sample_analysis | `2.0.1` | OPEN |  |
-| 12 | `complete_genomics_mgi_snv_concordance` | sample_analysis | `2.0.1` | OPEN |  |
-| 13 | `illumina_run_qc` | run_analysis | `2.0.1` | OPEN |  |
-| 14 | `illumina_bclconvert` | run_analysis | `2.0.1` | OPEN |  |
-| 15 | `illumina_run_qc_bclconvert` | run_analysis | `2.0.1` | OPEN |  |
-| 16 | `ont_run_qc` | run_analysis | `2.0.1` | OPEN |  |
-| 17 | `ultima_run_qc` | run_analysis | `2.0.1` | OPEN |  |
+| 1 | `illumina_snv_alignstats` | sample_analysis | `2.0.2` | OPEN |  |
+| 2 | `illumina_snv_alignstats_relatedness_vep_multiqc` | sample_analysis | `2.0.2` | OPEN |  |
+| 3 | `ultima_snv_alignstats` | sample_analysis | `2.0.2` | OPEN |  |
+| 4 | `ultima_snv_alignstats_kitchensink` | sample_analysis | `2.0.2` | OPEN |  |
+| 5 | `ont_snv_alignstats` | sample_analysis | `2.0.2` | OPEN |  |
+| 6 | `ont_snv_alignstats_kitchensink` | sample_analysis | `2.0.2` | OPEN |  |
+| 7 | `pacbio_snv_alignstats` | sample_analysis | `2.0.2` | OPEN |  |
+| 8 | `roche_snv_alignstats` | sample_analysis | `2.0.2` | OPEN |  |
+| 9 | `hybrid_ilmn_ont_snv` | sample_analysis | `2.0.2` | OPEN |  |
+| 10 | `hybrid_ilmn_ont_snv_kitchensink` | sample_analysis | `2.0.2` | OPEN |  |
+| 11 | `hybrid_ultima_ont_snv` | sample_analysis | `2.0.2` | OPEN |  |
+| 12 | `complete_genomics_mgi_snv_concordance` | sample_analysis | `2.0.2` | BLOCKED | Candidate CG/MGI mate-pair contract remains unverified; no substitution authorized. |
+| 13 | `illumina_run_qc` | run_analysis | `2.0.2` | OPEN |  |
+| 14 | `illumina_bclconvert` | run_analysis | `2.0.2` | OPEN |  |
+| 15 | `illumina_run_qc_bclconvert` | run_analysis | `2.0.2` | OPEN |  |
+| 16 | `ont_run_qc` | run_analysis | `2.0.2` | OPEN |  |
+| 17 | `ultima_run_qc` | run_analysis | `2.0.2` | OPEN |  |
 
 ## Tracking Rows
 
@@ -67,6 +77,6 @@ Ledger path: `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemer
 | REL-001 | DayOA release | Commit and push the runtime asset path changes; create and push non-`v` tag `2.0.2` so the catalog can address the new checkin. | SUCCESS | config_or_startup_contract | Gate 1 | orchestrator | Commit `1b103c7c66a8f04d94c1feab7f8e591f5a3dd4b8` (`Pin runtime assets under references`) pushed to `origin/main`; annotated tag `2.0.2` pushed; remote readback showed `refs/heads/main` at `1b103c7c66a8f04d94c1feab7f8e591f5a3dd4b8` and `refs/tags/2.0.2` present. Baseline DayOA focused tests passed: `44 passed`. |  | DayOA runtime-asset path update is published and addressable by tag `2.0.2`. |
 | REL-002 | DAY-EC catalog | Pin source and packaged DayOA catalog refs from `2.0.1` to `2.0.2`, update tests/docs, commit and push. | SUCCESS | config_or_startup_contract | Gate 1 | orchestrator | Source and packaged catalogs, README, docs, and catalog tests changed to `2.0.2`; source/package catalog parity passed; focused DAY-EC tests passed: `234 passed`. |  | DAY-EC catalog now resolves DayOA command clones to tag `2.0.2`. |
 | REL-003 | DAY-EC self pin | Pin source and packaged `daylily_cli_global.yaml` from `5.0.1` to `5.0.2`, then tag/push `5.0.2` so the headnode configure step clones the new checkin. | SUCCESS | config_or_startup_contract | Gate 1 | orchestrator | No user-level global config exists; source and packaged global config changed to `5.0.2`; source/package global-config parity passed; focused DAY-EC tests passed: `234 passed`. |  | DAY-EC headnode configure will clone the `5.0.2` release tag after publication. |
-| CLU-001 | Cluster create | Create new DAY-EC cluster `blahab44` in `us-west-2` using profile `lsmc`, after release pins are pushed. | OPEN | feature_implementation | Gate 2 | orchestrator | Gate 0 AWS identity account `108782052779`; no `blahab44` cluster in baseline list. |  |  |
-| CAT-001 | Catalog launch | Run all 17 DayOA command catalog commands against `blahab44`; each command row must reach `SUCCESS`, `FAIL`, or `BLOCKED` with exact dry-run/live evidence. | OPEN | contract_test | Gate 3 | orchestrator | Catalog command inventory above. |  |  |
+| CLU-001 | Cluster create | Create new DAY-EC cluster `blahab44` in `us-west-2` using profile `lsmc`, after release pins are pushed. | SUCCESS | feature_implementation | Gate 2 | orchestrator | Preflight passed 12 checks; create completed in `21m 6s`; state `/Users/jmajor/.config/daylily/state_blahab44_20260526224612.json`; pcluster readback `CREATE_COMPLETE`, compute fleet `RUNNING`, headnode `i-0bc04c4642b1c4b8d`; headnode readiness confirmed DAY-EC `5.0.2`, runtime assets under `/fsx/references/runtime_assets`, no `/fsx/runtime_assets` or `/fsx/data`, empty Slurm queue. |  | `blahab44` is live and ready for catalog dry-runs. |
+| CAT-001 | Catalog launch | Run all 17 DayOA command catalog commands against `blahab44`; each command row must reach `SUCCESS`, `FAIL`, or `BLOCKED` with exact dry-run/live evidence. | IN_PROGRESS | contract_test | Gate 3 | orchestrator | Catalog command inventory above; durable driver `docs/plans/20260526T224018Z_blahab44_catalog_driver.py`; event stream target `docs/plans/20260526T224018Z_blahab44_catalog_runs.jsonl`; logs target `docs/plans/20260526T224018Z_blahab44_logs/`. |  | Dry-run phase starting. |
 | FINAL-001 | Final report | Record final row counts, cluster state, output/export paths, residual blockers, and destructive-action boundary. | OPEN | contract_test | Gate 4 | orchestrator |  |  |  |

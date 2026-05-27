@@ -1,0 +1,25 @@
+{
+  "argv": [
+    "/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec",
+    "samples",
+    "stage",
+    "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260526T224018Z_blahab44_inputs/hybrid_ultima_ont_hg003_5x5x.tsv",
+    "--reference-s3-uri",
+    "s3://lsmc-dayoa-references-usw2",
+    "--control-data-s3-uri",
+    "s3://lsmc-dayoa-control-data-usw2",
+    "--stage-s3-uri",
+    "s3://lsmc-ssf-sequencing-data/staged_external_data",
+    "--stage-target",
+    "/fsx/staging/staged_external_sequencing_data",
+    "--config-dir",
+    "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260526T224018Z_blahab44_inputs/generated/hybrid_ultima_ont_snv",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "Completed 27 Bytes/27 Bytes (174 Bytes/s) with 1 file(s) remaining\nupload: ../../../../../../var/folders/rk/2n95m40s1zs48qr48ynwhxwm0000gn/T/tmphv5o09vs to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260526T235123Z_54761b1c/_write_test.txt\ndelete: s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260526T235123Z_54761b1c/_write_test.txt\nCompleted 442 Bytes/442 Bytes (2.7 KiB/s) with 1 file(s) remaining\nupload: docs/plans/20260526T224018Z_blahab44_inputs/generated/hybrid_ultima_ont_snv/20260526T235123Z_54761b1c_samples.tsv to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260526T235123Z_54761b1c/20260526T235123Z_54761b1c_samples.tsv\nCompleted 903 Bytes/903 Bytes (4.9 KiB/s) with 1 file(s) remaining\nupload: docs/plans/20260526T224018Z_blahab44_inputs/generated/hybrid_ultima_ont_snv/20260526T235123Z_54761b1c_units.tsv to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260526T235123Z_54761b1c/20260526T235123Z_54761b1c_units.tsv\nPrecheck passed: rows checked=1, samples checked=1, source objects checked=22, concordance directories checked=1.\nRemote staging completed successfully.\nRemote FSx stage directory: /fsx/staging/staged_external_sequencing_data/remote_stage_20260526T235123Z_54761b1c\nStaged files (0):\nGenerated configuration files:\n  samples.tsv -> s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260526T235123Z_54761b1c/20260526T235123Z_54761b1c_samples.tsv\n  units.tsv   -> s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260526T235123Z_54761b1c/20260526T235123Z_54761b1c_units.tsv\n"
+}
