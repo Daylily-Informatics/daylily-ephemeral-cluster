@@ -1,0 +1,30 @@
+[
+    {
+        "Id": "dra-0b6025ad9a5afe935",
+        "Path": "/staging/staged_external_sequencing_data/remote_stage_20260527T013344Z_bedd5b66/",
+        "URI": "s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260527T013344Z_bedd5b66/",
+        "Status": "CREATING",
+        "Created": 1779845698.651
+    },
+    {
+        "Id": "dra-07d5039aeaa4aca02",
+        "Path": "/staging/staged_external_sequencing_data/remote_stage_20260527T011805Z_f9c19233/",
+        "URI": "s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260527T011805Z_f9c19233/",
+        "Status": "CREATING",
+        "Created": 1779844767.698
+    },
+    {
+        "Id": "dra-03b4d0c6b5c9cab2b",
+        "Path": "/staging/staged_external_sequencing_data/remote_stage_20260527T005134Z_24befe61/",
+        "URI": "s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260527T005134Z_24befe61/",
+        "Status": "AVAILABLE",
+        "Created": 1779844586.399
+    },
+    {
+        "Id": "dra-0febd268a94636039",
+        "Path": "/references/",
+        "URI": "s3://lsmc-dayoa-references-usw2",
+        "Status": "AVAILABLE",
+        "Created": 1779842018.674
+    }
+]

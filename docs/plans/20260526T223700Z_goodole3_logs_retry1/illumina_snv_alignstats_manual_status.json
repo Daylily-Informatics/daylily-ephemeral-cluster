@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20 -n",
+  "completed_at": "2026-05-27T01:40:37Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/gd3r1_illumina_snv_alignstats_dryrun_manual/daylily-omics-analysis",
+  "session_name": "gd3r1_illumina_snv_alignstats_dryrun_manual",
+  "started_at": "2026-05-27T01:40:13Z"
+}

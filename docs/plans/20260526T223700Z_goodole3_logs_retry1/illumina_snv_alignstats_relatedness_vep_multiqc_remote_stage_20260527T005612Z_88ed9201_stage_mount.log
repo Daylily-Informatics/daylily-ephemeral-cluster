@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec",
+    "--json",
+    "mounts",
+    "create",
+    "s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260527T005612Z_88ed9201",
+    "--purpose",
+    "staging",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "goodole3",
+    "--platform",
+    "STAGING",
+    "--mount-id",
+    "remote_stage_20260527T005612Z_88ed9201",
+    "--run-id",
+    "remote_stage_20260527T005612Z_88ed9201",
+    "--file-system-path",
+    "/staging/staged_external_sequencing_data/remote_stage_20260527T005612Z_88ed9201",
+    "--read-only",
+    "--batch-import-metadata-on-create",
+    "--wait",
+    "--timeout-seconds",
+    "900"
+  ],
+  "returncode": 1,
+  "stderr": "\u2717 Timed out waiting for FSx data repository association dra-02bc4e3c05fe42f4b; \nlast lifecycle was CREATING.\n",
+  "stdout": ""
+}

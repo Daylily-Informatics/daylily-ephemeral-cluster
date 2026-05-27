@@ -30,6 +30,7 @@ PLAN_ROOT = ROOT / "docs" / "plans"
 RUN_ROOT = PLAN_ROOT / "20260526T223700Z_goodole3_inputs"
 LOG_ROOT = PLAN_ROOT / "20260526T223700Z_goodole3_logs"
 EVENTS_PATH = PLAN_ROOT / "20260526T223700Z_goodole3_catalog_runs.jsonl"
+RUN_SUFFIX = "v204"
 
 CLUSTER = "goodole3"
 PROFILE = "lsmc"
@@ -91,11 +92,19 @@ def append_event(event: dict[str, Any]) -> None:
         handle.write(json.dumps(event, sort_keys=True) + "\n")
 
 
-def last_event(command_id: str, phase: str, status: str | None = None) -> dict[str, Any] | None:
+def last_event(
+    command_id: str,
+    phase: str,
+    status: str | None = None,
+    *,
+    git_tag: str | None = None,
+) -> dict[str, Any] | None:
     for event in reversed(load_events()):
         if event.get("command_id") != command_id or event.get("phase") != phase:
             continue
         if status is not None and event.get("status") != status:
+            continue
+        if git_tag is not None and event.get("git_tag") != git_tag:
             continue
         return event
     return None
@@ -149,7 +158,7 @@ def dyec() -> str:
 
 
 def safe_id(command_id: str, suffix: str = "") -> str:
-    base = f"gd3_{command_id}{suffix}"
+    base = f"gd3{RUN_SUFFIX}_{command_id}{suffix}"
     return re.sub(r"[^A-Za-z0-9._-]", "_", base)
 
 
@@ -160,10 +169,78 @@ def parse_stage_dir(stdout: str) -> str:
     return match.group(1)
 
 
+def ensure_stage_mount(command_id: str, remote_stage_dir: str, timeout_seconds: int) -> None:
+    stage_name = Path(remote_stage_dir.rstrip("/")).name
+    existing = last_event(command_id, "stage_mount", "success")
+    if existing and existing.get("stage_name") == stage_name and existing.get("run_suffix") == RUN_SUFFIX:
+        return
+    argv = [
+        dyec(),
+        "--json",
+        "mounts",
+        "create",
+        f"{STAGE_S3_URI.rstrip('/')}/{stage_name}",
+        "--purpose",
+        "staging",
+        "--profile",
+        PROFILE,
+        "--region",
+        REGION,
+        "--cluster",
+        CLUSTER,
+        "--platform",
+        "STAGING",
+        "--mount-id",
+        stage_name,
+        "--run-id",
+        stage_name,
+        "--file-system-path",
+        f"/staging/staged_external_sequencing_data/{stage_name}",
+        "--read-only",
+        "--batch-import-metadata-on-create",
+        "--auto-import",
+        "none",
+        "--wait",
+        "--timeout-seconds",
+        str(timeout_seconds),
+    ]
+    proc = run_cmd(argv, log_name=f"{command_id}_{stage_name}_stage_mount.log", timeout=timeout_seconds + 300)
+    if proc.returncode != 0 and "overlaps with existing" in proc.stderr:
+        append_event(
+            {
+                "command_id": command_id,
+                "phase": "stage_mount",
+                "status": "success",
+                "run_suffix": RUN_SUFFIX,
+                "stage_name": stage_name,
+                "remote_stage_dir": remote_stage_dir,
+                "note": "staging mount already existed with overlapping path",
+                "stderr_tail": proc.stderr[-2000:],
+            }
+        )
+        return
+    require_success(proc, command_id=command_id, phase="stage_mount")
+    append_event(
+        {
+            "command_id": command_id,
+            "phase": "stage_mount",
+            "status": "success",
+            "run_suffix": RUN_SUFFIX,
+            "stage_name": stage_name,
+            "remote_stage_dir": remote_stage_dir,
+            "source_s3_uri": f"{STAGE_S3_URI.rstrip('/')}/{stage_name}",
+            "file_system_path": f"/staging/staged_external_sequencing_data/{stage_name}",
+            "log": str(LOG_ROOT / f"{command_id}_{stage_name}_stage_mount.log"),
+        }
+    )
+
+
 def stage_sample(command_id: str, manifest_name: str, timeout_seconds: int) -> str:
     existing = last_event(command_id, "stage", "success")
-    if existing and existing.get("remote_stage_dir"):
-        return str(existing["remote_stage_dir"])
+    if existing and existing.get("remote_stage_dir") and existing.get("run_suffix") == RUN_SUFFIX:
+        remote_stage_dir = str(existing["remote_stage_dir"])
+        ensure_stage_mount(command_id, remote_stage_dir, timeout_seconds)
+        return remote_stage_dir
     config_dir = RUN_ROOT / "generated" / command_id
     config_dir.mkdir(parents=True, exist_ok=True)
     argv = [
@@ -185,6 +262,10 @@ def stage_sample(command_id: str, manifest_name: str, timeout_seconds: int) -> s
         PROFILE,
         "--region",
         REGION,
+        "--cluster",
+        CLUSTER,
+        "--staging-mount-timeout-seconds",
+        str(timeout_seconds),
     ]
     proc = run_cmd(argv, log_name=f"{command_id}_stage.log", timeout=timeout_seconds)
     require_success(proc, command_id=command_id, phase="stage")
@@ -246,6 +327,7 @@ def stage_sample(command_id: str, manifest_name: str, timeout_seconds: int) -> s
             "command_id": command_id,
             "phase": "stage",
             "status": "success",
+            "run_suffix": RUN_SUFFIX,
             "manifest": str(RUN_ROOT / manifest_name),
             "generated_stage_dir": generated_stage_dir,
             "remote_stage_dir": remote_stage_dir,
@@ -256,6 +338,7 @@ def stage_sample(command_id: str, manifest_name: str, timeout_seconds: int) -> s
             "copy_log": str(LOG_ROOT / f"{command_id}_stage_config_copy.log"),
         }
     )
+    ensure_stage_mount(command_id, remote_stage_dir, timeout_seconds)
     return remote_stage_dir
 
 
@@ -345,10 +428,11 @@ def launch_workflow(
     stage_dir: str | None,
     run_context_name: str | None,
 ) -> str:
-    prior = last_event(command_id, phase, "completed")
+    git_tag = str(command.git_tag)
+    prior = last_event(command_id, phase, "completed", git_tag=git_tag)
     if prior:
         return str(prior.get("session_name") or safe_id(command_id, "_dryrun" if dry_run else ""))
-    launched = last_event(command_id, f"{phase}_launch", "success")
+    launched = last_event(command_id, f"{phase}_launch", "success", git_tag=git_tag)
     if launched and launched.get("session_name"):
         return str(launched["session_name"])
     session_name = safe_id(command_id, "_dryrun" if dry_run else "")
@@ -377,6 +461,7 @@ def launch_workflow(
             "command_id": command_id,
             "phase": f"{phase}_launch",
             "status": "success",
+            "git_tag": git_tag,
             "session_name": session_name,
             "analysis_id": analysis_id,
             "stage_dir": stage_dir,
@@ -433,7 +518,14 @@ def capture_logs(command_id: str, session_name: str, phase: str) -> None:
     )
 
 
-def poll_until_terminal(command_id: str, session_name: str, phase: str, timeout_seconds: int) -> int | None:
+def poll_until_terminal(
+    command_id: str,
+    session_name: str,
+    phase: str,
+    timeout_seconds: int,
+    *,
+    git_tag: str,
+) -> int | None:
     deadline = time.monotonic() + timeout_seconds
     last_payload: dict[str, Any] | None = None
     while time.monotonic() < deadline:
@@ -448,6 +540,7 @@ def poll_until_terminal(command_id: str, session_name: str, phase: str, timeout_
                         "command_id": command_id,
                         "phase": phase,
                         "status": "completed",
+                        "git_tag": git_tag,
                         "session_name": session_name,
                         "exit_code": exit_code,
                         "status_payload": payload,
@@ -462,6 +555,7 @@ def poll_until_terminal(command_id: str, session_name: str, phase: str, timeout_
             "command_id": command_id,
             "phase": phase,
             "status": "running",
+            "git_tag": git_tag,
             "session_name": session_name,
             "last_status_payload": last_payload,
             "note": f"poll timeout after {timeout_seconds}s",
@@ -509,9 +603,15 @@ def run_command(command: Any, args: argparse.Namespace) -> None:
             stage_dir=stage_dir,
             run_context_name=run_context_name,
         )
-        dry_exit = poll_until_terminal(command_id, session, "dryrun", args.dryrun_timeout_seconds)
+        dry_exit = poll_until_terminal(
+            command_id,
+            session,
+            "dryrun",
+            args.dryrun_timeout_seconds,
+            git_tag=str(command.git_tag),
+        )
     else:
-        event = last_event(command_id, "dryrun", "completed")
+        event = last_event(command_id, "dryrun", "completed", git_tag=str(command.git_tag))
         if event is not None:
             dry_exit = int(event.get("exit_code"))
 
@@ -535,7 +635,13 @@ def run_command(command: Any, args: argparse.Namespace) -> None:
         stage_dir=stage_dir,
         run_context_name=run_context_name,
     )
-    poll_until_terminal(command_id, session, "live", args.live_timeout_seconds)
+    poll_until_terminal(
+        command_id,
+        session,
+        "live",
+        args.live_timeout_seconds,
+        git_tag=str(command.git_tag),
+    )
 
 
 def parse_args() -> argparse.Namespace:

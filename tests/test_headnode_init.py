@@ -633,6 +633,12 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "wait_for_reference_data" in script
     assert "runtime_assets_root=\"/fsx/references/runtime_assets\"" in script
     assert "references_root=\"/fsx/references\"" in script
+    assert "environment_cache_root=\"/fsx/resources/environments\"" in script
+    assert (
+        'tailscale_authkey_ssm_parameter="/daylily/dayec/tailscale/headnode-authkey"'
+        in script
+    )
+    assert 'tailscale_dewey_url="https://dewey.day.lsmc.bio/"' in script
     assert "control_data_root=\"/fsx/control_data\"" not in script
     assert "Required DayOA role entries are visible" in script
     assert "required DayOA role entries did not appear" in script
@@ -658,14 +664,31 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     )
     assert "prepare_common_writable_dirs" in script
     assert "prepare_headnode_writable_dirs" in script
-    assert "install -d -m 1777 /fsx/scratch /fsx/tmp" in script
+    assert "prepare_dayoa_environment_cache" in script
+    assert "install_tailscale_headnode" in script
+    assert "configure_headnode_tailscale" in script
+    assert "verify_headnode_dewey_access" in script
+    assert 'install -d -m 1777 /fsx/scratch /fsx/tmp "${environment_cache_root}"' in script
     assert "install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/ubuntu" in script
     assert (
-        "DayOA conda and container caches are read directly from "
-        "${runtime_assets_root}/cached_envs" in script
+        "DayOA conda and container caches are seeded from "
+        "${runtime_assets_root}/cached_envs into ${environment_cache_root}" in script
     )
-    assert "link_cached_entries" not in script
-    assert "/fsx/resources/environments" not in script
+    assert "link_cached_entries" in script
+    assert '"${environment_cache_root}/conda/${user_name}/${host_name}"' in script
+    assert '"${environment_cache_root}/containers/${user_name}/${host_name}"' in script
+    assert '"${runtime_assets_root}/cached_envs/conda"' in script
+    assert '"${runtime_assets_root}/cached_envs/containers"' in script
+    assert "pkgs.tailscale.com/stable/ubuntu/${VERSION_CODENAME}.noarmor.gpg" in script
+    assert "pkgs.tailscale.com/stable/ubuntu/${VERSION_CODENAME}.tailscale-keyring.list" in script
+    assert "apt-get install -y tailscale" in script
+    assert "aws ssm get-parameter" in script
+    assert '--name "${tailscale_authkey_ssm_parameter}"' in script
+    assert '--auth-key="${authkey}"' in script
+    assert "--accept-dns=false" in script
+    assert "--accept-routes=false" in script
+    assert "empty Tailscale auth key from SSM parameter" in script
+    assert "Dewey reachable from headnode through Tailscale" in script
     assert "chmod -R a+wrx /fsx" not in script
     assert "Original sbatch already present" in script
     assert "Original srun already present" in script

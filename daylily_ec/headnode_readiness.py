@@ -18,6 +18,10 @@ REQUIRED_ROLE_DIRECTORIES = (
     "/fsx/references/genomic_data",
     "/fsx/references/runtime_assets/cached_envs/conda",
 )
+REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES = (
+    "/fsx/resources/environments/conda/ubuntu/{hostname}",
+    "/fsx/resources/environments/containers/ubuntu/{hostname}",
+)
 
 
 def build_headnode_readiness_script(repo_name: str = DEFAULT_HEADNODE_REPO_NAME) -> str:
@@ -26,6 +30,10 @@ def build_headnode_readiness_script(repo_name: str = DEFAULT_HEADNODE_REPO_NAME)
     repo_name_q = shlex.quote(repo_name)
     file_checks = "\n".join(f"test -s {path}" for path in REQUIRED_ROLE_FILES)
     dir_checks = "\n".join(f"test -d {path}" for path in REQUIRED_ROLE_DIRECTORIES)
+    writable_cache_checks = "\n".join(
+        f"test -d {template.format(hostname='$(hostname)')}"
+        for template in REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES
+    )
     return f"""
 set -euo pipefail
 repo_dir="$HOME/projects"/{repo_name_q}
@@ -42,6 +50,7 @@ stty -a 2>/dev/null | grep -Eq '(^|[[:space:];])-ixon([[:space:];]|$)'
 df -P /fsx >/dev/null
 {file_checks}
 {dir_checks}
+{writable_cache_checks}
 test ! -e /fsx/runtime_assets
 test ! -e /fsx/data
 day-clone --list >/dev/null

@@ -1,0 +1,8 @@
+{
+  "cluster": "blahab44",
+  "instance_id": "i-0bc04c4642b1c4b8d",
+  "profile": "lsmc",
+  "region": "us-west-2",
+  "stderr": "",
+  "stdout": "DAY-EC activated.\nDAY-EC activated.\nubuntu\nip-10-0-0-224\nCLUSTER=blahab44\nREGION=us-west-2\nRUNNING=2\nCONFIGURING=0\nPENDING=0\nCOMPLETING=0\nTOTAL=2\n48|i192mem|verifybamid2_contam-TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION|ubuntu|RUNNING|2:28:25|1|i192mem-dy-all-1\n185|i192mem|verifybamid2_contam-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ|ubuntu|RUNNING|2:28:25|1|i192mem-dy-all-1\n"
+}

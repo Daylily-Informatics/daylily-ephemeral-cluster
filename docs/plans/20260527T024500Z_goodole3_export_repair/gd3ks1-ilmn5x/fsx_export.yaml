@@ -1,0 +1,23 @@
+fsx_export:
+  schema_version: 3
+  status: error
+  phase: detach
+  cluster_name: goodole3
+  region: us-west-2
+  analysis_dir: ubuntu/gd3ks1-ilmn5x
+  source_path: /analysis_results/ubuntu/gd3ks1-ilmn5x/
+  headnode_path: /fsx/analysis_results/ubuntu/gd3ks1-ilmn5x/
+  destination_s3_uri: s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3ks1-ilmn5x/
+  detached: false
+  delete_data_in_file_system: false
+  failure_details:
+    message: 'Unable to detach export data repository association: An error occurred
+      (DataRepositoryAssociationNotFound) when calling the DeleteDataRepositoryAssociation
+      operation: Data repository association does not exist.'
+  fsx_file_system_id: fs-03509c3c3fcf86610
+  file_system_path: /analysis_results/ubuntu/gd3ks1-ilmn5x/
+  association_id: dra-0975820d6e6eb240e
+  lifecycle: AVAILABLE
+  task_id: task-08d9a4d7a4604beda
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-dayoa-analysis-results-usw2/validation/goodole3/ubuntu/gd3ks1-ilmn5x/_daylily_monitor/fsx-export/20260527T024318Z/export-report/

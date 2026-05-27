@@ -9,6 +9,7 @@ from daylily_ec.aws.ssm import SsmCommandFailedError, SsmCommandResult
 from daylily_ec.headnode_readiness import (
     REQUIRED_ROLE_DIRECTORIES,
     REQUIRED_ROLE_FILES,
+    REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES,
     build_headnode_readiness_script,
     validate_headnode_readiness,
 )
@@ -34,6 +35,8 @@ def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
         assert f"test -s {path}" in script
     for path in REQUIRED_ROLE_DIRECTORIES:
         assert f"test -d {path}" in script
+    for template in REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES:
+        assert f"test -d {template.format(hostname='$(hostname)')}" in script
 
 
 def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
@@ -55,6 +58,8 @@ def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
     assert "day-clone --list" in script
     assert "/fsx/references/runtime_assets/tool_specific_resources/cromwell_87.jar" in script
     assert "/fsx/references/genomic_data" in script
+    assert "/fsx/resources/environments/conda/ubuntu/$(hostname)" in script
+    assert "/fsx/resources/environments/containers/ubuntu/$(hostname)" in script
     assert "/fsx/control_data/genomic_data" not in script
     assert "test ! -e /fsx/runtime_assets" in script
     assert "test ! -e /fsx/data" in script

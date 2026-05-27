@@ -92,7 +92,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "2.0.5"
+    assert command.git_tag == "2.0.8"
     assert len(command.validation_runs) == 1
     validation_run = command.validation_runs[0]
     assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -119,7 +119,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.5" in launch_argv
+    assert "2.0.8" in launch_argv
 
     export_argv = command.launch_argv(
         analysis_id="run-1",
@@ -197,7 +197,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "2.0.5"
+        assert command.git_tag == "2.0.8"
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
@@ -507,6 +507,14 @@ def test_packaged_repository_catalog_matches_source_catalog() -> None:
     assert PACKAGED_CATALOG_PATH.read_text(encoding="utf-8") == CATALOG_PATH.read_text(
         encoding="utf-8"
     )
+
+
+def test_daylily_sarek_repository_uses_valid_pinned_ref() -> None:
+    catalog = load_repository_catalog(CATALOG_PATH)
+    repository = catalog.repositories["daylily-sarek"]
+
+    assert repository.default_ref == "0.7.379"
+    assert repository.analysis_commands == []
 
 
 def test_repositories_commands_json_cli_lists_blessed_command() -> None:

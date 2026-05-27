@@ -98,6 +98,103 @@ Ledger path: `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemer
 - Remaining non-terminal sessions: `bb44_ont_snv_alignstats_kitchensink` and `bb44_hybrid_ilmn_ont_snv_kitchensink` with `exit_code=null`, `completed_at=null`.
 - Headnode Slurm evidence via `daylily_ec.aws.ssm.run_shell` as `ubuntu` on `ip-10-0-0-224`: `RUNNING=2`, `CONFIGURING=0`, `PENDING=0`, `TOTAL=2`; job `48` `verifybamid2_contam-TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION` running `1:31:04`; job `80` `verifybamid2_contam-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ` running `1:24:04`.
 
+## Heartbeat 2026-05-27T05:07Z Monitoring
+
+- Workflow status/log sweep appended to `docs/plans/20260526T224018Z_blahab44_catalog_runs.jsonl` and wrote:
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_status_20260527T050711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_tmux_tail_20260527T050711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_status_20260527T050711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_tmux_tail_20260527T050711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/blahab44_slurm_20260527T050711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/blahab44_slurm_detail_20260527T050711Z.log`
+- Remaining non-terminal sessions: `bb44_ont_snv_alignstats_kitchensink` and `bb44_hybrid_ilmn_ont_snv_kitchensink` with `exit_code=null`, `completed_at=null`.
+- ONT tmux tail included `Error in rule sent_snv_ont` and progress at `14 of 106 steps (13%) done`; Hybrid tmux tail included `Error in rule verifybamid2_contam` and progress at `37 of 848 steps (4%) done`.
+- Headnode Slurm evidence via `daylily_ec.aws.ssm.run_shell` as `ubuntu` on `ip-10-0-0-224`: `RUNNING=0`, `CONFIGURING=2`, `PENDING=0`, `TOTAL=2`; jobs `48` and `185` were both `verifybamid2_contam` jobs in `CONFIGURING` on `i192mem-dy-all-1`.
+
+## Heartbeat 2026-05-27T05:37Z Monitoring
+
+- Re-read repo instructions, plan-ledger SOP, current ledger, and git state. Repo branch remains `main` at `1f834ea2`; unrelated GoodOle3/cache/Kahlo/Sarek/Dewey files remain dirty or untracked and were not touched.
+- AWS identity evidence before the live status check: `AWS_PROFILE=lsmc`, region `us-west-2`, account `108782052779`, ARN `arn:aws:iam::108782052779:root`.
+- Workflow status/log sweep appended to `docs/plans/20260526T224018Z_blahab44_catalog_runs.jsonl` and wrote:
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_status_20260527T053711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_tmux_tail_20260527T053711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_status_20260527T053711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_tmux_tail_20260527T053711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/blahab44_slurm_20260527T053711Z.log`
+- Remaining non-terminal sessions: `bb44_ont_snv_alignstats_kitchensink` and `bb44_hybrid_ilmn_ont_snv_kitchensink` with `exit_code=null`, `completed_at=null`.
+- ONT tmux tail still included `Error in rule sent_snv_ont` and progress at `13 of 106 steps (12%) done`; Hybrid tmux tail showed progress through `36 of 848 steps (4%) done`.
+- Headnode Slurm evidence via `daylily_ec.aws.ssm.run_shell` as `ubuntu` on `ip-10-0-0-224`: `RUNNING=2`, `CONFIGURING=0`, `PENDING=0`, `TOTAL=2`; job `48` `verifybamid2_contam-TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION` and job `185` `verifybamid2_contam-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ` were both running on `i192mem-dy-all-1`.
+
+## Heartbeat 2026-05-27T06:07Z Monitoring
+
+- Re-read repo instructions, plan-ledger SOP, current ledger, and git state. Repo branch remains `main` at `1f834ea2`; unrelated GoodOle3/cache/Kahlo/Sarek/Dewey files remain dirty or untracked and were not touched.
+- AWS identity evidence before the live status check: `AWS_PROFILE=lsmc`, region `us-west-2`, account `108782052779`, ARN `arn:aws:iam::108782052779:root`.
+- Workflow status/log sweep appended to `docs/plans/20260526T224018Z_blahab44_catalog_runs.jsonl` and wrote:
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_status_20260527T060711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_tmux_tail_20260527T060711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_status_20260527T060711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_tmux_tail_20260527T060711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/blahab44_slurm_20260527T060711Z.log`
+- Remaining non-terminal sessions: `bb44_ont_snv_alignstats_kitchensink` and `bb44_hybrid_ilmn_ont_snv_kitchensink` with `exit_code=null`, `completed_at=null`.
+- ONT tmux tail showed progress at `13 of 106 steps (12%) done`; Hybrid tmux tail showed progress through `25 of 848 steps (3%) done`.
+- Headnode Slurm evidence via `daylily_ec.aws.ssm.run_shell` as `ubuntu` on `ip-10-0-0-224`: `RUNNING=2`, `CONFIGURING=0`, `PENDING=0`, `COMPLETING=0`, `TOTAL=2`; job `48` `verifybamid2_contam-TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION` and job `185` `verifybamid2_contam-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ` were both running on `i192mem-dy-all-1` with elapsed `58:13`.
+
+## Heartbeat 2026-05-27T06:37Z Monitoring
+
+- Re-read repo instructions, plan-ledger SOP, current ledger, and git state. Repo branch remains `main` at `1f834ea2`; unrelated GoodOle3/cache/Kahlo/Sarek/Dewey files remain dirty or untracked and were not touched.
+- AWS identity evidence before the live status check: `AWS_PROFILE=lsmc`, region `us-west-2`, account `108782052779`, ARN `arn:aws:iam::108782052779:root`.
+- Workflow status/log sweep appended to `docs/plans/20260526T224018Z_blahab44_catalog_runs.jsonl` and wrote:
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_status_20260527T063711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_tmux_tail_20260527T063711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_status_20260527T063711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_tmux_tail_20260527T063711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/blahab44_slurm_20260527T063711Z.log`
+- Remaining non-terminal sessions: `bb44_ont_snv_alignstats_kitchensink` and `bb44_hybrid_ilmn_ont_snv_kitchensink` with `exit_code=null`, `completed_at=null`.
+- ONT tmux tail included `Error in rule sent_snv_ont`; Hybrid tmux tail showed progress through `21 of 848 steps (2%) done`.
+- Headnode Slurm evidence via `daylily_ec.aws.ssm.run_shell` as `ubuntu` on `ip-10-0-0-224`: `RUNNING=2`, `CONFIGURING=0`, `PENDING=0`, `COMPLETING=0`, `TOTAL=2`; job `48` `verifybamid2_contam-TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION` and job `185` `verifybamid2_contam-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ` were both running on `i192mem-dy-all-1` with elapsed `1:28:13`.
+
+## Heartbeat 2026-05-27T07:07Z Monitoring
+
+- Re-read repo instructions, plan-ledger SOP, current ledger, and git state. Repo branch remains `main` at `1f834ea2`; unrelated GoodOle3/cache/Kahlo/Sarek/Dewey files remain dirty or untracked and were not touched.
+- AWS identity evidence before the live status check: `AWS_PROFILE=lsmc`, region `us-west-2`, account `108782052779`, ARN `arn:aws:iam::108782052779:root`.
+- Workflow status/log sweep appended to `docs/plans/20260526T224018Z_blahab44_catalog_runs.jsonl` and wrote:
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_status_20260527T070711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_tmux_tail_20260527T070711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_status_20260527T070711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_tmux_tail_20260527T070711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/blahab44_slurm_20260527T070711Z.log`
+- Remaining non-terminal sessions: `bb44_ont_snv_alignstats_kitchensink` and `bb44_hybrid_ilmn_ont_snv_kitchensink` with `exit_code=null`, `completed_at=null`.
+- ONT tmux tail showed `Error in rule sent_snv_ont` after `12 of 106 steps (11%) done`; Hybrid tmux tail showed `Error in rule sentdhiomr_sr_align` after `13 of 848 steps (2%) done`, then progress through `18 of 848 steps (2%) done`.
+- Headnode Slurm evidence via `daylily_ec.aws.ssm.run_shell` as `ubuntu` on `ip-10-0-0-224`: `RUNNING=2`, `CONFIGURING=0`, `PENDING=0`, `COMPLETING=0`, `TOTAL=2`; job `48` `verifybamid2_contam-TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION` and job `185` `verifybamid2_contam-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ` were both running on `i192mem-dy-all-1` with elapsed `1:58:16`.
+
+## Heartbeat 2026-05-27T07:37Z Monitoring
+
+- Re-read repo instructions, plan-ledger SOP, current ledger, and git state. Repo branch remains `main` at `1f834ea2`; unrelated GoodOle3/cache/Kahlo/Sarek/Dewey files remain dirty or untracked and were not touched.
+- AWS identity evidence before the live status check: `AWS_PROFILE=lsmc`, region `us-west-2`, account `108782052779`, ARN `arn:aws:iam::108782052779:root`.
+- Workflow status/log sweep appended to `docs/plans/20260526T224018Z_blahab44_catalog_runs.jsonl` and wrote:
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_status_20260527T073711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_tmux_tail_20260527T073711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_status_20260527T073711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_tmux_tail_20260527T073711Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/blahab44_slurm_20260527T073711Z.log`
+- Remaining non-terminal sessions: `bb44_ont_snv_alignstats_kitchensink` and `bb44_hybrid_ilmn_ont_snv_kitchensink` with `exit_code=null`, `completed_at=null`.
+- ONT tmux tail showed `Error in rule sent_snv_ont` after `12 of 106 steps (11%) done`; Hybrid tmux tail showed `Error in rule sentdhiomr_call_svs`, then `Error in rule sentdhiomr_sr_align` after `13 of 848 steps (2%) done`, and progress through `15 of 848 steps (2%) done`.
+- Headnode Slurm evidence via `daylily_ec.aws.ssm.run_shell` as `ubuntu` on `ip-10-0-0-224`: `RUNNING=2`, `CONFIGURING=0`, `PENDING=0`, `COMPLETING=0`, `TOTAL=2`; job `48` `verifybamid2_contam-TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION` and job `185` `verifybamid2_contam-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ` were both running on `i192mem-dy-all-1` with elapsed `2:28:25`.
+
+## Heartbeat 2026-05-27T15:32Z Monitoring
+
+- Re-read repo instructions, plan-ledger SOP, current ledger, and git state. Repo branch remains `main` at `1f834ea2`; unrelated GoodOle3/cache/Kahlo/Sarek/Dewey files remain dirty or untracked and were not touched.
+- AWS identity evidence before the live status check: `AWS_PROFILE=lsmc`, region `us-west-2`, account `108782052779`, ARN `arn:aws:iam::108782052779:root`.
+- Workflow status/log sweep appended to `docs/plans/20260526T224018Z_blahab44_catalog_runs.jsonl` and wrote:
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_status_20260527T153244Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_ont_snv_alignstats_kitchensink_live_tmux_tail_20260527T153244Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_status_20260527T153244Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/bb44_hybrid_ilmn_ont_snv_kitchensink_live_tmux_tail_20260527T153244Z.log`
+  - `docs/plans/20260526T224018Z_blahab44_logs/blahab44_slurm_20260527T153244Z.log`
+- Remaining non-terminal sessions: `bb44_ont_snv_alignstats_kitchensink` and `bb44_hybrid_ilmn_ont_snv_kitchensink` with `exit_code=null`, `completed_at=null`.
+- ONT tmux tail captured the verifybamid2 contamination stage after `10 of 106 steps (9%) done`; Hybrid tmux tail captured restarted hybrid alignment/QC work without a terminal exit code in the status payload.
+- Headnode Slurm evidence via `daylily_ec.aws.ssm.run_shell` as `ubuntu` on `ip-10-0-0-224`: `RUNNING=2`, `CONFIGURING=0`, `PENDING=0`, `COMPLETING=0`, `TOTAL=2`; job `48` `verifybamid2_contam-TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION` and job `185` `verifybamid2_contam-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ` were both running on `i192mem-dy-all-1` with elapsed `10:26:21`.
+
 ## Catalog Commands
 
 | # | Command ID | Class | Catalog Pin | Status | Evidence |
@@ -107,11 +204,11 @@ Ledger path: `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemer
 | 3 | `ultima_snv_alignstats` | sample_analysis | `2.0.5` | SUCCESS | Forced dry-run `bb44_ultima_snv_alignstats_dryrun_retry2` exit `0`; live `bb44_ultima_snv_alignstats_retry2` exit `0` at `2026-05-27T02:26:58Z`. |
 | 4 | `ultima_snv_alignstats_kitchensink` | sample_analysis | `2.0.5` | SUCCESS | Forced dry-run `bb44_ultima_snv_alignstats_kitchensink_dryrun_retry2` exit `0`; live `bb44_ultima_snv_alignstats_kitchensink_retry2` exit `0`, started `2026-05-27T02:03:56Z`, completed `2026-05-27T03:18:30Z`; repo path `/fsx/analysis_results/ubuntu/bb44_ultima_snv_alignstats_kitchensink_retry2/daylily-omics-analysis`; result root `/fsx/analysis_results/ubuntu/bb44_ultima_snv_alignstats_kitchensink_retry2/daylily-omics-analysis/results`; final report `results/day/hg38_broad/reports/DAY_final_multiqc.html`; key tables `results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv` and `results/day/hg38_broad/other_reports/vep_annotation_mqc.tsv`. |
 | 5 | `ont_snv_alignstats` | sample_analysis | `2.0.5` | FAIL | Forced dry-run exit `0`; live `bb44_ont_snv_alignstats` exit `1` at `2026-05-27T02:17:17Z`; tmux tail captured `sentieon-cli dnascope-longread` failure path for `sentdont`. |
-| 6 | `ont_snv_alignstats_kitchensink` | sample_analysis | `2.0.5` | RUNNING | Forced dry-run `bb44_ont_snv_alignstats_kitchensink_dryrun_retry2` exit `0`; live `bb44_ont_snv_alignstats_kitchensink` started `2026-05-27T02:07:09Z` and was non-terminal at `2026-05-27T03:43Z`; repo path `/fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis`; result root `/fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis/results`; tmux tail showed `23 of 106 steps (22%) done` while Slurm job `48` continued running. |
+| 6 | `ont_snv_alignstats_kitchensink` | sample_analysis | `2.0.5` | RUNNING | Forced dry-run `bb44_ont_snv_alignstats_kitchensink_dryrun_retry2` exit `0`; live `bb44_ont_snv_alignstats_kitchensink` started `2026-05-27T02:07:09Z` and was non-terminal at `2026-05-27T15:32Z`; repo path `/fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis`; result root `/fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis/results`; latest status/tmux logs are `bb44_ont_snv_alignstats_kitchensink_live_status_20260527T153244Z.log` and `bb44_ont_snv_alignstats_kitchensink_live_tmux_tail_20260527T153244Z.log`; Slurm job `48` `verifybamid2_contam-TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION` continued running on `i192mem`. |
 | 7 | `pacbio_snv_alignstats` | sample_analysis | `2.0.5` | FAIL | Forced dry-run exit `0`; live `bb44_pacbio_snv_alignstats` exit `1` at `2026-05-27T02:25:45Z`; rule log tail reported `ERROR: sentieon-cli dnascope-longread failed` and `ERROR: SNV VCF not produced by sentieon-cli`. |
 | 8 | `roche_snv_alignstats` | sample_analysis | `2.0.5` | FAIL | Forced dry-run `bb44_roche_snv_alignstats_dryrun_retry2` exit `1`; Singularity could not open missing Roche container image `/fsx/references/runtime_assets/cached_envs/containers/7a424a40c6fd659f4d052893dd3554fa.simg`. |
 | 9 | `hybrid_ilmn_ont_snv` | sample_analysis | `2.0.5` | FAIL | Forced dry-run exit `0`; live `bb44_hybrid_ilmn_ont_snv` exit `1` at `2026-05-27T02:17:45Z`; tmux tail captured `sentdhiomr_sr_align` cluster job external `64` nonzero and downstream `sentdhiomr_call_svs` error. |
-| 10 | `hybrid_ilmn_ont_snv_kitchensink` | sample_analysis | `2.0.5` | RUNNING | Forced dry-run `bb44_hybrid_ilmn_ont_snv_kitchensink_dryrun_retry2` exit `0`; live `bb44_hybrid_ilmn_ont_snv_kitchensink` started `2026-05-27T02:12:02Z` and was non-terminal at `2026-05-27T03:43Z`; repo path `/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis`; result root `/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/results`; tmux tail showed `37 of 848 steps (4%) done` while Slurm job `80` continued running. |
+| 10 | `hybrid_ilmn_ont_snv_kitchensink` | sample_analysis | `2.0.5` | RUNNING | Forced dry-run `bb44_hybrid_ilmn_ont_snv_kitchensink_dryrun_retry2` exit `0`; live `bb44_hybrid_ilmn_ont_snv_kitchensink` started `2026-05-27T02:12:02Z` and was non-terminal at `2026-05-27T15:32Z`; repo path `/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis`; result root `/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/results`; latest status/tmux logs are `bb44_hybrid_ilmn_ont_snv_kitchensink_live_status_20260527T153244Z.log` and `bb44_hybrid_ilmn_ont_snv_kitchensink_live_tmux_tail_20260527T153244Z.log`; Slurm job `185` `verifybamid2_contam-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ` continued running on `i192mem`. |
 | 11 | `hybrid_ultima_ont_snv` | sample_analysis | `2.0.5` | FAIL | Forced dry-run exit `0`; live `bb44_hybrid_ultima_ont_snv` exit `1` at `2026-05-27T02:19:49Z`; tmux tail captured `sentdhuomr_pass1` cluster job external `74` nonzero. |
 | 12 | `complete_genomics_mgi_snv_concordance` | sample_analysis | `2.0.5` | BLOCKED | Candidate CG/MGI mate-pair contract remains unverified; `_386_1` and `_386_2` sizes are inconsistent and no substitution is authorized. |
 | 13 | `illumina_run_qc` | run_analysis | `2.0.5` | FAIL | Forced dry-run exit `0`; live `bb44_illumina_run_qc` exit `1` at `2026-05-27T02:17:25Z`; MultiQC conda env creation failed under writable `/fsx/resources/environments/conda/.../259e5...` with pip `OSError` for `networkx-3.6.1.dist-info/...tmp`, consistent with shared conda-cache race/corruption. |
@@ -130,5 +227,5 @@ Ledger path: `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemer
 | REL-004 | DayOA correction | Restore Snakemake `conda-prefix` to a writable path while keeping containers under reference runtime assets, then publish a new DayOA tag. | SUCCESS | config_or_startup_contract | Gate 3 | orchestrator | Commit `2398d4a` (`Restore writable Snakemake conda cache`) and tag `2.0.5` pushed; focused test `pytest tests/test_multiqc_sample_identifiers.py -q -> 26 passed`. | Initial live attempts under `2.0.3` failed because conda env creation targeted read-only `/fsx/references/runtime_assets/cached_envs/conda`. | DayOA `2.0.5` is the active catalog validation pin for retry work. |
 | REL-005 | DAY-EC catalog correction | Pin source and packaged catalog refs to DayOA `2.0.5`, update DAY-EC self refs to `5.0.6`, then commit/tag/push. | SUCCESS | config_or_startup_contract | Gate 3 | orchestrator | Commit `104fadf3` (`Pin DayOA 2.0.5 in command catalog`) and tag `5.0.6` pushed; focused tests `99 passed` and package/default tests `7 passed`. | Catalog needed the new DayOA tag so launched workflows cloned the writable-cache fix. | DAY-EC `5.0.6` is published; local launch logs confirm `--git-tag 2.0.5`. |
 | CLU-001 | Cluster create | Create new DAY-EC cluster `blahab44` in `us-west-2` using profile `lsmc`, after release pins are pushed. | SUCCESS | feature_implementation | Gate 2 | orchestrator | Preflight passed 12 checks; create completed in `21m 6s`; state `/Users/jmajor/.config/daylily/state_blahab44_20260526224612.json`; pcluster readback `CREATE_COMPLETE`, compute fleet `RUNNING`, headnode `i-0bc04c4642b1c4b8d`; headnode readiness confirmed DAY-EC `5.0.2`, runtime assets under `/fsx/references/runtime_assets`, no `/fsx/runtime_assets` or `/fsx/data`, empty Slurm queue. |  | `blahab44` is live and ready for catalog dry-runs. |
-| CAT-001 | Catalog launch | Run all 17 DayOA command catalog commands against `blahab44`; each command row must reach `SUCCESS`, `FAIL`, `RUNNING`, or `BLOCKED` with exact dry-run/live evidence. | IN_PROGRESS | contract_test | Gate 3 | orchestrator | Event stream `docs/plans/20260526T224018Z_blahab44_catalog_runs.jsonl`; logs `docs/plans/20260526T224018Z_blahab44_logs/`; as of the `2026-05-27T03:43Z` status sweep: 3 live successes, 10 live failures, 1 dry-run failure, 2 live kitchensink rows still running, and 1 blocked command. Slurm evidence showed exactly 2 active jobs as `ubuntu`, both contamination jobs for the running kitchensinks, with no pending queue. | Post-fix live rows no longer fail on read-only reference conda path; residual failures are now command/runtime-specific or shared writable conda-cache concurrency issues. | Not terminal yet because two kitchensink rows are still running. First full kitchensink success is `ultima_snv_alignstats_kitchensink`. |
+| CAT-001 | Catalog launch | Run all 17 DayOA command catalog commands against `blahab44`; each command row must reach `SUCCESS`, `FAIL`, `RUNNING`, or `BLOCKED` with exact dry-run/live evidence. | IN_PROGRESS | contract_test | Gate 3 | orchestrator | Event stream `docs/plans/20260526T224018Z_blahab44_catalog_runs.jsonl`; logs `docs/plans/20260526T224018Z_blahab44_logs/`; as of the `2026-05-27T15:32Z` status sweep: 3 live successes, 10 live failures, 1 dry-run failure, 2 live kitchensink rows still running, and 1 blocked command. Slurm evidence showed exactly 2 active jobs as `ubuntu`, both contamination jobs for the running kitchensinks, with no pending queue. | Post-fix live rows no longer fail on read-only reference conda path; residual failures are now command/runtime-specific or shared writable conda-cache concurrency issues. | Not terminal yet because two kitchensink rows are still running. First full kitchensink success is `ultima_snv_alignstats_kitchensink`. |
 | FINAL-001 | Final report | Record final row counts, cluster state, output/export paths, residual blockers, and destructive-action boundary. | OPEN | contract_test | Gate 4 | orchestrator |  |  |  |

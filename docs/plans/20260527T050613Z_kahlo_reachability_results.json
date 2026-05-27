@@ -1,0 +1,177 @@
+{
+  "cluster_results": [
+    {
+      "cluster": "blahab44",
+      "compute_instances": [
+        {
+          "instance_id": "i-0c83a7e440712086f",
+          "instance_type": "m7i.metal-48xl",
+          "launch_time": "2026-05-27T05:07:12.000Z",
+          "node_type": "ComputeNode",
+          "private_ip": "10.0.1.41",
+          "queue_name": "i192mem",
+          "state": "running"
+        }
+      ],
+      "error": "SSM command '4dfbc486-a322-4ef5-bfff-ca59959beb60' did not complete within 240s.",
+      "finished_at": "2026-05-27T05:15:03Z",
+      "headnode_instance_id": "i-0bc04c4642b1c4b8d",
+      "region": "us-west-2",
+      "started_at": "2026-05-27T05:11:01Z"
+    },
+    {
+      "cluster": "goodole3",
+      "compute_instances": [
+        {
+          "instance_id": "i-0d242b187e98e1b8b",
+          "instance_type": "m7i.metal-48xl",
+          "launch_time": "2026-05-27T04:45:43.000Z",
+          "node_type": "ComputeNode",
+          "private_ip": "10.0.1.214",
+          "queue_name": "i192mem",
+          "state": "running"
+        },
+        {
+          "instance_id": "i-0fd4243e2c226771f",
+          "instance_type": "m7i.metal-48xl",
+          "launch_time": "2026-05-27T05:04:50.000Z",
+          "node_type": "ComputeNode",
+          "private_ip": "10.0.1.64",
+          "queue_name": "i192",
+          "state": "running"
+        }
+      ],
+      "error": "SSM command '8863b326-0067-41a0-8a77-ee133e696990' did not complete within 240s.",
+      "finished_at": "2026-05-27T05:15:03Z",
+      "headnode_instance_id": "i-0bd631af238bfac56",
+      "region": "us-west-2",
+      "started_at": "2026-05-27T05:11:01Z"
+    },
+    {
+      "cluster": "jem-bucktst3",
+      "compute_instances": [],
+      "error": "SSM command '1ebe15dd-774c-48dd-8c5c-6e9e3fad7ce1' did not complete within 240s.",
+      "finished_at": "2026-05-27T05:15:03Z",
+      "headnode_instance_id": "i-084e068e2e8413877",
+      "region": "us-west-2",
+      "started_at": "2026-05-27T05:11:01Z"
+    }
+  ],
+  "excluded_clusters": [
+    {
+      "cloudformation_stack_status": "ROLLBACK_COMPLETE",
+      "cluster": "jem-bucktst2",
+      "cluster_status": "CREATE_FAILED",
+      "compute_fleet_status": "UNKNOWN",
+      "created_at": "2026-05-26T20:05:31.522Z",
+      "headnode_instance_id": null,
+      "headnode_instance_type": null,
+      "headnode_private_ip": null,
+      "headnode_public_ip": null,
+      "headnode_state": null,
+      "region": "us-west-2",
+      "updated_at": "2026-05-26T20:05:31.522Z",
+      "version": "3.13.2"
+    },
+    {
+      "cloudformation_stack_status": "ROLLBACK_COMPLETE",
+      "cluster": "jem-bucktst1",
+      "cluster_status": "CREATE_FAILED",
+      "compute_fleet_status": "UNKNOWN",
+      "created_at": "2026-05-26T19:40:31.555Z",
+      "headnode_instance_id": null,
+      "headnode_instance_type": null,
+      "headnode_private_ip": null,
+      "headnode_public_ip": null,
+      "headnode_state": null,
+      "region": "us-west-2",
+      "updated_at": "2026-05-26T19:40:31.555Z",
+      "version": "3.13.2"
+    }
+  ],
+  "inventory": [
+    {
+      "cloudformation_stack_status": "CREATE_COMPLETE",
+      "cluster": "goodole3",
+      "cluster_status": "CREATE_COMPLETE",
+      "compute_fleet_status": "RUNNING",
+      "created_at": "2026-05-27T00:23:15.740Z",
+      "headnode_instance_id": "i-0bd631af238bfac56",
+      "headnode_instance_type": "r7i.2xlarge",
+      "headnode_private_ip": "10.0.0.144",
+      "headnode_public_ip": "44.242.81.64",
+      "headnode_state": "running",
+      "region": "us-west-2",
+      "updated_at": "2026-05-27T00:23:15.740Z",
+      "version": "3.13.2"
+    },
+    {
+      "cloudformation_stack_status": "CREATE_COMPLETE",
+      "cluster": "blahab44",
+      "cluster_status": "CREATE_COMPLETE",
+      "compute_fleet_status": "RUNNING",
+      "created_at": "2026-05-26T22:46:38.717Z",
+      "headnode_instance_id": "i-0bc04c4642b1c4b8d",
+      "headnode_instance_type": "r7i.2xlarge",
+      "headnode_private_ip": "10.0.0.224",
+      "headnode_public_ip": "44.235.231.236",
+      "headnode_state": "running",
+      "region": "us-west-2",
+      "updated_at": "2026-05-26T22:46:38.717Z",
+      "version": "3.13.2"
+    },
+    {
+      "cloudformation_stack_status": "CREATE_COMPLETE",
+      "cluster": "jem-bucktst3",
+      "cluster_status": "CREATE_COMPLETE",
+      "compute_fleet_status": "RUNNING",
+      "created_at": "2026-05-26T20:30:52.463Z",
+      "headnode_instance_id": "i-084e068e2e8413877",
+      "headnode_instance_type": "r7i.2xlarge",
+      "headnode_private_ip": "10.0.0.190",
+      "headnode_public_ip": "44.252.140.21",
+      "headnode_state": "running",
+      "region": "us-west-2",
+      "updated_at": "2026-05-26T20:30:52.463Z",
+      "version": "3.13.2"
+    },
+    {
+      "cloudformation_stack_status": "ROLLBACK_COMPLETE",
+      "cluster": "jem-bucktst2",
+      "cluster_status": "CREATE_FAILED",
+      "compute_fleet_status": "UNKNOWN",
+      "created_at": "2026-05-26T20:05:31.522Z",
+      "headnode_instance_id": null,
+      "headnode_instance_type": null,
+      "headnode_private_ip": null,
+      "headnode_public_ip": null,
+      "headnode_state": null,
+      "region": "us-west-2",
+      "updated_at": "2026-05-26T20:05:31.522Z",
+      "version": "3.13.2"
+    },
+    {
+      "cloudformation_stack_status": "ROLLBACK_COMPLETE",
+      "cluster": "jem-bucktst1",
+      "cluster_status": "CREATE_FAILED",
+      "compute_fleet_status": "UNKNOWN",
+      "created_at": "2026-05-26T19:40:31.555Z",
+      "headnode_instance_id": null,
+      "headnode_instance_type": null,
+      "headnode_private_ip": null,
+      "headnode_public_ip": null,
+      "headnode_state": null,
+      "region": "us-west-2",
+      "updated_at": "2026-05-26T19:40:31.555Z",
+      "version": "3.13.2"
+    }
+  ],
+  "profile": "daylily-service-lsmc",
+  "region": "us-west-2",
+  "running_clusters": [
+    "goodole3",
+    "blahab44",
+    "jem-bucktst3"
+  ],
+  "url": "https://kahlo.day.lsmc.bio/login?next=/"
+}

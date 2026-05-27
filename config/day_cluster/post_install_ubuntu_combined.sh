@@ -34,12 +34,15 @@ region="$1"
 boot_s3_uri="${2%/}"  # s3://.../cluster_boot_config
 runtime_assets_root="/fsx/references/runtime_assets"
 references_root="/fsx/references"
+environment_cache_root="/fsx/resources/environments"
 apptainer_deb="${runtime_assets_root}/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
 reference_wait_timeout_seconds=1800
 reference_wait_interval_seconds=30
 sbatch_wrapper_sha256="8c5d8eb0cb7f34784c872c4c70848fa442894165b7b5459cf6206a3f09c70369"
 sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
+tailscale_authkey_ssm_parameter="/daylily/dayec/tailscale/headnode-authkey"
+tailscale_dewey_url="https://dewey.day.lsmc.bio/"
 
 echo "[$timestamp] Running post_install_ubuntu_combined.sh ${region} ${boot_s3_uri} on $(hostname) as ${node_type}"
 echo "[$timestamp] Local log: ${local_log_fn}"
@@ -89,6 +92,35 @@ append_once() {
   grep -Fxq "$line" "$file" 2>/dev/null || echo "$line" >> "$file"
 }
 
+link_cached_entries() {
+  local source_dir="$1"
+  local dest_dir="$2"
+  local requirement="${3:-required}"
+
+  install -d -m 1777 "$dest_dir"
+  shopt -s nullglob
+  local source_paths=("${source_dir}"/*)
+  shopt -u nullglob
+  if [ "${#source_paths[@]}" -eq 0 ]; then
+    if [ "${requirement}" = "optional" ]; then
+      echo "No optional cached entries found under ${source_dir}; skipping"
+      return 0
+    fi
+    echo "ERROR: no cached entries found under ${source_dir}" >&2
+    exit 1
+  fi
+
+  for source_path in "${source_paths[@]}"; do
+    local dest_path="${dest_dir}/$(basename "${source_path}")"
+    if [ -e "${dest_path}" ] || [ -L "${dest_path}" ]; then
+      echo "Cached entry already present, leaving in place: ${dest_path}"
+    else
+      ln -s "${source_path}" "${dest_path}"
+      echo "Seeded cached entry: ${dest_path} -> ${source_path}"
+    fi
+  done
+}
+
 wait_for_reference_data() {
   local start
   local elapsed
@@ -129,8 +161,8 @@ make_role_data_read_only() {
 prepare_common_writable_dirs() {
   install -d -m 1777 /tmp/jobs
   if [ -d /fsx ]; then
-    install -d -m 1777 /fsx/scratch /fsx/tmp
-    stat -c "Writable DayOA directory: %A %U:%G %n" /fsx/scratch /fsx/tmp
+    install -d -m 1777 /fsx/scratch /fsx/tmp "${environment_cache_root}"
+    stat -c "Writable DayOA directory: %A %U:%G %n" /fsx/scratch /fsx/tmp "${environment_cache_root}"
   fi
 }
 
@@ -144,6 +176,39 @@ prepare_headnode_writable_dirs() {
     /fsx/analysis_results/daylily
 }
 
+prepare_dayoa_environment_cache() {
+  local host_name
+  host_name="$(hostname)"
+  local user_name
+
+  install -d -m 1777 \
+    "${environment_cache_root}/conda" \
+    "${environment_cache_root}/containers"
+
+  for user_name in ubuntu daylily; do
+    install -d -m 1777 \
+      "${environment_cache_root}/conda/${user_name}/${host_name}" \
+      "${environment_cache_root}/containers/${user_name}/${host_name}"
+    link_cached_entries \
+      "${runtime_assets_root}/cached_envs/conda" \
+      "${environment_cache_root}/conda/${user_name}/${host_name}" \
+      required
+    link_cached_entries \
+      "${runtime_assets_root}/cached_envs/containers" \
+      "${environment_cache_root}/containers/${user_name}/${host_name}" \
+      optional
+  done
+
+  stat -c "Writable DayOA cache directory: %A %U:%G %n" \
+    "${environment_cache_root}" \
+    "${environment_cache_root}/conda" \
+    "${environment_cache_root}/containers" \
+    "${environment_cache_root}/conda/ubuntu/${host_name}" \
+    "${environment_cache_root}/containers/ubuntu/${host_name}" \
+    "${environment_cache_root}/conda/daylily/${host_name}" \
+    "${environment_cache_root}/containers/daylily/${host_name}"
+}
+
 install_verified_s3_executable() {
   local s3_key="$1"
   local destination="$2"
@@ -155,6 +220,118 @@ install_verified_s3_executable() {
   echo "${expected_sha256}  ${temp_path}" | sha256sum -c -
   install -m 0755 "${temp_path}" "${destination}"
   rm -f "${temp_path}"
+}
+
+install_tailscale_headnode() {
+  if command -v tailscale >/dev/null 2>&1; then
+    echo "Tailscale is already installed: $(command -v tailscale)"
+    return 0
+  fi
+
+  if [ ! -r /etc/os-release ]; then
+    echo "ERROR: /etc/os-release is required for Tailscale repository selection" >&2
+    exit 1
+  fi
+  # shellcheck disable=SC1091
+  . /etc/os-release
+  if [ "${ID:-}" != "ubuntu" ] || [ "${VERSION_CODENAME:-}" != "jammy" ]; then
+    echo "ERROR: DayEC Tailscale bootstrap expects Ubuntu jammy; got ${ID:-unknown}/${VERSION_CODENAME:-unknown}" >&2
+    exit 1
+  fi
+
+  install -d -m 0755 /usr/share/keyrings
+  curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/${VERSION_CODENAME}.noarmor.gpg" \
+    -o /tmp/tailscale-archive-keyring.gpg
+  install -m 0644 /tmp/tailscale-archive-keyring.gpg /usr/share/keyrings/tailscale-archive-keyring.gpg
+  rm -f /tmp/tailscale-archive-keyring.gpg
+
+  curl -fsSL "https://pkgs.tailscale.com/stable/ubuntu/${VERSION_CODENAME}.tailscale-keyring.list" \
+    -o /tmp/tailscale.list
+  install -m 0644 /tmp/tailscale.list /etc/apt/sources.list.d/tailscale.list
+  rm -f /tmp/tailscale.list
+
+  apt-get update
+  apt-get install -y tailscale
+}
+
+tailscale_headnode_is_joined() {
+  tailscale ip -4 >/dev/null 2>&1
+}
+
+configure_headnode_tailscale() {
+  local authkey
+  local tailscale_hostname
+  local tailscale_up_rc
+
+  echo "Configuring headnode Tailscale access for ${tailscale_dewey_url}"
+  install_tailscale_headnode
+  systemctl enable --now tailscaled
+
+  if tailscale_headnode_is_joined; then
+    echo "Tailscale is already joined on this headnode"
+    return 0
+  fi
+
+  authkey="$(aws ssm get-parameter \
+    --region "${region}" \
+    --name "${tailscale_authkey_ssm_parameter}" \
+    --with-decryption \
+    --query 'Parameter.Value' \
+    --output text)"
+  if [ -z "${authkey}" ] || [ "${authkey}" = "None" ]; then
+    echo "ERROR: empty Tailscale auth key from SSM parameter ${tailscale_authkey_ssm_parameter}" >&2
+    exit 1
+  fi
+
+  tailscale_hostname="dayec-$(hostname)"
+  set +e
+  tailscale up \
+    --auth-key="${authkey}" \
+    --hostname="${tailscale_hostname}" \
+    --accept-dns=false \
+    --accept-routes=false
+  tailscale_up_rc=$?
+  set -e
+  unset authkey
+  if [ "${tailscale_up_rc}" -ne 0 ]; then
+    echo "ERROR: tailscale up failed for headnode; verify SSM parameter ${tailscale_authkey_ssm_parameter} and tailnet ACL/tag policy" >&2
+    exit "${tailscale_up_rc}"
+  fi
+
+  tailscale ip -4
+}
+
+verify_headnode_dewey_access() {
+  local curl_rc
+  local http_code
+  local remote_ip
+  local body_path
+
+  body_path="$(mktemp /tmp/daylily-dewey-curl.XXXXXX)"
+  set +e
+  http_code="$(curl \
+    --silent \
+    --show-error \
+    --location \
+    --connect-timeout 10 \
+    --max-time 20 \
+    --output "${body_path}" \
+    --write-out '%{http_code}' \
+    "${tailscale_dewey_url}")"
+  curl_rc=$?
+  set -e
+  rm -f "${body_path}"
+  if [ "${curl_rc}" -ne 0 ]; then
+    echo "ERROR: Dewey curl failed through Tailscale rc=${curl_rc}: ${tailscale_dewey_url}" >&2
+    exit "${curl_rc}"
+  fi
+  if [ "${http_code}" = "000" ]; then
+    echo "ERROR: Dewey did not return an HTTP response through Tailscale: ${tailscale_dewey_url}" >&2
+    exit 1
+  fi
+
+  remote_ip="$(getent ahostsv4 dewey.day.lsmc.bio 2>/dev/null | awk 'NR == 1 {print $1}' || true)"
+  echo "Dewey reachable from headnode through Tailscale: http_code=${http_code} resolved_ip=${remote_ip:-unknown}"
 }
 
 
@@ -210,7 +387,10 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   
 
   prepare_headnode_writable_dirs
-  echo "DayOA conda and container caches are read directly from ${runtime_assets_root}/cached_envs"
+  prepare_dayoa_environment_cache
+  echo "DayOA conda and container caches are seeded from ${runtime_assets_root}/cached_envs into ${environment_cache_root}"
+  configure_headnode_tailscale
+  verify_headnode_dewey_access
 
 
   if [ ! -e /opt/slurm/sbin/sbatch ]; then

@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec",
+    "--json",
+    "workflow",
+    "status",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "goodole3",
+    "--session",
+    "gd3v206-rcbase5xr1"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "{\n  \"command\": \"mkdir -p /fsx/tmp/apptainer_cache/ubuntu/${HOSTNAME}/containers/gd3v206-rcbase5xr1 /fsx/scratch/dayoa_apptainer_tmp/ubuntu/gd3v206-rcbase5xr1 && export APPTAINER_CACHEDIR=/fsx/tmp/apptainer_cache/ubuntu/${HOSTNAME} SINGULARITY_CACHEDIR=/fsx/tmp/apptainer_cache/ubuntu/${HOSTNAME} APPTAINER_TMPDIR=/fsx/scratch/dayoa_apptainer_tmp/ubuntu/gd3v206-rcbase5xr1 SINGULARITY_TMPDIR=/fsx/scratch/dayoa_apptainer_tmp/ubuntu/gd3v206-rcbase5xr1 && bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf -p -j 5 -k --singularity-prefix /fsx/tmp/apptainer_cache/ubuntu/${HOSTNAME}/containers/gd3v206-rcbase5xr1\",\n  \"completed_at\": \"2026-05-27T06:46:20Z\",\n  \"exit_code\": 1,\n  \"repo_path\": \"/fsx/analysis_results/ubuntu/gd3v206-rcbase5xr1/daylily-omics-analysis\",\n  \"session_name\": \"gd3v206-rcbase5xr1\",\n  \"started_at\": \"2026-05-27T06:45:57Z\"\n}\n"
+}

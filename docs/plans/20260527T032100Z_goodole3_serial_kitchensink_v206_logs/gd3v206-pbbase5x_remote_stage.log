@@ -1,0 +1,6 @@
+{
+  "remote_stage_dir": "/home/ubuntu/ds/gd3serialksv206/gd3v206-pbbase5x",
+  "verify_status": "Success",
+  "verify_stderr": "",
+  "verify_stdout": "DAY-EC activated.\nDAY-EC activated.\nREMOTE_STAGE=/home/ubuntu/ds/gd3serialksv206/gd3v206-pbbase5x\n"
+}
