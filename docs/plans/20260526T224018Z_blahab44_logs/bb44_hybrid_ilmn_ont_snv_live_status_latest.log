@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec",
+    "--json",
+    "workflow",
+    "status",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "blahab44",
+    "--session",
+    "bb44_hybrid_ilmn_ont_snv"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "{\n  \"command\": \"bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf --config 'dedupers=[\\\"dmd\\\"]' -p -j 100 -k\",\n  \"completed_at\": null,\n  \"exit_code\": null,\n  \"repo_path\": \"/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv/daylily-omics-analysis\",\n  \"session_name\": \"bb44_hybrid_ilmn_ont_snv\",\n  \"started_at\": \"2026-05-27T02:10:25Z\"\n}\n"
+}

@@ -101,6 +101,26 @@ def last_event(command_id: str, phase: str, status: str | None = None) -> dict[s
     return None
 
 
+def completed_event_for_session(command_id: str, phase: str, session_name: str) -> dict[str, Any] | None:
+    for event in reversed(load_events()):
+        if event.get("command_id") != command_id or event.get("phase") != phase:
+            continue
+        if event.get("status") != "completed" or event.get("session_name") != session_name:
+            continue
+        return event
+    return None
+
+
+def launch_attempt_count(command_id: str, phase: str) -> int:
+    return sum(
+        1
+        for event in load_events()
+        if event.get("command_id") == command_id
+        and event.get("phase") == f"{phase}_launch"
+        and event.get("status") == "success"
+    )
+
+
 def run_cmd(argv: list[str], *, log_name: str, timeout: int | None = None) -> subprocess.CompletedProcess[str]:
     LOG_ROOT.mkdir(parents=True, exist_ok=True)
     log_path = LOG_ROOT / log_name
@@ -344,15 +364,44 @@ def launch_workflow(
     dry_run: bool,
     stage_dir: str | None,
     run_context_name: str | None,
+    force: bool = False,
 ) -> str:
-    prior = last_event(command_id, phase, "completed")
-    if prior:
-        return str(prior.get("session_name") or safe_id(command_id, "_dryrun" if dry_run else ""))
-    launched = last_event(command_id, f"{phase}_launch", "success")
-    if launched and launched.get("session_name"):
-        return str(launched["session_name"])
-    session_name = safe_id(command_id, "_dryrun" if dry_run else "")
+    if not force:
+        prior = last_event(command_id, phase, "completed")
+        if prior and int(prior.get("exit_code", -1)) == 0:
+            return str(prior.get("session_name") or safe_id(command_id, "_dryrun" if dry_run else ""))
+        launched = last_event(command_id, f"{phase}_launch", "success")
+        if launched and launched.get("session_name"):
+            launched_session = str(launched["session_name"])
+            launched_terminal = completed_event_for_session(command_id, phase, launched_session)
+            if launched_terminal is None:
+                payload = read_status(command_id, launched_session, phase)
+                if payload is None or payload.get("exit_code") is None:
+                    return launched_session
+                capture_logs(command_id, launched_session, phase)
+                launched_terminal = {
+                    "command_id": command_id,
+                    "phase": phase,
+                    "status": "completed",
+                    "session_name": launched_session,
+                    "exit_code": payload["exit_code"],
+                    "status_payload": payload,
+                    "status_log": str(LOG_ROOT / status_log_name(launched_session, phase)),
+                    "tmux_tail_log": str(LOG_ROOT / tmux_tail_log_name(launched_session, phase)),
+                }
+                append_event(launched_terminal)
+            if int(launched_terminal.get("exit_code", -1)) == 0:
+                return launched_session
+
+    attempt_number = launch_attempt_count(command_id, phase) + 1
+    suffix = "_dryrun" if dry_run else ""
+    if attempt_number > 1:
+        suffix = f"{suffix}_retry{attempt_number}"
+    session_name = safe_id(command_id, suffix)
     analysis_id = session_name
+    launch_log = f"{command_id}_{phase}_launch.log"
+    if attempt_number > 1:
+        launch_log = f"{command_id}_{phase}_retry{attempt_number}_launch.log"
     run_context_file = str(RUN_ROOT / run_context_name) if run_context_name else None
     argv = [
         dyec(),
@@ -370,7 +419,7 @@ def launch_workflow(
             skip_project_check=True,
         ),
     ]
-    proc = run_cmd(argv, log_name=f"{command_id}_{phase}_launch.log", timeout=600)
+    proc = run_cmd(argv, log_name=launch_log, timeout=600)
     require_success(proc, command_id=command_id, phase=f"{phase}_launch")
     append_event(
         {
@@ -381,10 +430,20 @@ def launch_workflow(
             "analysis_id": analysis_id,
             "stage_dir": stage_dir,
             "run_context": str(RUN_ROOT / run_context_name) if run_context_name else "",
-            "log": str(LOG_ROOT / f"{command_id}_{phase}_launch.log"),
+            "attempt_number": attempt_number,
+            "force": force,
+            "log": str(LOG_ROOT / launch_log),
         }
     )
     return session_name
+
+
+def status_log_name(session_name: str, phase: str) -> str:
+    return f"{session_name}_{phase}_status_latest.log"
+
+
+def tmux_tail_log_name(session_name: str, phase: str) -> str:
+    return f"{session_name}_{phase}_tmux_tail.log"
 
 
 def read_status(command_id: str, session_name: str, phase: str) -> dict[str, Any] | None:
@@ -403,7 +462,7 @@ def read_status(command_id: str, session_name: str, phase: str) -> dict[str, Any
             "--session",
             session_name,
         ],
-        log_name=f"{command_id}_{phase}_status_latest.log",
+        log_name=status_log_name(session_name, phase),
         timeout=180,
     )
     if proc.returncode != 0:
@@ -428,7 +487,7 @@ def capture_logs(command_id: str, session_name: str, phase: str) -> None:
             "--lines",
             "240",
         ],
-        log_name=f"{command_id}_{phase}_tmux_tail.log",
+        log_name=tmux_tail_log_name(session_name, phase),
         timeout=180,
     )
 
@@ -451,8 +510,8 @@ def poll_until_terminal(command_id: str, session_name: str, phase: str, timeout_
                         "session_name": session_name,
                         "exit_code": exit_code,
                         "status_payload": payload,
-                        "status_log": str(LOG_ROOT / f"{command_id}_{phase}_status_latest.log"),
-                        "tmux_tail_log": str(LOG_ROOT / f"{command_id}_{phase}_tmux_tail.log"),
+                        "status_log": str(LOG_ROOT / status_log_name(session_name, phase)),
+                        "tmux_tail_log": str(LOG_ROOT / tmux_tail_log_name(session_name, phase)),
                     }
                 )
                 return int(exit_code)
@@ -508,6 +567,7 @@ def run_command(command: Any, args: argparse.Namespace) -> None:
             dry_run=True,
             stage_dir=stage_dir,
             run_context_name=run_context_name,
+            force=args.force,
         )
         dry_exit = poll_until_terminal(command_id, session, "dryrun", args.dryrun_timeout_seconds)
     else:
@@ -534,6 +594,7 @@ def run_command(command: Any, args: argparse.Namespace) -> None:
         dry_run=False,
         stage_dir=stage_dir,
         run_context_name=run_context_name,
+        force=args.force,
     )
     poll_until_terminal(command_id, session, "live", args.live_timeout_seconds)
 
@@ -546,6 +607,11 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument("--dryrun-timeout-seconds", type=int, default=7200)
     parser.add_argument("--live-timeout-seconds", type=int, default=43200)
     parser.add_argument("--command-id", action="append", default=None)
+    parser.add_argument(
+        "--force",
+        action="store_true",
+        help="Launch a new attempt even when an earlier attempt is terminal.",
+    )
     return parser.parse_args()
 
 
@@ -561,6 +627,7 @@ def main() -> int:
             "status": "running",
             "phase_requested": args.phase,
             "selected": sorted(selected),
+            "force": args.force,
         }
     )
     for command in catalog.commands():
@@ -587,6 +654,7 @@ def main() -> int:
             "phase": "finish",
             "status": "completed",
             "phase_requested": args.phase,
+            "force": args.force,
         }
     )
     return 0

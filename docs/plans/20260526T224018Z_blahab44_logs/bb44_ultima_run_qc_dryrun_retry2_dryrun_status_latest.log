@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec",
+    "--json",
+    "workflow",
+    "status",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "blahab44",
+    "--session",
+    "bb44_ultima_run_qc_dryrun_retry2"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "{\n  \"command\": \"bin/day_run produce_ultima_run_qc -p -j 5 -k -n --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv\",\n  \"completed_at\": \"2026-05-27T01:57:03Z\",\n  \"exit_code\": 0,\n  \"repo_path\": \"/fsx/analysis_results/ubuntu/bb44_ultima_run_qc_dryrun_retry2/daylily-omics-analysis\",\n  \"session_name\": \"bb44_ultima_run_qc_dryrun_retry2\",\n  \"started_at\": \"2026-05-27T01:56:38Z\"\n}\n"
+}

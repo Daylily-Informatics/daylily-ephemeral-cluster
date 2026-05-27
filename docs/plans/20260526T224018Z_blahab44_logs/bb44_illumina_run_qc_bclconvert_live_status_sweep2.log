@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "dyec",
+    "--json",
+    "workflow",
+    "status",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "blahab44",
+    "--session",
+    "bb44_illumina_run_qc_bclconvert"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "{\n  \"command\": \"bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/bclconvert/samples.tsv units_table=.test_data/data/bclconvert/units.tsv\",\n  \"completed_at\": \"2026-05-27T02:26:58Z\",\n  \"exit_code\": 1,\n  \"repo_path\": \"/fsx/analysis_results/ubuntu/bb44_illumina_run_qc_bclconvert/daylily-omics-analysis\",\n  \"session_name\": \"bb44_illumina_run_qc_bclconvert\",\n  \"started_at\": \"2026-05-27T02:18:14Z\"\n}\n"
+}

@@ -1,0 +1,33 @@
+{
+  "argv": [
+    "/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec",
+    "workflow",
+    "launch",
+    "--repository",
+    "daylily-omics-analysis",
+    "--analysis-id",
+    "bb44_ultima_run_qc",
+    "--executing-entity",
+    "ubuntu",
+    "--git-tag",
+    "2.0.5",
+    "--genome",
+    "hg38_broad",
+    "--dy-command",
+    "bin/day_run produce_ultima_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "blahab44",
+    "--run-context-file",
+    "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260526T224018Z_blahab44_inputs/ultima_run_context_candidate.tsv",
+    "--session-name",
+    "bb44_ultima_run_qc",
+    "--skip-project-check"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "DAY-EC activated.\nDAY-EC activated.\n__DAYLILY_SESSION__=bb44_ultima_run_qc\n__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/bb44_ultima_run_qc\n__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/bb44_ultima_run_qc/daylily-omics-analysis\nTmux session 'bb44_ultima_run_qc' created on the head node.\nRun state directory: /home/ubuntu/daylily-runs/bb44_ultima_run_qc\nWorkflow repo path: /fsx/analysis_results/ubuntu/bb44_ultima_run_qc/daylily-omics-analysis\nReconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster blahab44\nThen run: tmux attach -t bb44_ultima_run_qc\n"
+}

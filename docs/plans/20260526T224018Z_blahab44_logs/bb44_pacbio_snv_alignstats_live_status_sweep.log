@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "dyec",
+    "--json",
+    "workflow",
+    "status",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "blahab44",
+    "--session",
+    "bb44_pacbio_snv_alignstats"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "{\n  \"command\": \"bin/day_run produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1\",\n  \"completed_at\": null,\n  \"exit_code\": null,\n  \"repo_path\": \"/fsx/analysis_results/ubuntu/bb44_pacbio_snv_alignstats/daylily-omics-analysis\",\n  \"session_name\": \"bb44_pacbio_snv_alignstats\",\n  \"started_at\": \"2026-05-27T02:08:49Z\"\n}\n"
+}

@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "dyec",
+    "--json",
+    "workflow",
+    "status",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "blahab44",
+    "--session",
+    "bb44_ont_run_qc"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "{\n  \"command\": \"bin/day_run produce_ont_run_qc_and_demux_multiqc -p -j 5 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv\",\n  \"completed_at\": \"2026-05-27T02:27:02Z\",\n  \"exit_code\": 1,\n  \"repo_path\": \"/fsx/analysis_results/ubuntu/bb44_ont_run_qc/daylily-omics-analysis\",\n  \"session_name\": \"bb44_ont_run_qc\",\n  \"started_at\": \"2026-05-27T02:19:47Z\"\n}\n"
+}

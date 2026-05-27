@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "/Users/jmajor/miniconda3/envs/DAY-EC/bin/dyec",
+    "--json",
+    "workflow",
+    "status",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "blahab44",
+    "--session",
+    "bb44_pacbio_snv_alignstats_dryrun_retry2"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "{\n  \"command\": \"bin/day_run produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1 -n\",\n  \"completed_at\": \"2026-05-27T01:40:32Z\",\n  \"exit_code\": 0,\n  \"repo_path\": \"/fsx/analysis_results/ubuntu/bb44_pacbio_snv_alignstats_dryrun_retry2/daylily-omics-analysis\",\n  \"session_name\": \"bb44_pacbio_snv_alignstats_dryrun_retry2\",\n  \"started_at\": \"2026-05-27T01:40:07Z\"\n}\n"
+}

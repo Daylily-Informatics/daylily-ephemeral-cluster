@@ -1,0 +1,19 @@
+{
+  "argv": [
+    "dyec",
+    "--json",
+    "workflow",
+    "status",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "blahab44",
+    "--session",
+    "bb44_illumina_snv_alignstats_retry2"
+  ],
+  "returncode": 0,
+  "stderr": "",
+  "stdout": "{\n  \"command\": \"bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20\",\n  \"completed_at\": \"2026-05-27T01:50:46Z\",\n  \"exit_code\": 0,\n  \"repo_path\": \"/fsx/analysis_results/ubuntu/bb44_illumina_snv_alignstats_retry2/daylily-omics-analysis\",\n  \"session_name\": \"bb44_illumina_snv_alignstats_retry2\",\n  \"started_at\": \"2026-05-27T01:23:02Z\"\n}\n"
+}
