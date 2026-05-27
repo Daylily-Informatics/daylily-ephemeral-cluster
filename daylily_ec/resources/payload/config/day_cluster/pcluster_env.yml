@@ -57,6 +57,16 @@ Resources:
             Action:
               - 'budgets:ViewBudget'
             Resource: 'arn:aws:budgets::*:budget/*'
+          - Effect: Allow
+            Action:
+              - 'fsx:DescribeFileSystems'
+              - 'fsx:DescribeDataRepositoryAssociations'
+              - 'fsx:CreateDataRepositoryAssociation'
+              - 'fsx:DeleteDataRepositoryAssociation'
+              - 'fsx:CreateDataRepositoryTask'
+              - 'fsx:DescribeDataRepositoryTasks'
+              - 'fsx:TagResource'
+            Resource: '*'
 
   VPC:
     Type: AWS::EC2::VPC
