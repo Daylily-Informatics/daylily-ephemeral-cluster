@@ -99,7 +99,7 @@ repositories:
     description: "Primary whole genome and multiomics workflows."
     https_url: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
     ssh_url: git@github.com:Daylily-Informatics/daylily-omics-analysis.git
-    default_ref: 2.0.14
+    default_ref: 2.0.16
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: illumina_snv_alignstats
@@ -137,7 +137,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -197,7 +197,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         artifact_registration: &dayoa_multiqc_artifact_registration
           enabled: true
@@ -277,7 +277,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - ultima_solo
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -336,7 +336,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - ultima_solo
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: ont_snv_alignstats
@@ -374,7 +374,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - ont_solo
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -434,7 +434,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - ont_solo
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: pacbio_snv_alignstats
@@ -472,7 +472,7 @@ repositories:
           - PACBIO
         compatible_data_modes:
           - pacbio_solo
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -528,7 +528,7 @@ repositories:
           - ROCHE
         compatible_data_modes:
           - roche_solo
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -587,7 +587,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -650,7 +650,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: inflection-bjuice-product-v0.1
@@ -697,7 +697,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
       - command_id: hybrid_ultima_ont_snv
         display_name: "Hybrid Ultima+ONT HUOMR SNV"
@@ -737,7 +737,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ug_ont
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -795,7 +795,7 @@ repositories:
           - CG/MGI
         compatible_data_modes:
           - complete_genomics_solo
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -845,7 +845,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -896,7 +896,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -947,7 +947,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs: []
       - command_id: ont_run_qc
@@ -980,7 +980,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1031,7 +1031,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.14
+        git_tag: 2.0.16
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
