@@ -274,7 +274,15 @@ def headnode_path_from_file_system_path(file_system_path: str) -> str:
     suffix = normalized.lstrip("/")
     if normalized in {"/control_data/", "/staging/"}:
         return f"/fsx/{suffix}"
-    validate_mount_id(suffix.split("/", 1)[1].strip("/").split("/", 1)[0] if "/" in suffix else suffix)
+    parts = [part for part in suffix.split("/") if part]
+    if not parts:
+        raise RunMountError("mount_id is required.")
+    if normalized.startswith(FSX_RUN_MOUNT_ROOT):
+        if len(parts) < 2:
+            raise RunMountError("mount_id is required.")
+        validate_mount_id(parts[1])
+    else:
+        validate_mount_id(parts[0])
     return f"/fsx/{suffix}"
 
 

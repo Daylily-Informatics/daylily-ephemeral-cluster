@@ -122,6 +122,7 @@ def test_mount_id_s3_and_path_normalization() -> None:
         run_mounts.headnode_path_from_file_system_path("/run_dir_mounts/RUN123/")
         == "/fsx/run_dir_mounts/RUN123/"
     )
+    assert run_mounts.headnode_path_from_file_system_path("/data/") == "/fsx/data/"
     with pytest.raises(run_mounts.RunMountError, match="/fsx headnode prefix"):
         run_mounts.normalize_file_system_path("/fsx/run_dir_mounts/RUN123/", mount_id="RUN123")
 
