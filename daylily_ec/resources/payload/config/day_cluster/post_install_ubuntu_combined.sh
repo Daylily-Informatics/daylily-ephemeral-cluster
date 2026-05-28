@@ -42,7 +42,6 @@ reference_wait_interval_seconds=30
 sbatch_wrapper_sha256="8c5d8eb0cb7f34784c872c4c70848fa442894165b7b5459cf6206a3f09c70369"
 sleep_test_sha256="024531fc67ad8052a1660173d2b94ce83290baa63606099e887b0846aa3a4fae"
 tailscale_authkey_ssm_parameter="/daylily/dayec/tailscale/headnode-authkey"
-tailscale_dewey_url="https://dewey.day.lsmc.bio/"
 
 echo "[$timestamp] Running post_install_ubuntu_combined.sh ${region} ${boot_s3_uri} on $(hostname) as ${node_type}"
 echo "[$timestamp] Local log: ${local_log_fn}"
@@ -263,7 +262,7 @@ configure_headnode_tailscale() {
   local tailscale_hostname
   local tailscale_up_rc
 
-  echo "Configuring headnode Tailscale access for ${tailscale_dewey_url}"
+  echo "Configuring headnode Tailscale access"
   install_tailscale_headnode
   systemctl enable --now tailscaled
 
@@ -300,40 +299,6 @@ configure_headnode_tailscale() {
 
   tailscale ip -4
 }
-
-verify_headnode_dewey_access() {
-  local curl_rc
-  local http_code
-  local remote_ip
-  local body_path
-
-  body_path="$(mktemp /tmp/daylily-dewey-curl.XXXXXX)"
-  set +e
-  http_code="$(curl \
-    --silent \
-    --show-error \
-    --location \
-    --connect-timeout 10 \
-    --max-time 20 \
-    --output "${body_path}" \
-    --write-out '%{http_code}' \
-    "${tailscale_dewey_url}")"
-  curl_rc=$?
-  set -e
-  rm -f "${body_path}"
-  if [ "${curl_rc}" -ne 0 ]; then
-    echo "ERROR: Dewey curl failed through Tailscale rc=${curl_rc}: ${tailscale_dewey_url}" >&2
-    exit "${curl_rc}"
-  fi
-  if [ "${http_code}" = "000" ]; then
-    echo "ERROR: Dewey did not return an HTTP response through Tailscale: ${tailscale_dewey_url}" >&2
-    exit 1
-  fi
-
-  remote_ip="$(getent ahostsv4 dewey.day.lsmc.bio 2>/dev/null | awk 'NR == 1 {print $1}' || true)"
-  echo "Dewey reachable from headnode through Tailscale: http_code=${http_code} resolved_ip=${remote_ip:-unknown}"
-}
-
 
 # GLOBAL ACTIONS HeadNode and ComputeFleet
 
@@ -390,7 +355,6 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   prepare_dayoa_environment_cache
   echo "DayOA conda and container caches are seeded from ${runtime_assets_root}/cached_envs into ${environment_cache_root}"
   configure_headnode_tailscale
-  verify_headnode_dewey_access
 
 
   if [ ! -e /opt/slurm/sbin/sbatch ]; then

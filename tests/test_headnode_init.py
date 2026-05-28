@@ -638,7 +638,7 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
         'tailscale_authkey_ssm_parameter="/daylily/dayec/tailscale/headnode-authkey"'
         in script
     )
-    assert 'tailscale_dewey_url="https://dewey.day.lsmc.bio/"' in script
+    assert ".day.lsmc.bio" not in script
     assert "control_data_root=\"/fsx/control_data\"" not in script
     assert "Required DayOA role entries are visible" in script
     assert "required DayOA role entries did not appear" in script
@@ -667,7 +667,6 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "prepare_dayoa_environment_cache" in script
     assert "install_tailscale_headnode" in script
     assert "configure_headnode_tailscale" in script
-    assert "verify_headnode_dewey_access" in script
     assert 'install -d -m 1777 /fsx/scratch /fsx/tmp "${environment_cache_root}"' in script
     assert "install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/ubuntu" in script
     assert (
@@ -688,7 +687,6 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "--accept-dns=false" in script
     assert "--accept-routes=false" in script
     assert "empty Tailscale auth key from SSM parameter" in script
-    assert "Dewey reachable from headnode through Tailscale" in script
     assert "chmod -R a+wrx /fsx" not in script
     assert "Original sbatch already present" in script
     assert "Original srun already present" in script
