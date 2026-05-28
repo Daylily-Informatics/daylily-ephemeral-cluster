@@ -108,6 +108,17 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.compatible_data_modes == ["ilmn_solo"]
     assert "bin/day_run" in command.dy_command
     assert command.dryrun_dy_command.endswith(" -n")
+    assert command.artifact_registration is None
+
+    multiqc_command = catalog.get_command("illumina_snv_alignstats_relatedness_vep_multiqc")
+    assert multiqc_command.artifact_registration is not None
+    assert multiqc_command.artifact_registration.enabled is True
+    assert (
+        multiqc_command.artifact_registration.evidence_manifest_path
+        == "results/day/{genome}/reports/dayoa_evidence_manifest.json"
+    )
+    assert "multiqc_html" in multiqc_command.artifact_registration.include_classifications
+    assert multiqc_command.artifact_registration.identity.analysis_euid == "{analysis_id}"
 
     launch_argv = command.launch_argv(
         analysis_id="run-1",
@@ -134,6 +145,37 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--export-trigger" in export_argv
     assert "all" in export_argv
     assert "--delete-on-export-success" in export_argv
+
+    registration_argv = multiqc_command.launch_argv(
+        analysis_id="run-1",
+        executing_entity="johnm",
+        export_destination_s3_uri="s3://bucket/derived/johnm/run-1/",
+        export_trigger="on-success",
+        artifact_registration_command_id=multiqc_command.command_id,
+        dewey_url="https://dewey.example",
+        dewey_token_env="DEWEY_TOKEN",
+    )
+    assert "--artifact-registration-command-id" in registration_argv
+    assert "illumina_snv_alignstats_relatedness_vep_multiqc" in registration_argv
+    assert "--dewey-url" in registration_argv
+    assert "--dewey-token-env" in registration_argv
+
+    with pytest.raises(ValueError, match="dewey_url and dewey_token_env"):
+        multiqc_command.launch_argv(
+            analysis_id="run-1",
+            executing_entity="johnm",
+            export_destination_s3_uri="s3://bucket/derived/johnm/run-1/",
+            export_trigger="on-success",
+            artifact_registration_command_id=multiqc_command.command_id,
+        )
+
+    with pytest.raises(ValueError, match="artifact_registration_command_id"):
+        multiqc_command.launch_argv(
+            analysis_id="run-1",
+            executing_entity="johnm",
+            dewey_url="https://dewey.example",
+            dewey_token_env="DEWEY_TOKEN",
+        )
 
     with pytest.raises(ValueError, match="export_trigger"):
         command.launch_argv(

@@ -175,6 +175,27 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "-n" in command
         assert "--rerun-incomplete" in command
 
+    def test_main_rejects_dewey_options_without_artifact_registration(self):
+        with pytest.raises(CommandError, match="artifact-registration-command-id"):
+            run_omics_module.main(
+                [
+                    "--profile",
+                    "dev",
+                    "--analysis-id",
+                    "analysis",
+                    "--executing-entity",
+                    "johnm",
+                    "--export-destination-s3-uri",
+                    "s3://bucket/analysis_results/johnm/analysis/",
+                    "--export-trigger",
+                    "on-success",
+                    "--dewey-url",
+                    "https://dewey.example",
+                    "--dewey-token-env",
+                    "DEWEY_TOKEN",
+                ]
+            )
+
     @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell")
     def test_discover_stage_config_with_explicit_stage_dir(self, mock_run_shell, capsys):
         mock_run_shell.return_value = SimpleNamespace(

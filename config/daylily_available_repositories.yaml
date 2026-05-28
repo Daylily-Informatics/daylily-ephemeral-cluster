@@ -199,6 +199,30 @@ repositories:
           - ilmn_solo
         git_tag: 2.0.12
         no_containerized: false
+        artifact_registration: &dayoa_multiqc_artifact_registration
+          enabled: true
+          evidence_manifest_path: results/day/{genome}/reports/dayoa_evidence_manifest.json
+          include_classifications:
+            - multiqc_html
+            - multiqc_data_json
+            - multiqc_general_stats
+            - multiqc_sources
+            - multiqc_log
+            - custom_mqc_tsv
+            - staging_manifest
+            - benchmark
+          include_paths:
+            - results/day/{genome}/reports/DAY_final_multiqc.html
+            - results/day/{genome}/reports/DAY_final_multiqc_data/**
+            - results/day/{genome}/reports/multiqc_inputs/final/manifest.tsv
+            - results/day/{genome}/other_reports/*_mqc.tsv
+          require_existing: true
+          parser_family_hint: multiqc
+          multiqc_report_kind: final
+          multiqc_version: "1.35"
+          identity:
+            analysis_euid: "{analysis_id}"
+            run_euid: "{analysis_id}"
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
             generated_at: "2026-05-25T20:04:39Z"
@@ -314,6 +338,7 @@ repositories:
           - ultima_solo
         git_tag: 2.0.12
         no_containerized: false
+        artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: ont_snv_alignstats
         display_name: "ONT SNV + Alignstats"
         description: "ONT alignment, Sentieon DNAscope, and alignment-statistics launch profile."
@@ -411,6 +436,7 @@ repositories:
           - ont_solo
         git_tag: 2.0.12
         no_containerized: false
+        artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: pacbio_snv_alignstats
         display_name: "PacBio SNV + Alignstats"
         description: "PacBio HiFi Sentieon DeepVariant and alignment-statistics launch profile."
@@ -626,6 +652,7 @@ repositories:
           - hybrid_ilmn_ont
         git_tag: 2.0.12
         no_containerized: false
+        artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: inflection-bjuice-product-v0.1
         display_name: "Inflection BJuice Product v0.1"
         description: "Inflection hybrid Illumina plus ONT HIOMR product profile with align, dmd CRAM, SNV, SV, CNV, mito, segdup limited to CYP11B1/NCF1/SMN1, expansionhunter, and concordance targets."

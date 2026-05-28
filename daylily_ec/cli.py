@@ -1043,6 +1043,26 @@ def export(
     ),
     wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for DRA/task/detach."),
     timeout_seconds: int = typer.Option(3600, "--timeout-seconds", help="Wait timeout."),
+    artifact_registration_command_id: Optional[str] = typer.Option(
+        None,
+        "--artifact-registration-command-id",
+        help="Repository catalog command id whose explicit artifact_registration policy should be applied after export.",
+    ),
+    repository_catalog: Optional[Path] = typer.Option(
+        None,
+        "--repository-catalog",
+        help="Repository catalog YAML path. Defaults to the packaged catalog.",
+    ),
+    dewey_url: str = typer.Option(
+        "",
+        "--dewey-url",
+        help="Dewey base URL for post-export artifact registration.",
+    ),
+    dewey_token_env: str = typer.Option(
+        "",
+        "--dewey-token-env",
+        help="Environment variable containing the Dewey bearer token.",
+    ),
 ) -> None:
     """Export FSx outputs through an explicit temporary DRA."""
 
@@ -1051,8 +1071,30 @@ def export(
         configure_logging,
         run_export_workflow,
     )
+    from daylily_ec.repositories import load_repository_catalog
 
     _warn_if_dayec_env_inactive()
+    artifact_registration_policy = None
+    artifact_registration_genome = ""
+    if artifact_registration_command_id:
+        catalog = load_repository_catalog(repository_catalog)
+        command = catalog.get_command(artifact_registration_command_id)
+        if command.artifact_registration is None:
+            raise typer.BadParameter(
+                f"Command {artifact_registration_command_id!r} has no artifact_registration policy"
+            )
+        artifact_registration_policy = command.artifact_registration
+        artifact_registration_genome = command.genome
+        if not dewey_url:
+            raise typer.BadParameter("--dewey-url is required with --artifact-registration-command-id")
+        if not dewey_token_env:
+            raise typer.BadParameter(
+                "--dewey-token-env is required with --artifact-registration-command-id"
+            )
+    elif dewey_url or dewey_token_env:
+        raise typer.BadParameter(
+            "--artifact-registration-command-id is required when Dewey registration options are set"
+        )
     configure_logging(verbose)
     rc = run_export_workflow(
         ExportOptions(
@@ -1065,6 +1107,10 @@ def export(
             output_dir=output_dir.expanduser().resolve(),
             wait=wait,
             timeout_seconds=timeout_seconds,
+            artifact_registration_policy=artifact_registration_policy,
+            artifact_registration_genome=artifact_registration_genome,
+            dewey_url=dewey_url,
+            dewey_token_env=dewey_token_env,
         )
     )
     raise typer.Exit(rc)
@@ -2066,6 +2112,16 @@ def samples_run(
         "--delete-on-export-success",
         help="Delete the FSx analysis directory after a successful requested export.",
     ),
+    dewey_url: Optional[str] = typer.Option(
+        None,
+        "--dewey-url",
+        help="Dewey base URL for post-export artifact registration.",
+    ),
+    dewey_token_env: Optional[str] = typer.Option(
+        None,
+        "--dewey-token-env",
+        help="Environment variable containing the Dewey bearer token.",
+    ),
     catalog_config: Optional[Path] = typer.Option(
         None,
         "--catalog-config",
@@ -2103,6 +2159,17 @@ def samples_run(
                 f"manifest data mode(s): {', '.join(incompatible)}. "
                 "Compatible modes: " + ", ".join(command.compatible_data_modes)
             )
+        artifact_registration_command_id = None
+        if dewey_url or dewey_token_env:
+            if export_trigger == "none":
+                raise CommandError("--dewey-url/--dewey-token-env require --export-trigger.")
+            if not dewey_url or not dewey_token_env:
+                raise CommandError("--dewey-url and --dewey-token-env must be provided together.")
+            if command.artifact_registration is None:
+                raise CommandError(
+                    f"Analysis command {command.command_id} has no artifact_registration policy."
+                )
+            artifact_registration_command_id = command.command_id
         resolved_profile = _resolved_aws_profile(profile)
         resolved_region = (
             region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
@@ -2158,6 +2225,9 @@ def samples_run(
             export_destination_s3_uri=export_destination_s3_uri,
             export_trigger=export_trigger,
             delete_on_export_success=delete_on_export_success,
+            artifact_registration_command_id=artifact_registration_command_id,
+            dewey_url=dewey_url,
+            dewey_token_env=dewey_token_env,
         )
         launch_stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(launch_stdout_buffer):
@@ -2305,6 +2375,21 @@ def workflow_launch(
         "--delete-on-export-success",
         help="Delete the FSx analysis directory after a successful requested export.",
     ),
+    artifact_registration_command_id: Optional[str] = typer.Option(
+        None,
+        "--artifact-registration-command-id",
+        help="Catalog command id whose artifact_registration policy should run after export.",
+    ),
+    dewey_url: Optional[str] = typer.Option(
+        None,
+        "--dewey-url",
+        help="Dewey base URL for post-export artifact registration.",
+    ),
+    dewey_token_env: Optional[str] = typer.Option(
+        None,
+        "--dewey-token-env",
+        help="Environment variable containing the Dewey bearer token.",
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
 ) -> None:
     """Launch daylily-omics-analysis inside tmux on the headnode."""
@@ -2319,6 +2404,18 @@ def workflow_launch(
         export_trigger=export_trigger,
         delete_on_export_success=delete_on_export_success,
     )
+    if artifact_registration_command_id and export_trigger == "none":
+        raise typer.BadParameter("--artifact-registration-command-id requires --export-trigger")
+    if artifact_registration_command_id and not dewey_url:
+        raise typer.BadParameter("--dewey-url is required with --artifact-registration-command-id")
+    if artifact_registration_command_id and not dewey_token_env:
+        raise typer.BadParameter(
+            "--dewey-token-env is required with --artifact-registration-command-id"
+        )
+    if not artifact_registration_command_id and (dewey_url or dewey_token_env):
+        raise typer.BadParameter(
+            "--artifact-registration-command-id is required when Dewey registration options are set"
+        )
     resolved_session_name = session_name or analysis_id
     argv: list[str] = []
     for flag, value in (
@@ -2345,6 +2442,9 @@ def workflow_launch(
         ("--snakemake-extra", snakemake_extra),
         ("--export-destination-s3-uri", export_destination_s3_uri),
         ("--export-trigger", export_trigger),
+        ("--artifact-registration-command-id", artifact_registration_command_id),
+        ("--dewey-url", dewey_url),
+        ("--dewey-token-env", dewey_token_env),
     ):
         if value is not None:
             argv.extend([flag, value])

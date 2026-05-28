@@ -281,6 +281,17 @@ def build_parser() -> argparse.ArgumentParser:
         action="store_true",
         help="Delete the FSx analysis directory after a successful requested export",
     )
+    parser.add_argument(
+        "--artifact-registration-command-id",
+        default="",
+        help="Catalog command id whose artifact_registration policy should run after export",
+    )
+    parser.add_argument("--dewey-url", default="", help="Dewey base URL for post-export registration")
+    parser.add_argument(
+        "--dewey-token-env",
+        default="",
+        help="Environment variable containing the Dewey bearer token",
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.set_defaults(skip_project_check=True)
     return parser
@@ -310,6 +321,16 @@ def main(argv: Optional[List[str]] = None) -> int:
         raise CommandError("--export-destination-s3-uri is required when --export-trigger is set.")
     if args.delete_on_export_success and not args.export_destination_s3_uri:
         raise CommandError("--delete-on-export-success requires --export-destination-s3-uri.")
+    if args.artifact_registration_command_id and args.export_trigger == "none":
+        raise CommandError("--artifact-registration-command-id requires an export trigger.")
+    if args.artifact_registration_command_id and not args.dewey_url:
+        raise CommandError("--dewey-url is required with --artifact-registration-command-id.")
+    if args.artifact_registration_command_id and not args.dewey_token_env:
+        raise CommandError("--dewey-token-env is required with --artifact-registration-command-id.")
+    if not args.artifact_registration_command_id and (args.dewey_url or args.dewey_token_env):
+        raise CommandError(
+            "--artifact-registration-command-id is required when Dewey registration options are set."
+        )
 
     need_cmd("aws")
     need_cmd("pcluster")
@@ -427,6 +448,9 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	EXPORT_DESTINATION_S3_URI={export_destination_literal}
 	EXPORT_TRIGGER={shlex.quote(args.export_trigger)}
 	DELETE_ON_EXPORT_SUCCESS={delete_on_export_success}
+	ARTIFACT_REGISTRATION_COMMAND_ID={shlex.quote(args.artifact_registration_command_id)}
+	DEWEY_URL={shlex.quote(args.dewey_url)}
+	DEWEY_TOKEN_ENV={shlex.quote(args.dewey_token_env)}
 STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
 TMUX_LOG="${{DAYLILY_TMUX_LOG}}"
 
@@ -509,13 +533,20 @@ if [[ "$should_export" == "true" ]]; then
     workflow_status=21
   else
     mkdir -p "$DAYLILY_RUN_DIR/export"
+    registration_args=()
+    if [[ -n "$ARTIFACT_REGISTRATION_COMMAND_ID" ]]; then
+      registration_args+=(--artifact-registration-command-id "$ARTIFACT_REGISTRATION_COMMAND_ID")
+      registration_args+=(--dewey-url "$DEWEY_URL")
+      registration_args+=(--dewey-token-env "$DEWEY_TOKEN_ENV")
+    fi
     set +e
     env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export \
       --region {shlex.quote(region)} \
       --cluster {shlex.quote(cluster_name)} \
       --source-path "$clone_root" \
       --destination-s3-uri "$EXPORT_DESTINATION_S3_URI" \
-      --output-dir "$DAYLILY_RUN_DIR/export"
+      --output-dir "$DAYLILY_RUN_DIR/export" \
+      "${{registration_args[@]}}"
     export_status=$?
     set -e
     if [[ "$export_status" -ne 0 ]]; then

@@ -217,7 +217,7 @@ def test_validate_headnode_bootstrap_uses_shared_readiness_helper(
 def _write_success_export_receipt(path: Path) -> None:
     path.write_text(
         "fsx_export:\n"
-        "  schema_version: 3\n"
+        "  schema_version: 4\n"
         "  status: success\n"
         "  fsx_file_system_id: fs-123\n"
         "  association_id: dra-export\n"
@@ -225,7 +225,11 @@ def _write_success_export_receipt(path: Path) -> None:
         "  task_lifecycle: SUCCEEDED\n"
         "  detached: true\n"
         "  source_path: /analysis_results/johnm/illumina_run_qc/\n"
-        "  destination_s3_uri: s3://bucket/analysis_results/johnm/illumina_run_qc/\n",
+        "  fsx_root: /fsx/analysis_results/johnm/illumina_run_qc/\n"
+        "  destination_s3_uri: s3://bucket/analysis_results/johnm/illumina_run_qc/\n"
+        "  s3_root: s3://bucket/analysis_results/johnm/illumina_run_qc/\n"
+        "  dayoa_analysis_root: /fsx/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/\n"
+        "  dayoa_s3_root: s3://bucket/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/\n",
         encoding="utf-8",
     )
 

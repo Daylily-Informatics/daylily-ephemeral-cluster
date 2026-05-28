@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import dataclasses
+import json
 import logging
+import os
 import time
 from datetime import datetime, timezone
 from pathlib import PurePosixPath, Path
@@ -15,6 +17,7 @@ from botocore.exceptions import BotoCoreError, ClientError
 import yaml
 
 from daylily_ec.analysis_identity import validate_analysis_segment
+from daylily_ec.repositories import ArtifactRegistrationPolicy
 from daylily_ec import ui
 from daylily_ec.run_mounts import (
     RunMountError,
@@ -34,7 +37,7 @@ LOGGER = logging.getLogger("daylily.export_fsx")
 ANALYSIS_EXPORT_ROOT = "/analysis_results/"
 HEADNODE_ANALYSIS_EXPORT_ROOT = "/fsx/analysis_results/"
 STATUS_FILENAME = "fsx_export.yaml"
-EXPORT_SCHEMA_VERSION = 3
+EXPORT_SCHEMA_VERSION = 4
 EXPORT_PURPOSE_TAG = "output-export"
 POLL_INTERVAL_SECONDS = 30
 
@@ -54,6 +57,10 @@ class ExportOptions:
     output_dir: Path
     wait: bool = True
     timeout_seconds: int = 3600
+    artifact_registration_policy: Optional[ArtifactRegistrationPolicy] = None
+    artifact_registration_genome: str = ""
+    dewey_url: str = ""
+    dewey_token_env: str = ""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -446,8 +453,90 @@ def _write_status(options: ExportOptions, payload: Dict[str, Any]) -> None:
     LOGGER.info("Wrote export status to %s", status_path)
 
 
+def _read_s3_json(client: Any, uri: str) -> Dict[str, Any]:
+    parsed = urlparse(uri)
+    if parsed.scheme != "s3" or not parsed.netloc:
+        raise ExportError(f"S3 JSON URI must use s3://, got: {uri}")
+    try:
+        response = client.get_object(Bucket=parsed.netloc, Key=parsed.path.lstrip("/"))
+        body = response["Body"].read().decode("utf-8")
+    except (BotoCoreError, ClientError, KeyError, OSError) as exc:
+        raise ExportError(f"Unable to read exported JSON manifest {uri}: {exc}") from exc
+    try:
+        payload = json.loads(body)
+    except json.JSONDecodeError as exc:
+        raise ExportError(f"Exported JSON manifest is malformed: {uri}: {exc}") from exc
+    if not isinstance(payload, dict):
+        raise ExportError(f"Exported JSON manifest must be an object: {uri}")
+    return payload
+
+
+def _run_dewey_registration(
+    *,
+    options: ExportOptions,
+    receipt: Dict[str, Any],
+    s3_client: Any,
+) -> Dict[str, Any]:
+    from daylily_ec.workflow.dewey_registration import (
+        build_registration_requests,
+        dayoa_s3_root,
+        register_with_dewey,
+        template_value,
+    )
+
+    policy = options.artifact_registration_policy
+    if policy is None:
+        raise ExportError("artifact_registration_policy is required")
+    if not options.artifact_registration_genome.strip():
+        raise ExportError("artifact_registration_genome is required")
+    if not options.dewey_url.strip():
+        raise ExportError("dewey_url is required for artifact registration")
+    if not options.dewey_token_env.strip():
+        raise ExportError("dewey_token_env is required for artifact registration")
+    token = os.environ.get(options.dewey_token_env, "")
+    if not token:
+        raise ExportError(f"Dewey token environment variable is not set: {options.dewey_token_env}")
+    fsx_export = receipt["fsx_export"]
+    manifest_rel = template_value(
+        policy.evidence_manifest_path,
+        analysis_id="",
+        executing_entity="",
+        genome=options.artifact_registration_genome,
+    )
+    manifest_s3_uri = dayoa_s3_root(fsx_export).rstrip("/") + "/" + manifest_rel
+    manifest = _read_s3_json(s3_client, manifest_s3_uri)
+    requests = build_registration_requests(
+        manifest=manifest,
+        export_receipt=fsx_export,
+        policy=policy,
+    )
+    dewey_receipt = register_with_dewey(
+        dewey_url=options.dewey_url,
+        token=token,
+        requests=requests,
+    )
+    dewey_receipt["source_manifest_s3_uri"] = manifest_s3_uri
+    dewey_receipt["selected_artifact_count"] = len(requests["analysis"]["artifacts"])
+    receipt_path = options.output_dir / "dewey_registration_receipt.json"
+    receipt_path.write_text(
+        json.dumps(dewey_receipt, indent=2, sort_keys=True) + "\n",
+        encoding="utf-8",
+    )
+    return {
+        "dewey_registration_status": "success",
+        "dewey_registration_receipt": str(receipt_path),
+        "dewey_source_manifest_s3_uri": manifest_s3_uri,
+        "dewey_selected_artifact_count": dewey_receipt["selected_artifact_count"],
+    }
+
+
 def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
     normalized_source = normalize_export_source_path(options.source_path)
+    destination_s3_uri = validate_export_destination_s3_uri(
+        options.destination_s3_uri,
+        source_path=normalized_source,
+    )
+    headnode_path = analysis_headnode_path(normalized_source)
     return {
         "fsx_export": {
             "schema_version": EXPORT_SCHEMA_VERSION,
@@ -457,11 +546,12 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
             "region": options.region,
             "analysis_dir": analysis_dir_from_source_path(normalized_source),
             "source_path": normalized_source,
-            "headnode_path": analysis_headnode_path(normalized_source),
-            "destination_s3_uri": validate_export_destination_s3_uri(
-                options.destination_s3_uri,
-                source_path=normalized_source,
-            ),
+            "headnode_path": headnode_path,
+            "destination_s3_uri": destination_s3_uri,
+            "fsx_root": headnode_path,
+            "s3_root": destination_s3_uri,
+            "dayoa_analysis_root": f"{headnode_path}daylily-omics-analysis/",
+            "dayoa_s3_root": f"{destination_s3_uri}daylily-omics-analysis/",
             "detached": False,
             "delete_data_in_file_system": False,
             "failure_details": {},
@@ -578,7 +668,24 @@ def run_export_workflow(options: ExportOptions) -> int:
                 receipt["fsx_export"]["detached"] = False
         if rc == 0:
             receipt["fsx_export"]["status"] = "success"
-            receipt["fsx_export"]["phase"] = "complete"
+            if options.artifact_registration_policy is not None:
+                receipt["fsx_export"]["phase"] = "dewey_registration"
+                try:
+                    receipt["fsx_export"].update(
+                        _run_dewey_registration(
+                            options=options,
+                            receipt=receipt,
+                            s3_client=s3_client,
+                        )
+                    )
+                except (RuntimeError, ExportError, BotoCoreError, ClientError) as exc:
+                    rc = 1
+                    message = str(exc)
+                    receipt["fsx_export"]["status"] = "error"
+                    receipt["fsx_export"]["dewey_registration_status"] = "error"
+                    receipt["fsx_export"]["failure_details"] = {"message": message}
+            if rc == 0:
+                receipt["fsx_export"]["phase"] = "complete"
         _write_status(options, receipt)
 
     if rc == 0:

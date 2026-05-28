@@ -194,6 +194,15 @@ Expected receipt values:
 - `delete_data_in_file_system: false`
 - `source_path: /analysis_results/<executing_entity>/<analysis_id>/`
 - `destination_s3_uri` ending in `<executing_entity>/<analysis_id>/`
+- `fsx_root: /fsx/analysis_results/<executing_entity>/<analysis_id>/`
+- `s3_root: s3://.../<executing_entity>/<analysis_id>/`
+- `dayoa_analysis_root` under `fsx_root`
+- `dayoa_s3_root` under `s3_root`
+
+For catalog commands with an explicit `artifact_registration` policy, Dewey
+registration is a DYEC export concern. Pass `--artifact-registration-command-id`,
+`--dewey-url`, and `--dewey-token-env` with the export or auto-export launch.
+DayOA does not receive Dewey or QEO configuration.
 
 ## 9. Delete
 

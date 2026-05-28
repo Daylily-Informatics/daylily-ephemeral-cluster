@@ -11,6 +11,7 @@ The current codebase is DRA-first:
 3. `dyec mounts create <s3-uri>` can attach selected S3 run prefixes as ephemeral run DRAs under `/run_dir_mounts/<last-s3-folder>`, visible as `/fsx/run_dir_mounts/<last-s3-folder>`.
 4. `dyec workflow launch` starts DayOA work in tmux on the headnode and writes outputs under `/fsx/analysis_results/...`.
 5. `dyec export` creates a temporary output DRA directly on `/fsx/analysis_results/<executing_entity>/<analysis_id>`, runs an FSx `EXPORT_TO_REPOSITORY` task, writes `fsx_export.yaml`, and detaches the DRA.
+6. When requested by an explicit command-catalog `artifact_registration` policy, DYEC maps DayOA evidence-manifest relative paths through the export receipt and registers selected S3 artifacts with Dewey.
 7. `dyec delete` tears down the cluster after export verification.
 
 ## Control Plane
@@ -45,6 +46,10 @@ The namespace is intentionally explicit:
 
 Run-directory mounts are inputs. They do not define the export destination and are rejected as export sources. Export is a separate output DRA task from `/analysis_results/<executing_entity>/<analysis_id>/` to the requested S3 URI ending in the same `<executing_entity>/<analysis_id>/` suffix.
 
+The export receipt records `fsx_root`, `s3_root`, `dayoa_analysis_root`, and
+`dayoa_s3_root`. DYEC uses those fields for Dewey registration. DayOA remains a
+local `/fsx` workflow and does not receive Dewey, S3, or QEO configuration.
+
 ## Workflow Plane
 
 `config/daylily_available_repositories.yaml` is the source of truth for workflow repositories and blessed command profiles. The packaged copy under `daylily_ec/resources/payload/config/` must match it.
@@ -76,8 +81,11 @@ DayEC writes operational artifacts that should be kept with the run record:
 - headnode `/home/ubuntu/daylily-runs/<session>/status.json`
 - headnode `/home/ubuntu/daylily-runs/<session>/tmux.log`
 - local `fsx_export.yaml`
+- local `dewey_registration_receipt.json`, only when artifact registration was explicitly requested and accepted
 
-`fsx_export.yaml` is the proof that the explicit export task completed and the temporary export DRA was detached.
+`fsx_export.yaml` is the proof that the explicit export task completed, the
+temporary export DRA was detached, and the exported DayOA analysis root maps to
+the recorded S3 root.
 
 ## Further Reading
 

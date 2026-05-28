@@ -125,6 +125,9 @@ Important options:
 - `--export-destination-s3-uri`
 - `--export-trigger`
 - `--delete-on-export-success`
+- `--artifact-registration-command-id`
+- `--dewey-url`
+- `--dewey-token-env`
 - `--git-tag`
 
 ## Run Mounts
@@ -214,6 +217,13 @@ Auto-export options:
 - `--export-destination-s3-uri`: full S3 destination prefix ending in `<executing_entity>/<analysis_id>/`
 - `--export-trigger`: one of `none`, `on-success`, `on-fail`, or `all`; default `none`
 - `--delete-on-export-success`: deletes only the FSx analysis directory after a successful requested export
+- `--artifact-registration-command-id`: command-catalog policy to apply after successful export
+- `--dewey-url`: Dewey base URL for DYEC registration requests
+- `--dewey-token-env`: environment variable containing the Dewey bearer token on the headnode
+
+Artifact registration requires auto-export and a command with an explicit
+catalog policy. DayOA writes only local evidence artifacts; DYEC owns Dewey
+requests after export.
 
 Inspect:
 
@@ -258,6 +268,13 @@ Required:
 - `--destination-s3-uri`
 - `--region`
 - `--output-dir`
+
+Optional artifact registration:
+
+- `--artifact-registration-command-id`
+- `--repository-catalog`
+- `--dewey-url`
+- `--dewey-token-env`
 
 The source path must be `/fsx/analysis_results/<executing_entity>/<analysis_id>` or `/analysis_results/<executing_entity>/<analysis_id>`. The destination must be an explicit S3 URI ending in `<executing_entity>/<analysis_id>/`. Run mounts, reference data, nested paths, old export staging paths, unsafe path segments, and non-empty destination prefixes are rejected.
 

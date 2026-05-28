@@ -200,7 +200,17 @@ Verify:
 cat "$EXPORT_DIR/fsx_export.yaml"
 ```
 
-Success means `status: success`, `task_lifecycle: SUCCEEDED`, `detached: true`, `delete_data_in_file_system: false`, and a completed FSx export task id. The destination must be an explicit S3 URI ending in `<executing_entity>/<analysis_id>/`.
+Success means `status: success`, `task_lifecycle: SUCCEEDED`, `detached: true`,
+`delete_data_in_file_system: false`, a completed FSx export task id, and an
+explicit `fsx_root` to `s3_root` mapping. The destination must be an explicit S3
+URI ending in `<executing_entity>/<analysis_id>/`.
+
+For DayOA commands with catalog `artifact_registration` enabled, pass
+`--artifact-registration-command-id`, `--dewey-url`, and `--dewey-token-env`.
+DYEC then loads the exported DayOA evidence manifest, maps selected relative
+paths to S3 URIs through `fsx_export.yaml`, posts to Dewey, and writes
+`dewey_registration_receipt.json`. Missing policy, manifest, Dewey URL, token,
+or invalid Dewey response is a hard failure.
 
 ## Delete
 

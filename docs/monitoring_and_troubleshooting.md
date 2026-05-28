@@ -126,7 +126,12 @@ dyec export \
 cat "$EXPORT_DIR/fsx_export.yaml"
 ```
 
-If the export failed, `fsx_export.yaml` records the phase, failure message, source path, destination S3 URI, task id when available, and detach state.
+If the export failed, `fsx_export.yaml` records the phase, failure message,
+source path, destination S3 URI, task id when available, detach state, and the
+explicit `fsx_root` to `s3_root` mapping when it could be derived. If Dewey
+registration was requested, the receipt also records the registration status
+and local `dewey_registration_receipt.json` path only after Dewey accepts the
+registration requests.
 
 ## 8. Delete Checks
 
@@ -135,6 +140,7 @@ Before deletion:
 - run mounts that are no longer needed should be detached
 - selected results should be exported
 - `fsx_export.yaml` should show `status: success` and `detached: true`
+- any requested Dewey registration should show `dewey_registration_status: success`
 
 ```bash
 dyec delete --dry-run --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"

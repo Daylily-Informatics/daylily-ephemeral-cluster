@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 from typing import Any
 from unittest.mock import patch
@@ -11,6 +12,7 @@ import pytest
 import yaml
 from typer.testing import CliRunner
 
+from daylily_ec.repositories import load_repository_catalog
 from daylily_ec.workflow.export_data import (
     ExportOptions,
     attach_export_dra,
@@ -137,9 +139,9 @@ class FakeFsxClient:
 
 
 class FakeSession:
-    def __init__(self, client: FakeFsxClient) -> None:
+    def __init__(self, client: FakeFsxClient, *, s3_client: "FakeS3Client | None" = None) -> None:
         self._client = client
-        self._s3_client = FakeS3Client()
+        self._s3_client = s3_client or FakeS3Client()
 
     def client(self, service: str) -> Any:
         if service == "s3":
@@ -149,13 +151,28 @@ class FakeSession:
 
 
 class FakeS3Client:
-    def __init__(self, *, key_count: int = 0) -> None:
+    def __init__(self, *, key_count: int = 0, objects: dict[str, str] | None = None) -> None:
         self.key_count = key_count
+        self.objects = objects or {}
         self.list_calls: list[dict[str, Any]] = []
 
     def list_objects_v2(self, **params: Any) -> dict[str, Any]:
         self.list_calls.append(params)
         return {"KeyCount": self.key_count}
+
+    def get_object(self, **params: Any) -> dict[str, Any]:
+        key = f"s3://{params['Bucket']}/{params['Key']}"
+        if key not in self.objects:
+            raise RuntimeError(f"missing fake s3 object: {key}")
+
+        class Body:
+            def __init__(self, text: str) -> None:
+                self.text = text
+
+            def read(self) -> bytes:
+                return self.text.encode("utf-8")
+
+        return {"Body": Body(self.objects[key])}
 
 
 @pytest.mark.parametrize(
@@ -293,7 +310,7 @@ def test_run_export_task_starts_exact_analysis_path_and_report() -> None:
     )
 
 
-def test_run_export_workflow_success_writes_v3_receipt(tmp_path, monkeypatch) -> None:
+def test_run_export_workflow_success_writes_v4_receipt(tmp_path, monkeypatch) -> None:
     fake = FakeFsxClient()
     monkeypatch.setattr(
         "daylily_ec.workflow.export_data._create_session",
@@ -315,12 +332,22 @@ def test_run_export_workflow_success_writes_v3_receipt(tmp_path, monkeypatch) ->
     assert rc == 0
     payload = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))
     receipt = payload["fsx_export"]
-    assert receipt["schema_version"] == 3
+    assert receipt["schema_version"] == 4
     assert receipt["status"] == "success"
     assert receipt["analysis_dir"] == "johnm/illumina_run_qc"
     assert receipt["source_path"] == "/analysis_results/johnm/illumina_run_qc/"
     assert receipt["headnode_path"] == "/fsx/analysis_results/johnm/illumina_run_qc/"
     assert receipt["destination_s3_uri"] == "s3://bucket/analysis_results/johnm/illumina_run_qc/"
+    assert receipt["fsx_root"] == "/fsx/analysis_results/johnm/illumina_run_qc/"
+    assert receipt["s3_root"] == "s3://bucket/analysis_results/johnm/illumina_run_qc/"
+    assert (
+        receipt["dayoa_analysis_root"]
+        == "/fsx/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/"
+    )
+    assert (
+        receipt["dayoa_s3_root"]
+        == "s3://bucket/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/"
+    )
     assert receipt["fsx_file_system_id"] == "fs-123"
     assert receipt["association_id"] == "dra-export"
     assert receipt["task_id"] == "task-123"
@@ -328,6 +355,187 @@ def test_run_export_workflow_success_writes_v3_receipt(tmp_path, monkeypatch) ->
     assert receipt["detached"] is True
     assert receipt["delete_data_in_file_system"] is False
     assert fake.deleted_association_id == "dra-export"
+
+
+def _dayoa_evidence_manifest() -> str:
+    digest = "a" * 64
+    payload = {
+        "schema_version": "dayoa.evidence_manifest.v1",
+        "manifest_checksum": "b" * 64,
+        "generated_at": "2026-05-28T00:00:00Z",
+        "analysis": {"genome_build": "hg38_broad"},
+        "workflow": {
+            "pipeline_name": "daylily-omics-analysis",
+            "pipeline_version": "2.0.12",
+            "git_sha": "abc123",
+            "snakemake_version": "7.32.4",
+            "workflow_config_hash": digest,
+            "workflow_profile": "slurm",
+        },
+        "files": [
+            {
+                "relative_path": "results/day/hg38_broad/reports/DAY_final_multiqc.html",
+                "size_bytes": 10,
+                "sha256": digest,
+                "classification": "multiqc_html",
+                "parser_relevant": True,
+                "required": True,
+            },
+            {
+                "relative_path": "results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_data.json",
+                "size_bytes": 11,
+                "sha256": digest,
+                "classification": "multiqc_data_json",
+                "parser_relevant": True,
+                "required": True,
+            },
+            {
+                "relative_path": "results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_general_stats.txt",
+                "size_bytes": 12,
+                "sha256": digest,
+                "classification": "multiqc_general_stats",
+                "parser_relevant": True,
+                "required": True,
+            },
+            {
+                "relative_path": "results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_sources.txt",
+                "size_bytes": 13,
+                "sha256": digest,
+                "classification": "multiqc_sources",
+                "parser_relevant": True,
+                "required": True,
+            },
+            {
+                "relative_path": "results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc.log",
+                "size_bytes": 14,
+                "sha256": digest,
+                "classification": "multiqc_log",
+                "parser_relevant": True,
+                "required": True,
+            },
+            {
+                "relative_path": "results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv",
+                "size_bytes": 15,
+                "sha256": digest,
+                "classification": "staging_manifest",
+                "parser_relevant": True,
+                "required": True,
+            },
+            {
+                "relative_path": "results/day/hg38_broad/reports/benchmarks_summary.tsv",
+                "size_bytes": 16,
+                "sha256": digest,
+                "classification": "benchmark",
+                "parser_relevant": False,
+                "required": False,
+            },
+        ],
+    }
+    return json.dumps(payload)
+
+
+def test_run_export_workflow_registers_dewey_after_success(tmp_path, monkeypatch) -> None:
+    fake = FakeFsxClient()
+    manifest_uri = (
+        "s3://bucket/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/"
+        "results/day/hg38_broad/reports/dayoa_evidence_manifest.json"
+    )
+    fake_s3 = FakeS3Client(objects={manifest_uri: _dayoa_evidence_manifest()})
+    monkeypatch.setenv("DEWEY_TOKEN", "token-1")
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(fake, s3_client=fake_s3),
+    )
+    captured: dict[str, Any] = {}
+
+    def fake_register_with_dewey(*, dewey_url: str, token: str, requests: dict[str, Any]):
+        captured["dewey_url"] = dewey_url
+        captured["token"] = token
+        captured["requests"] = requests
+        return {
+            "analysis_response": {"artifact_set_euid": "Z-ASET-1"},
+            "multiqc_response": {"artifact_set_euid": "Z-MQC-1"},
+            "analysis_request_manifest_sha256": requests["analysis"]["manifest_sha256"],
+            "multiqc_request_manifest_sha256": requests["multiqc"]["manifest_sha256"],
+        }
+
+    monkeypatch.setattr(
+        "daylily_ec.workflow.dewey_registration.register_with_dewey",
+        fake_register_with_dewey,
+    )
+    command = load_repository_catalog().get_command(
+        "illumina_snv_alignstats_relatedness_vep_multiqc"
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="alpha",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+            destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc/",
+            region="us-west-2",
+            profile="prof",
+            output_dir=tmp_path,
+            artifact_registration_policy=command.artifact_registration,
+            artifact_registration_genome=command.genome,
+            dewey_url="https://dewey.example",
+            dewey_token_env="DEWEY_TOKEN",
+        )
+    )
+
+    assert rc == 0
+    payload = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))
+    receipt = payload["fsx_export"]
+    assert receipt["dewey_registration_status"] == "success"
+    assert receipt["dewey_selected_artifact_count"] == 7
+    assert (tmp_path / "dewey_registration_receipt.json").is_file()
+    assert captured["dewey_url"] == "https://dewey.example"
+    assert captured["token"] == "token-1"
+    assert captured["requests"]["analysis"]["analysis_euid"] == "illumina_run_qc"
+    assert captured["requests"]["analysis"]["artifacts"][0]["storage_uri"].startswith(
+        "s3://bucket/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/"
+    )
+
+
+def test_run_export_workflow_rejects_malformed_exported_manifest(tmp_path, monkeypatch) -> None:
+    fake = FakeFsxClient()
+    manifest_uri = (
+        "s3://bucket/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/"
+        "results/day/hg38_broad/reports/dayoa_evidence_manifest.json"
+    )
+    fake_s3 = FakeS3Client(objects={manifest_uri: "{not json"})
+    monkeypatch.setenv("DEWEY_TOKEN", "token-1")
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(fake, s3_client=fake_s3),
+    )
+    command = load_repository_catalog().get_command(
+        "illumina_snv_alignstats_relatedness_vep_multiqc"
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="alpha",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+            destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc/",
+            region="us-west-2",
+            profile="prof",
+            output_dir=tmp_path,
+            artifact_registration_policy=command.artifact_registration,
+            artifact_registration_genome=command.genome,
+            dewey_url="https://dewey.example",
+            dewey_token_env="DEWEY_TOKEN",
+        )
+    )
+
+    assert rc == 1
+    payload = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))
+    receipt = payload["fsx_export"]
+    assert receipt["status"] == "error"
+    assert receipt["dewey_registration_status"] == "error"
+    assert "malformed" in receipt["failure_details"]["message"]
+    assert not (tmp_path / "dewey_registration_receipt.json").exists()
 
 
 def test_run_export_workflow_task_failure_still_detaches(tmp_path, monkeypatch) -> None:

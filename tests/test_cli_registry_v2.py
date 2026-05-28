@@ -607,6 +607,34 @@ def test_export_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
     assert options.output_dir == tmp_path.resolve()
 
 
+def test_export_command_rejects_dewey_options_without_policy(monkeypatch, tmp_path) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    result = runner.invoke(
+        app,
+        [
+            "export",
+            "--cluster-name",
+            "cluster-a",
+            "--source-path",
+            "/fsx/analysis_results/johnm/illumina_run_qc",
+            "--destination-s3-uri",
+            "s3://bucket/analysis_results/johnm/illumina_run_qc/",
+            "--region",
+            "us-west-2",
+            "--output-dir",
+            str(tmp_path),
+            "--dewey-url",
+            "https://dewey.example",
+            "--dewey-token-env",
+            "DEWEY_TOKEN",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "artifact-registration-command-id" in result.output
+
+
 def test_delete_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
     import daylily_ec.workflow.delete_cluster as delete_module
 
@@ -1637,6 +1665,41 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "tiddit" in argv
     assert "--strict-project-check" in argv
     assert "--dry-run" in argv
+
+
+def test_workflow_launch_rejects_dewey_options_without_policy(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "launch",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--stage-dir",
+            "/fsx/stage/run-1",
+            "--analysis-id",
+            "run-1",
+            "--executing-entity",
+            "johnm",
+            "--export-destination-s3-uri",
+            "s3://bucket/derived/johnm/run-1/",
+            "--export-trigger",
+            "on-success",
+            "--dewey-url",
+            "https://dewey.example",
+            "--dewey-token-env",
+            "DEWEY_TOKEN",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "artifact-registration-command-id" in result.output
 
 
 def test_workflow_launch_forwards_run_context_file(monkeypatch, tmp_path) -> None:

@@ -19,6 +19,7 @@ COMMAND_CLASSES = {"sample_analysis", "run_analysis"}
 INPUT_CONTRACTS = {"sample_manifest", "run_context", "none"}
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 VALIDATION_STATUSES = {"success", "failed", "blocked", "not_run"}
+ARTIFACT_REGISTRATION_INCLUDE_MODES = {"classification", "path"}
 
 
 def _clean_id(value: str, *, field_name: str) -> str:
@@ -198,6 +199,79 @@ class CommandValidationRun(BaseModel):
         return cleaned
 
 
+class ArtifactRegistrationIdentity(BaseModel):
+    """Explicit identity templates for downstream artifact registration."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    analysis_euid: str
+    run_euid: str
+    workset_euid: str = ""
+    project_euid: str = ""
+    assay_id: str = ""
+
+    @field_validator("analysis_euid", "run_euid")
+    @classmethod
+    def _validate_required_identity(cls, value: str) -> str:
+        return _clean_id(value, field_name="artifact registration identity")
+
+
+class ArtifactRegistrationPolicy(BaseModel):
+    """Explicit command policy for registering exported DayOA evidence."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    enabled: bool
+    evidence_manifest_path: str
+    include_classifications: List[str] = Field(default_factory=list)
+    include_paths: List[str] = Field(default_factory=list)
+    require_existing: bool = True
+    parser_family_hint: str
+    multiqc_report_kind: str
+    multiqc_version: str
+    identity: ArtifactRegistrationIdentity
+
+    @field_validator(
+        "evidence_manifest_path",
+        "parser_family_hint",
+        "multiqc_report_kind",
+        "multiqc_version",
+    )
+    @classmethod
+    def _validate_required_strings(cls, value: str) -> str:
+        return _clean_id(value, field_name="artifact_registration value")
+
+    @field_validator("include_classifications", "include_paths")
+    @classmethod
+    def _validate_include_lists(cls, values: List[str]) -> List[str]:
+        cleaned = [str(value).strip() for value in values]
+        if any(not value for value in cleaned):
+            raise ValueError("artifact_registration include values must not be empty")
+        if len(set(cleaned)) != len(cleaned):
+            raise ValueError("artifact_registration include values must be unique")
+        return cleaned
+
+    @field_validator("evidence_manifest_path", "include_paths")
+    @classmethod
+    def _validate_relative_paths(cls, value: Any) -> Any:
+        paths = value if isinstance(value, list) else [value]
+        for path in paths:
+            cleaned = str(path).strip()
+            if cleaned.startswith("/"):
+                raise ValueError("artifact registration paths must be relative")
+            if ".." in Path(cleaned).parts:
+                raise ValueError("artifact registration paths must not contain '..'")
+        return value
+
+    @model_validator(mode="after")
+    def _validate_selection(self) -> "ArtifactRegistrationPolicy":
+        if self.enabled and not (self.include_classifications or self.include_paths):
+            raise ValueError(
+                "enabled artifact_registration requires include_classifications or include_paths"
+            )
+        return self
+
+
 class AnalysisCommand(BaseModel):
     """Structured daylily-ec workflow launch profile."""
 
@@ -232,6 +306,7 @@ class AnalysisCommand(BaseModel):
     no_containerized: bool = False
     optional_features: Dict[str, AnalysisCommandFeature] = Field(default_factory=dict)
     validation_runs: List[CommandValidationRun] = Field(default_factory=list)
+    artifact_registration: Optional[ArtifactRegistrationPolicy] = None
 
     @field_validator(
         "command_id",
@@ -343,6 +418,9 @@ class AnalysisCommand(BaseModel):
         export_destination_s3_uri: Optional[str] = None,
         export_trigger: str = "none",
         delete_on_export_success: bool = False,
+        artifact_registration_command_id: Optional[str] = None,
+        dewey_url: Optional[str] = None,
+        dewey_token_env: Optional[str] = None,
     ) -> List[str]:
         """Render a daylily-ec workflow launch argv for this profile."""
 
@@ -361,6 +439,14 @@ class AnalysisCommand(BaseModel):
             )
         if delete_on_export_success and not export_destination_s3_uri:
             raise ValueError("delete_on_export_success requires export_destination_s3_uri")
+        if artifact_registration_command_id and (not dewey_url or not dewey_token_env):
+            raise ValueError(
+                "artifact_registration_command_id requires dewey_url and dewey_token_env"
+            )
+        if not artifact_registration_command_id and (dewey_url or dewey_token_env):
+            raise ValueError(
+                "dewey_url and dewey_token_env require artifact_registration_command_id"
+            )
         dy_command = self.dryrun_dy_command if dry_run else self.dy_command
         if self.input_contract == "run_context":
             if not run_context_file:
@@ -414,6 +500,12 @@ class AnalysisCommand(BaseModel):
             argv.extend(["--export-trigger", export_trigger])
         if delete_on_export_success:
             argv.append("--delete-on-export-success")
+        if artifact_registration_command_id:
+            argv.extend(["--artifact-registration-command-id", artifact_registration_command_id])
+            if dewey_url:
+                argv.extend(["--dewey-url", dewey_url])
+            if dewey_token_env:
+                argv.extend(["--dewey-token-env", dewey_token_env])
         if dry_run:
             argv.append("--dry-run")
         return argv
