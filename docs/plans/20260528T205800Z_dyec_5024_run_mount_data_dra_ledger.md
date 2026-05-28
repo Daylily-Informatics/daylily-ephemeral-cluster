@@ -68,4 +68,23 @@ The default remains fail-hard on existing analysis directories. The replacement 
 | DYEC25-001 | Orchestrator | Add explicit retry flag for stale same-analysis directories. | SUCCESS | 1 | `daylily_ec/scripts/daylily_run_omics_analysis_headnode.py`; `daylily_ec/cli.py`; `daylily_ec/repositories.py`. | No fallback behavior; existing dirs still fail unless the flag is present. |
 | DYEC25-002 | Orchestrator | Update source and packaged self-pins to `5.0.25`. | SUCCESS | 1 | `config/daylily_cli_global.yaml`; `daylily_ec/resources/payload/config/daylily_cli_global.yaml`. | Self-pins point at the intended release tag. |
 | DYEC25-003 | Orchestrator | Validate retry flag surfaces. | SUCCESS | 2 | `python -m pytest -q tests/test_script_entrypoints.py tests/test_cli_registry_v2.py tests/test_repository_catalog.py tests/test_packaged_defaults.py` -> `131 passed`; `ruff check daylily_ec tests/test_script_entrypoints.py tests/test_cli_registry_v2.py tests/test_repository_catalog.py tests/test_packaged_defaults.py`; `git diff --check`. | Focused validation passed. |
-| DYEC25-004 | Orchestrator | Commit, tag `5.0.25`, build, publish, and verify package availability. | IN_PROGRESS | 3 | Pending release commands. | Ursa must pin `daylily-ephemeral-cluster==5.0.25` before the next production retry. |
+| DYEC25-004 | Orchestrator | Commit, tag `5.0.25`, build, publish, and verify package availability. | SUCCESS | 3 | Commit `b108404f`; annotated tag `5.0.25`; branch, main, and tag pushed; `twup` uploaded artifacts; PyPI reported latest `5.0.25`. | Ursa `4.0.23` pinned and deployed `daylily-ephemeral-cluster==5.0.25`. |
+
+## DYEC 5.0.28 Headnode Retry Flag Amendment
+
+The Ursa `4.0.23` production retry reached the intended failed-job retry path and passed `replace_existing_analysis_dir: true`, but the headnode launch SSM command failed before tmux launch:
+
+```text
+/tmp/daylily-ssm-j12NWk.sh: line 62: REPLACE_EXISTING_ANALYSIS_DIR: unbound variable
+```
+
+Root cause: `REPLACE_EXISTING_ANALYSIS_DIR` was defined inside the generated tmux payload but the outer headnode SSM script also checks the existing analysis directory before writing that payload. DYEC `5.0.28` defines the variable in both scripts.
+
+After `git fetch --tags`, tags `5.0.26` and `5.0.27` already existed, so this fix was recomputed as the next patch tag, `5.0.28`.
+
+| ID | Owner | Requirement | Status | Gate | Evidence | Terminal Note |
+|---|---|---|---|---|---|---|
+| DYEC28-001 | Orchestrator | Define `REPLACE_EXISTING_ANALYSIS_DIR` in the outer headnode SSM script before checking stale clone paths. | SUCCESS | 1 | `daylily_ec/scripts/daylily_run_omics_analysis_headnode.py`; `tests/test_script_entrypoints.py`. | Fixes the `set -u` unbound variable while keeping replacement explicit. |
+| DYEC28-002 | Orchestrator | Update source and packaged self-pins to `5.0.28`. | SUCCESS | 1 | `config/daylily_cli_global.yaml`; `daylily_ec/resources/payload/config/daylily_cli_global.yaml`. | Self-pins point at the intended release tag. |
+| DYEC28-003 | Orchestrator | Validate headnode retry flag surfaces. | SUCCESS | 2 | `python -m pytest -q tests/test_script_entrypoints.py tests/test_cli_registry_v2.py tests/test_repository_catalog.py tests/test_packaged_defaults.py` -> `131 passed`; `ruff check ...`; `git diff --check`. | Focused validation passed. |
+| DYEC28-004 | Orchestrator | Commit, tag `5.0.28`, build, publish, and verify package availability. | IN_PROGRESS | 3 | Pending release commands. | Ursa must pin `daylily-ephemeral-cluster==5.0.28` before the next production retry. |

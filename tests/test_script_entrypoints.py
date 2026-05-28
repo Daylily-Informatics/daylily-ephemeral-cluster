@@ -325,7 +325,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "DY_COMMAND='DAY_CONTAINERIZED=true" in script
         assert 'mkdir -p "$(dirname "$clone_root")"' in script
         assert 'mkdir -p "$clone_root"' not in script
-        assert "REPLACE_EXISTING_ANALYSIS_DIR=false" in script
+        assert script.count("REPLACE_EXISTING_ANALYSIS_DIR=false") == 2
         assert "day-clone" in script
         assert '--destination "$ANALYSIS_ID"' in script
         assert '--executing-entity "$EXECUTING_ENTITY"' in script
