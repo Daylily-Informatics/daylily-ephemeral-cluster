@@ -23,6 +23,6 @@ Publish the DayOA HTD disable fixes as `2.0.17`, update DYEC's pinned DayOA repo
 | REL-001 | Publish DayOA `2.0.17` tag. | COMPLETE | `git push origin 2.0.17` created remote tag `2.0.17` from DayOA commit `276bf6e44ae18978efafd93eff0262e772fe3c60`. |
 | REL-002 | Build and upload DayOA `2.0.17`. | COMPLETE | `python -m build` produced `daylily_omics_analysis-2.0.17-py3-none-any.whl` and `.tar.gz`; `twup` uploaded to PyPI and a retry probe downloaded `daylily-omics-analysis==2.0.17`. |
 | REL-003 | Update DYEC DayOA catalog and tests to `2.0.17`. | COMPLETE | Updated both repository catalog copies plus catalog/CLI tests from `2.0.16` to `2.0.17`; `cmp -s config/daylily_available_repositories.yaml daylily_ec/resources/payload/config/daylily_available_repositories.yaml` passed; `python -m pytest -q tests/test_repository_catalog.py tests/test_cli_registry_v2.py` returned `102 passed`. |
-| REL-004 | Commit, push, tag, build, and upload DYEC `5.0.19`. | PENDING |  |
-| REL-005 | Update DYEC self pin to `5.0.19`. | PENDING |  |
-| REL-006 | Commit, push, tag, build, and upload DYEC `5.0.20`. | PENDING |  |
+| REL-004 | Commit, push, tag, build, and upload DYEC `5.0.19`. | COMPLETE | Commit `97e29212` pushed to `origin/codex/dyec-dewey-registration-refactor-20260528`; tag `5.0.19` pushed; `python -m build` produced `daylily_ephemeral_cluster-5.0.19-py3-none-any.whl` and `.tar.gz`; `twup` uploaded to PyPI and a retry probe downloaded `daylily-ephemeral-cluster==5.0.19`. |
+| REL-005 | Update DYEC self pin to `5.0.19`. | COMPLETE | Source and packaged `daylily_cli_global.yaml` now set `git_ephemeral_cluster_repo_tag` and `git_ephemeral_cluster_repo_release_tag` to `5.0.19`. |
+| REL-006 | Commit, push, tag, build, and upload DYEC `5.0.20`. | READY | Self-pin update is ready for final commit/tag/build/upload; `python -m pytest -q tests/test_packaged_defaults.py tests/test_repository_catalog.py tests/test_cli_registry_v2.py` returned `107 passed`. |
