@@ -23,6 +23,63 @@ PACKAGED_CATALOG_PATH = (
     / "config"
     / "daylily_available_repositories.yaml"
 )
+KITCHEN_SINK_TARGETS = [
+    "produce_all_align",
+    "produce_all_dedup_cram",
+    "produce_all_snv_vcf",
+    "produce_all_sv_vcf",
+    "produce_alignstats",
+    "produce_snv_concordances",
+    "produce_relatedness",
+    "produce_vep",
+    "produce_htd_calls",
+    "produce_expansionhunter",
+    "longtr_all",
+    "longtr_diseaser",
+    "produce_metagenomics",
+    "produce_global_contam_check",
+    "produce_multiqc_all",
+    "produce_dayoa_evidence_manifest",
+]
+KITCHEN_SINK_ALIGNERS = ["sent", "bwa2a", "strobe", "sentcg", "sentmm2", "sentmm2ont"]
+KITCHEN_SINK_DEDUPERS = ["dmd", "smd", "na"]
+KITCHEN_SINK_SNV_CALLERS = [
+    "sentd",
+    "cgt7p",
+    "sentdpb",
+    "sentdont",
+    "sentdug",
+    "sentdhiomr",
+    "sentdhipmr",
+    "sentdhuomr",
+    "sentdhupmr",
+    "sentpg",
+    "gatk",
+    "deep19",
+    "deep19r",
+    "deep15",
+    "oct",
+    "clair3",
+    "lfq2",
+    "varn",
+    "aiv",
+    "mutect2",
+    "dvsom",
+    "slk2g",
+    "slk2s",
+    "senttn",
+    "rochehc",
+]
+KITCHEN_SINK_SV_CALLERS = ["tiddit", "manta", "dysgu"]
+KITCHEN_SINK_MULTIQC_TOOLS = [
+    "vep",
+    "contam_identity",
+    "expansionhunter",
+    "unmapped_metagenomics",
+    "unmapped_metagenomics_ganon2",
+    "unmapped_metagenomics_sourmash",
+    "htd_calls",
+]
 
 
 def test_repository_catalog_loads_initial_blessed_command() -> None:
@@ -152,22 +209,40 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     for command in catalog.commands():
         if command.command_class != "sample_analysis":
             continue
-        assert not (set(command.dedupers) & {"dppl", "dppl_sent", "smd"})
+        assert not (set(command.dedupers) & {"dppl", "dppl_sent"})
         assert not (set(command.aligners) & {"sentdhiom", "sentdhuom"})
 
     vep_multiqc = catalog.get_command("illumina_snv_alignstats_relatedness_vep_multiqc")
-    assert vep_multiqc.targets == [
-        "produce_sent_align",
-        "produce_dmd_dedup_cram",
-        "produce_sentd_snv_vcf",
-        "produce_alignstats",
-        "produce_snv_concordances",
-        "produce_relatedness",
-        "produce_vep",
-        "produce_multiqc_all",
-    ]
+    assert vep_multiqc.display_name == "Illumina WGS Kitchen Sink"
+    assert vep_multiqc.targets == KITCHEN_SINK_TARGETS
+    assert vep_multiqc.aligners == KITCHEN_SINK_ALIGNERS
+    assert vep_multiqc.dedupers == KITCHEN_SINK_DEDUPERS
+    assert vep_multiqc.snv_callers == KITCHEN_SINK_SNV_CALLERS
+    assert vep_multiqc.sv_callers == KITCHEN_SINK_SV_CALLERS
+    for target in KITCHEN_SINK_TARGETS:
+        assert target in vep_multiqc.dy_command
+        assert target in vep_multiqc.dryrun_dy_command
+    for config_key in ("aligners=", "dedupers=", "snv_callers=", "sv_callers=", "htd_callers="):
+        assert config_key in vep_multiqc.dy_command
     assert "multiqc_qc=" in vep_multiqc.dy_command
     assert "enable_tools" in vep_multiqc.dy_command
+    assert "enable_long_running" in vep_multiqc.dy_command
+    for tool in KITCHEN_SINK_MULTIQC_TOOLS:
+        assert tool in vep_multiqc.dy_command
+    for retired in (
+        "verifybamid",
+        "verifybamid2",
+        "parascopy",
+        "genetocn",
+        "gauchian",
+        "smaca",
+        "smn12",
+        "stargazer",
+        "snpeff",
+        "qualimap",
+    ):
+        assert retired not in vep_multiqc.targets
+        assert retired not in vep_multiqc.dy_command
 
     ont = catalog.get_command("ont_snv_alignstats")
     assert ont.aligners == ["ont"]
