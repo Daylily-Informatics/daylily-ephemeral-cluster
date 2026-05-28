@@ -1,0 +1,6 @@
+analysis	rule	state	count
+inflection_20260527-2.0.11	sentdhiomr_pass2	PENDING	18
+inflection_20260527-2.0.11	sentdhiomr_pass2	RUNNING	1
+inflection_20260527-2.0.11	sentdhiomr_transfer	CONFIGURING	24
+inflection_20260527-2.0.11	sentdhiomr_transfer	PENDING	61
+inflection_20260527-2.0.11	sentdhiomr_transfer	RUNNING	19

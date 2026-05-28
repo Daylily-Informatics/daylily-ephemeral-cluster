@@ -44,3 +44,11 @@ ssl/
 *.crt
 *.p12
 *.pfx
+
+# Local credentials / temporary access links
+.tailscale_key
+presign_url_sofar.md
+*_signed_urls.tsv
+
+# Large local analysis outputs
+/*.vcf.gz

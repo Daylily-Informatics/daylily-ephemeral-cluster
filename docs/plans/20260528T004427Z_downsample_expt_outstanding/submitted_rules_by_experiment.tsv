@@ -1,0 +1,6 @@
+experiment	rule	state	count
+ILMN15x-ONT7x	sentdhiomr_pass2	PENDING	17
+ILMN15x-ONT7x	sentdhiomr_pass2	RUNNING	1
+ILMN20x-ONT10x	sentdhiomr_concat_pass	PENDING	1
+ILMN20x-ONT10x	sentdhiomr_transfer	PENDING	55
+ILMN20x-ONT10x	sentdhiomr_transfer	RUNNING	47

@@ -1,0 +1,2 @@
+analysis	dryrun_rc	dryrun_remaining	submitted_for_analysis	not_yet_submitted_est	targets
+inflection_20260527-2.0.11	0	192	123	69	produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_snv_vcf produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_expansionhunter

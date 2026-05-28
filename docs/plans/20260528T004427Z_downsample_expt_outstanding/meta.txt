@@ -1,0 +1,2 @@
+check_utc=2026-05-28T00:44:27Z
+run_dir=/fsx/analysis_results/ubuntu/inflection_20260527-2.0.11/daylily-omics-analysis

@@ -1,0 +1,16 @@
+{
+  "artifact_euid": "M-DGX-9S5Q",
+  "artifact_type": "dayoa.analysis_archive",
+  "availability_status": "available",
+  "http_status": 200,
+  "ok": true,
+  "original_filename": "hg003_hybrid_calls.tgz",
+  "producer_system": "daylily-omics-analysis",
+  "registered_at": "2026-05-28T03:00:53.121772Z",
+  "registration_command_id": "55adb375-69fa-457e-b6ec-8d3d5cf066c1",
+  "size": 130446731789,
+  "status_code": 201,
+  "storage_uri": "s3://lsmc-ssf-sequencing-data/derived/goodole3/analysis_results/ubuntu/for_inflection/hg003_hybrid_calls.tgz",
+  "verification_command_id": "18a1e12f-a268-45dd-b7b6-665c6c7d6ea7",
+  "verification_http_status": 200
+}
