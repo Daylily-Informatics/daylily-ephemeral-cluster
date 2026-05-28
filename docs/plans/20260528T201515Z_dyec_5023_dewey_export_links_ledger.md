@@ -22,7 +22,7 @@ This release includes:
 | 1 | Add CLI/export Dewey link support | SUCCESS | `daylily_ec/cli.py`, `daylily_ec/repositories.py`, `daylily_ec/workflow/export_data.py`, `daylily_ec/workflow/dewey_registration.py`, and headnode script updated. |
 | 2 | Preserve cluster-create S3 role validation while adding operator discovery | SUCCESS | `daylily_ec/aws/s3.py` and `daylily_ec/workflow/create_cluster.py` updated; validation remains preflight-gated. |
 | 3 | Validate | SUCCESS | `cmp -s config/daylily_cli_global.yaml daylily_ec/resources/payload/config/daylily_cli_global.yaml`; `python -m pytest -q tests/test_export.py tests/test_cli_registry_v2.py tests/test_repository_catalog.py tests/test_script_entrypoints.py tests/test_s3.py tests/test_workflow.py` -> 257 passed; `ruff check ...` -> passed; `git diff --check` -> passed. |
-| 4 | Commit, push, tag, publish package | OPEN | Pending. |
+| 4 | Commit, push, tag, publish package | SUCCESS | Commit `5b189710`; annotated tag `5.0.23`; pushed branch `codex/dyec-dewey-registration-refactor-20260528`, `main`, and tag `5.0.23`; `python -m build` produced wheel/sdist; `twup` published to PyPI; `python -m pip index versions daylily-ephemeral-cluster` reports latest `5.0.23`. |
 
 ## Notes
 
