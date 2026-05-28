@@ -325,12 +325,15 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "DY_COMMAND='DAY_CONTAINERIZED=true" in script
         assert 'mkdir -p "$(dirname "$clone_root")"' in script
         assert 'mkdir -p "$clone_root"' not in script
+        assert "REPLACE_EXISTING_ANALYSIS_DIR=false" in script
         assert "day-clone" in script
         assert '--destination "$ANALYSIS_ID"' in script
         assert '--executing-entity "$EXECUTING_ENTITY"' in script
         assert "--repository daylily-omics-analysis" in script
         assert "--git-tag main" in script
         assert "__DAYLILY_ERROR__=analysis_dir_exists" in script
+        assert "__DAYLILY_REPLACED_ANALYSIS_DIR__=$clone_root" in script
+        assert "rm -rf -- \"$clone_root\"" in script
         assert 'if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then' in script
         assert '. "$HOME/miniconda3/etc/profile.d/conda.sh"' in script
         assert "unset PROJECT || true" in script

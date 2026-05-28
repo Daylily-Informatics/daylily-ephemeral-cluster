@@ -1681,6 +1681,7 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "--export-trigger",
             "on-success",
             "--delete-on-export-success",
+            "--replace-existing-analysis-dir",
             "--artifact-registration-command-id",
             "illumina_snv_alignstats_relatedness_vep_multiqc",
             "--dewey-url",
@@ -1721,6 +1722,7 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "--export-trigger" in argv
     assert "on-success" in argv
     assert "--delete-on-export-success" in argv
+    assert "--replace-existing-analysis-dir" in argv
     assert "--dewey-analysis-dir-external-object-id" in argv
     assert "M-RGX-9S3G" in argv
     assert "--dewey-run-artifact-euid" in argv

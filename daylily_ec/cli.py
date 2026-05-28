@@ -2162,6 +2162,14 @@ def samples_run(
         "--delete-on-export-success",
         help="Delete the FSx analysis directory after a successful requested export.",
     ),
+    replace_existing_analysis_dir: bool = typer.Option(
+        False,
+        "--replace-existing-analysis-dir",
+        help=(
+            "Explicit retry mode: remove an existing same analysis directory before launch. "
+            "Existing analysis directories fail hard unless this flag is set."
+        ),
+    ),
     dewey_url: Optional[str] = typer.Option(
         None,
         "--dewey-url",
@@ -2299,6 +2307,7 @@ def samples_run(
             export_destination_s3_uri=export_destination_s3_uri,
             export_trigger=export_trigger,
             delete_on_export_success=delete_on_export_success,
+            replace_existing_analysis_dir=replace_existing_analysis_dir,
             artifact_registration_command_id=artifact_registration_command_id,
             dewey_url=dewey_url,
             dewey_token_env=dewey_token_env,
@@ -2331,6 +2340,7 @@ def samples_run(
             "export_destination_s3_uri": export_destination_s3_uri,
             "export_trigger": export_trigger,
             "delete_on_export_success": delete_on_export_success,
+            "replace_existing_analysis_dir": replace_existing_analysis_dir,
             "dewey_analysis_dir_external_object_id": dewey_analysis_dir_external_object_id,
             "dewey_run_artifact_euid": dewey_run_artifact_euid,
             "dewey_ursa_analysis_euid": dewey_ursa_analysis_euid,
@@ -2455,6 +2465,14 @@ def workflow_launch(
         "--delete-on-export-success",
         help="Delete the FSx analysis directory after a successful requested export.",
     ),
+    replace_existing_analysis_dir: bool = typer.Option(
+        False,
+        "--replace-existing-analysis-dir",
+        help=(
+            "Explicit retry mode: remove an existing same analysis directory before launch. "
+            "Existing analysis directories fail hard unless this flag is set."
+        ),
+    ),
     artifact_registration_command_id: Optional[str] = typer.Option(
         None,
         "--artifact-registration-command-id",
@@ -2557,6 +2575,8 @@ def workflow_launch(
         argv.append("--no-containerized")
     if delete_on_export_success:
         argv.append("--delete-on-export-success")
+    if replace_existing_analysis_dir:
+        argv.append("--replace-existing-analysis-dir")
     if dry_run:
         argv.append("--dry-run")
 
