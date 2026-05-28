@@ -215,9 +215,7 @@ def mount_id_from_request(
 def normalize_mount_purpose(purpose: str) -> str:
     normalized = str(purpose or MOUNT_PURPOSE_RUN).strip().lower().replace("_", "-")
     if normalized not in MOUNT_PURPOSES:
-        raise RunMountError(
-            "Mount purpose must be one of: " + ", ".join(MOUNT_PURPOSES)
-        )
+        raise RunMountError("Mount purpose must be one of: " + ", ".join(MOUNT_PURPOSES))
     return normalized
 
 
@@ -253,10 +251,14 @@ def normalize_file_system_path(
     raw = str(path).strip()
     normalized = _normalize_absolute_fsx_api_path(raw)
     if root and not normalized.startswith(root):
-        raise RunMountError(f"FSx file-system path for purpose {normalized_purpose} must be under {root}.")
+        raise RunMountError(
+            f"FSx file-system path for purpose {normalized_purpose} must be under {root}."
+        )
     if root and normalized == root:
         if normalized_purpose not in {MOUNT_PURPOSE_CONTROL_DATA, MOUNT_PURPOSE_STAGING}:
-            raise RunMountError(f"FSx file-system path must not be the {normalized_purpose} mount root.")
+            raise RunMountError(
+                f"FSx file-system path must not be the {normalized_purpose} mount root."
+            )
         return normalized
     if normalized_purpose == MOUNT_PURPOSE_CUSTOM and any(
         normalized == role_root or normalized.startswith(role_root)
@@ -311,9 +313,7 @@ def validate_no_overlaps(
                 f"FSx file-system path overlaps active DRA {assoc_id}: {existing_fsx}"
             )
         if existing_s3 and paths_overlap(normalize_s3_uri(existing_s3), source_s3_uri):
-            raise RunMountError(
-                f"S3 source prefix overlaps active DRA {assoc_id}: {existing_s3}"
-            )
+            raise RunMountError(f"S3 source prefix overlaps active DRA {assoc_id}: {existing_s3}")
 
 
 def parse_auto_import_events(raw: Optional[str]) -> List[str]:
@@ -341,7 +341,9 @@ def parse_auto_export_events(
     return _parse_event_tokens(raw, default=())
 
 
-def parse_tags(values: Optional[Sequence[str]], *, purpose: str = MOUNT_PURPOSE_RUN) -> Dict[str, str]:
+def parse_tags(
+    values: Optional[Sequence[str]], *, purpose: str = MOUNT_PURPOSE_RUN
+) -> Dict[str, str]:
     normalized_purpose = normalize_mount_purpose(purpose)
     tags: Dict[str, str] = {
         "lsmc:purpose": (
@@ -496,9 +498,13 @@ def list_run_mounts(
                 purpose=local.purpose if local else inferred_purpose,
                 run_id=local.run_id if local else mount_id,
                 platform=local.platform if local else "OTHER",
-                cluster_name=cluster_name if cluster_name is not None else (local.cluster_name if local else None),
+                cluster_name=cluster_name
+                if cluster_name is not None
+                else (local.cluster_name if local else None),
                 region=region,
-                profile_hint=profile if profile is not None else (local.profile_hint if local else None),
+                profile_hint=profile
+                if profile is not None
+                else (local.profile_hint if local else None),
                 read_only=local.read_only if local else _association_is_read_only(association),
                 batch_import_metadata_on_create=(
                     local.batch_import_metadata_on_create if local else True
@@ -547,12 +553,18 @@ def describe_run_mount(
         return record_from_association(
             association,
             mount_id=local.mount_id if local else inferred_mount_id,
-            purpose=local.purpose if local else purpose_from_file_system_path(association_path) or MOUNT_PURPOSE_CUSTOM,
+            purpose=local.purpose
+            if local
+            else purpose_from_file_system_path(association_path) or MOUNT_PURPOSE_CUSTOM,
             run_id=local.run_id if local else inferred_mount_id,
             platform=local.platform if local else "OTHER",
-            cluster_name=cluster_name if cluster_name is not None else (local.cluster_name if local else None),
+            cluster_name=cluster_name
+            if cluster_name is not None
+            else (local.cluster_name if local else None),
             region=region,
-            profile_hint=profile if profile is not None else (local.profile_hint if local else None),
+            profile_hint=profile
+            if profile is not None
+            else (local.profile_hint if local else None),
             read_only=local.read_only if local else _association_is_read_only(association),
             batch_import_metadata_on_create=(
                 local.batch_import_metadata_on_create if local else True
@@ -710,12 +722,8 @@ def record_from_association(
         purpose=purpose,
     )
     s3_config = association.get("S3") or {}
-    auto_import_events = tuple(
-        (s3_config.get("AutoImportPolicy") or {}).get("Events") or ()
-    )
-    auto_export_events = tuple(
-        (s3_config.get("AutoExportPolicy") or {}).get("Events") or ()
-    )
+    auto_import_events = tuple((s3_config.get("AutoImportPolicy") or {}).get("Events") or ())
+    auto_export_events = tuple((s3_config.get("AutoExportPolicy") or {}).get("Events") or ())
     return RunMountRecord(
         mount_id=validate_mount_id(mount_id),
         purpose=normalize_mount_purpose(purpose),
@@ -814,7 +822,9 @@ def describe_fsx_file_system(client: Any, fsx_file_system_id: str) -> Dict[str, 
     try:
         response = client.describe_file_systems(FileSystemIds=[fsx_file_system_id])
     except Exception as exc:  # noqa: BLE001
-        raise RunMountError(f"Unable to describe FSx file system {fsx_file_system_id}: {exc}") from exc
+        raise RunMountError(
+            f"Unable to describe FSx file system {fsx_file_system_id}: {exc}"
+        ) from exc
     filesystems = response.get("FileSystems") or []
     if len(filesystems) != 1:
         raise RunMountError(f"Unable to describe exactly one FSx file system: {fsx_file_system_id}")
@@ -842,7 +852,9 @@ def validate_dra_compatible_file_system(filesystem: Dict[str, Any]) -> None:
         raise RunMountError(f"FSx file system {fsx_id} is missing LustreConfiguration.")
     deployment_type = str(lustre.get("DeploymentType") or "").upper()
     if deployment_type == "SCRATCH_1":
-        raise RunMountError(f"FSx file system {fsx_id} uses SCRATCH_1, which does not support DRAs.")
+        raise RunMountError(
+            f"FSx file system {fsx_id} uses SCRATCH_1, which does not support DRAs."
+        )
     legacy_repo_config = lustre.get("DataRepositoryConfiguration")
     if legacy_repo_config:
         raise RunMountError(
@@ -875,7 +887,9 @@ def describe_data_repository_associations(
         try:
             response = client.describe_data_repository_associations(**params)
         except (BotoCoreError, ClientError) as exc:
-            raise RunMountError(f"Unable to describe FSx data repository associations: {exc}") from exc
+            raise RunMountError(
+                f"Unable to describe FSx data repository associations: {exc}"
+            ) from exc
         associations.extend(response.get("Associations", []) or [])
         next_token = response.get("NextToken")
         if not next_token:
@@ -991,7 +1005,11 @@ def extract_mount_id(file_system_path: str) -> str:
             return "control_data"
         if purpose == MOUNT_PURPOSE_STAGING:
             return "staging"
-    if purpose == MOUNT_PURPOSE_STAGING and len(parts) > 1 and parts[0] == "staged_external_sequencing_data":
+    if (
+        purpose == MOUNT_PURPOSE_STAGING
+        and len(parts) > 1
+        and parts[0] == "staged_external_sequencing_data"
+    ):
         return validate_mount_id(parts[1])
     first = parts[0]
     return validate_mount_id(first)
@@ -1060,8 +1078,8 @@ def format_mount_list(records: Sequence[RunMountRecord]) -> str:
             "%-32s %-32s %-8s %-16s %-18s %-38s %-36s %-20s"
             % (
                 record.mount_id,
-            record.run_id,
-            record.purpose,
+                record.run_id,
+                record.purpose,
                 record.lifecycle,
                 record.association_id,
                 record.headnode_path,
@@ -1239,7 +1257,9 @@ def _load_mount_record(
     return _record_from_state_payload(json.loads(path.read_text(encoding="utf-8")))
 
 
-def _find_local_record_by_association_id(region: str, association_id: str) -> Optional[RunMountRecord]:
+def _find_local_record_by_association_id(
+    region: str, association_id: str
+) -> Optional[RunMountRecord]:
     root = config_dir() / "run_mounts" / _state_component(region)
     if not root.exists():
         return None
@@ -1273,9 +1293,7 @@ def _record_from_state_payload(payload: Dict[str, Any]) -> RunMountRecord:
         profile_hint=payload.get("profile_hint"),
         auto_import_events=tuple(payload.get("auto_import_events") or ()),
         auto_export_events=tuple(payload.get("auto_export_events") or ()),
-        batch_import_metadata_on_create=bool(
-            payload.get("batch_import_metadata_on_create", True)
-        ),
+        batch_import_metadata_on_create=bool(payload.get("batch_import_metadata_on_create", True)),
         created_at=str(payload.get("created_at") or ""),
         updated_at=str(payload.get("updated_at") or ""),
         created_by=str(payload.get("created_by") or ""),
@@ -1293,9 +1311,14 @@ def _format_timestamp(value: Any) -> str:
     if isinstance(value, datetime):
         if value.tzinfo is None:
             value = value.replace(tzinfo=timezone.utc)
-        return value.astimezone(timezone.utc).replace(microsecond=0).isoformat().replace(
-            "+00:00",
-            "Z",
+        return (
+            value.astimezone(timezone.utc)
+            .replace(microsecond=0)
+            .isoformat()
+            .replace(
+                "+00:00",
+                "Z",
+            )
         )
     return str(value)
 
@@ -1353,7 +1376,7 @@ def _verification_script(headnode_path: str, platform: str) -> str:
             'if [ ! -d "$root" ]; then echo "Verify path is not a directory: $root" >&2; exit 1; fi',
             'if [ ! -r "$root" ] || [ ! -x "$root" ]; then echo "Verify path is not readable/executable: $root" >&2; exit 1; fi',
             'cd "$root"',
-            'ls -A . >/dev/null',
+            "ls -A . >/dev/null",
             f"export DAYLILY_VERIFY_ROOT={path}",
             f"python3 -c {shlex.quote(python_code)}",
         ]

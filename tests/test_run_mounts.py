@@ -115,8 +115,7 @@ def test_mount_id_s3_and_path_normalization() -> None:
         run_mounts.validate_mount_id("..")
     assert run_mounts.normalize_s3_uri("s3://bucket/runs/RUN123") == "s3://bucket/runs/RUN123/"
     assert (
-        run_mounts.normalize_file_system_path(None, mount_id="RUN123")
-        == "/run_dir_mounts/RUN123/"
+        run_mounts.normalize_file_system_path(None, mount_id="RUN123") == "/run_dir_mounts/RUN123/"
     )
     assert (
         run_mounts.headnode_path_from_file_system_path("/run_dir_mounts/RUN123/")
@@ -265,9 +264,7 @@ def test_create_staging_mount_accepts_staging_platform(tmp_path, monkeypatch) ->
     )
     assert record.platform == "STAGING"
     assert record.purpose == run_mounts.MOUNT_PURPOSE_STAGING
-    assert record.headnode_path == (
-        "/fsx/staging/staged_external_sequencing_data/remote_stage_1/"
-    )
+    assert record.headnode_path == ("/fsx/staging/staged_external_sequencing_data/remote_stage_1/")
 
 
 def test_list_mounts_skips_only_static_references_root(tmp_path, monkeypatch) -> None:
@@ -333,9 +330,7 @@ def test_describe_static_role_root_by_association_id_is_not_managed_mount() -> N
 
 def test_create_run_mount_rejects_legacy_fsx_before_create() -> None:
     fake = FakeFsxClient(
-        filesystem=_filesystem(
-            legacy_repository_config={"ImportPath": "s3://bucket/data/"}
-        )
+        filesystem=_filesystem(legacy_repository_config={"ImportPath": "s3://bucket/data/"})
     )
 
     with pytest.raises(run_mounts.RunMountError, match="legacy LustreConfiguration"):

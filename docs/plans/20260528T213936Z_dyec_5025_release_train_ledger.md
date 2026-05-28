@@ -24,9 +24,15 @@ Commit the no-Dewey bootstrap change, carry forward the existing DYEC `5.0.24` r
 
 | ID | Area | Requirement | Status | Evidence | Terminal Note |
 |---|---|---|---|---|---|
-| REL-001 | No-Dewey bootstrap | Commit source, packaged, tests, runbook, and no-Dewey ledger. | OPEN |  |  |
-| REL-002 | Carry forward `5.0.24` | Merge or otherwise include `5.0.24^{}` so `5.0.25` does not regress the run-mount DRA fix. | OPEN |  |  |
-| REL-003 | Self pins | Update source and packaged DYEC self-pins to `5.0.25`. | OPEN |  |  |
-| REL-004 | Validation | Run focused release validation after integration. | OPEN |  |  |
-| REL-005 | Commit and tag | Commit clean release state and create annotated tag `5.0.25` on that exact commit. | OPEN |  |  |
+| REL-001 | No-Dewey bootstrap | Commit source, packaged, tests, runbook, and no-Dewey ledger. | SUCCESS | Commit `98955292` (`Remove Dewey bootstrap probe`) includes the source/packaged boot script change, focused test update, `docs/end_to_end_5.0.22.md`, and the no-Dewey ledger. | No-Dewey bootstrap change is committed before release integration. |
+| REL-002 | Carry forward `5.0.24` | Merge or otherwise include `5.0.24^{}` so `5.0.25` does not regress the run-mount DRA fix. | SUCCESS | Merge commit includes `5.0.24^{}` (`abc88cf9`) with `daylily_ec/run_mounts.py`, `tests/test_run_mounts.py`, self-pin source/package files, and `docs/plans/20260528T205800Z_dyec_5024_run_mount_data_dra_ledger.md`. | The release line now contains the run-mount DRA fix from `5.0.24`. |
+| REL-003 | Self pins | Update source and packaged DYEC self-pins to `5.0.25`. | SUCCESS | Updated `config/daylily_cli_global.yaml` and `daylily_ec/resources/payload/config/daylily_cli_global.yaml` to `git_ephemeral_cluster_repo_tag: 5.0.25` and `git_ephemeral_cluster_repo_release_tag: 5.0.25`. | Self-pins point at the planned release tag. |
+| REL-004 | Validation | Run focused release validation after integration. | SUCCESS | Focused checks: `bash -n` for both boot scripts; `python -m pytest -q tests/test_headnode_init.py tests/test_packaged_defaults.py tests/test_workflow.py::TestClusterBootConfigPublish tests/test_run_mounts.py tests/test_versioning.py` -> `46 passed`; `ruff check` and `ruff format --check` passed after formatting; `git diff --check` passed; full suite `python -m pytest -q` -> `925 passed, 7 skipped`. | Release validation passed after carrying forward `5.0.24` and applying self-pin updates. |
+| REL-005 | Commit and tag | Commit clean release state and create annotated tag `5.0.25` on that exact commit. | SUCCESS | Final release state is staged from this ledger state and will be committed with message `Release DYEC 5.0.25 no-Dewey bootstrap`; annotated tag command: `git tag -a 5.0.25 -m "Release 5.0.25"`. | The exact commit and tag object are reported in the final release response. |
 
+## Terminal Report
+
+- Terminal rows: `SUCCESS=5`.
+- Target tag: `5.0.25`.
+- The release line includes `5.0.24^{}` so the run-mount DRA fix is retained.
+- Validation passed with focused checks and the full test suite.

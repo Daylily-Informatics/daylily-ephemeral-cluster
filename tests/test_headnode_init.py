@@ -200,7 +200,9 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
         'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-/fsx/tmp/apptainer_cache/$USER}"'
         in shell_code
     )
-    assert 'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-$APPTAINER_CACHEDIR}"' in shell_code
+    assert (
+        'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-$APPTAINER_CACHEDIR}"' in shell_code
+    )
     assert "/fsx/resources/environments" not in shell_code
     assert 'export DAY_ROOT="${PWD}"' in shell_code
     assert "reference_s3_uri=reference-bucket" in shell_code
@@ -631,22 +633,19 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05" in script
     assert "reference_wait_timeout_seconds=1800" in script
     assert "wait_for_reference_data" in script
-    assert "runtime_assets_root=\"/fsx/references/runtime_assets\"" in script
-    assert "references_root=\"/fsx/references\"" in script
-    assert "environment_cache_root=\"/fsx/resources/environments\"" in script
-    assert (
-        'tailscale_authkey_ssm_parameter="/daylily/dayec/tailscale/headnode-authkey"'
-        in script
-    )
+    assert 'runtime_assets_root="/fsx/references/runtime_assets"' in script
+    assert 'references_root="/fsx/references"' in script
+    assert 'environment_cache_root="/fsx/resources/environments"' in script
+    assert 'tailscale_authkey_ssm_parameter="/daylily/dayec/tailscale/headnode-authkey"' in script
     assert ".day.lsmc.bio" not in script
-    assert "control_data_root=\"/fsx/control_data\"" not in script
+    assert 'control_data_root="/fsx/control_data"' not in script
     assert "Required DayOA role entries are visible" in script
     assert "required DayOA role entries did not appear" in script
-    assert "[ -d \"${references_root}/genomic_data\" ]" in script
-    assert "[ -d \"${control_data_root}/genomic_data\" ]" not in script
-    assert "[ -d \"${staging_root}\" ]" not in script
+    assert '[ -d "${references_root}/genomic_data" ]' in script
+    assert '[ -d "${control_data_root}/genomic_data" ]' not in script
+    assert '[ -d "${staging_root}" ]' not in script
     assert "make_role_data_read_only" in script
-    assert "chmod a-w \"${role_root}\"" in script
+    assert 'chmod a-w "${role_root}"' in script
     assert 'stat -c "Role data permissions: %A %n" "${role_root}"' in script
     assert "fd-find ripgrep docker.io" in script
     assert "8c5d8eb0cb7f34784c872c4c70848fa442894165b7b5459cf6206a3f09c70369" in script
@@ -654,14 +653,8 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "cached Apptainer deb not found" in script
     assert 'apt-get install -y "${apptainer_deb}"' in script
     assert 'ln -sfn "$(command -v apptainer)" /usr/local/bin/singularity' in script
-    assert (
-        'ln -sfn "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar"'
-        in script
-    )
-    assert (
-        'ln -sfn "${runtime_assets_root}/tool_specific_resources/womtool_87.jar"'
-        in script
-    )
+    assert 'ln -sfn "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar"' in script
+    assert 'ln -sfn "${runtime_assets_root}/tool_specific_resources/womtool_87.jar"' in script
     assert "prepare_common_writable_dirs" in script
     assert "prepare_headnode_writable_dirs" in script
     assert "prepare_dayoa_environment_cache" in script
