@@ -31,7 +31,7 @@ The repository catalog must remain synchronized between:
 - `config/daylily_available_repositories.yaml`
 - `daylily_ec/resources/payload/config/daylily_available_repositories.yaml`
 
-Current DayOA catalog pins are `2.0.8`.
+Current DayOA catalog pins are `2.0.19`.
 
 ## Stale Editable Installs
 

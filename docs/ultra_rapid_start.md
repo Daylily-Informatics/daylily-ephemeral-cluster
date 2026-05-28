@@ -39,7 +39,7 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 2.0.8
+  --git-tag 2.0.19
 
 dyec export \
   --profile "$AWS_PROFILE" \

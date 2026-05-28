@@ -93,7 +93,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "2.0.17"
+    assert command.git_tag == "2.0.19"
     assert len(command.validation_runs) == 1
     validation_run = command.validation_runs[0]
     assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -131,7 +131,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.17" in launch_argv
+    assert "2.0.19" in launch_argv
 
     export_argv = command.launch_argv(
         analysis_id="run-1",
@@ -199,6 +199,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert {
         "illumina_snv_alignstats",
         "illumina_snv_alignstats_relatedness_vep_multiqc",
+        "illumina_hg002_kitchensink_multiqc",
         "ultima_snv_alignstats",
         "ultima_snv_alignstats_kitchensink",
         "ont_snv_alignstats",
@@ -217,6 +218,29 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             continue
         assert len(command.validation_runs) == 1
         validation_run = command.validation_runs[0]
+        if validation_run.run_id == "dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101":
+            assert command.command_id == "illumina_hg002_kitchensink_multiqc"
+            assert validation_run.cluster == "goodole3"
+            assert validation_run.region == "us-west-2"
+            assert validation_run.dayec_tag == "5.0.20-dev"
+            assert validation_run.dayoa_tag == "2.0.19"
+            assert validation_run.dayoa_commit == "b377b8b557306fbb6832763a39661ce36d6f4bbd"
+            assert validation_run.status == "success"
+            assert validation_run.dryrun_status == "success"
+            assert validation_run.live_status == "success"
+            assert "produce_metagenomics" in validation_run.tested_command
+            assert "produce_multiqc_all" in validation_run.tested_command
+            assert command.dy_command.startswith("bin/day_run ")
+            assert command.dryrun_dy_command.startswith("bin/day_run ")
+            assert command.dryrun_dy_command.endswith(" -n")
+            assert command.compatible_platforms
+            assert command.compatible_data_modes
+            assert command.git_tag == "2.0.19"
+            assert (
+                command.input_requirements.required_source_columns
+                or command.input_requirements.accepted_source_column_sets
+            )
+            continue
         assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
         assert validation_run.report_path == "docs/tstver411b_command_catalog_test_results.md"
         assert (
@@ -240,7 +264,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "2.0.17"
+        assert command.git_tag == "2.0.19"
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
@@ -303,6 +327,35 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     ]
     assert "multiqc_qc=" in vep_multiqc.dy_command
     assert "enable_tools" in vep_multiqc.dy_command
+
+    illumina_kitchensink = catalog.get_command("illumina_hg002_kitchensink_multiqc")
+    assert illumina_kitchensink.targets == [
+        "produce_sent_align",
+        "produce_dmd_dedup_cram",
+        "produce_sentd_snv_vcf",
+        "produce_alignstats",
+        "produce_snv_concordances",
+        "produce_relatedness",
+        "produce_gatk_contam_estimate",
+        "produce_site_mix_contam_estimate",
+        "produce_global_contam_check",
+        "produce_vep",
+        "produce_expansionhunter",
+        "produce_htd_calls",
+        "produce_metagenomics",
+        "produce_multiqc_all",
+    ]
+    assert illumina_kitchensink.genome == "hg38"
+    assert illumina_kitchensink.jobs == 200
+    assert illumina_kitchensink.aligners == ["sent"]
+    assert illumina_kitchensink.dedupers == ["dmd"]
+    assert illumina_kitchensink.snv_callers == ["sentd"]
+    assert illumina_kitchensink.sv_callers == []
+    assert 'htd_callers=["cyrius"]' in illumina_kitchensink.dy_command
+    assert "--rerun-triggers mtime" in illumina_kitchensink.dy_command
+    assert "produce_metagenomics" in illumina_kitchensink.dy_command
+    assert "produce_multiqc_all" in illumina_kitchensink.dy_command
+    assert "contam_identity" in illumina_kitchensink.dy_command
 
     ultima_kitchensink = catalog.get_command("ultima_snv_alignstats_kitchensink")
     assert ultima_kitchensink.validation_runs == []
