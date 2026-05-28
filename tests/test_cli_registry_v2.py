@@ -1494,7 +1494,9 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "produce_smd_dedup_cram" not in dy_command
     assert dy_command.endswith(" -n")
     assert "--stage-dir" in launch_argv
-    assert "/fsx/staging/staged_external_sequencing_data/remote_stage_20260425T000000Z" in launch_argv
+    assert (
+        "/fsx/staging/staged_external_sequencing_data/remote_stage_20260425T000000Z" in launch_argv
+    )
     receipt = config_dir / "20260425T000000Z_samples_run_receipt.json"
     payload = json.loads(receipt.read_text(encoding="utf-8"))
     assert payload["detected_data_modes"] == ["complete_genomics_solo"]

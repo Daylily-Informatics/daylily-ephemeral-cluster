@@ -101,15 +101,14 @@ def test_active_cluster_templates_use_contract_role_dras() -> None:
         assert "${REGSUB_S3_STAGE_URI}/" not in text
         assert all(item["BatchImportMetaDataOnCreate"] is True for item in associations)
         assert all(
-            item["AutoImportPolicy"] == ["NEW", "CHANGED", "DELETED"]
-            for item in associations
+            item["AutoImportPolicy"] == ["NEW", "CHANGED", "DELETED"] for item in associations
         )
 
 
 def test_packaged_cluster_templates_match_source_templates() -> None:
     for relative_path in ACTIVE_CLUSTER_TEMPLATES:
         source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
-        packaged = (
-            REPO_ROOT / "daylily_ec/resources/payload" / relative_path
-        ).read_text(encoding="utf-8")
+        packaged = (REPO_ROOT / "daylily_ec/resources/payload" / relative_path).read_text(
+            encoding="utf-8"
+        )
         assert packaged == source

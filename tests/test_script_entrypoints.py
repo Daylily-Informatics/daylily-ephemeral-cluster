@@ -277,12 +277,13 @@ class TestRunOmicsAnalysisHeadnodeScript:
         mock_validate_headnode_readiness.side_effect = lambda *args, **kwargs: events.append(
             "readiness"
         )
-        mock_discover.side_effect = lambda *args, **kwargs: events.append(
-            "discover"
-        ) or run_omics_module.RemoteConfig(
-            stage_dir="/fsx/stage/run-1",
-            samples_path="/fsx/stage/run-1/foo_samples.tsv",
-            units_path="/fsx/stage/run-1/foo_units.tsv",
+        mock_discover.side_effect = lambda *args, **kwargs: (
+            events.append("discover")
+            or run_omics_module.RemoteConfig(
+                stage_dir="/fsx/stage/run-1",
+                samples_path="/fsx/stage/run-1/foo_samples.tsv",
+                units_path="/fsx/stage/run-1/foo_units.tsv",
+            )
         )
 
         tmux_result = mock_run_shell.return_value
@@ -333,7 +334,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "--git-tag main" in script
         assert "__DAYLILY_ERROR__=analysis_dir_exists" in script
         assert "__DAYLILY_REPLACED_ANALYSIS_DIR__=$clone_root" in script
-        assert "rm -rf -- \"$clone_root\"" in script
+        assert 'rm -rf -- "$clone_root"' in script
         assert 'if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then' in script
         assert '. "$HOME/miniconda3/etc/profile.d/conda.sh"' in script
         assert "unset PROJECT || true" in script
@@ -356,8 +357,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         out = capsys.readouterr().out
         assert "Run state directory: /home/ubuntu/daylily-runs/sess-1" in out
         assert (
-            "Workflow repo path: /fsx/analysis_results/johnm/analysis/daylily-omics-analysis"
-            in out
+            "Workflow repo path: /fsx/analysis_results/johnm/analysis/daylily-omics-analysis" in out
         )
         assert (
             "daylily-ssh-into-headnode --profile dev --region us-west-2 --cluster cluster-a" in out

@@ -88,9 +88,7 @@ class InputContractDefinition(BaseModel):
 
     @field_validator("generated_tables")
     @classmethod
-    def _validate_generated_tables(
-        cls, values: Dict[str, TableSchema]
-    ) -> Dict[str, TableSchema]:
+    def _validate_generated_tables(cls, values: Dict[str, TableSchema]) -> Dict[str, TableSchema]:
         for key in values:
             _clean_id(key, field_name="generated_tables key")
         return values
@@ -117,9 +115,7 @@ class CommandInputRequirements(BaseModel):
 
     @field_validator("accepted_source_column_sets")
     @classmethod
-    def _validate_accepted_source_column_sets(
-        cls, values: List[List[str]]
-    ) -> List[List[str]]:
+    def _validate_accepted_source_column_sets(cls, values: List[List[str]]) -> List[List[str]]:
         cleaned_sets: List[List[str]] = []
         for column_set in values:
             cleaned = [str(value).strip() for value in column_set]
@@ -132,9 +128,7 @@ class CommandInputRequirements(BaseModel):
 
     @field_validator("required_run_context_values")
     @classmethod
-    def _validate_required_run_context_values(
-        cls, values: Dict[str, str]
-    ) -> Dict[str, str]:
+    def _validate_required_run_context_values(cls, values: Dict[str, str]) -> Dict[str, str]:
         return {
             _clean_id(key, field_name="required_run_context_values key"): _clean_id(
                 value, field_name="required_run_context_values value"
@@ -193,8 +187,7 @@ class CommandValidationRun(BaseModel):
         cleaned = _clean_id(value, field_name="validation status").lower()
         if cleaned not in VALIDATION_STATUSES:
             raise ValueError(
-                "validation status must be one of: "
-                + ", ".join(sorted(VALIDATION_STATUSES))
+                "validation status must be one of: " + ", ".join(sorted(VALIDATION_STATUSES))
             )
         return cleaned
 
@@ -288,9 +281,7 @@ class AnalysisCommand(BaseModel):
     requires_staging: bool
     requires_run_mount: bool
     runtime_parameters: Dict[str, Any] = Field(default_factory=dict)
-    input_requirements: CommandInputRequirements = Field(
-        default_factory=CommandInputRequirements
-    )
+    input_requirements: CommandInputRequirements = Field(default_factory=CommandInputRequirements)
     targets: List[str]
     genome: str
     jobs: int = Field(gt=0)
@@ -355,13 +346,9 @@ class AnalysisCommand(BaseModel):
         if self.launcher != "workflow_launch":
             raise ValueError("launcher must be workflow_launch")
         if self.command_class not in COMMAND_CLASSES:
-            raise ValueError(
-                "command_class must be one of: " + ", ".join(sorted(COMMAND_CLASSES))
-            )
+            raise ValueError("command_class must be one of: " + ", ".join(sorted(COMMAND_CLASSES)))
         if self.input_contract not in INPUT_CONTRACTS:
-            raise ValueError(
-                "input_contract must be one of: " + ", ".join(sorted(INPUT_CONTRACTS))
-            )
+            raise ValueError("input_contract must be one of: " + ", ".join(sorted(INPUT_CONTRACTS)))
         if self.command_class == "sample_analysis":
             if self.input_contract != "sample_manifest":
                 raise ValueError("sample_analysis commands must use sample_manifest input")
@@ -434,9 +421,7 @@ class AnalysisCommand(BaseModel):
         )
         resolved_git_tag = git_tag or self.git_tag
         if export_trigger not in EXPORT_TRIGGERS:
-            raise ValueError(
-                "export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS))
-            )
+            raise ValueError("export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS)))
         if export_destination_s3_uri and export_trigger == "none":
             raise ValueError(
                 "export_trigger must not be 'none' when export_destination_s3_uri is set"
@@ -478,8 +463,7 @@ class AnalysisCommand(BaseModel):
                     f"runtime_parameters.run_context_file is required for {self.command_id}"
                 )
             runtime_config = " ".join(
-                shlex.quote(f"{key}={value}")
-                for key, value in self.runtime_parameters.items()
+                shlex.quote(f"{key}={value}") for key, value in self.runtime_parameters.items()
             )
             dy_command = f"{dy_command} --config {runtime_config}"
         elif run_context_file:
@@ -595,7 +579,10 @@ class RepositoryCatalog(BaseModel):
                     raise ValueError(f"Duplicate analysis command id: {command.command_id}")
                 seen.add(command.command_id)
                 command.repository = repo_key
-                if command.input_contract != "none" and command.input_contract not in self.input_contracts:
+                if (
+                    command.input_contract != "none"
+                    and command.input_contract not in self.input_contracts
+                ):
                     raise ValueError(
                         f"Missing input_contracts definition for {command.input_contract!r}"
                     )

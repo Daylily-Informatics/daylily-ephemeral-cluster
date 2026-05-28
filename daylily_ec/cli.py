@@ -74,21 +74,15 @@ def _validate_analysis_launch_options(
             field_name="executing_entity",
         )
         if export_trigger not in EXPORT_TRIGGERS:
-            raise ValueError(
-                "export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS))
-            )
+            raise ValueError("export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS)))
         if export_destination_s3_uri and export_trigger == "none":
             raise ValueError(
                 "--export-trigger must not be none when --export-destination-s3-uri is set"
             )
         if export_trigger != "none" and not export_destination_s3_uri:
-            raise ValueError(
-                "--export-destination-s3-uri is required when --export-trigger is set"
-            )
+            raise ValueError("--export-destination-s3-uri is required when --export-trigger is set")
         if delete_on_export_success and not export_destination_s3_uri:
-            raise ValueError(
-                "--delete-on-export-success requires --export-destination-s3-uri"
-            )
+            raise ValueError("--delete-on-export-success requires --export-destination-s3-uri")
         if export_destination_s3_uri:
             validate_export_destination_s3_uri(
                 export_destination_s3_uri,
@@ -1133,7 +1127,9 @@ def export(
         artifact_registration_policy = command.artifact_registration
         artifact_registration_genome = command.genome
         if not dewey_url:
-            raise typer.BadParameter("--dewey-url is required with --artifact-registration-command-id")
+            raise typer.BadParameter(
+                "--dewey-url is required with --artifact-registration-command-id"
+            )
         if not dewey_token_env:
             raise typer.BadParameter(
                 "--dewey-token-env is required with --artifact-registration-command-id"

@@ -448,9 +448,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert inflection_bjuice.snv_callers == ["sentdhiomr"]
     assert inflection_bjuice.sv_callers == ["sentdhiomr"]
     assert "produce_sentdhiomr_segdup" in inflection_bjuice.dy_command
-    assert 'sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"}' in (
-        inflection_bjuice.dy_command
-    )
+    assert 'sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"}' in (inflection_bjuice.dy_command)
     assert " -j 125 -p -k" in inflection_bjuice.dy_command
     assert inflection_bjuice.dryrun_dy_command.endswith(" -n")
 
@@ -660,9 +658,7 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
-    assert payload["input_contracts"]["sample_manifest"]["source_table"][
-        "required_columns"
-    ] == [
+    assert payload["input_contracts"]["sample_manifest"]["source_table"]["required_columns"] == [
         "RUN_ID",
         "SAMPLE_ID",
         "EXPERIMENTID",

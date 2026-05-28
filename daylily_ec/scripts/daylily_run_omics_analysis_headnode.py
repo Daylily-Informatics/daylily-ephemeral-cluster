@@ -294,7 +294,9 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Catalog command id whose artifact_registration policy should run after export",
     )
-    parser.add_argument("--dewey-url", default="", help="Dewey base URL for post-export registration")
+    parser.add_argument(
+        "--dewey-url", default="", help="Dewey base URL for post-export registration"
+    )
     parser.add_argument(
         "--dewey-token-env",
         default="",
