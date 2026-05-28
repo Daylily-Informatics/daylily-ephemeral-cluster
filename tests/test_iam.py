@@ -8,6 +8,8 @@ from unittest.mock import MagicMock, patch
 from daylily_ec.aws.iam import (
     CREATE_SCHEDULER_SCRIPT,
     GLOBAL_POLICY_NAME,
+    HEADNODE_TAILSCALE_AUTHKEY_SSM_PARAMETER,
+    HEADNODE_TAILSCALE_POLICY_NAME,
     HEARTBEAT_DEFAULT_ROLE_NAMES,
     HEARTBEAT_ROLE_ENV_VARS,
     PCLUSTER_OMICS_POLICY_DOCUMENT,
@@ -15,7 +17,10 @@ from daylily_ec.aws.iam import (
     REGIONAL_POLICY_PREFIX,
     check_daylily_policies,
     check_policy_attached,
+    ensure_headnode_tailscale_authkey_policy,
     ensure_pcluster_omics_policy,
+    headnode_tailscale_authkey_policy_arn,
+    headnode_tailscale_authkey_policy_document,
     make_iam_preflight_step,
     resolve_scheduler_role,
 )
@@ -35,6 +40,10 @@ def _iam_client(
     list_policies_pages=None,
     create_policy_resp=None,
     create_policy_error=None,
+    get_policy_resp=None,
+    get_policy_version_resp=None,
+    list_policy_versions_resp=None,
+    create_policy_version_error=None,
     get_role_responses=None,
 ):
     """Build a mock IAM client with configurable responses."""
@@ -78,6 +87,31 @@ def _iam_client(
             "Policy": {"Arn": "arn:aws:iam::123456789012:policy/test", "PolicyName": "test"},
         }
 
+    client.get_policy.return_value = get_policy_resp or {
+        "Policy": {
+            "Arn": f"arn:aws:iam::123456789012:policy/{HEADNODE_TAILSCALE_POLICY_NAME}",
+            "DefaultVersionId": "v1",
+        }
+    }
+    client.get_policy_version.return_value = get_policy_version_resp or {
+        "PolicyVersion": {
+            "Document": headnode_tailscale_authkey_policy_document(
+                account_id="123456789012",
+                region="us-west-2",
+            )
+        }
+    }
+    client.list_policy_versions.return_value = list_policy_versions_resp or {
+        "Versions": [{"VersionId": "v1", "IsDefaultVersion": True}]
+    }
+    if create_policy_version_error:
+        client.create_policy_version.side_effect = create_policy_version_error
+    else:
+        client.create_policy_version.return_value = {
+            "PolicyVersion": {"VersionId": "v2", "IsDefaultVersion": True}
+        }
+    client.delete_policy_version.return_value = {}
+
     # get_role — keyed by role name
     if get_role_responses is not None:
 
@@ -97,6 +131,7 @@ def _aws_ctx(*, region="us-west-2", iam_username="testuser", iam_client=None):
     """Build a mock AWSContext."""
     ctx = MagicMock()
     ctx.region = region
+    ctx.account_id = "123456789012"
     ctx.iam_username = iam_username
     ctx.profile = "test-profile"
     if iam_client:
@@ -334,6 +369,101 @@ class TestEnsurePclusterOmicsPolicy:
 
 
 # ===========================================================================
+# ensure_headnode_tailscale_authkey_policy
+# ===========================================================================
+
+
+class TestEnsureHeadnodeTailscaleAuthkeyPolicy:
+    def test_policy_document_scopes_authkey_parameter(self):
+        doc = headnode_tailscale_authkey_policy_document(
+            account_id="123456789012",
+            region="us-west-2",
+        )
+        stmt = doc["Statement"][0]
+        assert stmt["Action"] == "ssm:GetParameter"
+        assert stmt["Resource"] == (
+            "arn:aws:ssm:us-west-2:123456789012:"
+            "parameter/daylily/dayec/tailscale/headnode-authkey"
+        )
+        assert HEADNODE_TAILSCALE_AUTHKEY_SSM_PARAMETER.startswith("/")
+
+    def test_policy_arn_is_deterministic(self):
+        assert headnode_tailscale_authkey_policy_arn("123456789012") == (
+            "arn:aws:iam::123456789012:"
+            f"policy/{HEADNODE_TAILSCALE_POLICY_NAME}"
+        )
+
+    def test_missing_policy_created(self):
+        iam = _iam_client(list_policies_pages=[{"Policies": []}])
+        result = ensure_headnode_tailscale_authkey_policy(
+            iam,
+            account_id="123456789012",
+            region="us-west-2",
+        )
+        assert result.status == CheckStatus.PASS
+        assert result.details["action"] == "created"
+        iam.create_policy.assert_called_once()
+
+    def test_matching_policy_already_exists(self):
+        iam = _iam_client(
+            list_policies_pages=[
+                {
+                    "Policies": [
+                        {
+                            "PolicyName": HEADNODE_TAILSCALE_POLICY_NAME,
+                            "Arn": "arn:aws:iam::123456789012:policy/test",
+                        }
+                    ]
+                }
+            ],
+        )
+        result = ensure_headnode_tailscale_authkey_policy(
+            iam,
+            account_id="123456789012",
+            region="us-west-2",
+        )
+        assert result.status == CheckStatus.PASS
+        assert result.details["action"] == "already_exists"
+        iam.create_policy_version.assert_not_called()
+
+    def test_stale_policy_updates_default_version(self):
+        iam = _iam_client(
+            list_policies_pages=[
+                {
+                    "Policies": [
+                        {
+                            "PolicyName": HEADNODE_TAILSCALE_POLICY_NAME,
+                            "Arn": "arn:aws:iam::123456789012:policy/test",
+                        }
+                    ]
+                }
+            ],
+            get_policy_version_resp={
+                "PolicyVersion": {
+                    "Document": {
+                        "Version": "2012-10-17",
+                        "Statement": [
+                            {
+                                "Effect": "Allow",
+                                "Action": "ssm:GetParameter",
+                                "Resource": "arn:aws:ssm:us-east-1:123456789012:parameter/wrong",
+                            }
+                        ],
+                    }
+                }
+            },
+        )
+        result = ensure_headnode_tailscale_authkey_policy(
+            iam,
+            account_id="123456789012",
+            region="us-west-2",
+        )
+        assert result.status == CheckStatus.PASS
+        assert result.details["action"] == "updated_default_version"
+        iam.create_policy_version.assert_called_once()
+
+
+# ===========================================================================
 # resolve_scheduler_role
 # ===========================================================================
 
@@ -484,7 +614,7 @@ class TestResolveSchedulerRole:
 
 class TestMakeIamPreflightStep:
     def test_all_pass(self):
-        """All policies attached + omics policy exists → 3 PASS checks."""
+        """All policies attached + managed policies exist → 4 PASS checks."""
         iam = _iam_client(
             user_policies=[
                 {"PolicyName": GLOBAL_POLICY_NAME},
@@ -499,7 +629,7 @@ class TestMakeIamPreflightStep:
         report = PreflightReport(region="us-west-2")
         report = step(report)
 
-        assert len(report.checks) == 3
+        assert len(report.checks) == 4
         assert all(c.status == CheckStatus.PASS for c in report.checks)
         assert report.passed
 
@@ -556,7 +686,7 @@ class TestMakeIamPreflightStep:
         )
         report = step(report)
 
-        assert len(report.checks) == 4
+        assert len(report.checks) == 5
         assert report.checks[0].id == "prior.check"
 
     def test_uses_report_region(self):
@@ -589,4 +719,5 @@ class TestMakeIamPreflightStep:
         assert GLOBAL_POLICY_NAME == "DaylilyGlobalEClusterPolicy"
         assert REGIONAL_POLICY_PREFIX == "DaylilyRegionalEClusterPolicy"
         assert PCLUSTER_OMICS_POLICY_NAME == "pcluster-omics-analysis"
+        assert HEADNODE_TAILSCALE_POLICY_NAME == "dayec-headnode-tailscale-authkey-read"
         assert CREATE_SCHEDULER_SCRIPT == "bin/admin/create_scheduler_role_for_sns.sh"

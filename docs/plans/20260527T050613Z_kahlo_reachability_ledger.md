@@ -42,3 +42,7 @@ Ledger path: `docs/plans/20260527T050613Z_kahlo_reachability_ledger.md`
 
 - All rows are terminal.
 - Objective complete: yes. The answer is no for both headnodes and compute nodes in the tested running clusters.
+
+## Superseded Scope Note
+
+2026-05-27T18:14Z user clarification: Kahlo reachability is not required for this work. Treat this ledger as historical evidence only. The active network objective is ongoing headnode reachability to `https://dewey.day.lsmc.bio/`, tracked in `docs/plans/20260527T053324Z_dewey_headnode_tailscale_bootstrap_ledger.md`.

@@ -1,0 +1,2 @@
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.25@tcp:/iafjtb4v  4.4T  734G  3.7T  17% /fsx

@@ -874,6 +874,7 @@ def run_create_workflow(
     )
     from daylily_ec.aws.heartbeat import ensure_heartbeat
     from daylily_ec.aws.iam import (
+        headnode_tailscale_authkey_policy_arn,
         make_iam_preflight_step,
         resolve_scheduler_role,
     )
@@ -1216,6 +1217,9 @@ def run_create_workflow(
         "REGSUB_PUB_SUBNET": public_subnet,
         "REGSUB_S3_BUCKET_INIT": cluster_boot_s3_uri,
         "REGSUB_S3_IAM_POLICY": policy_arn,
+        "REGSUB_HEADNODE_TAILSCALE_IAM_POLICY": headnode_tailscale_authkey_policy_arn(
+            aws_ctx.account_id,
+        ),
         "REGSUB_PRIVATE_SUBNET": private_subnet,
         "REGSUB_S3_REFERENCE_BUCKET": _role_bucket(s3_roles, "reference"),
         "REGSUB_S3_CONTROL_DATA_BUCKET": _role_bucket(s3_roles, "control_data"),

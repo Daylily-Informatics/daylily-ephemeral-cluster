@@ -1,0 +1,10 @@
+{
+  "cluster": "blahab44",
+  "command": "scancel current verifybamid2_contam jobs",
+  "destructive_action_executed": true,
+  "headnode_instance_id": "i-0bc04c4642b1c4b8d",
+  "profile": "lsmc",
+  "region": "us-west-2",
+  "stderr": "",
+  "stdout": "DAY-EC activated.\nDAY-EC activated.\nubuntu\nip-10-0-0-224\nBEFORE\n248|i192|verifybamid2_contam-TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION|ubuntu|CONFIGURING|2:49|1|i192-dy-all-1\nVERIFYBAMID2_IDS=248\nAFTER\n"
+}

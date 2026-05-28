@@ -1,0 +1,207 @@
+DAY-EC activated.
+DAY-EC activated.
+mkdir -p $(dirname results/day/hg38_broad/logs/target_aliases/produce_sentdont_snv_vcf.done); touch results/day/hg38_broad/logs/target_aliases/produce_sentdont_snv_vcf.done;
+[Wed May 27 17:38:57 2026]
+Finished job 90.
+64 of 84 steps (76%) done
+Select jobs to execute...
+
+[Wed May 27 17:38:57 2026]
+rule vep_chromosome:
+    input: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.input.vcf.gz, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.input.vcf.gz.tbi, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.input.vcf.gz.record_count
+    output: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.vcf.gz, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.vcf.gz.tbi, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.vcf.gz.record_count
+    log: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.log
+    jobid: 96
+    benchmark: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/benchmarks/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.vcf.gz.record_count, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.vcf.gz.tbi; Input files updated by another job: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.input.vcf.gz, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.input.vcf.gz.record_count, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.input.vcf.gz.tbi
+    wildcards: sample=TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION, alnr=ont, ddup=na, snv=sentdont, vepchrm=chrY
+    threads: 16
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192,i192mem,i128, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.vcf.gz) $(dirname results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.log)
+        test -d /fsx/references/runtime_assets/tool_specific_resources/vep//homo_sapiens/114_GRCh38 || (
+            echo "ERROR: VEP cache not found: /fsx/references/runtime_assets/tool_specific_resources/vep//homo_sapiens/114_GRCh38" >&2
+            exit 2
+        )
+        records=$(cat results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.input.vcf.gz.record_count)
+        if [ "$records" -eq 0 ]; then
+            gzip -cd results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.input.vcf.gz | awk '/^#/' | bgzip -c > results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.vcf.gz
+        else
+            vep             --dir_cache /fsx/references/runtime_assets/tool_specific_resources/vep/             --offline             --vcf             --cache             --cache_version 114             --input_file results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.input.vcf.gz             --chr chrY             --fork 16             --fasta /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta             --species homo_sapiens             --assembly GRCh38             --output_file results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.vcf.gz             --force_overwrite --everything             --hgvs             --symbol             --protein             --freq_pop             --terms             --variant_class             --compress_output bgzip >> results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.log 2>&1
+        fi
+        tabix -f -p vcf results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.vcf.gz >> results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.log 2>&1
+        cat results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.input.vcf.gz.record_count > results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.vcf.gz.record_count
+        test -s results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.vcf.gz
+        test -s results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrY/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrY.vep.vcf.gz.tbi
+        
+Submitted job 96 with external jobid '480'.
+[Wed May 27 17:38:57 2026]
+Finished job 103.
+65 of 84 steps (77%) done
+Select jobs to execute...
+
+[Wed May 27 17:38:57 2026]
+localrule bcftools_variant_stats_gather:
+    input: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/bcfstats/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.bcfstats.tsv
+    output: results/day/hg38_broad/other_reports/bcftools_variant_stats_mqc.tsv
+    jobid: 40
+    reason: Missing output files: results/day/hg38_broad/other_reports/bcftools_variant_stats_mqc.tsv; Input files updated by another job: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/bcfstats/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.bcfstats.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentdont']
+SNV Callers (final): [sentdont]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=1, time=5440, vcpu=1
+Select jobs to execute...
+[Wed May 27 17:39:01 2026]
+Finished job 40.
+66 of 84 steps (79%) done
+Select jobs to execute...
+
+[Wed May 27 17:39:01 2026]
+rule vep_chromosome:
+    input: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.input.vcf.gz, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.input.vcf.gz.tbi, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.input.vcf.gz.record_count
+    output: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.vcf.gz, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.vcf.gz.tbi, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.vcf.gz.record_count
+    log: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.log
+    jobid: 98
+    benchmark: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/benchmarks/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.vcf.gz.tbi, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.vcf.gz.record_count; Input files updated by another job: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.input.vcf.gz.record_count, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.input.vcf.gz, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.input.vcf.gz.tbi
+    wildcards: sample=TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION, alnr=ont, ddup=na, snv=sentdont, vepchrm=chrM
+    threads: 16
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192,i192mem,i128, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.vcf.gz) $(dirname results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.log)
+        test -d /fsx/references/runtime_assets/tool_specific_resources/vep//homo_sapiens/114_GRCh38 || (
+            echo "ERROR: VEP cache not found: /fsx/references/runtime_assets/tool_specific_resources/vep//homo_sapiens/114_GRCh38" >&2
+            exit 2
+        )
+        records=$(cat results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.input.vcf.gz.record_count)
+        if [ "$records" -eq 0 ]; then
+            gzip -cd results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.input.vcf.gz | awk '/^#/' | bgzip -c > results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.vcf.gz
+        else
+            vep             --dir_cache /fsx/references/runtime_assets/tool_specific_resources/vep/             --offline             --vcf             --cache             --cache_version 114             --input_file results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.input.vcf.gz             --chr chrM             --fork 16             --fasta /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta             --species homo_sapiens             --assembly GRCh38             --output_file results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.vcf.gz             --force_overwrite --everything             --hgvs             --symbol             --protein             --freq_pop             --terms             --variant_class             --compress_output bgzip >> results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.log 2>&1
+        fi
+        tabix -f -p vcf results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.vcf.gz >> results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.log 2>&1
+        cat results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.input.vcf.gz.record_count > results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.vcf.gz.record_count
+        test -s results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.vcf.gz
+        test -s results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chrM/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chrM.vep.vcf.gz.tbi
+        
+Submitted job 98 with external jobid '481'.
+[Wed May 27 17:39:07 2026]
+Finished job 92.
+67 of 84 steps (80%) done
+Select jobs to execute...
+
+[Wed May 27 17:39:07 2026]
+localrule rtg_vcfstats_gather:
+    input: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vcf_stats/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.rtg.vcfstats.txt
+    output: results/day/hg38_broad/other_reports/rtg_vcfstats_mqc.tsv
+    jobid: 42
+    reason: Missing output files: results/day/hg38_broad/other_reports/rtg_vcfstats_mqc.tsv; Input files updated by another job: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vcf_stats/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.rtg.vcfstats.txt
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentdont']
+SNV Callers (final): [sentdont]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=1, time=5440, vcpu=1
+Select jobs to execute...
+[Wed May 27 17:39:10 2026]
+Finished job 42.
+68 of 84 steps (81%) done
+Select jobs to execute...
+
+[Wed May 27 17:39:10 2026]
+rule parse_vcfeval_summary_roi:
+    input: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_hg38/summary.txt, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38/HG003.bed
+    output: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_hg38/snv_TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION_hg38_concordance.mqc.tsv
+    log: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/logs/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.hg38.parse_vcfeval_summary.log
+    jobid: 14
+    benchmark: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/benchmarks/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.hg38.parse_vcfeval_summary.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_hg38/snv_TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION_hg38_concordance.mqc.tsv; Input files updated by another job: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_hg38/summary.txt
+    wildcards: sample=TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION, alnr=ont, ddup=na, snv=sentdont, cmpfootprint=hg38
+    threads: 16
+    resources: mem_mb=16000, mem_mib=15259, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+
+            outdir="$(dirname results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_hg38/summary.txt)"
+            # This file is legacy/debug; parse-vcfeval-summary.py uses its dirname to place the MQC TSV.
+            legacy_parsed="$outdir/vcfeval_summary.parsed.tsv"
+
+            # Keep mean depth behavior identical to the current rule (effectively NA/-1).
+            allvar_mean_dp="na"
+
+            # Prevent parse script from over-threading bcftools when many ROIs run concurrently.
+            export DAYLILY_BCFTOOLS_THREADS="16"
+
+            python workflow/scripts/parse-vcfeval-summary.py \
+              results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_hg38/summary.txt \
+              TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION \
+              /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38/HG003.bed \
+              hg38 \
+              HG003 \
+              "$legacy_parsed" \
+              "$allvar_mean_dp" \
+              ont \
+              na \
+              sentdont \
+              > results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/logs/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.hg38.parse_vcfeval_summary.log 2>&1
+
+            # Hard check: the legacy script should have written the MQC output where we declared it.
+            test -s results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_hg38/snv_TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION_hg38_concordance.mqc.tsv
+            
+Submitted job 14 with external jobid '482'.
+[Wed May 27 17:39:17 2026]
+Finished job 96.
+69 of 84 steps (82%) done
+[Wed May 27 17:39:17 2026]
+Finished job 98.
+70 of 84 steps (83%) done
+Select jobs to execute...
+
+[Wed May 27 17:39:17 2026]
+localrule vep_concat_fofn:
+    input: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chr1/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chr1.vep.vcf.gz.tbi, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chr2/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chr2.vep.vcf.gz.tbi, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chr3/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.chr3.vep.vcf.gz.tbi, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/chunks/chr4/TVBO--output truncated--

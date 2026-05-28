@@ -1,0 +1,207 @@
+DAY-EC activated.
+DAY-EC activated.
+        done
+        for f in results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/10/tmp/stage1_hap.bed results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/10/tmp/stage1_hap.vcf results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/10/tmp/stage1_ins.fa results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/10/tmp/stage1_ins.bed; do
+            if [[ ! -e "$f" ]]; then
+                echo "ERROR: Missing output: $f" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.10.stage1.log
+                exit 1
+            fi
+        done
+
+        echo "Stage1 completed at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.10.stage1.log
+        
+Submitted job 383 with external jobid '364'.
+
+[Wed May 27 17:10:03 2026]
+rule sentdhiomr_stage1:
+    input: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/merged_diff.bed
+    output: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage1.bam, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bam, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bed, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.vcf, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_ins.fa, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_ins.bed
+    log: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+    jobid: 103
+    benchmark: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/benchmarks/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.3.stage1.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bam, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bed, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage1.bam; Input files updated by another job: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/merged_diff.bed
+    wildcards: sample=TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ, alnr=ont, ddup=dmd, dchrm=3
+    threads: 192
+    resources: mem_mb=300000, mem_mib=286103, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=192, time=5440, partition=i192mem,i192bigmem, vcpu=192, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        timestamp=$(date +%Y%m%d%H%M%S)
+        export TMPDIR="/dev/shm/sentdhiomr_s1_${timestamp}_$$"
+        export SENTIEON_TMPDIR="$TMPDIR"
+        mkdir -p "$TMPDIR"
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT
+
+        echo "Starting Stage1 at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+
+        scoped_diploid_bed="$TMPDIR/scoped_diploid.bed"
+        python workflow/scripts/make_scoped_diploid_bed.py \
+            --regions "chr3" \
+            --diploid-bed "/fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_diploid_male.bed" \
+            --fai "/fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta.fai" \
+            --output "$scoped_diploid_bed" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log 2>&1
+
+        # Build LR replace args (matches sentieon-cli RgInfo for LR inputs)
+        RGIDS=$(samtools view -H results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram | awk '
+            $1=="@RG"{
+                for(i=1;i<=NF;i++){
+                    if($i~/^ID:/){
+                        sub(/^ID:/,"",$i);
+                        print $i
+                    }
+                }
+            }')
+
+        LR_RG_ARGS=""
+        for rgid in $RGIDS; do
+            LR_RG_ARGS="$LR_RG_ARGS --replace_rg ${rgid}=ID:${rgid}\\tSM:TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ\\tLR:1"
+        done
+
+        # Match sentieon-cli: remove bwt_max_mem from bwa env (noop if unset)
+        unset bwt_max_mem || true
+
+        # Match sentieon-cli hybrid_stage1():
+        #   Run HAP + INS drivers sequentially to temp files, then cat | bwa mem | util sort
+        #   (sequential execution ensures set -euo pipefail catches driver failures;
+        #    process substitution <(...) silently swallows failures)
+
+        if [ ! -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/merged_diff.bed ]; then
+            echo "WARNING: merged_diff.bed is empty - no haplotype regions to process" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+            echo "Creating empty hap_bam with clean header plus empty hap_bed and hap_vcf" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+            touch results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bed results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.vcf
+            samtools view -H results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram \
+            | grep -E '^@(HD|SQ|RG)' \
+            | samtools view -bo results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bam - 2>> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+            samtools index results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bam >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log 2>&1
+
+            echo "Starting INS driver for scoped shard at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+            sentieon driver \
+                $LR_RG_ARGS --input results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram \
+                --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta \
+                --thread_count 188 \
+                --interval "$scoped_diploid_bed" \
+                --algo HybridStage1 \
+                --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/HybridStage1_ins.model \
+                --fa_file results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_ins.fa \
+                --bed_file results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_ins.bed \
+                - 2>> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log > "$TMPDIR/ins_stdout.sam"
+            echo "INS driver finished at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+
+            cat "$TMPDIR/ins_stdout.sam" \
+            | sentieon bwa mem \
+                -R "@RG\\tID:hybrid-18893\\tSM:TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ" \
+                -t 188 \
+                -x /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/HybridStage1_bwa.model \
+                /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta \
+                - 2>> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log \
+            | sentieon util sort \
+                -i - \
+                -t 188 \
+                -o results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage1.bam \
+                --sam2bam >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log 2>&1
+
+            for f in results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_ins.fa results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_ins.bed; do
+                if [[ ! -e "$f" ]]; then
+                    echo "No insertion output produced for empty merged_diff shard; creating empty expected file: $f" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+                    : > "$f"
+                fi
+            done
+
+            samtools quickcheck results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bam >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log 2>&1 || \
+                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log && exit 1)
+            samtools quickcheck results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage1.bam >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log 2>&1 || \
+                (echo "ERROR: hybrid_stage1.bam failed integrity check - file may be truncated" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log && exit 1)
+        else
+            echo "Processing $(wc -l < results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/merged_diff.bed) regions from merged_diff.bed" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+
+            # 1. Haplotype assembly driver → stdout to temp file, side-outputs written directly
+            echo "Starting HAP driver at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+            sentieon driver \
+                $LR_RG_ARGS --input results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram \
+                --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta \
+                --thread_count 188 \
+                --interval results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/merged_diff.bed \
+                --algo HybridStage1 \
+                --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/HybridStage1.model \
+                --hap_bam results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bam \
+                --hap_bed results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bed \
+                --hap_vcf results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.vcf \
+                - 2>> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log > "$TMPDIR/hap_stdout.sam"
+            echo "HAP driver finished at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+
+            # 2. Insertion detection driver → stdout to temp file, side-outputs written directly
+            echo "Starting INS driver at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+            sentieon driver \
+                $LR_RG_ARGS --input results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram \
+                --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta \
+                --thread_count 188 \
+                --interval results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/merged_diff.bed \
+                --algo HybridStage1 \
+                --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/HybridStage1_ins.model \
+                --fa_file results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_ins.fa \
+                --bed_file results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_ins.bed \
+                - 2>> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log > "$TMPDIR/ins_stdout.sam"
+            echo "INS driver finished at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+
+            # 3. Cat both driver outputs → bwa mem → util sort
+            cat "$TMPDIR/hap_stdout.sam" "$TMPDIR/ins_stdout.sam" \
+            | sentieon bwa mem \
+                -R "@RG\\tID:hybrid-18893\\tSM:TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ" \
+                -t 188 \
+                -x /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/HybridStage1_bwa.model \
+                /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta \
+                - 2>> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log \
+            | sentieon util sort \
+                -i - \
+                -t 188 \
+                -o results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage1.bam \
+                --sam2bam >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log 2>&1
+
+            # 4. Validate all expected outputs exist and are non-empty
+            sync
+            for f in results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bam results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bed results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.vcf results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_ins.fa results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_ins.bed results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage1.bam; do
+                if [[ ! -s "$f" ]]; then
+                    echo "ERROR: Missing or empty output: $f" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+                    exit 1
+                fi
+            done
+
+            # 5. Index hap BAM for downstream rules
+            samtools index results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bam >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log 2>&1
+        fi
+
+        # All stage1 BAMs must be readable before downstream rules consume them.
+        samtools quickcheck results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bam results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage1.bam >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log 2>&1 || \
+            (echo "ERROR: Stage1 BAM integrity check failed" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log && exit 1)
+
+        for f in results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bam results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage1.bam; do
+            if [[ ! -s "$f" ]]; then
+                echo "ERROR: Missing or empty output: $f" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+                exit 1
+            fi
+        done
+        for f in results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.bed results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_hap.vcf results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_ins.fa results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/stage1_ins.bed; do
+            if [[ ! -e "$f" ]]; then
+                echo "ERROR: Missing output: $f" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+                exit 1
+            fi
+        done
+
+        echo "Stage1 completed at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage1.log
+        
+Submitted job 103 with external jobid '365'.
+[Wed May 27 17:12:44 2026]
+Finished job 143.
+97 of 810 steps (12%) done
+Select jobs to execute...
+
+[Wed May 27 17:12:44 2026]
+rule sentdhiomr_stage2:
+    input: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/4/tmp/hybrid_stage1.bam, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/4/tmp/stage1_hap.bam, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/4/tmp/stage1_hap.bed
+    output: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/4/tmp/hybrid_stage2.bed, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/4/tmp/hybrid_stage2_unmap.bam, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/4/tmp/hybrid_stage2_alt.bam
+    log: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.4.stage2.log
+    jobid: 142
+    benchmark: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/benchmarks/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.4.stage2.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/4/tmp/hybrid_stage2_unmap.bam, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/4/tmp/hybrid_stage2.bed, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/4/tmp/hy--output truncated--

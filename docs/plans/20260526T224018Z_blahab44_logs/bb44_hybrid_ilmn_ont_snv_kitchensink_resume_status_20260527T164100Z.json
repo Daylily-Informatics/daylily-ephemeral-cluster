@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config 'dedupers=[\"dmd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis",
+  "session_name": "bb44_hybrid_ilmn_ont_snv_kitchensink",
+  "started_at": "2026-05-27T16:30:31Z"
+}

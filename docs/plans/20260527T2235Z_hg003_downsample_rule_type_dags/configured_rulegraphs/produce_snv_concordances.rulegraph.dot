@@ -1,0 +1,76 @@
+digraph snakemake_dag {
+    graph[bgcolor=white, margin=0];
+    node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
+    edge[penwidth=2, color=grey];
+	0[label = "produce_snv_concordances", color = "0.19 0.6 0.85", style="rounded"];
+	1[label = "prep_for_concordance_check", color = "0.56 0.6 0.85", style="rounded"];
+	2[label = "sentdhiomr_concat_index_chunks", color = "0.49 0.6 0.85", style="rounded"];
+	3[label = "sentdhiomr_concat_fofn", color = "0.43 0.6 0.85", style="rounded"];
+	4[label = "sentdhiomr_final_norm", color = "0.59 0.6 0.85", style="rounded"];
+	5[label = "sentdhiomr_model_apply", color = "0.06 0.6 0.85", style="rounded"];
+	6[label = "sentdhiomr_transfer_merge", color = "0.66 0.6 0.85", style="rounded"];
+	7[label = "sentdhiomr_transfer", color = "0.09 0.6 0.85", style="rounded"];
+	8[label = "sentdhiomr_anno", color = "0.21 0.6 0.85", style="rounded"];
+	9[label = "sentdhiomr_concat_pass", color = "0.50 0.6 0.85", style="rounded"];
+	10[label = "sentdhiomr_subset", color = "0.60 0.6 0.85", style="rounded"];
+	11[label = "sentdhiomr_pass1", color = "0.62 0.6 0.85", style="rounded"];
+	12[label = "sentdhiomr_sr_markdup", color = "0.48 0.6 0.85", style="rounded"];
+	13[label = "sentdhiomr_sr_align", color = "0.35 0.6 0.85", style="rounded"];
+	14[label = "pre_prep_raw_fq", color = "0.48 0.6 0.85", style="rounded"];
+	15[label = "pre_prep_ont_cram", color = "0.15 0.6 0.85", style="rounded"];
+	16[label = "prep_results_dirs", color = "0.37 0.6 0.85", style="rounded"];
+	17[label = "workflow_staging", color = "0.59 0.6 0.85", style="rounded"];
+	18[label = "stage_supporting_data", color = "0.06 0.6 0.85", style="rounded"];
+	19[label = "sentdhiomr_stage2", color = "0.44 0.6 0.85", style="rounded"];
+	20[label = "sentdhiomr_stage1", color = "0.29 0.6 0.85", style="rounded"];
+	21[label = "sentdhiomr_merge_beds", color = "0.16 0.6 0.85", style="rounded"];
+	22[label = "sentdhiomr_hybrid_select", color = "0.38 0.6 0.85", style="rounded"];
+	23[label = "sentdhiomr_mapq0_slop", color = "0.53 0.6 0.85", style="rounded"];
+	24[label = "sentdhiomr_mapq0_bed", color = "0.17 0.6 0.85", style="rounded"];
+	25[label = "sentdhiomr_pass2", color = "0.15 0.6 0.85", style="rounded"];
+	26[label = "sentdhiomr_stage3", color = "0.46 0.6 0.85", style="rounded"];
+	27[label = "parse_vcfeval_summary_roi", color = "0.60 0.6 0.85", style="rounded"];
+	28[label = "rtg_vcfeval_roi", color = "0.06 0.6 0.85", style="rounded"];
+	1 -> 0
+	27 -> 0
+	2 -> 1
+	27 -> 1
+	3 -> 2
+	4 -> 3
+	5 -> 4
+	6 -> 5
+	7 -> 6
+	8 -> 7
+	9 -> 8
+	20 -> 8
+	25 -> 9
+	10 -> 9
+	19 -> 10
+	11 -> 10
+	12 -> 11
+	15 -> 11
+	13 -> 12
+	15 -> 13
+	16 -> 13
+	14 -> 13
+	17 -> 16
+	18 -> 17
+	20 -> 19
+	15 -> 20
+	21 -> 20
+	22 -> 21
+	23 -> 21
+	11 -> 22
+	24 -> 23
+	12 -> 24
+	15 -> 24
+	26 -> 25
+	19 -> 25
+	15 -> 25
+	11 -> 25
+	19 -> 26
+	12 -> 26
+	15 -> 26
+	28 -> 27
+	2 -> 28
+}            

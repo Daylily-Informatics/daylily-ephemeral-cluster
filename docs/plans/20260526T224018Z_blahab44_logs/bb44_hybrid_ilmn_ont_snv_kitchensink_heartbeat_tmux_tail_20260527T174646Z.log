@@ -1,0 +1,211 @@
+DAY-EC activated.
+DAY-EC activated.
+        RGIDS=$(samtools view -H results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram | awk '
+            $1=="@RG"{
+                for(i=1;i<=NF;i++){
+                    if($i~/^ID:/){
+                        sub(/^ID:/,"",$i);
+                        print $i
+                    }
+                }
+            }')
+
+        LR_RG_ARGS=""
+        for rgid in $RGIDS; do
+            LR_RG_ARGS="$LR_RG_ARGS --replace_rg ${rgid}=ID:${rgid}\tSM:TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ\tLR:1"
+        done
+
+        sentieon driver             --temp_dir $TMPDIR             $LR_RG_ARGS --input results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram             --input results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/16/tmp/hybrid_stage3.bam             --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta             --thread_count 188             --interval results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/16/tmp/hybrid_stage2.bed             --algo DNAscope             -d /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz             --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/hybrid.model             --pcr_indel_model none             results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/16/tmp/hybrid_pass2.vcf.gz >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.16.pass2.log 2>&1
+
+        echo "Pass 2 completed at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.16.pass2.log
+        
+Submitted job 628 with external jobid '484'.
+[Wed May 27 17:40:09 2026]
+Finished job 589.
+155 of 810 steps (19%) done
+Select jobs to execute...
+
+[Wed May 27 17:40:09 2026]
+rule sentdhiomr_pass2:
+    input: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_stage3.bam, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_stage2.bed, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/initial.vcf.gz
+    output: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_pass2.vcf.gz, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_pass2.vcf.gz.tbi
+    log: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.15.pass2.log
+    jobid: 588
+    benchmark: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/benchmarks/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.15.pass2.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_pass2.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_pass2.vcf.gz; Input files updated by another job: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/initial.vcf.gz, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_stage2.bed, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_stage3.bam
+    wildcards: sample=TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ, alnr=ont, ddup=dmd, dchrm=15
+    threads: 192
+    resources: mem_mb=300000, mem_mib=286103, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=192, time=5440, partition=i192mem,i192bigmem, vcpu=192, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        timestamp=$(date +%Y%m%d%H%M%S);
+        export TMPDIR="/dev/shm/sentdhiomr_p2_${timestamp}_$$";
+        export SENTIEON_TMPDIR="$TMPDIR";
+        mkdir -p "$TMPDIR";
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+
+        echo "Starting Pass 2 DNAscope at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.15.pass2.log
+
+        if [ ! -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_stage2.bed ]; then
+            echo "WARNING: hybrid_stage2.bed is empty - no Pass 2 regions; creating empty VCF" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.15.pass2.log
+            bcftools view --threads 192 -h results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/initial.vcf.gz | bgzip -c > results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_pass2.vcf.gz
+            tabix -f -p vcf -@ 192 results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_pass2.vcf.gz >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.15.pass2.log 2>&1
+            echo "Pass 2 completed with empty input regions at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.15.pass2.log
+            exit 0
+        fi
+
+        # Build --replace_rg args: LR reads get LR:1 tag for hybrid model.
+        # This also unifies SM tags across lr_cram and stage3_bam so sentieon
+        # driver sees a single sample (stage3_bam inherits LR RGs from ONT input).
+        RGIDS=$(samtools view -H results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram | awk '
+            $1=="@RG"{
+                for(i=1;i<=NF;i++){
+                    if($i~/^ID:/){
+                        sub(/^ID:/,"",$i);
+                        print $i
+                    }
+                }
+            }')
+
+        LR_RG_ARGS=""
+        for rgid in $RGIDS; do
+            LR_RG_ARGS="$LR_RG_ARGS --replace_rg ${rgid}=ID:${rgid}\tSM:TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ\tLR:1"
+        done
+
+        sentieon driver             --temp_dir $TMPDIR             $LR_RG_ARGS --input results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram             --input results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_stage3.bam             --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta             --thread_count 188             --interval results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_stage2.bed             --algo DNAscope             -d /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz             --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/hybrid.model             --pcr_indel_model none             results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/tmp/hybrid_pass2.vcf.gz >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.15.pass2.log 2>&1
+
+        echo "Pass 2 completed at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.15.pass2.log
+        
+Submitted job 588 with external jobid '485'.
+[Wed May 27 17:42:21 2026]
+Finished job 549.
+156 of 810 steps (19%) done
+Select jobs to execute...
+
+[Wed May 27 17:42:21 2026]
+rule sentdhiomr_pass2:
+    input: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_stage3.bam, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_stage2.bed, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/initial.vcf.gz
+    output: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_pass2.vcf.gz, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_pass2.vcf.gz.tbi
+    log: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.14.pass2.log
+    jobid: 548
+    benchmark: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/benchmarks/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.14.pass2.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_pass2.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_pass2.vcf.gz; Input files updated by another job: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/initial.vcf.gz, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_stage2.bed, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_stage3.bam
+    wildcards: sample=TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ, alnr=ont, ddup=dmd, dchrm=14
+    threads: 192
+    resources: mem_mb=300000, mem_mib=286103, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=192, time=5440, partition=i192mem,i192bigmem, vcpu=192, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        timestamp=$(date +%Y%m%d%H%M%S);
+        export TMPDIR="/dev/shm/sentdhiomr_p2_${timestamp}_$$";
+        export SENTIEON_TMPDIR="$TMPDIR";
+        mkdir -p "$TMPDIR";
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+
+        echo "Starting Pass 2 DNAscope at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.14.pass2.log
+
+        if [ ! -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_stage2.bed ]; then
+            echo "WARNING: hybrid_stage2.bed is empty - no Pass 2 regions; creating empty VCF" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.14.pass2.log
+            bcftools view --threads 192 -h results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/initial.vcf.gz | bgzip -c > results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_pass2.vcf.gz
+            tabix -f -p vcf -@ 192 results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_pass2.vcf.gz >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.14.pass2.log 2>&1
+            echo "Pass 2 completed with empty input regions at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.14.pass2.log
+            exit 0
+        fi
+
+        # Build --replace_rg args: LR reads get LR:1 tag for hybrid model.
+        # This also unifies SM tags across lr_cram and stage3_bam so sentieon
+        # driver sees a single sample (stage3_bam inherits LR RGs from ONT input).
+        RGIDS=$(samtools view -H results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram | awk '
+            $1=="@RG"{
+                for(i=1;i<=NF;i++){
+                    if($i~/^ID:/){
+                        sub(/^ID:/,"",$i);
+                        print $i
+                    }
+                }
+            }')
+
+        LR_RG_ARGS=""
+        for rgid in $RGIDS; do
+            LR_RG_ARGS="$LR_RG_ARGS --replace_rg ${rgid}=ID:${rgid}\tSM:TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ\tLR:1"
+        done
+
+        sentieon driver             --temp_dir $TMPDIR             $LR_RG_ARGS --input results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram             --input results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_stage3.bam             --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta             --thread_count 188             --interval results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_stage2.bed             --algo DNAscope             -d /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz             --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/hybrid.model             --pcr_indel_model none             results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/tmp/hybrid_pass2.vcf.gz >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.14.pass2.log 2>&1
+
+        echo "Pass 2 completed at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.14.pass2.log
+        
+Submitted job 548 with external jobid '486'.
+[Wed May 27 17:42:52 2026]
+Finished job 429.
+157 of 810 steps (19%) done
+Select jobs to execute...
+
+[Wed May 27 17:42:52 2026]
+rule sentdhiomr_pass2:
+    input: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_stage3.bam, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_stage2.bed, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/initial.vcf.gz
+    output: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_pass2.vcf.gz, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_pass2.vcf.gz.tbi
+    log: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.11.pass2.log
+    jobid: 428
+    benchmark: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/benchmarks/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.11.pass2.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_pass2.vcf.gz, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_pass2.vcf.gz.tbi; Input files updated by another job: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_stage3.bam, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_stage2.bed, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/initial.vcf.gz
+    wildcards: sample=TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ, alnr=ont, ddup=dmd, dchrm=11
+    threads: 192
+    resources: mem_mb=300000, mem_mib=286103, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=192, time=5440, partition=i192mem,i192bigmem, vcpu=192, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        timestamp=$(date +%Y%m%d%H%M%S);
+        export TMPDIR="/dev/shm/sentdhiomr_p2_${timestamp}_$$";
+        export SENTIEON_TMPDIR="$TMPDIR";
+        mkdir -p "$TMPDIR";
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+
+        echo "Starting Pass 2 DNAscope at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.11.pass2.log
+
+        if [ ! -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_stage2.bed ]; then
+            echo "WARNING: hybrid_stage2.bed is empty - no Pass 2 regions; creating empty VCF" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.11.pass2.log
+            bcftools view --threads 192 -h results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/initial.vcf.gz | bgzip -c > results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_pass2.vcf.gz
+            tabix -f -p vcf -@ 192 results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_pass2.vcf.gz >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.11.pass2.log 2>&1
+            echo "Pass 2 completed with empty input regions at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.11.pass2.log
+            exit 0
+        fi
+
+        # Build --replace_rg args: LR reads get LR:1 tag for hybrid model.
+        # This also unifies SM tags across lr_cram and stage3_bam so sentieon
+        # driver sees a single sample (stage3_bam inherits LR RGs from ONT input).
+        RGIDS=$(samtools view -H results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram | awk '
+            $1=="@RG"{
+                for(i=1;i<=NF;i++){
+                    if($i~/^ID:/){
+                        sub(/^ID:/,"",$i);
+                        print $i
+                    }
+                }
+            }')
+
+        LR_RG_ARGS=""
+        for rgid in $RGIDS; do
+            LR_RG_ARGS="$LR_RG_ARGS --replace_rg ${rgid}=ID:${rgid}\tSM:TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ\tLR:1"
+        done
+
+        sentieon driver             --temp_dir $TMPDIR             $LR_RG_ARGS --input results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram             --input results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_stage3.bam             --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta             --thread_count 188             --interval results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_stage2.bed             --algo DNAscope             -d /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz             --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/hybrid.model             --pcr_indel_model none             results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/tmp/hybrid_pass2.vcf.gz >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.11.pass2.log 2>&1
+
+        echo "Pass 2 completed at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.11.pass2.log
+        
+Submitted job 428 with external jobid '487'.
+[Wed May 27 17:45:04 2026]
+Finished job 469.
+158 of 810 steps (20%) done
+Select jobs to execute...
+
+[Wed May 27 17:45:04 2026]
+rule sentdhiomr_pass2:
+    input: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/12/tmp/hybrid_stage3.bam, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/12/tmp/hybrid_stage2.bed, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/12/tmp/initial.vcf.gz
+    output: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/12/tmp/hybrid_pass2.vcf.gz, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/12/tmp/hybrid_pass2.v--output truncated--

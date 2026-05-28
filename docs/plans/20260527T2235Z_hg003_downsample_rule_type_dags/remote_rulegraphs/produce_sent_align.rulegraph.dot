@@ -1,0 +1,16 @@
+digraph snakemake_dag {
+    graph[bgcolor=white, margin=0];
+    node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
+    edge[penwidth=2, color=grey];
+	0[label = "produce_sent_align", color = "0.55 0.6 0.85", style="rounded"];
+	1[label = "sentieon_bwa_sort", color = "0.20 0.6 0.85", style="rounded"];
+	2[label = "prep_results_dirs", color = "0.30 0.6 0.85", style="rounded"];
+	3[label = "workflow_staging", color = "0.28 0.6 0.85", style="rounded"];
+	4[label = "stage_supporting_data", color = "0.52 0.6 0.85", style="rounded"];
+	5[label = "pre_prep_raw_fq", color = "0.09 0.6 0.85", style="rounded"];
+	1 -> 0
+	2 -> 1
+	5 -> 1
+	3 -> 2
+	4 -> 3
+}            

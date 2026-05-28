@@ -1,0 +1,322 @@
+DAY-EC activated.
+DAY-EC activated.
+Notice: --project not set. Using default project name: blahab44
+Project: blahab44
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'blahab44' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+
+# conda environments:
+#
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/02a70fb2ebcbaa509b30f6b5cab377cb_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/03707639368029e36759383553c49f62_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/2129b546503a81a3e9c16e8afeeee883_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/259e5bf829c85aeac0c543138e5d5717_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/2a592f8cb2ea0ab517525e1c374d0b7f_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/475aa55a63a6102dc87443d07bb2becf_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/4c2760e4d6954feb2a0f488cc2a3ebfa_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/5b52586975995e70535539f4efbe6e67_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/718bbd3a93d85278413b931a105252e9_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/72205f2607ea90d4a3fa0ef0c0ad02a0_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/7356750ca2524173061d579e8bf1abe5_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/7bbb0559d21189038ad4088dafc37d3a_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/8018b3c701aa0d57e0c2405005b6458b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/8184d13d40692753d2bc3ab1f1d7992d_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/83b7c9f9885c9decb8857bf7fcf4ce0a_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/8bedc535429475a312bc37c1b0871abf_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/ac701c484290b7c6d4ce7def628aa438_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/b192561bb1ca4049d37cdf2e15002dba_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/d8a4ef538c7dad1a6f4b6e86be2d2b47_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/d961cb55167ede2faa1aaf8fdc47a85b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/fb4f97e4509d84233dc3a176f2a98b61_
+                       /fsx/resources/environments/nextflow/java-21
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'blahab44' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project blahab44 .
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+Detected sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic will be used and overrides what is in ~/.config/daylily/daylily_cli_global.yaml
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad  
+       _______ GREAT SUCCESS _______       
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+...AUTO-CONFIG: snv_callers=sentdhiomr (from target rules → env)
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/day_profiles/slurm produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config dedupers=["dmd"] multiqc_qc={"enable_tools":["vep"]} -p -j 100 -k
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+deduper (final): [dmd]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentdhiomr']
+SNV Callers (final): [sentdhiomr]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/units.tsv
+KeyError in file /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/workflow/rules/contam_identity.smk, line 369:
+'ngstroublefinder'
+  File "/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/workflow/Snakefile", line 327, in <module>
+  File "/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/workflow/rules/contam_identity.smk", line 369, in <module>
+RETURN CODE: 1
+[INFO] Resume workflow exited with status 1
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-224:/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis$ ^C
+(DAY-EC) ubuntu@ip-10-0-0-224:/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis$ bash /home/ubuntu/daylily-runs/bb44_hybrid_ilmn_ont_snv_kitchensink/resume_no_verifybamid2_2.0.8.sh >>/home/ubuntu/daylily-runs/bb44_hybrid_ilmn_ont_snv_kitchensink/tmux.log 2>&1
+[INFO] resume_no_verifybamid2 started at 2026-05-27T16:30:31Z
+[INFO] repo path: /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis
+5cc2200 (HEAD, tag: 2.0.8, origin/main, origin/HEAD) Update container cache profile prefixes
+347:# include: "rules/verifybamid2_contam.smk"  # retired from active Snakemake; kept for historical provenance only
+Notice: --project not set. Using default project name: blahab44
+Project: blahab44
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'blahab44' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+
+# conda environments:
+#
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/02a70fb2ebcbaa509b30f6b5cab377cb_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/03707639368029e36759383553c49f62_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/2129b546503a81a3e9c16e8afeeee883_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/259e5bf829c85aeac0c543138e5d5717_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/2a592f8cb2ea0ab517525e1c374d0b7f_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/475aa55a63a6102dc87443d07bb2becf_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/4c2760e4d6954feb2a0f488cc2a3ebfa_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/5b52586975995e70535539f4efbe6e67_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/718bbd3a93d85278413b931a105252e9_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/72205f2607ea90d4a3fa0ef0c0ad02a0_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/7356750ca2524173061d579e8bf1abe5_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/7bbb0559d21189038ad4088dafc37d3a_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/8018b3c701aa0d57e0c2405005b6458b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/8184d13d40692753d2bc3ab1f1d7992d_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/83b7c9f9885c9decb8857bf7fcf4ce0a_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/8bedc535429475a312bc37c1b0871abf_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/ac701c484290b7c6d4ce7def628aa438_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/b192561bb1ca4049d37cdf2e15002dba_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/d8a4ef538c7dad1a6f4b6e86be2d2b47_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/d961cb55167ede2faa1aaf8fdc47a85b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-224/fb4f97e4509d84233dc3a176f2a98b61_
+                       /fsx/resources/environments/nextflow/java-21
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'blahab44' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project blahab44 .
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+Detected sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic will be used and overrides what is in ~/.config/daylily/daylily_cli_global.yaml
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad  
+       _______ GREAT SUCCESS _______       
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+...AUTO-CONFIG: snv_callers=sentdhiomr (from target rules → env)
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/day_profiles/slurm produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config dedupers=["dmd"] multiqc_qc={"enable_tools":["vep"]} -p -j 100 -k
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+deduper (final): [dmd]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentdhiomr']
+SNV Callers (final): [sentdhiomr]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+PREP CRAM:: results/day/hg38_broad//TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/ ... 
+All Wildcards:    all snv_CALLERS:  ['sentdhiomr']  all ALIGNERS:  []  all CRAM_ALIGNERS:  ['ont']  all samples:  {'TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ': ['TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ']}  all concordance samples:  dict_keys(['TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ'])
+Pulling singularity image docker://multiqc/multiqc:v1.35.

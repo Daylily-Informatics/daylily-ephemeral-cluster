@@ -1,0 +1,5 @@
+RUN_DIR=/fsx/analysis_results/ubuntu/inflection_20260527-2.0.11/daylily-omics-analysis
+CHECK_UTC=2026-05-27T22:43:40Z
+produce_dmd_dedup_cram	0	/tmp/hg003_downsample_rulegraphs_configured_20260527T2243Z/produce_dmd_dedup_cram.rulegraph.dot	--config aligners=["sent"] dedupers=["dmd"]
+produce_expansionhunter	0	/tmp/hg003_downsample_rulegraphs_configured_20260527T2243Z/produce_expansionhunter.rulegraph.dot	--config aligners=["sent"] dedupers=["dmd"]
+produce_snv_concordances	0	/tmp/hg003_downsample_rulegraphs_configured_20260527T2243Z/produce_snv_concordances.rulegraph.dot	--config aligners=["sent"] dedupers=["dmd"] snv_callers=["sentdhiomr"]

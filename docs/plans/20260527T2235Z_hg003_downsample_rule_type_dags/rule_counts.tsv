@@ -1,0 +1,54 @@
+DAY-EC activated.
+DAY-EC activated.
+MAIN_LOG=.snakemake/log/2026-05-27T195632.640964.snakemake.log
+CHECK_UTC=2026-05-27T22:45:08Z
+DF_H_FSX=4.4T 737G 3.7T 17% /fsx
+RULE	PLANNED	FINISHED	REMAINING
+doppelmark_dups	2	2	0
+expansionhunter_call	2	2	0
+expansionhunter_json_to_tsv	2	2	0
+parse_vcfeval_summary_roi	12	0	12
+pre_prep_ont_cram	2	2	0
+pre_prep_raw_fq	2	0	2
+prep_for_concordance_check	2	0	2
+prep_results_dirs	1	0	1
+produce_dmd_dedup_cram	1	0	1
+produce_expansionhunter	1	0	1
+produce_sent_align	1	0	1
+produce_sentdhiomr_cnv	1	0	1
+produce_sentdhiomr_mito	1	0	1
+produce_sentdhiomr_segdup	1	0	1
+produce_sentdhiomr_snv_vcf	1	0	1
+produce_sentdhiomr_sv	1	0	1
+produce_snv_concordances	1	0	1
+rtg_vcfeval_roi	12	0	12
+sentdhiomr_anno	36	0	36
+sentdhiomr_call_cnvs	2	2	0
+sentdhiomr_call_segdup	2	0	2
+sentdhiomr_call_segdup_gene	18	6	12
+sentdhiomr_call_svs	2	2	0
+sentdhiomr_concat_fofn	2	0	2
+sentdhiomr_concat_index_chunks	2	0	2
+sentdhiomr_concat_pass	36	0	36
+sentdhiomr_final_norm	36	0	36
+sentdhiomr_hybrid_select	36	36	0
+sentdhiomr_mapq0_bed	36	36	0
+sentdhiomr_mapq0_slop	36	36	0
+sentdhiomr_merge_beds	36	36	0
+sentdhiomr_merge_sr_bams	2	2	0
+sentdhiomr_mito_call	2	2	0
+sentdhiomr_model_apply	36	0	36
+sentdhiomr_pass1	36	36	0
+sentdhiomr_pass2	36	0	36
+sentdhiomr_sr_align	2	2	0
+sentdhiomr_sr_markdup	2	2	0
+sentdhiomr_stage1	36	18	18
+sentdhiomr_stage2	36	18	18
+sentdhiomr_stage3	36	8	28
+sentdhiomr_subset	36	17	19
+sentdhiomr_transfer	900	0	900
+sentdhiomr_transfer_merge	36	0	36
+sentieon_bwa_sort	2	2	0
+stage_supporting_data	1	0	1
+workflow_staging	1	0	1
+TOTAL	1526	280	1246

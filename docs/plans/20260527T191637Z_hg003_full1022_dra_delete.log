@@ -1,0 +1,7 @@
+DAY-EC activated.
+UTC_START=2026-05-27T19:16:38Z
+COMMAND=dyec mounts delete --association-id dra-0daa2bf3e769b75d2 --region us-west-2 --profile lsmc --wait
+✗ --file-system-path is required when --purpose custom is used.
+UTC_END=2026-05-27T19:24:18Z
+RC=1
+docs/plans/20260527T191637Z_hg003_full1022_dra_delete.sh: line 13: /Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/: Is a directory

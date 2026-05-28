@@ -1,0 +1,20 @@
+[1m[48;5;88m[38;5;79mYour config files in /fsx/analysis_results/ubuntu/inflection_20260527-2.0.11/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.[0m
+[1m[40m[38;5;118mExecuting: snakemake --profile=/fsx/analysis_results/ubuntu/inflection_20260527-2.0.11/daylily-omics-analysis/config/day_profiles/slurm produce_expansionhunter --config aligners=["sent"] dedupers=["dmd"] --rulegraph --nolock[0m
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/inflection_20260527-2.0.11/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/inflection_20260527-2.0.11/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+[1m[38;5;79maligners: [sent][0m
+[1m[38;5;79maligners (final): [sent][0m
+[1m[38;5;79mdeduper (final): [dmd][0m
+[1m[48;5;166m[38;5;79m...WARNING: No snv_callers set in the config.[0m
+[1m[38;5;79mSNV Callers (final): [][0m
+[1m[38;5;79mSomatic SNV Callers:[senttn][0m
+[1m[48;5;166m[38;5;79m... WARNING: No sv_callers set in the config.[0m
+[1m[38;5;79mSV Callers (final): [][0m
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/inflection_20260527-2.0.11/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/inflection_20260527-2.0.11/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+[5m[48;5;118m[30mRETURN CODE: 0[0m

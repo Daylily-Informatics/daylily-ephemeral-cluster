@@ -1,0 +1,8 @@
+{
+  "cluster": "blahab44",
+  "headnode_instance_id": "i-0bc04c4642b1c4b8d",
+  "profile": "lsmc",
+  "region": "us-west-2",
+  "stderr": "From https://github.com/Daylily-Informatics/daylily-omics-analysis\n   a073f31..5cc2200  main       -> origin/main\n * [new tag]         2.0.7      -> 2.0.7\n * [new tag]         2.0.8      -> 2.0.8\nPrevious HEAD position was 2398d4a Restore writable Snakemake conda cache\nHEAD is now at 5cc2200 Update container cache profile prefixes\nFrom https://github.com/Daylily-Informatics/daylily-omics-analysis\n   a073f31..5cc2200  main       -> origin/main\n * [new tag]         2.0.7      -> 2.0.7\n * [new tag]         2.0.8      -> 2.0.8\nPrevious HEAD position was 2398d4a Restore writable Snakemake conda cache\nHEAD is now at 5cc2200 Update container cache profile prefixes\n",
+  "stdout": "DAY-EC activated.\nDAY-EC activated.\nubuntu\nip-10-0-0-224\nSESSION=bb44_ont_snv_alignstats_kitchensink\n## HEAD (no branch)\n?? sbatch_errs.log\n5cc2200 (HEAD, tag: 2.0.8, origin/main, origin/HEAD) Update container cache profile prefixes\n347:# include: \"rules/verifybamid2_contam.smk\"  # retired from active Snakemake; kept for historical provenance only\nSESSION=bb44_hybrid_ilmn_ont_snv_kitchensink\n## HEAD (no branch)\n?? sbatch_errs.log\n5cc2200 (HEAD, tag: 2.0.8, origin/main, origin/HEAD) Update container cache profile prefixes\n347:# include: \"rules/verifybamid2_contam.smk\"  # retired from active Snakemake; kept for historical provenance only\n"
+}

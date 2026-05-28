@@ -1,0 +1,10 @@
+digraph snakemake_dag {
+    graph[bgcolor=white, margin=0];
+    node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
+    edge[penwidth=2, color=grey];
+	0[label = "produce_sentdhiomr_sv", color = "0.32 0.6 0.85", style="rounded"];
+	1[label = "sentdhiomr_call_svs", color = "0.56 0.6 0.85", style="rounded"];
+	2[label = "pre_prep_ont_cram", color = "0.46 0.6 0.85", style="rounded"];
+	1 -> 0
+	2 -> 1
+}            

@@ -42,7 +42,7 @@ def _full_subs() -> dict[str, str]:
 
 class TestConstants:
     def test_all_keys_count(self):
-        assert len(ALL_SUBSTITUTION_KEYS) == 31
+        assert len(ALL_SUBSTITUTION_KEYS) == 32
 
     def test_required_keys_subset(self):
         assert REQUIRED_KEYS.issubset(ALL_SUBSTITUTION_KEYS)
@@ -141,6 +141,7 @@ class TestAllSubstitutionKeys:
             "REGSUB_REGION", "REGSUB_PUB_SUBNET", "REGSUB_KEYNAME",
             "REGSUB_S3_BUCKET_INIT",
             "REGSUB_S3_IAM_POLICY",
+            "REGSUB_HEADNODE_TAILSCALE_IAM_POLICY",
             "REGSUB_PRIVATE_SUBNET",
             "REGSUB_S3_REFERENCE_BUCKET", "REGSUB_S3_CONTROL_DATA_BUCKET",
             "REGSUB_S3_STAGE_BUCKET",

@@ -1,7 +1,7 @@
 # Goodole3 DAY-EC Command Catalog Report Ledger
 
 Created: 2026-05-27T15:57:36Z
-Last updated: 2026-05-27T16:10:28Z
+Last updated: 2026-05-27T16:18:09Z
 
 ## Objective
 
@@ -27,6 +27,13 @@ No cluster deletion, prefix deletion, bucket deletion, DRA deletion, or other de
 | Orchestrator | parent thread | Ledger, integration, final validation | Created ledger and integrated report. |
 
 ## Gate 0: Inventory Freeze
+
+The Gate 0 table records the report evidence state captured before the
+background branch advanced to DYEC `5.0.10`. Finalization readback at
+`2026-05-27T16:18:09Z` found a clean worktree at `21219791`, tag `5.0.10`,
+source and packaged DayOA catalog pins set to `2.0.8`, and source and packaged
+DYEC self-pins set to `5.0.10`. The Goodole3 v206 validation evidence remains
+the explicit `--git-tag 2.0.6` run set documented in the report.
 
 | Surface | Evidence |
 |---|---|

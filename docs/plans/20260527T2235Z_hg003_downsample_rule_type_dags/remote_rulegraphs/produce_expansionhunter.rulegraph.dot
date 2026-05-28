@@ -1,0 +1,22 @@
+digraph snakemake_dag {
+    graph[bgcolor=white, margin=0];
+    node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
+    edge[penwidth=2, color=grey];
+	0[label = "produce_expansionhunter", color = "0.47 0.6 0.85", style="rounded"];
+	1[label = "expansionhunter_json_to_tsv", color = "0.55 0.6 0.85", style="rounded"];
+	2[label = "expansionhunter_call", color = "0.20 0.6 0.85", style="rounded"];
+	3[label = "doppelmark_dups", color = "0.32 0.6 0.85", style="rounded"];
+	4[label = "sentieon_bwa_sort", color = "0.38 0.6 0.85", style="rounded"];
+	5[label = "prep_results_dirs", color = "0.01 0.6 0.85", style="rounded"];
+	6[label = "workflow_staging", color = "0.29 0.6 0.85", style="rounded"];
+	7[label = "stage_supporting_data", color = "0.66 0.6 0.85", style="rounded"];
+	8[label = "pre_prep_raw_fq", color = "0.63 0.6 0.85", style="rounded"];
+	1 -> 0
+	2 -> 1
+	3 -> 2
+	4 -> 3
+	5 -> 4
+	8 -> 4
+	6 -> 5
+	7 -> 6
+}            

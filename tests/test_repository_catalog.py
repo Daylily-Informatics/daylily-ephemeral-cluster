@@ -28,6 +28,7 @@ UNVALIDATED_COMMAND_IDS = {
     "ultima_snv_alignstats_kitchensink",
     "ont_snv_alignstats_kitchensink",
     "hybrid_ilmn_ont_snv_kitchensink",
+    "inflection-bjuice-product-v0.1",
 }
 
 
@@ -92,7 +93,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "2.0.8"
+    assert command.git_tag == "2.0.12"
     assert len(command.validation_runs) == 1
     validation_run = command.validation_runs[0]
     assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -119,7 +120,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.8" in launch_argv
+    assert "2.0.12" in launch_argv
 
     export_argv = command.launch_argv(
         analysis_id="run-1",
@@ -197,7 +198,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "2.0.8"
+        assert command.git_tag == "2.0.12"
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
@@ -325,6 +326,31 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_sentdhiom_snv_vcf" not in hybrid_kitchensink.dy_command
     assert "produce_multiqc_all" in hybrid_kitchensink.dy_command
     assert "multiqc_qc=" in hybrid_kitchensink.dy_command
+
+    inflection_bjuice = catalog.get_command("inflection-bjuice-product-v0.1")
+    assert inflection_bjuice.validation_runs == []
+    assert inflection_bjuice.targets == [
+        "produce_sent_align",
+        "produce_dmd_dedup_cram",
+        "produce_sentdhiomr_sv",
+        "produce_snv_concordances",
+        "produce_sentdhiomr_snv_vcf",
+        "produce_sentdhiomr_cnv",
+        "produce_sentdhiomr_mito",
+        "produce_sentdhiomr_segdup",
+        "produce_expansionhunter",
+    ]
+    assert inflection_bjuice.jobs == 125
+    assert inflection_bjuice.aligners == ["sent"]
+    assert inflection_bjuice.dedupers == ["dmd"]
+    assert inflection_bjuice.snv_callers == ["sentdhiomr"]
+    assert inflection_bjuice.sv_callers == ["sentdhiomr"]
+    assert "produce_sentdhiomr_segdup" in inflection_bjuice.dy_command
+    assert 'sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"}' in (
+        inflection_bjuice.dy_command
+    )
+    assert " -j 125 -p -k" in inflection_bjuice.dy_command
+    assert inflection_bjuice.dryrun_dy_command.endswith(" -n")
 
 
 def test_repository_catalog_run_analysis_commands_require_run_context() -> None:

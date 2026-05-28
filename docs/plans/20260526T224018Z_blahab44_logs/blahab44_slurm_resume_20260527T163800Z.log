@@ -1,0 +1,19 @@
+DAY-EC activated.
+DAY-EC activated.
+HEADNODE=ip-10-0-0-224
+WHOAMI=ubuntu
+UTC=2026-05-27T16:38:08Z
+SQUEUE_BEGIN
+SQUEUE_END
+VERIFYBAMID2_COUNT=0
+CONTROLLER_COUNT=8
+CONTROLLERS_BEGIN
+ubuntu    873572  867974  0 16:30 pts/41   00:00:00 bash /home/ubuntu/daylily-runs/bb44_ont_snv_alignstats_kitchensink/resume_no_verifybamid2_2.0.8.sh
+ubuntu    873580  867983  0 16:30 pts/44   00:00:00 bash /home/ubuntu/daylily-runs/bb44_hybrid_ilmn_ont_snv_kitchensink/resume_no_verifybamid2_2.0.8.sh
+ubuntu    874110  873580  0 16:30 pts/44   00:00:00 bash bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config dedupers=["dmd"] multiqc_qc={"enable_tools":["vep"]} -p -j 100 -k
+ubuntu    874111  873572  0 16:30 pts/41   00:00:00 bash bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config multiqc_qc={"enable_tools":["vep"]} -p -j 5 -k
+ubuntu    874150  874111  0 16:30 pts/41   00:00:00 bash bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config multiqc_qc={"enable_tools":["vep"]} -p -j 5 -k
+ubuntu    874151  874150  0 16:30 pts/41   00:00:02 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/ubuntu/bb44_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/day_profiles/slurm produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config multiqc_qc={"enable_tools":["vep"]} -p -j 5 -k
+ubuntu    874152  874110  0 16:30 pts/44   00:00:00 bash bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config dedupers=["dmd"] multiqc_qc={"enable_tools":["vep"]} -p -j 100 -k
+ubuntu    874153  874152  0 16:30 pts/44   00:00:03 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/ubuntu/bb44_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/day_profiles/slurm produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config dedupers=["dmd"] multiqc_qc={"enable_tools":["vep"]} -p -j 100 -k
+CONTROLLERS_END

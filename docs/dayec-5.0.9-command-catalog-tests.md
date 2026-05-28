@@ -24,6 +24,12 @@ Current S3 readback for the Goodole3 export root reported `37,183` objects and
 
 ## Version And Cluster Context
 
+Final repo-state note: after this report evidence was assembled, the working
+branch advanced to `5.0.10` at commit `21219791` with source and packaged DayOA
+catalog pins updated to `2.0.8` and DYEC self-pins updated to `5.0.10`. The
+Goodole3 command runs documented below still used explicit workflow tag
+`2.0.6` and the exported S3 prefixes listed in this report.
+
 | Field | Value |
 |---|---|
 | DayEC repo | `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster` |
