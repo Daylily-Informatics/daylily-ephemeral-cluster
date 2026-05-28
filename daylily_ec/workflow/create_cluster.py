@@ -649,6 +649,69 @@ def _resolve_config_value(
         typer.echo(f"{label} cannot be empty.")
 
 
+def _prompt_s3_role_choice(label: str, candidates: List[str], *, default_value: str = "") -> str:
+    typer.echo(f"{label} candidates:")
+    for index, candidate in enumerate(candidates, start=1):
+        typer.echo(f"  {index}. {candidate}")
+    typer.echo("Enter a selection number, or enter an explicit s3:// URI.")
+
+    prompt_default = default_value if default_value else None
+    while True:
+        raw = typer.prompt(f"{label} selection or URI", default=prompt_default).strip()
+        if raw.isdigit():
+            selected = int(raw)
+            if 1 <= selected <= len(candidates):
+                return candidates[selected - 1]
+            typer.echo(f"Selection must be between 1 and {len(candidates)}.")
+            continue
+        if raw:
+            return raw
+        typer.echo(f"{label} cannot be empty.")
+
+
+def _resolve_s3_role_config_value(
+    cfg: Any,
+    key: str,
+    label: str,
+    *,
+    role: str,
+    aws_ctx: Any,
+    non_interactive: bool,
+) -> str:
+    """Resolve an S3 role URI, using interactive discovery only for prompts."""
+    from daylily_ec.aws.s3 import list_role_candidate_uris
+    from daylily_ec.config.triplets import (
+        get_effective_default,
+        is_auto_select_disabled,
+        resolve_value,
+    )
+
+    triplet = cfg.ephemeral_cluster.config.get(key)
+    if triplet is not None:
+        resolved = resolve_value(triplet)
+        if resolved:
+            return resolved
+
+    default_value = get_effective_default(cfg, key, "")
+    if non_interactive:
+        return default_value
+
+    candidates = list_role_candidate_uris(aws_ctx, role=role)
+    if len(candidates) == 1 and not is_auto_select_disabled():
+        typer.echo(f"{label}: auto-selected only valid candidate {candidates[0]}")
+        return candidates[0]
+    if candidates:
+        return _prompt_s3_role_choice(label, candidates, default_value=default_value)
+
+    typer.echo(f"No valid {label} candidates found. Enter an explicit S3 URI instead.")
+    prompt_default = default_value if default_value else None
+    while True:
+        value = typer.prompt(label, default=prompt_default).strip()
+        if value:
+            return value
+        typer.echo(f"{label} cannot be empty.")
+
+
 def validate_cluster_name(cluster_name: str) -> str:
     """Validate the Daylily-supported ParallelCluster cluster name contract."""
     value = (cluster_name or "").strip()
@@ -879,7 +942,13 @@ def run_create_workflow(
         resolve_scheduler_role,
     )
     from daylily_ec.aws.quotas import make_quota_preflight_step
-    from daylily_ec.aws.s3 import make_s3_bucket_preflight_step
+    from daylily_ec.aws.s3 import (
+        ROLE_CONTROL_DATA,
+        ROLE_EXPORT_DESTINATION,
+        ROLE_REFERENCE,
+        ROLE_STAGING,
+        make_s3_bucket_preflight_step,
+    )
     from daylily_ec.aws.ssm import wait_for_ssm_online
     from daylily_ec.aws.spot_pricing import apply_spot_prices
     from daylily_ec.config.triplets import (
@@ -978,28 +1047,36 @@ def run_create_workflow(
         or "1"
     )
 
-    reference_s3_uri = _resolve_config_value(
+    reference_s3_uri = _resolve_s3_role_config_value(
         cfg,
         "reference_s3_uri",
         "Reference S3 URI",
+        role=ROLE_REFERENCE,
+        aws_ctx=aws_ctx,
         non_interactive=non_interactive,
     )
-    control_data_s3_uri = _resolve_config_value(
+    control_data_s3_uri = _resolve_s3_role_config_value(
         cfg,
         "control_data_s3_uri",
         "Control-data S3 URI",
+        role=ROLE_CONTROL_DATA,
+        aws_ctx=aws_ctx,
         non_interactive=non_interactive,
     )
-    stage_s3_uri = _resolve_config_value(
+    stage_s3_uri = _resolve_s3_role_config_value(
         cfg,
         "stage_s3_uri",
         "Stage S3 URI",
+        role=ROLE_STAGING,
+        aws_ctx=aws_ctx,
         non_interactive=non_interactive,
     )
-    export_destination_s3_uri = _resolve_config_value(
+    export_destination_s3_uri = _resolve_s3_role_config_value(
         cfg,
         "export_destination_s3_uri",
         "Export destination S3 URI",
+        role=ROLE_EXPORT_DESTINATION,
+        aws_ctx=aws_ctx,
         non_interactive=non_interactive,
     )
 

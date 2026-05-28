@@ -46,6 +46,7 @@ from daylily_ec.workflow.create_cluster import (
     _extract_selected,
     _resolve_fsx_size,
     _resolve_headnode_instance_type,
+    _resolve_s3_role_config_value,
     _noop_heartbeat_result,
     _require_values,
     _resolve_cluster_name,
@@ -329,6 +330,172 @@ class TestWorkflowResolutionHelpers:
 
         assert value == "chosen-cluster"
         mock_prompt.assert_called_once()
+
+    @patch("daylily_ec.aws.s3.list_role_candidate_uris")
+    @patch("daylily_ec.workflow.create_cluster.typer.prompt")
+    def test_resolve_s3_role_auto_selects_single_candidate(self, mock_prompt, mock_candidates):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"reference_s3_uri": ["PROMPTUSER", "", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+        mock_candidates.return_value = ["s3://lsmc-dayoa-references-usw2/"]
+
+        value = _resolve_s3_role_config_value(
+            cfg,
+            "reference_s3_uri",
+            "Reference S3 URI",
+            role="reference",
+            aws_ctx=SimpleNamespace(region="us-west-2"),
+            non_interactive=False,
+        )
+
+        assert value == "s3://lsmc-dayoa-references-usw2/"
+        mock_prompt.assert_not_called()
+
+    @patch("daylily_ec.aws.s3.list_role_candidate_uris")
+    @patch("daylily_ec.workflow.create_cluster.typer.prompt")
+    def test_resolve_export_destination_auto_selects_single_candidate(
+        self,
+        mock_prompt,
+        mock_candidates,
+    ):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"export_destination_s3_uri": ["PROMPTUSER", "", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+        mock_candidates.return_value = ["s3://lsmc-ssf-sequencing-data/derived/"]
+
+        value = _resolve_s3_role_config_value(
+            cfg,
+            "export_destination_s3_uri",
+            "Export destination S3 URI",
+            role="export_destination",
+            aws_ctx=SimpleNamespace(region="us-west-2"),
+            non_interactive=False,
+        )
+
+        assert value == "s3://lsmc-ssf-sequencing-data/derived/"
+        mock_prompt.assert_not_called()
+
+    @patch("daylily_ec.aws.s3.list_role_candidate_uris")
+    @patch("daylily_ec.workflow.create_cluster.typer.prompt", return_value="1")
+    def test_resolve_s3_role_respects_disabled_auto_select(
+        self,
+        mock_prompt,
+        mock_candidates,
+        monkeypatch,
+    ):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"reference_s3_uri": ["PROMPTUSER", "", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+        mock_candidates.return_value = ["s3://lsmc-dayoa-references-usw2/"]
+        monkeypatch.setenv("DAY_DISABLE_AUTO_SELECT", "1")
+
+        value = _resolve_s3_role_config_value(
+            cfg,
+            "reference_s3_uri",
+            "Reference S3 URI",
+            role="reference",
+            aws_ctx=SimpleNamespace(region="us-west-2"),
+            non_interactive=False,
+        )
+
+        assert value == "s3://lsmc-dayoa-references-usw2/"
+        mock_prompt.assert_called_once()
+
+    @patch("daylily_ec.aws.s3.list_role_candidate_uris")
+    @patch("daylily_ec.workflow.create_cluster.typer.prompt", return_value="2")
+    def test_resolve_s3_role_prompts_when_multiple_candidates(self, _mock_prompt, mock_candidates):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"stage_s3_uri": ["PROMPTUSER", "", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+        mock_candidates.return_value = [
+            "s3://lsmc-dayoa-staging-usw2/",
+            "s3://lsmc-ssf-sequencing-data/staged_external_data/",
+        ]
+
+        value = _resolve_s3_role_config_value(
+            cfg,
+            "stage_s3_uri",
+            "Stage S3 URI",
+            role="staging",
+            aws_ctx=SimpleNamespace(region="us-west-2"),
+            non_interactive=False,
+        )
+
+        assert value == "s3://lsmc-ssf-sequencing-data/staged_external_data/"
+
+    @patch("daylily_ec.aws.s3.list_role_candidate_uris")
+    @patch(
+        "daylily_ec.workflow.create_cluster.typer.prompt",
+        return_value="s3://manual-reference/",
+    )
+    def test_resolve_s3_role_prompts_for_uri_when_no_candidates(
+        self,
+        _mock_prompt,
+        mock_candidates,
+    ):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"reference_s3_uri": ["PROMPTUSER", "", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+        mock_candidates.return_value = []
+
+        value = _resolve_s3_role_config_value(
+            cfg,
+            "reference_s3_uri",
+            "Reference S3 URI",
+            role="reference",
+            aws_ctx=SimpleNamespace(region="us-west-2"),
+            non_interactive=False,
+        )
+
+        assert value == "s3://manual-reference/"
+
+    @patch("daylily_ec.aws.s3.list_role_candidate_uris")
+    def test_resolve_s3_role_non_interactive_does_not_discover(self, mock_candidates):
+        cfg = ConfigFile.model_validate(
+            {
+                "ephemeral_cluster": {
+                    "config": {"reference_s3_uri": ["PROMPTUSER", "s3://default-ref/", ""]},
+                    "template_defaults": {},
+                }
+            }
+        )
+
+        value = _resolve_s3_role_config_value(
+            cfg,
+            "reference_s3_uri",
+            "Reference S3 URI",
+            role="reference",
+            aws_ctx=SimpleNamespace(region="us-west-2"),
+            non_interactive=True,
+        )
+
+        assert value == "s3://default-ref/"
+        mock_candidates.assert_not_called()
 
     def test_require_values_reports_missing_labels(self):
         msg = _require_values({"bucket": "b", "public subnet": "", "IAM policy ARN": ""})
@@ -1496,6 +1663,7 @@ def _run_stubbed_create_workflow(
             str(tmp_path / "init-template.yaml"),
         ),
     )
+
     def fake_apply_spot_prices(_init_template_path, cluster_yaml_path, *_args, **_kwargs):
         Path(cluster_yaml_path).write_text(
             """
@@ -1571,10 +1739,10 @@ SharedStorage:
     monkeypatch.setattr(
         create_cluster_module,
         "publish_cluster_boot_config",
-        lambda _s3_client, *, cluster_boot_s3_uri, source_dir: records[
-            "boot_config_publishes"
-        ].append((cluster_boot_s3_uri, str(source_dir)))
-        or [f"{cluster_boot_s3_uri}/post_install_ubuntu_combined.sh"],
+        lambda _s3_client, *, cluster_boot_s3_uri, source_dir: (
+            records["boot_config_publishes"].append((cluster_boot_s3_uri, str(source_dir)))
+            or [f"{cluster_boot_s3_uri}/post_install_ubuntu_combined.sh"]
+        ),
     )
 
     import daylily_ec.aws.budgets as budgets

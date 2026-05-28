@@ -1,10 +1,11 @@
 """S3 role validation for Daylily cluster storage contracts.
 
-The cluster create path requires explicit S3 role inputs. It does not discover
-or auto-select S3 storage because the DayOA storage split has separate contracts
-for references, control read data, and mutable staging. Runtime assets are part
-of the reference contract under ``runtime_assets/`` and are mounted through the
-single reference DRA.
+The cluster create path ultimately requires explicit S3 role inputs. Interactive
+create may discover candidate role URIs to help the operator select one, but the
+preflight gate still validates the chosen references, control read data, and
+mutable staging contracts directly. Runtime assets are part of the reference
+contract under ``runtime_assets/`` and are mounted through the single reference
+DRA.
 
 Public API
 ----------
@@ -32,10 +33,15 @@ BUCKET_NAME_FILTER = "omics-analysis"
 ROLE_REFERENCE = "reference"
 ROLE_CONTROL_DATA = "control_data"
 ROLE_STAGING = "staging"
+ROLE_EXPORT_DESTINATION = "export_destination"
 REQUIRED_S3_ROLES = (
     ROLE_REFERENCE,
     ROLE_CONTROL_DATA,
     ROLE_STAGING,
+)
+DISCOVERABLE_S3_ROLES = (
+    *REQUIRED_S3_ROLES,
+    ROLE_EXPORT_DESTINATION,
 )
 
 
@@ -118,10 +124,27 @@ ROLE_REQUIRED_PREFIXES: Dict[str, Tuple[str, ...]] = {
         "runtime_assets/tool_specific_resources/",
         "runtime_assets/budget_tags/",
     ),
-    ROLE_CONTROL_DATA: (
-        "genomic_data/organism_reads/",
-    ),
+    ROLE_CONTROL_DATA: ("genomic_data/organism_reads/",),
     ROLE_STAGING: (),
+}
+
+ROLE_DISCOVERY_PREFIXES: Dict[str, Tuple[str, ...]] = {
+    ROLE_REFERENCE: ("",),
+    ROLE_CONTROL_DATA: (
+        "",
+        "control-data",
+        "control_data",
+        "data/control-data",
+        "data/control_data",
+    ),
+    ROLE_STAGING: ("staged_external_data",),
+    ROLE_EXPORT_DESTINATION: ("derived",),
+}
+
+ROLE_ROOT_BUCKET_HINTS: Dict[str, Tuple[str, ...]] = {
+    ROLE_REFERENCE: ("reference", "references"),
+    ROLE_CONTROL_DATA: ("control", "control-data", "control_data"),
+    ROLE_STAGING: ("stage", "staging"),
 }
 
 
@@ -173,8 +196,7 @@ def _normalize_role_map(role_values: Dict[str, str]) -> Dict[str, S3RoleSpec]:
     if missing:
         raise ValueError(f"Missing required S3 role value(s): {', '.join(sorted(missing))}")
     specs = {
-        role: normalize_role_s3_uri(role_values[role], role=role)
-        for role in REQUIRED_S3_ROLES
+        role: normalize_role_s3_uri(role_values[role], role=role) for role in REQUIRED_S3_ROLES
     }
     _validate_role_s3_prefixes_do_not_overlap(specs)
     return specs
@@ -225,6 +247,103 @@ def _read_reference_role_version(s3_client: Any, bucket_name: str) -> Optional[s
 def _reference_prefix_exists(s3_client: Any, bucket_name: str, prefix: str) -> bool:
     response = s3_client.list_objects_v2(Bucket=bucket_name, Prefix=prefix, MaxKeys=1)
     return "Contents" in response and bool(response["Contents"])
+
+
+def _safe_reference_prefix_exists(s3_client: Any, bucket_name: str, prefix: str) -> bool:
+    try:
+        return _reference_prefix_exists(s3_client, bucket_name, prefix)
+    except Exception as exc:
+        logger.debug("Could not inspect s3://%s/%s: %s", bucket_name, prefix, exc)
+        return False
+
+
+def _bucket_name_matches_role(role: str, bucket_name: str) -> bool:
+    lowered = bucket_name.lower()
+    return any(hint in lowered for hint in ROLE_ROOT_BUCKET_HINTS.get(role, ()))
+
+
+def _candidate_prefixes_for_role(role: str, bucket_name: str) -> Tuple[str, ...]:
+    _ = bucket_name
+    return ROLE_DISCOVERY_PREFIXES.get(role, ("",))
+
+
+def _role_candidate_meets_contract(s3_client: Any, spec: S3RoleSpec) -> bool:
+    if not _reference_role_bucket_exists(s3_client, spec.bucket):
+        return False
+
+    if spec.role == ROLE_STAGING:
+        if spec.prefix:
+            return _safe_reference_prefix_exists(s3_client, spec.bucket, f"{spec.prefix}/")
+        return _bucket_name_matches_role(spec.role, spec.bucket)
+
+    if spec.role == ROLE_EXPORT_DESTINATION:
+        return (
+            spec.prefix == "derived"
+            and "sequencing-data" in spec.bucket
+            and _safe_reference_prefix_exists(s3_client, spec.bucket, "derived/")
+        )
+
+    if spec.role == ROLE_REFERENCE:
+        version_key = role_prefix_key(spec, REFERENCE_VERSION_KEY)
+        bucket_version = _read_reference_role_version_for_key(
+            s3_client,
+            spec.bucket,
+            version_key,
+        )
+        if bucket_version != DEFAULT_REFERENCE_VERSION:
+            return False
+
+    for prefix in ROLE_REQUIRED_PREFIXES.get(spec.role, ()):
+        key_prefix = role_prefix_key(spec, prefix)
+        if not _safe_reference_prefix_exists(s3_client, spec.bucket, key_prefix):
+            return False
+
+    return True
+
+
+def list_role_candidate_uris(
+    aws_ctx: Any,
+    *,
+    role: str,
+    target_region: Optional[str] = None,
+) -> List[str]:
+    """Return contract-valid candidate S3 URIs for one storage role.
+
+    Discovery is advisory for interactive prompts only. It checks bucket region
+    and role-specific contract markers/prefixes; callers still pass the selected
+    URI through the normal hard preflight validation.
+    """
+    if role not in DISCOVERABLE_S3_ROLES:
+        raise ValueError(f"Unsupported S3 role for discovery: {role}")
+
+    region = target_region or aws_ctx.region
+    s3 = aws_ctx.client("s3", config=_standard_s3_config())
+
+    try:
+        resp = s3.list_buckets()
+        all_buckets = [b["Name"] for b in resp.get("Buckets", [])]
+    except Exception as exc:
+        logger.error("Failed to list S3 buckets for %s discovery: %s", role, exc)
+        return []
+
+    candidates: set[str] = set()
+    for bucket_name in all_buckets:
+        if _resolve_bucket_region(s3, bucket_name) != region:
+            continue
+        if role == ROLE_STAGING and "sequencing-data" not in bucket_name:
+            continue
+        if role == ROLE_EXPORT_DESTINATION and "sequencing-data" not in bucket_name:
+            continue
+        for prefix in _candidate_prefixes_for_role(role, bucket_name):
+            value = f"s3://{bucket_name}/{prefix}/" if prefix else f"s3://{bucket_name}/"
+            try:
+                spec = normalize_role_s3_uri(value, role=role)
+            except ValueError:
+                continue
+            if _role_candidate_meets_contract(s3, spec):
+                candidates.add(spec.uri)
+
+    return sorted(candidates)
 
 
 def verify_s3_roles(
@@ -327,8 +446,7 @@ def verify_reference_bundle(
             issues.append("missing version marker")
         elif bucket_version != DEFAULT_REFERENCE_VERSION:
             issues.append(
-                "version mismatch "
-                f"(expected {DEFAULT_REFERENCE_VERSION}, found {bucket_version})"
+                f"version mismatch (expected {DEFAULT_REFERENCE_VERSION}, found {bucket_version})"
             )
 
         legacy_prefixes = (
@@ -414,7 +532,11 @@ def make_s3_bucket_preflight_step(
             CheckResult(
                 id="s3.role_config",
                 status=CheckStatus.PASS,
-                details={"region": region, "roles": details["roles"], "buckets": details["buckets"]},
+                details={
+                    "region": region,
+                    "roles": details["roles"],
+                    "buckets": details["buckets"],
+                },
             )
         )
 

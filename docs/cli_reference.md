@@ -51,6 +51,14 @@ dyec create \
 
 `create` runs preflight, renders the ParallelCluster YAML, creates the cluster, waits for the headnode, configures DayEC on the headnode over SSM, and validates the supported `ubuntu` login shell.
 
+When storage URI config values are blank and `create` is run interactively,
+DYEC discovers contract-valid candidates in the selected profile and region,
+including the export destination. It auto-selects a URI only when exactly one
+candidate is valid, presents numbered choices when multiple candidates are
+valid, and asks for an explicit S3 URI when no valid candidates are found.
+`--non-interactive` does not discover or prompt; the config must provide
+explicit URIs.
+
 Important options:
 
 - `--region-az`

@@ -19,6 +19,8 @@ from daylily_ec.repositories import ArtifactRegistrationPolicy
 
 ANALYSIS_REGISTER_ENDPOINT = "/api/v1/artifact-sets/analysis/register"
 MULTIQC_REGISTER_ENDPOINT = "/api/v1/artifact-sets/multiqc/register"
+EXTERNAL_OBJECT_ENDPOINT = "/api/v1/external-objects"
+EXTERNAL_OBJECT_RELATION_ENDPOINT = "/api/v1/external-object-relations"
 
 
 class DeweyRegistrationError(RuntimeError):
@@ -39,6 +41,11 @@ def manifest_sha256_for_request(request: dict[str, Any]) -> str:
     material = dict(request)
     material.pop("manifest_sha256", None)
     return canonical_sha256(material)
+
+
+def idempotency_key(prefix: str, *parts: Any) -> str:
+    digest = hashlib.sha256(canonical_json_bytes([str(part) for part in parts])).hexdigest()
+    return f"{prefix}-{digest[:32]}"
 
 
 def utc_now_iso() -> str:
@@ -344,17 +351,27 @@ def build_registration_requests(
     return {"analysis": analysis_request, "multiqc": multiqc_request}
 
 
-def post_json(url: str, token: str, payload: dict[str, Any]) -> dict[str, Any]:
+def post_json(
+    url: str,
+    token: str,
+    payload: dict[str, Any],
+    *,
+    idempotency_key: str = "",
+) -> dict[str, Any]:
     if not token.strip():
         raise DeweyRegistrationError("Dewey bearer token is required")
+    headers = {
+        "Authorization": f"Bearer {token}",
+        "Content-Type": "application/json",
+        "Accept": "application/json",
+    }
+    clean_key = str(idempotency_key or "").strip()
+    if clean_key:
+        headers["Idempotency-Key"] = clean_key
     request = urllib.request.Request(
         url,
         data=canonical_json_bytes(payload),
-        headers={
-            "Authorization": f"Bearer {token}",
-            "Content-Type": "application/json",
-            "Accept": "application/json",
-        },
+        headers=headers,
         method="POST",
     )
     try:
@@ -374,6 +391,216 @@ def post_json(url: str, token: str, payload: dict[str, Any]) -> dict[str, Any]:
     if not isinstance(payload, dict):
         raise DeweyRegistrationError("Dewey response must be a JSON object")
     return payload
+
+
+def _require_artifact_set_euid(dewey_receipt: dict[str, Any]) -> str:
+    analysis_response = dewey_receipt.get("analysis_response")
+    if not isinstance(analysis_response, dict):
+        raise DeweyRegistrationError("Dewey analysis registration response is missing")
+    artifact_set_euid = str(analysis_response.get("artifact_set_euid") or "").strip()
+    if not artifact_set_euid:
+        raise DeweyRegistrationError(
+            "Dewey analysis registration response is missing artifact_set_euid"
+        )
+    return artifact_set_euid
+
+
+def _target_type(value: str, *, field_name: str) -> str:
+    normalized = str(value or "").strip().lower()
+    if normalized not in {"artifact", "artifact_set"}:
+        raise DeweyRegistrationError(f"{field_name} must be artifact or artifact_set")
+    return normalized
+
+
+def _relation_target(
+    *,
+    label: str,
+    target_type: str,
+    target_euid: str,
+    relation_type: str,
+) -> dict[str, str]:
+    clean_euid = str(target_euid or "").strip()
+    clean_relation = str(relation_type or "").strip()
+    if not clean_euid:
+        raise DeweyRegistrationError(f"{label} target EUID is required")
+    if not clean_relation:
+        raise DeweyRegistrationError(f"{label} relation type is required")
+    return {
+        "label": label,
+        "target_type": _target_type(target_type, field_name=f"{label} target_type"),
+        "target_euid": clean_euid,
+        "relation_type": clean_relation,
+    }
+
+
+def register_exported_analysis_directory_links(
+    *,
+    dewey_url: str,
+    token: str,
+    export_receipt: dict[str, Any],
+    dewey_receipt: dict[str, Any],
+    external_object_id: str,
+    run_artifact_euid: str,
+    ursa_analysis_euid: str,
+) -> dict[str, Any]:
+    """Create Dewey external-object links for the exported DayOA analysis directory."""
+
+    base = dewey_url.rstrip("/")
+    if not base:
+        raise DeweyRegistrationError("Dewey URL is required")
+    clean_object_id = str(external_object_id or "").strip()
+    if not clean_object_id:
+        raise DeweyRegistrationError("Analysis-directory external object id is required")
+    analysis_artifact_set_euid = _require_artifact_set_euid(dewey_receipt)
+    clean_ursa_analysis_euid = str(ursa_analysis_euid or "").strip()
+    if not clean_ursa_analysis_euid:
+        raise DeweyRegistrationError("Ursa analysis EUID is required")
+    dayoa_root = dayoa_s3_root(export_receipt)
+    targets = [
+        _relation_target(
+            label="analysis_artifact_set",
+            target_type="artifact_set",
+            target_euid=analysis_artifact_set_euid,
+            relation_type="dyec_exported_analysis_directory",
+        ),
+        _relation_target(
+            label="run_artifact",
+            target_type="artifact",
+            target_euid=run_artifact_euid,
+            relation_type="dyec_analysis_directory_for_run",
+        ),
+    ]
+    metadata = {
+        "source": "dyec export",
+        "cluster_name": export_receipt.get("cluster_name"),
+        "region": export_receipt.get("region"),
+        "analysis_dir": export_receipt.get("analysis_dir"),
+        "source_path": export_receipt.get("source_path"),
+        "destination_s3_uri": export_receipt.get("destination_s3_uri"),
+        "dayoa_s3_root": dayoa_root,
+        "dewey_analysis_artifact_set_euid": analysis_artifact_set_euid,
+        "run_artifact_euid": str(run_artifact_euid or "").strip(),
+        "ursa_analysis_euid": clean_ursa_analysis_euid,
+    }
+    external_payload = {
+        "external_system": "dyec",
+        "external_object_type": "dayoa_analysis_directory",
+        "external_object_id": clean_object_id,
+        "external_uri": dayoa_root,
+        "metadata": metadata,
+    }
+    external_object = post_json(
+        base + EXTERNAL_OBJECT_ENDPOINT,
+        token,
+        external_payload,
+        idempotency_key=idempotency_key(
+            "dyec-analysis-directory-external-object",
+            external_payload["external_system"],
+            external_payload["external_object_type"],
+            external_payload["external_object_id"],
+            external_payload["external_uri"],
+        ),
+    )
+    external_object_euid = str(external_object.get("external_object_euid") or "").strip()
+    if not external_object_euid:
+        raise DeweyRegistrationError("Dewey external-object response missing external_object_euid")
+
+    ursa_external_payload = {
+        "external_system": "ursa",
+        "external_object_type": "analysis_job",
+        "external_object_id": clean_ursa_analysis_euid,
+        "external_uri": None,
+        "metadata": metadata,
+    }
+    ursa_external_object = post_json(
+        base + EXTERNAL_OBJECT_ENDPOINT,
+        token,
+        ursa_external_payload,
+        idempotency_key=idempotency_key(
+            "dyec-ursa-analysis-external-object",
+            ursa_external_payload["external_system"],
+            ursa_external_payload["external_object_type"],
+            ursa_external_payload["external_object_id"],
+        ),
+    )
+    ursa_external_object_euid = str(
+        ursa_external_object.get("external_object_euid") or ""
+    ).strip()
+    if not ursa_external_object_euid:
+        raise DeweyRegistrationError(
+            "Dewey Ursa analysis external-object response missing external_object_euid"
+        )
+
+    relation_responses = []
+    for target in targets:
+        relation_payload = {
+            "target_type": target["target_type"],
+            "target_euid": target["target_euid"],
+            "external_object_euid": external_object_euid,
+            "relation_type": target["relation_type"],
+            "metadata": {**metadata, "target_label": target["label"]},
+        }
+        relation = post_json(
+            base + EXTERNAL_OBJECT_RELATION_ENDPOINT,
+            token,
+            relation_payload,
+            idempotency_key=idempotency_key(
+                "dyec-analysis-directory-external-relation",
+                target["target_type"],
+                target["target_euid"],
+                external_object_euid,
+                target["relation_type"],
+            ),
+        )
+        relation_euid = str(relation.get("external_object_relation_euid") or "").strip()
+        if not relation_euid:
+            raise DeweyRegistrationError(
+                "Dewey external-object relation response missing external_object_relation_euid"
+            )
+        relation_responses.append({"target": target, "response": relation})
+    ursa_relation_target = _relation_target(
+        label="ursa_analysis",
+        target_type="artifact_set",
+        target_euid=analysis_artifact_set_euid,
+        relation_type="ursa_analysis_job",
+    )
+    ursa_relation_payload = {
+        "target_type": ursa_relation_target["target_type"],
+        "target_euid": ursa_relation_target["target_euid"],
+        "external_object_euid": ursa_external_object_euid,
+        "relation_type": ursa_relation_target["relation_type"],
+        "metadata": {**metadata, "target_label": ursa_relation_target["label"]},
+    }
+    ursa_relation = post_json(
+        base + EXTERNAL_OBJECT_RELATION_ENDPOINT,
+        token,
+        ursa_relation_payload,
+        idempotency_key=idempotency_key(
+            "dyec-ursa-analysis-external-relation",
+            ursa_relation_target["target_type"],
+            ursa_relation_target["target_euid"],
+            ursa_external_object_euid,
+            ursa_relation_target["relation_type"],
+        ),
+    )
+    ursa_relation_euid = str(ursa_relation.get("external_object_relation_euid") or "").strip()
+    if not ursa_relation_euid:
+        raise DeweyRegistrationError(
+            "Dewey Ursa analysis external-object relation response missing external_object_relation_euid"
+        )
+    relation_responses.append({"target": ursa_relation_target, "response": ursa_relation})
+    return {
+        "schema_version": "dyec.dewey_analysis_directory_links_receipt.v1",
+        "registered_at": utc_now_iso(),
+        "external_object_endpoint": EXTERNAL_OBJECT_ENDPOINT,
+        "external_object_relation_endpoint": EXTERNAL_OBJECT_RELATION_ENDPOINT,
+        "external_object_request": external_payload,
+        "external_object_response": external_object,
+        "analysis_directory_external_object_response": external_object,
+        "ursa_analysis_external_object_request": ursa_external_payload,
+        "ursa_analysis_external_object_response": ursa_external_object,
+        "relations": relation_responses,
+    }
 
 
 def register_with_dewey(

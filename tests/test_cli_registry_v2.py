@@ -635,6 +635,54 @@ def test_export_command_rejects_dewey_options_without_policy(monkeypatch, tmp_pa
     assert "artifact-registration-command-id" in result.output
 
 
+def test_export_command_passes_dewey_external_link_options(monkeypatch, tmp_path) -> None:
+    import daylily_ec.workflow.export_data as export_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+
+    def fake_run_export_workflow(options) -> int:
+        calls["options"] = options
+        return 0
+
+    monkeypatch.setattr(export_module, "run_export_workflow", fake_run_export_workflow)
+
+    result = runner.invoke(
+        app,
+        [
+            "export",
+            "--cluster-name",
+            "cluster-a",
+            "--source-path",
+            "/fsx/analysis_results/johnm/illumina_run_qc",
+            "--destination-s3-uri",
+            "s3://bucket/analysis_results/johnm/illumina_run_qc/",
+            "--region",
+            "us-west-2",
+            "--output-dir",
+            str(tmp_path),
+            "--artifact-registration-command-id",
+            "illumina_snv_alignstats_relatedness_vep_multiqc",
+            "--dewey-url",
+            "https://dewey.example",
+            "--dewey-token-env",
+            "DEWEY_TOKEN",
+            "--dewey-analysis-dir-external-object-id",
+            "M-RGX-9S3G",
+            "--dewey-run-artifact-euid",
+            "M-DGX-9SD7",
+            "--dewey-ursa-analysis-euid",
+            "M-RGX-9S3G",
+        ],
+    )
+
+    assert result.exit_code == 0
+    options = calls["options"]
+    assert options.dewey_analysis_dir_external_object_id == "M-RGX-9S3G"
+    assert options.dewey_run_artifact_euid == "M-DGX-9SD7"
+    assert options.dewey_ursa_analysis_euid == "M-RGX-9S3G"
+
+
 def test_delete_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
     import daylily_ec.workflow.delete_cluster as delete_module
 
@@ -1633,6 +1681,18 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
             "--export-trigger",
             "on-success",
             "--delete-on-export-success",
+            "--artifact-registration-command-id",
+            "illumina_snv_alignstats_relatedness_vep_multiqc",
+            "--dewey-url",
+            "https://dewey.example",
+            "--dewey-token-env",
+            "DEWEY_TOKEN",
+            "--dewey-analysis-dir-external-object-id",
+            "M-RGX-9S3G",
+            "--dewey-run-artifact-euid",
+            "M-DGX-9SD7",
+            "--dewey-ursa-analysis-euid",
+            "M-RGX-9S3G",
             "--sv-callers",
             "tiddit",
             "--strict-project-check",
@@ -1661,6 +1721,10 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "--export-trigger" in argv
     assert "on-success" in argv
     assert "--delete-on-export-success" in argv
+    assert "--dewey-analysis-dir-external-object-id" in argv
+    assert "M-RGX-9S3G" in argv
+    assert "--dewey-run-artifact-euid" in argv
+    assert "M-DGX-9SD7" in argv
     assert "--sv-callers" in argv
     assert "tiddit" in argv
     assert "--strict-project-check" in argv

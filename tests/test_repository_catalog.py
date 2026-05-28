@@ -154,11 +154,16 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         artifact_registration_command_id=multiqc_command.command_id,
         dewey_url="https://dewey.example",
         dewey_token_env="DEWEY_TOKEN",
+        dewey_analysis_dir_external_object_id="M-RGX-9S3G",
+        dewey_run_artifact_euid="M-DGX-9SD7",
+        dewey_ursa_analysis_euid="M-RGX-9S3G",
     )
     assert "--artifact-registration-command-id" in registration_argv
     assert "illumina_snv_alignstats_relatedness_vep_multiqc" in registration_argv
     assert "--dewey-url" in registration_argv
     assert "--dewey-token-env" in registration_argv
+    assert "--dewey-analysis-dir-external-object-id" in registration_argv
+    assert "M-DGX-9SD7" in registration_argv
 
     with pytest.raises(ValueError, match="dewey_url and dewey_token_env"):
         multiqc_command.launch_argv(

@@ -7,13 +7,16 @@ from unittest.mock import MagicMock, patch
 
 from daylily_ec.aws.s3 import (
     BUCKET_NAME_FILTER,
+    DEFAULT_REFERENCE_VERSION,
     ROLE_CONTROL_DATA,
+    ROLE_EXPORT_DESTINATION,
     ROLE_REFERENCE,
     ROLE_STAGING,
     _resolve_bucket_region,
     _standard_s3_config,
     bucket_url,
     list_candidate_buckets,
+    list_role_candidate_uris,
     make_s3_bucket_preflight_step,
     normalize_role_s3_uri,
     role_prefix_key,
@@ -89,6 +92,34 @@ def _make_reference_s3_client(
             return {}
         return {"Contents": [{"Key": f"{Prefix}example"}]}
 
+    client.list_objects_v2.side_effect = fake_list_objects_v2
+    return client
+
+
+def _make_role_discovery_s3_client(
+    *,
+    buckets: list[str],
+    locations: dict[str, str | None],
+    existing_prefixes: set[tuple[str, str]],
+    version_by_bucket_key: dict[tuple[str, str], str] | None = None,
+):
+    client = _make_s3_client(buckets=buckets, locations=locations)
+    versions = version_by_bucket_key or {}
+    client.head_bucket.return_value = {}
+
+    def fake_get_object(*, Bucket: str, Key: str):
+        key = (Bucket, Key)
+        if key not in versions:
+            raise Exception("missing object")
+        return {"Body": io.BytesIO(versions[key].encode("utf-8"))}
+
+    def fake_list_objects_v2(*, Bucket: str, Prefix: str, MaxKeys: int):
+        _ = MaxKeys
+        if (Bucket, Prefix) in existing_prefixes:
+            return {"Contents": [{"Key": f"{Prefix}example"}]}
+        return {}
+
+    client.get_object.side_effect = fake_get_object
     client.list_objects_v2.side_effect = fake_list_objects_v2
     return client
 
@@ -207,6 +238,127 @@ class TestListCandidateBuckets:
 
     def test_bucket_name_filter_constant(self):
         assert BUCKET_NAME_FILTER == "omics-analysis"
+
+
+class TestListRoleCandidateUris:
+    def test_reference_candidates_require_role_contract(self):
+        buckets = [
+            "lsmc-dayoa-references-usw2",
+            "legacy-omics-analysis-us-west-2",
+            "other-region-references",
+        ]
+        reference_prefixes = {
+            ("lsmc-dayoa-references-usw2", "genomic_data/organism_references/H_sapiens/hg38/"),
+            ("lsmc-dayoa-references-usw2", "genomic_data/organism_annotations/H_sapiens/hg38/"),
+            ("lsmc-dayoa-references-usw2", "runtime_assets/cluster_boot_config/"),
+            ("lsmc-dayoa-references-usw2", "runtime_assets/cached_envs/"),
+            ("lsmc-dayoa-references-usw2", "runtime_assets/tool_specific_resources/"),
+            ("lsmc-dayoa-references-usw2", "runtime_assets/budget_tags/"),
+        }
+        client = _make_role_discovery_s3_client(
+            buckets=buckets,
+            locations={
+                "lsmc-dayoa-references-usw2": "us-west-2",
+                "legacy-omics-analysis-us-west-2": "us-west-2",
+                "other-region-references": "us-east-1",
+            },
+            existing_prefixes=reference_prefixes,
+            version_by_bucket_key={
+                ("lsmc-dayoa-references-usw2", "s3_reference_data_version.info"): (
+                    DEFAULT_REFERENCE_VERSION
+                ),
+                ("legacy-omics-analysis-us-west-2", "s3_reference_data_version.info"): "old",
+                ("other-region-references", "s3_reference_data_version.info"): (
+                    DEFAULT_REFERENCE_VERSION
+                ),
+            },
+        )
+        ctx = MagicMock(region="us-west-2")
+        ctx.client.return_value = client
+
+        result = list_role_candidate_uris(ctx, role=ROLE_REFERENCE)
+
+        assert result == ["s3://lsmc-dayoa-references-usw2/"]
+
+    def test_control_data_candidates_require_control_prefix(self):
+        client = _make_role_discovery_s3_client(
+            buckets=["lsmc-dayoa-control-data-usw2", "empty-control-data-usw2"],
+            locations={
+                "lsmc-dayoa-control-data-usw2": "us-west-2",
+                "empty-control-data-usw2": "us-west-2",
+            },
+            existing_prefixes={
+                ("lsmc-dayoa-control-data-usw2", "genomic_data/organism_reads/"),
+            },
+        )
+        ctx = MagicMock(region="us-west-2")
+        ctx.client.return_value = client
+
+        result = list_role_candidate_uris(ctx, role=ROLE_CONTROL_DATA)
+
+        assert result == ["s3://lsmc-dayoa-control-data-usw2/"]
+
+    def test_staging_candidates_require_sequencing_data_staged_external_data(self):
+        client = _make_role_discovery_s3_client(
+            buckets=[
+                "lsmc-dayoa-staging-usw2",
+                "lsmc-ssf-sequencing-data",
+                "unrelated-bucket",
+            ],
+            locations={
+                "lsmc-dayoa-staging-usw2": "us-west-2",
+                "lsmc-ssf-sequencing-data": "us-west-2",
+                "unrelated-bucket": "us-west-2",
+            },
+            existing_prefixes={
+                ("lsmc-dayoa-staging-usw2", "staged_external_data/"),
+                ("lsmc-ssf-sequencing-data", "data/staged_sample_data/"),
+                ("lsmc-ssf-sequencing-data", "staged_external_data/"),
+            },
+        )
+        ctx = MagicMock(region="us-west-2")
+        ctx.client.return_value = client
+
+        result = list_role_candidate_uris(ctx, role=ROLE_STAGING)
+
+        assert result == [
+            "s3://lsmc-ssf-sequencing-data/staged_external_data/",
+        ]
+
+    def test_export_destination_candidates_require_sequencing_data_derived(self):
+        client = _make_role_discovery_s3_client(
+            buckets=[
+                "lsmc-dayoa-analysis-results-usw2",
+                "lsmc-ssf-sequencing-data",
+                "other-sequencing-data",
+            ],
+            locations={
+                "lsmc-dayoa-analysis-results-usw2": "us-west-2",
+                "lsmc-ssf-sequencing-data": "us-west-2",
+                "other-sequencing-data": "us-west-2",
+            },
+            existing_prefixes={
+                ("lsmc-dayoa-analysis-results-usw2", "derived/"),
+                ("lsmc-ssf-sequencing-data", "derived/"),
+            },
+        )
+        ctx = MagicMock(region="us-west-2")
+        ctx.client.return_value = client
+
+        result = list_role_candidate_uris(ctx, role=ROLE_EXPORT_DESTINATION)
+
+        assert result == ["s3://lsmc-ssf-sequencing-data/derived/"]
+
+    def test_unsupported_role_fails(self):
+        ctx = MagicMock(region="us-west-2")
+
+        try:
+            list_role_candidate_uris(ctx, role="runtime_assets")
+        except ValueError as exc:
+            assert "Unsupported S3 role" in str(exc)
+        else:
+            raise AssertionError("expected unsupported role to fail")
+
 
 # ---------------------------------------------------------------------------
 # explicit role URI validation
@@ -344,7 +496,11 @@ class TestMakeS3BucketPreflightStep:
             True,
             {
                 "roles": {
-                    role: {"uri": value if value.endswith("/") else f"{value}/", "bucket": value.split("/")[2], "prefix": ""}
+                    role: {
+                        "uri": value if value.endswith("/") else f"{value}/",
+                        "bucket": value.split("/")[2],
+                        "prefix": "",
+                    }
                     for role, value in _role_values().items()
                 },
                 "buckets": [
@@ -390,7 +546,11 @@ class TestMakeS3BucketPreflightStep:
             False,
             {
                 "roles": {
-                    role: {"uri": value if value.endswith("/") else f"{value}/", "bucket": value.split("/")[2], "prefix": ""}
+                    role: {
+                        "uri": value if value.endswith("/") else f"{value}/",
+                        "bucket": value.split("/")[2],
+                        "prefix": "",
+                    }
                     for role, value in _role_values().items()
                 },
                 "buckets": ["dayoa-reference"],
@@ -417,7 +577,14 @@ class TestMakeS3BucketPreflightStep:
     def test_preserves_existing_checks(self, mock_verify):
         mock_verify.return_value = (
             True,
-            {"roles": {role: {"uri": value, "bucket": value.split("/")[2], "prefix": ""} for role, value in _role_values().items()}, "buckets": [], "issues": []},
+            {
+                "roles": {
+                    role: {"uri": value, "bucket": value.split("/")[2], "prefix": ""}
+                    for role, value in _role_values().items()
+                },
+                "buckets": [],
+                "issues": [],
+            },
         )
         ctx = _make_aws_ctx(region="us-west-2")
         step = make_s3_bucket_preflight_step(
@@ -427,9 +594,7 @@ class TestMakeS3BucketPreflightStep:
             stage_s3_uri=_role_values()[ROLE_STAGING],
         )
         report = PreflightReport(region="us-west-2")
-        report.checks.append(
-            CheckResult(id="prior.check", status=CheckStatus.PASS)
-        )
+        report.checks.append(CheckResult(id="prior.check", status=CheckStatus.PASS))
         report = step(report)
 
         assert len(report.checks) == 3
@@ -439,7 +604,14 @@ class TestMakeS3BucketPreflightStep:
     def test_uses_report_region(self, mock_verify):
         mock_verify.return_value = (
             True,
-            {"roles": {role: {"uri": value, "bucket": value.split("/")[2], "prefix": ""} for role, value in _role_values().items()}, "buckets": [], "issues": []},
+            {
+                "roles": {
+                    role: {"uri": value, "bucket": value.split("/")[2], "prefix": ""}
+                    for role, value in _role_values().items()
+                },
+                "buckets": [],
+                "issues": [],
+            },
         )
         ctx = _make_aws_ctx(region="us-west-2")
         step = make_s3_bucket_preflight_step(

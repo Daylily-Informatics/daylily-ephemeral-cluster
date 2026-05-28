@@ -421,6 +421,9 @@ class AnalysisCommand(BaseModel):
         artifact_registration_command_id: Optional[str] = None,
         dewey_url: Optional[str] = None,
         dewey_token_env: Optional[str] = None,
+        dewey_analysis_dir_external_object_id: Optional[str] = None,
+        dewey_run_artifact_euid: Optional[str] = None,
+        dewey_ursa_analysis_euid: Optional[str] = None,
     ) -> List[str]:
         """Render a daylily-ec workflow launch argv for this profile."""
 
@@ -447,6 +450,24 @@ class AnalysisCommand(BaseModel):
             raise ValueError(
                 "dewey_url and dewey_token_env require artifact_registration_command_id"
             )
+        dewey_link_options = {
+            "dewey_analysis_dir_external_object_id": dewey_analysis_dir_external_object_id,
+            "dewey_run_artifact_euid": dewey_run_artifact_euid,
+            "dewey_ursa_analysis_euid": dewey_ursa_analysis_euid,
+        }
+        if any(str(value or "").strip() for value in dewey_link_options.values()):
+            missing = [
+                name for name, value in dewey_link_options.items() if not str(value or "").strip()
+            ]
+            if missing:
+                raise ValueError(
+                    "Dewey analysis-directory external-link options must be provided together: "
+                    + ", ".join(missing)
+                )
+            if not artifact_registration_command_id:
+                raise ValueError(
+                    "artifact_registration_command_id is required with Dewey external-link options"
+                )
         dy_command = self.dryrun_dy_command if dry_run else self.dy_command
         if self.input_contract == "run_context":
             if not run_context_file:
@@ -506,6 +527,13 @@ class AnalysisCommand(BaseModel):
                 argv.extend(["--dewey-url", dewey_url])
             if dewey_token_env:
                 argv.extend(["--dewey-token-env", dewey_token_env])
+            for flag, value in (
+                ("--dewey-analysis-dir-external-object-id", dewey_analysis_dir_external_object_id),
+                ("--dewey-run-artifact-euid", dewey_run_artifact_euid),
+                ("--dewey-ursa-analysis-euid", dewey_ursa_analysis_euid),
+            ):
+                if value:
+                    argv.extend([flag, value])
         if dry_run:
             argv.append("--dry-run")
         return argv

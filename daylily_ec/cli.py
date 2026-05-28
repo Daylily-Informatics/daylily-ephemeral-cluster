@@ -999,6 +999,32 @@ def cluster_wait(
         time.sleep(max(poll_interval, 1))
 
 
+def _validate_dewey_analysis_directory_link_options(
+    *,
+    artifact_registration_command_id: Optional[str],
+    dewey_analysis_dir_external_object_id: Optional[str],
+    dewey_run_artifact_euid: Optional[str],
+    dewey_ursa_analysis_euid: Optional[str],
+) -> None:
+    options = {
+        "--dewey-analysis-dir-external-object-id": dewey_analysis_dir_external_object_id,
+        "--dewey-run-artifact-euid": dewey_run_artifact_euid,
+        "--dewey-ursa-analysis-euid": dewey_ursa_analysis_euid,
+    }
+    if not any(str(value or "").strip() for value in options.values()):
+        return
+    missing = [option for option, value in options.items() if not str(value or "").strip()]
+    if missing:
+        raise typer.BadParameter(
+            "Dewey analysis-directory external-link options must be provided together: "
+            + ", ".join(missing)
+        )
+    if not artifact_registration_command_id:
+        raise typer.BadParameter(
+            "--artifact-registration-command-id is required with Dewey external-link options"
+        )
+
+
 def export(
     cluster_name: Optional[str] = typer.Option(
         None,
@@ -1063,6 +1089,21 @@ def export(
         "--dewey-token-env",
         help="Environment variable containing the Dewey bearer token.",
     ),
+    dewey_analysis_dir_external_object_id: str = typer.Option(
+        "",
+        "--dewey-analysis-dir-external-object-id",
+        help="External object id for the exported daylily-omics-analysis S3 directory.",
+    ),
+    dewey_run_artifact_euid: str = typer.Option(
+        "",
+        "--dewey-run-artifact-euid",
+        help="Dewey run artifact EUID to link to the exported analysis directory external object.",
+    ),
+    dewey_ursa_analysis_euid: str = typer.Option(
+        "",
+        "--dewey-ursa-analysis-euid",
+        help="Ursa analysis EUID to link to the exported analysis directory external object.",
+    ),
 ) -> None:
     """Export FSx outputs through an explicit temporary DRA."""
 
@@ -1076,6 +1117,12 @@ def export(
     _warn_if_dayec_env_inactive()
     artifact_registration_policy = None
     artifact_registration_genome = ""
+    _validate_dewey_analysis_directory_link_options(
+        artifact_registration_command_id=artifact_registration_command_id,
+        dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
+        dewey_run_artifact_euid=dewey_run_artifact_euid,
+        dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
+    )
     if artifact_registration_command_id:
         catalog = load_repository_catalog(repository_catalog)
         command = catalog.get_command(artifact_registration_command_id)
@@ -1111,6 +1158,9 @@ def export(
             artifact_registration_genome=artifact_registration_genome,
             dewey_url=dewey_url,
             dewey_token_env=dewey_token_env,
+            dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
+            dewey_run_artifact_euid=dewey_run_artifact_euid,
+            dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
         )
     )
     raise typer.Exit(rc)
@@ -2122,6 +2172,21 @@ def samples_run(
         "--dewey-token-env",
         help="Environment variable containing the Dewey bearer token.",
     ),
+    dewey_analysis_dir_external_object_id: Optional[str] = typer.Option(
+        None,
+        "--dewey-analysis-dir-external-object-id",
+        help="External object id for the exported daylily-omics-analysis S3 directory.",
+    ),
+    dewey_run_artifact_euid: Optional[str] = typer.Option(
+        None,
+        "--dewey-run-artifact-euid",
+        help="Dewey run artifact EUID to link to the exported analysis directory external object.",
+    ),
+    dewey_ursa_analysis_euid: Optional[str] = typer.Option(
+        None,
+        "--dewey-ursa-analysis-euid",
+        help="Ursa analysis EUID to link to the exported analysis directory external object.",
+    ),
     catalog_config: Optional[Path] = typer.Option(
         None,
         "--catalog-config",
@@ -2170,6 +2235,15 @@ def samples_run(
                     f"Analysis command {command.command_id} has no artifact_registration policy."
                 )
             artifact_registration_command_id = command.command_id
+        try:
+            _validate_dewey_analysis_directory_link_options(
+                artifact_registration_command_id=artifact_registration_command_id,
+                dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
+                dewey_run_artifact_euid=dewey_run_artifact_euid,
+                dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
+            )
+        except typer.BadParameter as exc:
+            raise CommandError(str(exc)) from exc
         resolved_profile = _resolved_aws_profile(profile)
         resolved_region = (
             region or os.environ.get("AWS_REGION") or os.environ.get("AWS_DEFAULT_REGION")
@@ -2228,6 +2302,9 @@ def samples_run(
             artifact_registration_command_id=artifact_registration_command_id,
             dewey_url=dewey_url,
             dewey_token_env=dewey_token_env,
+            dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
+            dewey_run_artifact_euid=dewey_run_artifact_euid,
+            dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
         )
         launch_stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(launch_stdout_buffer):
@@ -2254,6 +2331,9 @@ def samples_run(
             "export_destination_s3_uri": export_destination_s3_uri,
             "export_trigger": export_trigger,
             "delete_on_export_success": delete_on_export_success,
+            "dewey_analysis_dir_external_object_id": dewey_analysis_dir_external_object_id,
+            "dewey_run_artifact_euid": dewey_run_artifact_euid,
+            "dewey_ursa_analysis_euid": dewey_ursa_analysis_euid,
             "git_tag": resolved_git_tag,
             "remote_stage_dir": remote_stage_dir,
             "samples_tsv": str(resolved_config_dir / f"{timestamp}_samples.tsv"),
@@ -2390,6 +2470,21 @@ def workflow_launch(
         "--dewey-token-env",
         help="Environment variable containing the Dewey bearer token.",
     ),
+    dewey_analysis_dir_external_object_id: Optional[str] = typer.Option(
+        None,
+        "--dewey-analysis-dir-external-object-id",
+        help="External object id for the exported daylily-omics-analysis S3 directory.",
+    ),
+    dewey_run_artifact_euid: Optional[str] = typer.Option(
+        None,
+        "--dewey-run-artifact-euid",
+        help="Dewey run artifact EUID to link to the exported analysis directory external object.",
+    ),
+    dewey_ursa_analysis_euid: Optional[str] = typer.Option(
+        None,
+        "--dewey-ursa-analysis-euid",
+        help="Ursa analysis EUID to link to the exported analysis directory external object.",
+    ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Launch a dry-run workflow command."),
 ) -> None:
     """Launch daylily-omics-analysis inside tmux on the headnode."""
@@ -2416,6 +2511,12 @@ def workflow_launch(
         raise typer.BadParameter(
             "--artifact-registration-command-id is required when Dewey registration options are set"
         )
+    _validate_dewey_analysis_directory_link_options(
+        artifact_registration_command_id=artifact_registration_command_id,
+        dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
+        dewey_run_artifact_euid=dewey_run_artifact_euid,
+        dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
+    )
     resolved_session_name = session_name or analysis_id
     argv: list[str] = []
     for flag, value in (
@@ -2445,6 +2546,9 @@ def workflow_launch(
         ("--artifact-registration-command-id", artifact_registration_command_id),
         ("--dewey-url", dewey_url),
         ("--dewey-token-env", dewey_token_env),
+        ("--dewey-analysis-dir-external-object-id", dewey_analysis_dir_external_object_id),
+        ("--dewey-run-artifact-euid", dewey_run_artifact_euid),
+        ("--dewey-ursa-analysis-euid", dewey_ursa_analysis_euid),
     ):
         if value is not None:
             argv.extend([flag, value])

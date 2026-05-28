@@ -13,6 +13,9 @@ import yaml
 from typer.testing import CliRunner
 
 from daylily_ec.repositories import load_repository_catalog
+from daylily_ec.workflow.dewey_registration import (
+    register_exported_analysis_directory_links,
+)
 from daylily_ec.workflow.export_data import (
     ExportOptions,
     attach_export_dra,
@@ -495,6 +498,205 @@ def test_run_export_workflow_registers_dewey_after_success(tmp_path, monkeypatch
     assert captured["requests"]["analysis"]["artifacts"][0]["storage_uri"].startswith(
         "s3://bucket/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/"
     )
+
+
+def test_register_exported_analysis_directory_links_posts_external_object_and_relations(
+    monkeypatch,
+) -> None:
+    import daylily_ec.workflow.dewey_registration as dewey_registration
+
+    calls: list[dict[str, Any]] = []
+
+    def fake_post_json(
+        url: str,
+        token: str,
+        payload: dict[str, Any],
+        *,
+        idempotency_key: str = "",
+    ) -> dict[str, Any]:
+        calls.append(
+            {
+                "url": url,
+                "token": token,
+                "payload": payload,
+                "idempotency_key": idempotency_key,
+            }
+        )
+        if url.endswith("/api/v1/external-objects"):
+            object_count = sum(
+                1 for call in calls if call["url"].endswith("/api/v1/external-objects")
+            )
+            return {"external_object_euid": f"Z-EXT-{object_count}"}
+        return {"external_object_relation_euid": f"Z-REL-{len(calls)}"}
+
+    monkeypatch.setattr(dewey_registration, "post_json", fake_post_json)
+
+    receipt = register_exported_analysis_directory_links(
+        dewey_url="https://dewey.example",
+        token="token-1",
+        export_receipt={
+            "status": "success",
+            "cluster_name": "cluster-a",
+            "region": "us-west-2",
+            "analysis_dir": "ubuntu/M-RGX-9S3G",
+            "source_path": "/fsx/analysis_results/ubuntu/M-RGX-9S3G",
+            "destination_s3_uri": "s3://seq/derived/analysis_results/cluster-a/M-RGX-9S3G/",
+            "dayoa_s3_root": (
+                "s3://seq/derived/analysis_results/cluster-a/M-RGX-9S3G/"
+                "daylily-omics-analysis/"
+            ),
+        },
+        dewey_receipt={"analysis_response": {"artifact_set_euid": "Z-ASET-1"}},
+        external_object_id="M-RGX-9S3G",
+        run_artifact_euid="M-DGX-9SD7",
+        ursa_analysis_euid="M-RGX-9S3G",
+    )
+
+    assert receipt["external_object_response"]["external_object_euid"] == "Z-EXT-1"
+    assert len(calls) == 5
+    external_call = calls[0]
+    assert external_call["url"] == "https://dewey.example/api/v1/external-objects"
+    assert external_call["token"] == "token-1"
+    assert external_call["idempotency_key"].startswith(
+        "dyec-analysis-directory-external-object-"
+    )
+    assert external_call["payload"] == {
+        "external_system": "dyec",
+        "external_object_type": "dayoa_analysis_directory",
+        "external_object_id": "M-RGX-9S3G",
+        "external_uri": (
+            "s3://seq/derived/analysis_results/cluster-a/M-RGX-9S3G/"
+            "daylily-omics-analysis/"
+        ),
+        "metadata": {
+            "source": "dyec export",
+            "cluster_name": "cluster-a",
+            "region": "us-west-2",
+            "analysis_dir": "ubuntu/M-RGX-9S3G",
+            "source_path": "/fsx/analysis_results/ubuntu/M-RGX-9S3G",
+            "destination_s3_uri": "s3://seq/derived/analysis_results/cluster-a/M-RGX-9S3G/",
+            "dayoa_s3_root": (
+                "s3://seq/derived/analysis_results/cluster-a/M-RGX-9S3G/"
+                "daylily-omics-analysis/"
+            ),
+            "dewey_analysis_artifact_set_euid": "Z-ASET-1",
+            "run_artifact_euid": "M-DGX-9SD7",
+            "ursa_analysis_euid": "M-RGX-9S3G",
+        },
+    }
+    ursa_external_call = calls[1]
+    assert ursa_external_call["payload"] == {
+        "external_system": "ursa",
+        "external_object_type": "analysis_job",
+        "external_object_id": "M-RGX-9S3G",
+        "external_uri": None,
+        "metadata": external_call["payload"]["metadata"],
+    }
+    relation_targets = [call["payload"] for call in calls[2:]]
+    assert relation_targets == [
+        {
+            "target_type": "artifact_set",
+            "target_euid": "Z-ASET-1",
+            "external_object_euid": "Z-EXT-1",
+            "relation_type": "dyec_exported_analysis_directory",
+            "metadata": {**external_call["payload"]["metadata"], "target_label": "analysis_artifact_set"},
+        },
+        {
+            "target_type": "artifact",
+            "target_euid": "M-DGX-9SD7",
+            "external_object_euid": "Z-EXT-1",
+            "relation_type": "dyec_analysis_directory_for_run",
+            "metadata": {**external_call["payload"]["metadata"], "target_label": "run_artifact"},
+        },
+        {
+            "target_type": "artifact_set",
+            "target_euid": "Z-ASET-1",
+            "external_object_euid": "Z-EXT-2",
+            "relation_type": "ursa_analysis_job",
+            "metadata": {**external_call["payload"]["metadata"], "target_label": "ursa_analysis"},
+        },
+    ]
+    assert all(
+        call["idempotency_key"].startswith("dyec-analysis-directory-external-relation-")
+        or call["idempotency_key"].startswith("dyec-ursa-analysis-external-")
+        for call in calls[1:]
+    )
+
+
+def test_run_export_workflow_links_dewey_analysis_directory_after_registration(
+    tmp_path, monkeypatch
+) -> None:
+    fake = FakeFsxClient()
+    manifest_uri = (
+        "s3://bucket/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/"
+        "results/day/hg38_broad/reports/dayoa_evidence_manifest.json"
+    )
+    fake_s3 = FakeS3Client(objects={manifest_uri: _dayoa_evidence_manifest()})
+    monkeypatch.setenv("DEWEY_TOKEN", "token-1")
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(fake, s3_client=fake_s3),
+    )
+    captured: dict[str, Any] = {}
+
+    def fake_register_with_dewey(*, dewey_url: str, token: str, requests: dict[str, Any]):
+        _ = dewey_url, token, requests
+        return {
+            "analysis_response": {"artifact_set_euid": "Z-ASET-1"},
+            "multiqc_response": {"artifact_set_euid": "Z-MQC-1"},
+        }
+
+    def fake_links(**kwargs: Any) -> dict[str, Any]:
+        captured.update(kwargs)
+        return {"external_object_response": {"external_object_euid": "Z-EXT-1"}, "relations": []}
+
+    monkeypatch.setattr(
+        "daylily_ec.workflow.dewey_registration.register_with_dewey",
+        fake_register_with_dewey,
+    )
+    monkeypatch.setattr(
+        "daylily_ec.workflow.dewey_registration.register_exported_analysis_directory_links",
+        fake_links,
+    )
+    command = load_repository_catalog().get_command(
+        "illumina_snv_alignstats_relatedness_vep_multiqc"
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="alpha",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+            destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc/",
+            region="us-west-2",
+            profile="prof",
+            output_dir=tmp_path,
+            artifact_registration_policy=command.artifact_registration,
+            artifact_registration_genome=command.genome,
+            dewey_url="https://dewey.example",
+            dewey_token_env="DEWEY_TOKEN",
+            dewey_analysis_dir_external_object_id="M-RGX-9S3G",
+            dewey_run_artifact_euid="M-DGX-9SD7",
+            dewey_ursa_analysis_euid="M-RGX-9S3G",
+        )
+    )
+
+    assert rc == 0
+    assert captured["dewey_url"] == "https://dewey.example"
+    assert captured["token"] == "token-1"
+    assert captured["external_object_id"] == "M-RGX-9S3G"
+    assert captured["run_artifact_euid"] == "M-DGX-9SD7"
+    assert captured["ursa_analysis_euid"] == "M-RGX-9S3G"
+    payload = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))
+    receipt = payload["fsx_export"]
+    assert receipt["dewey_registration_status"] == "success"
+    assert receipt["dewey_analysis_directory_link_status"] == "success"
+    dewey_receipt = json.loads(
+        (tmp_path / "dewey_registration_receipt.json").read_text(encoding="utf-8")
+    )
+    assert dewey_receipt["analysis_directory_links"]["external_object_response"] == {
+        "external_object_euid": "Z-EXT-1"
+    }
 
 
 def test_run_export_workflow_rejects_malformed_exported_manifest(tmp_path, monkeypatch) -> None:

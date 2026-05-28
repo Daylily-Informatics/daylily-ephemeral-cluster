@@ -344,6 +344,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "bin/day_run" in script
         assert "env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export" in script
         assert "dyec export \\\n      --profile" not in script
+        assert "DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID=" in script
+        assert "registration_args+=(--dewey-analysis-dir-external-object-id" in script
+        assert "registration_args+=(--dewey-run-artifact-euid" in script
+        assert "registration_args+=(--dewey-ursa-analysis-euid" in script
         assert "exec bash -il" in script
         assert '--which-one "$TRANSPORT"' not in script
         out = capsys.readouterr().out

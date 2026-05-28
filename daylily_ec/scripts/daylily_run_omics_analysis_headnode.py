@@ -292,6 +292,21 @@ def build_parser() -> argparse.ArgumentParser:
         default="",
         help="Environment variable containing the Dewey bearer token",
     )
+    parser.add_argument(
+        "--dewey-analysis-dir-external-object-id",
+        default="",
+        help="External object id for the exported daylily-omics-analysis S3 directory",
+    )
+    parser.add_argument(
+        "--dewey-run-artifact-euid",
+        default="",
+        help="Dewey run artifact EUID linked to the exported analysis directory external object",
+    )
+    parser.add_argument(
+        "--dewey-ursa-analysis-euid",
+        default="",
+        help="Ursa analysis EUID linked to the exported analysis directory external object",
+    )
     parser.add_argument("--dry-run", action="store_true")
     parser.set_defaults(skip_project_check=True)
     return parser
@@ -331,6 +346,24 @@ def main(argv: Optional[List[str]] = None) -> int:
         raise CommandError(
             "--artifact-registration-command-id is required when Dewey registration options are set."
         )
+    dewey_link_options = {
+        "--dewey-analysis-dir-external-object-id": args.dewey_analysis_dir_external_object_id,
+        "--dewey-run-artifact-euid": args.dewey_run_artifact_euid,
+        "--dewey-ursa-analysis-euid": args.dewey_ursa_analysis_euid,
+    }
+    if any(str(value or "").strip() for value in dewey_link_options.values()):
+        missing = [
+            option for option, value in dewey_link_options.items() if not str(value or "").strip()
+        ]
+        if missing:
+            raise CommandError(
+                "Dewey analysis-directory external-link options must be provided together: "
+                + ", ".join(missing)
+            )
+        if not args.artifact_registration_command_id:
+            raise CommandError(
+                "--artifact-registration-command-id is required with Dewey external-link options."
+            )
 
     need_cmd("aws")
     need_cmd("pcluster")
@@ -451,6 +484,9 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	ARTIFACT_REGISTRATION_COMMAND_ID={shlex.quote(args.artifact_registration_command_id)}
 	DEWEY_URL={shlex.quote(args.dewey_url)}
 	DEWEY_TOKEN_ENV={shlex.quote(args.dewey_token_env)}
+	DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID={shlex.quote(args.dewey_analysis_dir_external_object_id)}
+	DEWEY_RUN_ARTIFACT_EUID={shlex.quote(args.dewey_run_artifact_euid)}
+	DEWEY_URSA_ANALYSIS_EUID={shlex.quote(args.dewey_ursa_analysis_euid)}
 STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
 TMUX_LOG="${{DAYLILY_TMUX_LOG}}"
 
@@ -538,6 +574,11 @@ if [[ "$should_export" == "true" ]]; then
       registration_args+=(--artifact-registration-command-id "$ARTIFACT_REGISTRATION_COMMAND_ID")
       registration_args+=(--dewey-url "$DEWEY_URL")
       registration_args+=(--dewey-token-env "$DEWEY_TOKEN_ENV")
+      if [[ -n "$DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID" ]]; then
+        registration_args+=(--dewey-analysis-dir-external-object-id "$DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID")
+        registration_args+=(--dewey-run-artifact-euid "$DEWEY_RUN_ARTIFACT_EUID")
+        registration_args+=(--dewey-ursa-analysis-euid "$DEWEY_URSA_ANALYSIS_EUID")
+      fi
     fi
     set +e
     env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export \

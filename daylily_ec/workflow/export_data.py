@@ -61,6 +61,9 @@ class ExportOptions:
     artifact_registration_genome: str = ""
     dewey_url: str = ""
     dewey_token_env: str = ""
+    dewey_analysis_dir_external_object_id: str = ""
+    dewey_run_artifact_euid: str = ""
+    dewey_ursa_analysis_euid: str = ""
 
 
 @dataclasses.dataclass(frozen=True)
@@ -480,6 +483,7 @@ def _run_dewey_registration(
     from daylily_ec.workflow.dewey_registration import (
         build_registration_requests,
         dayoa_s3_root,
+        register_exported_analysis_directory_links,
         register_with_dewey,
         template_value,
     )
@@ -515,6 +519,16 @@ def _run_dewey_registration(
         token=token,
         requests=requests,
     )
+    if options.dewey_analysis_dir_external_object_id.strip():
+        dewey_receipt["analysis_directory_links"] = register_exported_analysis_directory_links(
+            dewey_url=options.dewey_url,
+            token=token,
+            export_receipt=fsx_export,
+            dewey_receipt=dewey_receipt,
+            external_object_id=options.dewey_analysis_dir_external_object_id,
+            run_artifact_euid=options.dewey_run_artifact_euid,
+            ursa_analysis_euid=options.dewey_ursa_analysis_euid,
+        )
     dewey_receipt["source_manifest_s3_uri"] = manifest_s3_uri
     dewey_receipt["selected_artifact_count"] = len(requests["analysis"]["artifacts"])
     receipt_path = options.output_dir / "dewey_registration_receipt.json"
@@ -527,6 +541,9 @@ def _run_dewey_registration(
         "dewey_registration_receipt": str(receipt_path),
         "dewey_source_manifest_s3_uri": manifest_s3_uri,
         "dewey_selected_artifact_count": dewey_receipt["selected_artifact_count"],
+        "dewey_analysis_directory_link_status": (
+            "success" if "analysis_directory_links" in dewey_receipt else "not_requested"
+        ),
     }
 
 
