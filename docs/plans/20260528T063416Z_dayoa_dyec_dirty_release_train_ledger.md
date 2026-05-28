@@ -31,6 +31,7 @@ Safety exclusions:
 Remote tag preflight:
 
 - `origin` had no `2.0.14`, `5.0.15`, or `5.0.16` tag at Gate 0.
+- `origin` had no `5.0.17` tag when the late tracked Inflection ledger update appeared after the `5.0.16` push.
 
 ## Tracking Rows
 
@@ -55,5 +56,6 @@ Final branch/tag state:
 
 - DayOA commit `49dbbce995d23219ad4bea35814b308a5cee1cd8`; remote branch matches; remote tag `2.0.14^{}` matches.
 - DYEC commit `b625830decc95a0efd25f5df08b361f61ea3b2cb`; remote branch matches; remote tag `5.0.15^{}` matches.
+- DYEC terminal-ledger commit `72188dc225cec5d2704b94b1bea80fa5aa105b81`; remote branch matches; remote tag `5.0.16^{}` matches.
 
-The second DYEC tag after this ledger-only terminal update is expected to be `5.0.16`.
+During final verification, tracked file `docs/plans/20260528T043733Z_inflection_20x10x_kitchensink_j250_ledger.md` changed again. That late repo-owned dirty work is included in final DYEC tag `5.0.17`.
