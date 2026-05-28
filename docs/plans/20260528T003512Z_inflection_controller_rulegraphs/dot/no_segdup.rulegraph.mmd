@@ -1,0 +1,103 @@
+flowchart TD
+  N0["produce_dmd_dedup_cram"]
+  N1["doppelmark_dups"]
+  N2["sentieon_bwa_sort"]
+  N3["prep_results_dirs"]
+  N4["workflow_staging"]
+  N5["stage_supporting_data"]
+  N6["pre_prep_raw_fq"]
+  N7["produce_expansionhunter"]
+  N8["expansionhunter_json_to_tsv"]
+  N9["expansionhunter_call"]
+  N10["produce_sentdhiomr_mito"]
+  N11["sentdhiomr_mito_call"]
+  N12["sentdhiomr_merge_sr_bams"]
+  N13["sentdhiomr_sr_markdup"]
+  N14["sentdhiomr_sr_align"]
+  N15["pre_prep_ont_cram"]
+  N16["produce_sentdhiomr_sv"]
+  N17["sentdhiomr_call_svs"]
+  N18["produce_sent_align"]
+  N19["produce_sentdhiomr_snv_vcf"]
+  N20["sentdhiomr_concat_index_chunks"]
+  N21["sentdhiomr_concat_fofn"]
+  N22["sentdhiomr_final_norm"]
+  N23["sentdhiomr_model_apply"]
+  N24["sentdhiomr_transfer_merge"]
+  N25["sentdhiomr_transfer"]
+  N26["sentdhiomr_anno"]
+  N27["sentdhiomr_concat_pass"]
+  N28["sentdhiomr_subset"]
+  N29["sentdhiomr_pass1"]
+  N30["sentdhiomr_stage2"]
+  N31["sentdhiomr_stage1"]
+  N32["sentdhiomr_merge_beds"]
+  N33["sentdhiomr_hybrid_select"]
+  N34["sentdhiomr_mapq0_slop"]
+  N35["sentdhiomr_mapq0_bed"]
+  N36["sentdhiomr_pass2"]
+  N37["sentdhiomr_stage3"]
+  N38["produce_sentdhiomr_cnv"]
+  N39["sentdhiomr_call_cnvs"]
+  N40["produce_snv_concordances"]
+  N41["prep_for_concordance_check"]
+  N42["parse_vcfeval_summary_roi"]
+  N43["rtg_vcfeval_roi"]
+  N1 --> N0
+  N2 --> N1
+  N3 --> N2
+  N6 --> N2
+  N4 --> N3
+  N5 --> N4
+  N8 --> N7
+  N9 --> N8
+  N1 --> N9
+  N11 --> N10
+  N12 --> N11
+  N13 --> N12
+  N14 --> N13
+  N3 --> N14
+  N6 --> N14
+  N15 --> N14
+  N17 --> N16
+  N15 --> N17
+  N2 --> N18
+  N20 --> N19
+  N21 --> N20
+  N22 --> N21
+  N23 --> N22
+  N24 --> N23
+  N25 --> N24
+  N26 --> N25
+  N31 --> N26
+  N27 --> N26
+  N36 --> N27
+  N28 --> N27
+  N30 --> N28
+  N29 --> N28
+  N13 --> N29
+  N15 --> N29
+  N31 --> N30
+  N15 --> N31
+  N32 --> N31
+  N34 --> N32
+  N33 --> N32
+  N29 --> N33
+  N35 --> N34
+  N13 --> N35
+  N15 --> N35
+  N30 --> N36
+  N29 --> N36
+  N15 --> N36
+  N37 --> N36
+  N13 --> N37
+  N15 --> N37
+  N30 --> N37
+  N39 --> N38
+  N12 --> N39
+  N42 --> N40
+  N41 --> N40
+  N20 --> N41
+  N42 --> N41
+  N43 --> N42
+  N20 --> N43

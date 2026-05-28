@@ -1,0 +1,21 @@
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/inflection_20260527-2.0.11/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/inflection_20260527-2.0.11/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+sh: 1: colr: not found
+sh: 1: colr: not found
+sh: 1: colr: not found
+sh: 1: colr: not found
+sh: 1: colr: not found
+sh: 1: colr: not found
+sh: 1: colr: not found
+sh: 1: colr: not found
+sh: 1: colr: not found
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/inflection_20260527-2.0.11/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/inflection_20260527-2.0.11/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+PREP CRAM:: results/day/hg38_broad//20260514-LH01106-0009-B23TVLGLT4-INFLECTION-HIOMR-ILMN15X-ONT7X-HG003-a-inflection-HIOMR-ILMN15x-ONT7x-0-HG003-a-PF-ILMN-NOVASEQ/align/ont/ ...
+PREP CRAM:: results/day/hg38_broad//20260514-LH01106-0009-B23TVLGLT4-INFLECTION-HIOMR-ILMN20X-ONT10X-HG003-a-inflection-HIOMR-ILMN20x-ONT10x-0-HG003-a-PF-ILMN-NOVASEQ/align/ont/ ...
+All Wildcards:    all snv_CALLERS:  ['sentdhiomr']  all ALIGNERS:  ['sent']  all CRAM_ALIGNERS:  ['ont']  all samples:  {'20260514-LH01106-0009-B23TVLGLT4-INFLECTION-HIOMR-ILMN15X-ONT7X-HG003-a-inflection-HIOMR-ILMN15x-ONT7x-0-HG003-a-PF-ILMN-NOVASEQ': ['20260514-LH01106-0009-B23TVLGLT4-INFLECTION-HIOMR-ILMN15X-ONT7X-HG003-a-inflection-HIOMR-ILMN15x-ONT7x-0-HG003-a-PF-ILMN-NOVASEQ'], '20260514-LH01106-0009-B23TVLGLT4-INFLECTION-HIOMR-ILMN20X-ONT10X-HG003-a-inflection-HIOMR-ILMN20x-ONT10x-0-HG003-a-PF-ILMN-NOVASEQ': ['20260514-LH01106-0009-B23TVLGLT4-INFLECTION-HIOMR-ILMN20X-ONT10X-HG003-a-inflection-HIOMR-ILMN20x-ONT10x-0-HG003-a-PF-ILMN-NOVASEQ']}  all concordance samples:  dict_keys(['20260514-LH01106-0009-B23TVLGLT4-INFLECTION-HIOMR-ILMN15X-ONT7X-HG003-a-inflection-HIOMR-ILMN15x-ONT7x-0-HG003-a-PF-ILMN-NOVASEQ', '20260514-LH01106-0009-B23TVLGLT4-INFLECTION-HIOMR-ILMN20X-ONT10X-HG003-a-inflection-HIOMR-ILMN20x-ONT10x-0-HG003-a-PF-ILMN-NOVASEQ'])

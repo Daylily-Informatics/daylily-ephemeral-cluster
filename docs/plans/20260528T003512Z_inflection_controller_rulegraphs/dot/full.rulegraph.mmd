@@ -1,0 +1,110 @@
+flowchart TD
+  N0["produce_expansionhunter"]
+  N1["expansionhunter_json_to_tsv"]
+  N2["expansionhunter_call"]
+  N3["doppelmark_dups"]
+  N4["sentieon_bwa_sort"]
+  N5["prep_results_dirs"]
+  N6["workflow_staging"]
+  N7["stage_supporting_data"]
+  N8["pre_prep_raw_fq"]
+  N9["produce_sentdhiomr_mito"]
+  N10["sentdhiomr_mito_call"]
+  N11["sentdhiomr_merge_sr_bams"]
+  N12["sentdhiomr_sr_markdup"]
+  N13["sentdhiomr_sr_align"]
+  N14["pre_prep_ont_cram"]
+  N15["produce_sentdhiomr_sv"]
+  N16["sentdhiomr_call_svs"]
+  N17["produce_snv_concordances"]
+  N18["prep_for_concordance_check"]
+  N19["sentdhiomr_concat_index_chunks"]
+  N20["sentdhiomr_concat_fofn"]
+  N21["sentdhiomr_final_norm"]
+  N22["sentdhiomr_model_apply"]
+  N23["sentdhiomr_transfer_merge"]
+  N24["sentdhiomr_transfer"]
+  N25["sentdhiomr_anno"]
+  N26["sentdhiomr_concat_pass"]
+  N27["sentdhiomr_subset"]
+  N28["sentdhiomr_pass1"]
+  N29["sentdhiomr_stage2"]
+  N30["sentdhiomr_stage1"]
+  N31["sentdhiomr_merge_beds"]
+  N32["sentdhiomr_hybrid_select"]
+  N33["sentdhiomr_mapq0_slop"]
+  N34["sentdhiomr_mapq0_bed"]
+  N35["sentdhiomr_pass2"]
+  N36["sentdhiomr_stage3"]
+  N37["parse_vcfeval_summary_roi"]
+  N38["rtg_vcfeval_roi"]
+  N39["produce_sentdhiomr_snv_vcf"]
+  N40["produce_dmd_dedup_cram"]
+  N41["produce_sent_align"]
+  N42["produce_sentdhiomr_cnv"]
+  N43["sentdhiomr_call_cnvs"]
+  N44["produce_sentdhiomr_segdup"]
+  N45["sentdhiomr_call_segdup"]
+  N46["sentdhiomr_call_segdup_gene"]
+  N1 --> N0
+  N2 --> N1
+  N3 --> N2
+  N4 --> N3
+  N5 --> N4
+  N8 --> N4
+  N6 --> N5
+  N7 --> N6
+  N10 --> N9
+  N11 --> N10
+  N12 --> N11
+  N13 --> N12
+  N5 --> N13
+  N14 --> N13
+  N8 --> N13
+  N16 --> N15
+  N14 --> N16
+  N37 --> N17
+  N18 --> N17
+  N37 --> N18
+  N19 --> N18
+  N20 --> N19
+  N21 --> N20
+  N22 --> N21
+  N23 --> N22
+  N24 --> N23
+  N25 --> N24
+  N26 --> N25
+  N30 --> N25
+  N35 --> N26
+  N27 --> N26
+  N28 --> N27
+  N29 --> N27
+  N12 --> N28
+  N14 --> N28
+  N30 --> N29
+  N31 --> N30
+  N14 --> N30
+  N33 --> N31
+  N32 --> N31
+  N28 --> N32
+  N34 --> N33
+  N12 --> N34
+  N14 --> N34
+  N28 --> N35
+  N14 --> N35
+  N36 --> N35
+  N29 --> N35
+  N12 --> N36
+  N14 --> N36
+  N29 --> N36
+  N38 --> N37
+  N19 --> N38
+  N19 --> N39
+  N3 --> N40
+  N4 --> N41
+  N43 --> N42
+  N11 --> N43
+  N45 --> N44
+  N46 --> N45
+  N14 --> N46
+  N11 --> N46

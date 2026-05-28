@@ -1,0 +1,3 @@
+variant	dryrun_remaining	current_queue_relevant_submitted	current_queue_segdup_submitted	est_not_yet_submitted	note
+full	192	0	0	192	current live queue counted against target set; no separate no-segdup controller process was active
+no_segdup	192	0	0	192	current live queue counted against target set; no separate no-segdup controller process was active

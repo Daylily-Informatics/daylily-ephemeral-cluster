@@ -1,0 +1,114 @@
+digraph snakemake_dag {
+    graph[bgcolor=white, margin=0];
+    node[shape=box, style=rounded, fontname=sans,                 fontsize=10, penwidth=2];
+    edge[penwidth=2, color=grey];
+	0[label = "produce_expansionhunter", color = "0.26 0.6 0.85", style="rounded"];
+	1[label = "expansionhunter_json_to_tsv", color = "0.24 0.6 0.85", style="rounded"];
+	2[label = "expansionhunter_call", color = "0.28 0.6 0.85", style="rounded"];
+	3[label = "doppelmark_dups", color = "0.27 0.6 0.85", style="rounded"];
+	4[label = "sentieon_bwa_sort", color = "0.40 0.6 0.85", style="rounded"];
+	5[label = "prep_results_dirs", color = "0.20 0.6 0.85", style="rounded"];
+	6[label = "workflow_staging", color = "0.36 0.6 0.85", style="rounded"];
+	7[label = "stage_supporting_data", color = "0.26 0.6 0.85", style="rounded"];
+	8[label = "pre_prep_raw_fq", color = "0.59 0.6 0.85", style="rounded"];
+	9[label = "produce_sentdhiomr_mito", color = "0.21 0.6 0.85", style="rounded"];
+	10[label = "sentdhiomr_mito_call", color = "0.22 0.6 0.85", style="rounded"];
+	11[label = "sentdhiomr_merge_sr_bams", color = "0.36 0.6 0.85", style="rounded"];
+	12[label = "sentdhiomr_sr_markdup", color = "0.08 0.6 0.85", style="rounded"];
+	13[label = "sentdhiomr_sr_align", color = "0.64 0.6 0.85", style="rounded"];
+	14[label = "pre_prep_ont_cram", color = "0.21 0.6 0.85", style="rounded"];
+	15[label = "produce_sentdhiomr_sv", color = "0.49 0.6 0.85", style="rounded"];
+	16[label = "sentdhiomr_call_svs", color = "0.62 0.6 0.85", style="rounded"];
+	17[label = "produce_snv_concordances", color = "0.05 0.6 0.85", style="rounded"];
+	18[label = "prep_for_concordance_check", color = "0.55 0.6 0.85", style="rounded"];
+	19[label = "sentdhiomr_concat_index_chunks", color = "0.34 0.6 0.85", style="rounded"];
+	20[label = "sentdhiomr_concat_fofn", color = "0.66 0.6 0.85", style="rounded"];
+	21[label = "sentdhiomr_final_norm", color = "0.21 0.6 0.85", style="rounded"];
+	22[label = "sentdhiomr_model_apply", color = "0.43 0.6 0.85", style="rounded"];
+	23[label = "sentdhiomr_transfer_merge", color = "0.14 0.6 0.85", style="rounded"];
+	24[label = "sentdhiomr_transfer", color = "0.59 0.6 0.85", style="rounded"];
+	25[label = "sentdhiomr_anno", color = "0.62 0.6 0.85", style="rounded"];
+	26[label = "sentdhiomr_concat_pass", color = "0.43 0.6 0.85", style="rounded"];
+	27[label = "sentdhiomr_subset", color = "0.42 0.6 0.85", style="rounded"];
+	28[label = "sentdhiomr_pass1", color = "0.66 0.6 0.85", style="rounded"];
+	29[label = "sentdhiomr_stage2", color = "0.46 0.6 0.85", style="rounded"];
+	30[label = "sentdhiomr_stage1", color = "0.22 0.6 0.85", style="rounded"];
+	31[label = "sentdhiomr_merge_beds", color = "0.56 0.6 0.85", style="rounded"];
+	32[label = "sentdhiomr_hybrid_select", color = "0.62 0.6 0.85", style="rounded"];
+	33[label = "sentdhiomr_mapq0_slop", color = "0.37 0.6 0.85", style="rounded"];
+	34[label = "sentdhiomr_mapq0_bed", color = "0.04 0.6 0.85", style="rounded"];
+	35[label = "sentdhiomr_pass2", color = "0.66 0.6 0.85", style="rounded"];
+	36[label = "sentdhiomr_stage3", color = "0.48 0.6 0.85", style="rounded"];
+	37[label = "parse_vcfeval_summary_roi", color = "0.12 0.6 0.85", style="rounded"];
+	38[label = "rtg_vcfeval_roi", color = "0.06 0.6 0.85", style="rounded"];
+	39[label = "produce_sentdhiomr_snv_vcf", color = "0.22 0.6 0.85", style="rounded"];
+	40[label = "produce_dmd_dedup_cram", color = "0.02 0.6 0.85", style="rounded"];
+	41[label = "produce_sent_align", color = "0.38 0.6 0.85", style="rounded"];
+	42[label = "produce_sentdhiomr_cnv", color = "0.51 0.6 0.85", style="rounded"];
+	43[label = "sentdhiomr_call_cnvs", color = "0.05 0.6 0.85", style="rounded"];
+	44[label = "produce_sentdhiomr_segdup", color = "0.53 0.6 0.85", style="rounded"];
+	45[label = "sentdhiomr_call_segdup", color = "0.35 0.6 0.85", style="rounded"];
+	46[label = "sentdhiomr_call_segdup_gene", color = "0.50 0.6 0.85", style="rounded"];
+	1 -> 0
+	2 -> 1
+	3 -> 2
+	4 -> 3
+	5 -> 4
+	8 -> 4
+	6 -> 5
+	7 -> 6
+	10 -> 9
+	11 -> 10
+	12 -> 11
+	13 -> 12
+	5 -> 13
+	14 -> 13
+	8 -> 13
+	16 -> 15
+	14 -> 16
+	37 -> 17
+	18 -> 17
+	37 -> 18
+	19 -> 18
+	20 -> 19
+	21 -> 20
+	22 -> 21
+	23 -> 22
+	24 -> 23
+	25 -> 24
+	26 -> 25
+	30 -> 25
+	35 -> 26
+	27 -> 26
+	28 -> 27
+	29 -> 27
+	12 -> 28
+	14 -> 28
+	30 -> 29
+	31 -> 30
+	14 -> 30
+	33 -> 31
+	32 -> 31
+	28 -> 32
+	34 -> 33
+	12 -> 34
+	14 -> 34
+	28 -> 35
+	14 -> 35
+	36 -> 35
+	29 -> 35
+	12 -> 36
+	14 -> 36
+	29 -> 36
+	38 -> 37
+	19 -> 38
+	19 -> 39
+	3 -> 40
+	4 -> 41
+	43 -> 42
+	11 -> 43
+	45 -> 44
+	46 -> 45
+	14 -> 46
+	11 -> 46
+}
