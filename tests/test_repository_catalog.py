@@ -139,12 +139,14 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         export_destination_s3_uri="s3://bucket/derived/johnm/run-1/",
         export_trigger="all",
         delete_on_export_success=True,
+        replace_existing_analysis_dir=True,
     )
     assert "--export-destination-s3-uri" in export_argv
     assert "s3://bucket/derived/johnm/run-1/" in export_argv
     assert "--export-trigger" in export_argv
     assert "all" in export_argv
     assert "--delete-on-export-success" in export_argv
+    assert "--replace-existing-analysis-dir" in export_argv
 
     registration_argv = multiqc_command.launch_argv(
         analysis_id="run-1",

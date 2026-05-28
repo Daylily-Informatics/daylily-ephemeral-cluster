@@ -46,3 +46,26 @@ No destructive AWS action is included.
 - Published ref: `5.0.24`.
 - Focused validation: `30 passed`; ruff and diff checks passed.
 - Remaining work is in Ursa: update exact `daylily-ephemeral-cluster==5.0.24`, restart production Ursa, and replay the queued OWY run-directory trigger.
+
+## DYEC 5.0.25 Retry Analysis Directory Amendment
+
+The Ursa `4.0.22` production retry correctly reused the original OWY trigger and analysis EUID, but the DAY-EC workflow launch failed before tmux launch because the failed `4.0.21` attempt left `/fsx/analysis_results/xfer-cluster/M-RGX-9S3G/` in place. Headnode SSM command `57171acb-1b26-4f1b-9f4e-7e863b2eaa8b` returned:
+
+```text
+__DAYLILY_ERROR__=analysis_dir_exists
+```
+
+DYEC `5.0.25` adds explicit retry-only handling:
+
+- `dyec workflow launch --replace-existing-analysis-dir`
+- `dyec samples run --replace-existing-analysis-dir`
+- `AnalysisCommand.launch_argv(..., replace_existing_analysis_dir=True)`
+
+The default remains fail-hard on existing analysis directories. The replacement flag is explicit and checks the computed FSx analysis path before `rm -rf -- "$clone_root"`.
+
+| ID | Owner | Requirement | Status | Gate | Evidence | Terminal Note |
+|---|---|---|---|---|---|---|
+| DYEC25-001 | Orchestrator | Add explicit retry flag for stale same-analysis directories. | SUCCESS | 1 | `daylily_ec/scripts/daylily_run_omics_analysis_headnode.py`; `daylily_ec/cli.py`; `daylily_ec/repositories.py`. | No fallback behavior; existing dirs still fail unless the flag is present. |
+| DYEC25-002 | Orchestrator | Update source and packaged self-pins to `5.0.25`. | SUCCESS | 1 | `config/daylily_cli_global.yaml`; `daylily_ec/resources/payload/config/daylily_cli_global.yaml`. | Self-pins point at the intended release tag. |
+| DYEC25-003 | Orchestrator | Validate retry flag surfaces. | SUCCESS | 2 | `python -m pytest -q tests/test_script_entrypoints.py tests/test_cli_registry_v2.py tests/test_repository_catalog.py tests/test_packaged_defaults.py` -> `131 passed`; `ruff check daylily_ec tests/test_script_entrypoints.py tests/test_cli_registry_v2.py tests/test_repository_catalog.py tests/test_packaged_defaults.py`; `git diff --check`. | Focused validation passed. |
+| DYEC25-004 | Orchestrator | Commit, tag `5.0.25`, build, publish, and verify package availability. | IN_PROGRESS | 3 | Pending release commands. | Ursa must pin `daylily-ephemeral-cluster==5.0.25` before the next production retry. |

@@ -282,6 +282,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Delete the FSx analysis directory after a successful requested export",
     )
     parser.add_argument(
+        "--replace-existing-analysis-dir",
+        action="store_true",
+        help=(
+            "Explicit retry mode: remove an existing same analysis directory before "
+            "launching. Without this flag, existing analysis directories fail hard."
+        ),
+    )
+    parser.add_argument(
         "--artifact-registration-command-id",
         default="",
         help="Catalog command id whose artifact_registration policy should run after export",
@@ -439,6 +447,7 @@ def main(argv: Optional[List[str]] = None) -> int:
     run_context_payload = shlex.quote(run_context_content or "")
     export_destination_literal = shlex.quote(args.export_destination_s3_uri or "")
     delete_on_export_success = "true" if args.delete_on_export_success else "false"
+    replace_existing_analysis_dir = "true" if args.replace_existing_analysis_dir else "false"
     if stage_config is None:
         stage_samples_path = ""
         stage_units_path = ""
@@ -481,6 +490,7 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	EXPORT_DESTINATION_S3_URI={export_destination_literal}
 	EXPORT_TRIGGER={shlex.quote(args.export_trigger)}
 	DELETE_ON_EXPORT_SUCCESS={delete_on_export_success}
+	REPLACE_EXISTING_ANALYSIS_DIR={replace_existing_analysis_dir}
 	ARTIFACT_REGISTRATION_COMMAND_ID={shlex.quote(args.artifact_registration_command_id)}
 	DEWEY_URL={shlex.quote(args.dewey_url)}
 	DEWEY_TOKEN_ENV={shlex.quote(args.dewey_token_env)}
@@ -655,16 +665,29 @@ tmux_log="$run_dir/tmux.log"
 bootstrap_log="$run_dir/tmux-bootstrap.log"
 mkdir -p "$run_dir"
 : >"$tmux_log"
-if [[ -e "$clone_root" ]]; then
-  echo "__DAYLILY_ERROR__=analysis_dir_exists"
-  exit 8
-fi
 export DAYLILY_RUN_DIR="$run_dir"
 export DAYLILY_REPO_PATH="$repo_path"
 export DAYLILY_TMUX_LOG="$tmux_log"
 if tmux has-session -t "=$SESSION_NAME" 2>/dev/null; then
   echo "__DAYLILY_ERROR__=session_exists"
   exit 8
+fi
+if [[ -e "$clone_root" ]]; then
+  if [[ "$REPLACE_EXISTING_ANALYSIS_DIR" != "true" ]]; then
+    echo "__DAYLILY_ERROR__=analysis_dir_exists"
+    exit 8
+  fi
+  if [[ -z "$analysis_root" || -z "$EXECUTING_ENTITY" || -z "$ANALYSIS_ID" ]]; then
+    echo "__DAYLILY_ERROR__=unsafe_replace_existing_analysis_dir"
+    exit 8
+  fi
+  expected_clone_root="$analysis_root/$EXECUTING_ENTITY/$ANALYSIS_ID"
+  if [[ "$clone_root" != "$expected_clone_root" || "$clone_root" == "/" ]]; then
+    echo "__DAYLILY_ERROR__=unsafe_replace_existing_analysis_dir"
+    exit 8
+  fi
+  rm -rf -- "$clone_root"
+  echo "__DAYLILY_REPLACED_ANALYSIS_DIR__=$clone_root"
 fi
 cat <<'PAYLOAD' > "$work_script"
 {pipeline_script}

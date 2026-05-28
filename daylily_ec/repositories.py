@@ -424,6 +424,7 @@ class AnalysisCommand(BaseModel):
         dewey_analysis_dir_external_object_id: Optional[str] = None,
         dewey_run_artifact_euid: Optional[str] = None,
         dewey_ursa_analysis_euid: Optional[str] = None,
+        replace_existing_analysis_dir: bool = False,
     ) -> List[str]:
         """Render a daylily-ec workflow launch argv for this profile."""
 
@@ -521,6 +522,8 @@ class AnalysisCommand(BaseModel):
             argv.extend(["--export-trigger", export_trigger])
         if delete_on_export_success:
             argv.append("--delete-on-export-success")
+        if replace_existing_analysis_dir:
+            argv.append("--replace-existing-analysis-dir")
         if artifact_registration_command_id:
             argv.extend(["--artifact-registration-command-id", artifact_registration_command_id])
             if dewey_url:
