@@ -26,7 +26,9 @@ from daylily_ec.aws.budgets import (
 DEFAULT_CONTACT_EMAIL = "john@daylilyinformatics.com"
 CFNCONFIG_PATH = Path("/etc/parallelcluster/cfnconfig")
 CLUSTER_CONFIG_PATH = Path("/opt/parallelcluster/shared/cluster-config.yaml")
-BUDGET_TAGS_PATH = Path("/fsx/references/runtime_assets/budget_tags/pcluster-project-budget-tags.tsv")
+BUDGET_TAGS_PATH = Path(
+    "/fsx/references/runtime_assets/budget_tags/pcluster-project-budget-tags.tsv"
+)
 SQUEUE_FORMAT = "%i  %P  %C  %t  %N  %c  %T  %m  %M  %D  %j"
 EMAIL_REGEX = re.compile(r"^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$")
 
@@ -133,9 +135,7 @@ def _derive_region_az_and_cluster_name(project: str) -> tuple[str, str]:
 
 
 def _build_budget_summary(budget: dict[str, Any]) -> BudgetSummary:
-    total_budget = str(
-        ((budget.get("BudgetLimit") or {}).get("Amount") or "")
-    )
+    total_budget = str(((budget.get("BudgetLimit") or {}).get("Amount") or ""))
     used_budget = str(
         (((budget.get("CalculatedSpend") or {}).get("ActualSpend") or {}).get("Amount") or "")
     )
@@ -173,9 +173,7 @@ def _resolve_project(
         return resolved
 
     allowed = sorted(
-        project_name
-        for project_name, users in valid_projects.items()
-        if user_name in users
+        project_name for project_name, users in valid_projects.items() if user_name in users
     )
     warnings.append(
         f"Project '{resolved}' is not valid for user '{user_name}'. Proceeding without fallback."
@@ -238,9 +236,7 @@ def collect_headnode_state(
         cluster_name_hint=_derive_region_az_and_cluster_name(resolved_project)[1],
         region_az_hint=_derive_region_az_and_cluster_name(resolved_project)[0],
         valid_projects=sorted(
-            project_name
-            for project_name, users in valid_projects.items()
-            if user_name in users
+            project_name for project_name, users in valid_projects.items() if user_name in users
         ),
         warnings=warnings,
     )
@@ -294,7 +290,7 @@ def build_shell_code(state: HeadnodeState) -> str:
             "    alias day-build-env='bin/init_dayec'",
             "fi",
             "sqq() {",
-            f'    local sq_cmd="squeue -o \'{SQUEUE_FORMAT}\'"',
+            f"    local sq_cmd=\"squeue -o '{SQUEUE_FORMAT}'\"",
             '    if [ "$#" -eq 0 ]; then',
             '        eval "$sq_cmd"',
             "    else",
@@ -305,6 +301,21 @@ def build_shell_code(state: HeadnodeState) -> str:
         ]
     )
     return "\n".join(lines) + "\n"
+
+
+def _shell_emit_fatal_errors(state: HeadnodeState) -> list[str]:
+    errors: list[str] = []
+    if not state.region:
+        errors.append("Headnode region is required before shell context can be emitted.")
+    if not state.project:
+        errors.append("Headnode project is required before shell context can be emitted.")
+    if not state.reference_s3_uri:
+        errors.append("Reference S3 URI is required before shell context can be emitted.")
+    if not state.skip_project_check and not state.valid_projects:
+        errors.append(
+            "Budget tag project membership is required before shell context can be emitted."
+        )
+    return errors
 
 
 def _prompt(prompt: str, default: str = "") -> str:
@@ -328,7 +339,9 @@ def _prompt_email(default: str) -> str:
 
 
 def _prompt_bucket_name(reference_s3_uri: str) -> str:
-    bucket_url = _prompt("Enter S3 bucket URL", f"s3://{reference_s3_uri}" if reference_s3_uri else "")
+    bucket_url = _prompt(
+        "Enter S3 bucket URL", f"s3://{reference_s3_uri}" if reference_s3_uri else ""
+    )
     if bucket_url.startswith("s3://"):
         bucket_url = bucket_url[5:]
     return bucket_url.strip().strip("/")
@@ -459,6 +472,11 @@ def run_headnode_init(
     if emit_shell and non_interactive:
         for warning in state.warnings:
             _warn(f"Warning: {warning}")
+        fatal_errors = _shell_emit_fatal_errors(state)
+        if fatal_errors:
+            for error in fatal_errors:
+                _warn(f"Error: {error}")
+            return 1
         sys.stdout.write(build_shell_code(state))
         return 0
 
@@ -474,9 +492,7 @@ def run_headnode_init(
         and not state.budget_summary.exists
     ):
         if _confirm(f"Create missing budget '{state.project}' now?", default=False):
-            region_az = state.region_az_hint or _prompt(
-                "Enter the region+AZ for the budget", ""
-            )
+            region_az = state.region_az_hint or _prompt("Enter the region+AZ for the budget", "")
             cluster_name = state.cluster_name_hint or _prompt(
                 "Enter the cluster name for budget tagging",
                 "",
@@ -495,9 +511,16 @@ def run_headnode_init(
                 except Exception as exc:
                     _warn(f"Warning: failed to create budget '{state.project}': {exc}")
             else:
-                _warn("Warning: missing region+AZ, cluster name, or bucket name; skipping budget creation.")
+                _warn(
+                    "Warning: missing region+AZ, cluster name, or bucket name; skipping budget creation."
+                )
 
     if emit_shell:
+        fatal_errors = _shell_emit_fatal_errors(state)
+        if fatal_errors:
+            for error in fatal_errors:
+                _warn(f"Error: {error}")
+            return 1
         sys.stdout.write(build_shell_code(state))
         return 0
 

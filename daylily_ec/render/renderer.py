@@ -25,7 +25,6 @@ ALL_SUBSTITUTION_KEYS: FrozenSet[str] = frozenset(
         "REGSUB_KEYNAME",
         "REGSUB_S3_BUCKET_INIT",
         "REGSUB_S3_IAM_POLICY",
-        "REGSUB_HEADNODE_TAILSCALE_IAM_POLICY",
         "REGSUB_PRIVATE_SUBNET",
         "REGSUB_S3_REFERENCE_BUCKET",
         "REGSUB_S3_CONTROL_DATA_BUCKET",
@@ -105,13 +104,9 @@ def render_template(
         required_keys = REQUIRED_KEYS
 
     # ── validate required keys ───────────────────────────────────
-    missing: List[str] = sorted(
-        k for k in required_keys if not substitutions.get(k)
-    )
+    missing: List[str] = sorted(k for k in required_keys if not substitutions.get(k))
     if missing:
-        raise ValueError(
-            f"Missing required substitution key(s): {', '.join(missing)}"
-        )
+        raise ValueError(f"Missing required substitution key(s): {', '.join(missing)}")
 
     # ── deterministic replacement order (sorted keys) ────────────
     result = template_text
@@ -180,9 +175,7 @@ def write_init_artifacts(
 
     # 2. Rendered init template
     template_text = src.read_text(encoding="utf-8")
-    rendered = render_template(
-        template_text, substitutions, required_keys=required_keys
-    )
+    rendered = render_template(template_text, substitutions, required_keys=required_keys)
     init_template.write_text(rendered, encoding="utf-8")
 
     return str(yaml_init), str(init_template)

@@ -1434,11 +1434,15 @@ def _build_workflow_config(template_path: Path) -> ConfigFile:
                     "cluster_name": ["USESETVALUE", "", "majors-cluster"],
                     "reference_s3_uri": ["USESETVALUE", "", "s3://dayoa-references"],
                     "control_data_s3_uri": ["USESETVALUE", "", "s3://dayoa-control-data"],
-                    "stage_s3_uri": ["USESETVALUE", "", "s3://dayoa-staging"],
+                    "stage_s3_uri": [
+                        "USESETVALUE",
+                        "",
+                        "s3://lsmc-ssf-sequencing-data/staged_external_data/",
+                    ],
                     "export_destination_s3_uri": [
                         "USESETVALUE",
                         "",
-                        "s3://dayoa-results/analysis_results/johnm/majors-cluster/",
+                        "s3://lsmc-ssf-sequencing-data/derived/",
                     ],
                     "max_count_8I": ["USESETVALUE", "", "1"],
                     "max_count_128I": ["USESETVALUE", "", "1"],
@@ -1550,9 +1554,14 @@ def _run_stubbed_create_workflow(
                             "prefix": "",
                         },
                         "staging": {
-                            "uri": "s3://dayoa-staging",
-                            "bucket": "dayoa-staging",
-                            "prefix": "",
+                            "uri": "s3://lsmc-ssf-sequencing-data/staged_external_data/",
+                            "bucket": "lsmc-ssf-sequencing-data",
+                            "prefix": "staged_external_data",
+                        },
+                        "export_destination": {
+                            "uri": "s3://lsmc-ssf-sequencing-data/derived/",
+                            "bucket": "lsmc-ssf-sequencing-data",
+                            "prefix": "derived",
                         },
                     }
                 },

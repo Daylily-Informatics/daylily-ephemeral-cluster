@@ -90,7 +90,7 @@
     },
     "id": "i-071ccd80c69969d92",
     "kind": "ec2_instance",
-    "name": "terrarium-dev-tailscale-router",
+    "name": "terrarium-dev-network-overlay-router",
     "name_present": true,
     "project_present": true,
     "region": "us-west-2",
@@ -105,7 +105,7 @@
     "tag_status": "missing_cluster_or_stack",
     "tags": {
       "Environment": "dev",
-      "Name": "terrarium-dev-tailscale-router",
+      "Name": "terrarium-dev-network-overlay-router",
       "Project": "terrarium"
     }
   },
@@ -200,7 +200,7 @@
     },
     "id": "i-03a38912d7d651f1a",
     "kind": "ec2_instance",
-    "name": "terrarium-prod-tailscale-router",
+    "name": "terrarium-prod-network-overlay-router",
     "name_present": true,
     "project_present": true,
     "region": "us-west-2",
@@ -215,7 +215,7 @@
     "tag_status": "missing_cluster_or_stack",
     "tags": {
       "Environment": "prod",
-      "Name": "terrarium-prod-tailscale-router",
+      "Name": "terrarium-prod-network-overlay-router",
       "Project": "terrarium"
     }
   },
@@ -2718,16 +2718,16 @@
     }
   },
   {
-    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/aquarium-dev-tailscale-sidecar",
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/aquarium-dev-network-overlay-sidecar",
     "cluster_or_stack_present": false,
-    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/aquarium-dev-tailscale-sidecar?region=us-west-2",
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/aquarium-dev-network-overlay-sidecar?region=us-west-2",
     "created_at": "1777416370.368",
     "details": {
-      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/aquarium-dev-tailscale-sidecar"
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/aquarium-dev-network-overlay-sidecar"
     },
-    "id": "aquarium-dev-tailscale-sidecar",
+    "id": "aquarium-dev-network-overlay-sidecar",
     "kind": "ecr_repository",
-    "name": "aquarium-dev-tailscale-sidecar",
+    "name": "aquarium-dev-network-overlay-sidecar",
     "name_present": false,
     "project_present": true,
     "region": "us-west-2",
@@ -2861,16 +2861,16 @@
     "tags": {}
   },
   {
-    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/terrarium-dev-tailscale-sidecar",
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/terrarium-dev-network-overlay-sidecar",
     "cluster_or_stack_present": false,
-    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/terrarium-dev-tailscale-sidecar?region=us-west-2",
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/terrarium-dev-network-overlay-sidecar?region=us-west-2",
     "created_at": "1775179088.401",
     "details": {
-      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/terrarium-dev-tailscale-sidecar"
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/terrarium-dev-network-overlay-sidecar"
     },
-    "id": "terrarium-dev-tailscale-sidecar",
+    "id": "terrarium-dev-network-overlay-sidecar",
     "kind": "ecr_repository",
-    "name": "terrarium-dev-tailscale-sidecar",
+    "name": "terrarium-dev-network-overlay-sidecar",
     "name_present": false,
     "project_present": true,
     "region": "us-west-2",
@@ -2888,16 +2888,16 @@
     }
   },
   {
-    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/terrarium-prod-tailscale-sidecar",
+    "arn": "arn:aws:ecr:us-west-2:108782052779:repository/terrarium-prod-network-overlay-sidecar",
     "cluster_or_stack_present": false,
-    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/terrarium-prod-tailscale-sidecar?region=us-west-2",
+    "console_url": "https://us-west-2.console.aws.amazon.com/ecr/repositories/private/108782052779/terrarium-prod-network-overlay-sidecar?region=us-west-2",
     "created_at": "1775190990.507",
     "details": {
-      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/terrarium-prod-tailscale-sidecar"
+      "uri": "108782052779.dkr.ecr.us-west-2.amazonaws.com/terrarium-prod-network-overlay-sidecar"
     },
-    "id": "terrarium-prod-tailscale-sidecar",
+    "id": "terrarium-prod-network-overlay-sidecar",
     "kind": "ecr_repository",
-    "name": "terrarium-prod-tailscale-sidecar",
+    "name": "terrarium-prod-network-overlay-sidecar",
     "name_present": false,
     "project_present": true,
     "region": "us-west-2",

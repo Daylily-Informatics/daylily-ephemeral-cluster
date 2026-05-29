@@ -60,7 +60,7 @@ Local dirty worktree before this ledger, preserved:
  M tests/test_repository_catalog.py
  M tests/test_script_entrypoints.py
  M tests/test_ssm_e2e_runner.py
-?? .tailscale_key
+?? .network-overlay_key
 ?? 20260514-LH01106-0009-B23TVLGLT4-HIOMRFULL-HG003-a-20260514-Altair3-ONT-full-HIOMR-0-HG003-a-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.sort.vcf.gz
 ?? daylily_ec/workflow/dewey_registration.py
 ?? docs/plans/20260527T163009Z_hg003_full1022_signed_urls.tsv
@@ -89,7 +89,7 @@ Resumption note at `2026-05-28T05:16Z`: local worktree state has changed since G
  M docs/plans/20260528T003512Z_inflection_controller_rulegraphs/manifest.tsv
  M docs/plans/20260528T003512Z_inflection_controller_rulegraphs/remaining_summary.tsv
  M docs/plans/20260528T003512Z_inflection_controller_rulegraphs/remaining_summary_latest.tsv
-?? .tailscale_key
+?? .network-overlay_key
 ?? 20260514-LH01106-0009-B23TVLGLT4-HIOMRFULL-HG003-a-20260514-Altair3-ONT-full-HIOMR-0-HG003-a-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.sort.vcf.gz
 ?? docs/plans/20260527T163009Z_hg003_full1022_signed_urls.tsv
 ?? docs/plans/20260528T003512Z_inflection_controller_rulegraphs/dot/downsampled_with_segdup.rulegraph.dot

@@ -937,7 +937,6 @@ def run_create_workflow(
     )
     from daylily_ec.aws.heartbeat import ensure_heartbeat
     from daylily_ec.aws.iam import (
-        headnode_tailscale_authkey_policy_arn,
         make_iam_preflight_step,
         resolve_scheduler_role,
     )
@@ -1102,6 +1101,7 @@ def run_create_workflow(
             reference_s3_uri=reference_s3_uri,
             control_data_s3_uri=control_data_s3_uri,
             stage_s3_uri=stage_s3_uri,
+            export_destination_s3_uri=export_destination_s3_uri,
             profile=aws_ctx.profile,
             interactive=not non_interactive,
         ),
@@ -1129,14 +1129,11 @@ def run_create_workflow(
     reference_storage_bucket_name = _role_bucket(s3_roles, "reference")
     from daylily_ec.aws.s3 import normalize_role_s3_uri
 
-    try:
-        export_destination_spec = normalize_role_s3_uri(
-            export_destination_s3_uri,
-            role="export_destination",
-        )
-    except ValueError as exc:
-        ui.fail(f"Export destination S3 URI: {exc}")
-        return EXIT_VALIDATION_FAILURE
+    export_destination_s3_uri = _role_uri(s3_roles, "export_destination")
+    export_destination_spec = normalize_role_s3_uri(
+        export_destination_s3_uri,
+        role="export_destination",
+    )
 
     cluster_boot_s3_uri = _s3_uri_join(
         reference_s3_uri,
@@ -1294,9 +1291,6 @@ def run_create_workflow(
         "REGSUB_PUB_SUBNET": public_subnet,
         "REGSUB_S3_BUCKET_INIT": cluster_boot_s3_uri,
         "REGSUB_S3_IAM_POLICY": policy_arn,
-        "REGSUB_HEADNODE_TAILSCALE_IAM_POLICY": headnode_tailscale_authkey_policy_arn(
-            aws_ctx.account_id,
-        ),
         "REGSUB_PRIVATE_SUBNET": private_subnet,
         "REGSUB_S3_REFERENCE_BUCKET": _role_bucket(s3_roles, "reference"),
         "REGSUB_S3_CONTROL_DATA_BUCKET": _role_bucket(s3_roles, "control_data"),
@@ -1912,6 +1906,11 @@ def run_preflight_only(
             reference_s3_uri=get_effective_default(cfg, "reference_s3_uri", ""),
             control_data_s3_uri=get_effective_default(cfg, "control_data_s3_uri", ""),
             stage_s3_uri=get_effective_default(cfg, "stage_s3_uri", ""),
+            export_destination_s3_uri=get_effective_default(
+                cfg,
+                "export_destination_s3_uri",
+                "",
+            ),
             profile=aws_ctx.profile,
             interactive=not non_interactive,
         ),

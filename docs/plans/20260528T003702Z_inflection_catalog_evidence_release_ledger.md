@@ -10,7 +10,7 @@ Created: 2026-05-28T00:37:02Z
 - DYEC source repo: `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster`, remote `git@github.com:Daylily-Informatics/daylily-ephemeral-cluster.git`, branch `codex/running-nextflow-pipes-doc`, current tag `5.0.12`, next release tag `5.0.13`.
 - Catalog entry check: source and packaged command catalogs include `command_id: inflection-bjuice-product-v0.1` with DayOA `git_tag: 2.0.12`.
 - New evidence to include: `docs/plans/20260528T003512Z_inflection_controller_rulegraphs/`, including ignored `logs/` evidence files after secret-pattern scanning.
-- Explicit exclusions from staging remain unchanged: `.tailscale_key` is a secret-shaped local key file; `20260514-LH01106-0009-B23TVLGLT4-HIOMRFULL-HG003-a-20260514-Altair3-ONT-full-HIOMR-0-HG003-a-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.sort.vcf.gz` is a 559 MiB local VCF artifact; `presign_url_sofar.md` and `docs/plans/20260527T163009Z_hg003_full1022_signed_urls.tsv` contain temporary presigned S3 URLs.
+- Explicit exclusions from staging remain unchanged: `.network-overlay_key` is a secret-shaped local key file; `20260514-LH01106-0009-B23TVLGLT4-HIOMRFULL-HG003-a-20260514-Altair3-ONT-full-HIOMR-0-HG003-a-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.sort.vcf.gz` is a 559 MiB local VCF artifact; `presign_url_sofar.md` and `docs/plans/20260527T163009Z_hg003_full1022_signed_urls.tsv` contain temporary presigned S3 URLs.
 
 ## Execution Rows
 

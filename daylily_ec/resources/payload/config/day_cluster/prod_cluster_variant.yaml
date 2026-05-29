@@ -35,7 +35,6 @@ HeadNode:
     AdditionalIamPolicies:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-      - Policy: ${REGSUB_HEADNODE_TAILSCALE_IAM_POLICY}
 Scheduling:
   Scheduler: slurm
   SlurmSettings:

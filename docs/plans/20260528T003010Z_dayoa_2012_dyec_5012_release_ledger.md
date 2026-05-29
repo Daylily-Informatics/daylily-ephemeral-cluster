@@ -11,7 +11,7 @@ Created: 2026-05-28T00:30:10Z
 - DYEC source repo: `/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster`, remote `git@github.com:Daylily-Informatics/daylily-ephemeral-cluster.git`, branch `codex/running-nextflow-pipes-doc`, HEAD `21219791`, latest non-v semver tag `5.0.10`.
 - DYEC first release tag: `5.0.11`, for DayOA catalog pin update to `2.0.12` plus the current dirty source/docs/test work.
 - DYEC final release tag: `5.0.12`, for source and packaged self-pins updated to `5.0.12`.
-- Explicit exclusions from staging: `.tailscale_key` is a secret-shaped local key file; `20260514-LH01106-0009-B23TVLGLT4-HIOMRFULL-HG003-a-20260514-Altair3-ONT-full-HIOMR-0-HG003-a-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.sort.vcf.gz` is a 559 MiB local VCF artifact and cannot be pushed to GitHub as a normal Git blob; `presign_url_sofar.md` and `docs/plans/20260527T163009Z_hg003_full1022_signed_urls.tsv` contain temporary presigned S3 URLs and were left untracked.
+- Explicit exclusions from staging: `.network-overlay_key` is a secret-shaped local key file; `20260514-LH01106-0009-B23TVLGLT4-HIOMRFULL-HG003-a-20260514-Altair3-ONT-full-HIOMR-0-HG003-a-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.sort.vcf.gz` is a 559 MiB local VCF artifact and cannot be pushed to GitHub as a normal Git blob; `presign_url_sofar.md` and `docs/plans/20260527T163009Z_hg003_full1022_signed_urls.tsv` contain temporary presigned S3 URLs and were left untracked.
 
 ## Execution Rows
 

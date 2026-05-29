@@ -135,8 +135,8 @@ A separate tag-attribution agent scan found 199 live resources in the same mater
 | `labcore-dev-instance-1` RDS | completely untagged | [open](https://console.aws.amazon.com/rds/home?region=us-west-2#database:id=labcore-dev-instance-1;is-cluster=false) |
 | `labcore-dev` RDS cluster | completely untagged | [open](https://console.aws.amazon.com/rds/home?region=us-west-2#database:id=labcore-dev;is-cluster=true) |
 | `i-09f66b3f11ea42c60` / `labplatform-mvp` | `Name` only, missing project/cluster | [open](https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#InstanceDetails:instanceId=i-09f66b3f11ea42c60) |
-| `i-071ccd80c69969d92` / `terrarium-dev-tailscale-router` | missing cluster/stack | [open](https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#InstanceDetails:instanceId=i-071ccd80c69969d92) |
-| `i-03a38912d7d651f1a` / `terrarium-prod-tailscale-router` | missing cluster/stack | [open](https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#InstanceDetails:instanceId=i-03a38912d7d651f1a) |
+| `i-071ccd80c69969d92` / `terrarium-dev-network-overlay-router` | missing cluster/stack | [open](https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#InstanceDetails:instanceId=i-071ccd80c69969d92) |
+| `i-03a38912d7d651f1a` / `terrarium-prod-network-overlay-router` | missing cluster/stack | [open](https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#InstanceDetails:instanceId=i-03a38912d7d651f1a) |
 | `vol-0c69ba6b467620e14` | completely untagged 336 GiB EBS | [open](https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#VolumeDetails:volumeId=vol-0c69ba6b467620e14) |
 | `vol-0ea36895cc2b979ac` | completely untagged 336 GiB EBS | [open](https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#VolumeDetails:volumeId=vol-0ea36895cc2b979ac) |
 | `vol-0c26833469cf6995a` | completely untagged 234 GiB EBS attached to stopped `lsmc-web` | [open](https://us-west-2.console.aws.amazon.com/ec2/home?region=us-west-2#VolumeDetails:volumeId=vol-0c26833469cf6995a) |

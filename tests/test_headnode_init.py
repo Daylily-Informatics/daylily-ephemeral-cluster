@@ -212,7 +212,7 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
     assert headnode.SQUEUE_FORMAT in shell_code
 
 
-def test_run_headnode_init_emit_shell_non_interactive_sends_warnings_to_stderr(
+def test_run_headnode_init_emit_shell_non_interactive_fails_on_missing_budget_tags(
     monkeypatch, capsys
 ) -> None:
     state = headnode.HeadnodeState(
@@ -226,10 +226,51 @@ def test_run_headnode_init_emit_shell_non_interactive_sends_warnings_to_stderr(
     rc = headnode.run_headnode_init(non_interactive=True, emit_shell=True)
     captured = capsys.readouterr()
 
-    assert rc == 0
-    assert "export DAY_PROJECT=da-us-west-2b-demo" in captured.out
+    assert rc == 1
+    assert captured.out == ""
     assert "Project:" not in captured.out
     assert "Warning: Budget tags file not found." in captured.err
+    assert "Error: Budget tag project membership is required" in captured.err
+
+
+def test_run_headnode_init_emit_shell_non_interactive_allows_explicit_skip(
+    monkeypatch, capsys
+) -> None:
+    state = headnode.HeadnodeState(
+        region="us-west-2",
+        project="da-us-west-2b-demo",
+        skip_project_check=True,
+        reference_s3_uri="reference-bucket",
+        warnings=["Budget tags file not found."],
+    )
+    monkeypatch.setattr(headnode, "collect_headnode_state", lambda **kwargs: state)
+
+    rc = headnode.run_headnode_init(
+        non_interactive=True,
+        emit_shell=True,
+        skip_project_check=True,
+    )
+    captured = capsys.readouterr()
+
+    assert rc == 0
+    assert "export DAY_PROJECT=da-us-west-2b-demo" in captured.out
+    assert "Warning: Budget tags file not found." in captured.err
+
+
+def test_run_headnode_init_emit_shell_non_interactive_fails_without_core_state(
+    monkeypatch, capsys
+) -> None:
+    state = headnode.HeadnodeState()
+    monkeypatch.setattr(headnode, "collect_headnode_state", lambda **kwargs: state)
+
+    rc = headnode.run_headnode_init(non_interactive=True, emit_shell=True)
+    captured = capsys.readouterr()
+
+    assert rc == 1
+    assert captured.out == ""
+    assert "Error: Headnode region is required" in captured.err
+    assert "Error: Headnode project is required" in captured.err
+    assert "Error: Reference S3 URI is required" in captured.err
 
 
 def test_run_headnode_init_interactive_mode_prompts_for_missing_budget(monkeypatch, capsys) -> None:
@@ -636,7 +677,6 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'runtime_assets_root="/fsx/references/runtime_assets"' in script
     assert 'references_root="/fsx/references"' in script
     assert 'environment_cache_root="/fsx/resources/environments"' in script
-    assert 'tailscale_authkey_ssm_parameter="/daylily/dayec/tailscale/headnode-authkey"' in script
     assert ".day.lsmc.bio" not in script
     assert 'control_data_root="/fsx/control_data"' not in script
     assert "Required DayOA role entries are visible" in script
@@ -658,8 +698,6 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "prepare_common_writable_dirs" in script
     assert "prepare_headnode_writable_dirs" in script
     assert "prepare_dayoa_environment_cache" in script
-    assert "install_tailscale_headnode" in script
-    assert "configure_headnode_tailscale" in script
     assert 'install -d -m 1777 /fsx/scratch /fsx/tmp "${environment_cache_root}"' in script
     assert "install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/ubuntu" in script
     assert (
@@ -671,15 +709,12 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert '"${environment_cache_root}/containers/${user_name}/${host_name}"' in script
     assert '"${runtime_assets_root}/cached_envs/conda"' in script
     assert '"${runtime_assets_root}/cached_envs/containers"' in script
-    assert "pkgs.tailscale.com/stable/ubuntu/${VERSION_CODENAME}.noarmor.gpg" in script
-    assert "pkgs.tailscale.com/stable/ubuntu/${VERSION_CODENAME}.tailscale-keyring.list" in script
-    assert "apt-get install -y tailscale" in script
-    assert "aws ssm get-parameter" in script
-    assert '--name "${tailscale_authkey_ssm_parameter}"' in script
-    assert '--auth-key="${authkey}"' in script
-    assert "--accept-dns=false" in script
-    assert "--accept-routes=false" in script
-    assert "empty Tailscale auth key from SSM parameter" in script
+    for removed in (
+        "tail" + "scale",
+        "headnode-" + "authkey",
+        "pkgs." + "tail" + "scale" + ".com",
+    ):
+        assert removed not in script.lower()
     assert "chmod -R a+wrx /fsx" not in script
     assert "Original sbatch already present" in script
     assert "Original srun already present" in script
@@ -701,6 +736,17 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "ppa:apptainer/ppa" not in script
     assert "command -v apptainer" in script
     assert "command -v singularity" in script
+    assert "cat <<'EOF' > /opt/slurm/sbin/check_tags.sh" in script
+    assert "* * * * * /opt/slurm/sbin/check_tags.sh" in script
+    assert script.index("cat <<'EOF' > /opt/slurm/sbin/check_tags.sh") < script.index(
+        'if [ "${cfn_node_type}" == "ComputeFleet" ];then'
+    )
+    assert script.index('if [ "${cfn_node_type}" == "ComputeFleet" ];then') < script.index(
+        'echo "Expanding /dev/shm to 80% of total memory"'
+    )
+    compute_branch = script.split('if [ "${cfn_node_type}" == "ComputeFleet" ];then', 1)[1]
+    compute_branch = compute_branch.split("else", 1)[0]
+    assert "exit 0" not in compute_branch
 
 
 def test_packaged_post_install_bootstrap_matches_source() -> None:

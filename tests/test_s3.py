@@ -128,7 +128,8 @@ def _role_values() -> dict[str, str]:
     return {
         ROLE_REFERENCE: "s3://dayoa-reference/references/",
         ROLE_CONTROL_DATA: "s3://dayoa-control/control/",
-        ROLE_STAGING: "s3://dayoa-staging/staged_external_data/",
+        ROLE_STAGING: "s3://lsmc-ssf-sequencing-data/staged_external_data/",
+        ROLE_EXPORT_DESTINATION: "s3://lsmc-ssf-sequencing-data/derived/",
     }
 
 
@@ -403,7 +404,7 @@ class TestExplicitRoleUris:
         assert details["buckets"] == [
             "dayoa-control",
             "dayoa-reference",
-            "dayoa-staging",
+            "lsmc-ssf-sequencing-data",
         ]
         assert client.get_object.call_args_list[0].kwargs == {
             "Bucket": "dayoa-reference",
@@ -413,6 +414,47 @@ class TestExplicitRoleUris:
         assert "references/genomic_data/organism_references/H_sapiens/hg38/" in checked_prefixes
         assert "references/runtime_assets/cached_envs/" in checked_prefixes
         assert "control/genomic_data/organism_reads/" in checked_prefixes
+        assert "staged_external_data/" in checked_prefixes
+        assert "derived/" in checked_prefixes
+        assert client.put_object.call_count == 1
+        assert client.delete_object.call_count == 1
+
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
+    def test_verify_s3_roles_rejects_bad_explicit_staging_prefix(self, mock_client_factory):
+        client = _make_reference_s3_client()
+        mock_client_factory.return_value = client
+        values = _role_values()
+        values[ROLE_STAGING] = "s3://lsmc-ssf-sequencing-data/staging/"
+
+        ok, details = verify_s3_roles(values, profile="prof", region="us-west-2")
+
+        assert ok is False
+        assert any("staging: URI prefix must be exactly" in issue for issue in details["issues"])
+
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
+    def test_verify_s3_roles_rejects_bad_explicit_export_bucket(self, mock_client_factory):
+        client = _make_reference_s3_client()
+        mock_client_factory.return_value = client
+        values = _role_values()
+        values[ROLE_EXPORT_DESTINATION] = "s3://dayoa-results/derived/"
+
+        ok, details = verify_s3_roles(values, profile="prof", region="us-west-2")
+
+        assert ok is False
+        assert any(
+            "export_destination: bucket name must contain" in issue for issue in details["issues"]
+        )
+
+    @patch("daylily_ec.aws.s3._reference_role_s3_client")
+    def test_verify_s3_roles_rejects_unwritable_export_destination(self, mock_client_factory):
+        client = _make_reference_s3_client()
+        client.put_object.side_effect = Exception("AccessDenied")
+        mock_client_factory.return_value = client
+
+        ok, details = verify_s3_roles(_role_values(), profile="prof", region="us-west-2")
+
+        assert ok is False
+        assert any("unable to write temporary object" in issue for issue in details["issues"])
 
     def test_verify_s3_roles_rejects_overlapping_role_prefixes(self):
         values = _role_values()
@@ -506,7 +548,7 @@ class TestMakeS3BucketPreflightStep:
                 "buckets": [
                     "dayoa-control",
                     "dayoa-reference",
-                    "dayoa-staging",
+                    "lsmc-ssf-sequencing-data",
                 ],
                 "issues": [],
             },
@@ -518,6 +560,7 @@ class TestMakeS3BucketPreflightStep:
             reference_s3_uri=_role_values()[ROLE_REFERENCE],
             control_data_s3_uri=_role_values()[ROLE_CONTROL_DATA],
             stage_s3_uri=_role_values()[ROLE_STAGING],
+            export_destination_s3_uri=_role_values()[ROLE_EXPORT_DESTINATION],
         )
         report = PreflightReport(region="us-west-2")
         report = step(report)
@@ -563,6 +606,7 @@ class TestMakeS3BucketPreflightStep:
             reference_s3_uri=_role_values()[ROLE_REFERENCE],
             control_data_s3_uri=_role_values()[ROLE_CONTROL_DATA],
             stage_s3_uri=_role_values()[ROLE_STAGING],
+            export_destination_s3_uri=_role_values()[ROLE_EXPORT_DESTINATION],
         )
         report = PreflightReport(region="us-west-2")
         report = step(report)
@@ -592,6 +636,7 @@ class TestMakeS3BucketPreflightStep:
             reference_s3_uri=_role_values()[ROLE_REFERENCE],
             control_data_s3_uri=_role_values()[ROLE_CONTROL_DATA],
             stage_s3_uri=_role_values()[ROLE_STAGING],
+            export_destination_s3_uri=_role_values()[ROLE_EXPORT_DESTINATION],
         )
         report = PreflightReport(region="us-west-2")
         report.checks.append(CheckResult(id="prior.check", status=CheckStatus.PASS))
@@ -619,6 +664,7 @@ class TestMakeS3BucketPreflightStep:
             reference_s3_uri=_role_values()[ROLE_REFERENCE],
             control_data_s3_uri=_role_values()[ROLE_CONTROL_DATA],
             stage_s3_uri=_role_values()[ROLE_STAGING],
+            export_destination_s3_uri=_role_values()[ROLE_EXPORT_DESTINATION],
         )
         report = PreflightReport(region="eu-west-1")
         report = step(report)

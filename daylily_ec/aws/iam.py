@@ -46,9 +46,6 @@ PCLUSTER_OMICS_POLICY_DOCUMENT: dict = {
     ],
 }
 
-HEADNODE_TAILSCALE_AUTHKEY_SSM_PARAMETER = "/daylily/dayec/tailscale/headnode-authkey"
-HEADNODE_TAILSCALE_POLICY_NAME = "dayec-headnode-tailscale-authkey-read"
-
 HEARTBEAT_ROLE_ENV_VARS: List[str] = [
     "DAY_HEARTBEAT_SCHEDULER_ROLE_ARN",
     "DAYLILY_HEARTBEAT_SCHEDULER_ROLE_ARN",
@@ -62,43 +59,6 @@ HEARTBEAT_DEFAULT_ROLE_NAMES: List[str] = [
 ]
 
 CREATE_SCHEDULER_SCRIPT = "bin/admin/create_scheduler_role_for_sns.sh"
-
-
-def headnode_tailscale_authkey_policy_arn(account_id: str) -> str:
-    """Return the deterministic managed-policy ARN for headnode Tailscale access."""
-    if not account_id:
-        raise ValueError("account_id must not be empty")
-    return f"arn:aws:iam::{account_id}:policy/{HEADNODE_TAILSCALE_POLICY_NAME}"
-
-
-def headnode_tailscale_authkey_policy_document(
-    *,
-    account_id: str,
-    region: str,
-    parameter_name: str = HEADNODE_TAILSCALE_AUTHKEY_SSM_PARAMETER,
-) -> dict:
-    """Build the least-privilege policy for reading the headnode authkey."""
-    if not account_id:
-        raise ValueError("account_id must not be empty")
-    if not region:
-        raise ValueError("region must not be empty")
-    parameter_resource = parameter_name.lstrip("/")
-    return {
-        "Version": "2012-10-17",
-        "Statement": [
-            {
-                "Effect": "Allow",
-                "Action": "ssm:GetParameter",
-                "Resource": (
-                    f"arn:aws:ssm:{region}:{account_id}:parameter/{parameter_resource}"
-                ),
-            }
-        ],
-    }
-
-
-def _canonical_policy_document(document: dict) -> str:
-    return json.dumps(document, sort_keys=True, separators=(",", ":"))
 
 
 # ---------------------------------------------------------------------------
@@ -142,7 +102,8 @@ def check_policy_attached(
                         return True
             except Exception:
                 logger.debug(
-                    "Could not list group policies for %s", group_name,
+                    "Could not list group policies for %s",
+                    group_name,
                 )
     except Exception:
         logger.debug("Could not list groups for user %s", username)
@@ -216,8 +177,7 @@ def check_daylily_policies(
         else:
             status = CheckStatus.WARN if interactive else CheckStatus.FAIL
             remediation = (
-                f"Policy '{policy_name}' not attached to user '{username}' "
-                f"(direct or via group). "
+                f"Policy '{policy_name}' not attached to user '{username}' (direct or via group). "
             )
             if label == "global":
                 remediation += (
@@ -300,147 +260,6 @@ def ensure_pcluster_omics_policy(
             remediation=(
                 f"Failed to create IAM policy '{PCLUSTER_OMICS_POLICY_NAME}': "
                 f"{exc}. Create it manually or ensure IAM permissions."
-            ),
-        )
-
-
-# ---------------------------------------------------------------------------
-# Headnode Tailscale authkey read policy (idempotent ensure)
-# ---------------------------------------------------------------------------
-
-
-def ensure_headnode_tailscale_authkey_policy(
-    iam_client: Any,
-    *,
-    account_id: str,
-    region: str,
-) -> CheckResult:
-    """Ensure the headnode managed policy can read the Tailscale authkey."""
-    try:
-        desired_doc = headnode_tailscale_authkey_policy_document(
-            account_id=account_id,
-            region=region,
-        )
-        desired_canon = _canonical_policy_document(desired_doc)
-    except ValueError as exc:
-        return CheckResult(
-            id="iam.headnode_tailscale_authkey_policy",
-            status=CheckStatus.FAIL,
-            details={
-                "policy": HEADNODE_TAILSCALE_POLICY_NAME,
-                "error": str(exc),
-            },
-            remediation=str(exc),
-        )
-
-    policy_arn = ""
-    try:
-        paginator = iam_client.get_paginator("list_policies")
-        for page in paginator.paginate(Scope="Local"):
-            for pol in page.get("Policies", []):
-                if pol.get("PolicyName") == HEADNODE_TAILSCALE_POLICY_NAME:
-                    policy_arn = pol.get("Arn", "")
-                    break
-            if policy_arn:
-                break
-    except Exception as exc:
-        logger.debug("Error listing policies: %s", exc)
-
-    if not policy_arn:
-        try:
-            resp = iam_client.create_policy(
-                PolicyName=HEADNODE_TAILSCALE_POLICY_NAME,
-                PolicyDocument=json.dumps(desired_doc),
-            )
-            arn = resp.get("Policy", {}).get("Arn", "")
-            return CheckResult(
-                id="iam.headnode_tailscale_authkey_policy",
-                status=CheckStatus.PASS,
-                details={
-                    "policy": HEADNODE_TAILSCALE_POLICY_NAME,
-                    "arn": arn,
-                    "action": "created",
-                },
-            )
-        except Exception as exc:
-            return CheckResult(
-                id="iam.headnode_tailscale_authkey_policy",
-                status=CheckStatus.FAIL,
-                details={
-                    "policy": HEADNODE_TAILSCALE_POLICY_NAME,
-                    "error": str(exc),
-                },
-                remediation=(
-                    f"Failed to create IAM policy '{HEADNODE_TAILSCALE_POLICY_NAME}': "
-                    f"{exc}. Create it manually or ensure IAM permissions."
-                ),
-            )
-
-    try:
-        policy = iam_client.get_policy(PolicyArn=policy_arn).get("Policy", {})
-        default_version_id = policy.get("DefaultVersionId", "")
-        version = iam_client.get_policy_version(
-            PolicyArn=policy_arn,
-            VersionId=default_version_id,
-        )
-        current_doc = version.get("PolicyVersion", {}).get("Document", {})
-        if _canonical_policy_document(current_doc) == desired_canon:
-            return CheckResult(
-                id="iam.headnode_tailscale_authkey_policy",
-                status=CheckStatus.PASS,
-                details={
-                    "policy": HEADNODE_TAILSCALE_POLICY_NAME,
-                    "arn": policy_arn,
-                    "action": "already_exists",
-                },
-            )
-
-        versions = iam_client.list_policy_versions(PolicyArn=policy_arn).get(
-            "Versions",
-            [],
-        )
-        if len(versions) >= 5:
-            non_default = [v for v in versions if not v.get("IsDefaultVersion")]
-            if not non_default:
-                raise RuntimeError(
-                    f"Policy {HEADNODE_TAILSCALE_POLICY_NAME} has no non-default "
-                    "versions available to delete before updating"
-                )
-            oldest = sorted(
-                non_default,
-                key=lambda v: str(v.get("CreateDate", "")),
-            )[0]
-            iam_client.delete_policy_version(
-                PolicyArn=policy_arn,
-                VersionId=oldest.get("VersionId", ""),
-            )
-
-        iam_client.create_policy_version(
-            PolicyArn=policy_arn,
-            PolicyDocument=json.dumps(desired_doc),
-            SetAsDefault=True,
-        )
-        return CheckResult(
-            id="iam.headnode_tailscale_authkey_policy",
-            status=CheckStatus.PASS,
-            details={
-                "policy": HEADNODE_TAILSCALE_POLICY_NAME,
-                "arn": policy_arn,
-                "action": "updated_default_version",
-            },
-        )
-    except Exception as exc:
-        return CheckResult(
-            id="iam.headnode_tailscale_authkey_policy",
-            status=CheckStatus.FAIL,
-            details={
-                "policy": HEADNODE_TAILSCALE_POLICY_NAME,
-                "arn": policy_arn,
-                "error": str(exc),
-            },
-            remediation=(
-                f"Failed to verify or update IAM policy "
-                f"'{HEADNODE_TAILSCALE_POLICY_NAME}': {exc}."
             ),
         )
 
@@ -541,8 +360,8 @@ def make_iam_preflight_step(
     1. DaylilyGlobalEClusterPolicy attached
     2. DaylilyRegionalEClusterPolicy-<region> attached
     3. pcluster-omics-analysis policy exists (idempotent create)
-    4. headnode Tailscale authkey read policy exists (idempotent create/update)
     """
+
     def step(report: PreflightReport) -> PreflightReport:
         iam = aws_ctx.client("iam")
 
@@ -558,14 +377,6 @@ def make_iam_preflight_step(
         # 3. pcluster-omics-analysis ensure
         omics_result = ensure_pcluster_omics_policy(iam)
         report.checks.append(omics_result)
-
-        # 4. Headnode Tailscale authkey read policy ensure
-        headnode_policy_result = ensure_headnode_tailscale_authkey_policy(
-            iam,
-            account_id=aws_ctx.account_id,
-            region=report.region or aws_ctx.region,
-        )
-        report.checks.append(headnode_policy_result)
 
         return report
 
