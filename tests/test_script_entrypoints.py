@@ -342,7 +342,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "set +u" in script
         assert "set -u" in script
         assert "activate_status=$?" in script
-        assert "set +u\n. bin/day_activate slurm hg38 remote\nactivate_status=$?\nset -u" in script
+        assert 'if [[ "$DEFAULT_ACTIVATION" == "true" ]]; then' in script
+        assert "DEFAULT_ACTIVATION=true" in script
         assert 'echo "[ERROR] day_activate failed with status $activate_status"' in script
         assert ". bin/day_activate slurm hg38 remote" in script
         assert "bin/day_run" in script
@@ -440,6 +441,71 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "RUN-1" in script
         assert "printf '%s' \"$RUN_CONTEXT_PAYLOAD\" > config/runs.tsv" in script
         assert "run_context_file=config/runs.tsv" in script
+
+    @patch(
+        "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
+        return_value=SimpleNamespace(
+            stdout=(
+                "__DAYLILY_SESSION__=simple-test\n"
+                "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/simple-test\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/simple-test/daylily-omics-analysis\n"
+            ),
+            stderr="",
+        ),
+    )
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.discover_stage_config")
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.validate_headnode_readiness")
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.wait_for_ssm_online")
+    @patch(
+        "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_headnode_instance_id",
+        return_value=HeadNodeTarget("cluster-a", "us-west-2", "i-abc123"),
+    )
+    @patch(
+        "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_cluster",
+        return_value="cluster-a",
+    )
+    @patch(
+        "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_region",
+        return_value="us-west-2",
+    )
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.need_cmd")
+    def test_main_launches_no_input_utility_workflow(
+        self,
+        _mock_need_cmd,
+        _mock_region,
+        _mock_cluster,
+        _mock_target,
+        _mock_wait,
+        _mock_validate_headnode_readiness,
+        mock_discover,
+        mock_run_shell,
+    ):
+        rc = run_omics_module.main(
+            [
+                "--profile",
+                "dev",
+                "--analysis-id",
+                "simple-test",
+                "--executing-entity",
+                "johnm",
+                "--session-name",
+                "simple-test",
+                "--dy-command",
+                "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help",
+                "--no-input-staging",
+                "--no-default-activation",
+            ]
+        )
+
+        assert rc == 0
+        mock_discover.assert_not_called()
+        script = mock_run_shell.call_args.args[2]
+        assert "INPUT_STAGING_MODE=false" in script
+        assert "DEFAULT_ACTIVATION=false" in script
+        assert "[INFO] Input staging skipped for this catalog command." in script
+        assert "cp \"$STAGE_SAMPLES\" config/samples.tsv" in script
+        assert "DY_COMMAND='source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help'" in script
+        assert 'if [[ "$DEFAULT_ACTIVATION" == "true" ]]; then' in script
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",

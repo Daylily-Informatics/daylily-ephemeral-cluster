@@ -215,6 +215,18 @@ def build_parser() -> argparse.ArgumentParser:
         help="Base staging directory to scan when --stage-dir is omitted",
     )
     parser.add_argument(
+        "--no-input-staging",
+        dest="input_staging",
+        action="store_false",
+        help="Do not copy staged samples/units or write a run context before launching",
+    )
+    parser.add_argument(
+        "--no-default-activation",
+        dest="default_activation",
+        action="store_false",
+        help="Do not run the standard dyoainit plus Slurm activation before --dy-command",
+    )
+    parser.add_argument(
         "--session-name",
         help="Name of the tmux session to create on the head node. Defaults to --analysis-id.",
     )
@@ -318,7 +330,7 @@ def build_parser() -> argparse.ArgumentParser:
         help="Ursa analysis EUID linked to the exported analysis directory external object",
     )
     parser.add_argument("--dry-run", action="store_true")
-    parser.set_defaults(skip_project_check=True)
+    parser.set_defaults(skip_project_check=True, input_staging=True, default_activation=True)
     return parser
 
 
@@ -408,6 +420,8 @@ def main(argv: Optional[List[str]] = None) -> int:
 
     run_context_content: Optional[str] = None
     if args.run_context_file:
+        if not args.input_staging:
+            raise CommandError("--run-context-file cannot be used with --no-input-staging.")
         if args.stage_dir:
             raise CommandError("--stage-dir cannot be used with --run-context-file.")
         run_context_path = Path(args.run_context_file).expanduser()
@@ -415,7 +429,7 @@ def main(argv: Optional[List[str]] = None) -> int:
             raise CommandError(f"Run context file not found: {run_context_path}")
         run_context_content = run_context_path.read_text(encoding="utf-8")
         stage_config = None
-    else:
+    elif args.input_staging:
         stage_config = discover_stage_config(
             target.instance_id,
             args.profile,
@@ -423,6 +437,10 @@ def main(argv: Optional[List[str]] = None) -> int:
             args.stage_dir,
             args.stage_base,
         )
+    else:
+        if args.stage_dir:
+            raise CommandError("--stage-dir cannot be used with --no-input-staging.")
+        stage_config = None
 
     if args.dy_command:
         dy_command = args.dy_command
@@ -446,6 +464,8 @@ def main(argv: Optional[List[str]] = None) -> int:
     skip_check = "true" if args.skip_project_check else "false"
     run_context_mode = run_context_content is not None
     run_context_mode_literal = "true" if run_context_mode else "false"
+    input_staging_mode_literal = "true" if args.input_staging else "false"
+    default_activation_literal = "true" if args.default_activation else "false"
     run_context_payload = shlex.quote(run_context_content or "")
     export_destination_literal = shlex.quote(args.export_destination_s3_uri or "")
     delete_on_export_success = "true" if args.delete_on_export_success else "false"
@@ -483,6 +503,8 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	ANALYSIS_ID={shlex.quote(analysis_id)}
 	EXECUTING_ENTITY={shlex.quote(executing_entity)}
 	RUN_CONTEXT_MODE={run_context_mode_literal}
+	INPUT_STAGING_MODE={input_staging_mode_literal}
+	DEFAULT_ACTIVATION={default_activation_literal}
 	RUN_CONTEXT_PAYLOAD={run_context_payload}
 	STAGE_SAMPLES={shlex.quote(stage_samples_path)}
 	STAGE_UNITS={shlex.quote(stage_units_path)}
@@ -529,9 +551,11 @@ day-clone \
 	mkdir -p config
 	if [[ "$RUN_CONTEXT_MODE" == "true" ]]; then
 	  printf '%s' "$RUN_CONTEXT_PAYLOAD" > config/runs.tsv
-	else
+	elif [[ "$INPUT_STAGING_MODE" == "true" ]]; then
 	  cp "$STAGE_SAMPLES" config/samples.tsv
 	  cp "$STAGE_UNITS" config/units.tsv
+	else
+	  echo "[INFO] Input staging skipped for this catalog command."
 	fi
 
 if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then
@@ -550,18 +574,20 @@ fi
 if [[ "$SKIP_PROJECT_CHECK" == "true" ]]; then
   dyoa_args+=(--skip-project-check)
 fi
-set +u
-. dyoainit "${{dyoa_args[@]}}"
-set -u
-set +e
-set +u
-. bin/day_activate slurm {shlex.quote(args.genome)} remote
-activate_status=$?
-set -u
-set -e
-if [[ "$activate_status" != "0" ]]; then
-  echo "[ERROR] day_activate failed with status $activate_status"
-  exit "$activate_status"
+if [[ "$DEFAULT_ACTIVATION" == "true" ]]; then
+  set +u
+  . dyoainit "${{dyoa_args[@]}}"
+  set -u
+  set +e
+  set +u
+  . bin/day_activate slurm {shlex.quote(args.genome)} remote
+  activate_status=$?
+  set -u
+  set -e
+  if [[ "$activate_status" != "0" ]]; then
+    echo "[ERROR] day_activate failed with status $activate_status"
+    exit "$activate_status"
+  fi
 fi
 set +e
 eval "$DY_COMMAND"

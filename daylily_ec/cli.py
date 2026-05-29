@@ -2380,6 +2380,16 @@ def workflow_launch(
         "--stage-base",
         help="Base staging directory to scan when --stage-dir is omitted.",
     ),
+    input_staging: bool = typer.Option(
+        True,
+        "--input-staging/--no-input-staging",
+        help="Copy staged samples/units into the workflow clone.",
+    ),
+    default_activation: bool = typer.Option(
+        True,
+        "--default-activation/--no-default-activation",
+        help="Run the standard dyoainit plus Slurm day_activate setup before --dy-command.",
+    ),
     session_name: Optional[str] = typer.Option(
         None,
         "--session-name",
@@ -2566,6 +2576,10 @@ def workflow_launch(
     ):
         if value is not None:
             argv.extend([flag, value])
+    if not input_staging:
+        argv.append("--no-input-staging")
+    if not default_activation:
+        argv.append("--no-default-activation")
     argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
     if no_containerized:
         argv.append("--no-containerized")

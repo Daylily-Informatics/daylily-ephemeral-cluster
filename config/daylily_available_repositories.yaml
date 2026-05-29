@@ -102,6 +102,34 @@ repositories:
     default_ref: 2.0.19
     relative_path: daylily-omics-analysis
     analysis_commands:
+      - command_id: simple-test
+        display_name: "Simple Test"
+        description: "Smoke-test DayOA shell initialization and local help target without staged sample inputs."
+        datasource: DayOA
+        launcher: workflow_launch
+        command_class: utility
+        input_contract: none
+        requires_staging: false
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements: {}
+        targets:
+          - help
+        genome: hg38
+        jobs: 1
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
+        dryrun_dy_command: "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
+        compatible_platforms:
+          - local
+        compatible_data_modes:
+          - none
+        git_tag: 2.0.19
+        no_containerized: true
+        validation_runs: []
       - command_id: illumina_snv_alignstats
         display_name: "Illumina SNV + Alignstats"
         description: "Illumina WGS Sentieon DNAscope and alignment-statistics launch profile."

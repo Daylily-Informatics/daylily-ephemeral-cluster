@@ -24,6 +24,7 @@ PACKAGED_CATALOG_PATH = (
     / "daylily_available_repositories.yaml"
 )
 UNVALIDATED_COMMAND_IDS = {
+    "simple-test",
     "illumina_run_qc_bclconvert",
     "ultima_snv_alignstats_kitchensink",
     "ont_snv_alignstats_kitchensink",
@@ -204,6 +205,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     command_ids = {command.command_id for command in catalog.commands()}
     assert {
+        "simple-test",
         "illumina_snv_alignstats",
         "illumina_snv_alignstats_relatedness_vep_multiqc",
         "illumina_hg002_kitchensink_multiqc",
@@ -451,6 +453,27 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert 'sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"}' in (inflection_bjuice.dy_command)
     assert " -j 125 -p -k" in inflection_bjuice.dy_command
     assert inflection_bjuice.dryrun_dy_command.endswith(" -n")
+
+    simple_test = catalog.get_command("simple-test")
+    assert simple_test.command_class == "utility"
+    assert simple_test.input_contract == "none"
+    assert simple_test.requires_staging is False
+    assert simple_test.requires_run_mount is False
+    assert simple_test.targets == ["help"]
+    assert simple_test.genome == "hg38"
+    assert simple_test.jobs == 1
+    assert simple_test.dy_command == "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
+    assert simple_test.dryrun_dy_command == simple_test.dy_command
+    simple_launch_argv = simple_test.launch_argv(
+        analysis_id="simple-test",
+        executing_entity="johnm",
+    )
+    assert "--dy-command" in simple_launch_argv
+    assert simple_test.dy_command in simple_launch_argv
+    assert "--no-input-staging" in simple_launch_argv
+    assert "--no-default-activation" in simple_launch_argv
+    assert "--stage-dir" not in simple_launch_argv
+    assert "--run-context-file" not in simple_launch_argv
 
 
 def test_repository_catalog_run_analysis_commands_require_run_context() -> None:

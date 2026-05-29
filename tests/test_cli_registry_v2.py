@@ -1811,6 +1811,48 @@ def test_workflow_launch_forwards_run_context_file(monkeypatch, tmp_path) -> Non
     assert "--stage-dir" not in argv
 
 
+def test_workflow_launch_forwards_no_input_utility_flags(monkeypatch) -> None:
+    import daylily_ec.scripts.daylily_run_omics_analysis_headnode as launch_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+
+    def fake_launch(argv: list[str]) -> int:
+        calls["argv"] = argv
+        return 0
+
+    monkeypatch.setattr(launch_module, "main", fake_launch)
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "launch",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--analysis-id",
+            "simple-test",
+            "--executing-entity",
+            "johnm",
+            "--dy-command",
+            "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help",
+            "--no-input-staging",
+            "--no-default-activation",
+        ],
+    )
+
+    assert result.exit_code == 0
+    argv = calls["argv"]
+    assert "--no-input-staging" in argv
+    assert "--no-default-activation" in argv
+    assert "--stage-dir" not in argv
+    assert "--run-context-file" not in argv
+
+
 def test_workflow_launch_requires_analysis_identity(monkeypatch) -> None:
     _activate_dayec_runtime(monkeypatch)
 

@@ -15,7 +15,7 @@ from daylily_ec.resources import resource_path
 
 CATALOG_VERSION = 2
 SUPPORTED_CATALOG_VERSIONS = {1, CATALOG_VERSION}
-COMMAND_CLASSES = {"sample_analysis", "run_analysis"}
+COMMAND_CLASSES = {"sample_analysis", "run_analysis", "utility"}
 INPUT_CONTRACTS = {"sample_manifest", "run_context", "none"}
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 VALIDATION_STATUSES = {"success", "failed", "blocked", "not_run"}
@@ -363,6 +363,13 @@ class AnalysisCommand(BaseModel):
                 raise ValueError("run_analysis commands must not require sample staging")
             if not self.requires_run_mount:
                 raise ValueError("run_analysis commands must require run mounts")
+        if self.command_class == "utility":
+            if self.input_contract != "none":
+                raise ValueError("utility commands must use none input")
+            if self.requires_staging:
+                raise ValueError("utility commands must not require sample staging")
+            if self.requires_run_mount:
+                raise ValueError("utility commands must not require run mounts")
         if not self.compatible_platforms:
             raise ValueError("compatible_platforms must not be empty")
         if not self.compatible_data_modes:
@@ -500,6 +507,8 @@ class AnalysisCommand(BaseModel):
         argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
         if self.no_containerized:
             argv.append("--no-containerized")
+        if self.input_contract == "none":
+            argv.extend(["--no-input-staging", "--no-default-activation"])
         if export_destination_s3_uri:
             argv.extend(["--export-destination-s3-uri", export_destination_s3_uri])
         if export_trigger != "none":
