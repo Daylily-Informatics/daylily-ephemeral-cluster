@@ -1,0 +1,5 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_STAGE_DIR__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T232720Z_d32711da
+__DAYLILY_STAGE_SAMPLES__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T232720Z_d32711da/20260529T232720Z_d32711da_samples.tsv
+__DAYLILY_STAGE_UNITS__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T232720Z_d32711da/20260529T232720Z_d32711da_units.tsv

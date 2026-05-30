@@ -1,0 +1,2 @@
+/tmp/daylily-ssm-Z0TF2J.sh: line 19: syntax error near unexpected token `s3://lsmc-dayoa-references-usw2/runtime_assets/tool_specific_resources/vep/homo_sapiens/'
+failed to run commands: exit status 2

@@ -93,6 +93,21 @@ input_contracts:
         - OUTPUT_ROOT
         - REGION
         - PROFILE
+test_data_locations:
+  - location_id: default_reference_reads_slim
+    description: "Catalog validation sample read fixtures live in the default reference mount; sample manifests should use pass-through or mounted-readonly paths here instead of creating per-command staging DRAs."
+    mount_path: /fsx/references
+    data_root: /fsx/references/genomic_data/organism_reads_slim
+    s3_uri: s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/
+    applies_to_command_classes:
+      - sample_analysis
+  - location_id: default_control_reads_slim
+    description: "Catalog validation control/read fixtures that are not in the reference bucket live in the default control-data mount; do not stage these inputs unless a row explicitly requires copied data."
+    mount_path: /fsx/control_data
+    data_root: /fsx/control_data/genomic_data/organism_reads_slim
+    s3_uri: s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads_slim/
+    applies_to_command_classes:
+      - sample_analysis
 repositories:
   daylily-omics-analysis:
     display_name: "Daylily Omics Analysis"

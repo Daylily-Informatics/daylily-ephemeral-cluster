@@ -1,0 +1,238 @@
+DAY-EC activated.
+DAY-EC activated.
+## mosdepth.smk
+     1	import os
+     2	# ###### MOSDEPTH
+     3	#
+     4	# mosdepth
+     5	# github: https://github.com/brentp/mosdepth
+     6	# paper: https://academic.oup.com/bioinformatics/article/34/5/867/4583630
+     7	
+     8	
+     9	rule mosdepth:
+    10	    input:
+    11	        cram=MDIR + "{sample}/align/{alnr}/{ddup}/{sample}.{alnr}.{ddup}.cram",
+    12	        crai=MDIR + "{sample}/align/{alnr}/{ddup}/{sample}.{alnr}.{ddup}.cram.crai",
+    13	    output:
+    14	        summary=MDIR
+    15	        + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.summary.txt",
+    16	        global_dist=MDIR
+    17	        + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.global.dist.txt",
+    18	        region_dist=MDIR
+    19	        + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.region.dist.txt",
+    20	    threads: config["mosdepth"]["threads"]
+    21	    resources:
+    22	        threads=config["mosdepth"]["threads"],
+    23	        partition=config["mosdepth"]["partition"],
+    24	    benchmark:
+    25	        MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.mosdepth.bench.tsv"
+    26	    log:
+    27	        a=MDIR + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.log",
+    28	        b=MDIR + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}",
+    29	    conda:
+    30	        config["mosdepth"]["env_yaml"]
+    31	    params:
+    32	        win_size=1000,
+    33	        huref=config["supporting_files"]["files"]["huref"]["fasta"]["name"],
+    34	        core_bed=config["supporting_files"]["files"]["huref"]["fasta"]["bed"],
+    35	        mapq=0,
+    36	        T="0,10,20,30"
+    37	        if "depth_bins" not in config["mosdepth"]
+    38	        else config["mosdepth"]["depth_bins"],
+    39	        cluster_sample=ret_sample,
+    40	    shell:
+    41	        r"""
+    42	        set -euo pipefail
+    43	        mkdir -p "$(dirname {output.summary:q})"
+    44	        rm -f {log.a:q} {output.summary:q} {output.global_dist:q} {output.region_dist:q}
+    45	        mosdepth --threads {threads} --by {params.core_bed:q} --use-median -n --fast-mode --mapq {params.mapq} -f {params.huref:q} -T {params.T:q} {log.b:q} {input.cram:q} > {log.a:q} 2>&1
+    46	        rm -f {log.b:q}.per-base.bed.gz {log.b:q}.per-base.bed.gz.csi
+    47	        test -s {output.summary:q} || (printf 'ERROR: mosdepth summary output is missing or empty: %s\n' {output.summary:q} | tee -a {log.a:q} >&2; exit 1)
+    48	        test -s {output.global_dist:q} || (printf 'ERROR: mosdepth global_dist output is missing or empty: %s\n' {output.global_dist:q} | tee -a {log.a:q} >&2; exit 1)
+    49	        test -s {output.region_dist:q} || (printf 'ERROR: mosdepth region_dist output is missing or empty: %s\n' {output.region_dist:q} | tee -a {log.a:q} >&2; exit 1)
+    50	        """
+    51	
+    52	localrules:
+    53	    produce_mosdepth,
+    54	
+    55	rule produce_mosdepth:  # TARGET:  jusg gen mosdepth
+    56	    input:
+    57	        expand(MDIR
+    58	        + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.summary.txt", sample=SSAMPS, alnr=QC_CRAM_ALIGNERS, ddup=qc_alignment_dedupers()),
+    59	        expand(MDIR
+    60	        + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.global.dist.txt", sample=SSAMPS, alnr=QC_CRAM_ALIGNERS, ddup=qc_alignment_dedupers()),
+    61	        expand(MDIR
+    62	        + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.region.dist.txt", sample=SSAMPS, alnr=QC_CRAM_ALIGNERS, ddup=qc_alignment_dedupers()),
+## contam_identity read_haps/haplocheck rules
+   300	        html=MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/haplocheck/vcf/{sample}.{alnr}.{ddup}.{snv}.haplocheck.report.html",
+   301	    log:
+   302	        MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/haplocheck/vcf/logs/{sample}.{alnr}.{ddup}.{snv}.haplocheck.vcf.log",
+   303	    benchmark:
+   304	        MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.{snv}.haplocheck_vcf.bench.tsv"
+   305	    conda:
+   306	        config["haplocheck"]["env_yaml"]
+   307	    threads: config["haplocheck"]["threads"]
+   308	    resources:
+   309	        vcpu=config["haplocheck"]["threads"],
+   310	        mem_mb=config["haplocheck"]["mem_mb"],
+   311	        partition=config["haplocheck"]["partition"],
+   312	    params:
+   313	        command=config["haplocheck"]["haplocheck_command"],
+   314	        sample_ok=lambda wildcards: require_qc_eligible_sample(
+   315	            wildcards, "Haplocheck VCF"
+   316	        ),
+   317	        cluster_sample=ret_sample,
+   318	    shell:
+   319	        r"""
+   320	        set -euo pipefail
+   321	        test {params.sample_ok:q} = ok
+   322	        outdir="$(dirname {output.contamination:q})"
+   323	        mkdir -p "$outdir" "$(dirname {log:q})"
+   324	        command -v {params.command:q} > /dev/null
+   325	        result_dir="$(mktemp -d "$outdir/.haplocheck_vcf_output.XXXXXX")"
+   326	        result_prefix="$result_dir/contamination.txt"
+   327	        cleanup() {{
+   328	            rm -rf "$result_dir"
+   329	        }}
+   330	        trap cleanup EXIT
+   331	        set +o pipefail
+   332	        if gzip -cd {input.vcf:q} | grep -m 1 -q -v '^#'; then
+   333	            has_variants=true
+   334	        else
+   335	            has_variants=false
+   336	        fi
+   337	        set -o pipefail
+   338	        if [[ "$has_variants" == "true" ]]; then
+   339	            {params.command:q} --out "$result_prefix" --raw {input.vcf:q} > {log:q} 2>&1
+   340	            test -s "$result_dir/contamination.txt"
+   341	            test -s "$result_dir/contamination.raw.txt"
+   342	            test -s "$result_dir/contamination.html"
+   343	            cp "$result_dir/contamination.txt" {output.contamination:q}
+   344	            cp "$result_dir/contamination.raw.txt" {output.raw:q}
+   345	            cp "$result_dir/contamination.html" {output.html:q}
+   346	        else
+   347	            printf 'SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
+   348	%s	NO_VARIANTS	0		0		
+   349	' {wildcards.sample:q} > {output.contamination:q}
+   350	            printf 'SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
+   351	%s	NO_VARIANTS	0		0		
+   352	' {wildcards.sample:q} > {output.raw:q}
+   353	            printf '<html><body>NO_VARIANTS</body></html>
+   354	' > {output.html:q}
+   355	            printf 'NO_VARIANTS: haplocheck skipped because the input VCF has no variant records.
+   356	' > {log:q}
+   357	        fi
+   358	        """
+   359	
+   360	
+   361	rule read_haps_contam_identity:
+   362	    input:
+   363	        bam=rules.legacy_cram_compat_bam.output.bam,
+   364	        bai=rules.legacy_cram_compat_bam.output.bai,
+   365	        vcf=_contam_identity_primary_snv_vcf,
+   366	        tbi=_contam_identity_primary_snv_tbi,
+   367	    output:
+   368	        txt=MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/read_haps/{sample}.{alnr}.{ddup}.{snv}.read_haps.txt",
+   369	    log:
+   370	        MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/read_haps/logs/{sample}.{alnr}.{ddup}.{snv}.read_haps.log",
+   371	    benchmark:
+   372	        MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.{snv}.read_haps.bench.tsv"
+   373	    conda:
+   374	        config["read_haps"]["env_yaml"]
+   375	    threads: config["read_haps"]["threads"]
+   376	    resources:
+   377	        vcpu=config["read_haps"]["threads"],
+   378	        mem_mb=config["read_haps"]["mem_mb"],
+   379	        partition=config["read_haps"]["partition"],
+   380	    params:
+   381	        command=config["read_haps"]["read_haps_command"],
+   382	        reliable_snp_file=config["read_haps"]["reliable_snp_file"],
+   383	        extra_args=config["read_haps"]["extra_args"],
+   384	        ref=config["supporting_files"]["files"]["huref"]["fasta"]["name"],
+   385	        sample_ok=lambda wildcards: require_qc_eligible_sample(
+   386	            wildcards, "read_haps"
+   387	        ),
+   388	        cluster_sample=ret_sample,
+   389	    shell:
+   390	        r"""
+   391	        set -euo pipefail
+   392	        test {params.sample_ok:q} = ok
+   393	        mkdir -p "$(dirname {output.txt:q})" "$(dirname {log:q})"
+   394	        command -v {params.command:q} > /dev/null
+   395	        test -s {params.reliable_snp_file:q}
+   396	        set +o pipefail
+   397	        if gzip -cd {input.vcf:q} | grep -m 1 -q -v '^#'; then
+   398	            has_variants=true
+   399	        else
+   400	            has_variants=false
+   401	        fi
+   402	        set -o pipefail
+   403	        if [[ "$has_variants" == "true" ]]; then
+   404	            {params.command:q} {params.extra_args} -fa {params.ref:q} {input.bam:q} {params.reliable_snp_file:q} {input.vcf:q} > {output.txt:q} 2> {log:q}
+   405	        else
+   406	            printf 'SNP_PAIRS ERROR_PAIRS DOUBLE_ERROR_PAIR_COUNT DOUBLE_ERROR_FRACTION REL_ERROR_FRACTION NONSENSE_FRACTION PASS_FAIL REASON
+   407	0 0 0 0 0 0 NO_DATA NO_VARIANTS
+   408	' > {output.txt:q}
+   409	            printf 'NO_VARIANTS: read_haps skipped because the input VCF has no variant records.
+   410	' > {log:q}
+   411	        fi
+   412	        test -s {output.txt:q}
+   413	        grep -q 'PASS_FAIL' {output.txt:q}
+   414	        grep -q 'REASON' {output.txt:q}
+   415	        """
+   416	
+   417	
+   418	rule contam_identity_mqc_gather:
+   419	    input:
+   420	        contamination=MDIR + "other_reports/contamination_mqc.tsv",
+   421	        haplocheck=lambda wildcards: _haplocheck_outputs("contamination.txt"),
+   422	        read_haps=lambda wildcards: _read_haps_outputs("read_haps.txt"),
+   423	    output:
+   424	        identity=MDIR + "other_reports/contam_identity_mqc.tsv",
+   425	        haplocheck=MDIR + "other_reports/haplocheck_mtdna_mqc.tsv",
+   426	        read_haps=MDIR + "other_reports/read_haps_mqc.tsv",
+   427	    params:
+   428	        sample_map=_sample_external_ids_json,
+   429	    log:
+   430	        MDIR + "other_reports/logs/contam_identity_custom_data.log",
+   431	    shell:
+   432	        r"""
+   433	        set -euo pipefail
+   434	        mkdir -p "$(dirname {output.identity:q})" "$(dirname {log:q})"
+   435	        python workflow/scripts/compile_contam_identity_mqc.py \
+   436	          --sample-map-json {params.sample_map:q} \
+   437	          --contam-identity-output {output.identity:q} \
+   438	          --haplocheck-output {output.haplocheck:q} \
+   439	          --read-haps-output {output.read_haps:q} \
+   440	          --contamination {input.contamination:q} \
+   441	          --haplocheck {input.haplocheck:q} \
+   442	          --read-haps {input.read_haps:q} \
+   443	          > {log:q} 2>&1
+   444	        """
+   445	
+   446	
+   447	rule produce_haplocheck_contam_identity:  # TARGET: run Haplocheck mtDNA contamination proxy evidence
+   448	    input:
+   449	        lambda wildcards: _haplocheck_outputs("contamination.txt"),
+   450	
+   451	
+   452	rule produce_read_haps_contam_identity:  # TARGET: run read_haps haplotype contamination evidence
+   453	    input:
+   454	        lambda wildcards: _read_haps_outputs("read_haps.txt"),
+   455	
+   456	
+   457	rule produce_global_contam_check:  # TARGET: run global contamination and identity evidence bundle
+   458	    input:
+   459	        MDIR + "other_reports/contamination_mqc.tsv",
+   460	        MDIR + "other_reports/site_mix_contam_mqc.tsv",
+   461	        MDIR + "other_reports/site_mix_donor_mqc.tsv",
+   462	        MDIR + "other_reports/peddy_sample_qc_mqc.tsv",
+   463	        MDIR + "other_reports/relatedness_mqc.tsv",
+   464	        MDIR + "other_reports/contam_identity_mqc.tsv",
+   465	        MDIR + "other_reports/haplocheck_mtdna_mqc.tsv",
+   466	        MDIR + "other_reports/read_haps_mqc.tsv",
+## local failing job scripts
+MISSING snakejob.goleft.148.sh
+MISSING snakejob.goleft.149.sh
+MISSING snakejob.mosdepth.146.sh
+MISSING snakejob.read_haps_contam_identity.63.sh

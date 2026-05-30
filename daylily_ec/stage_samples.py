@@ -137,9 +137,7 @@ ALIGNED_SOURCE_FIELDS = (
 )
 
 MOUNTED_READONLY_SOURCE_FIELDS = {
-    field
-    for raw_spec in RAW_SOURCE_SPECS
-    for field in raw_spec[:2]
+    field for raw_spec in RAW_SOURCE_SPECS for field in raw_spec[:2]
 } | set(ALIGNED_SOURCE_FIELDS)
 
 MANIFEST_UNITS_PASSTHROUGH_FIELDS = [
@@ -503,6 +501,15 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help="Validate the manifest and exit without staging or writing generated configs.",
     )
     parser.add_argument(
+        "--config-only",
+        action="store_true",
+        help=(
+            "Validate the manifest and write generated samples.tsv/units.tsv locally without "
+            "uploading a remote stage or creating a staged-prefix DRA. All sample inputs must "
+            "use pass_through or mounted_readonly."
+        ),
+    )
+    parser.add_argument(
         "--run-metric-staging",
         action="append",
         default=[],
@@ -616,7 +623,12 @@ def create_staged_prefix_mount(
 
 
 def headnode_visible_path(path: str) -> str:
-    if path == "/data" or path.startswith("/data/") or path == "/fsx/data" or path.startswith("/fsx/data/"):
+    if (
+        path == "/data"
+        or path.startswith("/data/")
+        or path == "/fsx/data"
+        or path.startswith("/fsx/data/")
+    ):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
     reject_retired_stage_path(path)
     return path
@@ -897,8 +909,15 @@ def _join_s3_uri(base: str, relative: str) -> str:
 def build_reference_uri(path: str, reference_s3_uri: str | S3RoleUris) -> str:
     roles = _coerce_s3_role_uris(reference_s3_uri)
     if is_mounted_run_dir_path(path):
-        raise CommandError(f"Mounted run-directory paths are not static role-bucket objects: {path}")
-    if path == "/data" or path.startswith("/data/") or path == "/fsx/data" or path.startswith("/fsx/data/"):
+        raise CommandError(
+            f"Mounted run-directory paths are not static role-bucket objects: {path}"
+        )
+    if (
+        path == "/data"
+        or path.startswith("/data/")
+        or path == "/fsx/data"
+        or path.startswith("/fsx/data/")
+    ):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
     if path == "/fsx/runtime_assets" or path.startswith("/fsx/runtime_assets/"):
         raise CommandError(
@@ -2017,9 +2036,7 @@ def split_fastq_path_list(value: str, *, field: str) -> List[str]:
         raise CommandError(f"{field} has an invalid comma-separated FASTQ list: {exc}") from exc
     cleaned = [path.strip() for path in paths]
     empty_positions = [
-        str(index + 1)
-        for index, path in enumerate(cleaned)
-        if path.lower() in EMPTY_PATH_TOKENS
+        str(index + 1) for index, path in enumerate(cleaned) if path.lower() in EMPTY_PATH_TOKENS
     ]
     if empty_positions:
         raise CommandError(
@@ -2108,7 +2125,12 @@ def deduplicate_rows(rows: Sequence[Dict[str, str]], header: Sequence[str]) -> L
 
 
 def _normalise_headnode_data_path(value: str) -> str:
-    if value == "/data" or value.startswith("/data/") or value == "/fsx/data" or value.startswith("/fsx/data/"):
+    if (
+        value == "/data"
+        or value.startswith("/data/")
+        or value == "/fsx/data"
+        or value.startswith("/fsx/data/")
+    ):
         raise CommandError("The /fsx/data namespace is not supported; use explicit role roots.")
     return value
 
@@ -2763,7 +2785,10 @@ def collect_manifest_row_issues(
 def _source_checks_for_precheck(normalized: Mapping[str, str]) -> List[Tuple[str, str]]:
     checks: List[Tuple[str, str]] = []
     try:
-        if normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE)) == "mounted_readonly":
+        if (
+            normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
+            == "mounted_readonly"
+        ):
             return checks
     except CommandError:
         pass
@@ -3855,7 +3880,26 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
     if args.precheck_only:
         return 0
 
-    ensure_remote_stage_writable(stage, aws_env=aws_env, debug=args.debug)
+    if args.config_only:
+        if run_metric_specs:
+            print(
+                "--config-only cannot be used with --run-metric-staging; run metrics require a remote stage.",
+                file=sys.stderr,
+            )
+            return 1
+        stage_data_rows = [
+            row.row_number for row in prechecked_rows if row.staging.stage_directive == "stage_data"
+        ]
+        if stage_data_rows:
+            print(
+                "--config-only requires all rows to use STAGE_DIRECTIVE=pass_through or "
+                f"mounted_readonly; stage_data rows: {stage_data_rows}.",
+                file=sys.stderr,
+            )
+            return 1
+
+    if not args.config_only:
+        ensure_remote_stage_writable(stage, aws_env=aws_env, debug=args.debug)
 
     samples_rows, units_rows, created_files, _run_ids = process_samples(
         analysis_samples,
@@ -3891,6 +3935,12 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
 
     write_tsv(samples_path, SAMPLES_HEADER, unique_samples_rows)
     write_tsv(units_path, UNITS_HEADER, units_rows)
+
+    if args.config_only:
+        print("Generated configuration files:")
+        print(f"  samples.tsv -> {samples_path}")
+        print(f"  units.tsv   -> {units_path}")
+        return 0
 
     remote_samples_path = f"{stage.remote_s3_stage}/{samples_filename}"
     remote_units_path = f"{stage.remote_s3_stage}/{units_filename}"

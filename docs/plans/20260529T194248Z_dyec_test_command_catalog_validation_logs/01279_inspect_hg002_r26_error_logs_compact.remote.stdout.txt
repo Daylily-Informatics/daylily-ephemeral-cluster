@@ -1,0 +1,176 @@
+DAY-EC activated.
+DAY-EC activated.
+## goleft range
+[Sat May 30 07:18:59 2026]
+Finished job 14.
+13 of 161 steps (8%) done
+[Sat May 30 07:19:06 2026]
+Error in rule goleft:
+    jobid: 110
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.cram, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.cram.crai
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft.done, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/logs/goleft.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/d42215c34ab8867d1a29ad0dad583781_
+    shell:
+        
+        #set +euo pipefail;                                                                                                                                 
+        
+        rm -rf $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done ) || echo rmGOLfailed ;
+        mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done )/logs ; 
+        
+        export gl=$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done ) ;
+        export REF_PATH=/fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta;
+        goleft indexcov --directory $gl --sex  --fai /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta.fai results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.cram.crai >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/logs/goleft.log 2>&1;
+        
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft.done; touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done;
+        
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 2668
+
+Error executing rule goleft on cluster (jobid: 110, external: 2668, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/.snakemake/tmp.6vm63ltz/snakejob.goleft.110.sh). For error details see the cluster log and the log files of the involved rule(s).
+Trying to restart job 110.
+## goleft log
+Usage: goleft --directory DIRECTORY [--includegl] [--excludepatt EXCLUDEPATT] [--sex SEX] [--chrom CHROM] [--fai FAI] [--extranormalize] BAM [BAM ...]
+error: missing value for --sex
+Usage: goleft --directory DIRECTORY [--includegl] [--excludepatt EXCLUDEPATT] [--sex SEX] [--chrom CHROM] [--fai FAI] [--extranormalize] BAM [BAM ...]
+error: missing value for --sex
+## fastqc seqfu logs
+## contam ranges
+
+[Sat May 30 07:23:51 2026]
+Finished job 156.
+59 of 161 steps (37%) done
+[Sat May 30 07:23:58 2026]
+Error in rule read_haps_contam_identity:
+    jobid: 119
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/compat_bam/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.legacy_compat.bam, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/compat_bam/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.legacy_compat.bam.bai, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.snv.sort.vcf.gz, results/day
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/efba687ed98dc6d0ecc827ba5c267513_
+    shell:
+        
+        set -euo pipefail
+        test ok = ok
+        mkdir -p "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt)" "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.log)"
+        command -v /fsx/references/runtime_assets/tool_specific_resources/read_haps/read_haps > /dev/null
+        test -s /fsx/references/runtime_assets/tool_specific_resources/read_haps/high_quality_markers_deCODE_2015.txt.gz
+        /fsx/references/runtime_assets/tool_specific_resources/read_haps/read_haps  -fa /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/compat_bam/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.legacy_compat.bam /fsx/references/runtime_assets/tool_specific_resources/read_haps/high_quality_markers_deCODE_2015.txt.gz results/day/hg38/JEMILMN0P1-HG002-0p1
+        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt
+        grep -q 'PASS_FAIL' results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt
+        grep -q 'REASON' results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 2702
+
+Error executing rule read_haps_contam_identity on cluster (jobid: 119, external: 2702, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/.snakemake/tmp.6vm63ltz/snakejob.read_haps_contam_identity.119.sh). For error details see the cluster log and the log files of the involved rule(s).
+    jobid: 120
+    reason: Missing output files: results/day/hg38/other_reports/bcftools_variant_stats_mqc.tsv; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/bcfstats/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.bcfstats.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat May 30 07:24:09 2026]
+Error in rule haplocheck_vcf_contam_identity:
+    jobid: 118
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.snv.sort.vcf.gz, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.snv.sort.vcf.gz.tbi
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.raw.txt, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/s
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.vcf.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/dff38df99218384139a313055699ea0e_
+    shell:
+        
+        set -euo pipefail
+        test ok = ok
+        outdir="$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt)"
+        mkdir -p "$outdir" "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.vcf.log)"
+        command -v haplocheck > /dev/null
+        result_dir="$(mktemp -d "$outdir/.haplocheck_vcf_output.XXXXXX")"
+        result_prefix="$result_dir/contamination.txt"
+        cleanup() {
+            rm -rf "$result_dir"
+        }
+        trap cleanup EXIT
+        haplocheck --out "$result_prefix" --raw results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.snv.sort.vcf.gz > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.vcf.log 2>&1
+        test -s "$result_dir/contamination.txt"
+        test -s "$result_dir/contamination.raw.txt"
+        test -s "$result_dir/contamination.html"
+        cp "$result_dir/contamination.txt" results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt
+        cp "$result_dir/contamination.raw.txt" results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.raw.txt
+        cp "$result_dir/contamination.html" results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.report.html
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 2708
+
+Error executing rule haplocheck_vcf_contam_identity on cluster (jobid: 118, external: 2708, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/.snakemake/tmp.6vm63ltz/snakejob.haplocheck_vcf_contam_identity.118.sh). For error details see the cluster log and the log files of the involved rule(s).
+[Sat May 30 07:24:09 2026]
+## contam logs
+## vep ranges
+        fi
+        mv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn.tmp results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn
+        
+[Sat May 30 07:24:36 2026]
+Error in rule vep_concat_fofn:
+    jobid: 34
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr1/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr1.vep.vcf.gz.tbi, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr2/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr2.vep.vcf.gz.tbi, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr3/JEMILMN0P1-HG002-0p1x-1-D0-P
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat_fofn.log (check log file(s) for error details)
+    shell:
+        
+        set -euo pipefail
+        mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn) $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat_fofn.log)
+        : > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn.tmp
+        for count_path in results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr1/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr1.vep.vcf.gz.record_count results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr2/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr2.vep.vcf.gz.record_count results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/ch
+            count=$(cat "$count_path")
+            if [ "$count" -gt 0 ]; then
+                echo "${count_path%.record_count}" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn.tmp
+            fi
+        done
+        if [ ! -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn.tmp ]; then
+            echo "ERROR: no non-empty VEP chromosome chunks to concatenate" >&2
+            exit 2
+        fi
+        mv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn.tmp results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Trying to restart job 34.
+Select jobs to execute...
+
+        fi
+        mv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn.tmp results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn
+        
+[Sat May 30 07:24:37 2026]
+Error in rule vep_concat_fofn:
+    jobid: 34
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr1/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr1.vep.vcf.gz.tbi, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr2/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr2.vep.vcf.gz.tbi, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr3/JEMILMN0P1-HG002-0p1x-1-D0-P
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat_fofn.log (check log file(s) for error details)
+    shell:
+        
+        set -euo pipefail
+        mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn) $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat_fofn.log)
+        : > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn.tmp
+        for count_path in results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr1/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr1.vep.vcf.gz.record_count results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr2/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr2.vep.vcf.gz.record_count results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/ch
+            count=$(cat "$count_path")
+            if [ "$count" -gt 0 ]; then
+                echo "${count_path%.record_count}" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn.tmp
+            fi
+        done
+        if [ ! -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn.tmp ]; then
+            echo "ERROR: no non-empty VEP chromosome chunks to concatenate" >&2
+            exit 2
+        fi
+        mv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn.tmp results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+[Sat May 30 07:24:56 2026]
+Finished job 143.
+117 of 161 steps (73%) done
+## vep logs
+--- /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat_fofn.log
+--- /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chrX/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chrX.vep.log
+--- /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.log
+--- /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr2/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr2.vep.log
+--- /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr19/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr19.vep.log
+--- /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chrM/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chrM.vep.log
+--- /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr9/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr9.vep.log
+--- /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr6/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr6.vep.log

@@ -1,0 +1,159 @@
+DAY-EC activated.
+DAY-EC activated.
+    jobid: 79
+    reason: Missing output files: results/day/hg38_broad/other_reports/vep_annotation_mqc.tsv; Input files updated by another job: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.vep.vcf.gz.tbi
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r35_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r35_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentdont']
+SNV Callers (final): [sentdont]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r35_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r35_ont_snv_alignstats_kitchensink/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=1, time=5440, vcpu=1
+Select jobs to execute...
+[Sat May 30 10:09:18 2026]
+Finished job 79.
+99 of 106 steps (93%) done
+Select jobs to execute...
+
+[Sat May 30 10:09:18 2026]
+localrule produce_vep:
+    input: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.vep.vcf.gz.tbi, results/day/hg38_broad/other_reports/vep_annotation_mqc.tsv
+    output: logs/vep_gathered.done
+    jobid: 25
+    reason: Missing output files: logs/vep_gathered.done; Input files updated by another job: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/vep/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.vep.vcf.gz.tbi, results/day/hg38_broad/other_reports/vep_annotation_mqc.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+touch logs/vep_gathered.done;
+
+[Sat May 30 10:09:18 2026]
+localrule aggregate_report_components:
+    input: results/day/hg38_broad/other_reports/seqfu_mqc.tsv, results/day/hg38_broad/other_reports/input_sample_libraries_mqc.tsv, results/day/hg38_broad/other_reports/sequence_qc_outputs_mqc.tsv, results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv, results/day/hg38_broad/other_reports/norm_cov_evenness_combo_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/samtmetrics/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.complete, results/day/hg38_broad/other_reports/samtools_metrics_gather.done, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/mosdepth/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.mosdepth.summary.txt, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/goleft.done, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/norm_cov_eveness/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.md, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/contam/gatk/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.gatk.tsv, results/day/hg38_broad/other_reports/alignment_qc_outputs_mqc.tsv, results/day/hg38_broad/other_reports/contamination_mqc.tsv, results/day/hg38_broad/other_reports/site_mix_contam_mqc.tsv, results/day/hg38_broad/other_reports/site_mix_donor_mqc.tsv, results/day/hg38_broad/other_reports/relatedness_mqc.tsv, results/day/hg38_broad/other_reports/bcftools_variant_stats_mqc.tsv, results/day/hg38_broad/other_reports/rtg_vcfstats_mqc.tsv, logs/peddy_gathered.done, results/day/hg38_broad/other_reports/peddy_sample_qc_mqc.tsv, results/day/hg38_broad/other_reports/vep_annotation_mqc.tsv, results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv
+    output: results/day/hg38_broad/logs/report_components_aggregated.done
+    jobid: 82
+    reason: Missing output files: results/day/hg38_broad/logs/report_components_aggregated.done; Input files updated by another job: logs/peddy_gathered.done, results/day/hg38_broad/other_reports/seqfu_mqc.tsv, results/day/hg38_broad/other_reports/input_sample_libraries_mqc.tsv, results/day/hg38_broad/other_reports/sequence_qc_outputs_mqc.tsv, results/day/hg38_broad/other_reports/peddy_sample_qc_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/samtmetrics/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.complete, results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv, results/day/hg38_broad/other_reports/alignment_qc_outputs_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/mosdepth/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.mosdepth.summary.txt, results/day/hg38_broad/other_reports/relatedness_mqc.tsv, results/day/hg38_broad/other_reports/site_mix_contam_mqc.tsv, results/day/hg38_broad/other_reports/vep_annotation_mqc.tsv, results/day/hg38_broad/other_reports/bcftools_variant_stats_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/norm_cov_eveness/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.md, results/day/hg38_broad/other_reports/contamination_mqc.tsv, results/day/hg38_broad/other_reports/samtools_metrics_gather.done, results/day/hg38_broad/other_reports/norm_cov_evenness_combo_mqc.tsv, results/day/hg38_broad/other_reports/rtg_vcfstats_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/contam/gatk/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.gatk.tsv, results/day/hg38_broad/other_reports/site_mix_donor_mqc.tsv, results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/goleft.done
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+mkdir -p $(dirname results/day/hg38_broad/logs/report_components_aggregated.done); touch results/day/hg38_broad/logs/report_components_aggregated.done;
+[Sat May 30 10:09:18 2026]
+Finished job 25.
+100 of 106 steps (94%) done
+[Sat May 30 10:09:18 2026]
+Finished job 82.
+101 of 106 steps (95%) done
+Select jobs to execute...
+
+[Sat May 30 10:09:18 2026]
+localrule collect_rules_benchmark_data:
+    input: results/day/hg38_broad/logs/report_components_aggregated.done
+    output: results/day/hg38_broad/other_reports/rules_benchmark_data_mqc.tsv
+    log: results/day/hg38_broad/other_reports/logs/rules_benchmarks_summary.log
+    jobid: 103
+    reason: Missing output files: results/day/hg38_broad/other_reports/rules_benchmark_data_mqc.tsv; Input files updated by another job: results/day/hg38_broad/logs/report_components_aggregated.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+bin/util/benchmarks/collect_day_benchmark_data.sh hg38_broad > results/day/hg38_broad/other_reports/logs/rules_benchmarks_summary.log;python bin/util/benchmarks/split_bench_rule_col.py results/day/hg38_broad/reports/benchmarks_summary.tsv results/day/hg38_broad/other_reports/rules_benchmark_data_mqc.tsv > results/day/hg38_broad/other_reports/logs/rules_benchmarks_summary.log;sed -i -E 's/	$/	NA/' results/day/hg38_broad/other_reports/rules_benchmark_data_mqc.tsv;
+[Sat May 30 10:09:18 2026]
+Finished job 103.
+102 of 106 steps (96%) done
+Select jobs to execute...
+
+[Sat May 30 10:09:18 2026]
+localrule stage_multiqc_inputs:
+    input: results/day/hg38_broad/other_reports/seqfu_mqc.tsv, results/day/hg38_broad/other_reports/input_sample_libraries_mqc.tsv, results/day/hg38_broad/other_reports/sequence_qc_outputs_mqc.tsv, results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv, results/day/hg38_broad/other_reports/norm_cov_evenness_combo_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/samtmetrics/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.complete, results/day/hg38_broad/other_reports/samtools_metrics_gather.done, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/mosdepth/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.mosdepth.summary.txt, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/goleft.done, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/norm_cov_eveness/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.md, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/contam/gatk/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.gatk.tsv, results/day/hg38_broad/other_reports/alignment_qc_outputs_mqc.tsv, results/day/hg38_broad/other_reports/contamination_mqc.tsv, results/day/hg38_broad/other_reports/site_mix_contam_mqc.tsv, results/day/hg38_broad/other_reports/site_mix_donor_mqc.tsv, results/day/hg38_broad/other_reports/relatedness_mqc.tsv, results/day/hg38_broad/other_reports/bcftools_variant_stats_mqc.tsv, results/day/hg38_broad/other_reports/rtg_vcfstats_mqc.tsv, logs/peddy_gathered.done, results/day/hg38_broad/other_reports/peddy_sample_qc_mqc.tsv, results/day/hg38_broad/other_reports/vep_annotation_mqc.tsv, results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv, results/day/hg38_broad/other_reports/rules_benchmark_data_mqc.tsv
+    output: results/day/hg38_broad/reports/multiqc_inputs/final/.stage.done, results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv
+    log: results/day/hg38_broad/reports/logs/final_multiqc_input_staging.log
+    jobid: 104
+    reason: Missing output files: results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv, results/day/hg38_broad/reports/multiqc_inputs/final/.stage.done; Input files updated by another job: logs/peddy_gathered.done, results/day/hg38_broad/other_reports/seqfu_mqc.tsv, results/day/hg38_broad/other_reports/input_sample_libraries_mqc.tsv, results/day/hg38_broad/other_reports/sequence_qc_outputs_mqc.tsv, results/day/hg38_broad/other_reports/peddy_sample_qc_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/samtmetrics/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.complete, results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv, results/day/hg38_broad/other_reports/alignment_qc_outputs_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/mosdepth/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.mosdepth.summary.txt, results/day/hg38_broad/other_reports/relatedness_mqc.tsv, results/day/hg38_broad/other_reports/site_mix_contam_mqc.tsv, results/day/hg38_broad/other_reports/vep_annotation_mqc.tsv, results/day/hg38_broad/other_reports/bcftools_variant_stats_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/norm_cov_eveness/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.md, results/day/hg38_broad/other_reports/contamination_mqc.tsv, results/day/hg38_broad/other_reports/rules_benchmark_data_mqc.tsv, results/day/hg38_broad/other_reports/samtools_metrics_gather.done, results/day/hg38_broad/other_reports/norm_cov_evenness_combo_mqc.tsv, results/day/hg38_broad/other_reports/rtg_vcfstats_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/contam/gatk/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.gatk.tsv, results/day/hg38_broad/other_reports/site_mix_donor_mqc.tsv, results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/goleft.done
+    wildcards: report_stage=final
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/day/hg38_broad/reports/logs/final_multiqc_input_staging.log)
+        python workflow/scripts/stage_multiqc_inputs.py           --input-root results/day/hg38_broad/           --output-dir results/day/hg38_broad/reports/multiqc_inputs/final           --manifest results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv           results/day/hg38_broad/other_reports/seqfu_mqc.tsv results/day/hg38_broad/other_reports/input_sample_libraries_mqc.tsv results/day/hg38_broad/other_reports/sequence_qc_outputs_mqc.tsv results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv results/day/hg38_broad/other_reports/norm_cov_evenness_combo_mqc.tsv results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/samtmetrics/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.complete results/day/hg38_broad/other_reports/samtools_metrics_gather.done results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/mosdepth/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.mosdepth.summary.txt results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/goleft.done results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/norm_cov_eveness/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.md results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/contam/gatk/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.gatk.tsv results/day/hg38_broad/other_reports/alignment_qc_outputs_mqc.tsv results/day/hg38_broad/other_reports/contamination_mqc.tsv results/day/hg38_broad/other_reports/site_mix_contam_mqc.tsv results/day/hg38_broad/other_reports/site_mix_donor_mqc.tsv results/day/hg38_broad/other_reports/relatedness_mqc.tsv results/day/hg38_broad/other_reports/bcftools_variant_stats_mqc.tsv results/day/hg38_broad/other_reports/rtg_vcfstats_mqc.tsv logs/peddy_gathered.done results/day/hg38_broad/other_reports/peddy_sample_qc_mqc.tsv results/day/hg38_broad/other_reports/vep_annotation_mqc.tsv results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv results/day/hg38_broad/other_reports/rules_benchmark_data_mqc.tsv > results/day/hg38_broad/reports/logs/final_multiqc_input_staging.log 2>&1
+        
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/f02f4b1dcb4977fd9602b074e7c885b9_
+Touching output file results/day/hg38_broad/reports/multiqc_inputs/final/.stage.done.
+[Sat May 30 10:09:19 2026]
+Finished job 104.
+103 of 106 steps (97%) done
+Select jobs to execute...
+
+[Sat May 30 10:09:19 2026]
+rule multiqc_final_wgs:
+    input: results/day/hg38_broad/logs/report_components_aggregated.done, results/day/hg38_broad/other_reports/rules_benchmark_data_mqc.tsv, results/day/hg38_broad/reports/multiqc_inputs/final/.stage.done, results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv, config/multiqc_module_exclude.txt
+    output: results/day/hg38_broad/reports/DAY_final_multiqc.html, results/day/hg38_broad/reports/DAY_final_multiqc.original.html, results/day/hg38_broad/reports/multiqc_header.yaml, results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_data.json, results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_general_stats.txt, results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_sources.txt, results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc.log
+    log: results/day/hg38_broad/reports/logs/all__mqc_fin_a.log
+    jobid: 81
+    benchmark: results/day/hg38_broad/benchmarks/DAY_all.final_multiqc.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_data.json, results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_sources.txt, results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_general_stats.txt, results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc.log, results/day/hg38_broad/reports/DAY_final_multiqc.html; Input files updated by another job: results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv, results/day/hg38_broad/reports/multiqc_inputs/final/.stage.done, results/day/hg38_broad/other_reports/rules_benchmark_data_mqc.tsv, results/day/hg38_broad/logs/report_components_aggregated.done
+    priority: 50
+    threads: 4
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=4, time=5440, partition=i192,i192mem,i128, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        dbill='$';
+        mkdir -p $(dirname results/day/hg38_broad/reports/DAY_final_multiqc.html) $(dirname results/day/hg38_broad/reports/logs/all__mqc_fin_a.log)
+        python workflow/scripts/multiqc_log_guard.py --log-dir results/day/hg38_broad/other_reports/logs > results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1
+        multiqc --version >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1 || true
+        echo '''
+report_header_info:
+  - Project/Budget: "REGSUB_PROJECT"
+  - Budget @ Runtime: "REGSUB_BUDGET"
+  - Spot Instances: "REGSUB_SPOTINSTANCES"
+  - Spot Costs per hr: "REGSUB_SPOTCOST"
+  - FQ->BAM.sort avg Costs: "REGSUB_TOTALCOST"
+  - BAM mrkdup avg Cost: "REGSUB_MRKDUPCOST"
+  - Results Dir (GB): "REGSUB_TOTALSIZE"
+  ''' > results/day/hg38_broad/reports/multiqc_header.yaml 2>> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log;
+
+        perl -pi -e "s/REGSUB_PROJECT/$DAY_PROJECT/g;"  results/day/hg38_broad/reports/multiqc_header.yaml >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_BUDGET/\\$dbill$USED_BUDGET of \\$dbill$TOTAL_BUDGET spent ( $PERCENT_USED\%)/g;" results/day/hg38_broad/reports/multiqc_header.yaml >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        size=$(du -hs results | cut -f1) >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_TOTALSIZE/$size/g;" results/day/hg38_broad/reports/multiqc_header.yaml >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        source bin/proc_spot_price_logs.sh >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_SPOTCOST/median: \\$dbill$MEDIAN_SPOT_PRICE  mean: \\$dbill$AVERAGE_SPOT_PRICE ( avg cost per vcpu,per min: \\$dbill$VCPU_COST_PER_MIN ) /g;"  results/day/hg38_broad/reports/multiqc_header.yaml >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_SPOTINSTANCES/ $INSTANCE_TYPES_LINE /g;" results/day/hg38_broad/reports/multiqc_header.yaml >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        source bin/proc_aligner_costs.sh results/day/hg38_broad/other_reports/rules_benchmark_data_mqc.tsv $VCPU_COST_PER_MIN >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_TOTALCOST/$ALNR_SUMMARY_COST/g;" results/day/hg38_broad/reports/multiqc_header.yaml >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        source bin/proc_mrkdup_costs.sh results/day/hg38_broad/other_reports/rules_benchmark_data_mqc.tsv $VCPU_COST_PER_MIN  >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+        perl -pi -e "s/REGSUB_MRKDUPCOST/$MRKDUP_AVG_MINUTES min, costing \\$dbill$MRKDUP_AVG_COST/g;" results/day/hg38_broad/reports/multiqc_header.yaml >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+
+        module_excludes="$(python workflow/scripts/multiqc_module_exclude_args.py config/multiqc_module_exclude.txt)"
+        multiqc -f          $module_excludes         --config results/day/hg38_broad/reports/multiqc_header.yaml         --config ./config/external_tools/multiqc_config.yaml          --custom-css-file ./config/external_tools/multiqc.css         --ignore "*/other_reports/logs/*"         --ignore "other_reports/logs/*"         --ignore "*_mqc.log"         --template default         --filename results/day/hg38_broad/reports/DAY_final_multiqc.html         -i 'Final Multiqc Report '         -b 'https://github.com/Daylily-Informatics/daylily-omics-analysis (BRANCH:* (no branch)) (TAG:2.0.23) (HASH:3d5e86c) '         results/day/hg38_broad/reports/multiqc_inputs/final >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+        python workflow/scripts/force_multiqc_dark_mode.py           --html results/day/hg38_broad/reports/DAY_final_multiqc.html           --backup results/day/hg38_broad/reports/DAY_final_multiqc.original.html >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+        python workflow/scripts/validate_multiqc_sample_ids.py           --manifest results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv           --multiqc-data results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_data.json >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+        ls -lt results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/DAY_final_multiqc.original.html results/day/hg38_broad/reports/multiqc_header.yaml >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
+        
+Submitted job 81 with external jobid '3309'.
+[Sat May 30 10:09:45 2026]
+Finished job 81.
+104 of 106 steps (98%) done
+Select jobs to execute...
+
+[Sat May 30 10:09:45 2026]
+localrule write_dayoa_evidence_manifest:
+    input: results/day/hg38_broad/reports/DAY_final_multiqc.html, results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_data.json, results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_general_stats.txt, results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_sources.txt, results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc.log, results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv, results/day/hg38_broad/other_reports/seqfu_mqc.tsv, results/day/hg38_broad/other_reports/input_sample_libraries_mqc.tsv, results/day/hg38_broad/other_reports/sequence_qc_outputs_mqc.tsv, results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv, results/day/hg38_broad/other_reports/norm_cov_evenness_combo_mqc.tsv, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/samtmetrics/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.complete, results/day/hg38_broad/other_reports/samtools_metrics_gather.done, results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/mosdepth/TVBONT5X-HG003-5x-1-D0--output truncated--

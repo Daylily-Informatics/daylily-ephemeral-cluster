@@ -1,0 +1,282 @@
+DAY-EC activated.
+DAY-EC activated.
+Cloning into '/fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis'...
+Note: switching to '3d5e86c38f1a03a2a47cbad570d4ace5386bbec6'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+Updating files:  31% (396/1256)
+Updating files:  32% (402/1256)
+Updating files:  33% (415/1256)
+Updating files:  34% (428/1256)
+Updating files:  35% (440/1256)
+Updating files:  36% (453/1256)
+Updating files:  37% (465/1256)
+Updating files:  38% (478/1256)
+Updating files:  39% (490/1256)
+Updating files:  40% (503/1256)
+Updating files:  41% (515/1256)
+Updating files:  42% (528/1256)
+Updating files:  43% (541/1256)
+Updating files:  44% (553/1256)
+Updating files:  45% (566/1256)
+Updating files:  46% (578/1256)
+Updating files:  47% (591/1256)
+Updating files:  48% (603/1256)
+Updating files:  49% (616/1256)
+Updating files:  50% (628/1256)
+Updating files:  51% (641/1256)
+Updating files:  52% (654/1256)
+Updating files:  53% (666/1256)
+Updating files:  54% (679/1256)
+Updating files:  55% (691/1256)
+Updating files:  56% (704/1256)
+Updating files:  57% (716/1256)
+Updating files:  58% (729/1256)
+Updating files:  59% (742/1256)
+Updating files:  60% (754/1256)
+Updating files:  61% (767/1256)
+Updating files:  62% (779/1256)
+Updating files:  63% (792/1256)
+Updating files:  64% (804/1256)
+Updating files:  65% (817/1256)
+Updating files:  65% (822/1256)
+Updating files:  66% (829/1256)
+Updating files:  67% (842/1256)
+Updating files:  68% (855/1256)
+Updating files:  69% (867/1256)
+Updating files:  69% (876/1256)
+Updating files:  70% (880/1256)
+Updating files:  71% (892/1256)
+Updating files:  72% (905/1256)
+Updating files:  73% (917/1256)
+Updating files:  74% (930/1256)
+Updating files:  75% (942/1256)
+Updating files:  76% (955/1256)
+Updating files:  77% (968/1256)
+Updating files:  78% (980/1256)
+Updating files:  79% (993/1256)
+Updating files:  80% (1005/1256)
+Updating files:  81% (1018/1256)
+Updating files:  82% (1030/1256)
+Updating files:  83% (1043/1256)
+Updating files:  84% (1056/1256)
+Updating files:  85% (1068/1256)
+Updating files:  86% (1081/1256)
+Updating files:  87% (1093/1256)
+Updating files:  88% (1106/1256)
+Updating files:  89% (1118/1256)
+Updating files:  90% (1131/1256)
+Updating files:  90% (1132/1256)
+Updating files:  91% (1143/1256)
+Updating files:  92% (1156/1256)
+Updating files:  93% (1169/1256)
+Updating files:  94% (1181/1256)
+Updating files:  95% (1194/1256)
+Updating files:  96% (1206/1256)
+Updating files:  97% (1219/1256)
+Updating files:  98% (1231/1256)
+Updating files:  99% (1244/1256)
+Updating files: 100% (1256/1256)
+Updating files: 100% (1256/1256), done.
+Cloning repository...
+
+Great success! Daylily repository cloned.
+Repository: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
+Reference : 2.0.23
+Location  : /fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis
+
+To get started:
+  cd /fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis
+  # initialize and run the analysis repository per its documentation
+Notice: --project not set. Using default project name: dyec-test
+Project: dyec-test
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'dyec-test' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+# conda environments:
+#
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/051b9c93eaf518b5ddebc4344275e8a4_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/0b72e739b2cf77bd2e79394c1e549c63_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/0c86add3b549fcc28843f5872250be8c_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/100507f8e13d5e1848ac45d4d452691c_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/1142d6cbdb634d9e332e99dc4820c6a0_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/160617592874011bcee6aad07c00c9ad_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/1993fd6aa5cfbaeeadfc7774cd7f8c2c_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/268f6065d6f69417fea15776392afaf9_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/2bc06e7aeab5345bc658146f339d6cd8_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/2dc9c608977f6d7c6253f8d381138ed4_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/634a8f3a2dffe15027f8cca0913f9426_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/70729e66ede5758449affc0303f52937_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/738f2ef5db9d8ccc1d2e2f995b734454_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/73dbbd9209dde9d5b560eca76639c2a0_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/7a5c7c62c589298e8e834f93fb618415_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/86ad48bef57edc0a5a866843ec8f3737_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/9a86ccf495a30ab366c2e3a27d6ba5ef_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a876128b7711b7b3576ee89d4b896694_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/b364badf61d8e9d2d9321a0a7c8fd0c6_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/d39c2ff7abeb07947030e9839a43fd4f_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/d42215c34ab8867d1a29ad0dad583781_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/da4dc21134176da342ba1bdf1057d36f_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/dff38df99218384139a313055699ea0e_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/e28353b323f26af0747eb0fc4db2c579_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/efba687ed98dc6d0ecc827ba5c267513_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/f02f4b1dcb4977fd9602b074e7c885b9_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/fb0da2b0be44b336d1294fa52fffc58e_
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'dyec-test' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyec-test .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad  
+       _______ GREAT SUCCESS _______       
+[INFO] Patched goleft empty-sex/no-usable-chromosomes repair: workflow/rules/go_left.smk
+[INFO] Patched mosdepth empty-output repair: workflow/rules/mosdepth.smk
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+...AUTO-CONFIG: dedupers=na (from target rules → env)
+...AUTO-CONFIG: snv_callers=sentd (from target rules → env)
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/day_profiles/slurm produce_alignstats produce_na_dedup_cram produce_sentd_snv_vcf -p -j 5 -k -n
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/global_AWSPC.yaml
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+...INFO: Auto-detected dedupers. DDUP updated to: ['na']
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentd']
+SNV Callers (final): [sentd]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+PREP ROCHE BAM:: results/day/hg38_broad//TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/ ... 
+InputFunctionException in rule produce_sentd_snv_vcf in file /fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis/workflow/rules/workflow_target_aliases.smk, line 309:
+Error:
+  WorkflowError:
+    snv_caller target alias produce_sentd_snv_vcf delegates to produce_sentD_vcf, but that rule has no declared inputs to reuse.
+Wildcards:
+
+Traceback:
+  File "/fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis/workflow/rules/workflow_target_aliases.smk", line 311, in <lambda>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis/workflow/rules/workflow_target_aliases.smk", line 63, in _workflow_target_alias_inputs
+RETURN CODE: 1
+[INFO] Workflow exited with status 1
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis$

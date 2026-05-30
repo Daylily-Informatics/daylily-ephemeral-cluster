@@ -1,0 +1,14 @@
+DAY-EC activated.
+DAY-EC activated.
+before_conda_pkgs
+-rw-rw-r-- 1 ubuntu ubuntu 42245967 May 30 02:24 /home/ubuntu/miniconda3/pkgs/polars-runtime-compat-1.41.1-py310hcbd6021_0.conda
+-rw-rw-r-- 1 ubuntu ubuntu 42536267 May 30 02:24 /home/ubuntu/miniconda3/pkgs/polars-runtime-32-1.41.1-py310h49dadd8_0.conda
+-rw-rw-r-- 1 ubuntu ubuntu 4879131 May 30 02:24 /home/ubuntu/miniconda3/pkgs/jupyterthemes-0.20.0-pyhd8ed1ab_2.conda
+-rw-rw-r-- 1 ubuntu ubuntu 62099926 May 30 02:24 /home/ubuntu/miniconda3/pkgs/kaleido-core-0.2.1-h3644ca4_0.tar.bz2
+Will remove 680 (2.15 GB) tarball(s).
+Will remove 355 (5.77 GB) package(s).
+after_conda_pkgs
+missing /home/ubuntu/miniconda3/pkgs/polars-runtime-compat-1.41.1-py310hcbd6021_0.conda
+missing /home/ubuntu/miniconda3/pkgs/polars-runtime-32-1.41.1-py310h49dadd8_0.conda
+missing /home/ubuntu/miniconda3/pkgs/jupyterthemes-0.20.0-pyhd8ed1ab_2.conda
+missing /home/ubuntu/miniconda3/pkgs/kaleido-core-0.2.1-h3644ca4_0.tar.bz2

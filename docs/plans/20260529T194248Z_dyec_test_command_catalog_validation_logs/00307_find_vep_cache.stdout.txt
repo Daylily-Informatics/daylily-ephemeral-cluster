@@ -1,0 +1,125 @@
+DAY-EC activated.
+DAY-EC activated.
+=== local VEP paths ===
+--- /fsx/references/runtime_assets/tool_specific_resources/vep
+total 98
+drwxr-xr-x  3 root root 33280 May 29 02:52 .
+drwxr-xr-x 13 root root 33280 May 29 02:52 ..
+drwxr-xr-x  3 root root 33280 May 29 02:52 homo_sapiens
+/fsx/references/runtime_assets/tool_specific_resources/vep
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38
+--- /fsx/data/runtime_assets/tool_specific_resources/vep
+total 98
+drwxr-xr-x  3 root root 33280 May 29 02:52 .
+drwxr-xr-x 13 root root 33280 May 29 02:52 ..
+drwxr-xr-x  3 root root 33280 May 29 02:52 homo_sapiens
+/fsx/data/runtime_assets/tool_specific_resources/vep
+/fsx/data/runtime_assets/tool_specific_resources/vep/homo_sapiens
+/fsx/data/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38
+--- /fsx/references/runtime_assets/tool_specific_resources
+total 432
+drwxr-xr-x 13 root root     33280 May 29 02:52 .
+dr-xr-xr-x  6 root root     33280 May 29 02:52 ..
+drwxr-xr-x  3 root root     33280 May 29 02:52 H_sapiens
+-rwxr-xr-x  1 root root 253034346 May 26 15:09 cromwell_87.jar
+drwxr-xr-x  2 root root     33280 May 29 02:52 ganon2
+drwxr-xr-x  4 root root     33280 May 29 02:52 longtr
+drwxr-xr-x  3 root root     33280 May 29 02:52 metagenomics
+drwxr-xr-x  2 root root     33280 May 29 02:52 read_haps
+drwxr-xr-x  2 root root     33280 May 29 02:52 sentieon_models_2_2
+drwxr-xr-x  3 root root     33280 May 29 02:52 sourmash
+drwxr-xr-x  3 root root     33280 May 29 02:52 ultima
+drwxr-xr-x  3 root root     33280 May 29 02:52 vep
+drwxr-xr-x  4 root root     41472 May 29 02:52 verifybam2
+drwxr-xr-x  3 root root     33280 May 29 02:52 verifybamid
+-rwxr-xr-x  1 root root 122320885 May 26 15:14 womtool_87.jar
+/fsx/references/runtime_assets/tool_specific_resources/ultima/beds/grch38
+/fsx/references/runtime_assets/tool_specific_resources/vep
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38
+=== S3 VEP prefixes ===
+--- s3://lsmc-dayoa-references-usw2/runtime_assets/tool_specific_resources/vep/homo_sapiens/
+2026-05-26 15:09:54    1137774 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/1-1000000.gz
+2026-05-26 15:09:54      15315 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/1-1000000_reg.gz
+2026-05-26 15:09:54    1314221 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/100000001-101000000.gz
+2026-05-26 15:09:54      11508 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/100000001-101000000_reg.gz
+2026-05-26 15:09:55    1487018 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/10000001-11000000.gz
+2026-05-26 15:09:55      18876 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/10000001-11000000_reg.gz
+2026-05-26 15:09:55    4022788 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/1000001-2000000.gz
+2026-05-26 15:09:55      25446 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/1000001-2000000_reg.gz
+2026-05-26 15:09:56     177882 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/101000001-102000000.gz
+2026-05-26 15:09:56       9497 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/101000001-102000000_reg.gz
+2026-05-26 15:09:56     407519 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/102000001-103000000.gz
+2026-05-26 15:09:57       3049 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/102000001-103000000_reg.gz
+2026-05-26 15:09:57     684390 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/103000001-104000000.gz
+2026-05-26 15:09:58       4468 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/103000001-104000000_reg.gz
+2026-05-26 15:09:57       3954 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/104000001-105000000.gz
+2026-05-26 15:09:58       3138 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/104000001-105000000_reg.gz
+2026-05-26 15:09:58      21608 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/105000001-106000000.gz
+2026-05-26 15:09:58       2560 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/105000001-106000000_reg.gz
+2026-05-26 15:09:58      19572 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/106000001-107000000.gz
+2026-05-26 15:09:58       3653 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/106000001-107000000_reg.gz
+2026-05-26 15:09:58     285298 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/107000001-108000000.gz
+2026-05-26 15:09:58      10224 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/107000001-108000000_reg.gz
+2026-05-26 15:09:58    2005978 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/108000001-109000000.gz
+2026-05-26 15:09:59      12348 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/108000001-109000000_reg.gz
+2026-05-26 15:09:59    2346138 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/109000001-110000000.gz
+2026-05-26 15:09:59      23925 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/109000001-110000000_reg.gz
+2026-05-26 15:09:59    1239455 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/110000001-111000000.gz
+2026-05-26 15:09:59      17731 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/110000001-111000000_reg.gz
+2026-05-26 15:09:59    3060584 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/11000001-12000000.gz
+2026-05-26 15:09:59      17610 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/11000001-12000000_reg.gz
+2026-05-26 15:09:59    1108908 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/111000001-112000000.gz
+2026-05-26 15:09:59      15487 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/111000001-112000000_reg.gz
+2026-05-26 15:09:59     887304 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/112000001-113000000.gz
+2026-05-26 15:09:59      14175 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/112000001-113000000_reg.gz
+2026-05-26 15:09:59    1403226 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/113000001-114000000.gz
+2026-05-26 15:09:59      12379 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/113000001-114000000_reg.gz
+2026-05-26 15:09:59    1520332 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/114000001-115000000.gz
+2026-05-26 15:09:59      11206 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/114000001-115000000_reg.gz
+2026-05-26 15:09:59     311992 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/115000001-116000000.gz
+2026-05-26 15:09:59      17893 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/115000001-116000000_reg.gz
+2026-05-26 15:09:59     594230 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/116000001-117000000.gz
+2026-05-26 15:10:00      21606 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/116000001-117000000_reg.gz
+2026-05-26 15:10:00     702139 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/117000001-118000000.gz
+2026-05-26 15:10:00      14690 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/117000001-118000000_reg.gz
+2026-05-26 15:10:00     232637 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/118000001-119000000.gz
+2026-05-26 15:10:00       7625 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/118000001-119000000_reg.gz
+2026-05-26 15:10:00     707828 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/119000001-120000000.gz
+2026-05-26 15:10:00      15041 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/119000001-120000000_reg.gz
+2026-05-26 15:10:00     677443 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/120000001-121000000.gz
+2026-05-26 15:10:00      18087 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/120000001-121000000_reg.gz
+2026-05-26 15:10:00    1559619 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/12000001-13000000.gz
+2026-05-26 15:10:00      18881 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/12000001-13000000_reg.gz
+2026-05-26 15:10:00     175508 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/121000001-122000000.gz
+2026-05-26 15:10:00      12586 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/121000001-122000000_reg.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/122000001-123000000.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/122000001-123000000_reg.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/123000001-124000000.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/123000001-124000000_reg.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/124000001-125000000.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/124000001-125000000_reg.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/125000001-126000000.gz
+2026-05-26 15:10:00       1568 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/125000001-126000000_reg.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/126000001-127000000.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/126000001-127000000_reg.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/127000001-128000000.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/127000001-128000000_reg.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/128000001-129000000.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/128000001-129000000_reg.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/129000001-130000000.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/129000001-130000000_reg.gz
+2026-05-26 15:10:00         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/130000001-131000000.gz
+2026-05-26 15:10:01         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/130000001-131000000_reg.gz
+2026-05-26 15:10:01     880309 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/13000001-14000000.gz
+2026-05-26 15:10:01      10709 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/13000001-14000000_reg.gz
+2026-05-26 15:10:01         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/131000001-132000000.gz
+2026-05-26 15:10:01         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/131000001-132000000_reg.gz
+2026-05-26 15:10:01         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/132000001-133000000.gz
+2026-05-26 15:10:01         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/132000001-133000000_reg.gz
+2026-05-26 15:10:01         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/133000001-134000000.gz
+2026-05-26 15:10:01         37 runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1/133000001-134000000_reg.gz
+--- s3://daylily-dayoa-references-usw2/runtime_assets/tool_specific_resources/vep/homo_sapiens/
+--- s3://lsmc-dayoa-control-data-usw2/runtime_assets/tool_specific_resources/vep/homo_sapiens/
+--- s3://lsmc-dayoa-control-data-usw2/tool_specific_resources/vep/homo_sapiens/

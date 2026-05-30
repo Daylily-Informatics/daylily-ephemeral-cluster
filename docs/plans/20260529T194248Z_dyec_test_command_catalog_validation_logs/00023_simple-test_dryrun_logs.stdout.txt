@@ -1,0 +1,252 @@
+DAY-EC activated.
+DAY-EC activated.
+Cloning into '/fsx/analysis_results/ubuntu/ccv20260529r2_simple-test_dryrun/daylily-omics-analysis'...
+Note: switching to '3d5e86c38f1a03a2a47cbad570d4ace5386bbec6'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+Updating files:  35% (449/1256)
+Updating files:  36% (453/1256)
+Updating files:  37% (465/1256)
+Updating files:  38% (478/1256)
+Updating files:  39% (490/1256)
+Updating files:  40% (503/1256)
+Updating files:  41% (515/1256)
+Updating files:  42% (528/1256)
+Updating files:  43% (541/1256)
+Updating files:  44% (553/1256)
+Updating files:  45% (566/1256)
+Updating files:  46% (578/1256)
+Updating files:  47% (591/1256)
+Updating files:  48% (603/1256)
+Updating files:  49% (616/1256)
+Updating files:  50% (628/1256)
+Updating files:  51% (641/1256)
+Updating files:  52% (654/1256)
+Updating files:  53% (666/1256)
+Updating files:  54% (679/1256)
+Updating files:  55% (691/1256)
+Updating files:  56% (704/1256)
+Updating files:  57% (716/1256)
+Updating files:  58% (729/1256)
+Updating files:  59% (742/1256)
+Updating files:  60% (754/1256)
+Updating files:  61% (767/1256)
+Updating files:  62% (779/1256)
+Updating files:  63% (792/1256)
+Updating files:  64% (804/1256)
+Updating files:  65% (817/1256)
+Updating files:  66% (829/1256)
+Updating files:  66% (832/1256)
+Updating files:  67% (842/1256)
+Updating files:  68% (855/1256)
+Updating files:  69% (867/1256)
+Updating files:  69% (876/1256)
+Updating files:  70% (880/1256)
+Updating files:  71% (892/1256)
+Updating files:  72% (905/1256)
+Updating files:  73% (917/1256)
+Updating files:  74% (930/1256)
+Updating files:  75% (942/1256)
+Updating files:  76% (955/1256)
+Updating files:  77% (968/1256)
+Updating files:  78% (980/1256)
+Updating files:  79% (993/1256)
+Updating files:  80% (1005/1256)
+Updating files:  81% (1018/1256)
+Updating files:  82% (1030/1256)
+Updating files:  83% (1043/1256)
+Updating files:  84% (1056/1256)
+Updating files:  85% (1068/1256)
+Updating files:  86% (1081/1256)
+Updating files:  87% (1093/1256)
+Updating files:  88% (1106/1256)
+Updating files:  89% (1118/1256)
+Updating files:  90% (1131/1256)
+Updating files:  91% (1143/1256)
+Updating files:  92% (1156/1256)
+Updating files:  93% (1169/1256)
+Updating files:  94% (1181/1256)
+Updating files:  95% (1194/1256)
+Updating files:  96% (1206/1256)
+Updating files:  97% (1219/1256)
+Updating files:  98% (1231/1256)
+Updating files:  99% (1244/1256)
+Updating files: 100% (1256/1256)
+Updating files: 100% (1256/1256), done.
+Cloning repository...
+
+Great success! Daylily repository cloned.
+Repository: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
+Reference : 2.0.23
+Location  : /fsx/analysis_results/ubuntu/ccv20260529r2_simple-test_dryrun/daylily-omics-analysis
+
+To get started:
+  cd /fsx/analysis_results/ubuntu/ccv20260529r2_simple-test_dryrun/daylily-omics-analysis
+  # initialize and run the analysis repository per its documentation
+[INFO] Input staging skipped for this catalog command.
+Unknown parameter passed: source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help
+This script initializes the Day CLI (commands aliased to dy-* ).
+Region is autodetected as us-west-2
+Usage: source bash [--project <project_name>] [--skip-project-check]
+If --project is not specified, the default budget for the region is used: daylily-omics-analysis-us-west-2.
+Valid projects/budgets and authorized users:
+daylily-global	ubuntu,daylily
+daylily-global	ubuntu,
+da-us-west-2d-lsmc-oa-usw2d-n3	ubuntu, 
+da-us-west-2d-lsmc-omica-analysis-n4	ubuntu, 
+da-us-west-2d-lsmc-omics-analysis-usw2d	ubuntu, 
+da-us-west-2d-lsmc-oa-usw1d	ubuntu, 
+da-us-west-2d-lsmc-oa-jem-usw2d	ubuntu, 
+da-us-west-2d-lsmc-oa-jemx3-usw2d	ubuntu, 
+da-us-west-2d-lsmc-jem-test-usw2d	ubuntu,ubuntu 
+da-us-west-2d-lsmc-jem-usw2dtest	ubuntu,ubuntu 
+da-us-west-2d-lsmc-jem-ussss	ubuntu,ubuntu 
+da-us-west-2d-lsmc-sffff	ubuntu,ubuntu 
+da-us-west-2d-lsmc-test-test	ubuntu,ubuntu 
+da-us-west-2d-lsmc-oa-test-usw2	ubuntu,ubuntu 
+da-us-west-2d-lsmc-jem-test	ubuntu,ubuntu 
+da-us-west-2d-lsmc-test-jem	ubuntu,ubuntu 
+da-us-west-2d-jemasda	ubuntu,ubuntu 
+da-us-west-2d-jemblah	ubuntu,ubuntu 
+da-us-west-2d-lsmc-usw2d-blah	ubuntu,ubuntu 
+da-us-west-2d-lsmc-jem-usw2dgo	ubuntu,ubuntu 
+da-us-west-2d-lsmc-oa-usw2dagain	ubuntu,ubuntu 
+da-us-west-2d-lsmc-usw2d-07189	ubuntu,ubuntu 
+da-us-west-2d-lsmc-giababilmn-uw2d	ubuntu,ubuntu 
+da-us-west-2d-lsmc-sentest-usw2d	ubuntu,ubuntu 
+da-us-west-2d-lsmc-senttests-usw2d	ubuntu,ubuntu 
+da-us-west-2d-lsmc-hybrid-rerun-usw2d	ubuntu,ubuntu 
+da-us-west-2d-lsmc-sent-reanalysis-uw2d	ubuntu,ubuntu 
+da-us-west-2d-lsmc-parallel-2	ubuntu,ubuntu 
+da-us-west-2d-lsmc-bigger-fs	ubuntu,ubuntu 
+da-us-west-2d-lsmc-test-new-ilmn	ubuntu,ubuntu 
+da-us-west-2d-giab-sownsamp-test	ubuntu,ubuntu 
+da-us-west-2d-lsmc-retest-usw2d	ubuntu,ubuntu 
+da-us-west-2d-lsmc-ultima-finetune	ubuntu,ubuntu 
+da-us-west-2d-lsmc-ultima-gatk	ubuntu,ubuntu 
+da-us-west-2d-lsmc-regatk-usw2d	ubuntu,ubuntu 
+da-us-west-2d-dragen	ubuntu,ubuntu 
+da-us-west-2d-dgn2	ubuntu,ubuntu 
+da-us-west-2d-dgn3	ubuntu,ubuntu 
+da-us-west-2c-dragentest	ubuntu,ubuntu 
+da-us-west-2c-dragen-usw2c	ubuntu,ubuntu 
+da-us-west-2c-dragen-usw2cx2	ubuntu,ubuntu 
+da-us-west-2c-dgn-usw2c	ubuntu,ubuntu 
+da-us-west-2c-dgusw2c	ubuntu,ubuntu 
+da-us-west-2c-dgnusw2c	ubuntu,ubuntu 
+da-us-west-2c-dgn2c	ubuntu,ubuntu 
+da-us-west-2d-dragen-fixed	ubuntu,ubuntu 
+da-us-west-2d-lsmc-ug-newchemistry	ubuntu,ubuntu 
+da-us-west-2d-ultima-reruns	ubuntu,ubuntu 
+da-us-west-2d-lsmc-newdev	ubuntu,ubuntu 
+da-us-west-2d-jem-automate	ubuntu,ubuntu 
+da-us-west-2d-jem-test2	ubuntu,ubuntu 
+da-us-west-2d-jemblahhh	ubuntu,ubuntu 
+da-us-west-2d-jem-random	ubuntu,ubuntu 
+da-us-west-2d-jembbbb	ubuntu,ubuntu 
+da-us-west-2d-jemred	ubuntu, 
+da-us-west-2d-lsmc-day2test	ubuntu, 
+da-us-west-2d-jemlsmc	ubuntu, 
+da-us-west-2d-jem2	ubuntu, 
+da-us-west-2d-takethree	ubuntu, 
+da-us-west-2d-takefive	ubuntu, 
+da-us-west-2d-takesix	ubuntu, 
+da-us-west-2d-takeeight	ubuntu, 
+da-us-west-2d-takenine	ubuntu, 
+da-us-west-2d-taketen	ubuntu, 
+da-us-west-2d-takeeleven	ubuntu, 
+da-us-west-2d-taketwelve	ubuntu, 
+da-us-west-2d-take14	ubuntu, 
+da-us-west-2d-take15	ubuntu, 
+da-us-west-2d-take20	ubuntu, 
+da-us-west-2d-jem-delme	ubuntu, 
+da-us-west-2d-jem-delme	ubuntu, 
+da-us-west-2d-jem-again	ubuntu, 
+da-us-west-2d-jem-threee	ubuntu, 
+da-us-west-2d-jem-fourx	ubuntu, 
+da-us-west-2d-jem-andagain	ubuntu, 
+da-us-west-2d-jem-againx	ubuntu, 
+da-us-west-2d-jem-aaa	ubuntu, 
+da-us-west-2d-jem-okgo	ubuntu, 
+da-us-west-2d-bhfghdfgh	ubuntu, 
+da-us-west-2d-jkj	ubuntu, 
+da-us-west-2d-dfghfghfghfg	ubuntu, 
+da-us-west-2d-blahfdfg	ubuntu, 
+da-us-west-2d-yoyoaa	ubuntu, 
+da-us-west-2d-kkkl	ubuntu, 
+da-us-west-2d-majors-cluster	ubuntu, 
+da-us-west-2d-ghjghjghj	ubuntu, 
+da-us-west-2d-again	ubuntu, 
+da-us-west-2d-branchtest	ubuntu, 
+da-us-west-2d-jem-07348	ubuntu, 
+da-us-west-2d-againokx	ubuntu, 
+da-us-west-2d-jem-07355	ubuntu, 
+da-us-west-2d-dayoa-07357	ubuntu, 
+da-us-west-2d-dayoa-07357x	ubuntu,ubuntu 
+da-us-west-2d-xxaabb	ubuntu, 
+da-us-west-2d-xxaabb2	ubuntu,ubuntu 
+da-us-west-2d-dyoa-usw2d-07375	ubuntu, 
+da-us-west-2d-dyoa-bigboy	ubuntu, 
+da-us-west-2d-dyoa-smn12-go	ubuntu, 
+da-us-west-2d-giab-test	ubuntu, 
+da-us-west-2d-ifx-tests	ubuntu, 
+da-us-west-2d-lfg-usw2d	ubuntu, 
+da-us-west-2d-jem-split-test	ubuntu, 
+da-us-west-2d-jemtest2	ubuntu, 
+da-us-west-2d-jem-usw2-3	ubuntu, 
+da-us-west-2d-uswest2d-A	ubuntu, 
+da-us-west-2d-usw2d-B	ubuntu, 
+da-us-west-2d-cher-usw2	ubuntu, 
+da-us-west-2d-tearit-usw2	ubuntu, 
+da-us-west-2d-gogogo	ubuntu, 
+da-us-west-2d-josh-test-dev	ubuntu, 
+da-us-west-2d-agbt-usw2d-primary	ubuntu, 
+da-us-west-2d-agbt--wrkhrse-usw2	ubuntu, 
+da-us-west-2d-agbt--12-usw2d	ubuntu, 
+da-us-west-2d-agbt-12t-usw2d	ubuntu, 
+da-us-west-2d-day-test-uswest2d	ubuntu,daylily-service
+da-us-west-2d-day-forge-usw2d	ubuntu,root
+da-us-west-2d-agbt-heavy	ubuntu, 
+da-us-west-2d-daylily-1773059211	ubuntu,root
+da-us-west-2d-ifx-go	ubuntu,daylily-service
+da-us-west-2d-and-again	ubuntu,ubuntu
+da-us-west-2d-jemx2	ubuntu,root
+da-us-west-2d-y260609-frz	ubuntu
+da-us-west-2d-lsbio-fork-260509-124701	ubuntu
+da-us-west-2d-fk-260509-use	ubuntu
+da-us-west-2d-pilot-mk	ubuntu
+da-us-west-2d-pilot-largecluster	ubuntu
+da-us-west-2d-may26-d	ubuntu
+da-us-west-2d-dra-enabled	ubuntu
+da-us-west-2d-XLpilot	ubuntu
+da-us-west-2d-XL-pilot	ubuntu
+da-us-west-2d-tstVer4-1-1	ubuntu
+da-us-west-2d-fork-fixer	ubuntu
+da-us-west-2d-tstClu-4-1-1c	ubuntu
+da-us-west-2d-splitdra-ref-20260526	ubuntu
+da-us-west-2d-jem-bucktst3	ubuntu
+da-us-west-2d-blahab44	ubuntu
+da-us-west-2d-goodole3	ubuntu
+da-us-west-2d-dyec-test	ubuntu
+
+Valid regions: Use a valid AWS region (e.g., us-east-1, us-west-2).
+[INFO] Workflow exited with status 3
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260529r2_simple-test_dryrun/daylily-omics-analysis$

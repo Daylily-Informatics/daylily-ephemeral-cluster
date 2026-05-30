@@ -1,0 +1,133 @@
+DAY-EC activated.
+DAY-EC activated.
+## /home/ubuntu/daylily-runs/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/tmux.log tail
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.vcf.gz.record_count, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.vcf.gz.tbi; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVAS
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ, alnr=sent, ddup=dmd, snv=sentd, vepchrm=chr13
+    threads: 16
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192,i192mem,i128, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.vcf.gz) $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.log)
+        test -d /fsx/references/runtime_assets/tool_specific_resources/vep//homo_sapiens/114_GRCh38 || (
+            echo "ERROR: VEP cache not found: /fsx/references/runtime_assets/tool_specific_resources/vep//homo_sapiens/114_GRCh38" >&2
+            exit 2
+        )
+        records=$(cat results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.input.vcf.gz.record_count)
+        if [ "$records" -eq 0 ]; then
+            gzip -cd results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.input.vcf.gz | awk '/^#/' | bgzip -c > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.vcf.gz
+        else
+            vep             --dir_cache /fsx/references/runtime_assets/tool_specific_resources/vep/             --offline             --vcf             --cache             --cache_version 114             --input_file results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.input.vcf.gz             --chr chr13             --fork 16             --fasta /fsx/references/genomic_data/organism_
+        fi
+        tabix -f -p vcf results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.vcf.gz >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.log 2>&1
+        cat results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.input.vcf.gz.record_count > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.vcf.gz.record_count
+        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.vcf.gz
+        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.vcf.gz.tbi
+        
+
+[Sat May 30 07:55:17 2026]
+rule vep_chromosome:
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.input.vcf.gz, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.input.vcf.gz.tbi, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz.tbi, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.log
+    jobid: 106
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz.tbi, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz.record_count; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVAS
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ, alnr=sent, ddup=dmd, snv=sentd, vepchrm=chr16
+    threads: 16
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192,i192mem,i128, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz) $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.log)
+        test -d /fsx/references/runtime_assets/tool_specific_resources/vep//homo_sapiens/114_GRCh38 || (
+            echo "ERROR: VEP cache not found: /fsx/references/runtime_assets/tool_specific_resources/vep//homo_sapiens/114_GRCh38" >&2
+            exit 2
+        )
+        records=$(cat results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.input.vcf.gz.record_count)
+        if [ "$records" -eq 0 ]; then
+            gzip -cd results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.input.vcf.gz | awk '/^#/' | bgzip -c > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz
+        else
+            vep             --dir_cache /fsx/references/runtime_assets/tool_specific_resources/vep/             --offline             --vcf             --cache             --cache_version 114             --input_file results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.input.vcf.gz             --chr chr16             --fork 16             --fasta /fsx/references/genomic_data/organism_
+        fi
+        tabix -f -p vcf results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.log 2>&1
+        cat results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.input.vcf.gz.record_count > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz.record_count
+        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz
+        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz.tbi
+        
+
+[Sat May 30 07:55:17 2026]
+localrule vep_concat_fofn:
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr1/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr1.vep.vcf.gz.tbi, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr2/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr2.vep.vcf.gz.tbi, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr3/JEMILMN0P1-HG002-0p1x-1-D0-P
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat_fofn.log
+    jobid: 74
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.vep.concat.vcf.gz.fofn; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr15/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr15.vep.vcf.gz.record_count, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/se
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ, alnr=sent, ddup=dmd, snv=sentd
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+RuleException in rule vep_concat_fofn in file /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/vep.smk, line 181:
+NameError: The name 'count_path%' is unknown in this context. Please make sure that you defined that variable. Also note that braces not used for variable access have to be escaped by repeating them, i.e. {{print $1}}, when formatting the following:
+
+        set -euo pipefail
+        mkdir -p $(dirname {output.fofn}) $(dirname {log})
+        : > {params.tmp_fofn}
+        for count_path in {input.ann_counts}; do
+            count=$(cat "$count_path")
+            if [ "$count" -gt 0 ]; then
+                echo "${{count_path%.record_count}}" >> {params.tmp_fofn}
+            fi
+        done
+        if [ ! -s {params.tmp_fofn} ]; then
+            for count_path in {input.ann_counts}; do
+                echo "${count_path%.record_count}" >> {params.tmp_fofn}
+                break
+            done
+        fi
+        mv {params.tmp_fofn} {output.fofn}
+        
+[5m[48;5;118m[30mRETURN CODE: 1[0m
+[INFO] Workflow exited with status 1
+DAY-EC activated.
+[?2004h(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis$ 
+## launch exit/status handling
+2:set -euo pipefail
+19:	DY_COMMAND='bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config '"'"'aligners=["sent"]'"'"' '"'"'dedupers=["dmd"]'"'"' '"'"'snv_callers=["sentd"]'"'"' '"'"'htd_callers=["cyrius"]'"'"' '"'"'multiqc_qc={"enable_tools":["vep","metagenomics","contam_identity"]}'"'"' -j 200 -p -k --rerun-triggers mtime -n'
+30:STATUS_FILE="${DAYLILY_RUN_DIR}/status.json"
+33:write_status() {
+34:  python3 -c 'import json, os, pathlib; path = pathlib.Path(os.environ['"'"'DAYLILY_STATUS_FILE'"'"']); exit_code_raw = os.environ.get('"'"'DAYLILY_STATUS_EXIT_CODE'"'"', '"'"''"'"'); exit_code = None if exit_code_raw in ('"'"''"'"', '"'"'__PENDING__'"'"') else (int(exit_code_raw) if exit_code_raw.lstrip('"'"'-'"'"').isdigit() else exit_code_raw); payload = dict(session_name=os.environ['"'"'DAYLILY_STATUS_SESSION'"'"'], repo_path=os.environ['"'"'DAYLILY_STATUS_REPO_PATH'"'"'], started_at=os.environ.get('"'"'DAYLILY_STATUS_STARTED_AT'"'"') or None, completed_at=os.environ.get('"'"'DAYLILY_STATUS_COMPLETED_AT'"'"') or None, exit_code=exit_code, command=os.environ['"'"'DAYLILY_STATUS_COMMAND'"'"']); path.parent.mkdir(parents=True, exist_ok=True); path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '"'"'\n'"'"', encoding='"'"'utf-8'"'"')'
+44:write_status
+46:trap 'status=$?; if [[ "${DAYLILY_STATUS_FINALIZED:-0}" != "1" ]]; then export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; export DAYLILY_STATUS_EXIT_CODE="$status"; write_status; fi' EXIT
+100:bootstrap_test_config() {
+113:  echo "[INFO] Bootstrapped DayOA test samples and units tables."
+134:    raise SystemExit("[ERROR] BCL Convert bootstrap requires config/runs.tsv")
+141:    raise SystemExit("[ERROR] BCL Convert bootstrap requires an ILMN run row in config/runs.tsv")
+146:    raise SystemExit("[ERROR] BCL Convert bootstrap ILMN run row is missing RUNID")
+228:    f"[INFO] Wrote BCL Convert bootstrap samples for {len(deduped_sample_ids)} samples from {sample_sheet}; units table left absent for DayOA bootstrap"
+651:	  bootstrap_test_config
+682:    local source_status=$?
+684:    if [[ "$source_status" != "0" ]]; then
+685:      return "$source_status"
+690:  local command_status=$?
+692:  return "$command_status"
+712:  activate_status=$?
+714:  set -e
+715:  if [[ "$activate_status" != "0" ]]; then
+716:    echo "[ERROR] day_activate failed with status $activate_status"
+717:    exit "$activate_status"
+737:workflow_status=$?
+738:set -e
+742:  on-success) [[ "$workflow_status" -eq 0 ]] && should_export=true ;;
+743:  on-fail) [[ "$workflow_status" -ne 0 ]] && should_export=true ;;
+745:  *) echo "[ERROR] Invalid EXPORT_TRIGGER=$EXPORT_TRIGGER"; workflow_status=20 ;;
+750:    workflow_status=21
+766:    export_status=$?
+767:    set -e
+768:    if [[ "$export_status" -ne 0 ]]; then
+769:      echo "[ERROR] Export failed with status $export_status"
+770:      workflow_status="$export_status"
+779:export DAYLILY_STATUS_EXIT_CODE="$workflow_status"
+780:write_status
+781:echo "[INFO] Workflow exited with status $workflow_status"
+783:  exit "$workflow_status"

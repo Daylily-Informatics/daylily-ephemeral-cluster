@@ -137,6 +137,43 @@ class CommandInputRequirements(BaseModel):
         }
 
 
+class TestDataLocation(BaseModel):
+    """Default-mounted catalog validation data root."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    location_id: str
+    description: str
+    mount_path: str
+    data_root: str
+    s3_uri: str = ""
+    applies_to_command_classes: List[str] = Field(default_factory=list)
+
+    @field_validator("location_id", "description", "mount_path", "data_root")
+    @classmethod
+    def _validate_required_strings(cls, value: str) -> str:
+        return _clean_id(value, field_name="test_data_locations value")
+
+    @field_validator("s3_uri")
+    @classmethod
+    def _validate_optional_s3_uri(cls, value: str) -> str:
+        return str(value or "").strip()
+
+    @field_validator("applies_to_command_classes")
+    @classmethod
+    def _validate_command_classes(cls, values: List[str]) -> List[str]:
+        cleaned = [str(value).strip() for value in values]
+        if any(not value for value in cleaned):
+            raise ValueError("applies_to_command_classes values must not be empty")
+        unknown = set(cleaned) - COMMAND_CLASSES
+        if unknown:
+            raise ValueError(
+                "applies_to_command_classes must use known command classes: "
+                + ", ".join(sorted(unknown))
+            )
+        return cleaned
+
+
 class CommandValidationRun(BaseModel):
     """A recorded validation attempt for a catalog command recipe."""
 
@@ -407,6 +444,8 @@ class AnalysisCommand(BaseModel):
         session_name: Optional[str] = None,
         project: Optional[str] = None,
         run_context_file: Optional[str] = None,
+        samples_file: Optional[str] = None,
+        units_file: Optional[str] = None,
         dry_run: bool = False,
         skip_project_check: bool = True,
         export_destination_s3_uri: Optional[str] = None,
@@ -475,6 +514,13 @@ class AnalysisCommand(BaseModel):
             dy_command = f"{dy_command} --config {runtime_config}"
         elif run_context_file:
             raise ValueError("run_context_file is only valid for run_analysis commands")
+        if samples_file or units_file:
+            if not (samples_file and units_file):
+                raise ValueError("samples_file and units_file must be provided together")
+            if self.input_contract != "sample_manifest":
+                raise ValueError(
+                    "samples_file and units_file are only valid for sample_analysis commands"
+                )
         if stage_dir and not self.requires_staging:
             raise ValueError("stage_dir is only valid for commands that require staging")
         argv = [
@@ -499,6 +545,8 @@ class AnalysisCommand(BaseModel):
             ("--cluster", cluster),
             ("--stage-dir", stage_dir),
             ("--run-context-file", run_context_file),
+            ("--samples-file", samples_file),
+            ("--units-file", units_file),
             ("--session-name", session_name),
             ("--project", project),
         ):
@@ -564,6 +612,7 @@ class RepositoryCatalog(BaseModel):
     command_catalog_version: int
     default_repository: str
     input_contracts: Dict[str, InputContractDefinition] = Field(default_factory=dict)
+    test_data_locations: List[TestDataLocation] = Field(default_factory=list)
     repositories: Dict[str, RepositoryDefinition]
 
     @model_validator(mode="after")
@@ -619,6 +668,9 @@ class RepositoryCatalog(BaseModel):
                 key: contract.model_dump(mode="json")
                 for key, contract in self.input_contracts.items()
             },
+            "test_data_locations": [
+                location.model_dump(mode="json") for location in self.test_data_locations
+            ],
             "repositories": {
                 repo_key: repo.model_dump(mode="json")
                 for repo_key, repo in self.repositories.items()

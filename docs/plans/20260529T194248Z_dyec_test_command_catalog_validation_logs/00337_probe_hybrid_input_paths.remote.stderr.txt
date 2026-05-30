@@ -1,0 +1,2 @@
+/tmp/daylily-ssm-mjMTyL.sh: line 8: /opt/daylily_ec/bin/activate: No such file or directory
+failed to run commands: exit status 1

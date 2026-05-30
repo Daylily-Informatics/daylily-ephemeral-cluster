@@ -1,0 +1,8 @@
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+3446  i192  192  CF  i192-dy-all-3  24  CONFIGURING  80000M  3:40  1  gatk_contam-TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA
+3439  i192  192  R  i192-dy-all-2  192  RUNNING  300000M  0:56  1  sent_snv_ug-TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA
+3440  i192  16  R  i192-dy-all-1  16  RUNNING  3000M  5:31  1  calc_coverage_evenness-TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA
+3447  i192mem  32  CF  i192mem-dy-all-2  32  CONFIGURING  62.50G  3:13  1  pre_prep_roche_bam-TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX
+3310  i192mem  192  R  i192mem-dy-all-1  192  RUNNING  180000M  2:11:44  1  run_bclconvert-run_bclconvert

@@ -1,0 +1,242 @@
+DAY-EC activated.
+DAY-EC activated.
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38  
+       _______ GREAT SUCCESS _______       
+Your config files in /fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/daylily-omics-analysis/config/day_profiles/local are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/daylily-omics-analysis/config/day_profiles/local -p -k -j 1 help
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/daylily-omics-analysis/config/global_AWSPC.yaml
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/daylily-omics-analysis/config/day_profiles/local/rule_config.yaml
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+SNV Callers (final): []
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Job stats:
+job      count    min threads    max threads
+-----  -------  -------------  -------------
+help         1              1              1
+total        1              1              1
+
+Select jobs to execute...
+
+[Fri May 29 23:49:24 2026]
+rule help:
+    jobid: 0
+    reason: Rules with neither input nor output files are always executed.
+    resources: tmpdir=/dev/shm, vcpu=1, threads=1, partition=i8,i192,i192mem
+
+
+
+        colr '##### DY-CLI HELP                                                    ' "$DY_IT2" "$DY_IB2" "$DY_IS2" 1>&2;
+        colr '/-----------------------------------------------------------------------------' "$DY_IT1" "$DY_IB1" "$DY_IS1" 1>&2;
+        colr 'Welcome to daylily. 
+
+        Complete docs can be found here: 
+              https://github.com/Daylily-Informatics/daylily-omics-analysis and  https://github.com/Daylily-Informatics/daylily-ephemeral-cluster
+     
+
+        ========================================================================
+        The dy- cli , first source it:
+
+        . dyinit
+        . dyinit -h
+
+
+        Day CLI initialized for project $PROJECT in region $region.
+        The Daylily CLI is now available.
+        The following commands are available:
+	**TAB COMPLETION(single and double tabbing) IS ENABLED FOR ALL CLI COMMANDS AND FLAGS, tab following a space or following a - to see completions**
+
+          (day-help / dy-h)         - Display this help message.
+          (day-activate / dy-a) (slurm | local) - Activate a Slurm or local environment.
+          (day-run / dy-r)           - Run a command in the current environment.
+          (day-deactivate / dy-d)    - Deactivate the current environment.
+                             Use dy-d reset to hard reset the environment (may kill your terminal!).
+          (day-build / dy-b)         - Build a new environment. **Only needs to be run once per head node user.**
+
+
+        ========================================================================
+        For use with dy-r [rules, try produce_<tab><tab>] [flags, try --con<tab><tab>]
+        + Important snakemake arguments (all optional):
+          `-n` == dryrun, generates an execution plan, but runs no commands.  
+              Good practice to run with -n before pulling the trigger.
+          `-p` == print shell commands, pretty much always include this one
+          `--rerun-triggers mtime` == this will calculate an execution plan 
+              only re-running rules which have parent files timestamps are 
+              newer than children.  w/out this, snakemake cohsiders not only 
+              timestamps, but edits to config files, source data changes, code 
+              changes, environment changes... and will re-run agressively.  
+              ! Always run with -n before you attempt to re-run, or add, 
+              analysis to an existing results directory.  You can easily 
+              erase a lot of work if not careful.
+          `-h` == snakemake help... `--help` == snakemake exhaustive help
+          `--rerun-incomplete` == if rerunning a workflow which failed 
+              ungracefully, snakemake will not proceed unless this flag is 
+              set so it can cleanup  the incomplete results subdirs.
+          `--jobs n` == limit the snakemake scheduler to only running 
+              `n` jobs at once.
+          `--report FILENAME.html` == produce a summary report of the workflow
+          `--dag|--rulegraph|--filegraph` == use as follows to produce 
+              various graph visualizations of the TARGET being asked for: 
+              `dy-r produce_deduplicated_bams --rulegraph | dot -Tpng > rg.png`
+         ========================================================================
+                + TARGETS (which are snakemake rules that are a terminal point
+                      in the larger DAG of rules). A few common ones:
+                   - produce_deduplicated_bams == will run the specified 
+                      aligner(s) and the specified dup marker (only one ddup 
+                      presently can run at a time). aligners, ddupers, 
+                      SNV&SV(multiple of each of these allowed) callers are 
+                      all configured in the: 
+                       config/day_profles/{local,slurm}/rule_config.yaml
+                   - produce_snv_concordances == runs all specified 
+                      aligners/SV callers and produces a concordance report 
+                      for each aligner+SVcaller+sample (in the other_reports 
+                      dir)
+                   - produce_final_multiqc_wgs == runs everything and produces 
+                      the big final MQC report in the `reports` dir. ' ;
+                      
+       colr '/-----------------------------------------------------------------------------' "$DY_IT2" "$DY_IB2" "$DY_IS2"  1>&2;
+
+    
+##### DY-CLI HELP                                                    
+/-----------------------------------------------------------------------------
+Welcome to daylily. 
+
+        Complete docs can be found here: 
+              https://github.com/Daylily-Informatics/daylily-omics-analysis and  https://github.com/Daylily-Informatics/daylily-ephemeral-cluster
+     
+
+        ========================================================================
+        The dy- cli , first source it:
+
+        . dyinit
+        . dyinit -h
+
+
+        Day CLI initialized for project $PROJECT in region $region.
+        The Daylily CLI is now available.
+        The following commands are available:
+	**TAB COMPLETION(single and double tabbing) IS ENABLED FOR ALL CLI COMMANDS AND FLAGS, tab following a space or following a - to see completions**
+
+          (day-help / dy-h)         - Display this help message.
+          (day-activate / dy-a) (slurm | local) - Activate a Slurm or local environment.
+          (day-run / dy-r)           - Run a command in the current environment.
+          (day-deactivate / dy-d)    - Deactivate the current environment.
+                             Use dy-d reset to hard reset the environment (may kill your terminal!).
+          (day-build / dy-b)         - Build a new environment. **Only needs to be run once per head node user.**
+
+
+        ========================================================================
+        For use with dy-r [rules, try produce_<tab><tab>] [flags, try --con<tab><tab>]
+        + Important snakemake arguments (all optional):
+          `-n` == dryrun, generates an execution plan, but runs no commands.  
+              Good practice to run with -n before pulling the trigger.
+          `-p` == print shell commands, pretty much always include this one
+          `--rerun-triggers mtime` == this will calculate an execution plan 
+              only re-running rules which have parent files timestamps are 
+              newer than children.  w/out this, snakemake cohsiders not only 
+              timestamps, but edits to config files, source data changes, code 
+              changes, environment changes... and will re-run agressively.  
+              ! Always run with -n before you attempt to re-run, or add, 
+              analysis to an existing results directory.  You can easily 
+              erase a lot of work if not careful.
+          `-h` == snakemake help... `--help` == snakemake exhaustive help
+          `--rerun-incomplete` == if rerunning a workflow which failed 
+              ungracefully, snakemake will not proceed unless this flag is 
+              set so it can cleanup  the incomplete results subdirs.
+          `--jobs n` == limit the snakemake scheduler to only running 
+              `n` jobs at once.
+          `--report FILENAME.html` == produce a summary report of the workflow
+          `--dag|--rulegraph|--filegraph` == use as follows to produce 
+              various graph visualizations of the TARGET being asked for: 
+              `dy-r produce_deduplicated_bams --rulegraph | dot -Tpng > rg.png`
+         ========================================================================
+                + TARGETS (which are snakemake rules that are a terminal point
+                      in the larger DAG of rules). A few common ones:
+                   - produce_deduplicated_bams == will run the specified 
+                      aligner(s) and the specified dup marker (only one ddup 
+                      presently can run at a time). aligners, ddupers, 
+                      SNV&SV(multiple of each of these allowed) callers are 
+                      all configured in the: 
+                       config/day_profles/{local,slurm}/rule_config.yaml
+                   - produce_snv_concordances == runs all specified 
+                      aligners/SV callers and produces a concordance report 
+                      for each aligner+SVcaller+sample (in the other_reports 
+                      dir)
+                   - produce_final_multiqc_wgs == runs everything and produces 
+                      the big final MQC report in the `reports` dir. 
+/-----------------------------------------------------------------------------
+[Fri May 29 23:49:25 2026]
+Finished job 0.
+1 of 1 steps (100%) done
+Complete log: .snakemake/log/2026-05-29T234921.643837.snakemake.log
+
+
+	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
+
+
+ 
+]]]]--------WORKFLOW SUCCESS====================]]]]]--
+RETURN CODE: 0
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the 
+supported path is `source ./activate`.
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-05-29 23:49:27,932 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
+  · Attached export DRA dra-06f9d50e365858d0a at 
+/fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/
+2026-05-29 23:52:33,307 INFO Task task-0348318914b0c8832 status: PENDING
+2026-05-29 23:53:03,510 INFO Task task-0348318914b0c8832 status: EXECUTING
+2026-05-29 23:53:33,842 INFO Task task-0348318914b0c8832 status: SUCCEEDED
+2026-05-29 23:54:05,168 INFO Wrote export status to /home/ubuntu/daylily-runs/ccv20260529r7_simple-test/export/fsx_export.yaml
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: dyec-test                                                          │
+│  FSx: fs-0df313e1751219cac                                                   │
+│  Source: /analysis_results/ubuntu/ccv20260529r7_simple-test/                 │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260  │
+│  529r7_simple-test/                                                          │
+│  Status file:                                                                │
+│  /home/ubuntu/daylily-runs/ccv20260529r7_simple-test/export/fsx_export.yaml  │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[INFO] Deleted FSx analysis directory after successful export: /fsx/analysis_results/ubuntu/ccv20260529r7_simple-test
+[INFO] Workflow exited with status 0
+shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+ERROR: error getting working directory name: no such file or directory
+      while executing
+  "pwd"
+      (procedure "getAbsolutePath" line 9)
+      invoked from within
+  "getAbsolutePath $::argv0"
+      (procedure "cmdModuleAutoinit" line 19)
+      invoked from within
+  "cmdModuleAutoinit"
+      (procedure "module" line 333)
+      invoked from within
+  "{*}$execcmdlist"
+  Please report this issue at https://github.com/cea-hpc/modules/issues
+chdir: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+DAY-EC activated.
+✗ Unexpected error: [Errno 2] No such file or directory
+(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/daylily-omics-analysis$

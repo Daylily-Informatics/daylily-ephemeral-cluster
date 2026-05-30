@@ -1,0 +1,32 @@
+Completed 27 Bytes/27 Bytes (159 Bytes/s) with 1 file(s) remaining
+upload: ../../../../../../var/folders/rk/2n95m40s1zs48qr48ynwhxwm0000gn/T/tmpdd1qcs7a to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260529T203050Z_044132f3/_write_test.txt
+delete: s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260529T203050Z_044132f3/_write_test.txt
+Completed 442 Bytes/442 Bytes (2.5 KiB/s) with 1 file(s) remaining
+upload: docs/plans/20260526T224018Z_blahab44_inputs/20260529T203050Z_044132f3_samples.tsv to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260529T203050Z_044132f3/20260529T203050Z_044132f3_samples.tsv
+Completed 945 Bytes/945 Bytes (5.5 KiB/s) with 1 file(s) remaining
+upload: docs/plans/20260526T224018Z_blahab44_inputs/20260529T203050Z_044132f3_units.tsv to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260529T203050Z_044132f3/20260529T203050Z_044132f3_units.tsv
+Precheck passed: rows checked=1, samples checked=1, source objects checked=20, concordance directories checked=1.
+Remote staging completed successfully.
+Remote FSx stage directory: /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T203050Z_044132f3
+Staging DRA: dra-0435aa8d64de1be7f
+Staging DRA lifecycle: AVAILABLE
+Staged files (0):
+Generated configuration files:
+  samples.tsv -> s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260529T203050Z_044132f3/20260529T203050Z_044132f3_samples.tsv
+  units.tsv   -> s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260529T203050Z_044132f3/20260529T203050Z_044132f3_units.tsv
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_STAGE_DIR__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T203050Z_044132f3
+__DAYLILY_STAGE_SAMPLES__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T203050Z_044132f3/20260529T203050Z_044132f3_samples.tsv
+__DAYLILY_STAGE_UNITS__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T203050Z_044132f3/20260529T203050Z_044132f3_units.tsv
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc/daylily-omics-analysis
+Tmux session 'ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc
+Workflow repo path: /fsx/analysis_results/ubuntu/ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster dyec-test
+Then run: tmux attach -t ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc
+Samples run receipt: /Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260526T224018Z_blahab44_inputs/20260529T203050Z_044132f3_samples_run_receipt.json

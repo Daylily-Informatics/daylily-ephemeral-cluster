@@ -1,0 +1,5 @@
+Mount deleted: 20260513_ONT_HG003
+Purpose: run
+Association ID: 
+FSx file system: fs-0df313e1751219cac
+Lifecycle: DELETED

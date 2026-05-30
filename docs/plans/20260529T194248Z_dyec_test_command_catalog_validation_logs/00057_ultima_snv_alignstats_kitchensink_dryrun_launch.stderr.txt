@@ -1,0 +1,2 @@
+✗ SSM command 'b95b2ebd-9ba4-44cb-be4b-3fcd2ce1ebbd' failed with status=Failed 
+rc=2

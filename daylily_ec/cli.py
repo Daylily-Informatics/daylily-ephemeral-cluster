@@ -2015,6 +2015,14 @@ def samples_stage(
         "--precheck-only",
         help="Validate the manifest and exit without staging or writing generated configs.",
     ),
+    config_only: bool = typer.Option(
+        False,
+        "--config-only",
+        help=(
+            "Validate the manifest and write generated samples.tsv/units.tsv locally without "
+            "creating a staged-prefix DRA."
+        ),
+    ),
 ) -> None:
     """Stage analysis samples and generate workflow manifests."""
 
@@ -2048,6 +2056,8 @@ def samples_stage(
         argv.append("--debug")
     if precheck_only:
         argv.append("--precheck-only")
+    if config_only:
+        argv.append("--config-only")
 
     try:
         rc = _invoke_stage_samples(argv)
@@ -2375,6 +2385,16 @@ def workflow_launch(
         "--run-context-file",
         help="Local runs.tsv file to copy to config/runs.tsv for run-analysis workflows.",
     ),
+    samples_file: Optional[Path] = typer.Option(
+        None,
+        "--samples-file",
+        help="Local samples.tsv file to copy to config/samples.tsv for sample-analysis workflows.",
+    ),
+    units_file: Optional[Path] = typer.Option(
+        None,
+        "--units-file",
+        help="Local units.tsv file to copy to config/units.tsv for sample-analysis workflows.",
+    ),
     stage_base: str = typer.Option(
         "/fsx/staging/staged_external_sequencing_data",
         "--stage-base",
@@ -2554,6 +2574,8 @@ def workflow_launch(
         ("--cluster", cluster),
         ("--stage-dir", stage_dir),
         ("--run-context-file", str(run_context_file.expanduser()) if run_context_file else None),
+        ("--samples-file", str(samples_file.expanduser()) if samples_file else None),
+        ("--units-file", str(units_file.expanduser()) if units_file else None),
         ("--stage-base", stage_base),
         ("--session-name", resolved_session_name),
         ("--analysis-id", analysis_id),

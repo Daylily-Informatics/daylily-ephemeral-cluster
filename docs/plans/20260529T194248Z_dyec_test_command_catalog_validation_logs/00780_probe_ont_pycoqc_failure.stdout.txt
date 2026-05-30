@@ -1,0 +1,91 @@
+DAY-EC activated.
+DAY-EC activated.
+=== repo ===
+/fsx/analysis_results/ubuntu/ccv20260529r17_ont_run_qc/daylily-omics-analysis
+=== run context ===
+RUNID	PLATFORM	RUN_DIR	SOURCE_S3_URI	MOUNT_ID	SAMPLE_SHEET	BASECALLING_STATE	RUN_STATUS	OUTPUT_ROOT	REGION	PROFILE
+20260513_ONT_HG003	ONT	/fsx/run_dir_mounts/20260513_ONT_HG003/	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/	20260513_ONT_HG003		pod5	complete	results/runs/20260513_ONT_HG003	us-west-2	lsmc
+=== summary list ===
+1 results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+/fsx/run_dir_mounts/20260513_ONT_HG003/HG003/20260513_2149_1D_PBM13745_5a9ea63e/sequencing_summary_PBM13745_5a9ea63e_ee86bd52.txt
+=== pycoqc log ===
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/bin/pycoQC
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/__main__.py:11: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import resource_filename
+Checking arguments values
+Check input data files
+Parse data files
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/common.py:349: DtypeWarning: Columns (0: barcode_score, 1: barcode_front_score, 2: barcode_front_foundseq_length, 3: barcode_front_begin_index, 4: barcode_rear_score, 5: barcode_rear_foundseq_length, 6: barcode_rear_end_index) have mixed types. Specify dtype option on import or set low_memory=False.
+  df =  pd.read_csv(fn_list[0], sep ="\t")
+Merge data
+Cleaning data
+	Discarding lines containing NA values
+		0 reads discarded
+	Filtering out zero length reads
+		360 reads discarded
+	Sorting run IDs by decreasing throughput
+		Run-id order ['5a9ea63e-e4a2-4dfe-914d-ed07de638538']
+	Reordering runids
+		Processing reads with Run_ID 5a9ea63e-e4a2-4dfe-914d-ed07de638538 / time offset: 0
+	Cleaning up low frequency barcodes
+		56 reads with low frequency barcode unset
+	Cast value to appropriate type
+	Reindexing dataframe by read_ids
+		6,325,257 Final valid reads
+Loading plotting interface
+Generating HTML report
+	Parsing html config file
+	Running method summary
+		Computing plot
+Traceback (most recent call last):
+  File "/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/bin/pycoQC", line 12, in <module>
+    sys.exit(main_pycoQC())
+             ~~~~~~~~~~~^^
+  File "/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/__main__.py", line 109, in main_pycoQC
+    pycoQC (
+    ~~~~~~~^
+        summary_file = args.summary_file,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+    ...<12 lines>...
+        verbose = args.verbose,
+        ^^^^^^^^^^^^^^^^^^^^^^^
+        quiet = args.quiet)
+        ^^^^^^^^^^^^^^^^^^^
+  File "/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/pycoQC.py", line 148, in pycoQC
+    reporter.html_report(
+    ~~~~~~~~~~~~~~~~~~~~^
+        outfile=html_outfile,
+        ^^^^^^^^^^^^^^^^^^^^^
+        config_file=config_file,
+        ^^^^^^^^^^^^^^^^^^^^^^^^
+        template_file=template_file,
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+        report_title=report_title)
+        ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/pycoQC_report.py", line 84, in html_report
+    fig = method(**method_args)
+  File "/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/pycoQC_plot.py", line 188, in summary
+    lab1, dd1 = self.__summary_data (df_level="all", groupby=groupby)
+                ~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/pycoQC_plot.py", line 257, in __summary_data
+    cells.append (self.__df_to_cell(df))
+                  ~~~~~~~~~~~~~~~~~^^^^
+  File "/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/pycoQC_plot.py", line 277, in __df_to_cell
+    l.append ("{:,.2f}".format(self._compute_N50(df["read_len"])))
+                               ~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^
+  File "/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/pycoQC_plot.py", line 1467, in _compute_N50
+    data.sort()
+    ~~~~~~~~~^^
+ValueError: sort array is read-only
+=== nanoplot log tail ===
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/bin/NanoPlot
+WARNING:root:Plotly could not fetch or find Chrome automatically. Static exports may fail unless BROWSER_PATH is set. Details: 
+This command requires Kaleido v1.0.0 or greater.
+Install it using `pip install 'kaleido>=1.0.0'` or `pip install 'plotly[kaleido]'`."
+
+=== conda env package versions ===
+pycoQC=2.5.0.3
+numpy=2.4.6
+pandas=3.0.3
+bokeh=<missing> No package metadata was found for bokeh
+pycoQC v2.5.0.3

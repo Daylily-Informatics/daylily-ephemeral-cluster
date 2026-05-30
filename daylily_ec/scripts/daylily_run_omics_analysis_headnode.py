@@ -245,6 +245,14 @@ def build_parser() -> argparse.ArgumentParser:
         help="Local runs.tsv file to write as config/runs.tsv for run-analysis workflows",
     )
     parser.add_argument(
+        "--samples-file",
+        help="Local samples.tsv file to write as config/samples.tsv for sample-analysis workflows",
+    )
+    parser.add_argument(
+        "--units-file",
+        help="Local units.tsv file to write as config/units.tsv for sample-analysis workflows",
+    )
+    parser.add_argument(
         "--stage-base",
         default="/fsx/staging/staged_external_sequencing_data",
         help="Base staging directory to scan when --stage-dir is omitted",
@@ -459,15 +467,39 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
 
     run_context_content: Optional[str] = None
+    samples_content: Optional[str] = None
+    units_content: Optional[str] = None
     if args.run_context_file:
         if not args.input_staging:
             raise CommandError("--run-context-file cannot be used with --no-input-staging.")
         if args.stage_dir:
             raise CommandError("--stage-dir cannot be used with --run-context-file.")
+        if args.samples_file or args.units_file:
+            raise CommandError(
+                "--run-context-file cannot be used with --samples-file or --units-file."
+            )
         run_context_path = Path(args.run_context_file).expanduser()
         if not run_context_path.is_file():
             raise CommandError(f"Run context file not found: {run_context_path}")
         run_context_content = run_context_path.read_text(encoding="utf-8")
+        stage_config = None
+    elif args.samples_file or args.units_file:
+        if not args.input_staging:
+            raise CommandError(
+                "--samples-file/--units-file cannot be used with --no-input-staging."
+            )
+        if args.stage_dir:
+            raise CommandError("--stage-dir cannot be used with --samples-file/--units-file.")
+        if not args.samples_file or not args.units_file:
+            raise CommandError("--samples-file and --units-file must be provided together.")
+        samples_path = Path(args.samples_file).expanduser()
+        units_path = Path(args.units_file).expanduser()
+        if not samples_path.is_file():
+            raise CommandError(f"Samples file not found: {samples_path}")
+        if not units_path.is_file():
+            raise CommandError(f"Units file not found: {units_path}")
+        samples_content = samples_path.read_text(encoding="utf-8")
+        units_content = units_path.read_text(encoding="utf-8")
         stage_config = None
     elif args.input_staging:
         stage_config = discover_stage_config(
@@ -503,11 +535,15 @@ def main(argv: Optional[List[str]] = None) -> int:
     dy_command_literal = shlex.quote(dy_command)
     skip_check = "true" if args.skip_project_check else "false"
     run_context_mode = run_context_content is not None
+    sample_config_mode = samples_content is not None or units_content is not None
     run_context_mode_literal = "true" if run_context_mode else "false"
+    sample_config_mode_literal = "true" if sample_config_mode else "false"
     input_staging_mode_literal = "true" if args.input_staging else "false"
     default_activation_literal = "true" if args.default_activation else "false"
     bootstrap_test_config_literal = "true" if args.bootstrap_test_config else "false"
     run_context_payload = shlex.quote(run_context_content or "")
+    samples_payload = shlex.quote(samples_content or "")
+    units_payload = shlex.quote(units_content or "")
     export_destination_literal = shlex.quote(args.export_destination_s3_uri or "")
     delete_on_export_success = "true" if args.delete_on_export_success else "false"
     replace_existing_analysis_dir = "true" if args.replace_existing_analysis_dir else "false"
@@ -544,10 +580,13 @@ if [[ "$(id -un)" != "ubuntu" ]]; then
 	ANALYSIS_ID={shlex.quote(analysis_id)}
 	EXECUTING_ENTITY={shlex.quote(executing_entity)}
 	RUN_CONTEXT_MODE={run_context_mode_literal}
+	SAMPLE_CONFIG_MODE={sample_config_mode_literal}
 	INPUT_STAGING_MODE={input_staging_mode_literal}
 	DEFAULT_ACTIVATION={default_activation_literal}
 	BOOTSTRAP_TEST_CONFIG={bootstrap_test_config_literal}
 	RUN_CONTEXT_PAYLOAD={run_context_payload}
+	SAMPLES_PAYLOAD={samples_payload}
+	UNITS_PAYLOAD={units_payload}
 	STAGE_SAMPLES={shlex.quote(stage_samples_path)}
 	STAGE_UNITS={shlex.quote(stage_units_path)}
 	PROJECT_VALUE={project_arg if project_arg else ""}
@@ -1406,6 +1445,9 @@ PYCONTAMZERO
 	  if ultima_run_qc_config_requested; then
 	    append_ultima_run_qc_config
 	  fi
+	elif [[ "$SAMPLE_CONFIG_MODE" == "true" ]]; then
+	  printf '%s' "$SAMPLES_PAYLOAD" > config/samples.tsv
+	  printf '%s' "$UNITS_PAYLOAD" > config/units.tsv
 	elif [[ "$INPUT_STAGING_MODE" == "true" ]]; then
 	  cp "$STAGE_SAMPLES" config/samples.tsv
 	  cp "$STAGE_UNITS" config/units.tsv

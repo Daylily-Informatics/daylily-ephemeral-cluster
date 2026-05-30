@@ -1,0 +1,47 @@
+puppeteer browsers install [browser]
+
+Download and install the specified browser. If successful, the command outputs the actual browser buildId that was installed and the absolute path to the browser executable (see --format).
+
+Positionals:
+  browser  Which browser to install <browser>[@<buildId|latest>]. `latest` will try to find the latest available build. `buildId` is a browser-specific identifier such as a version or a revision.  [string]
+
+Options:
+  --version       Show version number  [boolean]
+  --help          Show help  [boolean]
+  --platform      Platform that the binary needs to be compatible with.  [string] [choices: "linux", "linux_arm", "mac", "mac_arm", "win32", "win64"] [default: Auto-detected]
+  --base-url      Base URL to download from  [string]
+  --install-deps  Whether to attempt installing system dependencies (only supported on Linux, requires root privileges).  [boolean] [default: false]
+  --format        Format to use for the output. Supported placeholders: {{browser}}, {{buildId}}, {{path}}, {{platform}}  [string] [default: "{{browser}}@{{buildId}} {{path}}"]
+
+Examples:
+  puppeteer install                             Install all pinned browsers
+  puppeteer install chrome                      Install the pinned available build of the Chrome browser.
+  puppeteer install chrome@latest               Install the latest available build for the Chrome browser.
+  puppeteer install chrome@stable               Install the latest available build for the Chrome browser from the stable channel.
+  puppeteer install chrome@beta                 Install the latest available build for the Chrome browser from the beta channel.
+  puppeteer install chrome@dev                  Install the latest available build for the Chrome browser from the dev channel.
+  puppeteer install chrome@canary               Install the latest available build for the Chrome Canary browser.
+  puppeteer install chrome@115                  Install the latest available build for Chrome 115.
+  puppeteer install chromedriver@canary         Install the latest available build for ChromeDriver Canary.
+  puppeteer install chromedriver@115            Install the latest available build for ChromeDriver 115.
+  puppeteer install chromedriver@115.0.5790     Install the latest available patch (115.0.5790.X) build for ChromeDriver.
+  puppeteer install chrome-headless-shell       Install the latest available chrome-headless-shell build.
+  puppeteer install chrome-headless-shell@beta  Install the latest available chrome-headless-shell build corresponding to the Beta channel.
+  puppeteer install chrome-headless-shell@118   Install the latest available chrome-headless-shell 118 build.
+  puppeteer install chromium@1083080            Install the revision 1083080 of the Chromium browser.
+  puppeteer install firefox                     Install the latest nightly available build of the Firefox browser.
+  puppeteer install firefox@stable              Install the latest stable build of the Firefox browser.
+  puppeteer install firefox@beta                Install the latest beta build of the Firefox browser.
+  puppeteer install firefox@devedition          Install the latest devedition build of the Firefox browser.
+  puppeteer install firefox@esr                 Install the latest ESR build of the Firefox browser.
+  puppeteer install firefox@nightly             Install the latest nightly build of the Firefox browser.
+  puppeteer install firefox@stable_111.0.1      Install a specific version of the Firefox browser.
+  puppeteer install firefox --platform mac      Install the latest Mac (Intel) build of the Firefox browser.
+
+Error: All providers failed for chrome 148.0.7778.97:
+  - DefaultProvider: The browser folder (/home/ubuntu/.cache/puppeteer/chrome/linux-148.0.7778.97) exists but the executable (/home/ubuntu/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome) is missing
+    at installWithProviders (file:///home/ubuntu/.npm/_npx/7d92d9a2d2ccc630/node_modules/@puppeteer/browsers/lib/install.js:108:11)
+    at async install (file:///home/ubuntu/.npm/_npx/7d92d9a2d2ccc630/node_modules/@puppeteer/browsers/lib/install.js:118:12)
+    at async #install (file:///home/ubuntu/.npm/_npx/7d92d9a2d2ccc630/node_modules/@puppeteer/browsers/lib/CLI.js:393:9)
+    at async Object.handler (file:///home/ubuntu/.npm/_npx/7d92d9a2d2ccc630/node_modules/@puppeteer/browsers/lib/CLI.js:196:17)
+failed to run commands: exit status 1

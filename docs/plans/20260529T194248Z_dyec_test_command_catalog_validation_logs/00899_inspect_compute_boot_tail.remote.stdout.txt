@@ -1,0 +1,311 @@
+DAY-EC activated.
+DAY-EC activated.
+date:
+2026-05-30T06:28:03+00:00
+
+cloud_init_status:
+status: running
+extended_status: degraded running
+boot_status_code: enabled-by-generator
+last_update: Thu, 01 Jan 1970 00:00:36 +0000
+detail: DataSourceEc2Local
+errors: []
+recoverable_errors:
+WARNING:
+	- cloud-config failed schema validation! You may run 'sudo cloud-init schema --system' to check the details.
+	- Stdout, stderr changing to (| tee -a /var/log/cloud-init-output.log | logger -t user-data -s 2>/dev/ttyS0, | tee -a /var/log/cloud-init-output.log | logger -t user-data -s 2>/dev/ttyS0)
+
+cloud_init_output_tail:
+Created symlink /etc/systemd/system/multi-user.target.wants/docker.service → /lib/systemd/system/docker.service.
+Created symlink /etc/systemd/system/sockets.target.wants/docker.socket → /lib/systemd/system/docker.socket.
+Setting up python3-bs4 (4.10.0-2) ...
+Setting up libatk-wrapper-java-jni:amd64 (0.38.0-5build1) ...
+Setting up python3-fs (2.4.12-1) ...
+Setting up emacs-el (1:27.1+1-3ubuntu5.2) ...
+Setting up emacs-bin-common (1:27.1+1-3ubuntu5.2) ...
+update-alternatives: using /usr/bin/ctags.emacs to provide /usr/bin/ctags (ctags) in auto mode
+update-alternatives: using /usr/bin/ebrowse.emacs to provide /usr/bin/ebrowse (ebrowse) in auto mode
+update-alternatives: using /usr/bin/emacsclient.emacs to provide /usr/bin/emacsclient (emacsclient) in auto mode
+update-alternatives: using /usr/bin/etags.emacs to provide /usr/bin/etags (etags) in auto mode
+Setting up golang-go:amd64 (2:1.18~0ubuntu2) ...
+Setting up emacs-gtk (1:27.1+1-3ubuntu5.2) ...
+update-alternatives: using /usr/bin/emacs-gtk to provide /usr/bin/emacs (emacs) in auto mode
+Install emacsen-common for emacs
+emacsen-common: Handling install of emacsen flavor emacs
+Install cmake-data for emacs
+install/cmake-mode-3.22.1: Handling install of emacsen flavor emacs
+install/cmake-mode-3.22.1: byte-compiling for emacs
+Install dictionaries-common for emacs
+install/dictionaries-common: Byte-compiling for emacsen flavour emacs
+Setting up emacs (1:27.1+1-3ubuntu5.2) ...
+Setting up python3-fonttools (4.29.1-2build1) ...
+Setting up python3-ufolib2 (0.13.1+dfsg1-1) ...
+Setting up python3-matplotlib (3.5.1-2build1) ...
+Setting up openjdk-11-jre-headless:amd64 (11.0.31+11-1ubuntu1~22.04.2) ...
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/java to provide /usr/bin/java (java) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jjs to provide /usr/bin/jjs (jjs) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/keytool to provide /usr/bin/keytool (keytool) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/rmid to provide /usr/bin/rmid (rmid) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/rmiregistry to provide /usr/bin/rmiregistry (rmiregistry) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/pack200 to provide /usr/bin/pack200 (pack200) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/unpack200 to provide /usr/bin/unpack200 (unpack200) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/lib/jexec to provide /usr/bin/jexec (jexec) in auto mode
+Setting up openjdk-11-jre:amd64 (11.0.31+11-1ubuntu1~22.04.2) ...
+Setting up openjdk-11-jdk-headless:amd64 (11.0.31+11-1ubuntu1~22.04.2) ...
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jar to provide /usr/bin/jar (jar) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jarsigner to provide /usr/bin/jarsigner (jarsigner) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/javac to provide /usr/bin/javac (javac) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/javadoc to provide /usr/bin/javadoc (javadoc) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/javap to provide /usr/bin/javap (javap) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jcmd to provide /usr/bin/jcmd (jcmd) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jdb to provide /usr/bin/jdb (jdb) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jdeprscan to provide /usr/bin/jdeprscan (jdeprscan) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jdeps to provide /usr/bin/jdeps (jdeps) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jfr to provide /usr/bin/jfr (jfr) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jimage to provide /usr/bin/jimage (jimage) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jinfo to provide /usr/bin/jinfo (jinfo) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jlink to provide /usr/bin/jlink (jlink) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jmap to provide /usr/bin/jmap (jmap) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jmod to provide /usr/bin/jmod (jmod) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jps to provide /usr/bin/jps (jps) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jrunscript to provide /usr/bin/jrunscript (jrunscript) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jshell to provide /usr/bin/jshell (jshell) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jstack to provide /usr/bin/jstack (jstack) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jstat to provide /usr/bin/jstat (jstat) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jstatd to provide /usr/bin/jstatd (jstatd) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/rmic to provide /usr/bin/rmic (rmic) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/serialver to provide /usr/bin/serialver (serialver) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jaotc to provide /usr/bin/jaotc (jaotc) in auto mode
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jhsdb to provide /usr/bin/jhsdb (jhsdb) in auto mode
+Setting up openjdk-11-jdk:amd64 (11.0.31+11-1ubuntu1~22.04.2) ...
+update-alternatives: using /usr/lib/jvm/java-11-openjdk-amd64/bin/jconsole to provide /usr/bin/jconsole (jconsole) in auto mode
+Setting up ca-certificates-java (20190909ubuntu1.3) ...
+head: cannot open '/etc/ssl/certs/java/cacerts' for reading: No such file or directory
+Adding debian:Comodo_AAA_Services_root.pem
+Adding debian:Amazon_Root_CA_4.pem
+Adding debian:Entrust_Root_Certification_Authority.pem
+Adding debian:TWCA_Global_Root_CA.pem
+Adding debian:BJCA_Global_Root_CA2.pem
+Adding debian:D-TRUST_EV_Root_CA_1_2020.pem
+Adding debian:certSIGN_Root_CA_G2.pem
+Adding debian:AffirmTrust_Commercial.pem
+Adding debian:CommScope_Public_Trust_RSA_Root-02.pem
+Adding debian:SwissSign_Silver_CA_-_G2.pem
+Adding debian:Hellenic_Academic_and_Research_Institutions_ECC_RootCA_2015.pem
+Adding debian:UCA_Extended_Validation_Root.pem
+Adding debian:Starfield_Services_Root_Certificate_Authority_-_G2.pem
+Adding debian:vTrus_Root_CA.pem
+Adding debian:GDCA_TrustAUTH_R5_ROOT.pem
+Adding debian:Entrust_Root_Certification_Authority_-_G2.pem
+Adding debian:Hongkong_Post_Root_CA_3.pem
+Adding debian:CA_Disig_Root_R2.pem
+Adding debian:GTS_Root_R3.pem
+Adding debian:Amazon_Root_CA_3.pem
+Adding debian:Certum_Trusted_Network_CA_2.pem
+Adding debian:Atos_TrustedRoot_2011.pem
+Adding debian:SSL.com_TLS_ECC_Root_CA_2022.pem
+Adding debian:BJCA_Global_Root_CA1.pem
+Adding debian:AC_RAIZ_FNMT-RCM.pem
+Adding debian:TUBITAK_Kamu_SM_SSL_Kok_Sertifikasi_-_Surum_1.pem
+Adding debian:Microsoft_ECC_Root_Certificate_Authority_2017.pem
+Adding debian:AffirmTrust_Premium.pem
+Adding debian:D-TRUST_BR_Root_CA_1_2020.pem
+Adding debian:Certum_Trusted_Network_CA.pem
+Adding debian:DigiCert_TLS_RSA4096_Root_G5.pem
+Adding debian:Buypass_Class_3_Root_CA.pem
+Adding debian:GTS_Root_R1.pem
+Adding debian:DigiCert_Assured_ID_Root_G3.pem
+Adding debian:Go_Daddy_Class_2_CA.pem
+Adding debian:GlobalSign_ECC_Root_CA_-_R4.pem
+Adding debian:D-TRUST_Root_Class_3_CA_2_EV_2009.pem
+Adding debian:DigiCert_High_Assurance_EV_Root_CA.pem
+Adding debian:Security_Communication_Root_CA.pem
+Adding debian:Sectigo_Public_Server_Authentication_Root_R46.pem
+Adding debian:Atos_TrustedRoot_Root_CA_RSA_TLS_2021.pem
+Adding debian:USERTrust_ECC_Certification_Authority.pem
+Adding debian:emSign_ECC_Root_CA_-_G3.pem
+Adding debian:Certigna.pem
+Adding debian:Microsoft_RSA_Root_Certificate_Authority_2017.pem
+Adding debian:DigiCert_Assured_ID_Root_G2.pem
+Adding debian:Security_Communication_RootCA3.pem
+Adding debian:Security_Communication_RootCA2.pem
+Adding debian:COMODO_ECC_Certification_Authority.pem
+Adding debian:Certigna_Root_CA.pem
+Adding debian:NAVER_Global_Root_Certification_Authority.pem
+Adding debian:certSIGN_ROOT_CA.pem
+Adding debian:T-TeleSec_GlobalRoot_Class_3.pem
+Adding debian:e-Szigno_Root_CA_2017.pem
+Adding debian:COMODO_RSA_Certification_Authority.pem
+Adding debian:QuoVadis_Root_CA_2.pem
+Adding debian:ePKI_Root_Certification_Authority.pem
+Adding debian:DigiCert_Global_Root_CA.pem
+Adding debian:AffirmTrust_Premium_ECC.pem
+Adding debian:SSL.com_Root_Certification_Authority_ECC.pem
+Adding debian:Trustwave_Global_ECC_P384_Certification_Authority.pem
+Adding debian:CommScope_Public_Trust_ECC_Root-01.pem
+Adding debian:COMODO_Certification_Authority.pem
+Adding debian:D-TRUST_Root_Class_3_CA_2_2009.pem
+Adding debian:emSign_ECC_Root_CA_-_C3.pem
+Adding debian:Izenpe.com.pem
+Adding debian:IdenTrust_Public_Sector_Root_CA_1.pem
+Adding debian:GTS_Root_R2.pem
+Adding debian:vTrus_ECC_Root_CA.pem
+Adding debian:GLOBALTRUST_2020.pem
+Adding debian:Actalis_Authentication_Root_CA.pem
+Adding debian:HiPKI_Root_CA_-_G1.pem
+Adding debian:USERTrust_RSA_Certification_Authority.pem
+Adding debian:Baltimore_CyberTrust_Root.pem
+Adding debian:Amazon_Root_CA_2.pem
+Adding debian:OISTE_WISeKey_Global_Root_GB_CA.pem
+Adding debian:SecureTrust_CA.pem
+Adding debian:QuoVadis_Root_CA_3_G3.pem
+Adding debian:Starfield_Root_Certificate_Authority_-_G2.pem
+Adding debian:Security_Communication_ECC_RootCA1.pem
+Adding debian:GlobalSign_Root_CA.pem
+Adding debian:XRamp_Global_CA_Root.pem
+Adding debian:SSL.com_EV_Root_Certification_Authority_RSA_R2.pem
+Adding debian:Hellenic_Academic_and_Research_Institutions_RootCA_2015.pem
+Adding debian:ISRG_Root_X2.pem
+Adding debian:Certainly_Root_R1.pem
+Adding debian:DigiCert_Global_Root_G2.pem
+Adding debian:Trustwave_Global_Certification_Authority.pem
+Adding debian:GlobalSign_Root_E46.pem
+Adding debian:Certum_EC-384_CA.pem
+Adding debian:ACCVRAIZ1.pem
+Adding debian:UCA_Global_G2_Root.pem
+Adding debian:QuoVadis_Root_CA_2_G3.pem
+Adding debian:Certum_Trusted_Root_CA.pem
+Adding debian:Telia_Root_CA_v2.pem
+Adding debian:CFCA_EV_ROOT.pem
+Adding debian:GTS_Root_R4.pem
+Adding debian:Sectigo_Public_Server_Authentication_Root_E46.pem
+Adding debian:ssl-cert-snakeoil.pem
+Adding debian:SwissSign_Gold_CA_-_G2.pem
+Adding debian:SZAFIR_ROOT_CA2.pem
+Adding debian:Certainly_Root_E1.pem
+Adding debian:TrustAsia_Global_Root_CA_G3.pem
+Adding debian:DigiCert_Trusted_Root_G4.pem
+Adding debian:GlobalSign_ECC_Root_CA_-_R5.pem
+Adding debian:AffirmTrust_Networking.pem
+Adding debian:ANF_Secure_Server_Root_CA.pem
+Adding debian:HARICA_TLS_RSA_Root_CA_2021.pem
+Adding debian:Autoridad_de_Certificacion_Firmaprofesional_CIF_A62634068.pem
+Adding debian:TrustAsia_Global_Root_CA_G4.pem
+Adding debian:Starfield_Class_2_CA.pem
+Adding debian:T-TeleSec_GlobalRoot_Class_2.pem
+Adding debian:QuoVadis_Root_CA_3.pem
+Adding debian:NetLock_Arany_=Class_Gold=_Főtanúsítvány.pem
+Adding debian:emSign_Root_CA_-_C1.pem
+Adding debian:HARICA_TLS_ECC_Root_CA_2021.pem
+Adding debian:DigiCert_TLS_ECC_P384_Root_G5.pem
+Adding debian:Go_Daddy_Root_Certificate_Authority_-_G2.pem
+Adding debian:GlobalSign_Root_R46.pem
+Adding debian:Trustwave_Global_ECC_P256_Certification_Authority.pem
+Adding debian:SSL.com_EV_Root_Certification_Authority_ECC.pem
+Adding debian:Microsec_e-Szigno_Root_CA_2009.pem
+Adding debian:Secure_Global_CA.pem
+Adding debian:IdenTrust_Commercial_Root_CA_1.pem
+Adding debian:OISTE_WISeKey_Global_Root_GC_CA.pem
+Adding debian:DigiCert_Assured_ID_Root_CA.pem
+Adding debian:TunTrust_Root_CA.pem
+Adding debian:ISRG_Root_X1.pem
+Adding debian:SSL.com_Root_Certification_Authority_RSA.pem
+Adding debian:emSign_Root_CA_-_G1.pem
+Adding debian:Atos_TrustedRoot_Root_CA_ECC_TLS_2021.pem
+Adding debian:TWCA_Root_Certification_Authority.pem
+Adding debian:QuoVadis_Root_CA_1_G3.pem
+Adding debian:SecureSign_RootCA11.pem
+Adding debian:Entrust.net_Premium_2048_Secure_Server_CA.pem
+Adding debian:TeliaSonera_Root_CA_v1.pem
+Adding debian:GlobalSign_Root_CA_-_R3.pem
+Adding debian:CommScope_Public_Trust_RSA_Root-01.pem
+Adding debian:Entrust_Root_Certification_Authority_-_G4.pem
+Adding debian:SSL.com_TLS_RSA_Root_CA_2022.pem
+Adding debian:Amazon_Root_CA_1.pem
+Adding debian:AC_RAIZ_FNMT-RCM_SERVIDORES_SEGUROS.pem
+Adding debian:GlobalSign_Root_CA_-_R6.pem
+Adding debian:DigiCert_Global_Root_G3.pem
+Adding debian:Entrust_Root_Certification_Authority_-_EC1.pem
+Adding debian:CommScope_Public_Trust_ECC_Root-02.pem
+Adding debian:Buypass_Class_2_Root_CA.pem
+done.
+Processing triggers for install-info (6.8-4build1) ...
+Processing triggers for mailcap (3.70+nmu1ubuntu1) ...
+Processing triggers for fontconfig (2.13.1-4.2ubuntu5) ...
+Processing triggers for desktop-file-utils (0.26-1ubuntu3) ...
+Processing triggers for hicolor-icon-theme (0.17-2) ...
+Processing triggers for gnome-menus (3.36.0-1ubuntu3) ...
+Processing triggers for libc-bin (2.35-0ubuntu3.10) ...
+
+cloud_init_log_tail:
+2026-05-30 06:25:52,756 - util.py[DEBUG]: Reading 141 bytes from /etc/sudoers.d/90-cloud-init-users
+2026-05-30 06:25:52,756 - handlers.py[DEBUG]: finish: init-network/config-users_groups: SUCCESS: config-users_groups ran successfully and took 0.786 seconds
+2026-05-30 06:25:52,756 - modules.py[DEBUG]: Running module ssh (<module 'cloudinit.config.cc_ssh' from '/usr/lib/python3/dist-packages/cloudinit/config/cc_ssh.py'>) with frequency once-per-instance
+2026-05-30 06:25:52,756 - handlers.py[DEBUG]: start: init-network/config-ssh: running config-ssh with frequency once-per-instance
+2026-05-30 06:25:52,756 - util.py[DEBUG]: Writing to /var/lib/cloud/instances/i-06606ef36a3b45f7d/sem/config_ssh - wb: [644] 25 bytes
+2026-05-30 06:25:52,756 - helpers.py[DEBUG]: Running config-ssh using lock (<FileLock using file '/var/lib/cloud/instances/i-06606ef36a3b45f7d/sem/config_ssh'>)
+2026-05-30 06:25:52,757 - util.py[DEBUG]: Reading from /proc/sys/crypto/fips_enabled (quiet=False)
+2026-05-30 06:25:52,757 - subp.py[DEBUG]: Running command ['ssh-keygen', '-t', 'rsa', '-N', '', '-f', '/etc/ssh/ssh_host_rsa_key'] with allowed return codes [0] (shell=False, capture=True)
+2026-05-30 06:25:53,221 - performance.py[DEBUG]: Running ['ssh-keygen', '-t', 'rsa', '-N', '', '-f', '/etc/ssh/ssh_host_rsa_key'] took 0.464 seconds
+2026-05-30 06:25:53,221 - subp.py[DEBUG]: Running command ['ssh-keygen', '-t', 'ecdsa', '-N', '', '-f', '/etc/ssh/ssh_host_ecdsa_key'] with allowed return codes [0] (shell=False, capture=True)
+2026-05-30 06:25:53,227 - subp.py[DEBUG]: Running command ['ssh-keygen', '-t', 'ed25519', '-N', '', '-f', '/etc/ssh/ssh_host_ed25519_key'] with allowed return codes [0] (shell=False, capture=True)
+2026-05-30 06:25:53,232 - util.py[DEBUG]: Reading from /etc/ssh/ssh_host_ecdsa_key.pub (quiet=False)
+2026-05-30 06:25:53,232 - util.py[DEBUG]: Reading 180 bytes from /etc/ssh/ssh_host_ecdsa_key.pub
+2026-05-30 06:25:53,232 - util.py[DEBUG]: Reading from /etc/ssh/ssh_host_rsa_key.pub (quiet=False)
+2026-05-30 06:25:53,232 - util.py[DEBUG]: Reading 572 bytes from /etc/ssh/ssh_host_rsa_key.pub
+2026-05-30 06:25:53,232 - util.py[DEBUG]: Reading from /etc/ssh/ssh_host_ed25519_key.pub (quiet=False)
+2026-05-30 06:25:53,232 - util.py[DEBUG]: Reading 100 bytes from /etc/ssh/ssh_host_ed25519_key.pub
+2026-05-30 06:25:53,232 - util.py[DEBUG]: Reading from /etc/ssh/sshd_config (quiet=False)
+2026-05-30 06:25:53,233 - util.py[DEBUG]: Reading 704 bytes from /etc/ssh/sshd_config
+2026-05-30 06:25:53,234 - util.py[DEBUG]: Reading from /home/ubuntu/.ssh/authorized_keys (quiet=False)
+2026-05-30 06:25:53,234 - util.py[DEBUG]: Reading 0 bytes from /home/ubuntu/.ssh/authorized_keys
+2026-05-30 06:25:53,234 - util.py[DEBUG]: Writing to /home/ubuntu/.ssh/authorized_keys - wb: [600] 0 bytes
+2026-05-30 06:25:53,235 - util.py[DEBUG]: Reading from /etc/ssh/sshd_config (quiet=False)
+2026-05-30 06:25:53,235 - util.py[DEBUG]: Reading 704 bytes from /etc/ssh/sshd_config
+2026-05-30 06:25:53,235 - util.py[DEBUG]: Reading from /root/.ssh/authorized_keys (quiet=False)
+2026-05-30 06:25:53,235 - util.py[DEBUG]: Reading 0 bytes from /root/.ssh/authorized_keys
+2026-05-30 06:25:53,235 - util.py[DEBUG]: Writing to /root/.ssh/authorized_keys - wb: [600] 0 bytes
+2026-05-30 06:25:53,236 - handlers.py[DEBUG]: finish: init-network/config-ssh: SUCCESS: config-ssh ran successfully and took 0.479 seconds
+2026-05-30 06:25:53,236 - modules.py[DEBUG]: Running module set_passwords (<module 'cloudinit.config.cc_set_passwords' from '/usr/lib/python3/dist-packages/cloudinit/config/cc_set_passwords.py'>) with frequency once-per-instance
+2026-05-30 06:25:53,236 - handlers.py[DEBUG]: start: init-network/config-set_passwords: running config-set_passwords with frequency once-per-instance
+2026-05-30 06:25:53,236 - util.py[DEBUG]: Writing to /var/lib/cloud/instances/i-06606ef36a3b45f7d/sem/config_set_passwords - wb: [644] 24 bytes
+2026-05-30 06:25:53,236 - helpers.py[DEBUG]: Running config-set_passwords using lock (<FileLock using file '/var/lib/cloud/instances/i-06606ef36a3b45f7d/sem/config_set_passwords'>)
+2026-05-30 06:25:53,236 - cc_set_passwords.py[DEBUG]: Leaving SSH config 'PasswordAuthentication' unchanged. ssh_pwauth=None
+2026-05-30 06:25:53,236 - handlers.py[DEBUG]: finish: init-network/config-set_passwords: SUCCESS: config-set_passwords ran successfully and took 0.000 seconds
+2026-05-30 06:25:53,236 - main.py[DEBUG]: Ran 11 modules with 0 failures
+2026-05-30 06:25:53,236 - util.py[DEBUG]: Reading from /proc/uptime (quiet=False)
+2026-05-30 06:25:53,236 - util.py[DEBUG]: Reading 14 bytes from /proc/uptime
+2026-05-30 06:25:53,237 - atomic_helper.py[DEBUG]: Atomically writing to file /var/lib/cloud/data/status.json (via temporary file /var/lib/cloud/data/tmpdz5olvkt) - w: [644] 837 bytes/chars
+2026-05-30 06:25:53,237 - performance.py[DEBUG]: cloud-init stage: 'init-network' took 1.630 seconds
+2026-05-30 06:25:53,237 - handlers.py[DEBUG]: finish: init-network: SUCCESS: searching for network datasources
+2026-05-30 06:25:57,646 - log_util.py[DEBUG]: Cloud-init v. 25.1.2-0ubuntu0~22.04.2 running 'modules:config' at Sat, 30 May 2026 06:25:57 +0000. Up 34.14 seconds.
+2026-05-30 06:25:57,646 - main.py[INFO]: PID [1] started cloud-init 'modules:config'.
+2026-05-30 06:25:57,657 - stages.py[DEBUG]: Using distro class <class 'cloudinit.distros.ubuntu.Distro'>
+2026-05-30 06:25:57,658 - modules.py[INFO]: Skipping modules 'wireguard,snap,ubuntu_autoinstall,keyboard,apt_pipelining,ubuntu_pro,ntp,timezone,disable_ec2_metadata,runcmd' because no applicable config is provided.
+2026-05-30 06:25:57,658 - modules.py[DEBUG]: Running module ssh_import_id (<module 'cloudinit.config.cc_ssh_import_id' from '/usr/lib/python3/dist-packages/cloudinit/config/cc_ssh_import_id.py'>) with frequency once-per-instance
+2026-05-30 06:25:57,659 - handlers.py[DEBUG]: start: modules-config/config-ssh_import_id: running config-ssh_import_id with frequency once-per-instance
+2026-05-30 06:25:57,659 - util.py[DEBUG]: Writing to /var/lib/cloud/instances/i-06606ef36a3b45f7d/sem/config_ssh_import_id - wb: [644] 25 bytes
+2026-05-30 06:25:57,659 - helpers.py[DEBUG]: Running config-ssh_import_id using lock (<FileLock using file '/var/lib/cloud/instances/i-06606ef36a3b45f7d/sem/config_ssh_import_id'>)
+2026-05-30 06:25:57,659 - cc_ssh_import_id.py[DEBUG]: Skipping module named ssh_import_id, no 'ssh_import_id' directives found.
+2026-05-30 06:25:57,659 - handlers.py[DEBUG]: finish: modules-config/config-ssh_import_id: SUCCESS: config-ssh_import_id ran successfully and took 0.000 seconds
+2026-05-30 06:25:57,659 - modules.py[DEBUG]: Running module locale (<module 'cloudinit.config.cc_locale' from '/usr/lib/python3/dist-packages/cloudinit/config/cc_locale.py'>) with frequency once-per-instance
+2026-05-30 06:25:57,659 - handlers.py[DEBUG]: start: modules-config/config-locale: running config-locale with frequency once-per-instance
+2026-05-30 06:25:57,659 - util.py[DEBUG]: Writing to /var/lib/cloud/instances/i-06606ef36a3b45f7d/sem/config_locale - wb: [644] 24 bytes
+2026-05-30 06:25:57,659 - helpers.py[DEBUG]: Running config-locale using lock (<FileLock using file '/var/lib/cloud/instances/i-06606ef36a3b45f7d/sem/config_locale'>)
+2026-05-30 06:25:57,659 - util.py[DEBUG]: Reading from /etc/default/locale (quiet=False)
+2026-05-30 06:25:57,659 - util.py[DEBUG]: Reading 13 bytes from /etc/default/locale
+2026-05-30 06:25:57,659 - cc_locale.py[DEBUG]: Setting locale to C.UTF-8
+2026-05-30 06:25:57,660 - debian.py[DEBUG]: System locale set to C.UTF-8 via /etc/default/locale
+2026-05-30 06:25:57,660 - debian.py[DEBUG]: System has 'LANG=C.UTF-8' requested 'C.UTF-8', skipping regeneration.
+2026-05-30 06:25:57,660 - handlers.py[DEBUG]: finish: modules-config/config-locale: SUCCESS: config-locale ran successfully and took 0.000 seconds
+2026-05-30 06:25:57,660 - modules.py[DEBUG]: Running module grub_dpkg (<module 'cloudinit.config.cc_grub_dpkg' from '/usr/lib/python3/dist-packages/cloudinit/config/cc_grub_dpkg.py'>) with frequency once-per-instance
+2026-05-30 06:25:57,660 - handlers.py[DEBUG]: start: modules-config/config-grub_dpkg: running config-grub_dpkg with frequency once-per-instance
+2026-05-30 06:25:57,660 - util.py[DEBUG]: Writing to /var/lib/cloud/instances/i-06606ef36a3b45f7d/sem/config_grub_dpkg - wb: [644] 25 bytes
+2026-05-30 06:25:57,660 - helpers.py[DEBUG]: Running config-grub_dpkg using lock (<FileLock using file '/var/lib/cloud/instances/i-06606ef36a3b45f7d/sem/config_grub_dpkg'>)
+2026-05-30 06:25:57,660 - subp.py[DEBUG]: Running command ['grub-probe', '-t', 'disk', '/boot'] with allowed return codes [0] (shell=False, capture=True)
+2026-05-30 06:25:57,749 - performance.py[DEBUG]: Running ['grub-probe', '-t', 'disk', '/boot'] took 0.089 seconds
+2026-05-30 06:25:57,749 - subp.py[DEBUG]: Running command ['udevadm', 'info', '--root', '--query=symlink', '/dev/nvme0n1'] with allowed return codes [0] (shell=False, capture=True)
+2026-05-30 06:25:57,751 - cc_grub_dpkg.py[DEBUG]: considering these device symlinks: /dev/disk/by-ebs-volumeid/vol-0574acc70ad105cd0,/dev/disk/by-path/pci-0000:0a:00.0-nvme-1,/dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_vol0574acc70ad105cd0_1,/dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_vol0574acc70ad105cd0,/dev/disk/by-id/nvme-uuid.94d6f302-64f9-51ba-bad0-b06822e24dd8
+2026-05-30 06:25:57,751 - cc_grub_dpkg.py[DEBUG]: filtered to these disk/by-id symlinks: /dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_vol0574acc70ad105cd0_1,/dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_vol0574acc70ad105cd0,/dev/disk/by-id/nvme-uuid.94d6f302-64f9-51ba-bad0-b06822e24dd8
+2026-05-30 06:25:57,751 - cc_grub_dpkg.py[DEBUG]: selected /dev/disk/by-id/nvme-Amazon_Elastic_Block_Store_vol0574acc70ad105cd0
+2026-05-30 06:25:57,751 - cc_grub_dpkg.py[DEBUG]: Setting grub debconf-set-selections with 'grub-pc grub-pc/inst--output truncated--

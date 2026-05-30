@@ -1,0 +1,15 @@
+{
+  "clusters": [
+    {
+      "ip": "16.145.136.128",
+      "name": "dyec-test",
+      "status": "CREATE_COMPLETE"
+    },
+    {
+      "ip": "N/A",
+      "name": "xfer-cluster",
+      "status": "DELETE_IN_PROGRESS"
+    }
+  ],
+  "region": "us-west-2"
+}

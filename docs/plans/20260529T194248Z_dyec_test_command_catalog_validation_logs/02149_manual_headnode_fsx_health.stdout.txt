@@ -1,0 +1,370 @@
+DAY-EC activated.
+DAY-EC activated.
+=== identity ===
+2026-05-30T10:00:38Z
+ip-10-0-0-88.us-west-2.compute.internal
+uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),20(dialout),24(cdrom),25(floppy),27(sudo),29(audio),30(dip),44(video),46(plugdev),119(netdev),120(lxd)
+ 10:00:38 up 1 day,  7:14, 105 users,  load average: 1.02, 0.96, 0.96
+=== memory ===
+               total        used        free      shared  buff/cache   available
+Mem:           247Gi       8.1Gi       220Gi       5.0Mi        18Gi       237Gi
+Swap:             0B          0B          0B
+=== filesystems ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  3.4T  5.4T  39% /fsx
+tmpfs                   tmpfs   199G     0  199G   0% /dev/shm
+/dev/root               ext4    408G   41G  368G  10% /
+Filesystem                Inodes  IUsed    IFree IUse% Mounted on
+10.0.1.96@tcp:/d4tzvb4v 26569194 962060 25607134    4% /fsx
+tmpfs                   32469571      3 32469568    1% /dev/shm
+/dev/root               54319104 613141 53705963    2% /
+=== /fsx mount ===
+TARGET SOURCE                  FSTYPE OPTIONS
+/fsx   10.0.1.96@tcp:/d4tzvb4v lustre rw,noatime,checksum,flock,user_xattr,lruresize,lazystatfs,nouser_fid2path,verbose,encrypt
+10.0.1.96@tcp:/d4tzvb4v on /fsx type lustre (rw,noatime,checksum,flock,user_xattr,lruresize,lazystatfs,nouser_fid2path,verbose,encrypt)
+=== lustre df ===
+UUID                       bytes        Used   Available Use% Mounted on
+d4tzvb4v-MDT0000_UUID      275.0G       10.0G      265.0G   4% /fsx[MDT:0]
+d4tzvb4v-OST0000_UUID        1.1T      413.0G      701.2G  38% /fsx[OST:0]
+d4tzvb4v-OST0001_UUID        1.1T      423.5G      690.7G  39% /fsx[OST:1]
+d4tzvb4v-OST0002_UUID        1.1T      426.1G      688.1G  39% /fsx[OST:2]
+d4tzvb4v-OST0003_UUID        1.1T      425.7G      688.5G  39% /fsx[OST:3]
+d4tzvb4v-OST0004_UUID        1.1T      454.7G      659.5G  41% /fsx[OST:4]
+d4tzvb4v-OST0005_UUID        1.1T      419.8G      694.4G  38% /fsx[OST:5]
+d4tzvb4v-OST0006_UUID        1.1T      414.2G      700.1G  38% /fsx[OST:6]
+d4tzvb4v-OST0007_UUID        1.1T      437.2G      677.0G  40% /fsx[OST:7]
+
+filesystem_summary:         8.7T        3.3T        5.4T  39% /fsx
+
+UUID                      Inodes       IUsed       IFree IUse% Mounted on
+d4tzvb4v-MDT0000_UUID    26569194      962060    25607134   4% /fsx[MDT:0]
+d4tzvb4v-OST0000_UUID     5820734       76481     5744253   2% /fsx[OST:0]
+d4tzvb4v-OST0001_UUID     5734552       76315     5658237   2% /fsx[OST:1]
+d4tzvb4v-OST0002_UUID     5713640       76307     5637333   2% /fsx[OST:2]
+d4tzvb4v-OST0003_UUID     5716690       76418     5640272   2% /fsx[OST:3]
+d4tzvb4v-OST0004_UUID     5478861       76145     5402716   2% /fsx[OST:4]
+d4tzvb4v-OST0005_UUID     5765281       76335     5688946   2% /fsx[OST:5]
+d4tzvb4v-OST0006_UUID     5811315       76356     5734959   2% /fsx[OST:6]
+d4tzvb4v-OST0007_UUID     5622719       76339     5546380   2% /fsx[OST:7]
+
+filesystem_summary:     26569194      962060    25607134   4% /fsx
+
+=== validation analysis dirs ===
+101
+2026-05-30T03:53:42.0000000000 ccv20260529r14_illumina_run_qc_bclconvert
+2026-05-30T04:06:30.0000000000 ccv20260529r15_illumina_bclconvert_dryrun
+2026-05-30T04:06:30.0000000000 ccv20260529r15_illumina_run_qc_bclconvert_dryrun
+2026-05-30T04:09:14.0000000000 ccv20260529r15_illumina_bclconvert
+2026-05-30T04:09:14.0000000000 ccv20260529r15_illumina_run_qc_bclconvert
+2026-05-30T04:52:22.0000000000 ccv20260529r17_ont_run_qc_dryrun
+2026-05-30T04:55:07.0000000000 ccv20260529r17_ont_run_qc
+2026-05-30T05:04:10.0000000000 ccv20260529r18_illumina_bclconvert_dryrun
+2026-05-30T05:10:01.0000000000 ccv20260529r19_illumina_bclconvert_dryrun
+2026-05-30T05:12:46.0000000000 ccv20260529r19_illumina_bclconvert
+2026-05-30T05:21:19.0000000000 ccv20260529r20_simple-test_dryrun
+2026-05-30T05:41:20.0000000000 ccv20260529r21_ont_run_qc_dryrun
+2026-05-30T05:44:04.0000000000 ccv20260529r21_ont_run_qc
+2026-05-30T05:55:46.0000000000 ccv20260529r22_illumina_bclconvert_dryrun
+2026-05-30T05:55:46.0000000000 ccv20260529r22_ont_run_qc_dryrun
+2026-05-30T05:58:29.0000000000 ccv20260529r22_illumina_bclconvert
+2026-05-30T06:01:29.0000000000 ccv20260529r23_ont_run_qc_dryrun
+2026-05-30T06:05:25.0000000000 ccv20260529r24_illumina_bclconvert_dryrun
+2026-05-30T06:08:09.0000000000 ccv20260529r24_illumina_bclconvert
+2026-05-30T06:21:29.0000000000 ccv20260529r25_illumina_bclconvert_dryrun
+2026-05-30T06:24:12.0000000000 ccv20260529r25_illumina_bclconvert
+2026-05-30T06:32:10.0000000000 ccv20260529r26_illumina_bclconvert_dryrun
+2026-05-30T06:48:35.0000000000 ccv20260529r26_illumina_hg002_kitchensink_multiqc_dryrun
+2026-05-30T06:50:24.0000000000 ccv20260529r26_illumina_hg002_kitchensink_multiqc
+2026-05-30T07:01:58.0000000000 ccv20260529r26_complete_genomics_mgi_snv_concordance_dryrun
+2026-05-30T07:17:31.0000000000 ccv20260529r27_complete_genomics_mgi_snv_concordance_dryrun
+2026-05-30T07:19:49.0000000000 ccv20260529r28_complete_genomics_mgi_snv_concordance_dryrun
+2026-05-30T07:28:37.0000000000 ccv20260529r29_complete_genomics_mgi_snv_concordance_dryrun
+2026-05-30T07:36:18.0000000000 ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc_dryrun
+2026-05-30T07:54:46.0000000000 ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun
+2026-05-30T08:01:49.0000000000 ccv20260529r32_illumina_hg002_kitchensink_multiqc_dryrun
+2026-05-30T08:03:26.0000000000 ccv20260529r32_illumina_hg002_kitchensink_multiqc
+2026-05-30T08:23:29.0000000000 ccv20260529r33_ultima_snv_alignstats_dryrun
+2026-05-30T08:36:37.0000000000 ccv20260529r34_illumina_hg002_kitchensink_multiqc
+2026-05-30T08:59:07.0000000000 ccv20260529r35_ont_snv_alignstats_dryrun
+2026-05-30T09:18:30.0000000000 ccv20260529r36_illumina_hg002_kitchensink_multiqc_dryrun
+2026-05-30T09:19:41.0000000000 ccv20260529r36_illumina_hg002_kitchensink_multiqc
+2026-05-30T09:27:28.0000000000 ccv20260529r35_ont_snv_alignstats_kitchensink_dryrun
+2026-05-30T09:28:39.0000000000 ccv20260529r35_ont_snv_alignstats_kitchensink
+2026-05-30T09:56:41.0000000000 ccv20260529r37_illumina_bclconvert_dryrun
+=== validation active dirs file-count sample ===
+2643 files /fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats_kitchensink
+1830 files /fsx/analysis_results/ubuntu/ccv20260529r6_pacbio_snv_alignstats
+=== daylily run statuses ===
+--- /home/ubuntu/daylily-runs/ccv20260529r34_illumina_hg002_kitchensink_multiqc/status.json
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\"]' 'htd_callers=[\"cyrius\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\",\"contam_identity\"]}' -j 200 -p -k --rerun-triggers mtime",
+  "completed_at": "2026-05-30T09:05:13Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r34_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis",
+  "session_name": "ccv20260529r34_illumina_hg002_kitchensink_multiqc",
+  "started_at": "2026-05-30T08:34:20Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r35_ont_snv_alignstats/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k",
+  "completed_at": "2026-05-30T09:26:47Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r35_ont_snv_alignstats/daylily-omics-analysis",
+  "session_name": "ccv20260529r35_ont_snv_alignstats",
+  "started_at": "2026-05-30T09:00:19Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r35_ont_snv_alignstats_dryrun/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k -n",
+  "completed_at": "2026-05-30T08:59:34Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r35_ont_snv_alignstats_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r35_ont_snv_alignstats_dryrun",
+  "started_at": "2026-05-30T08:59:07Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r35_ont_snv_alignstats_kitchensink/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r35_ont_snv_alignstats_kitchensink/daylily-omics-analysis",
+  "session_name": "ccv20260529r35_ont_snv_alignstats_kitchensink",
+  "started_at": "2026-05-30T09:28:39Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r35_ont_snv_alignstats_kitchensink_dryrun/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k -n",
+  "completed_at": "2026-05-30T09:27:53Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r35_ont_snv_alignstats_kitchensink_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r35_ont_snv_alignstats_kitchensink_dryrun",
+  "started_at": "2026-05-30T09:27:28Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r36_illumina_hg002_kitchensink_multiqc/status.json
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\"]' 'htd_callers=[\"cyrius\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\",\"contam_identity\"]}' -j 200 -p -k --rerun-triggers mtime",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r36_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis",
+  "session_name": "ccv20260529r36_illumina_hg002_kitchensink_multiqc",
+  "started_at": "2026-05-30T09:19:41Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r36_illumina_hg002_kitchensink_multiqc_dryrun/status.json
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\"]' 'htd_callers=[\"cyrius\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\",\"contam_identity\"]}' -j 200 -p -k --rerun-triggers mtime -n",
+  "completed_at": "2026-05-30T09:18:57Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r36_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r36_illumina_hg002_kitchensink_multiqc_dryrun",
+  "started_at": "2026-05-30T09:18:30Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r37_illumina_bclconvert_dryrun/status.json
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k -n --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": "2026-05-30T09:57:05Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r37_illumina_bclconvert_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r37_illumina_bclconvert_dryrun",
+  "started_at": "2026-05-30T09:56:41Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r3_simple-test_dryrun/status.json
+{
+  "command": "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help",
+  "completed_at": "2026-05-29T20:06:55Z",
+  "exit_code": 127,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r3_simple-test_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r3_simple-test_dryrun",
+  "started_at": "2026-05-29T20:06:42Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r4_simple-test_dryrun/status.json
+{
+  "command": "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help",
+  "completed_at": "2026-05-29T20:10:42Z",
+  "exit_code": 2,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r4_simple-test_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r4_simple-test_dryrun",
+  "started_at": "2026-05-29T20:10:19Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r5_illumina_hg002_kitchensink_multiqc_dryrun/status.json
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\"]' 'htd_callers=[\"cyrius\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\",\"contam_identity\"]}' -j 200 -p -k --rerun-triggers mtime -n",
+  "completed_at": "2026-05-29T20:33:30Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r5_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r5_illumina_hg002_kitchensink_multiqc_dryrun",
+  "started_at": "2026-05-29T20:33:05Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc/status.json
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k",
+  "completed_at": "2026-05-29T21:25:58Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc/daylily-omics-analysis",
+  "session_name": "ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc",
+  "started_at": "2026-05-29T20:38:10Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc_dryrun/status.json
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n",
+  "completed_at": "2026-05-29T20:28:49Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc_dryrun",
+  "started_at": "2026-05-29T20:28:21Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r5_simple-test_dryrun/status.json
+{
+  "command": "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help",
+  "completed_at": "2026-05-29T20:21:39Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r5_simple-test_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r5_simple-test_dryrun",
+  "started_at": "2026-05-29T20:21:16Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r5_ultima_snv_alignstats_dryrun/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k -n",
+  "completed_at": "2026-05-29T20:35:59Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r5_ultima_snv_alignstats_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r5_ultima_snv_alignstats_dryrun",
+  "started_at": "2026-05-29T20:35:32Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r6_ont_snv_alignstats/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k",
+  "completed_at": "2026-05-29T21:42:30Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis",
+  "session_name": "ccv20260529r6_ont_snv_alignstats",
+  "started_at": "2026-05-29T21:22:54Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r6_ont_snv_alignstats_dryrun/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k -n",
+  "completed_at": "2026-05-29T21:17:17Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r6_ont_snv_alignstats_dryrun",
+  "started_at": "2026-05-29T21:14:15Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r6_ont_snv_alignstats_kitchensink/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k",
+  "completed_at": "2026-05-29T22:20:25Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats_kitchensink/daylily-omics-analysis",
+  "session_name": "ccv20260529r6_ont_snv_alignstats_kitchensink",
+  "started_at": "2026-05-29T21:38:05Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r6_ont_snv_alignstats_kitchensink_dryrun/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k -n",
+  "completed_at": "2026-05-29T21:26:58Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats_kitchensink_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r6_ont_snv_alignstats_kitchensink_dryrun",
+  "started_at": "2026-05-29T21:26:27Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r6_pacbio_snv_alignstats/status.json
+{
+  "command": "bin/day_run produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1",
+  "completed_at": "2026-05-29T22:40:31Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_pacbio_snv_alignstats/daylily-omics-analysis",
+  "session_name": "ccv20260529r6_pacbio_snv_alignstats",
+  "started_at": "2026-05-29T21:55:22Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r6_pacbio_snv_alignstats_dryrun/status.json
+{
+  "command": "bin/day_run produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1 -n",
+  "completed_at": "2026-05-29T21:49:22Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_pacbio_snv_alignstats_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r6_pacbio_snv_alignstats_dryrun",
+  "started_at": "2026-05-29T21:48:56Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r6_ultima_snv_alignstats/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k",
+  "completed_at": "2026-05-29T21:21:13Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis",
+  "session_name": "ccv20260529r6_ultima_snv_alignstats",
+  "started_at": "2026-05-29T21:01:00Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r6_ultima_snv_alignstats_dryrun/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k -n",
+  "completed_at": "2026-05-29T20:55:18Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r6_ultima_snv_alignstats_dryrun",
+  "started_at": "2026-05-29T20:54:47Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n",
+  "completed_at": "2026-05-29T21:04:29Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun",
+  "started_at": "2026-05-29T21:04:01Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r7_hybrid_ilmn_ont_snv/status.json
+{
+  "command": "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k",
+  "completed_at": "2026-05-30T00:45:33Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r7_hybrid_ilmn_ont_snv/daylily-omics-analysis",
+  "session_name": "ccv20260529r7_hybrid_ilmn_ont_snv",
+  "started_at": "2026-05-29T23:40:40Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r7_hybrid_ilmn_ont_snv_dryrun/status.json
+{
+  "command": "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k -n",
+  "completed_at": "2026-05-29T23:38:15Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r7_hybrid_ilmn_ont_snv_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r7_hybrid_ilmn_ont_snv_dryrun",
+  "started_at": "2026-05-29T23:37:45Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink/status.json
+{
+  "command": "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config 'dedupers=[\"dmd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k",
+  "completed_at": "2026-05-30T00:46:58Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis",
+  "session_name": "ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink",
+  "started_at": "2026-05-29T23:40:40Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink_dryrun/status.json
+{
+  "command": "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config 'dedupers=[\"dmd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n",
+  "completed_at": "2026-05-29T23:38:16Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink_dryrun",
+  "started_at": "2026-05-29T23:37:45Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r7_illumina_snv_alignstats/status.json
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20",
+  "completed_at": "2026-05-30T00:10:58Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r7_illumina_snv_alignstats/daylily-omics-analysis",
+  "session_name": "ccv20260529r7_illumina_snv_alignstats",
+  "started_at": "2026-05-29T23:38:28Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r7_illumina_snv_alignstats_dryrun/status.json
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20 -n",
+  "completed_at": "2026-05-29T23:35:59Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r7_illumina_snv_alignstats_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r7_illumina_snv_alignstats_dryrun",
+  "started_at": "2026-05-29T23:35:33Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r7_inflection-bjuice-product-v0.1_dryrun/status.json
+{
+  "command": "bi--output truncated--

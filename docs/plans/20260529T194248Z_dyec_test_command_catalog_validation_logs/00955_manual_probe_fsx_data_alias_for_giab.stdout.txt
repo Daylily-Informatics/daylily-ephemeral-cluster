@@ -1,0 +1,17 @@
+DAY-EC activated.
+DAY-EC activated.
+drwxrwxrwt 12 root root 33280 May 29 23:47 /fsx
+lrwxrwxrwx  1 root root    15 May 29 23:47 /fsx/data -> /fsx/references
+dr-xr-xr-x  4 root root 33280 May 29 02:52 /fsx/references
+
+path=/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz
+regular file 42067644 /fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz -> '/fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz'
+-rwxr-xr-x 1 root root 42067644 May 26 07:52 /fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz
+
+path=/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz
+regular file 42067644 /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz -> '/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz'
+-rwxr-xr-x 1 root root 42067644 May 26 07:52 /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz
+
+path=/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHCv5q/HG002.vcf.gz
+regular file 42067644 /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHCv5q/HG002.vcf.gz -> '/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHCv5q/HG002.vcf.gz'
+lrwxrwxrwx 1 root root 130 May 26 07:49 /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHCv5q/HG002.vcf.gz -> /fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz

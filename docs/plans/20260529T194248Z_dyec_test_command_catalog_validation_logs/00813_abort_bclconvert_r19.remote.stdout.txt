@@ -1,0 +1,14 @@
+DAY-EC activated.
+DAY-EC activated.
+=== slurm before ===
+JOBID|PARTITION|CPUS|ST|TIME|NODES|NODELIST(REASON)|NAME
+2653|i192mem|192|R|4:05|1|i192mem-dy-all-1|run_bclconvert-run_bclconvert
+=== tmux before ===
+ccv20260529r19_illumina_bclconvert: 1 windows (created Sat May 30 05:12:44 2026)
+ccv20260529r19_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 05:09:59 2026)
+/home/ubuntu/daylily-runs/ccv20260529r19_illumina_bclconvert/status.json
+=== slurm after ===
+JOBID|PARTITION|CPUS|ST|TIME|NODES|NODELIST(REASON)|NAME
+2653|i192mem|192|CG|4:05|1|i192mem-dy-all-1|run_bclconvert-run_bclconvert
+=== scratch candidates ===
+/fsx/scratch/dayoa_bclconvert/2653.26739

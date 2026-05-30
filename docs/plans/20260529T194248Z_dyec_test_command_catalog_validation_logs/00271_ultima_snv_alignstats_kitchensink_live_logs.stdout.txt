@@ -1,0 +1,123 @@
+DAY-EC activated.
+DAY-EC activated.
+            {
+                echo "# Refactor: per-ROI jobs are scheduled by Snakemake; this file is informational.";
+                echo "# generated_at_utc=$utc_ts";
+                echo "# truth_dir=/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/";
+                echo "# footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC";
+                for mqc in results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1.1/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_altair-v1.1_concordance.mqc.tsv results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_clinvar_genes/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_clinvar_genes_concordance.mqc.tsv results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_giabHC_concordance.mqc.tsv results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC_x_clinvar_genes/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_giabHC_x_clinvar_genes_concordance.mqc.tsv results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_hg38_concordance.mqc.tsv results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_hg38_m_giabHC_concordance.mqc.tsv; do
+                    echo "$mqc";
+                done;
+            } > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/concordance.fofn;
+
+            # Write informational fin.cmds
+            {
+                echo "# Refactor: see Snakemake DAG for exact commands.";
+                echo "# generated_at_utc=$utc_ts";
+            } > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/concordance.fin.cmds;
+
+            # SKIPPED sentinel if no mqcs
+            if [ "6" -eq 0 ]; then
+                echo "No truthset ROI directories found; concordance skipped." > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/concordance.done.SKIPPED;
+            fi;
+
+            # Log
+            echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.concordance.log;
+            
+Submitted job 11 with external jobid '340'.
+[Fri May 29 23:49:34 2026]
+Finished job 88.
+84 of 111 steps (76%) done
+[Fri May 29 23:49:34 2026]
+Finished job 86.
+85 of 111 steps (77%) done
+[Fri May 29 23:49:44 2026]
+Finished job 11.
+86 of 111 steps (77%) done
+Select jobs to execute...
+
+[Fri May 29 23:49:44 2026]
+localrule produce_snv_concordances:
+    input: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/concordance.done, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1.1/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_altair-v1.1_concordance.mqc.tsv, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_clinvar_genes/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_giabHC_concordance.mqc.tsv, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC_x_clinvar_genes/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_giabHC_x_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_hg38_concordance.mqc.tsv, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_hg38_m_giabHC_concordance.mqc.tsv
+    output: results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv
+    jobid: 10
+    reason: Missing output files: results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv; Input files updated by another job: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/concordance.done, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_giabHC_concordance.mqc.tsv, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_hg38_m_giabHC_concordance.mqc.tsv, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_hg38_concordance.mqc.tsv, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC_x_clinvar_genes/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_giabHC_x_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1.1/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_altair-v1.1_concordance.mqc.tsv, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_clinvar_genes/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_clinvar_genes_concordance.mqc.tsv
+    priority: 48
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r7_ultima_snv_alignstats_kitchensink/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r7_ultima_snv_alignstats_kitchensink/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+...INFO: Auto-detected dedupers. DDUP updated to: ['na']
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentdug']
+SNV Callers (final): [sentdug]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r7_ultima_snv_alignstats_kitchensink/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r7_ultima_snv_alignstats_kitchensink/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+All Wildcards:    all snv_CALLERS:  ['sentdug']  all ALIGNERS:  []  all CRAM_ALIGNERS:  ['ug']  all samples:  {'TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA': ['TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA']}  all concordance samples:  dict_keys(['TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA'])
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=1, time=5440, vcpu=1
+Select jobs to execute...
+All Wildcards:    all snv_CALLERS:  ['sentdug']  all ALIGNERS:  []  all CRAM_ALIGNERS:  ['ug']  all samples:  {'TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA': ['TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA']}  all concordance samples:  dict_keys(['TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA'])
+All Wildcards:    all snv_CALLERS:  ['sentdug']  all ALIGNERS:  []  all CRAM_ALIGNERS:  ['ug']  all samples:  {'TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA': ['TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA']}  all concordance samples:  dict_keys(['TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA'])
+[Fri May 29 23:49:47 2026]
+Finished job 10.
+87 of 111 steps (78%) done
+[Fri May 29 23:50:24 2026]
+Finished job 72.
+88 of 111 steps (79%) done
+[Fri May 29 23:50:34 2026]
+Finished job 78.
+89 of 111 steps (80%) done
+[Fri May 29 23:50:34 2026]
+Finished job 76.
+90 of 111 steps (81%) done
+[Fri May 29 23:50:45 2026]
+Finished job 74.
+91 of 111 steps (82%) done
+[Fri May 29 23:51:05 2026]
+Finished job 68.
+92 of 111 steps (83%) done
+[Fri May 29 23:51:05 2026]
+Finished job 64.
+93 of 111 steps (84%) done
+[Fri May 29 23:51:15 2026]
+Finished job 70.
+94 of 111 steps (85%) done
+[Fri May 29 23:51:35 2026]
+Finished job 66.
+95 of 111 steps (86%) done
+[Fri May 29 23:51:45 2026]
+Finished job 60.
+96 of 111 steps (86%) done
+[Fri May 29 23:51:55 2026]
+Finished job 62.
+97 of 111 steps (87%) done
+[Fri May 29 23:52:25 2026]
+Finished job 55.
+98 of 111 steps (88%) done
+[Fri May 29 23:52:35 2026]
+Finished job 58.
+99 of 111 steps (89%) done
+Select jobs to execute...
+
+[Fri May 29 23:56:34 2026]
+localrule vep_concat_fofn:
+    input: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr1/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr1.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr2/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr2.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr3/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr3.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr4/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr4.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr5/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr5.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr6/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr6.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr7/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr7.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr8/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr8.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr9/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr9.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr10/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr10.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr11/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr11.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr12/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr12.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr13/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr13.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr14/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr14.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr15/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr15.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr16/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr16.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr17/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr17.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr18/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr18.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr19/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr19.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr20/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr20.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr21/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr21.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr22/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr22.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chrX/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chrX.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chrY/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chrY.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chrM/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chrM.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr1/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr1.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr2/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr2.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr3/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr3.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr4/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr4.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr5/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr5.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr6/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr6.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr7/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr7.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr8/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr8.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr9/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr9.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr10/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr10.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr11/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr11.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr12/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr12.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr13/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr13.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr14/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr14.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr15/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr15.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr16/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr16.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr17/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr17.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr18/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr18.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr19/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr19.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr20/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr20.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr21/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr21.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr22/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr22.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chrX/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chrX.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chrY/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chrY.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chrM/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chrM.vep.vcf.gz.record_count
+    output: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.vep.concat.vcf.gz.fofn
+    log: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.vep.concat_fofn.log
+    jobid: 54
+    reason: Missing output files: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.vep.concat.vcf.gz.fofn; Input files updated by another job: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr16/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr16.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr18/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr18.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chrY/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chrY.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr13/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr13.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr7/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr7.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr19/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr19.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr12/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr12.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr11/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr11.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr20/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr20.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr13/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr13.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr17/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr17.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr9/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr9.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr14/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr14.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr5/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr5.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr1/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr1.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chrX/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chrX.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr7/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr7.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr2/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr2.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chrM/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chrM.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr12/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr12.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr18/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr18.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr20/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr20.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr3/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr3.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr10/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr10.vep.vcf.gz.record_count, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr17/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr17.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr22/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr22.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr2/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr2.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr19/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.chr19.vep.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/chunks/chr6/TVBUG5X-HG003-5x-1-D0-PF-UG--output truncated--

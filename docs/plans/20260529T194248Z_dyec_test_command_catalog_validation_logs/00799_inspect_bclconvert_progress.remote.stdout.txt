@@ -1,0 +1,48 @@
+DAY-EC activated.
+DAY-EC activated.
+=== status ===
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r19_illumina_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260529r19_illumina_bclconvert",
+  "started_at": "2026-05-30T05:12:46Z"
+}
+=== bclconvert log tail ===
+run_bclconvert started: 2026-05-30T05:17:20+00:00
+host: i192mem-dy-all-1
+threads: 192
+resources_mem_mb: 180000
+TMPDIR: /fsx/scratch
+staging_mode: s3_dev_shm
+scratch_root: /fsx/scratch/dayoa_bclconvert
+bcl_input_directory: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+source_s3_uri: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs
+192
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  188G  8.6T   3% /fsx
+10.0.1.96@tcp:/d4tzvb4v  8.8T  188G  8.6T   3% /fsx
+/usr/bin/singularity
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc. 
+/home/ubuntu/miniconda3/envs/DAY-EC/bin/aws
+s3_stage_submit_profile: lsmc
+s3_stage_credential_mode: compute_instance_role
+{
+    "UserId": "AROARSU7KMWV6ITKJPKEZ:i-0df44dba5e68725f7",
+    "Account": "108782052779",
+    "Arn": "arn:aws:sts::108782052779:assumed-role/dyec-test-ComputeFleetQueuesNe-Role208459e33242dc54-WlVzsTcibg8p/i-0df44dba5e68725f7"
+}
+scratch_dir: /fsx/scratch/dayoa_bclconvert/2652.10994
+scratch_input_disk_bytes: 329347072
+scratch_input_apparent_bytes: 8442068270195
+scratch_required_bytes: 2391130112
+scratch_available_bytes: 9370164789248
+Staging BCL run directory from S3 to scratch: 2026-05-30T05:17:46+00:00
+s3_stage_lanes: L001 L002 L003 L004 L005 L006 L007 L008
+=== scratch usage ===
+1.3T	/fsx/scratch/dayoa_bclconvert
+=== result fastqs ===

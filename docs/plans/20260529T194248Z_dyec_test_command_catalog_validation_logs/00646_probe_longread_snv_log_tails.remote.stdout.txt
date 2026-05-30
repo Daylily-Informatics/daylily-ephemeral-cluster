@@ -1,0 +1,214 @@
+DAY-EC activated.
+DAY-EC activated.
+=== ccv20260529r6_ultima_snv_alignstats ===
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log
+### results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log
+tracker: 3091383 calls 933.973 user 87.441 sys 1317.903 real
+trim_region: 13761673 calls 28.536 user 39.846 sys 75.505 real
+overall: 16171622400 mem 20984.904 user 2704.977 sys 258.035 real
+cmdline: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/libexec/driver -t 190 -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --algo DNAModelApply --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonUltima1.1.bundle/dnascope.model -v results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.gvcf results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.vcf
+This software is licensed to johnm@lsmc.com by Sentieon Inc.
+progress 5% @chr1:187000001, elapsed 0.8s, est remaining 14.5s, peak mem 959MB, user 63.9s, sys 1.3s, output queue size 159
+progress 10% @chr2:46000001, elapsed 1.2s, est remaining 11.0s, peak mem 1124MB, user 152.4s, sys 2.3s, output queue size 320
+progress 15% @chr3:93000001, elapsed 1.6s, est remaining 9.3s, peak mem 1187MB, user 234.7s, sys 2.8s, output queue size 362
+progress 20% @chr3:139000001, elapsed 2.0s, est remaining 8.2s, peak mem 1245MB, user 315.0s, sys 3.2s, output queue size 523
+progress 25% @chr4:63000001, elapsed 2.5s, est remaining 7.6s, peak mem 1338MB, user 397.6s, sys 3.6s, output queue size 683
+progress 30% @chr5:140000001, elapsed 3.0s, est remaining 7.0s, peak mem 1371MB, user 487.4s, sys 4.0s, output queue size 387
+progress 35% @chr6:22000001, elapsed 3.5s, est remaining 6.5s, peak mem 1384MB, user 573.4s, sys 4.3s, output queue size 389
+progress 40% @chr7:96000001, elapsed 4.0s, est remaining 6.0s, peak mem 1469MB, user 663.5s, sys 4.7s, output queue size 550
+progress 45% @chr8:82000001, elapsed 4.4s, est remaining 5.4s, peak mem 1469MB, user 744.8s, sys 5.0s, output queue size 713
+progress 50% @chr8:138000001, elapsed 4.9s, est remaining 4.9s, peak mem 1495MB, user 837.1s, sys 5.4s, output queue size 874
+progress 55% @chr10:26000001, elapsed 5.4s, est remaining 4.4s, peak mem 1533MB, user 932.6s, sys 5.7s, output queue size 1035
+progress 60% @chr11:25000001, elapsed 5.8s, est remaining 3.9s, peak mem 1533MB, user 1018.8s, sys 6.1s, output queue size 1197
+progress 65% @chr13:39000001, elapsed 6.3s, est remaining 3.4s, peak mem 1533MB, user 1100.3s, sys 6.3s, output queue size 1359
+progress 70% @chr16:39000001, elapsed 6.7s, est remaining 2.9s, peak mem 1534MB, user 1179.7s, sys 6.5s, output queue size 1521
+progress 75% @chr15:92000001, elapsed 7.2s, est remaining 2.4s, peak mem 1554MB, user 1270.9s, sys 6.8s, output queue size 1683
+progress 80% @chr17:79000001, elapsed 7.7s, est remaining 1.9s, peak mem 1586MB, user 1369.3s, sys 7.2s, output queue size 864
+progress 85% @chr20:24000001, elapsed 8.2s, est remaining 1.5s, peak mem 1673MB, user 1461.9s, sys 7.6s, output queue size 1026
+progress 90% @chrY:47000001, elapsed 8.5s, est remaining 0.9s, peak mem 1673MB, user 1518.5s, sys 8.0s, output queue size 1187
+progress 95% @chr6_GL000256v2_alt:1000001, elapsed 8.5s, est remaining 0.4s, peak mem 1673MB, user 1533.9s, sys 9.4s, output queue size 2418
+progress 100% @chr20:29000001, elapsed 9.8s, est remaining 0.0s, peak mem 1673MB, user 1601.0s, sys 11.1s, output queue size 3741
+sw version: sentieon-genomics-202503.02
+os version: Linux 6.8.0-1029-aws
+cpu vendor: GenuineIntel
+ signature: 000806f8
+  features: bfebfbff 7ffefbff
+  extended: f3bfb7ef fb417ffe
+  amd bits: 2c100800 00000121
+     brand: Intel(R) Xeon(R) Platinum 8488C
+threads: 190 max 192
+algo: DNAModelApply
+license: sentieon:DNAscope=190 ultima:dnamodel=1
+reads: 0
+contig: 3367 intervals 3217346917 bases
+advance: 3219322 calls 0.234 user 1.652 sys 1.906 real
+collect_data: 2962 calls 395.504 user 2.336 sys 398.252 real
+done: 1 calls 0.004 user 0.003 sys 0.011 real
+encode_data: 2962 calls 6.035 user 0.911 sys 6.986 real
+execute: 1 calls 0.001 user 0.000 sys 9.986 real
+fetch: 6494 calls 1.891 user 1.432 sys 21.322 real
+idle: 941 calls 0.056 user 0.012 sys 791.372 real
+init: 1 calls 1.286 user 0.411 sys 1.780 real
+predict: 2962 calls 967.018 user 0.489 sys 968.327 real
+write_vcf: 2960 calls 227.920 user 1.663 sys 229.786 real
+overall: 1754558464 mem 1602.717 user 15.820 sys 12.838 real
+Elapsed-Time-min:	m7i.metal-48xl	4
+=== ccv20260529r6_ont_snv_alignstats ===
+results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.snv.log
+### results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.snv.log
+overall: 822775808 mem 512.204 user 14.036 sys 6.028 real
+cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 191 --interval_padding 0 --algo DNAModelApply --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle/diploid_model_unphased --vcf /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_unphased_patch.vcf.gz /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_unphased.vcf.gz
+This software is licensed to johnm@lsmc.com by Sentieon Inc.
+progress 5% @chr1:80000001, elapsed 1.8s, est remaining 33.7s, peak mem 2055MB, user 188.5s, sys 4.7s, output queue size 160
+progress 10% @chr1:228000001, elapsed 3.0s, est remaining 27.0s, peak mem 2448MB, user 414.9s, sys 6.8s, output queue size 312
+progress 15% @chr3:84000001, elapsed 4.2s, est remaining 23.7s, peak mem 2485MB, user 636.3s, sys 7.7s, output queue size 362
+progress 20% @chr4:57000001, elapsed 5.5s, est remaining 21.9s, peak mem 2621MB, user 856.8s, sys 8.4s, output queue size 524
+progress 25% @chr4:139000001, elapsed 6.6s, est remaining 19.8s, peak mem 2621MB, user 1079.1s, sys 9.1s, output queue size 685
+progress 30% @chr5:144000001, elapsed 7.7s, est remaining 18.0s, peak mem 2621MB, user 1299.6s, sys 10.0s, output queue size 846
+progress 35% @chr5:129000001, elapsed 8.9s, est remaining 16.6s, peak mem 2631MB, user 1517.0s, sys 10.7s, output queue size 1007
+progress 40% @chr7:98000001, elapsed 10.0s, est remaining 15.0s, peak mem 2648MB, user 1753.3s, sys 11.7s, output queue size 1168
+progress 45% @chr7:134000001, elapsed 11.1s, est remaining 13.6s, peak mem 2669MB, user 1947.8s, sys 12.4s, output queue size 1330
+progress 50% @chr9:41000001, elapsed 12.3s, est remaining 12.3s, peak mem 2677MB, user 2168.4s, sys 13.2s, output queue size 1491
+progress 55% @chr11:12000001, elapsed 13.7s, est remaining 11.2s, peak mem 2677MB, user 2391.9s, sys 14.0s, output queue size 1653
+progress 60% @chr11:92000001, elapsed 14.7s, est remaining 9.8s, peak mem 2677MB, user 2616.7s, sys 15.0s, output queue size 1814
+progress 65% @chr13:39000001, elapsed 15.8s, est remaining 8.5s, peak mem 2677MB, user 2824.4s, sys 15.8s, output queue size 1976
+progress 70% @chr16:41000001, elapsed 16.9s, est remaining 7.2s, peak mem 2677MB, user 3021.9s, sys 16.4s, output queue size 2138
+progress 75% @chr16:69000001, elapsed 18.1s, est remaining 6.0s, peak mem 2677MB, user 3255.2s, sys 17.3s, output queue size 2300
+progress 80% @chr16:56000001, elapsed 19.3s, est remaining 4.8s, peak mem 2699MB, user 3487.8s, sys 18.0s, output queue size 2462
+progress 85% @chrX:47000001, elapsed 20.1s, est remaining 3.6s, peak mem 2743MB, user 3642.9s, sys 19.0s, output queue size 647
+progress 90% @chrY:50000001, elapsed 20.2s, est remaining 2.2s, peak mem 2743MB, user 3648.1s, sys 19.2s, output queue size 808
+progress 95% @chr20:44000001, elapsed 20.4s, est remaining 1.1s, peak mem 2743MB, user 3685.2s, sys 19.6s, output queue size 4233
+progress 100% @chr20:29000001, elapsed 21.4s, est remaining 0.0s, peak mem 2743MB, user 3912.7s, sys 20.8s, output queue size 3741
+sw version: sentieon-genomics-202503.02
+os version: Linux 6.8.0-1029-aws
+cpu vendor: GenuineIntel
+ signature: 000806f8
+  features: bfebfbff 7ffefbff
+  extended: f3bfb7ef fb417ffe
+  amd bits: 2c100800 00000121
+     brand: Intel(R) Xeon(R) Platinum 8488C
+threads: 191 max 192
+algo: DNAModelApply
+license: sentieon:DNAscope=191 ont:dnamodel=1
+reads: 0
+contig: 3367 intervals 3217346917 bases
+advance: 3219322 calls 0.261 user 0.874 sys 1.199 real
+collect_data: 2784 calls 1273.951 user 12.651 sys 1289.759 real
+done: 1 calls 0.066 user 0.000 sys 0.066 real
+encode_data: 2784 calls 9.959 user 1.909 sys 12.030 real
+execute: 1 calls 0.001 user 0.002 sys 21.512 real
+fetch: 6494 calls 12.644 user 2.101 sys 16.604 real
+idle: 835 calls 0.105 user 0.008 sys 736.215 real
+init: 1 calls 1.366 user 0.419 sys 1.939 real
+predict: 2784 calls 1936.606 user 0.261 sys 1939.446 real
+write_vcf: 2782 calls 673.482 user 0.980 sys 675.979 real
+overall: 2876993536 mem 3916.305 user 25.303 sys 24.563 real
+Checking the headers and starting positions of 2 files
+sentieon-cli exit code: 0
+Elapsed-Time-min:	m7i.metal-48xl	13
+=== ccv20260529r6_pacbio_snv_alignstats ===
+results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log
+### results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log
+overall: 7633358848 mem 10504.537 user 35.332 sys 58.130 real
+cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 192 --interval_padding 0 --algo DNAModelApply --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopePacBio2.1.bundle/diploid_model_unphased --vcf /dev/shm/sentdpb_tmp_20260529220613_91719/tmpnzt6ohbb/out_diploid_unphased_patch.vcf.gz /dev/shm/sentdpb_tmp_20260529220613_91719/tmpnzt6ohbb/out_diploid_unphased.vcf.gz
+This software is licensed to johnm@lsmc.com by Sentieon Inc.
+progress 5% @chr1:67000001, elapsed 3.2s, est remaining 60.3s, peak mem 3517MB, user 296.2s, sys 0.9s, output queue size 161
+progress 10% @chr2:88000001, elapsed 5.4s, est remaining 48.2s, peak mem 3521MB, user 681.2s, sys 1.6s, output queue size 320
+progress 15% @chr3:78000001, elapsed 7.5s, est remaining 42.6s, peak mem 3523MB, user 1082.8s, sys 2.6s, output queue size 362
+progress 20% @chr4:47000001, elapsed 9.8s, est remaining 39.1s, peak mem 3523MB, user 1495.0s, sys 3.6s, output queue size 524
+progress 25% @chr4:111000001, elapsed 11.9s, est remaining 35.6s, peak mem 3523MB, user 1886.7s, sys 4.6s, output queue size 685
+progress 30% @chr5:24000001, elapsed 13.8s, est remaining 32.2s, peak mem 3523MB, user 2287.8s, sys 5.6s, output queue size 846
+progress 35% @chr6:40000001, elapsed 15.9s, est remaining 29.5s, peak mem 3524MB, user 2668.4s, sys 6.5s, output queue size 1007
+progress 40% @chr7:83000001, elapsed 18.2s, est remaining 27.3s, peak mem 3533MB, user 3058.9s, sys 7.2s, output queue size 1169
+progress 45% @chr8:88000001, elapsed 19.9s, est remaining 24.3s, peak mem 3539MB, user 3434.2s, sys 7.8s, output queue size 1331
+progress 50% @chr8:140000001, elapsed 22.1s, est remaining 22.1s, peak mem 3539MB, user 3808.3s, sys 8.5s, output queue size 1492
+progress 55% @chr10:132000001, elapsed 24.3s, est remaining 19.9s, peak mem 3561MB, user 4197.0s, sys 9.2s, output queue size 1654
+progress 60% @chr12:1, elapsed 26.2s, est remaining 17.5s, peak mem 3562MB, user 4570.4s, sys 9.9s, output queue size 1814
+progress 65% @chr13:23000001, elapsed 28.1s, est remaining 15.1s, peak mem 3568MB, user 4930.0s, sys 10.8s, output queue size 1976
+progress 70% @chr16:42000001, elapsed 30.0s, est remaining 12.9s, peak mem 3584MB, user 5287.2s, sys 12.4s, output queue size 2138
+progress 75% @chr15:70000001, elapsed 32.4s, est remaining 10.8s, peak mem 3611MB, user 5667.7s, sys 13.3s, output queue size 2300
+progress 80% @chr18:37000001, elapsed 34.7s, est remaining 8.7s, peak mem 3627MB, user 6134.1s, sys 14.0s, output queue size 2462
+progress 85% @chrX:45000001, elapsed 36.3s, est remaining 6.4s, peak mem 3632MB, user 6409.0s, sys 14.5s, output queue size 2624
+progress 90% @chrY:44000001, elapsed 36.4s, est remaining 4.0s, peak mem 3632MB, user 6427.2s, sys 15.2s, output queue size 2785
+progress 95% @chr19:35000001, elapsed 36.6s, est remaining 1.9s, peak mem 3632MB, user 6477.2s, sys 16.1s, output queue size 6210
+progress 100% @chr1:123000001, elapsed 42.6s, est remaining 0.0s, peak mem 3632MB, user 7110.6s, sys 16.9s, output queue size 6371
+sw version: sentieon-genomics-202503.02
+os version: Linux 6.8.0-1029-aws
+cpu vendor: GenuineIntel
+ signature: 000806f8
+  features: bfebfbff 7ffefbff
+  extended: f3bfb7ef fb417ffe
+  amd bits: 2c100800 00000121
+     brand: Intel(R) Xeon(R) Platinum 8488C
+threads: 192 max 192
+algo: DNAModelApply
+license: sentieon:DNAscope=192 pacbio:dnamodel=1
+reads: 0
+contig: 3367 intervals 3217346917 bases
+advance: 3219322 calls 0.373 user 1.134 sys 1.427 real
+collect_data: 1165695 calls 737.252 user 1.215 sys 738.644 real
+done: 1 calls 0.051 user 0.000 sys 0.052 real
+encode_data: 1165695 calls 6.261 user 0.347 sys 6.889 real
+execute: 1 calls 0.001 user 0.001 sys 44.246 real
+fetch: 3219322 calls 8.501 user 1.388 sys 10.067 real
+idle: 1782 calls 0.126 user 0.003 sys 1564.295 real
+init: 1 calls 0.241 user 0.056 sys 0.312 real
+predict: 1165695 calls 6145.550 user 7.004 sys 6159.497 real
+write_vcf: 844673 calls 187.299 user 0.716 sys 188.107 real
+overall: 3808739328 mem 7157.861 user 24.781 sys 45.651 real
+Checking the headers and starting positions of 2 files
+sentieon-cli exit code: 0
+Elapsed-Time-min:	m7i.metal-48xl	27
+=== ccv20260529r9_hybrid_ultima_ont_snv ===
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log
+### results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log
+[main] Version: 0.7.17-r1188
+[main] CMD: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/bwa mem -R @RG\tID:TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA-1780102827\tSM:TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA\tLB:TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA-LB-1\tPL:HYBRID -t 188 -x /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridUltimaONT1.1.bundle/HybridStage1_bwa.model /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -
+[main] Real time: 389.037 sec; CPU: 15526.410 sec
+sorting block 32, #reads = 318827 mem = 344884000 peak = 904708096
+uniq header count 1
+merging 33 blocks
+sw version: sentieon-genomics-202503.02
+os version: Linux 6.8.0-1029-aws
+cpu vendor: GenuineIntel
+ signature: 000806f8
+  features: bfebfbff 7ffefbff
+  extended: f3bfb7ef fb417ffe
+  amd bits: 2c100800 00000121
+     brand: Intel(R) Xeon(R) Platinum 8488C
+threads: 188 max 192
+algo: util-sort
+license: sentieon:util=1
+output file size: 962310945
+output reads: 19955518
+bam_mem_sort: 33 calls 43.558 user 0.432 sys 53.996 real
+bam_write: 33 calls 7.316 user 1.884 sys 35.530 real
+execute: 1 calls 4.643 user 1.539 sys 410.389 real
+merge_files: 1 calls 4.623 user 1.525 sys 21.117 real
+parse_chunk: 523 calls 28.317 user 8.165 sys 65.272 real
+read_chunk: 1408 calls 9.940 user 9.176 sys 299.601 real
+sort_block: 1 calls 9.324 user 9.155 sys 279.828 real
+write_chunk: 883 calls 4.281 user 0.886 sys 5.481 real
+overall: 5244862464 mem 297.168 user 33.574 sys 410.401 real
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/stage1_hap.bam was missing EOF block when one should be present.
+ERROR: stage1_hap.bam failed integrity check - file may be truncated
+sw version: sentieon-genomics-202503.02
+os version: Linux 6.8.0-1029-aws
+cpu vendor: GenuineIntel
+ signature: 000806f8
+  features: bfebfbff 7ffefbff
+  extended: f3bfb7ef fb417ffe
+  amd bits: 2c100800 00000121
+     brand: Intel(R) Xeon(R) Platinum 8488C
+threads: 188 max 192
+algo: HybridStage1
+license: sentieon:HybridCaller=137 ont:dnamodel=1
+input file size: 5260585144
+contig: 291674 intervals 1538403047 bases
+CramRef::get: 39390170 calls 1309.179 user 99.016 sys 2563.121 real
+advance: 1732088 calls 12773.776 user 355.306 sys 25713.563 real
+done: 1 calls 0.000 user 0.000 sys 0.001 real
+execute: 1 calls 0.004 user 0.006 sys 386.113 real
+idle: 27300 calls 0.857 user 0.308 sys 31576.780 real
+init: 1 calls 0.001 user 0.000 sys 0.003 real
+overall: 14065291264 mem 12808.598 user 378.115 sys 420.732 real

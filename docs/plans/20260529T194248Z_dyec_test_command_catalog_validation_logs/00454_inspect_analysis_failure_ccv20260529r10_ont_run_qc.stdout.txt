@@ -1,0 +1,29 @@
+DAY-EC activated.
+DAY-EC activated.
+=== status ===
+{
+  "command": "bin/day_run produce_ont_run_qc_and_demux_multiqc -p -j 5 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv",
+  "completed_at": "2026-05-30T02:50:20Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r10_ont_run_qc/daylily-omics-analysis",
+  "session_name": "ccv20260529r10_ont_run_qc",
+  "started_at": "2026-05-30T02:48:23Z"
+}
+=== repo ===
+/fsx/analysis_results/ubuntu/ccv20260529r10_ont_run_qc/daylily-omics-analysis
+=== latest snakemake logs ===
+1780109419.0000000000 .snakemake/log/2026-05-30T024845.070351.snakemake.log
+1780109421.0000000000 .snakemake/log/2026-05-30T025020.690510.snakemake.log
+=== latest log path: .snakemake/log/2026-05-30T025020.690510.snakemake.log ===
+1:WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260529r10_ont_run_qc/daylily-omics-analysis/workflow/rules/common.smk, line 426:
+=== latest log tail ===
+WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260529r10_ont_run_qc/daylily-omics-analysis/workflow/rules/common.smk, line 426:
+The units table was not found at /fsx/analysis_results/ubuntu/ccv20260529r10_ont_run_qc/daylily-omics-analysis/config/units.tsv. Create config/units.tsv or set --config units_table=/path/to/units.tsv.
+  File "/fsx/analysis_results/ubuntu/ccv20260529r10_ont_run_qc/daylily-omics-analysis/workflow/Snakefile", line 66, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r10_ont_run_qc/daylily-omics-analysis/workflow/rules/global_common.smk", line 151, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r10_ont_run_qc/daylily-omics-analysis/workflow/rules/common.smk", line 1089, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r10_ont_run_qc/daylily-omics-analysis/workflow/rules/common.smk", line 426, in _load_units_table
+=== rule logs with errors ===
+results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log:29:Traceback (most recent call last):
+results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log:68:ValueError: sort array is read-only
+results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log:5:error: Found argument '/fsx/run_dir_mounts/20260513_ONT_HG003/HG003/20260513_2149_1D_PBM13745_5a9ea63e/fastq_fail/barcode01/PBM13745_fail_barcode01_5a9ea63e_ee86bd52_0.fastq.gz' which wasn't expected, or isn't valid in this context

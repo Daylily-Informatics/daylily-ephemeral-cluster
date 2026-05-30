@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentD_vcf -p -j 5 -k -n",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r45_roche_snv_alignstats_dryrun",
+  "started_at": "2026-05-30T12:17:21Z"
+}

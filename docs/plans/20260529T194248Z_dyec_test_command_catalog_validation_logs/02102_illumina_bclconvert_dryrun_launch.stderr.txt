@@ -1,0 +1,2 @@
+✗ Unexpected error: SSM command '1a53f6e6-0e59-4266-887f-e56a6933f69b' failed 
+with status=Failed rc=1

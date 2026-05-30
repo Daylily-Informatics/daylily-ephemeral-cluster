@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+2992  i192mem  16  CF  i192mem-dy-all-3  16  CONFIGURING  62.50G  1:56  1  rtg_vcfeval_roi-TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA
+2993  i192mem  16  CF  i192mem-dy-all-3  16  CONFIGURING  62.50G  1:56  1  rtg_vcfeval_roi-TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA
+2994  i192mem  16  CF  i192mem-dy-all-3  16  CONFIGURING  62.50G  1:56  1  rtg_vcfeval_roi-TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA
+2995  i192mem  16  CF  i192mem-dy-all-3  16  CONFIGURING  62.50G  1:56  1  rtg_vcfeval_roi-TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA
+2996  i192mem  16  CF  i192mem-dy-all-3  16  CONFIGURING  62.50G  1:56  1  rtg_vcfeval_roi-TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA
+2991  i192mem  16  CF  i192mem-dy-all-3  16  CONFIGURING  62.50G  1:57  1  rtg_vcfeval_roi-TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA
+2987  i192mem  192  CF  i192mem-dy-all-2  192  CONFIGURING  300000M  2:37  1  sentieon_bwa_sort-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+2660  i192mem  192  R  i192mem-dy-all-1  192  RUNNING  180000M  2:06:03  1  run_bclconvert-run_bclconvert

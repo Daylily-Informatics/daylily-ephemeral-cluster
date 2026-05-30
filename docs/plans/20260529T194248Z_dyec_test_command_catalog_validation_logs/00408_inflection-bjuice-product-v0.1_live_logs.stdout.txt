@@ -1,0 +1,233 @@
+DAY-EC activated.
+DAY-EC activated.
+            # Keep mean depth behavior identical to the current rule (effectively NA/-1).
+            allvar_mean_dp="na"
+
+            # Prevent parse script from over-threading bcftools when many ROIs run concurrently.
+            export DAYLILY_BCFTOOLS_THREADS="16"
+
+            python workflow/scripts/parse-vcfeval-summary.py \
+              results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38/summary.txt \
+              TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ \
+              /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38/HG003.bed \
+              hg38 \
+              HG003 \
+              "$legacy_parsed" \
+              "$allvar_mean_dp" \
+              ont \
+              dmd \
+              sentdhiomr \
+              > results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/logs/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.hg38.parse_vcfeval_summary.log 2>&1
+
+            # Hard check: the legacy script should have written the MQC output where we declared it.
+            test -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv
+            
+Submitted job 750 with external jobid '2641'.
+[Sat May 30 01:58:01 2026]
+Finished job 747.
+755 of 763 steps (99%) done
+Select jobs to execute...
+
+[Sat May 30 01:58:01 2026]
+rule parse_vcfeval_summary_roi:
+    input: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/summary.txt, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.bed
+    output: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv
+    log: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/logs/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.giabHC.parse_vcfeval_summary.log
+    jobid: 746
+    benchmark: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/benchmarks/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.giabHC.parse_vcfeval_summary.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv; Input files updated by another job: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/summary.txt
+    wildcards: sample=TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ, alnr=ont, ddup=dmd, snv=sentdhiomr, cmpfootprint=giabHC
+    threads: 16
+    resources: mem_mb=16000, mem_mib=15259, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+
+            outdir="$(dirname results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/summary.txt)"
+            # This file is legacy/debug; parse-vcfeval-summary.py uses its dirname to place the MQC TSV.
+            legacy_parsed="$outdir/vcfeval_summary.parsed.tsv"
+
+            # Keep mean depth behavior identical to the current rule (effectively NA/-1).
+            allvar_mean_dp="na"
+
+            # Prevent parse script from over-threading bcftools when many ROIs run concurrently.
+            export DAYLILY_BCFTOOLS_THREADS="16"
+
+            python workflow/scripts/parse-vcfeval-summary.py \
+              results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/summary.txt \
+              TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ \
+              /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.bed \
+              giabHC \
+              HG003 \
+              "$legacy_parsed" \
+              "$allvar_mean_dp" \
+              ont \
+              dmd \
+              sentdhiomr \
+              > results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/logs/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.giabHC.parse_vcfeval_summary.log 2>&1
+
+            # Hard check: the legacy script should have written the MQC output where we declared it.
+            test -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv
+            
+Submitted job 746 with external jobid '2642'.
+[Sat May 30 01:58:01 2026]
+Finished job 742.
+756 of 763 steps (99%) done
+[Sat May 30 01:58:11 2026]
+Finished job 744.
+757 of 763 steps (99%) done
+[Sat May 30 01:58:11 2026]
+Finished job 748.
+758 of 763 steps (99%) done
+[Sat May 30 01:58:21 2026]
+Finished job 752.
+759 of 763 steps (99%) done
+[Sat May 30 01:59:12 2026]
+Finished job 746.
+760 of 763 steps (99.6%) done
+[Sat May 30 01:59:22 2026]
+Finished job 750.
+761 of 763 steps (99.7%) done
+Select jobs to execute...
+
+[Sat May 30 01:59:22 2026]
+rule prep_for_concordance_check:
+    input: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.sort.vcf.gz, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.sort.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_altair-v1.1/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_clinvar_genes/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC_x_clinvar_genes/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38_m_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv
+    output: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/concordance.done, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/concordance.fofn, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/concordance.fin.cmds
+    log: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/logs/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.concordance.log
+    jobid: 19
+    benchmark: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/benchmarks/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.concordance.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/concordance.done; Input files updated by another job: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_clinvar_genes/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_altair-v1.1/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38_m_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.sort.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.sort.vcf.gz, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC_x_clinvar_genes/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_clinvar_genes_concordance.mqc.tsv
+    wildcards: sample=TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ, alnr=ont, ddup=dmd, snv=sentdhiomr
+    priority: 48
+    threads: 8
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set +euo pipefail;
+
+            mkdir -p $(dirname results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/concordance.done);
+            mkdir -p $(dirname results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/logs/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.concordance.log);
+
+            utc_ts=$(date -u +%Y-%m-%dT%H:%M:%SZ);
+
+            # Write informational fofn
+            {
+                echo "# Refactor: per-ROI jobs are scheduled by Snakemake; this file is informational.";
+                echo "# generated_at_utc=$utc_ts";
+                echo "# truth_dir=/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/";
+                echo "# footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC";
+                for mqc in results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_altair-v1.1/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_clinvar_genes/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_clinvar_genes_concordance.mqc.tsv results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC_x_clinvar_genes/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_clinvar_genes_concordance.mqc.tsv results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38_m_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv; do
+                    echo "$mqc";
+                done;
+            } > results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/concordance.fofn;
+
+            # Write informational fin.cmds
+            {
+                echo "# Refactor: see Snakemake DAG for exact commands.";
+                echo "# generated_at_utc=$utc_ts";
+            } > results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/concordance.fin.cmds;
+
+            # SKIPPED sentinel if no mqcs
+            if [ "6" -eq 0 ]; then
+                echo "No truthset ROI directories found; concordance skipped." > results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/concordance.done.SKIPPED;
+            fi;
+
+            # Log
+            echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/logs/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.concordance.log;
+            
+Submitted job 19 with external jobid '2643'.
+[Sat May 30 01:59:32 2026]
+Finished job 19.
+762 of 763 steps (99.9%) done
+Select jobs to execute...
+
+[Sat May 30 01:59:32 2026]
+localrule produce_snv_concordances:
+    input: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/concordance.done, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_altair-v1.1/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_clinvar_genes/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC_x_clinvar_genes/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38_m_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv
+    output: results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv
+    jobid: 18
+    reason: Missing output files: results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv; Input files updated by another job: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_clinvar_genes/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_altair-v1.1/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38_m_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC_x_clinvar_genes/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/concordance.done
+    priority: 48
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r10_inflection-bjuice-product-v0.1/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r10_inflection-bjuice-product-v0.1/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+...INFO: Auto-detected aligners from env: ['sent']
+aligners (final): [sent]
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+...INFO: Auto-detected dedupers. DDUP updated to: ['dmd']
+deduper (final): [dmd]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentdhiomr']
+SNV Callers (final): [sentdhiomr]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r10_inflection-bjuice-product-v0.1/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r10_inflection-bjuice-product-v0.1/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+All Wildcards:    all snv_CALLERS:  ['sentdhiomr']  all ALIGNERS:  ['sent']  all CRAM_ALIGNERS:  ['ont']  all samples:  {'TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ': ['TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ']}  all concordance samples:  dict_keys(['TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ'])
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=1, time=5440, vcpu=1
+Select jobs to execute...
+All Wildcards:    all snv_CALLERS:  ['sentdhiomr']  all ALIGNERS:  ['sent']  all CRAM_ALIGNERS:  ['ont']  all samples:  {'TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ': ['TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ']}  all concordance samples:  dict_keys(['TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ'])
+All Wildcards:    all snv_CALLERS:  ['sentdhiomr']  all ALIGNERS:  ['sent']  all CRAM_ALIGNERS:  ['ont']  all samples:  {'TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ': ['TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ']}  all concordance samples:  dict_keys(['TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ'])
+[Sat May 30 01:59:35 2026]
+Finished job 18.
+763 of 763 steps (100%) done
+Complete log: .snakemake/log/2026-05-30T010427.416050.snakemake.log
+
+
+	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
+
+
+ 
+]]]]--------WORKFLOW SUCCESS====================]]]]]--
+RETURN CODE: 0
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the 
+supported path is `source ./activate`.
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-05-30 01:59:47,115 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
+  · Attached export DRA dra-02b688cfbfab95995 at 
+/fsx/analysis_results/ubuntu/ccv20260529r10_inflection-bjuice-product-v0.1/
+2026-05-30 02:02:53,430 INFO Task task-0bfc5c815748799e2 status: PENDING
+2026-05-30 02:03:23,775 INFO Task task-0bfc5c815748799e2 status: EXECUTING
+2026-05-30 02:03:54,028 INFO Task task-0bfc5c815748799e2 status: EXECUTING
+2026-05-30 02:04:24,345 INFO Task task-0bfc5c815748799e2 status: SUCCEEDED
+2026-05-30 02:04:40,041 INFO Wrote export status to /home/ubuntu/daylily-runs/ccv20260529r10_inflection-bjuice-product-v0.1/export/fsx_export.yaml
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: dyec-test                                                          │
+│  FSx: fs-0df313e1751219cac                                                   │
+│  Source:                                                                     │
+│  /analysis_results/ubuntu/ccv20260529r10_inflection-bjuice-product-v0.1/     │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260  │
+│  529r10_inflection-bjuice-product-v0.1/                                      │
+│  Status file:                                                                │
+│  /home/ubuntu/daylily-runs/ccv20260529r10_inflection-bjuice-product-v0.1/ex  │
+│  port/fsx_export.yaml                                                        │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[INFO] Deleted FSx analysis directory after successful export: /fsx/analysis_results/ubuntu/ccv20260529r10_inflection-bjuice-product-v0.1
+[INFO] Workflow exited with status 0
+shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+ERROR: error getting working directory name: no such file or directory
+      while executing
+  "pwd"
+      (procedure "getAbsolutePath" line 9)
+      invoked from within
+  "getAbsolutePath $::argv0"
+      (procedure "cmdModuleAutoinit" line 19)
+      invoked from --output truncated--

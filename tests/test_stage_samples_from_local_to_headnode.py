@@ -62,10 +62,7 @@ def test_build_stage_paths_uses_unique_remote_stage_names(
         first.remote_fsx_stage
         == "/fsx/staging/staged_external_sequencing_data/remote_stage_20260526T161806Z_aaaaaaaa"
     )
-    assert (
-        first.remote_s3_stage
-        == "s3://stage-bucket/remote_stage_20260526T161806Z_aaaaaaaa"
-    )
+    assert first.remote_s3_stage == "s3://stage-bucket/remote_stage_20260526T161806Z_aaaaaaaa"
 
 
 def test_build_stage_paths_uses_stage_s3_uri_as_exact_s3_root(
@@ -91,8 +88,7 @@ def test_build_stage_paths_uses_stage_s3_uri_as_exact_s3_root(
         "/fsx/staging/staged_external_sequencing_data/remote_stage_20260526T174001Z_cccccccc"
     )
     assert stage.remote_s3_stage == (
-        "s3://lsmc-ssf-sequencing-data/staged_external_data/"
-        "remote_stage_20260526T174001Z_cccccccc"
+        "s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260526T174001Z_cccccccc"
     )
 
 
@@ -148,6 +144,185 @@ def _process_samples(
     )
 
 
+def test_main_config_only_writes_local_configs_without_remote_stage(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    concordance = (
+        "/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/"
+        "giab/snv/v4.2.1/HG003/"
+    )
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLESOURCE",
+                "SAMPLECLASS",
+                "BIOLOGICAL_SEX",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "STAGE_DIRECTIVE",
+                "SAMPLEUSE",
+                "BWA_KMER",
+                "DEEP_MODEL",
+                "IS_POS_CTRL",
+                "EXTERNAL_SAMPLE_ID",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN-1",
+                    "HG003",
+                    "5x",
+                    "blood",
+                    "research",
+                    "male",
+                    "gdna",
+                    "PF",
+                    "ILMN",
+                    "NOVASEQ",
+                    "1",
+                    "D0",
+                    concordance,
+                    "/fsx/references/genomic_data/organism_reads_slim/fastq/"
+                    "H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/"
+                    "downsampled/HG003_5x_R1.fastq.gz",
+                    "/fsx/references/genomic_data/organism_reads_slim/fastq/"
+                    "H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/"
+                    "downsampled/HG003_5x_R2.fastq.gz",
+                    "pass_through",
+                    "posControl",
+                    "19",
+                    "WGS",
+                    "true",
+                    "HG003",
+                ]
+            )
+        ],
+    )
+    config_dir = tmp_path / "generated"
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+    monkeypatch.setattr(module, "detect_giab_roi_dirs", lambda *args, **kwargs: ["giabHC"])
+
+    def forbidden(*_args: object, **_kwargs: object) -> None:
+        raise AssertionError("config-only must not write remote staging data")
+
+    monkeypatch.setattr(module, "ensure_remote_stage_writable", forbidden)
+    monkeypatch.setattr(module, "aws_copy", forbidden)
+    monkeypatch.setattr(module, "create_staged_prefix_mount", forbidden)
+
+    rc = module.main(
+        [
+            str(analysis_samples),
+            "--config-only",
+            "--config-dir",
+            str(config_dir),
+            "--reference-s3-uri",
+            "s3://reference-bucket",
+            "--control-data-s3-uri",
+            "s3://control-data-bucket",
+            "--stage-s3-uri",
+            "s3://stage-bucket/staged_external_data",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+        ]
+    )
+
+    assert rc == 0
+    generated = sorted(config_dir.glob("*_*.tsv"))
+    assert [path.name.rsplit("_", 1)[-1] for path in generated] == ["samples.tsv", "units.tsv"]
+    assert "/fsx/references/genomic_data/organism_reads_slim" in generated[1].read_text(
+        encoding="utf-8"
+    )
+    out = capsys.readouterr().out
+    assert "Generated configuration files:" in out
+    assert "samples.tsv ->" in out
+    assert "units.tsv   ->" in out
+
+
+def test_main_config_only_rejects_stage_data_rows(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "ILMN_R1_FQ",
+                "ILMN_R2_FQ",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN-1",
+                    "HG003",
+                    "5x",
+                    "gdna",
+                    "PF",
+                    "ILMN",
+                    "NOVASEQ",
+                    "1",
+                    "D0",
+                    "/fsx/references/truth/HG003/",
+                    "s3://bucket/HG003_R1.fastq.gz",
+                    "s3://bucket/HG003_R2.fastq.gz",
+                    "stage_data",
+                ]
+            )
+        ],
+    )
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+    monkeypatch.setattr(module, "detect_giab_roi_dirs", lambda *args, **kwargs: ["giabHC"])
+
+    rc = module.main(
+        [
+            str(analysis_samples),
+            "--config-only",
+            "--reference-s3-uri",
+            "s3://reference-bucket",
+            "--control-data-s3-uri",
+            "s3://control-data-bucket",
+            "--stage-s3-uri",
+            "s3://stage-bucket/staged_external_data",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+        ]
+    )
+
+    assert rc == 1
+    assert "stage_data rows: [2]" in capsys.readouterr().err
+
+
 def test_headnode_visible_path_rejects_legacy_data_prefix() -> None:
     with pytest.raises(module.CommandError, match="explicit role roots"):
         module.headnode_visible_path("/data")
@@ -166,7 +341,9 @@ def test_headnode_visible_path_rejects_legacy_data_prefix() -> None:
     assert module.headnode_visible_path("/tmp/local") == "/tmp/local"
 
 
-def test_create_staged_prefix_mount_uses_runtime_staging_dra(monkeypatch: pytest.MonkeyPatch) -> None:
+def test_create_staged_prefix_mount_uses_runtime_staging_dra(
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
     from daylily_ec import run_mounts
 
     calls: dict[str, object] = {}
@@ -203,9 +380,7 @@ def test_create_staged_prefix_mount_uses_runtime_staging_dra(monkeypatch: pytest
     request = calls["request"]
     assert isinstance(request, run_mounts.CreateRunMountRequest)
     assert request.cluster_name == "cluster-a"
-    assert request.source_s3_uri == (
-        "s3://stage-bucket/remote_stage_test"
-    )
+    assert request.source_s3_uri == ("s3://stage-bucket/remote_stage_test")
     assert request.mount_id == "remote_stage_test"
     assert request.purpose == run_mounts.MOUNT_PURPOSE_STAGING
     assert request.file_system_path == "/staging/staged_external_sequencing_data/remote_stage_test"
@@ -2215,9 +2390,7 @@ def test_precheck_manifest_rejects_giab_replicate_external_id(
             "EXTERNAL_SAMPLE_ID",
         ]
     )
-    concordance = (
-        "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
-    )
+    concordance = "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
 
     def row(external_sample_id: str) -> str:
         return "\t".join(
@@ -2279,9 +2452,7 @@ def test_precheck_manifest_respects_explicit_false_positive_control(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    concordance = (
-        "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
-    )
+    concordance = "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
     analysis_samples = _write_manifest(
         tmp_path,
         "\t".join(
@@ -2348,9 +2519,7 @@ def test_precheck_manifest_infers_positive_control_when_flag_is_omitted(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
 ) -> None:
-    concordance = (
-        "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
-    )
+    concordance = "/fsx/control_data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG001"
     analysis_samples = _write_manifest(
         tmp_path,
         "\t".join(

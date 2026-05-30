@@ -1,0 +1,250 @@
+DAY-EC activated.
+DAY-EC activated.
+            export TMPDIR="/fsx/scratch/"
+            outdir="$(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_clinvar_genes/summary.txt)"
+            rm -rf "$outdir"
+
+            rtg vcfeval \
+              --decompose \
+              --squash-ploidy \
+              --ref-overlap \
+              -e /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/clinvar_genes/HG003.bed \
+              -b /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/clinvar_genes/HG003.vcf.gz \
+              -c results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz \
+              -o "$outdir" \
+              -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
+              --threads 16 \
+              > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.clinvar_genes.rtg_vcfeval.log 2>&1
+            
+Submitted job 19 with external jobid '33'.
+
+[Fri May 29 21:11:59 2026]
+rule rtg_vcfeval_roi:
+    input: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.vcf.gz, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.bed
+    output: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/summary.txt
+    log: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC.rtg_vcfeval.log
+    jobid: 21
+    benchmark: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/benchmarks/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC.rtg_vcfeval.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/summary.txt; Input files updated by another job: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz
+    wildcards: sample=TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA, alnr=ug, ddup=na, snv=sentdug, cmpfootprint=giabHC
+    threads: 16
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+            export TMPDIR="/fsx/scratch/"
+            outdir="$(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/summary.txt)"
+            rm -rf "$outdir"
+
+            rtg vcfeval \
+              --decompose \
+              --squash-ploidy \
+              --ref-overlap \
+              -e /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.bed \
+              -b /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.vcf.gz \
+              -c results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz \
+              -o "$outdir" \
+              -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
+              --threads 16 \
+              > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC.rtg_vcfeval.log 2>&1
+            
+Submitted job 21 with external jobid '34'.
+
+[Fri May 29 21:11:59 2026]
+rule rtg_vcfeval_roi:
+    input: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.vcf.gz, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.bed
+    output: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/summary.txt
+    log: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.hg38_m_giabHC.rtg_vcfeval.log
+    jobid: 27
+    benchmark: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/benchmarks/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.hg38_m_giabHC.rtg_vcfeval.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/summary.txt; Input files updated by another job: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz
+    wildcards: sample=TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA, alnr=ug, ddup=na, snv=sentdug, cmpfootprint=hg38_m_giabHC
+    threads: 16
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+            export TMPDIR="/fsx/scratch/"
+            outdir="$(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/summary.txt)"
+            rm -rf "$outdir"
+
+            rtg vcfeval \
+              --decompose \
+              --squash-ploidy \
+              --ref-overlap \
+              -e /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.bed \
+              -b /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.vcf.gz \
+              -c results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz \
+              -o "$outdir" \
+              -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
+              --threads 16 \
+              > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.hg38_m_giabHC.rtg_vcfeval.log 2>&1
+            
+Submitted job 27 with external jobid '35'.
+
+[Fri May 29 21:11:59 2026]
+rule rtg_vcfeval_roi:
+    input: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.vcf.gz, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.bed
+    output: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC_x_clinvar_genes/summary.txt
+    log: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC_x_clinvar_genes.rtg_vcfeval.log
+    jobid: 23
+    benchmark: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/benchmarks/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC_x_clinvar_genes.rtg_vcfeval.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC_x_clinvar_genes/summary.txt; Input files updated by another job: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz
+    wildcards: sample=TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA, alnr=ug, ddup=na, snv=sentdug, cmpfootprint=giabHC_x_clinvar_genes
+    threads: 16
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+            export TMPDIR="/fsx/scratch/"
+            outdir="$(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC_x_clinvar_genes/summary.txt)"
+            rm -rf "$outdir"
+
+            rtg vcfeval \
+              --decompose \
+              --squash-ploidy \
+              --ref-overlap \
+              -e /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.bed \
+              -b /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.vcf.gz \
+              -c results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz \
+              -o "$outdir" \
+              -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
+              --threads 16 \
+              > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC_x_clinvar_genes.rtg_vcfeval.log 2>&1
+            
+Submitted job 23 with external jobid '36'.
+[Fri May 29 21:11:59 2026]
+Finished job 0.
+14 of 28 steps (50%) done
+[Fri May 29 21:18:20 2026]
+Error in rule rtg_vcfeval_roi:
+    jobid: 27
+    input: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.vcf.gz, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.bed
+    output: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/summary.txt
+    log: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.hg38_m_giabHC.rtg_vcfeval.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/2dc9c608977f6d7c6253f8d381138ed4_
+    shell:
+        
+            set -euo pipefail
+            export TMPDIR="/fsx/scratch/"
+            outdir="$(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/summary.txt)"
+            rm -rf "$outdir"
+
+            rtg vcfeval \
+              --decompose \
+              --squash-ploidy \
+              --ref-overlap \
+              -e /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.bed \
+              -b /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.vcf.gz \
+              -c results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz \
+              -o "$outdir" \
+              -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
+              --threads 16 \
+              > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.hg38_m_giabHC.rtg_vcfeval.log 2>&1
+            
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 35
+
+Error executing rule rtg_vcfeval_roi on cluster (jobid: 27, external: 35, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/.snakemake/tmp.d0f1yyx1/snakejob.rtg_vcfeval_roi.27.sh). For error details see the cluster log and the log files of the involved rule(s).
+Trying to restart job 27.
+Select jobs to execute...
+
+[Fri May 29 21:18:20 2026]
+rule rtg_vcfeval_roi:
+    input: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.vcf.gz, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.bed
+    output: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/summary.txt
+    log: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.hg38_m_giabHC.rtg_vcfeval.log
+    jobid: 27
+    benchmark: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/benchmarks/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.hg38_m_giabHC.rtg_vcfeval.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/summary.txt; Input files updated by another job: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz
+    wildcards: sample=TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA, alnr=ug, ddup=na, snv=sentdug, cmpfootprint=hg38_m_giabHC
+    threads: 16
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+            export TMPDIR="/fsx/scratch/"
+            outdir="$(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/summary.txt)"
+            rm -rf "$outdir"
+
+            rtg vcfeval \
+              --decompose \
+              --squash-ploidy \
+              --ref-overlap \
+              -e /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.bed \
+              -b /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.vcf.gz \
+              -c results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz \
+              -o "$outdir" \
+              -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
+              --threads 16 \
+              > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.hg38_m_giabHC.rtg_vcfeval.log 2>&1
+            
+Submitted job 27 with external jobid '99'.
+[Fri May 29 21:18:30 2026]
+Error in rule rtg_vcfeval_roi:
+    jobid: 21
+    input: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.vcf.gz, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.bed
+    output: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/summary.txt
+    log: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC.rtg_vcfeval.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/2dc9c608977f6d7c6253f8d381138ed4_
+    shell:
+        
+            set -euo pipefail
+            export TMPDIR="/fsx/scratch/"
+            outdir="$(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/summary.txt)"
+            rm -rf "$outdir"
+
+            rtg vcfeval \
+              --decompose \
+              --squash-ploidy \
+              --ref-overlap \
+              -e /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.bed \
+              -b /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.vcf.gz \
+              -c results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz \
+              -o "$outdir" \
+              -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
+              --threads 16 \
+              > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC.rtg_vcfeval.log 2>&1
+            
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 34
+
+Error executing rule rtg_vcfeval_roi on cluster (jobid: 21, external: 34, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/.snakemake/tmp.d0f1yyx1/snakejob.rtg_vcfeval_roi.21.sh). For error details see the cluster log and the log files of the involved rule(s).
+Trying to restart job 21.
+Select jobs to execute...
+
+[Fri May 29 21:18:30 2026]
+rule rtg_vcfeval_roi:
+    input: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.vcf.gz, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.bed
+    output: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/summary.txt
+    log: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC.rtg_vcfeval.log
+    jobid: 21
+    benchmark: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/benchmarks/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC.rtg_vcfeval.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/summary.txt; Input files updated by another job: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz
+    wildcards: sample=TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA, alnr=ug, ddup=na, snv=sentdug, cmpfootprint=giabHC
+    threads: 16
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+            export TMPDIR="/fsx/scratch/"
+            outdir="$(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/summary.txt)"
+            rm -rf "$outdir"
+
+            rtg vcfeval \
+              --decompose \
+              --squash-ploidy \
+              --ref-overlap \
+              -e /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.bed \
+              -b /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.vcf.gz \
+              -c results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz \
+              -o "$outdir" \
+              -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
+              --threads 16 \
+              > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC.rtg_vcfeval.log 2>&1
+            
+Submitted job 21 with external jobid '100'.
+[Fri May 29 21:18:40 2026]
+Error in rule rtg_vcfeval_roi:
+    jobid: 19
+    input: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentd--output truncated--

@@ -1,0 +1,61 @@
+DAY-EC activated.
+DAY-EC activated.
+status:
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r25_illumina_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260529r25_illumina_bclconvert",
+  "started_at": "2026-05-30T06:24:12Z"
+}
+
+active_bcl_config:
+109-    partition: "i192,i192mem"
+110-
+111:bclconvert:
+112-    run_dir: ""
+113-    sample_sheet: "SampleSheet.csv"
+114-    output_root: "results/bclconvert"
+115-    run_id: ""
+116-    libprep: "PCR-FREE"
+117-    seq_vendor: "ILMN"
+118-    seq_platform_override: ""
+119-    force: "true"
+120-    keep_undetermined_fastqs: true
+121-    sampleproject_subdirectories: false
+122-    strict_mode: false
+123-    first_tile_only: false
+124-    extra_args: ""
+125-    threads: 192
+126-    mem_mb: 180000
+127-    partition: "i192mem"
+128-    tmpdir: "/fsx/analysis_results/ubuntu/ccv20260529r25_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch"
+129-    staging_mode: "output_dev_shm"
+130-    scratch_root: "/fsx/analysis_results/ubuntu/ccv20260529r25_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch"
+131-    scratch_size_multiplier: 4
+132-    retain_scratch: false
+133-    mounted_stage_jobs: 64
+134-    parallel_tiles: 8
+135-    conversion_threads: 8
+136-    compression_threads: 12
+137-    decompression_threads: 4
+138-    fastq_gzip_compression_level: 1
+139-    shared_thread_odirect_output: false
+140-
+141-bcl2fq_by_lane:
+142-    threads: 16
+143-    partition: "i192,i192mem"
+
+config_tables:
+-rw-rw-r-- 1 ubuntu ubuntu  486 May 30 06:24 /fsx/analysis_results/ubuntu/ccv20260529r25_illumina_bclconvert/daylily-omics-analysis/config/runs.tsv
+-rw-rw-r-- 1 ubuntu ubuntu 3213 May 30 06:24 /fsx/analysis_results/ubuntu/ccv20260529r25_illumina_bclconvert/daylily-omics-analysis/config/samples.tsv
+config/units.tsv missing
+
+run_log_tail:
+
+scratch_tree:
+
+slurm:
+             JOBID PARTITION         NAME     USER ST       TIME  NODES NODELIST(REASON)
+              2658   i192mem run_bclconve   ubuntu CF       0:39      1 i192mem-dy-all-1

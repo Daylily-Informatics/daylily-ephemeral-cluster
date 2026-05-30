@@ -1,0 +1,230 @@
+DAY-EC activated.
+DAY-EC activated.
+## main log targeted ranges
+### lines 372,436
+        #samtools index -b -@ 192 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.bam.bai  >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+
+        end_time=$(date +%s);
+    	elapsed_time=$((($end_time - $start_time) / 60));
+        echo "Elapsed-Time-min:	$itype	$elapsed_time" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+        
+Submitted job 4 with external jobid '2663'.
+[Sat May 30 07:11:38 2026]
+Finished job 93.
+6 of 161 steps (4%) done
+[Sat May 30 07:16:05 2026]
+Error in rule fastqc_subsampled:
+    jobid: 90
+    input: /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz, /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/logs/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/7a5c7c62c589298e8e834f93fb618415_
+    shell:
+        
+        rm -rf results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc ;
+        mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc ;
+        mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp ;
+        mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/input ;
+        input_dir=results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/input
+        sample_name=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+        r1_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz)
+        r2_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz)
+        if [[ "${#r1_inputs[@]}" -eq 0 && "${#r2_inputs[@]}" -eq 0 ]]; then
+            printf 'SKIP: fastqc_subsampled found no paired FASTQ inputs for %s; likely CRAM/BAM-only or manifest FASTQ path is na.
+' "JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ" > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/logs/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.log
+            touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done
+            exit 0
+        fi
+        if [[ "${#r1_inputs[@]}" -ne "${#r2_inputs[@]}" ]]; then
+            printf 'fastqc_subsampled requires matched R1/R2 FASTQ counts for %s; got R1=%s R2=%s
+' "JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ" "${#r1_inputs[@]}" "${#r2_inputs[@]}" >&2
+            exit 1
+        fi
+        fastqc_inputs=()
+        for idx in "${!r1_inputs[@]}"; do
+            lane_idx="$(printf '%03d' "$((idx + 1))")"
+            lane_suffix=""
+            if [[ "${#r1_inputs[@]}" -gt 1 ]]; then
+                lane_suffix=".${lane_idx}"
+            fi
+            r1_link="${input_dir}/${sample_name}.R1${lane_suffix}.fastq.gz"
+            r2_link="${input_dir}/${sample_name}.R2${lane_suffix}.fastq.gz"
+            ln -sfn "$(realpath "${r1_inputs[$idx]}")" "${r1_link}"
+            ln -sfn "$(realpath "${r2_inputs[$idx]}")" "${r2_link}"
+            fastqc_inputs+=("${r1_link}" "${r2_link}")
+        done
+        #fastqc -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc -t 32 -d results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp  <(seqkit sample --proportion 0.25 <(seqfu interleave -1 <(unpigz -c -q -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz) -2 <(unpigz -c -
+        fastqc -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc -t 32 -d results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp "${fastqc_inputs[@]}"
+        rm -f "${fastqc_inputs[@]}"
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done_subsampled_at_0.25;
+        ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 2661
+
+Error executing rule fastqc_subsampled on cluster (jobid: 90, external: 2661, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/.snakemake/tmp.6vm63ltz/snakejob.fastqc_subsampled.90.sh). For error details see the cluster log and the log files of the involved rule(s).
+Trying to restart job 90.
+Select jobs to execute...
+
+### lines 482,522
+        #fastqc -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc -t 32 -d results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp  <(seqkit sample --proportion 0.25 <(seqfu interleave -1 <(unpigz -c -q -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz) -2 <(unpigz -c -
+        fastqc -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc -t 32 -d results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp "${fastqc_inputs[@]}"
+        rm -f "${fastqc_inputs[@]}"
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done_subsampled_at_0.25;
+        ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
+        
+[Sat May 30 07:16:05 2026]
+Error in rule seqfu:
+    jobid: 92
+    input: /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz, /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/7a5c7c62c589298e8e834f93fb618415_
+    shell:
+        
+        mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv);
+        r1_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz)
+        r2_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz)
+        if [[ "${#r1_inputs[@]}" -eq 0 && "${#r2_inputs[@]}" -eq 0 ]]; then
+            printf 'SKIP: seqfu found no paired FASTQ inputs for %s; likely CRAM/BAM-only or manifest FASTQ path is na.
+' "JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ" > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log
+            printf 'NO DATA FOUND
+' > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv
+            printf 'NO DATA FOUND
+' > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv
+            touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done
+            exit 0
+        fi
+        ( cat  <(gzip -dc -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz ) | env    seqfu stats --nice -b  --verbose --multiqc ./results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv - &
+        cat <(gzip -dc -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz ) | env    seqfu stats --nice -b  --verbose --multiqc ./results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv - &
+        wait;
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done;) > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log
+        ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done;
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 2662
+
+Error executing rule seqfu on cluster (jobid: 92, external: 2662, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/.snakemake/tmp.6vm63ltz/snakejob.seqfu.92.sh). For error details see the cluster log and the log files of the involved rule(s).
+Submitted job 90 with external jobid '2664'.
+Trying to restart job 92.
+### lines 1368,1404
+
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vcfs/1-24/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.1-24.snv.vcf;
+        
+Submitted job 19 with external jobid '2685'.
+[Sat May 30 07:18:59 2026]
+Finished job 14.
+13 of 161 steps (8%) done
+[Sat May 30 07:19:06 2026]
+Error in rule goleft:
+    jobid: 110
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.cram, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.cram.crai
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft.done, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/logs/goleft.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/d42215c34ab8867d1a29ad0dad583781_
+    shell:
+        
+        #set +euo pipefail;                                                                                                                                 
+        
+        rm -rf $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done ) || echo rmGOLfailed ;
+        mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done )/logs ; 
+        
+        export gl=$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done ) ;
+        export REF_PATH=/fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta;
+        goleft indexcov --directory $gl --sex  --fai /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta.fai results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.cram.crai >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/logs/goleft.log 2>&1;
+        
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft.done; touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done;
+        
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 2668
+
+Error executing rule goleft on cluster (jobid: 110, external: 2668, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/.snakemake/tmp.6vm63ltz/snakejob.goleft.110.sh). For error details see the cluster log and the log files of the involved rule(s).
+Trying to restart job 110.
+Select jobs to execute...
+
+[Sat May 30 07:19:06 2026]
+rule goleft:
+### lines 1424,1450
+        
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft.done; touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done;
+        
+        
+[Sat May 30 07:19:06 2026]
+Error in rule mosdepth:
+    jobid: 108
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.cram, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.cram.crai
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.summary.txt, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.global.dist.txt, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/al
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.log, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/738f2ef5db9d8ccc1d2e2f995b734454_
+    shell:
+        
+        set -euo pipefail
+        mkdir -p "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.summary.txt)"
+        rm -f results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.log results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.summary.txt results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdep
+        mosdepth --threads 16 --by /fsx/references/genomic_data/organism_references/H_sapiens/hg38/beds/hg38_broad_male_diploid_no_alt.bed --use-median -n --fast-mode --mapq 0 -f /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta -T 0,1,3,5,10,15,20,30,40,50,60 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMI
+        rm -f results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.per-base.bed.gz results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.per-base.bed.gz.csi
+        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.summary.txt || (printf 'ERROR: mosdepth summary output is missing or empty: %s\n' results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.summary.txt | tee -a
+        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.global.dist.txt || (printf 'ERROR: mosdepth global_dist output is missing or empty: %s\n' results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.global.dist.
+        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.region.dist.txt || (printf 'ERROR: mosdepth region_dist output is missing or empty: %s\n' results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.region.dist.
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 2670
+
+Error executing rule mosdepth on cluster (jobid: 108, external: 2670, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/.snakemake/tmp.6vm63ltz/snakejob.mosdepth.108.sh). For error details see the cluster log and the log files of the involved rule(s).
+[Sat May 30 07:19:06 2026]
+### lines 1544,1574
+        
+Submitted job 109 with external jobid '2688'.
+[Sat May 30 07:19:09 2026]
+Finished job 99.
+16 of 161 steps (10%) done
+[Sat May 30 07:19:16 2026]
+Error in rule goleft:
+    jobid: 110
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.cram, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.cram.crai
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft.done, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/logs/goleft.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/d42215c34ab8867d1a29ad0dad583781_
+    shell:
+        
+        #set +euo pipefail;                                                                                                                                 
+        
+        rm -rf $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done ) || echo rmGOLfailed ;
+        mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done )/logs ; 
+        
+        export gl=$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done ) ;
+        export REF_PATH=/fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta;
+        goleft indexcov --directory $gl --sex  --fai /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta.fai results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.cram.crai >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/logs/goleft.log 2>&1;
+        
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft.done; touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/golefttwo.done;
+        
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 2686
+
+Error executing rule goleft on cluster (jobid: 110, external: 2686, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/.snakemake/tmp.6vm63ltz/snakejob.goleft.110.sh). For error details see the cluster log and the log files of the involved rule(s).
+[Sat May 30 07:19:16 2026]
+### lines 3648,3674
+
+[Sat May 30 07:23:51 2026]
+Finished job 156.
+59 of 161 steps (37%) done
+[Sat May 30 07:23:58 2026]
+Error in rule read_haps_contam_identity:
+    jobid: 119
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/compat_bam/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.legacy_compat.bam, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/compat_bam/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.legacy_compat.bam.bai, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/JEMILM
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/efba687ed98dc6d0ecc827ba5c267513_
+    shell:
+        
+        set -euo pipefail
+        test ok = ok
+        mkdir -p "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.txt)" "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.log)"
+        command -v /fsx/references/runtime_assets/tool_specific_resources/read_haps/read_haps > /dev/null
+        test -s /fsx/references/runtime_assets/tool_specific_resources/read_haps/high_quality_markers_deCODE_2015.txt.gz
+        /fsx/references/runtime_assets/tool_specific_resources/read_haps/read_haps  -fa /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/compat_bam/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.legacy_compat.bam /fsx/references/runtime_assets/tool_specific_resources/read_ha
+        test -s results/day/hg38/JEMILMN0--output truncated--

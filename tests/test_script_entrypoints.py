@@ -224,8 +224,13 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "last_error=missing_stage_dir" in script
         assert "found_config=true" in script
         assert "break" in script
-        assert 'samples_file=$(ls -1 "$STAGE_DIR"/*_samples.tsv 2>/dev/null | head -n 1 || true)' in script
-        assert 'units_file=$(ls -1 "$STAGE_DIR"/*_units.tsv 2>/dev/null | head -n 1 || true)' in script
+        assert (
+            'samples_file=$(ls -1 "$STAGE_DIR"/*_samples.tsv 2>/dev/null | head -n 1 || true)'
+            in script
+        )
+        assert (
+            'units_file=$(ls -1 "$STAGE_DIR"/*_units.tsv 2>/dev/null | head -n 1 || true)' in script
+        )
         assert "exit 0" not in script
         assert (
             mock_run_shell.call_args.kwargs["timeout"]
@@ -261,7 +266,10 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "last_error=no_stage_runs" in script
         assert "found_config=true" in script
         assert 'latest_dir=$(ls -1dt "$STAGE_BASE"/*/ 2>/dev/null | head -n 1 || true)' in script
-        assert 'samples_file=$(ls -1 "$latest_dir"/*_samples.tsv 2>/dev/null | head -n 1 || true)' in script
+        assert (
+            'samples_file=$(ls -1 "$latest_dir"/*_samples.tsv 2>/dev/null | head -n 1 || true)'
+            in script
+        )
         assert "exit 0" not in script
         assert config.units_path == "/fsx/stage/run-2/foo_units.tsv"
 
@@ -364,8 +372,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "DAY_CONTAINERIZED=true" in script
         assert "DY_COMMAND='DAY_CONTAINERIZED=true" in script
         assert "shopt -s expand_aliases" in script
-        assert "MERMAID_CHROME=\"$HOME/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome\"" in script
-        assert "export PUPPETEER_EXECUTABLE_PATH=\"$MERMAID_CHROME\"" in script
+        assert (
+            'MERMAID_CHROME="$HOME/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome"'
+            in script
+        )
+        assert 'export PUPPETEER_EXECUTABLE_PATH="$MERMAID_CHROME"' in script
         assert 'run_dy_command "$DY_COMMAND"' in script
         assert script.index("shopt -s expand_aliases") < script.index(
             'run_dy_command "$DY_COMMAND"'
@@ -500,6 +511,86 @@ class TestRunOmicsAnalysisHeadnodeScript:
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
         return_value=SimpleNamespace(
             stdout=(
+                "__DAYLILY_SESSION__=sample-config\n"
+                "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/sample-config\n"
+                "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/sample-config/daylily-omics-analysis\n"
+            ),
+            stderr="",
+        ),
+    )
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.discover_stage_config")
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.validate_headnode_readiness")
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.wait_for_ssm_online")
+    @patch(
+        "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_headnode_instance_id",
+        return_value=HeadNodeTarget("cluster-a", "us-west-2", "i-abc123"),
+    )
+    @patch(
+        "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_cluster",
+        return_value="cluster-a",
+    )
+    @patch(
+        "daylily_ec.scripts.daylily_run_omics_analysis_headnode.resolve_region",
+        return_value="us-west-2",
+    )
+    @patch("daylily_ec.scripts.daylily_run_omics_analysis_headnode.need_cmd")
+    def test_main_launches_sample_config_workflow_without_stage_discovery(
+        self,
+        _mock_need_cmd,
+        _mock_region,
+        _mock_cluster,
+        _mock_target,
+        _mock_wait,
+        mock_validate_headnode_readiness,
+        mock_discover,
+        mock_run_shell,
+        tmp_path,
+    ):
+        events = []
+        mock_validate_headnode_readiness.side_effect = lambda *args, **kwargs: events.append(
+            "readiness"
+        )
+        tmux_result = mock_run_shell.return_value
+        mock_run_shell.side_effect = lambda *args, **kwargs: events.append("tmux") or tmux_result
+        samples_file = tmp_path / "samples.tsv"
+        units_file = tmp_path / "units.tsv"
+        samples_file.write_text("SAMPLEID\nHG003\n", encoding="utf-8")
+        units_file.write_text("RUNID\tSAMPLEID\nRUN-1\tHG003\n", encoding="utf-8")
+
+        rc = run_omics_module.main(
+            [
+                "--profile",
+                "dev",
+                "--analysis-id",
+                "sample-config",
+                "--executing-entity",
+                "johnm",
+                "--session-name",
+                "sample-config",
+                "--samples-file",
+                str(samples_file),
+                "--units-file",
+                str(units_file),
+                "--dy-command",
+                "bin/day_run produce_alignstats -p -k -j 1 -n",
+            ]
+        )
+
+        assert rc == 0
+        assert events == ["readiness", "tmux"]
+        mock_discover.assert_not_called()
+        script = mock_run_shell.call_args.args[2]
+        assert "SAMPLE_CONFIG_MODE=true" in script
+        assert "SAMPLEID" in script
+        assert "RUN-1" in script
+        assert "printf '%s' \"$SAMPLES_PAYLOAD\" > config/samples.tsv" in script
+        assert "printf '%s' \"$UNITS_PAYLOAD\" > config/units.tsv" in script
+        assert "RUN_CONTEXT_MODE=false" in script
+
+    @patch(
+        "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
+        return_value=SimpleNamespace(
+            stdout=(
                 "__DAYLILY_SESSION__=bcl-run\n"
                 "__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/bcl-run\n"
                 "__DAYLILY_REPO_PATH__=/fsx/analysis_results/johnm/bcl-run/daylily-omics-analysis\n"
@@ -574,7 +665,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'replace_required_scalar("scratch_size_multiplier", "1")' in script
         assert 'replace_required_scalar("force", "true")' in script
         assert "Moving BCLConvert outputs from scratch to result tree" in script
-        assert '${{scratch_run_dir:-}}' in script
+        assert "${{scratch_run_dir:-}}" in script
         assert 'rm -rf "$scratch_run_dir"' in script
         assert "BCLCONVERT_PROFILE_PATCH_REQUESTED=true" in script
         assert "BCLConvert_Data" in script
@@ -735,7 +826,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "cum_sum += int(v)" in script
         assert "return 0" in script
         assert "\nPYPYCOQC\n" in script
-        assert 'if ont_run_qc_runtime_repair_requested; then' in script
+        assert "if ont_run_qc_runtime_repair_requested; then" in script
         assert "pycoQC readonly-sort repair target not found" in script
 
     @patch(
@@ -808,12 +899,12 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "no usable chroms?omes|no usable chromosomes" in script
         assert "--fai {params.huref}.fai {input.crai}" in script
         assert "\nPYGOLEFT\n" in script
-        assert 'if goleft_indexcov_runtime_repair_requested; then' in script
+        assert "if goleft_indexcov_runtime_repair_requested; then" in script
         assert "goleft runtime repair target not found" in script
         assert "mosdepth_empty_output_runtime_repair_requested" in script
         assert "patch_mosdepth_empty_outputs" in script
         assert "mosdepth emitted no global distribution" in script
-        assert 'if mosdepth_empty_output_runtime_repair_requested; then' in script
+        assert "if mosdepth_empty_output_runtime_repair_requested; then" in script
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
@@ -879,7 +970,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         script = mock_run_shell.call_args.args[2]
         assert "rtg_vcfeval_parse_runtime_repair_requested" in script
         assert "patch_rtg_vcfeval_parse_output_dir" in script
-        assert 'if rtg_vcfeval_parse_runtime_repair_requested; then' in script
+        assert "if rtg_vcfeval_parse_runtime_repair_requested; then" in script
         assert 'mkdir -p "$(dirname {output.mqc})"' in script
 
     @patch(
@@ -949,17 +1040,28 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'echo "${{count_path%.record_count}}"' in script
         assert "contam_identity_zero_variant_runtime_repair_requested" in script
         assert "patch_contam_identity_zero_variant_outputs" in script
-        assert "NO_VARIANTS: haplocheck skipped because the input VCF has no variant records." in script
-        assert "UNSUPPORTED_REFERENCE: haplocheck skipped because the input VCF is not restricted to rCRS positions." in script
-        assert 'if grep -q \'outside the range.*rCRS only\' {log:q}; then' in script
+        assert (
+            "NO_VARIANTS: haplocheck skipped because the input VCF has no variant records."
+            in script
+        )
+        assert (
+            "UNSUPPORTED_REFERENCE: haplocheck skipped because the input VCF is not restricted to rCRS positions."
+            in script
+        )
+        assert "if grep -q 'outside the range.*rCRS only' {log:q}; then" in script
         assert 'elif [[ "$haplocheck_rc" -eq 0 ]]; then' in script
-        assert "NO_VARIANTS: read_haps skipped because the input VCF has no variant records." in script
-        assert "READ_HAPS_FAILED: read_haps exited with status %s or wrote no usable QC table." in script
+        assert (
+            "NO_VARIANTS: read_haps skipped because the input VCF has no variant records." in script
+        )
+        assert (
+            "READ_HAPS_FAILED: read_haps exited with status %s or wrote no usable QC table."
+            in script
+        )
         assert "read_haps_empty_failure_old" in script
         assert "command -v {params.command:q} > /dev/null" in script
         assert "test -s {params.reliable_snp_file:q}" in script
-        assert 'if vep_zero_variant_runtime_repair_requested; then' in script
-        assert 'if contam_identity_zero_variant_runtime_repair_requested; then' in script
+        assert "if vep_zero_variant_runtime_repair_requested; then" in script
+        assert "if contam_identity_zero_variant_runtime_repair_requested; then" in script
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
@@ -1025,14 +1127,12 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "BOOTSTRAP_TEST_CONFIG=true" in script
         assert "bootstrap_test_config()" in script
         assert "[INFO] Bootstrapped DayOA test samples and units tables." in script
-        assert "cp \"$STAGE_SAMPLES\" config/samples.tsv" in script
-        assert (
-            "DY_COMMAND='source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help'"
-        ) in script
+        assert 'cp "$STAGE_SAMPLES" config/samples.tsv' in script
+        assert ("DY_COMMAND='source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help'") in script
         assert 'if [[ "$command" == source\\ dyoainit\\;* ]]; then' in script
         assert "set --" in script
         assert "source dyoainit" in script
-        assert 'local command_status=$?' in script
+        assert "local command_status=$?" in script
         assert 'run_dy_command "$DY_COMMAND"' in script
         assert 'if [[ "$DEFAULT_ACTIVATION" == "true" ]]; then' in script
         assert "SESSION_START_DEADLINE=$((SECONDS + 60))" in script

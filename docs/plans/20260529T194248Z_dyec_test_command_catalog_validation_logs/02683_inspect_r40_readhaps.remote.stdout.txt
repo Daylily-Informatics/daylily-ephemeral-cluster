@@ -1,0 +1,73 @@
+DAY-EC activated.
+DAY-EC activated.
+=== read_haps log ===
+-rw-rw-r-- 1 ubuntu ubuntu 0 May 30 10:40 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.log
+=== read_haps out ===
+=== vcf record count ===
+64703
+=== read_haps rule patch snippet ===
+rule read_haps_contam_identity:
+    input:
+        bam=rules.legacy_cram_compat_bam.output.bam,
+        bai=rules.legacy_cram_compat_bam.output.bai,
+        vcf=_contam_identity_primary_snv_vcf,
+        tbi=_contam_identity_primary_snv_tbi,
+    output:
+        txt=MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/read_haps/{sample}.{alnr}.{ddup}.{snv}.read_haps.txt",
+    log:
+        MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/read_haps/logs/{sample}.{alnr}.{ddup}.{snv}.read_haps.log",
+    benchmark:
+        MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.{snv}.read_haps.bench.tsv"
+    conda:
+        config["read_haps"]["env_yaml"]
+    threads: config["read_haps"]["threads"]
+    resources:
+        vcpu=config["read_haps"]["threads"],
+        mem_mb=config["read_haps"]["mem_mb"],
+        partition=config["read_haps"]["partition"],
+    params:
+        command=config["read_haps"]["read_haps_command"],
+        reliable_snp_file=config["read_haps"]["reliable_snp_file"],
+        extra_args=config["read_haps"]["extra_args"],
+        ref=config["supporting_files"]["files"]["huref"]["fasta"]["name"],
+        sample_ok=lambda wildcards: require_qc_eligible_sample(
+            wildcards, "read_haps"
+        ),
+        cluster_sample=ret_sample,
+    shell:
+        r"""
+        set -euo pipefail
+        test {params.sample_ok:q} = ok
+        mkdir -p "$(dirname {output.txt:q})" "$(dirname {log:q})"
+        set +o pipefail
+        if gzip -cd {input.vcf:q} | grep -m 1 -q -v '^#'; then
+            has_variants=true
+        else
+            has_variants=false
+        fi
+        set -o pipefail
+        if [[ "$has_variants" == "true" ]]; then
+            command -v {params.command:q} > /dev/null
+            test -s {params.reliable_snp_file:q}
+            {params.command:q} {params.extra_args} -fa {params.ref:q} {input.bam:q} {params.reliable_snp_file:q} {input.vcf:q} > {output.txt:q} 2> {log:q}
+        else
+            printf 'SNP_PAIRS ERROR_PAIRS DOUBLE_ERROR_PAIR_COUNT DOUBLE_ERROR_FRACTION REL_ERROR_FRACTION NONSENSE_FRACTION PASS_FAIL REASON
+0 0 0 0 0 0 NO_DATA NO_VARIANTS
+' > {output.txt:q}
+            printf 'NO_VARIANTS: read_haps skipped because the input VCF has no variant records.
+' > {log:q}
+        fi
+        test -s {output.txt:q}
+        grep -q 'PASS_FAIL' {output.txt:q}
+        grep -q 'REASON' {output.txt:q}
+        """
+
+
+rule contam_identity_mqc_gather:
+    input:
+        contamination=MDIR + "other_reports/contamination_mqc.tsv",
+        haplocheck=lambda wildcards: _haplocheck_outputs("contamination.txt"),
+        read_haps=lambda wildcards: _read_haps_outputs("read_haps.txt"),
+    output:
+        identity=MDIR + "other_reports/contam_identity_mqc.tsv",
+        haplocheck=MDIR + "other_reports/haplocheck_mtdna_

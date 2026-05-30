@@ -1,0 +1,26 @@
+DAY-EC activated.
+DAY-EC activated.
+=== status ===
+{
+  "command": "bin/day_run produce_illumina_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv",
+  "completed_at": "2026-05-30T02:24:27Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r10_illumina_run_qc/daylily-omics-analysis",
+  "session_name": "ccv20260529r10_illumina_run_qc",
+  "started_at": "2026-05-30T02:22:42Z"
+}
+=== repo ===
+/fsx/analysis_results/ubuntu/ccv20260529r10_illumina_run_qc/daylily-omics-analysis
+=== latest snakemake logs ===
+1780107865.0000000000 .snakemake/log/2026-05-30T022304.398386.snakemake.log
+1780107868.0000000000 .snakemake/log/2026-05-30T022427.222181.snakemake.log
+=== latest log path: .snakemake/log/2026-05-30T022427.222181.snakemake.log ===
+1:WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260529r10_illumina_run_qc/daylily-omics-analysis/workflow/rules/common.smk, line 426:
+=== latest log tail ===
+WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260529r10_illumina_run_qc/daylily-omics-analysis/workflow/rules/common.smk, line 426:
+The units table was not found at /fsx/analysis_results/ubuntu/ccv20260529r10_illumina_run_qc/daylily-omics-analysis/config/units.tsv. Create config/units.tsv or set --config units_table=/path/to/units.tsv.
+  File "/fsx/analysis_results/ubuntu/ccv20260529r10_illumina_run_qc/daylily-omics-analysis/workflow/Snakefile", line 66, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r10_illumina_run_qc/daylily-omics-analysis/workflow/rules/global_common.smk", line 151, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r10_illumina_run_qc/daylily-omics-analysis/workflow/rules/common.smk", line 1089, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r10_illumina_run_qc/daylily-omics-analysis/workflow/rules/common.smk", line 426, in _load_units_table
+=== rule logs with errors ===

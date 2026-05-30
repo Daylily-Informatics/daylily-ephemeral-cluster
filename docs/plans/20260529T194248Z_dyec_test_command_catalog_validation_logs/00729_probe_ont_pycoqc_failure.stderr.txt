@@ -1,0 +1,2 @@
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/__main__.py:11: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import resource_filename

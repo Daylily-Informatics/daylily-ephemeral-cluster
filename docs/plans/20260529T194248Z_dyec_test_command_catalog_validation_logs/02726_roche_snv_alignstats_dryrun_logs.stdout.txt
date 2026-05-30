@@ -1,0 +1,234 @@
+DAY-EC activated.
+DAY-EC activated.
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyec-test .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad  
+       _______ GREAT SUCCESS _______       
+[INFO] Patched goleft empty-sex/no-usable-chromosomes repair: workflow/rules/go_left.smk
+[INFO] Patched mosdepth empty-output repair: workflow/rules/mosdepth.smk
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+...AUTO-CONFIG: dedupers=na (from target rules → env)
+...AUTO-CONFIG: snv_callers=sentd (from target rules → env)
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/day_profiles/slurm produce_alignstats produce_na_dedup_cram produce_sentD_vcf -p -j 5 -k -n
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/global_AWSPC.yaml
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+...INFO: Auto-detected dedupers. DDUP updated to: ['na']
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentd']
+SNV Callers (final): [sentd]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats_dryrun/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+PREP ROCHE BAM:: results/day/hg38_broad//TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/ ... 
+Job stats:
+job                      count    min threads    max threads
+---------------------  -------  -------------  -------------
+alignstats_bam               1             96             96
+alignstats_compile           1              2              2
+alignstats_gather            1              1              1
+finish_align_stats           1              2              2
+no_dedup_roche_bam           1              1              1
+pre_prep_roche_bam           1             32             32
+produce_alignstats           1              1              1
+produce_na_dedup_cram        1              1              1
+produce_sentD_vcf            1              1              1
+total                        9              1             96
+
+
+[Sat May 30 12:17:49 2026]
+localrule produce_sentD_vcf:
+    output: gatheredall.sentd
+    log: gatheredall.sentd.log
+    jobid: 0
+    reason: Missing output files: gatheredall.sentd
+    priority: 48
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+( touch gatheredall.sentd ;
+
+        ls gatheredall.sentd ) >> gatheredall.sentd.log 2>&1;
+        
+
+[Sat May 30 12:17:49 2026]
+rule pre_prep_roche_bam:
+    input: /fsx/references/genomic_data/organism_reads_slim/bam/H_sapiens/giab/roche/091025_webinar_data_giab_bam_bwa/HG003.bam
+    output: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam, results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.bai
+    log: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/logs/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.log
+    jobid: 3
+    benchmark: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/benchmarks/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.downsample.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.bai, results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam
+    wildcards: sample=TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX, sample_lane=TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX
+    threads: 32
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=32, time=5440, partition=i192mem,i192bigmem, vcpu=32, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        (mkdir -p $(dirname results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/logs/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.log) || echo results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/logs/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.log dir exists) >> results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/logs/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.log 2>&1;
+
+        if [[ '0.086' != 'na' ]]; then
+            echo 'Downsampling Roche BAM to ratio 0.086' >> results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/logs/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.log 2>&1;
+            samtools view                 -@ 32                 -s 0.086                 --subsample-seed 1234                 -b                 --write-index                 -o results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam##idx##results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.bai                 /fsx/references/genomic_data/organism_reads_slim/bam/H_sapiens/giab/roche/091025_webinar_data_giab_bam_bwa/HG003.bam >> results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/logs/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.log 2>&1;
+        else
+            echo 'No downsampling: symlinking Roche BAM' >> results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/logs/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.log 2>&1;
+            ln -sf /fsx/references/genomic_data/organism_reads_slim/bam/H_sapiens/giab/roche/091025_webinar_data_giab_bam_bwa/HG003.bam results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam >> results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/logs/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.log 2>&1;
+            sleep 2;
+            if [[ -f "/fsx/references/genomic_data/organism_reads_slim/bam/H_sapiens/giab/roche/091025_webinar_data_giab_bam_bwa/HG003.bam.bai" ]]; then
+                ln -sf /fsx/references/genomic_data/organism_reads_slim/bam/H_sapiens/giab/roche/091025_webinar_data_giab_bam_bwa/HG003.bam.bai results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.bai >> results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/logs/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.log 2>&1;
+            else
+                samtools index -@ 32 results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam >> results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/logs/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.log 2>&1;
+            fi
+        fi
+        
+
+[Sat May 30 12:17:49 2026]
+rule no_dedup_roche_bam:
+    input: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam, results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.bai
+    output: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam, results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam.bai
+    log: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/logs/no_dedup_roche.TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.log
+    jobid: 2
+    benchmark: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/benchmarks/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.no_dedup_roche.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam, results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam.bai; Input files updated by another job: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.bai, results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam
+    wildcards: sample=TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX, alnr=roche
+    priority: 3
+    resources: mem_mb=1000, mem_mib=954, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam)
+        touch results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/logs/no_dedup_roche.TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.log
+
+        ln -sfn "$(realpath --relative-to=$(dirname results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam) results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam)" results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam >> results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/logs/no_dedup_roche.TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.log 2>&1
+        ln -sfn "$(realpath --relative-to=$(dirname results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam.bai) results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.bai)" results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam.bai >> results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/logs/no_dedup_roche.TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.log 2>&1
+
+        echo "Symlinked results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam → results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam" >> results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/logs/no_dedup_roche.TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.log 2>&1
+        echo "Symlinked results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.bam.bai → results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam.bai" >> results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/logs/no_dedup_roche.TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.log 2>&1
+        
+
+[Sat May 30 12:17:49 2026]
+localrule produce_na_dedup_cram:
+    input: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam, results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam.bai
+    output: results/day/hg38_broad/logs/target_aliases/produce_na_dedup_cram.done
+    jobid: 1
+    reason: Missing output files: results/day/hg38_broad/logs/target_aliases/produce_na_dedup_cram.done; Input files updated by another job: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam, results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam.bai
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+mkdir -p $(dirname results/day/hg38_broad/logs/target_aliases/produce_na_dedup_cram.done); touch results/day/hg38_broad/logs/target_aliases/produce_na_dedup_cram.done;
+
+[Sat May 30 12:17:49 2026]
+rule alignstats_bam:
+    input: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam, results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam.bai
+    output: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/alignqc/alignstats/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.alignstats.json
+    log: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/alignqc/alignstats/logs/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.alignstats.log
+    jobid: 8
+    benchmark: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/benchmarks/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.alignstats_bam.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/alignqc/alignstats/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.alignstats.json; Input files updated by another job: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam, results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam.bai
+    wildcards: sample=TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX, alnr=roche, ddup=na
+    threads: 96
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=96, time=5440, partition=i192,i192mem,i128, vcpu=96, distribution=block, exclusive=, constraint=, exclude=, include=, attempt_n=1
+
+resources/alignstats/alignstats  -C -U  -i results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.bam -T /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -o results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/alignqc/alignstats/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.alignstats.json  -j bam -v -P 96 -p 96 > results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/alignqc/alignstats/logs/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.alignstats.log;
+
+[Sat May 30 12:17:49 2026]
+localrule finish_align_stats:
+    input: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/alignqc/alignstats/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.alignstats.json
+    output: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/alignqc/alignstats/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.alignstats.tsv
+    jobid: 7
+    reason: Missing output files: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/alignqc/alignstats/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.alignstats.tsv; Input files updated by another job: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/alignqc/alignstats/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.alignstats.json
+    wildcards: sample=TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX, alnr=roche, ddup=na
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat May 30 12:17:49 2026]
+localrule alignstats_gather:
+    input: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/alignqc/alignstats/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.alignstats.tsv
+    output: results/day/hg38_broad/other_reports/alignstats_summary_gather.done, results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+    log: results/day/hg38_broad/logs/alignstats_summary_gather.log
+    jobid: 6
+    benchmark: results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/other_reports/alignstats_summary_gather.done; Input files updated by another job: results/day/hg38_broad/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX/align/roche/na/alignqc/alignstats/TVBROCHE5X-HG003-5x-0-D0-PF-ROCHE-SBX-DUPLEX.roche.na.alignstats.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+ touch results/day/hg38_broad/other_reports/alignstats_summary_gather.done; touch results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+
+[Sat May 30 12:17:49 2026]
+localrule alignstats_compile:
+    input: results/day/hg38_broad/other_reports/alignstats_summary_gather.done
+    output: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv, results/day/hg38_broad/other_reports/alignstats_csummary.tsv, results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv, results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
+    log: results/day/hg38_broad/logs/alignstats_summary_compile.log
+    jobid: 5
+    benchmark: results/day/hg38_broad/benchmarks/all.alignstats_smmary_compile.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv; Input files updated by another job: results/day/hg38_broad/other_reports/alignstats_summary_gather.done
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        python workflow/scripts/compile_alignstats.py           --mdir results/day/hg38_broad/           --log results/day/hg38_broad/logs/alignstats_summary_compile.log           --bsummary results/day/hg38_broad/other_reports/alignstats_bsummary.tsv           --csummary results/day/hg38_broad/other_reports/alignstats_csummary.tsv           --combo results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv           --generalstats results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
+        
+Would remove temporary output results/day/hg38_broad/other_reports/alignstats_csummary.tsv
+
+[Sat May 30 12:17:49 2026]
+localrule produce_alignstats:
+    input: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv
+    jobid: 4
+    reason: Input files updated by another job: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Would remove temporary output results/day/hg38_broad/other_reports/alignstats_bsummary.tsv
+Job stats:
+job                      count    min threads    max threads
+---------------------  -------  -------------  -------------
+alignstats_bam               1             96             96
+alignstats_compile           1              2              2
+alignstats_gather            1              1              1
+finish_align_stats           1              2              2
+no_dedup_roche_bam           1              1              1
+pre_prep_roche_bam           1             32             32
+produce_alignstats           1              1              1
+produce_na_dedup_cram        1              1              1
+produce_sentD_vcf            1              1              1
+total                        9              1             96
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        alignstats_bam, alignstats_compile, alignstats_gather, finish_align_stats, no_dedup_roche_bam, produce_alignstats, produce_na_dedup_c--output truncated--

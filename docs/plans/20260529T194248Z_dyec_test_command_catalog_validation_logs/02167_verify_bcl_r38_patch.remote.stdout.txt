@@ -1,0 +1,26 @@
+DAY-EC activated.
+DAY-EC activated.
+341:                scratch_run_dir="$scratch_dir/run"
+343:                mkdir -p "$scratch_run_dir"
+359:                cp -aL --sparse=always "$effective_run_dir"/. "$scratch_run_dir"/
+360:                effective_run_dir="$scratch_run_dir"
+367:                scratch_run_dir="$scratch_dir/run"
+372:                mkdir -p "$scratch_run_dir" "$scratch_sync_log_dir"
+412:                mkdir -p "$scratch_run_dir/Data/Intensities/BaseCalls"
+416:                      | xargs -0 -r cp -L --sparse=always -t "$scratch_run_dir"
+418:                      | xargs -0 -r cp -L --sparse=always -t "$scratch_run_dir/Data/Intensities"
+445:                    scratch_run_dir="$2"
+449:                        dst="$scratch_run_dir/Data/Intensities/BaseCalls/$(dirname "$rel")"
+453:                ' _ "$lane_root" "$scratch_run_dir" \
+461:                du -sh "$scratch_run_dir" >> {log:q} 2>&1 || true
+462:                effective_run_dir="$scratch_run_dir"
+469:                scratch_run_dir="$scratch_dir/run"
+472:                mkdir -p "$scratch_run_dir" "$scratch_sync_log_dir"
+517:                  aws s3 sync "$run_uri/" "$scratch_run_dir/" \
+530:                          aws s3 sync "$run_uri/Data/Intensities/BaseCalls/$lane_id/" "$scratch_run_dir/Data/Intensities/BaseCalls/$lane_id/" \
+547:                du -sh "$scratch_run_dir" >> {log:q} 2>&1 || true
+548:                effective_run_dir="$scratch_run_dir"
+606:            echo "Moving BCLConvert outputs from scratch to result tree: $(date -Is)" >> {log:q}
+610:            if [ -n "${{scratch_run_dir:-}}" ] && [ -d "$scratch_run_dir" ]; then
+611:                echo "Removing staged BCL input scratch: $scratch_run_dir $(date -Is)" >> {log:q}
+612:                rm -rf "$scratch_run_dir"

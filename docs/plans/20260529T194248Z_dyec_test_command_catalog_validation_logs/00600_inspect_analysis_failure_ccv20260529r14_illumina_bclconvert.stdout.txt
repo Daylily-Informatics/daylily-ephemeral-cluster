@@ -1,0 +1,123 @@
+DAY-EC activated.
+DAY-EC activated.
+=== status ===
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": "2026-05-30T04:00:50Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260529r14_illumina_bclconvert",
+  "started_at": "2026-05-30T03:53:42Z"
+}
+=== repo ===
+/fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert/daylily-omics-analysis
+=== latest snakemake logs ===
+1780113649.0000000000 .snakemake/log/2026-05-30T035404.108277.snakemake.log
+1780113651.0000000000 .snakemake/log/2026-05-30T040050.615809.snakemake.log
+=== latest log path: .snakemake/log/2026-05-30T040050.615809.snakemake.log ===
+1:WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk, line 439:
+=== latest log tail ===
+WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk, line 439:
+The units table at /fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert/daylily-omics-analysis/config/units.tsv has headers but no data rows.
+  File "/fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert/daylily-omics-analysis/workflow/Snakefile", line 66, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert/daylily-omics-analysis/workflow/rules/global_common.smk", line 151, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 1089, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 439, in _load_units_table
+=== rule logs with errors ===
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:200:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/s_6_2451.filter'cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/C213.1/L006_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:202:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/s_6_1498.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:203:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/C322.1/L006_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:204:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/C272.1/L006_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:205:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/s_6_2319.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:206:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/s_6_2193.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:207:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/C72.1/L006_2.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:208:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/s_6_2394.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:209:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/s_6_2223.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:210:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/C263.1/L006_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:211:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/s_6_1225.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:212:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/C295.1/L006_2.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:213:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/s_6_2134.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:214:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L005/s_5_2260.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:215:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L005/s_5_2116.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:216:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/s_6_1212.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:217:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L005/C224.1/L005_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:218:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/s_6_2195.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:219:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/s_6_2183.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:220:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L006/s_6_2141.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:221:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L005/C169.1/L005_2.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:222:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L005/C82.1/L005_2.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:223:One or more mounted BCL file copy batches failed
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:1:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_2116.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:2:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_1474.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:3:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_1388.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:4:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/C77.1/L004_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:5:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_2326.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:6:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/C145.1/L004_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:7:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_1381.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:8:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_2273.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:9:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_2209.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:10:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/C173.1/L004_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:11:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/C41.1/L004_2.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:12:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_2449.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:13:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_1216.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:14:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_2118.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:15:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_1289.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:16:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/C256.1/L004_2.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:17:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/C1.1/L004_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:18:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_1374.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:19:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/C300.1/L003_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:20:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/C136.1/L003_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:21:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_1401.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:22:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/C134.1/L003_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:23:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/C45.1/L003_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:24:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_1278.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:25:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_1242.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:26:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/C292.1/L004_2.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:27:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_1159.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:28:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_2334.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:29:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/C120.1/L003_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:30:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_2238.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:31:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_1426.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:32:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_2212.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:33:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_1228.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:34:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_1302.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:35:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/C313.1/L007_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:36:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_2210.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:37:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_1487.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:38:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/C282.1/L003_2.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:39:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/s_7_1351.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:40:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/C26.1/L003_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:41:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/s_7_2173.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:42:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/C272.1/L007_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:43:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/s_7_2458.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:44:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/s_7_2288.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:45:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/s_7_2281.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:46:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/C245.1/L007_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:47:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/s_7_1401.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:48:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/C186.1/L007_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:49:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_2440.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:50:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L003/s_3_2280.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:51:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/C257.1/L007_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:52:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_1481.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:53:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/C316.1/L007_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:54:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/s_7_1342.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:55:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_1358.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:56:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/C217.1/L007_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:57:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/s_7_2279.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:58:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/C176.1/L007_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:59:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/C208.1/L004_2.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:60:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/C230.1/L004_1.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:61:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/s_7_2378.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:62:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/s_7_2269.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:63:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/s_7_2126.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:64:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L004/s_4_2313.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:65:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L008/s_8_2419.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:66:cp: cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L008/s_8_1244.filter'error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/C110.1/L007_1.cbcl': No data available: No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:68:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/C100.1/L007_2.cbcl'cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L008/s_8_2145.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:70:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L007/s_7_2390.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:71:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L008/C24.1/L008_2.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:72:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L008/C149.1/L008_1.cbcl'cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L008/s_8_1184.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:74:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L008/s_8_2224.filter': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:75:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L008/C156.1/L008_2.cbcl': No data available
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/mounted_files.log:76:cp: error reading '/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4//Data/Intensities/BaseCalls/L008/s_8_1497.filter': No data available
+results/run--output truncated--

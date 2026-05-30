@@ -1,0 +1,242 @@
+DAY-EC activated.
+DAY-EC activated.
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyec-test .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad  
+       _______ GREAT SUCCESS _______       
+[INFO] pycoQC readonly-sort repair already present: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/pycoQC_plot.py
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm produce_ont_run_qc -p -j 5 -k -n --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc_dryrun/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+SNV Callers (final): []
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc_dryrun/daylily-omics-analysis/.test_data/data/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc_dryrun/daylily-omics-analysis/.test_data/data/units.tsv
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_7x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_10x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_20x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/HG003_30x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_40x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_7x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_10x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_20x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/HG003_30x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_40x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_7x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_10x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_20x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/HG003_30x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_40x_R1.fastq.gz'
+Building DAG of jobs...
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+ont_run_qc_collect_summaries        1              1              1
+ont_run_qc_multiqc                  1              1              1
+ont_run_qc_nanoplot                 1              8              8
+ont_run_qc_pycoqc                   1              1              1
+ont_run_qc_report                   1              1              1
+produce_ont_run_qc                  1              1              1
+total                               6              1              8
+
+
+[Sat May 30 05:42:53 2026]
+localrule ont_run_qc_collect_summaries:
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/collect_summaries.log
+    jobid: 3
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/collect_summaries.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt) $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/collect_summaries.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/collect_summaries.log
+        if [ -z /fsx/run_dir_mounts/20260513_ONT_HG003/ ]; then
+            echo "config/runs.tsv with PLATFORM=ONT and RUN_DIR is required for mounted ONT run QC" >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/collect_summaries.log
+            exit 2
+        fi
+        test -d /fsx/run_dir_mounts/20260513_ONT_HG003/
+        find /fsx/run_dir_mounts/20260513_ONT_HG003/ -type f \( -name 'sequencing_summary*.txt' -o -name 'sequencing_summary*.txt.gz' \) \
+          | sort > results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+        if [ ! -s results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt ]; then
+            echo "No sequencing_summary*.txt files found under /fsx/run_dir_mounts/20260513_ONT_HG003/" >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/collect_summaries.log
+            exit 2
+        fi
+        
+
+[Sat May 30 05:42:53 2026]
+localrule ont_run_qc_pycoqc:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log
+    jobid: 2
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/pycoqc.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log
+        command -v pycoQC >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
+        mapfile -t summary_files < results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+        pycoQC \
+          -f "${summary_files[@]}" \
+          -o results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html \
+          -j results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json \
+          --report_title 20260513_ONT_HG003 \
+          >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+        
+
+[Sat May 30 05:42:53 2026]
+localrule ont_run_qc_nanoplot:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log
+    jobid: 5
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/nanoplot.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    threads: 8
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log
+        command -v NanoPlot >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log 2>&1
+        mapfile -t summary_files < results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+        NanoPlot \
+          --summary "${summary_files[@]}" \
+          --loglength \
+          --tsv_stats \
+          --info_in_report \
+          -t 8 \
+          -o results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot \
+          -p 20260513_ONT_HG003. \
+          >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log 2>&1
+        
+
+[Sat May 30 05:42:53 2026]
+localrule ont_run_qc_multiqc:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json, results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log
+    jobid: 4
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/multiqc.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html, results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html) $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log)
+        multiqc --version > results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log 2>&1 || true
+        multiqc -f \
+          -m pycoqc \
+          -m nanostat \
+          --filename "$(basename results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html)" \
+          --outdir "$(dirname results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html)" \
+          results/runs/20260513_ONT_HG003/run_qc/ont >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log 2>&1
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html
+        
+
+[Sat May 30 05:42:53 2026]
+localrule ont_run_qc_report:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/summary.html, results/runs/20260513_ONT_HG003/run_qc/ont/summary.tsv, results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.log
+    jobid: 1
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/ont_run_qc_report.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/summary.html) $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/summary.tsv) $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.log)
+        python workflow/scripts/summarize_run_qc_report.py \
+          --platform ONT \
+          --run-s3-uri s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/ \
+          --metrics-path results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json \
+          --output-html results/runs/20260513_ONT_HG003/run_qc/ont/summary.html \
+          --output-tsv results/runs/20260513_ONT_HG003/run_qc/ont/summary.tsv \
+          --done results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done > results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.log 2>&1
+        
+
+[Sat May 30 05:42:53 2026]
+localrule produce_ont_run_qc:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done, results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html
+    jobid: 0
+    reason: Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html, results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+ont_run_qc_collect_summaries        1              1              1
+ont_run_qc_multiqc                  1              1              1
+ont_run_qc_nanoplot                 1              8              8
+ont_run_qc_pycoqc                   1              1              1
+ont_run_qc_report                   1              1              1
+produce_ont_run_qc                  1              1              1
+total                               6              1              8
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        ont_run_qc_multiqc, ont_run_qc_nanoplot, ont_run_qc_pycoqc, ont_run_qc_report, produce_ont_run_qc
+    missing output files:
+        ont_run_qc_collect_summaries, ont_run_qc_multiqc, ont_run_qc_nanoplot, ont_run_qc_pycoqc, ont_run_qc_report
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.
+RETURN CODE: 0
+[INFO] Workflow exited with status 0
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc_dryrun/daylily-omics-analysis$

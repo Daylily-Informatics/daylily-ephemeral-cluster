@@ -1,0 +1,32 @@
+DAY-EC activated.
+DAY-EC activated.
+=== status ===
+{
+  "command": "bin/day_run produce_sentdhuomr_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k",
+  "completed_at": "2026-05-30T01:07:51Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r9_hybrid_ultima_ont_snv/daylily-omics-analysis",
+  "session_name": "ccv20260529r9_hybrid_ultima_ont_snv",
+  "started_at": "2026-05-30T00:35:29Z"
+}
+=== repo ===
+/fsx/analysis_results/ubuntu/ccv20260529r9_hybrid_ultima_ont_snv/daylily-omics-analysis
+=== latest snakemake logs ===
+1780103270.0000000000 .snakemake/log/2026-05-30T003551.479388.snakemake.log
+1780103274.0000000000 .snakemake/log/2026-05-30T010751.708118.snakemake.log
+=== latest log path: .snakemake/log/2026-05-30T010751.708118.snakemake.log ===
+=== latest log tail ===
+Unlocking working directory.
+=== rule logs with errors ===
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log:1217:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/assembler/ReadSequenceKmerGraphBuilder.h:101: GRAPH::ReadSequenceKmerGraphBuilder::ReadSequenceKmerGraphBuilder(KMerFactory&, const GRAPH::ReadSequenceList&, int, bool, bool, char, int, bool, bool): Assertion `kmerSize >= 1' failed.
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log:1368:ERROR: stage1_hap.bam failed integrity check - file may be truncated
+logs/slurm/sentdhuomr_pass1/sentdhuomr_pass1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.10.err:45:            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.pass1.log 2>&1;
+logs/slurm/sentdhuomr_stage1/sentdhuomr_stage1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:44:            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log 2>&1;
+logs/slurm/sentdhuomr_stage1/sentdhuomr_stage1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:140:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log && exit 1)
+logs/slurm/sentdhuomr_stage1/sentdhuomr_stage1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:150:Error in rule sentdhuomr_stage1:
+logs/slurm/sentdhuomr_stage1/sentdhuomr_stage1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:154:    log: results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log (check log file(s) for error details)
+logs/slurm/sentdhuomr_stage1/sentdhuomr_stage1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:166:            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log 2>&1;
+logs/slurm/sentdhuomr_stage1/sentdhuomr_stage1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:262:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log && exit 1)
+logs/slurm/sentdhuomr_stage1/sentdhuomr_stage1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:270:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/sentdhuomr_stage1/sentdhuomr_stage1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:272:Removing output files of failed job sentdhuomr_stage1 since they might be corrupted:
+logs/slurm/sentdhuomr_stage1/sentdhuomr_stage1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:275:Exiting because a job execution failed. Look above for error message

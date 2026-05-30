@@ -1,0 +1,208 @@
+DAY-EC activated.
+DAY-EC activated.
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv
+        echo "run_bclconvert finished: $(date -Is)" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+        touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done
+        
+
+[Sat May 30 02:20:33 2026]
+localrule illumina_run_qc_json:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log
+    jobid: 4
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/benchmarks/illumina_run_qc_json.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json) $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log)
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/source_run_subset/RunInfo.xml
+        if [ -z "${CONDA_PREFIX:-}" ]; then
+            echo "CONDA_PREFIX is required for illumina_run_qc_json" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log
+            exit 2
+        fi
+        "$CONDA_PREFIX/bin/python" workflow/scripts/write_illumina_run_qc_json.py \
+          --run-info results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/source_run_subset/RunInfo.xml \
+          --interop-summary results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv \
+          --interop-index-summary results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv \
+          --output-json results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log 2>&1
+        python -m json.tool results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json.pretty
+        mv results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json.pretty results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json
+        
+
+[Sat May 30 02:20:33 2026]
+rule bclconvert_metrics_summary:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_metrics_summary.log
+    jobid: 10
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_metrics_summary.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_metrics_summary.log
+        python workflow/scripts/bclconvert_metrics_summary.py \
+          --report-dir results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports \
+          --demux-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv \
+          --unknown-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv \
+          --hopping-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv \
+          --fastq-manifest-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv \
+          --rollup-json-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_metrics_summary.log 2>&1
+        
+
+[Sat May 30 02:20:33 2026]
+rule bclconvert_generate_units_tsv:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_generate_units_tsv.log
+    jobid: 9
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_generate_units_tsv.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_generate_units_tsv.log
+        seq_platform_override=
+        python workflow/scripts/bclconvert_fastq_list_to_units.py \
+          --fastq-list results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv \
+          --sample-sheet-rows results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv \
+          --run-id 20260514_LH01106_0009_B23TVLGLT4 \
+          --libprep PCR-FREE \
+          --seq-vendor ILMN \
+          --seq-platform-override "$seq_platform_override" \
+          --units-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_generate_units_tsv.log 2>&1
+        
+
+[Sat May 30 02:20:33 2026]
+localrule illumina_run_qc_report:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.log
+    jobid: 1
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/benchmarks/illumina_run_qc_report.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html) $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv) $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.log)
+        python workflow/scripts/summarize_run_qc_report.py \
+          --platform ILMN \
+          --run-s3-uri s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/ \
+          --interop-summary results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv \
+          --interop-index-summary results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv \
+          --illumina-qc-json results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json \
+          --output-html results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html \
+          --output-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv \
+          --done results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.log 2>&1
+        
+
+[Sat May 30 02:20:33 2026]
+rule bclconvert_metrics_multiqc_exports:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_demux_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_unknown_barcodes_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_index_hopping_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_fastq_manifest_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_lane_summary_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs/bclconvert_metrics_multiqc_exports.log
+    jobid: 11
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_metrics_multiqc_exports.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs/bclconvert_metrics_multiqc_exports.log
+        python workflow/scripts/bclconvert_metrics_to_multiqc.py \
+          --demux-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv \
+          --unknown-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv \
+          --hopping-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv \
+          --fastq-manifest-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv \
+          --rollup-json results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json \
+          --demux-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_demux_mqc.tsv \
+          --unknown-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_unknown_barcodes_mqc.tsv \
+          --hopping-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_index_hopping_mqc.tsv \
+          --fastq-manifest-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_fastq_manifest_mqc.tsv \
+          --lane-summary-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_lane_summary_mqc.tsv \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs/bclconvert_metrics_multiqc_exports.log 2>&1
+        
+
+[Sat May 30 02:20:33 2026]
+localrule illumina_run_qc_multiqc:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs/illumina_run_qc_summary_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs/illumina_run_qc_multiqc_config.yaml
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_multiqc.log
+    jobid: 5
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/benchmarks/illumina_run_qc_multiqc.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html) $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_multiqc.log) results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs
+        out=results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html
+        multiqc --version > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_multiqc.log 2>&1 || true
+        python workflow/scripts/illumina_run_qc_to_multiqc.py \
+          --summary-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv \
+          --illumina-qc-json results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json \
+          --summary-out results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs/illumina_run_qc_summary_mqc.tsv \
+          --config-out results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs/illumina_run_qc_multiqc_config.yaml \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_multiqc.log 2>&1
+        multiqc -f \
+          -m custom_content \
+          --config results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs/illumina_run_qc_multiqc_config.yaml \
+          --filename "$(basename "$out")" \
+          --outdir "$(dirname "$out")" \
+          results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_multiqc.log 2>&1
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html
+        
+
+[Sat May 30 02:20:33 2026]
+rule multiqc_bclconvert:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log
+    jobid: 12
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/multiqc_bclconvert.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log
+        multiqc -f \
+          -m bclconvert \
+          -m custom_content \
+          --config config/external_tools/multiqc_config.yaml \
+          --template default \
+          --filename multiqc_report.html \
+          --outdir results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert \
+          results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports \
+          results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log 2>&1
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
+        
+
+[Sat May 30 02:20:33 2026]
+localrule produce_bclconvert_fastqs_and_metrics:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete
+    jobid: 6
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete
+
+[Sat May 30 02:20:33 2026]
+localrule produce_illumina_run_qc_and_bclconvert:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_repo--output truncated--

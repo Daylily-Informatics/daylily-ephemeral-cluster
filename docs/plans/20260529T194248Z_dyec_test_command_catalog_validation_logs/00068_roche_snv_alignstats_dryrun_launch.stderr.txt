@@ -1,0 +1,2 @@
+✗ Unable to create staged-prefix FSx DRA: FSx file system fs-0df313e1751219cac 
+already has 8 active DRAs.

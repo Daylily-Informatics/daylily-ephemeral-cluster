@@ -1,0 +1,125 @@
+DAY-EC activated.
+DAY-EC activated.
+[Sat May 30 00:35:56 2026]
+Finished job 779.
+809 of 848 steps (95%) done
+[Sat May 30 00:36:04 2026]
+Finished job 782.
+810 of 848 steps (96%) done
+Select jobs to execute...
+
+[Sat May 30 00:36:04 2026]
+localrule rtg_vcfstats_gather:
+    input: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcf_stats/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.rtg.vcfstats.txt
+    output: results/day/hg38_broad/other_reports/rtg_vcfstats_mqc.tsv
+    jobid: 781
+    reason: Missing output files: results/day/hg38_broad/other_reports/rtg_vcfstats_mqc.tsv; Input files updated by another job: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcf_stats/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.rtg.vcfstats.txt
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+deduper (final): [dmd]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentdhiomr']
+SNV Callers (final): [sentdhiomr]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=1, time=5440, vcpu=1
+Select jobs to execute...
+[Sat May 30 00:36:07 2026]
+Finished job 781.
+811 of 848 steps (96%) done
+[Sat May 30 00:37:44 2026]
+Finished job 826.
+812 of 848 steps (96%) done
+[Sat May 30 00:37:55 2026]
+Finished job 824.
+813 of 848 steps (96%) done
+[Sat May 30 00:38:17 2026]
+Finished job 818.
+814 of 848 steps (96%) done
+[Sat May 30 00:39:12 2026]
+Finished job 810.
+815 of 848 steps (96%) done
+[Sat May 30 00:39:23 2026]
+Finished job 812.
+816 of 848 steps (96%) done
+[Sat May 30 00:39:53 2026]
+Finished job 798.
+817 of 848 steps (96%) done
+[Sat May 30 00:40:03 2026]
+Finished job 802.
+818 of 848 steps (96%) done
+[Sat May 30 00:40:03 2026]
+Finished job 804.
+819 of 848 steps (97%) done
+[Sat May 30 00:40:24 2026]
+Finished job 836.
+820 of 848 steps (97%) done
+[Sat May 30 00:40:34 2026]
+Finished job 834.
+821 of 848 steps (97%) done
+[Sat May 30 00:41:35 2026]
+Finished job 792.
+822 of 848 steps (97%) done
+[Sat May 30 00:42:05 2026]
+Finished job 832.
+823 of 848 steps (97%) done
+[Sat May 30 00:42:05 2026]
+Finished job 830.
+824 of 848 steps (97%) done
+[Sat May 30 00:42:15 2026]
+Finished job 789.
+825 of 848 steps (97%) done
+[Sat May 30 00:42:25 2026]
+Finished job 828.
+826 of 848 steps (97%) done
+[Sat May 30 00:42:45 2026]
+Finished job 820.
+827 of 848 steps (98%) done
+[Sat May 30 00:42:45 2026]
+Finished job 822.
+828 of 848 steps (98%) done
+[Sat May 30 00:42:45 2026]
+Finished job 816.
+829 of 848 steps (98%) done
+[Sat May 30 00:42:45 2026]
+Finished job 814.
+830 of 848 steps (98%) done
+[Sat May 30 00:43:36 2026]
+Finished job 808.
+831 of 848 steps (98%) done
+[Sat May 30 00:43:46 2026]
+Finished job 806.
+832 of 848 steps (98%) done
+[Sat May 30 00:44:36 2026]
+Finished job 800.
+833 of 848 steps (98%) done
+[Sat May 30 00:44:46 2026]
+Finished job 796.
+834 of 848 steps (98%) done
+[Sat May 30 00:44:56 2026]
+Finished job 794.
+835 of 848 steps (98%) done
+Select jobs to execute...
+
+[Sat May 30 00:44:56 2026]
+localrule vep_concat_fofn:
+    input: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr1/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr1.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr2/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr2.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr3/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr3.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr4/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr4.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr5/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr5.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr6/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr6.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr7/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr7.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr8/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr8.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr9/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr9.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr10/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr10.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr11/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr11.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr12/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr12.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr13/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr13.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr14/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr14.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr15/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr15.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr16/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr16.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr17/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr17.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr18/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr18.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr19/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr19.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr20/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr20.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr21/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr21.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr22/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr22.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chrX/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chrX.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chrY/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chrY.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chrM/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chrM.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr1/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr1.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr2/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr2.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr3/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr3.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr4/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr4.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr5/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr5.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr6/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr6.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr7/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr7.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr8/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr8.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr9/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr9.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr10/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr10.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr11/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr11.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr12/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr12.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr13/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr13.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr14/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr14.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr15/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr15.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr16/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr16.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr17/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr17.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr18/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr18.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr19/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr19.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr20/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr20.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr21/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr21.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr22/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr22.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chrX/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chrX.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chrY/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chrY.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chrM/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chrM.vep.vcf.gz.record_count
+    output: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.vep.concat.vcf.gz.fofn
+    log: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.vep.concat_fofn.log
+    jobid: 788
+    reason: Missing output files: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.vep.concat.vcf.gz.fofn; Input files updated by another job: results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr5/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr5.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr16/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr16.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr14/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr14.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr20/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr20.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr19/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr19.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr16/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr16.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr1/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr1.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr10/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr10.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr4/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr4.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr4/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr4.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr17/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr17.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chrX/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chrX.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr11/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr11.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr14/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr14.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr15/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr15.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr17/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr17.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr8/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr8.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr7/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr7.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chrM/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chrM.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr6/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr6.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr2/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr2.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr6/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr6.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr19/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr19.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr20/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr20.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr8/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr8.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr1/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr1.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr3/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr3.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr21/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr21.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr21/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr21.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr12/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr12.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chrY/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chrY.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr15/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr15.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr9/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr9.vep.vcf.gz.tbi, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr13/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr13.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vep/chunks/chr11/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.chr11.vep.vcf.gz.record_count, results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-N--output truncated--

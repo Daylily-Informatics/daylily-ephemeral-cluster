@@ -1,0 +1,25 @@
+DAY-EC activated.
+DAY-EC activated.
+samtools=/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/1142d6cbdb634d9e332e99dc4820c6a0_/bin/samtools
+reference=/fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta
+=== /fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram ===
+-rwxr-xr-x 1 root root 7.8G May 26 18:05 /fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram
+-rwxr-xr-x 1 root root 134K May 26 18:06 /fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram.crai
+chr1	248956422	5177423	0
+chr2	242193529	5012125	0
+chr3	198295559	4250826	0
+chr4	190214555	4087136	0
+chr5	181538259	3795100	0
+chr6	170805979	3568447	0
+chr7	159345973	3265749	0
+chr8	145138636	3010636	0
+idxstats_rows=3367
+1402692
+SN:chr1
+SN:chr2
+SN:chr3
+SN:chr4
+SN:chr5
+SN:chr6
+SN:chr7
+SN:chr8

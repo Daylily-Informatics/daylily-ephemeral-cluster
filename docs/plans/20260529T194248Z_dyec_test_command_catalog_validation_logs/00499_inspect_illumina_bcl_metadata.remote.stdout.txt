@@ -1,0 +1,170 @@
+DAY-EC activated.
+DAY-EC activated.
+repo=/fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis
+run=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+=== repo config ===
+--- /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/runs.tsv
+2 /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/runs.tsv
+RUNID	PLATFORM	RUN_DIR	SOURCE_S3_URI	MOUNT_ID	SAMPLE_SHEET	BASECALLING_STATE	RUN_STATUS	OUTPUT_ROOT	REGION	PROFILE
+20260514_LH01106_0009_B23TVLGLT4	ILMN	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/	s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/	20260514_LH01106_0009_B23TVLGLT4	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv	raw_bcl	complete	results/runs/20260514_LH01106_0009_B23TVLGLT4	us-west-2	lsmc
+--- /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/samples.tsv
+9 /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/samples.tsv
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+Omega_XTR_1-2-200_180	blood	research	unknown	na	false	false	blood	na	Omega_XTR_1-2-200_180	na	na	na
+Beckman_XTR_1-2-200_180	blood	research	unknown	na	false	false	blood	na	Beckman_XTR_1-2-200_180	na	na	na
+Omega_XTR_3-200_180	blood	research	unknown	na	false	false	blood	na	Omega_XTR_3-200_180	na	na	na
+Beckman_XTR_3-200_180	blood	research	unknown	na	false	false	blood	na	Beckman_XTR_3-200_180	na	na	na
+Omega_XTR_8-200_220	blood	research	unknown	na	false	false	blood	na	Omega_XTR_8-200_220	na	na	na
+Beckman_XTR_8-200_220	blood	research	unknown	na	false	false	blood	na	Beckman_XTR_8-200_220	na	na	na
+Omega_XTR_9-200_220	blood	research	unknown	na	false	false	blood	na	Omega_XTR_9-200_220	na	na	na
+Beckman_XTR_9-200_220	blood	research	unknown	na	false	false	blood	na	Beckman_XTR_9-200_220	na	na	na
+--- /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/units.tsv
+1 /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/units.tsv
+RUNID	SAMPLEID	EXPERIMENTID	LANEID	BARCODEID	LIBPREP	SEQ_VENDOR	SEQ_PLATFORM	ILMN_R1_PATH	ILMN_R2_PATH
+--- /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/samples.tsv
+9 /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/samples.tsv
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+Omega_XTR_1-2-200_180	blood	research	unknown	na	false	false	blood	na	Omega_XTR_1-2-200_180	na	na	na
+Beckman_XTR_1-2-200_180	blood	research	unknown	na	false	false	blood	na	Beckman_XTR_1-2-200_180	na	na	na
+Omega_XTR_3-200_180	blood	research	unknown	na	false	false	blood	na	Omega_XTR_3-200_180	na	na	na
+Beckman_XTR_3-200_180	blood	research	unknown	na	false	false	blood	na	Beckman_XTR_3-200_180	na	na	na
+Omega_XTR_8-200_220	blood	research	unknown	na	false	false	blood	na	Omega_XTR_8-200_220	na	na	na
+Beckman_XTR_8-200_220	blood	research	unknown	na	false	false	blood	na	Beckman_XTR_8-200_220	na	na	na
+Omega_XTR_9-200_220	blood	research	unknown	na	false	false	blood	na	Omega_XTR_9-200_220	na	na	na
+Beckman_XTR_9-200_220	blood	research	unknown	na	false	false	blood	na	Beckman_XTR_9-200_220	na	na	na
+--- /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/units.tsv
+1 /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/units.tsv
+RUNID	SAMPLEID	EXPERIMENTID	LANEID	BARCODEID	LIBPREP	SEQ_VENDOR	SEQ_PLATFORM	ILMN_R1_PATH	ILMN_R2_PATH
+--- /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/samples.tsv
+2 /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/samples.tsv
+RUNID	SAMPLEID	EXPERIMENTID	LANEID	BARCODEID	LIBPREP	SEQ_VENDOR	SEQ_PLATFORM	SAMPLESOURCE	SAMPLECLASS	SAMPLEUSE	BIOLOGICAL_SEX	IDDNA_UID	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	MERGE_SINGLE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR	BWA_KMER	DEEP_MODEL	ULTIMA_CRAM	ULTIMA_CRAM_ALIGNER	ULTIMA_CRAM_SNV_CALLER	ONT_CRAM	ONT_CRAM_ALIGNER	ONT_CRAM_SNV_CALLER	PB_BAM	PB_BAM_ALIGNER	PB_BAM_SNV_CALLER
+Irl1	HG003	x1	0	S1	noampwgs	ILMN	NOVASEQX	blood	research	sample	male	na	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/	false	false	blood	single		HG003	1	1	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/	19	na	na	na	na	na	na	na	na	na	na
+--- /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/units.tsv
+28 /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/units.tsv
+RUNID	SAMPLEID	EXPERIMENTID	LANEID	BARCODEID	LIBPREP	SEQ_VENDOR	SEQ_PLATFORM	ILMN_R1_PATH	ILMN_R2_PATH	PACBIO_R1_PATH	PACBIO_R2_PATH	ONT_R1_PATH	ONT_R2_PATH	UG_R1_PATH	UG_R2_PATH	SUBSAMPLE_PCT	ILMN_TRIM_READ_LENGTH	SAMPLEUSE	BWA_KMER	DEEP_MODEL	ULTIMA_CRAM	ULTIMA_CRAM_ALIGNER	ULTIMA_CRAM_SNV_CALLER	ONT_CRAM	ONT_CRAM_ALIGNER	ONT_CRAM_SNV_CALLER	PB_BAM	PB_BAM_ALIGNER	PB_BAM_SNV_CALLER
+Irl1	HG003	1x-150bp	0	DBC1	PCR-FREE	ILMN	NOVASEQ	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R1.fastq.gz	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R2.fastq.gz									posControl	19										
+Irl1	HG003	3x-150bp	0	DBC20	PCR-FREE	ILMN	NOVASEQ	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R1.fastq.gz	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R2.fastq.gz									posControl	19										
+Irl1	HG003	5x-150bp	0	DBC2	PCR-FREE	ILMN	NOVASEQ	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R2.fastq.gz									posControl	19										
+Irl1	HG003	7x-150bp	0	DBC21	PCR-FREE	ILMN	NOVASEQ	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_7x_R1.fastq.gz	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_7x_R2.fastq.gz									posControl	19										
+Irl1	HG003	10x-150bp	0	DBC3	PCR-FREE	ILMN	NOVASEQ	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_10x_R1.fastq.gz	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_10x_R2.fastq.gz									posControl	19										
+Irl1	HG003	15x-150bp	0	DBC4	PCR-FREE	ILMN	NOVASEQ	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R1.fastq.gz	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R2.fastq.gz									posControl	19										
+Irl1	HG003	20x-150bp	0	DBC5	PCR-FREE	ILMN	NOVASEQ	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_20x_R1.fastq.gz	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_20x_R2.fastq.gz									posControl	19										
+Irl1	HG003	30x-150bp	0	DBC6	PCR-FREE	ILMN	NOVASEQ	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/HG003_30x_R1.fastq.gz	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/HG003_30x_R2.fastq.gz									posControl	19										
+Irl1	HG003	40x-150bp	0	DBC22	PCR-FREE	ILMN	NOVASEQ	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_40x_R1.fastq.gz	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_40x_R2.fastq.gz									posControl	19										
+Irl1	HG003	1x-100bp	0	DBC7	PCR-FREE	ILMN	NOVASEQ	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R1.fastq.gz	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R2.fastq.gz								100	posControl	19										
+Irl1	HG003	3x-100bp	0	DBC23	PCR-FREE	ILMN	NOVASEQ	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R1.fastq.gz	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R2.fastq.gz								100	posControl	19										
+=== run sample sheet candidates ===
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+--- /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+[Header],
+FileFormatVersion,2
+RunName,20260514_ILMN_Altair_Run_3
+InstrumentPlatform,NovaSeqXSeries
+IndexOrientation,Forward
+
+[Reads]
+Read1Cycles,151
+Read2Cycles,151
+Index1Cycles,10
+Index2Cycles,10
+
+[BCLConvert_Settings]
+SoftwareVersion,4.3.16
+OverrideCycles,Y151;I10;I10;Y151
+FastqCompressionFormat,gzip
+GenerateFastqcMetrics,true
+
+[BCLConvert_Data]
+Sample_ID,Index,Index2
+HG001-a,GAGTAATATA,CCGACCGTGA
+HG001-b,CGTCATGCTA,TAAAGTTCGT
+HG001-c,TTGGCTAGGT,TATAGGAGTA
+HG002-a,AGTCGACTCT,CGATCGTAAT
+HG002-b,ACCAGCGCTC,CAAACTCGTC
+HG002-c,AAAGAACATG,AATGGGAACT
+HG003-a,TACACAGAGT,TACCGGGACA
+HG003-b,CCGATAATAG,TGCTGATCAA
+HG003-c,CCGCTTAAGG,GATCGTGATT
+HG004-a,CCCTCCCTGC,ACTCCGACAG
+HG004-b,CACCTGCCGA,TGACACTCAT
+HG004-c,AGTAAATAAG,GCGTCCCAAG
+HG005-a,TATGTAGAGA,TCTGAGTTAG
+HG005-b,CTGACTCCAC,TGTTATACGC
+HG005-c,GTACCGAATA,CCTTACTCTT
+HG006-a,TTTACAAGAT,TGTATCGCCG
+HG006-b,GTCCTCCTGC,GAGGCTGCTG
+HG006-c,GAAACAGCGT,ACGTGTTGGA
+HG007-a,AACAAATTCA,CCATTTCCCA
+HG007-b,ATGGCTTCCG,CCGCACTCCT
+HG007-c,CAACTATGCA,CCAGAGTGAC
+BUCCAL1-a,ATTGCGAAGG,CTGAGGGCAC
+BUCCAL1-b,ATTGGTGCGG,ACGACCTAAT
+BUCCAL2-a,GCGAACGCAA,TTGTCAGAGA
+BUCCAL2-b,AGCGGGAGAT,ACAACAGCCT
+BUCCAL3-a,TAGCAAGGCT,GACCTACTGA
+BUCCAL3-b,GATAGAGAGG,CTCCGTCGAT
+BUCCAL4-a,ATAGGGAACA,TAAAGTATCG
+BUCCAL5-a,ACCACTTCTG,ATAAGGCCCA
+BUCCAL6-a,CAATAACGGC,TGCATGTGTA
+BUCCAL7-a,CGCGTGATCG,TAGGATCGGA
+BUCCAL8-a,TAGGCCATCG,ACGTTGGAGA
+BUCCAL9-a,TGCGCCGCAT,TGCGGTTCAG
+NA05115-a,ACTAGTCTCT,TTGTACATAG
+NA09216-a,TTCGAGCCCA,CCAGAACTTC
+NA07439-a,ACAGTTTATA,ATCGCACTTG
+NA20241-a,CGCAGATAGC,CAGAGCAGTG
+NA05212-a,CTAGACTTGT,TGGAGTCGTG
+NA15849-a,CATAGGAATG,TATTGCAGTG
+NA20208-a,AGGTCTACCA,TAACTCCCGG
+NTC,AATTCGACCT,AATATGCAAC
+
+[Cloud_Settings]
+GeneratedVersion,2.7.0.202411112342
+
+[Cloud_Data]
+Sample_ID,ProjectName,LibraryName,LibraryPrepKitName,IndexAdapterKitName
+HG001-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG001-a_GAGTAATATA_CCGACCGTGA,,
+HG001-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG001-b_CGTCATGCTA_TAAAGTTCGT,,
+HG001-c,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG001-c_TTGGCTAGGT_TATAGGAGTA,,
+HG002-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG002-a_AGTCGACTCT_CGATCGTAAT,,
+HG002-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG002-b_ACCAGCGCTC_CAAACTCGTC,,
+HG002-c,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG002-c_AAAGAACATG_AATGGGAACT,,
+HG003-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG003-a_TACACAGAGT_TACCGGGACA,,
+HG003-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG003-b_CCGATAATAG_TGCTGATCAA,,
+HG003-c,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG003-c_CCGCTTAAGG_GATCGTGATT,,
+HG004-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG004-a_CCCTCCCTGC_ACTCCGACAG,,
+HG004-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG004-b_CACCTGCCGA_TGACACTCAT,,
+HG004-c,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG004-c_AGTAAATAAG_GCGTCCCAAG,,
+HG005-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG005-a_TATGTAGAGA_TCTGAGTTAG,,
+HG005-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG005-b_CTGACTCCAC_TGTTATACGC,,
+HG005-c,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG005-c_GTACCGAATA_CCTTACTCTT,,
+HG006-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG006-a_TTTACAAGAT_TGTATCGCCG,,
+HG006-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG006-b_GTCCTCCTGC_GAGGCTGCTG,,
+HG006-c,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG006-c_GAAACAGCGT_ACGTGTTGGA,,
+HG007-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG007-a_AACAAATTCA_CCATTTCCCA,,
+HG007-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG007-b_ATGGCTTCCG_CCGCACTCCT,,
+HG007-c,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG007-c_CAACTATGCA_CCAGAGTGAC,,
+BUCCAL1-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,BUCCAL1-a_ATTGCGAAGG_CTGAGGGCAC,,
+BUCCAL1-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,BUCCAL1-b_ATTGGTGCGG_ACGACCTAAT,,
+BUCCAL2-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,BUCCAL2-a_GCGAACGCAA_TTGTCAGAGA,,
+BUCCAL2-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,BUCCAL2-b_AGCGGGAGAT_ACAACAGCCT,,
+BUCCAL3-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,BUCCAL3-a_TAGCAAGGCT_GACCTACTGA,,
+BUCCAL3-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,BUCCAL3-b_GATAGAGAGG_CTCCGTCGAT,,
+BUCCAL4-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,BUCCAL4-a_ATAGGGAACA_TAAAGTATCG,,
+BUCCAL5-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,BUCCAL5-a_ACCACTTCTG_ATAAGGCCCA,,
+BUCCAL6-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,BUCCAL6-a_CAATAACGGC_TGCATGTGTA,,
+BUCCAL7-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,BUCCAL7-a_CGCGTGATCG_TAGGATCGGA,,
+BUCCAL8-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,BUCCAL8-a_TAGGCCATCG_ACGTTGGAGA,,
+BUCCAL9-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,BUCCAL9-a_TGCGCCGCAT_TGCGGTTCAG,,
+NA05115-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,NA05115-a_ACTAGTCTCT_TTGTACATAG,,
+NA09216-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,NA09216-a_TTCGAGCCCA_CCAGAACTTC,,
+NA07439-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,NA07439-a_ACAGTTTATA_ATCGCACTTG,,
+NA20241-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,NA20241-a_CGCAGATAGC_CAGAGCAGTG,,
+NA05212-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,NA05212-a_CTAGACTTGT_TGGAGTCGTG,,
+NA15849-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,NA15849-a_CATAGGAATG_TATTGCAGTG,,
+NA20208-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,NA20208-a_AGGTCTACCA_TAACTCCCGG,,
+NTC,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,NTC_AATTCGACCT_AATATGCAAC,,
+
+=== bclconvert input log ===
+WARNING: sample sheet SoftwareVersion 4.3.16 is newer than pinned runtime 4.0.3
+ERROR: Sample_ID HG001-a at line 21 is not present in samples.tsv

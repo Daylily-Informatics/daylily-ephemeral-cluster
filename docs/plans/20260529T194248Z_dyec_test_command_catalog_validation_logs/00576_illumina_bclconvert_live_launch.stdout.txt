@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=ccv20260529r14_illumina_bclconvert
+__DAYLILY_TMUX_SESSION__=ccv20260529r14_illumina_bclconvert
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ccv20260529r14_illumina_bclconvert
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert/daylily-omics-analysis
+Tmux session 'ccv20260529r14_illumina_bclconvert' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/ccv20260529r14_illumina_bclconvert
+Workflow repo path: /fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster dyec-test
+Then run: tmux attach -t ccv20260529r14_illumina_bclconvert

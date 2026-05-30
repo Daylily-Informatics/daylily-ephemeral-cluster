@@ -1,0 +1,242 @@
+DAY-EC activated.
+DAY-EC activated.
+            done
+            for rel in $optional_rels; do
+                link_or_copy_optional "$rel"
+            done
+        elif [ mounted = "s3" ]; then
+            if [ -z s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/ ]; then
+                echo "SOURCE_S3_URI is required for Illumina run QC S3 mode" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.log
+                exit 2
+            fi
+            if [ -z lsmc ]; then
+                echo "PROFILE is required for Illumina run QC S3 mode" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.log
+                exit 2
+            fi
+            if [ lsmc = "default" ]; then
+                echo "PROFILE must not be default for Illumina run QC S3 mode" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.log
+                exit 2
+            fi
+            if [ -z us-west-2 ]; then
+                echo "REGION is required for Illumina run QC S3 mode" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.log
+                exit 2
+            fi
+            command -v aws >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.log 2>&1
+            run_uri=$(printf "%s" s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/ | sed 's:/*$::')
+            for rel in $required_rels; do
+                s3_copy_required "$rel"
+            done
+            for rel in $optional_rels; do
+                s3_copy_optional "$rel"
+            done
+        else
+            echo "Unsupported Illumina run QC mode: mounted" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.log
+            exit 2
+        fi
+        for rel in $required_rels; do
+            test -s "results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/source_run_subset/$rel"
+        done
+        touch results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.done
+        
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+[Sat May 30 03:12:17 2026]
+Finished job 3.
+1 of 6 steps (17%) done
+Select jobs to execute...
+
+[Sat May 30 03:12:17 2026]
+localrule illumina_run_qc_interop_summary:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.done
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/interop_summary.log
+    jobid: 2
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/benchmarks/interop_summary.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv) $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/interop_summary.log)
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/interop_summary.log
+        test -d results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/source_run_subset/InterOp
+        if [ -z "${CONDA_PREFIX:-}" ]; then
+            echo "CONDA_PREFIX is required for illumina_run_qc_interop_summary" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/interop_summary.log
+            exit 2
+        fi
+        "$CONDA_PREFIX/bin/python" workflow/scripts/write_interop_summary_csv.py \
+          --run-folder results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/source_run_subset \
+          --summary-out results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv \
+          --index-summary-out results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/interop_summary.log 2>&1
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv
+        
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+[Sat May 30 03:12:29 2026]
+Finished job 2.
+2 of 6 steps (33%) done
+Select jobs to execute...
+
+[Sat May 30 03:12:29 2026]
+localrule illumina_run_qc_json:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log
+    jobid: 4
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/benchmarks/illumina_run_qc_json.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json) $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log)
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/source_run_subset/RunInfo.xml
+        if [ -z "${CONDA_PREFIX:-}" ]; then
+            echo "CONDA_PREFIX is required for illumina_run_qc_json" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log
+            exit 2
+        fi
+        "$CONDA_PREFIX/bin/python" workflow/scripts/write_illumina_run_qc_json.py \
+          --run-info results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/source_run_subset/RunInfo.xml \
+          --interop-summary results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv \
+          --interop-index-summary results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv \
+          --output-json results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log 2>&1
+        python -m json.tool results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json.pretty
+        mv results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json.pretty results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json
+        
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+[Sat May 30 03:12:29 2026]
+Finished job 4.
+3 of 6 steps (50%) done
+Select jobs to execute...
+
+[Sat May 30 03:12:29 2026]
+localrule illumina_run_qc_report:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.log
+    jobid: 1
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/benchmarks/illumina_run_qc_report.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html) $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv) $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.log)
+        python workflow/scripts/summarize_run_qc_report.py \
+          --platform ILMN \
+          --run-s3-uri s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/ \
+          --interop-summary results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv \
+          --interop-index-summary results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv \
+          --illumina-qc-json results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json \
+          --output-html results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html \
+          --output-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv \
+          --done results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.log 2>&1
+        
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+[Sat May 30 03:12:30 2026]
+Finished job 1.
+4 of 6 steps (67%) done
+Select jobs to execute...
+
+[Sat May 30 03:12:30 2026]
+localrule illumina_run_qc_multiqc:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs/illumina_run_qc_summary_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs/illumina_run_qc_multiqc_config.yaml
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_multiqc.log
+    jobid: 5
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/benchmarks/illumina_run_qc_multiqc.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html) $(dirname results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_multiqc.log) results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs
+        out=results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html
+        multiqc --version > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_multiqc.log 2>&1 || true
+        python workflow/scripts/illumina_run_qc_to_multiqc.py \
+          --summary-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv \
+          --illumina-qc-json results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json \
+          --summary-out results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs/illumina_run_qc_summary_mqc.tsv \
+          --config-out results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs/illumina_run_qc_multiqc_config.yaml \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_multiqc.log 2>&1
+        multiqc -f \
+          -m custom_content \
+          --config results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs/illumina_run_qc_multiqc_config.yaml \
+          --filename "$(basename "$out")" \
+          --outdir "$(dirname "$out")" \
+          results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_multiqc.log 2>&1
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html
+        
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/73dbbd9209dde9d5b560eca76639c2a0_
+[Sat May 30 03:12:41 2026]
+Finished job 5.
+5 of 6 steps (83%) done
+Select jobs to execute...
+
+[Sat May 30 03:12:41 2026]
+localrule produce_illumina_run_qc:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html
+    jobid: 0
+    reason: Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat May 30 03:12:41 2026]
+Finished job 0.
+6 of 6 steps (100%) done
+Complete log: .snakemake/log/2026-05-30T031212.197057.snakemake.log
+
+
+	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
+
+
+ 
+]]]]--------WORKFLOW SUCCESS====================]]]]]--
+RETURN CODE: 0
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the 
+supported path is `source ./activate`.
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-05-30 03:12:49,247 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
+  · Attached export DRA dra-0907199c8677f6731 at 
+/fsx/analysis_results/ubuntu/ccv20260529r11_illumina_run_qc/
+2026-05-30 03:15:23,917 INFO Task task-0e5c6d309148fa50b status: PENDING
+2026-05-30 03:15:54,327 INFO Task task-0e5c6d309148fa50b status: EXECUTING
+2026-05-30 03:16:24,546 INFO Task task-0e5c6d309148fa50b status: SUCCEEDED
+2026-05-30 03:24:33,122 INFO Wrote export status to /home/ubuntu/daylily-runs/ccv20260529r11_illumina_run_qc/export/fsx_export.yaml
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: dyec-test                                                          │
+│  FSx: fs-0df313e1751219cac                                                   │
+│  Source: /analysis_results/ubuntu/ccv20260529r11_illumina_run_qc/            │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260  │
+│  529r11_illumina_run_qc/                                                     │
+│  Status file:                                                                │
+│  /home/ubuntu/daylily-runs/ccv20260529r11_illumina_run_qc/export/fsx_export  │
+│  .yaml                                                                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[INFO] Deleted FSx analysis directory after successful export: /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_run_qc
+[INFO] Workflow exited with status 0
+shell-init: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+ERROR: error getting working directory name: no such file or directory
+      while executing
+  "pwd"
+      (procedure "getAbsolutePath" line 9)
+      invoked from within
+  "getAbsolutePath $::argv0"
+      (procedure "cmdModuleAutoinit" line 19)
+      invoked from within
+  "cmdModuleAutoinit"
+      (procedure "module" line 333)
+      invoked from within
+  "{*}$execcmdlist"
+  Please report this issue at https://github.com/cea-hpc/modules/issues
+chdir: error retrieving current directory: getcwd: cannot access parent directories: No such file or directory
+DAY-EC activated.
+✗ Unexpected error: [Errno 2] No such file or directory
+(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260529r11_illumina_run_qc/daylily-omics-analysis$

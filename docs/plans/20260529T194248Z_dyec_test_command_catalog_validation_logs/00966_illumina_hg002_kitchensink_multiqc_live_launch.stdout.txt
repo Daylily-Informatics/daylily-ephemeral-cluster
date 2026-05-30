@@ -1,0 +1,16 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_STAGE_DIR__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a
+__DAYLILY_STAGE_SAMPLES__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/20260529T202437Z_6ac53e3a_samples.tsv
+__DAYLILY_STAGE_UNITS__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/20260529T202437Z_6ac53e3a_units.tsv
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=ccv20260529r26_illumina_hg002_kitchensink_multiqc
+__DAYLILY_TMUX_SESSION__=ccv20260529r26_illumina_hg002_kitchensink_multiqc
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ccv20260529r26_illumina_hg002_kitchensink_multiqc
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis
+Tmux session 'ccv20260529r26_illumina_hg002_kitchensink_multiqc' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/ccv20260529r26_illumina_hg002_kitchensink_multiqc
+Workflow repo path: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster dyec-test
+Then run: tmux attach -t ccv20260529r26_illumina_hg002_kitchensink_multiqc

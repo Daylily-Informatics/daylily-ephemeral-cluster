@@ -1,0 +1,103 @@
+DAY-EC activated.
+DAY-EC activated.
+## status
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/daylily-omics-analysis",
+  "session_name": "ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc",
+  "started_at": "2026-05-30T07:37:28Z"
+}
+## run dir
+1780128941.6183481760 697443 /home/ubuntu/daylily-runs/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/tmux.log
+1780128941.6173481760 1705 /home/ubuntu/daylily-runs/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/export/fsx_export.yaml
+1780126648.9384888250 557 /home/ubuntu/daylily-runs/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/status.json
+1780126646.7614888950 0 /home/ubuntu/daylily-runs/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/tmux-bootstrap.log
+1780126646.7604888950 21738 /home/ubuntu/daylily-runs/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/launch.sh
+## tmux tail
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+[1m[48;5;166m[38;5;79m...WARNING: No aligners set in the config.[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected aligners from env: ['sent'][0m
+[1m[38;5;79maligners (final): [sent][0m
+[1m[48;5;166m[38;5;79m...INFO: No dedupers set in config. Defaulting to na (no dedup).[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected dedupers. DDUP updated to: ['dmd'][0m
+[1m[38;5;79mdeduper (final): [dmd][0m
+[1m[48;5;166m[38;5;79m...WARNING: No snv_callers set in the config.[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected SNV callers from env: ['sentd'][0m
+[1m[38;5;79mSNV Callers (final): [sentd][0m
+[1m[38;5;79mSomatic SNV Callers:[senttn][0m
+[1m[48;5;166m[38;5;79m... WARNING: No sv_callers set in the config.[0m
+[1m[38;5;79mSV Callers (final): [][0m
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=1, time=5440, vcpu=1
+Select jobs to execute...
+[Sat May 30 08:10:55 2026]
+Finished job 127.
+132 of 133 steps (99%) done
+Select jobs to execute...
+
+[Sat May 30 08:10:55 2026]
+localrule produce_multiqc_all:
+    input: results/day/hg38_broad/reports/DAY_final_multiqc.html, results/day/hg38_broad/reports/dayoa_evidence_manifest.json
+    jobid: 6
+    reason: Input files updated by another job: results/day/hg38_broad/reports/dayoa_evidence_manifest.json, results/day/hg38_broad/reports/DAY_final_multiqc.html
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat May 30 08:10:55 2026]
+Finished job 6.
+133 of 133 steps (100%) done
+Complete log: .snakemake/log/2026-05-30T073755.203696.snakemake.log
+
+
+	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
+
+
+[1m[48;5;205m[30m 
+]]]]--------WORKFLOW SUCCESS====================]]]]]--[0m
+[5m[48;5;118m[30mRETURN CODE: 0[0m
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the 
+supported path is `source ./activate`.
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-05-30 08:11:04,212 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
+  · Attached export DRA dra-05e6b65e37761518b at 
+/fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_
+vep_multiqc/
+2026-05-30 08:13:55,211 INFO Task task-0c84802ef290dd3e7 status: PENDING
+2026-05-30 08:14:25,440 INFO Task task-0c84802ef290dd3e7 status: EXECUTING
+2026-05-30 08:14:55,639 INFO Task task-0c84802ef290dd3e7 status: EXECUTING
+2026-05-30 08:15:25,815 INFO Task task-0c84802ef290dd3e7 status: SUCCEEDED
+2026-05-30 08:15:41,618 INFO Wrote export status to /home/ubuntu/daylily-runs/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/export/fsx_export.yaml
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: dyec-test                                                          │
+│  FSx: fs-0df313e1751219cac                                                   │
+│  Source:                                                                     │
+│  /analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatednes  │
+│  s_vep_multiqc/                                                              │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260  │
+│  529r30_illumina_snv_alignstats_relatedness_vep_multiqc/                     │
+│  Status file:                                                                │
+│  /home/ubuntu/daylily-runs/ccv20260529r30_illumina_snv_alignstats_relatedne  │
+│  ss_vep_multiqc/export/fsx_export.yaml                                       │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+## process tree
+ 902092   81703 Ss+        40:31  0.0  0.0 bash -lc source /home/ubuntu/daylily-runs/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/launch.sh >>/home/ubuntu/daylily-runs/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/tmux.log 2>&1
+ 990837  902092 I+         02:16  0.1  0.0 rm -rf -- /fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc
+## analysis dir
+ABSENT /fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc

@@ -1,0 +1,82 @@
+DAY-EC activated.
+DAY-EC activated.
+        timestamp=$(date +%Y%m%d%H%M%S);
+        export TMPDIR="/dev/shm/sentdhiomr_s3_${timestamp}_$$";
+        export SENTIEON_TMPDIR="$TMPDIR";
+        mkdir -p "$TMPDIR";
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+
+        echo "Starting Stage 3 at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage3.log
+
+        if [ ! -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage2.bed ]; then
+            echo "WARNING: hybrid_stage2.bed is empty - no Stage 3 realignment regions; creating empty BAM" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage3.log
+            (
+                samtools view -H results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram | awk -v sample="TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ" '
+                    $1=="@HD" || $1=="@SQ" { print }
+                    $1=="@RG" {
+                        id="";
+                        for (i=1; i<=NF; i++) {
+                            if ($i ~ /^ID:/) {
+                                id=$i;
+                                sub(/^ID:/, "", id)
+                            }
+                        }
+                        if (id != "") print "@RG	ID:" id "	SM:" sample "	LR:1"
+                    }'
+                samtools view -H results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/tmp/sr_dedup.bam | awk -v sample="TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ" '
+                    $1=="@RG" {
+                        id="";
+                        for (i=1; i<=NF; i++) {
+                            if ($i ~ /^ID:/) {
+                                id=$i;
+                                sub(/^ID:/, "", id)
+                            }
+                        }
+                        if (id != "") print "@RG	ID:" id "	SM:" sample
+                    }'
+            ) | samtools view -bo results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage3.bam - 2>> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage3.log
+            samtools quickcheck results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage3.bam >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage3.log 2>&1 ||                 (echo "ERROR: empty Stage3 BAM failed integrity check" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage3.log && exit 1)
+            echo "Stage 3 completed with empty input regions at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage3.log
+            exit 0
+        fi
+
+        # NOTE: Input ONT BAM must have clean @PG headers (no broken PP chain).
+        # Use bin/util/fix_ont_cram_headers.sh to pre-process if needed.
+
+        # Build --replace_rg args: LR reads get LR:1 tag for hybrid model
+        RGIDS=$(samtools view -H results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram | awk '
+            $1=="@RG"{
+                for(i=1;i<=NF;i++){
+                    if($i~/^ID:/){
+                        sub(/^ID:/,"",$i);
+                        print $i
+                    }
+                }
+            }')
+
+        LR_RG_ARGS=""
+        for rgid in $RGIDS; do
+            LR_RG_ARGS="$LR_RG_ARGS --replace_rg ${rgid}=ID:${rgid}\tSM:TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ\tLR:1"
+        done
+
+        # Build --replace_rg args for SR reads: cluster_sample SM (no LR:1 tag)
+        SR_RGIDS=$(samtools view -H results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/tmp/sr_dedup.bam | awk '
+            $1=="@RG"{
+                for(i=1;i<=NF;i++){
+                    if($i~/^ID:/){
+                        sub(/^ID:/,"",$i);
+                        print $i
+                    }
+                }
+            }')
+
+        SR_RG_ARGS=""
+        for rgid in $SR_RGIDS; do
+            SR_RG_ARGS="$SR_RG_ARGS --replace_rg ${rgid}=ID:${rgid}\tSM:TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ"
+        done
+
+        sentieon driver -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -t 188             --temp_dir $TMPDIR             $LR_RG_ARGS $SR_RG_ARGS -i results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.cram             -i results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/tmp/sr_dedup.bam             -i results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage2_unmap.bam             -i results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage2_alt.bam             --interval results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage2.bed             --algo HybridStage3             --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridIlluminaONT2.0.bundle/HybridStage3.model             - 2>> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage3.log |         sentieon util sort             -i - -t 188             --temp_dir $TMPDIR             -o results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/tmp/hybrid_stage3.bam >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage3.log 2>&1
+
+        echo "Stage 3 completed at $(date)" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.3.stage3.log
+        
+Submitted job 117 with external jobid '2051'.

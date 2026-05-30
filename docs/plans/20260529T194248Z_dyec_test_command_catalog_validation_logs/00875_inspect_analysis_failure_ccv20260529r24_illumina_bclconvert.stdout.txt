@@ -1,0 +1,43 @@
+DAY-EC activated.
+DAY-EC activated.
+=== status ===
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": "2026-05-30T06:10:07Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r24_illumina_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260529r24_illumina_bclconvert",
+  "started_at": "2026-05-30T06:08:09Z"
+}
+=== repo ===
+/fsx/analysis_results/ubuntu/ccv20260529r24_illumina_bclconvert/daylily-omics-analysis
+=== latest snakemake logs ===
+1780121406.0000000000 .snakemake/log/2026-05-30T060831.582053.snakemake.log
+1780121408.0000000000 .snakemake/log/2026-05-30T061007.319888.snakemake.log
+=== latest log path: .snakemake/log/2026-05-30T061007.319888.snakemake.log ===
+1:WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260529r24_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk, line 439:
+=== latest log tail ===
+WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260529r24_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk, line 439:
+The units table at /fsx/analysis_results/ubuntu/ccv20260529r24_illumina_bclconvert/daylily-omics-analysis/config/units.tsv has headers but no data rows.
+  File "/fsx/analysis_results/ubuntu/ccv20260529r24_illumina_bclconvert/daylily-omics-analysis/workflow/Snakefile", line 66, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r24_illumina_bclconvert/daylily-omics-analysis/workflow/rules/global_common.smk", line 151, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r24_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 1089, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260529r24_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 439, in _load_units_table
+=== rule logs with errors ===
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log:32:ERROR: Output folder directory structure can not be created at /fsx/scratch/dayoa_bclconvert/2657.41370/fastqs
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:181:                    echo "Mounted metadata staging failed" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:215:                    echo "One or more mounted BCL file copy batches failed" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:279:                    --only-show-errors \
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:282:                    echo "Root-level aws s3 sync failed" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:290:                            --only-show-errors
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:302:                    echo "One or more lane-level aws s3 sync processes failed" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:375:Error in rule run_bclconvert:
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:379:    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log (check log file(s) for error details)
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:526:                    echo "Mounted metadata staging failed" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:560:                    echo "One or more mounted BCL file copy batches failed" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:624:                    --only-show-errors \
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:627:                    echo "Root-level aws s3 sync failed" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:635:                            --only-show-errors
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:647:                    echo "One or more lane-level aws s3 sync processes failed" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:719:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err:722:Exiting because a job execution failed. Look above for error message

@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1 -n",
+  "completed_at": "2026-05-30T10:25:52Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r41_pacbio_snv_alignstats_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r41_pacbio_snv_alignstats_dryrun",
+  "started_at": "2026-05-30T10:25:24Z"
+}

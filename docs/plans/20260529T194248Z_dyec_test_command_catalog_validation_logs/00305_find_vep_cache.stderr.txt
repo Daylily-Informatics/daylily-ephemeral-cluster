@@ -1,0 +1,2 @@
+/tmp/daylily-ssm-oFtIqI.sh: line 23: syntax error near unexpected token `;'
+failed to run commands: exit status 2

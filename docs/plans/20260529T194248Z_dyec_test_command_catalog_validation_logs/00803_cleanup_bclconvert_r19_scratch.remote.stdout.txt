@@ -1,0 +1,6 @@
+DAY-EC activated.
+DAY-EC activated.
+cleanup_target=/fsx/scratch/dayoa_bclconvert/2652.10994
+1.4T	/fsx/scratch/dayoa_bclconvert/2652.10994
+cleanup_absent=/fsx/scratch/dayoa_bclconvert/2652.10994
+12G	/fsx/scratch/dayoa_bclconvert

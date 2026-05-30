@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis",
+  "session_name": "ccv20260529r6_ont_snv_alignstats",
+  "started_at": "2026-05-29T21:22:54Z"
+}

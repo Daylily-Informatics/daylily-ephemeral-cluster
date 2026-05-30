@@ -31,9 +31,7 @@ UNVALIDATED_COMMAND_IDS = {
     "hybrid_ilmn_ont_snv_kitchensink",
     "inflection-bjuice-product-v0.1",
 }
-SIMPLE_TEST_DY_COMMAND = (
-    "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
-)
+SIMPLE_TEST_DY_COMMAND = "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
 
 
 def test_repository_catalog_loads_initial_blessed_command() -> None:
@@ -42,6 +40,16 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
 
     assert catalog.command_catalog_version == 2
     manifest_contract = catalog.input_contracts["sample_manifest"]
+    assert [location.location_id for location in catalog.test_data_locations] == [
+        "default_reference_reads_slim",
+        "default_control_reads_slim",
+    ]
+    assert catalog.test_data_locations[0].mount_path == "/fsx/references"
+    assert (
+        catalog.test_data_locations[0].data_root
+        == "/fsx/references/genomic_data/organism_reads_slim"
+    )
+    assert "default reference mount" in catalog.test_data_locations[0].description
     assert manifest_contract.source_table is not None
     assert manifest_contract.source_table.path == "analysis_samples.tsv"
     assert manifest_contract.source_table.required_columns == [
@@ -686,6 +694,10 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
+    assert payload["test_data_locations"][0]["data_root"] == (
+        "/fsx/references/genomic_data/organism_reads_slim"
+    )
+    assert "default reference mount" in payload["test_data_locations"][0]["description"]
     assert payload["input_contracts"]["sample_manifest"]["source_table"]["required_columns"] == [
         "RUN_ID",
         "SAMPLE_ID",

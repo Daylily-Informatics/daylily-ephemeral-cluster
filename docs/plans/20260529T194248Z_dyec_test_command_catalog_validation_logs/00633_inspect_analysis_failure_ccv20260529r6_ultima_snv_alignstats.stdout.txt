@@ -1,0 +1,45 @@
+DAY-EC activated.
+DAY-EC activated.
+=== status ===
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k",
+  "completed_at": "2026-05-29T21:21:13Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis",
+  "session_name": "ccv20260529r6_ultima_snv_alignstats",
+  "started_at": "2026-05-29T21:01:00Z"
+}
+=== repo ===
+/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis
+=== latest snakemake logs ===
+1780089670.0000000000 .snakemake/log/2026-05-29T210125.136412.snakemake.log
+1780089676.0000000000 .snakemake/log/2026-05-29T212113.410394.snakemake.log
+=== latest log path: .snakemake/log/2026-05-29T212113.410394.snakemake.log ===
+=== latest log tail ===
+Unlocking working directory.
+=== rule logs with errors ===
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:11:[E::hts_open_format] Failed to open file "results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz" : No such file or directory
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:12:[init_data] Error: cannot write to "results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz": No such file or directory
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:13:tbx_index_build3 failed: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:15:Traceback (most recent call last):
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:28:FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz'
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:30:During handling of the above exception, another exception occurred:
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:32:Traceback (most recent call last):
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:36:FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz.X_tv_snp.vcf'
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:44:[E::hts_open_format] Failed to open file "results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz" : No such file or directory
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:45:[init_data] Error: cannot write to "results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz": No such file or directory
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:46:tbx_index_build3 failed: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:48:Traceback (most recent call last):
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:61:FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz'
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:63:During handling of the above exception, another exception occurred:
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:65:Traceback (most recent call last):
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:69:FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz.X_tv_snp.vcf'
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:71:[E::hts_open_format] Failed to open file "results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz" : No such file or directory
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:72:[init_data] Error: cannot write to "results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz": No such file or directory
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:73:tbx_index_build3 failed: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:75:Traceback (most recent call last):
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:88:FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz'
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:90:During handling of the above exception, another exception occurred:
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:92:Traceback (most recent call last):
+results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log:96:FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz.X_tv_snp.vcf'
+logs/slurm/sent_snv_ug/sent_snv_ug.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.4.err:62:        ulimit -n 65536 || echo "ulimit mod failed" > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log 2>&1;

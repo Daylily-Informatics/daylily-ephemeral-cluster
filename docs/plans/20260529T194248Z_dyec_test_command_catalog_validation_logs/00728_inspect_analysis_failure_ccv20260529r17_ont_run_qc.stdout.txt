@@ -1,0 +1,22 @@
+DAY-EC activated.
+DAY-EC activated.
+=== status ===
+{
+  "command": "bin/day_run produce_ont_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv",
+  "completed_at": "2026-05-30T04:56:53Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r17_ont_run_qc/daylily-omics-analysis",
+  "session_name": "ccv20260529r17_ont_run_qc",
+  "started_at": "2026-05-30T04:55:06Z"
+}
+=== repo ===
+/fsx/analysis_results/ubuntu/ccv20260529r17_ont_run_qc/daylily-omics-analysis
+=== latest snakemake logs ===
+1780117012.0000000000 .snakemake/log/2026-05-30T045528.393236.snakemake.log
+1780117016.0000000000 .snakemake/log/2026-05-30T045654.004406.snakemake.log
+=== latest log path: .snakemake/log/2026-05-30T045654.004406.snakemake.log ===
+=== latest log tail ===
+Unlocking working directory.
+=== rule logs with errors ===
+results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log:29:Traceback (most recent call last):
+results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log:68:ValueError: sort array is read-only

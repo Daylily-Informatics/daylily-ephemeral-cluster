@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": "2026-05-30T04:00:50Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260529r14_illumina_bclconvert",
+  "started_at": "2026-05-30T03:53:42Z"
+}

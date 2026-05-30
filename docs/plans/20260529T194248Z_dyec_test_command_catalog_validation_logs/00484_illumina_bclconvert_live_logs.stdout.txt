@@ -1,0 +1,242 @@
+DAY-EC activated.
+DAY-EC activated.
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyec-test .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad  
+       _______ GREAT SUCCESS _______       
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/bclconvert/samples.tsv units_table=.test_data/data/bclconvert/units.tsv
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+SNV Callers (final): []
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cluster nodes: 20
+Job stats:
+job                                      count    min threads    max threads
+-------------------------------------  -------  -------------  -------------
+bclconvert_generate_units_tsv                1              1              1
+bclconvert_metrics_multiqc_exports           1              1              1
+bclconvert_metrics_summary                   1              1              1
+bclconvert_validate_inputs                   1              1              1
+multiqc_bclconvert                           1              1              1
+produce_bclconvert_fastqs_and_metrics        1              1              1
+run_bclconvert                               1            192            192
+total                                        7              1            192
+
+Select jobs to execute...
+
+[Sat May 30 03:12:15 2026]
+localrule bclconvert_validate_inputs:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv, /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/samples.tsv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+    jobid: 1
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_validate_inputs.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+        if [ -z /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/ ]; then
+            echo "bclconvert.run_dir is required" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ ! -d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/ ]; then
+            echo "bclconvert.run_dir does not exist: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ "true" = "false" ]; then
+            echo "keep_undetermined_fastqs=false is unsupported for the bclconvert bootstrap path" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        bcl_extra_args=
+        if [ -n "$bcl_extra_args" ]; then
+            echo "bclconvert.extra_args is not supported in this shell-only bootstrap workflow" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv \
+          --samples-tsv /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/samples.tsv \
+          --normalized-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv \
+          --rows-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
+        touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+        
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
+[Sat May 30 03:12:16 2026]
+Error in rule bclconvert_validate_inputs:
+    jobid: 1
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv, /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/samples.tsv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
+    shell:
+        
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+        if [ -z /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/ ]; then
+            echo "bclconvert.run_dir is required" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ ! -d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/ ]; then
+            echo "bclconvert.run_dir does not exist: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ "true" = "false" ]; then
+            echo "keep_undetermined_fastqs=false is unsupported for the bclconvert bootstrap path" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        bcl_extra_args=
+        if [ -n "$bcl_extra_args" ]; then
+            echo "bclconvert.extra_args is not supported in this shell-only bootstrap workflow" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv \
+          --samples-tsv /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/samples.tsv \
+          --normalized-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv \
+          --rows-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
+        touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Trying to restart job 1.
+Select jobs to execute...
+
+[Sat May 30 03:12:16 2026]
+localrule bclconvert_validate_inputs:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv, /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/samples.tsv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+    jobid: 1
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_validate_inputs.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+        if [ -z /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/ ]; then
+            echo "bclconvert.run_dir is required" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ ! -d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/ ]; then
+            echo "bclconvert.run_dir does not exist: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ "true" = "false" ]; then
+            echo "keep_undetermined_fastqs=false is unsupported for the bclconvert bootstrap path" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        bcl_extra_args=
+        if [ -n "$bcl_extra_args" ]; then
+            echo "bclconvert.extra_args is not supported in this shell-only bootstrap workflow" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv \
+          --samples-tsv /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/samples.tsv \
+          --normalized-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv \
+          --rows-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
+        touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+        
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
+[Sat May 30 03:12:16 2026]
+Error in rule bclconvert_validate_inputs:
+    jobid: 1
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv, /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/samples.tsv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
+    shell:
+        
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+        if [ -z /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/ ]; then
+            echo "bclconvert.run_dir is required" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ ! -d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/ ]; then
+            echo "bclconvert.run_dir does not exist: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ "true" = "false" ]; then
+            echo "keep_undetermined_fastqs=false is unsupported for the bclconvert bootstrap path" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        bcl_extra_args=
+        if [ -n "$bcl_extra_args" ]; then
+            echo "bclconvert.extra_args is not supported in this shell-only bootstrap workflow" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv \
+          --samples-tsv /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis/.test_data/data/bclconvert/samples.tsv \
+          --normalized-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv \
+          --rows-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
+        touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Exiting because a job execution failed. Look above for error message
+ 
+        Womp Womp.  something went awry---- 
+RETURN CODE: 1
+[INFO] Workflow exited with status 1
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert/daylily-omics-analysis$

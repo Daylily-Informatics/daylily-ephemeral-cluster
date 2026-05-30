@@ -1,0 +1,29 @@
+DAY-EC activated.
+DAY-EC activated.
+## session ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun
+## repo /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis
+## sentinel files
+1780127720.0000000000 1323 /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/unlock_fails.log
+1780127718.0000000000 444 /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/logs/about.log
+1780127712.0000000000 833 /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/day_cmd.log
+## snakemake logs
+1780127720.0000000000 29 /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/.snakemake/log/2026-05-30T075517.855112.snakemake.log
+## focused errors
+### /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/.snakemake/log/2026-05-30T075517.855112.snakemake.log
+--- tail /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/.snakemake/log/2026-05-30T075517.855112.snakemake.log
+Unlocking working directory.
+## runtime repair strings
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/vep.smk:178:    vep_concat_fofn,
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/vep.smk:181:rule vep_concat_fofn:
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:12:    "produce_read_haps_contam_identity",
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:239:    produce_read_haps_contam_identity,
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:293:rule haplocheck_vcf_contam_identity:
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:348:%s	NO_VARIANTS	0		0		
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:351:%s	NO_VARIANTS	0		0		
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:353:            printf '<html><body>NO_VARIANTS</body></html>
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:355:            printf 'NO_VARIANTS: haplocheck skipped because the input VCF has no variant records.
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:361:rule read_haps_contam_identity:
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:407:0 0 0 0 0 0 NO_DATA NO_VARIANTS
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:409:            printf 'NO_VARIANTS: read_haps skipped because the input VCF has no variant records.
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:452:rule produce_read_haps_contam_identity:  # TARGET: run read_haps haplotype contamination evidence
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/go_left.smk:40:        goleft indexcov --directory $gl --fai {params.huref}.fai {input.crai} >> {log} 2>&1;

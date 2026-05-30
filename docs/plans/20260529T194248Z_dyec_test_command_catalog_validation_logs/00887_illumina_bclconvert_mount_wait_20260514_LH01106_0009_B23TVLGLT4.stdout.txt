@@ -1,0 +1,88 @@
+{
+  "mounts": [
+    {
+      "association_id": "dra-0283f1688c923752e",
+      "auto_export_events": [],
+      "auto_import_events": [
+        "NEW",
+        "CHANGED"
+      ],
+      "batch_import_metadata_on_create": true,
+      "cluster_name": "dyec-test",
+      "created_at": "2026-05-30T05:55:18Z",
+      "created_by": "jmajor",
+      "data_repository_path": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/",
+      "file_system_path": "/run_dir_mounts/20260513_ONT_HG003/",
+      "fsx_file_system_id": "fs-0df313e1751219cac",
+      "headnode_path": "/fsx/run_dir_mounts/20260513_ONT_HG003/",
+      "lifecycle": "CREATING",
+      "local_projection_status": "present",
+      "mount_id": "20260513_ONT_HG003",
+      "platform": "ONT",
+      "profile_hint": "lsmc",
+      "purpose": "run",
+      "read_only": true,
+      "region": "us-west-2",
+      "run_id": "20260513_ONT_HG003",
+      "source_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/",
+      "tags": {
+        "lsmc:purpose": "run-dir-mount"
+      },
+      "updated_at": "2026-05-30T06:21:10Z"
+    },
+    {
+      "association_id": "dra-0fd84eca5d9101416",
+      "auto_export_events": [],
+      "auto_import_events": [
+        "NEW",
+        "CHANGED"
+      ],
+      "batch_import_metadata_on_create": true,
+      "cluster_name": "dyec-test",
+      "created_at": "2026-05-30T05:55:18Z",
+      "created_by": "jmajor",
+      "data_repository_path": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/",
+      "file_system_path": "/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/",
+      "fsx_file_system_id": "fs-0df313e1751219cac",
+      "headnode_path": "/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/",
+      "lifecycle": "AVAILABLE",
+      "local_projection_status": "present",
+      "mount_id": "20260514_LH01106_0009_B23TVLGLT4",
+      "platform": "ILMN",
+      "profile_hint": "lsmc",
+      "purpose": "run",
+      "read_only": true,
+      "region": "us-west-2",
+      "run_id": "20260514_LH01106_0009_B23TVLGLT4",
+      "source_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/",
+      "tags": {
+        "lsmc:purpose": "run-dir-mount"
+      },
+      "updated_at": "2026-05-30T06:21:10Z"
+    },
+    {
+      "association_id": "dra-0d8459a336d7d53ea",
+      "auto_export_events": [],
+      "auto_import_events": [],
+      "batch_import_metadata_on_create": true,
+      "cluster_name": "dyec-test",
+      "created_at": "2026-05-30T06:01:08Z",
+      "created_by": "jmajor",
+      "data_repository_path": "s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260529r22_ont_run_qc/",
+      "file_system_path": "/analysis_results/ubuntu/ccv20260529r22_ont_run_qc/",
+      "fsx_file_system_id": "fs-0df313e1751219cac",
+      "headnode_path": "/fsx/analysis_results/ubuntu/ccv20260529r22_ont_run_qc/",
+      "lifecycle": "CREATING",
+      "local_projection_status": "missing",
+      "mount_id": "analysis_results",
+      "platform": "OTHER",
+      "profile_hint": "lsmc",
+      "purpose": "custom",
+      "read_only": true,
+      "region": "us-west-2",
+      "run_id": "analysis_results",
+      "source_s3_uri": "s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260529r22_ont_run_qc/",
+      "updated_at": "2026-05-30T06:21:10Z"
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+DAY-EC activated.
+DAY-EC activated.
+before:
+33K	/fsx/scratch/dayoa_bclconvert
+after:
+33K	/fsx/scratch/dayoa_bclconvert

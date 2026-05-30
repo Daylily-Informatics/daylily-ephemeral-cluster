@@ -1,0 +1,235 @@
+DAY-EC activated.
+DAY-EC activated.
+=== snakemake error windows ===
+        fi
+
+        LD_PRELOAD=$LD_PRELOAD /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/sentieon bwa mem         -t 96    -k 19 -Y -M -K 10000000           -x /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaWGS2.2.bundle/bwa.model         -R "@RG\tID:JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ-$epocsec\tSM:JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ\tLB:JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ-LB-1\tPL:ILLUMINA"         /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta           <(   igzip -cd -T 32  -q  results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.R1.fastq.gz  )              <(   igzip -cd -T 32  -q  results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.R2.fastq.gz  )    | mbuffer -m 128G -q -s 2M           | /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/sentieon  util sort         -t  96         --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta         --cram_write_options version=3.0,compressor=rans         --sortblock_thread_count 96         --bam_compression 1         --temp_dir "$sort_tmp"         --intermediate_compress_level 1          --block_size 4G           --sam2bam         -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.bam - >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+
+        #samtools index -b -@ 192 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.bam.bai  >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+
+        end_time=$(date +%s);
+    	elapsed_time=$((($end_time - $start_time) / 60));
+        echo "Elapsed-Time-min:	$itype	$elapsed_time" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+        
+Submitted job 6 with external jobid '2987'.
+[Sat May 30 08:37:06 2026]
+Finished job 47.
+6 of 161 steps (4%) done
+[Sat May 30 08:37:24 2026]
+Error in rule fastqc_subsampled:
+    jobid: 44
+    input: /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz, /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/logs/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/7a5c7c62c589298e8e834f93fb618415_
+    shell:
+        
+        rm -rf results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc ;
+        mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc ;
+        mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp ;
+        mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/input ;
+        input_dir=results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/input
+        sample_name=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+        r1_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz)
+        r2_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz)
+        if [[ "${#r1_inputs[@]}" -eq 0 && "${#r2_inputs[@]}" -eq 0 ]]; then
+            printf 'SKIP: fastqc_subsampled found no paired FASTQ inputs for %s; likely CRAM/BAM-only or manifest FASTQ path is na.
+' "JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ" > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/logs/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.log
+            touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done
+            exit 0
+        fi
+        if [[ "${#r1_inputs[@]}" -ne "${#r2_inputs[@]}" ]]; then
+            printf 'fastqc_subsampled requires matched R1/R2 FASTQ counts for %s; got R1=%s R2=%s
+' "JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ" "${#r1_inputs[@]}" "${#r2_inputs[@]}" >&2
+            exit 1
+        fi
+        fastqc_inputs=()
+        for idx in "${!r1_inputs[@]}"; do
+            lane_idx="$(printf '%03d' "$((idx + 1))")"
+            lane_suffix=""
+            if [[ "${#r1_inputs[@]}" -gt 1 ]]; then
+                lane_suffix=".${lane_idx}"
+            fi
+            r1_link="${input_dir}/${sample_name}.R1${lane_suffix}.fastq.gz"
+            r2_link="${input_dir}/${sample_name}.R2${lane_suffix}.fastq.gz"
+            ln -sfn "$(realpath "${r1_inputs[$idx]}")" "${r1_link}"
+            ln -sfn "$(realpath "${r2_inputs[$idx]}")" "${r2_link}"
+            fastqc_inputs+=("${r1_link}" "${r2_link}")
+        done
+        #fastqc -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc -t 32 -d results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp  <(seqkit sample --proportion 0.25 <(seqfu interleave -1 <(unpigz -c -q -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz) -2 <(unpigz -c -q -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz) ) )  ;
+        fastqc -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc -t 32 -d results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp "${fastqc_inputs[@]}"
+        rm -f "${fastqc_inputs[@]}"
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done_subsampled_at_0.25;
+        ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 2985
+
+Error executing rule fastqc_subsampled on cluster (jobid: 44, external: 2985, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r34_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/.snakemake/tmp._h77jrfc/snakejob.fastqc_subsampled.44.sh). For error details see the cluster log and the log files of the involved rule(s).
+Trying to restart job 44.
+Select jobs to execute...
+
+[Sat May 30 08:37:24 2026]
+rule fastqc_subsampled:
+    input: /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz, /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/logs/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.log
+    jobid: 44
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+    threads: 32
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192,i192mem,i128, vcpu=32, distribution=block, exclusive=, constraint=, exclude=, include=
+
+            if [[ "${#r1_inputs[@]}" -gt 1 ]]; then
+                lane_suffix=".${lane_idx}"
+            fi
+            r1_link="${input_dir}/${sample_name}.R1${lane_suffix}.fastq.gz"
+            r2_link="${input_dir}/${sample_name}.R2${lane_suffix}.fastq.gz"
+            ln -sfn "$(realpath "${r1_inputs[$idx]}")" "${r1_link}"
+            ln -sfn "$(realpath "${r2_inputs[$idx]}")" "${r2_link}"
+            fastqc_inputs+=("${r1_link}" "${r2_link}")
+        done
+        #fastqc -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc -t 32 -d results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp  <(seqkit sample --proportion 0.25 <(seqfu interleave -1 <(unpigz -c -q -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz) -2 <(unpigz -c -q -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz) ) )  ;
+        fastqc -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc -t 32 -d results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp "${fastqc_inputs[@]}"
+        rm -f "${fastqc_inputs[@]}"
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done_subsampled_at_0.25;
+        ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
+        
+[Sat May 30 08:37:24 2026]
+Error in rule seqfu:
+    jobid: 46
+    input: /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz, /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/7a5c7c62c589298e8e834f93fb618415_
+    shell:
+        
+        mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv);
+        r1_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz)
+        r2_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz)
+        if [[ "${#r1_inputs[@]}" -eq 0 && "${#r2_inputs[@]}" -eq 0 ]]; then
+            printf 'SKIP: seqfu found no paired FASTQ inputs for %s; likely CRAM/BAM-only or manifest FASTQ path is na.
+' "JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ" > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log
+            printf 'NO DATA FOUND
+' > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv
+            printf 'NO DATA FOUND
+' > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv
+            touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done
+            exit 0
+        fi
+        ( cat  <(gzip -dc -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz ) | env    seqfu stats --nice -b  --verbose --multiqc ./results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv - &
+        cat <(gzip -dc -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz ) | env    seqfu stats --nice -b  --verbose --multiqc ./results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv - &
+        wait;
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done;) > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log
+        ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done;
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 2986
+
+Error executing rule seqfu on cluster (jobid: 46, external: 2986, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r34_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/.snakemake/tmp._h77jrfc/snakejob.seqfu.46.sh). For error details see the cluster log and the log files of the involved rule(s).
+Submitted job 44 with external jobid '2989'.
+Trying to restart job 46.
+Select jobs to execute...
+
+[Sat May 30 08:37:24 2026]
+rule seqfu:
+    input: /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz, /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done
+=== fastqc and seqfu files ===
+2026-05-30T08:37:25.0000000000 0 logs/slurm/fastqc_subsampled/fastqc_subsampled.JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.44.out
+2026-05-30T08:37:33.0000000000 0 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log
+2026-05-30T08:37:33.0000000000 11865 logs/slurm/seqfu/seqfu.JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.46.err
+2026-05-30T08:37:33.0000000000 126 logs/slurm/seqfu/seqfu.JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.46.out
+2026-05-30T08:37:34.0000000000 0 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/logs/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.log
+2026-05-30T08:37:34.0000000000 14558 logs/slurm/fastqc_subsampled/fastqc_subsampled.JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.44.err
+=== fastqc and seqfu log tails ===
+--- logs/slurm/fastqc_subsampled/fastqc_subsampled.JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.44.err ---
+	at java.base/java.util.zip.GZIPInputStream.<init>(GZIPInputStream.java:82)
+	at java.base/java.util.zip.GZIPInputStream.<init>(GZIPInputStream.java:114)
+	at uk.ac.babraham.FastQC.Utilities.MultiMemberGZIPInputStream.<init>(MultiMemberGZIPInputStream.java:37)
+	at uk.ac.babraham.FastQC.Sequence.FastQFile.<init>(FastQFile.java:80)
+	at uk.ac.babraham.FastQC.Sequence.SequenceFactory.getSequenceFile(SequenceFactory.java:106)
+	at uk.ac.babraham.FastQC.Sequence.SequenceFactory.getSequenceFile(SequenceFactory.java:62)
+	at uk.ac.babraham.FastQC.Analysis.OfflineRunner.processFile(OfflineRunner.java:159)
+	at uk.ac.babraham.FastQC.Analysis.OfflineRunner.<init>(OfflineRunner.java:121)
+	at uk.ac.babraham.FastQC.FastQCApplication.main(FastQCApplication.java:316)
+Failed to process results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/input/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.R2.fastq.gz
+java.io.IOException: No data available
+	at java.base/java.io.FileInputStream.read0(Native Method)
+	at java.base/java.io.FileInputStream.read(FileInputStream.java:201)
+	at java.base/java.io.FilterInputStream.read(FilterInputStream.java:71)
+	at java.base/java.io.PushbackInputStream.read(PushbackInputStream.java:138)
+	at java.base/java.util.zip.CheckedInputStream.read(CheckedInputStream.java:59)
+	at java.base/java.util.zip.GZIPInputStream.readUByte(GZIPInputStream.java:294)
+	at java.base/java.util.zip.GZIPInputStream.readUShort(GZIPInputStream.java:286)
+	at java.base/java.util.zip.GZIPInputStream.readHeader(GZIPInputStream.java:198)
+	at java.base/java.util.zip.GZIPInputStream.<init>(GZIPInputStream.java:82)
+	at java.base/java.util.zip.GZIPInputStream.<init>(GZIPInputStream.java:114)
+	at uk.ac.babraham.FastQC.Utilities.MultiMemberGZIPInputStream.<init>(MultiMemberGZIPInputStream.java:37)
+	at uk.ac.babraham.FastQC.Sequence.FastQFile.<init>(FastQFile.java:80)
+	at uk.ac.babraham.FastQC.Sequence.SequenceFactory.getSequenceFile(SequenceFactory.java:106)
+	at uk.ac.babraham.FastQC.Sequence.SequenceFactory.getSequenceFile(SequenceFactory.java:62)
+	at uk.ac.babraham.FastQC.Analysis.OfflineRunner.processFile(OfflineRunner.java:159)
+	at uk.ac.babraham.FastQC.Analysis.OfflineRunner.<init>(OfflineRunner.java:121)
+	at uk.ac.babraham.FastQC.FastQCApplication.main(FastQCApplication.java:316)
+[Sat May 30 08:37:34 2026]
+Error in rule fastqc_subsampled:
+    jobid: 0
+    input: /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz, /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/logs/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/7a5c7c62c589298e8e834f93fb618415_
+    shell:
+        
+        rm -rf results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc ;
+        mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc ;
+        mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp ;
+        mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/input ;
+        input_dir=results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/input
+        sample_name=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+        r1_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz)
+        r2_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz)
+        if [[ "${#r1_inputs[@]}" -eq 0 && "${#r2_inputs[@]}" -eq 0 ]]; then
+            printf 'SKIP: fastqc_subsampled found no paired FASTQ inputs for %s; likely CRAM/BAM-only or manifest FASTQ path is na.
+' "JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ" > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/logs/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.log
+            touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done
+            exit 0
+        fi
+        if [[ "${#r1_inputs[@]}" -ne "${#r2_inputs[@]}" ]]; then
+            printf 'fastqc_subsampled requires matched R1/R2 FASTQ counts for %s; got R1=%s R2=%s
+' "JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ" "${#r1_inputs[@]}" "${#r2_inputs[@]}" >&2
+            exit 1
+        fi
+        fastqc_inputs=()
+        for idx in "${!r1_inputs[@]}"; do
+            lane_idx="$(printf '%03d' "$((idx + 1))")"
+            lane_suffix=""
+            if [[ "${#r1_inputs[@]}" -gt 1 ]]; then
+                lane_suffix=".${lane_idx}"
+            fi
+            r1_link="${input_dir}/${sample_name}.R1${lane_suffix}.fastq.gz"
+            r2_link="${input_dir}/${sample_name}.R2${lane_suffix}.fastq.gz"
+            ln -sfn "$(realpath "${r1_inputs[$idx]}")" "${r1_link}"
+            ln -sfn "$(realpath "${r2_inputs[$idx]}")" "${r2_link}"
+            fastqc_inputs+=("${r1_link}" "${r2_link}")
+        done
+        #fastqc -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc -t 32 -d results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp  <(seqkit sample --proportion 0.25 <(seqfu interleave -1 <(unpigz -c -q -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz) -2 <(unpigz -c -q -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz) ) )  ;
+        fastqc -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc -t 32 -d results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp "${fastqc_inputs[@]}"
+        rm -f "${fastqc_inputs[@]}"
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done_subsampled_at_0.25;
+        ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+--- logs/slurm/seqfu/seqfu.JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.46.err ---
+
+[Sat May 30 08:37:32 2026]
+rule seqfu:
+    input: /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz, /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz
+    output: results--output truncated--

@@ -1,0 +1,242 @@
+DAY-EC activated.
+DAY-EC activated.
+To get started:
+  cd /fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc_dryrun/daylily-omics-analysis
+  # initialize and run the analysis repository per its documentation
+Notice: --project not set. Using default project name: dyec-test
+Project: dyec-test
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'dyec-test' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+# conda environments:
+#
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/051b9c93eaf518b5ddebc4344275e8a4_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/0c86add3b549fcc28843f5872250be8c_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/100507f8e13d5e1848ac45d4d452691c_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/1142d6cbdb634d9e332e99dc4820c6a0_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/160617592874011bcee6aad07c00c9ad_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/268f6065d6f69417fea15776392afaf9_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/2bc06e7aeab5345bc658146f339d6cd8_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/2dc9c608977f6d7c6253f8d381138ed4_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/634a8f3a2dffe15027f8cca0913f9426_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/70729e66ede5758449affc0303f52937_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/738f2ef5db9d8ccc1d2e2f995b734454_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/73dbbd9209dde9d5b560eca76639c2a0_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/7a5c7c62c589298e8e834f93fb618415_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/86ad48bef57edc0a5a866843ec8f3737_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/9a86ccf495a30ab366c2e3a27d6ba5ef_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a876128b7711b7b3576ee89d4b896694_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/b364badf61d8e9d2d9321a0a7c8fd0c6_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/d42215c34ab8867d1a29ad0dad583781_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/e28353b323f26af0747eb0fc4db2c579_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/f02f4b1dcb4977fd9602b074e7c885b9_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/fb0da2b0be44b336d1294fa52fffc58e_
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'dyec-test' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyec-test .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad  
+       _______ GREAT SUCCESS _______       
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm produce_ultima_run_qc -p -j 5 -k -n --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv --config run_qc={"ultima":{"run_s3_uri":"s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/","metrics_path":"/fsx/run_dir_mounts/602221-20260417_2346/602221-S10_B-Z0310-CATGACAGTAATGAT/602221-S10_B-Z0310-CATGACAGTAATGAT.csv"}}
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc_dryrun/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+SNV Callers (final): []
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc_dryrun/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc_dryrun/daylily-omics-analysis/config/units.tsv
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_7x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_10x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_20x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/HG003_30x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_40x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_7x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_10x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_20x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/HG003_30x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_40x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_7x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_10x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_20x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/HG003_30x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_40x_R1.fastq.gz'
+Building DAG of jobs...
+Job stats:
+job                      count    min threads    max threads
+---------------------  -------  -------------  -------------
+produce_ultima_run_qc        1              1              1
+ultima_run_qc_report         1              1              1
+total                        2              1              1
+
+
+[Sat May 30 03:42:16 2026]
+localrule ultima_run_qc_report:
+    output: results/runs/602221-20260417_2346/run_qc/ultima/summary.html, results/runs/602221-20260417_2346/run_qc/ultima/summary.tsv, results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done
+    log: results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log
+    jobid: 1
+    benchmark: results/runs/602221-20260417_2346/run_qc/ultima/benchmarks/ultima_run_qc_report.bench.tsv
+    reason: Missing output files: results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/602221-20260417_2346/run_qc/ultima/summary.html) $(dirname results/runs/602221-20260417_2346/run_qc/ultima/summary.tsv) $(dirname results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log)
+        python workflow/scripts/summarize_run_qc_report.py \
+          --platform UG \
+          --run-s3-uri s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/ \
+          --metrics-path /fsx/run_dir_mounts/602221-20260417_2346/602221-S10_B-Z0310-CATGACAGTAATGAT/602221-S10_B-Z0310-CATGACAGTAATGAT.csv \
+          --output-html results/runs/602221-20260417_2346/run_qc/ultima/summary.html \
+          --output-tsv results/runs/602221-20260417_2346/run_qc/ultima/summary.tsv \
+          --done results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done > results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log 2>&1
+        
+
+[Sat May 30 03:42:16 2026]
+localrule produce_ultima_run_qc:
+    input: results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done
+    jobid: 0
+    reason: Input files updated by another job: results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Job stats:
+job                      count    min threads    max threads
+---------------------  -------  -------------  -------------
+produce_ultima_run_qc        1              1              1
+ultima_run_qc_report         1              1              1
+total                        2              1              1
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        produce_ultima_run_qc
+    missing output files:
+        ultima_run_qc_report
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.
+RETURN CODE: 0
+[INFO] Workflow exited with status 0
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc_dryrun/daylily-omics-analysis$
