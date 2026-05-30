@@ -74,6 +74,7 @@ CLUSTER_BOOT_CONFIG_FILENAMES = (
     "sbatch",
     "sleep_test.sh",
 )
+BOOT_CONFIG_REFERENCE_COMPAT_LINE = b'reference_compat_root="/fsx/data"'
 
 
 @dataclass(frozen=True)
@@ -388,6 +389,17 @@ def _parse_s3_destination(uri: str) -> tuple[str, str]:
     return parsed.netloc, parsed.path.lstrip("/").rstrip("/")
 
 
+def _boot_body_contains_legacy_fsx_data(filename: str, body: bytes) -> bool:
+    if b"/fsx/data" not in body:
+        return False
+    if filename != "post_install_ubuntu_combined.sh":
+        return True
+    return any(
+        b"/fsx/data" in line and BOOT_CONFIG_REFERENCE_COMPAT_LINE not in line
+        for line in body.splitlines()
+    )
+
+
 def publish_cluster_boot_config(
     s3_client: Any,
     *,
@@ -408,7 +420,7 @@ def publish_cluster_boot_config(
         if not source.is_file():
             raise FileNotFoundError(f"Cluster boot config source not found: {source}")
         body = source.read_bytes()
-        if b"/fsx/data" in body:
+        if _boot_body_contains_legacy_fsx_data(filename, body):
             raise ValueError(f"Cluster boot config contains legacy /fsx/data path: {source}")
         bodies.append((filename, body))
 

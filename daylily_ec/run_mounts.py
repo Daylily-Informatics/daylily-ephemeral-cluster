@@ -50,6 +50,7 @@ ALL_AUTO_IMPORT_EVENTS = ("NEW", "CHANGED", "DELETED")
 TERMINAL_FAILURE_LIFECYCLES = {"FAILED", "MISCONFIGURED"}
 INACTIVE_LIFECYCLES = {"DELETED", "DELETING", "DELETE_IN_PROGRESS", "FAILED"}
 RUN_MOUNT_PURPOSE_TAG = "run-dir-mount"
+ATLAS_RW_MARKER = ".atlas_rw"
 STATE_SCHEMA_VERSION = 1
 LOCAL_PROJECTION_CREATED = "created"
 LOCAL_PROJECTION_PRESENT = "present"
@@ -341,6 +342,47 @@ def parse_auto_export_events(
     return _parse_event_tokens(raw, default=())
 
 
+def atlas_rw_marker_candidates(source_s3_uri: str) -> List[tuple[str, str]]:
+    """Return allowed ancestor marker keys for an opt-in read/write S3 prefix."""
+    normalized = normalize_s3_uri(source_s3_uri)
+    parsed = urlparse(normalized)
+    parts = [part for part in parsed.path.lstrip("/").strip("/").split("/") if part]
+    if not parts:
+        return []
+    candidates: List[tuple[str, str]] = []
+    for depth in range(len(parts), 0, -1):
+        candidates.append((parsed.netloc, "/".join([*parts[:depth], ATLAS_RW_MARKER])))
+    return candidates
+
+
+def verify_atlas_rw_marker(s3_client: Any, source_s3_uri: str) -> str:
+    """Require an explicit `.atlas_rw` marker at or above a writeback DRA prefix."""
+    candidates = atlas_rw_marker_candidates(source_s3_uri)
+    if not candidates:
+        raise RunMountError(
+            "Read/write DRA mounts require an .atlas_rw marker under an S3 prefix; "
+            "bucket-root DRA mounts cannot be read/write."
+        )
+    checked: List[str] = []
+    for bucket, key in candidates:
+        marker_uri = f"s3://{bucket}/{key}"
+        checked.append(marker_uri)
+        try:
+            s3_client.head_object(Bucket=bucket, Key=key)
+        except ClientError as exc:
+            code = str((exc.response.get("Error") or {}).get("Code") or "")
+            if code in {"404", "NoSuchKey", "NotFound"}:
+                continue
+            raise RunMountError(f"Unable to verify read/write marker {marker_uri}: {exc}") from exc
+        except BotoCoreError as exc:
+            raise RunMountError(f"Unable to verify read/write marker {marker_uri}: {exc}") from exc
+        return marker_uri
+    raise RunMountError(
+        "Read/write DRA mount denied: no .atlas_rw marker found at or above "
+        f"{normalize_s3_uri(source_s3_uri)}. Checked: {', '.join(checked)}"
+    )
+
+
 def parse_tags(
     values: Optional[Sequence[str]], *, purpose: str = MOUNT_PURPOSE_RUN
 ) -> Dict[str, str]:
@@ -365,6 +407,7 @@ def create_run_mount(
     request: CreateRunMountRequest,
     *,
     fsx_client: Optional[Any] = None,
+    s3_client: Optional[Any] = None,
 ) -> RunMountRecord:
     """Create an FSx DRA for a run directory and persist the local record."""
     _require_region(request.region)
@@ -388,6 +431,15 @@ def create_run_mount(
     )
     auto_import_events = list(request.auto_import_events)
     auto_export_events = list(request.auto_export_events)
+    writeback_requested = (not request.read_only) or bool(auto_export_events)
+    verified_rw_marker: Optional[str] = None
+    if writeback_requested:
+        if not request.allow_writeback_admin:
+            raise RunMountError("Read/write DRA mounts require allow_writeback_admin.")
+        verified_rw_marker = verify_atlas_rw_marker(
+            s3_client or _build_s3_client(region=request.region, profile=request.profile),
+            source_s3_uri,
+        )
     read_only = bool(request.read_only and not auto_export_events)
 
     fsx_file_system_id = request.fsx_file_system_id or resolve_fsx_file_system_id(
@@ -435,6 +487,8 @@ def create_run_mount(
         )
 
     warnings: List[str] = []
+    if verified_rw_marker:
+        warnings.append(f"Read/write S3 marker verified at {verified_rw_marker}.")
     if active_count >= 6:
         warnings.append(
             f"FSx file system {fsx_file_system_id} has {active_count + 1} active DRAs after create."
@@ -626,8 +680,15 @@ def delete_run_mount(
             fallback_association=association,
             timeout_seconds=timeout_seconds,
         )
+    deleted_association = association or _association_from_record(existing, lifecycle="DELETED")
+    if not deleted_association.get("DataRepositoryPath"):
+        deleted_association["DataRepositoryPath"] = existing.source_s3_uri
+    if not deleted_association.get("FileSystemPath"):
+        deleted_association["FileSystemPath"] = existing.file_system_path
+    if not deleted_association.get("FileSystemId"):
+        deleted_association["FileSystemId"] = existing.fsx_file_system_id
     record = record_from_association(
-        association or _association_from_record(existing, lifecycle="DELETED"),
+        deleted_association,
         mount_id=existing.mount_id,
         purpose=existing.purpose,
         run_id=existing.run_id,
@@ -1181,6 +1242,13 @@ def _build_fsx_client(*, region: str, profile: Optional[str]) -> Any:
     if profile:
         session_kwargs["profile_name"] = profile
     return boto3.Session(**session_kwargs).client("fsx")
+
+
+def _build_s3_client(*, region: str, profile: Optional[str]) -> Any:
+    session_kwargs: Dict[str, str] = {"region_name": region}
+    if profile:
+        session_kwargs["profile_name"] = profile
+    return boto3.Session(**session_kwargs).client("s3")
 
 
 def _with_trailing_slash(value: str) -> str:

@@ -4,6 +4,7 @@ import json
 from typing import Any
 
 import pytest
+from botocore.exceptions import ClientError
 from typer.testing import CliRunner
 
 import daylily_ec.cli as cli_module
@@ -72,6 +73,19 @@ class FakeFsxClient:
                 association["Lifecycle"] = "DELETING"
                 return {"Association": association}
         return {"Association": {"AssociationId": params["AssociationId"], "Lifecycle": "DELETING"}}
+
+
+class FakeS3Client:
+    def __init__(self, markers: set[str] | None = None) -> None:
+        self.markers = set(markers or set())
+        self.head_requests: list[str] = []
+
+    def head_object(self, **params: Any) -> dict[str, Any]:
+        uri = f"s3://{params['Bucket']}/{params['Key']}"
+        self.head_requests.append(uri)
+        if uri in self.markers:
+            return {"ContentLength": 0}
+        raise ClientError({"Error": {"Code": "404", "Message": "Not Found"}}, "HeadObject")
 
 
 def _association(
@@ -163,6 +177,15 @@ def test_auto_export_rejected_without_admin_override() -> None:
     ) == ["NEW"]
 
 
+def test_atlas_rw_marker_candidates_exclude_bucket_root() -> None:
+    assert run_mounts.atlas_rw_marker_candidates("s3://bucket/derived/validation/run/") == [
+        ("bucket", "derived/validation/run/.atlas_rw"),
+        ("bucket", "derived/validation/.atlas_rw"),
+        ("bucket", "derived/.atlas_rw"),
+    ]
+    assert run_mounts.atlas_rw_marker_candidates("s3://bucket/") == []
+
+
 def test_verification_script_avoids_heredoc() -> None:
     script = run_mounts._verification_script("/fsx/run_dir_mounts/RUN123/", "ILMN")
 
@@ -235,6 +258,93 @@ def test_create_describe_list_delete_run_mount_records(tmp_path, monkeypatch) ->
     )
     assert fake.deleted_association_id == "dra-created"
     assert deleted.lifecycle == "DELETING"
+
+
+def test_create_readwrite_mount_requires_atlas_rw_marker(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    fake = FakeFsxClient()
+    fake_s3 = FakeS3Client()
+
+    with pytest.raises(run_mounts.RunMountError, match="no .atlas_rw marker"):
+        run_mounts.create_run_mount(
+            run_mounts.CreateRunMountRequest(
+                cluster_name="cluster-a",
+                fsx_file_system_id="fs-123",
+                region="us-west-2",
+                profile="lsmc",
+                source_s3_uri="s3://bucket/derived/validation/run",
+                mount_id="RUN123",
+                run_id="RUN123",
+                platform="ILMN",
+                read_only=False,
+                allow_writeback_admin=True,
+                auto_export_events=["NEW", "CHANGED"],
+                wait=False,
+            ),
+            fsx_client=fake,
+            s3_client=fake_s3,
+        )
+
+    assert fake.created_params is None
+
+
+def test_create_readwrite_mount_accepts_atlas_rw_ancestor_marker(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    fake = FakeFsxClient()
+    fake_s3 = FakeS3Client(markers={"s3://bucket/derived/.atlas_rw"})
+
+    record = run_mounts.create_run_mount(
+        run_mounts.CreateRunMountRequest(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            region="us-west-2",
+            profile="lsmc",
+            source_s3_uri="s3://bucket/derived/validation/run",
+            mount_id="RUN123",
+            run_id="RUN123",
+            platform="ILMN",
+            read_only=False,
+            allow_writeback_admin=True,
+            auto_export_events=["NEW", "CHANGED"],
+            wait=False,
+        ),
+        fsx_client=fake,
+        s3_client=fake_s3,
+    )
+
+    assert fake.created_params is not None
+    assert fake.created_params["S3"]["AutoExportPolicy"] == {"Events": ["NEW", "CHANGED"]}
+    assert fake_s3.head_requests[-1] == "s3://bucket/derived/.atlas_rw"
+    assert record.read_only is False
+    assert "s3://bucket/derived/.atlas_rw" in record.warnings[0]
+
+
+def test_delete_run_mount_handles_sparse_deleted_association(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    fake = FakeFsxClient([_association(file_system_path="/run_dir_mounts/RUN123/")])
+
+    def sparse_delete(**params: Any) -> dict[str, Any]:
+        fake.deleted_association_id = params["AssociationId"]
+        return {"Association": {"AssociationId": params["AssociationId"], "Lifecycle": "DELETING"}}
+
+    fake.delete_data_repository_association = sparse_delete  # type: ignore[method-assign]
+
+    deleted = run_mounts.delete_run_mount(
+        mount_id="RUN123",
+        association_id=None,
+        cluster_name="cluster-a",
+        fsx_file_system_id="fs-123",
+        region="us-west-2",
+        profile="lsmc",
+        wait=False,
+        timeout_seconds=1,
+        fsx_client=fake,
+    )
+
+    assert fake.deleted_association_id == "dra-existing"
+    assert deleted.source_s3_uri == "s3://bucket/RUN124/"
+    assert deleted.file_system_path == "/run_dir_mounts/RUN123/"
+    assert deleted.fsx_file_system_id == "fs-123"
 
 
 def test_create_staging_mount_accepts_staging_platform(tmp_path, monkeypatch) -> None:

@@ -129,6 +129,52 @@ class TestClusterBootConfigPublish:
                 source_dir=source_dir,
             )
 
+    def test_allows_reference_compat_symlink_boot_contract(self, tmp_path):
+        source_dir = tmp_path / "boot"
+        source_dir.mkdir()
+        for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES:
+            body = "echo ok\n"
+            if name == "post_install_ubuntu_combined.sh":
+                body = 'reference_compat_root="/fsx/data"\nln -sfn "${references_root}" "${reference_compat_root}"\n'
+            (source_dir / name).write_text(body, encoding="utf-8")
+
+        class FakeS3:
+            def __init__(self):
+                self.calls = []
+
+            def put_object(self, **kwargs):
+                self.calls.append(kwargs)
+
+        fake_s3 = FakeS3()
+        uploaded = create_cluster_module.publish_cluster_boot_config(
+            fake_s3,
+            cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
+            source_dir=source_dir,
+        )
+
+        assert len(uploaded) == len(create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES)
+        assert len(fake_s3.calls) == len(create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES)
+
+    def test_rejects_extra_fsx_data_use_even_with_reference_compat_contract(self, tmp_path):
+        source_dir = tmp_path / "boot"
+        source_dir.mkdir()
+        for name in create_cluster_module.CLUSTER_BOOT_CONFIG_FILENAMES:
+            body = "echo ok\n"
+            if name == "post_install_ubuntu_combined.sh":
+                body = 'reference_compat_root="/fsx/data"\nls /fsx/data\n'
+            (source_dir / name).write_text(body, encoding="utf-8")
+
+        class FakeS3:
+            def put_object(self, **_kwargs):
+                raise AssertionError("legacy boot file must not be uploaded")
+
+        with pytest.raises(ValueError, match="/fsx/data"):
+            create_cluster_module.publish_cluster_boot_config(
+                FakeS3(),
+                cluster_boot_s3_uri="s3://references/runtime_assets/cluster_boot_config",
+                source_dir=source_dir,
+            )
+
 
 class TestStartupDraContract:
     def test_accepts_exactly_one_references_startup_dra(self, tmp_path):

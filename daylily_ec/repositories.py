@@ -509,6 +509,7 @@ class AnalysisCommand(BaseModel):
             argv.append("--no-containerized")
         if self.input_contract == "none":
             argv.extend(["--no-input-staging", "--no-default-activation"])
+            argv.append("--bootstrap-test-config")
         if export_destination_s3_uri:
             argv.extend(["--export-destination-s3-uri", export_destination_s3_uri])
         if export_trigger != "none":

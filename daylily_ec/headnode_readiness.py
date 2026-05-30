@@ -52,7 +52,8 @@ df -P /fsx >/dev/null
 {dir_checks}
 {writable_cache_checks}
 test ! -e /fsx/runtime_assets
-test ! -e /fsx/data
+test -L /fsx/data
+test "$(readlink -f /fsx/data)" = /fsx/references
 day-clone --list >/dev/null
 echo "DAY-EC headnode readiness validated"
 DAYLILY_HEADNODE_READINESS

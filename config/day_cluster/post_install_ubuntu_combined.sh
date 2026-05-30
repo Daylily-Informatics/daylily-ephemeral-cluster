@@ -34,6 +34,7 @@ region="$1"
 boot_s3_uri="${2%/}"  # s3://.../cluster_boot_config
 runtime_assets_root="/fsx/references/runtime_assets"
 references_root="/fsx/references"
+reference_compat_root="/fsx/data"
 environment_cache_root="/fsx/resources/environments"
 apptainer_deb="${runtime_assets_root}/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
@@ -156,6 +157,23 @@ make_role_data_read_only() {
   done
 }
 
+prepare_reference_compat_symlink() {
+  if [ -e "${reference_compat_root}" ] && [ ! -L "${reference_compat_root}" ]; then
+    if [ "$(readlink -f "${reference_compat_root}")" != "${references_root}" ]; then
+      echo "ERROR: reference compatibility path ${reference_compat_root} does not resolve to ${references_root}" >&2
+      exit 1
+    fi
+  else
+    ln -sfn "${references_root}" "${reference_compat_root}"
+  fi
+
+  if [ "$(readlink -f "${reference_compat_root}")" != "${references_root}" ]; then
+    echo "ERROR: reference compatibility path ${reference_compat_root} does not resolve to ${references_root}" >&2
+    exit 1
+  fi
+  stat -c "Reference compatibility path: %N" "${reference_compat_root}"
+}
+
 prepare_common_writable_dirs() {
   install -d -m 1777 /tmp/jobs
   if [ -d /fsx ]; then
@@ -225,6 +243,7 @@ install_verified_s3_executable() {
 prepare_common_writable_dirs
 wait_for_reference_data
 make_role_data_read_only
+prepare_reference_compat_symlink
 
 # Configure hugepages and namespaces (common to both head and compute nodes)
 echo "vm.nr_hugepages=2048" | tee -a /etc/sysctl.conf

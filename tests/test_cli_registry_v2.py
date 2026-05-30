@@ -1842,6 +1842,7 @@ def test_workflow_launch_forwards_no_input_utility_flags(monkeypatch) -> None:
             "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help",
             "--no-input-staging",
             "--no-default-activation",
+            "--bootstrap-test-config",
         ],
     )
 
@@ -1849,6 +1850,7 @@ def test_workflow_launch_forwards_no_input_utility_flags(monkeypatch) -> None:
     argv = calls["argv"]
     assert "--no-input-staging" in argv
     assert "--no-default-activation" in argv
+    assert "--bootstrap-test-config" in argv
     assert "--stage-dir" not in argv
     assert "--run-context-file" not in argv
 

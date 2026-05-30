@@ -91,10 +91,10 @@ WORKFLOW_COMMANDS = {
     ),
     "roche_solo": WorkflowCommandSpec(
         dy_command=(
-            "bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf -p -j 5 -k"
+            "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentD_vcf -p -j 5 -k"
         ),
         dryrun_dy_command=(
-            "bin/day_run produce_alignstats produce_na_dedup_cram produce_rochehc_snv_vcf -p -j 5 -k -n"
+            "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentD_vcf -p -j 5 -k -n"
         ),
     ),
 }

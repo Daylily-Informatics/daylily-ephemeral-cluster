@@ -986,11 +986,23 @@ def get_entry_value(entry: Mapping[str, str], field: str, default: str = "") -> 
 
 
 def normalise_identifier(value: str) -> str:
+    if "/" in value or "\\" in value:
+        raise CommandError(f"Identifier fields must not contain path separators: {value}")
     return value.replace("_", "-")
 
 
 def normalise_run_id(value: str) -> str:
     return normalise_identifier(value).replace(".", "-")
+
+
+def canonical_manifest_seq_vendor(value: str) -> str:
+    raw = value.strip()
+    if raw.upper() == "CG/MGI":
+        return "CG"
+    normalized = normalise_identifier(raw).upper()
+    if normalized in {"COMPLETE-GENOMICS", "COMPLETEGENOMICS"}:
+        return "CG"
+    return normalized
 
 
 def _validate_run_metric_component(value: str, *, label: str) -> None:
@@ -2257,7 +2269,7 @@ def build_manifest_row(normalized: Mapping[str, str], *, row_number: int = 0) ->
         n_y=n_y,
         external_sample_id=get_entry_value(normalized, EXTERNAL_SAMPLE_ID) or "na",
     )
-    vendor = normalise_identifier(get_entry_value(normalized, SEQ_VENDOR)).upper()
+    vendor = canonical_manifest_seq_vendor(get_entry_value(normalized, SEQ_VENDOR))
     ont_fastq_prefix = get_entry_value(normalized, ONT_FASTQ_PREFIX)
     if ont_fastq_prefix:
         _prefix_uri, ont_tag, ont_run_id, _run_output_prefix = parse_ont_fastq_prefix(
@@ -2561,7 +2573,7 @@ def collect_manifest_row_issues(
                     add_issue(field, str(exc), path)
 
     if ont_fastq_prefix:
-        vendor = normalise_identifier(get_entry_value(normalized, SEQ_VENDOR)).upper()
+        vendor = canonical_manifest_seq_vendor(get_entry_value(normalized, SEQ_VENDOR))
         if vendor != "ONT":
             add_issue(
                 SEQ_VENDOR,

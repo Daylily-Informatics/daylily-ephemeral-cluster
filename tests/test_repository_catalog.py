@@ -31,6 +31,9 @@ UNVALIDATED_COMMAND_IDS = {
     "hybrid_ilmn_ont_snv_kitchensink",
     "inflection-bjuice-product-v0.1",
 }
+SIMPLE_TEST_DY_COMMAND = (
+    "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
+)
 
 
 def test_repository_catalog_loads_initial_blessed_command() -> None:
@@ -462,7 +465,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert simple_test.targets == ["help"]
     assert simple_test.genome == "hg38"
     assert simple_test.jobs == 1
-    assert simple_test.dy_command == "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
+    assert simple_test.dy_command == SIMPLE_TEST_DY_COMMAND
     assert simple_test.dryrun_dy_command == simple_test.dy_command
     simple_launch_argv = simple_test.launch_argv(
         analysis_id="simple-test",
@@ -472,6 +475,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert simple_test.dy_command in simple_launch_argv
     assert "--no-input-staging" in simple_launch_argv
     assert "--no-default-activation" in simple_launch_argv
+    assert "--bootstrap-test-config" in simple_launch_argv
     assert "--stage-dir" not in simple_launch_argv
     assert "--run-context-file" not in simple_launch_argv
 
@@ -538,8 +542,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert combined.targets == ["produce_illumina_run_qc_and_bclconvert"]
     assert combined.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
-        "samples_table": ".test_data/data/bclconvert/samples.tsv",
-        "units_table": ".test_data/data/bclconvert/units.tsv",
+        "bootstrap_bclconvert": "true",
     }
     combined_argv = combined.launch_argv(
         analysis_id="run-qc-bclconvert",
@@ -549,11 +552,12 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     )
     combined_dy_command = combined_argv[combined_argv.index("--dy-command") + 1]
     assert "produce_illumina_run_qc_and_bclconvert" in combined_dy_command
-    assert "samples_table=.test_data/data/bclconvert/samples.tsv" in combined_dy_command
-    assert "units_table=.test_data/data/bclconvert/units.tsv" in combined_dy_command
+    assert "bootstrap_bclconvert=true" in combined_dy_command
+    assert "bclconvert/samples.tsv" not in combined_dy_command
+    assert "bclconvert/units.tsv" not in combined_dy_command
 
     ont = catalog.get_command("ont_run_qc")
-    assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc"]
+    assert ont.targets == ["produce_ont_run_qc"]
     ont_argv = ont.launch_argv(
         analysis_id="ont-run-qc",
         executing_entity="johnm",
@@ -561,7 +565,8 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
         dry_run=True,
     )
     ont_dy_command = ont_argv[ont_argv.index("--dy-command") + 1]
-    assert "produce_ont_run_qc_and_demux_multiqc" in ont_dy_command
+    assert "produce_ont_run_qc" in ont_dy_command
+    assert "produce_ont_run_qc_and_demux_multiqc" not in ont_dy_command
     assert "run_context_file=config/runs.tsv" in ont_dy_command
 
 

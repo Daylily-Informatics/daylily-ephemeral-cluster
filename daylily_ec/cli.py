@@ -2390,6 +2390,11 @@ def workflow_launch(
         "--default-activation/--no-default-activation",
         help="Run the standard dyoainit plus Slurm day_activate setup before --dy-command.",
     ),
+    bootstrap_test_config: bool = typer.Option(
+        False,
+        "--bootstrap-test-config",
+        help="Copy DayOA bundled test samples and units into config/ before launch.",
+    ),
     session_name: Optional[str] = typer.Option(
         None,
         "--session-name",
@@ -2580,6 +2585,8 @@ def workflow_launch(
         argv.append("--no-input-staging")
     if not default_activation:
         argv.append("--no-default-activation")
+    if bootstrap_test_config:
+        argv.append("--bootstrap-test-config")
     argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
     if no_containerized:
         argv.append("--no-containerized")
@@ -2748,7 +2755,7 @@ def mounts_create(
     read_only: bool = typer.Option(
         True,
         "--read-only/--no-read-only",
-        help="Keep the source S3 run directory read-only by policy.",
+        help="Keep the source S3 prefix read-only by policy. Writeback requires .atlas_rw.",
     ),
     batch_import_metadata_on_create: bool = typer.Option(
         True,
@@ -2763,7 +2770,7 @@ def mounts_create(
     auto_export: Optional[str] = typer.Option(
         None,
         "--auto-export",
-        help="Forbidden unless --allow-writeback-admin and --no-read-only are set.",
+        help="Forbidden unless --allow-writeback-admin, --no-read-only, and .atlas_rw are set.",
     ),
     allow_writeback_admin: bool = typer.Option(
         False,
@@ -2774,7 +2781,7 @@ def mounts_create(
     timeout_seconds: int = typer.Option(900, "--timeout-seconds", help="Wait timeout."),
     tag: List[str] = typer.Option([], "--tag", help="Repeatable KEY=VALUE DRA tag."),
 ) -> None:
-    """Create a read-only FSx DRA for a sequencer run directory."""
+    """Create an FSx DRA mount; defaults read-only unless writeback is explicitly allowed."""
 
     from daylily_ec.run_mounts import format_mount_created
 

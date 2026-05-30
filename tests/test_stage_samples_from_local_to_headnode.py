@@ -671,6 +671,71 @@ def test_process_samples_emits_complete_genomics_fastq_rows(
     assert units_row["SUBSAMPLE_PCT"] == "0.182"
 
 
+def test_process_samples_maps_complete_genomics_mgi_vendor_for_dayoa(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "CG_R1_FQ",
+                "CG_R2_FQ",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "CGT7P",
+                    "HG003",
+                    "T7PLUS",
+                    "blood",
+                    "PCR-FREE",
+                    "CG/MGI",
+                    "MGI",
+                    "0",
+                    "D0",
+                    "s3://bucket/HG003_CG_R1.fastq.gz",
+                    "s3://bucket/HG003_CG_R2.fastq.gz",
+                    "stage_data",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_source_path", lambda *args, **kwargs: None)
+    monkeypatch.setattr(
+        module,
+        "stage_single_lane",
+        lambda *args, **kwargs: (
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/HG003_CG_R1.fastq.gz",
+            "/fsx/staging/staged_external_sequencing_data/remote_stage_test/HG003_CG_R2.fastq.gz",
+        ),
+    )
+    monkeypatch.setattr(module, "stage_concordance", lambda source, *args, **kwargs: source)
+
+    _samples_rows, units_rows, _created_files, _run_ids = _process_samples(
+        monkeypatch,
+        analysis_samples,
+        _stage_paths(),
+    )
+
+    units_row = units_rows[0]
+    assert units_row["SEQ_VENDOR"] == "CG"
+    assert "/" not in units_row["SEQ_VENDOR"]
+    assert units_row["SEQ_PLATFORM"] == "MGI"
+
+
 def test_process_samples_rejects_incomplete_complete_genomics_fastq_pair(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
