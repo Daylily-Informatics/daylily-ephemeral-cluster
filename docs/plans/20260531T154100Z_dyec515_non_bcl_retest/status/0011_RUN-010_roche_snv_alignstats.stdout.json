@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentD_vcf -p -j 5 -k -n",
+  "completed_at": "2026-05-31T15:46:04Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/dyec-515/d515_0531t1541_r2d_010_roche/daylily-omics-analysis",
+  "session_name": "d515_0531t1541_r2d_010_roche",
+  "started_at": "2026-05-31T15:45:43Z"
+}

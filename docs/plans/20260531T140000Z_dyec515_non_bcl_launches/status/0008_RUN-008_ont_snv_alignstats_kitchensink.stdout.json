@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k -n",
+  "completed_at": "2026-05-31T13:42:57Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/dyec-515/d515_0531T134008_d515d08_ont_mqc/daylily-omics-analysis",
+  "session_name": "d515_0531T134008_d515d08_ont_mqc",
+  "started_at": "2026-05-31T13:42:36Z"
+}

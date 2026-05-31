@@ -1,0 +1,173 @@
+{
+  "generated_at": "2026-05-31T15:42:57Z",
+  "launched": [
+    {
+      "analysis_id": "d515_0531t1541_r2d_002_ilmn_snv",
+      "command_id": "illumina_snv_alignstats",
+      "rc": 0,
+      "row_id": "RUN-002",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/illumina_hg003_5x/20260531T153828Z_07d3a15d_samples.tsv",
+      "session": "d515_0531t1541_r2d_002_ilmn_snv",
+      "source_alias": "illumina_hg003_5x",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0001_RUN-002_illumina_snv_alignstats.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0001_RUN-002_illumina_snv_alignstats.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/illumina_hg003_5x/20260531T153828Z_07d3a15d_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_003_ilmn_mqc",
+      "command_id": "illumina_snv_alignstats_relatedness_vep_multiqc",
+      "rc": 0,
+      "row_id": "RUN-003",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/illumina_hg003_5x/20260531T153828Z_07d3a15d_samples.tsv",
+      "session": "d515_0531t1541_r2d_003_ilmn_mqc",
+      "source_alias": "illumina_hg003_5x",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0002_RUN-003_illumina_snv_alignstats_relatedness_vep_multiqc.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0002_RUN-003_illumina_snv_alignstats_relatedness_vep_multiqc.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/illumina_hg003_5x/20260531T153828Z_07d3a15d_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_004_hg002_kit",
+      "command_id": "illumina_hg002_kitchensink_multiqc",
+      "rc": 0,
+      "row_id": "RUN-004",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/illumina_hg002_kitchen/20260531T153842Z_942511ae_samples.tsv",
+      "session": "d515_0531t1541_r2d_004_hg002_kit",
+      "source_alias": "illumina_hg002_kitchen",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0003_RUN-004_illumina_hg002_kitchensink_multiqc.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0003_RUN-004_illumina_hg002_kitchensink_multiqc.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/illumina_hg002_kitchen/20260531T153842Z_942511ae_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_005_ug_snv",
+      "command_id": "ultima_snv_alignstats",
+      "rc": 0,
+      "row_id": "RUN-005",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/ultima_hg003_5x/20260531T153915Z_d9c041a0_samples.tsv",
+      "session": "d515_0531t1541_r2d_005_ug_snv",
+      "source_alias": "ultima_hg003_5x",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0004_RUN-005_ultima_snv_alignstats.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0004_RUN-005_ultima_snv_alignstats.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/ultima_hg003_5x/20260531T153915Z_d9c041a0_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_006_ug_mqc",
+      "command_id": "ultima_snv_alignstats_kitchensink",
+      "rc": 0,
+      "row_id": "RUN-006",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/ultima_hg003_5x/20260531T153915Z_d9c041a0_samples.tsv",
+      "session": "d515_0531t1541_r2d_006_ug_mqc",
+      "source_alias": "ultima_hg003_5x",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0005_RUN-006_ultima_snv_alignstats_kitchensink.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0005_RUN-006_ultima_snv_alignstats_kitchensink.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/ultima_hg003_5x/20260531T153915Z_d9c041a0_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_007_ont_snv",
+      "command_id": "ont_snv_alignstats",
+      "rc": 0,
+      "row_id": "RUN-007",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/ont_hg003_5x/20260531T153943Z_b988a1b5_samples.tsv",
+      "session": "d515_0531t1541_r2d_007_ont_snv",
+      "source_alias": "ont_hg003_5x",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0006_RUN-007_ont_snv_alignstats.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0006_RUN-007_ont_snv_alignstats.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/ont_hg003_5x/20260531T153943Z_b988a1b5_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_008_ont_mqc",
+      "command_id": "ont_snv_alignstats_kitchensink",
+      "rc": 0,
+      "row_id": "RUN-008",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/ont_hg003_5x/20260531T153943Z_b988a1b5_samples.tsv",
+      "session": "d515_0531t1541_r2d_008_ont_mqc",
+      "source_alias": "ont_hg003_5x",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0007_RUN-008_ont_snv_alignstats_kitchensink.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0007_RUN-008_ont_snv_alignstats_kitchensink.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/ont_hg003_5x/20260531T153943Z_b988a1b5_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_009_pb_snv",
+      "command_id": "pacbio_snv_alignstats",
+      "rc": 0,
+      "row_id": "RUN-009",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/pacbio_hg003_5x/20260531T153957Z_7b82e2fd_samples.tsv",
+      "session": "d515_0531t1541_r2d_009_pb_snv",
+      "source_alias": "pacbio_hg003_5x",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0008_RUN-009_pacbio_snv_alignstats.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0008_RUN-009_pacbio_snv_alignstats.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/pacbio_hg003_5x/20260531T153957Z_7b82e2fd_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_010_roche",
+      "command_id": "roche_snv_alignstats",
+      "rc": 0,
+      "row_id": "RUN-010",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/roche_hg003_5x/20260531T154012Z_a128fc02_samples.tsv",
+      "session": "d515_0531t1541_r2d_010_roche",
+      "source_alias": "roche_hg003_5x",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0009_RUN-010_roche_snv_alignstats.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0009_RUN-010_roche_snv_alignstats.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/roche_hg003_5x/20260531T154012Z_a128fc02_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_011_hio_snv",
+      "command_id": "hybrid_ilmn_ont_snv",
+      "rc": 0,
+      "row_id": "RUN-011",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T154056Z_6adae0d5_samples.tsv",
+      "session": "d515_0531t1541_r2d_011_hio_snv",
+      "source_alias": "hybrid_ilmn_ont_hg003_5x5x",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0010_RUN-011_hybrid_ilmn_ont_snv.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0010_RUN-011_hybrid_ilmn_ont_snv.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T154056Z_6adae0d5_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_012_hio_mqc",
+      "command_id": "hybrid_ilmn_ont_snv_kitchensink",
+      "rc": 0,
+      "row_id": "RUN-012",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T154056Z_6adae0d5_samples.tsv",
+      "session": "d515_0531t1541_r2d_012_hio_mqc",
+      "source_alias": "hybrid_ilmn_ont_hg003_5x5x",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0011_RUN-012_hybrid_ilmn_ont_snv_kitchensink.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0011_RUN-012_hybrid_ilmn_ont_snv_kitchensink.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T154056Z_6adae0d5_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_013_bjuice",
+      "command_id": "inflection-bjuice-product-v0.1",
+      "rc": 0,
+      "row_id": "RUN-013",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T154056Z_6adae0d5_samples.tsv",
+      "session": "d515_0531t1541_r2d_013_bjuice",
+      "source_alias": "hybrid_ilmn_ont_hg003_5x5x",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0012_RUN-013_inflection-bjuice-product-v0.1.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0012_RUN-013_inflection-bjuice-product-v0.1.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T154056Z_6adae0d5_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_014_huo_snv",
+      "command_id": "hybrid_ultima_ont_snv",
+      "rc": 0,
+      "row_id": "RUN-014",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/hybrid_ultima_ont_hg003_5x5x/20260531T154111Z_def09545_samples.tsv",
+      "session": "d515_0531t1541_r2d_014_huo_snv",
+      "source_alias": "hybrid_ultima_ont_hg003_5x5x",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0013_RUN-014_hybrid_ultima_ont_snv.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0013_RUN-014_hybrid_ultima_ont_snv.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/hybrid_ultima_ont_hg003_5x5x/20260531T154111Z_def09545_units.tsv"
+    },
+    {
+      "analysis_id": "d515_0531t1541_r2d_015_cg_mgi",
+      "command_id": "complete_genomics_mgi_snv_concordance",
+      "rc": 0,
+      "row_id": "RUN-015",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/complete_genomics_mgi_hg003/20260531T154127Z_e1791a99_samples.tsv",
+      "session": "d515_0531t1541_r2d_015_cg_mgi",
+      "source_alias": "complete_genomics_mgi_hg003",
+      "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0014_RUN-015_complete_genomics_mgi_snv_concordance.stderr.txt",
+      "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/direct_logs/0014_RUN-015_complete_genomics_mgi_snv_concordance.stdout.txt",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T154100Z_dyec515_non_bcl_retest/generated_sample_configs/complete_genomics_mgi_hg003/20260531T154127Z_e1791a99_units.tsv"
+    }
+  ]
+}
