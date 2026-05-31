@@ -53,15 +53,15 @@ python -m pytest tests/test_stage_samples_from_local_to_headnode.py -q
 The source and packaged catalogs must match:
 
 ```bash
-cmp -s config/daylily_available_repositories.yaml daylily_ec/resources/payload/config/daylily_available_repositories.yaml
+cmp -s config/daylily_pipeline_command_catalog.yaml daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml
 ```
 
-The current DayOA pin should be `2.0.26` everywhere in the catalog:
+The current DayOA pin should be `2.0.27` everywhere in the catalog:
 
 ```bash
 rg -n "0\\.7\\.758|\\b1\\.0\\.[0-9]\\b" \
-  config/daylily_available_repositories.yaml \
-  daylily_ec/resources/payload/config/daylily_available_repositories.yaml \
+  config/daylily_pipeline_command_catalog.yaml \
+  daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml \
   tests
 ```
 

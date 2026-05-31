@@ -74,7 +74,7 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 2.0.26 \
+  --git-tag 2.0.27 \
   --export-destination-s3-uri "$EXPORT_S3_URI" \
   --export-trigger on-success
 
@@ -100,7 +100,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id "<run-analysis-id>" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 2.0.26 \
+  --git-tag 2.0.27 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 
 dyec export \
@@ -147,9 +147,9 @@ Key rules:
 
 ## Pipeline Catalog
 
-`config/daylily_available_repositories.yaml` is the source of truth for repositories and blessed launch profiles. The packaged copy under `daylily_ec/resources/payload/config/` must match it.
+`config/daylily_pipeline_command_catalog.yaml` is the source of truth for repositories and blessed launch profiles. The packaged copy under `daylily_ec/resources/payload/config/` must match it.
 
-The current DayOA pin is `2.0.26` for the repository default and every DayOA command. Catalog v2 separates:
+The current DayOA pin is `2.0.27` for the repository default and every DayOA command. Catalog v2 separates:
 
 - `sample_analysis`: uses `analysis_samples.tsv`, stages inputs, and writes `samples.tsv` / `units.tsv`.
 - `run_analysis`: uses `runs.tsv`, requires a run DRA, and launches run-folder workflows such as Illumina run QC and BCL Convert.
@@ -174,7 +174,7 @@ is then requested through Dewey, not through DYEC.
 
 The live contract is intentionally strict:
 
-- `config/daylily_available_repositories.yaml` must contain an explicit
+- `config/daylily_pipeline_command_catalog.yaml` must contain an explicit
   `artifact_registration` policy for the command.
 - The exported DayOA tree must contain the evidence manifest selected by that
   policy, or an explicit `s3-inventory` registration must be requested.

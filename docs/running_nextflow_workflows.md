@@ -4,7 +4,7 @@ This runbook covers Nextflow workflows registered in the DAY-EC repository catal
 
 ## Catalog Entries
 
-The source catalog is `config/daylily_available_repositories.yaml`. The packaged copy at `daylily_ec/resources/payload/config/daylily_available_repositories.yaml` must be byte-for-byte identical.
+The source catalog is `config/daylily_pipeline_command_catalog.yaml`. The packaged copy at `daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml` must be byte-for-byte identical.
 
 - `illumina_bclconvert` and `illumina_run_qc_bclconvert` are nf-core BCL Convert command rows that run through the DAY-EC workflow launcher.
 - `daylily-sarek` is a repository row. It intentionally has `analysis_commands: []`; clone it with `day-clone` and run Nextflow directly.
@@ -35,11 +35,11 @@ profile = "lsmc"
 region = "us-west-2"
 cluster = "blahab44"
 target = resolve_headnode_instance_id(cluster, region, profile=profile)
-content = Path("config/daylily_available_repositories.yaml").read_text(encoding="utf-8")
+content = Path("config/daylily_pipeline_command_catalog.yaml").read_text(encoding="utf-8")
 write_remote_text(
     target.instance_id,
     region,
-    "/home/ubuntu/.config/daylily/daylily_available_repositories.yaml",
+    "/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml",
     content,
     profile=profile,
     as_user="ubuntu",

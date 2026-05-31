@@ -1398,7 +1398,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     catalog = tmp_path / "catalog.yaml"
     catalog.write_text(
         (
-            Path(__file__).resolve().parents[1] / "config" / "daylily_available_repositories.yaml"
+            Path(__file__).resolve().parents[1] / "config" / "daylily_pipeline_command_catalog.yaml"
         ).read_text(encoding="utf-8"),
         encoding="utf-8",
     )
@@ -1486,7 +1486,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.26" in launch_argv
+    assert "2.0.27" in launch_argv
     assert "--dy-command" in launch_argv
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
     assert "produce_cgt7p_snv_vcf" in dy_command
@@ -1530,6 +1530,73 @@ def test_samples_run_requires_analysis_identity(monkeypatch, tmp_path) -> None:
 
     assert result.exit_code != 0
     assert "analysis-id" in result.output
+
+
+def test_samples_run_defaults_executing_entity_to_cluster(monkeypatch, tmp_path) -> None:
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    manifest = tmp_path / "analysis_samples.tsv"
+    config_dir = tmp_path / "cfg"
+    catalog = tmp_path / "catalog.yaml"
+    catalog.write_text(
+        (
+            Path(__file__).resolve().parents[1] / "config" / "daylily_pipeline_command_catalog.yaml"
+        ).read_text(encoding="utf-8"),
+        encoding="utf-8",
+    )
+    _write_complete_genomics_manifest(manifest)
+
+    def fake_stage(argv: list[str]) -> int:
+        calls["stage_argv"] = argv
+        print("Remote staging completed successfully.")
+        print(
+            "Remote FSx stage directory: /fsx/staging/staged_external_sequencing_data/remote_stage_20260425T000000Z"
+        )
+        return 0
+
+    def fake_launch(argv: list[str]) -> int:
+        calls["launch_argv"] = argv
+        print("__DAYLILY_SESSION__=cg-session")
+        return 0
+
+    monkeypatch.setattr(cli_module, "_invoke_stage_samples", fake_stage)
+    monkeypatch.setattr(cli_module, "_invoke_workflow_launch", fake_launch)
+
+    result = runner.invoke(
+        app,
+        [
+            "samples",
+            "run",
+            str(manifest),
+            "--catalog-config",
+            str(catalog),
+            "--command-id",
+            "complete_genomics_mgi_snv_concordance",
+            "--analysis-id",
+            "cg-run",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--reference-s3-uri",
+            "s3://reference-bucket",
+            "--control-data-s3-uri",
+            "s3://control-data-bucket",
+            "--stage-s3-uri",
+            "s3://stage-bucket",
+            "--config-dir",
+            str(config_dir),
+            "--dry-run",
+        ],
+    )
+
+    assert result.exit_code == 0
+    launch_argv = calls["launch_argv"]
+    assert launch_argv[launch_argv.index("--executing-entity") + 1] == "cluster-a"
+    receipt = config_dir / "20260425T000000Z_samples_run_receipt.json"
+    assert json.loads(receipt.read_text(encoding="utf-8"))["executing_entity"] == "cluster-a"
 
 
 def test_samples_run_rejects_export_policy_before_staging(monkeypatch, tmp_path) -> None:
@@ -1769,6 +1836,39 @@ def test_workflow_launch_rejects_dewey_options_without_policy(monkeypatch) -> No
 
     assert result.exit_code != 0
     assert "artifact-registration-command-id" in result.output
+
+
+def test_workflow_launch_defaults_executing_entity_to_cluster(monkeypatch) -> None:
+    import daylily_ec.scripts.daylily_run_omics_analysis_headnode as launch_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+
+    def fake_launch(argv: list[str]) -> int:
+        calls["argv"] = argv
+        return 0
+
+    monkeypatch.setattr(launch_module, "main", fake_launch)
+
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "launch",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--analysis-id",
+            "run-1",
+        ],
+    )
+
+    assert result.exit_code == 0
+    argv = calls["argv"]
+    assert argv[argv.index("--executing-entity") + 1] == "cluster-a"
 
 
 def test_workflow_launch_forwards_run_context_file(monkeypatch, tmp_path) -> None:

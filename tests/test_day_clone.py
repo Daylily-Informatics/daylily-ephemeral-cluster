@@ -37,7 +37,7 @@ def _write_configs(
     ssh_line = (
         "    ssh_url: git@github.com:Daylily-Informatics/test-repo.git\n" if include_ssh_url else ""
     )
-    available_repos = config_dir / "daylily_available_repositories.yaml"
+    available_repos = config_dir / "daylily_pipeline_command_catalog.yaml"
     available_repos.write_text(
         "default_repository: test-repo\n"
         "repositories:\n"
@@ -56,11 +56,26 @@ def _patch_day_clone_paths(module, global_config: Path, available_repos: Path, m
     monkeypatch.setattr(module, "AVAILABLE_REPOS_PATH", str(available_repos))
 
 
-def test_day_clone_defaults_to_https_transport(monkeypatch, tmp_path):
+def _patch_cluster_name_source(module, monkeypatch, tmp_path: Path, text: str = "stack_name=dyec-515\n") -> Path:
+    cfnconfig = tmp_path / "cfnconfig"
+    cfnconfig.write_text(text, encoding="utf-8")
+    monkeypatch.setattr(module, "CLUSTER_NAME_CONFIG_PATHS", (str(cfnconfig),))
+    for key in module.CLUSTER_NAME_ENV_KEYS:
+        monkeypatch.delenv(key, raising=False)
+    return cfnconfig
+
+
+def _disable_cluster_name_sources(module, monkeypatch, tmp_path: Path) -> None:
+    monkeypatch.setattr(module, "CLUSTER_NAME_CONFIG_PATHS", (str(tmp_path / "missing-cfnconfig"),))
+    for key in module.CLUSTER_NAME_ENV_KEYS:
+        monkeypatch.delenv(key, raising=False)
+
+
+def test_day_clone_defaults_to_headnode_cluster_name_and_https_transport(monkeypatch, tmp_path):
     module = _load_day_clone()
     global_config, available_repos, clone_root = _write_configs(tmp_path)
     _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
-    monkeypatch.setenv("USER", "ubuntu")
+    _patch_cluster_name_source(module, monkeypatch, tmp_path)
     clone_calls: list[list[str]] = []
 
     def fake_run(cmd, check):
@@ -80,9 +95,42 @@ def test_day_clone_defaults_to_https_transport(monkeypatch, tmp_path):
             "--branch",
             "main",
             "https://github.com/Daylily-Informatics/test-repo.git",
-            str(clone_root / "ubuntu" / "analysis" / "test-repo"),
+            str(clone_root / "dyec-515" / "analysis" / "test-repo"),
         ]
     ]
+
+
+def test_day_clone_prefers_exported_cluster_name_when_executing_entity_unset(monkeypatch, tmp_path):
+    module = _load_day_clone()
+    global_config, available_repos, clone_root = _write_configs(tmp_path)
+    _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
+    _disable_cluster_name_sources(module, monkeypatch, tmp_path)
+    monkeypatch.setenv("DAYLILY_CLUSTER_NAME", "env-cluster")
+    clone_calls: list[list[str]] = []
+
+    def fake_run(cmd, check):
+        clone_calls.append(cmd)
+        assert check is True
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+
+    rc = module.main(["--destination", "analysis", "--repository", "test-repo"])
+
+    assert rc == 0
+    assert clone_calls[0][-1] == str(clone_root / "env-cluster" / "analysis" / "test-repo")
+
+
+def test_day_clone_requires_cluster_identity_when_executing_entity_unset(monkeypatch, tmp_path, capsys):
+    module = _load_day_clone()
+    global_config, available_repos, _clone_root = _write_configs(tmp_path)
+    _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
+    _disable_cluster_name_sources(module, monkeypatch, tmp_path)
+
+    rc = module.main(["--destination", "analysis", "--repository", "test-repo"])
+
+    assert rc == 1
+    assert "ParallelCluster cluster identity is unavailable" in capsys.readouterr().err
 
 
 def test_day_clone_uses_explicit_executing_entity(monkeypatch, tmp_path):
@@ -103,7 +151,7 @@ def test_day_clone_uses_explicit_executing_entity(monkeypatch, tmp_path):
         [
             "--destination",
             "analysis",
-            "--executing-entity",
+            "-u",
             "ursa",
             "--repository",
             "test-repo",
@@ -138,7 +186,7 @@ def test_day_clone_ssh_transport_uses_ssh_url(monkeypatch, tmp_path):
     module = _load_day_clone()
     global_config, available_repos, clone_root = _write_configs(tmp_path)
     _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
-    monkeypatch.setenv("USER", "ubuntu")
+    _patch_cluster_name_source(module, monkeypatch, tmp_path)
     clone_calls: list[list[str]] = []
 
     def fake_run(cmd, check):
@@ -158,7 +206,7 @@ def test_day_clone_ssh_transport_uses_ssh_url(monkeypatch, tmp_path):
             "--branch",
             "main",
             "git@github.com:Daylily-Informatics/test-repo.git",
-            str(clone_root / "ubuntu" / "analysis" / "test-repo"),
+            str(clone_root / "dyec-515" / "analysis" / "test-repo"),
         ]
     ]
 
@@ -167,7 +215,7 @@ def test_day_clone_ssh_transport_requires_ssh_url(monkeypatch, tmp_path, capsys)
     module = _load_day_clone()
     global_config, available_repos, _clone_root = _write_configs(tmp_path, include_ssh_url=False)
     _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
-    monkeypatch.setenv("USER", "ubuntu")
+    _patch_cluster_name_source(module, monkeypatch, tmp_path)
 
     rc = module.main(["--destination", "analysis", "--repository", "test-repo", "-w", "ssh"])
 
@@ -198,7 +246,7 @@ def test_day_clone_list_accepts_real_repository_catalog(monkeypatch, tmp_path, c
     module = _load_day_clone()
     global_config, available_repos, _clone_root = _write_configs(tmp_path)
     available_repos.write_text(
-        (REPO_ROOT / "config" / "daylily_available_repositories.yaml").read_text(encoding="utf-8"),
+        (REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml").read_text(encoding="utf-8"),
         encoding="utf-8",
     )
     _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)

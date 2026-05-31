@@ -52,14 +52,14 @@ local `/fsx` workflow and does not receive Dewey, S3, or QEO configuration.
 
 ## Workflow Plane
 
-`config/daylily_available_repositories.yaml` is the source of truth for workflow repositories and blessed command profiles. The packaged copy under `daylily_ec/resources/payload/config/` must match it.
+`config/daylily_pipeline_command_catalog.yaml` is the source of truth for workflow repositories and blessed command profiles. The packaged copy under `daylily_ec/resources/payload/config/` must match it.
 
 Catalog v2 splits commands by input contract:
 
 - `sample_analysis` commands use `analysis_samples.tsv`; `dyec samples stage` writes `samples.tsv` and `units.tsv`.
 - `run_analysis` commands use `runs.tsv`; run input must be mounted under `/fsx/run_dir_mounts/<mount_id>`.
 
-The current DayOA catalog pin is `2.0.26` for the repository default and all DayOA command `git_tag` values.
+The current DayOA catalog pin is `2.0.27` for the repository default and all DayOA command `git_tag` values.
 
 DYEC can host multiple workflow managers as long as they use the same FSx and
 export contract. DayOA is the first-class Snakemake 7 catalog repository.

@@ -97,16 +97,24 @@ def clear_preflight_steps() -> None:
 
 
 def _git_stdout(repo_root: Path, *args: str) -> str:
-    proc = subprocess.run(
+    proc = _git_run(repo_root, *args)
+    if proc.returncode != 0:
+        detail = _git_failure_detail(proc, f"git {' '.join(args)} failed")
+        raise RuntimeError(detail)
+    return proc.stdout.strip()
+
+
+def _git_run(repo_root: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
         ["git", "-C", str(repo_root), *args],
         check=False,
         capture_output=True,
         text=True,
     )
-    if proc.returncode != 0:
-        detail = proc.stderr.strip() or proc.stdout.strip() or f"git {' '.join(args)} failed"
-        raise RuntimeError(detail)
-    return proc.stdout.strip()
+
+
+def _git_failure_detail(proc: subprocess.CompletedProcess[str], fallback: str) -> str:
+    return proc.stderr.strip() or proc.stdout.strip() or fallback
 
 
 def _normalize_headnode_repo_url(repo_url: str) -> str:
@@ -144,7 +152,22 @@ def _resolve_headnode_repo_spec(default_url: str, default_ref: str) -> HeadnodeR
     repo_url = _normalize_headnode_repo_url(
         _git_stdout(repo_root, "config", "--get", "remote.origin.url")
     )
-    repo_ref = _git_stdout(repo_root, "symbolic-ref", "--short", "HEAD")
+    repo_ref = _resolve_headnode_repo_ref(repo_root)
+    return HeadnodeRepoSpec(url=repo_url, ref=repo_ref)
+
+
+def _resolve_headnode_repo_ref(repo_root: Path) -> str:
+    branch = _git_run(repo_root, "symbolic-ref", "--short", "HEAD")
+    if branch.returncode == 0:
+        repo_ref = branch.stdout.strip()
+        if not repo_ref:
+            raise RuntimeError("Current checkout branch could not be determined")
+        return _require_published_branch(repo_root, repo_ref)
+
+    return _require_published_detached_tag(repo_root)
+
+
+def _require_published_branch(repo_root: Path, repo_ref: str) -> str:
     published = subprocess.run(
         ["git", "-C", str(repo_root), "ls-remote", "--exit-code", "--heads", "origin", repo_ref],
         check=False,
@@ -159,7 +182,37 @@ def _resolve_headnode_repo_spec(default_url: str, default_ref: str) -> HeadnodeR
             f"Current checkout branch is not available on origin: {repo_ref} ({detail})"
         )
 
-    return HeadnodeRepoSpec(url=repo_url, ref=repo_ref)
+    return repo_ref
+
+
+def _require_published_detached_tag(repo_root: Path) -> str:
+    head = _git_stdout(repo_root, "rev-parse", "--short=12", "HEAD")
+    tag_output = _git_stdout(repo_root, "tag", "--points-at", "HEAD")
+    tags = [line.strip() for line in tag_output.splitlines() if line.strip()]
+    if not tags:
+        raise RuntimeError(
+            f"Current checkout is detached at {head} and no exact tag points at HEAD; "
+            "checkout a published branch or release tag before configuring the headnode"
+        )
+    if len(tags) > 1:
+        raise RuntimeError(
+            "Current detached checkout has multiple exact tags; checkout a branch or leave "
+            f"only one intended release tag at HEAD before configuring the headnode: {', '.join(tags)}"
+        )
+
+    tag = tags[0]
+    tag_ref = f"refs/tags/{tag}"
+    published = subprocess.run(
+        ["git", "-C", str(repo_root), "ls-remote", "--exit-code", "--tags", "origin", tag_ref],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if published.returncode != 0:
+        detail = _git_failure_detail(published, "tag not published on origin")
+        raise RuntimeError(f"Current checkout tag is not available on origin: {tag} ({detail})")
+
+    return tag_ref
 
 
 def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: str) -> str:
@@ -169,6 +222,16 @@ def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: s
     origin_ref_q = shlex.quote(f"refs/remotes/origin/{repo_ref}")
     origin_checkout_q = shlex.quote(f"origin/{repo_ref}")
     repo_error_q = shlex.quote(f"Expected ~/projects/{repo_name} to be a git checkout")
+    if repo_ref.startswith("refs/tags/"):
+        checkout_cmd = f"git checkout --detach {repo_ref_q}"
+    else:
+        checkout_cmd = (
+            f"if git show-ref --verify --quiet {origin_ref_q}; then "
+            f"git checkout -B daylily-managed {origin_checkout_q}; "
+            "else "
+            f"git checkout --detach {repo_ref_q}; "
+            "fi"
+        )
 
     return (
         "mkdir -p ~/projects && cd ~/projects && "
@@ -180,11 +243,7 @@ def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: s
         "git fetch origin --tags --prune && "
         "git reset --hard HEAD && "
         "git clean -fdx && "
-        f"if git show-ref --verify --quiet {origin_ref_q}; then "
-        f"git checkout -B daylily-managed {origin_checkout_q}; "
-        "else "
-        f"git checkout --detach {repo_ref_q}; "
-        "fi"
+        + checkout_cmd
     )
 
 
@@ -272,7 +331,7 @@ def exit_code_for(report: PreflightReport) -> int:
 
 def _repository_catalog_path() -> Path:
     """Return the repository catalog path used by local create/headnode setup."""
-    local_catalog = Path("config/daylily_available_repositories.yaml")
+    local_catalog = Path("config/daylily_pipeline_command_catalog.yaml")
     if local_catalog.exists():
         return local_catalog
 
@@ -1778,14 +1837,14 @@ def configure_headnode(
 
     if repo_overrides:
         logger.info("  ▸ Deploying repository overrides ...")
-        user_avail = Path.home() / ".config" / "daylily" / "daylily_available_repositories.yaml"
+        user_avail = Path.home() / ".config" / "daylily" / "daylily_pipeline_command_catalog.yaml"
         avail_repos_path = (
             user_avail
             if user_avail.exists()
             else (
-                Path("config/daylily_available_repositories.yaml")
-                if Path("config/daylily_available_repositories.yaml").exists()
-                else resource_path("config/daylily_available_repositories.yaml")
+                Path("config/daylily_pipeline_command_catalog.yaml")
+                if Path("config/daylily_pipeline_command_catalog.yaml").exists()
+                else resource_path("config/daylily_pipeline_command_catalog.yaml")
             )
         )
         if avail_repos_path.exists():
@@ -1801,7 +1860,7 @@ def configure_headnode(
                 write_remote_text(
                     head_node_instance_id,
                     region,
-                    "~/.config/daylily/daylily_available_repositories.yaml",
+                    "~/.config/daylily/daylily_pipeline_command_catalog.yaml",
                     yaml.safe_dump(repos_cfg, default_flow_style=False, sort_keys=False),
                     profile=profile,
                 )

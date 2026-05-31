@@ -42,7 +42,7 @@ Goodole3 command runs documented below still used explicit workflow tag
 | Local activated `dyec --json version` during worker readback | `5.0.7.dev0+g104fadf31.d20260527` |
 | DayOA workflow tag | `2.0.6` |
 | DayOA remote tags during worker readback | Present through `2.0.8`; v206 validation intentionally used `2.0.6` |
-| Source catalog DayOA pin at report time | `2.0.5` in source and packaged `daylily_available_repositories.yaml`; v206 launches explicitly overrode this with `--git-tag 2.0.6` |
+| Source catalog DayOA pin at report time | `2.0.5` in source and packaged `daylily_pipeline_command_catalog.yaml`; v206 launches explicitly overrode this with `--git-tag 2.0.6` |
 | Catalog parity | Source and packaged repository catalogs matched; source and packaged global configs matched |
 | DayOA clone commit observed in logs | `a073f31c6be04b88cc3f70dcfac77940f54e9282` |
 | AWS profile | `lsmc` |

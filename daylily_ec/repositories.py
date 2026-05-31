@@ -747,7 +747,7 @@ class RepositoryDefinition(BaseModel):
 
 
 class RepositoryCatalog(BaseModel):
-    """Complete daylily_available_repositories.yaml contract."""
+    """Complete daylily_pipeline_command_catalog.yaml contract."""
 
     model_config = ConfigDict(extra="forbid")
 
@@ -878,7 +878,7 @@ class RepositoryCatalog(BaseModel):
 
 
 def default_catalog_path() -> Path:
-    return resource_path("config/daylily_available_repositories.yaml")
+    return resource_path("config/daylily_pipeline_command_catalog.yaml")
 
 
 def _migrate_v1_analysis_commands(raw: Dict[str, Any]) -> Dict[str, Any]:

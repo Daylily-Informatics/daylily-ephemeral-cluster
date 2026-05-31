@@ -1,0 +1,58 @@
+{
+  "analysis_id": "dyec515_20260531t1244_retry1_ont_snv_alignstats",
+  "analysis_samples": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260526T224018Z_blahab44_inputs/ont_hg003_5x.tsv",
+  "command_id": "ont_snv_alignstats",
+  "compatible_data_modes": [
+    "ont_solo"
+  ],
+  "delete_on_export_success": false,
+  "detected_data_modes": [
+    "ont_solo"
+  ],
+  "dewey_analysis_dir_external_object_id": null,
+  "dewey_run_artifact_euid": null,
+  "dewey_ursa_analysis_euid": null,
+  "dry_run": false,
+  "dy_command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k",
+  "executing_entity": "ubuntu",
+  "export_destination_s3_uri": null,
+  "export_trigger": "none",
+  "git_tag": "2.0.26",
+  "remote_stage_dir": "/fsx/staging/staged_external_sequencing_data/remote_stage_20260531T124354Z_b8c56ad3",
+  "replace_existing_analysis_dir": false,
+  "samples_tsv": "docs/plans/20260531T123022Z_command_catalog_runs/generated_retry1/ont_snv_alignstats/20260531T124354Z_b8c56ad3_samples.tsv",
+  "session_name": "dyec515_20260531t1244_retry1_ont_snv_alignstats",
+  "units_tsv": "docs/plans/20260531T123022Z_command_catalog_runs/generated_retry1/ont_snv_alignstats/20260531T124354Z_b8c56ad3_units.tsv",
+  "workflow_argv": [
+    "workflow",
+    "launch",
+    "--repository",
+    "daylily-omics-analysis",
+    "--analysis-id",
+    "dyec515_20260531t1244_retry1_ont_snv_alignstats",
+    "--executing-entity",
+    "ubuntu",
+    "--git-tag",
+    "2.0.26",
+    "--genome",
+    "hg38_broad",
+    "--dy-command",
+    "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances -p -j 5 -k",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "dyec-515",
+    "--stage-dir",
+    "/fsx/staging/staged_external_sequencing_data/remote_stage_20260531T124354Z_b8c56ad3",
+    "--session-name",
+    "dyec515_20260531t1244_retry1_ont_snv_alignstats",
+    "--skip-project-check"
+  ],
+  "workflow_launch": {
+    "repo_path": "/fsx/analysis_results/ubuntu/dyec515_20260531t1244_retry1_ont_snv_alignstats/daylily-omics-analysis",
+    "run_dir": "/home/ubuntu/daylily-runs/dyec515_20260531t1244_retry1_ont_snv_alignstats",
+    "session_name": "dyec515_20260531t1244_retry1_ont_snv_alignstats"
+  }
+}

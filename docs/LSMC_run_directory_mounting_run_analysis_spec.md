@@ -82,7 +82,7 @@ Relevant files:
 daylily_ec/cli.py
 daylily_ec/stage_samples.py
 daylily_ec/repositories.py
-config/daylily_available_repositories.yaml
+config/daylily_pipeline_command_catalog.yaml
 ```
 
 Current behavior:
@@ -103,7 +103,7 @@ Current behavior:
 /data/*
 ```
 
-- The command catalog in `config/daylily_available_repositories.yaml` is v1 and consists of sample-analysis launch profiles.
+- The command catalog in `config/daylily_pipeline_command_catalog.yaml` is v1 and consists of sample-analysis launch profiles.
 - `AnalysisCommand` in `repositories.py` currently assumes launcher `workflow_launch` and has no command class/category.
 
 ### 3.2 DayOA

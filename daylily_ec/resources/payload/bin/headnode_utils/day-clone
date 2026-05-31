@@ -2,20 +2,39 @@
 """Clone Daylily analysis repositories into the shared FSx workspace."""
 
 import argparse
-import getpass
 import os
 import re
 import subprocess
 import sys
-from typing import Any, Dict, List, Optional, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Tuple
 
 import yaml
 
 
 CONFIG_DIR = os.path.expanduser("~/.config/daylily")
 GLOBAL_CONFIG_PATH = os.path.join(CONFIG_DIR, "daylily_cli_global.yaml")
-AVAILABLE_REPOS_PATH = os.path.join(CONFIG_DIR, "daylily_available_repositories.yaml")
+AVAILABLE_REPOS_PATH = os.path.join(CONFIG_DIR, "daylily_pipeline_command_catalog.yaml")
 SAFE_SEGMENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+CLUSTER_NAME_ENV_KEYS = (
+    "DAYLILY_CLUSTER_NAME",
+    "DAY_EC_CLUSTER_NAME",
+    "PCLUSTER_CLUSTER_NAME",
+    "PARALLELCLUSTER_CLUSTER_NAME",
+    "stack_name",
+    "STACK_NAME",
+    "cfn_cluster_name",
+    "CFN_CLUSTER_NAME",
+)
+CLUSTER_NAME_CONFIG_PATHS = (
+    "/etc/parallelcluster/cfnconfig",
+)
+CLUSTER_NAME_CONFIG_KEYS = {
+    "stack_name",
+    "cluster_name",
+    "clusterName",
+    "ClusterName",
+    "cfn_cluster_name",
+}
 
 
 class ConfigError(RuntimeError):
@@ -72,6 +91,61 @@ def safe_path_segment(value: str, *, field_name: str) -> str:
     if text in {".", ".."} or ".." in text or "/" in text or "%" in text:
         raise ConfigError(f"{field_name} must not contain path traversal.")
     return text
+
+
+def _strip_shell_value(value: str) -> str:
+    text = value.strip()
+    if len(text) >= 2 and text[0] == text[-1] and text[0] in {"'", '"'}:
+        return text[1:-1]
+    return text
+
+
+def _cluster_name_from_env(keys: Iterable[str] = CLUSTER_NAME_ENV_KEYS) -> Optional[str]:
+    for key in keys:
+        value = os.environ.get(key)
+        if value:
+            return safe_path_segment(value, field_name=key)
+    return None
+
+
+def _cluster_name_from_cfnconfig(path: str) -> Optional[str]:
+    if not os.path.exists(path):
+        return None
+    try:
+        with open(path, "r", encoding="utf-8") as handle:
+            for line in handle:
+                text = line.strip()
+                if not text or text.startswith("#") or "=" not in text:
+                    continue
+                key, value = text.split("=", 1)
+                if key.strip() in CLUSTER_NAME_CONFIG_KEYS:
+                    return safe_path_segment(
+                        _strip_shell_value(value),
+                        field_name=f"{path}:{key.strip()}",
+                    )
+    except OSError as exc:
+        raise ConfigError(f"Could not read ParallelCluster config {path}: {exc}") from exc
+    return None
+
+
+def resolve_executing_entity(explicit_value: Optional[str]) -> str:
+    if explicit_value:
+        return safe_path_segment(explicit_value, field_name="executing_entity")
+
+    env_cluster_name = _cluster_name_from_env()
+    if env_cluster_name:
+        return env_cluster_name
+
+    for path in CLUSTER_NAME_CONFIG_PATHS:
+        cluster_name = _cluster_name_from_cfnconfig(path)
+        if cluster_name:
+            return cluster_name
+
+    raise ConfigError(
+        "executing_entity is required when ParallelCluster cluster identity is unavailable. "
+        "Pass -u/--executing-entity, export DAYLILY_CLUSTER_NAME, or run on a headnode "
+        "with /etc/parallelcluster/cfnconfig containing stack_name."
+    )
 
 
 def clone_repository(
@@ -148,12 +222,16 @@ def main(argv: List[str]) -> int:
         help="Root directory where analysis workspaces are created. Defaults to the configured analysis_root.",
     )
     parser.add_argument(
+        "-u",
         "--executing-entity",
-        help="Entity directory to create within the clone root. Defaults to $USER.",
+        help=(
+            "Entity directory to create within the clone root. Defaults to the cluster "
+            "name from exported cluster env or /etc/parallelcluster/cfnconfig."
+        ),
     )
     parser.add_argument(
         "--repository",
-        help="Key of the repository defined in daylily_available_repositories.yaml to clone.",
+        help="Key of the repository defined in daylily_pipeline_command_catalog.yaml to clone.",
     )
     parser.add_argument(
         "--list",
@@ -191,10 +269,7 @@ def main(argv: List[str]) -> int:
         return 1
 
     try:
-        executing_entity = safe_path_segment(
-            args.executing_entity or os.environ.get("USER") or getpass.getuser(),
-            field_name="executing_entity",
-        )
+        executing_entity = resolve_executing_entity(args.executing_entity)
         destination = safe_path_segment(args.destination, field_name="destination")
     except ConfigError as err:
         print(f"Error: {err}", file=sys.stderr)
@@ -217,7 +292,7 @@ def main(argv: List[str]) -> int:
         repo_config = available_repos.get(repo_key)
         if repo_config is None:
             print(
-                f"Error: repository '{repo_key}' is not defined in daylily_available_repositories.yaml.",
+                f"Error: repository '{repo_key}' is not defined in daylily_pipeline_command_catalog.yaml.",
                 file=sys.stderr,
             )
             return 1

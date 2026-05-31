@@ -508,8 +508,8 @@ def build_parser() -> argparse.ArgumentParser:
     )
     parser.add_argument(
         "--executing-entity",
-        required=True,
-        help="User or system identifier used under /fsx/analysis_results.",
+        "-u",
+        help="User or system identifier used under /fsx/analysis_results. Defaults to --cluster.",
     )
     parser.add_argument(
         "--repository",
@@ -611,9 +611,14 @@ def main(argv: Optional[List[str]] = None) -> int:
     if not args.profile:
         raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
 
+    need_cmd("aws")
+    need_cmd("pcluster")
+
+    region = resolve_region(args.profile, args.region)
+    cluster_name = resolve_cluster(args.profile, region, args.cluster)
     analysis_id = validate_analysis_segment(args.analysis_id, field_name="analysis_id")
     executing_entity = validate_analysis_segment(
-        args.executing_entity,
+        args.executing_entity or cluster_name,
         field_name="executing_entity",
     )
     source_path = analysis_source_path(
@@ -657,12 +662,6 @@ def main(argv: Optional[List[str]] = None) -> int:
             raise CommandError(
                 "--artifact-registration-command-id is required with Dewey external-link options."
             )
-
-    need_cmd("aws")
-    need_cmd("pcluster")
-
-    region = resolve_region(args.profile, args.region)
-    cluster_name = resolve_cluster(args.profile, region, args.cluster)
     if args.export_destination_s3_uri:
         from daylily_ec.workflow.export_data import (
             _create_session,
@@ -875,7 +874,7 @@ remove_run_dir_projection_links() {{
 
 day-clone \
   --destination "$ANALYSIS_ID" \
-  --executing-entity "$EXECUTING_ENTITY" \
+  -u "$EXECUTING_ENTITY" \
   --repository {shlex.quote(args.repository)} \
   --git-tag {shlex.quote(args.git_tag)}
 	cd "$repo_path"
@@ -1854,7 +1853,7 @@ repo_relative=$(python3 - <<'PYREPOS'
 from pathlib import Path
 repo_key = {repository_literal}
 relative = 'daylily-omics-analysis'
-config_path = Path.home() / '.config/daylily/daylily_available_repositories.yaml'
+config_path = Path.home() / '.config/daylily/daylily_pipeline_command_catalog.yaml'
 if config_path.exists():
     current_key = None
     for raw in config_path.read_text().splitlines():

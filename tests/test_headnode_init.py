@@ -356,7 +356,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     (resources_dir / "config" / "daylily_cli_global.yaml").write_text(
         "daylily: {}\n", encoding="utf-8"
     )
-    (resources_dir / "config" / "daylily_available_repositories.yaml").write_text(
+    (resources_dir / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
         "default_repository: daylily-omics-analysis\nrepositories: {}\n",
         encoding="utf-8",
     )
@@ -474,6 +474,10 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     )
     assert "daylily_headnode_bootstrap()" not in bootstrap_text
     assert "unset -f daylily_headnode_bootstrap" not in bootstrap_text
+    assert (home_dir / ".config" / "daylily" / "daylily_pipeline_command_catalog.yaml").is_file()
+    legacy_catalog = home_dir / ".config" / "daylily" / "daylily_available_repositories.yaml"
+    assert legacy_catalog.is_symlink()
+    assert legacy_catalog.readlink() == Path("daylily_pipeline_command_catalog.yaml")
     assert (user_bin_dir / "day-clone").is_file()
     assert log_text.count("install_miniconda") >= 2
     assert log_text.count("activate") == 2
@@ -502,7 +506,7 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
     (resources_dir / "config" / "daylily_cli_global.yaml").write_text(
         "daylily: {}\n", encoding="utf-8"
     )
-    (resources_dir / "config" / "daylily_available_repositories.yaml").write_text(
+    (resources_dir / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
         "default_repository: daylily-omics-analysis\nrepositories: {}\n",
         encoding="utf-8",
     )
@@ -576,7 +580,7 @@ def test_install_headnode_tools_prefers_checkout_over_installed_resources(
             "daylily: {}\n",
             encoding="utf-8",
         )
-        (root / "config" / "daylily_available_repositories.yaml").write_text(
+        (root / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
             "default_repository: daylily-omics-analysis\nrepositories: {}\n",
             encoding="utf-8",
         )

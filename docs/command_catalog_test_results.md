@@ -195,8 +195,8 @@ No production code changes were made to get the validation results. The validati
 
 After the run, DAY-EC was updated so the catalog no longer launches retired `sentdhiom` targets for ILMN+ONT hybrid:
 
-- `config/daylily_available_repositories.yaml`
-- `daylily_ec/resources/payload/config/daylily_available_repositories.yaml`
+- `config/daylily_pipeline_command_catalog.yaml`
+- `daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml`
 - `tests/test_repository_catalog.py`
 - `tests/test_staging_examples_live.py`
 

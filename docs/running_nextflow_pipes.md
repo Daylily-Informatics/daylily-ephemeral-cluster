@@ -127,11 +127,11 @@ profile = "lsmc"
 region = "us-west-2"
 cluster = "CLUSTER_NAME_PLACEHOLDER"
 target = resolve_headnode_instance_id(cluster, region, profile=profile)
-catalog = Path("config/daylily_available_repositories.yaml").read_text(encoding="utf-8")
+catalog = Path("config/daylily_pipeline_command_catalog.yaml").read_text(encoding="utf-8")
 result = write_remote_text(
     target.instance_id,
     region,
-    "/home/ubuntu/.config/daylily/daylily_available_repositories.yaml",
+    "/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml",
     catalog,
     profile=profile,
     as_user="ubuntu",
@@ -153,11 +153,11 @@ profile = os.environ["AWS_PROFILE"]
 region = os.environ["REGION"]
 cluster = os.environ["CLUSTER_NAME"]
 target = resolve_headnode_instance_id(cluster, region, profile=profile)
-catalog = Path("config/daylily_available_repositories.yaml").read_text(encoding="utf-8")
+catalog = Path("config/daylily_pipeline_command_catalog.yaml").read_text(encoding="utf-8")
 result = write_remote_text(
     target.instance_id,
     region,
-    "/home/ubuntu/.config/daylily/daylily_available_repositories.yaml",
+    "/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml",
     catalog,
     profile=profile,
     as_user="ubuntu",
@@ -185,7 +185,7 @@ import yaml
 from pathlib import Path
 
 catalog = yaml.safe_load(
-    Path("/home/ubuntu/.config/daylily/daylily_available_repositories.yaml").read_text()
+    Path("/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml").read_text()
 )
 row = catalog["repositories"]["daylily-sarek"]
 print("default_ref=" + str(row["default_ref"]))

@@ -275,7 +275,7 @@ class TestNoopHeartbeatResult:
 class TestRepositoryCatalogPreflight:
     def test_valid_checked_in_catalog_passes(self):
         catalog_path = (
-            Path(__file__).resolve().parents[1] / "config" / ("daylily_available_repositories.yaml")
+            Path(__file__).resolve().parents[1] / "config" / ("daylily_pipeline_command_catalog.yaml")
         )
         report = PreflightReport()
 
@@ -289,7 +289,7 @@ class TestRepositoryCatalogPreflight:
         assert check.details["command_count"] >= 1
 
     def test_malformed_catalog_fails_with_headnode_day_clone_context(self, tmp_path):
-        catalog_path = tmp_path / "daylily_available_repositories.yaml"
+        catalog_path = tmp_path / "daylily_pipeline_command_catalog.yaml"
         catalog_path.write_text(
             "command_catalog_version: [unterminated\n",
             encoding="utf-8",
@@ -307,7 +307,7 @@ class TestRepositoryCatalogPreflight:
         assert "day-clone consumes this file" in check.remediation
 
     def test_malformed_catalog_short_circuits_preflight_pipeline(self, monkeypatch, tmp_path):
-        catalog_path = tmp_path / "daylily_available_repositories.yaml"
+        catalog_path = tmp_path / "daylily_pipeline_command_catalog.yaml"
         catalog_path.write_text(
             "command_catalog_version: [unterminated\n",
             encoding="utf-8",
@@ -1293,6 +1293,121 @@ class TestConfigureHeadnode:
         assert "git clean -fdx" in clone_cmd
         assert "git checkout -B daylily-managed origin/codex/ssh-to-ssm-refactor" in clone_cmd
         mock_validate_headnode_readiness.assert_called_once()
+        mock_write_remote_text.assert_not_called()
+
+    @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    @patch("daylily_ec.workflow.create_cluster.subprocess.run")
+    def test_repo_checkout_uses_published_detached_tag(
+        self,
+        mock_subprocess_run,
+        mock_run_shell,
+        mock_write_remote_text,
+        mock_validate_headnode_readiness,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        repo_root = tmp_path / "repo"
+        repo_root.mkdir()
+        monkeypatch.setenv("DAYLILY_EC_REPO_ROOT", str(repo_root))
+
+        def fake_git_run(cmd, **_kwargs):
+            if cmd == ["git", "-C", str(repo_root), "config", "--get", "remote.origin.url"]:
+                return subprocess.CompletedProcess(cmd, 0, "https://example.com/daylily.git\n", "")
+            if cmd == ["git", "-C", str(repo_root), "symbolic-ref", "--short", "HEAD"]:
+                return subprocess.CompletedProcess(
+                    cmd,
+                    1,
+                    "",
+                    "fatal: ref HEAD is not a symbolic ref\n",
+                )
+            if cmd == ["git", "-C", str(repo_root), "rev-parse", "--short=12", "HEAD"]:
+                return subprocess.CompletedProcess(cmd, 0, "4f076d77359f\n", "")
+            if cmd == ["git", "-C", str(repo_root), "tag", "--points-at", "HEAD"]:
+                return subprocess.CompletedProcess(cmd, 0, "5.1.5\n", "")
+            if cmd == [
+                "git",
+                "-C",
+                str(repo_root),
+                "ls-remote",
+                "--exit-code",
+                "--tags",
+                "origin",
+                "refs/tags/5.1.5",
+            ]:
+                return subprocess.CompletedProcess(cmd, 0, "abc\trefs/tags/5.1.5\n", "")
+            raise AssertionError(f"unexpected subprocess.run call: {cmd}")
+
+        mock_subprocess_run.side_effect = fake_git_run
+        mock_run_shell.side_effect = [
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+            SimpleNamespace(stdout="", stderr=""),
+        ]
+        mock_validate_headnode_readiness.return_value = SimpleNamespace(command_id="cmd-ready")
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+        )
+
+        assert ok is True
+        clone_cmd = mock_run_shell.call_args_list[0].args[2]
+        assert "git checkout --detach refs/tags/5.1.5" in clone_cmd
+        assert "git checkout -B daylily-managed" not in clone_cmd
+        mock_validate_headnode_readiness.assert_called_once()
+        mock_write_remote_text.assert_not_called()
+
+    @patch("daylily_ec.aws.ssm.write_remote_text")
+    @patch("daylily_ec.aws.ssm.run_shell")
+    @patch("daylily_ec.workflow.create_cluster.subprocess.run")
+    def test_repo_checkout_detached_head_requires_exact_tag(
+        self,
+        mock_subprocess_run,
+        mock_run_shell,
+        mock_write_remote_text,
+        tmp_path,
+        monkeypatch,
+    ):
+        monkeypatch.setenv("HOME", str(tmp_path))
+        monkeypatch.chdir(tmp_path)
+        repo_root = tmp_path / "repo"
+        repo_root.mkdir()
+        monkeypatch.setenv("DAYLILY_EC_REPO_ROOT", str(repo_root))
+
+        def fake_git_run(cmd, **_kwargs):
+            if cmd == ["git", "-C", str(repo_root), "config", "--get", "remote.origin.url"]:
+                return subprocess.CompletedProcess(cmd, 0, "https://example.com/daylily.git\n", "")
+            if cmd == ["git", "-C", str(repo_root), "symbolic-ref", "--short", "HEAD"]:
+                return subprocess.CompletedProcess(
+                    cmd,
+                    1,
+                    "",
+                    "fatal: ref HEAD is not a symbolic ref\n",
+                )
+            if cmd == ["git", "-C", str(repo_root), "rev-parse", "--short=12", "HEAD"]:
+                return subprocess.CompletedProcess(cmd, 0, "4f076d77359f\n", "")
+            if cmd == ["git", "-C", str(repo_root), "tag", "--points-at", "HEAD"]:
+                return subprocess.CompletedProcess(cmd, 0, "", "")
+            raise AssertionError(f"unexpected subprocess.run call: {cmd}")
+
+        mock_subprocess_run.side_effect = fake_git_run
+
+        ok = configure_headnode(
+            cluster_name="test-cluster",
+            head_node_instance_id="i-abc123",
+            region="us-west-2",
+            profile="test",
+        )
+
+        assert ok is False
+        mock_run_shell.assert_not_called()
         mock_write_remote_text.assert_not_called()
 
     @patch("daylily_ec.workflow.create_cluster.validate_headnode_readiness")

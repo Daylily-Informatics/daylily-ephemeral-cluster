@@ -28,10 +28,10 @@ Python packaging is defined by `pyproject.toml`. The active package includes:
 
 The repository catalog must remain synchronized between:
 
-- `config/daylily_available_repositories.yaml`
-- `daylily_ec/resources/payload/config/daylily_available_repositories.yaml`
+- `config/daylily_pipeline_command_catalog.yaml`
+- `daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml`
 
-Current DayOA catalog pins are `2.0.26`.
+Current DayOA catalog pins are `2.0.27`.
 
 ## Stale Editable Installs
 

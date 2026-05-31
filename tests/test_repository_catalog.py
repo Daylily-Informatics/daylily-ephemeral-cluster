@@ -14,8 +14,17 @@ runner = CliRunner()
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CATALOG_PATH = REPO_ROOT / "config" / "daylily_available_repositories.yaml"
+CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG_PATH = (
+    REPO_ROOT
+    / "daylily_ec"
+    / "resources"
+    / "payload"
+    / "config"
+    / "daylily_pipeline_command_catalog.yaml"
+)
+OLD_CATALOG_LINK = REPO_ROOT / "config" / "daylily_available_repositories.yaml"
+OLD_PACKAGED_CATALOG_LINK = (
     REPO_ROOT
     / "daylily_ec"
     / "resources"
@@ -189,7 +198,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "2.0.26"
+    assert command.git_tag == "2.0.27"
     assert len(command.validation_runs) == 1
     validation_run = command.validation_runs[0]
     assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -242,7 +251,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.26" in launch_argv
+    assert "2.0.27" in launch_argv
 
     export_argv = command.launch_argv(
         analysis_id="run-1",
@@ -354,7 +363,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert command.dryrun_dy_command.endswith(" -n")
             assert command.compatible_platforms
             assert command.compatible_data_modes
-            assert command.git_tag == "2.0.26"
+            assert command.git_tag == "2.0.27"
             assert (
                 command.input_requirements.required_source_columns
                 or command.input_requirements.accepted_source_column_sets
@@ -383,7 +392,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "2.0.26"
+        assert command.git_tag == "2.0.27"
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
@@ -806,6 +815,13 @@ def test_packaged_repository_catalog_matches_source_catalog() -> None:
     assert PACKAGED_CATALOG_PATH.read_text(encoding="utf-8") == CATALOG_PATH.read_text(
         encoding="utf-8"
     )
+
+
+def test_legacy_catalog_filename_is_symlink_to_pipeline_command_catalog() -> None:
+    assert OLD_CATALOG_LINK.is_symlink()
+    assert OLD_CATALOG_LINK.resolve() == CATALOG_PATH
+    assert OLD_PACKAGED_CATALOG_LINK.is_symlink()
+    assert OLD_PACKAGED_CATALOG_LINK.resolve() == PACKAGED_CATALOG_PATH
 
 
 def test_daylily_sarek_repository_uses_valid_pinned_ref() -> None:

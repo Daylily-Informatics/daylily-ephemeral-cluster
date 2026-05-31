@@ -96,6 +96,22 @@ def _validate_analysis_launch_options(
         raise typer.BadParameter(str(exc)) from exc
 
 
+def _resolve_executing_entity_option(
+    *,
+    executing_entity: Optional[str],
+    cluster: Optional[str],
+) -> str:
+    from daylily_ec.analysis_identity import validate_analysis_segment
+
+    candidate = (executing_entity or "").strip() or (cluster or "").strip()
+    if not candidate:
+        raise typer.BadParameter("--executing-entity is required when --cluster is omitted")
+    try:
+        return validate_analysis_segment(candidate, field_name="executing_entity")
+    except (RuntimeError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
 def _dayec_info_hook() -> list[tuple[str, str]]:
     return [("Project Root", str(Path(__file__).resolve().parents[1]))]
 
@@ -2185,10 +2201,11 @@ def samples_run(
         "--analysis-id",
         help="Required analysis identifier used for the FSx analysis directory.",
     ),
-    executing_entity: str = typer.Option(
-        ...,
+    executing_entity: Optional[str] = typer.Option(
+        None,
         "--executing-entity",
-        help="User or system identifier used under /fsx/analysis_results.",
+        "-u",
+        help="User or system identifier used under /fsx/analysis_results. Defaults to --cluster.",
     ),
     reference_s3_uri: str = typer.Option(
         ...,
@@ -2308,7 +2325,7 @@ def samples_run(
     catalog_config: Optional[Path] = typer.Option(
         None,
         "--catalog-config",
-        help="Path to daylily_available_repositories.yaml.",
+        help="Path to daylily_pipeline_command_catalog.yaml.",
     ),
     debug: bool = typer.Option(
         False,
@@ -2325,9 +2342,13 @@ def samples_run(
     _warn_if_dayec_env_inactive()
     analysis_path = analysis_samples.expanduser().resolve()
     try:
+        resolved_executing_entity = _resolve_executing_entity_option(
+            executing_entity=executing_entity,
+            cluster=cluster,
+        )
         _validate_analysis_launch_options(
             analysis_id=analysis_id,
-            executing_entity=executing_entity,
+            executing_entity=resolved_executing_entity,
             export_destination_s3_uri=export_destination_s3_uri,
             export_trigger=export_trigger,
             delete_on_export_success=delete_on_export_success,
@@ -2404,7 +2425,7 @@ def samples_run(
         resolved_git_tag = git_tag or command.git_tag
         workflow_cli_argv = command.launch_argv(
             analysis_id=analysis_id,
-            executing_entity=executing_entity,
+            executing_entity=resolved_executing_entity,
             git_tag=resolved_git_tag,
             profile=resolved_profile,
             region=resolved_region,
@@ -2444,7 +2465,7 @@ def samples_run(
             "compatible_data_modes": command.compatible_data_modes,
             "detected_data_modes": data_modes,
             "analysis_id": analysis_id,
-            "executing_entity": executing_entity,
+            "executing_entity": resolved_executing_entity,
             "dry_run": dry_run,
             "dy_command": command.dryrun_dy_command if dry_run else command.dy_command,
             "export_destination_s3_uri": export_destination_s3_uri,
@@ -2529,10 +2550,11 @@ def workflow_launch(
         "--analysis-id",
         help="Required analysis identifier used for the FSx analysis directory.",
     ),
-    executing_entity: str = typer.Option(
-        ...,
+    executing_entity: Optional[str] = typer.Option(
+        None,
         "--executing-entity",
-        help="User or system identifier used under /fsx/analysis_results.",
+        "-u",
+        help="User or system identifier used under /fsx/analysis_results. Defaults to --cluster.",
     ),
     repository: str = typer.Option(
         "daylily-omics-analysis",
@@ -2645,9 +2667,13 @@ def workflow_launch(
     from daylily_ec.scripts.common import CommandError
 
     _warn_if_dayec_env_inactive()
+    resolved_executing_entity = _resolve_executing_entity_option(
+        executing_entity=executing_entity,
+        cluster=cluster,
+    )
     _validate_analysis_launch_options(
         analysis_id=analysis_id,
-        executing_entity=executing_entity,
+        executing_entity=resolved_executing_entity,
         export_destination_s3_uri=export_destination_s3_uri,
         export_trigger=export_trigger,
         delete_on_export_success=delete_on_export_success,
@@ -2683,7 +2709,7 @@ def workflow_launch(
         ("--stage-base", stage_base),
         ("--session-name", resolved_session_name),
         ("--analysis-id", analysis_id),
-        ("--executing-entity", executing_entity),
+        ("--executing-entity", resolved_executing_entity),
         ("--repository", repository),
         ("--git-tag", git_tag),
         ("--project", project),
@@ -2733,7 +2759,7 @@ def repositories_commands(
     config: Optional[Path] = typer.Option(
         None,
         "--config",
-        help="Path to daylily_available_repositories.yaml.",
+        help="Path to daylily_pipeline_command_catalog.yaml.",
     ),
     repository: Optional[str] = typer.Option(
         None,
