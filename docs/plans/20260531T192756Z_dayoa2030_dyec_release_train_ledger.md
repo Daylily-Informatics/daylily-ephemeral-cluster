@@ -51,16 +51,25 @@ Version facts:
 | TRAIN-001 | DayOA release | Publish DayOA `2.0.30` before DYEC consumes it. | SUCCESS | release | Gate 5 | Codex | DayOA branch pushed; annotated tag `2.0.30` pushed. |  | DayOA release commit is recorded in the DayOA ledger. |
 | TRAIN-002 | DYEC DayOA pin | Update DYEC package/catalog/test pins from DayOA `2.0.29` to `2.0.30`. | SUCCESS | config_or_startup_contract | Gate 2 | Codex | `pyproject.toml`, `config/daylily_pipeline_command_catalog.yaml`, packaged catalog copy, `tests/test_repository_catalog.py`, and `tests/test_cli_registry_v2.py`; `environment.yaml` inspected and has no DayOA pin. |  | Active package and workflow catalog pins now target DayOA `2.0.30`. |
 | TRAIN-003 | DYEC DayOA-pin release | Validate, commit, push, and tag DYEC `5.1.12`. | SUCCESS | release | Gate 5 | Codex | Local annotated tag verified with `git cat-file -t 5.1.12` -> `tag`; remote push is performed after the final release commit is fixed. |  | The `5.1.12` release commit is the commit carrying the DayOA `2.0.30` pin update. |
-| TRAIN-004 | DYEC self pin | Update DYEC self pins to the final self-pin release version. | OPEN | config_or_startup_contract | Gate 2 | Codex |  |  |  |
-| TRAIN-005 | DYEC self-pin release | Validate, commit, push, and tag DYEC `5.1.13`. | OPEN | release | Gate 5 | Codex |  |  |  |
+| TRAIN-004 | DYEC self pin | Update DYEC self pins to the final self-pin release version. | SUCCESS | config_or_startup_contract | Gate 2 | Codex | `config/daylily_cli_global.yaml`, packaged config copy, and `tests/test_workflow.py` now use `5.1.13`. |  | Final self-pin release config points at `5.1.13`. |
+| TRAIN-005 | DYEC self-pin release | Validate, commit, push, and tag DYEC `5.1.13`. | SUCCESS | release | Gate 5 | Codex | Local annotated tag verified with `git cat-file -t 5.1.13` -> `tag`; remote push is performed after the final release commit is fixed. |  | The final self-pin release commit is the commit carrying this terminal ledger state. |
 
 ## Final Status
 
-Rows with `OPEN` status must be terminal before the release train is complete.
+All rows are terminal for the local release commits. Remote branch/tag push
+evidence is reported in the final cross-repo release train report because
+remote push verification happens after these commits exist.
 
 Verification checkpoint:
 
 ```text
 source ./activate && python -m pytest tests/test_repository_catalog.py tests/test_cli_registry_v2.py tests/test_packaged_defaults.py -q
 -> 118 passed
+```
+
+Self-pin verification checkpoint:
+
+```text
+source ./activate && python -m pytest tests/test_workflow.py::TestConfigureHeadnode::test_repo_checkout_uses_published_detached_tag tests/test_packaged_defaults.py tests/test_versioning.py -q
+-> 13 passed
 ```
