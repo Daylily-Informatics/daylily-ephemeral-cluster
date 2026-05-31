@@ -105,7 +105,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "2.0.23"
+    assert command.git_tag == "2.0.25"
     assert len(command.validation_runs) == 1
     validation_run = command.validation_runs[0]
     assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -129,8 +129,23 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         multiqc_command.artifact_registration.evidence_manifest_path
         == "results/day/{genome}/reports/dayoa_evidence_manifest.json"
     )
+    assert multiqc_command.artifact_registration.manifest_source == "dayoa_manifest"
     assert "multiqc_html" in multiqc_command.artifact_registration.include_classifications
+    assert "alignment_cram" in multiqc_command.artifact_registration.include_classifications
+    assert "samples_manifest" in multiqc_command.artifact_registration.include_classifications
+    assert "units_manifest" in multiqc_command.artifact_registration.include_classifications
+    assert "config/samples.tsv" in multiqc_command.artifact_registration.include_paths
+    assert "config/units.tsv" in multiqc_command.artifact_registration.include_paths
+    assert multiqc_command.artifact_registration.multiqc_reports[0].report_kind == "final"
     assert multiqc_command.artifact_registration.identity.analysis_euid == "{analysis_id}"
+
+    run_qc_command = catalog.get_command("illumina_run_qc_bclconvert")
+    assert run_qc_command.artifact_registration is not None
+    assert run_qc_command.artifact_registration.manifest_source == "s3_inventory"
+    assert {report.report_kind for report in run_qc_command.artifact_registration.multiqc_reports} == {
+        "bclconvert",
+        "run_qc_illumina",
+    }
 
     launch_argv = command.launch_argv(
         analysis_id="run-1",
@@ -143,7 +158,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.23" in launch_argv
+    assert "2.0.25" in launch_argv
 
     export_argv = command.launch_argv(
         analysis_id="run-1",
@@ -255,7 +270,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert command.dryrun_dy_command.endswith(" -n")
             assert command.compatible_platforms
             assert command.compatible_data_modes
-            assert command.git_tag == "2.0.23"
+            assert command.git_tag == "2.0.25"
             assert (
                 command.input_requirements.required_source_columns
                 or command.input_requirements.accepted_source_column_sets
@@ -284,7 +299,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "2.0.23"
+        assert command.git_tag == "2.0.25"
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets

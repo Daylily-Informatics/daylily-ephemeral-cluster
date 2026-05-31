@@ -20,6 +20,7 @@ INPUT_CONTRACTS = {"sample_manifest", "run_context", "none"}
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 VALIDATION_STATUSES = {"success", "failed", "blocked", "not_run"}
 ARTIFACT_REGISTRATION_INCLUDE_MODES = {"classification", "path"}
+ARTIFACT_REGISTRATION_MANIFEST_SOURCES = {"dayoa_manifest", "s3_inventory"}
 
 
 def _clean_id(value: str, *, field_name: str) -> str:
@@ -246,12 +247,38 @@ class ArtifactRegistrationIdentity(BaseModel):
         return _clean_id(value, field_name="artifact registration identity")
 
 
+class ArtifactRegistrationMultiQCReport(BaseModel):
+    """Explicit MultiQC report root registered from an exported analysis."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    report_kind: str
+    html_path: str
+    data_dir_path: str
+
+    @field_validator("report_kind", "html_path", "data_dir_path")
+    @classmethod
+    def _validate_required_strings(cls, value: str) -> str:
+        return _clean_id(value, field_name="artifact_registration.multiqc_reports value")
+
+    @field_validator("html_path", "data_dir_path")
+    @classmethod
+    def _validate_relative_paths(cls, value: str) -> str:
+        cleaned = str(value).strip()
+        if cleaned.startswith("/"):
+            raise ValueError("artifact registration MultiQC paths must be relative")
+        if ".." in Path(cleaned).parts:
+            raise ValueError("artifact registration MultiQC paths must not contain '..'")
+        return cleaned
+
+
 class ArtifactRegistrationPolicy(BaseModel):
     """Explicit command policy for registering exported DayOA evidence."""
 
     model_config = ConfigDict(extra="forbid")
 
     enabled: bool
+    manifest_source: str
     evidence_manifest_path: str
     include_classifications: List[str] = Field(default_factory=list)
     include_paths: List[str] = Field(default_factory=list)
@@ -259,9 +286,11 @@ class ArtifactRegistrationPolicy(BaseModel):
     parser_family_hint: str
     multiqc_report_kind: str
     multiqc_version: str
+    multiqc_reports: List[ArtifactRegistrationMultiQCReport] = Field(default_factory=list)
     identity: ArtifactRegistrationIdentity
 
     @field_validator(
+        "manifest_source",
         "evidence_manifest_path",
         "parser_family_hint",
         "multiqc_report_kind",
@@ -270,6 +299,17 @@ class ArtifactRegistrationPolicy(BaseModel):
     @classmethod
     def _validate_required_strings(cls, value: str) -> str:
         return _clean_id(value, field_name="artifact_registration value")
+
+    @field_validator("manifest_source")
+    @classmethod
+    def _validate_manifest_source(cls, value: str) -> str:
+        cleaned = _clean_id(value, field_name="artifact_registration.manifest_source")
+        if cleaned not in ARTIFACT_REGISTRATION_MANIFEST_SOURCES:
+            raise ValueError(
+                "artifact_registration.manifest_source must be one of: "
+                + ", ".join(sorted(ARTIFACT_REGISTRATION_MANIFEST_SOURCES))
+            )
+        return cleaned
 
     @field_validator("include_classifications", "include_paths")
     @classmethod
@@ -299,6 +339,11 @@ class ArtifactRegistrationPolicy(BaseModel):
             raise ValueError(
                 "enabled artifact_registration requires include_classifications or include_paths"
             )
+        if self.enabled and self.parser_family_hint == "multiqc" and not self.multiqc_reports:
+            raise ValueError("enabled MultiQC artifact_registration requires multiqc_reports")
+        report_kinds = [report.report_kind for report in self.multiqc_reports]
+        if len(set(report_kinds)) != len(report_kinds):
+            raise ValueError("artifact_registration.multiqc_reports report_kind values must be unique")
         return self
 
 

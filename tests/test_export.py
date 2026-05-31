@@ -14,13 +14,16 @@ from typer.testing import CliRunner
 
 from daylily_ec.repositories import load_repository_catalog
 from daylily_ec.workflow.dewey_registration import (
+    build_registration_requests,
     register_exported_analysis_directory_links,
 )
 from daylily_ec.workflow.export_data import (
     ExportOptions,
+    RegisterExistingExportOptions,
     attach_export_dra,
     detach_export_dra,
     normalize_export_source_path,
+    run_dewey_registration_for_existing_export,
     run_export_task,
     run_export_workflow,
     validate_export_destination_s3_uri,
@@ -154,13 +157,28 @@ class FakeSession:
 
 
 class FakeS3Client:
-    def __init__(self, *, key_count: int = 0, objects: dict[str, str] | None = None) -> None:
+    def __init__(
+        self,
+        *,
+        key_count: int = 0,
+        objects: dict[str, str] | None = None,
+        listed_objects: dict[str, dict[str, Any]] | None = None,
+    ) -> None:
         self.key_count = key_count
         self.objects = objects or {}
+        self.listed_objects = listed_objects
         self.list_calls: list[dict[str, Any]] = []
 
     def list_objects_v2(self, **params: Any) -> dict[str, Any]:
         self.list_calls.append(params)
+        if self.listed_objects is not None:
+            prefix = params.get("Prefix", "")
+            contents = [
+                {"Key": uri.split("/", 3)[3], "Size": head.get("ContentLength", 0)}
+                for uri, head in self.listed_objects.items()
+                if uri.split("/", 3)[3].startswith(prefix)
+            ]
+            return {"KeyCount": len(contents), "Contents": contents, "IsTruncated": False}
         return {"KeyCount": self.key_count}
 
     def get_object(self, **params: Any) -> dict[str, Any]:
@@ -176,6 +194,12 @@ class FakeS3Client:
                 return self.text.encode("utf-8")
 
         return {"Body": Body(self.objects[key])}
+
+    def head_object(self, **params: Any) -> dict[str, Any]:
+        key = f"s3://{params['Bucket']}/{params['Key']}"
+        if self.listed_objects is None or key not in self.listed_objects:
+            raise RuntimeError(f"missing fake s3 head: {key}")
+        return self.listed_objects[key]
 
 
 @pytest.mark.parametrize(
@@ -432,9 +456,267 @@ def _dayoa_evidence_manifest() -> str:
                 "parser_relevant": False,
                 "required": False,
             },
+            {
+                "relative_path": "config/samples.tsv",
+                "size_bytes": 21,
+                "sha256": digest,
+                "classification": "samples_manifest",
+                "parser_relevant": True,
+                "required": True,
+                "metadata": {
+                    "sample_names": ["HG002", "HG003"],
+                    "experiment_ids": ["EXP1", "EXP2"],
+                },
+                "tags": ["manifest:samples", "sample:HG002", "sample:HG003"],
+            },
+            {
+                "relative_path": "config/units.tsv",
+                "size_bytes": 22,
+                "sha256": digest,
+                "classification": "units_manifest",
+                "parser_relevant": True,
+                "required": True,
+                "metadata": {
+                    "sample_names": ["HG002", "HG003"],
+                    "experiment_ids": ["EXP1", "EXP2"],
+                    "run_ids": ["RUN42"],
+                },
+                "tags": [
+                    "experiment:EXP1",
+                    "experiment:EXP2",
+                    "manifest:units",
+                    "sample:HG002",
+                    "sample:HG003",
+                ],
+            },
+            {
+                "relative_path": "results/day/hg38_broad/crams/HG002.dmd.cram",
+                "size_bytes": 17,
+                "sha256": digest,
+                "classification": "alignment_cram",
+                "parser_relevant": False,
+                "required": True,
+            },
+            {
+                "relative_path": "results/day/hg38_broad/crams/HG002.dmd.cram.crai",
+                "size_bytes": 18,
+                "sha256": digest,
+                "classification": "alignment_cram_index",
+                "parser_relevant": False,
+                "required": True,
+            },
+            {
+                "relative_path": "results/day/hg38_broad/vcfs/HG002.sentd.vcf.gz",
+                "size_bytes": 19,
+                "sha256": digest,
+                "classification": "variant_vcf",
+                "parser_relevant": False,
+                "required": True,
+            },
+            {
+                "relative_path": "results/day/hg38_broad/vcfs/HG002.sentd.vcf.gz.tbi",
+                "size_bytes": 20,
+                "sha256": digest,
+                "classification": "variant_vcf_index",
+                "parser_relevant": False,
+                "required": True,
+            },
         ],
     }
     return json.dumps(payload)
+
+
+def test_build_registration_requests_handles_multiple_multiqc_reports() -> None:
+    digest = "c" * 64
+    manifest = {
+        "schema_version": "dyec.s3_export_inventory_manifest.v1",
+        "manifest_checksum": "d" * 64,
+        "generated_at": "2026-05-31T00:00:00Z",
+        "analysis": {"genome_build": "hg38_broad"},
+        "workflow": {
+            "pipeline_name": "daylily-omics-analysis",
+            "pipeline_version": "2.0.25",
+            "git_sha": "abc123",
+            "snakemake_version": "7.32.4",
+            "workflow_config_hash": digest,
+            "workflow_profile": "exported-s3-inventory",
+        },
+        "files": [
+            {
+                "relative_path": "config/samples.tsv",
+                "size_bytes": 8,
+                "sha256": digest,
+                "classification": "samples_manifest",
+                "parser_relevant": True,
+                "required": True,
+                "metadata": {
+                    "sample_names": ["HG002"],
+                    "experiment_ids": ["EXP1"],
+                },
+                "tags": ["manifest:samples", "sample:HG002"],
+            },
+            {
+                "relative_path": "config/units.tsv",
+                "size_bytes": 9,
+                "sha256": digest,
+                "classification": "units_manifest",
+                "parser_relevant": True,
+                "required": True,
+                "metadata": {
+                    "sample_names": ["HG002"],
+                    "experiment_ids": ["EXP1"],
+                    "run_ids": ["RUN1"],
+                },
+                "tags": ["experiment:EXP1", "manifest:units", "sample:HG002"],
+            },
+            {
+                "relative_path": "results/runs/RUN1/run_qc/illumina/multiqc_report.html",
+                "size_bytes": 10,
+                "sha256": digest,
+                "classification": "multiqc_html",
+                "parser_relevant": True,
+                "required": True,
+            },
+            {
+                "relative_path": (
+                    "results/runs/RUN1/run_qc/illumina/multiqc_report_data/multiqc_data.json"
+                ),
+                "size_bytes": 11,
+                "sha256": digest,
+                "classification": "multiqc_data_json",
+                "parser_relevant": True,
+                "required": True,
+            },
+            {
+                "relative_path": (
+                    "results/runs/RUN1/run_qc/illumina/multiqc_report_data/multiqc_general_stats.txt"
+                ),
+                "size_bytes": 12,
+                "sha256": digest,
+                "classification": "multiqc_general_stats",
+                "parser_relevant": True,
+                "required": True,
+            },
+            {
+                "relative_path": "results/runs/RUN1/bclconvert/multiqc_report.html",
+                "size_bytes": 13,
+                "sha256": digest,
+                "classification": "multiqc_html",
+                "parser_relevant": True,
+                "required": True,
+            },
+            {
+                "relative_path": (
+                    "results/runs/RUN1/bclconvert/multiqc_report_data/multiqc_data.json"
+                ),
+                "size_bytes": 14,
+                "sha256": digest,
+                "classification": "multiqc_data_json",
+                "parser_relevant": True,
+                "required": True,
+            },
+            {
+                "relative_path": (
+                    "results/runs/RUN1/bclconvert/multiqc_report_data/multiqc_bclconvert_demux.tsv"
+                ),
+                "size_bytes": 15,
+                "sha256": digest,
+                "classification": "multiqc_data_file",
+                "parser_relevant": True,
+                "required": True,
+            },
+        ],
+    }
+    command = load_repository_catalog().get_command("illumina_run_qc_bclconvert")
+
+    requests = build_registration_requests(
+        manifest=manifest,
+        export_receipt={
+            "status": "success",
+            "analysis_dir": "ubuntu/ccv20260530r57_illumina_run_qc_bclconvert",
+            "dayoa_s3_root": (
+                "s3://bucket/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/"
+                "daylily-omics-analysis/"
+            ),
+        },
+        policy=command.artifact_registration,
+    )
+
+    assert requests["analysis"]["analysis_euid"] == "ccv20260530r57_illumina_run_qc_bclconvert"
+    assert requests["analysis"]["metadata"]["analysis_id"] == (
+        "ccv20260530r57_illumina_run_qc_bclconvert"
+    )
+    assert len(requests["multiqc"]) == 2
+    assert {request["report_kind"] for request in requests["multiqc"]} == {
+        "bclconvert",
+        "run_qc_illumina",
+    }
+    assert {
+        request["metadata"]["data_dir_relative_path"] for request in requests["multiqc"]
+    } == {
+        "results/runs/RUN1/bclconvert/multiqc_report_data/",
+        "results/runs/RUN1/run_qc/illumina/multiqc_report_data/",
+    }
+    assert len(requests["analysis"]["artifacts"]) == 8
+    artifacts_by_path = {
+        artifact["relative_path"]: artifact for artifact in requests["analysis"]["artifacts"]
+    }
+    assert artifacts_by_path["config/samples.tsv"]["metadata"]["tags"] == [
+        "manifest:samples",
+        "sample:HG002",
+    ]
+
+
+def test_registration_only_s3_inventory_requires_sha256_metadata(tmp_path, monkeypatch) -> None:
+    fake = FakeFsxClient()
+    prefix = "s3://bucket/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/"
+    dayoa_prefix = prefix + "daylily-omics-analysis/"
+    fake_s3 = FakeS3Client(
+        listed_objects={
+            dayoa_prefix + ".test_data/data/ultima_run_qc/ultima_demux_summary_mqc.tsv": {
+                "ContentLength": 9,
+                "Metadata": {"user-agent": "aws-fsx-lustre"},
+                "ETag": '"testdata"',
+            },
+            dayoa_prefix + "results/runs/RUN1/run_qc/illumina/multiqc_report.html": {
+                "ContentLength": 10,
+                "Metadata": {"user-agent": "aws-fsx-lustre"},
+                "ETag": '"abc"',
+            }
+        }
+    )
+    monkeypatch.setenv("DEWEY_TOKEN", "token-1")
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(fake, s3_client=fake_s3),
+    )
+    command = load_repository_catalog().get_command("illumina_run_qc_bclconvert")
+
+    rc = run_dewey_registration_for_existing_export(
+        RegisterExistingExportOptions(
+            source_path="/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert",
+            destination_s3_uri=prefix,
+            region="us-west-2",
+            profile="prof",
+            output_dir=tmp_path,
+            artifact_registration_policy=command.artifact_registration,
+            artifact_registration_genome=command.genome,
+            artifact_registration_manifest_source="s3_inventory",
+            artifact_registration_command_id=command.command_id,
+            dewey_url="https://dewey.example",
+            dewey_token_env="DEWEY_TOKEN",
+        )
+    )
+
+    assert rc == 1
+    receipt = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))[
+        "fsx_export"
+    ]
+    assert receipt["status"] == "error"
+    assert receipt["registration_only"] is True
+    assert "missing SHA-256 metadata" in receipt["failure_details"]["message"]
+    assert ".test_data" not in receipt["failure_details"]["message"]
+    assert not (tmp_path / "dewey_registration_receipt.json").exists()
 
 
 def test_run_export_workflow_registers_dewey_after_success(tmp_path, monkeypatch) -> None:
@@ -457,9 +739,11 @@ def test_run_export_workflow_registers_dewey_after_success(tmp_path, monkeypatch
         captured["requests"] = requests
         return {
             "analysis_response": {"artifact_set_euid": "Z-ASET-1"},
-            "multiqc_response": {"artifact_set_euid": "Z-MQC-1"},
+            "multiqc_responses": [{"artifact_set_euid": "Z-MQC-1"}],
             "analysis_request_manifest_sha256": requests["analysis"]["manifest_sha256"],
-            "multiqc_request_manifest_sha256": requests["multiqc"]["manifest_sha256"],
+            "multiqc_request_manifest_sha256s": [
+                request["manifest_sha256"] for request in requests["multiqc"]
+            ],
         }
 
     monkeypatch.setattr(
@@ -490,7 +774,8 @@ def test_run_export_workflow_registers_dewey_after_success(tmp_path, monkeypatch
     payload = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))
     receipt = payload["fsx_export"]
     assert receipt["dewey_registration_status"] == "success"
-    assert receipt["dewey_selected_artifact_count"] == 7
+    assert receipt["dewey_selected_artifact_count"] == 13
+    assert receipt["dewey_multiqc_artifact_set_count"] == 1
     assert (tmp_path / "dewey_registration_receipt.json").is_file()
     assert captured["dewey_url"] == "https://dewey.example"
     assert captured["token"] == "token-1"
@@ -498,6 +783,17 @@ def test_run_export_workflow_registers_dewey_after_success(tmp_path, monkeypatch
     assert captured["requests"]["analysis"]["artifacts"][0]["storage_uri"].startswith(
         "s3://bucket/analysis_results/johnm/illumina_run_qc/daylily-omics-analysis/"
     )
+    artifacts_by_path = {
+        artifact["relative_path"]: artifact
+        for artifact in captured["requests"]["analysis"]["artifacts"]
+    }
+    assert artifacts_by_path["config/units.tsv"]["metadata"]["tags"] == [
+        "experiment:EXP1",
+        "experiment:EXP2",
+        "manifest:units",
+        "sample:HG002",
+        "sample:HG003",
+    ]
 
 
 def test_register_exported_analysis_directory_links_posts_external_object_and_relations(
@@ -643,7 +939,7 @@ def test_run_export_workflow_links_dewey_analysis_directory_after_registration(
         _ = dewey_url, token, requests
         return {
             "analysis_response": {"artifact_set_euid": "Z-ASET-1"},
-            "multiqc_response": {"artifact_set_euid": "Z-MQC-1"},
+            "multiqc_responses": [{"artifact_set_euid": "Z-MQC-1"}],
         }
 
     def fake_links(**kwargs: Any) -> dict[str, Any]:
@@ -916,3 +1212,57 @@ def test_cli_export_passes_direct_analysis_options(tmp_path, monkeypatch):
     assert options.region == "us-west-2"
     assert options.profile == "prof"
     assert options.output_dir == Path(tmp_path).resolve()
+
+
+def test_cli_exports_register_dewey_passes_existing_export_options(tmp_path, monkeypatch):
+    from daylily_ec.cli import app
+
+    _activate_dayec_runtime(monkeypatch)
+    monkeypatch.setenv("DEWEY_TOKEN", "token-1")
+    with (
+        patch("daylily_ec.workflow.export_data.configure_logging") as mock_logging,
+        patch(
+            "daylily_ec.workflow.export_data.run_dewey_registration_for_existing_export",
+            return_value=0,
+        ) as mock_run,
+    ):
+        result = runner.invoke(
+            app,
+            [
+                "exports",
+                "register-dewey",
+                "--source-path",
+                "/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert",
+                "--destination-s3-uri",
+                "s3://bucket/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/",
+                "--region",
+                "us-west-2",
+                "--output-dir",
+                str(tmp_path),
+                "--artifact-registration-command-id",
+                "illumina_run_qc_bclconvert",
+                "--manifest-source",
+                "s3-inventory",
+                "--dewey-url",
+                "https://dewey.example",
+                "--dewey-token-env",
+                "DEWEY_TOKEN",
+                "--profile",
+                "prof",
+                "--verbose",
+            ],
+        )
+
+    assert result.exit_code == 0
+    mock_logging.assert_called_once_with(True)
+    options = mock_run.call_args.args[0]
+    assert options.source_path == (
+        "/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert"
+    )
+    assert (
+        options.destination_s3_uri
+        == "s3://bucket/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/"
+    )
+    assert options.artifact_registration_command_id == "illumina_run_qc_bclconvert"
+    assert options.artifact_registration_manifest_source == "s3_inventory"
+    assert options.dewey_url == "https://dewey.example"

@@ -90,11 +90,11 @@ flowchart LR
 
 ## Pipeline Catalog Flow
 
-`config/daylily_available_repositories.yaml` defines repositories and launch profiles. The DayOA repository and every DayOA command are pinned to `2.0.8`.
+`config/daylily_available_repositories.yaml` defines repositories and launch profiles. The DayOA repository and every DayOA command are pinned to `2.0.25`.
 
 ```mermaid
 flowchart TB
-  Catalog["Repository catalog v2"] --> Repo["daylily-omics-analysis @ 2.0.8"]
+  Catalog["Repository catalog v2"] --> Repo["daylily-omics-analysis @ 2.0.25"]
   Repo --> Sample["sample_analysis"]
   Repo --> Run["run_analysis"]
 

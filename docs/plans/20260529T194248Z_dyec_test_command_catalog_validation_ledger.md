@@ -979,3 +979,43 @@ Remaining execution work:
 
 - No catalog command remains to launch.
 - Final local DYEC validation and release commit/tag/push remain after reviewing the resulting diff.
+
+## BCL Benchmark And Cleanup Checkpoint: 2026-05-31T08:25Z
+
+Current headnode state:
+
+| Check | Result |
+|---|---|
+| `/fsx` | `8.8T` total, `3.7T` used, `5.1T` available, `42%` used. |
+| `/dev/shm` on headnode | `199G` total, `0` used at inspection time. |
+| Slurm queue | Empty. |
+| Snakemake/controller processes | None found by `pgrep -af 'snakemake|daylily_run_omics_analysis|dyec workflow|dy-r'`. |
+| Exported success analysis dirs | All terminal-success analysis ids in the final catalog table were absent under `/fsx/analysis_results/ubuntu`, including `ccv20260530r56_illumina_bclconvert` and `ccv20260530r57_illumina_run_qc_bclconvert`. |
+| Cleanup action | No deletion performed; there was no familiar exported success directory left behind to remove. Remaining recent dirs are dry-run or failed-attempt artifacts and need an explicit target list before destructive cleanup. |
+
+BCL Convert r57 benchmark interpretation:
+
+| Evidence | Result |
+|---|---|
+| Full-run source | `s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/`. |
+| Lane wall times | `1:10:12` to `1:28:19`; long pole was `L003`. |
+| Lane memory | Peak RSS `162.9G` to `172.3G` per lane. |
+| Lane I/O | About `393-397G` read and `557-561G` written per lane; lane output total about `4.47T`. |
+| CPU signal | Benchmarks show only about `6.7-8.1` CPU core-equivalents per lane despite `192` Snakemake threads. BCL Convert logs report `# CPU hw threads available: 64`. |
+| Runtime flags used in r57 | `parallel_tiles=16`, `conversion_threads=8`, `compression_threads=48`, `decompression_threads=16`, `fastq_gzip_compression_level=1`, `shared_thread_odirect_output=false`, `output_legacy_stats=true`, `num_unknown_barcodes_reported=10000`. |
+| `/dev/shm` | Lane logs set `TMPDIR=/dev/shm`; compute-node `/dev/shm` was `605G` and empty at lane start. The BCL input and output paths were FSx paths, so `/dev/shm` was available for temp use but not used as a full BCL/FASTQ staging layer. |
+
+Recommended next BCL tuning experiment:
+
+- Treat this as primarily FSx read/write bound, not memory bound. More memory is unlikely to shorten wall time.
+- Keep `fastq_gzip_compression_level=1`.
+- Benchmark `shared_thread_odirect_output=true` against the r57 `false` setting because r57 logs explicitly show shared-thread native output disabled.
+- Benchmark a CPU-thread layout aligned to the BCL-reported `64` hardware threads, for example `parallel_tiles=16`, `conversion_threads=2`, `compression_threads=24`, `decompression_threads=8`, with `threads=64`; compare to current `16/8/48/16`.
+- Keep one lane per exclusive node for the speed benchmark; packing lanes onto fewer nodes may save cost, but it is unlikely to improve wall time while FSx is near the throughput limit.
+- Consider lowering BCL `mem_mb` from `360000` to `240000-300000` only for schedulability/cost-shaping. The observed peak RSS leaves enough headroom, but this is not expected to make the run faster.
+
+Follow-up tuning change applied locally:
+
+- DayOA slurm template BCL Convert lane settings now use `parallel_tiles=24`, `conversion_threads=4`, `compression_threads=64`, and `decompression_threads=32`, keeping the CPU-heavy sum at `192` while increasing tile-level, compression, and decompression concurrency.
+- DYEC runtime patch now injects the same `24/4/64/32` settings, allows `i192mem,i192bigmem`, re-enables `shared_thread_odirect_output=true`, and restores `num_unknown_barcodes_reported=1000`.
+- This is an intentional benchmark attempt to get BCL Convert to consume more of the 192-vCPU node. The prior r57 successful run was `16/8/48/16`, `shared_thread_odirect_output=false`, and `num_unknown_barcodes_reported=10000`.

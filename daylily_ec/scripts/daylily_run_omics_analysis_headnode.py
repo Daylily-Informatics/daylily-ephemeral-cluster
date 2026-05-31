@@ -208,30 +208,28 @@ def upsert_scalar(key, value):
     lines[target_index] = f'{indent}{key}: "{value}"\n'
 
 
-replace_required_scalar("staging_mode", "direct")
-replace_required_scalar("scratch_root", "/dev/shm/dayoa_bclconvert")
 replace_required_scalar("tmpdir", "/dev/shm")
-replace_required_scalar("scratch_size_multiplier", "1")
 replace_required_scalar("force", "true")
+upsert_scalar("merge_lane_fastqs", "false")
 replace_required_scalar("threads", "192")
-replace_required_scalar("partition", "i192mem")
-replace_required_scalar("parallel_tiles", "16")
-replace_required_scalar("conversion_threads", "8")
-replace_required_scalar("compression_threads", "48")
-replace_required_scalar("decompression_threads", "16")
+replace_required_scalar("partition", "i192mem,i192bigmem")
+replace_required_scalar("parallel_tiles", "24")
+replace_required_scalar("conversion_threads", "4")
+replace_required_scalar("compression_threads", "64")
+replace_required_scalar("decompression_threads", "32")
 replace_required_scalar("fastq_gzip_compression_level", "1")
-replace_required_scalar("shared_thread_odirect_output", "false")
+replace_required_scalar("shared_thread_odirect_output", "true")
 upsert_scalar("output_legacy_stats", "true")
-upsert_scalar("num_unknown_barcodes_reported", "10000")
-# Untested pending feature: these optional sample-sheet injections are deliberately
-# left unset for current validation runs unless explicit config overrides them.
+upsert_scalar("num_unknown_barcodes_reported", "1000")
+# Untested pending feature: optional sample-sheet injections stay unset unless explicitly
+# configured, except the validation contract requires zero barcode mismatches.
 upsert_scalar("adapter_read1", "")
 upsert_scalar("adapter_read2", "")
 upsert_scalar("adapter_behavior", "")
 upsert_scalar("adapter_stringency", "")
 upsert_scalar("minimum_adapter_overlap", "")
-upsert_scalar("barcode_mismatches_index1", "")
-upsert_scalar("barcode_mismatches_index2", "")
+upsert_scalar("barcode_mismatches_index1", "0")
+upsert_scalar("barcode_mismatches_index2", "0")
 upsert_scalar("create_fastq_for_index_reads", "")
 upsert_scalar("minimum_trimmed_read_length", "")
 upsert_scalar("mask_short_reads", "")
@@ -796,10 +794,6 @@ def main(argv: Optional[List[str]] = None) -> int:
     )
     run_context_projection_python = shlex.quote(BCL_RUN_CONTEXT_PROJECTION_SCRIPT)
     bclconvert_profile_patch_python = shlex.quote(BCLCONVERT_PROFILE_PATCH_SCRIPT)
-    bclconvert_lane_split_patch_python = shlex_quote_compressed_python(
-        BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-    )
-
     pipeline_script = f"""
 set -euo pipefail
 if [[ "$(id -un)" != "ubuntu" ]]; then
@@ -1074,7 +1068,33 @@ patch_bclconvert_profile_config() {{
 }}
 
 patch_bclconvert_lane_split() {{
-  python3 -c {bclconvert_lane_split_patch_python}
+  python3 - <<'PYNATIVEBCL'
+from pathlib import Path
+
+rule_path = Path("workflow/rules/bclconvert.smk")
+if not rule_path.is_file():
+    raise SystemExit(f"[ERROR] BCL Convert rule file is missing: {{rule_path}}")
+
+text = rule_path.read_text(encoding="utf-8")
+required_markers = [
+    "DAYOA_BCLCONVERT_LANE_SPLIT = True",
+    "BCL_MERGE_LANE_FASTQS",
+    "BCL_FASTQ_LIST_INPUT_FILES",
+    "run_bclconvert_lane_fastqs_ready",
+    "rule run_bclconvert_lane:",
+    "workflow/scripts/run_bclconvert_lane.sh",
+    "workflow/scripts/prepare_bclconvert_lane_samplesheet.py",
+    "workflow/scripts/merge_bclconvert_lanes.py",
+]
+missing = [marker for marker in required_markers if marker not in text]
+if missing:
+    raise SystemExit(
+        "[ERROR] DayOA BCL Convert rules do not expose native lane-split support; "
+        "use a DayOA release with native mounted-run BCL Convert. Missing markers: "
+        + ", ".join(missing)
+    )
+print("[INFO] DayOA native BCL Convert lane-split rules detected; no DYEC runtime rule patch applied.")
+PYNATIVEBCL
 }}
 
 ultima_run_qc_config_requested() {{

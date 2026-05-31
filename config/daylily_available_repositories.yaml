@@ -114,7 +114,7 @@ repositories:
     description: "Primary whole genome and multiomics workflows."
     https_url: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
     ssh_url: git@github.com:Daylily-Informatics/daylily-omics-analysis.git
-    default_ref: 2.0.23
+    default_ref: 2.0.25
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test
@@ -142,7 +142,7 @@ repositories:
           - local
         compatible_data_modes:
           - none
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: true
         validation_runs: []
       - command_id: illumina_snv_alignstats
@@ -180,7 +180,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -240,10 +240,11 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         artifact_registration: &dayoa_multiqc_artifact_registration
           enabled: true
+          manifest_source: dayoa_manifest
           evidence_manifest_path: results/day/{genome}/reports/dayoa_evidence_manifest.json
           include_classifications:
             - multiqc_html
@@ -251,18 +252,41 @@ repositories:
             - multiqc_general_stats
             - multiqc_sources
             - multiqc_log
+            - multiqc_data_file
             - custom_mqc_tsv
             - staging_manifest
             - benchmark
+            - alignment_cram
+            - alignment_cram_index
+            - alignment_bam
+            - alignment_bam_index
+            - variant_vcf
+            - variant_vcf_index
+            - samples_manifest
+            - units_manifest
           include_paths:
+            - config/samples.tsv
+            - config/units.tsv
             - results/day/{genome}/reports/DAY_final_multiqc.html
             - results/day/{genome}/reports/DAY_final_multiqc_data/**
             - results/day/{genome}/reports/multiqc_inputs/final/manifest.tsv
             - results/day/{genome}/other_reports/*_mqc.tsv
+            - results/day/{genome}/**/*.cram
+            - results/day/{genome}/**/*.crai
+            - results/day/{genome}/**/*.bam
+            - results/day/{genome}/**/*.bai
+            - results/day/{genome}/**/*.vcf
+            - results/day/{genome}/**/*.vcf.gz
+            - results/day/{genome}/**/*.tbi
+            - results/day/{genome}/**/*.csi
           require_existing: true
           parser_family_hint: multiqc
           multiqc_report_kind: final
           multiqc_version: "1.35"
+          multiqc_reports:
+            - report_kind: final
+              html_path: results/day/{genome}/reports/DAY_final_multiqc.html
+              data_dir_path: results/day/{genome}/reports/DAY_final_multiqc_data/
           identity:
             analysis_euid: "{analysis_id}"
             run_euid: "{analysis_id}"
@@ -332,7 +356,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
         validation_runs:
@@ -389,7 +413,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - ultima_solo
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -448,7 +472,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - ultima_solo
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: ont_snv_alignstats
@@ -486,7 +510,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - ont_solo
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -546,7 +570,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - ont_solo
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: pacbio_snv_alignstats
@@ -584,7 +608,7 @@ repositories:
           - PACBIO
         compatible_data_modes:
           - pacbio_solo
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -640,7 +664,7 @@ repositories:
           - ROCHE
         compatible_data_modes:
           - roche_solo
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -699,7 +723,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -762,7 +786,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: inflection-bjuice-product-v0.1
@@ -809,7 +833,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
       - command_id: hybrid_ultima_ont_snv
         display_name: "Hybrid Ultima+ONT HUOMR SNV"
@@ -849,7 +873,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ug_ont
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -907,7 +931,7 @@ repositories:
           - CG/MGI
         compatible_data_modes:
           - complete_genomics_solo
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -957,7 +981,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1007,7 +1031,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1057,8 +1081,42 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
+        artifact_registration:
+          enabled: true
+          manifest_source: s3_inventory
+          evidence_manifest_path: results/runs/{analysis_id}/dayoa_evidence_manifest.json
+          include_classifications:
+            - multiqc_html
+            - multiqc_data_json
+            - multiqc_general_stats
+            - multiqc_sources
+            - multiqc_log
+            - multiqc_data_file
+            - samples_manifest
+            - units_manifest
+          include_paths:
+            - config/samples.tsv
+            - config/units.tsv
+            - results/runs/**/run_qc/illumina/multiqc_report.html
+            - results/runs/**/run_qc/illumina/multiqc_report_data/**
+            - results/runs/**/bclconvert/multiqc_report.html
+            - results/runs/**/bclconvert/multiqc_report_data/**
+          require_existing: true
+          parser_family_hint: multiqc
+          multiqc_report_kind: run_qc_bclconvert
+          multiqc_version: "1.35"
+          multiqc_reports:
+            - report_kind: run_qc_illumina
+              html_path: results/runs/**/run_qc/illumina/multiqc_report.html
+              data_dir_path: results/runs/**/run_qc/illumina/multiqc_report_data/
+            - report_kind: bclconvert
+              html_path: results/runs/**/bclconvert/multiqc_report.html
+              data_dir_path: results/runs/**/bclconvert/multiqc_report_data/
+          identity:
+            analysis_euid: "{analysis_id}"
+            run_euid: "{analysis_id}"
         validation_runs: []
       - command_id: ont_run_qc
         display_name: "ONT Run QC"
@@ -1090,7 +1148,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1141,7 +1199,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 2.0.23
+        git_tag: 2.0.25
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation

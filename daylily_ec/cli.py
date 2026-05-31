@@ -1157,6 +1157,7 @@ def export(
             dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
             dewey_run_artifact_euid=dewey_run_artifact_euid,
             dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
+            artifact_registration_command_id=artifact_registration_command_id or "",
         )
     )
     raise typer.Exit(rc)
@@ -1281,6 +1282,109 @@ def exports_detach(
         )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
+
+
+def exports_register_dewey(
+    source_path: str = typer.Option(
+        ...,
+        "--source-path",
+        help="Exported analysis directory under /fsx/analysis_results/<executing-entity>/<analysis-id>/.",
+    ),
+    destination_s3_uri: str = typer.Option(
+        ...,
+        "--destination-s3-uri",
+        help="Existing S3 URI ending in <executing-entity>/<analysis-id>/.",
+    ),
+    region: str = typer.Option(..., "--region", help="AWS region for S3 access."),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Directory where fsx_export.yaml and dewey_registration_receipt.json will be written.",
+    ),
+    artifact_registration_command_id: str = typer.Option(
+        ...,
+        "--artifact-registration-command-id",
+        help="Repository catalog command id whose explicit artifact_registration policy should be applied.",
+    ),
+    manifest_source: str = typer.Option(
+        ...,
+        "--manifest-source",
+        help="Registration manifest source: dayoa-manifest or s3-inventory.",
+    ),
+    repository_catalog: Optional[Path] = typer.Option(
+        None,
+        "--repository-catalog",
+        help="Repository catalog YAML path. Defaults to the packaged catalog.",
+    ),
+    dewey_url: str = typer.Option(..., "--dewey-url", help="Dewey base URL."),
+    dewey_token_env: str = typer.Option(
+        ...,
+        "--dewey-token-env",
+        help="Environment variable containing the Dewey bearer token.",
+    ),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    verbose: bool = typer.Option(False, "--verbose", help="Enable verbose registration logging."),
+    dewey_analysis_dir_external_object_id: str = typer.Option(
+        "",
+        "--dewey-analysis-dir-external-object-id",
+        help="External object id for the exported daylily-omics-analysis S3 directory.",
+    ),
+    dewey_run_artifact_euid: str = typer.Option(
+        "",
+        "--dewey-run-artifact-euid",
+        help="Dewey run artifact EUID to link to the exported analysis directory external object.",
+    ),
+    dewey_ursa_analysis_euid: str = typer.Option(
+        "",
+        "--dewey-ursa-analysis-euid",
+        help="Ursa analysis EUID to link to the exported analysis directory external object.",
+    ),
+) -> None:
+    """Register an existing exported analysis directory with Dewey without running FSx export."""
+
+    from daylily_ec.repositories import load_repository_catalog
+    from daylily_ec.workflow.export_data import (
+        RegisterExistingExportOptions,
+        configure_logging,
+        run_dewey_registration_for_existing_export,
+    )
+
+    _warn_if_dayec_env_inactive()
+    normalized_manifest_source = manifest_source.strip().replace("-", "_")
+    if normalized_manifest_source not in {"dayoa_manifest", "s3_inventory"}:
+        raise typer.BadParameter("--manifest-source must be dayoa-manifest or s3-inventory")
+    _validate_dewey_analysis_directory_link_options(
+        artifact_registration_command_id=artifact_registration_command_id,
+        dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
+        dewey_run_artifact_euid=dewey_run_artifact_euid,
+        dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
+    )
+    catalog = load_repository_catalog(repository_catalog)
+    command = catalog.get_command(artifact_registration_command_id)
+    if command.artifact_registration is None:
+        raise typer.BadParameter(
+            f"Command {artifact_registration_command_id!r} has no artifact_registration policy"
+        )
+    configure_logging(verbose)
+    rc = run_dewey_registration_for_existing_export(
+        RegisterExistingExportOptions(
+            source_path=source_path,
+            destination_s3_uri=destination_s3_uri,
+            region=region,
+            profile=profile,
+            output_dir=output_dir.expanduser().resolve(),
+            artifact_registration_policy=command.artifact_registration,
+            artifact_registration_genome=command.genome,
+            artifact_registration_manifest_source=normalized_manifest_source,
+            artifact_registration_command_id=artifact_registration_command_id,
+            dewey_url=dewey_url,
+            dewey_token_env=dewey_token_env,
+            dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
+            dewey_run_artifact_euid=dewey_run_artifact_euid,
+            dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
+        )
+    )
+    raise typer.Exit(rc)
 
 
 def delete(
@@ -3379,6 +3483,11 @@ def register(registry, cli_spec) -> None:
                 "detach",
                 exports_detach,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "register-dewey",
+                exports_register_dewey,
+                required_policy(supports_json=True, mutates_state=True),
             ),
         ],
     )

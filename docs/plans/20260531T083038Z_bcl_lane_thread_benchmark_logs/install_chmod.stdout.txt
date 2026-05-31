@@ -1,0 +1,8 @@
+DAY-EC activated.
+DAY-EC activated.
+total 24
+-rwx------ 1 ubuntu ubuntu 2112 May 31 08:44 prepare_samplesheet.py
+-rwx------ 1 ubuntu ubuntu 6321 May 31 08:44 run_bcl_one.sh
+-rwx------ 1 ubuntu ubuntu 1129 May 31 08:44 run_pack3x64.sh
+-rwx------ 1 ubuntu ubuntu  805 May 31 08:45 status.sh
+-rwx------ 1 ubuntu ubuntu 2152 May 31 08:45 submit_benchmarks.sh

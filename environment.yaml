@@ -16,3 +16,5 @@ dependencies:
   - fd-find
   - parallel
   - perl
+  - pip:
+      - "daylily-omics-analysis @ git+https://github.com/Daylily-Informatics/daylily-omics-analysis.git@2.0.25"

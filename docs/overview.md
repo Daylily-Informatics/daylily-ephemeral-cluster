@@ -59,7 +59,15 @@ Catalog v2 splits commands by input contract:
 - `sample_analysis` commands use `analysis_samples.tsv`; `dyec samples stage` writes `samples.tsv` and `units.tsv`.
 - `run_analysis` commands use `runs.tsv`; run input must be mounted under `/fsx/run_dir_mounts/<mount_id>`.
 
-The current DayOA catalog pin is `2.0.3` for the repository default and all DayOA command `git_tag` values.
+The current DayOA catalog pin is `2.0.25` for the repository default and all DayOA command `git_tag` values.
+
+DYEC can host multiple workflow managers as long as they use the same FSx and
+export contract. DayOA is the first-class Snakemake 7 catalog repository.
+Snakemake 8 repositories, Nextflow repositories, and future Cromwell/WDL
+repositories need manager-native launch commands and must write all durable
+outputs under `/fsx/analysis_results/<executing_entity>/<analysis_id>/`. See
+[`pipeline_manager_launches.md`](pipeline_manager_launches.md) for the manager
+contracts and examples.
 
 ## Headnode Model
 
@@ -92,5 +100,6 @@ the recorded S3 root.
 - [dra_fsx_strategy.md](dra_fsx_strategy.md)
 - [quickest_start.md](quickest_start.md)
 - [operations.md](operations.md)
+- [pipeline_manager_launches.md](pipeline_manager_launches.md)
 - [cli_reference.md](cli_reference.md)
 - [monitoring_and_troubleshooting.md](monitoring_and_troubleshooting.md)

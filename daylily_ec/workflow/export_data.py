@@ -3,6 +3,8 @@
 from __future__ import annotations
 
 import dataclasses
+import base64
+import fnmatch
 import json
 import logging
 import os
@@ -61,6 +63,25 @@ class ExportOptions:
     artifact_registration_genome: str = ""
     dewey_url: str = ""
     dewey_token_env: str = ""
+    dewey_analysis_dir_external_object_id: str = ""
+    dewey_run_artifact_euid: str = ""
+    dewey_ursa_analysis_euid: str = ""
+    artifact_registration_command_id: str = ""
+
+
+@dataclasses.dataclass
+class RegisterExistingExportOptions:
+    source_path: str
+    destination_s3_uri: str
+    region: str
+    profile: Optional[str]
+    output_dir: Path
+    artifact_registration_policy: ArtifactRegistrationPolicy
+    artifact_registration_genome: str
+    artifact_registration_manifest_source: str
+    artifact_registration_command_id: str
+    dewey_url: str
+    dewey_token_env: str
     dewey_analysis_dir_external_object_id: str = ""
     dewey_run_artifact_euid: str = ""
     dewey_ursa_analysis_euid: str = ""
@@ -474,11 +495,236 @@ def _read_s3_json(client: Any, uri: str) -> Dict[str, Any]:
     return payload
 
 
+def _s3_parts(uri: str) -> tuple[str, str]:
+    parsed = urlparse(uri)
+    if parsed.scheme != "s3" or not parsed.netloc:
+        raise ExportError(f"S3 URI must use s3://, got: {uri}")
+    return parsed.netloc, parsed.path.lstrip("/")
+
+
+def _iter_s3_objects(client: Any, *, bucket: str, prefix: str) -> list[dict[str, Any]]:
+    objects: list[dict[str, Any]] = []
+    continuation_token = ""
+    while True:
+        params: dict[str, Any] = {"Bucket": bucket, "Prefix": prefix}
+        if continuation_token:
+            params["ContinuationToken"] = continuation_token
+        try:
+            response = client.list_objects_v2(**params)
+        except (BotoCoreError, ClientError) as exc:
+            raise ExportError(f"Unable to list S3 prefix s3://{bucket}/{prefix}: {exc}") from exc
+        objects.extend(response.get("Contents") or [])
+        if not response.get("IsTruncated"):
+            break
+        continuation_token = str(response.get("NextContinuationToken") or "")
+        if not continuation_token:
+            raise ExportError(f"S3 listing for s3://{bucket}/{prefix} was truncated without a token")
+    if not objects:
+        raise ExportError(f"S3 prefix has no objects: s3://{bucket}/{prefix}")
+    return objects
+
+
+def _sha256_from_head_object(head: dict[str, Any], *, uri: str) -> str:
+    metadata = head.get("Metadata") or {}
+    for key in ("sha256", "file-sha256", "checksum-sha256"):
+        value = str(metadata.get(key) or "").strip().lower()
+        if len(value) == 64 and all(char in "0123456789abcdef" for char in value):
+            return value
+    checksum = str(head.get("ChecksumSHA256") or "").strip()
+    if checksum:
+        try:
+            value = base64.b64decode(checksum).hex()
+        except (ValueError, TypeError) as exc:
+            raise ExportError(f"S3 object has malformed ChecksumSHA256: {uri}") from exc
+        if len(value) == 64:
+            return value
+    raise ExportError(f"S3 object is missing SHA-256 metadata required by Dewey: {uri}")
+
+
+def _classify_exported_artifact(relative_path: str) -> str:
+    rel = str(relative_path)
+    if rel == "config/samples.tsv":
+        return "samples_manifest"
+    if rel == "config/units.tsv":
+        return "units_manifest"
+    if not rel.startswith("results/"):
+        return ""
+    name = PurePosixPath(rel).name
+    lower = rel.lower()
+    if name in {"DAY_final_multiqc.html", "multiqc_report.html"}:
+        return "multiqc_html"
+    if "/day_final_multiqc_data/" in lower or "/multiqc_report_data/" in lower:
+        if name == "multiqc_data.json":
+            return "multiqc_data_json"
+        if name == "multiqc_general_stats.txt":
+            return "multiqc_general_stats"
+        if name == "multiqc_sources.txt":
+            return "multiqc_sources"
+        if name == "multiqc.log":
+            return "multiqc_log"
+        return "multiqc_data_file"
+    if lower.endswith("/manifest.tsv") and "/multiqc_inputs/" in lower:
+        return "staging_manifest"
+    if lower.endswith("_mqc.tsv"):
+        return "custom_mqc_tsv"
+    if "benchmark" in lower and lower.endswith((".txt", ".tsv", ".json")):
+        return "benchmark"
+    if lower.endswith(".cram"):
+        return "alignment_cram"
+    if lower.endswith((".cram.crai", ".crai")):
+        return "alignment_cram_index"
+    if lower.endswith(".bam"):
+        return "alignment_bam"
+    if lower.endswith((".bam.bai", ".bai")):
+        return "alignment_bam_index"
+    if lower.endswith(".bam.csi"):
+        return "alignment_bam_index"
+    if lower.endswith((".vcf", ".vcf.gz")):
+        return "variant_vcf"
+    if lower.endswith((".vcf.tbi", ".vcf.gz.tbi", ".tbi", ".vcf.csi", ".vcf.gz.csi")):
+        return "variant_vcf_index"
+    if lower.endswith(".csi"):
+        return "variant_vcf_index"
+    return ""
+
+
+def _parser_relevant(classification: str, relative_path: str) -> bool:
+    if classification in {
+        "multiqc_data_json",
+        "multiqc_general_stats",
+        "multiqc_sources",
+        "multiqc_log",
+        "staging_manifest",
+        "custom_mqc_tsv",
+    }:
+        return True
+    if classification == "multiqc_data_file" and relative_path.lower().endswith(
+        (".json", ".tsv", ".txt", ".log")
+    ):
+        return True
+    return False
+
+
+def _selected_by_policy(
+    *,
+    relative_path: str,
+    classification: str,
+    policy: ArtifactRegistrationPolicy,
+    genome: str,
+    analysis_id: str,
+    executing_entity: str,
+) -> bool:
+    from daylily_ec.workflow.dewey_registration import template_value
+
+    if classification and classification in policy.include_classifications:
+        return True
+    patterns = [
+        template_value(
+            path,
+            analysis_id=analysis_id,
+            executing_entity=executing_entity,
+            genome=genome,
+        )
+        for path in policy.include_paths
+    ]
+    return any(fnmatch.fnmatch(relative_path, pattern) for pattern in patterns)
+
+
+def _build_s3_inventory_manifest(
+    *,
+    client: Any,
+    export_receipt: Dict[str, Any],
+    policy: ArtifactRegistrationPolicy,
+    genome: str,
+    command_id: str,
+) -> Dict[str, Any]:
+    from daylily_ec.workflow.dewey_registration import canonical_sha256, dayoa_s3_root
+
+    executing_entity, analysis_id = _safe_analysis_dir(export_receipt["analysis_dir"]).split("/")
+    root = dayoa_s3_root(export_receipt)
+    bucket, prefix = _s3_parts(root)
+    objects = _iter_s3_objects(client, bucket=bucket, prefix=prefix)
+    files: list[dict[str, Any]] = []
+    for obj in objects:
+        key = str(obj.get("Key") or "")
+        if not key or key.endswith("/") or not key.startswith(prefix):
+            continue
+        relative_path = key[len(prefix) :]
+        if not relative_path:
+            continue
+        classification = _classify_exported_artifact(relative_path)
+        if not _selected_by_policy(
+            relative_path=relative_path,
+            classification=classification,
+            policy=policy,
+            genome=genome,
+            analysis_id=analysis_id,
+            executing_entity=executing_entity,
+        ):
+            continue
+        if not classification:
+            classification = "registered_file"
+        uri = f"s3://{bucket}/{key}"
+        try:
+            head = client.head_object(Bucket=bucket, Key=key)
+        except (BotoCoreError, ClientError) as exc:
+            raise ExportError(f"Unable to inspect S3 object {uri}: {exc}") from exc
+        sha256 = _sha256_from_head_object(head, uri=uri)
+        files.append(
+            {
+                "relative_path": relative_path,
+                "size_bytes": int(head.get("ContentLength") or obj.get("Size") or 0),
+                "sha256": sha256,
+                "classification": classification,
+                "parser_relevant": _parser_relevant(classification, relative_path),
+                "required": True,
+                "metadata": {
+                    "evidence_source": "dyec_s3_export_inventory",
+                    "s3_uri": uri,
+                    "s3_etag": str(head.get("ETag") or obj.get("ETag") or "").strip('"'),
+                    "analysis_id": analysis_id,
+                    "executing_entity": executing_entity,
+                    "genome_build": genome,
+                    "command_id": command_id,
+                    "result_scope": "runs" if relative_path.startswith("results/runs/") else "day",
+                },
+            }
+        )
+    manifest = {
+        "schema_version": "dyec.s3_export_inventory_manifest.v1",
+        "generated_at": datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace(
+            "+00:00", "Z"
+        ),
+        "analysis": {"genome_build": genome},
+        "workflow": {
+            "pipeline_name": "daylily-omics-analysis",
+            "pipeline_version": "",
+            "git_sha": "",
+            "snakemake_version": "",
+            "workflow_config_hash": canonical_sha256(
+                {
+                    "source": "dyec_s3_export_inventory",
+                    "root": root,
+                    "command_id": command_id,
+                    "genome": genome,
+                }
+            ),
+            "workflow_profile": "exported-s3-inventory",
+        },
+        "files": sorted(files, key=lambda record: record["relative_path"]),
+    }
+    if not manifest["files"]:
+        raise ExportError("S3 inventory selected zero files for Dewey registration")
+    manifest["manifest_checksum"] = canonical_sha256(manifest["files"])
+    return manifest
+
+
 def _run_dewey_registration(
     *,
     options: ExportOptions,
     receipt: Dict[str, Any],
     s3_client: Any,
+    manifest_source: str | None = None,
 ) -> Dict[str, Any]:
     from daylily_ec.workflow.dewey_registration import (
         build_registration_requests,
@@ -501,14 +747,30 @@ def _run_dewey_registration(
     if not token:
         raise ExportError(f"Dewey token environment variable is not set: {options.dewey_token_env}")
     fsx_export = receipt["fsx_export"]
-    manifest_rel = template_value(
-        policy.evidence_manifest_path,
-        analysis_id="",
-        executing_entity="",
-        genome=options.artifact_registration_genome,
-    )
-    manifest_s3_uri = dayoa_s3_root(fsx_export).rstrip("/") + "/" + manifest_rel
-    manifest = _read_s3_json(s3_client, manifest_s3_uri)
+    resolved_manifest_source = str(manifest_source or policy.manifest_source).strip()
+    if resolved_manifest_source == "dayoa_manifest":
+        executing_entity, analysis_id = fsx_export["analysis_dir"].split("/", 1)
+        manifest_rel = template_value(
+            policy.evidence_manifest_path,
+            analysis_id=analysis_id,
+            executing_entity=executing_entity,
+            genome=options.artifact_registration_genome,
+        )
+        manifest_s3_uri = dayoa_s3_root(fsx_export).rstrip("/") + "/" + manifest_rel
+        manifest = _read_s3_json(s3_client, manifest_s3_uri)
+    elif resolved_manifest_source == "s3_inventory":
+        manifest_s3_uri = "dyec:s3_inventory"
+        manifest = _build_s3_inventory_manifest(
+            client=s3_client,
+            export_receipt=fsx_export,
+            policy=policy,
+            genome=options.artifact_registration_genome,
+            command_id=options.artifact_registration_command_id,
+        )
+    else:
+        raise ExportError(
+            "artifact_registration manifest source must be dayoa_manifest or s3_inventory"
+        )
     requests = build_registration_requests(
         manifest=manifest,
         export_receipt=fsx_export,
@@ -530,7 +792,9 @@ def _run_dewey_registration(
             ursa_analysis_euid=options.dewey_ursa_analysis_euid,
         )
     dewey_receipt["source_manifest_s3_uri"] = manifest_s3_uri
+    dewey_receipt["source_manifest_mode"] = resolved_manifest_source
     dewey_receipt["selected_artifact_count"] = len(requests["analysis"]["artifacts"])
+    dewey_receipt["multiqc_artifact_set_count"] = len(requests["multiqc"])
     receipt_path = options.output_dir / "dewey_registration_receipt.json"
     receipt_path.write_text(
         json.dumps(dewey_receipt, indent=2, sort_keys=True) + "\n",
@@ -540,7 +804,9 @@ def _run_dewey_registration(
         "dewey_registration_status": "success",
         "dewey_registration_receipt": str(receipt_path),
         "dewey_source_manifest_s3_uri": manifest_s3_uri,
+        "dewey_source_manifest_mode": resolved_manifest_source,
         "dewey_selected_artifact_count": dewey_receipt["selected_artifact_count"],
+        "dewey_multiqc_artifact_set_count": dewey_receipt["multiqc_artifact_set_count"],
         "dewey_analysis_directory_link_status": (
             "success" if "analysis_directory_links" in dewey_receipt else "not_requested"
         ),
@@ -574,6 +840,92 @@ def _base_receipt(options: ExportOptions) -> Dict[str, Any]:
             "failure_details": {},
         }
     }
+
+
+def run_dewey_registration_for_existing_export(options: RegisterExistingExportOptions) -> int:
+    """Register an already-exported analysis directory with Dewey without DRA side effects."""
+
+    ui.phase("DEWEY REGISTRATION")
+    ui.step("Preparing existing exported analysis directory registration")
+    export_options = ExportOptions(
+        cluster_name=None,
+        fsx_file_system_id=None,
+        source_path=options.source_path,
+        destination_s3_uri=options.destination_s3_uri,
+        region=options.region,
+        profile=options.profile,
+        output_dir=options.output_dir,
+        wait=True,
+        timeout_seconds=0,
+        artifact_registration_policy=options.artifact_registration_policy,
+        artifact_registration_genome=options.artifact_registration_genome,
+        dewey_url=options.dewey_url,
+        dewey_token_env=options.dewey_token_env,
+        dewey_analysis_dir_external_object_id=options.dewey_analysis_dir_external_object_id,
+        dewey_run_artifact_euid=options.dewey_run_artifact_euid,
+        dewey_ursa_analysis_euid=options.dewey_ursa_analysis_euid,
+        artifact_registration_command_id=options.artifact_registration_command_id,
+    )
+    try:
+        receipt = _base_receipt(export_options)
+    except (RuntimeError, RunMountError, ExportError) as exc:
+        receipt = {
+            "fsx_export": {
+                "schema_version": EXPORT_SCHEMA_VERSION,
+                "status": "error",
+                "phase": "validate",
+                "region": options.region,
+                "source_path": options.source_path,
+                "destination_s3_uri": options.destination_s3_uri,
+                "registration_only": True,
+                "delete_data_in_file_system": False,
+                "failure_details": {"message": str(exc)},
+            }
+        }
+        _write_status(export_options, receipt)
+        ui.error_panel("Dewey registration failed", str(exc))
+        return 1
+
+    receipt["fsx_export"].update(
+        {
+            "status": "success",
+            "phase": "dewey_registration",
+            "registration_only": True,
+            "detached": True,
+            "delete_data_in_file_system": False,
+        }
+    )
+    try:
+        if options.artifact_registration_manifest_source not in {"dayoa_manifest", "s3_inventory"}:
+            raise ExportError(
+                "artifact_registration_manifest_source must be dayoa_manifest or s3_inventory"
+            )
+        s3_client = _create_session(options.region, options.profile).client("s3")
+        receipt["fsx_export"].update(
+            _run_dewey_registration(
+                options=export_options,
+                receipt=receipt,
+                s3_client=s3_client,
+                manifest_source=options.artifact_registration_manifest_source,
+            )
+        )
+        receipt["fsx_export"]["phase"] = "complete"
+        _write_status(export_options, receipt)
+        ui.success_panel(
+            "Dewey registration complete",
+            f"Source: {receipt['fsx_export']['source_path']}\n"
+            f"S3: {receipt['fsx_export']['destination_s3_uri']}\n"
+            f"Status file: {options.output_dir / STATUS_FILENAME}",
+        )
+        return 0
+    except (RuntimeError, ExportError, BotoCoreError, ClientError) as exc:
+        receipt["fsx_export"]["status"] = "error"
+        receipt["fsx_export"]["phase"] = "dewey_registration"
+        receipt["fsx_export"]["dewey_registration_status"] = "error"
+        receipt["fsx_export"]["failure_details"] = {"message": str(exc)}
+        _write_status(export_options, receipt)
+        ui.error_panel("Dewey registration failed", str(exc))
+        return 1
 
 
 def run_export_workflow(options: ExportOptions) -> int:

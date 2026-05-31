@@ -1,0 +1,9 @@
+{
+    "AcceptRanges": "bytes",
+    "LastModified": "Fri, 29 May 2026 01:57:53 GMT",
+    "ContentLength": 15940,
+    "ETag": "\"093556f503c95b6f1e9e4ef4aa4e372c\"",
+    "ContentType": "application/x-sh",
+    "ServerSideEncryption": "AES256",
+    "Metadata": {}
+}

@@ -664,48 +664,33 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "project_run_context_mounts" in script
         assert "patch_bclconvert_profile_config" in script
         assert "patch_bclconvert_lane_split" in script
-        assert 'replace_required_scalar("staging_mode", "direct")' in script
-        assert 'replace_required_scalar("scratch_root", "/dev/shm/dayoa_bclconvert")' in script
         assert 'replace_required_scalar("tmpdir", "/dev/shm")' in script
-        assert 'replace_required_scalar("scratch_size_multiplier", "1")' in script
         assert 'replace_required_scalar("force", "true")' in script
-        assert 'replace_required_scalar("parallel_tiles", "16")' in script
-        assert 'replace_required_scalar("conversion_threads", "8")' in script
-        assert 'replace_required_scalar("compression_threads", "48")' in script
-        assert 'replace_required_scalar("decompression_threads", "16")' in script
+        assert 'upsert_scalar("merge_lane_fastqs", "false")' in script
+        assert 'replace_required_scalar("partition", "i192mem,i192bigmem")' in script
+        assert 'replace_required_scalar("parallel_tiles", "24")' in script
+        assert 'replace_required_scalar("conversion_threads", "4")' in script
+        assert 'replace_required_scalar("compression_threads", "64")' in script
+        assert 'replace_required_scalar("decompression_threads", "32")' in script
+        assert 'replace_required_scalar("shared_thread_odirect_output", "true")' in script
+        assert 'upsert_scalar("num_unknown_barcodes_reported", "1000")' in script
         assert 'upsert_scalar("output_legacy_stats", "true")' in script
+        assert 'upsert_scalar("barcode_mismatches_index1", "0")' in script
+        assert 'upsert_scalar("barcode_mismatches_index2", "0")' in script
         assert 'upsert_scalar("sample_sheet_settings", "{}")' in script
-        assert "gzip.decompress" in script
-        assert "base64.b64decode" in script
-        assert "dyec_run_bclconvert_lane.sh" in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-        assert (
-            "dyec_prepare_bclconvert_lane_samplesheet.py"
-            in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-        )
-        assert "--bcl-only-lane" in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-        assert "--bind /fsx:/fsx" in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-        assert "--output-legacy-stats" in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-        assert (
-            "--num-unknown-barcodes-reported"
-            in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-        )
-        assert "localrules_patch" in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-        assert "    run_bclconvert,\\n" in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-        assert (
-            "    bclconvert_metrics_summary,\\n"
-            in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-        )
-        assert (
-            "    bclconvert_generate_units_tsv,\\n"
-            in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-        )
-        assert "DYEC_BCLCONVERT_LANE_SPLIT_PATCH = True" in (
-            run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-        )
-        assert (
-            "BCL_SAMPLE_SHEET_SETTING_CONFIG_KEYS"
-            in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
-        )
+        assert "DAYOA_BCLCONVERT_LANE_SPLIT = True" in script
+        assert "BCL_MERGE_LANE_FASTQS" in script
+        assert "BCL_FASTQ_LIST_INPUT_FILES" in script
+        assert "run_bclconvert_lane_fastqs_ready" in script
+        assert "rule run_bclconvert_lane:" in script
+        assert "workflow/scripts/run_bclconvert_lane.sh" in script
+        assert "workflow/scripts/prepare_bclconvert_lane_samplesheet.py" in script
+        assert "workflow/scripts/merge_bclconvert_lanes.py" in script
+        assert "DayOA native BCL Convert lane-split rules detected" in script
+        assert "do not expose native lane-split support" in script
+        assert "dyec_run_bclconvert_lane.sh" not in script
+        assert "gzip.decompress" not in script
+        assert "base64.b64decode" not in script
         assert "Untested pending feature" in script
         assert "BCLCONVERT_PROFILE_PATCH_REQUESTED=true" in script
         assert "BCLConvert_Data" in script

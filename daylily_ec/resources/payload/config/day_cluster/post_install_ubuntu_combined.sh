@@ -178,7 +178,13 @@ prepare_common_writable_dirs() {
   install -d -m 1777 /tmp/jobs
   if [ -d /fsx ]; then
     install -d -m 1777 /fsx/scratch /fsx/tmp "${environment_cache_root}"
-    stat -c "Writable DayOA directory: %A %U:%G %n" /fsx/scratch /fsx/tmp "${environment_cache_root}"
+    install -d -m 0777 /fsx/analysis_results
+    chmod a+rwx /fsx/analysis_results
+    stat -c "Writable DayOA directory: %A %U:%G %n" \
+      /fsx/scratch \
+      /fsx/tmp \
+      "${environment_cache_root}" \
+      /fsx/analysis_results
   fi
 }
 
@@ -244,6 +250,8 @@ prepare_common_writable_dirs
 wait_for_reference_data
 make_role_data_read_only
 prepare_reference_compat_symlink
+prepare_dayoa_environment_cache
+echo "DayOA conda and container caches are seeded from ${runtime_assets_root}/cached_envs into ${environment_cache_root}"
 
 # Configure hugepages and namespaces (common to both head and compute nodes)
 echo "vm.nr_hugepages=2048" | tee -a /etc/sysctl.conf
@@ -291,8 +299,6 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   
 
   prepare_headnode_writable_dirs
-  prepare_dayoa_environment_cache
-  echo "DayOA conda and container caches are seeded from ${runtime_assets_root}/cached_envs into ${environment_cache_root}"
 
 
   if [ ! -e /opt/slurm/sbin/sbatch ]; then

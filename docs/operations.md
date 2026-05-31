@@ -73,7 +73,7 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --dry-run
 ```
 
-The catalog pin for DayOA commands is `2.0.8`.
+The catalog pin for DayOA commands is `2.0.25`.
 
 ## Attach Run Folders
 
@@ -124,6 +124,14 @@ Deletion detaches the DRA with `DeleteDataInFileSystem=False`; it does not delet
 
 ## Launch Workflows
 
+DYEC launch mechanics are manager-agnostic at the FSx boundary: the repository
+checkout and durable outputs must stay under
+`/fsx/analysis_results/<executing_entity>/<analysis_id>/`, then `dyec export`
+exports that whole analysis directory. DayOA catalog rows are Snakemake 7
+workflows; Nextflow, Snakemake 8, and future Cromwell/WDL repositories need
+manager-native commands and output paths. See
+[`pipeline_manager_launches.md`](pipeline_manager_launches.md).
+
 Sample-manifest workflow:
 
 ```bash
@@ -134,7 +142,7 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.8
+  --git-tag 2.0.25
 ```
 
 Run-folder workflow:
@@ -147,7 +155,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.8 \
+  --git-tag 2.0.25 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
 

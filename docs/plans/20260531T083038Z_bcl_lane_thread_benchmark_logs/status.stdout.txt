@@ -1,0 +1,52 @@
+DAY-EC activated.
+DAY-EC activated.
+SECTION time
+2026-05-31T09:41:43+00:00
+SECTION fs
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  3.7T  5.1T  43% /fsx
+tmpfs                    199G     0  199G   0% /dev/shm
+SECTION jobs_tsv
+submitted_at=2026-05-31T08:45:23+00:00
+run_dir=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+sample_sheet=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+fsx_baseline_192	4673
+fsx_threadseek_192	4674
+fsx_oversub_384	4675
+fsx_pack3x64	4676
+shm_threadseek_192	4677
+SECTION queue
+4674|bcl_fsx_192|RUNNING|2:18|1|i192mem-dy-all-1
+4677|bcl_shm_192|PENDING|0:00|1|(Dependency)
+4676|bcl_pack3x64|PENDING|0:00|1|(Dependency)
+4675|bcl_fsx_384|PENDING|0:00|1|(Dependency)
+SECTION metrics
+--- fsx_baseline_192.tsv ---
+variant	output_mode	heavy_threads	convert_rc	copy_rc	convert_seconds	copy_seconds	total_seconds	output_bytes	host	slurm_job_id
+fsx_baseline_192	fsx	192	0	0	3200	0	3201	601769593157	i192mem-dy-all-1	4673
+--- fsx_oversub_384.tsv stale_expected_job=4675 observed_job=4670 ---
+variant	output_mode	heavy_threads	convert_rc	copy_rc	convert_seconds	copy_seconds	total_seconds	output_bytes	host	slurm_job_id
+fsx_oversub_384	fsx	384	1	0	0	0	0	0	i192mem-dy-all-1	4670
+--- fsx_pack3x64.tsv stale_expected_job=4676 observed_job=4671 ---
+variant	controller_rc	total_seconds	host	slurm_job_id
+fsx_pack3x64	1	1	i192mem-dy-all-1	4671
+--- fsx_pack3x64_a.tsv stale_expected_job=4676 observed_job=4671 ---
+variant	output_mode	heavy_threads	convert_rc	copy_rc	convert_seconds	copy_seconds	total_seconds	output_bytes	host	slurm_job_id
+fsx_pack3x64_a	fsx	64	1	0	1	0	1	0	i192mem-dy-all-1	4671
+--- fsx_pack3x64_b.tsv stale_expected_job=4676 observed_job=4671 ---
+variant	output_mode	heavy_threads	convert_rc	copy_rc	convert_seconds	copy_seconds	total_seconds	output_bytes	host	slurm_job_id
+fsx_pack3x64_b	fsx	64	1	0	1	0	1	0	i192mem-dy-all-1	4671
+--- fsx_pack3x64_c.tsv stale_expected_job=4676 observed_job=4671 ---
+variant	output_mode	heavy_threads	convert_rc	copy_rc	convert_seconds	copy_seconds	total_seconds	output_bytes	host	slurm_job_id
+fsx_pack3x64_c	fsx	64	1	0	1	0	1	0	i192mem-dy-all-1	4671
+--- fsx_threadseek_192.tsv stale_expected_job=4674 observed_job=4669 ---
+variant	output_mode	heavy_threads	convert_rc	copy_rc	convert_seconds	copy_seconds	total_seconds	output_bytes	host	slurm_job_id
+fsx_threadseek_192	fsx	192	1	0	1	0	1	0	i192mem-dy-all-1	4669
+--- shm_threadseek_192.tsv stale_expected_job=4677 observed_job=4672 ---
+variant	output_mode	heavy_threads	convert_rc	copy_rc	convert_seconds	copy_seconds	total_seconds	output_bytes	host	slurm_job_id
+shm_threadseek_192	shm	192	1	0	1	0	1	0	i192mem-dy-all-1	4672
+SECTION shm_leftovers
+SECTION result_dirs
+/fsx/analysis_results/ubuntu/bcl_lane_bench_20260531T083038Z/results/fsx_threadseek_192
+/fsx/analysis_results/ubuntu/bcl_lane_bench_20260531T083038Z/results/fsx_threadseek_192/bcl_output
+/fsx/analysis_results/ubuntu/bcl_lane_bench_20260531T083038Z/results/shm_threadseek_192

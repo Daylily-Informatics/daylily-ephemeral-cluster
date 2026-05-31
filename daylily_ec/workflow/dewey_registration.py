@@ -123,6 +123,8 @@ def selected_manifest_files(
     manifest: dict[str, Any],
     policy: ArtifactRegistrationPolicy,
     genome: str,
+    analysis_id: str,
+    executing_entity: str,
 ) -> list[dict[str, Any]]:
     if not policy.enabled:
         raise DeweyRegistrationError("Artifact registration policy is disabled")
@@ -130,7 +132,12 @@ def selected_manifest_files(
     if not isinstance(files, list):
         raise DeweyRegistrationError("DayOA evidence manifest is missing files list")
     include_paths = [
-        template_value(path, analysis_id="", executing_entity="", genome=genome)
+        template_value(
+            path,
+            analysis_id=analysis_id,
+            executing_entity=executing_entity,
+            genome=genome,
+        )
         for path in policy.include_paths
     ]
     selected = []
@@ -181,7 +188,7 @@ def file_artifact_from_record(
     sha256 = str(record.get("sha256") or "").lower()
     if len(sha256) != 64:
         raise DeweyRegistrationError(f"Manifest record has invalid sha256: {relative_path}")
-    return {
+    artifact = {
         "logical_name": PurePosixPath(relative_path).name,
         "relative_path": relative_path,
         "storage_uri": s3_join(storage_root, relative_path),
@@ -194,6 +201,15 @@ def file_artifact_from_record(
         "produced_by": produced_by,
         "parent_artifact_euids": [],
     }
+    metadata = record.get("metadata")
+    if isinstance(metadata, dict) and metadata:
+        artifact["metadata"] = metadata
+    tags = record.get("tags")
+    if isinstance(tags, list):
+        clean_tags = sorted({str(tag).strip() for tag in tags if str(tag).strip()})
+        if clean_tags:
+            artifact.setdefault("metadata", {})["tags"] = clean_tags
+    return artifact
 
 
 def directory_artifact(
@@ -219,42 +235,118 @@ def directory_artifact(
     }
 
 
+def _templated_multiqc_reports(
+    *,
+    policy: ArtifactRegistrationPolicy,
+    analysis_id: str,
+    executing_entity: str,
+    genome: str,
+) -> list[dict[str, str]]:
+    reports = []
+    for report in policy.multiqc_reports:
+        reports.append(
+            {
+                "report_kind": report.report_kind,
+                "html_path": template_value(
+                    report.html_path,
+                    analysis_id=analysis_id,
+                    executing_entity=executing_entity,
+                    genome=genome,
+                ),
+                "data_dir_path": template_value(
+                    report.data_dir_path,
+                    analysis_id=analysis_id,
+                    executing_entity=executing_entity,
+                    genome=genome,
+                ).rstrip("/")
+                + "/",
+            }
+        )
+    return reports
+
+
+def _data_dir_for_multiqc_html(relative_path: str) -> str:
+    rel = validate_relative_path(relative_path)
+    path = PurePosixPath(rel)
+    if path.name == "DAY_final_multiqc.html":
+        return str(path.parent / "DAY_final_multiqc_data") + "/"
+    if path.name == "multiqc_report.html":
+        return str(path.parent / "multiqc_report_data") + "/"
+    raise DeweyRegistrationError(f"Unsupported MultiQC HTML path: {rel}")
+
+
+def _report_definition_for_html(
+    *,
+    html_relative_path: str,
+    reports: list[dict[str, str]],
+) -> dict[str, str]:
+    matches = [
+        report for report in reports if fnmatch.fnmatch(html_relative_path, report["html_path"])
+    ]
+    if len(matches) != 1:
+        raise DeweyRegistrationError(
+            "MultiQC HTML path must match exactly one artifact_registration.multiqc_reports "
+            f"entry: {html_relative_path}"
+        )
+    return matches[0]
+
+
+def _is_report_key_file(artifact: dict[str, Any], *, data_dir_rel: str, report_kind: str) -> bool:
+    role = artifact["artifact_role"]
+    rel = artifact["relative_path"]
+    if rel.startswith(data_dir_rel) and role in {
+        "multiqc_data_json",
+        "multiqc_general_stats",
+        "multiqc_sources",
+        "multiqc_log",
+        "multiqc_data_file",
+    }:
+        return True
+    if report_kind == "final" and role == "staging_manifest":
+        return True
+    return False
+
+
 def build_registration_requests(
     *,
     manifest: dict[str, Any],
     export_receipt: dict[str, Any],
     policy: ArtifactRegistrationPolicy,
-) -> dict[str, dict[str, Any]]:
+) -> dict[str, Any]:
     executing_entity, analysis_id = analysis_parts_from_receipt(export_receipt)
     genome = str((manifest.get("analysis") or {}).get("genome_build") or "").strip()
     if not genome:
         raise DeweyRegistrationError("DayOA evidence manifest is missing analysis.genome_build")
     root = dayoa_s3_root(export_receipt)
-    selected = selected_manifest_files(manifest=manifest, policy=policy, genome=genome)
+    selected = selected_manifest_files(
+        manifest=manifest,
+        policy=policy,
+        genome=genome,
+        analysis_id=analysis_id,
+        executing_entity=executing_entity,
+    )
     produced_by = str((manifest.get("workflow") or {}).get("pipeline_name") or "dayoa")
     artifacts = [
         file_artifact_from_record(record=record, storage_root=root, produced_by=produced_by)
         for record in selected
     ]
-    html_artifacts = [
-        artifact for artifact in artifacts if artifact["artifact_role"] == "multiqc_html"
-    ]
-    if len(html_artifacts) != 1:
-        raise DeweyRegistrationError("Selected manifest files must include exactly one MultiQC HTML")
-    data_records = [
-        record
-        for record in selected
-        if str(record.get("relative_path") or "").endswith("/multiqc_data.json")
-    ]
-    if len(data_records) != 1:
-        raise DeweyRegistrationError("Selected manifest files must include one multiqc_data.json")
-    data_dir_rel = str(data_records[0]["relative_path"]).rsplit("/", 1)[0] + "/"
     workflow = manifest.get("workflow") or {}
     generated_at = str(manifest.get("generated_at") or utc_now_iso())
     workflow_config_hash = str(workflow.get("workflow_config_hash") or "")
     if len(workflow_config_hash) != 64:
         workflow_config_hash = canonical_sha256(workflow_config_hash)
     identity = policy.identity
+    registration_metadata = {
+        "executing_entity": executing_entity,
+        "analysis_id": analysis_id,
+        "analysis_dir": export_receipt.get("analysis_dir"),
+        "source_path": export_receipt.get("source_path"),
+        "destination_s3_uri": export_receipt.get("destination_s3_uri"),
+        "dayoa_s3_root": root,
+        "cluster_name": export_receipt.get("cluster_name"),
+        "region": export_receipt.get("region"),
+        "genome_build": genome,
+    }
     analysis_request = {
         "schema_version": "1.0",
         "analysis_euid": template_value(
@@ -305,50 +397,95 @@ def build_registration_requests(
         "status": "completed",
         "artifacts": artifacts,
         "lineage_refs": [],
+        "metadata": registration_metadata,
         "local_only": False,
         "parser_family_hint": policy.parser_family_hint,
     }
     analysis_request["manifest_sha256"] = manifest_sha256_for_request(analysis_request)
 
-    data_dir_artifact = directory_artifact(
-        relative_path=data_dir_rel,
-        storage_root=root,
-        manifest_sha256=str(manifest.get("manifest_checksum") or analysis_request["manifest_sha256"]),
-        produced_by=produced_by,
+    reports = _templated_multiqc_reports(
+        policy=policy,
+        analysis_id=analysis_id,
+        executing_entity=executing_entity,
+        genome=genome,
     )
-    key_files = [
-        artifact
-        for artifact in artifacts
-        if artifact["artifact_role"]
-        in {
-            "multiqc_data_json",
-            "multiqc_general_stats",
-            "multiqc_sources",
-            "multiqc_log",
-            "staging_manifest",
+    artifacts_by_path = {artifact["relative_path"]: artifact for artifact in artifacts}
+    records_by_path = {str(record.get("relative_path") or ""): record for record in selected}
+    html_artifacts = [
+        artifact for artifact in artifacts if artifact["artifact_role"] == "multiqc_html"
+    ]
+    if not html_artifacts:
+        raise DeweyRegistrationError("Selected manifest files must include at least one MultiQC HTML")
+
+    seen_report_kinds: set[str] = set()
+    multiqc_requests: list[dict[str, Any]] = []
+    manifest_checksum = str(manifest.get("manifest_checksum") or analysis_request["manifest_sha256"])
+    for html_artifact in sorted(html_artifacts, key=lambda artifact: artifact["relative_path"]):
+        html_rel = html_artifact["relative_path"]
+        report_definition = _report_definition_for_html(
+            html_relative_path=html_rel,
+            reports=reports,
+        )
+        report_kind = report_definition["report_kind"]
+        if report_kind in seen_report_kinds:
+            raise DeweyRegistrationError(
+                f"Duplicate MultiQC report_kind selected for one analysis: {report_kind}"
+            )
+        seen_report_kinds.add(report_kind)
+        data_dir_rel = _data_dir_for_multiqc_html(html_rel)
+        if not fnmatch.fnmatch(data_dir_rel, report_definition["data_dir_path"]):
+            raise DeweyRegistrationError(
+                "MultiQC data directory does not match artifact_registration.multiqc_reports "
+                f"for {html_rel}: {data_dir_rel}"
+            )
+        data_json_rel = data_dir_rel + "multiqc_data.json"
+        if data_json_rel not in artifacts_by_path:
+            raise DeweyRegistrationError(
+                f"Selected manifest files must include MultiQC data JSON: {data_json_rel}"
+            )
+        data_dir_artifact = directory_artifact(
+            relative_path=data_dir_rel,
+            storage_root=root,
+            manifest_sha256=manifest_checksum,
+            produced_by=produced_by,
+        )
+        key_files = [
+            artifact
+            for artifact in artifacts
+            if _is_report_key_file(
+                artifact,
+                data_dir_rel=data_dir_rel,
+                report_kind=report_kind,
+            )
+        ]
+        parser_relevant_files = [
+            artifact
+            for artifact in key_files
+            if bool(records_by_path[artifact["relative_path"]].get("parser_relevant"))
+        ]
+        multiqc_request = {
+            "schema_version": "1.0",
+            "analysis_euid": analysis_request["analysis_euid"],
+            "report_kind": report_kind,
+            "multiqc_version": policy.multiqc_version,
+            "html_artifact": html_artifact,
+            "data_dir_artifact": data_dir_artifact,
+            "key_files": key_files,
+            "parser_relevant_files": parser_relevant_files,
+            "generated_at": generated_at,
+            "manifest_sha256": "",
+            "metadata": {
+                **registration_metadata,
+                "report_kind": report_kind,
+                "html_relative_path": html_rel,
+                "data_dir_relative_path": data_dir_rel,
+            },
+            "local_only": False,
+            "parser_family_hint": policy.parser_family_hint,
         }
-    ]
-    parser_relevant_files = [
-        artifact
-        for artifact, record in zip(artifacts, selected, strict=True)
-        if bool(record.get("parser_relevant"))
-    ]
-    multiqc_request = {
-        "schema_version": "1.0",
-        "analysis_euid": analysis_request["analysis_euid"],
-        "report_kind": policy.multiqc_report_kind,
-        "multiqc_version": policy.multiqc_version,
-        "html_artifact": html_artifacts[0],
-        "data_dir_artifact": data_dir_artifact,
-        "key_files": key_files,
-        "parser_relevant_files": parser_relevant_files,
-        "generated_at": generated_at,
-        "manifest_sha256": "",
-        "local_only": False,
-        "parser_family_hint": policy.parser_family_hint,
-    }
-    multiqc_request["manifest_sha256"] = manifest_sha256_for_request(multiqc_request)
-    return {"analysis": analysis_request, "multiqc": multiqc_request}
+        multiqc_request["manifest_sha256"] = manifest_sha256_for_request(multiqc_request)
+        multiqc_requests.append(multiqc_request)
+    return {"analysis": analysis_request, "multiqc": multiqc_requests}
 
 
 def post_json(
@@ -612,15 +749,42 @@ def register_with_dewey(
     base = dewey_url.rstrip("/")
     if not base:
         raise DeweyRegistrationError("Dewey URL is required")
-    analysis_response = post_json(base + ANALYSIS_REGISTER_ENDPOINT, token, requests["analysis"])
-    multiqc_response = post_json(base + MULTIQC_REGISTER_ENDPOINT, token, requests["multiqc"])
+    multiqc_requests = requests.get("multiqc")
+    if not isinstance(multiqc_requests, list) or not multiqc_requests:
+        raise DeweyRegistrationError("Dewey registration requests must include multiqc list")
+    analysis_response = post_json(
+        base + ANALYSIS_REGISTER_ENDPOINT,
+        token,
+        requests["analysis"],
+        idempotency_key=idempotency_key(
+            "dyec-analysis-register",
+            requests["analysis"]["analysis_euid"],
+            requests["analysis"]["manifest_sha256"],
+        ),
+    )
+    multiqc_responses = [
+        post_json(
+            base + MULTIQC_REGISTER_ENDPOINT,
+            token,
+            multiqc_request,
+            idempotency_key=idempotency_key(
+                "dyec-multiqc-register",
+                requests["analysis"]["analysis_euid"],
+                multiqc_request["report_kind"],
+                multiqc_request["manifest_sha256"],
+            ),
+        )
+        for multiqc_request in multiqc_requests
+    ]
     return {
         "schema_version": "dyec.dewey_registration_receipt.v1",
         "registered_at": utc_now_iso(),
         "analysis_endpoint": ANALYSIS_REGISTER_ENDPOINT,
         "multiqc_endpoint": MULTIQC_REGISTER_ENDPOINT,
         "analysis_request_manifest_sha256": requests["analysis"]["manifest_sha256"],
-        "multiqc_request_manifest_sha256": requests["multiqc"]["manifest_sha256"],
+        "multiqc_request_manifest_sha256s": [
+            request["manifest_sha256"] for request in multiqc_requests
+        ],
         "analysis_response": analysis_response,
-        "multiqc_response": multiqc_response,
+        "multiqc_responses": multiqc_responses,
     }

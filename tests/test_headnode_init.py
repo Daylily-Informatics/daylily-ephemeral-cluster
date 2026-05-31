@@ -699,6 +699,8 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "prepare_headnode_writable_dirs" in script
     assert "prepare_dayoa_environment_cache" in script
     assert 'install -d -m 1777 /fsx/scratch /fsx/tmp "${environment_cache_root}"' in script
+    assert "install -d -m 0777 /fsx/analysis_results" in script
+    assert "chmod a+rwx /fsx/analysis_results" in script
     assert "install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/ubuntu" in script
     assert (
         "DayOA conda and container caches are seeded from "
@@ -738,6 +740,10 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "command -v singularity" in script
     assert "cat <<'EOF' > /opt/slurm/sbin/check_tags.sh" in script
     assert "* * * * * /opt/slurm/sbin/check_tags.sh" in script
+    global_actions = script.split("# GLOBAL ACTIONS HeadNode and ComputeFleet", 1)[1]
+    assert global_actions.index("prepare_dayoa_environment_cache") < global_actions.index(
+        'if [ "${cfn_node_type}" == "HeadNode" ];then'
+    )
     assert script.index("cat <<'EOF' > /opt/slurm/sbin/check_tags.sh") < script.index(
         'if [ "${cfn_node_type}" == "ComputeFleet" ];then'
     )
