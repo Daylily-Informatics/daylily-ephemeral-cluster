@@ -51,6 +51,7 @@ EXPECTED_COMMANDS = {
     ("aws", "validate", "permissions"),
     ("aws", "validate", "quotas"),
     ("aws", "validate", "all"),
+    ("slurm-accounting", "ensure"),
     ("headnode", "init"),
     ("headnode", "connect"),
     ("headnode", "info"),
@@ -196,6 +197,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     aws_validate_permissions_cmd = registry.get_command(("aws", "validate", "permissions"))
     aws_validate_quotas_cmd = registry.get_command(("aws", "validate", "quotas"))
     aws_validate_all_cmd = registry.get_command(("aws", "validate", "all"))
+    slurm_accounting_ensure_cmd = registry.get_command(("slurm-accounting", "ensure"))
 
     assert version_cmd is not None
     assert version_cmd.policy.runtime_guard == "exempt"
@@ -343,6 +345,11 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
         assert aws_validate_cmd.policy.supports_json is True
         assert aws_validate_cmd.policy.mutates_state is False
 
+    assert slurm_accounting_ensure_cmd is not None
+    assert slurm_accounting_ensure_cmd.policy.supports_json is True
+    assert slurm_accounting_ensure_cmd.policy.mutates_state is True
+    assert slurm_accounting_ensure_cmd.policy.long_running is True
+
 
 @pytest.mark.parametrize("argv", sorted(EXPECTED_COMMANDS))
 def test_registered_cli_commands_render_help(argv: tuple[str, ...]) -> None:
@@ -456,6 +463,7 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
             "--pass-on-warn",
             "--debug",
             "--non-interactive",
+            "--create-slurm-accounting-db",
         ],
     )
 
@@ -467,6 +475,86 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "pass_on_warn": True,
         "debug": True,
         "non_interactive": True,
+        "create_slurm_accounting_db": True,
+    }
+
+
+def test_slurm_accounting_ensure_reports_resolved_db(monkeypatch) -> None:
+    import daylily_ec.aws.cloudformation as cloudformation_module
+    import daylily_ec.aws.context as context_module
+    import daylily_ec.aws.slurm_accounting as accounting_module
+
+    _activate_dayec_runtime(monkeypatch)
+    calls: dict[str, object] = {}
+
+    class FakeContext:
+        profile = "lsmc"
+        region = "us-west-2"
+        region_az = "us-west-2b"
+
+        def client(self, service: str) -> object:
+            calls.setdefault("clients", []).append(service)
+            return object()
+
+    def fake_build(cls, region_az: str, profile: str | None = None) -> FakeContext:
+        calls["build"] = (region_az, profile)
+        return FakeContext()
+
+    def fake_ensure_pcluster_env_stack(_aws_ctx, region_az: str):
+        calls["baseline_region_az"] = region_az
+        return SimpleNamespace(vpc_id="vpc-123", private_subnet_id="subnet-private")
+
+    def fake_ensure_slurm_accounting_db(_aws_ctx, **kwargs):
+        calls["ensure_kwargs"] = kwargs
+        return accounting_module.SlurmAccountingDb(
+            stack_name="dayec-slurm-accounting-us-west-2b",
+            status="CREATE_COMPLETE",
+            uri="10.0.1.10:3306",
+            private_ip="10.0.1.10",
+            database_name="dayec_slurm_acct",
+            username="slurm_acct",
+            password_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:acct",
+            client_security_group_id="sg-0123456789abcdef0",
+            instance_id="i-0123456789abcdef0",
+        )
+
+    monkeypatch.setattr(context_module.AWSContext, "build", classmethod(fake_build))
+    monkeypatch.setattr(
+        cloudformation_module,
+        "ensure_pcluster_env_stack",
+        fake_ensure_pcluster_env_stack,
+    )
+    monkeypatch.setattr(
+        accounting_module,
+        "ensure_slurm_accounting_db",
+        fake_ensure_slurm_accounting_db,
+    )
+
+    result = runner.invoke(
+        app,
+        [
+            "slurm-accounting",
+            "ensure",
+            "--profile",
+            "lsmc",
+            "--region-az",
+            "us-west-2b",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert "URI:       10.0.1.10:3306" in result.stdout
+    assert calls["build"] == ("us-west-2b", "lsmc")
+    assert calls["baseline_region_az"] == "us-west-2b"
+    assert calls["ensure_kwargs"] == {
+        "region_az": "us-west-2b",
+        "vpc_id": "vpc-123",
+        "private_subnet_id": "subnet-private",
+        "create_if_missing": True,
+        "stack_name": "",
+        "database_name": "dayec_slurm_acct",
+        "username": "slurm_acct",
+        "instance_type": "t4g.micro",
     }
 
 
@@ -1486,7 +1574,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.27" in launch_argv
+    assert "2.0.28" in launch_argv
     assert "--dy-command" in launch_argv
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
     assert "produce_cgt7p_snv_vcf" in dy_command

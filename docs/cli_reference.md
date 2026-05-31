@@ -201,7 +201,7 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.27
+  --git-tag 2.0.28
 ```
 
 Run-context launch:
@@ -214,7 +214,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.27 \
+  --git-tag 2.0.28 \
   --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
 ```
 
@@ -248,7 +248,7 @@ dyec repositories commands --config config/daylily_pipeline_command_catalog.yaml
 dyec repositories commands --command-id illumina_run_qc
 ```
 
-The catalog is version 2. DayOA repository and command pins are `2.0.27`.
+The catalog is version 2. DayOA repository and command pins are `2.0.28`.
 
 Command classes:
 
