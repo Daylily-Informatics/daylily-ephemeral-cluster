@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+import yaml
 
 from daylily_ec.render.renderer import (
     ALL_SUBSTITUTION_KEYS,
@@ -12,6 +13,11 @@ from daylily_ec.render.renderer import (
     REQUIRED_KEYS,
     render_template,
     write_init_artifacts,
+)
+from daylily_ec.aws.slurm_accounting import (
+    SlurmAccountingDb,
+    empty_slurm_accounting_render_blocks,
+    slurm_accounting_render_blocks,
 )
 
 
@@ -42,7 +48,7 @@ def _full_subs() -> dict[str, str]:
 
 class TestConstants:
     def test_all_keys_count(self):
-        assert len(ALL_SUBSTITUTION_KEYS) == 31
+        assert len(ALL_SUBSTITUTION_KEYS) == 33
 
     def test_required_keys_subset(self):
         assert REQUIRED_KEYS.issubset(ALL_SUBSTITUTION_KEYS)
@@ -169,8 +175,64 @@ class TestAllSubstitutionKeys:
             "REGSUB_HEARTBEAT_EMAIL",
             "REGSUB_HEARTBEAT_SCHEDULE",
             "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN",
+            "REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING",
+            "REGSUB_SLURM_ACCOUNTING_DATABASE",
         }
         assert ALL_SUBSTITUTION_KEYS == expected
+
+    def test_accounting_disabled_template_has_no_dangling_tokens(self):
+        template = (
+            Path(__file__).resolve().parents[1] / "config/day_cluster/prod_cluster.yaml"
+        ).read_text(encoding="utf-8")
+        subs = _full_subs()
+        subs.update(empty_slurm_accounting_render_blocks())
+
+        rendered = render_template(template, subs)
+
+        assert "REGSUB_SLURM_ACCOUNTING" not in rendered
+        assert "PasswordSecretArn:" not in rendered
+        assert "DatabaseName:" not in rendered
+        payload = yaml.safe_load(rendered)
+        assert "Database" not in payload["Scheduling"]["SlurmSettings"]
+
+    def test_accounting_enabled_template_includes_slurm_database(self):
+        template = (
+            Path(__file__).resolve().parents[1] / "config/day_cluster/prod_cluster.yaml"
+        ).read_text(encoding="utf-8")
+        db = SlurmAccountingDb(
+            stack_name="dayec-slurm-accounting-us-west-2b",
+            status="CREATE_COMPLETE",
+            uri="10.0.1.10:3306",
+            private_ip="10.0.1.10",
+            database_name="dayec_slurm_acct",
+            username="slurm_acct",
+            password_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:acct",
+            client_security_group_id="sg-0123456789abcdef0",
+            instance_id="i-0123456789abcdef0",
+        )
+        subs = _full_subs()
+        subs.update(slurm_accounting_render_blocks(db))
+
+        rendered = render_template(template, subs)
+
+        assert "AdditionalSecurityGroups:" in rendered
+        assert "Database:" in rendered
+        assert "Uri: 10.0.1.10:3306" in rendered
+        assert "UserName: slurm_acct" in rendered
+        assert "PasswordSecretArn: arn:aws:secretsmanager" in rendered
+        assert "DatabaseName: dayec_slurm_acct" in rendered
+        payload = yaml.safe_load(rendered)
+        assert payload["HeadNode"]["Networking"]["AdditionalSecurityGroups"] == [
+            "sg-0123456789abcdef0"
+        ]
+        assert payload["Scheduling"]["SlurmSettings"]["Database"] == {
+            "Uri": "10.0.1.10:3306",
+            "UserName": "slurm_acct",
+            "PasswordSecretArn": (
+                "arn:aws:secretsmanager:us-west-2:123456789012:secret:acct"
+            ),
+            "DatabaseName": "dayec_slurm_acct",
+        }
 
 
 # ── TestWriteInitArtifacts ───────────────────────────────────────────

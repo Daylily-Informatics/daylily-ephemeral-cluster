@@ -576,6 +576,11 @@ def create(
         "--non-interactive",
         help="Disable interactive prompts; use config defaults or fail.",
     ),
+    create_slurm_accounting_db: bool = typer.Option(
+        False,
+        "--create-slurm-accounting-db",
+        help="Create the DayEC Slurm accounting MariaDB stack if no tagged stack exists.",
+    ),
 ) -> None:
     """Create an ephemeral AWS ParallelCluster environment."""
 
@@ -594,8 +599,99 @@ def create(
         pass_on_warn=pass_on_warn,
         debug=debug,
         non_interactive=non_interactive,
+        create_slurm_accounting_db=create_slurm_accounting_db,
     )
     raise SystemExit(rc)
+
+
+def slurm_accounting_ensure(
+    region_az: str = typer.Option(
+        ...,
+        "--region-az",
+        help="AWS region + availability zone (e.g. us-west-2b).",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    stack_name: str = typer.Option(
+        "",
+        "--stack-name",
+        help="Explicit DayEC Slurm accounting stack name. Defaults from --region-az.",
+    ),
+    database_name: str = typer.Option(
+        "dayec_slurm_acct",
+        "--database-name",
+        help="Slurm accounting database name.",
+    ),
+    db_username: str = typer.Option(
+        "slurm_acct",
+        "--db-username",
+        help="Slurm accounting database user name.",
+    ),
+    instance_type: str = typer.Option(
+        "t4g.micro",
+        "--instance-type",
+        help="EC2 instance type for a newly created MariaDB host.",
+    ),
+) -> None:
+    """Ensure a DayEC Slurm accounting MariaDB stack for one VPC/AZ."""
+
+    from daylily_ec.aws.cloudformation import ensure_pcluster_env_stack
+    from daylily_ec.aws.context import AWSContext
+    from daylily_ec.aws.slurm_accounting import (
+        SlurmAccountingError,
+        ensure_slurm_accounting_db,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx = AWSContext.build(region_az, profile=profile)
+        cfn_outputs = ensure_pcluster_env_stack(aws_ctx, region_az)
+        if not cfn_outputs.vpc_id or not cfn_outputs.private_subnet_id:
+            raise SlurmAccountingError(
+                "Baseline stack is missing VPC or private subnet outputs."
+            )
+        db = ensure_slurm_accounting_db(
+            aws_ctx,
+            region_az=region_az,
+            vpc_id=cfn_outputs.vpc_id,
+            private_subnet_id=cfn_outputs.private_subnet_id,
+            create_if_missing=True,
+            stack_name=stack_name,
+            database_name=database_name,
+            username=db_username,
+            instance_type=instance_type,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+    payload = {
+        "stack_name": db.stack_name,
+        "status": db.status,
+        "uri": db.uri,
+        "private_ip": db.private_ip,
+        "database_name": db.database_name,
+        "username": db.username,
+        "password_secret_arn": db.password_secret_arn,
+        "client_security_group_id": db.client_security_group_id,
+        "instance_id": db.instance_id,
+    }
+    if _json_mode():
+        output.emit_json(payload)
+        return
+
+    output.heading("Slurm accounting DB")
+    output.print_text(f"Stack:     {db.stack_name}")
+    output.print_text(f"Status:    {db.status}")
+    output.print_text(f"URI:       {db.uri}")
+    output.print_text(f"Database:  {db.database_name}")
+    output.print_text(f"User:      {db.username}")
+    output.print_text(f"Secret:    {db.password_secret_arn}")
+    output.print_text(f"Client SG: {db.client_security_group_id}")
+    if db.instance_id:
+        output.print_text(f"Instance:  {db.instance_id}")
 
 
 def preflight(
@@ -3441,6 +3537,18 @@ def register(registry, cli_spec) -> None:
                 required_policy(supports_json=True),
             ),
             ("all", aws_validate_all, required_policy(supports_json=True)),
+        ],
+    )
+    register_group_commands(
+        registry,
+        "slurm-accounting",
+        "Slurm accounting database helpers.",
+        [
+            (
+                "ensure",
+                slurm_accounting_ensure,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
         ],
     )
     register_group_commands(

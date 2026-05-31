@@ -321,9 +321,11 @@ class TestLoadConfig:
             pytest.skip("template file not found")
         cfg = load_config(tpl)
         ec = cfg.ephemeral_cluster
-        assert len(ec.config) == 27
+        assert len(ec.config) == 33
         assert "ssh_key_name" not in ec.config
         assert ec.config["export_destination_s3_uri"].action == "PROMPTUSER"
+        assert ec.config["slurm_accounting_enabled"].default_value == "false"
+        assert ec.config["slurm_accounting_database_name"].default_value == "dayec_slurm_acct"
         assert ec.config["budget_amount"].default_value == "200"
         assert ec.config["allowed_budget_users"].default_value == "ubuntu"
         assert ec.config["global_allowed_budget_users"].default_value == "ubuntu"

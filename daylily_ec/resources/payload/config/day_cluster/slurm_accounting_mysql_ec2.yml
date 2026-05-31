@@ -1,0 +1,281 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Description: DayEC Slurm accounting MariaDB host for AWS ParallelCluster.
+
+Parameters:
+  EnvironmentName:
+    Type: String
+    Description: Deterministic DayEC accounting stack/resource name.
+    AllowedPattern: "^[A-Za-z][A-Za-z0-9-]{1,127}$"
+  RegionAz:
+    Type: String
+    Description: Region and availability zone scope, such as us-west-2b.
+    AllowedPattern: "^[A-Za-z0-9-]+$"
+  VpcId:
+    Type: AWS::EC2::VPC::Id
+    Description: DayEC VPC ID.
+  PrivateSubnetId:
+    Type: AWS::EC2::Subnet::Id
+    Description: Private subnet for the accounting DB host.
+  InstanceType:
+    Type: String
+    Default: t4g.micro
+    Description: ARM64 EC2 instance type for the MariaDB host.
+    AllowedPattern: "^[a-z0-9.]+$"
+  DatabaseName:
+    Type: String
+    Default: dayec_slurm_acct
+    Description: Slurm accounting database name.
+    AllowedPattern: "^[a-z0-9_]{1,64}$"
+  DatabaseUserName:
+    Type: String
+    Default: slurm_acct
+    Description: Slurm accounting database user.
+    AllowedPattern: "^[A-Za-z0-9_]{1,32}$"
+  LatestAmiId:
+    Type: AWS::SSM::Parameter::Value<AWS::EC2::Image::Id>
+    Default: /aws/service/canonical/ubuntu/server/22.04/stable/current/arm64/hvm/ebs-gp2/ami-id
+    Description: Ubuntu 22.04 ARM64 AMI SSM parameter.
+
+Resources:
+  AccountingPasswordSecret:
+    Type: AWS::SecretsManager::Secret
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Description: !Sub "Plaintext MariaDB password for ${EnvironmentName} Slurm accounting."
+      GenerateSecretString:
+        PasswordLength: 32
+        ExcludePunctuation: true
+      Tags:
+        - Key: daylily-ec:component
+          Value: slurm-accounting-mysql
+        - Key: daylily-ec:region-az
+          Value: !Ref RegionAz
+        - Key: daylily-ec:vpc-id
+          Value: !Ref VpcId
+        - Key: daylily-ec:managed-by
+          Value: daylily-ephemeral-cluster
+
+  AccountingClientSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      GroupDescription: !Sub "${EnvironmentName} pcluster head node MySQL client access"
+      VpcId: !Ref VpcId
+      SecurityGroupEgress: []
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-client"
+        - Key: daylily-ec:component
+          Value: slurm-accounting-mysql
+        - Key: daylily-ec:region-az
+          Value: !Ref RegionAz
+        - Key: daylily-ec:vpc-id
+          Value: !Ref VpcId
+        - Key: daylily-ec:managed-by
+          Value: daylily-ephemeral-cluster
+
+  AccountingDbSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      GroupDescription: !Sub "${EnvironmentName} private MariaDB server"
+      VpcId: !Ref VpcId
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-db"
+        - Key: daylily-ec:component
+          Value: slurm-accounting-mysql
+        - Key: daylily-ec:region-az
+          Value: !Ref RegionAz
+        - Key: daylily-ec:vpc-id
+          Value: !Ref VpcId
+        - Key: daylily-ec:managed-by
+          Value: daylily-ephemeral-cluster
+
+  AccountingClientToDbEgress:
+    Type: AWS::EC2::SecurityGroupEgress
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      GroupId: !Ref AccountingClientSecurityGroup
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      DestinationSecurityGroupId: !Ref AccountingDbSecurityGroup
+
+  AccountingDbIngressFromClient:
+    Type: AWS::EC2::SecurityGroupIngress
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      GroupId: !Ref AccountingDbSecurityGroup
+      IpProtocol: tcp
+      FromPort: 3306
+      ToPort: 3306
+      SourceSecurityGroupId: !Ref AccountingClientSecurityGroup
+
+  AccountingDbRole:
+    Type: AWS::IAM::Role
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+      Policies:
+        - PolicyName: ReadSlurmAccountingSecret
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - secretsmanager:GetSecretValue
+                Resource: !Ref AccountingPasswordSecret
+      Tags:
+        - Key: daylily-ec:component
+          Value: slurm-accounting-mysql
+        - Key: daylily-ec:region-az
+          Value: !Ref RegionAz
+        - Key: daylily-ec:vpc-id
+          Value: !Ref VpcId
+        - Key: daylily-ec:managed-by
+          Value: daylily-ephemeral-cluster
+
+  AccountingDbInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      Roles:
+        - !Ref AccountingDbRole
+
+  AccountingReadyHandle:
+    Type: AWS::CloudFormation::WaitConditionHandle
+
+  AccountingReadyCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    DependsOn: AccountingDbHost
+    Properties:
+      Count: 1
+      Handle: !Ref AccountingReadyHandle
+      Timeout: 1800
+
+  AccountingDbHost:
+    Type: AWS::EC2::Instance
+    DeletionPolicy: Retain
+    UpdateReplacePolicy: Retain
+    Properties:
+      ImageId: !Ref LatestAmiId
+      InstanceType: !Ref InstanceType
+      IamInstanceProfile: !Ref AccountingDbInstanceProfile
+      DisableApiTermination: true
+      MetadataOptions:
+        HttpTokens: required
+        HttpEndpoint: enabled
+      NetworkInterfaces:
+        - AssociatePublicIpAddress: false
+          DeviceIndex: 0
+          GroupSet:
+            - !Ref AccountingDbSecurityGroup
+          SubnetId: !Ref PrivateSubnetId
+      BlockDeviceMappings:
+        - DeviceName: /dev/sda1
+          Ebs:
+            DeleteOnTermination: false
+            Encrypted: true
+            VolumeSize: 20
+            VolumeType: gp3
+      Tags:
+        - Key: Name
+          Value: !Sub "${EnvironmentName}-mariadb"
+        - Key: daylily-ec:component
+          Value: slurm-accounting-mysql
+        - Key: daylily-ec:region-az
+          Value: !Ref RegionAz
+        - Key: daylily-ec:vpc-id
+          Value: !Ref VpcId
+        - Key: daylily-ec:managed-by
+          Value: daylily-ephemeral-cluster
+      UserData:
+        Fn::Base64: !Sub |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          export DEBIAN_FRONTEND=noninteractive
+
+          signal_stack() {
+            status="$1"
+            reason="$2"
+            payload="$(printf '{"Status":"%s","Reason":"%s","UniqueId":"AccountingDbHost","Data":"%s"}' "$status" "$reason" "$reason")"
+            curl -sS -X PUT -H 'Content-Type:' --data-binary "$payload" '${AccountingReadyHandle}' || true
+          }
+
+          trap 'signal_stack FAILURE "MariaDB bootstrap failed"; exit 1' ERR
+
+          apt-get update -y
+          apt-get install -y awscli curl mariadb-server
+
+          password="$(aws secretsmanager get-secret-value --region '${AWS::Region}' --secret-id '${AccountingPasswordSecret}' --query SecretString --output text)"
+          if [ -z "$password" ] || [ "$password" = "None" ]; then
+            echo "Secret ${AccountingPasswordSecret} returned an empty password" >&2
+            exit 1
+          fi
+
+          sed -i 's/^[[:space:]]*bind-address[[:space:]]*=.*/bind-address = 0.0.0.0/' /etc/mysql/mariadb.conf.d/50-server.cnf
+          if ! grep -Eq '^[[:space:]]*bind-address[[:space:]]*=' /etc/mysql/mariadb.conf.d/50-server.cnf; then
+            printf '\nbind-address = 0.0.0.0\n' >> /etc/mysql/mariadb.conf.d/50-server.cnf
+          fi
+
+          systemctl enable mariadb
+          systemctl restart mariadb
+          for attempt in $(seq 1 60); do
+            if mysqladmin --protocol=socket ping --silent; then
+              break
+            fi
+            sleep 2
+            if [ "$attempt" = "60" ]; then
+              echo "MariaDB did not become ready" >&2
+              exit 1
+            fi
+          done
+
+          mysql --protocol=socket <<SQL
+          CREATE DATABASE IF NOT EXISTS \`${DatabaseName}\`;
+          CREATE USER IF NOT EXISTS '${DatabaseUserName}'@'%' IDENTIFIED BY '$password';
+          ALTER USER '${DatabaseUserName}'@'%' IDENTIFIED BY '$password';
+          GRANT ALL PRIVILEGES ON \`${DatabaseName}\`.* TO '${DatabaseUserName}'@'%';
+          FLUSH PRIVILEGES;
+          SQL
+
+          signal_stack SUCCESS "MariaDB ready"
+
+Outputs:
+  AccountingDbUri:
+    Description: Host:port URI for ParallelCluster SlurmSettings.Database.Uri.
+    Value: !Sub "${AccountingDbHost.PrivateIp}:3306"
+  AccountingDbPrivateIp:
+    Description: Private IP address of the accounting DB host.
+    Value: !GetAtt AccountingDbHost.PrivateIp
+  AccountingDatabaseName:
+    Description: Database name for ParallelCluster SlurmSettings.Database.DatabaseName.
+    Value: !Ref DatabaseName
+  AccountingUserName:
+    Description: User name for ParallelCluster SlurmSettings.Database.UserName.
+    Value: !Ref DatabaseUserName
+  AccountingPasswordSecretArn:
+    Description: Plaintext password secret ARN for ParallelCluster SlurmSettings.Database.PasswordSecretArn.
+    Value: !Ref AccountingPasswordSecret
+  AccountingClientSecurityGroupId:
+    Description: Security group to attach to the ParallelCluster head node.
+    Value: !Ref AccountingClientSecurityGroup
+  AccountingInstanceId:
+    Description: Retained private MariaDB EC2 instance ID.
+    Value: !Ref AccountingDbHost

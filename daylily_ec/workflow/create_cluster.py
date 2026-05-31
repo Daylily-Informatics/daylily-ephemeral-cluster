@@ -720,6 +720,28 @@ def _resolve_config_value(
         typer.echo(f"{label} cannot be empty.")
 
 
+def _resolve_nonprompt_config_value(cfg: Any, key: str, default_value: str = "") -> str:
+    """Resolve a config value without adding an interactive prompt."""
+    from daylily_ec.config.triplets import get_effective_default, resolve_value
+
+    triplet = cfg.ephemeral_cluster.config.get(key)
+    if triplet is not None:
+        resolved = resolve_value(triplet)
+        if resolved:
+            return resolved.strip()
+    return (get_effective_default(cfg, key, default_value) or "").strip()
+
+
+def _resolve_nonprompt_bool_config(cfg: Any, key: str, default_value: str = "false") -> bool:
+    """Resolve a non-interactive boolean config value with strict validation."""
+    raw = _resolve_nonprompt_config_value(cfg, key, default_value).strip().lower()
+    if raw in ("1", "true", "yes", "y", "on"):
+        return True
+    if raw in ("0", "false", "no", "n", "off", ""):
+        return False
+    raise ValueError(f"{key} must be true or false, got '{raw}'.")
+
+
 def _prompt_s3_role_choice(label: str, candidates: List[str], *, default_value: str = "") -> str:
     typer.echo(f"{label} candidates:")
     for index, candidate in enumerate(candidates, start=1):
@@ -988,6 +1010,7 @@ def run_create_workflow(
     pass_on_warn: bool = False,
     debug: bool = False,
     non_interactive: bool = False,
+    create_slurm_accounting_db: bool = False,
 ) -> int:
     """End-to-end cluster creation: preflight → create → post-create.
 
@@ -1018,6 +1041,16 @@ def run_create_workflow(
         ROLE_REFERENCE,
         ROLE_STAGING,
         make_s3_bucket_preflight_step,
+    )
+    from daylily_ec.aws.slurm_accounting import (
+        DEFAULT_ACCOUNTING_DATABASE_NAME,
+        DEFAULT_ACCOUNTING_INSTANCE_TYPE,
+        DEFAULT_ACCOUNTING_USERNAME,
+        SlurmAccountingDb,
+        SlurmAccountingError,
+        empty_slurm_accounting_render_blocks,
+        ensure_slurm_accounting_db,
+        slurm_accounting_render_blocks,
     )
     from daylily_ec.aws.ssm import wait_for_ssm_online
     from daylily_ec.aws.spot_pricing import apply_spot_prices
@@ -1313,6 +1346,78 @@ def run_create_workflow(
     ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
     ui.detail("Policy", policy_arn)
 
+    accounting_db: Optional[SlurmAccountingDb] = None
+    accounting_render_blocks = empty_slurm_accounting_render_blocks()
+    try:
+        config_create_accounting = _resolve_nonprompt_bool_config(
+            cfg,
+            "slurm_accounting_create_db",
+            "false",
+        )
+        accounting_create_requested = create_slurm_accounting_db or config_create_accounting
+        accounting_enabled = accounting_create_requested or _resolve_nonprompt_bool_config(
+            cfg,
+            "slurm_accounting_enabled",
+            "false",
+        )
+    except ValueError as exc:
+        logger.error("Slurm accounting config validation failed: %s", exc)
+        ui.fail(f"Slurm accounting config: {exc}")
+        return EXIT_VALIDATION_FAILURE
+
+    if accounting_enabled:
+        if not cfn_outputs.vpc_id:
+            logger.error("Slurm accounting requires the baseline VPC output.")
+            ui.fail("Slurm accounting requires the baseline VPC output.")
+            return EXIT_VALIDATION_FAILURE
+
+        accounting_stack_name = _resolve_nonprompt_config_value(
+            cfg,
+            "slurm_accounting_stack_name",
+            "",
+        )
+        accounting_database_name = _resolve_nonprompt_config_value(
+            cfg,
+            "slurm_accounting_database_name",
+            DEFAULT_ACCOUNTING_DATABASE_NAME,
+        )
+        accounting_username = _resolve_nonprompt_config_value(
+            cfg,
+            "slurm_accounting_db_username",
+            DEFAULT_ACCOUNTING_USERNAME,
+        )
+        accounting_instance_type = _resolve_nonprompt_config_value(
+            cfg,
+            "slurm_accounting_instance_type",
+            DEFAULT_ACCOUNTING_INSTANCE_TYPE,
+        )
+
+        ui.step("Resolving Slurm accounting DB ...")
+        try:
+            accounting_db = ensure_slurm_accounting_db(
+                aws_ctx,
+                region_az=region_az,
+                vpc_id=cfn_outputs.vpc_id,
+                private_subnet_id=private_subnet,
+                create_if_missing=accounting_create_requested,
+                stack_name=accounting_stack_name,
+                database_name=accounting_database_name,
+                username=accounting_username,
+                instance_type=accounting_instance_type,
+            )
+        except SlurmAccountingError as exc:
+            logger.error("Slurm accounting DB resolution failed: %s", exc)
+            ui.fail(f"Slurm accounting DB: {exc}")
+            return EXIT_AWS_FAILURE
+        accounting_render_blocks = slurm_accounting_render_blocks(accounting_db)
+        ui.ok("Slurm accounting DB ready")
+        ui.detail("Accounting stack", accounting_db.stack_name)
+        ui.detail("Accounting URI", accounting_db.uri)
+        ui.detail("Accounting database", accounting_db.database_name)
+        ui.detail("Accounting user", accounting_db.username)
+        ui.detail("Accounting secret", accounting_db.password_secret_arn)
+        ui.detail("Accounting client SG", accounting_db.client_security_group_id)
+
     ui.step("Publishing cluster boot config to runtime assets ...")
     try:
         uploaded_boot_config = publish_cluster_boot_config(
@@ -1443,6 +1548,7 @@ def run_create_workflow(
         "REGSUB_HEARTBEAT_EMAIL": post_create_inputs.heartbeat_email,
         "REGSUB_HEARTBEAT_SCHEDULE": post_create_inputs.heartbeat_schedule,
         "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": (post_create_inputs.heartbeat_scheduler_role_arn),
+        **accounting_render_blocks,
     }
 
     ui.step("Rendering YAML template ...")
@@ -1677,6 +1783,20 @@ def run_create_workflow(
         "heartbeat_email": post_create_inputs.heartbeat_email,
         "heartbeat_schedule": post_create_inputs.heartbeat_schedule,
         "heartbeat_scheduler_role_arn": (post_create_inputs.heartbeat_scheduler_role_arn),
+        "slurm_accounting_enabled": "true" if accounting_db else "false",
+        "slurm_accounting_create_db": "false",
+        "slurm_accounting_stack_name": accounting_db.stack_name if accounting_db else "",
+        "slurm_accounting_database_name": accounting_db.database_name if accounting_db else "",
+        "slurm_accounting_db_username": accounting_db.username if accounting_db else "",
+        "slurm_accounting_instance_type": (
+            _resolve_nonprompt_config_value(
+                cfg,
+                "slurm_accounting_instance_type",
+                DEFAULT_ACCOUNTING_INSTANCE_TYPE,
+            )
+            if accounting_db
+            else ""
+        ),
     }
     next_run_path = CONFIG_DIR / f"{cluster_name}_next_run_{ts}.yaml"
     write_next_run_template(cfg, final_values, next_run_path)
@@ -1704,6 +1824,14 @@ def run_create_workflow(
         heartbeat_role_arn=hb_result.role_arn if hb_result.success else "",
         heartbeat_email=post_create_inputs.heartbeat_email,
         heartbeat_schedule_expression=post_create_inputs.heartbeat_schedule,
+        slurm_accounting_stack_name=accounting_db.stack_name if accounting_db else "",
+        slurm_accounting_uri=accounting_db.uri if accounting_db else "",
+        slurm_accounting_secret_arn=accounting_db.password_secret_arn if accounting_db else "",
+        slurm_accounting_client_security_group_id=(
+            accounting_db.client_security_group_id if accounting_db else ""
+        ),
+        slurm_accounting_database_name=accounting_db.database_name if accounting_db else "",
+        slurm_accounting_username=accounting_db.username if accounting_db else "",
         init_template_path=init_template_path,
         cluster_yaml_path=cluster_yaml_path,
         resolved_cli_config_path=str(next_run_path),
