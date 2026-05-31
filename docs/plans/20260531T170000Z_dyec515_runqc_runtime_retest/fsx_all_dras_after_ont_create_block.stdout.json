@@ -1,0 +1,205 @@
+{
+    "Associations": [
+        {
+            "AssociationId": "dra-0d8bb0f0b7ff45c01",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-0192642b439759d7d/dra-0d8bb0f0b7ff45c01",
+            "FileSystemId": "fs-0192642b439759d7d",
+            "Lifecycle": "AVAILABLE",
+            "FileSystemPath": "/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/",
+            "DataRepositoryPath": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "S3": {
+                "AutoImportPolicy": {
+                    "Events": [
+                        "NEW",
+                        "CHANGED"
+                    ]
+                }
+            },
+            "Tags": [
+                {
+                    "Key": "lsmc:purpose",
+                    "Value": "run-dir-mount"
+                }
+            ],
+            "CreationTime": "2026-05-31T06:18:15.609000-07:00"
+        },
+        {
+            "AssociationId": "dra-053569c3360b9957d",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-0192642b439759d7d/dra-053569c3360b9957d",
+            "FileSystemId": "fs-0192642b439759d7d",
+            "Lifecycle": "AVAILABLE",
+            "FileSystemPath": "/staging/staged_external_sequencing_data/remote_stage_20260531T124414Z_c29e0f59/",
+            "DataRepositoryPath": "s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260531T124414Z_c29e0f59/",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "Tags": [
+                {
+                    "Key": "daylily:staging-root",
+                    "Value": "/fsx/staging/staged_external_sequencing_data"
+                }
+            ],
+            "CreationTime": "2026-05-31T05:44:27.399000-07:00"
+        },
+        {
+            "AssociationId": "dra-072ffa458c1f597ec",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-0192642b439759d7d/dra-072ffa458c1f597ec",
+            "FileSystemId": "fs-0192642b439759d7d",
+            "Lifecycle": "AVAILABLE",
+            "FileSystemPath": "/staging/staged_external_sequencing_data/remote_stage_20260531T124354Z_b8c56ad3/",
+            "DataRepositoryPath": "s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260531T124354Z_b8c56ad3/",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "Tags": [
+                {
+                    "Key": "daylily:staging-root",
+                    "Value": "/fsx/staging/staged_external_sequencing_data"
+                }
+            ],
+            "CreationTime": "2026-05-31T05:44:08.947000-07:00"
+        },
+        {
+            "AssociationId": "dra-01e2e9a9713250aeb",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-0192642b439759d7d/dra-01e2e9a9713250aeb",
+            "FileSystemId": "fs-0192642b439759d7d",
+            "Lifecycle": "AVAILABLE",
+            "FileSystemPath": "/staging/staged_external_sequencing_data/remote_stage_20260531T124354Z_6f12f5c5/",
+            "DataRepositoryPath": "s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260531T124354Z_6f12f5c5/",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "Tags": [
+                {
+                    "Key": "daylily:staging-root",
+                    "Value": "/fsx/staging/staged_external_sequencing_data"
+                }
+            ],
+            "CreationTime": "2026-05-31T05:44:08.607000-07:00"
+        },
+        {
+            "AssociationId": "dra-0b6e8cf2c8ad0730c",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-0192642b439759d7d/dra-0b6e8cf2c8ad0730c",
+            "FileSystemId": "fs-0192642b439759d7d",
+            "Lifecycle": "AVAILABLE",
+            "FileSystemPath": "/staging/staged_external_sequencing_data/remote_stage_20260531T123302Z_e70c7726/",
+            "DataRepositoryPath": "s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260531T123302Z_e70c7726/",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "Tags": [
+                {
+                    "Key": "daylily:staging-root",
+                    "Value": "/fsx/staging/staged_external_sequencing_data"
+                }
+            ],
+            "CreationTime": "2026-05-31T05:33:18.055000-07:00"
+        },
+        {
+            "AssociationId": "dra-0810d930da440e438",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-0192642b439759d7d/dra-0810d930da440e438",
+            "FileSystemId": "fs-0192642b439759d7d",
+            "Lifecycle": "AVAILABLE",
+            "FileSystemPath": "/staging/staged_external_sequencing_data/remote_stage_20260531T123302Z_b4e80816/",
+            "DataRepositoryPath": "s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260531T123302Z_b4e80816/",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "Tags": [
+                {
+                    "Key": "daylily:staging-root",
+                    "Value": "/fsx/staging/staged_external_sequencing_data"
+                }
+            ],
+            "CreationTime": "2026-05-31T05:33:17.609000-07:00"
+        },
+        {
+            "AssociationId": "dra-0c2f0ea9bd6f5ed05",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-0192642b439759d7d/dra-0c2f0ea9bd6f5ed05",
+            "FileSystemId": "fs-0192642b439759d7d",
+            "Lifecycle": "AVAILABLE",
+            "FileSystemPath": "/staging/staged_external_sequencing_data/remote_stage_20260531T123302Z_a98b2bfa/",
+            "DataRepositoryPath": "s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260531T123302Z_a98b2bfa/",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "Tags": [
+                {
+                    "Key": "daylily:staging-root",
+                    "Value": "/fsx/staging/staged_external_sequencing_data"
+                }
+            ],
+            "CreationTime": "2026-05-31T05:33:17.246000-07:00"
+        },
+        {
+            "AssociationId": "dra-05860a8eb7cbd9a2c",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-0192642b439759d7d/dra-05860a8eb7cbd9a2c",
+            "FileSystemId": "fs-0192642b439759d7d",
+            "Lifecycle": "AVAILABLE",
+            "FileSystemPath": "/references/",
+            "DataRepositoryPath": "s3://lsmc-dayoa-references-usw2",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "S3": {
+                "AutoImportPolicy": {
+                    "Events": [
+                        "NEW",
+                        "CHANGED",
+                        "DELETED"
+                    ]
+                }
+            },
+            "Tags": [
+                {
+                    "Key": "aws:cloudformation:stack-name",
+                    "Value": "dyec-515"
+                },
+                {
+                    "Key": "parallelcluster:version",
+                    "Value": "3.13.2"
+                },
+                {
+                    "Key": "aws-parallelcluster-enforce-budget",
+                    "Value": "skip"
+                },
+                {
+                    "Key": "aws:cloudformation:stack-id",
+                    "Value": "arn:aws:cloudformation:us-west-2:108782052779:stack/dyec-515/31ac79e0-5ce1-11f1-9f1f-0685887a411d"
+                },
+                {
+                    "Key": "aws-parallelcluster-clustername",
+                    "Value": "dyec-515"
+                },
+                {
+                    "Key": "aws-parallelcluster-username",
+                    "Value": "jmajor-root"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "reference-data"
+                },
+                {
+                    "Key": "aws-parallelcluster-daylily-git-deets",
+                    "Value": "none"
+                },
+                {
+                    "Key": "aws-parallelcluster-jobid",
+                    "Value": "aws_profile-lsmc"
+                },
+                {
+                    "Key": "aws-parallelcluster-monitor-bucket",
+                    "Value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+                },
+                {
+                    "Key": "parallelcluster:cluster-name",
+                    "Value": "dyec-515"
+                },
+                {
+                    "Key": "aws:cloudformation:logical-id",
+                    "Value": "referencedataD48241ae41bef295"
+                },
+                {
+                    "Key": "aws-parallelcluster-project",
+                    "Value": "dyec-515"
+                }
+            ],
+            "CreationTime": "2026-05-31T04:20:53.109000-07:00"
+        }
+    ]
+}
