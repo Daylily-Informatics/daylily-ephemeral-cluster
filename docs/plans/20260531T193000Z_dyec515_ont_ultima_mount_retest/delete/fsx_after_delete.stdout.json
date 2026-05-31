@@ -1,0 +1,78 @@
+{
+    "Associations": [
+        {
+            "AssociationId": "dra-05860a8eb7cbd9a2c",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-0192642b439759d7d/dra-05860a8eb7cbd9a2c",
+            "FileSystemId": "fs-0192642b439759d7d",
+            "Lifecycle": "AVAILABLE",
+            "FileSystemPath": "/references/",
+            "DataRepositoryPath": "s3://lsmc-dayoa-references-usw2",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "S3": {
+                "AutoImportPolicy": {
+                    "Events": [
+                        "NEW",
+                        "CHANGED",
+                        "DELETED"
+                    ]
+                }
+            },
+            "Tags": [
+                {
+                    "Key": "aws:cloudformation:stack-name",
+                    "Value": "dyec-515"
+                },
+                {
+                    "Key": "parallelcluster:version",
+                    "Value": "3.13.2"
+                },
+                {
+                    "Key": "aws-parallelcluster-enforce-budget",
+                    "Value": "skip"
+                },
+                {
+                    "Key": "aws:cloudformation:stack-id",
+                    "Value": "arn:aws:cloudformation:us-west-2:108782052779:stack/dyec-515/31ac79e0-5ce1-11f1-9f1f-0685887a411d"
+                },
+                {
+                    "Key": "aws-parallelcluster-clustername",
+                    "Value": "dyec-515"
+                },
+                {
+                    "Key": "aws-parallelcluster-username",
+                    "Value": "jmajor-root"
+                },
+                {
+                    "Key": "Name",
+                    "Value": "reference-data"
+                },
+                {
+                    "Key": "aws-parallelcluster-daylily-git-deets",
+                    "Value": "none"
+                },
+                {
+                    "Key": "aws-parallelcluster-jobid",
+                    "Value": "aws_profile-lsmc"
+                },
+                {
+                    "Key": "aws-parallelcluster-monitor-bucket",
+                    "Value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+                },
+                {
+                    "Key": "parallelcluster:cluster-name",
+                    "Value": "dyec-515"
+                },
+                {
+                    "Key": "aws:cloudformation:logical-id",
+                    "Value": "referencedataD48241ae41bef295"
+                },
+                {
+                    "Key": "aws-parallelcluster-project",
+                    "Value": "dyec-515"
+                }
+            ],
+            "CreationTime": "2026-05-31T04:20:53.109000-07:00"
+        }
+    ]
+}

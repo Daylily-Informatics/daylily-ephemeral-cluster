@@ -1,0 +1,54 @@
+{
+    "Associations": [
+        {
+            "AssociationId": "dra-004014226eb3319e8",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-0192642b439759d7d/dra-004014226eb3319e8",
+            "FileSystemId": "fs-0192642b439759d7d",
+            "Lifecycle": "CREATING",
+            "FileSystemPath": "/run_dir_mounts/602221-20260417_2346/",
+            "DataRepositoryPath": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "S3": {
+                "AutoImportPolicy": {
+                    "Events": [
+                        "NEW",
+                        "CHANGED"
+                    ]
+                }
+            },
+            "Tags": [
+                {
+                    "Key": "lsmc:purpose",
+                    "Value": "run-dir-mount"
+                }
+            ],
+            "CreationTime": "2026-05-31T13:01:53.268000-07:00"
+        },
+        {
+            "AssociationId": "dra-078e4fd5d80c3ec38",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-0192642b439759d7d/dra-078e4fd5d80c3ec38",
+            "FileSystemId": "fs-0192642b439759d7d",
+            "Lifecycle": "AVAILABLE",
+            "FileSystemPath": "/run_dir_mounts/20260513_ONT_HG003/",
+            "DataRepositoryPath": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "S3": {
+                "AutoImportPolicy": {
+                    "Events": [
+                        "NEW",
+                        "CHANGED"
+                    ]
+                }
+            },
+            "Tags": [
+                {
+                    "Key": "lsmc:purpose",
+                    "Value": "run-dir-mount"
+                }
+            ],
+            "CreationTime": "2026-05-31T12:46:06.218000-07:00"
+        }
+    ]
+}

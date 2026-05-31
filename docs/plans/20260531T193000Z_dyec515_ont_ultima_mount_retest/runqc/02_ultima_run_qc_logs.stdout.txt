@@ -1,0 +1,262 @@
+DAY-EC activated.
+DAY-EC activated.
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyec-515 .
+Remote call detected. Activating conda hack
+ > >> >>>
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad
+       _______ GREAT SUCCESS _______
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/day_profiles/slurm produce_ultima_run_qc -p -j 5 -k -n --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv --config run_qc={"ultima":{"run_s3_uri":"s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/","metrics_path":"config/ultima_run_qc_metrics.csv"}}
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+SNV Callers (final): []
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/units.tsv
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_7x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_10x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_20x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/HG003_30x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_40x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_7x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_10x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_20x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/HG003_30x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_40x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_3x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_7x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_10x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_20x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/HG003_30x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_40x_R1.fastq.gz'
+Building DAG of jobs...
+Conda environment workflow/envs/run_qc_reports_v0.1.yaml will be created.
+Conda environment workflow/envs/fastqc_v0.1.yaml will be created.
+Conda environment workflow/envs/multiqc_v0.1.yaml will be created.
+Job stats:
+job                              count    min threads    max threads
+-----------------------------  -------  -------------  -------------
+produce_ultima_run_qc                1              1              1
+ultima_demux_fastq_group_list        1              1              1
+ultima_demux_fastq_multiqc           1              1              1
+ultima_demux_fastq_qc                1              8              8
+ultima_run_qc_report                 1              1              1
+total                                5              1              8
+
+
+[Sun May 31 20:12:02 2026]
+localrule ultima_demux_fastq_group_list:
+    output: results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/fastq_group_dirs.txt
+    log: results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_group_list.log
+    jobid: 4
+    benchmark: results/runs/602221-20260417_2346/run_qc/ultima/benchmarks/demux_fastq_group_list.bench.tsv
+    reason: Missing output files: results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/fastq_group_dirs.txt
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/fastq_group_dirs.txt) $(dirname results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_group_list.log)
+        : > results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_group_list.log
+        if [ -z /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/run_dir_links/602221-20260417_2346 ]; then
+            echo "config/runs.tsv with PLATFORM=ULTIMA and RUN_DIR is required for Ultima demux FASTQ QC" >> results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_group_list.log
+            exit 2
+        fi
+        test -d /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/run_dir_links/602221-20260417_2346
+        find /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/run_dir_links/602221-20260417_2346 -type f \( -name '*.fastq.gz' -o -name '*.fq.gz' \) \
+          | sed 's#/[^/]*$##' \
+          | sort -u > results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/fastq_group_dirs.txt
+        if [ ! -s results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/fastq_group_dirs.txt ]; then
+            echo "No demux FASTQ groups found under /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/run_dir_links/602221-20260417_2346" >> results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_group_list.log
+            exit 2
+        fi
+
+
+[Sun May 31 20:12:02 2026]
+localrule ultima_run_qc_report:
+    output: results/runs/602221-20260417_2346/run_qc/ultima/summary.html, results/runs/602221-20260417_2346/run_qc/ultima/summary.tsv, results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done
+    log: results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log
+    jobid: 1
+    benchmark: results/runs/602221-20260417_2346/run_qc/ultima/benchmarks/ultima_run_qc_report.bench.tsv
+    reason: Missing output files: results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/602221-20260417_2346/run_qc/ultima/summary.html) $(dirname results/runs/602221-20260417_2346/run_qc/ultima/summary.tsv) $(dirname results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log)
+        python workflow/scripts/summarize_run_qc_report.py \
+          --platform UG \
+          --run-s3-uri s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/ \
+          --metrics-path config/ultima_run_qc_metrics.csv \
+          --output-html results/runs/602221-20260417_2346/run_qc/ultima/summary.html \
+          --output-tsv results/runs/602221-20260417_2346/run_qc/ultima/summary.tsv \
+          --done results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done > results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log 2>&1
+
+
+[Sun May 31 20:12:02 2026]
+localrule ultima_demux_fastq_qc:
+    input: results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/fastq_group_dirs.txt
+    output: results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/ultima_demux_fastq_qc.done
+    log: results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_qc.log
+    jobid: 3
+    benchmark: results/runs/602221-20260417_2346/run_qc/ultima/benchmarks/demux_fastq_qc.bench.tsv
+    reason: Missing output files: results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/ultima_demux_fastq_qc.done; Input files updated by another job: results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/fastq_group_dirs.txt
+    threads: 8
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc $(dirname results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_qc.log)
+        : > results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_qc.log
+        command -v fastqc >> results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_qc.log 2>&1
+        command -v seqkit >> results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_qc.log 2>&1
+        run_dir="$(printf "%s" /fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis/config/run_dir_links/602221-20260417_2346 | sed 's:/*$::')"
+        seen_ids="results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/.ultima_demux_fastq_qc_seen_ids"
+        find results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc -mindepth 1 -maxdepth 1 -type d -exec rm -rf {} +
+        : > "$seen_ids"
+        while IFS= read -r fastq_dir; do
+            rel="${fastq_dir#"$run_dir"/}"
+            if [ "$rel" = "$fastq_dir" ]; then
+                echo "Ultima demux FASTQ group is not under RUN_DIR: $fastq_dir" >> results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_qc.log
+                exit 2
+            fi
+            group_token="$(printf "%s" "$rel" | sed 's#[^A-Za-z0-9._+-]#-#g; s#--*#-#g; s#^-##; s#-$##')"
+            if [ -z "$group_token" ]; then
+                echo "Could not derive Ultima demux FASTQ sample identifier from $fastq_dir" >> results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_qc.log
+                exit 2
+            fi
+            sample="602221-20260417_2346-${group_token}"
+            if grep -Fxq "$sample" "$seen_ids"; then
+                echo "Duplicate Ultima demux FASTQ sample identifier $sample from $fastq_dir" >> results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_qc.log
+                exit 2
+            fi
+            printf "%s\n" "$sample" >> "$seen_ids"
+            sample_out="results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/$sample"
+            input_dir="$sample_out/inputs"
+            fastqc_dir="$sample_out/fastqc"
+            file_list="$sample_out/$sample.fastq_files.txt"
+            mkdir -p "$input_dir" "$fastqc_dir"
+            find "$fastq_dir" -maxdepth 1 -type f \( -name '*.fastq.gz' -o -name '*.fq.gz' \) \
+              | sort > "$file_list"
+            if [ ! -s "$file_list" ]; then
+                echo "No FASTQs found for $sample under $fastq_dir" >> results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_qc.log
+                exit 2
+            fi
+            mapfile -t fastqs < "$file_list"
+            seqkit stats --tabular "${fastqs[@]}" \
+              > "$sample_out/$sample.seqkit_stats.tsv" \
+              2>> results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_qc.log
+            fastqc_inputs=()
+            idx=0
+            for fastq in "${fastqs[@]}"; do
+                idx="$((idx + 1))"
+                base_token="$(basename "$fastq" | sed 's#[^A-Za-z0-9._+-]#-#g; s#--*#-#g; s#^-##; s#-$##')"
+                link_path="$input_dir/$sample.$(printf '%03d' "$idx").$base_token"
+                ln -sfn "$(realpath "$fastq")" "$link_path"
+                fastqc_inputs+=("$link_path")
+            done
+            fastqc \
+              -o "$fastqc_dir" \
+              -t 8 \
+              "${fastqc_inputs[@]}" \
+              >> results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_qc.log 2>&1
+        done < results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/fastq_group_dirs.txt
+
+
+[Sun May 31 20:12:02 2026]
+localrule ultima_demux_fastq_multiqc:
+    input: results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/ultima_demux_fastq_qc.done
+    output: results/runs/602221-20260417_2346/run_qc/ultima/ultima_demux_fastq.multiqc.html
+    log: results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_multiqc.log
+    jobid: 2
+    benchmark: results/runs/602221-20260417_2346/run_qc/ultima/benchmarks/demux_fastq_multiqc.bench.tsv
+    reason: Missing output files: results/runs/602221-20260417_2346/run_qc/ultima/ultima_demux_fastq.multiqc.html; Input files updated by another job: results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc/ultima_demux_fastq_qc.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/602221-20260417_2346/run_qc/ultima/ultima_demux_fastq.multiqc.html) $(dirname results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_multiqc.log)
+        multiqc --version > results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_multiqc.log 2>&1 || true
+        multiqc -f \
+          -m fastqc \
+          -m seqkit \
+          --filename "$(basename results/runs/602221-20260417_2346/run_qc/ultima/ultima_demux_fastq.multiqc.html)" \
+          --outdir "$(dirname results/runs/602221-20260417_2346/run_qc/ultima/ultima_demux_fastq.multiqc.html)" \
+          results/runs/602221-20260417_2346/run_qc/ultima/demux_fastq_qc >> results/runs/602221-20260417_2346/run_qc/ultima/logs/demux_fastq_multiqc.log 2>&1
+        test -s results/runs/602221-20260417_2346/run_qc/ultima/ultima_demux_fastq.multiqc.html
+
+
+[Sun May 31 20:12:02 2026]
+localrule produce_ultima_run_qc:
+    input: results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done, results/runs/602221-20260417_2346/run_qc/ultima/ultima_demux_fastq.multiqc.html
+    log: results/day/hg38_broad/logs/produce_ultima_run_qc.log
+    jobid: 0
+    benchmark: results/day/hg38_broad/benchmarks/produce_ultima_run_qc.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/benchmarks/produce_ultima_run_qc.bench.tsv; Input files updated by another job: results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done, results/runs/602221-20260417_2346/run_qc/ultima/ultima_demux_fastq.multiqc.html
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Job stats:
+job                              count    min threads    max threads
+-----------------------------  -------  -------------  -------------
+produce_ultima_run_qc                1              1              1
+ultima_demux_fastq_group_list        1              1              1
+ultima_demux_fastq_multiqc           1              1              1
+ultima_demux_fastq_qc                1              8              8
+ultima_run_qc_report                 1              1              1
+total                                5              1              8
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        produce_ultima_run_qc, ultima_demux_fastq_multiqc, ultima_demux_fastq_qc
+    missing output files:
+        produce_ultima_run_qc, ultima_demux_fastq_group_list, ultima_demux_fastq_multiqc, ultima_demux_fastq_qc, ultima_run_qc_report
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.
+RETURN CODE: 0
+[INFO] Workflow exited with status 0
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-93:/fsx/analysis_results/dyec-515/d515_0531t1930_r5_018_ultima_run_qc/daylily-omics-analysis$

@@ -660,6 +660,95 @@ def test_mounts_create_cli_emits_stable_json(monkeypatch) -> None:
     assert captured["source_s3_uri"] == "s3://bucket/RUN123/"
     assert captured["mount_id"] is None
     assert captured["run_id"] is None
+    assert captured["wait"] is False
+
+
+def test_mounts_create_cli_wait_opt_in(monkeypatch) -> None:
+    record = run_mounts.RunMountRecord(
+        mount_id="RUN123",
+        run_id="RUN123",
+        platform="ILMN",
+        cluster_name="cluster-a",
+        region="us-west-2",
+        purpose=run_mounts.MOUNT_PURPOSE_RUN,
+        source_s3_uri="s3://bucket/RUN123/",
+        fsx_file_system_id="fs-123",
+        file_system_path="/run_dir_mounts/RUN123/",
+        headnode_path="/fsx/run_dir_mounts/RUN123/",
+        association_id="dra-created",
+        lifecycle="AVAILABLE",
+        read_only=True,
+    )
+
+    captured: dict[str, object] = {}
+
+    def fake_create_mount_payload(**kwargs: object) -> run_mounts.RunMountRecord:
+        captured.update(kwargs)
+        return record
+
+    monkeypatch.setattr(cli_module, "_create_mount_payload", fake_create_mount_payload)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "mounts",
+            "create",
+            "s3://bucket/RUN123/",
+            "--cluster",
+            "cluster-a",
+            "--region",
+            "us-west-2",
+            "--wait",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert captured["wait"] is True
+
+
+def test_mounts_delete_cli_defaults_no_wait(monkeypatch) -> None:
+    record = run_mounts.RunMountRecord(
+        mount_id="RUN123",
+        run_id="RUN123",
+        platform="ILMN",
+        cluster_name="cluster-a",
+        region="us-west-2",
+        purpose=run_mounts.MOUNT_PURPOSE_RUN,
+        source_s3_uri="s3://bucket/RUN123/",
+        fsx_file_system_id="fs-123",
+        file_system_path="/run_dir_mounts/RUN123/",
+        headnode_path="/fsx/run_dir_mounts/RUN123/",
+        association_id="dra-created",
+        lifecycle="DELETING",
+        read_only=True,
+    )
+
+    captured: dict[str, object] = {}
+
+    def fake_delete_run_mount(**kwargs: object) -> run_mounts.RunMountRecord:
+        captured.update(kwargs)
+        return record
+
+    monkeypatch.setattr(run_mounts, "delete_run_mount", fake_delete_run_mount)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "mounts",
+            "delete",
+            "--association-id",
+            "dra-created",
+            "--cluster",
+            "cluster-a",
+            "--region",
+            "us-west-2",
+        ],
+    )
+
+    assert result.exit_code == 0, result.stdout
+    assert captured["wait"] is False
 
 
 def test_mounts_create_cli_rejects_s3_uri_option() -> None:

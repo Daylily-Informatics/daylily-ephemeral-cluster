@@ -155,7 +155,7 @@ class CreateRunMountRequest:
     auto_import_events: Sequence[str] = DEFAULT_AUTO_IMPORT_EVENTS
     auto_export_events: Sequence[str] = dataclasses.field(default_factory=tuple)
     allow_writeback_admin: bool = False
-    wait: bool = True
+    wait: bool = False
     timeout_seconds: int = 900
     tags: Dict[str, str] = dataclasses.field(default_factory=dict)
 

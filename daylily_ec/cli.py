@@ -3025,7 +3025,7 @@ def mounts_create(
         "--allow-writeback-admin",
         help="Explicit admin override allowing AutoExport writeback policy.",
     ),
-    wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for AVAILABLE."),
+    wait: bool = typer.Option(False, "--wait/--no-wait", help="Wait for AVAILABLE."),
     timeout_seconds: int = typer.Option(900, "--timeout-seconds", help="Wait timeout."),
     tag: List[str] = typer.Option([], "--tag", help="Repeatable KEY=VALUE DRA tag."),
 ) -> None:
@@ -3081,7 +3081,7 @@ def mount_rundir(
     auto_import: str = typer.Option("NEW,CHANGED", "--auto-import"),
     auto_export: Optional[str] = typer.Option(None, "--auto-export"),
     allow_writeback_admin: bool = typer.Option(False, "--allow-writeback-admin"),
-    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    wait: bool = typer.Option(False, "--wait/--no-wait"),
     timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
     tag: List[str] = typer.Option([], "--tag"),
 ) -> None:
@@ -3173,7 +3173,7 @@ def mounts_delete(
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
     region: str = typer.Option(..., "--region"),
     profile: Optional[str] = typer.Option(None, "--profile"),
-    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    wait: bool = typer.Option(False, "--wait/--no-wait"),
     timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
 ) -> None:
     """Delete one FSx DRA without deleting S3 objects or cached FSx data."""

@@ -1,0 +1,22 @@
+{
+    "CommandId": "36080c6e-5e3f-4987-a82f-78f920a64c46",
+    "InstanceId": "i-002fac7d5932b5689",
+    "Comment": "Verify run mount 602221-20260417_2346 on headnode",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 1,
+    "ExecutionStartDateTime": "2026-05-31T20:06:38.304Z",
+    "ExecutionElapsedTime": "PT4.421S",
+    "ExecutionEndDateTime": "2026-05-31T20:06:42.304Z",
+    "Status": "Failed",
+    "StatusDetails": "Failed",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "Verify path is not a directory: /fsx/run_dir_mounts/602221-20260417_2346/\nfailed to run commands: exit status 1",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}
