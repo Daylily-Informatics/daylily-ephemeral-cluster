@@ -34,6 +34,78 @@ UNVALIDATED_COMMAND_IDS = {
 SIMPLE_TEST_DY_COMMAND = "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
 
 
+def _minimal_run_catalog_yaml(
+    *,
+    profile_id: str = "illumina_run_directory",
+    profile_mode: str = "run_dra_required",
+    run_context_columns: str = "[RUNID, SOURCE_S3_URI, MOUNT_ID]",
+) -> str:
+    source_fsx_prefix = (
+        "/fsx/run_dir_mounts/{MOUNT_ID}/"
+        if profile_mode == "run_dra_required"
+        else "/fsx/references/example-runs/run1/"
+    )
+    run_dra_columns = (
+        "    run_context_source_s3_column: SOURCE_S3_URI\n"
+        "    run_context_mount_id_column: MOUNT_ID\n"
+        if profile_mode == "run_dra_required"
+        else ""
+    )
+    return f"""
+command_catalog_version: 2
+default_repository: repo
+input_contracts:
+  run_context:
+    description: "Run context."
+    source_table:
+      path: config/runs.tsv
+      required_columns: {run_context_columns}
+test_data_locations:
+  - location_id: default_run_data
+    description: "Run data."
+    mount_path: /fsx/control_data
+    data_root: /fsx/control_data/run_data
+    s3_uri: s3://example-control/run_data/
+    applies_to_command_classes: [run_analysis]
+test_data_profiles:
+  {profile_id}:
+    description: "Run profile."
+    source_mount_mode: {profile_mode}
+    source_s3_uri_template: s3://example-runs/run1/
+    source_fsx_prefix: {source_fsx_prefix}
+{run_dra_columns.rstrip()}
+    locations: [default_run_data]
+repositories:
+  repo:
+    https_url: https://example.invalid/repo.git
+    default_ref: main
+    relative_path: repo
+    analysis_commands:
+      - command_id: run_cmd
+        type: prod
+        validated_version: main
+        test_data_profile: {profile_id}
+        display_name: Run Command
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: run_analysis
+        input_contract: run_context
+        requires_staging: false
+        requires_run_mount: true
+        targets: [produce_illumina_run_qc]
+        genome: hg38
+        jobs: 1
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: bin/day_run produce_illumina_run_qc
+        dryrun_dy_command: bin/day_run produce_illumina_run_qc -n
+        compatible_platforms: [ILMN]
+        compatible_data_modes: [run_directory_mount]
+"""
+
+
 def test_repository_catalog_loads_initial_blessed_command() -> None:
     catalog = load_repository_catalog(CATALOG_PATH)
     command = catalog.get_command("illumina_snv_alignstats")
@@ -43,6 +115,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert [location.location_id for location in catalog.test_data_locations] == [
         "default_reference_reads_slim",
         "default_control_reads_slim",
+        "default_control_run_data",
     ]
     assert catalog.test_data_locations[0].mount_path == "/fsx/references"
     assert (
@@ -50,6 +123,17 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         == "/fsx/references/genomic_data/organism_reads_slim"
     )
     assert "default reference mount" in catalog.test_data_locations[0].description
+    default_reads = catalog.test_data_profiles["default_reads_slim"]
+    assert default_reads.source_mount_mode == "default_mounted"
+    assert (
+        default_reads.source_s3_uri_template
+        == "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/"
+    )
+    assert default_reads.source_fsx_prefix == (
+        "/fsx/references/genomic_data/organism_reads_slim/"
+    )
+    assert default_reads.run_context_source_s3_column == ""
+    assert default_reads.run_context_mount_id_column == ""
     assert manifest_contract.source_table is not None
     assert manifest_contract.source_table.path == "analysis_samples.tsv"
     assert manifest_contract.source_table.required_columns == [
@@ -105,7 +189,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "2.0.25"
+    assert command.git_tag == "2.0.26"
     assert len(command.validation_runs) == 1
     validation_run = command.validation_runs[0]
     assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -158,7 +242,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.25" in launch_argv
+    assert "2.0.26" in launch_argv
 
     export_argv = command.launch_argv(
         analysis_id="run-1",
@@ -270,7 +354,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert command.dryrun_dy_command.endswith(" -n")
             assert command.compatible_platforms
             assert command.compatible_data_modes
-            assert command.git_tag == "2.0.25"
+            assert command.git_tag == "2.0.26"
             assert (
                 command.input_requirements.required_source_columns
                 or command.input_requirements.accepted_source_column_sets
@@ -299,7 +383,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "2.0.25"
+        assert command.git_tag == "2.0.26"
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
@@ -527,6 +611,15 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert command.input_contract == "run_context"
     assert command.requires_staging is False
     assert command.requires_run_mount is True
+    run_profile = catalog.test_data_profiles[command.test_data_profile]
+    assert run_profile.source_mount_mode == "run_dra_required"
+    assert run_profile.source_s3_uri_template == (
+        "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/"
+        "20260514_LH01106_0009_B23TVLGLT4/"
+    )
+    assert run_profile.source_fsx_prefix == "/fsx/run_dir_mounts/{MOUNT_ID}/"
+    assert run_profile.run_context_source_s3_column == "SOURCE_S3_URI"
+    assert run_profile.run_context_mount_id_column == "MOUNT_ID"
     assert command.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
         "samples_table": ".test_data/data/samples.tsv",
@@ -591,6 +684,35 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "produce_ont_run_qc" in ont_dy_command
     assert "produce_ont_run_qc_and_demux_multiqc" not in ont_dy_command
     assert "run_context_file=config/runs.tsv" in ont_dy_command
+
+
+def test_repository_catalog_rejects_run_analysis_without_run_dra_profile(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "bad-run-profile.yaml"
+    path.write_text(
+        _minimal_run_catalog_yaml(
+            profile_id="default_reads_slim",
+            profile_mode="default_mounted",
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="run_analysis but test_data_profile"):
+        load_repository_catalog(path)
+
+
+def test_repository_catalog_rejects_run_dra_profile_without_mount_columns(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "bad-run-columns.yaml"
+    path.write_text(
+        _minimal_run_catalog_yaml(run_context_columns="[RUNID, SOURCE_S3_URI]"),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="missing required column\\(s\\): MOUNT_ID"):
+        load_repository_catalog(path)
 
 
 def test_repository_catalog_v1_migrates_to_sample_analysis(tmp_path: Path) -> None:
@@ -711,6 +833,12 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
     payload = json.loads(result.stdout)
     assert payload["test_data_locations"][0]["data_root"] == (
         "/fsx/references/genomic_data/organism_reads_slim"
+    )
+    assert payload["test_data_profiles"]["default_reads_slim"]["source_mount_mode"] == (
+        "default_mounted"
+    )
+    assert payload["test_data_profiles"]["illumina_run_directory"]["source_mount_mode"] == (
+        "run_dra_required"
     )
     assert "default reference mount" in payload["test_data_locations"][0]["description"]
     assert payload["input_contracts"]["sample_manifest"]["source_table"]["required_columns"] == [

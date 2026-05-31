@@ -1657,63 +1657,6 @@ else:
 PYCONTAMZERO
 }}
 
-hybrid_ultima_ont_stage1_runtime_repair_requested() {{
-  case "$DY_COMMAND" in
-    *produce_sentdhuomr_snv_vcf*|*sentdhuomr*)
-      return 0
-      ;;
-    *)
-      return 1
-      ;;
-  esac
-}}
-
-patch_hybrid_ultima_ont_stage1_assertion() {{
-  python3 - <<'PYHUSTAGE1'
-from pathlib import Path
-
-path = Path("workflow/rules/sent_hybrid_ug_ont_modular.refactored.smk")
-if not path.is_file():
-    raise SystemExit(f"[ERROR] Hybrid Ultima/ONT Stage1 runtime repair target missing: {{path}}")
-
-old = (
-    "            # Verify hap_bam integrity before indexing\\n"
-    "            samtools quickcheck {{output.hap_bam}} >> {{log}} 2>&1 || \\\\\\n"
-    "                (echo \\"ERROR: stage1_hap.bam failed integrity check - file may be truncated\\" >> {{log}} && exit 1)\\n"
-    "\\n"
-    "            # Index the hap BAM produced by HybridStage1 - required by stage2\\n"
-    "            samtools index {{output.hap_bam}} >> {{log}} 2>&1"
-)
-new = (
-    "            # Verify hap_bam integrity before indexing\\n"
-    "            if ! samtools quickcheck {{output.hap_bam}} >> {{log}} 2>&1; then\\n"
-    "                if grep -q \\"ReadSequenceKmerGraphBuilder.*kmerSize >= 1\\" {{log}}; then\\n"
-    "                    echo \\"DYEC_RUNTIME_REPAIR: HybridStage1 haplotype assembly hit Sentieon kmerSize assertion; replacing truncated hap BAM with an empty header-only BAM so insertion output can continue.\\" >> {{log}}\\n"
-    "                    rm -f {{output.hap_bam}} {{output.hap_bam}}.bai\\n"
-    "                    : > {{output.hap_bed}}\\n"
-    "                    : > {{output.hap_vcf}}\\n"
-    "                    samtools view -H {{input.ont_cram}} | grep -E '^@(HD|SQ|RG)' | samtools view -bo {{output.hap_bam}} -\\n"
-    "                else\\n"
-    "                    echo \\"ERROR: stage1_hap.bam failed integrity check - file may be truncated\\" >> {{log}}\\n"
-    "                    exit 1\\n"
-    "                fi\\n"
-    "            fi\\n"
-    "\\n"
-    "            # Index the hap BAM produced by HybridStage1 - required by stage2\\n"
-    "            samtools index {{output.hap_bam}} >> {{log}} 2>&1"
-)
-
-text = path.read_text(encoding="utf-8")
-if new in text:
-    print(f"[INFO] Hybrid Ultima/ONT Stage1 assertion repair already present: {{path}}")
-    raise SystemExit(0)
-if old not in text:
-    raise SystemExit(f"[ERROR] Hybrid Ultima/ONT Stage1 assertion repair target not found in {{path}}")
-path.write_text(text.replace(old, new, 1), encoding="utf-8")
-print(f"[INFO] Patched Hybrid Ultima/ONT Stage1 assertion repair: {{path}}")
-PYHUSTAGE1
-}}
-
 	BCLCONVERT_PROFILE_PATCH_REQUESTED=false
 	if [[ "$RUN_CONTEXT_MODE" == "true" ]]; then
 	  printf '%s' "$RUN_CONTEXT_PAYLOAD" > config/runs.tsv
@@ -1824,9 +1767,6 @@ fi
 	fi
 	if contam_identity_zero_variant_runtime_repair_requested; then
 	  patch_contam_identity_zero_variant_outputs
-	fi
-	if hybrid_ultima_ont_stage1_runtime_repair_requested; then
-	  patch_hybrid_ultima_ont_stage1_assertion
 	fi
 	set +e
 	run_dy_command "$DY_COMMAND"

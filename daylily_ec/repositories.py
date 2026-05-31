@@ -16,9 +16,11 @@ from daylily_ec.resources import resource_path
 CATALOG_VERSION = 2
 SUPPORTED_CATALOG_VERSIONS = {1, CATALOG_VERSION}
 COMMAND_CLASSES = {"sample_analysis", "run_analysis", "utility"}
+COMMAND_TYPES = {"prod", "test", "dev"}
 INPUT_CONTRACTS = {"sample_manifest", "run_context", "none"}
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 VALIDATION_STATUSES = {"success", "failed", "blocked", "not_run"}
+SOURCE_MOUNT_MODES = {"none", "default_mounted", "run_dra_required"}
 ARTIFACT_REGISTRATION_INCLUDE_MODES = {"classification", "path"}
 ARTIFACT_REGISTRATION_MANIFEST_SOURCES = {"dayoa_manifest", "s3_inventory"}
 
@@ -173,6 +175,87 @@ class TestDataLocation(BaseModel):
                 + ", ".join(sorted(unknown))
             )
         return cleaned
+
+
+class TestDataProfile(BaseModel):
+    """Reusable source-data profile for validating catalog commands."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    description: str
+    source_mount_mode: str
+    source_s3_uri_template: str = ""
+    source_fsx_prefix: str = ""
+    locations: List[str] = Field(default_factory=list)
+    run_context_source_s3_column: str = ""
+    run_context_mount_id_column: str = ""
+    source_notes: List[str] = Field(default_factory=list)
+
+    @field_validator("description", "source_mount_mode")
+    @classmethod
+    def _validate_required_strings(cls, value: str) -> str:
+        return _clean_id(value, field_name="test_data_profiles value")
+
+    @field_validator("source_mount_mode")
+    @classmethod
+    def _validate_source_mount_mode(cls, value: str) -> str:
+        cleaned = _clean_id(value, field_name="test_data_profiles.source_mount_mode")
+        if cleaned not in SOURCE_MOUNT_MODES:
+            raise ValueError(
+                "test_data_profiles.source_mount_mode must be one of: "
+                + ", ".join(sorted(SOURCE_MOUNT_MODES))
+            )
+        return cleaned
+
+    @field_validator(
+        "locations",
+        "source_notes",
+    )
+    @classmethod
+    def _validate_string_lists(cls, values: List[str]) -> List[str]:
+        cleaned = [str(value).strip() for value in values]
+        if any(not value for value in cleaned):
+            raise ValueError("test_data_profiles list values must not be empty")
+        if len(set(cleaned)) != len(cleaned):
+            raise ValueError("test_data_profiles list values must be unique")
+        return cleaned
+
+    @field_validator(
+        "source_s3_uri_template",
+        "source_fsx_prefix",
+        "run_context_source_s3_column",
+        "run_context_mount_id_column",
+    )
+    @classmethod
+    def _validate_optional_strings(cls, value: str) -> str:
+        return str(value or "").strip()
+
+    @model_validator(mode="after")
+    def _validate_mount_contract(self) -> "TestDataProfile":
+        if self.source_mount_mode == "none":
+            if self.locations or self.source_s3_uri_template or self.source_fsx_prefix:
+                raise ValueError("source_mount_mode none must not declare source locations")
+            if self.run_context_source_s3_column or self.run_context_mount_id_column:
+                raise ValueError("source_mount_mode none must not declare run-context columns")
+        elif self.source_mount_mode == "default_mounted":
+            if not self.locations:
+                raise ValueError("default_mounted profiles must declare locations")
+            if not self.source_s3_uri_template:
+                raise ValueError("default_mounted profiles must declare source_s3_uri_template")
+            if not self.source_fsx_prefix:
+                raise ValueError("default_mounted profiles must declare source_fsx_prefix")
+            if self.run_context_source_s3_column or self.run_context_mount_id_column:
+                raise ValueError("default_mounted profiles must not declare run-context columns")
+        elif self.source_mount_mode == "run_dra_required":
+            if not self.source_s3_uri_template:
+                raise ValueError("run_dra_required profiles must declare source_s3_uri_template")
+            if not self.source_fsx_prefix:
+                raise ValueError("run_dra_required profiles must declare source_fsx_prefix")
+            if not self.run_context_source_s3_column:
+                raise ValueError("run_dra_required profiles must declare run_context_source_s3_column")
+            if not self.run_context_mount_id_column:
+                raise ValueError("run_dra_required profiles must declare run_context_mount_id_column")
+        return self
 
 
 class CommandValidationRun(BaseModel):
@@ -354,6 +437,9 @@ class AnalysisCommand(BaseModel):
 
     command_id: str
     repository: str = ""
+    type: str
+    validated_version: str
+    test_data_profile: str
     display_name: str
     description: str = ""
     datasource: str
@@ -383,6 +469,9 @@ class AnalysisCommand(BaseModel):
 
     @field_validator(
         "command_id",
+        "type",
+        "validated_version",
+        "test_data_profile",
         "display_name",
         "datasource",
         "launcher",
@@ -396,6 +485,14 @@ class AnalysisCommand(BaseModel):
     @classmethod
     def _validate_non_empty(cls, value: str) -> str:
         return _clean_id(value, field_name="value")
+
+    @field_validator("type")
+    @classmethod
+    def _validate_type(cls, value: str) -> str:
+        cleaned = _clean_id(value, field_name="type")
+        if cleaned not in COMMAND_TYPES:
+            raise ValueError("type must be one of: " + ", ".join(sorted(COMMAND_TYPES)))
+        return cleaned
 
     @field_validator(
         "targets",
@@ -658,6 +755,7 @@ class RepositoryCatalog(BaseModel):
     default_repository: str
     input_contracts: Dict[str, InputContractDefinition] = Field(default_factory=dict)
     test_data_locations: List[TestDataLocation] = Field(default_factory=list)
+    test_data_profiles: Dict[str, TestDataProfile] = Field(default_factory=dict)
     repositories: Dict[str, RepositoryDefinition]
 
     @model_validator(mode="after")
@@ -676,6 +774,15 @@ class RepositoryCatalog(BaseModel):
                 "input_contracts contains unknown contract id(s): "
                 + ", ".join(sorted(unknown_contracts))
             )
+        location_ids = {location.location_id for location in self.test_data_locations}
+        for profile_id, profile in self.test_data_profiles.items():
+            _clean_id(profile_id, field_name="test_data_profiles key")
+            unknown_locations = set(profile.locations) - location_ids
+            if unknown_locations:
+                raise ValueError(
+                    f"test_data_profile {profile_id!r} references unknown location(s): "
+                    + ", ".join(sorted(unknown_locations))
+                )
         seen: set[str] = set()
         for repo_key, repo in self.repositories.items():
             for command in repo.analysis_commands:
@@ -690,6 +797,48 @@ class RepositoryCatalog(BaseModel):
                     raise ValueError(
                         f"Missing input_contracts definition for {command.input_contract!r}"
                     )
+                if command.test_data_profile not in self.test_data_profiles:
+                    raise ValueError(
+                        f"Command {command.command_id!r} references unknown "
+                        f"test_data_profile {command.test_data_profile!r}"
+                    )
+                profile = self.test_data_profiles[command.test_data_profile]
+                if command.command_class == "utility" and profile.source_mount_mode != "none":
+                    raise ValueError(
+                        f"Command {command.command_id!r} is utility but test_data_profile "
+                        f"{command.test_data_profile!r} is {profile.source_mount_mode!r}"
+                    )
+                if (
+                    command.command_class == "sample_analysis"
+                    and profile.source_mount_mode == "run_dra_required"
+                ):
+                    raise ValueError(
+                        f"Command {command.command_id!r} is sample_analysis but "
+                        f"test_data_profile {command.test_data_profile!r} requires a run DRA"
+                    )
+                if command.command_class == "run_analysis":
+                    if profile.source_mount_mode != "run_dra_required":
+                        raise ValueError(
+                            f"Command {command.command_id!r} is run_analysis but "
+                            f"test_data_profile {command.test_data_profile!r} is "
+                            f"{profile.source_mount_mode!r}"
+                        )
+                    contract = self.input_contracts.get(command.input_contract)
+                    source_table = contract.source_table if contract is not None else None
+                    required_columns = (
+                        set(source_table.required_columns) if source_table is not None else set()
+                    )
+                    missing_columns = {
+                        profile.run_context_source_s3_column,
+                        profile.run_context_mount_id_column,
+                    } - required_columns
+                    if missing_columns:
+                        raise ValueError(
+                            f"Command {command.command_id!r} uses run DRA profile "
+                            f"{command.test_data_profile!r}, but input_contract "
+                            f"{command.input_contract!r} is missing required column(s): "
+                            + ", ".join(sorted(missing_columns))
+                        )
         return self
 
     def commands(self) -> List[AnalysisCommand]:
@@ -716,6 +865,10 @@ class RepositoryCatalog(BaseModel):
             "test_data_locations": [
                 location.model_dump(mode="json") for location in self.test_data_locations
             ],
+            "test_data_profiles": {
+                key: profile.model_dump(mode="json")
+                for key, profile in self.test_data_profiles.items()
+            },
             "repositories": {
                 repo_key: repo.model_dump(mode="json")
                 for repo_key, repo in self.repositories.items()
@@ -740,6 +893,17 @@ def _migrate_v1_analysis_commands(raw: Dict[str, Any]) -> Dict[str, Any]:
             }
         },
     )
+    migrated.setdefault(
+        "test_data_profiles",
+        {
+            "legacy_v1": {
+                "description": "Legacy v1 command profile created during catalog migration.",
+                "source_mount_mode": "none",
+                "locations": [],
+                "source_notes": [],
+            }
+        },
+    )
     repositories = migrated.get("repositories")
     if not isinstance(repositories, dict):
         return migrated
@@ -758,6 +922,9 @@ def _migrate_v1_analysis_commands(raw: Dict[str, Any]) -> Dict[str, Any]:
                     continue
                 command = dict(command_value)
                 command["command_class"] = "sample_analysis"
+                command["type"] = "dev"
+                command["validated_version"] = str(repo.get("default_ref", "main"))
+                command["test_data_profile"] = "legacy_v1"
                 command["input_contract"] = "sample_manifest"
                 command["requires_staging"] = True
                 command["requires_run_mount"] = False

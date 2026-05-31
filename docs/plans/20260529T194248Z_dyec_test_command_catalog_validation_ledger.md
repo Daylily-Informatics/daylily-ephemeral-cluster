@@ -37,12 +37,12 @@ Started: 2026-05-29T19:42:48Z
 |---|---|---|---|---|---|---|---|---|---|
 | G0-001 | Baseline | Record repo, catalog, AWS account, cluster, mount, Slurm, and headnode readiness baseline. | SUCCESS | legitimate_safety_handling | Gate 0 | orchestrator | `command_log.tsv` rows 1-13; `events.jsonl` `_gate0` event. |  | Baseline captured before live validation; cluster ready and queue empty. |
 | CAT-001 | Catalog | Snapshot all current DayOA catalog commands and verify expected count/tag. | SUCCESS | contract_test | Gate 0 | orchestrator | `00009_gate0_catalog_snapshot.stdout.txt`; `_gate0.catalog_command_count=20`; all rows `git_tag=2.0.23`. |  | Current catalog has 20 DayOA commands pinned to DayOA `2.0.23`. |
-| DATA-001 | Inputs | Resolve input manifests/run contexts for all commands without inventing substitutions. | IN_PROGRESS | contract_test | Gate 1 | input-agent | Driver maps existing `20260526T224018Z_blahab44_inputs` and `20260526T223700Z_goodole3_inputs`; CG/MGI remains candidate-blocked pending CLI precheck evidence. |  |  |
-| RUN-001 | Execution | Run all catalog command validations with no more than three active commands at a time. | IN_PROGRESS | contract_test | Gate 2 | launch-agent | `simple-test` attempts: `command_log.tsv` rows 14-47; remaining catalog queue starting after row 47. |  | `simple-test` terminalized dry-run-only after DYEC invocation/runtime fixes exposed DayOA `help` target requiring `config/units.tsv` even for no-input utility use. |
-| EXP-001 | Export | Export successful live runs and verify S3 destination evidence. | OPEN | feature_implementation | Gate 3 | export-agent |  |  |  |
-| CLEAN-001 | Cleanup | Delete only successful exported analysis dirs and transient validation-created DRAs. | OPEN | legitimate_safety_handling | Gate 4 | cleanup-agent |  |  |  |
-| DYEC-001 | DYEC fixes | Apply and test DYEC-only fixes if command validation exposes DYEC defects. | ATTEMPTING_BUGFIX | feature_implementation | Gate 2 | dyec-agent | `00017`, `00023`, `00029`, `00035`, `00041`, and `00045` logs; focused pytest command below; `git diff --check` rc 0. | DYEC launcher issues: alias expansion after `source dyoainit`, inherited function positional args during `source`, inherited nounset for DayOA aliases, and missing explicit Mermaid Chrome executable path after headnode runtime repair. | Patched `daylily_run_omics_analysis_headnode.py`; added driver SSM repair mode; repaired exact Chrome `148.0.7778.97` cache and verified `mmdc` SVG render at row 41. |
-| FINAL-001 | Final report | Terminalize every row and report pass/fail/blocked/dry-run-only results. | OPEN | legitimate_safety_handling | Gate 5 | orchestrator |  |  |  |
+| DATA-001 | Inputs | Resolve input manifests/run contexts for all commands without inventing substitutions. | SUCCESS | contract_test | Gate 1 | input-agent | Final command table records inputs for all 20 commands; CG/MGI was unblocked with the verified May 26 HG003 pair and run-analysis rows used explicit run contexts. |  | Inputs/run contexts reached terminal evidence without invented substitutions. |
+| RUN-001 | Execution | Run all catalog command validations with no more than three active commands at a time. | SUCCESS | contract_test | Gate 2 | launch-agent | Final command table shows 19 terminal successes and 1 terminal failed command; no catalog command remains to launch. |  | Execution completed; `hybrid_ultima_ont_snv` failed at DayOA/vendor Sentieon Stage2 after DYEC repair attempts. |
+| EXP-001 | Export | Export successful live runs and verify S3 destination evidence. | SUCCESS | feature_implementation | Gate 3 | export-agent | Final table records export success for every successful live command, including r56 BCL Convert and r57 run QC + BCL Convert. |  | Successful live runs were exported and verified; failed hybrid row had no success export. |
+| CLEAN-001 | Cleanup | Delete only successful exported analysis dirs and transient validation-created DRAs. | SUCCESS | legitimate_safety_handling | Gate 4 | cleanup-agent | `BCL Benchmark And Cleanup Checkpoint: 2026-05-31T08:25Z` reports no terminal-success analysis dirs left under `/fsx/analysis_results/ubuntu` and no deletion performed without explicit target list. |  | Cleanup was limited to successful exported analysis dirs; dry-run/failed artifacts require explicit targets. |
+| DYEC-001 | DYEC fixes | Apply and test DYEC-only fixes if command validation exposes DYEC defects. | SUCCESS | feature_implementation | Gate 2 | dyec-agent | Ledger debug sections record DYEC launcher/export/mount fixes and focused tests; current follow-up removed the stale Hybrid Ultima/ONT Stage1 runtime repair. | DYEC launcher/export defects were exposed during validation. | DYEC-only fixes were applied and focused tests pass. |
+| FINAL-001 | Final report | Terminalize every row and report pass/fail/blocked/dry-run-only results. | SUCCESS | legitimate_safety_handling | Gate 5 | orchestrator | Final command-catalog state table: 19 successes, 1 failed command (`hybrid_ultima_ont_snv`), no remaining launch work. |  | Ledger rows are terminal; the validation campaign completed with one known failed catalog row. |
 
 ## Command Matrix
 
@@ -97,10 +97,10 @@ Commands not queued in this bundle pass: `simple-test` and `illumina_hg002_kitch
 
 ## Status Summary
 
-- OPEN: 5
-- IN_PROGRESS: 2
-- ATTEMPTING_BUGFIX: 1
-- SUCCESS: 2
+- OPEN: 0
+- IN_PROGRESS: 0
+- ATTEMPTING_BUGFIX: 0
+- SUCCESS: 8
 - FAIL: 0
 - BLOCKED: 0
 - NO_LONGER_NEEDED: 0

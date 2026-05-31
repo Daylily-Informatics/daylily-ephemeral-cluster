@@ -1092,12 +1092,12 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "read_haps_strict_precheck_old" in script
         assert "if ! command -v {params.command:q} > /dev/null; then" in script
         assert "elif [[ ! -s {params.reliable_snp_file:q} ]]; then" in script
-        assert "hybrid_ultima_ont_stage1_runtime_repair_requested" in script
-        assert "patch_hybrid_ultima_ont_stage1_assertion" in script
-        assert "ReadSequenceKmerGraphBuilder.*kmerSize >= 1" in script
+        assert "hybrid_ultima_ont_stage1_runtime_repair_requested" not in script
+        assert "patch_hybrid_ultima_ont_stage1_assertion" not in script
+        assert "ReadSequenceKmerGraphBuilder.*kmerSize >= 1" not in script
         assert "if vep_zero_variant_runtime_repair_requested; then" in script
         assert "if contam_identity_zero_variant_runtime_repair_requested; then" in script
-        assert "if hybrid_ultima_ont_stage1_runtime_repair_requested; then" in script
+        assert "if hybrid_ultima_ont_stage1_runtime_repair_requested; then" not in script
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",

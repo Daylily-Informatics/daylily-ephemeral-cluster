@@ -535,7 +535,7 @@ def test_build_registration_requests_handles_multiple_multiqc_reports() -> None:
         "analysis": {"genome_build": "hg38_broad"},
         "workflow": {
             "pipeline_name": "daylily-omics-analysis",
-            "pipeline_version": "2.0.25",
+            "pipeline_version": "2.0.26",
             "git_sha": "abc123",
             "snakemake_version": "7.32.4",
             "workflow_config_hash": digest,
