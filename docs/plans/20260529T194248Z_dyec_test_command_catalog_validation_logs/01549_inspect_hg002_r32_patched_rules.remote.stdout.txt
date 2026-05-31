@@ -7,9 +7,9 @@ DAY-EC activated.
      4	# goleft
      5	# github: https://github.com/brentp/goleft
      6	# paper:  https://academic.oup.com/gigascience/article/6/11/gix090/4160383
-     7	
-     8	
-     9	
+     7
+     8
+     9
     10	rule goleft:
     11	    input:
     12	        cram=MDIR + "{sample}/align/{alnr}/{ddup}/{sample}.{alnr}.{ddup}.cram",
@@ -33,17 +33,17 @@ DAY-EC activated.
     30	        config["go_left"]["env_yaml"]
     31	    shell:
     32	        """
-    33	        #set +euo pipefail;                                                                                                                                 
-    34	        
+    33	        #set +euo pipefail;
+    34
     35	        rm -rf $(dirname {output.donetwo} ) || echo rmGOLfailed ;
-    36	        mkdir -p $(dirname {output.donetwo} )/logs ; 
-    37	        
+    36	        mkdir -p $(dirname {output.donetwo} )/logs ;
+    37
     38	        export gl=$(dirname {output.donetwo} ) ;
     39	        export REF_PATH={params.huref};
     40	        goleft indexcov --directory $gl --fai {params.huref}.fai {input.crai} >> {log} 2>&1;
-    41	        
+    41
     42	        touch {output.done}; touch {output.donetwo};
-    43	        
+    43
     44	        """
 ## alignstats mosdepth references
 workflow/rules/multiqc_final_wgs.smk:290:            + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.summary.txt",
@@ -65,10 +65,10 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
 ## contam_identity.smk
      1	######### GLOBAL CONTAMINATION / IDENTITY EVIDENCE BUNDLE
      2	# DayOA emits evidence only. R2 owns interpretation, disposition, and release.
-     3	
+     3
      4	from snakemake.exceptions import WorkflowError
-     5	
-     6	
+     5
+     6
      7	CONTAM_IDENTITY_ROOT = MDIR + "other_reports/contam_identity"
      8	CONTAM_IDENTITY_SAMPLES = qc_eligible_sample_ids(SSAMPS)
      9	CONTAM_IDENTITY_TARGETS = {
@@ -76,14 +76,14 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
     11	    "produce_haplocheck_contam_identity",
     12	    "produce_read_haps_contam_identity",
     13	}
-    14	
-    15	
+    14
+    15
     16	def contam_identity_enabled_for_multiqc():
     17	    return bool(CONTAM_IDENTITY_TARGETS & _requested_targets()) or qc_tool_enabled(
     18	        "contam_identity", long_running=True, default=False
     19	    )
-    20	
-    21	
+    20
+    21
     22	def _contam_identity_config():
     23	    cfg = config.get("contam_identity")
     24	    if not isinstance(cfg, dict):
@@ -92,8 +92,8 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
     27	            "config block."
     28	        )
     29	    return cfg
-    30	
-    31	
+    30
+    31
     32	def contam_identity_primary_snv_caller():
     33	    cfg = _contam_identity_config()
     34	    caller = str(cfg.get("primary_snv_caller", "") or "").strip()
@@ -122,8 +122,8 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
     57	            f"snv_CALLERS={snv_CALLERS!r}."
     58	        )
     59	    return caller
-    60	
-    61	
+    60
+    61
     62	def _contam_identity_required_cfg(section, keys, allow_empty=()):
     63	    cfg = config.get(section)
     64	    if not isinstance(cfg, dict):
@@ -141,8 +141,8 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
     76	            + ", ".join(f"{section}.{key}" for key in missing)
     77	        )
     78	    return cfg
-    79	
-    80	
+    79
+    80
     81	def _contam_identity_alignment_pairs():
     82	    pairs = [
     83	        (alnr, ddup)
@@ -155,8 +155,8 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
     90	            "alignment/deduper pair."
     91	        )
     92	    return pairs
-    93	
-    94	
+    93
+    94
     95	def _contam_identity_primary_snv_pairs():
     96	    caller = contam_identity_primary_snv_caller()
     97	    pairs = [
@@ -169,8 +169,8 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
    104	            f"CRAM-capable aligner pairs: {caller!r}."
    105	        )
    106	    return pairs
-   107	
-   108	
+   107
+   108
    109	def _contam_identity_primary_snv_vcf(wildcards):
    110	    caller = contam_identity_primary_snv_caller()
    111	    if str(wildcards.snv) != caller:
@@ -183,12 +183,12 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
    118	        + f"{wildcards.sample}/align/{wildcards.alnr}/{wildcards.ddup}/snv/{caller}/"
    119	        + f"{wildcards.sample}.{wildcards.alnr}.{wildcards.ddup}.{caller}.snv.sort.vcf.gz"
    120	    )
-   121	
-   122	
+   121
+   122
    123	def _contam_identity_primary_snv_tbi(wildcards):
    124	    return _contam_identity_primary_snv_vcf(wildcards) + ".tbi"
-   125	
-   126	
+   125
+   126
    127	def _haplocheck_modes():
    128	    cfg = _contam_identity_required_cfg(
    129	        "haplocheck",
@@ -212,8 +212,8 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
    147	    if not modes:
    148	        raise WorkflowError("haplocheck.input_modes must include 'bam', 'vcf', or both.")
    149	    return modes
-   150	
-   151	
+   150
+   151
    152	def _haplocheck_bam_outputs(suffix):
    153	    if "bam" not in _haplocheck_modes():
    154	        return []
@@ -226,8 +226,8 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
    161	        alnr=QC_CRAM_ALIGNERS,
    162	        ddup=qc_contamination_dedupers(),
    163	    )
-   164	
-   165	
+   164
+   165
    166	def _haplocheck_vcf_outputs(suffix):
    167	    if "vcf" not in _haplocheck_modes():
    168	        return []
@@ -242,12 +242,12 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
    177	        snv=[pair[1] for pair in pairs],
    178	        ddup=qc_variant_dedupers(),
    179	    )
-   180	
-   181	
+   180
+   181
    182	def _haplocheck_outputs(suffix):
    183	    return _haplocheck_bam_outputs(suffix) + _haplocheck_vcf_outputs(suffix)
-   184	
-   185	
+   184
+   185
    186	def _read_haps_outputs(suffix):
    187	    # Explicit required config: read_haps.reliable_snp_file
    188	    _contam_identity_required_cfg(
@@ -274,8 +274,8 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
    209	        snv=[pair[1] for pair in pairs],
    210	        ddup=qc_variant_dedupers(),
    211	    )
-   212	
-   213	
+   212
+   213
    214	def contam_identity_multiqc_inputs(wildcards=None):
    215	    if not contam_identity_enabled_for_multiqc():
    216	        return []
@@ -284,8 +284,8 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
    219	        MDIR + "other_reports/haplocheck_mtdna_mqc.tsv",
    220	        MDIR + "other_reports/read_haps_mqc.tsv",
    221	    ]
-   222	
-   223	
+   222
+   223
    224	def _contam_identity_native_inputs(wildcards=None):
    225	    if not contam_identity_enabled_for_multiqc():
    226	        return []
@@ -295,15 +295,15 @@ workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup
    230	        + _haplocheck_outputs("report.html")
    231	        + _read_haps_outputs("read_haps.txt")
    232	    )
-   233	
-   234	
+   233
+   234
    235	localrules:
    236	    contam_identity_mqc_gather,
    237	    produce_global_contam_check,
    238	    produce_haplocheck_contam_identity,
    239	    produce_read_haps_contam_identity,
-   240	
-   241	
+   240
+   241
    242	rule haplocheck_bam_contam_identity:
    243	    input:
    244	        bam=rules.legacy_cram_compat_bam.output.bam,

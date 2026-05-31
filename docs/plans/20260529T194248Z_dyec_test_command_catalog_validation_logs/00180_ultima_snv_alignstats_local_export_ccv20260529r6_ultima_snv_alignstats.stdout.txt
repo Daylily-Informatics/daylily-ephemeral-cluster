@@ -1,7 +1,7 @@
 
 ── EXPORT ──
   › Preparing direct FSx export DRA
-  · Attached export DRA dra-09e5a2798f0232de3 at 
+  · Attached export DRA dra-09e5a2798f0232de3 at
 /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/
 
 ╭────────────────────────────── Export complete ───────────────────────────────╮

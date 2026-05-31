@@ -55,4 +55,3 @@ bclconvert:
     decompression_threads: 1
     fastq_gzip_compression_level: 1
     shared_thread_odirect_output: false
-

@@ -1,2 +1,2 @@
-✗ Unexpected error: SSM command '812b6e90-cf10-4541-8511-330860bb35f7' failed 
+✗ Unexpected error: SSM command '812b6e90-cf10-4541-8511-330860bb35f7' failed
 with status=Failed rc=1

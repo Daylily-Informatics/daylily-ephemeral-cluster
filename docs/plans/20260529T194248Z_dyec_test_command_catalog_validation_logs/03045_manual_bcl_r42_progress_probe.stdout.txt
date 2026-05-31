@@ -1,0 +1,79 @@
+DAY-EC activated.
+DAY-EC activated.
+=== time ===
+2026-05-30T15:07:50+00:00
+=== fsx ===
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  5.5T  3.3T  63% /fsx
+=== lane output sizes ===
+L001 size=255G files=89 state=running
+L002 size=266G files=89 state=running
+L003 size=251G files=89 state=running
+L004 size=259G files=89 state=running
+L005 size=259G files=89 state=running
+L006 size=237G files=89 state=running
+L007 size=292G files=89 state=running
+L008 size=273G files=89 state=running
+=== recent log tails ===
+--- L001 ---
+prepared_lane_samplesheet lane=1 settings=<unchanged> out=results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L001/SampleSheet.csv
+run_bclconvert_lane L001 started: 2026-05-30T14:33:23+00:00
+host: i192mem-dy-all-14
+threads: 192
+TMPDIR: /dev/shm
+bcl_input_directory: /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L001
+sample_sheet: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L001/SampleSheet.csv
+bcl_only_lane: 1
+sample_sheet_settings_json: {}
+sample_sheet_settings_by_lane_json: {}
+output_legacy_stats: true
+num_unknown_barcodes_reported: 10000
+192
+Filesystem               Size  Used Avail Use% Mounted on
+tmpfs                    605G     0  605G   0% /dev/shm
+10.0.1.96@tcp:/d4tzvb4v  8.8T  3.4T  5.4T  39% /fsx
+10.0.1.96@tcp:/d4tzvb4v  8.8T  3.4T  5.4T  39% /fsx
+/usr/bin/singularity
+singularity_bind_args: --bind /fsx:/fsx
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc.
+bcl_num_parallel_tiles: 16
+bcl_num_conversion_threads: 8
+bcl_num_compression_threads: 48
+bcl_num_decompression_threads: 16
+bcl_cpu_heavy_threads: 192
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L001 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L001/SampleSheet.csv --bcl-only-lane 1 --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 16 --bcl-num-conversion-threads 8 --bcl-num-compression-threads 48 --bcl-num-decompression-threads 16 --shared-thread-odirect-output false --output-legacy-stats true --num-unknown-barcodes-reported 10000 -f
+INFO:    Using cached SIF image
+--- L006 ---
+prepared_lane_samplesheet lane=6 settings=<unchanged> out=results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L006/SampleSheet.csv
+run_bclconvert_lane L006 started: 2026-05-30T14:33:23+00:00
+host: i192mem-dy-all-9
+threads: 192
+TMPDIR: /dev/shm
+bcl_input_directory: /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L006
+sample_sheet: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L006/SampleSheet.csv
+bcl_only_lane: 6
+sample_sheet_settings_json: {}
+sample_sheet_settings_by_lane_json: {}
+output_legacy_stats: true
+num_unknown_barcodes_reported: 10000
+192
+Filesystem               Size  Used Avail Use% Mounted on
+tmpfs                    605G     0  605G   0% /dev/shm
+10.0.1.96@tcp:/d4tzvb4v  8.8T  3.4T  5.4T  39% /fsx
+10.0.1.96@tcp:/d4tzvb4v  8.8T  3.4T  5.4T  39% /fsx
+/usr/bin/singularity
+singularity_bind_args: --bind /fsx:/fsx
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc.
+bcl_num_parallel_tiles: 16
+bcl_num_conversion_threads: 8
+bcl_num_compression_threads: 48
+bcl_num_decompression_threads: 16
+bcl_cpu_heavy_threads: 192
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L006 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L006/SampleSheet.csv --bcl-only-lane 6 --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 16 --bcl-num-conversion-threads 8 --bcl-num-compression-threads 48 --bcl-num-decompression-threads 16 --shared-thread-odirect-output false --output-legacy-stats true --num-unknown-barcodes-reported 10000 -f
+INFO:    Using cached SIF image

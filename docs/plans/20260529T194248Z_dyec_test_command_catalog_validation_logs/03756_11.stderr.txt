@@ -1,0 +1,7 @@
+awk: cmd. line:1: /^rtg_vcfeval:/{flag=1} flag{print} /^global_contam|^vep|^relatedness|^[A-Za-z0-9_]+:/{if(flag && NR>1 && /tmp/daylily-ssm-zJopcs.sh !~ /^rtg_vcfeval:/ && /tmp/daylily-ssm-zJopcs.sh ~ /^[A-Za-z0-9_]+:/) exit}
+awk: cmd. line:1:                                                                                                                                  ^ syntax error
+awk: cmd. line:1: /^rtg_vcfeval:/{flag=1} flag{print} /^global_contam|^vep|^relatedness|^[A-Za-z0-9_]+:/{if(flag && NR>1 && /tmp/daylily-ssm-zJopcs.sh !~ /^rtg_vcfeval:/ && /tmp/daylily-ssm-zJopcs.sh ~ /^[A-Za-z0-9_]+:/) exit}
+awk: cmd. line:1:                                                                                                                                                                                   ^ syntax error
+awk: cmd. line:1: /^rtg_vcfeval:/{flag=1} flag{print} /^global_contam|^vep|^relatedness|^[A-Za-z0-9_]+:/{if(flag && NR>1 && /tmp/daylily-ssm-zJopcs.sh !~ /^rtg_vcfeval:/ && /tmp/daylily-ssm-zJopcs.sh ~ /^[A-Za-z0-9_]+:/) exit}
+awk: cmd. line:1:                                                                                                                                                                                                          ^ syntax error
+failed to run commands: exit status 1

@@ -963,7 +963,7 @@
 2026-05-30 05:33:33    2.3 KiB derived/validation/dyec-test/ubuntu/ccv20260529r45_roche_snv_alignstats/daylily-omics-analysis/quarantine/legacy-docs/docs/README_sentieon_pangenome_shortreads.md
 2026-05-30 05:33:32    3.1 KiB derived/validation/dyec-test/ubuntu/ccv20260529r45_roche_snv_alignstats/daylily-omics-analysis/quarantine/legacy-docs/docs/REFS.md
 2026-05-30 05:33:31    0 Bytes derived/validation/dyec-test/ubuntu/ccv20260529r45_roche_snv_alignstats/daylily-omics-analysis/quarantine/legacy-docs/docs/advanced/
-2026-05-30 05:33:32  702 Bytes derived/validation/dyec-test/ubuntu/ccv20260529r45_roche_snv_alignstats/daylily-omics-analysis/quarantine/legacy-docs/docs/advanced/monero_mining.md
+2026-05-30 05:33:32  702 Bytes derived/validation/dyec-test/ubuntu/ccv20260529r45_roche_snv_alignstats/daylily-omics-analysis/quarantine/legacy-docs/docs/advanced/retired_compute_doc.md
 2026-05-30 05:33:32    5.9 KiB derived/validation/dyec-test/ubuntu/ccv20260529r45_roche_snv_alignstats/daylily-omics-analysis/quarantine/legacy-docs/docs/bclconvert_rule_skeleton.smk
 2026-05-30 05:33:31    0 Bytes derived/validation/dyec-test/ubuntu/ccv20260529r45_roche_snv_alignstats/daylily-omics-analysis/quarantine/legacy-docs/docs/benchmarks/
 2026-05-30 05:33:32    1.8 KiB derived/validation/dyec-test/ubuntu/ccv20260529r45_roche_snv_alignstats/daylily-omics-analysis/quarantine/legacy-docs/docs/benchmarks/FS_performance.md

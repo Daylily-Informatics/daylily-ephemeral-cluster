@@ -7,8 +7,8 @@ DAY-EC activated.
      4	# mosdepth
      5	# github: https://github.com/brentp/mosdepth
      6	# paper: https://academic.oup.com/bioinformatics/article/34/5/867/4583630
-     7	
-     8	
+     7
+     8
      9	rule mosdepth:
     10	    input:
     11	        cram=MDIR + "{sample}/align/{alnr}/{ddup}/{sample}.{alnr}.{ddup}.cram",
@@ -51,10 +51,10 @@ DAY-EC activated.
     48	        test -s {output.global_dist:q} || (printf 'ERROR: mosdepth global_dist output is missing or empty: %s\n' {output.global_dist:q} | tee -a {log.a:q} >&2; exit 1)
     49	        test -s {output.region_dist:q} || (printf 'ERROR: mosdepth region_dist output is missing or empty: %s\n' {output.region_dist:q} | tee -a {log.a:q} >&2; exit 1)
     50	        """
-    51	
+    51
     52	localrules:
     53	    produce_mosdepth,
-    54	
+    54
     55	rule produce_mosdepth:  # TARGET:  jusg gen mosdepth
     56	    input:
     57	        expand(MDIR
@@ -112,10 +112,10 @@ DAY-EC activated.
    345	            cp "$result_dir/contamination.html" {output.html:q}
    346	        else
    347	            printf 'SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
-   348	%s	NO_VARIANTS	0		0		
+   348	%s	NO_VARIANTS	0		0
    349	' {wildcards.sample:q} > {output.contamination:q}
    350	            printf 'SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
-   351	%s	NO_VARIANTS	0		0		
+   351	%s	NO_VARIANTS	0		0
    352	' {wildcards.sample:q} > {output.raw:q}
    353	            printf '<html><body>NO_VARIANTS</body></html>
    354	' > {output.html:q}
@@ -123,8 +123,8 @@ DAY-EC activated.
    356	' > {log:q}
    357	        fi
    358	        """
-   359	
-   360	
+   359
+   360
    361	rule read_haps_contam_identity:
    362	    input:
    363	        bam=rules.legacy_cram_compat_bam.output.bam,
@@ -180,8 +180,8 @@ DAY-EC activated.
    413	        grep -q 'PASS_FAIL' {output.txt:q}
    414	        grep -q 'REASON' {output.txt:q}
    415	        """
-   416	
-   417	
+   416
+   417
    418	rule contam_identity_mqc_gather:
    419	    input:
    420	        contamination=MDIR + "other_reports/contamination_mqc.tsv",
@@ -209,18 +209,18 @@ DAY-EC activated.
    442	          --read-haps {input.read_haps:q} \
    443	          > {log:q} 2>&1
    444	        """
-   445	
-   446	
+   445
+   446
    447	rule produce_haplocheck_contam_identity:  # TARGET: run Haplocheck mtDNA contamination proxy evidence
    448	    input:
    449	        lambda wildcards: _haplocheck_outputs("contamination.txt"),
-   450	
-   451	
+   450
+   451
    452	rule produce_read_haps_contam_identity:  # TARGET: run read_haps haplotype contamination evidence
    453	    input:
    454	        lambda wildcards: _read_haps_outputs("read_haps.txt"),
-   455	
-   456	
+   455
+   456
    457	rule produce_global_contam_check:  # TARGET: run global contamination and identity evidence bundle
    458	    input:
    459	        MDIR + "other_reports/contamination_mqc.tsv",

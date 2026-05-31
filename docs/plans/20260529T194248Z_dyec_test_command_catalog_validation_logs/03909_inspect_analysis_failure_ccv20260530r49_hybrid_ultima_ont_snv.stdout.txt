@@ -1,0 +1,39 @@
+DAY-EC activated.
+DAY-EC activated.
+=== status ===
+{
+  "command": "bin/day_run produce_sentdhuomr_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k",
+  "completed_at": "2026-05-30T18:36:40Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r49_hybrid_ultima_ont_snv/daylily-omics-analysis",
+  "session_name": "ccv20260530r49_hybrid_ultima_ont_snv",
+  "started_at": "2026-05-30T18:13:50Z"
+}
+=== repo ===
+/fsx/analysis_results/ubuntu/ccv20260530r49_hybrid_ultima_ont_snv/daylily-omics-analysis
+=== latest snakemake logs ===
+1780166199.0000000000 .snakemake/log/2026-05-30T181412.121189.snakemake.log
+1780166203.0000000000 .snakemake/log/2026-05-30T183640.693044.snakemake.log
+=== latest log path: .snakemake/log/2026-05-30T183640.693044.snakemake.log ===
+=== latest log tail ===
+Unlocking working directory.
+=== rule logs with errors ===
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage2.log:4:ERROR: failed to find target hap HAP_chr1:9710-10160_0
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage2.log:5:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/vcall/HapCutAltMap.cpp:1687: void HybridStage2::Engine::execRegion(const Interval&): Assertion `0' failed.
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage2.log:28:ERROR: failed to find target hap HAP_chr1:13224136-13224586_0
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage2.log:29:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/vcall/HapCutAltMap.cpp:1687: void HybridStage2::Engine::execRegion(const Interval&): Assertion `0' failed.
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage2.log:52:ERROR: failed to find target hap HAP_chr1:22001920-22002370_0
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage2.log:53:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/vcall/HapCutAltMap.cpp:1687: void HybridStage2::Engine::execRegion(const Interval&): Assertion `0' failed.
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage2.log:82:ERROR: failed to find target hap HAP_chr1:12007655-12008105_0
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage2.log:86:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/vcall/HapCutAltMap.cpp:1687: void HybridStage2::Engine::execRegion(const Interval&): Assertion `0' failed.
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage2.log:155:ERROR: failed to find target hap HAP_chr1:39999980-40000430_0
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage2.log:157:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/vcall/HapCutAltMap.cpp:1687: void HybridStage2::Engine::execRegion(const Interval&): Assertion `0' failed.
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log:1065:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/assembler/ReadSequenceKmerGraphBuilder.h:101: GRAPH::ReadSequenceKmerGraphBuilder::ReadSequenceKmerGraphBuilder(KMerFactory&, const GRAPH::ReadSequenceList&, int, bool, bool, char, int, bool, bool): Assertion `kmerSize >= 1' failed.
+logs/slurm/sentdhuomr_stage1/sentdhuomr_stage1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.19.err:44:            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log 2>&1;
+logs/slurm/sentdhuomr_stage1/sentdhuomr_stage1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.19.err:147:                    echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log
+logs/slurm/sentdhuomr_pass1/sentdhuomr_pass1.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.11.err:45:            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.pass1.log 2>&1;
+logs/slurm/sentdhuomr_stage2/sentdhuomr_stage2.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:54:Error in rule sentdhuomr_stage2:
+logs/slurm/sentdhuomr_stage2/sentdhuomr_stage2.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:58:    log: results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage2.log (check log file(s) for error details)
+logs/slurm/sentdhuomr_stage2/sentdhuomr_stage2.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:77:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/sentdhuomr_stage2/sentdhuomr_stage2.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:79:Removing output files of failed job sentdhuomr_stage2 since they might be corrupted:
+logs/slurm/sentdhuomr_stage2/sentdhuomr_stage2.TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.18.err:82:Exiting because a job execution failed. Look above for error message

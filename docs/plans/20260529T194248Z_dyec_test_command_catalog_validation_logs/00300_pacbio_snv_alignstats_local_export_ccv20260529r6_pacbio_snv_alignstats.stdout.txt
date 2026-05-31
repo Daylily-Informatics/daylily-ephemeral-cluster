@@ -1,7 +1,7 @@
 
 ── EXPORT ──
   › Preparing direct FSx export DRA
-  · Attached export DRA dra-03adda4240bdb9447 at 
+  · Attached export DRA dra-03adda4240bdb9447 at
 /fsx/analysis_results/ubuntu/ccv20260529r6_pacbio_snv_alignstats/
 
 ╭────────────────────────────── Export complete ───────────────────────────────╮

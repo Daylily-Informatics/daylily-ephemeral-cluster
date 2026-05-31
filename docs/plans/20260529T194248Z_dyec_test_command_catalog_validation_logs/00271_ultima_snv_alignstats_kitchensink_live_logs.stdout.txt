@@ -23,7 +23,7 @@ DAY-EC activated.
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.concordance.log;
-            
+
 Submitted job 11 with external jobid '340'.
 [Fri May 29 23:49:34 2026]
 Finished job 88.

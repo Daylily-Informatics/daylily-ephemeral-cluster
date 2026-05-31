@@ -1,0 +1,27 @@
+DAY-EC activated.
+DAY-EC activated.
+=== day_cmd.log ===
+SMK> D:2026-05-30T18:29:17+00:00 / U:ubuntu / PWD:/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis / CMD: (snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/config/day_profiles/slurm produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete -n)
+=== unlock_fails.log ===
+loading global: /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/config/global_AWSPC.yaml
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+[1m[48;5;166m[38;5;79m...WARNING: No aligners set in the config.[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected aligners from env: ['sentcg'][0m
+[1m[38;5;79maligners (final): [sentcg][0m
+[1m[48;5;166m[38;5;79m...INFO: No dedupers set in config. Defaulting to na (no dedup).[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected dedupers. DDUP updated to: ['dmd'][0m
+[1m[38;5;79mdeduper (final): [dmd][0m
+[1m[48;5;166m[38;5;79m...WARNING: No snv_callers set in the config.[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected SNV callers from env: ['cgt7p'][0m
+[1m[38;5;79mSNV Callers (final): [cgt7p][0m
+[1m[38;5;79mSomatic SNV Callers:[senttn][0m
+[1m[48;5;166m[38;5;79m... WARNING: No sv_callers set in the config.[0m
+[1m[38;5;79mSV Callers (final): [][0m
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/config/units.tsv
+Unlocking working directory.
+=== snakemake logs ===
+--- .snakemake/log/2026-05-30T182922.949559.snakemake.log ---
+Unlocking working directory.
+=== dy-r aliases ===

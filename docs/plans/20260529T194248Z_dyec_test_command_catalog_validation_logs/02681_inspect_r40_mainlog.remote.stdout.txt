@@ -56,7 +56,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv
-            
+
 Submitted job 143 with external jobid '3422'.
 [Sat May 30 10:57:11 2026]
 Finished job 143.
@@ -108,7 +108,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,giabHC_x_ultima,giabHC_x_ultima_x_clinvar,giabHCv5q,hg38,hg38_m_giabHC,ultima mqcs=10" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.concordance.log;
-            
+
 Submitted job 130 with external jobid '3423'.
 [Sat May 30 10:57:21 2026]
 Finished job 130.

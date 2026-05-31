@@ -10,7 +10,7 @@ Completed 45.6 MiB/77.6 MiB (73.9 MiB/s) with 1 file(s) remaining
 Completed 53.6 MiB/77.6 MiB (83.8 MiB/s) with 1 file(s) remaining
 Completed 61.6 MiB/77.6 MiB (93.0 MiB/s) with 1 file(s) remaining
 Completed 69.6 MiB/77.6 MiB (104.9 MiB/s) with 1 file(s) remaining
-Completed 77.6 MiB/77.6 MiB (99.8 MiB/s) with 1 file(s) remaining 
+Completed 77.6 MiB/77.6 MiB (99.8 MiB/s) with 1 file(s) remaining
 copy: s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG002_0.1x_R1.fastq.gz to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T122708Z_1df3375e/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz
 Completed 8.0 MiB/79.5 MiB (16.7 MiB/s) with 1 file(s) remaining
 Completed 15.5 MiB/79.5 MiB (31.2 MiB/s) with 1 file(s) remaining

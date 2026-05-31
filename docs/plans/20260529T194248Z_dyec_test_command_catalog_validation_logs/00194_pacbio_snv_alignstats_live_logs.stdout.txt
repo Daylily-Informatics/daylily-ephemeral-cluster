@@ -42,7 +42,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/_clinvar_genes/snv_TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO_clinvar_genes_concordance.mqc.tsv
-            
+
 Submitted job 10 with external jobid '227'.
 [Fri May 29 22:39:08 2026]
 Finished job 8.
@@ -103,7 +103,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/_hg38/snv_TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO_hg38_concordance.mqc.tsv
-            
+
 Submitted job 16 with external jobid '228'.
 [Fri May 29 22:39:28 2026]
 Finished job 10.
@@ -158,7 +158,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/logs/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.concordance.log;
-            
+
 Submitted job 7 with external jobid '229'.
 [Fri May 29 22:40:18 2026]
 Finished job 7.
@@ -209,10 +209,10 @@ Complete log: .snakemake/log/2026-05-29T215545.957359.snakemake.log
 	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
 
 
- 
+
 ]]]]--------WORKFLOW SUCCESS====================]]]]]--
 RETURN CODE: 0
-⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the 
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the
 supported path is `source ./activate`.
 
 ── EXPORT ──

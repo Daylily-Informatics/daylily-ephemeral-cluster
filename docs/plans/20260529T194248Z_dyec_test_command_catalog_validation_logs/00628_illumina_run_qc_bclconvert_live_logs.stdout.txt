@@ -184,7 +184,7 @@ DAY-EC activated.
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv
         echo "run_bclconvert finished: $(date -Is)" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done
-        
+
 Submitted job 8 with external jobid '2649'.
 [Sat May 30 04:09:41 2026]
 Finished job 3.
@@ -217,7 +217,7 @@ localrule illumina_run_qc_interop_summary:
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/interop_summary.log 2>&1
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 [Sat May 30 04:10:02 2026]
 Finished job 2.
@@ -251,7 +251,7 @@ localrule illumina_run_qc_json:
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log 2>&1
         python -m json.tool results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json.pretty
         mv results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json.pretty results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 [Sat May 30 04:10:02 2026]
 Finished job 4.
@@ -280,7 +280,7 @@ localrule illumina_run_qc_report:
           --output-html results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html \
           --output-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv \
           --done results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.log 2>&1
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 [Sat May 30 04:10:03 2026]
 Finished job 1.

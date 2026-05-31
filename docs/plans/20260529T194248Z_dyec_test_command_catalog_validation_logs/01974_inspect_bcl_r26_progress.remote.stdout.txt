@@ -145,7 +145,7 @@ DAY-EC activated.
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv
         echo "run_bclconvert finished: $(date -Is)" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done
-        
+
 --- logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.out ---
 === result bcl logs ===
 --- logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err ---
@@ -268,7 +268,7 @@ DAY-EC activated.
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv
         echo "run_bclconvert finished: $(date -Is)" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done
-        
+
 --- logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.out ---
 --- results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log ---
 WARNING: sample sheet SoftwareVersion 4.3.16 is newer than pinned runtime 4.0.3
@@ -296,7 +296,7 @@ Filesystem               Size  Used Avail Use% Mounted on
 /usr/bin/singularity
 INFO:    Using cached SIF image
 bcl-convert Version 00.000.000.4.0.3
-Copyright (c) 2014-2018 Illumina, Inc. 
+Copyright (c) 2014-2018 Illumina, Inc.
 scratch_dir: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306
 scratch_input_basis: mounted_metadata_plus_lane_root
 scratch_root_file_bytes: 4536017

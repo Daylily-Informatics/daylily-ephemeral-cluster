@@ -1,0 +1,14 @@
+DAY-EC activated.
+DAY-EC activated.
+=== identity ===
+2026-05-30T21:50:39Z
+ip-10-0-0-88.us-west-2.compute.internal
+=== queue counts ===
+total_jobs=0
+=== job family counts ===
+=== oldest jobs ===
+=== fsx ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  3.7T  5.1T  42% /fsx
+tmpfs                   tmpfs   199G     0  199G   0% /dev/shm
+/dev/root               ext4    408G   42G  367G  11% /

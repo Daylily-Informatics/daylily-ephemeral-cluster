@@ -7,7 +7,7 @@ DAY-EC activated.
 Requesting profile: slurm
 Attempting to deactivate existing environments & re-init with --project dyec-test .
 Remote call detected. Activating conda hack
- > >> >>> 
+ > >> >>>
 ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/ccv20260529r22_ont_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm ... copying
 Copying template yaml files to active config files /fsx/analysis_results/ubuntu/ccv20260529r22_ont_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm
 Copying template bash files to active config files /fsx/analysis_results/ubuntu/ccv20260529r22_ont_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm
@@ -17,13 +17,13 @@ WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a
 
 !!!!
 !!!!
-    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
      This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
      ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
      This is checked by testing if ~/.config/daylily/null exists .
 !!!!
- > >> >>>   genome build set to ::: hg38_broad  
-       _______ GREAT SUCCESS _______       
+ > >> >>>   genome build set to ::: hg38_broad
+       _______ GREAT SUCCESS _______
 [INFO] Patched pycoQC readonly-sort repair: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/pycoQC_plot.py
 Remote call detected. Activating conda hack
 Your config files in /fsx/analysis_results/ubuntu/ccv20260529r22_ont_run_qc_dryrun/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
@@ -109,7 +109,7 @@ localrule ont_run_qc_collect_summaries:
             echo "No sequencing_summary*.txt files found under /fsx/run_dir_mounts/20260513_ONT_HG003/" >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/collect_summaries.log
             exit 2
         fi
-        
+
 
 [Sat May 30 05:57:18 2026]
 localrule ont_run_qc_pycoqc:
@@ -135,7 +135,7 @@ localrule ont_run_qc_pycoqc:
           >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
-        
+
 
 [Sat May 30 05:57:18 2026]
 localrule ont_run_qc_nanoplot:
@@ -163,7 +163,7 @@ localrule ont_run_qc_nanoplot:
           -o results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot \
           -p 20260513_ONT_HG003. \
           >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log 2>&1
-        
+
 
 [Sat May 30 05:57:18 2026]
 localrule ont_run_qc_multiqc:
@@ -186,7 +186,7 @@ localrule ont_run_qc_multiqc:
           --outdir "$(dirname results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html)" \
           results/runs/20260513_ONT_HG003/run_qc/ont >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log 2>&1
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html
-        
+
 
 [Sat May 30 05:57:18 2026]
 localrule ont_run_qc_report:
@@ -208,7 +208,7 @@ localrule ont_run_qc_report:
           --output-html results/runs/20260513_ONT_HG003/run_qc/ont/summary.html \
           --output-tsv results/runs/20260513_ONT_HG003/run_qc/ont/summary.tsv \
           --done results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done > results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.log 2>&1
-        
+
 
 [Sat May 30 05:57:18 2026]
 localrule produce_ont_run_qc:

@@ -1,0 +1,122 @@
+DAY-EC activated.
+DAY-EC activated.
+Select jobs to execute...
+
+[Sat May 30 23:25:23 2026]
+localrule bclconvert_metrics_summary:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_metrics_summary.log
+    jobid: 18
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_metrics_summary.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_metrics_summary.log
+        python workflow/scripts/bclconvert_metrics_summary.py \
+          --report-dir results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports \
+          --demux-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv \
+          --unknown-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv \
+          --hopping-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv \
+          --fastq-manifest-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv \
+          --rollup-json-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_metrics_summary.log 2>&1
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
+
+[Sat May 30 23:25:23 2026]
+localrule bclconvert_generate_units_tsv:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_generate_units_tsv.log
+    jobid: 17
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_generate_units_tsv.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_generate_units_tsv.log
+        seq_platform_override=
+        python workflow/scripts/bclconvert_fastq_list_to_units.py \
+          --fastq-list results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv \
+          --sample-sheet-rows results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv \
+          --run-id 20260514_LH01106_0009_B23TVLGLT4 \
+          --libprep PCR-FREE \
+          --seq-vendor ILMN \
+          --seq-platform-override "$seq_platform_override" \
+          --units-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_generate_units_tsv.log 2>&1
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
+[Sat May 30 23:25:23 2026]
+Finished job 17.
+16 of 21 steps (76%) done
+[Sat May 30 23:25:24 2026]
+Finished job 18.
+17 of 21 steps (81%) done
+Select jobs to execute...
+
+[Sat May 30 23:25:24 2026]
+rule bclconvert_metrics_multiqc_exports:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_demux_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_unknown_barcodes_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_index_hopping_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_fastq_manifest_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_lane_summary_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs/bclconvert_metrics_multiqc_exports.log
+    jobid: 19
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_metrics_multiqc_exports.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs/bclconvert_metrics_multiqc_exports.log
+        python workflow/scripts/bclconvert_metrics_to_multiqc.py \
+          --demux-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv \
+          --unknown-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv \
+          --hopping-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv \
+          --fastq-manifest-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv \
+          --rollup-json results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json \
+          --demux-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_demux_mqc.tsv \
+          --unknown-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_unknown_barcodes_mqc.tsv \
+          --hopping-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_index_hopping_mqc.tsv \
+          --fastq-manifest-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_fastq_manifest_mqc.tsv \
+          --lane-summary-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_lane_summary_mqc.tsv \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs/bclconvert_metrics_multiqc_exports.log 2>&1
+
+Submitted job 19 with external jobid '4661'.
+[Sat May 30 23:30:09 2026]
+Finished job 19.
+18 of 21 steps (86%) done
+Select jobs to execute...
+
+[Sat May 30 23:30:09 2026]
+rule multiqc_bclconvert:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log
+    jobid: 20
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/multiqc_bclconvert.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log
+        multiqc -f \
+          -m bclconvert \
+          -m custom_content \
+          --config config/external_tools/multiqc_config.yaml \
+          --template default \
+          --filename multiqc_report.html \
+          --outdir results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert \
+          results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports \
+          results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log 2>&1
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
+
+Submitted job 20 with external jobid '4662'.

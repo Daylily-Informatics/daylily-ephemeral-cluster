@@ -20,7 +20,7 @@ DAY-EC activated.
           >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 
 [Sat May 30 06:00:04 2026]
@@ -49,7 +49,7 @@ localrule ont_run_qc_nanoplot:
           -o results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot \
           -p 20260513_ONT_HG003. \
           >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log 2>&1
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 Touching output file results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done.
 [Sat May 30 06:00:47 2026]
@@ -81,7 +81,7 @@ localrule ont_run_qc_multiqc:
           --outdir "$(dirname results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html)" \
           results/runs/20260513_ONT_HG003/run_qc/ont >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log 2>&1
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/73dbbd9209dde9d5b560eca76639c2a0_
 
 [Sat May 30 06:00:50 2026]
@@ -104,7 +104,7 @@ localrule ont_run_qc_report:
           --output-html results/runs/20260513_ONT_HG003/run_qc/ont/summary.html \
           --output-tsv results/runs/20260513_ONT_HG003/run_qc/ont/summary.tsv \
           --done results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done > results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.log 2>&1
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 [Sat May 30 06:00:51 2026]
 Finished job 1.
@@ -130,16 +130,16 @@ Complete log: .snakemake/log/2026-05-30T055959.652702.snakemake.log
 	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
 
 
- 
+
 ]]]]--------WORKFLOW SUCCESS====================]]]]]--
 RETURN CODE: 0
-⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the 
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the
 supported path is `source ./activate`.
 
 ── EXPORT ──
   › Preparing direct FSx export DRA
 2026-05-30 06:01:06,822 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
-  · Attached export DRA dra-0d8459a336d7d53ea at 
+  · Attached export DRA dra-0d8459a336d7d53ea at
 /fsx/analysis_results/ubuntu/ccv20260529r22_ont_run_qc/
 2026-05-30 06:28:24,057 INFO Task task-0b3824c213417abf1 status: PENDING
 2026-05-30 06:28:54,238 INFO Task task-0b3824c213417abf1 status: EXECUTING

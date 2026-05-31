@@ -1,0 +1,10 @@
+DAY-EC activated.
+DAY-EC activated.
+time=2026-05-30T15:57:24Z
+analysis_root=/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis
+links_dir=/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links
+before:
+l /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 -> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+removing_symlink=/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 target=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+removed_empty_links_dir=/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links
+remaining symlink projections under analysis config:

@@ -8,7 +8,7 @@ DAY-EC activated.
           --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
-        
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
 
 Trying to restart job 7.
@@ -55,7 +55,7 @@ localrule bclconvert_validate_inputs:
           --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
 [Sat May 30 02:28:58 2026]
 Finished job 3.
@@ -88,7 +88,7 @@ localrule illumina_run_qc_interop_summary:
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/interop_summary.log 2>&1
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 [Sat May 30 02:28:58 2026]
 Error in rule bclconvert_validate_inputs:
@@ -98,7 +98,7 @@ Error in rule bclconvert_validate_inputs:
     log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
     shell:
-        
+
         set -euo pipefail
         mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables
         : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
@@ -129,7 +129,7 @@ Error in rule bclconvert_validate_inputs:
           --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
-        
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
 
 [Sat May 30 02:29:26 2026]
@@ -164,7 +164,7 @@ localrule illumina_run_qc_json:
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log 2>&1
         python -m json.tool results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json.pretty
         mv results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json.pretty results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 [Sat May 30 02:29:26 2026]
 Finished job 4.
@@ -193,7 +193,7 @@ localrule illumina_run_qc_report:
           --output-html results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html \
           --output-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv \
           --done results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.log 2>&1
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 [Sat May 30 02:29:27 2026]
 Finished job 1.
@@ -228,14 +228,14 @@ localrule illumina_run_qc_multiqc:
           --outdir "$(dirname "$out")" \
           results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_multiqc.log 2>&1
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/73dbbd9209dde9d5b560eca76639c2a0_
 [Sat May 30 02:29:39 2026]
 Finished job 5.
 5 of 13 steps (38%) done
 Exiting because a job execution failed. Look above for error message
- 
-        Womp Womp.  something went awry---- 
+
+        Womp Womp.  something went awry----
 RETURN CODE: 1
 [INFO] Workflow exited with status 1
 DAY-EC activated.

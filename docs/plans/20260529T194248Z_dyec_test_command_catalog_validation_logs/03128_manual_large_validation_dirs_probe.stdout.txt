@@ -1,0 +1,43 @@
+DAY-EC activated.
+DAY-EC activated.
+=== time ===
+2026-05-30T15:32:52+00:00
+=== fsx ===
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  7.1T  1.7T  81% /fsx
+=== largest validation dirs ===
+615M	/fsx/analysis_results/ubuntu/ccv20260529r11_ultima_run_qc
+615M	/fsx/analysis_results/ubuntu/ccv20260529r12_ultima_run_qc
+615M	/fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc
+615M	/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert_dryrun
+616M	/fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert
+616M	/fsx/analysis_results/ubuntu/ccv20260529r19_illumina_bclconvert
+616M	/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert
+616M	/fsx/analysis_results/ubuntu/ccv20260529r24_illumina_bclconvert
+616M	/fsx/analysis_results/ubuntu/ccv20260529r25_illumina_bclconvert
+616M	/fsx/analysis_results/ubuntu/ccv20260529r38_illumina_bclconvert
+616M	/fsx/analysis_results/ubuntu/ccv20260529r7_ultima_snv_alignstats_kitchensink_dryrun
+617M	/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert
+618M	/fsx/analysis_results/ubuntu/ccv20260529r10_illumina_run_qc_bclconvert
+619M	/fsx/analysis_results/ubuntu/ccv20260529r11_illumina_run_qc_bclconvert
+619M	/fsx/analysis_results/ubuntu/ccv20260529r14_illumina_run_qc_bclconvert
+619M	/fsx/analysis_results/ubuntu/ccv20260529r15_illumina_bclconvert
+623M	/fsx/analysis_results/ubuntu/ccv20260529r15_illumina_run_qc_bclconvert
+626M	/fsx/analysis_results/ubuntu/ccv20260529r10_ont_run_qc
+626M	/fsx/analysis_results/ubuntu/ccv20260529r11_ont_run_qc
+626M	/fsx/analysis_results/ubuntu/ccv20260529r17_ont_run_qc
+626M	/fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc
+1.2G	/fsx/analysis_results/ubuntu/ccv20260529r9_hybrid_ultima_ont_snv
+2.3G	/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats
+2.5G	/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats
+3.2G	/fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc
+3.2G	/fsx/analysis_results/ubuntu/ccv20260529r32_illumina_hg002_kitchensink_multiqc
+3.2G	/fsx/analysis_results/ubuntu/ccv20260529r34_illumina_hg002_kitchensink_multiqc
+3.6G	/fsx/analysis_results/ubuntu/ccv20260529r36_illumina_hg002_kitchensink_multiqc
+3.6G	/fsx/analysis_results/ubuntu/ccv20260529r40_illumina_hg002_kitchensink_multiqc
+4.1G	/fsx/analysis_results/ubuntu/ccv20260529r6_pacbio_snv_alignstats
+4.6G	/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats_kitchensink
+5.1G	/fsx/analysis_results/ubuntu/ccv20260529r7_ultima_snv_alignstats_kitchensink
+8.7G	/fsx/analysis_results/ubuntu/ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc
+26G	/fsx/analysis_results/ubuntu/ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink
+3.8T	/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert

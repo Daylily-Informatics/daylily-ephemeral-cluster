@@ -1,0 +1,213 @@
+DAY-EC activated.
+DAY-EC activated.
+=== rtg err ===
+loading global: /fsx/analysis_results/ubuntu/ccv20260530r48_complete_genomics_mgi_snv_concordance/daylily-omics-analysis/config/global_AWSPC.yaml
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260530r48_complete_genomics_mgi_snv_concordance/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+[1m[48;5;166m[38;5;79m...WARNING: No aligners set in the config.[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected aligners from env: ['sentcg'][0m
+[1m[38;5;79maligners (final): [sentcg][0m
+[1m[48;5;166m[38;5;79m...INFO: No dedupers set in config. Defaulting to na (no dedup).[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected dedupers. DDUP updated to: ['dmd'][0m
+[1m[38;5;79mdeduper (final): [dmd][0m
+[1m[48;5;166m[38;5;79m...WARNING: No snv_callers set in the config.[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected SNV callers from env: ['cgt7p'][0m
+[1m[38;5;79mSNV Callers (final): [cgt7p][0m
+[1m[38;5;79mSomatic SNV Callers:[senttn][0m
+[1m[48;5;166m[38;5;79m... WARNING: No sv_callers set in the config.[0m
+[1m[38;5;79mSV Callers (final): [][0m
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260530r48_complete_genomics_mgi_snv_concordance/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260530r48_complete_genomics_mgi_snv_concordance/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 16
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, threads=16, time=5440, vcpu=16
+Select jobs to execute...
+
+[Sat May 30 18:14:50 2026]
+rule rtg_vcfeval_roi:
+    input: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.sort.vcf.gz, results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.sort.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.vcf.gz, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.bed
+    output: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/_giabHC_x_clinvar_genes/summary.txt
+    log: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/logs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.giabHC_x_clinvar_genes.rtg_vcfeval.log
+    jobid: 0
+    benchmark: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/benchmarks/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.giabHC_x_clinvar_genes.rtg_vcfeval.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/benchmarks/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.giabHC_x_clinvar_genes.rtg_vcfeval.bench.tsv, results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/_giabHC_x_clinvar_genes/summary.txt
+    wildcards: sample=TVBCG5X-HG003-5x-1-D0-PF-CG-MGI, alnr=sentcg, ddup=dmd, snv=cgt7p, cmpfootprint=giabHC_x_clinvar_genes
+    threads: 16
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+            export TMPDIR="/fsx/scratch/"
+            outdir="$(dirname results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/_giabHC_x_clinvar_genes/summary.txt)"
+            rm -rf "$outdir"
+
+            rtg vcfeval \
+              --decompose \
+              --squash-ploidy \
+              --ref-overlap \
+              -e /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.bed \
+              -b /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.vcf.gz \
+              -c results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.sort.vcf.gz \
+              -o "$outdir" \
+              -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
+              --threads 16 \
+              > results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/logs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.giabHC_x_clinvar_genes.rtg_vcfeval.log 2>&1
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/2dc9c608977f6d7c6253f8d381138ed4_
+[Sat May 30 18:15:56 2026]
+Error in rule rtg_vcfeval_roi:
+    jobid: 0
+    input: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.sort.vcf.gz, results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.sort.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.vcf.gz, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.bed
+    output: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/_giabHC_x_clinvar_genes/summary.txt
+    log: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/logs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.giabHC_x_clinvar_genes.rtg_vcfeval.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/2dc9c608977f6d7c6253f8d381138ed4_
+    shell:
+
+            set -euo pipefail
+            export TMPDIR="/fsx/scratch/"
+            outdir="$(dirname results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/_giabHC_x_clinvar_genes/summary.txt)"
+            rm -rf "$outdir"
+
+            rtg vcfeval \
+              --decompose \
+              --squash-ploidy \
+              --ref-overlap \
+              -e /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.bed \
+              -b /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.vcf.gz \
+              -c results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.sort.vcf.gz \
+              -o "$outdir" \
+              -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
+              --threads 16 \
+              > results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/logs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.giabHC_x_clinvar_genes.rtg_vcfeval.log 2>&1
+
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Shutting down, this might take some time.
+Exiting because a job execution failed. Look above for error message
+=== rtg log ===
+Reference sequence chrX is used in calls but not in baseline.
+Reference sequence chrY is used in calls but not in baseline.
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/2dc9c608977f6d7c6253f8d381138ed4_/bin/rtg: line 299: 62757 Killed                  "$RTG_JAVA" -Djava.library.path="$THIS_DIR" -XX:ErrorFile=$HSLOG "${RTG_JAVA_OPTS_ARRAY[@]}" "$RTG_REFERENCES_DIR" "$RTG_MODELS_DIR" "${RTG_USAGE_ARRAY[@]}" "${RTG_PROXY_ARRAY[@]}" "${RTG_DEFAULT_THREADS_ARRAY[@]}" $RTG_TALKBACK "${RTG_MEM_ARRAY[@]}" -jar "$RTG_JAR" "$@"
+=== rule config snippets ===
+workflow/rules/rtg_vcfeval.smk:167:    rule rtg_vcfeval_roi:
+workflow/rules/rtg_vcfeval.smk:180:            MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/concordance/logs/{sample}.{alnr}.{ddup}.{snv}.{cmpfootprint}.rtg_vcfeval.log",
+workflow/rules/rtg_vcfeval.smk:182:            MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.{snv}.{cmpfootprint}.rtg_vcfeval.bench.tsv",
+workflow/rules/rtg_vcfeval.smk:184:            int(config["rtg_vcfeval"].get("sub_threads", 7)),
+workflow/rules/rtg_vcfeval.smk:186:            vcpu=int(config["rtg_vcfeval"].get("sub_threads", 7)),
+workflow/rules/rtg_vcfeval.smk:187:            threads=int(config["rtg_vcfeval"].get("sub_threads", 7)),
+workflow/rules/rtg_vcfeval.smk:188:            mem_mb=config["rtg_vcfeval"].get("mem_mb", 64000),
+workflow/rules/rtg_vcfeval.smk:189:            partition=config["rtg_vcfeval"]["partition_other"],
+workflow/rules/rtg_vcfeval.smk:191:            config["rtg_vcfeval"]["env_yaml"]
+workflow/rules/rtg_vcfeval.smk:221:            summary=rules.rtg_vcfeval_roi.output.summary,
+workflow/rules/rtg_vcfeval.smk:234:            mem_mb=config["rtg_vcfeval"].get("parse_mem_mb", 16000),
+workflow/rules/rtg_vcfeval.smk:235:            partition=config["rtg_vcfeval"]["partition_other"],
+workflow/rules/rtg_vcfeval.smk:237:            config["rtg_vcfeval"]["env_yaml"]
+workflow/rules/rtg_vcfeval.smk:298:        threads: 8 #config["rtg_vcfeval"]["threads"]
+workflow/rules/rtg_vcfeval.smk:300:            vcpu=config["rtg_vcfeval"]["threads"],
+workflow/rules/rtg_vcfeval.smk:301:            threads=config["rtg_vcfeval"]["threads"],
+workflow/rules/rtg_vcfeval.smk:302:            partition=config["rtg_vcfeval"]["partition_other"]
+workflow/rules/rtg_vcfeval.smk:304:            config["rtg_vcfeval"]["env_yaml"]
+config/day_profiles/slurm/rule_config.yaml:53:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:56:    mem_mb: 20000
+config/day_profiles/slurm/rule_config.yaml:66:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:109:    partition: "i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:126:    mem_mb: 180000
+config/day_profiles/slurm/rule_config.yaml:127:    partition: "i192mem"
+config/day_profiles/slurm/rule_config.yaml:143:    partition: "i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:148:    partition: "i192mem"
+config/day_profiles/slurm/rule_config.yaml:153:    mem_mb: 200000
+config/day_profiles/slurm/rule_config.yaml:164:    partition: "i192mem"
+config/day_profiles/slurm/rule_config.yaml:168:    mem_mb: 200000
+config/day_profiles/slurm/rule_config.yaml:176:    partition: "i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:180:    mem_mb: 200000
+config/day_profiles/slurm/rule_config.yaml:188:    partition: "i192mem"
+config/day_profiles/slurm/rule_config.yaml:193:    mem_mb: 200000  # Should be set to calculate dyanamically by FASTQsize
+config/day_profiles/slurm/rule_config.yaml:207:    partition: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:209:    partition_other: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:210:    mem_mb: 85000
+config/day_profiles/slurm/rule_config.yaml:218:    partition: "i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:225:    partition: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:226:    partition_other: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:227:    mem_mb: 85000 ## Potentially this can be dynamic by input BAM size
+config/day_profiles/slurm/rule_config.yaml:245:    partition: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:246:    partition_other: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:247:    mem_mb: 85000
+config/day_profiles/slurm/rule_config.yaml:260:    partition: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:261:    partition_other: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:262:    mem_mb: 85000
+config/day_profiles/slurm/rule_config.yaml:272:    partition: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:273:    partition_other: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:274:    mem_mb: 85000
+config/day_profiles/slurm/rule_config.yaml:289:    partition: "i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:297:    partition: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:298:    mem_mb: 200000 ## potentially this can be set to by dynamic by input bam size
+config/day_profiles/slurm/rule_config.yaml:314:    partition: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:315:    mem_mb: 200000
+config/day_profiles/slurm/rule_config.yaml:329:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:333:    partition: "i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:356:    mem_mb: 64000
+config/day_profiles/slurm/rule_config.yaml:357:    partition: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:364:    mem_mb: 64000
+config/day_profiles/slurm/rule_config.yaml:365:    partition: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:384:    mem_mb: 32000
+config/day_profiles/slurm/rule_config.yaml:385:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:396:    mem_mb: 64000
+config/day_profiles/slurm/rule_config.yaml:397:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:415:    partition: "i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:423:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:429:    partition: "i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:434:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:438:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:440:    mem_mb: 64000
+config/day_profiles/slurm/rule_config.yaml:453:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:460:    partition: "i128,i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:461:    mem_mb: 1100 ## Potentially this can be dynmoic by input BAM size
+config/day_profiles/slurm/rule_config.yaml:469:    partition: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:470:    mem_mb: 16000
+config/day_profiles/slurm/rule_config.yaml:478:    partition: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:479:    partition_other: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:480:    mem_mb: 64000
+config/day_profiles/slurm/rule_config.yaml:490:    partition: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:491:    partition_other: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:492:    mem_mb: 64000
+config/day_profiles/slurm/rule_config.yaml:502:    partition: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:503:    partition_other: "i192,i128,i192mem"
+config/day_profiles/slurm/rule_config.yaml:504:    mem_mb: 85000
+config/day_profiles/slurm/rule_config.yaml:515:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:519:    mem_mb: 128000
+config/day_profiles/slurm/rule_config.yaml:523:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:527:    mem_mb: 64000
+config/day_profiles/slurm/rule_config.yaml:529:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:535:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:539:    mem_mb: 128000
+config/day_profiles/slurm/rule_config.yaml:540:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:566:    partition: "i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:571:    partition: "i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:579:    partition: "i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:603:    partition: "i192,i192mem,i128"
+config/day_profiles/slurm/rule_config.yaml:631:    partition: "i192,i192mem"
+config/day_profiles/slurm/rule_config.yaml:644:    partition: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:647:    mem_mb: 300000
+config/day_profiles/slurm/rule_config.yaml:648:    mem_mb_medium: 75000
+config/day_profiles/slurm/rule_config.yaml:649:    mem_mb_light: 16000
+config/day_profiles/slurm/rule_config.yaml:669:    partition: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:672:    mem_mb: 300000
+config/day_profiles/slurm/rule_config.yaml:673:    mem_mb_medium: 75000
+config/day_profiles/slurm/rule_config.yaml:674:    mem_mb_light: 16000
+config/day_profiles/slurm/rule_config.yaml:693:    partition: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:696:    mem_mb: 300000
+config/day_profiles/slurm/rule_config.yaml:713:    partition: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:716:    mem_mb: 300000
+config/day_profiles/slurm/rule_config.yaml:732:    partition: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:735:    mem_mb: 300000
+config/day_profiles/slurm/rule_config.yaml:736:    mem_mb_medium: 75000
+config/day_profiles/slurm/rule_config.yaml:737:    mem_mb_light: 16000
+config/day_profiles/slurm/rule_config.yaml:757:    partition: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:760:    mem_mb: 300000
+config/day_profiles/slurm/rule_config.yaml:761:    mem_mb_medium: 75000
+config/day_profiles/slurm/rule_config.yaml:762:    mem_mb_light: 16000
+config/day_profiles/slurm/rule_config.yaml:782:    partition: "i192mem,i192bigmem"
+config/day_profiles/slurm/rule_config.yaml:785:    mem_mb: 300000
+config/day_profiles/slurm/rule_config.yaml:786:    mem_mb_medium: 75000

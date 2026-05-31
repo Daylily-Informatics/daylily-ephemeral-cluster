@@ -1,0 +1,12 @@
+Traceback (most recent call last):
+  File "<stdin>", line 3, in <module>
+  File "/tmp/dyec-illuminate-spike-20260530/lib/python3.11/site-packages/illuminate/__init__.py", line 1, in <module>
+    from .interop import InteropDataset, print_sample_dataset
+  File "/tmp/dyec-illuminate-spike-20260530/lib/python3.11/site-packages/illuminate/interop.py", line 21, in <module>
+    from .index_metrics import InteropIndexMetrics
+  File "/tmp/dyec-illuminate-spike-20260530/lib/python3.11/site-packages/illuminate/index_metrics.py", line 6, in <module>
+    from .base_parser_class import InteropBinParser
+  File "/tmp/dyec-illuminate-spike-20260530/lib/python3.11/site-packages/illuminate/base_parser_class.py", line 3, in <module>
+    from bitstring import BitString
+ImportError: cannot import name 'BitString' from 'bitstring' (/tmp/dyec-illuminate-spike-20260530/lib/python3.11/site-packages/bitstring/__init__.py)
+failed to run commands: exit status 1

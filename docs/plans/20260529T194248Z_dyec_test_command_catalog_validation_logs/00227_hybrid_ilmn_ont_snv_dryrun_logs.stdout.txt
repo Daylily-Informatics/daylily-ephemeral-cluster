@@ -7,7 +7,7 @@ DAY-EC activated.
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv
-            
+
 
 [Fri May 29 23:38:15 2026]
 rule parse_vcfeval_summary_roi:
@@ -49,7 +49,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv
-            
+
 
 [Fri May 29 23:38:15 2026]
 rule parse_vcfeval_summary_roi:
@@ -91,7 +91,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38_m_giabHC/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv
-            
+
 
 [Fri May 29 23:38:15 2026]
 rule parse_vcfeval_summary_roi:
@@ -133,7 +133,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_altair-v1.1/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv
-            
+
 
 [Fri May 29 23:38:15 2026]
 rule prep_for_concordance_check:
@@ -180,7 +180,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/logs/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.concordance.log;
-            
+
 
 [Fri May 29 23:38:15 2026]
 localrule produce_snv_concordances:

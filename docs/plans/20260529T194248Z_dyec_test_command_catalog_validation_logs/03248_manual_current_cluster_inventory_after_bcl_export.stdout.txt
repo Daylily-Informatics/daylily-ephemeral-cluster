@@ -1,0 +1,302 @@
+DAY-EC activated.
+DAY-EC activated.
+UTC 2026-05-30T17:15:19Z
+HOST ip-10-0-0-88 USER ubuntu
+--- squeue ---
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+--- sacct recent ---
+--- snakemake/controllers ---
+--- tmux ---
+ccv20260529_simple-test_dryrun: 1 windows (created Fri May 29 19:54:02 2026)
+ccv20260529r10_illumina_bclconvert: 1 windows (created Sat May 30 02:22:25 2026)
+ccv20260529r10_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 02:19:40 2026)
+ccv20260529r10_illumina_run_qc: 1 windows (created Sat May 30 02:22:40 2026)
+ccv20260529r10_illumina_run_qc_bclconvert: 1 windows (created Sat May 30 02:22:51 2026)
+ccv20260529r10_illumina_run_qc_bclconvert_dryrun: 1 windows (created Sat May 30 02:20:06 2026)
+ccv20260529r10_illumina_run_qc_dryrun: 1 windows (created Sat May 30 02:19:54 2026)
+ccv20260529r10_inflection-bjuice-product-v0_1: 1 windows (created Sat May 30 01:04:03 2026)
+ccv20260529r10_inflection-bjuice-product-v0_1_dryrun: 1 windows (created Sat May 30 01:01:13 2026)
+ccv20260529r10_ont_run_qc: 1 windows (created Sat May 30 02:48:21 2026)
+ccv20260529r10_ont_run_qc_dryrun: 1 windows (created Sat May 30 02:45:36 2026)
+ccv20260529r11_illumina_bclconvert: 1 windows (created Sat May 30 03:11:46 2026)
+ccv20260529r11_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 03:09:02 2026)
+ccv20260529r11_illumina_run_qc: 1 windows (created Sat May 30 03:11:46 2026)
+ccv20260529r11_illumina_run_qc_bclconvert: 1 windows (created Sat May 30 03:11:49 2026)
+ccv20260529r11_illumina_run_qc_bclconvert_dryrun: 1 windows (created Sat May 30 03:09:02 2026)
+ccv20260529r11_illumina_run_qc_dryrun: 1 windows (created Sat May 30 03:09:02 2026)
+ccv20260529r11_ont_run_qc: 1 windows (created Sat May 30 03:17:15 2026)
+ccv20260529r11_ont_run_qc_dryrun: 1 windows (created Sat May 30 03:14:31 2026)
+ccv20260529r11_ultima_run_qc: 1 windows (created Sat May 30 03:27:18 2026)
+ccv20260529r11_ultima_run_qc_dryrun: 1 windows (created Sat May 30 03:24:33 2026)
+ccv20260529r12_ultima_run_qc: 1 windows (created Sat May 30 03:34:57 2026)
+ccv20260529r12_ultima_run_qc_dryrun: 1 windows (created Sat May 30 03:32:12 2026)
+ccv20260529r13_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 03:41:49 2026)
+ccv20260529r13_illumina_run_qc_bclconvert_dryrun: 1 windows (created Sat May 30 03:41:49 2026)
+ccv20260529r13_ultima_run_qc: 1 windows (created Sat May 30 03:44:33 2026)
+ccv20260529r13_ultima_run_qc_dryrun: 1 windows (created Sat May 30 03:41:49 2026)
+ccv20260529r14_illumina_bclconvert: 1 windows (created Sat May 30 03:53:39 2026)
+ccv20260529r14_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 03:50:54 2026)
+ccv20260529r14_illumina_run_qc_bclconvert: 1 windows (created Sat May 30 03:53:39 2026)
+ccv20260529r14_illumina_run_qc_bclconvert_dryrun: 1 windows (created Sat May 30 03:50:54 2026)
+ccv20260529r14_ultima_run_qc: 1 windows (created Sat May 30 03:53:39 2026)
+ccv20260529r14_ultima_run_qc_dryrun: 1 windows (created Sat May 30 03:50:54 2026)
+ccv20260529r15_illumina_bclconvert: 1 windows (created Sat May 30 04:09:12 2026)
+ccv20260529r15_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 04:06:28 2026)
+ccv20260529r15_illumina_run_qc_bclconvert: 1 windows (created Sat May 30 04:09:12 2026)
+ccv20260529r15_illumina_run_qc_bclconvert_dryrun: 1 windows (created Sat May 30 04:06:28 2026)
+ccv20260529r17_ont_run_qc: 1 windows (created Sat May 30 04:55:04 2026)
+ccv20260529r17_ont_run_qc_dryrun: 1 windows (created Sat May 30 04:52:20 2026)
+ccv20260529r18_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 05:04:08 2026)
+ccv20260529r19_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 05:09:59 2026)
+ccv20260529r20_simple-test: 1 windows (created Sat May 30 05:24:01 2026)
+ccv20260529r20_simple-test_dryrun: 1 windows (created Sat May 30 05:21:17 2026)
+ccv20260529r21_ont_run_qc: 1 windows (created Sat May 30 05:44:02 2026)
+ccv20260529r21_ont_run_qc_dryrun: 1 windows (created Sat May 30 05:41:17 2026)
+ccv20260529r22_illumina_bclconvert: 1 windows (created Sat May 30 05:58:27 2026)
+ccv20260529r22_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 05:55:44 2026)
+ccv20260529r22_ont_run_qc_dryrun: 1 windows (created Sat May 30 05:55:44 2026)
+ccv20260529r23_ont_run_qc_dryrun: 1 windows (created Sat May 30 06:01:27 2026)
+ccv20260529r24_illumina_bclconvert: 1 windows (created Sat May 30 06:08:07 2026)
+ccv20260529r24_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 06:05:23 2026)
+ccv20260529r25_illumina_bclconvert: 1 windows (created Sat May 30 06:24:10 2026)
+ccv20260529r25_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 06:21:26 2026)
+ccv20260529r26_complete_genomics_mgi_snv_concordance_dryrun: 1 windows (created Sat May 30 07:01:56 2026)
+ccv20260529r26_illumina_bclconvert: 1 windows (created Sat May 30 06:33:12 2026)
+ccv20260529r26_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 06:32:08 2026)
+ccv20260529r26_illumina_hg002_kitchensink_multiqc: 1 windows (created Sat May 30 06:50:22 2026)
+ccv20260529r26_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Sat May 30 06:48:33 2026)
+ccv20260529r28_complete_genomics_mgi_snv_concordance_dryrun: 1 windows (created Sat May 30 07:19:47 2026)
+ccv20260529r29_complete_genomics_mgi_snv_concordance_dryrun: 1 windows (created Sat May 30 07:28:34 2026)
+ccv20260529r2_simple-test_dryrun: 1 windows (created Fri May 29 20:02:54 2026)
+ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc_dryrun: 1 windows (created Sat May 30 07:36:16 2026)
+ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Sat May 30 07:52:24 2026)
+ccv20260529r32_illumina_hg002_kitchensink_multiqc: 1 windows (created Sat May 30 08:03:24 2026)
+ccv20260529r32_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Sat May 30 08:01:47 2026)
+ccv20260529r33_ultima_snv_alignstats_dryrun: 1 windows (created Sat May 30 08:23:27 2026)
+ccv20260529r34_illumina_hg002_kitchensink_multiqc: 1 windows (created Sat May 30 08:34:18 2026)
+ccv20260529r35_ont_snv_alignstats_dryrun: 1 windows (created Sat May 30 08:59:05 2026)
+ccv20260529r35_ont_snv_alignstats_kitchensink_dryrun: 1 windows (created Sat May 30 09:27:26 2026)
+ccv20260529r36_illumina_hg002_kitchensink_multiqc: 1 windows (created Sat May 30 09:19:39 2026)
+ccv20260529r36_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Sat May 30 09:18:28 2026)
+ccv20260529r37_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 09:56:39 2026)
+ccv20260529r38_illumina_bclconvert: 1 windows (created Sat May 30 10:01:42 2026)
+ccv20260529r38_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 10:00:37 2026)
+ccv20260529r40_illumina_hg002_kitchensink_multiqc: 1 windows (created Sat May 30 10:29:15 2026)
+ccv20260529r40_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Sat May 30 10:28:05 2026)
+ccv20260529r41_pacbio_snv_alignstats_dryrun: 1 windows (created Sat May 30 10:25:22 2026)
+ccv20260529r42_roche_snv_alignstats_dryrun: 1 windows (created Sat May 30 12:07:35 2026)
+ccv20260529r43_ultima_snv_alignstats_kitchensink_dryrun: 1 windows (created Sat May 30 12:10:30 2026)
+ccv20260529r45_roche_snv_alignstats_dryrun: 1 windows (created Sat May 30 12:17:19 2026)
+ccv20260529r47_hybrid_ilmn_ont_snv_kitchensink_dryrun: 1 windows (created Sat May 30 12:48:07 2026)
+ccv20260529r47_hybrid_ultima_ont_snv_dryrun: 1 windows (created Sat May 30 12:48:07 2026)
+ccv20260529r4_simple-test_dryrun: 1 windows (created Fri May 29 20:10:17 2026)
+ccv20260529r5_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Fri May 29 20:33:03 2026)
+ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc: 1 windows (created Fri May 29 20:38:08 2026)
+ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc_dryrun: 1 windows (created Fri May 29 20:28:19 2026)
+ccv20260529r5_simple-test_dryrun: 1 windows (created Fri May 29 20:21:14 2026)
+ccv20260529r5_ultima_snv_alignstats_dryrun: 1 windows (created Fri May 29 20:35:30 2026)
+ccv20260529r6_ont_snv_alignstats: 1 windows (created Fri May 29 21:22:52 2026)
+ccv20260529r6_ont_snv_alignstats_dryrun: 1 windows (created Fri May 29 21:14:13 2026)
+ccv20260529r6_ont_snv_alignstats_kitchensink: 1 windows (created Fri May 29 21:38:03 2026)
+ccv20260529r6_ont_snv_alignstats_kitchensink_dryrun: 1 windows (created Fri May 29 21:26:24 2026)
+ccv20260529r6_pacbio_snv_alignstats: 1 windows (created Fri May 29 21:55:20 2026)
+ccv20260529r6_pacbio_snv_alignstats_dryrun: 1 windows (created Fri May 29 21:48:53 2026)
+ccv20260529r6_ultima_snv_alignstats: 1 windows (created Fri May 29 21:00:58 2026)
+ccv20260529r6_ultima_snv_alignstats_dryrun: 1 windows (created Fri May 29 20:54:44 2026)
+ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun: 1 windows (created Fri May 29 21:03:59 2026)
+ccv20260529r7_hybrid_ilmn_ont_snv: 1 windows (created Fri May 29 23:40:38 2026)
+ccv20260529r7_hybrid_ilmn_ont_snv_dryrun: 1 windows (created Fri May 29 23:37:43 2026)
+ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink: 1 windows (created Fri May 29 23:40:38 2026)
+ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink_dryrun: 1 windows (created Fri May 29 23:37:43 2026)
+ccv20260529r7_illumina_snv_alignstats: 1 windows (created Fri May 29 23:38:25 2026)
+ccv20260529r7_illumina_snv_alignstats_dryrun: 1 windows (created Fri May 29 23:35:31 2026)
+ccv20260529r7_inflection-bjuice-product-v0_1_dryrun: 1 windows (created Sat May 30 00:04:05 2026)
+ccv20260529r7_roche_snv_alignstats_dryrun: 1 windows (created Fri May 29 23:32:36 2026)
+ccv20260529r7_simple-test: 1 windows (created Fri May 29 23:48:58 2026)
+ccv20260529r7_simple-test_dryrun: 1 windows (created Fri May 29 23:46:10 2026)
+ccv20260529r7_ultima_snv_alignstats_kitchensink: 1 windows (created Fri May 29 23:33:28 2026)
+ccv20260529r7_ultima_snv_alignstats_kitchensink_dryrun: 1 windows (created Fri May 29 23:30:34 2026)
+ccv20260529r8_inflection-bjuice-product-v0_1_dryrun: 1 windows (created Sat May 30 00:23:19 2026)
+ccv20260529r9_hybrid_ultima_ont_snv: 1 windows (created Sat May 30 00:35:27 2026)
+ccv20260529r9_hybrid_ultima_ont_snv_dryrun: 1 windows (created Sat May 30 00:31:46 2026)
+ccv20260529r9_inflection-bjuice-product-v0_1_dryrun: 1 windows (created Sat May 30 00:28:38 2026)
+ccv20260530r41_illumina_bclconvert: 1 windows (created Sat May 30 14:17:39 2026)
+ccv20260530r41_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 14:11:58 2026)
+ccv20260530r42_illumina_bclconvert: 1 windows (created Sat May 30 14:27:38 2026)
+--- fsx df ---
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  7.8T  965G  90% /fsx
+--- analysis dirs ---
+2026-05-30 02:22 /fsx/analysis_results/ubuntu/ccv20260529r10_illumina_bclconvert
+2026-05-30 02:22 /fsx/analysis_results/ubuntu/ccv20260529r10_illumina_run_qc
+2026-05-30 02:22 /fsx/analysis_results/ubuntu/ccv20260529r10_illumina_run_qc_bclconvert
+2026-05-30 02:45 /fsx/analysis_results/ubuntu/ccv20260529r10_ont_run_qc_dryrun
+2026-05-30 02:48 /fsx/analysis_results/ubuntu/ccv20260529r10_ont_run_qc
+2026-05-30 03:09 /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert_dryrun
+2026-05-30 03:09 /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_run_qc_bclconvert_dryrun
+2026-05-30 03:09 /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_run_qc_dryrun
+2026-05-30 03:11 /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_bclconvert
+2026-05-30 03:11 /fsx/analysis_results/ubuntu/ccv20260529r11_illumina_run_qc_bclconvert
+2026-05-30 03:14 /fsx/analysis_results/ubuntu/ccv20260529r11_ont_run_qc_dryrun
+2026-05-30 03:17 /fsx/analysis_results/ubuntu/ccv20260529r11_ont_run_qc
+2026-05-30 03:24 /fsx/analysis_results/ubuntu/ccv20260529r11_ultima_run_qc_dryrun
+2026-05-30 03:27 /fsx/analysis_results/ubuntu/ccv20260529r11_ultima_run_qc
+2026-05-30 03:32 /fsx/analysis_results/ubuntu/ccv20260529r12_illumina_bclconvert_dryrun
+2026-05-30 03:32 /fsx/analysis_results/ubuntu/ccv20260529r12_illumina_run_qc_bclconvert_dryrun
+2026-05-30 03:32 /fsx/analysis_results/ubuntu/ccv20260529r12_ultima_run_qc_dryrun
+2026-05-30 03:34 /fsx/analysis_results/ubuntu/ccv20260529r12_ultima_run_qc
+2026-05-30 03:41 /fsx/analysis_results/ubuntu/ccv20260529r13_illumina_bclconvert_dryrun
+2026-05-30 03:41 /fsx/analysis_results/ubuntu/ccv20260529r13_illumina_run_qc_bclconvert_dryrun
+2026-05-30 03:41 /fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc_dryrun
+2026-05-30 03:44 /fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc
+2026-05-30 03:50 /fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert_dryrun
+2026-05-30 03:50 /fsx/analysis_results/ubuntu/ccv20260529r14_illumina_run_qc_bclconvert_dryrun
+2026-05-30 03:50 /fsx/analysis_results/ubuntu/ccv20260529r14_ultima_run_qc_dryrun
+2026-05-30 03:53 /fsx/analysis_results/ubuntu/ccv20260529r14_illumina_bclconvert
+2026-05-30 03:53 /fsx/analysis_results/ubuntu/ccv20260529r14_illumina_run_qc_bclconvert
+2026-05-30 04:06 /fsx/analysis_results/ubuntu/ccv20260529r15_illumina_bclconvert_dryrun
+2026-05-30 04:06 /fsx/analysis_results/ubuntu/ccv20260529r15_illumina_run_qc_bclconvert_dryrun
+2026-05-30 04:09 /fsx/analysis_results/ubuntu/ccv20260529r15_illumina_bclconvert
+2026-05-30 04:09 /fsx/analysis_results/ubuntu/ccv20260529r15_illumina_run_qc_bclconvert
+2026-05-30 04:52 /fsx/analysis_results/ubuntu/ccv20260529r17_ont_run_qc_dryrun
+2026-05-30 04:55 /fsx/analysis_results/ubuntu/ccv20260529r17_ont_run_qc
+2026-05-30 05:04 /fsx/analysis_results/ubuntu/ccv20260529r18_illumina_bclconvert_dryrun
+2026-05-30 05:10 /fsx/analysis_results/ubuntu/ccv20260529r19_illumina_bclconvert_dryrun
+2026-05-30 05:12 /fsx/analysis_results/ubuntu/ccv20260529r19_illumina_bclconvert
+2026-05-30 05:21 /fsx/analysis_results/ubuntu/ccv20260529r20_simple-test_dryrun
+2026-05-30 05:41 /fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc_dryrun
+2026-05-30 05:44 /fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc
+2026-05-30 05:55 /fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert_dryrun
+2026-05-30 05:55 /fsx/analysis_results/ubuntu/ccv20260529r22_ont_run_qc_dryrun
+2026-05-30 05:58 /fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert
+2026-05-30 06:01 /fsx/analysis_results/ubuntu/ccv20260529r23_ont_run_qc_dryrun
+2026-05-30 06:05 /fsx/analysis_results/ubuntu/ccv20260529r24_illumina_bclconvert_dryrun
+2026-05-30 06:08 /fsx/analysis_results/ubuntu/ccv20260529r24_illumina_bclconvert
+2026-05-30 06:21 /fsx/analysis_results/ubuntu/ccv20260529r25_illumina_bclconvert_dryrun
+2026-05-30 06:24 /fsx/analysis_results/ubuntu/ccv20260529r25_illumina_bclconvert
+2026-05-30 06:32 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert_dryrun
+2026-05-30 06:48 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc_dryrun
+2026-05-30 06:50 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc
+2026-05-30 07:01 /fsx/analysis_results/ubuntu/ccv20260529r26_complete_genomics_mgi_snv_concordance_dryrun
+2026-05-30 07:17 /fsx/analysis_results/ubuntu/ccv20260529r27_complete_genomics_mgi_snv_concordance_dryrun
+2026-05-30 07:19 /fsx/analysis_results/ubuntu/ccv20260529r28_complete_genomics_mgi_snv_concordance_dryrun
+2026-05-30 07:28 /fsx/analysis_results/ubuntu/ccv20260529r29_complete_genomics_mgi_snv_concordance_dryrun
+2026-05-30 07:36 /fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc_dryrun
+2026-05-30 07:54 /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun
+2026-05-30 08:01 /fsx/analysis_results/ubuntu/ccv20260529r32_illumina_hg002_kitchensink_multiqc_dryrun
+2026-05-30 08:03 /fsx/analysis_results/ubuntu/ccv20260529r32_illumina_hg002_kitchensink_multiqc
+2026-05-30 08:23 /fsx/analysis_results/ubuntu/ccv20260529r33_ultima_snv_alignstats_dryrun
+2026-05-30 08:36 /fsx/analysis_results/ubuntu/ccv20260529r34_illumina_hg002_kitchensink_multiqc
+2026-05-30 08:59 /fsx/analysis_results/ubuntu/ccv20260529r35_ont_snv_alignstats_dryrun
+2026-05-30 09:18 /fsx/analysis_results/ubuntu/ccv20260529r36_illumina_hg002_kitchensink_multiqc_dryrun
+2026-05-30 09:19 /fsx/analysis_results/ubuntu/ccv20260529r36_illumina_hg002_kitchensink_multiqc
+2026-05-30 09:27 /fsx/analysis_results/ubuntu/ccv20260529r35_ont_snv_alignstats_kitchensink_dryrun
+2026-05-30 09:56 /fsx/analysis_results/ubuntu/ccv20260529r37_illumina_bclconvert_dryrun
+2026-05-30 10:00 /fsx/analysis_results/ubuntu/ccv20260529r38_illumina_bclconvert_dryrun
+2026-05-30 10:01 /fsx/analysis_results/ubuntu/ccv20260529r38_illumina_bclconvert
+2026-05-30 10:08 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert_dryrun
+2026-05-30 10:25 /fsx/analysis_results/ubuntu/ccv20260529r41_pacbio_snv_alignstats_dryrun
+2026-05-30 10:28 /fsx/analysis_results/ubuntu/ccv20260529r40_illumina_hg002_kitchensink_multiqc_dryrun
+2026-05-30 10:29 /fsx/analysis_results/ubuntu/ccv20260529r40_illumina_hg002_kitchensink_multiqc
+2026-05-30 12:07 /fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun
+2026-05-30 12:10 /fsx/analysis_results/ubuntu/ccv20260529r43_ultima_snv_alignstats_kitchensink_dryrun
+2026-05-30 12:17 /fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats_dryrun
+2026-05-30 12:30 /fsx/analysis_results/ubuntu/ccv20260529r46_illumina_hg002_kitchensink_multiqc_dryrun
+2026-05-30 12:48 /fsx/analysis_results/ubuntu/ccv20260529r47_hybrid_ilmn_ont_snv_kitchensink_dryrun
+2026-05-30 12:48 /fsx/analysis_results/ubuntu/ccv20260529r47_hybrid_ultima_ont_snv_dryrun
+2026-05-30 14:12 /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert_dryrun
+2026-05-30 14:17 /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert
+2026-05-30 14:27 /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert
+analysis_dir_count=115
+--- dra-ish mount roots ---
+/fsx/control_data
+/fsx/references
+/fsx/run_dir_mounts
+/fsx/run_dir_mounts/20260513_ONT_HG003
+/fsx/run_dir_mounts/20260513_ONT_HG003/HG003
+/fsx/run_dir_mounts/20260513_ONT_HG003/_lsmc_ingest
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Data
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InstrumentAnalyticsLogs
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Logs
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Thumbnail_Images
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/_lsmc_ingest
+/fsx/run_dir_mounts/20260520_LH01121_0002_B23WW5LLT4
+/fsx/run_dir_mounts/20260520_LH01121_0002_B23WW5LLT4/Analysis
+/fsx/run_dir_mounts/20260520_LH01121_0002_B23WW5LLT4/Data
+/fsx/run_dir_mounts/20260520_LH01121_0002_B23WW5LLT4/InstrumentAnalyticsLogs
+/fsx/run_dir_mounts/20260520_LH01121_0002_B23WW5LLT4/InterOp
+/fsx/run_dir_mounts/20260520_LH01121_0002_B23WW5LLT4/Logs
+/fsx/run_dir_mounts/20260520_LH01121_0002_B23WW5LLT4/Thumbnail_Images
+/fsx/run_dir_mounts/20260520_LH01121_0002_B23WW5LLT4/_lsmc_ingest
+/fsx/run_dir_mounts/20260526_LH01121_0004_B23WW2NLT4
+/fsx/run_dir_mounts/20260526_LH01121_0004_B23WW2NLT4/Analysis
+/fsx/run_dir_mounts/20260526_LH01121_0004_B23WW2NLT4/Data
+/fsx/run_dir_mounts/20260526_LH01121_0004_B23WW2NLT4/InstrumentAnalyticsLogs
+/fsx/run_dir_mounts/20260526_LH01121_0004_B23WW2NLT4/InterOp
+/fsx/run_dir_mounts/20260526_LH01121_0004_B23WW2NLT4/Logs
+/fsx/run_dir_mounts/20260526_LH01121_0004_B23WW2NLT4/Thumbnail_Images
+/fsx/run_dir_mounts/20260526_LH01121_0004_B23WW2NLT4/_lsmc_ingest
+/fsx/run_dir_mounts/602221-20260417_2346
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S10_B-Z0310-CATGACAGTAATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S12a_B-Z0311-CATGCAATCACATCGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S12b_B-Z0318-CAAGACATCAGAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S13_B-Z0312-CAGTTGATACATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S14_B-Z0313-CTGTGACATAATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S15_B-Z0314-CATAGTGCTGCAATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S16_B-Z0315-CACGAGCGCAATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S17_B-Z0309-CGCTCAACATGCGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S18_B-Z0307-CAGAAGAGATATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S20_B-Z0316-CACAATGCAGATGTGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S21_B-Z0317-CTGCGCAGCATCCTGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S2a_B-Z0319-CATGCTTGTGTCATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S2b_B-Z0320-CAGTGCGACAATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S5_B-Z0305-CACACACAACATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S6_B-Z0306-CTTACATGTCATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-S8_B-Z0308-CAGAGCGCCGCAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-TT-TT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1000-CGTGCAATGCGCATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1001-CACATGGCGATCATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1002-CACATGTGAGGAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1003-CTATATTGCGATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1004-CAGTCAGATAATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1005-CTGCATTGCTCGCAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1006-CATGATGCTCCTCTGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1007-CGAGATTGAGATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1008-CATGATCGGACTGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1009-CGATTGCATATGATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1010-CATATGGCGCACGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1011-CAAGCATAGTATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1012-CAATGCACATACGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1013-CGACCATATCATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1014-CTCTCAATGCACGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1015-CGGCATCAGTGAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1016-CATATGCGGCAGATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1017-CAAGCAGTGAGCGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1018-CAGCATATTACAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1021-CGTATGGCATAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1022-CGTCTCATTGCGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1026-CGTCAGGCAGCATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1029-CGGTGTCATGTGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1037-CGTGCGCAACTGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1042-CGTGCACTTGCGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1043-CGTGCACAGTTGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1047-CGACTGGATGCGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1056-CGAGGATCTGCATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1071-CGGATAGCAGTGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1078-CGATTCTGACAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1079-CGATCTTGCATGAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1089-CGGATGATGCTGAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1090-CGATTGATGCACAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1099-CGATGCATGAAGTGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1103-CGCGACATTGCATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1114-CGCGCATAATGATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1128-CGCTTCGACATGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1134-CGCTTCATCACGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1135-CGCTCAATGAGCAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1141-CGCTGAATGCATGCTGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1142-CGCTGCGAAGAGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602221-UGAv3-1149-CGGCTGCAGTGCGAT
+/fsx/run_dir_mounts/602221-20260417_2346/602--output truncated--

@@ -26,7 +26,7 @@ DAY-EC activated.
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/snv_TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv
-            
+
 Submitted job 17 with external jobid '490'.
 [Fri May 29 23:58:57 2026]
 Finished job 22.
@@ -76,7 +76,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/snv_TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv
-            
+
 Submitted job 21 with external jobid '491'.
 [Fri May 29 23:59:07 2026]
 Finished job 19.
@@ -140,7 +140,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.concordance.log;
-            
+
 Submitted job 1 with external jobid '492'.
 [Sat May 30 00:00:07 2026]
 Finished job 1.
@@ -191,16 +191,16 @@ Complete log: .snakemake/log/2026-05-29T233850.154429.snakemake.log
 	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
 
 
- 
+
 ]]]]--------WORKFLOW SUCCESS====================]]]]]--
 RETURN CODE: 0
-⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the 
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the
 supported path is `source ./activate`.
 
 ── EXPORT ──
   › Preparing direct FSx export DRA
 2026-05-30 00:03:00,943 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
-  · Attached export DRA dra-063e210f62c7a3014 at 
+  · Attached export DRA dra-063e210f62c7a3014 at
 /fsx/analysis_results/ubuntu/ccv20260529r7_illumina_snv_alignstats/
 2026-05-30 00:08:23,342 INFO Task task-0ad201b100ecd9ebe status: PENDING
 2026-05-30 00:08:53,529 INFO Task task-0ad201b100ecd9ebe status: EXECUTING

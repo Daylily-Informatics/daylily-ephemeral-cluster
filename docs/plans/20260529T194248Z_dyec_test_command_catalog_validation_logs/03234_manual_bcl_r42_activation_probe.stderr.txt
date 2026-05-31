@@ -1,0 +1,4 @@
+Your config files in /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+ > >> >>>   genome build set to ::: hg38
+Your config files in /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+ > >> >>>   genome build set to ::: hg38

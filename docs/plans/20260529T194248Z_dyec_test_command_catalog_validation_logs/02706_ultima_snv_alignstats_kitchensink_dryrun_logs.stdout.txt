@@ -13,7 +13,7 @@ DAY-EC activated.
             done
         fi
         mv results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.vep.concat.vcf.gz.fofn.tmp results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.vep.concat.vcf.gz.fofn
-        
+
 
 [Sat May 30 12:10:59 2026]
 rule vep_concat_index_chunks:

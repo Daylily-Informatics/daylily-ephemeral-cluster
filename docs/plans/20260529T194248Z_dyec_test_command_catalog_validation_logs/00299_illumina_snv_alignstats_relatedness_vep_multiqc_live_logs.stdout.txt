@@ -4,7 +4,7 @@ DAY-EC activated.
         bcftools view -H results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr1/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr1.input.vcf.gz | wc -l | awk '{print $1}' > results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr1/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr1.input.vcf.gz.record_count
         test -s results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr1/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr1.input.vcf.gz
         test -s results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr1/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr1.input.vcf.gz.tbi
-        
+
 Submitted job 29 with external jobid '60'.
 
 [Fri May 29 21:17:31 2026]
@@ -30,7 +30,7 @@ rule vep_chromosome_input:
         bcftools view -H results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr22/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr22.input.vcf.gz | wc -l | awk '{print $1}' > results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr22/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr22.input.vcf.gz.record_count
         test -s results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr22/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr22.input.vcf.gz
         test -s results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr22/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr22.input.vcf.gz.tbi
-        
+
 Submitted job 72 with external jobid '61'.
 
 [Fri May 29 21:17:31 2026]
@@ -56,7 +56,7 @@ rule vep_chromosome_input:
         bcftools view -H results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr19/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr19.input.vcf.gz | wc -l | awk '{print $1}' > results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr19/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr19.input.vcf.gz.record_count
         test -s results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr19/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr19.input.vcf.gz
         test -s results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr19/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr19.input.vcf.gz.tbi
-        
+
 Submitted job 66 with external jobid '62'.
 
 [Fri May 29 21:17:31 2026]
@@ -82,7 +82,7 @@ rule vep_chromosome_input:
         bcftools view -H results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr11/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr11.input.vcf.gz | wc -l | awk '{print $1}' > results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr11/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr11.input.vcf.gz.record_count
         test -s results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr11/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr11.input.vcf.gz
         test -s results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr11/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr11.input.vcf.gz.tbi
-        
+
 Submitted job 50 with external jobid '63'.
 
 [Fri May 29 21:17:31 2026]

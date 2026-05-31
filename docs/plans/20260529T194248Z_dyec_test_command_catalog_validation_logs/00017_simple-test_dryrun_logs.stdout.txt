@@ -164,26 +164,26 @@ DAYOA install success
 Day CLI initialized for project 'dyec-test' in region 'us-west-2'.
 The Daylily CLI is now available.
 Available commands (tab completion is enabled for all):
- 
+
 	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
-	                           
+
 	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
-	                           
+
 	(day-run / dy-r)          - Run a command in the current environment.
 	                           <tab> for exposed targets, -<tab> for all command line flags.
-	                           
+
 	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
 	                           Use --block-and-poll to wait for completion.
-	                           
+
 	(day-deactivate / dy-d)   - Deactivate the current environment.
 	                           Use 'dy-d reset' to hard reset the environment.
-	                           
-	                           
-	                           
-	                           
-	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+
+
+
+
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode
 	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
-	                           
+
 	(example): ACTIVATE AN ANALYSIS ENV
 
 

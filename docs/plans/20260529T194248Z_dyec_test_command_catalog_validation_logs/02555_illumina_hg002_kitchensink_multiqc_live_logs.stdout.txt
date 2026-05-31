@@ -66,7 +66,7 @@ localrule produce_cov_uniformity:
         fi;
         printf '%s
 ' "${coverage_files[@]}";
-        
+
 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/norm_cov_eveness/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.md.norm_cov_eveness.mqc.tsv
 [Sat May 30 10:47:40 2026]
 Finished job 104.
@@ -86,7 +86,7 @@ localrule alignment_qc_outputs_custom_data:
         set -euo pipefail
         mkdir -p $(dirname results/day/hg38/other_reports/alignment_qc_outputs_mqc.tsv) $(dirname results/day/hg38/other_reports/logs/alignment_qc_outputs_custom_data.log)
         python workflow/scripts/multiqc_custom_output_inventory.py           --stage alignment_qc           --output results/day/hg38/other_reports/alignment_qc_outputs_mqc.tsv           results/day/hg38/other_reports/alignstats_combo_mqc.tsv results/day/hg38/other_reports/norm_cov_evenness_combo_mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/samtmetrics/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.complete results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/samtmetrics/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.complete results/day/hg38/other_reports/samtools_metrics_gather.done results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.mosdepth.summary.txt results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.summary.txt results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/goleft.done results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft.done results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/norm_cov_eveness/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.md results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/norm_cov_eveness/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.md results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/contam/gatk/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.gatk.tsv > results/day/hg38/other_reports/logs/alignment_qc_outputs_custom_data.log 2>&1
-        
+
 [Sat May 30 10:47:40 2026]
 Finished job 120.
 148 of 161 steps (92%) done
@@ -137,7 +137,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv
-            
+
 Submitted job 143 with external jobid '3422'.
 [Sat May 30 10:57:11 2026]
 Finished job 143.
@@ -189,7 +189,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,giabHC_x_ultima,giabHC_x_ultima_x_clinvar,giabHCv5q,hg38,hg38_m_giabHC,ultima mqcs=10" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.concordance.log;
-            
+
 Submitted job 130 with external jobid '3423'.
 [Sat May 30 10:57:21 2026]
 Finished job 130.

@@ -64,8 +64,8 @@ Unlocking working directory.
 /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:12:    "produce_read_haps_contam_identity",
 /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:239:    produce_read_haps_contam_identity,
 /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:293:rule haplocheck_vcf_contam_identity:
-/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:348:%s	NO_VARIANTS	0		0		
-/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:351:%s	NO_VARIANTS	0		0		
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:348:%s	NO_VARIANTS	0		0
+/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:351:%s	NO_VARIANTS	0		0
 /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:353:            printf '<html><body>NO_VARIANTS</body></html>
 /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:355:            printf 'NO_VARIANTS: haplocheck skipped because the input VCF has no variant records.
 /fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/workflow/rules/contam_identity.smk:361:rule read_haps_contam_identity:

@@ -1,0 +1,34 @@
+DAY-EC activated.
+DAY-EC activated.
+=== controller status ===
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\"]' 'htd_callers=[\"cyrius\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\",\"contam_identity\"]}' -j 200 -p -k --rerun-triggers mtime",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r50_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis",
+  "session_name": "ccv20260530r50_illumina_hg002_kitchensink_multiqc",
+  "started_at": "2026-05-30T18:19:18Z"
+}
+=== tmux alive ===
+ccv20260530r50_illumina_hg002_kitchensink_multiqc: 1 windows (created Sat May 30 18:19:16 2026)
+ccv20260530r50_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Sat May 30 18:18:12 2026)
+=== controller ps ===
+2093867 bash -lc source /home/ubuntu/daylily-runs/ccv20260530r50_illumina_hg002_kitchensink_multiqc/launch.sh >>/home/ubuntu/daylily-runs/ccv20260530r50_illumina_hg002_kitchensink_multiqc/tmux.log 2>&1
+2147135 bash bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete
+2147696 bash bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete
+2147697 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260530r54_complete_genomics_mgi_snv_concordance/daylily-omics-analysis/config/day_profiles/slurm produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete
+2147698 bash bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete
+2164353 /home/ubuntu/miniconda3/envs/DAY-EC/bin/python /home/ubuntu/miniconda3/envs/DAY-EC/bin/dyec export --region us-west-2 --cluster dyec-test --source-path /fsx/analysis_results/ubuntu/ccv20260530r50_illumina_hg002_kitchensink_multiqc --destination-s3-uri s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r50_illumina_hg002_kitchensink_multiqc/ --output-dir /home/ubuntu/daylily-runs/ccv20260530r50_illumina_hg002_kitchensink_multiqc/export
+=== latest snakemake log ===
+.snakemake/log/2026-05-30T185233.616572.snakemake.log
+Unlocking working directory.
+=== recent workflow logs ===
+2026-05-30T18:46:39.0000000000 13147 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHCv5q.rtg_vcfeval.log
+2026-05-30T18:46:40.0000000000 760218 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/vcfeval.log
+2026-05-30T18:47:16.0000000000 6690 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHCv5q.parse_vcfeval_summary.log
+2026-05-30T18:47:27.0000000000 184 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.concordance.log
+2026-05-30T18:47:33.0000000000 0 results/day/hg38/logs/report_components_aggregated.done
+2026-05-30T18:47:34.0000000000 0 results/day/hg38/other_reports/logs/rules_benchmarks_summary.log
+2026-05-30T18:47:34.0000000000 0 results/day/hg38/reports/logs/final_multiqc_input_staging.log
+2026-05-30T18:52:09.0000000000 9178 results/day/hg38/reports/logs/all__mqc_fin_a.log
+2026-05-30T18:52:20.0000000000 96888 results/day/hg38/reports/DAY_final_multiqc_data/multiqc.log

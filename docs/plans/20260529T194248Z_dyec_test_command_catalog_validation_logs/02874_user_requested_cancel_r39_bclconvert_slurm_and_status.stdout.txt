@@ -1,0 +1,14 @@
+DAY-EC activated.
+DAY-EC activated.
+== tmux state before follow-up ==
+tmux_session_absent
+== matching slurm jobs before follow-up ==
+3310|run_bclconvert-run_bclconvert|RUNNING|3:12:37|1|i192mem-dy-all-1|/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis
+Cancelling Slurm jobs: 3310
+Waiting for matching Slurm jobs to clear: 3310|run_bclconvert-run_bclconvert|COMPLETING|3:12:37|1|i192mem-dy-all-1|/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis
+Matching Slurm jobs absent after 2s poll.
+Status file missing: /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/status.json
+== tmux state after follow-up ==
+tmux_session_absent
+== matching slurm jobs after follow-up ==
+== status ==

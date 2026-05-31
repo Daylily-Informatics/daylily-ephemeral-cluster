@@ -1,7 +1,7 @@
 DAY-EC activated.
 DAY-EC activated.
         mv results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.vep.concat.vcf.gz.fofn.tmp results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vep/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.vep.concat.vcf.gz.fofn
-        
+
 
 [Fri May 29 23:31:02 2026]
 localrule produce_snv_concordances:

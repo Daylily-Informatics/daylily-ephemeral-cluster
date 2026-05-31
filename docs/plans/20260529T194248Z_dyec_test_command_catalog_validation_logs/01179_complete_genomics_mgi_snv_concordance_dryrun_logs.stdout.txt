@@ -15,7 +15,7 @@ DAY-EC activated.
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/_clinvar_genes/snv_TVBCG5X-HG003-5x-1-D0-PF-CG-MGI_clinvar_genes_concordance.mqc.tsv
-            
+
 
 [Sat May 30 07:29:11 2026]
 rule parse_vcfeval_summary_roi:
@@ -57,7 +57,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/_giabHC_x_clinvar_genes/snv_TVBCG5X-HG003-5x-1-D0-PF-CG-MGI_giabHC_x_clinvar_genes_concordance.mqc.tsv
-            
+
 
 [Sat May 30 07:29:11 2026]
 rule parse_vcfeval_summary_roi:
@@ -99,7 +99,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/_hg38/snv_TVBCG5X-HG003-5x-1-D0-PF-CG-MGI_hg38_concordance.mqc.tsv
-            
+
 
 [Sat May 30 07:29:11 2026]
 rule parse_vcfeval_summary_roi:
@@ -141,7 +141,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/_giabHC/snv_TVBCG5X-HG003-5x-1-D0-PF-CG-MGI_giabHC_concordance.mqc.tsv
-            
+
 
 [Sat May 30 07:29:11 2026]
 rule prep_for_concordance_check:
@@ -188,7 +188,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/concordance/logs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.concordance.log;
-            
+
 
 [Sat May 30 07:29:11 2026]
 localrule produce_snv_concordances:

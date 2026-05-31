@@ -9,6 +9,6 @@ NPX=/home/ubuntu/miniconda3/envs/DAYOA/bin/npx
 puppeteer-core=24.43.1
 chrome@148.0.7778.97 /home/ubuntu/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome
 -rwxr-xr-x 1 ubuntu ubuntu 276917464 Apr 28 22:45 /home/ubuntu/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome
-Google Chrome for Testing 148.0.7778.97 
+Google Chrome for Testing 148.0.7778.97
 Generating single mermaid chart
 f1830bed1daa5390461e596da4112120355fa5a40b332a292d32612f6e2a0b26  /tmp/daylily_mermaid_validation.svg

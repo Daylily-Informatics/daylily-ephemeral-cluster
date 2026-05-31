@@ -1,0 +1,182 @@
+DAY-EC activated.
+DAY-EC activated.
+        python workflow/scripts/bclconvert_fastq_list_to_units.py \
+          --fastq-list results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv \
+          --sample-sheet-rows results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv \
+          --run-id 20260514_LH01106_0009_B23TVLGLT4 \
+          --libprep PCR-FREE \
+          --seq-vendor ILMN \
+          --seq-platform-override "$seq_platform_override" \
+          --units-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_generate_units_tsv.log 2>&1
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
+[Sat May 30 20:58:04 2026]
+Finished job 11.
+11 of 15 steps (73%) done
+[Sat May 30 20:58:05 2026]
+Finished job 12.
+12 of 15 steps (80%) done
+Select jobs to execute...
+
+[Sat May 30 20:58:05 2026]
+rule bclconvert_metrics_multiqc_exports:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_demux_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_unknown_barcodes_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_index_hopping_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_fastq_manifest_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_lane_summary_mqc.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs/bclconvert_metrics_multiqc_exports.log
+    jobid: 13
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_metrics_multiqc_exports.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs/bclconvert_metrics_multiqc_exports.log
+        python workflow/scripts/bclconvert_metrics_to_multiqc.py \
+          --demux-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv \
+          --unknown-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv \
+          --hopping-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv \
+          --fastq-manifest-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv \
+          --rollup-json results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json \
+          --demux-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_demux_mqc.tsv \
+          --unknown-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_unknown_barcodes_mqc.tsv \
+          --hopping-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_index_hopping_mqc.tsv \
+          --fastq-manifest-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_fastq_manifest_mqc.tsv \
+          --lane-summary-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_lane_summary_mqc.tsv \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs/bclconvert_metrics_multiqc_exports.log 2>&1
+
+Submitted job 13 with external jobid '4651'.
+[Sat May 30 21:03:04 2026]
+Finished job 13.
+13 of 15 steps (87%) done
+Select jobs to execute...
+
+[Sat May 30 21:03:04 2026]
+rule multiqc_bclconvert:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log
+    jobid: 14
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/multiqc_bclconvert.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log
+        multiqc -f \
+          -m bclconvert \
+          -m custom_content \
+          --config config/external_tools/multiqc_config.yaml \
+          --template default \
+          --filename multiqc_report.html \
+          --outdir results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert \
+          results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports \
+          results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log 2>&1
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
+
+Submitted job 14 with external jobid '4652'.
+[Sat May 30 21:04:25 2026]
+Finished job 14.
+14 of 15 steps (93%) done
+Select jobs to execute...
+
+[Sat May 30 21:04:25 2026]
+localrule produce_bclconvert_fastqs_and_metrics:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete
+    jobid: 0
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete
+Touching output file results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete.
+[Sat May 30 21:04:25 2026]
+Finished job 0.
+15 of 15 steps (100%) done
+Complete log: .snakemake/log/2026-05-30T192133.797355.snakemake.log
+
+
+	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
+
+
+
+]]]]--------WORKFLOW SUCCESS====================]]]]]--
+RETURN CODE: 0
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the
+supported path is `source ./activate`.
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-05-30 21:05:01,016 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
+  · Attached export DRA dra-07e6a7594c91c1dc2 at
+/fsx/analysis_results/ubuntu/ccv20260530r56_illumina_bclconvert/
+2026-05-30 21:08:06,249 INFO Task task-07f016ed4ec1eca42 status: PENDING
+2026-05-30 21:08:36,490 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:09:06,740 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:09:37,258 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:10:07,485 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:10:37,707 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:11:07,930 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:11:38,214 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:12:08,528 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:12:39,036 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:13:09,225 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:13:39,417 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:14:09,650 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:14:39,835 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:15:10,052 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:15:40,348 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:16:10,556 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:16:40,744 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:17:10,955 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:17:41,159 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:18:11,342 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:18:41,517 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:19:11,797 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:19:41,986 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:20:12,175 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:20:42,499 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:21:12,739 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:21:42,935 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:22:13,160 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:22:43,347 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:23:13,691 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:23:43,978 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:24:14,288 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:24:44,498 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:25:14,692 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:25:45,271 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:26:15,461 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:26:45,642 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:27:15,842 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:27:46,030 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:28:16,204 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:28:46,367 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:29:16,553 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:29:46,746 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:30:16,957 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:30:47,152 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:31:17,351 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:31:47,544 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:32:17,705 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:32:47,861 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:33:18,159 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:33:48,354 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:34:18,572 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:34:48,988 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:35:19,198 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:35:49,368 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:36:19,582 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:36:49,793 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:37:19,973 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:37:50,163 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:38:20,426 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:38:50,610 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:39:20,805 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:39:51,264 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:40:21,466 INFO Task task-07f016ed4ec1eca42 status: EXECUTING
+2026-05-30 21:40:51,656 INFO Task task-07f016ed4ec1eca42 status: EXECUTING

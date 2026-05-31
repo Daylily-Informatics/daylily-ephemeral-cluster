@@ -97,7 +97,7 @@ main_log=/fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_concordance.mqc.tsv
-            
+
 Submitted job 140 with external jobid '2770'.
 
 [Sat May 30 07:25:07 2026]
@@ -140,7 +140,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_ultima_concordance.mqc.tsv
-            
+
 Submitted job 150 with external jobid '2771'.
 [Sat May 30 07:25:17 2026]
 Finished job 142.
@@ -211,7 +211,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv
-            
+
 Submitted job 144 with external jobid '2775'.
 [Sat May 30 07:40:39 2026]
 Finished job 144.
@@ -263,7 +263,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,giabHC_x_ultima,giabHC_x_ultima_x_clinvar,giabHCv5q,hg38,hg38_m_giabHC,ultima mqcs=10" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.
-            
+
 Submitted job 131 with external jobid '2776'.
 [Sat May 30 07:40:49 2026]
 Finished job 131.

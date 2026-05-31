@@ -47,7 +47,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_clinvar_genes/snv_TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION_clinvar_genes_concordance.mqc.tsv
-            
+
 Submitted job 6 with external jobid '3121'.
 [Sat May 30 09:20:05 2026]
 Finished job 16.
@@ -108,7 +108,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_hg38/snv_TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION_hg38_concordance.mqc.tsv
-            
+
 Submitted job 12 with external jobid '3125'.
 [Sat May 30 09:22:15 2026]
 Finished job 12.
@@ -160,7 +160,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/logs/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.concordance.log;
-            
+
 Submitted job 1 with external jobid '3126'.
 [Sat May 30 09:22:25 2026]
 Finished job 1.
@@ -209,16 +209,16 @@ Complete log: .snakemake/log/2026-05-30T090040.835088.snakemake.log
 	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
 
 
- 
+
 ]]]]--------WORKFLOW SUCCESS====================]]]]]--
 RETURN CODE: 0
-⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the 
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the
 supported path is `source ./activate`.
 
 ── EXPORT ──
   › Preparing direct FSx export DRA
 2026-05-30 09:22:37,870 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
-  · Attached export DRA dra-06e47e7ceb07a4676 at 
+  · Attached export DRA dra-06e47e7ceb07a4676 at
 /fsx/analysis_results/ubuntu/ccv20260529r35_ont_snv_alignstats/
 2026-05-30 09:25:28,850 INFO Task task-0a36f3a2a5e1484bc status: PENDING
 2026-05-30 09:25:59,026 INFO Task task-0a36f3a2a5e1484bc status: EXECUTING

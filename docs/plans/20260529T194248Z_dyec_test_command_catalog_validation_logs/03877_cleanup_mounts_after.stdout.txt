@@ -1,0 +1,121 @@
+{
+  "mounts": [
+    {
+      "association_id": "dra-0283f1688c923752e",
+      "auto_export_events": [],
+      "auto_import_events": [
+        "NEW",
+        "CHANGED"
+      ],
+      "batch_import_metadata_on_create": true,
+      "cluster_name": "dyec-test",
+      "created_at": "2026-05-30T05:55:18Z",
+      "created_by": "jmajor",
+      "data_repository_path": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/",
+      "file_system_path": "/run_dir_mounts/20260513_ONT_HG003/",
+      "fsx_file_system_id": "fs-0df313e1751219cac",
+      "headnode_path": "/fsx/run_dir_mounts/20260513_ONT_HG003/",
+      "lifecycle": "AVAILABLE",
+      "local_projection_status": "present",
+      "mount_id": "20260513_ONT_HG003",
+      "platform": "ONT",
+      "profile_hint": "lsmc",
+      "purpose": "run",
+      "read_only": true,
+      "region": "us-west-2",
+      "run_id": "20260513_ONT_HG003",
+      "source_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/",
+      "tags": {
+        "lsmc:purpose": "run-dir-mount"
+      },
+      "updated_at": "2026-05-30T18:32:58Z"
+    },
+    {
+      "association_id": "dra-0dae86e536847afcf",
+      "auto_export_events": [],
+      "auto_import_events": [
+        "NEW",
+        "CHANGED"
+      ],
+      "batch_import_metadata_on_create": true,
+      "cluster_name": "dyec-test",
+      "created_at": "2026-05-30T06:31:42Z",
+      "created_by": "jmajor",
+      "data_repository_path": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/",
+      "file_system_path": "/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/",
+      "fsx_file_system_id": "fs-0df313e1751219cac",
+      "headnode_path": "/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/",
+      "lifecycle": "AVAILABLE",
+      "local_projection_status": "present",
+      "mount_id": "20260514_LH01106_0009_B23TVLGLT4",
+      "platform": "ILMN",
+      "profile_hint": "lsmc",
+      "purpose": "run",
+      "read_only": true,
+      "region": "us-west-2",
+      "run_id": "20260514_LH01106_0009_B23TVLGLT4",
+      "source_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/",
+      "tags": {
+        "lsmc:purpose": "run-dir-mount"
+      },
+      "updated_at": "2026-05-30T18:32:58Z"
+    },
+    {
+      "association_id": "dra-049edf140621cfe47",
+      "auto_export_events": [],
+      "auto_import_events": [
+        "NEW",
+        "CHANGED"
+      ],
+      "batch_import_metadata_on_create": true,
+      "cluster_name": "dyec-test",
+      "created_at": "2026-05-30T13:44:24Z",
+      "created_by": "jmajor",
+      "data_repository_path": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260520_LH01121_0002_B23WW5LLT4/",
+      "file_system_path": "/run_dir_mounts/20260520_LH01121_0002_B23WW5LLT4/",
+      "fsx_file_system_id": "fs-0df313e1751219cac",
+      "headnode_path": "/fsx/run_dir_mounts/20260520_LH01121_0002_B23WW5LLT4/",
+      "lifecycle": "AVAILABLE",
+      "local_projection_status": "missing",
+      "mount_id": "20260520_LH01121_0002_B23WW5LLT4",
+      "platform": "OTHER",
+      "profile_hint": "lsmc",
+      "purpose": "run",
+      "read_only": true,
+      "region": "us-west-2",
+      "run_id": "20260520_LH01121_0002_B23WW5LLT4",
+      "source_s3_uri": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260520_LH01121_0002_B23WW5LLT4/",
+      "updated_at": "2026-05-30T18:32:58Z"
+    },
+    {
+      "association_id": "dra-031a4de5c6080fe7d",
+      "auto_export_events": [],
+      "auto_import_events": [
+        "NEW",
+        "CHANGED"
+      ],
+      "batch_import_metadata_on_create": true,
+      "cluster_name": "dyec-test",
+      "created_at": "2026-05-30T07:05:43Z",
+      "created_by": "jmajor",
+      "data_repository_path": "s3://lsmc-dayoa-control-data-usw2/",
+      "file_system_path": "/control_data/",
+      "fsx_file_system_id": "fs-0df313e1751219cac",
+      "headnode_path": "/fsx/control_data/",
+      "lifecycle": "AVAILABLE",
+      "local_projection_status": "present",
+      "mount_id": "control_data",
+      "platform": "OTHER",
+      "profile_hint": "lsmc",
+      "purpose": "control-data",
+      "read_only": true,
+      "region": "us-west-2",
+      "run_id": "control_data",
+      "source_s3_uri": "s3://lsmc-dayoa-control-data-usw2/",
+      "tags": {
+        "lsmc:purpose": "control-data"
+      },
+      "updated_at": "2026-05-30T18:32:58Z"
+    }
+  ]
+}

@@ -1,0 +1,378 @@
+DAY-EC activated.
+DAY-EC activated.
+=== utc ===
+2026-05-30T18:13:58Z
+=== r49 processes ===
+2072483   81703 Ss+        00:11 bash -lc source /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv/launch.sh >>/home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv/tmux.log 2>&1
+2072587 2072483 S+         00:09 python3 /home/ubuntu/.local/bin/day-clone --destination ccv20260530r49_hybrid_ultima_ont_snv --executing-entity ubuntu --repository daylily-omics-analysis --git-tag 2.0.23
+2072588 2072587 I+         00:08 git clone --branch 2.0.23 https://github.com/Daylily-Informatics/daylily-omics-analysis.git /fsx/analysis_results/ubuntu/ccv20260530r49_hybrid_ultima_ont_snv/daylily-omics-analysis
+=== r49 run dirs ===
+--- /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv
+0 2026-05-30T18:13:48.1987887010 /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv/tmux-bootstrap.log
+1295 2026-05-30T18:13:58.9247893120 /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv/tmux.log
+365 2026-05-30T18:13:50.4367888280 /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv/status.json
+59116 2026-05-30T18:13:48.1977887010 /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv/launch.sh
+--- /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv/status.json
+{
+  "command": "bin/day_run produce_sentdhuomr_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r49_hybrid_ultima_ont_snv/daylily-omics-analysis",
+  "session_name": "ccv20260530r49_hybrid_ultima_ont_snv",
+  "started_at": "2026-05-30T18:13:50Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv/tmux-bootstrap.log
+--- /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv/tmux.log
+Cloning into '/fsx/analysis_results/ubuntu/ccv20260530r49_hybrid_ultima_ont_snv/daylily-omics-analysis'...
+Note: switching to '3d5e86c38f1a03a2a47cbad570d4ace5386bbec6'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+Updating files:  33% (422/1256)Updating files:  34% (428/1256)Updating files:  35% (440/1256)Updating files:  36% (453/1256)Updating files:  37% (465/1256)Updating files:  38% (478/1256)Updating files:  39% (490/1256)Updating files:  40% (503/1256)Updating files:  41% (515/1256)Updating files:  42% (528/1256)Updating files:  43% (541/1256)Updating files:  44% (553/1256)Updating files:  45% (566/1256)Updating files:  46% (578/1256)Updating files:  47% (591/1256)Updating files:  48% (603/1256)Updating files:  49% (616/1256)Updating files:  50% (628/1256)Updating files:  51% (641/1256)--- /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv/launch.sh
+  patch_bclconvert_profile_config
+  patch_bclconvert_lane_split
+fi
+	if ont_run_qc_runtime_repair_requested; then
+	  patch_pycoqc_readonly_sort
+	fi
+	if goleft_indexcov_runtime_repair_requested; then
+	  patch_goleft_indexcov_empty_sex_arg
+	fi
+	if mosdepth_empty_output_runtime_repair_requested; then
+	  patch_mosdepth_empty_outputs
+	fi
+	if rtg_vcfeval_parse_runtime_repair_requested; then
+	  patch_rtg_vcfeval_parse_output_dir
+	fi
+	if vep_zero_variant_runtime_repair_requested; then
+	  patch_vep_empty_concat_fofn
+	fi
+	if contam_identity_zero_variant_runtime_repair_requested; then
+	  patch_contam_identity_zero_variant_outputs
+	fi
+	if hybrid_ultima_ont_stage1_runtime_repair_requested; then
+	  patch_hybrid_ultima_ont_stage1_assertion
+	fi
+	set +e
+	run_dy_command "$DY_COMMAND"
+workflow_status=$?
+set -e
+should_export=false
+case "$EXPORT_TRIGGER" in
+  none) should_export=false ;;
+  on-success) [[ "$workflow_status" -eq 0 ]] && should_export=true ;;
+  on-fail) [[ "$workflow_status" -ne 0 ]] && should_export=true ;;
+  all) should_export=true ;;
+  *) echo "[ERROR] Invalid EXPORT_TRIGGER=$EXPORT_TRIGGER"; workflow_status=20 ;;
+esac
+if [[ "$should_export" == "true" ]]; then
+  if [[ -z "$EXPORT_DESTINATION_S3_URI" ]]; then
+    echo "[ERROR] Export requested but EXPORT_DESTINATION_S3_URI is empty"
+    workflow_status=21
+  else
+    if ! remove_run_dir_projection_links; then
+      workflow_status=22
+    else
+      mkdir -p "$DAYLILY_RUN_DIR/export"
+      registration_args=()
+      if [[ -n "$ARTIFACT_REGISTRATION_COMMAND_ID" ]]; then
+        registration_args+=(--artifact-registration-command-id "$ARTIFACT_REGISTRATION_COMMAND_ID")
+        registration_args+=(--dewey-url "$DEWEY_URL")
+        registration_args+=(--dewey-token-env "$DEWEY_TOKEN_ENV")
+        if [[ -n "$DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID" ]]; then
+          registration_args+=(--dewey-analysis-dir-external-object-id "$DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID")
+          registration_args+=(--dewey-run-artifact-euid "$DEWEY_RUN_ARTIFACT_EUID")
+          registration_args+=(--dewey-ursa-analysis-euid "$DEWEY_URSA_ANALYSIS_EUID")
+        fi
+      fi
+      set +e
+      env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export         --region us-west-2         --cluster dyec-test         --source-path "$clone_root"         --destination-s3-uri "$EXPORT_DESTINATION_S3_URI"         --output-dir "$DAYLILY_RUN_DIR/export"         "${registration_args[@]}"
+      export_status=$?
+      set -e
+      if [[ "$export_status" -ne 0 ]]; then
+        echo "[ERROR] Export failed with status $export_status"
+        workflow_status="$export_status"
+      elif [[ "$DELETE_ON_EXPORT_SUCCESS" == "true" ]]; then
+        rm -rf -- "$clone_root"
+        echo "[INFO] Deleted FSx analysis directory after successful export: $clone_root"
+      fi
+    fi
+  fi
+fi
+export DAYLILY_STATUS_FINALIZED=1
+export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+export DAYLILY_STATUS_EXIT_CODE="$workflow_status"
+write_status
+echo "[INFO] Workflow exited with status $workflow_status"
+if [[ ! -d "$clone_root" ]]; then
+  exit "$workflow_status"
+fi
+exec bash -il
+
+--- /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv_dryrun
+0 2026-05-30T18:10:49.5677883740 /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv_dryrun/tmux-bootstrap.log
+377119 2026-05-30T18:13:18.3047854860 /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv_dryrun/tmux.log
+397 2026-05-30T18:13:15.9817849550 /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv_dryrun/status.json
+59027 2026-05-30T18:10:49.5667883740 /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv_dryrun/launch.sh
+--- /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv_dryrun/status.json
+{
+  "command": "bin/day_run produce_sentdhuomr_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k -n",
+  "completed_at": "2026-05-30T18:13:15Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r49_hybrid_ultima_ont_snv_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260530r49_hybrid_ultima_ont_snv_dryrun",
+  "started_at": "2026-05-30T18:10:51Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv_dryrun/tmux-bootstrap.log
+--- /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv_dryrun/tmux.log
+                    echo "$mqc";
+                done;
+            } > results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/concordance.fofn;
+
+            # Write informational fin.cmds
+            {
+                echo "# Refactor: see Snakemake DAG for exact commands.";
+                echo "# generated_at_utc=$utc_ts";
+            } > results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/concordance.fin.cmds;
+
+            # SKIPPED sentinel if no mqcs
+            if [ "6" -eq 0 ]; then
+                echo "No truthset ROI directories found; concordance skipped." > results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/concordance.done.SKIPPED;
+            fi;
+
+            # Log
+            echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/logs/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.sentdhuomr.concordance.log;
+
+
+[Sat May 30 18:13:15 2026]
+localrule produce_snv_concordances:
+    input: results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/concordance.done, results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/_altair-v1.1/snv_TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA_altair-v1.1_concordance.mqc.tsv, results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/_clinvar_genes/snv_TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/_giabHC/snv_TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA_giabHC_concordance.mqc.tsv, results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/_giabHC_x_clinvar_genes/snv_TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA_giabHC_x_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/_hg38/snv_TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA_hg38_concordance.mqc.tsv, results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/_hg38_m_giabHC/snv_TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA_hg38_m_giabHC_concordance.mqc.tsv
+    output: results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv
+    jobid: 11
+    reason: Missing output files: results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv; Input files updated by another job: results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/_hg38_m_giabHC/snv_TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA_hg38_m_giabHC_concordance.mqc.tsv, results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/concordance.done, results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/_giabHC_x_clinvar_genes/snv_TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA_giabHC_x_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/_hg38/snv_TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA_hg38_concordance.mqc.tsv, results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/_altair-v1.1/snv_TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA_altair-v1.1_concordance.mqc.tsv, results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/_clinvar_genes/snv_TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA_clinvar_genes_concordance.mqc.tsv, results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/concordance/_giabHC/snv_TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA_giabHC_concordance.mqc.tsv
+    priority: 48
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Job stats:
+job                               count    min threads    max threads
+------------------------------  -------  -------------  -------------
+alignstats                            2             96             96
+alignstats_compile                    1              2              2
+alignstats_gather                     1              1              1
+finish_align_stats                    2              2              2
+no_dedup_cram                         2              1              1
+parse_vcfeval_summary_roi             6             16             16
+pre_prep_ont_cram                     1             48             48
+pre_prep_ultima_cram                  1             48             48
+prep_for_concordance_check            1              8              8
+prep_results_dirs                     1              1              1
+prep_sentdhuomr_chunkdirs             1              1              1
+produce_alignstats                    1              1              1
+produce_sentdhuomr_snv_vcf            1              1              1
+produce_snv_concordances              1              1              1
+rtg_vcfeval_roi                       6             16             16
+sentdhuomr_anno                       1              8              8
+sentdhuomr_concat_fofn                1              1              1
+sentdhuomr_concat_index_chunks        1              8              8
+sentdhuomr_concat_pass                1              8              8
+sentdhuomr_final_norm                 1              8              8
+sentdhuomr_hybrid_select              1              8              8
+sentdhuomr_mapq0_bed                  1             48             48
+sentdhuomr_mapq0_slop                 1              2              2
+sentdhuomr_merge_beds                 1              2              2
+sentdhuomr_model_apply                1             48             48
+sentdhuomr_pass1                      1            192            192
+sentdhuomr_pass2                      1            192            192
+sentdhuomr_stage1                     1            192            192
+sentdhuomr_stage2                     1             48             48
+sentdhuomr_stage3                     1            192            192
+sentdhuomr_subset                     1              8              8
+sentdhuomr_transfer                  24              8              8
+sentdhuomr_transfer_merge             1              8              8
+stage_supporting_data                 1              1              1
+workflow_staging                      1              1              1
+total                                71              1            192
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        alignstats, alignstats_compile, alignstats_gather, finish_align_stats, no_dedup_cram, parse_vcfeval_summary_roi, prep_for_concordance_check, prep_results_dirs, prep_sentdhuomr_chunkdirs, produce_alignstats, produce_sentdhuomr_snv_vcf, produce_snv_concordances, rtg_vcfeval_roi, sentdhuomr_anno, sentdhuomr_concat_fofn, sentdhuomr_concat_index_chunks, sentdhuomr_concat_pass, sentdhuomr_final_norm, sentdhuomr_hybrid_select, sentdhuomr_mapq0_bed, sentdhuomr_mapq0_slop, sentdhuomr_merge_beds, sentdhuomr_model_apply, sentdhuomr_pass1, sentdhuomr_pass2, sentdhuomr_stage1, sentdhuomr_stage2, sentdhuomr_stage3, sentdhuomr_subset, sentdhuomr_transfer, sentdhuomr_transfer_merge, workflow_staging
+    missing output files:
+        alignstats, alignstats_compile, alignstats_gather, finish_align_stats, no_dedup_cram, parse_vcfeval_summary_roi, pre_prep_ont_cram, pre_prep_ultima_cram, prep_for_concordance_check, prep_results_dirs, prep_sentdhuomr_chunkdirs, produce_sentdhuomr_snv_vcf, produce_snv_concordances, rtg_vcfeval_roi, sentdhuomr_anno, sentdhuomr_concat_fofn, sentdhuomr_concat_index_chunks, sentdhuomr_concat_pass, sentdhuomr_final_norm, sentdhuomr_hybrid_select, sentdhuomr_mapq0_bed, sentdhuomr_mapq0_slop, sentdhuomr_merge_beds, sentdhuomr_model_apply, sentdhuomr_pass1, sentdhuomr_pass2, sentdhuomr_stage1, sentdhuomr_stage2, sentdhuomr_stage3, sentdhuomr_subset, sentdhuomr_transfer, sentdhuomr_transfer_merge, stage_supporting_data, workflow_staging
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.
+[5m[48;5;118m[30mRETURN CODE: 0[0m
+[INFO] Workflow exited with status 0
+DAY-EC activated.
+[?2004h(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260530r49_hybrid_ultima_ont_snv_dryrun/daylily-omics-analysis$ --- /home/ubuntu/daylily-runs/ccv20260530r49_hybrid_ultima_ont_snv_dryrun/launch.sh
+  patch_bclconvert_profile_config
+  patch_bclconvert_lane_split
+fi
+	if ont_run_qc_runtime_repair_requested; then
+	  patch_pycoqc_readonly_sort
+	fi
+	if goleft_indexcov_runtime_repair_requested; then
+	  patch_goleft_indexcov_empty_sex_arg
+	fi
+	if mosdepth_empty_output_runtime_repair_requested; then
+	  patch_mosdepth_empty_outputs
+	fi
+	if rtg_vcfeval_parse_runtime_repair_requested; then
+	  patch_rtg_vcfeval_parse_output_dir
+	fi
+	if vep_zero_variant_runtime_repair_requested; then
+	  patch_vep_empty_concat_fofn
+	fi
+	if contam_identity_zero_variant_runtime_repair_requested; then
+	  patch_contam_identity_zero_variant_outputs
+	fi
+	if hybrid_ultima_ont_stage1_runtime_repair_requested; then
+	  patch_hybrid_ultima_ont_stage1_assertion
+	fi
+	set +e
+	run_dy_command "$DY_COMMAND"
+workflow_status=$?
+set -e
+should_export=false
+case "$EXPORT_TRIGGER" in
+  none) should_export=false ;;
+  on-success) [[ "$workflow_status" -eq 0 ]] && should_export=true ;;
+  on-fail) [[ "$workflow_status" -ne 0 ]] && should_export=true ;;
+  all) should_export=true ;;
+  *) echo "[ERROR] Invalid EXPORT_TRIGGER=$EXPORT_TRIGGER"; workflow_status=20 ;;
+esac
+if [[ "$should_export" == "true" ]]; then
+  if [[ -z "$EXPORT_DESTINATION_S3_URI" ]]; then
+    echo "[ERROR] Export requested but EXPORT_DESTINATION_S3_URI is empty"
+    workflow_status=21
+  else
+    if ! remove_run_dir_projection_links; then
+      workflow_status=22
+    else
+      mkdir -p "$DAYLILY_RUN_DIR/export"
+      registration_args=()
+      if [[ -n "$ARTIFACT_REGISTRATION_COMMAND_ID" ]]; then
+        registration_args+=(--artifact-registration-command-id "$ARTIFACT_REGISTRATION_COMMAND_ID")
+        registration_args+=(--dewey-url "$DEWEY_URL")
+        registration_args+=(--dewey-token-env "$DEWEY_TOKEN_ENV")
+        if [[ -n "$DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID" ]]; then
+          registration_args+=(--dewey-analysis-dir-external-object-id "$DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID")
+          registration_args+=(--dewey-run-artifact-euid "$DEWEY_RUN_ARTIFACT_EUID")
+          registration_args+=(--dewey-ursa-analysis-euid "$DEWEY_URSA_ANALYSIS_EUID")
+        fi
+      fi
+      set +e
+      env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export         --region us-west-2         --cluster dyec-test         --source-path "$clone_root"         --destination-s3-uri "$EXPORT_DESTINATION_S3_URI"         --output-dir "$DAYLILY_RUN_DIR/export"         "${registration_args[@]}"
+      export_status=$?
+      set -e
+      if [[ "$export_status" -ne 0 ]]; then
+        echo "[ERROR] Export failed with status $export_status"
+        workflow_status="$export_status"
+      elif [[ "$DELETE_ON_EXPORT_SUCCESS" == "true" ]]; then
+        rm -rf -- "$clone_root"
+        echo "[INFO] Deleted FSx analysis directory after successful export: $clone_root"
+      fi
+    fi
+  fi
+fi
+export DAYLILY_STATUS_FINALIZED=1
+export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+export DAYLILY_STATUS_EXIT_CODE="$workflow_status"
+write_status
+echo "[INFO] Workflow exited with status $workflow_status"
+if [[ ! -d "$clone_root" ]]; then
+  exit "$workflow_status"
+fi
+exec bash -il
+
+--- /home/ubuntu/daylily-runs/ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun
+0 2026-05-30T18:12:50.9657808130 /home/ubuntu/daylily-runs/ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun/tmux-bootstrap.log
+12410 2026-05-30T18:13:12.6217841870 /home/ubuntu/daylily-runs/ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun/tmux.log
+59551 2026-05-30T18:12:50.9647808130 /home/ubuntu/daylily-runs/ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun/launch.sh
+872 2026-05-30T18:13:12.6407841910 /home/ubuntu/daylily-runs/ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun/status.json
+--- /home/ubuntu/daylily-runs/ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun/status.json
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\"]' 'htd_callers=[\"cyrius\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\",\"contam_identity\"]}' -j 200 -p -k --rerun-triggers mtime -n",
+  "completed_at": "2026-05-30T18:13:12Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun",
+  "started_at": "2026-05-30T18:12:53Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun/tmux-bootstrap.log
+--- /home/ubuntu/daylily-runs/ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun/tmux.log
+
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyec-test .
+Remote call detected. Activating conda hack
+ > >> >>>
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_en--output truncated--

@@ -1,0 +1,33 @@
+DAY-EC activated.
+DAY-EC activated.
+=== now ===
+2026-05-30T23:36:54Z
+=== status.json ===
+{
+  "command": "bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260530r57_illumina_run_qc_bclconvert",
+  "started_at": "2026-05-30T21:52:38Z"
+}
+=== slurm ===
+=== fsx ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  8.1T  707G  93% /fsx
+tmpfs                   tmpfs   199G     0  199G   0% /dev/shm
+/dev/root               ext4    408G   42G  367G  11% /
+=== controller processes ===
+2422216 2348153 S+    0.2  0.0       03:14 /home/ubuntu/miniconda3/envs/DAY-EC/bin/python /home/ubuntu/miniconda3/envs/DAY-EC/bin/dyec export --region us-west-2 --cluster dyec-test --source-path /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert --destination-s3-uri s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/ --output-dir /home/ubuntu/daylily-runs/ccv20260530r57_illumina_run_qc_bclconvert/export
+2348153   81703 Ss+   0.0  0.0    01:44:18 bash -lc source /home/ubuntu/daylily-runs/ccv20260530r57_illumina_run_qc_bclconvert/launch.sh >>/home/ubuntu/daylily-runs/ccv20260530r57_illumina_run_qc_bclconvert/tmux.log 2>&1
+=== run-dir projection link ===
+link_absent /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+=== latest snakemake log tail ===
+latest_log=/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/.snakemake/log/2026-05-30T233340.873699.snakemake.log
+WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/workflow/rules/common.smk, line 426:
+The units table was not found at /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/config/units.tsv. Create config/units.tsv or set --config units_table=/path/to/units.tsv.
+  File "/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/workflow/Snakefile", line 66, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/workflow/rules/global_common.smk", line 151, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 1089, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 426, in _load_units_table
+=== export files ===

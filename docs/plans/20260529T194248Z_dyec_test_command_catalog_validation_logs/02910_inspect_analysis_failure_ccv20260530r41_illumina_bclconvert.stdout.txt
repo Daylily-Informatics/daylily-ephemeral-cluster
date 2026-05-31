@@ -1,0 +1,82 @@
+DAY-EC activated.
+DAY-EC activated.
+=== status ===
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": "2026-05-30T14:22:50Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260530r41_illumina_bclconvert",
+  "started_at": "2026-05-30T14:17:42Z"
+}
+=== repo ===
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis
+=== latest snakemake logs ===
+1780150969.0000000000 .snakemake/log/2026-05-30T141803.540434.snakemake.log
+1780150971.0000000000 .snakemake/log/2026-05-30T142250.818146.snakemake.log
+=== latest log path: .snakemake/log/2026-05-30T142250.818146.snakemake.log ===
+1:WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk, line 426:
+=== latest log tail ===
+WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk, line 426:
+The units table was not found at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/units.tsv. Create config/units.tsv or set --config units_table=/path/to/units.tsv.
+  File "/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/workflow/Snakefile", line 66, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/workflow/rules/global_common.smk", line 151, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 1089, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 426, in _load_units_table
+=== rule logs with errors ===
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L007/Logs/Errors.log:1:2026-05-30T14:22:07Z thread 12323 ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003/Logs/Errors.log:1:2026-05-30T14:22:37Z thread 16281 ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L004/Logs/Errors.log:1:2026-05-30T14:22:07Z thread 15195 ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L006/Logs/Errors.log:1:2026-05-30T14:22:07Z thread 12328 ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L001/Logs/Errors.log:1:2026-05-30T14:22:07Z thread 20647 ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L005/Logs/Errors.log:1:2026-05-30T14:22:36Z thread 13409 ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L008/Logs/Errors.log:1:2026-05-30T14:22:37Z thread 23436 ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L002/Logs/Errors.log:1:2026-05-30T14:22:07Z thread 13551 ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L002.log:30:ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L005.log:30:ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L004.log:30:ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.log:30:ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L007.log:30:ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L008.log:30:ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L006.log:30:ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L001.log:30:ERROR: Input run folder does not exist at /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L001.3.err:39:Error in rule run_bclconvert_lane:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L001.3.err:43:    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L001.log (check log file(s) for error details)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L001.3.err:46:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L001.3.err:48:Removing output files of failed job run_bclconvert_lane since they might be corrupted:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L001.3.err:51:Exiting because a job execution failed. Look above for error message
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L003.5.err:39:Error in rule run_bclconvert_lane:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L003.5.err:43:    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.log (check log file(s) for error details)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L003.5.err:46:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L003.5.err:48:Removing output files of failed job run_bclconvert_lane since they might be corrupted:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L003.5.err:51:Exiting because a job execution failed. Look above for error message
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L004.6.err:39:Error in rule run_bclconvert_lane:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L004.6.err:43:    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L004.log (check log file(s) for error details)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L004.6.err:46:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L004.6.err:48:Removing output files of failed job run_bclconvert_lane since they might be corrupted:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L004.6.err:51:Exiting because a job execution failed. Look above for error message
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L007.9.err:39:Error in rule run_bclconvert_lane:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L007.9.err:43:    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L007.log (check log file(s) for error details)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L007.9.err:46:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L007.9.err:48:Removing output files of failed job run_bclconvert_lane since they might be corrupted:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L007.9.err:51:Exiting because a job execution failed. Look above for error message
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L006.8.err:39:Error in rule run_bclconvert_lane:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L006.8.err:43:    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L006.log (check log file(s) for error details)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L006.8.err:46:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L006.8.err:48:Removing output files of failed job run_bclconvert_lane since they might be corrupted:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L006.8.err:51:Exiting because a job execution failed. Look above for error message
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L005.7.err:39:Error in rule run_bclconvert_lane:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L005.7.err:43:    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L005.log (check log file(s) for error details)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L005.7.err:46:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L005.7.err:48:Removing output files of failed job run_bclconvert_lane since they might be corrupted:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L005.7.err:51:Exiting because a job execution failed. Look above for error message
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L002.4.err:39:Error in rule run_bclconvert_lane:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L002.4.err:43:    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L002.log (check log file(s) for error details)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L002.4.err:46:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L002.4.err:48:Removing output files of failed job run_bclconvert_lane since they might be corrupted:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L002.4.err:51:Exiting because a job execution failed. Look above for error message
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L008.10.err:39:Error in rule run_bclconvert_lane:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L008.10.err:43:    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L008.log (check log file(s) for error details)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L008.10.err:46:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L008.10.err:48:Removing output files of failed job run_bclconvert_lane since they might be corrupted:
+logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L008.10.err:51:Exiting because a job execution failed. Look above for error message

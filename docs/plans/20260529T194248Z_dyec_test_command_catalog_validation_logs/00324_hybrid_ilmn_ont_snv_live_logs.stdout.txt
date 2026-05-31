@@ -25,7 +25,7 @@ DAY-EC activated.
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_altair-v1.1/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv
-            
+
 Submitted job 732 with external jobid '1881'.
 [Sat May 30 00:39:10 2026]
 Finished job 741.
@@ -72,7 +72,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/_hg38/snv_TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv
-            
+
 Submitted job 740 with external jobid '1882'.
 [Sat May 30 00:39:20 2026]
 Finished job 738.
@@ -139,7 +139,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/concordance/logs/TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.concordance.log;
-            
+
 Submitted job 731 with external jobid '1889'.
 [Sat May 30 00:40:50 2026]
 Finished job 731.
@@ -190,16 +190,16 @@ Complete log: .snakemake/log/2026-05-29T234102.923194.snakemake.log
 	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
 
 
- 
+
 ]]]]--------WORKFLOW SUCCESS====================]]]]]--
 RETURN CODE: 0
-⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the 
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the
 supported path is `source ./activate`.
 
 ── EXPORT ──
   › Preparing direct FSx export DRA
 2026-05-30 00:41:05,889 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
-  · Attached export DRA dra-014a8e0c63cd7a531 at 
+  · Attached export DRA dra-014a8e0c63cd7a531 at
 /fsx/analysis_results/ubuntu/ccv20260529r7_hybrid_ilmn_ont_snv/
 2026-05-30 00:43:25,618 INFO Task task-06ab5a141c46f73b9 status: PENDING
 2026-05-30 00:43:55,819 INFO Task task-06ab5a141c46f73b9 status: EXECUTING

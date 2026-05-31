@@ -235,7 +235,7 @@ DAY-EC activated.
         test -s {output.demux_stats:q}
         echo "run_bclconvert finished: $(date -Is)" >> {log:q}
         touch {output.done:q}
-        
+
 RETURN CODE: 1
 [INFO] Workflow exited with status 1
 DAY-EC activated.

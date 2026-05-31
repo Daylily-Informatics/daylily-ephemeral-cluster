@@ -1,0 +1,41 @@
+DAY-EC activated.
+DAY-EC activated.
+=== rtg wrapper memory vars ===
+24:# Allow RTG_MEM/RTG_JAVA_OPTS to be set before subcommand name
+26:    if [[ "${1:0:8}" == "RTG_MEM=" ]]; then
+27:        RTG_MEM=${1:8}
+28:    elif [[ "${1:0:14}" == "RTG_JAVA_OPTS=" ]]; then
+29:        RTG_JAVA_OPTS=${1:14}
+31:        echo "Error: expected RTG_MEM=NNg or RTG_JAVA_OPTS=\"<jvm arguments>\", e.g.:"
+32:        echo "    $0 RTG_MEM=16g help"
+39:USER_RTG_MEM=$RTG_MEM
+40:USER_JAVA_OPTS=$RTG_JAVA_OPTS
+102:# Amount of memory to allocate to RTG.  Use G suffix for gigabytes.
+103:# If unset, allow RTG to use up to 90% of available RAM (see RTG_MEM_PCT)
+104:# RTG_MEM="4G"
+105:# Note that memory allocation can also be overridden on a per-command basis, e.g:
+106:# \$ rtg RTG_MEM=24G population ...
+108:# If RTG_MEM is unset, use this percentage of total RAM.
+110:# RTG_MEM_PCT=90
+147:# RTG_JAVA_OPTS="-Djava.io.tmpdir=XXYY -XX:+UseLargePages"
+172:RTG_JAVA_OPTS=''                     # Additional JVM options (e.g.: "-Djava.io.tmpdir=XXYY -XX:+UseLargePages")
+173:RTG_MEM=''                           # Maximum memory for rtg to use (e.g. 48g)
+174:RTG_MEM_PCT=90                       # If RTG_MEM is not defined use this percentage of total RAM
+195:RTG_MEM=${USER_RTG_MEM:-$RTG_MEM}
+196:RTG_JAVA_OPTS=${USER_JAVA_OPTS:-$RTG_JAVA_OPTS}
+197:RTG_JAVA_OPTS_ARRAY=($RTG_JAVA_OPTS)  # explicit word split into array
+216:RTG_MIN_MEM=-Xmx64m                  # Minimal memory just used for java version checking, log sending etc.
+269:RTG_MEM_ARRAY=()
+270:if [[ -z "$RTG_MEM" ]]; then
+271:    RTG_MEM=$("$RTG_JAVA" $RTG_MIN_MEM -cp "$RTG_JAR" com.rtg.util.ChooseMemory $RTG_MEM_PCT)
+272:    if [[ -z "$RTG_MEM" ]]; then
+273:        echo "Could not automatically choose percentage based memory allocation, check configuration. Using Java default." >&2
+275:        RTG_MEM_ARRAY+=("-Xmx$RTG_MEM")
+278:    RTG_MEM_ARRAY+=("-Xmx$RTG_MEM")
+299:"$RTG_JAVA" -Djava.library.path="$THIS_DIR" -XX:ErrorFile=$HSLOG "${RTG_JAVA_OPTS_ARRAY[@]}" "$RTG_REFERENCES_DIR" "$RTG_MODELS_DIR" "${RTG_USAGE_ARRAY[@]}" "${RTG_PROXY_ARRAY[@]}" "${RTG_DEFAULT_THREADS_ARRAY[@]}" $RTG_TALKBACK "${RTG_MEM_ARRAY[@]}" -jar "$RTG_JAR" "$@"
+302:    if grep -q "insufficient memory" "$HSLOG"; then
+303:        echo "The operating system did not make requested memory available to the JVM.  Try removing other jobs on this machine, adjusting allocated memory appropriate to currently available memory, or adjusting command parameters to reduce memory requirements.  More information is contained in the file: $HSLOG" >&2
+=== rtg version usage ===
+                                JavaScript expression. Use the form
+  -T, --threads=INT             number of threads (Default is the number of
+=== config rtg block ===

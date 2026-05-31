@@ -69,7 +69,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.concordance.log;
-            
+
 Submitted job 1 with external jobid '115'.
 [Fri May 29 21:20:25 2026]
 Finished job 57.

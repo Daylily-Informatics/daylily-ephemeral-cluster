@@ -1,0 +1,16 @@
+DAY-EC activated.
+DAY-EC activated.
+workflow/rules/sent_hybrid_ilmn_pb_modular.refactored.smk:706:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log} && exit 1)
+workflow/rules/sent_hybrid_ug_ont_modular.refactored.smk:371:rule sentdhuomr_stage1:
+workflow/rules/sent_hybrid_ug_ont_modular.refactored.smk:511:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log} && exit 1)
+workflow/rules/to-deprecate/sent_hybrid_roche_ont_modular.smk:472:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log} && exit 1)
+workflow/rules/to-deprecate/sent_hybrid_ilmn_pb_modular.smk:577:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log} && exit 1)
+workflow/rules/to-deprecate/sent_hybrid_ug_ont_modular.smk:476:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log} && exit 1)
+workflow/rules/sent_hybrid_ilmn_ont_modular.refactored.smk:800:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log} && exit 1)
+workflow/rules/sent_hybrid_ilmn_pb_modular.refactored.smk:706:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log} && exit 1)
+workflow/rules/sent_hybrid_ug_ont_modular.refactored.smk:371:rule sentdhuomr_stage1:
+workflow/rules/sent_hybrid_ug_ont_modular.refactored.smk:511:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log} && exit 1)
+workflow/rules/to-deprecate/sent_hybrid_roche_ont_modular.smk:472:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log} && exit 1)
+workflow/rules/to-deprecate/sent_hybrid_ilmn_pb_modular.smk:577:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log} && exit 1)
+workflow/rules/to-deprecate/sent_hybrid_ug_ont_modular.smk:476:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log} && exit 1)
+workflow/rules/sent_hybrid_ilmn_ont_modular.refactored.smk:800:                (echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log} && exit 1)

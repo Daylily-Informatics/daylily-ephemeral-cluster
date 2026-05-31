@@ -404,6 +404,11 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'echo "[ERROR] day_activate failed with status $activate_status"' in script
         assert ". bin/day_activate slurm hg38 remote" in script
         assert "bin/day_run" in script
+        assert 'local links_dir="$repo_path/config/run_dir_links"' in script
+        assert 'if ! remove_run_dir_projection_links; then' in script
+        assert script.index("remove_run_dir_projection_links") < script.index(
+            "env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export"
+        )
         assert "env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export" in script
         assert "dyec export \\\n      --profile" not in script
         assert "DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID=" in script
@@ -656,17 +661,52 @@ class TestRunOmicsAnalysisHeadnodeScript:
         script = mock_run_shell.call_args.args[2]
         assert "bclconvert_runtime_tables_requested" in script
         assert "generate_bclconvert_runtime_tables" in script
+        assert "project_run_context_mounts" in script
         assert "patch_bclconvert_profile_config" in script
-        assert "patch_bclconvert_scratch_output_move" in script
-        assert 'replace_required_scalar("staging_mode", "mounted_dev_shm")' in script
-        assert 'scratch_root = str(Path.cwd() / ".bclconvert_scratch")' in script
-        assert 'replace_required_scalar("scratch_root", scratch_root)' in script
-        assert 'replace_required_scalar("tmpdir", scratch_root)' in script
+        assert "patch_bclconvert_lane_split" in script
+        assert 'replace_required_scalar("staging_mode", "direct")' in script
+        assert 'replace_required_scalar("scratch_root", "/dev/shm/dayoa_bclconvert")' in script
+        assert 'replace_required_scalar("tmpdir", "/dev/shm")' in script
         assert 'replace_required_scalar("scratch_size_multiplier", "1")' in script
         assert 'replace_required_scalar("force", "true")' in script
-        assert "Moving BCLConvert outputs from scratch to result tree" in script
-        assert "${{scratch_run_dir:-}}" in script
-        assert 'rm -rf "$scratch_run_dir"' in script
+        assert 'replace_required_scalar("parallel_tiles", "16")' in script
+        assert 'replace_required_scalar("conversion_threads", "8")' in script
+        assert 'replace_required_scalar("compression_threads", "48")' in script
+        assert 'replace_required_scalar("decompression_threads", "16")' in script
+        assert 'upsert_scalar("output_legacy_stats", "true")' in script
+        assert 'upsert_scalar("sample_sheet_settings", "{}")' in script
+        assert "gzip.decompress" in script
+        assert "base64.b64decode" in script
+        assert "dyec_run_bclconvert_lane.sh" in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
+        assert (
+            "dyec_prepare_bclconvert_lane_samplesheet.py"
+            in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
+        )
+        assert "--bcl-only-lane" in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
+        assert "--bind /fsx:/fsx" in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
+        assert "--output-legacy-stats" in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
+        assert (
+            "--num-unknown-barcodes-reported"
+            in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
+        )
+        assert "localrules_patch" in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
+        assert "    run_bclconvert,\\n" in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
+        assert (
+            "    bclconvert_metrics_summary,\\n"
+            in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
+        )
+        assert (
+            "    bclconvert_generate_units_tsv,\\n"
+            in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
+        )
+        assert "DYEC_BCLCONVERT_LANE_SPLIT_PATCH = True" in (
+            run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
+        )
+        assert (
+            "BCL_SAMPLE_SHEET_SETTING_CONFIG_KEYS"
+            in run_omics_module.BCLCONVERT_LANE_SPLIT_PATCH_SCRIPT
+        )
+        assert "Untested pending feature" in script
         assert "BCLCONVERT_PROFILE_PATCH_REQUESTED=true" in script
         assert "BCLConvert_Data" in script
         assert "SAMPLE_SHEET" in script
@@ -972,6 +1012,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "patch_rtg_vcfeval_parse_output_dir" in script
         assert "if rtg_vcfeval_parse_runtime_repair_requested; then" in script
         assert 'mkdir -p "$(dirname {output.mqc})"' in script
+        assert 'rtg_mem_gb=$(( ({resources.mem_mb} * 85 / 100 + 1023) / 1024 ))' in script
+        assert 'RTG_MEM="${{rtg_mem_gb}}G" rtg vcfeval' in script
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",
@@ -1057,11 +1099,20 @@ class TestRunOmicsAnalysisHeadnodeScript:
             "READ_HAPS_FAILED: read_haps exited with status %s or wrote no usable QC table."
             in script
         )
+        assert "READ_HAPS_UNAVAILABLE: read_haps command is unavailable" in script
+        assert "READ_HAPS_MARKERS_UNAVAILABLE" in script
+        assert 'if [[ \\"$read_haps_rc\\" != \\"0\\" ]]' in script
+        assert '\\"$read_haps_rc\\" >> {log:q}' in script
         assert "read_haps_empty_failure_old" in script
-        assert "command -v {params.command:q} > /dev/null" in script
-        assert "test -s {params.reliable_snp_file:q}" in script
+        assert "read_haps_strict_precheck_old" in script
+        assert "if ! command -v {params.command:q} > /dev/null; then" in script
+        assert "elif [[ ! -s {params.reliable_snp_file:q} ]]; then" in script
+        assert "hybrid_ultima_ont_stage1_runtime_repair_requested" in script
+        assert "patch_hybrid_ultima_ont_stage1_assertion" in script
+        assert "ReadSequenceKmerGraphBuilder.*kmerSize >= 1" in script
         assert "if vep_zero_variant_runtime_repair_requested; then" in script
         assert "if contam_identity_zero_variant_runtime_repair_requested; then" in script
+        assert "if hybrid_ultima_ont_stage1_runtime_repair_requested; then" in script
 
     @patch(
         "daylily_ec.scripts.daylily_run_omics_analysis_headnode.run_shell",

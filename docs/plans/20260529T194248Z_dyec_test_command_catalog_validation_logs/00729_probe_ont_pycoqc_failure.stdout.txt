@@ -79,7 +79,7 @@ Traceback (most recent call last):
 ValueError: sort array is read-only
 === nanoplot log tail ===
 /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/bin/NanoPlot
-WARNING:root:Plotly could not fetch or find Chrome automatically. Static exports may fail unless BROWSER_PATH is set. Details: 
+WARNING:root:Plotly could not fetch or find Chrome automatically. Static exports may fail unless BROWSER_PATH is set. Details:
 This command requires Kaleido v1.0.0 or greater.
 Install it using `pip install 'kaleido>=1.0.0'` or `pip install 'plotly[kaleido]'`."
 

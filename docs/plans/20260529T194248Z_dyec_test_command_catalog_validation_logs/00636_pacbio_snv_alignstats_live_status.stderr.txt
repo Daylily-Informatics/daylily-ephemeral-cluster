@@ -1,2 +1,2 @@
-✗ SSM command '4c0c5083-c943-4af7-8ac4-e2bd8f2462c9' failed with status=Failed 
+✗ SSM command '4c0c5083-c943-4af7-8ac4-e2bd8f2462c9' failed with status=Failed
 rc=1

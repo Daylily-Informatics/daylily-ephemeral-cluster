@@ -1,0 +1,207 @@
+DAY-EC activated.
+DAY-EC activated.
+=== timestamp ===
+2026-05-30T13:16:04Z
+=== top-level tree ===
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Data
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Data/Intensities
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InstrumentAnalyticsLogs
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C1.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C10.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C100.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C101.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C102.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C103.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C104.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C105.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C106.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C107.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C108.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C109.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C11.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C110.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C111.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C112.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C113.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C114.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C115.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C116.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C117.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C118.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C119.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C12.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C120.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C121.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C122.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C123.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C124.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C125.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C126.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C127.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C128.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C129.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C13.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C130.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C131.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C132.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C133.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C134.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C135.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C136.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C137.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C138.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C139.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C14.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C140.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C141.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C142.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C143.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C144.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C145.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C146.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C147.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C148.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C149.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C15.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C150.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C151.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C152.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C153.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C154.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C155.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C156.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C157.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C158.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C159.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C16.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C160.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C161.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C162.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C163.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C164.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C165.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C166.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C167.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C168.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C169.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C17.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C170.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C171.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C172.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C173.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C174.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C175.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C176.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C177.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C178.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C179.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C18.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C180.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C181.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C182.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C183.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C184.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C185.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C186.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C187.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C188.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C189.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C19.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C190.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C191.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C192.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C193.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C194.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C195.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C196.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C197.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C198.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C199.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C2.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C20.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C200.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C201.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C202.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C203.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C204.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C205.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C206.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C207.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C208.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C209.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C21.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C210.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C211.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C212.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C213.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C214.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C215.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C216.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C217.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C218.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C219.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C22.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C220.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C221.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C222.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C223.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C224.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C225.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C226.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C227.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C228.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C229.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C23.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C230.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C231.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C232.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C233.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C234.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C235.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C236.1
+d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp/C237.1
+=== component byte sizes ===
+total_run	3415517684224	3.2T	78893
+basecalls	3415224586752	3.2T	11424
+intensities_top	3415276697088	3.2T	11425
+data	3415276730368	3.2T	11425
+interop	181571584	174M	4453
+analysis	9946112	9.5M	1234
+recipes	0	missing	0
+logs	35328	35K	4
+thumbnails	44249600	43M	61440
+root_files	0	missing	0
+=== root and intensity top file bytes ===
+root_file_bytes	4536017
+intensities_file_bytes	52032652
+basecalls_bytes	3415224586752
+interop_bytes	181571584
+total_bytes	3415517684224
+current_bcl_staged_bytes	3415281155421
+runqc_core_bytes_root_plus_interop	186107601
+pct_total_of_total	100.0000
+pct_basecalls_of_total	99.9914
+pct_bcl_of_total	99.9931
+pct_runqc_of_total	0.0054
+pct_interop_of_total	0.0053
+=== current scratch output ===
+1469920057344	/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs
+1.4T	/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs
+257
+=== current fsx ===
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  7.9T  895G  90% /fsx
+d4tzvb4v-MDT0000_UUID      275.0G       10.4G      264.6G   4% /fsx[MDT:0]
+d4tzvb4v-OST0000_UUID        1.1T      989.2G      124.9G  89% /fsx[OST:0]
+d4tzvb4v-OST0001_UUID        1.1T      997.1G      117.0G  90% /fsx[OST:1]
+d4tzvb4v-OST0002_UUID        1.1T     1002.3G      111.8G  90% /fsx[OST:2]
+d4tzvb4v-OST0003_UUID        1.1T     1002.8G      111.3G  91% /fsx[OST:3]
+d4tzvb4v-OST0004_UUID        1.1T        1.0T       84.1G  93% /fsx[OST:4]
+d4tzvb4v-OST0005_UUID        1.1T      994.4G      119.8G  90% /fsx[OST:5]
+d4tzvb4v-OST0006_UUID        1.1T      990.0G      124.1G  89% /fsx[OST:6]
+d4tzvb4v-OST0007_UUID        1.1T     1012.9G      101.2G  91% /fsx[OST:7]
+
+filesystem_summary:         8.7T        7.8T      894.2G  90% /fsx

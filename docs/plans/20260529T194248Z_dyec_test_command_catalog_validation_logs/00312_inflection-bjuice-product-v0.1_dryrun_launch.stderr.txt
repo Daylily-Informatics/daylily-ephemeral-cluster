@@ -1,2 +1,2 @@
-✗ Unexpected error: SSM command '427d923c-950e-4ae9-a710-ca5cc246e313' failed 
+✗ Unexpected error: SSM command '427d923c-950e-4ae9-a710-ca5cc246e313' failed
 with status=Failed rc=1

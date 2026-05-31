@@ -15,7 +15,7 @@ DAY-EC activated.
               -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
               --threads 16 \
               > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.clinvar_genes.rtg_vcfeval.log 2>&1
-            
+
 Submitted job 19 with external jobid '33'.
 
 [Fri May 29 21:11:59 2026]
@@ -47,7 +47,7 @@ rule rtg_vcfeval_roi:
               -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
               --threads 16 \
               > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC.rtg_vcfeval.log 2>&1
-            
+
 Submitted job 21 with external jobid '34'.
 
 [Fri May 29 21:11:59 2026]
@@ -79,7 +79,7 @@ rule rtg_vcfeval_roi:
               -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
               --threads 16 \
               > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.hg38_m_giabHC.rtg_vcfeval.log 2>&1
-            
+
 Submitted job 27 with external jobid '35'.
 
 [Fri May 29 21:11:59 2026]
@@ -111,7 +111,7 @@ rule rtg_vcfeval_roi:
               -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
               --threads 16 \
               > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC_x_clinvar_genes.rtg_vcfeval.log 2>&1
-            
+
 Submitted job 23 with external jobid '36'.
 [Fri May 29 21:11:59 2026]
 Finished job 0.
@@ -124,7 +124,7 @@ Error in rule rtg_vcfeval_roi:
     log: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.hg38_m_giabHC.rtg_vcfeval.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/2dc9c608977f6d7c6253f8d381138ed4_
     shell:
-        
+
             set -euo pipefail
             export TMPDIR="/fsx/scratch/"
             outdir="$(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/summary.txt)"
@@ -141,7 +141,7 @@ Error in rule rtg_vcfeval_roi:
               -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
               --threads 16 \
               > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.hg38_m_giabHC.rtg_vcfeval.log 2>&1
-            
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
     cluster_jobid: 35
 
@@ -178,7 +178,7 @@ rule rtg_vcfeval_roi:
               -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
               --threads 16 \
               > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.hg38_m_giabHC.rtg_vcfeval.log 2>&1
-            
+
 Submitted job 27 with external jobid '99'.
 [Fri May 29 21:18:30 2026]
 Error in rule rtg_vcfeval_roi:
@@ -188,7 +188,7 @@ Error in rule rtg_vcfeval_roi:
     log: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC.rtg_vcfeval.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/2dc9c608977f6d7c6253f8d381138ed4_
     shell:
-        
+
             set -euo pipefail
             export TMPDIR="/fsx/scratch/"
             outdir="$(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/summary.txt)"
@@ -205,7 +205,7 @@ Error in rule rtg_vcfeval_roi:
               -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
               --threads 16 \
               > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC.rtg_vcfeval.log 2>&1
-            
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
     cluster_jobid: 34
 
@@ -242,7 +242,7 @@ rule rtg_vcfeval_roi:
               -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
               --threads 16 \
               > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.giabHC.rtg_vcfeval.log 2>&1
-            
+
 Submitted job 21 with external jobid '100'.
 [Fri May 29 21:18:40 2026]
 Error in rule rtg_vcfeval_roi:

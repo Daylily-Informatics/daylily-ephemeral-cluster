@@ -364,3 +364,618 @@ Default-mounted test-data roots observed on `dyec-test`:
 | `/fsx/control_data/genomic_data/organism_reads_slim` | Control-data-backed catalog-validation read fixtures in the default control-data mount. | Same policy: use the already mounted path unless a manifest row explicitly requires copied/staged data. |
 
 DYEC catalog update: source and packaged `daylily_available_repositories.yaml` now include a first-class `test_data_locations` section recording the two default-mounted roots, their S3 origins, and the no-per-command-DRA staging policy for sample-analysis catalog validation. The repository-catalog model and tests now expose this metadata in `dyec repositories commands` output.
+
+## Direct Config And Current DRA Cleanup Checkpoint: 2026-05-30T12:46Z
+
+Implementation update:
+
+| Area | Status | Evidence |
+|---|---|---|
+| Catalog metadata | DONE | `config/daylily_available_repositories.yaml` and packaged catalog now include `test_data_locations` for `/fsx/references/genomic_data/organism_reads_slim` and `/fsx/control_data/genomic_data/organism_reads_slim`. |
+| Direct sample config | DONE | `dyec samples stage --config-only` now has focused test coverage and the validation driver uses it for sample-analysis rows, then launches with `--samples-file` and `--units-file`. This avoids creating sample-staging DRAs when inputs are already on default mounts. |
+| HG002 0.1x input | DONE | `docs/plans/20260526T223700Z_goodole3_inputs/illumina_0p1x_kitchensink.tsv` now uses `STAGE_DIRECTIVE=pass_through` and `/fsx/control_data/genomic_data/organism_reads/.../HG002_0.1x_R{1,2}.fastq.gz`. Headnode readback found both files: 81,330,606 bytes and 83,356,045 bytes. |
+| Roche rerun | SUCCESS | Manual takeover status showed `ccv20260529r45_roche_snv_alignstats` completed `exit_code=0` at `2026-05-30T12:43:49Z`; export verification returned success. |
+| Ultima kitchensink rerun | SUCCESS | Manual takeover status showed `ccv20260529r43_ultima_snv_alignstats_kitchensink` completed `exit_code=0` at `2026-05-30T12:45:22Z`; export verification returned success. |
+| BCL | ACTIVE | `ccv20260529r39_illumina_bclconvert` still has `exit_code=null`; Slurm job `3310` remains running on `i192mem-dy-all-1`. |
+
+Focused verification:
+
+| UTC | Command | Result |
+|---|---|---|
+| 2026-05-30T12:38Z | `python -m pytest -q tests/test_repository_catalog.py::test_repository_catalog_loads_initial_blessed_command tests/test_repository_catalog.py::test_repositories_commands_json_cli_lists_blessed_command` | `2 passed` |
+| 2026-05-30T12:38Z | `python -m ruff check daylily_ec/repositories.py tests/test_repository_catalog.py` | `All checks passed!` |
+| 2026-05-30T12:44Z | `python -m pytest -q tests/test_stage_samples_from_local_to_headnode.py::test_main_config_only_writes_local_configs_without_remote_stage tests/test_stage_samples_from_local_to_headnode.py::test_main_config_only_rejects_stage_data_rows tests/test_script_entrypoints.py::TestRunOmicsAnalysisHeadnodeScript::test_main_launches_sample_config_workflow_without_stage_discovery tests/test_repository_catalog.py::test_repository_catalog_loads_initial_blessed_command tests/test_repository_catalog.py::test_repositories_commands_json_cli_lists_blessed_command` | `5 passed` |
+| 2026-05-30T12:44Z | `python -m py_compile daylily_ec/stage_samples.py daylily_ec/scripts/daylily_run_omics_analysis_headnode.py daylily_ec/cli.py daylily_ec/repositories.py docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/dyec_test_catalog_driver.py` | rc 0 |
+
+Current active DRA policy:
+
+| Association / Mount | Path | Action |
+|---|---|---|
+| `dra-0b23a4135c9f0f6c6` / static reference | `/references/` | keep; default catalog validation data mount |
+| `dra-031a4de5c6080fe7d` / `control_data` | `/control_data/` | keep; default control/test-data mount |
+| `dra-0283f1688c923752e` / `20260513_ONT_HG003` | `/run_dir_mounts/20260513_ONT_HG003/` | keep for now as the single ONT run-type mount |
+| `dra-0dae86e536847afcf` / `20260514_LH01106_0009_B23TVLGLT4` | `/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/` | keep while active BCL and BCL-QC follow-up remain possible |
+| `dra-067d4dee6f914c51a` / `remote_stage_20260530T120339Z_641bf958` | `/staging/staged_external_sequencing_data/remote_stage_20260530T120339Z_641bf958/` | delete after explicit confirmation; validation-created Ultima staging DRA now exported |
+| `dra-0fa69e6d5abc701b5` / `remote_stage_20260530T121339Z_ff9aca41` | `/staging/staged_external_sequencing_data/remote_stage_20260530T121339Z_ff9aca41/` | delete after explicit confirmation; validation-created Roche staging DRA now exported |
+
+Confirmation requested in chat: `CONFIRM DELETE CURRENT STAGING DRAS` for only the two listed `remote_stage_*` staging associations. No S3 object deletion is proposed.
+
+## Post-Cleanup Catalog State Checkpoint: 2026-05-30T12:55Z
+
+Unmount cleanup executed for the two current staging DRAs only:
+
+| Mount ID | Association | Action |
+|---|---|---|
+| `remote_stage_20260530T120339Z_641bf958` | `dra-067d4dee6f914c51a` | deleted/unmounted |
+| `remote_stage_20260530T121339Z_ff9aca41` | `dra-0fa69e6d5abc701b5` | deleted/unmounted |
+
+Current DYEC-visible mounts after cleanup:
+
+| Mount ID | Platform | Purpose | Path | State |
+|---|---|---|---|---|
+| `20260513_ONT_HG003` | ONT | run | `/fsx/run_dir_mounts/20260513_ONT_HG003/` | `AVAILABLE` |
+| `20260514_LH01106_0009_B23TVLGLT4` | ILMN | run | `/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/` | `AVAILABLE` |
+| `control_data` | OTHER | control-data | `/fsx/control_data/` | `AVAILABLE` |
+
+The static reference DRA is still present outside the DYEC mount registry view at `/fsx/references/`; catalog metadata now records `/fsx/references/genomic_data/organism_reads_slim` and `/fsx/control_data/genomic_data/organism_reads_slim` as the default mounted test-data roots.
+
+Current catalog rollup:
+
+| Command ID | State | Evidence |
+|---|---|---|
+| `simple-test` | PASS | dry-run `rc=0`, live `ccv20260529r20_simple-test rc=0`, export verified. |
+| `illumina_snv_alignstats` | PASS | dry-run `rc=0`, live `ccv20260529r7_illumina_snv_alignstats rc=0`, export verified. |
+| `illumina_snv_alignstats_relatedness_vep_multiqc` | PASS | dry-run `rc=0`, live `ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc rc=0`, export verified. |
+| `illumina_hg002_kitchensink_multiqc` | NEEDS RERUN | prior live `ccv20260529r40 rc=1`; stale post-edit config failure was fixed, and manual config-only recheck now passes with 32 source objects checked. |
+| `ultima_snv_alignstats` | PASS | dry-run `rc=0`, live `ccv20260529r33_ultima_snv_alignstats rc=0`, export verified. |
+| `ultima_snv_alignstats_kitchensink` | PASS | rerun `ccv20260529r43_ultima_snv_alignstats_kitchensink rc=0`, export verified after earlier failed run. |
+| `ont_snv_alignstats` | PASS | dry-run `rc=0`, live `ccv20260529r35_ont_snv_alignstats rc=0`, export verified. |
+| `ont_snv_alignstats_kitchensink` | PASS | dry-run `rc=0`, live `ccv20260529r35_ont_snv_alignstats_kitchensink rc=0`, export verified. |
+| `pacbio_snv_alignstats` | PASS | dry-run `rc=0`, live `ccv20260529r41_pacbio_snv_alignstats rc=0`, export verified. |
+| `roche_snv_alignstats` | PASS | rerun `ccv20260529r45_roche_snv_alignstats rc=0`, export verified with Sentieon command. |
+| `hybrid_ilmn_ont_snv` | PASS | dry-run `rc=0`, live `ccv20260529r7_hybrid_ilmn_ont_snv rc=0`, export verified. |
+| `hybrid_ilmn_ont_snv_kitchensink` | NEEDS LIVE RERUN | prior live `ccv20260529r7 rc=1`; direct default-mounted config-only dry-run `ccv20260529r47_hybrid_ilmn_ont_snv_kitchensink_dryrun rc=0`. |
+| `inflection-bjuice-product-v0.1` | PASS | dry-run `rc=0`, live `ccv20260529r10_inflection-bjuice-product-v0.1 rc=0`, export verified. |
+| `hybrid_ultima_ont_snv` | NEEDS LIVE RERUN | prior live `ccv20260529r9 rc=1`; direct default-mounted config-only dry-run `ccv20260529r47_hybrid_ultima_ont_snv_dryrun rc=0`. |
+| `complete_genomics_mgi_snv_concordance` | DRY-RUN ONLY | `ccv20260529r29_complete_genomics_mgi_snv_concordance_dryrun rc=0`; live still blocked by unverified valid CG/MGI mate pair. |
+| `illumina_run_qc` | PASS | dry-run `rc=0`, live `ccv20260529r11_illumina_run_qc rc=0`, export verified. |
+| `illumina_bclconvert` | RUNNING | r39 dry-run `rc=0`; live `ccv20260529r39_illumina_bclconvert` started `2026-05-30T10:10:02Z`, Slurm job `3310` still running on `i192mem-dy-all-1`. |
+| `illumina_run_qc_bclconvert` | WAITING/RERUN | prior live `ccv20260529r15 rc=1`; rerun deferred until standalone BCL r39 terminalizes. |
+| `ont_run_qc` | PASS | rerun/manual terminal evidence `ccv20260529r22_ont_run_qc rc=0`, export complete and delete-on-export-success applied. |
+| `ultima_run_qc` | PASS | dry-run `rc=0`, live `ccv20260529r14_ultima_run_qc rc=0`, export verified. |
+
+## BCL Compute Health Checkpoint: 2026-05-30T13:09Z
+
+User requested direct compute-node inspection for active BCL Convert run `ccv20260529r39_illumina_bclconvert`. Inspection used SSM as `ubuntu` on compute instance `i-04e394f2997bb66d9` / `i192mem-dy-all-1`.
+
+Current status:
+
+| Item | Value |
+|---|---|
+| Slurm job | `3310`, partition `i192mem`, state `R` |
+| BCL process | `/usr/local/bin/bcl-convert`, PID `73008` |
+| Process elapsed | about `2:14` at snapshot |
+| Threads | `222` |
+| CPU | aggregate about `984%`; active worker threads visible |
+| Memory | RSS about `86.9G`; node has `755G` RAM and about `633G` available |
+| Process I/O | about `1.0T` read and `1.38T` written |
+| Scratch input | `.bclconvert_scratch/3310.25321/run`, about `3.2T` |
+| Scratch output | `.bclconvert_scratch/3310.25321/fastqs`, about `1.3T` and `257` files |
+| Output growth sample | +`3,236,757,504` bytes in 20 seconds |
+| FSx usage | `8.8T` total, `7.8T` used, about `976G` free, about `90%` used |
+
+BCL command currently running:
+
+```text
+singularity exec docker://nfcore/bclconvert:4.0.3 bcl-convert \
+  --bcl-input-directory /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/run \
+  --output-directory /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs \
+  --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv \
+  --strict-mode false \
+  --first-tile-only false \
+  --bcl-sampleproject-subdirectories false \
+  --fastq-gzip-compression-level 1 \
+  --bcl-num-parallel-tiles 8 \
+  --bcl-num-conversion-threads 8 \
+  --bcl-num-compression-threads 12 \
+  --bcl-num-decompression-threads 4 \
+  --shared-thread-odirect-output false \
+  -f
+```
+
+Assessment: job is actively running and writing FASTQs, not hung. Do not launch more heavy FSx consumers while this is running. Main risk is free FSx capacity, because input staging plus output currently occupies about `4.4T` in scratch.
+
+CG/MGI correction: current validation manifest still uses the bad control-data pair under `genomic_data/organism_reads/H_sapiens/giab/MGI/mgi_reads/ML150002521_L01_UDB-386_{1,2}.fq.gz`, where R2 is far smaller. The control-data bucket also contains a better Complete Genomics set under `genomic_data/organism_reads/H_sapiens/complete_genomics/`; for HG003, `T7plus_WGS_PE150_HG003_PCR_Free_Read_1.fq.gz` is `117.3 GiB` and `_Read_2.fq.gz` is `119.0 GiB`. Use that pair for the live CG/MGI catalog row.
+
+## BCL Stop/Cleanup And DYEC Runtime Patch: 2026-05-30T13:27Z
+
+User requested stopping the active standalone BCL Convert controller and removing only the writable r39 analysis/scratch copy, not the read-only DRA-mounted Illumina run directory.
+
+Evidence:
+
+| Row | Evidence |
+|---|---|
+| Controller stop | `02873_user_requested_kill_r39_bclconvert_controller.*` killed tmux session `ccv20260529r39_illumina_bclconvert`; first script exited `rc=1` after the tmux kill because of a local shell-template bug before Slurm cancellation. |
+| Slurm cancellation | `02874_user_requested_cancel_r39_bclconvert_slurm_and_status.*` cancelled Slurm job `3310`; matching Slurm jobs were absent afterward. |
+| Analysis cleanup | `02875_user_confirmed_delete_r39_bclconvert_analysis_and_scratch_copy.*` removed `/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert`, including `.bclconvert_scratch`; `/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4` was preserved. |
+| FSx recovery | `/fsx` changed from `8.8T` total / `7.9T` used / `849G` free / `91%` to `8.8T` total / `6.0T` used / `2.8T` free / `69%`. |
+| BCL flags | `02876_inspect_bclconvert_403_help_flags.*` captured `bcl-convert Version 00.000.000.4.0.3` help from `docker://nfcore/bclconvert:4.0.3`; lane splitting is supported via `--bcl-only-lane`. |
+
+DYEC code change in progress:
+
+- `daylily_run_omics_analysis_headnode.py` now projects run-context `RUN_DIR` values into the cloned analysis workspace as symlinks under `config/run_dir_links/` and rewrites child paths such as `SAMPLE_SHEET` to use those symlinks.
+- BCL profile patch now forces `staging_mode=direct`, `/dev/shm` temp roots, `threads=192`, `partition=i192mem`, `force=true`, and an explicit full-thread first-pass allocation of `parallel_tiles=16`, `conversion_threads=8`, `compression_threads=3`, `decompression_threads=1`, `fastq_gzip_compression_level=1`, `shared_thread_odirect_output=false`.
+- BCL cloned-rule patch now writes helper scripts and replaces DayOA `run_bclconvert` with per-lane `run_bclconvert_lane` jobs using `--bcl-only-lane`, one 192-thread exclusive Slurm job per detected `L###`, followed by a merge rule for FASTQs and BCL Convert reports.
+- Focused validation after cleanup/code repair: `python -m py_compile daylily_ec/scripts/daylily_run_omics_analysis_headnode.py`, `python -m pytest -q tests/test_script_entrypoints.py::TestRunOmicsAnalysisHeadnodeScript::test_main_generates_bclconvert_run_context_tables`, and `python -m ruff check daylily_ec/scripts/daylily_run_omics_analysis_headnode.py tests/test_script_entrypoints.py` all passed.
+
+## BCL Aggressive Flags, Dormant Sample-Sheet Injection, And Illuminate Spike: 2026-05-30T14:35Z
+
+Updates:
+
+- BCL aggressive flags were revised to Illumina's CPU-heavy thread formula: `parallel_tiles=16`, `conversion_threads=8`, `compression_threads=48`, `decompression_threads=16`, for `16*8 + 48 + 16 = 192` CPU-heavy threads per lane job.
+- Legacy BCL Convert stats are enabled through `output_legacy_stats=true`, and `num_unknown_barcodes_reported=10000` is exposed for a larger unknown-barcode dump.
+- Optional sample-sheet setting injection is present but deliberately dormant for this validation. Defaults are empty or `{}`, so generated lane sample sheets are content-identical unless explicit config is supplied.
+- The dormant injection layer can accept `AdapterRead1`, `AdapterRead2`, `AdapterBehavior`, `AdapterStringency`, `MinimumAdapterOverlap`, `BarcodeMismatchesIndex1`, `BarcodeMismatchesIndex2`, `CreateFastqForIndexReads`, `MinimumTrimmedReadLength`, `MaskShortReads`, `OverrideCycles`, `SoftwareVersion`, `TrimUMI`, and `NoLaneSplitting` via direct `bclconvert.<snake_case>` keys, `bclconvert.sample_sheet_settings`, or per-lane `bclconvert.sample_sheet_settings_by_lane`.
+- Per-lane injection is marked in generated code as an untested pending feature and is not exercised by current command-catalog validation.
+- `02878_report_ilmn_samplesheet_dual_index_pairs.*` captured the 41 dual-index sample rows from `/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv`.
+- `02879_illuminate_interop_spike_on_ilmn_run.*` failed before parsing because current `bitstring` no longer exports `BitString`.
+- `02880_illuminate_interop_spike_old_bitstring_retry.*` retried with `bitstring<4`; import proceeded, but `illuminate` failed on this modern run with `InteropFileNotFoundError: No suitable binary found for index`. Treat `illuminate` as not useful for the validation-critical path.
+
+Focused validation:
+
+- `python -m py_compile daylily_ec/scripts/daylily_run_omics_analysis_headnode.py`: passed.
+- Local DayOA lane-split patch smoke: generated helpers, `bash -n` on `dyec_run_bclconvert_lane.sh`, `py_compile` on both helper Python scripts, and empty-settings sample-sheet copy identity check passed.
+- `python -m pytest -q tests/test_script_entrypoints.py::TestRunOmicsAnalysisHeadnodeScript::test_main_generates_bclconvert_run_context_tables`: passed.
+- `python -m ruff check daylily_ec/scripts/daylily_run_omics_analysis_headnode.py tests/test_script_entrypoints.py`: passed.
+- `git diff --check`: passed.
+
+Runtime dry-run:
+
+- `02881_illumina_bclconvert_dryrun_launch.*` failed before remote execution with AWS `MaxDocumentSizeExceeded`; the literal embedded lane-split helper script pushed the SSM Run Command payload over 97 KB.
+- DYEC now gzip/base64-compresses the large lane-split Python patch before embedding it in the remote headnode script. Local generated-script measurement was about 55 KB after compression.
+- `02882_illumina_bclconvert_dryrun_launch.*`, `02883/02884_status.*`, and `02885_logs.*` show patched `illumina_bclconvert` dry-run `ccv20260530r41_illumina_bclconvert_dryrun` reached `exit_code=0`.
+- Dry-run evidence shows eight per-lane jobs (`L001`-`L008`) using direct projected run-dir input, `--bcl-only-lane`, aggressive flags `16 8 48 16`, `--output-legacy-stats true`, `--num-unknown-barcodes-reported 10000`, and empty sample-sheet injection payloads `{}` / `{}`.
+
+## BCL Live Retry Bind Fix: 2026-05-30T14:36Z
+
+Updates:
+
+- `ccv20260530r41_illumina_bclconvert` live failed quickly with `exit_code=1`.
+- Failure evidence in `02910_inspect_analysis_failure_ccv20260530r41_illumina_bclconvert.*`: every lane reported `ERROR: Input run folder does not exist at .../config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4`.
+- Host visibility evidence in `02911_manual_bcl_symlink_probe.*`: the projected run-dir symlink exists and resolves on both the headnode and `i192mem-dy-all-1`, and the DRA-mounted run directory is present on both hosts.
+- Root cause: the generated lane helper invoked `singularity exec` without explicitly binding `/fsx`, so the container could see the working directory but not necessarily the symlink target behind the projected DRA run-dir path.
+- DYEC fix: generated lane helper now uses and logs `singularity exec --bind /fsx:/fsx ...` for both the BCL Convert version probe and the real BCL Convert invocation.
+- Focused validation after the bind fix passed: `python -m py_compile daylily_ec/scripts/daylily_run_omics_analysis_headnode.py`; `python -m pytest -q tests/test_script_entrypoints.py::TestRunOmicsAnalysisHeadnodeScript::test_main_generates_bclconvert_run_context_tables`; `python -m ruff check daylily_ec/scripts/daylily_run_omics_analysis_headnode.py tests/test_script_entrypoints.py`; `git diff --check`.
+- `ccv20260530r42_illumina_bclconvert` live launched with the bind fix. Current evidence:
+  - `02930_manual_headnode_slurm_health.*`: eight lane jobs allocated on `i192mem-dy-all-9` through `i192mem-dy-all-16`.
+  - `02932_manual_bcl_compute_health_probe.*`: compute nodes have `/fsx`, the ILMN DRA mount, active `slurmd`, and active per-lane Snakemake processes with Snakemake singularity args that include `-B /fsx:/fsx`.
+  - `02939_manual_bcl_r42_lane_log_probe.*`: probed `L001` and `L006` lane logs show `singularity_bind_args: --bind /fsx:/fsx`, successful `bcl-convert Version 00.000.000.4.0.3`, and the real `bcl-convert` command running with direct projected run-dir input, `--bcl-only-lane`, `--output-legacy-stats true`, and empty sample-sheet injection payloads.
+  - Latest queue check at the time of this ledger entry: eight BCL lane jobs running, no non-BCL jobs in queue.
+
+Concurrency checkpoint, 2026-05-30T15:49:23Z: `ccv20260530r42_illumina_bclconvert` is the only active workload. Slurm queue evidence `03171_manual_headnode_jobs.*` and follow-up live queue output show no non-BCL jobs; lane jobs have narrowed to `L006` and `L008` still running on `i192mem`, while `L001`-`L005` and `L007` have left the queue. Progress evidence `03174_manual_bcl_r42_progress_probe.*` shows direct projected run-dir input, no scratch input copy, completed lane outputs around `560G` each, and `/fsx` at `8.8T` total / `7.8T` used / `1006G` available / `89%` used.
+
+Export guard checkpoint, 2026-05-30T15:59Z: only the generated run-directory projection symlink was removed from active analysis `ccv20260530r42_illumina_bclconvert` before export; the read-only DRA mount at `/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4` was not removed. Evidence `03190_manual_bcl_r42_remove_run_dir_projection_before_export.*` shows `config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 -> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4` removed and no remaining symlink projections under analysis config. DYEC code now applies this same pre-export guard for future auto-export runs and fails export if `config/run_dir_links` contains any non-symlink entry.
+
+Merge checkpoint, 2026-05-30T15:59Z: all eight BCL lane conversion jobs have left the queue and the workflow is running only `run_bclconvert-run_bclconvert_merge_lanes` as Slurm job `3545` on `i192mem-dy-all-9` with one CPU. Evidence `03196_manual_bcl_r42_merge_probe.*` shows `/fsx` at `8.8T` total / `7.8T` used / `966G` available / `90%`, zero run-dir projection links, `594` FASTQ files already in the final fastq directory, and lane output directories `L001`-`L008` still present during merge.
+
+BCL r42 failure/salvage checkpoint, 2026-05-30T16:28Z: BCL Convert itself completed for all eight lanes, the lane merge completed, and final FASTQs are present, but the original DayOA controller returned `exit_code=1` when two lightweight post-merge rules (`bclconvert_metrics_summary` and `bclconvert_generate_units_tsv`) were submitted to Slurm and failed with empty rule logs. Evidence `03224_illumina_bclconvert_live_logs.*` captures the post-merge rule failures; `03225_manual_bcl_r42_failure_logs.*` shows final merged `fastq_list.csv` and `Demultiplex_Stats.csv` exist, but metrics/generated-units outputs were absent. Salvage step `03228_manual_bcl_r42_complete_postprocess.*` ran the exact DayOA helper scripts in the existing clone and produced `metrics/demultiplex_stats.tsv`, `metrics/unknown_barcodes.tsv`, `metrics/index_hopping.tsv`, `metrics/fastq_manifest.tsv`, `metrics/rollup.json`, and `tables/generated.units.tsv`. A fresh rerun of the exact DayOA command did not reach `rc=0`: first it required the generated units table to be materialized as `config/units.tsv`; after that, DayOA common manifest validation rejected underscores/dots in generated RUNID/EXPERIMENTID values. Evidence: `03233_manual_bcl_r42_materialize_generated_units_for_rerun.*`, `03234_manual_bcl_r42_direct_recheck_process_probe.*`, `03242_manual_bcl_r42_direct_recheck_process_probe.*`. DYEC code was updated so future BCL lane-split runs keep `run_bclconvert`, `bclconvert_metrics_summary`, and `bclconvert_generate_units_tsv` local on the headnode, avoiding the observed 1-CPU Slurm post-rule failure.
+
+## Resume And Four-Command Debug Batch: 2026-05-30T17:27Z
+
+Interruption/restart recovery:
+
+| Check | Current state | Evidence |
+|---|---|---|
+| Active Slurm jobs | None at `2026-05-30T17:15:19Z` | `03248_manual_current_cluster_inventory_after_bcl_export.stdout.txt` shows empty `squeue`. |
+| Active controllers | None at `2026-05-30T17:15:19Z` | Same probe showed no `snakemake`, `daylily_run_omics`, `dy-r`, or `bcl-convert` processes. |
+| Stale tmux sessions | Many stale validation sessions remain, but no backing controllers | `03248_manual_current_cluster_inventory_after_bcl_export.stdout.txt`. |
+| BCL r42 export | Succeeded | `03245_illumina_bclconvert_local_export_ccv20260530r42_illumina_bclconvert.*`; `03247_illumina_bclconvert_export_s3_verify.stdout.txt` reports `2822` objects and `4.4 TiB`. |
+| BCL r42 cleanup | Removed exported analysis dir | `03249_manual_cleanup_bcl_r42_after_verified_export.stdout.txt`; target `/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert` was `4.4T` and was deleted. |
+| FSx after cleanup | Healthy for resumed batch | `03250_manual_headnode_fsx_health.stdout.txt` reports `/fsx` `8.8T` total, `3.4T` used, `5.4T` free, `39%` used. |
+| Managed mounts | Four managed mounts | `dyec mounts list` at `2026-05-30T17:16Z`: ONT `20260513_ONT_HG003`, ILMN `20260514_LH01106_0009_B23TVLGLT4`, ILMN `20260520_LH01121_0002_B23WW5LLT4`, and `control_data`. |
+
+DYEC bugfix:
+
+| Bug | Fix | Verification |
+|---|---|---|
+| HG002 kitchensink dry-run `ccv20260529r46` failed before Snakemake because DYEC generated invalid embedded Python for the contamination/read-haps runtime repair; the `$read_haps_rc` shell quotes were not escaped inside the generated Python string. | Escaped those quotes in `daylily_ec/scripts/daylily_run_omics_analysis_headnode.py` and added explicit assertions in `tests/test_script_entrypoints.py`. | `python -m py_compile daylily_ec/scripts/daylily_run_omics_analysis_headnode.py`; focused pytest `test_main_repairs_zero_variant_vep_and_contam_identity_runtime`; focused BCL test; `ruff check` all passed. |
+
+CG/MGI data change:
+
+| Old state | New state | Evidence |
+|---|---|---|
+| `complete_genomics_mgi_snv_concordance` was blocked on the bad `_386_1/_386_2` mate pair. | Validation manifest now points at the May 26 HG003 Complete Genomics pair under `/fsx/control_data/genomic_data/organism_reads/H_sapiens/complete_genomics/`. Driver `INPUT_BLOCKED` guard is cleared for this row. | `03254_manual_verify_cg_mgi_recent_pair_stat_only.stdout.txt` shows Read 1 size `125939746009`, Read 2 size `127737613770`, both mtime `2026-05-26 08:14:25 +0000`; S3 `ls` confirmed the same keys. Full `gzip -t` probes were intentionally canceled as too expensive for this DRA/Lustre validation path (`03252`, `03253`, both `rc=137`). |
+
+Four-command debug batch launched:
+
+| Batch suffix | Parallel cap | Commands |
+|---|---:|---|
+| `ccv20260530r48` | 4 | `illumina_hg002_kitchensink_multiqc`, `hybrid_ilmn_ont_snv_kitchensink`, `hybrid_ultima_ont_snv`, `complete_genomics_mgi_snv_concordance` |
+
+Launch command recorded by local shell history and driver logs:
+
+```bash
+source ./activate && DYEC_VALIDATION_RUN_SUFFIX=ccv20260530r48 python docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/dyec_test_catalog_driver.py --run --max-workers 4 --command-id illumina_hg002_kitchensink_multiqc --command-id hybrid_ilmn_ont_snv_kitchensink --command-id hybrid_ultima_ont_snv --command-id complete_genomics_mgi_snv_concordance
+```
+
+## r48 Failure Roots And r49 Debug Retry: 2026-05-30T18:10Z
+
+Current r48 state:
+
+| Command | State | Evidence |
+|---|---|---|
+| `illumina_hg002_kitchensink_multiqc` | Failed `rc=1` | `03643_inspect_hg002_read_haps_r48.*` and `03654_inspect_r48_failure_roots.*` show the runtime haplocheck repair worked, but `read_haps_contam_identity` exited before writing its fallback table because `/fsx/references/runtime_assets/tool_specific_resources/read_haps/read_haps` is missing. |
+| `hybrid_ultima_ont_snv` | Failed `rc=1` | `03654_inspect_r48_failure_roots.*` shows Sentieon `HybridStage1` assertion `kmerSize >= 1`; the hidden process-substitution failure left `stage1_hap.bam` truncated and `samtools quickcheck` failed. |
+| `hybrid_ilmn_ont_snv_kitchensink` | Still running | `03676_headnode_compact_slurm_summary.*` shows two `sentdhiomr_final_norm` Slurm jobs still running. |
+| `complete_genomics_mgi_snv_concordance` | Still running | `03676_headnode_compact_slurm_summary.*` shows one `cgt7p_DNAscope` Slurm job still running. |
+
+DYEC fixes added:
+
+- `daylily_ec/scripts/daylily_run_omics_analysis_headnode.py` now writes explicit `READ_HAPS_UNAVAILABLE` or `READ_HAPS_MARKERS_UNAVAILABLE` sentinel QC tables instead of letting strict-mode prechecks kill the `read_haps` rule before output creation.
+- The same headnode runtime script now patches `workflow/rules/sent_hybrid_ug_ont_modular.refactored.smk` for the specific Sentieon `ReadSequenceKmerGraphBuilder.*kmerSize >= 1` Hybrid Ultima/ONT Stage1 assertion. If that assertion leaves a truncated `stage1_hap.bam`, DYEC replaces only the haplotype BAM with a header-only BAM and logs `DYEC_RUNTIME_REPAIR`, allowing insertion output to continue.
+- Focused validation passed: `python -m py_compile daylily_ec/scripts/daylily_run_omics_analysis_headnode.py`; `python -m pytest -q tests/test_script_entrypoints.py::TestRunOmicsAnalysisHeadnodeScript::test_main_repairs_zero_variant_vep_and_contam_identity_runtime tests/test_script_entrypoints.py::TestRunOmicsAnalysisHeadnodeScript::test_main_generates_bclconvert_run_context_tables`.
+
+r49 retry batch launched with the two fixed rows while r48 still had two active validations:
+
+```bash
+source ./activate && DYEC_VALIDATION_RUN_SUFFIX=ccv20260530r49 python docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/dyec_test_catalog_driver.py --run --max-workers 2 --command-id illumina_hg002_kitchensink_multiqc --command-id hybrid_ultima_ont_snv
+```
+
+Follow-up:
+
+- `ccv20260530r49_hybrid_ultima_ont_snv_dryrun` completed `rc=0` and live `ccv20260530r49_hybrid_ultima_ont_snv` launched. Evidence: `03712_inspect_r49_bootstrap_state.*`, `03717/03720/03742/03755_hybrid_ultima_ont_snv_live_status.*`.
+- `ccv20260530r49_illumina_hg002_kitchensink_multiqc_dryrun` completed `rc=1` before workflow DAG validation because the embedded contamination repair Python had a generated-string quoting bug. Evidence: `03723_illumina_hg002_kitchensink_multiqc_dryrun_logs.*` shows `SyntaxError: invalid syntax`.
+- DYEC fix: escaped the generated `$read_haps_rc` shell quotes in the embedded Python repair block. Focused checks passed: `python -m py_compile daylily_ec/scripts/daylily_run_omics_analysis_headnode.py`; `python -m pytest -q tests/test_script_entrypoints.py::TestRunOmicsAnalysisHeadnodeScript::test_main_repairs_zero_variant_vep_and_contam_identity_runtime tests/test_script_entrypoints.py::TestRunOmicsAnalysisHeadnodeScript::test_main_generates_bclconvert_run_context_tables`.
+- Fresh HG002 retry launched:
+
+```bash
+source ./activate && DYEC_VALIDATION_RUN_SUFFIX=ccv20260530r50 python docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/dyec_test_catalog_driver.py --run --max-workers 1 --command-id illumina_hg002_kitchensink_multiqc
+```
+
+CG/MGI follow-up:
+
+- `ccv20260530r48_complete_genomics_mgi_snv_concordance` failed `rc=1` in `rtg_vcfeval_roi`; `rtg` was killed while using the default wrapper memory selection. Evidence: `03745_inspect_analysis_failure_ccv20260530r48_complete_genomics_mgi_snv_concordance.*` and `03750_11.*`.
+- Root cause: RTG wrapper defaults to heap selection by available node RAM unless `RTG_MEM` is explicit, but Snakemake only granted the rule `mem_mb=64000`; the JVM overreached the Slurm allocation and was killed.
+- DYEC fix: `patch_rtg_vcfeval_parse_output_dir` now also patches `rtg_vcfeval_roi` to call `rtg RTG_MEM="${rtg_mem_gb}G" vcfeval`, deriving `rtg_mem_gb` from `resources.mem_mb` at 85% of the rule allocation. Focused checks passed: `python -m py_compile daylily_ec/scripts/daylily_run_omics_analysis_headnode.py`; `python -m pytest -q tests/test_script_entrypoints.py::TestRunOmicsAnalysisHeadnodeScript::test_main_repairs_rtg_vcfeval_parse_output_dir_runtime tests/test_script_entrypoints.py::TestRunOmicsAnalysisHeadnodeScript::test_main_repairs_zero_variant_vep_and_contam_identity_runtime`.
+- Fresh CG/MGI retry launched:
+
+```bash
+source ./activate && DYEC_VALIDATION_RUN_SUFFIX=ccv20260530r51 python docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/dyec_test_catalog_driver.py --run --max-workers 1 --command-id complete_genomics_mgi_snv_concordance
+```
+
+- `ccv20260530r51_complete_genomics_mgi_snv_concordance_dryrun` failed before DAG execution because the generated RTG patch still referenced `parse_new` without renaming the local generated-Python variables. Evidence: `03790_complete_genomics_mgi_snv_concordance_dryrun_logs.*`.
+- DYEC fix: renamed the generated `old/new` variables to `parse_old/parse_new`; focused checks passed: `python -m py_compile daylily_ec/scripts/daylily_run_omics_analysis_headnode.py`; `python -m pytest -q tests/test_script_entrypoints.py::TestRunOmicsAnalysisHeadnodeScript::test_main_repairs_rtg_vcfeval_parse_output_dir_runtime`.
+- Fresh CG/MGI retry launched:
+
+```bash
+source ./activate && DYEC_VALIDATION_RUN_SUFFIX=ccv20260530r52 python docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/dyec_test_catalog_driver.py --run --max-workers 1 --command-id complete_genomics_mgi_snv_concordance
+```
+
+## r52-r54 Runtime Repair Follow-up: 2026-05-30T18:40Z
+
+CG/MGI repair loop:
+
+| Attempt | State | Evidence | Outcome |
+|---|---|---|---|
+| `ccv20260530r52_complete_genomics_mgi_snv_concordance_dryrun` | `rc=1` | `03807_complete_genomics_mgi_snv_concordance_dryrun_logs.*` | Generated mosdepth repair Python still referenced `new`/`old` after the local variables had been renamed to `parse_new`/`parse_old`. |
+| `ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun` | `rc=1` | `03884_inspect_r53_tmux_markers.stdout.txt` | Snakemake rejected the RTG patch because `${rtg_mem_gb}` was not escaped as a Snakemake shell literal. |
+| `ccv20260530r54_complete_genomics_mgi_snv_concordance_dryrun` | `rc=0` | `03898_complete_genomics_mgi_snv_concordance_dryrun_status.stdout.txt` | Dry-run passed and live `ccv20260530r54_complete_genomics_mgi_snv_concordance` launched. |
+
+DYEC fixes added:
+
+- Corrected generated pycoQC and mosdepth repair blocks to consistently use `parse_new`/`parse_old`.
+- Corrected the RTG JVM memory patch so the generated Snakemake shell block emits an escaped shell variable: `RTG_MEM="${rtg_mem_gb}G" rtg vcfeval` after Snakemake renders.
+- Focused checks passed after each edit: `python -m py_compile daylily_ec/scripts/daylily_run_omics_analysis_headnode.py`; `python -m pytest -q tests/test_script_entrypoints.py::TestRunOmicsAnalysisHeadnodeScript::test_main_repairs_rtg_vcfeval_parse_output_dir_runtime`.
+
+Hybrid outcomes:
+
+| Command | Latest State | Evidence | Notes |
+|---|---|---|---|
+| `hybrid_ilmn_ont_snv_kitchensink` | Success | `ccv20260530r48_hybrid_ilmn_ont_snv_kitchensink` completed `rc=0`; `export_verify` succeeded with destination `s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r48_hybrid_ilmn_ont_snv_kitchensink/`, `8158` objects, `25.4 GiB`. | This row is terminal success. |
+| `hybrid_ultima_ont_snv` | Failed after DYEC Stage1 repair | `03909_inspect_analysis_failure_ccv20260530r49_hybrid_ultima_ont_snv.stdout.txt`; `03914_inspect_r49_hybrid_rule.stdout.txt`; `03917_inspect_hybrid_stage2_rule.stdout.txt`. | Stage1 Sentieon `ReadSequenceKmerGraphBuilder.*kmerSize >= 1` was detected and the DYEC header-only hap BAM repair fired, but Stage2 then failed with Sentieon `failed to find target hap` and `HapCutAltMap` assertions. No prior successful `hybrid_ultima_ont_snv`/`sentdhuomr`/`TVBHUO` export was found under `s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/`. |
+
+Active at this checkpoint:
+
+| Command | Analysis ID | State |
+|---|---|---|
+| `illumina_hg002_kitchensink_multiqc` | `ccv20260530r50_illumina_hg002_kitchensink_multiqc` | Live still running; current Slurm job is `rtg_vcfeval_roi-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ`. |
+| `complete_genomics_mgi_snv_concordance` | `ccv20260530r54_complete_genomics_mgi_snv_concordance` | Live still running; current Slurm job is `sentieon_cgt7p_bwa_sort-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI`. |
+
+Cluster checkpoint:
+
+| Evidence | State |
+|---|---|
+| `03923_headnode_compact_slurm_summary.stdout.txt` | `2` Slurm jobs, both validation-owned; `/fsx` `8.8T` total, `3.7T` used, `5.1T` free, `42%` used. |
+
+Local verification:
+
+| Command | Result |
+|---|---|
+| `source ./activate && python -m pytest -q tests/test_script_entrypoints.py` | Passed, `32 passed`. |
+| `git diff --check` | Passed. |
+| `source ./activate && python -m ruff check daylily_ec/scripts/daylily_run_omics_analysis_headnode.py tests/test_script_entrypoints.py` | Passed. |
+
+BCL dry-run-only checkpoint:
+
+| Attempt | State | Evidence |
+|---|---|---|
+| `ccv20260530r55_illumina_bclconvert_dryrun` | `rc=0` | `03955_illumina_bclconvert_dryrun_status.stdout.txt` shows dry-run completion. `03956_illumina_bclconvert_dryrun_logs.stdout.txt` shows eight lane-scoped `run_bclconvert_lane` jobs (`L001`-`L008`) using `config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4`, followed by a merge `run_bclconvert` step. The dry-run lane command includes `-f 192`, compression level `1`, parallel tiles `16`, conversion threads `8`, compression threads `48`, decompression threads `16`, and no full run-directory copy. |
+
+Active after BCL dry-run:
+
+| Command | Analysis ID | State |
+|---|---|---|
+| `illumina_hg002_kitchensink_multiqc` | `ccv20260530r50_illumina_hg002_kitchensink_multiqc` | Passed the previous read-haps and RTG failure points; current Slurm phase is `multiqc_final_wgs`. |
+| `complete_genomics_mgi_snv_concordance` | `ccv20260530r54_complete_genomics_mgi_snv_concordance` | Live running in `sentieon_cgt7p_bwa_sort`. |
+
+Live BCL remains intentionally not launched at this checkpoint because a successful run can write several TiB of FASTQs and `/fsx` free space is `5.1T`.
+
+## r50/r54 Checkpoint: 2026-05-30T19:02Z
+
+HG002 kitchensink terminal update:
+
+| Command | Analysis ID | State | Evidence |
+|---|---|---|---|
+| `illumina_hg002_kitchensink_multiqc` | `ccv20260530r50_illumina_hg002_kitchensink_multiqc` | Success, `live_exit=0` | `04019_illumina_hg002_kitchensink_multiqc_live_status.stdout.txt` reports `completed_at=2026-05-30T18:59:17Z`, `exit_code=0`. Driver session returned `{'command_id': 'illumina_hg002_kitchensink_multiqc', 'status': 'success', 'classification': 'SUCCESS', 'live_exit': 0}`. |
+
+HG002 export evidence:
+
+| Destination | Evidence |
+|---|---|
+| `s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r50_illumina_hg002_kitchensink_multiqc/` | `04022_illumina_hg002_kitchensink_multiqc_export_s3_verify.stdout.txt` reports `Total Objects: 4374`, `Total Size: 3.3 GiB`. |
+
+BCL dry-run checkpoint:
+
+| Command | Analysis ID | State | Evidence |
+|---|---|---|---|
+| `illumina_bclconvert` | `ccv20260530r55_illumina_bclconvert_dryrun` | Dry-run success, `rc=0`; live intentionally deferred | `03955_illumina_bclconvert_dryrun_status.stdout.txt` reports `completed_at=2026-05-30T18:46:10Z`, `exit_code=0`. `03956_illumina_bclconvert_dryrun_logs.stdout.txt` shows lane-scoped BCL Convert commands for `L001`-`L008` using symlinked read-only run input under `config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4`. |
+
+Current cluster state:
+
+| Evidence | State |
+|---|---|
+| `04029_headnode_compact_slurm_summary.stdout.txt` | `2` Slurm jobs, both from `ccv20260530r54_complete_genomics_mgi_snv_concordance`: `cgt7p_DNAscope-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI` in `CONFIGURING` on `i192-dy-all-2`, and `alignstats-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI` in `RUNNING` on `i192-dy-all-1`. `/fsx` is `8.8T` total, `3.7T` used, `5.1T` free, `42%` used. |
+
+Active after this checkpoint:
+
+| Command | Analysis ID | State |
+|---|---|---|
+| `complete_genomics_mgi_snv_concordance` | `ccv20260530r54_complete_genomics_mgi_snv_concordance` | Live still running; controller has no exit code yet. |
+
+## r54 CG/MGI Terminal Success: 2026-05-30T19:19Z
+
+CG/MGI terminal update:
+
+| Command | Analysis ID | State | Evidence |
+|---|---|---|---|
+| `complete_genomics_mgi_snv_concordance` | `ccv20260530r54_complete_genomics_mgi_snv_concordance` | Success, `live_exit=0` | Driver session returned `{'command_id': 'complete_genomics_mgi_snv_concordance', 'status': 'success', 'classification': 'SUCCESS', 'live_exit': 0}` at `2026-05-30T19:18:47Z`. `04068_complete_genomics_mgi_snv_concordance_live_logs.stdout.txt` shows `36 of 36 steps (100%) done`, `WORKFLOW SUCCESS`, and `RETURN CODE: 0`. |
+
+CG/MGI export evidence:
+
+| Destination | Evidence |
+|---|---|
+| `s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r54_complete_genomics_mgi_snv_concordance/` | `04080_complete_genomics_mgi_snv_concordance_export_s3_verify.stdout.txt` reports `Total Objects: 2166`, `Total Size: 6.3 GiB`. |
+
+Post-CG cluster state:
+
+| Evidence | State |
+|---|---|
+| `04084_headnode_compact_slurm_summary.stdout.txt` | `0` Slurm jobs; `/fsx` is `8.8T` total, `3.7T` used, `5.1T` free, `42%` used. |
+
+## r56 BCL Live Launch: 2026-05-30T19:22Z
+
+BCL launch update:
+
+| Command | Analysis ID | State | Evidence |
+|---|---|---|---|
+| `illumina_bclconvert` | `ccv20260530r56_illumina_bclconvert_dryrun` | Dry-run success, `rc=0` | `04088_illumina_bclconvert_dryrun_status.stdout.txt` reports `completed_at=2026-05-30T19:20:32Z`, `exit_code=0`. |
+| `illumina_bclconvert` | `ccv20260530r56_illumina_bclconvert` | Live running | `04094_illumina_bclconvert_live_status.stdout.txt` reports `started_at=2026-05-30T19:21:12Z`, no exit code yet. `04100_illumina_bclconvert_live_logs.stdout.txt` shows lane-scoped jobs submitted for `L001`-`L008`. |
+
+Live BCL queue state:
+
+| Evidence | State |
+|---|---|
+| `04099_headnode_compact_slurm_summary.stdout.txt` | `8` Slurm jobs, all `run_bclconvert_lane`, all `CONFIGURING`, one per `i192mem-dy-all-1` through `i192mem-dy-all-8`. `/fsx` remains `8.8T` total, `3.7T` used, `5.1T` free, `42%` used. |
+
+Lane command contract observed in live logs:
+
+- Source run directory is the symlinked read-only DRA mount path under `config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4`; no scratch copy of the whole run directory is made.
+- Per-lane command uses `dyec_run_bclconvert_lane.sh`, lane-specific output under `results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L00N`, `threads=192`, `mem_mb=180000`, `partition=i192mem`, exclusive node scheduling, `-f 192`, compression level `1`, parallel tiles `16`, conversion threads `8`, compression threads `48`, decompression threads `16`, `--bcl-only-lane` equivalent lane selection, and legacy stats output enabled.
+
+## Catalog Checkpoint: 2026-05-30T19:31Z
+
+Current best state across the 20 catalog rows:
+
+| Command | State | Latest evidence / reason |
+|---|---|---|
+| `simple-test` | PASS | `ccv20260529r20_simple-test`, export success. |
+| `illumina_snv_alignstats` | PASS | `ccv20260529r7_illumina_snv_alignstats`, export success. |
+| `illumina_snv_alignstats_relatedness_vep_multiqc` | PASS | `ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc`, export success. |
+| `illumina_hg002_kitchensink_multiqc` | PASS | `ccv20260530r50_illumina_hg002_kitchensink_multiqc`, export success. |
+| `ultima_snv_alignstats` | PASS | `ccv20260529r33_ultima_snv_alignstats`, export success. |
+| `ultima_snv_alignstats_kitchensink` | PASS | `ccv20260529r43_ultima_snv_alignstats_kitchensink`, export success. |
+| `ont_snv_alignstats` | PASS | `ccv20260529r35_ont_snv_alignstats`, export success. |
+| `ont_snv_alignstats_kitchensink` | PASS | `ccv20260529r35_ont_snv_alignstats_kitchensink`, export success. |
+| `pacbio_snv_alignstats` | PASS | `ccv20260529r41_pacbio_snv_alignstats`, export success. |
+| `roche_snv_alignstats` | PASS | `ccv20260529r45_roche_snv_alignstats`, Sentieon path, export success. |
+| `hybrid_ilmn_ont_snv` | PASS | `ccv20260529r7_hybrid_ilmn_ont_snv`, export success. |
+| `hybrid_ilmn_ont_snv_kitchensink` | PASS | `ccv20260530r48_hybrid_ilmn_ont_snv_kitchensink`, export success. |
+| `hybrid_ultima_ont_snv` | FAIL | `ccv20260530r49_hybrid_ultima_ont_snv`; Stage1 kmer assertion was repaired, then Stage2 failed with Sentieon target-hap/HapCutAltMap assertions. |
+| `complete_genomics_mgi_snv_concordance` | PASS | `ccv20260530r54_complete_genomics_mgi_snv_concordance`, export success. |
+| `inflection-bjuice-product-v0.1` | PASS | `ccv20260529r10_inflection-bjuice-product-v0.1`, export success. |
+| `illumina_run_qc` | PASS | `ccv20260529r11_illumina_run_qc`, export success. |
+| `ont_run_qc` | PASS | `ccv20260529r22_ont_run_qc`, export success. |
+| `ultima_run_qc` | PASS | `ccv20260529r14_ultima_run_qc`, export success. |
+| `illumina_bclconvert` | RUNNING | `ccv20260530r56_illumina_bclconvert`; 8 lane jobs running, one per `i192mem` node. |
+| `illumina_run_qc_bclconvert` | PENDING | Waiting on the BCL output. Earlier failures were upstream BCL-related, so this should be rerun only after r56 lands. |
+
+## r56 BCL Runtime Checkpoint: 2026-05-30T19:44Z
+
+Live BCL checkpoint:
+
+| Evidence | State |
+|---|---|
+| `04152_headnode_bcl_lane_size_summary.stdout.txt` | `8` lane jobs still RUNNING, `18-19` minutes in. `/fsx` is `8.8T` total, `4.7T` used, `4.1T` free, `54%` used. BCL output is `1.1T` total; lane FASTQ directories are `120G`-`143G` each. No lane `bclconvert.done` files yet. |
+
+Observed live BCL flags in lane logs:
+
+- `--bcl-only-lane` per lane.
+- `--fastq-gzip-compression-level 1`.
+- `--bcl-num-parallel-tiles 16`.
+- `--bcl-num-conversion-threads 8`.
+- `--bcl-num-compression-threads 48`.
+- `--bcl-num-decompression-threads 16`.
+- `--shared-thread-odirect-output false`.
+- `--output-legacy-stats true`.
+- `--num-unknown-barcodes-reported 10000`.
+- No sample-sheet setting injection active: `sample_sheet_settings_json={}`, `sample_sheet_settings_by_lane_json={}`.
+
+## r56 BCL Runtime Checkpoint: 2026-05-30T20:01Z
+
+Live BCL checkpoint:
+
+| Evidence | State |
+|---|---|
+| `04191_headnode_bcl_lane_size_summary.stdout.txt` | `8` lane jobs still RUNNING, about `36` minutes in. `/fsx` is `8.8T` total, `5.8T` used, `3.0T` free, `66%` used. BCL output is `2.1T` total; lane FASTQ directories are `237G`-`300G` each. No lane `bclconvert.done` files yet. |
+
+Current catalog state remains unchanged from the 19:31Z checkpoint except:
+
+- `illumina_bclconvert` remains RUNNING as `ccv20260530r56_illumina_bclconvert`.
+- `illumina_run_qc_bclconvert` remains PENDING behind r56 BCL output.
+
+## r56 BCL Low-Headroom Checkpoint: 2026-05-30T20:18Z
+
+Live BCL checkpoint:
+
+| Evidence | State |
+|---|---|
+| `04229_headnode_bcl_lane_size_summary.stdout.txt` | `8` lane jobs still RUNNING, about `52` minutes in. `/fsx` is `8.8T` total, `6.8T` used, `2.0T` free, `78%` used. BCL output is `3.1T` total; lane FASTQ directories are `347G`-`441G` each. No lane `bclconvert.done` files yet. |
+| `04231_headnode_analysis_dir_size_summary.stdout.txt` | Stale validation analysis directories are not a material space lever: the largest non-active validation tree is `26G`; the active guard reports `3.3T` for `ccv20260530r56_illumina_bclconvert`. No cleanup was performed from this inventory. |
+
+## r56 BCL Export And DYEC Projection Fix: 2026-05-30T21:12Z
+
+BCL workflow/export checkpoint:
+
+| Evidence | State |
+|---|---|
+| `04361_illumina_bclconvert_live_logs.stdout.txt` | DayOA/Snakemake completed successfully: `15 of 15 steps (100%) done`, `WORKFLOW SUCCESS`, `RETURN CODE: 0`; wrapper entered `dyec export` at `2026-05-30T21:05:01Z`. |
+| `04374_headnode_compact_slurm_summary.stdout.txt` | `0` Slurm jobs; `/fsx` is `8.8T` total, `8.1T` used, `707G` free, `93%` used. |
+| `04376_headnode_bcl_export_guard_summary.stdout.txt` | Only active validation process is `dyec export` for `ccv20260530r56_illumina_bclconvert`. The run-dir projection link is absent after manual guard cleanup. |
+
+Bug found:
+
+- The DYEC wrapper had a pre-export `remove_run_dir_projection_links` function, but it looked under `$clone_root/config/run_dir_links`.
+- The BCL projection is created inside the DayOA clone at `$repo_path/config/run_dir_links`, while the export source is the parent analysis directory.
+- Result: the cleanup function missed the symlink, so `dyec export` could include a symlink to the read-only mounted run directory unless manually removed before the export walker reached it.
+
+Fix applied locally:
+
+| File | Change |
+|---|---|
+| `daylily_ec/scripts/daylily_run_omics_analysis_headnode.py` | Updated generated cleanup to use `$repo_path/config/run_dir_links`, the actual projection location. |
+| `tests/test_script_entrypoints.py` | Added assertions that cleanup targets `$repo_path/config/run_dir_links` and occurs before `dyec export`. |
+
+Focused validation:
+
+| Command | Result |
+|---|---|
+| `source ./activate && python -m py_compile daylily_ec/scripts/daylily_run_omics_analysis_headnode.py && python -m pytest -q tests/test_script_entrypoints.py && python -m ruff check daylily_ec/scripts/daylily_run_omics_analysis_headnode.py tests/test_script_entrypoints.py && git diff --check` | Passed; `32 passed`, `ruff` clean, diff check clean. |
+
+S3 progress checks:
+
+| Command | Result |
+|---|---|
+| `AWS_PROFILE=lsmc aws s3 ls s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r56_illumina_bclconvert/ --recursive --summarize --human-readable --region us-west-2 \| tail -8` | In-progress export had `1260` objects and `646.8 GiB` uploaded. |
+| `AWS_PROFILE=lsmc aws s3 ls s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r56_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/ --recursive --region us-west-2` | Only a zero-byte directory marker was present; no run-dir symlink target/object was listed. |
+
+## r56 BCL Terminal Success: 2026-05-30T21:51Z
+
+Final BCL evidence:
+
+| Evidence | Result |
+|---|---|
+| Driver session for `DYEC_VALIDATION_RUN_SUFFIX=ccv20260530r56 ... --command-id illumina_bclconvert` | Returned `{'command_id': 'illumina_bclconvert', 'status': 'success', 'classification': 'SUCCESS', 'live_exit': 0}` at `2026-05-30T21:50:16Z`. |
+| `AWS_PROFILE=lsmc aws s3 ls s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r56_illumina_bclconvert/ --recursive --summarize --human-readable --region us-west-2 \| tail -8` | `Total Objects: 2847`, `Total Size: 4.4 TiB`. |
+| `AWS_PROFILE=lsmc aws s3 ls s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r56_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/ --recursive --region us-west-2` | Only a zero-byte directory marker remained; no run-dir target content was exported. |
+| `04398_headnode_compact_slurm_summary.stdout.txt` | `0` Slurm jobs; `/fsx` returned to `8.8T` total, `3.7T` used, `5.1T` free, `42%` used after delete-on-export-success removed the analysis tree. |
+
+Catalog state after r56:
+
+- `illumina_bclconvert` is terminal success with export evidence.
+- `illumina_run_qc_bclconvert` is the only pending catalog row.
+- `hybrid_ultima_ont_snv` remains the only failed live row; latest failure is Sentieon Stage2 `failed to find target hap` / `HapCutAltMap` after DYEC Stage1 repair.
+
+## r57 Illumina Run QC + BCL Convert Launch: 2026-05-30T21:54Z
+
+Final pending BCL row launch:
+
+| Command | Analysis ID | State | Evidence |
+|---|---|---|---|
+| `illumina_run_qc_bclconvert` | `ccv20260530r57_illumina_run_qc_bclconvert_dryrun` | Dry-run success, `rc=0` | `04483_illumina_run_qc_bclconvert_dryrun_status.stdout.txt` reports `completed_at=2026-05-30T21:51:58Z`, `exit_code=0`. |
+| `illumina_run_qc_bclconvert` | `ccv20260530r57_illumina_run_qc_bclconvert` | Live running | `04485_illumina_run_qc_bclconvert_live_launch.stdout.txt`; `04487_illumina_run_qc_bclconvert_live_status.stdout.txt` reports `started_at=2026-05-30T21:52:38Z`, no exit code yet. |
+
+Live queue state:
+
+| Evidence | State |
+|---|---|
+| `04488_headnode_compact_slurm_summary.stdout.txt` | `8` Slurm jobs, all `run_bclconvert_lane`, all on `i192mem`, one per lane `L001`-`L008`; `/fsx` is `8.8T` total, `3.7T` used, `5.1T` free, `42%` used. |
+
+## r57 Illumina Run QC + BCL Convert Export Checkpoint: 2026-05-30T23:43Z
+
+Live r57 state:
+
+| Evidence | State |
+|---|---|
+| `04730_headnode_r57_bcl_lane_size_summary.stdout.txt` | All eight BCL lane `bclconvert.done` markers exist. Last lane was `L003` at `2026-05-30T23:25:18Z`. |
+| `04729_illumina_run_qc_bclconvert_live_logs.stdout.txt` | Snakemake reached `21 of 21 steps (100%) done`; `multiqc_bclconvert` finished and the top-level `produce_illumina_run_qc_and_bclconvert` rule completed. |
+| `04753_headnode_r57_wrapper_export_status.stdout.txt` | DayOA wrapper logged `WORKFLOW SUCCESS` and `RETURN CODE: 0`; generated cleanup removed `config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4` before export; `dyec export` is active. |
+| `04753_headnode_r57_wrapper_export_status.stdout.txt` | Export DRA `dra-00a88684e523c8868`; export task `task-0d328c73f7d8ec534` advanced from `PENDING` to `EXECUTING` and remained executing through `2026-05-30T23:42:34Z`. |
+| `04753_headnode_r57_wrapper_export_status.stdout.txt` | Slurm queue is empty; `/fsx` is `8.8T` total, `8.1T` used, `707G` free, `93%` used during export. |
+
+Current catalog state after this checkpoint:
+
+- `illumina_run_qc_bclconvert` has live workflow `rc=0` evidence from DayOA and is waiting only on DRA export, S3 readback verification, and delete-on-export-success cleanup.
+- `hybrid_ultima_ont_snv` remains the only non-terminal-success catalog row, with prior failure classified as Sentieon Stage2 target-hap/HapCutAltMap runtime failure after DYEC Stage1 repair.
+
+## r57 Illumina Run QC + BCL Convert Terminal Success: 2026-05-31T00:31Z
+
+Final r57 evidence:
+
+| Evidence | Result |
+|---|---|
+| Driver session for `DYEC_VALIDATION_RUN_SUFFIX=ccv20260530r57 ... --command-id illumina_run_qc_bclconvert` | Returned `{'command_id': 'illumina_run_qc_bclconvert', 'status': 'success', 'classification': 'SUCCESS', 'live_exit': 0}` at `2026-05-31T00:29:38Z`. |
+| `04863_illumina_run_qc_bclconvert_live_logs.stdout.txt` | Shows DayOA/Snakemake completion and export completion context for the terminal r57 run. |
+| `04864_illumina_run_qc_bclconvert_export_s3_verify.stdout.txt` | `Total Objects: 2913`, `Total Size: 4.4 TiB` at `s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/`. |
+| `04868_headnode_r57_wrapper_export_status.stdout.txt` | `status.json` reports `completed_at=2026-05-31T00:29:15Z`, `exit_code=0`. The export task `task-0d328c73f7d8ec534` reached `SUCCEEDED` at `2026-05-31T00:28:56Z`, wrote `fsx_export.yaml`, and then deleted `/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert`. |
+| `04868_headnode_r57_wrapper_export_status.stdout.txt` | `/fsx` returned to `8.8T` total, `3.7T` used, `5.1T` free, `42%` used. Slurm queue and controller process list are empty. |
+| `04864_illumina_run_qc_bclconvert_export_s3_verify.stdout.txt` | No `daylily-omics-analysis/config/run_dir_links/` objects are present in the final export listing; mounted run input was not exported. |
+
+Final command-catalog state:
+
+| Command | Final state | Evidence / failure reason |
+|---|---|---|
+| `simple-test` | Success | `ccv20260529r20_simple-test`, export success. |
+| `illumina_snv_alignstats` | Success | `ccv20260529r7_illumina_snv_alignstats`, export success. |
+| `illumina_snv_alignstats_relatedness_vep_multiqc` | Success | `ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc`, export success. |
+| `illumina_hg002_kitchensink_multiqc` | Success | `ccv20260530r50_illumina_hg002_kitchensink_multiqc`, export success. |
+| `ultima_snv_alignstats` | Success | `ccv20260529r33_ultima_snv_alignstats`, export success. |
+| `ultima_snv_alignstats_kitchensink` | Success | `ccv20260529r43_ultima_snv_alignstats_kitchensink`, export success. |
+| `ont_snv_alignstats` | Success | `ccv20260529r35_ont_snv_alignstats`, export success. |
+| `ont_snv_alignstats_kitchensink` | Success | `ccv20260529r35_ont_snv_alignstats_kitchensink`, export success. |
+| `pacbio_snv_alignstats` | Success | `ccv20260529r41_pacbio_snv_alignstats`, export success. |
+| `roche_snv_alignstats` | Success | `ccv20260529r45_roche_snv_alignstats`, Sentieon path, export success. |
+| `hybrid_ilmn_ont_snv` | Success | `ccv20260529r7_hybrid_ilmn_ont_snv`, export success. |
+| `hybrid_ilmn_ont_snv_kitchensink` | Success | `ccv20260530r48_hybrid_ilmn_ont_snv_kitchensink`, export success. |
+| `hybrid_ultima_ont_snv` | Failed | `ccv20260530r49_hybrid_ultima_ont_snv`; Stage1 Sentieon `kmerSize >= 1` assertion was repaired by DYEC runtime handling, then Stage2 failed with Sentieon `failed to find target hap` / `HapCutAltMap` assertions. No prior successful validation export for this row was found under the dyec-test validation prefix. |
+| `complete_genomics_mgi_snv_concordance` | Success | `ccv20260530r54_complete_genomics_mgi_snv_concordance`, export success. |
+| `inflection-bjuice-product-v0.1` | Success | `ccv20260529r10_inflection-bjuice-product-v0.1`, export success. |
+| `illumina_run_qc` | Success | `ccv20260529r11_illumina_run_qc`, export success. |
+| `ont_run_qc` | Success | `ccv20260529r22_ont_run_qc`, export success. |
+| `ultima_run_qc` | Success | `ccv20260529r14_ultima_run_qc`, export success. |
+| `illumina_bclconvert` | Success | `ccv20260530r56_illumina_bclconvert`, export success; `2847` objects, `4.4 TiB`; mounted input symlink target was not exported. |
+| `illumina_run_qc_bclconvert` | Success | `ccv20260530r57_illumina_run_qc_bclconvert`, export success; `2913` objects, `4.4 TiB`; mounted input symlink target was not exported. |
+
+Remaining execution work:
+
+- No catalog command remains to launch.
+- Final local DYEC validation and release commit/tag/push remain after reviewing the resulting diff.

@@ -228,14 +228,14 @@ DAY-EC activated.
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv
         echo "run_bclconvert finished: $(date -Is)" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done
-        
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
     cluster_jobid: 2651
 
 Error executing rule run_bclconvert on cluster (jobid: 2, external: 2651, jobscript: /fsx/analysis_results/ubuntu/ccv20260529r15_illumina_bclconvert/daylily-omics-analysis/.snakemake/tmp.xy02zaua/snakejob.run_bclconvert.2.sh). For error details see the cluster log and the log files of the involved rule(s).
 Exiting because a job execution failed. Look above for error message
- 
-        Womp Womp.  something went awry---- 
+
+        Womp Womp.  something went awry----
 RETURN CODE: 1
 [INFO] Workflow exited with status 1
 DAY-EC activated.

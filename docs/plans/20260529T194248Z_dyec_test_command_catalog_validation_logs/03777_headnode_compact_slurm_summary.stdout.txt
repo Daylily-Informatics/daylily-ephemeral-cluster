@@ -1,0 +1,28 @@
+DAY-EC activated.
+DAY-EC activated.
+=== identity ===
+2026-05-30T18:22:29Z
+ip-10-0-0-88.us-west-2.compute.internal
+=== queue counts ===
+total_jobs=7
+state.CONFIGURING=1
+state.RUNNING=6
+partition.i192mem=2
+partition.i192=5
+=== job family counts ===
+      5 vep_chromosome
+      1 sentieon_bwa_sort
+      1 sentdhuomr_pass1
+=== oldest jobs ===
+4489|i192|RUNNING|4:50|1|i192-dy-all-2|vep_chromosome-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4491|i192|RUNNING|4:39|1|i192-dy-all-1|vep_chromosome-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4494|i192|RUNNING|4:37|1|i192-dy-all-2|vep_chromosome-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4497|i192|RUNNING|4:37|1|i192-dy-all-2|vep_chromosome-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4426|i192mem|RUNNING|3:43|1|i192mem-dy-all-14|sentdhuomr_pass1-TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA
+4509|i192mem|CONFIGURING|2:43|1|i192mem-dy-all-15|sentieon_bwa_sort-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+4500|i192|RUNNING|0:43|1|i192-dy-all-3|vep_chromosome-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+=== fsx ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  3.7T  5.1T  43% /fsx
+tmpfs                   tmpfs   199G     0  199G   0% /dev/shm
+/dev/root               ext4    408G   42G  367G  11% /

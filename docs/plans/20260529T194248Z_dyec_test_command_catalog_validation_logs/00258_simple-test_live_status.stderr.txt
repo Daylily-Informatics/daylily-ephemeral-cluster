@@ -1,2 +1,2 @@
-✗ SSM command '6916cf40-b15d-42e8-82fd-2c9f19956225' did not complete within 
+✗ SSM command '6916cf40-b15d-42e8-82fd-2c9f19956225' did not complete within
 120s.

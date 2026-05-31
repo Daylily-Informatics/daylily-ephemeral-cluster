@@ -10,7 +10,7 @@ DAY-EC activated.
         set -euo pipefail
         mkdir -p $(dirname results/day/hg38_broad/other_reports/alignment_qc_outputs_mqc.tsv) $(dirname results/day/hg38_broad/other_reports/logs/alignment_qc_outputs_custom_data.log)
         python workflow/scripts/multiqc_custom_output_inventory.py           --stage alignment_qc           --output results/day/hg38_broad/other_reports/alignment_qc_outputs_mqc.tsv           results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv results/day/hg38_broad/other_reports/norm_cov_evenness_combo_mqc.tsv results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/samtmetrics/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.complete results/day/hg38_broad/other_reports/samtools_metrics_gather.done results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/mosdepth/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.mosdepth.summary.txt results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/goleft.done results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/norm_cov_eveness/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.md results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/contam/gatk/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.gatk.tsv > results/day/hg38_broad/other_reports/logs/alignment_qc_outputs_custom_data.log 2>&1
-        
+
 
 [Sat May 30 09:27:53 2026]
 localrule produce_alignstats:

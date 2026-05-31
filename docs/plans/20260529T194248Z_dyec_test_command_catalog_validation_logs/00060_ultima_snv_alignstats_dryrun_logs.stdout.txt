@@ -18,7 +18,7 @@ DAY-EC activated.
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_clinvar_genes/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_clinvar_genes_concordance.mqc.tsv
-            
+
 
 [Fri May 29 20:35:58 2026]
 rule parse_vcfeval_summary_roi:
@@ -60,7 +60,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC_x_clinvar_genes/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_giabHC_x_clinvar_genes_concordance.mqc.tsv
-            
+
 
 [Fri May 29 20:35:58 2026]
 rule parse_vcfeval_summary_roi:
@@ -102,7 +102,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_hg38_m_giabHC/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_hg38_m_giabHC_concordance.mqc.tsv
-            
+
 
 [Fri May 29 20:35:58 2026]
 rule parse_vcfeval_summary_roi:
@@ -144,7 +144,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_giabHC_concordance.mqc.tsv
-            
+
 
 [Fri May 29 20:35:58 2026]
 rule prep_for_concordance_check:
@@ -191,7 +191,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.concordance.log;
-            
+
 
 [Fri May 29 20:35:58 2026]
 localrule produce_snv_concordances:

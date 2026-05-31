@@ -74,7 +74,7 @@ rule sentdug_concat_index_chunks:
 
         rm -rf $(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz)/vcfs >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.merge.sort.gatherered.log 2>&1;
 
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/f02f4b1dcb4977fd9602b074e7c885b9_
 Touching output file results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.
 Touching output file results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi.
@@ -124,8 +124,8 @@ rule sentdug_sort_index_chunk_vcf:
 
 
         #bedtools sort -header -i results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.vcf > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf 2>> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/
-        #awk 'BEGIN{header=1} 
-        #    header && /^#/ {print; next} 
+        #awk 'BEGIN{header=1}
+        #    header && /^#/ {print; next}
         #    header && /^[^#]/ {header=0; exit}' results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.vcf > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf 2>> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-U
         #awk '/^[^#]/' results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.vcf | sort --buffer-size=210G -T /fsx/scratch/ --parallel=64 -k1,1V -k2,2n >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf 2>> result
 
@@ -136,8 +136,8 @@ rule sentdug_sort_index_chunk_vcf:
         touch results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf;
 
         tabix -f -p vcf results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz.log 2>&1;
-        
-        
+
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/f02f4b1dcb4977fd9602b074e7c885b9_
 Touching output file results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.
 Touching output file results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz.
@@ -182,7 +182,7 @@ Finished job 0.
         echo "INSTANCE TYPE: $itype" > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log;
         echo "INSTANCE TYPE: $itype";
         start_time=$(date +%s);
-        
+
         ulimit -n 65536 || echo "ulimit mod failed" > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log 2>&1;
 
 

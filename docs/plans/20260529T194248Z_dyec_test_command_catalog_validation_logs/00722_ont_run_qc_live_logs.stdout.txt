@@ -1,6 +1,6 @@
 DAY-EC activated.
 DAY-EC activated.
-       _______ GREAT SUCCESS _______       
+       _______ GREAT SUCCESS _______
 Remote call detected. Activating conda hack
 Your config files in /fsx/analysis_results/ubuntu/ccv20260529r17_ont_run_qc/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
 Executing: snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260529r17_ont_run_qc/daylily-omics-analysis/config/day_profiles/slurm produce_ont_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv
@@ -88,7 +88,7 @@ localrule ont_run_qc_collect_summaries:
             echo "No sequencing_summary*.txt files found under /fsx/run_dir_mounts/20260513_ONT_HG003/" >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/collect_summaries.log
             exit 2
         fi
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 [Sat May 30 04:55:33 2026]
 Finished job 3.
@@ -119,7 +119,7 @@ localrule ont_run_qc_pycoqc:
           >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 
 [Sat May 30 04:55:33 2026]
@@ -148,7 +148,7 @@ localrule ont_run_qc_nanoplot:
           -o results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot \
           -p 20260513_ONT_HG003. \
           >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log 2>&1
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 [Sat May 30 04:56:09 2026]
 Error in rule ont_run_qc_pycoqc:
@@ -158,7 +158,7 @@ Error in rule ont_run_qc_pycoqc:
     log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
     shell:
-        
+
         set -euo pipefail
         mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log)
         : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log
@@ -172,7 +172,7 @@ Error in rule ont_run_qc_pycoqc:
           >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
-        
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
 
 Trying to restart job 2.
@@ -202,7 +202,7 @@ localrule ont_run_qc_pycoqc:
           >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 Touching output file results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done.
 [Sat May 30 04:56:14 2026]
@@ -216,7 +216,7 @@ Error in rule ont_run_qc_pycoqc:
     log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
     shell:
-        
+
         set -euo pipefail
         mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log)
         : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log
@@ -230,12 +230,12 @@ Error in rule ont_run_qc_pycoqc:
           >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
         test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
-        
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
 
 Exiting because a job execution failed. Look above for error message
- 
-        Womp Womp.  something went awry---- 
+
+        Womp Womp.  something went awry----
 RETURN CODE: 1
 [INFO] Workflow exited with status 1
 DAY-EC activated.

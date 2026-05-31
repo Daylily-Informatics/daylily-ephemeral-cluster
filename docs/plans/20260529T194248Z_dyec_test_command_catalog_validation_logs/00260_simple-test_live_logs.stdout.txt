@@ -1,13 +1,13 @@
 DAY-EC activated.
 DAY-EC activated.
 !!!!
-    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
      This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
      ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
      This is checked by testing if ~/.config/daylily/null exists .
 !!!!
- > >> >>>   genome build set to ::: hg38  
-       _______ GREAT SUCCESS _______       
+ > >> >>>   genome build set to ::: hg38
+       _______ GREAT SUCCESS _______
 Your config files in /fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/daylily-omics-analysis/config/day_profiles/local are newer than the templates. clear 2 go.
 Executing: snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/daylily-omics-analysis/config/day_profiles/local -p -k -j 1 help
 loading global: /fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/daylily-omics-analysis/config/global_AWSPC.yaml
@@ -46,11 +46,11 @@ rule help:
 
         colr '##### DY-CLI HELP                                                    ' "$DY_IT2" "$DY_IB2" "$DY_IS2" 1>&2;
         colr '/-----------------------------------------------------------------------------' "$DY_IT1" "$DY_IB1" "$DY_IS1" 1>&2;
-        colr 'Welcome to daylily. 
+        colr 'Welcome to daylily.
 
-        Complete docs can be found here: 
+        Complete docs can be found here:
               https://github.com/Daylily-Informatics/daylily-omics-analysis and  https://github.com/Daylily-Informatics/daylily-ephemeral-cluster
-     
+
 
         ========================================================================
         The dy- cli , first source it:
@@ -75,53 +75,53 @@ rule help:
         ========================================================================
         For use with dy-r [rules, try produce_<tab><tab>] [flags, try --con<tab><tab>]
         + Important snakemake arguments (all optional):
-          `-n` == dryrun, generates an execution plan, but runs no commands.  
+          `-n` == dryrun, generates an execution plan, but runs no commands.
               Good practice to run with -n before pulling the trigger.
           `-p` == print shell commands, pretty much always include this one
-          `--rerun-triggers mtime` == this will calculate an execution plan 
-              only re-running rules which have parent files timestamps are 
-              newer than children.  w/out this, snakemake cohsiders not only 
-              timestamps, but edits to config files, source data changes, code 
-              changes, environment changes... and will re-run agressively.  
-              ! Always run with -n before you attempt to re-run, or add, 
-              analysis to an existing results directory.  You can easily 
+          `--rerun-triggers mtime` == this will calculate an execution plan
+              only re-running rules which have parent files timestamps are
+              newer than children.  w/out this, snakemake cohsiders not only
+              timestamps, but edits to config files, source data changes, code
+              changes, environment changes... and will re-run agressively.
+              ! Always run with -n before you attempt to re-run, or add,
+              analysis to an existing results directory.  You can easily
               erase a lot of work if not careful.
           `-h` == snakemake help... `--help` == snakemake exhaustive help
-          `--rerun-incomplete` == if rerunning a workflow which failed 
-              ungracefully, snakemake will not proceed unless this flag is 
+          `--rerun-incomplete` == if rerunning a workflow which failed
+              ungracefully, snakemake will not proceed unless this flag is
               set so it can cleanup  the incomplete results subdirs.
-          `--jobs n` == limit the snakemake scheduler to only running 
+          `--jobs n` == limit the snakemake scheduler to only running
               `n` jobs at once.
           `--report FILENAME.html` == produce a summary report of the workflow
-          `--dag|--rulegraph|--filegraph` == use as follows to produce 
-              various graph visualizations of the TARGET being asked for: 
+          `--dag|--rulegraph|--filegraph` == use as follows to produce
+              various graph visualizations of the TARGET being asked for:
               `dy-r produce_deduplicated_bams --rulegraph | dot -Tpng > rg.png`
          ========================================================================
                 + TARGETS (which are snakemake rules that are a terminal point
                       in the larger DAG of rules). A few common ones:
-                   - produce_deduplicated_bams == will run the specified 
-                      aligner(s) and the specified dup marker (only one ddup 
-                      presently can run at a time). aligners, ddupers, 
-                      SNV&SV(multiple of each of these allowed) callers are 
-                      all configured in the: 
+                   - produce_deduplicated_bams == will run the specified
+                      aligner(s) and the specified dup marker (only one ddup
+                      presently can run at a time). aligners, ddupers,
+                      SNV&SV(multiple of each of these allowed) callers are
+                      all configured in the:
                        config/day_profles/{local,slurm}/rule_config.yaml
-                   - produce_snv_concordances == runs all specified 
-                      aligners/SV callers and produces a concordance report 
-                      for each aligner+SVcaller+sample (in the other_reports 
+                   - produce_snv_concordances == runs all specified
+                      aligners/SV callers and produces a concordance report
+                      for each aligner+SVcaller+sample (in the other_reports
                       dir)
-                   - produce_final_multiqc_wgs == runs everything and produces 
+                   - produce_final_multiqc_wgs == runs everything and produces
                       the big final MQC report in the `reports` dir. ' ;
-                      
+
        colr '/-----------------------------------------------------------------------------' "$DY_IT2" "$DY_IB2" "$DY_IS2"  1>&2;
 
-    
-##### DY-CLI HELP                                                    
-/-----------------------------------------------------------------------------
-Welcome to daylily. 
 
-        Complete docs can be found here: 
+##### DY-CLI HELP
+/-----------------------------------------------------------------------------
+Welcome to daylily.
+
+        Complete docs can be found here:
               https://github.com/Daylily-Informatics/daylily-omics-analysis and  https://github.com/Daylily-Informatics/daylily-ephemeral-cluster
-     
+
 
         ========================================================================
         The dy- cli , first source it:
@@ -146,42 +146,42 @@ Welcome to daylily.
         ========================================================================
         For use with dy-r [rules, try produce_<tab><tab>] [flags, try --con<tab><tab>]
         + Important snakemake arguments (all optional):
-          `-n` == dryrun, generates an execution plan, but runs no commands.  
+          `-n` == dryrun, generates an execution plan, but runs no commands.
               Good practice to run with -n before pulling the trigger.
           `-p` == print shell commands, pretty much always include this one
-          `--rerun-triggers mtime` == this will calculate an execution plan 
-              only re-running rules which have parent files timestamps are 
-              newer than children.  w/out this, snakemake cohsiders not only 
-              timestamps, but edits to config files, source data changes, code 
-              changes, environment changes... and will re-run agressively.  
-              ! Always run with -n before you attempt to re-run, or add, 
-              analysis to an existing results directory.  You can easily 
+          `--rerun-triggers mtime` == this will calculate an execution plan
+              only re-running rules which have parent files timestamps are
+              newer than children.  w/out this, snakemake cohsiders not only
+              timestamps, but edits to config files, source data changes, code
+              changes, environment changes... and will re-run agressively.
+              ! Always run with -n before you attempt to re-run, or add,
+              analysis to an existing results directory.  You can easily
               erase a lot of work if not careful.
           `-h` == snakemake help... `--help` == snakemake exhaustive help
-          `--rerun-incomplete` == if rerunning a workflow which failed 
-              ungracefully, snakemake will not proceed unless this flag is 
+          `--rerun-incomplete` == if rerunning a workflow which failed
+              ungracefully, snakemake will not proceed unless this flag is
               set so it can cleanup  the incomplete results subdirs.
-          `--jobs n` == limit the snakemake scheduler to only running 
+          `--jobs n` == limit the snakemake scheduler to only running
               `n` jobs at once.
           `--report FILENAME.html` == produce a summary report of the workflow
-          `--dag|--rulegraph|--filegraph` == use as follows to produce 
-              various graph visualizations of the TARGET being asked for: 
+          `--dag|--rulegraph|--filegraph` == use as follows to produce
+              various graph visualizations of the TARGET being asked for:
               `dy-r produce_deduplicated_bams --rulegraph | dot -Tpng > rg.png`
          ========================================================================
                 + TARGETS (which are snakemake rules that are a terminal point
                       in the larger DAG of rules). A few common ones:
-                   - produce_deduplicated_bams == will run the specified 
-                      aligner(s) and the specified dup marker (only one ddup 
-                      presently can run at a time). aligners, ddupers, 
-                      SNV&SV(multiple of each of these allowed) callers are 
-                      all configured in the: 
+                   - produce_deduplicated_bams == will run the specified
+                      aligner(s) and the specified dup marker (only one ddup
+                      presently can run at a time). aligners, ddupers,
+                      SNV&SV(multiple of each of these allowed) callers are
+                      all configured in the:
                        config/day_profles/{local,slurm}/rule_config.yaml
-                   - produce_snv_concordances == runs all specified 
-                      aligners/SV callers and produces a concordance report 
-                      for each aligner+SVcaller+sample (in the other_reports 
+                   - produce_snv_concordances == runs all specified
+                      aligners/SV callers and produces a concordance report
+                      for each aligner+SVcaller+sample (in the other_reports
                       dir)
-                   - produce_final_multiqc_wgs == runs everything and produces 
-                      the big final MQC report in the `reports` dir. 
+                   - produce_final_multiqc_wgs == runs everything and produces
+                      the big final MQC report in the `reports` dir.
 /-----------------------------------------------------------------------------
 [Fri May 29 23:49:25 2026]
 Finished job 0.
@@ -192,16 +192,16 @@ Complete log: .snakemake/log/2026-05-29T234921.643837.snakemake.log
 	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
 
 
- 
+
 ]]]]--------WORKFLOW SUCCESS====================]]]]]--
 RETURN CODE: 0
-⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the 
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the
 supported path is `source ./activate`.
 
 ── EXPORT ──
   › Preparing direct FSx export DRA
 2026-05-29 23:49:27,932 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
-  · Attached export DRA dra-06f9d50e365858d0a at 
+  · Attached export DRA dra-06f9d50e365858d0a at
 /fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/
 2026-05-29 23:52:33,307 INFO Task task-0348318914b0c8832 status: PENDING
 2026-05-29 23:53:03,510 INFO Task task-0348318914b0c8832 status: EXECUTING

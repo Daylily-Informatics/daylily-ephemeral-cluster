@@ -101,7 +101,7 @@ DAY-EC activated.
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv
         echo "run_bclconvert finished: $(date -Is)" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done
-        
+
 
 [Sat May 30 10:09:22 2026]
 rule bclconvert_generate_units_tsv:
@@ -126,7 +126,7 @@ rule bclconvert_generate_units_tsv:
           --seq-platform-override "$seq_platform_override" \
           --units-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv \
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_generate_units_tsv.log 2>&1
-        
+
 
 [Sat May 30 10:09:22 2026]
 rule bclconvert_metrics_summary:
@@ -150,7 +150,7 @@ rule bclconvert_metrics_summary:
           --fastq-manifest-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv \
           --rollup-json-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json \
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_metrics_summary.log 2>&1
-        
+
 
 [Sat May 30 10:09:22 2026]
 rule bclconvert_metrics_multiqc_exports:
@@ -178,7 +178,7 @@ rule bclconvert_metrics_multiqc_exports:
           --fastq-manifest-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_fastq_manifest_mqc.tsv \
           --lane-summary-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_lane_summary_mqc.tsv \
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs/bclconvert_metrics_multiqc_exports.log 2>&1
-        
+
 
 [Sat May 30 10:09:22 2026]
 rule multiqc_bclconvert:
@@ -205,7 +205,7 @@ rule multiqc_bclconvert:
           results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs \
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log 2>&1
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
-        
+
 
 [Sat May 30 10:09:22 2026]
 localrule produce_bclconvert_fastqs_and_metrics:

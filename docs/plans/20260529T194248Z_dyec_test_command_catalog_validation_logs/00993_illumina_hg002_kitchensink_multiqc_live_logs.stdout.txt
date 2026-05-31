@@ -148,26 +148,26 @@ DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
 Day CLI initialized for project 'dyec-test' in region 'us-west-2'.
 The Daylily CLI is now available.
 Available commands (tab completion is enabled for all):
- 
+
 	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
-	                           
+
 	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
-	                           
+
 	(day-run / dy-r)          - Run a command in the current environment.
 	                           <tab> for exposed targets, -<tab> for all command line flags.
-	                           
+
 	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
 	                           Use --block-and-poll to wait for completion.
-	                           
+
 	(day-deactivate / dy-d)   - Deactivate the current environment.
 	                           Use 'dy-d reset' to hard reset the environment.
-	                           
-	                           
-	                           
-	                           
-	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+
+
+
+
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode
 	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
-	                           
+
 	(example): ACTIVATE AN ANALYSIS ENV
 
 
@@ -219,7 +219,7 @@ Available commands (tab completion is enabled for all):
 Requesting profile: slurm
 Attempting to deactivate existing environments & re-init with --project dyec-test .
 Remote call detected. Activating conda hack
- > >> >>> 
+ > >> >>>
 ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/config/day_profiles/slurm ... copying
 Copying template yaml files to active config files /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/config/day_profiles/slurm
 Copying template bash files to active config files /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/config/day_profiles/slurm
@@ -229,13 +229,13 @@ WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a
 
 !!!!
 !!!!
-    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
      This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
      ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
      This is checked by testing if ~/.config/daylily/null exists .
 !!!!
- > >> >>>   genome build set to ::: hg38  
-       _______ GREAT SUCCESS _______       
+ > >> >>>   genome build set to ::: hg38
+       _______ GREAT SUCCESS _______
 Remote call detected. Activating conda hack
 Your config files in /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
 Executing: snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/config/day_profiles/slurm produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config aligners=["sent"] dedupers=["dmd"] snv_callers=["sentd"] htd_callers=["cyrius"] multiqc_qc={"enable_tools":["vep","metagenomics","contam_identity"]} -j 200 -p -k --rerun-triggers mtime

@@ -27,7 +27,7 @@ tmpfs                    605G     0  605G   0% /dev/shm
 /usr/bin/singularity
 INFO:    Using cached SIF image
 bcl-convert Version 00.000.000.4.0.3
-Copyright (c) 2014-2018 Illumina, Inc. 
+Copyright (c) 2014-2018 Illumina, Inc.
 /home/ubuntu/miniconda3/envs/DAY-EC/bin/aws
 s3_stage_submit_profile: lsmc
 s3_stage_credential_mode: compute_instance_role
@@ -70,7 +70,7 @@ tmpfs                    605G     0  605G   0% /dev/shm
 /usr/bin/singularity
 INFO:    Using cached SIF image
 bcl-convert Version 00.000.000.4.0.3
-Copyright (c) 2014-2018 Illumina, Inc. 
+Copyright (c) 2014-2018 Illumina, Inc.
 /home/ubuntu/miniconda3/envs/DAY-EC/bin/aws
 s3_stage_submit_profile: lsmc
 s3_stage_credential_mode: compute_instance_role

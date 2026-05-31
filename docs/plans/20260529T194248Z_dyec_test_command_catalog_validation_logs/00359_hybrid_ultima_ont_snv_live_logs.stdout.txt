@@ -106,7 +106,7 @@ DAY-EC activated.
         fi
 
         echo "Stage 1 completed at $(date)" >> results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log
-        
+
 Submitted job 18 with external jobid '1895'.
 [Sat May 30 01:07:40 2026]
 Error in rule sentdhuomr_stage1:
@@ -116,7 +116,7 @@ Error in rule sentdhuomr_stage1:
     log: results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_
     shell:
-        
+
         set -euo pipefail
         export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
 

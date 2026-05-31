@@ -1,0 +1,35 @@
+DAY-EC activated.
+DAY-EC activated.
+time=2026-05-30T16:11:15Z
+python=/home/ubuntu/miniconda3/envs/DAY-EC/bin/python
+Python 3.11.15
+working_dir=/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis
+postprocess outputs:
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics:
+total 36K
+drwxrwxr-x 2 ubuntu ubuntu  512 May 30 16:11 .
+drwxrwxr-x 9 ubuntu ubuntu  33K May 30 16:11 ..
+-rw-rw-r-- 1 ubuntu ubuntu  33K May 30 16:11 demultiplex_stats.tsv
+-rw-rw-r-- 1 ubuntu ubuntu  83K May 30 16:11 fastq_manifest.tsv
+-rw-rw-r-- 1 ubuntu ubuntu 795K May 30 16:11 index_hopping.tsv
+-rw-rw-r-- 1 ubuntu ubuntu  11M May 30 16:11 rollup.json
+-rw-rw-r-- 1 ubuntu ubuntu 4.5M May 30 16:11 unknown_barcodes.tsv
+
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables:
+total 82K
+drwxrwxr-x 2 ubuntu ubuntu  33K May 30 16:11 .
+drwxrwxr-x 9 ubuntu ubuntu  33K May 30 16:11 ..
+-rw-rw-r-- 1 ubuntu ubuntu  99K May 30 16:11 generated.units.tsv
+-rw-rw-r-- 1 ubuntu ubuntu 4.3K May 30 14:28 samplesheet_rows.tsv
+generated_units_head:
+RUNID	SAMPLEID	EXPERIMENTID	LANEID	BARCODEID	LIBPREP	SEQ_VENDOR	SEQ_PLATFORM	ILMN_R1_PATH	ILMN_R2_PATH
+20260514_LH01106_0009_B23TVLGLT4	HG001-a	GAGTAATATA.TCACGGTCGG.1	1	GAGTAATATACCGACCGTGA	PCR-FREE	ILMN	NOVASEQ	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG001-a_S1_L001_R1_001.fastq.gz	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG001-a_S1_L001_R2_001.fastq.gz
+20260514_LH01106_0009_B23TVLGLT4	HG001-b	CGTCATGCTA.ACGAACTTTA.1	1	CGTCATGCTATAAAGTTCGT	PCR-FREE	ILMN	NOVASEQ	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG001-b_S2_L001_R1_001.fastq.gz	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG001-b_S2_L001_R2_001.fastq.gz
+20260514_LH01106_0009_B23TVLGLT4	HG001-c	TTGGCTAGGT.TACTCCTATA.1	1	TTGGCTAGGTTATAGGAGTA	PCR-FREE	ILMN	NOVASEQ	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG001-c_S3_L001_R1_001.fastq.gz	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG001-c_S3_L001_R2_001.fastq.gz
+20260514_LH01106_0009_B23TVLGLT4	HG002-a	AGTCGACTCT.ATTACGATCG.1	1	AGTCGACTCTCGATCGTAAT	PCR-FREE	ILMN	NOVASEQ	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG002-a_S4_L001_R1_001.fastq.gz	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG002-a_S4_L001_R2_001.fastq.gz
+metrics_manifest_head:
+run_id	rgid	rgsm	rglb	lane	read1_file	read2_file
+bclconvert	GAGTAATATA.TCACGGTCGG.1	HG001-a	UnknownLibrary	1	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG001-a_S1_L001_R1_001.fastq.gz	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG001-a_S1_L001_R2_001.fastq.gz
+bclconvert	CGTCATGCTA.ACGAACTTTA.1	HG001-b	UnknownLibrary	1	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG001-b_S2_L001_R1_001.fastq.gz	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG001-b_S2_L001_R2_001.fastq.gz
+bclconvert	TTGGCTAGGT.TACTCCTATA.1	HG001-c	UnknownLibrary	1	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG001-c_S3_L001_R1_001.fastq.gz	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG001-c_S3_L001_R2_001.fastq.gz
+bclconvert	AGTCGACTCT.ATTACGATCG.1	HG002-a	UnknownLibrary	1	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG002-a_S4_L001_R1_001.fastq.gz	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/HG002-a_S4_L001_R2_001.fastq.gz

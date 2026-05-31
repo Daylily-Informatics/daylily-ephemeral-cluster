@@ -106,7 +106,7 @@ Unlocking working directory.
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv
-            
+
 Submitted job 41 with external jobid '2979'.
 [Sat May 30 08:26:57 2026]
 Finished job 41.
@@ -158,7 +158,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,giabHC_x_ultima,giabHC_x_ultima_x_clinvar,giabHCv5q,hg38,hg38_m_giabHC,ultima mqcs=10" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.concordance.log;
-            
+
 Submitted job 23 with external jobid '2980'.
 [Sat May 30 08:27:07 2026]
 Finished job 23.

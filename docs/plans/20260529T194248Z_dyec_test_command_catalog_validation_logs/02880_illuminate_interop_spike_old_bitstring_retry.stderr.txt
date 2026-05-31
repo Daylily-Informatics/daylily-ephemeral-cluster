@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "<stdin>", line 21, in <module>
+  File "/tmp/dyec-illuminate-spike-20260530-oldbitstring/lib/python3.11/site-packages/illuminate/interop.py", line 110, in IndexMetrics
+    self._index_metrics = InteropIndexMetrics(self.get_binary_path('index'),
+                                              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/tmp/dyec-illuminate-spike-20260530-oldbitstring/lib/python3.11/site-packages/illuminate/interop.py", line 81, in get_binary_path
+    raise InteropFileNotFoundError("No suitable binary found for {} in directory {}".format(codename, self.bindir))
+illuminate.exceptions.InteropFileNotFoundError: No suitable binary found for index in directory /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp
+failed to run commands: exit status 1

@@ -1,0 +1,247 @@
+DAY-EC activated.
+DAY-EC activated.
+=== time ===
+2026-05-30T14:18:27+00:00
+=== tmux sessions ===
+ccv20260529_simple-test_dryrun: 1 windows (created Fri May 29 19:54:02 2026)
+ccv20260529r10_illumina_bclconvert: 1 windows (created Sat May 30 02:22:25 2026)
+ccv20260529r10_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 02:19:40 2026)
+ccv20260529r10_illumina_run_qc: 1 windows (created Sat May 30 02:22:40 2026)
+ccv20260529r10_illumina_run_qc_bclconvert: 1 windows (created Sat May 30 02:22:51 2026)
+ccv20260529r10_illumina_run_qc_bclconvert_dryrun: 1 windows (created Sat May 30 02:20:06 2026)
+ccv20260529r10_illumina_run_qc_dryrun: 1 windows (created Sat May 30 02:19:54 2026)
+ccv20260529r10_inflection-bjuice-product-v0_1: 1 windows (created Sat May 30 01:04:03 2026)
+ccv20260529r10_inflection-bjuice-product-v0_1_dryrun: 1 windows (created Sat May 30 01:01:13 2026)
+ccv20260529r10_ont_run_qc: 1 windows (created Sat May 30 02:48:21 2026)
+ccv20260529r10_ont_run_qc_dryrun: 1 windows (created Sat May 30 02:45:36 2026)
+ccv20260529r11_illumina_bclconvert: 1 windows (created Sat May 30 03:11:46 2026)
+ccv20260529r11_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 03:09:02 2026)
+ccv20260529r11_illumina_run_qc: 1 windows (created Sat May 30 03:11:46 2026)
+ccv20260529r11_illumina_run_qc_bclconvert: 1 windows (created Sat May 30 03:11:49 2026)
+ccv20260529r11_illumina_run_qc_bclconvert_dryrun: 1 windows (created Sat May 30 03:09:02 2026)
+ccv20260529r11_illumina_run_qc_dryrun: 1 windows (created Sat May 30 03:09:02 2026)
+ccv20260529r11_ont_run_qc: 1 windows (created Sat May 30 03:17:15 2026)
+ccv20260529r11_ont_run_qc_dryrun: 1 windows (created Sat May 30 03:14:31 2026)
+ccv20260529r11_ultima_run_qc: 1 windows (created Sat May 30 03:27:18 2026)
+ccv20260529r11_ultima_run_qc_dryrun: 1 windows (created Sat May 30 03:24:33 2026)
+ccv20260529r12_ultima_run_qc: 1 windows (created Sat May 30 03:34:57 2026)
+ccv20260529r12_ultima_run_qc_dryrun: 1 windows (created Sat May 30 03:32:12 2026)
+ccv20260529r13_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 03:41:49 2026)
+ccv20260529r13_illumina_run_qc_bclconvert_dryrun: 1 windows (created Sat May 30 03:41:49 2026)
+ccv20260529r13_ultima_run_qc: 1 windows (created Sat May 30 03:44:33 2026)
+ccv20260529r13_ultima_run_qc_dryrun: 1 windows (created Sat May 30 03:41:49 2026)
+ccv20260529r14_illumina_bclconvert: 1 windows (created Sat May 30 03:53:39 2026)
+ccv20260529r14_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 03:50:54 2026)
+ccv20260529r14_illumina_run_qc_bclconvert: 1 windows (created Sat May 30 03:53:39 2026)
+ccv20260529r14_illumina_run_qc_bclconvert_dryrun: 1 windows (created Sat May 30 03:50:54 2026)
+ccv20260529r14_ultima_run_qc: 1 windows (created Sat May 30 03:53:39 2026)
+ccv20260529r14_ultima_run_qc_dryrun: 1 windows (created Sat May 30 03:50:54 2026)
+ccv20260529r15_illumina_bclconvert: 1 windows (created Sat May 30 04:09:12 2026)
+ccv20260529r15_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 04:06:28 2026)
+ccv20260529r15_illumina_run_qc_bclconvert: 1 windows (created Sat May 30 04:09:12 2026)
+ccv20260529r15_illumina_run_qc_bclconvert_dryrun: 1 windows (created Sat May 30 04:06:28 2026)
+ccv20260529r17_ont_run_qc: 1 windows (created Sat May 30 04:55:04 2026)
+ccv20260529r17_ont_run_qc_dryrun: 1 windows (created Sat May 30 04:52:20 2026)
+ccv20260529r18_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 05:04:08 2026)
+ccv20260529r19_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 05:09:59 2026)
+ccv20260529r20_simple-test: 1 windows (created Sat May 30 05:24:01 2026)
+ccv20260529r20_simple-test_dryrun: 1 windows (created Sat May 30 05:21:17 2026)
+ccv20260529r21_ont_run_qc: 1 windows (created Sat May 30 05:44:02 2026)
+ccv20260529r21_ont_run_qc_dryrun: 1 windows (created Sat May 30 05:41:17 2026)
+ccv20260529r22_illumina_bclconvert: 1 windows (created Sat May 30 05:58:27 2026)
+ccv20260529r22_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 05:55:44 2026)
+ccv20260529r22_ont_run_qc_dryrun: 1 windows (created Sat May 30 05:55:44 2026)
+ccv20260529r23_ont_run_qc_dryrun: 1 windows (created Sat May 30 06:01:27 2026)
+ccv20260529r24_illumina_bclconvert: 1 windows (created Sat May 30 06:08:07 2026)
+ccv20260529r24_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 06:05:23 2026)
+ccv20260529r25_illumina_bclconvert: 1 windows (created Sat May 30 06:24:10 2026)
+ccv20260529r25_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 06:21:26 2026)
+ccv20260529r26_complete_genomics_mgi_snv_concordance_dryrun: 1 windows (created Sat May 30 07:01:56 2026)
+ccv20260529r26_illumina_bclconvert: 1 windows (created Sat May 30 06:33:12 2026)
+ccv20260529r26_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 06:32:08 2026)
+ccv20260529r26_illumina_hg002_kitchensink_multiqc: 1 windows (created Sat May 30 06:50:22 2026)
+ccv20260529r26_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Sat May 30 06:48:33 2026)
+ccv20260529r28_complete_genomics_mgi_snv_concordance_dryrun: 1 windows (created Sat May 30 07:19:47 2026)
+ccv20260529r29_complete_genomics_mgi_snv_concordance_dryrun: 1 windows (created Sat May 30 07:28:34 2026)
+ccv20260529r2_simple-test_dryrun: 1 windows (created Fri May 29 20:02:54 2026)
+ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc_dryrun: 1 windows (created Sat May 30 07:36:16 2026)
+ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Sat May 30 07:52:24 2026)
+ccv20260529r32_illumina_hg002_kitchensink_multiqc: 1 windows (created Sat May 30 08:03:24 2026)
+ccv20260529r32_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Sat May 30 08:01:47 2026)
+ccv20260529r33_ultima_snv_alignstats_dryrun: 1 windows (created Sat May 30 08:23:27 2026)
+ccv20260529r34_illumina_hg002_kitchensink_multiqc: 1 windows (created Sat May 30 08:34:18 2026)
+ccv20260529r35_ont_snv_alignstats_dryrun: 1 windows (created Sat May 30 08:59:05 2026)
+ccv20260529r35_ont_snv_alignstats_kitchensink_dryrun: 1 windows (created Sat May 30 09:27:26 2026)
+ccv20260529r36_illumina_hg002_kitchensink_multiqc: 1 windows (created Sat May 30 09:19:39 2026)
+ccv20260529r36_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Sat May 30 09:18:28 2026)
+ccv20260529r37_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 09:56:39 2026)
+ccv20260529r38_illumina_bclconvert: 1 windows (created Sat May 30 10:01:42 2026)
+ccv20260529r38_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 10:00:37 2026)
+ccv20260529r40_illumina_hg002_kitchensink_multiqc: 1 windows (created Sat May 30 10:29:15 2026)
+ccv20260529r40_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Sat May 30 10:28:05 2026)
+ccv20260529r41_pacbio_snv_alignstats_dryrun: 1 windows (created Sat May 30 10:25:22 2026)
+ccv20260529r42_roche_snv_alignstats_dryrun: 1 windows (created Sat May 30 12:07:35 2026)
+ccv20260529r43_ultima_snv_alignstats_kitchensink_dryrun: 1 windows (created Sat May 30 12:10:30 2026)
+ccv20260529r45_roche_snv_alignstats_dryrun: 1 windows (created Sat May 30 12:17:19 2026)
+ccv20260529r47_hybrid_ilmn_ont_snv_kitchensink_dryrun: 1 windows (created Sat May 30 12:48:07 2026)
+ccv20260529r47_hybrid_ultima_ont_snv_dryrun: 1 windows (created Sat May 30 12:48:07 2026)
+ccv20260529r4_simple-test_dryrun: 1 windows (created Fri May 29 20:10:17 2026)
+ccv20260529r5_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Fri May 29 20:33:03 2026)
+ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc: 1 windows (created Fri May 29 20:38:08 2026)
+ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc_dryrun: 1 windows (created Fri May 29 20:28:19 2026)
+ccv20260529r5_simple-test_dryrun: 1 windows (created Fri May 29 20:21:14 2026)
+ccv20260529r5_ultima_snv_alignstats_dryrun: 1 windows (created Fri May 29 20:35:30 2026)
+ccv20260529r6_ont_snv_alignstats: 1 windows (created Fri May 29 21:22:52 2026)
+ccv20260529r6_ont_snv_alignstats_dryrun: 1 windows (created Fri May 29 21:14:13 2026)
+ccv20260529r6_ont_snv_alignstats_kitchensink: 1 windows (created Fri May 29 21:38:03 2026)
+ccv20260529r6_ont_snv_alignstats_kitchensink_dryrun: 1 windows (created Fri May 29 21:26:24 2026)
+ccv20260529r6_pacbio_snv_alignstats: 1 windows (created Fri May 29 21:55:20 2026)
+ccv20260529r6_pacbio_snv_alignstats_dryrun: 1 windows (created Fri May 29 21:48:53 2026)
+ccv20260529r6_ultima_snv_alignstats: 1 windows (created Fri May 29 21:00:58 2026)
+ccv20260529r6_ultima_snv_alignstats_dryrun: 1 windows (created Fri May 29 20:54:44 2026)
+ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun: 1 windows (created Fri May 29 21:03:59 2026)
+ccv20260529r7_hybrid_ilmn_ont_snv: 1 windows (created Fri May 29 23:40:38 2026)
+ccv20260529r7_hybrid_ilmn_ont_snv_dryrun: 1 windows (created Fri May 29 23:37:43 2026)
+ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink: 1 windows (created Fri May 29 23:40:38 2026)
+ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink_dryrun: 1 windows (created Fri May 29 23:37:43 2026)
+ccv20260529r7_illumina_snv_alignstats: 1 windows (created Fri May 29 23:38:25 2026)
+ccv20260529r7_illumina_snv_alignstats_dryrun: 1 windows (created Fri May 29 23:35:31 2026)
+ccv20260529r7_inflection-bjuice-product-v0_1_dryrun: 1 windows (created Sat May 30 00:04:05 2026)
+ccv20260529r7_roche_snv_alignstats_dryrun: 1 windows (created Fri May 29 23:32:36 2026)
+ccv20260529r7_simple-test: 1 windows (created Fri May 29 23:48:58 2026)
+ccv20260529r7_simple-test_dryrun: 1 windows (created Fri May 29 23:46:10 2026)
+ccv20260529r7_ultima_snv_alignstats_kitchensink: 1 windows (created Fri May 29 23:33:28 2026)
+ccv20260529r7_ultima_snv_alignstats_kitchensink_dryrun: 1 windows (created Fri May 29 23:30:34 2026)
+ccv20260529r8_inflection-bjuice-product-v0_1_dryrun: 1 windows (created Sat May 30 00:23:19 2026)
+ccv20260529r9_hybrid_ultima_ont_snv: 1 windows (created Sat May 30 00:35:27 2026)
+ccv20260529r9_hybrid_ultima_ont_snv_dryrun: 1 windows (created Sat May 30 00:31:46 2026)
+ccv20260529r9_inflection-bjuice-product-v0_1_dryrun: 1 windows (created Sat May 30 00:28:38 2026)
+ccv20260530r41_illumina_bclconvert: 1 windows (created Sat May 30 14:17:39 2026)
+ccv20260530r41_illumina_bclconvert_dryrun: 1 windows (created Sat May 30 14:11:58 2026)
+=== daylily run dirs recent ===
+--- /home/ubuntu/daylily-runs/ccv20260530r41_illumina_bclconvert/status.json
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260530r41_illumina_bclconvert",
+  "started_at": "2026-05-30T14:17:42Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260530r41_illumina_bclconvert_dryrun/status.json
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k -n --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": "2026-05-30T14:12:25Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260530r41_illumina_bclconvert_dryrun",
+  "started_at": "2026-05-30T14:12:01Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r39_illumina_bclconvert/status.json
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": "2026-05-30T13:24:47Z",
+  "exit_code": 130,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260529r39_illumina_bclconvert",
+  "started_at": "2026-05-30T10:10:02Z",
+  "terminated_by": "user_requested_controller_stop_and_analysis_cleanup"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r47_hybrid_ilmn_ont_snv_kitchensink_dryrun/status.json
+{
+  "command": "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config 'dedupers=[\"dmd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n",
+  "completed_at": "2026-05-30T12:48:37Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r47_hybrid_ilmn_ont_snv_kitchensink_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r47_hybrid_ilmn_ont_snv_kitchensink_dryrun",
+  "started_at": "2026-05-30T12:48:09Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r47_hybrid_ultima_ont_snv_dryrun/status.json
+{
+  "command": "bin/day_run produce_sentdhuomr_snv_vcf produce_alignstats produce_snv_concordances -p -j 100 -k -n",
+  "completed_at": "2026-05-30T12:48:34Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r47_hybrid_ultima_ont_snv_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r47_hybrid_ultima_ont_snv_dryrun",
+  "started_at": "2026-05-30T12:48:09Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r43_ultima_snv_alignstats_kitchensink/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k",
+  "completed_at": "2026-05-30T12:45:22Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r43_ultima_snv_alignstats_kitchensink/daylily-omics-analysis",
+  "session_name": "ccv20260529r43_ultima_snv_alignstats_kitchensink",
+  "started_at": "2026-05-30T12:11:44Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r45_roche_snv_alignstats/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentD_vcf -p -j 5 -k",
+  "completed_at": "2026-05-30T12:43:49Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats/daylily-omics-analysis",
+  "session_name": "ccv20260529r45_roche_snv_alignstats",
+  "started_at": "2026-05-30T12:18:32Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r46_illumina_hg002_kitchensink_multiqc_dryrun/status.json
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\"]' 'htd_callers=[\"cyrius\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\",\"contam_identity\"]}' -j 200 -p -k --rerun-triggers mtime -n",
+  "completed_at": "2026-05-30T12:30:58Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r46_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r46_illumina_hg002_kitchensink_multiqc_dryrun",
+  "started_at": "2026-05-30T12:30:38Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r45_roche_snv_alignstats_dryrun/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentD_vcf -p -j 5 -k -n",
+  "completed_at": "2026-05-30T12:17:49Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r45_roche_snv_alignstats_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r45_roche_snv_alignstats_dryrun",
+  "started_at": "2026-05-30T12:17:21Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r43_ultima_snv_alignstats_kitchensink_dryrun/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n",
+  "completed_at": "2026-05-30T12:10:59Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r43_ultima_snv_alignstats_kitchensink_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r43_ultima_snv_alignstats_kitchensink_dryrun",
+  "started_at": "2026-05-30T12:10:33Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r42_roche_snv_alignstats_dryrun/status.json
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentd_snv_vcf -p -j 5 -k -n",
+  "completed_at": "2026-05-30T12:08:03Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r42_roche_snv_alignstats_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r42_roche_snv_alignstats_dryrun",
+  "started_at": "2026-05-30T12:07:38Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260529r41_pacbio_snv_alignstats/status.json
+{
+  "command": "bin/day_run produce_sentmm2_align produce_na_dedup_cram produce_sentdpb_snv_vcf produce_alignstats produce_snv_concordances -p -j 2 -k -T 1",
+  "completed_at": "2026-05-30T11:13:49Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r41_pacbio_snv_alignstats/daylily-omics-analysis",
+  "session_name": "ccv20260529r41_pacbio_snv_alignstats",
+  "started_at": "2026-05-30T10:26:35Z"
+}
+=== snakemake/controller processes ===
+  81703       1 Ss      18:24:25  0.0  0.0 tmux new-session -d -s ccv20260529_simple-test_dryrun -e DAYLILY_RUN_DIR=/home/ubuntu/daylily-runs/ccv20260529_simple-test_dryrun -e DAYLILY_REPO_PATH=/fsx/analysis_results/ubuntu/ccv20260529_simple-test_dryrun/daylily-omics-analysis -e DAYLILY_TMUX_LOG=/home/ubuntu/daylily-runs/ccv20260529_simple-test_dryrun/tmux.log bash -lc 'source /home/ubuntu/daylily-runs/ccv20260529_simple-test_dryrun/launch.sh >>/home/ubuntu/daylily-runs/ccv20260529_simple-test_dryrun/tmux.log 2>&1'
+1722039   81703 Ss+        00:48  0.1  0.0 bash -lc source /home/ubuntu/daylily-runs/ccv20260530r41_illumina_bclconvert/launch.sh >>/home/ubuntu/daylily-runs/ccv20260530r41_illumina_bclconvert/tmux.log 2>&1
+1722588 1722039 S+         00:27  0.1  0.0 bash bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true
+1723085 1722588 S+         00:25  0.0  0.0 bash bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true
+1723086 1723085 Sl+        00:25 20.0  0.0 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true
+1723087 1723085 S+         00:25  0.0  0.0 bash bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true
+=== slurm ===
+JOBID PARTITION CPUS ST NODELIST MIN_MEMORY TIME NODES NAME
+3528 i192mem 192 CF i192mem-dy-all-8 180000M 0:18 1 run_bclconvert_lane-run_bclconvert_L008
+3521 i192mem 192 CF i192mem-dy-all-1 180000M 0:19 1 run_bclconvert_lane-run_bclconvert_L006
+3522 i192mem 192 CF i192mem-dy-all-2 180000M 0:19 1 run_bclconvert_lane-run_bclconvert_L002
+3523 i192mem 192 CF i192mem-dy-all-3 180000M 0:19 1 run_bclconvert_lane-run_bclconvert_L007
+3524 i192mem 192 CF i192mem-dy-all-4 180000M 0:19 1 run_bclconvert_lane-run_bclconvert_L004
+3525 i192mem 192 CF i192mem-dy-all-5 180000M 0:19 1 run_bclconvert_lane-run_bclconvert_L005
+3526 i192mem 192 CF i192mem-dy-all-6 180000M 0:19 1 run_bclconvert_lane-run_bclconvert_L001
+3527 i192mem 192 CF i192mem-dy-all-7 180000M 0:19 1 run_bclconvert_lane-run_bclconvert_L003

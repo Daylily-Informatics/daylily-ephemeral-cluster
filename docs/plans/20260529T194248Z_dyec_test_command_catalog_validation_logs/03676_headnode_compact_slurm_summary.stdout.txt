@@ -1,0 +1,22 @@
+DAY-EC activated.
+DAY-EC activated.
+=== identity ===
+2026-05-30T18:09:33Z
+ip-10-0-0-88.us-west-2.compute.internal
+=== queue counts ===
+total_jobs=3
+state.RUNNING=3
+partition.i192mem=2
+partition.i192=1
+=== job family counts ===
+      2 sentdhiomr_final_norm
+      1 cgt7p_DNAscope
+=== oldest jobs ===
+4207|i192|RUNNING|3:46|1|i192-dy-all-2|cgt7p_DNAscope-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+4415|i192mem|RUNNING|2:17|1|i192mem-dy-all-13|sentdhiomr_final_norm-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4417|i192mem|RUNNING|1:43|1|i192mem-dy-all-13|sentdhiomr_final_norm-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+=== fsx ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  3.7T  5.1T  43% /fsx
+tmpfs                   tmpfs   199G     0  199G   0% /dev/shm
+/dev/root               ext4    408G   42G  367G  11% /

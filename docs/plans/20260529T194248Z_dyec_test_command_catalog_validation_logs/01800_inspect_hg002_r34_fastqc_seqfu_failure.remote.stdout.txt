@@ -10,7 +10,7 @@ DAY-EC activated.
         end_time=$(date +%s);
     	elapsed_time=$((($end_time - $start_time) / 60));
         echo "Elapsed-Time-min:	$itype	$elapsed_time" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
-        
+
 Submitted job 6 with external jobid '2987'.
 [Sat May 30 08:37:06 2026]
 Finished job 47.
@@ -23,7 +23,7 @@ Error in rule fastqc_subsampled:
     log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/logs/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/7a5c7c62c589298e8e834f93fb618415_
     shell:
-        
+
         rm -rf results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc ;
         mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc ;
         mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp ;
@@ -62,7 +62,7 @@ Error in rule fastqc_subsampled:
         touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
         touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done_subsampled_at_0.25;
         ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
-        
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
     cluster_jobid: 2985
 
@@ -97,7 +97,7 @@ rule fastqc_subsampled:
         touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
         touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done_subsampled_at_0.25;
         ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
-        
+
 [Sat May 30 08:37:24 2026]
 Error in rule seqfu:
     jobid: 46
@@ -106,7 +106,7 @@ Error in rule seqfu:
     log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/7a5c7c62c589298e8e834f93fb618415_
     shell:
-        
+
         mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv);
         r1_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz)
         r2_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz)
@@ -125,7 +125,7 @@ Error in rule seqfu:
         wait;
         touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done;) > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log
         ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done;
-        
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
     cluster_jobid: 2986
 
@@ -183,7 +183,7 @@ Error in rule fastqc_subsampled:
     log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/logs/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/7a5c7c62c589298e8e834f93fb618415_
     shell:
-        
+
         rm -rf results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc ;
         mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc ;
         mkdir -p results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp ;
@@ -222,7 +222,7 @@ Error in rule fastqc_subsampled:
         touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
         touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done_subsampled_at_0.25;
         ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
-        
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
 
 Shutting down, this might take some time.

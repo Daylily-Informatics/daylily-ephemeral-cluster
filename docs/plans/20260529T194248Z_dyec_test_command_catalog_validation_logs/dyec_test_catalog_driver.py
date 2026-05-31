@@ -76,15 +76,7 @@ RUN_CONTEXT_INPUTS = {
     "ultima_run_qc": SAMPLE_INPUT_ROOT / "ultima_run_context_candidate.tsv",
 }
 
-INPUT_BLOCKED = {
-    "complete_genomics_mgi_snv_concordance": {
-        "manifest": SAMPLE_INPUT_ROOT / "complete_genomics_mgi_hg003_candidate_blocked.tsv",
-        "reason": (
-            "CG/MGI candidate mate-pair contract remains unverified; prior ledger measured "
-            "_386_1 and _386_2 as inconsistent and no substitution is authorized."
-        ),
-    }
-}
+INPUT_BLOCKED: dict[str, dict[str, Any]] = {}
 
 
 log_lock = threading.Lock()

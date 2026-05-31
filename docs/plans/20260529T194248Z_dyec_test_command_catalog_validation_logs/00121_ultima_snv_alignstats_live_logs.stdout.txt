@@ -1,7 +1,7 @@
 DAY-EC activated.
 DAY-EC activated.
             test -s results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_giabHC_concordance.mqc.tsv
-            
+
 Submitted job 20 with external jobid '112'.
 [Fri May 29 21:20:00 2026]
 Finished job 19.
@@ -51,7 +51,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_clinvar_genes/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_clinvar_genes_concordance.mqc.tsv
-            
+
 Submitted job 18 with external jobid '113'.
 [Fri May 29 21:20:10 2026]
 Finished job 23.
@@ -98,7 +98,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_giabHC_x_clinvar_genes/snv_TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA_giabHC_x_clinvar_genes_concordance.mqc.tsv
-            
+
 Submitted job 22 with external jobid '114'.
 [Fri May 29 21:20:10 2026]
 Finished job 26.
@@ -159,7 +159,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.concordance.log;
-            
+
 Submitted job 15 with external jobid '116'.
 [Fri May 29 21:21:00 2026]
 Finished job 15.
@@ -209,10 +209,10 @@ Complete log: .snakemake/log/2026-05-29T210125.136412.snakemake.log
 	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
 
 
- 
+
 ]]]]--------WORKFLOW SUCCESS====================]]]]]--
 RETURN CODE: 0
-⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the 
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the
 supported path is `source ./activate`.
 
 ── EXPORT ──

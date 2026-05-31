@@ -1,0 +1,49 @@
+DAY-EC activated.
+DAY-EC activated.
+time=2026-05-30T16:09:06Z
+sacct:
+logs:
+total 313K
+drwxrwxr-x 2 ubuntu ubuntu  33K May 30 16:04 .
+drwxrwxr-x 8 ubuntu ubuntu  33K May 30 15:53 ..
+-rw-rw-r-- 1 ubuntu ubuntu    0 May 30 15:59 bclconvert.done
+-rw-rw-r-- 1 ubuntu ubuntu    0 May 30 16:04 bclconvert_generate_units_tsv.log
+-rw-rw-r-- 1 ubuntu ubuntu    0 May 30 16:04 bclconvert_metrics_summary.log
+-rw-rw-r-- 1 ubuntu ubuntu  259 May 30 14:28 bclconvert_validate_inputs.log
+-rw-rw-r-- 1 ubuntu ubuntu  259 May 30 14:28 bclconvert_validate_inputs.warnings.log
+-rw-rw-r-- 1 ubuntu ubuntu 3.6K May 30 15:43 run_bclconvert.L001.log
+-rw-rw-r-- 1 ubuntu ubuntu 3.6K May 30 15:43 run_bclconvert.L002.log
+-rw-rw-r-- 1 ubuntu ubuntu 3.6K May 30 15:46 run_bclconvert.L003.log
+-rw-rw-r-- 1 ubuntu ubuntu 3.6K May 30 15:45 run_bclconvert.L004.log
+-rw-rw-r-- 1 ubuntu ubuntu 3.6K May 30 15:44 run_bclconvert.L005.log
+-rw-rw-r-- 1 ubuntu ubuntu 3.6K May 30 15:53 run_bclconvert.L006.log
+-rw-rw-r-- 1 ubuntu ubuntu 3.6K May 30 15:48 run_bclconvert.L007.log
+-rw-rw-r-- 1 ubuntu ubuntu 3.6K May 30 15:50 run_bclconvert.L008.log
+-rw-rw-r-- 1 ubuntu ubuntu  240 May 30 15:57 run_bclconvert.merge_lanes.log
+-rw-rw-r-- 1 ubuntu ubuntu    0 May 30 14:28 validated.ok
+metrics:
+tables:
+total 82K
+drwxrwxr-x 2 ubuntu ubuntu  33K May 30 14:28 .
+drwxrwxr-x 8 ubuntu ubuntu  33K May 30 15:53 ..
+-rw-rw-r-- 1 ubuntu ubuntu 4.3K May 30 14:28 samplesheet_rows.tsv
+known rule logs:
+--- /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_metrics_summary.log ---
+--- /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_generate_units_tsv.log ---
+--- /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.merge_lanes.log ---
+DYEC lane merge lanes: L001,L002,L003,L004,L005,L006,L007,L008
+DYEC lane merge root: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs
+DYEC final fastq dir: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs
+latest snakemake logs:
+total 146
+-rw-rw-r-- 1 ubuntu ubuntu   945 May 30 16:04 2026-05-30T160420.790245.snakemake.log
+drwxrwxr-x 2 ubuntu ubuntu 33280 May 30 16:04 .
+drwxrwxr-x 9 ubuntu ubuntu 33280 May 30 16:04 ..
+-rw-rw-r-- 1 ubuntu ubuntu 56198 May 30 16:04 2026-05-30T142802.774954.snakemake.log
+--- /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/.snakemake/log/2026-05-30T160420.790245.snakemake.log ---
+WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk, line 426:
+The units table was not found at /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/units.tsv. Create config/units.tsv or set --config units_table=/path/to/units.tsv.
+  File "/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/workflow/Snakefile", line 66, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/workflow/rules/global_common.smk", line 151, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 1089, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 426, in _load_units_table

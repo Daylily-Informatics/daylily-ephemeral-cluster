@@ -1,0 +1,204 @@
+DAY-EC activated.
+DAY-EC activated.
+=== identity ===
+2026-05-30T13:09:27Z
+i192mem-dy-all-1.dyec-test.pcluster
+uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),20(dialout),24(cdrom),25(floppy),27(sudo),29(audio),30(dip),44(video),46(plugdev),119(netdev),120(lxd)
+ 13:09:27 up  3:06,  0 users,  load average: 8.80, 9.60, 9.92
+instance_id=
+instance_type=
+=== bcl process ===
+bcl_pid=73008
+  73008   72978 Sl    984 10.9    02:14:42  223 86889588 142929764 bcl-convert /usr/local/bin/bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/run --output-directory /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv --stric
+--- /proc/73008/status ---
+Name:	bcl-convert
+State:	S (sleeping)
+Pid:	73008
+PPid:	72978
+VmSize:	142929764 kB
+VmHWM:	89719788 kB
+VmRSS:	86891124 kB
+Threads:	222
+voluntary_ctxt_switches:	13410
+nonvoluntary_ctxt_switches:	10
+--- /proc/73008/io ---
+rchar: 1006046981577
+wchar: 1382758369450
+syscr: 4133627
+syscw: 1174433
+read_bytes: 1015125815296
+write_bytes: 1382758731776
+cancelled_write_bytes: 0
+--- hottest bcl threads ---
+    PID     TID STAT %CPU %MEM     ELAPSED COMMAND
+  73008   73008 Sl    0.0 10.9    02:14:42 bcl-convert
+  73008   73040 Sl    0.0 10.9    02:14:42 bcl-convert
+  73008   73041 Rl   31.5 10.9    02:14:41 bcl-convert
+  73008   73042 Sl   31.4 10.9    02:14:41 bcl-convert
+  73008   73043 Rl   31.5 10.9    02:14:41 bcl-convert
+  73008   73044 Sl   31.4 10.9    02:14:41 bcl-convert
+  73008   73045 Sl   31.4 10.9    02:14:41 bcl-convert
+  73008   73046 Sl   31.4 10.9    02:14:41 bcl-convert
+  73008   73047 Rl   31.5 10.9    02:14:41 bcl-convert
+  73008   73048 Sl   31.5 10.9    02:14:41 bcl-convert
+  73008   73049 Sl   31.5 10.9    02:14:41 bcl-convert
+  73008   73050 Sl   31.4 10.9    02:14:41 bcl-convert
+  73008   73051 Rl   31.4 10.9    02:14:41 bcl-convert
+  73008   73052 Sl   31.5 10.9    02:14:41 bcl-convert
+  73008 1653962 Sl    2.8 10.9       20:31 bcl-convert
+  73008 1653963 Sl    2.6 10.9       20:31 bcl-convert
+  73008 1653964 Sl    2.7 10.9       20:31 bcl-convert
+  73008 1653965 Sl    2.6 10.9       20:31 bcl-convert
+  73008 1653966 Sl    2.6 10.9       20:31 bcl-convert
+  73008 1653967 Sl    2.6 10.9       20:31 bcl-convert
+  73008 1653968 Sl    2.7 10.9       20:31 bcl-convert
+  73008 1653969 Sl    2.6 10.9       20:31 bcl-convert
+  73008 1653970 Sl    2.6 10.9       20:31 bcl-convert
+  73008 1653971 Sl    2.6 10.9       20:31 bcl-convert
+=== slurm/snakemake processes ===
+  10132       1 S     0.0  0.0    03:03:06 /opt/slurm/sbin/slurmstepd infinity
+  24418       1 Sl    0.0  0.0    02:58:59 slurmstepd: [3310.batch]
+  24422   24421 Sl    2.8  0.0    02:58:59 /home/ubuntu/miniconda3/envs/DAYOA/bin/python -m snakemake --snakefile /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/workflow/Snakefile --target-jobs run_bclconvert: --allowed-rules run_bclconvert --cores all --attempt 1 --force-use-threads --resources mem_mb=180000 mem_mib=171662 disk_mb=1000 disk_mib=954 threads=192 time=5440 vcpu=192 --wait-for-files /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconv
+  25321   24422 S     0.0  0.0    02:58:54 /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash -c set -euo pipefail;           set -euo pipefail         mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs         : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log         export TMPDIR=/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scrat
+  73008   72978 Sl    984 10.9    02:14:42 /usr/local/bin/bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/run --output-directory /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv --strict-mode false --first-tile-only false
+1925068 1924218 S     0.0  0.0       00:00 grep -E snakemake|bcl-convert|singularity|slurmstepd
+=== memory/cpu ===
+               total        used        free      shared  buff/cache   available
+Mem:           755Gi       117Gi       313Gi       4.0Mi       324Gi       633Gi
+Swap:             0B          0B          0B
+procs -----------memory---------- ---swap-- -----io---- -system-- ------cpu-----
+ r  b   swpd   free   buff  cache   si   so    bi    bo   in   cs us sy id wa st
+ 4  0      0 328321664 139608 340646432    0    0     1     2   16    0  3  2 94  1  0
+19  0      0 328024704 139608 340733248    0    0     0     0 27626 77842  1  1 98  0  0
+ 7  0      0 325813248 139608 340799840    0    0     0     0 25236 53164  5  1 94  0  0
+ 6  0      0 325657152 139608 340939168    0    0     0     0 23973 44058  3  0 97  0  0
+ 8  0      0 325496160 139608 341095840    0    0     0     0 24109 44315  3  0 97  0  0
+=== filesystems ===
+Filesystem               Size  Used Avail Use% Mounted on
+/dev/root                 44G   29G   15G  67% /
+/dev/root                 44G   29G   15G  67% /
+tmpfs                    605G     0  605G   0% /dev/shm
+10.0.1.96@tcp:/d4tzvb4v  8.8T  7.8T  976G  90% /fsx
+10.0.1.96@tcp:/d4tzvb4v  8.8T  7.8T  976G  90% /fsx
+10.0.1.96@tcp:/d4tzvb4v  8.8T  7.8T  976G  90% /fsx
+Filesystem               Inodes  IUsed   IFree IUse% Mounted on
+10.0.1.96@tcp:/d4tzvb4v 8990276 996160 7994116   12% /fsx
+10.0.1.96@tcp:/d4tzvb4v 8990276 996160 7994116   12% /fsx
+10.0.1.96@tcp:/d4tzvb4v 8990276 996160 7994116   12% /fsx
+UUID                       bytes        Used   Available Use% Mounted on
+d4tzvb4v-MDT0000_UUID      275.0G       10.4G      264.6G   4% /fsx[MDT:0]
+d4tzvb4v-OST0000_UUID        1.1T      979.2G      135.0G  88% /fsx[OST:0]
+d4tzvb4v-OST0001_UUID        1.1T      987.0G      127.1G  89% /fsx[OST:1]
+d4tzvb4v-OST0002_UUID        1.1T      992.2G      121.9G  90% /fsx[OST:2]
+d4tzvb4v-OST0003_UUID        1.1T      992.8G      121.3G  90% /fsx[OST:3]
+d4tzvb4v-OST0004_UUID        1.1T     1020.0G       94.2G  92% /fsx[OST:4]
+d4tzvb4v-OST0005_UUID        1.1T      984.3G      129.8G  89% /fsx[OST:5]
+d4tzvb4v-OST0006_UUID        1.1T      980.0G      134.2G  88% /fsx[OST:6]
+d4tzvb4v-OST0007_UUID        1.1T     1002.9G      111.3G  91% /fsx[OST:7]
+
+filesystem_summary:         8.7T        7.8T      974.7G  90% /fsx
+
+UUID                      Inodes       IUsed       IFree IUse% Mounted on
+d4tzvb4v-MDT0000_UUID    26428317      996160    25432157   4% /fsx[MDT:0]
+d4tzvb4v-OST0000_UUID     1192185       85764     1106421   8% /fsx[OST:0]
+d4tzvb4v-OST0001_UUID     1127246       85407     1041839   8% /fsx[OST:1]
+d4tzvb4v-OST0002_UUID     1084872       85414      999458   8% /fsx[OST:2]
+d4tzvb4v-OST0003_UUID     1080196       85460      994736   8% /fsx[OST:3]
+d4tzvb4v-OST0004_UUID      857258       85028      772230  10% /fsx[OST:4]
+d4tzvb4v-OST0005_UUID     1149748       85495     1064253   8% /fsx[OST:5]
+d4tzvb4v-OST0006_UUID     1185202       85570     1099632   8% /fsx[OST:6]
+d4tzvb4v-OST0007_UUID      997332       85379      911953   9% /fsx[OST:7]
+
+filesystem_summary:      8986682      996160     7990522  12% /fsx
+
+=== progress sample before ===
+count=257 bytes=1383252367360 newest_epoch=1780146571.0000000000
+2026-05-30T13:09:31.0000000000 1963982848 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG003-b_S8_L003_R1_001.fastq.gz
+2026-05-30T13:09:31.0000000000 1970274304 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG001-c_S3_L003_R1_001.fastq.gz
+2026-05-30T13:09:31.0000000000 2011168768 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG003-a_S7_L003_R2_001.fastq.gz
+2026-05-30T13:09:31.0000000000 2013265920 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG003-b_S8_L003_R2_001.fastq.gz
+2026-05-30T13:09:31.0000000000 2033188864 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG004-b_S11_L003_R2_001.fastq.gz
+2026-05-30T13:09:31.0000000000 2054160384 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG003-c_S9_L003_R1_001.fastq.gz
+2026-05-30T13:09:31.0000000000 2054160384 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG004-a_S10_L003_R1_001.fastq.gz
+2026-05-30T13:09:31.0000000000 2082471936 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG003-c_S9_L003_R2_001.fastq.gz
+2026-05-30T13:09:31.0000000000 2092957696 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG004-a_S10_L003_R2_001.fastq.gz
+2026-05-30T13:09:31.0000000000 2141192192 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG002-b_S5_L003_R1_001.fastq.gz
+2026-05-30T13:09:31.0000000000 2174746624 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG002-b_S5_L003_R2_001.fastq.gz
+2026-05-30T13:09:31.0000000000 2290089984 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG002-a_S4_L003_R1_001.fastq.gz
+=== progress sample after 20s ===
+count=257 bytes=1386489124864 newest_epoch=1780146591.0000000000
+delta_count=0 delta_bytes=3236757504
+2026-05-30T13:09:51.0000000000 1873805312 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG006-c_S18_L003_R1_001.fastq.gz
+2026-05-30T13:09:51.0000000000 1903165440 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG007-c_S21_L003_R1_001.fastq.gz
+2026-05-30T13:09:51.0000000000 1915748352 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG006-a_S16_L003_R1_001.fastq.gz
+2026-05-30T13:09:51.0000000000 1962934272 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/NA07439-a_S36_L003_R1_001.fastq.gz
+2026-05-30T13:09:51.0000000000 2018508800 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/NA07439-a_S36_L003_R2_001.fastq.gz
+2026-05-30T13:09:51.0000000000 2049966080 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/NA20241-a_S37_L003_R2_001.fastq.gz
+2026-05-30T13:09:51.0000000000 2055208960 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/NA15849-a_S39_L003_R2_001.fastq.gz
+2026-05-30T13:09:51.0000000000 2076180480 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/HG005-a_S13_L003_R1_001.fastq.gz
+2026-05-30T13:09:51.0000000000 2118123520 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/NA05212-a_S38_L003_R1_001.fastq.gz
+2026-05-30T13:09:51.0000000000 2165309440 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/NA05212-a_S38_L003_R2_001.fastq.gz
+2026-05-30T13:09:51.0000000000 2279604224 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/NA20208-a_S40_L003_R2_001.fastq.gz
+2026-05-30T13:09:51.0000000000 2434793472 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/NA05115-a_S34_L003_R1_001.fastq.gz
+=== run log tail ===
+log_mtime=2026-05-30 10:54:45.000000000 +0000 log_bytes=3018
+run_bclconvert started: 2026-05-30T10:10:34+00:00
+host: i192mem-dy-all-1
+threads: 192
+resources_mem_mb: 180000
+TMPDIR: /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch
+staging_mode: mounted_dev_shm
+scratch_root: /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch
+bcl_input_directory: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+source_s3_uri: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs
+192
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  3.4T  5.4T  39% /fsx
+10.0.1.96@tcp:/d4tzvb4v  8.8T  3.4T  5.4T  39% /fsx
+/usr/bin/singularity
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc.
+scratch_dir: /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321
+scratch_input_basis: mounted_metadata_plus_lane_root
+scratch_root_file_bytes: 4536017
+scratch_intensities_file_bytes: 52032652
+scratch_lane_root_disk_bytes: 3415224586752
+scratch_input_disk_bytes: 3415281155421
+scratch_input_apparent_bytes: 3415281155421
+scratch_required_bytes: 3416354897245
+scratch_available_bytes: 5900225085440
+Staging mounted BCL run directory to scratch: 2026-05-30T10:10:38+00:00
+mounted_stage_lanes: L001 L002 L003 L004 L005 L006 L007 L008
+mounted_stage_jobs: 64
+mounted_stage_cycle_dirs: 2576
+mounted_stage_regular_files: 11424
+Copying mounted BCL files with sharded cp: 2026-05-30T10:10:41+00:00
+Copying root-level BCL metadata
+Skipping InterOp during BCLConvert scratch staging; run-QC rules own InterOp parsing
+Mounted scratch staging complete: 2026-05-30T10:54:38+00:00
+3.0T	/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/run
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  6.5T  2.3T  75% /fsx
+bcl_num_parallel_tiles: 8
+bcl_num_conversion_threads: 8
+bcl_num_compression_threads: 12
+bcl_num_decompression_threads: 4
+bcl-convert command: singularity exec docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/run --output-directory /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 8 --bcl-num-compression-threads 12 --bcl-num-decompression-threads 4 --shared-thread-odirect-output false -f
+INFO:    Using cached SIF image
+=== kernel/system warnings ===
+[Sat May 30 10:02:52 2026] Command line: BOOT_IMAGE=/boot/vmlinuz-6.8.0-1029-aws root=PARTUUID=0c766cde-f696-4fc6-b3df-8ad22158b06b ro rd.driver.blacklist=nouveau nouveau.modeset=0 processor.max_cstate=1 intel_idle.max_cstate=1 console=tty1 console=ttyS0 nvme_core.io_timeout=4294967295 panic=-1
+[Sat May 30 10:02:53 2026] Kernel command line: BOOT_IMAGE=/boot/vmlinuz-6.8.0-1029-aws root=PARTUUID=0c766cde-f696-4fc6-b3df-8ad22158b06b ro rd.driver.blacklist=nouveau nouveau.modeset=0 processor.max_cstate=1 intel_idle.max_cstate=1 console=tty1 console=ttyS0 nvme_core.io_timeout=4294967295 panic=-1
+[Sat May 30 10:03:01 2026] nvme nvme0: pci function 0000:0a:00.0
+[Sat May 30 10:03:01 2026] nvme nvme0: 2/0/0 default/read/poll queues
+[Sat May 30 10:03:01 2026]  nvme0n1: p1 p14 p15
+[Sat May 30 10:03:01 2026] EXT4-fs (nvme0n1p1): mounted filesystem 34f83ede-c3f0-489f-9b80-8fe779f88ad0 ro with ordered data mode. Quota mode: none.
+[Sat May 30 10:03:01 2026] VFS: Mounted root (ext4 filesystem) readonly on device 259:1.
+[Sat May 30 10:03:05 2026] block nvme0n1: the capability attribute has been deprecated.
+[Sat May 30 10:03:08 2026] EXT4-fs (nvme0n1p1): re-mounted 34f83ede-c3f0-489f-9b80-8fe779f88ad0 r/w. Quota mode: none.
+[Sat May 30 10:03:10 2026] RPC: Registered tcp NFSv4.1 backchannel transport module.
+[Sat May 30 10:04:06 2026] NFS: Registering the id_resolver key type
+[Sat May 30 10:04:16 2026] Lustre: Lustre: Build Version: 2.15.6
+[Sat May 30 10:04:34 2026] Lustre: Mounted d4tzvb4v-client
+[Sat May 30 10:04:45 2026] LustreError: 11-0: d4tzvb4v-OST0004-osc-ff29056deb1f5000: operation ost_connect to node 10.0.1.78@tcp failed: rc = -114

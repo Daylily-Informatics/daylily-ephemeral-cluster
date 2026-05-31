@@ -1,0 +1,4 @@
+Precheck passed: rows checked=1, samples checked=1, source objects checked=22, concordance directories checked=1.
+Generated configuration files:
+  samples.tsv -> /Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/generated_sample_configs/hybrid_ultima_ont_hg003_5x5x/20260530T124737Z_9a995798_samples.tsv
+  units.tsv   -> /Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/generated_sample_configs/hybrid_ultima_ont_hg003_5x5x/20260530T124737Z_9a995798_units.tsv

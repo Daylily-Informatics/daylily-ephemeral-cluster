@@ -27,7 +27,7 @@ DAY-EC activated.
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1.1/snv_TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION_altair-v1.1_concordance.mqc.tsv
-            
+
 
 [Fri May 29 21:17:17 2026]
 rule parse_vcfeval_summary_roi:
@@ -69,7 +69,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_giabHC/snv_TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION_giabHC_concordance.mqc.tsv
-            
+
 
 [Fri May 29 21:17:17 2026]
 rule parse_vcfeval_summary_roi:
@@ -111,7 +111,7 @@ rule parse_vcfeval_summary_roi:
 
             # Hard check: the legacy script should have written the MQC output where we declared it.
             test -s results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_hg38_m_giabHC/snv_TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION_hg38_m_giabHC_concordance.mqc.tsv
-            
+
 
 [Fri May 29 21:17:17 2026]
 localrule alignstats_gather:
@@ -170,7 +170,7 @@ rule prep_for_concordance_check:
 
             # Log
             echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,hg38,hg38_m_giabHC mqcs=6" >> results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/logs/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.concordance.log;
-            
+
 
 [Fri May 29 21:17:17 2026]
 localrule alignstats_compile:
@@ -186,7 +186,7 @@ localrule alignstats_compile:
 
         set -euo pipefail
         python workflow/scripts/compile_alignstats.py           --mdir results/day/hg38_broad/           --log results/day/hg38_broad/logs/alignstats_summary_compile.log           --bsummary results/day/hg38_broad/other_reports/alignstats_bsummary.tsv           --csummary results/day/hg38_broad/other_reports/alignstats_csummary.tsv           --combo results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv           --generalstats results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
-        
+
 
 [Fri May 29 21:17:17 2026]
 localrule produce_snv_concordances:

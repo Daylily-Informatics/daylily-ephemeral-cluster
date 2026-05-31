@@ -3,7 +3,7 @@ DAY-EC activated.
 Requesting profile: slurm
 Attempting to deactivate existing environments & re-init with --project dyec-test .
 Remote call detected. Activating conda hack
- > >> >>> 
+ > >> >>>
 ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/ccv20260529r10_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm ... copying
 Copying template yaml files to active config files /fsx/analysis_results/ubuntu/ccv20260529r10_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm
 Copying template bash files to active config files /fsx/analysis_results/ubuntu/ccv20260529r10_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm
@@ -13,13 +13,13 @@ WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a
 
 !!!!
 !!!!
-    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
      This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
      ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
      This is checked by testing if ~/.config/daylily/null exists .
 !!!!
- > >> >>>   genome build set to ::: hg38_broad  
-       _______ GREAT SUCCESS _______       
+ > >> >>>   genome build set to ::: hg38_broad
+       _______ GREAT SUCCESS _______
 Remote call detected. Activating conda hack
 Your config files in /fsx/analysis_results/ubuntu/ccv20260529r10_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
 Executing: snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260529r10_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/bclconvert/samples.tsv units_table=.test_data/data/bclconvert/units.tsv
@@ -101,7 +101,7 @@ localrule bclconvert_validate_inputs:
           --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
 [Sat May 30 02:23:19 2026]
 Error in rule bclconvert_validate_inputs:
@@ -111,7 +111,7 @@ Error in rule bclconvert_validate_inputs:
     log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
     shell:
-        
+
         set -euo pipefail
         mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables
         : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
@@ -142,7 +142,7 @@ Error in rule bclconvert_validate_inputs:
           --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
-        
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
 
 Trying to restart job 1.
@@ -189,7 +189,7 @@ localrule bclconvert_validate_inputs:
           --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
 [Sat May 30 02:23:19 2026]
 Error in rule bclconvert_validate_inputs:
@@ -199,7 +199,7 @@ Error in rule bclconvert_validate_inputs:
     log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
     shell:
-        
+
         set -euo pipefail
         mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables
         : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
@@ -230,12 +230,12 @@ Error in rule bclconvert_validate_inputs:
           --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
-        
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
 
 Exiting because a job execution failed. Look above for error message
- 
-        Womp Womp.  something went awry---- 
+
+        Womp Womp.  something went awry----
 RETURN CODE: 1
 [INFO] Workflow exited with status 1
 DAY-EC activated.

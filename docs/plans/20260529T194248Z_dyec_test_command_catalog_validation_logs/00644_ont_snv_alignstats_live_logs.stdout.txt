@@ -27,7 +27,7 @@ DAY-EC activated.
         elapsed_time=$((($end_time - $start_time) / 60));
         echo "Elapsed-Time-min:	$itype	$elapsed_time" >> results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.snv.log 2>&1;
 
-        
+
 Submitted job 1 with external jobid '119'.
 
 [Fri May 29 21:25:05 2026]
@@ -53,7 +53,7 @@ rule no_dedup_cram:
 
         echo "Symlinked results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.cram → results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.cram" >> results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/logs/dedupe.na.TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.log 2>&1
         echo "Symlinked results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.cram.crai → results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.cram.crai" >> results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/logs/dedupe.na.TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.log 2>&1
-        
+
 Submitted job 8 with external jobid '120'.
 [Fri May 29 21:25:15 2026]
 Finished job 8.
@@ -146,7 +146,7 @@ localrule alignstats_compile:
 
         set -euo pipefail
         python workflow/scripts/compile_alignstats.py           --mdir results/day/hg38_broad/           --log results/day/hg38_broad/logs/alignstats_summary_compile.log           --bsummary results/day/hg38_broad/other_reports/alignstats_bsummary.tsv           --csummary results/day/hg38_broad/other_reports/alignstats_csummary.tsv           --combo results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv           --generalstats results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
-        
+
 [Fri May 29 21:26:19 2026]
 Finished job 4.
 6 of 23 steps (26%) done
@@ -198,7 +198,7 @@ rule rtg_vcfeval_roi:
               -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
               --threads 16 \
               > results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/logs/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.giabHC.rtg_vcfeval.log 2>&1
-            
+
 Submitted job 16 with external jobid '122'.
 
 [Fri May 29 21:38:26 2026]
@@ -230,7 +230,7 @@ rule rtg_vcfeval_roi:
               -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
               --threads 16 \
               > results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/logs/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.giabHC_x_clinvar_genes.rtg_vcfeval.log 2>&1
-            
+
 Submitted job 18 with external jobid '123'.
 
 [Fri May 29--output truncated--

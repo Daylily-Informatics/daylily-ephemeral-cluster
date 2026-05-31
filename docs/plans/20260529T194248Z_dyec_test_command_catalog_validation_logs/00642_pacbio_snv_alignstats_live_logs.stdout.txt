@@ -44,7 +44,7 @@ DAY-EC activated.
         elapsed_time=$((($end_time - $start_time) / 60));
         echo "Elapsed-Time-min:	$itype	$elapsed_time" >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log 2>&1;
 
-        
+
 Submitted job 1 with external jobid '189'.
 [Fri May 29 22:06:04 2026]
 Finished job 5.
@@ -139,7 +139,7 @@ localrule alignstats_compile:
 
         set -euo pipefail
         python workflow/scripts/compile_alignstats.py           --mdir results/day/hg38_broad/           --log results/day/hg38_broad/logs/alignstats_summary_compile.log           --bsummary results/day/hg38_broad/other_reports/alignstats_bsummary.tsv           --csummary results/day/hg38_broad/other_reports/alignstats_csummary.tsv           --combo results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv           --generalstats results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
-        
+
 [Fri May 29 22:07:38 2026]
 Finished job 21.
 8 of 25 steps (32%) done
@@ -191,7 +191,7 @@ rule rtg_vcfeval_roi:
               -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
               --threads 16 \
               > results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/logs/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.hg38_m_giabHC.rtg_vcfeval.log 2>&1
-            
+
 Submitted job 19 with external jobid '217'.
 
 [Fri May 29 22:34:07 2026]
@@ -223,7 +223,7 @@ rule rtg_vcfeval_roi:
               -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
               --threads 16 \
               > results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/logs/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.giabHC.rtg_vcfeval.log 2>&1
-            
+
 Submitted job 13 with external jobid '218'.
 [Fri May 29 22:35:27 2026]
 Finished job 19.

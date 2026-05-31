@@ -1,0 +1,5 @@
+Precheck failed; no files were copied.
+Summary: rows checked=1, samples checked=1, source objects checked=2, concordance directories checked=1.
+Blockers:
+- row 2; SAMPLE_ID=HG002; RUN_ID=JEMILMN0P1
+  - field=EXTERNAL_SAMPLE_ID: Positive GIAB controls require EXTERNAL_SAMPLE_ID for truth file lookup.

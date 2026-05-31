@@ -1,0 +1,18 @@
+DAY-EC activated.
+DAY-EC activated.
+=== identity ===
+2026-05-30T20:50:00Z
+ip-10-0-0-88.us-west-2.compute.internal
+=== queue counts ===
+total_jobs=1
+state.RUNNING=1
+partition.i192mem=1
+=== job family counts ===
+      1 run_bclconvert_lane
+=== oldest jobs ===
+4643|i192mem|RUNNING|1:24:13|1|i192mem-dy-all-1|run_bclconvert_lane-run_bclconvert_L006
+=== fsx ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  8.0T  727G  92% /fsx
+tmpfs                   tmpfs   199G     0  199G   0% /dev/shm
+/dev/root               ext4    408G   42G  367G  11% /

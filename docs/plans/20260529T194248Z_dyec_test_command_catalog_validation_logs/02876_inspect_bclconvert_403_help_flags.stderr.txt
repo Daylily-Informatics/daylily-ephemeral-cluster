@@ -1,0 +1,43 @@
+INFO:    Converting OCI blobs to SIF format
+INFO:    Starting build...
+INFO:    Fetching OCI image...
+INFO:    Extracting OCI image...
+INFO:    Inserting Apptainer configuration...
+INFO:    Creating SIF file...
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2022 Illumina, Inc.
+
+Run BCL Conversion (BCL directory to *.fastq.gz)
+  bcl-convert --bcl-input-directory <BCL_ROOT_DIR> --output-directory <PATH> [options]
+
+Options:
+  -h [ --help ]                          Print this help message
+  -V [ --version ]                       Print the version and exit
+  --output-directory arg                 Output BCL directory for BCL conversion (must be specified)
+  -f [ --force ]                         Force: allow destination diretory to already exist
+  --bcl-input-directory arg              Input BCL directory for BCL conversion (must be specified)
+  --sample-sheet arg                     Path to SampleSheet.csv file (default searched for in --bcl-input-directory)
+  --bcl-only-lane arg                    Convert only specified lane number (default all lanes)
+  --strict-mode arg                      Abort if any files are missing (false by default)
+  --first-tile-only arg                  Only convert first tile of input (for testing & debugging)
+  --tiles arg                            Process only a subset of tiles by a regular expression
+  --exclude-tiles arg                    Exclude set of tiles by a regular expression
+  --bcl-sampleproject-subdirectories arg Output to subdirectories based upon sample sheet 'Sample_Project' column
+  --sample-name-column-enabled arg       Use sample sheet 'Sample_Name' column when naming fastq files & subdirectories
+  --fastq-gzip-compression-level arg     Set fastq output compression level 0-9 (default 1)
+  --shared-thread-odirect-output arg     Use linux native asynchronous io (io_submit) for file output (Default=false)
+  --bcl-num-parallel-tiles arg           # of tiles to process in parallel (default 1)
+  --bcl-num-conversion-threads arg       # of threads for conversion (per tile, default # cpu threads)
+  --bcl-num-compression-threads arg      # of threads for fastq.gz output compression (per tile, default # cpu threads,
+                                         or HW+12)
+  --bcl-num-decompression-threads arg    # of threads for bcl/cbcl input decompression (per tile, default half # cpu
+                                         threads, or HW+8. Only applies when preloading files)
+  --bcl-only-matched-reads arg           For pure BCL conversion, do not output files for 'Undetermined' [unmatched]
+                                         reads (output by default)
+  --run-info arg                         Path to RunInfo.xml file (default root of BCL input directory)
+  --no-lane-splitting arg                Do not split FASTQ file by lane (false by default)
+  --num-unknown-barcodes-reported arg    # of Top Unknown Barcodes to output (1000 by default)
+  --bcl-validate-sample-sheet-only arg   Only validate RunInfo.xml & SampleSheet files (produce no FASTQ files)
+  --output-legacy-stats arg              Also output stats in legacy (bcl2fastq2) format (false by default)
+  --no-sample-sheet arg                  Enable legacy no-sample-sheet operation (No demux or trimming. No settings
+                                         supported. False by default, not recommended

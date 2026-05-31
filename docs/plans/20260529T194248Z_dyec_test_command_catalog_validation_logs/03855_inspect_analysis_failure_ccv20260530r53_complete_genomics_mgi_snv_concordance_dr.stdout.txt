@@ -1,0 +1,19 @@
+DAY-EC activated.
+DAY-EC activated.
+=== status ===
+{
+  "command": "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete -n",
+  "completed_at": "2026-05-30T18:29:22Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun",
+  "started_at": "2026-05-30T18:28:58Z"
+}
+=== repo ===
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis
+=== latest snakemake logs ===
+1780165765.0000000000 .snakemake/log/2026-05-30T182922.949559.snakemake.log
+=== latest log path: .snakemake/log/2026-05-30T182922.949559.snakemake.log ===
+=== latest log tail ===
+Unlocking working directory.
+=== rule logs with errors ===

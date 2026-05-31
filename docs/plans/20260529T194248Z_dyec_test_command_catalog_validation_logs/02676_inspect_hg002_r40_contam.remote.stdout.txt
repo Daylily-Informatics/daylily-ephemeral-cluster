@@ -45,10 +45,10 @@ ources:
                 cp "$result_dir/contamination.html" {output.html:q}
             elif grep -q 'outside the range.*rCRS only' {log:q}; then
                 printf 'SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
-%s	UNSUPPORTED_REFERENCE	0		0		
+%s	UNSUPPORTED_REFERENCE	0		0
 ' {wildcards.sample:q} > {output.contamination:q}
                 printf 'SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
-%s	UNSUPPORTED_REFERENCE	0		0		
+%s	UNSUPPORTED_REFERENCE	0		0
 ' {wildcards.sample:q} > {output.raw:q}
                 printf '<html><body>UNSUPPORTED_REFERENCE</body></html>
 ' > {output.html:q}
@@ -59,10 +59,10 @@ ources:
             fi
         else
             printf 'SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
-%s	NO_VARIANTS	0		0		
+%s	NO_VARIANTS	0		0
 ' {wildcards.sample:q} > {output.contamination:q}
             printf 'SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
-%s	NO_VARIANTS	0		0		
+%s	NO_VARIANTS	0		0
 ' {wildcards.sample:q} > {output.raw:q}
             printf '<html><body>NO_VARIANTS</body></html>
 ' > {output.html:q}

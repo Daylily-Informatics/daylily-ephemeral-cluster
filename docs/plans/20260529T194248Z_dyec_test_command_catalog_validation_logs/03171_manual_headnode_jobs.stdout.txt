@@ -1,0 +1,6 @@
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+3537  i192mem  192  R  i192mem-dy-all-9  192  RUNNING  180000M  1:13:28  1  run_bclconvert_lane-run_bclconvert_L006
+3539  i192mem  192  R  i192mem-dy-all-11  192  RUNNING  180000M  1:13:28  1  run_bclconvert_lane-run_bclconvert_L007
+3544  i192mem  192  R  i192mem-dy-all-16  192  RUNNING  180000M  1:13:28  1  run_bclconvert_lane-run_bclconvert_L008

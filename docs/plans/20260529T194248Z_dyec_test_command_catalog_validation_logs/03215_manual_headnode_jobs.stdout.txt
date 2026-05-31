@@ -1,0 +1,5 @@
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+3546  i192  1  CF  i192-dy-all-1  1  CONFIGURING  3000M  1:57  1  bclconvert_metrics_summary-bclconvert_metrics_summary
+3547  i192  1  CF  i192-dy-all-1  1  CONFIGURING  3000M  1:57  1  bclconvert_generate_units_tsv-bclconvert_generate_units_tsv

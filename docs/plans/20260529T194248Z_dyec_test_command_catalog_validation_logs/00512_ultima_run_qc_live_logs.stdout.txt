@@ -1,26 +1,26 @@
 DAY-EC activated.
 DAY-EC activated.
 Available commands (tab completion is enabled for all):
- 
+
 	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
-	                           
+
 	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
-	                           
+
 	(day-run / dy-r)          - Run a command in the current environment.
 	                           <tab> for exposed targets, -<tab> for all command line flags.
-	                           
+
 	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
 	                           Use --block-and-poll to wait for completion.
-	                           
+
 	(day-deactivate / dy-d)   - Deactivate the current environment.
 	                           Use 'dy-d reset' to hard reset the environment.
-	                           
-	                           
-	                           
-	                           
-	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+
+
+
+
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode
 	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
-	                           
+
 	(example): ACTIVATE AN ANALYSIS ENV
 
 
@@ -72,7 +72,7 @@ Available commands (tab completion is enabled for all):
 Requesting profile: slurm
 Attempting to deactivate existing environments & re-init with --project dyec-test .
 Remote call detected. Activating conda hack
- > >> >>> 
+ > >> >>>
 ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/ccv20260529r11_ultima_run_qc/daylily-omics-analysis/config/day_profiles/slurm ... copying
 Copying template yaml files to active config files /fsx/analysis_results/ubuntu/ccv20260529r11_ultima_run_qc/daylily-omics-analysis/config/day_profiles/slurm
 Copying template bash files to active config files /fsx/analysis_results/ubuntu/ccv20260529r11_ultima_run_qc/daylily-omics-analysis/config/day_profiles/slurm
@@ -82,13 +82,13 @@ WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a
 
 !!!!
 !!!!
-    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
      This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
      ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
      This is checked by testing if ~/.config/daylily/null exists .
 !!!!
- > >> >>>   genome build set to ::: hg38_broad  
-       _______ GREAT SUCCESS _______       
+ > >> >>>   genome build set to ::: hg38_broad
+       _______ GREAT SUCCESS _______
 Remote call detected. Activating conda hack
 Your config files in /fsx/analysis_results/ubuntu/ccv20260529r11_ultima_run_qc/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
 Executing: snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260529r11_ultima_run_qc/daylily-omics-analysis/config/day_profiles/slurm produce_ultima_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv
@@ -167,7 +167,7 @@ localrule ultima_run_qc_report:
           --output-html results/runs/602221-20260417_2346/run_qc/ultima/summary.html \
           --output-tsv results/runs/602221-20260417_2346/run_qc/ultima/summary.tsv \
           --done results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done > results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log 2>&1
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 [Sat May 30 03:27:46 2026]
 Error in rule ultima_run_qc_report:
@@ -176,7 +176,7 @@ Error in rule ultima_run_qc_report:
     log: results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
     shell:
-        
+
         set -euo pipefail
         mkdir -p $(dirname results/runs/602221-20260417_2346/run_qc/ultima/summary.html) $(dirname results/runs/602221-20260417_2346/run_qc/ultima/summary.tsv) $(dirname results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log)
         python workflow/scripts/summarize_run_qc_report.py \
@@ -186,7 +186,7 @@ Error in rule ultima_run_qc_report:
           --output-html results/runs/602221-20260417_2346/run_qc/ultima/summary.html \
           --output-tsv results/runs/602221-20260417_2346/run_qc/ultima/summary.tsv \
           --done results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done > results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log 2>&1
-        
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
 
 Trying to restart job 1.
@@ -211,7 +211,7 @@ localrule ultima_run_qc_report:
           --output-html results/runs/602221-20260417_2346/run_qc/ultima/summary.html \
           --output-tsv results/runs/602221-20260417_2346/run_qc/ultima/summary.tsv \
           --done results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done > results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log 2>&1
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
 [Sat May 30 03:27:47 2026]
 Error in rule ultima_run_qc_report:
@@ -220,7 +220,7 @@ Error in rule ultima_run_qc_report:
     log: results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log (check log file(s) for error details)
     conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
     shell:
-        
+
         set -euo pipefail
         mkdir -p $(dirname results/runs/602221-20260417_2346/run_qc/ultima/summary.html) $(dirname results/runs/602221-20260417_2346/run_qc/ultima/summary.tsv) $(dirname results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log)
         python workflow/scripts/summarize_run_qc_report.py \
@@ -230,12 +230,12 @@ Error in rule ultima_run_qc_report:
           --output-html results/runs/602221-20260417_2346/run_qc/ultima/summary.html \
           --output-tsv results/runs/602221-20260417_2346/run_qc/ultima/summary.tsv \
           --done results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.done > results/runs/602221-20260417_2346/run_qc/ultima/logs/ultima_run_qc_report.log 2>&1
-        
+
         (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
 
 Exiting because a job execution failed. Look above for error message
- 
-        Womp Womp.  something went awry---- 
+
+        Womp Womp.  something went awry----
 RETURN CODE: 1
 [INFO] Workflow exited with status 1
 DAY-EC activated.

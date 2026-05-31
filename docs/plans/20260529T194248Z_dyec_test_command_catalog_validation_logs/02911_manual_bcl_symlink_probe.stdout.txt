@@ -1,0 +1,44 @@
+DAY-EC activated.
+DAY-EC activated.
+=== headnode projection ===
+ip-10-0-0-88
+drwxrwxr-x 11 ubuntu ubuntu 33280 May 30 14:17 /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config
+drwxrwxr-x  2 ubuntu ubuntu 33280 May 30 14:17 /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links
+lrwxrwxrwx  1 ubuntu ubuntu    52 May 30 14:17 /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 -> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+drwxr-xr-x  9 root   root   25600 May 30 02:17 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+projected_dir=yes
+mounted_dir=yes
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/_lsmc_ingest
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/OOW.done
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/RTAComplete.txt
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/CopyComplete.txt
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/RunParameters.xml
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/InstrumentAnalyticsLogs
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/Logs
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/Thumbnail_Images
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/Manifest.tsv
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/Data
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/Analysis
+=== compute projection ===
+i192mem-dy-all-1
+drwxrwxr-x 11 ubuntu ubuntu 33280 May 30 14:17 /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config
+drwxrwxr-x  2 ubuntu ubuntu 33280 May 30 14:17 /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links
+lrwxrwxrwx  1 ubuntu ubuntu    52 May 30 14:17 /fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 -> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+drwxr-xr-x  9 root   root   25600 May 30 02:17 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+projected_dir=yes
+mounted_dir=yes
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/_lsmc_ingest
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/OOW.done
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/RTAComplete.txt
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/CopyComplete.txt
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/RunParameters.xml
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/InstrumentAnalyticsLogs
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/Logs
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/Thumbnail_Images
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/Manifest.tsv
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/Data
+/fsx/analysis_results/ubuntu/ccv20260530r41_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/Analysis

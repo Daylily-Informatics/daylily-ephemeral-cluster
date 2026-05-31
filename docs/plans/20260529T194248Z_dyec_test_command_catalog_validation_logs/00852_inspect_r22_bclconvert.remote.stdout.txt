@@ -39,7 +39,7 @@ Filesystem               Size  Used Avail Use% Mounted on
 /usr/bin/singularity
 INFO:    Using cached SIF image
 bcl-convert Version 00.000.000.4.0.3
-Copyright (c) 2014-2018 Illumina, Inc. 
+Copyright (c) 2014-2018 Illumina, Inc.
 /fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis/logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.out
 /fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis/logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err
                 ;;
@@ -101,7 +101,7 @@ Copyright (c) 2014-2018 Illumina, Inc.
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv
         echo "run_bclconvert finished: $(date -Is)" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done
-        
+
 slurm_queue:
              JOBID            PARTITION    STATE       TIME TIME_LIMI  NODES                 NAME
               2654              i192mem  RUNNING       0:27 3-18:40:00      1 run_bclconvert-run_b

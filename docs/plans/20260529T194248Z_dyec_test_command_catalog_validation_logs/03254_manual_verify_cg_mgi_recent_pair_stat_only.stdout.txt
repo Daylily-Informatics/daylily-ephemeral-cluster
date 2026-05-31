@@ -1,0 +1,7 @@
+DAY-EC activated.
+DAY-EC activated.
+UTC 2026-05-30T17:25:02Z
+--- selected pair stat-only verification ---
+/fsx/control_data/genomic_data/organism_reads/H_sapiens/complete_genomics/T7plus_WGS_PE150_HG003_PCR_Free_Read_1.fq.gz size=125939746009 mtime=2026-05-26 08:14:25.000000000 +0000
+/fsx/control_data/genomic_data/organism_reads/H_sapiens/complete_genomics/T7plus_WGS_PE150_HG003_PCR_Free_Read_2.fq.gz size=127737613770 mtime=2026-05-26 08:14:25.000000000 +0000
+selected_pair_stat_check_ok=true

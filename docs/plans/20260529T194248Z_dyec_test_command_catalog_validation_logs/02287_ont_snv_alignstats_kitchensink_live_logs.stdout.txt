@@ -90,7 +90,7 @@ localrule stage_multiqc_inputs:
         set -euo pipefail
         mkdir -p $(dirname results/day/hg38_broad/reports/logs/final_multiqc_input_staging.log)
         python workflow/scripts/stage_multiqc_inputs.py           --input-root results/day/hg38_broad/           --output-dir results/day/hg38_broad/reports/multiqc_inputs/final           --manifest results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv           results/day/hg38_broad/other_reports/seqfu_mqc.tsv results/day/hg38_broad/other_reports/input_sample_libraries_mqc.tsv results/day/hg38_broad/other_reports/sequence_qc_outputs_mqc.tsv results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv results/day/hg38_broad/other_reports/norm_cov_evenness_combo_mqc.tsv results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/samtmetrics/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.complete results/day/hg38_broad/other_reports/samtools_metrics_gather.done results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/mosdepth/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.mosdepth.summary.txt results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/goleft.done results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/norm_cov_eveness/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.md results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/alignqc/contam/gatk/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.gatk.tsv results/day/hg38_broad/other_reports/alignment_qc_outputs_mqc.tsv results/day/hg38_broad/other_reports/contamination_mqc.tsv results/day/hg38_broad/other_reports/site_mix_contam_mqc.tsv results/day/hg38_broad/other_reports/site_mix_donor_mqc.tsv results/day/hg38_broad/other_reports/relatedness_mqc.tsv results/day/hg38_broad/other_reports/bcftools_variant_stats_mqc.tsv results/day/hg38_broad/other_reports/rtg_vcfstats_mqc.tsv logs/peddy_gathered.done results/day/hg38_broad/other_reports/peddy_sample_qc_mqc.tsv results/day/hg38_broad/other_reports/vep_annotation_mqc.tsv results/day/hg38_broad/other_reports/giab_concordance_mqc.tsv results/day/hg38_broad/other_reports/rules_benchmark_data_mqc.tsv > results/day/hg38_broad/reports/logs/final_multiqc_input_staging.log 2>&1
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/f02f4b1dcb4977fd9602b074e7c885b9_
 Touching output file results/day/hg38_broad/reports/multiqc_inputs/final/.stage.done.
 [Sat May 30 10:09:19 2026]
@@ -147,7 +147,7 @@ report_header_info:
         python workflow/scripts/force_multiqc_dark_mode.py           --html results/day/hg38_broad/reports/DAY_final_multiqc.html           --backup results/day/hg38_broad/reports/DAY_final_multiqc.original.html >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
         python workflow/scripts/validate_multiqc_sample_ids.py           --manifest results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv           --multiqc-data results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_data.json >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
         ls -lt results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/DAY_final_multiqc.original.html results/day/hg38_broad/reports/multiqc_header.yaml >> results/day/hg38_broad/reports/logs/all__mqc_fin_a.log 2>&1;
-        
+
 Submitted job 81 with external jobid '3309'.
 [Sat May 30 10:09:45 2026]
 Finished job 81.

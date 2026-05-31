@@ -24,7 +24,7 @@ DAY-EC activated.
         cat results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.input.vcf.gz.record_count > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.vcf.gz.record_count
         test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.vcf.gz
         test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.vcf.gz.tbi
-        
+
 
 [Sat May 30 07:55:17 2026]
 rule vep_chromosome:
@@ -55,7 +55,7 @@ rule vep_chromosome:
         cat results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.input.vcf.gz.record_count > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz.record_count
         test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz
         test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.vcf.gz.tbi
-        
+
 
 [Sat May 30 07:55:17 2026]
 localrule vep_concat_fofn:
@@ -86,11 +86,11 @@ NameError: The name 'count_path%' is unknown in this context. Please make sure t
             done
         fi
         mv {params.tmp_fofn} {output.fofn}
-        
+
 [5m[48;5;118m[30mRETURN CODE: 1[0m
 [INFO] Workflow exited with status 1
 DAY-EC activated.
-[?2004h(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis$ 
+[?2004h(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260529r31_illumina_hg002_kitchensink_multiqc_dryrun/daylily-omics-analysis$
 ## launch exit/status handling
 2:set -euo pipefail
 19:	DY_COMMAND='bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config '"'"'aligners=["sent"]'"'"' '"'"'dedupers=["dmd"]'"'"' '"'"'snv_callers=["sentd"]'"'"' '"'"'htd_callers=["cyrius"]'"'"' '"'"'multiqc_qc={"enable_tools":["vep","metagenomics","contam_identity"]}'"'"' -j 200 -p -k --rerun-triggers mtime -n'

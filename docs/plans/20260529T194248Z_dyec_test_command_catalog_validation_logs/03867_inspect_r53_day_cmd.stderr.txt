@@ -1,0 +1,2 @@
+/tmp/daylily-ssm-PQm6zx.sh: line 25: type: dy-r: not found
+/tmp/daylily-ssm-PQm6zx.sh: line 26: type: day-run: not found

@@ -1,0 +1,156 @@
+DAY-EC activated.
+DAY-EC activated.
+time=2026-05-30T16:16:43Z
+Project: dyec-test
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'dyec-test' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+# conda environments:
+#
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/051b9c93eaf518b5ddebc4344275e8a4_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/0b72e739b2cf77bd2e79394c1e549c63_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/0c86add3b549fcc28843f5872250be8c_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/100507f8e13d5e1848ac45d4d452691c_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/1142d6cbdb634d9e332e99dc4820c6a0_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/160617592874011bcee6aad07c00c9ad_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/1993fd6aa5cfbaeeadfc7774cd7f8c2c_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/268f6065d6f69417fea15776392afaf9_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/2bc06e7aeab5345bc658146f339d6cd8_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/2dc9c608977f6d7c6253f8d381138ed4_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/634a8f3a2dffe15027f8cca0913f9426_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/70729e66ede5758449affc0303f52937_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/738f2ef5db9d8ccc1d2e2f995b734454_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/73dbbd9209dde9d5b560eca76639c2a0_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/7a5c7c62c589298e8e834f93fb618415_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/829d8a014f8720620c5866151c8f0779_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/86ad48bef57edc0a5a866843ec8f3737_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/9a86ccf495a30ab366c2e3a27d6ba5ef_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a876128b7711b7b3576ee89d4b896694_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/b364badf61d8e9d2d9321a0a7c8fd0c6_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/d39c2ff7abeb07947030e9839a43fd4f_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/d42215c34ab8867d1a29ad0dad583781_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/da4dc21134176da342ba1bdf1057d36f_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/dff38df99218384139a313055699ea0e_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/e28353b323f26af0747eb0fc4db2c579_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/efba687ed98dc6d0ecc827ba5c267513_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/f02f4b1dcb4977fd9602b074e7c885b9_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/fb0da2b0be44b336d1294fa52fffc58e_
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'dyec-test' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+
+
+
+
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+dyoainit_rc=0
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyec-test .
+Remote call detected. Activating conda hack
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+       _______ GREAT SUCCESS _______
+day_activate_slurm_hg38_remote_rc=0
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyec-test .
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+       _______ GREAT SUCCESS _______
+day_activate_slurm_hg38_rc=0
+env_summary:
+PATH=/home/ubuntu/miniconda3/envs/DAYOA/bin:/home/ubuntu/miniconda3/envs/DAY-EC/bin:/home/ubuntu/.local/bin:/home/ubuntu/miniconda3/envs/DAY-EC/bin:/home/ubuntu/miniconda3/condabin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/opt/aws/bin:/opt/parallelcluster/pyenv/versions/3.12.8/envs/awsbatch_virtualenv/bin:/opt/slurm/bin:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin:/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/bin:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.01.rc1//bin/:/opt/slurm/bin

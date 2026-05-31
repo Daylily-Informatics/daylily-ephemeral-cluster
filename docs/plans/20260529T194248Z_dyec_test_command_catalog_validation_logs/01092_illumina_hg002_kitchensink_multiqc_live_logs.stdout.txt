@@ -26,7 +26,7 @@ DAY-EC activated.
         touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
         touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done_subsampled_at_0.25;
         ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
-        
+
 Submitted job 90 with external jobid '2661'.
 
 [Sat May 30 07:11:35 2026]
@@ -60,7 +60,7 @@ rule seqfu:
         wait;
         touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done;) > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log
         ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done;
-        
+
 Submitted job 92 with external jobid '2662'.
 Touching output file results/day/hg38/other_reports/samtools_metrics_gather.done.
 Config file config/global.yaml is extended by additional config specified via the command line.
@@ -106,7 +106,7 @@ Reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILM
 
         ( mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.dirsetup.ready ) || echo "ERROR:: mkdir $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.dirsetup.ready )  FAILED";
         touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.dirsetup.ready; ) > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.dirsetup.log 2>&1;
-        
+
 Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/f02f4b1dcb4977fd9602b074e7c885b9_
 SNV Callers:[sentd]
 SNV Callers (final): [sentd]
@@ -209,7 +209,7 @@ rule sentieon_bwa_sort:
         end_time=$(date +%s);
     	elapsed_time=$((($end_time - $start_time) / 60));
         echo "Elapsed-Time-min:	$itype	$elapsed_time" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
-        
+
 Submitted job 4 with external jobid '2663'.
 Building DAG of jobs...
 Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash

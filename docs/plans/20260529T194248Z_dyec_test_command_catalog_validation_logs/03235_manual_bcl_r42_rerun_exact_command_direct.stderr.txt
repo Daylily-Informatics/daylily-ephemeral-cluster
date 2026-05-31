@@ -1,0 +1,16 @@
+Your config files in /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+ > >> >>>   genome build set to ::: hg38
+[1m[48;5;88m[38;5;79mYour config files in /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.[0m
+[1m[40m[38;5;118mExecuting: snakemake --profile=/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true[0m
+ERROR: Mermaid PDF rendering failed for /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/pipeline_workflow_planned.mmd: Generating single mermaid chart
+
+Error: Could not find Chrome (ver. 148.0.7778.97). This can occur if either
+ 1. you did not perform an installation before running the script (e.g. `npx puppeteer browsers install chrome-headless-shell`) or
+ 2. your cache path is incorrectly configured (which is: /home/ubuntu/.cache/puppeteer).
+For (2), check out our guide on configuring puppeteer at https://pptr.dev/guides/configuration.
+    at ChromeLauncher.resolveExecutablePath (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/node_modules/puppeteer-core/lib/esm/puppeteer/node/BrowserLauncher.js:307:27)
+    at ChromeLauncher.computeLaunchArguments (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/node_modules/puppeteer-core/lib/esm/puppeteer/node/ChromeLauncher.js:86:24)
+    at async ChromeLauncher.launch (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/node_modules/puppeteer-core/lib/esm/puppeteer/node/BrowserLauncher.js:55:28)
+    at async run (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/src/index.js:623:19)
+    at async cli (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/src/index.js:260:3)
+failed to run commands: exit status 1

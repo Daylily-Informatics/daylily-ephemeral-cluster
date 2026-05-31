@@ -73,7 +73,7 @@ Filesystem               Size  Used Avail Use% Mounted on
 /usr/bin/singularity
 INFO:    Using cached SIF image
 bcl-convert Version 00.000.000.4.0.3
-Copyright (c) 2014-2018 Illumina, Inc. 
+Copyright (c) 2014-2018 Illumina, Inc.
 scratch_dir: /fsx/scratch/dayoa_bclconvert/2657.41370
 scratch_input_disk_bytes: 329347072
 scratch_input_apparent_bytes: 8442068270195
@@ -89,7 +89,7 @@ bcl-convert command: singularity exec docker://nfcore/bclconvert:4.0.3 bcl-conve
 INFO:    Using cached SIF image
 ERROR: Output folder directory structure can not be created at /fsx/scratch/dayoa_bclconvert/2657.41370/fastqs
 bcl-convert Version 00.000.000.4.0.3
-Copyright (c) 2014-2022 Illumina, Inc. 
+Copyright (c) 2014-2022 Illumina, Inc.
 
 Run BCL Conversion (BCL directory to *.fastq.gz)
   bcl-convert --bcl-input-directory <BCL_ROOT_DIR> --output-directory <PATH> [options]
@@ -114,16 +114,16 @@ Options:
   --bcl-num-conversion-threads arg       # of threads for conversion (per tile, default # cpu threads)
   --bcl-num-compression-threads arg      # of threads for fastq.gz output compression (per tile, default # cpu threads,
                                          or HW+12)
-  --bcl-num-decompression-threads arg    # of threads for bcl/cbcl input decompression (per tile, default half # cpu 
+  --bcl-num-decompression-threads arg    # of threads for bcl/cbcl input decompression (per tile, default half # cpu
                                          threads, or HW+8. Only applies when preloading files)
-  --bcl-only-matched-reads arg           For pure BCL conversion, do not output files for 'Undetermined' [unmatched] 
+  --bcl-only-matched-reads arg           For pure BCL conversion, do not output files for 'Undetermined' [unmatched]
                                          reads (output by default)
   --run-info arg                         Path to RunInfo.xml file (default root of BCL input directory)
   --no-lane-splitting arg                Do not split FASTQ file by lane (false by default)
   --num-unknown-barcodes-reported arg    # of Top Unknown Barcodes to output (1000 by default)
   --bcl-validate-sample-sheet-only arg   Only validate RunInfo.xml & SampleSheet files (produce no FASTQ files)
   --output-legacy-stats arg              Also output stats in legacy (bcl2fastq2) format (false by default)
-  --no-sample-sheet arg                  Enable legacy no-sample-sheet operation (No demux or trimming. No settings 
+  --no-sample-sheet arg                  Enable legacy no-sample-sheet operation (No demux or trimming. No settings
                                          supported. False by default, not recommended
 
 scratch_tree:

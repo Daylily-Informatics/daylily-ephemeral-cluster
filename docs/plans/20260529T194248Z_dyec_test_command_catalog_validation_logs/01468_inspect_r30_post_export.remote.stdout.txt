@@ -63,16 +63,16 @@ Complete log: .snakemake/log/2026-05-30T073755.203696.snakemake.log
 	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
 
 
-[1m[48;5;205m[30m 
+[1m[48;5;205m[30m
 ]]]]--------WORKFLOW SUCCESS====================]]]]]--[0m
 [5m[48;5;118m[30mRETURN CODE: 0[0m
-⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the 
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the
 supported path is `source ./activate`.
 
 ── EXPORT ──
   › Preparing direct FSx export DRA
 2026-05-30 08:11:04,212 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
-  · Attached export DRA dra-05e6b65e37761518b at 
+  · Attached export DRA dra-05e6b65e37761518b at
 /fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_
 vep_multiqc/
 2026-05-30 08:13:55,211 INFO Task task-0c84802ef290dd3e7 status: PENDING

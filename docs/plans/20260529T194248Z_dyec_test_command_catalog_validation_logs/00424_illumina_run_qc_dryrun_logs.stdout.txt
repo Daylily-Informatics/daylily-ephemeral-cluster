@@ -97,7 +97,7 @@ DAY-EC activated.
             test -s "results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/source_run_subset/$rel"
         done
         touch results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/metric_subset_fetched.done
-        
+
 
 [Sat May 30 02:20:21 2026]
 localrule illumina_run_qc_interop_summary:
@@ -125,7 +125,7 @@ localrule illumina_run_qc_interop_summary:
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/interop_summary.log 2>&1
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_summary.csv
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/interop_index_summary.csv
-        
+
 
 [Sat May 30 02:20:21 2026]
 localrule illumina_run_qc_json:
@@ -154,7 +154,7 @@ localrule illumina_run_qc_json:
           >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_json.log 2>&1
         python -m json.tool results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json.pretty
         mv results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json.pretty results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/illumina_run_qc.json
-        
+
 
 [Sat May 30 02:20:21 2026]
 localrule illumina_run_qc_report:
@@ -178,7 +178,7 @@ localrule illumina_run_qc_report:
           --output-html results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html \
           --output-tsv results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.tsv \
           --done results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.done > results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_report.log 2>&1
-        
+
 
 [Sat May 30 02:20:21 2026]
 localrule illumina_run_qc_multiqc:
@@ -208,7 +208,7 @@ localrule illumina_run_qc_multiqc:
           --outdir "$(dirname "$out")" \
           results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_inputs >> results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/logs/illumina_run_qc_multiqc.log 2>&1
         test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html
-        
+
 
 [Sat May 30 02:20:21 2026]
 localrule produce_illumina_run_qc:
