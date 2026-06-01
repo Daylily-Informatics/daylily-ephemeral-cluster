@@ -143,7 +143,7 @@ def resolve_executing_entity(explicit_value: Optional[str]) -> str:
 
     raise ConfigError(
         "executing_entity is required when ParallelCluster cluster identity is unavailable. "
-        "Pass -u/--executing-entity, export DAYLILY_CLUSTER_NAME, or run on a headnode "
+        "Pass --executing-entity, export DAYLILY_CLUSTER_NAME, or run on a headnode "
         "with /etc/parallelcluster/cfnconfig containing stack_name."
     )
 
@@ -222,7 +222,6 @@ def main(argv: List[str]) -> int:
         help="Root directory where analysis workspaces are created. Defaults to the configured analysis_root.",
     )
     parser.add_argument(
-        "-u",
         "--executing-entity",
         help=(
             "Entity directory to create within the clone root. Defaults to the cluster "

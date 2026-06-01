@@ -874,7 +874,7 @@ remove_run_dir_projection_links() {{
 
 day-clone \
   --destination "$ANALYSIS_ID" \
-  -u "$EXECUTING_ENTITY" \
+  --executing-entity "$EXECUTING_ENTITY" \
   --repository {shlex.quote(args.repository)} \
   --git-tag {shlex.quote(args.git_tag)}
 	cd "$repo_path"

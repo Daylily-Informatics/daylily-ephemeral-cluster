@@ -151,7 +151,7 @@ def test_day_clone_uses_explicit_executing_entity(monkeypatch, tmp_path):
         [
             "--destination",
             "analysis",
-            "-u",
+            "--executing-entity",
             "ursa",
             "--repository",
             "test-repo",

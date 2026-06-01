@@ -386,7 +386,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "REPLACE_EXISTING_ANALYSIS_DIR=false" in script
         assert "day-clone" in script
         assert '--destination "$ANALYSIS_ID"' in script
-        assert '-u "$EXECUTING_ENTITY"' in script
+        assert '--executing-entity "$EXECUTING_ENTITY"' in script
+        assert '-u "$EXECUTING_ENTITY"' not in script
         assert "--repository daylily-omics-analysis" in script
         assert "--git-tag main" in script
         assert "__DAYLILY_ERROR__=analysis_dir_exists" in script
