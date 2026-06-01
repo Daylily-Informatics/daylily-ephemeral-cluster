@@ -104,7 +104,7 @@ def resolve_cluster(profile: str, region: str, explicit: Optional[str] = None) -
         return explicit
     env = aws_env(profile=profile, region=region)
     result = run_command(
-        ["pcluster", "list-clusters", "--region", region, "--output", "json"],
+        ["pcluster", "list-clusters", "--region", region],
         capture_output=True,
         env=env,
     )

@@ -605,29 +605,7 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
-def main(argv: Optional[List[str]] = None) -> int:
-    args = build_parser().parse_args(argv)
-
-    if not args.profile:
-        raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
-
-    need_cmd("aws")
-    need_cmd("pcluster")
-
-    region = resolve_region(args.profile, args.region)
-    cluster_name = resolve_cluster(args.profile, region, args.cluster)
-    analysis_id = validate_analysis_segment(args.analysis_id, field_name="analysis_id")
-    executing_entity = validate_analysis_segment(
-        args.executing_entity or cluster_name,
-        field_name="executing_entity",
-    )
-    source_path = analysis_source_path(
-        executing_entity=executing_entity,
-        analysis_id=analysis_id,
-        headnode=True,
-    )
-    if not args.session_name:
-        args.session_name = analysis_id
+def validate_export_registration_args(args: argparse.Namespace) -> None:
     if args.export_destination_s3_uri and args.export_trigger == "none":
         raise CommandError("--export-trigger must not be none when auto-export is requested.")
     if args.export_trigger != "none" and not args.export_destination_s3_uri:
@@ -662,6 +640,32 @@ def main(argv: Optional[List[str]] = None) -> int:
             raise CommandError(
                 "--artifact-registration-command-id is required with Dewey external-link options."
             )
+
+
+def main(argv: Optional[List[str]] = None) -> int:
+    args = build_parser().parse_args(argv)
+
+    if not args.profile:
+        raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
+    validate_export_registration_args(args)
+
+    need_cmd("aws")
+    need_cmd("pcluster")
+
+    region = resolve_region(args.profile, args.region)
+    cluster_name = resolve_cluster(args.profile, region, args.cluster)
+    analysis_id = validate_analysis_segment(args.analysis_id, field_name="analysis_id")
+    executing_entity = validate_analysis_segment(
+        args.executing_entity or cluster_name,
+        field_name="executing_entity",
+    )
+    source_path = analysis_source_path(
+        executing_entity=executing_entity,
+        analysis_id=analysis_id,
+        headnode=True,
+    )
+    if not args.session_name:
+        args.session_name = analysis_id
     if args.export_destination_s3_uri:
         from daylily_ec.workflow.export_data import (
             _create_session,

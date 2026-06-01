@@ -179,6 +179,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         with pytest.raises(CommandError, match="artifact-registration-command-id"):
             run_omics_module.main(
                 [
+                    "--region",
+                    "us-west-2",
                     "--profile",
                     "dev",
                     "--analysis-id",
