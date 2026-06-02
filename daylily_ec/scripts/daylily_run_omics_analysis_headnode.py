@@ -1086,15 +1086,25 @@ required_markers = [
     "run_bclconvert_lane_fastqs_ready",
     "rule run_bclconvert_lane:",
     "workflow/scripts/run_bclconvert_lane.sh",
+    "workflow/scripts/merge_bclconvert_lanes.py",
+]
+required_files = [
+    "workflow/scripts/run_bclconvert_lane.sh",
     "workflow/scripts/prepare_bclconvert_lane_samplesheet.py",
     "workflow/scripts/merge_bclconvert_lanes.py",
 ]
-missing = [marker for marker in required_markers if marker not in text]
-if missing:
+missing_markers = [marker for marker in required_markers if marker not in text]
+missing_files = [path for path in required_files if not Path(path).is_file()]
+if missing_markers or missing_files:
+    details = []
+    if missing_markers:
+        details.append("missing rule markers: " + ", ".join(missing_markers))
+    if missing_files:
+        details.append("missing files: " + ", ".join(missing_files))
     raise SystemExit(
         "[ERROR] DayOA BCL Convert rules do not expose native lane-split support; "
-        "use a DayOA release with native mounted-run BCL Convert. Missing markers: "
-        + ", ".join(missing)
+        "use a DayOA release with native mounted-run BCL Convert. "
+        + "; ".join(details)
     )
 print("[INFO] DayOA native BCL Convert lane-split rules detected; no DYEC runtime rule patch applied.")
 PYNATIVEBCL
