@@ -23,11 +23,11 @@ experiment, without changing the already-published DayOA `2.0.34` pin.
 | ID | Step | Status | Evidence |
 | --- | --- | --- | --- |
 | DYEC520-001 | Confirm DayOA `2.0.34` is already published and includes the tile-shard commit. | SUCCESS | `git cat-file -t 2.0.34` returned `tag`; `git rev-list -n 1 2.0.34` returned `317c1ee567b9ed80592455e955d2b06aba63c25e`; `git merge-base --is-ancestor f8a24c1 2.0.34` returned `0`. |
-| DYEC520-002 | Commit the DYEC native BCL guard and release ledger. | IN_PROGRESS | Validation before commit: `python -m pytest -q tests/test_script_entrypoints.py` passed `32 passed in 0.19s`; `python -m pytest -q tests/test_workflow.py::TestConfigureHeadnode::test_repo_checkout_uses_published_detached_tag` passed `1 passed in 0.26s`. |
-| DYEC520-003 | Push branch, create annotated tag `5.1.20`, verify and push tag. | OPEN |  |
-| DYEC520-004 | Build and upload DYEC `5.1.20` from the `TWINE` conda environment using `twup`. | OPEN |  |
-| DYEC521-001 | Update DYEC self-pins from `5.1.19` to `5.1.21`. | OPEN |  |
-| DYEC521-002 | Validate final self-pin behavior. | OPEN |  |
+| DYEC520-002 | Commit the DYEC native BCL guard and release ledger. | SUCCESS | Commit `0540d375cf3bb30b3d6ebdd232518ba9ad2f7c17`; validation before commit: `python -m pytest -q tests/test_script_entrypoints.py` passed `32 passed in 0.19s`; `python -m pytest -q tests/test_workflow.py::TestConfigureHeadnode::test_repo_checkout_uses_published_detached_tag` passed `1 passed in 0.26s`. |
+| DYEC520-003 | Push branch, create annotated tag `5.1.20`, verify and push tag. | SUCCESS | `git cat-file -t 5.1.20` returned `tag`; `git rev-list -n 1 5.1.20` returned `0540d375cf3bb30b3d6ebdd232518ba9ad2f7c17`; pushed tag `5.1.20`; origin tag object `16714104a8f7f79d965e356ed3ac561fc857debe`. |
+| DYEC520-004 | Build and upload DYEC `5.1.20` from the `TWINE` conda environment using `twup`. | SUCCESS | Built from clean detached tag worktree `/Users/jmajor/.codex/worktrees/dyec-520-publish`; `twine check dist/*` passed; `twup` uploaded wheel and sdist and probed PyPI for `daylily-ephemeral-cluster==5.1.20`. |
+| DYEC521-001 | Update DYEC self-pins from `5.1.19` to `5.1.21`. | SUCCESS | Updated `config/daylily_cli_global.yaml`, packaged payload global config, and workflow tag expectations to `5.1.21`. |
+| DYEC521-002 | Validate final self-pin behavior. | SUCCESS | `python -m pytest -q tests/test_script_entrypoints.py tests/test_workflow.py::TestConfigureHeadnode::test_repo_checkout_uses_published_detached_tag` passed `33 passed in 0.55s`. |
 | DYEC521-003 | Commit, push branch, create annotated tag `5.1.21`, verify and push tag. | OPEN |  |
 | DYEC521-004 | Build and upload DYEC `5.1.21` from the `TWINE` conda environment using `twup`. | OPEN |  |
 
