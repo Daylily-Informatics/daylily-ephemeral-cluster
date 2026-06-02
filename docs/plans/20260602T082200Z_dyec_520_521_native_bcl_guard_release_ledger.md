@@ -28,10 +28,11 @@ experiment, without changing the already-published DayOA `2.0.34` pin.
 | DYEC520-004 | Build and upload DYEC `5.1.20` from the `TWINE` conda environment using `twup`. | SUCCESS | Built from clean detached tag worktree `/Users/jmajor/.codex/worktrees/dyec-520-publish`; `twine check dist/*` passed; `twup` uploaded wheel and sdist and probed PyPI for `daylily-ephemeral-cluster==5.1.20`. |
 | DYEC521-001 | Update DYEC self-pins from `5.1.19` to `5.1.21`. | SUCCESS | Updated `config/daylily_cli_global.yaml`, packaged payload global config, and workflow tag expectations to `5.1.21`. |
 | DYEC521-002 | Validate final self-pin behavior. | SUCCESS | `python -m pytest -q tests/test_script_entrypoints.py tests/test_workflow.py::TestConfigureHeadnode::test_repo_checkout_uses_published_detached_tag` passed `33 passed in 0.55s`. |
-| DYEC521-003 | Commit, push branch, create annotated tag `5.1.21`, verify and push tag. | OPEN |  |
-| DYEC521-004 | Build and upload DYEC `5.1.21` from the `TWINE` conda environment using `twup`. | OPEN |  |
+| DYEC521-003 | Commit, push branch, create annotated tag `5.1.21`, verify and push tag. | SUCCESS | Commit `80a8455a4ee39fa1b5e1f826f42547036f8fa62a`; `git cat-file -t 5.1.21` returned `tag`; `git rev-list -n 1 5.1.21` returned `80a8455a4ee39fa1b5e1f826f42547036f8fa62a`; pushed tag `5.1.21`; origin tag object `170982f3aad47b5179f8a7c9f039787889b86113`. |
+| DYEC521-004 | Build and upload DYEC `5.1.21` from the `TWINE` conda environment using `twup`. | SUCCESS | Built from clean detached tag worktree `/Users/jmajor/.codex/worktrees/dyec-521-publish`; `twine check dist/*` passed; `twup` uploaded wheel and sdist and returned the PyPI URL. The immediate `twup` probe exited before index propagation, then `python -m pip index versions --no-cache-dir daylily-ephemeral-cluster` reported latest `5.1.21`, and `python -m pip download --no-deps --no-cache-dir daylily-ephemeral-cluster==5.1.21` downloaded the wheel. |
 
 ## Final Status
 
-Working ledger. Terminal status will be recorded after the double DYEC release
-train finishes.
+All ledger rows are terminal `SUCCESS`. DayOA `2.0.34` was already published
+and includes the tile-shard commit; DYEC tags `5.1.20` and `5.1.21` are
+annotated and pushed; DYEC package `5.1.21` is visible on PyPI.
