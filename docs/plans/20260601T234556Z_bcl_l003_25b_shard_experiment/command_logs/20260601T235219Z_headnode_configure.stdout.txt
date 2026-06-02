@@ -1,0 +1,1 @@
+✓ Headnode configured via SSM for cluster 'dyec5117'.

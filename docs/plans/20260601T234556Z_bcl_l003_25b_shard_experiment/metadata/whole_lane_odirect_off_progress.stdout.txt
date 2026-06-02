@@ -1,0 +1,46 @@
+DAY-EC activated.
+DAY-EC activated.
+now=2026-06-02T07:56:11Z
+bcl_dir=/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.248@tcp:/3vbzxb4v  6.6T  5.6T  995G  86% /fsx
+lane_fastq_files=84
+lane_fastq_gib=269.236328
+latest_fastq_mtime=2026-06-02T07:56:11.0000000000Z
+bench=2026-06-02T07:27:57.0000000000Z	306	/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_validate_inputs.bench.tsv
+log=2026-06-02T07:27:57.0000000000Z	0	/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+log=2026-06-02T07:27:57.0000000000Z	259	/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+log=2026-06-02T07:27:57.0000000000Z	259	/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log
+log=2026-06-02T07:32:03.0000000000Z	2345	/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.log
+__LOG_TAIL__
+prepared_lane_samplesheet lane=3 settings={"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"} out=results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/SampleSheet.csv
+run_bclconvert_lane L003 started: 2026-06-02T07:32:01+00:00
+host: i192mem-dy-all-1
+threads: 192
+TMPDIR: /dev/shm
+bcl_input_directory: /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_odirect_off_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003
+sample_sheet: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/SampleSheet.csv
+bcl_only_lane: 3
+tile_regex: <none>
+sample_sheet_settings_json: {"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}
+sample_sheet_settings_by_lane_json: {}
+output_legacy_stats: true
+num_unknown_barcodes_reported: 1000
+192
+Filesystem                Size  Used Avail Use% Mounted on
+tmpfs                     605G     0  605G   0% /dev/shm
+10.0.1.248@tcp:/3vbzxb4v  6.6T  5.3T  1.3T  82% /fsx
+10.0.1.248@tcp:/3vbzxb4v  6.6T  5.3T  1.3T  82% /fsx
+/usr/bin/singularity
+singularity_bind_args: --bind /fsx:/fsx
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc. 
+bcl_num_parallel_tiles: 24
+bcl_num_conversion_threads: 4
+bcl_num_compression_threads: 64
+bcl_num_decompression_threads: 32
+bcl_cpu_heavy_threads: 192
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_odirect_off_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 24 --bcl-num-conversion-threads 4 --bcl-num-compression-threads 64 --bcl-num-decompression-threads 32 --shared-thread-odirect-output false --output-legacy-stats true --num-unknown-barcodes-reported 1000 --bcl-only-lane 3 -f
+INFO:    Using cached SIF image

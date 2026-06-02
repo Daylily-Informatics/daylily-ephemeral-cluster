@@ -31,8 +31,10 @@ final tag and is the package train endpoint.
 | DYEC516-004 | First DYEC release | Commit, push branch, create annotated tag `5.1.16`, verify tag type, and push tag. | SUCCESS | release | Gate 6 | Codex | Commit `329dea63e266e719b5e8e0c37ad877468a436b7a`; `git cat-file -t 5.1.16` returned `tag`; `git rev-list -n 1 5.1.16` matched the release commit; `git push origin 5.1.16` succeeded. | First release boundary must exist before final self-pin points at the next tag. | `5.1.16` tag is on `origin`. |
 | DYEC517-001 | Final self-pin | After `5.1.16`, update DYEC internal self-pins from `5.1.16` to `5.1.17`. | SUCCESS | config_or_startup_contract | Gate 6 | Codex | `config/daylily_cli_global.yaml`, packaged payload config, and workflow tag-detach test now reference `5.1.17`. | Final package should bootstrap to the final DYEC tag, not the intermediate tag. | Ready for final validation. |
 | DYEC517-002 | Final validation | Re-run focused validation for final self-pin and package metadata. | SUCCESS | contract_test | Gate 6 | Codex | Focused pytest command passed `39 passed in 0.63s` after the `5.1.17` self-pin update. | Final tag should only be cut after the bootstrap tag contract is revalidated. | Ready for `5.1.17` release. |
-| DYEC517-003 | Final DYEC release | Commit, push branch, create annotated tag `5.1.17`, verify tag type, push tag, build in `TWINE`, upload with `twup`, and verify package-index visibility. | OPEN | release | Gate 6 | Codex |  |  |  |
+| DYEC517-003 | Final DYEC release | Commit, push branch, create annotated tag `5.1.17`, verify tag type, push tag, build in `TWINE`, upload with `twup`, and verify package-index visibility. | SUCCESS | release | Gate 6 | Codex | Commit `f8196b0dea16d0f00d45e47287fd477e6fcfaa4f`; `git cat-file -t 5.1.17` returned `tag`; `git rev-list -n 1 5.1.17` matched the release commit; `git push origin 5.1.17` succeeded; `python -m build` produced `daylily_ephemeral_cluster-5.1.17.tar.gz` and `daylily_ephemeral_cluster-5.1.17-py3-none-any.whl`; `python -m pip index versions daylily-ephemeral-cluster` reported latest `5.1.17`. | Final release must publish a package whose embedded self-pin resolves to the final tag. | `5.1.17` is visible on the package index. |
 
 ## Final Status
 
-Working ledger. Terminal status will be recorded after the double release train.
+All ledger rows are terminal. DayOA `2.0.33` is pinned, DYEC `5.1.16` and
+`5.1.17` are annotated and pushed, and the package index reports DYEC `5.1.17`
+as the latest published package.

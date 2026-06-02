@@ -11,6 +11,7 @@ from daylily_ec.aws.slurm_accounting import (
     derive_slurm_accounting_stack_name,
     discover_slurm_accounting_dbs,
     ensure_slurm_accounting_db,
+    scan_slurm_accounting_ec2_candidates,
 )
 
 
@@ -117,13 +118,94 @@ class FakeCloudFormation:
         return FakeWaiter(self)
 
 
+class FakeEc2Paginator:
+    def __init__(self, ec2: "FakeEc2") -> None:
+        self._ec2 = ec2
+
+    def paginate(self, **kwargs):
+        self._ec2.calls.append(("paginate", kwargs))
+        yield {
+            "Reservations": [
+                {"Instances": self._ec2.instances},
+            ]
+        }
+
+
+class FakeEc2:
+    def __init__(
+        self,
+        *,
+        instances: list[dict[str, object]] | None = None,
+        security_groups: list[dict[str, object]] | None = None,
+    ) -> None:
+        self.instances = instances or []
+        self.security_groups = {
+            str(group["GroupId"]): group for group in security_groups or []
+        }
+        self.calls: list[tuple[str, dict[str, object]]] = []
+
+    def get_paginator(self, name: str) -> FakeEc2Paginator:
+        self.calls.append(("get_paginator", {"name": name}))
+        assert name == "describe_instances"
+        return FakeEc2Paginator(self)
+
+    def describe_security_groups(self, **kwargs):
+        self.calls.append(("describe_security_groups", kwargs))
+        return {
+            "SecurityGroups": [
+                self.security_groups[group_id]
+                for group_id in kwargs["GroupIds"]
+                if group_id in self.security_groups
+            ]
+        }
+
+
 class FakeAwsContext:
-    def __init__(self, cfn: FakeCloudFormation) -> None:
+    def __init__(self, cfn: FakeCloudFormation, ec2: FakeEc2 | None = None) -> None:
         self._cfn = cfn
+        self._ec2 = ec2
 
     def client(self, service: str):
-        assert service == "cloudformation"
-        return self._cfn
+        if service == "cloudformation":
+            return self._cfn
+        if service == "ec2" and self._ec2 is not None:
+            return self._ec2
+        raise AssertionError(service)
+
+
+def _instance(
+    instance_id: str,
+    *,
+    tags: list[dict[str, str]] | None = None,
+    private_ip: str = "10.0.1.10",
+    vpc_id: str = "vpc-123",
+    security_groups: list[dict[str, str]] | None = None,
+) -> dict[str, object]:
+    return {
+        "InstanceId": instance_id,
+        "PrivateIpAddress": private_ip,
+        "VpcId": vpc_id,
+        "Placement": {"AvailabilityZone": "us-west-2b"},
+        "Tags": tags or [{"Key": "Name", "Value": "acct-mariadb"}],
+        "SecurityGroups": security_groups or [],
+    }
+
+
+def _security_group(
+    group_id: str = "sg-mysql",
+    *,
+    allows_mysql: bool = True,
+) -> dict[str, object]:
+    return {
+        "GroupId": group_id,
+        "GroupName": "mysql-sg",
+        "Description": "MariaDB server",
+        "IpPermissions": (
+            [{"IpProtocol": "tcp", "FromPort": 3306, "ToPort": 3306}]
+            if allows_mysql
+            else []
+        ),
+    }
 
 
 def test_derive_slurm_accounting_stack_name() -> None:
@@ -259,3 +341,119 @@ def test_explicit_stack_name_rejects_untagged_stack() -> None:
             vpc_id="vpc-123",
             stack_name="not-dayec",
         )
+
+
+def test_scan_returns_selectable_dayec_tagged_instance_with_stack_outputs() -> None:
+    cfn = FakeCloudFormation([_stack("dayec-slurm-accounting-us-west-2b")])
+    ec2 = FakeEc2(
+        instances=[
+            _instance(
+                "i-0123456789abcdef0",
+                tags=[
+                    {"Key": "Name", "Value": "dayec-slurm-accounting-us-west-2b-mariadb"},
+                    {"Key": ACCOUNTING_COMPONENT_TAG_KEY, "Value": ACCOUNTING_COMPONENT_TAG_VALUE},
+                    {"Key": ACCOUNTING_VPC_TAG_KEY, "Value": "vpc-123"},
+                ],
+            )
+        ],
+    )
+
+    candidates = scan_slurm_accounting_ec2_candidates(
+        FakeAwsContext(cfn, ec2),
+        region_az="us-west-2b",
+        vpc_id="vpc-123",
+    )
+
+    assert len(candidates) == 1
+    assert candidates[0].selectable is True
+    assert candidates[0].db is not None
+    assert candidates[0].db.uri == "10.0.1.10:3306"
+
+
+def test_scan_rejects_wrong_vpc_stack_for_tagged_instance() -> None:
+    cfn = FakeCloudFormation([_stack("wrong-vpc", tags=_tags(vpc_id="vpc-other"))])
+    ec2 = FakeEc2(
+        instances=[
+            _instance(
+                "i-0123456789abcdef0",
+                tags=[
+                    {"Key": "Name", "Value": "acct-mariadb"},
+                    {"Key": ACCOUNTING_COMPONENT_TAG_KEY, "Value": ACCOUNTING_COMPONENT_TAG_VALUE},
+                    {"Key": ACCOUNTING_VPC_TAG_KEY, "Value": "vpc-123"},
+                ],
+            )
+        ],
+    )
+
+    candidates = scan_slurm_accounting_ec2_candidates(
+        FakeAwsContext(cfn, ec2),
+        region_az="us-west-2b",
+        vpc_id="vpc-123",
+    )
+
+    assert len(candidates) == 1
+    assert candidates[0].selectable is False
+    assert candidates[0].db is None
+    assert "no matching healthy stack outputs" in candidates[0].reason
+
+
+def test_scan_rejects_missing_stack_outputs_for_tagged_instance() -> None:
+    outputs = [
+        item for item in _outputs() if item["OutputKey"] != "AccountingPasswordSecretArn"
+    ]
+    cfn = FakeCloudFormation([_stack("acct", outputs=outputs)])
+    ec2 = FakeEc2(
+        instances=[
+            _instance(
+                "i-0123456789abcdef0",
+                tags=[
+                    {"Key": "Name", "Value": "acct-mariadb"},
+                    {"Key": ACCOUNTING_COMPONENT_TAG_KEY, "Value": ACCOUNTING_COMPONENT_TAG_VALUE},
+                    {"Key": ACCOUNTING_VPC_TAG_KEY, "Value": "vpc-123"},
+                ],
+            )
+        ],
+    )
+
+    candidates = scan_slurm_accounting_ec2_candidates(
+        FakeAwsContext(cfn, ec2),
+        region_az="us-west-2b",
+        vpc_id="vpc-123",
+    )
+
+    assert len(candidates) == 1
+    assert candidates[0].selectable is False
+    assert "AccountingPasswordSecretArn" in candidates[0].reason
+
+
+def test_scan_reports_broad_mysql_instance_as_non_selectable() -> None:
+    ec2 = FakeEc2(
+        instances=[
+            _instance(
+                "i-broad",
+                security_groups=[{"GroupId": "sg-mysql", "GroupName": "mysql-sg"}],
+            )
+        ],
+        security_groups=[_security_group()],
+    )
+
+    candidates = scan_slurm_accounting_ec2_candidates(
+        FakeAwsContext(FakeCloudFormation([]), ec2),
+        region_az="us-west-2b",
+        vpc_id="vpc-123",
+    )
+
+    assert len(candidates) == 1
+    assert candidates[0].source == "ec2-advisory"
+    assert candidates[0].selectable is False
+    assert candidates[0].db is None
+
+
+def test_scan_empty_when_no_instances_match() -> None:
+    candidates = scan_slurm_accounting_ec2_candidates(
+        FakeAwsContext(FakeCloudFormation([]), FakeEc2(instances=[])),
+        region_az="us-west-2b",
+        vpc_id="vpc-123",
+    )
+
+    assert candidates == []

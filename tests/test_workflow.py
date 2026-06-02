@@ -24,16 +24,18 @@ import daylily_ec.aws.context as aws_context
 import daylily_ec.aws.ec2 as aws_ec2
 import daylily_ec.aws.heartbeat as aws_heartbeat
 import daylily_ec.aws.iam as aws_iam
+import daylily_ec.aws.slurm_accounting as aws_slurm_accounting
 from daylily_ec.aws.ssm import SsmCommandFailedError, SsmCommandResult
 import daylily_ec.aws.spot_pricing as spot_pricing
 import daylily_ec.config.triplets as triplets
 import daylily_ec.pcluster.monitor as pcluster_monitor
 import daylily_ec.pcluster.runner as pcluster_runner
 import daylily_ec.render.renderer as renderer
-import daylily_ec.workflow.create_cluster as create_cluster_module
+from daylily_ec.aws.slurm_accounting import SlurmAccountingDb
 from daylily_ec.config.models import ConfigFile
-from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
 from daylily_ec.state import store as state_store
+from daylily_ec.state.models import CheckResult, CheckStatus, PreflightReport
+import daylily_ec.workflow.create_cluster as create_cluster_module
 from daylily_ec.workflow.create_cluster import (
     EXIT_AWS_FAILURE,
     EXIT_DRIFT,
@@ -942,6 +944,122 @@ class TestRunCreateWorkflow:
         ]
         assert records["subprocess_calls"] == [["/bin/sh", "-lc", "command -v say >/dev/null 2>&1"]]
 
+    def test_scan_slurm_accounting_selection_persists_state(self, tmp_path, monkeypatch):
+        accounting_db = SlurmAccountingDb(
+            stack_name="dayec-sacct-db",
+            status="CREATE_COMPLETE",
+            uri="10.0.1.39:3306",
+            private_ip="10.0.1.39",
+            database_name="slurm_acct_db",
+            username="slurm",
+            password_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:sacct",
+            client_security_group_id="sg-client",
+            instance_id="i-acct",
+        )
+        candidate = SimpleNamespace(
+            instance_id="i-acct",
+            name="acct-mariadb",
+            private_ip="10.0.1.39",
+            availability_zone="us-west-2d",
+            vpc_id="vpc-123",
+            source="dayec-stack",
+            selectable=True,
+            reason="Matched healthy DayEC accounting stack dayec-sacct-db.",
+            db=accounting_db,
+        )
+
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=True,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            scan_slurm_accounting_db=True,
+            scan_candidates=[candidate],
+            selection_answer="2",
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["next_run_values"]["slurm_accounting_enabled"] == "true"
+        assert records["next_run_values"]["slurm_accounting_stack_name"] == "dayec-sacct-db"
+        assert records["next_run_values"]["slurm_accounting_database_name"] == "slurm_acct_db"
+        assert ("Accounting URI", "10.0.1.39:3306") in records["details"]
+        assert "Enter selection number" in records["prompt_labels"]
+
+    def test_scan_slurm_accounting_without_candidates_warns_and_continues(
+        self, tmp_path, monkeypatch
+    ):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            scan_slurm_accounting_db=True,
+            scan_candidates=[],
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["next_run_values"]["slurm_accounting_enabled"] == "false"
+        assert any("No usable Slurm accounting DB candidates found" in w for w in records["warnings"])
+
+    def test_scan_slurm_accounting_non_interactive_warns_and_skips(
+        self, tmp_path, monkeypatch
+    ):
+        accounting_db = SlurmAccountingDb(
+            stack_name="dayec-sacct-db",
+            status="CREATE_COMPLETE",
+            uri="10.0.1.39:3306",
+            private_ip="10.0.1.39",
+            database_name="slurm_acct_db",
+            username="slurm",
+            password_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:sacct",
+            client_security_group_id="sg-client",
+            instance_id="i-acct",
+        )
+        candidate = SimpleNamespace(
+            instance_id="i-acct",
+            name="acct-mariadb",
+            private_ip="10.0.1.39",
+            availability_zone="us-west-2d",
+            vpc_id="vpc-123",
+            source="dayec-stack",
+            selectable=True,
+            reason="Matched healthy DayEC accounting stack dayec-sacct-db.",
+            db=accounting_db,
+        )
+
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            scan_slurm_accounting_db=True,
+            scan_candidates=[candidate],
+        )
+
+        assert records["rc"] == EXIT_SUCCESS
+        assert records["next_run_values"]["slurm_accounting_enabled"] == "false"
+        assert any("--non-interactive was set" in w for w in records["warnings"])
+        assert "Enter selection number" not in records["prompt_labels"]
+
+    def test_scan_slurm_accounting_rejects_config_create_request(self, tmp_path, monkeypatch):
+        records = _run_stubbed_create_workflow(
+            tmp_path,
+            monkeypatch,
+            interactive=False,
+            head_node_ip="54.1.2.3",
+            say_available=False,
+            scan_slurm_accounting_db=True,
+            config_overrides={
+                "slurm_accounting_create_db": ["USESETVALUE", "", "true"],
+            },
+        )
+
+        assert records["rc"] == EXIT_VALIDATION_FAILURE
+        assert any("cannot be combined" in failure for failure in records["failures"])
+
 
 # ── configure_headnode ───────────────────────────────────────────────
 
@@ -1587,47 +1705,54 @@ class TestConfigureHeadnodeExport:
         assert hasattr(wf, "configure_headnode")
 
 
-def _build_workflow_config(template_path: Path) -> ConfigFile:
+def _build_workflow_config(
+    template_path: Path,
+    *,
+    config_overrides: dict[str, list[str]] | None = None,
+) -> ConfigFile:
+    config = {
+        "cluster_name": ["USESETVALUE", "", "majors-cluster"],
+        "reference_s3_uri": ["USESETVALUE", "", "s3://dayoa-references"],
+        "control_data_s3_uri": ["USESETVALUE", "", "s3://dayoa-control-data"],
+        "stage_s3_uri": [
+            "USESETVALUE",
+            "",
+            "s3://lsmc-ssf-sequencing-data/staged_external_data/",
+        ],
+        "export_destination_s3_uri": [
+            "USESETVALUE",
+            "",
+            "s3://lsmc-ssf-sequencing-data/derived/",
+        ],
+        "max_count_8I": ["USESETVALUE", "", "1"],
+        "max_count_128I": ["USESETVALUE", "", "1"],
+        "max_count_192I": ["USESETVALUE", "", "1"],
+        "cluster_template_yaml": ["USESETVALUE", "", str(template_path)],
+        "fsx_fs_size": ["USESETVALUE", "", "2400"],
+        "enable_detailed_monitoring": ["USESETVALUE", "", "false"],
+        "delete_local_root": ["USESETVALUE", "", "false"],
+        "auto_delete_fsx": ["USESETVALUE", "", "Delete"],
+        "enforce_budget": ["USESETVALUE", "", "true"],
+        "spot_instance_allocation_strategy": [
+            "USESETVALUE",
+            "",
+            "capacity-optimized",
+        ],
+        "headnode_instance_type": ["USESETVALUE", "", "r7i.2xlarge"],
+        "budget_email": ["PROMPTUSER", "johnm@lsmc.com", ""],
+        "budget_amount": ["PROMPTUSER", "200", ""],
+        "global_budget_amount": ["PROMPTUSER", "200", ""],
+        "allowed_budget_users": ["PROMPTUSER", "root", ""],
+        "heartbeat_email": ["PROMPTUSER", "johnm@lsmc.com", ""],
+        "heartbeat_schedule": ["PROMPTUSER", "rate(60 minutes)", ""],
+        "heartbeat_scheduler_role_arn": ["PROMPTUSER", "", ""],
+    }
+    if config_overrides:
+        config.update(config_overrides)
     return ConfigFile.model_validate(
         {
             "ephemeral_cluster": {
-                "config": {
-                    "cluster_name": ["USESETVALUE", "", "majors-cluster"],
-                    "reference_s3_uri": ["USESETVALUE", "", "s3://dayoa-references"],
-                    "control_data_s3_uri": ["USESETVALUE", "", "s3://dayoa-control-data"],
-                    "stage_s3_uri": [
-                        "USESETVALUE",
-                        "",
-                        "s3://lsmc-ssf-sequencing-data/staged_external_data/",
-                    ],
-                    "export_destination_s3_uri": [
-                        "USESETVALUE",
-                        "",
-                        "s3://lsmc-ssf-sequencing-data/derived/",
-                    ],
-                    "max_count_8I": ["USESETVALUE", "", "1"],
-                    "max_count_128I": ["USESETVALUE", "", "1"],
-                    "max_count_192I": ["USESETVALUE", "", "1"],
-                    "cluster_template_yaml": ["USESETVALUE", "", str(template_path)],
-                    "fsx_fs_size": ["USESETVALUE", "", "2400"],
-                    "enable_detailed_monitoring": ["USESETVALUE", "", "false"],
-                    "delete_local_root": ["USESETVALUE", "", "false"],
-                    "auto_delete_fsx": ["USESETVALUE", "", "Delete"],
-                    "enforce_budget": ["USESETVALUE", "", "true"],
-                    "spot_instance_allocation_strategy": [
-                        "USESETVALUE",
-                        "",
-                        "capacity-optimized",
-                    ],
-                    "headnode_instance_type": ["USESETVALUE", "", "r7i.2xlarge"],
-                    "budget_email": ["PROMPTUSER", "johnm@lsmc.com", ""],
-                    "budget_amount": ["PROMPTUSER", "200", ""],
-                    "global_budget_amount": ["PROMPTUSER", "200", ""],
-                    "allowed_budget_users": ["PROMPTUSER", "root", ""],
-                    "heartbeat_email": ["PROMPTUSER", "johnm@lsmc.com", ""],
-                    "heartbeat_schedule": ["PROMPTUSER", "rate(60 minutes)", ""],
-                    "heartbeat_scheduler_role_arn": ["PROMPTUSER", "", ""],
-                },
+                "config": config,
                 "template_defaults": {},
             }
         }
@@ -1641,6 +1766,10 @@ def _run_stubbed_create_workflow(
     interactive: bool,
     head_node_ip: str | None,
     say_available: bool,
+    scan_slurm_accounting_db: bool = False,
+    scan_candidates: list[object] | None = None,
+    selection_answer: str = "1",
+    config_overrides: dict[str, list[str]] | None = None,
 ) -> dict[str, object]:
     template_path = tmp_path / "template.yaml"
     template_path.write_text("Region: REGSUB_REGION\n", encoding="utf-8")
@@ -1651,8 +1780,11 @@ def _run_stubbed_create_workflow(
         "prompt_labels": [],
         "subprocess_calls": [],
         "boot_config_publishes": [],
+        "warnings": [],
+        "details": [],
+        "failures": [],
     }
-    cfg = _build_workflow_config(template_path)
+    cfg = _build_workflow_config(template_path, config_overrides=config_overrides)
 
     class FakeAWSContext:
         profile = "lsmc"
@@ -1694,6 +1826,7 @@ def _run_stubbed_create_workflow(
             "Heartbeat email": "johnm@lsmc.com",
             "Heartbeat schedule": "rate(60 minutes)",
             "Heartbeat scheduler role ARN (leave blank to skip)": "",
+            "Enter selection number": selection_answer,
         }
         return answers[label]
 
@@ -1810,6 +1943,7 @@ def _run_stubbed_create_workflow(
             public_subnet_id="subnet-pub",
             private_subnet_id="subnet-priv",
             policy_arn="arn:policy:default",
+            vpc_id="vpc-123",
         ),
     )
     monkeypatch.setattr(cloudformation, "derive_stack_name", lambda _region_az: "daylily-stack")
@@ -1874,12 +2008,30 @@ SharedStorage:
     monkeypatch.setattr(aws_ssm, "wait_for_ssm_online", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(aws_iam, "resolve_scheduler_role", fake_resolve_scheduler_role)
     monkeypatch.setattr(aws_heartbeat, "ensure_heartbeat", fake_ensure_heartbeat)
+    monkeypatch.setattr(
+        aws_slurm_accounting,
+        "scan_slurm_accounting_ec2_candidates",
+        lambda *_args, **_kwargs: scan_candidates or [],
+    )
     monkeypatch.setattr(create_cluster_module.ui, "phase", fake_phase)
     monkeypatch.setattr(create_cluster_module.ui, "step", lambda *_args, **_kwargs: None)
     monkeypatch.setattr(create_cluster_module.ui, "ok", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr(create_cluster_module.ui, "warn", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        create_cluster_module.ui,
+        "warn",
+        lambda message, *_args, **_kwargs: records["warnings"].append(message),
+    )
     monkeypatch.setattr(create_cluster_module.ui, "info", lambda *_args, **_kwargs: None)
-    monkeypatch.setattr(create_cluster_module.ui, "detail", lambda *_args, **_kwargs: None)
+    monkeypatch.setattr(
+        create_cluster_module.ui,
+        "detail",
+        lambda key, value, *_args, **_kwargs: records["details"].append((key, value)),
+    )
+    monkeypatch.setattr(
+        create_cluster_module.ui,
+        "fail",
+        lambda message, *_args, **_kwargs: records["failures"].append(message),
+    )
     monkeypatch.setattr(create_cluster_module.ui, "success_panel", fake_success_panel)
     monkeypatch.setattr(create_cluster_module.typer, "prompt", fake_prompt)
     monkeypatch.setattr(create_cluster_module.typer, "echo", fake_echo)
@@ -1925,5 +2077,6 @@ SharedStorage:
         profile="lsmc",
         config_path=str(tmp_path / "config.yaml"),
         non_interactive=not interactive,
+        scan_slurm_accounting_db=scan_slurm_accounting_db,
     )
     return records

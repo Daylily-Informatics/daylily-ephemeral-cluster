@@ -547,6 +547,27 @@ def _prompt_select(label: str, choices: List[str]) -> str:
         typer.echo("Invalid selection. Enter one of the listed numbers.")
 
 
+def _format_slurm_accounting_candidate(candidate: Any) -> str:
+    db = candidate.db
+    if db is None:
+        return (
+            f"{candidate.instance_id} ({candidate.name or candidate.private_ip}) "
+            f"[{candidate.source}: {candidate.reason}]"
+        )
+    label = candidate.name or candidate.private_ip or candidate.instance_id
+    return f"{db.stack_name} | {db.uri} | {label} | {candidate.instance_id}"
+
+
+def _prompt_slurm_accounting_candidate(candidates: List[Any]) -> Any | None:
+    choices = ["Skip Slurm accounting"] + [
+        _format_slurm_accounting_candidate(candidate) for candidate in candidates
+    ]
+    selected = _prompt_select("Slurm accounting DB", choices)
+    if selected == choices[0]:
+        return None
+    return candidates[choices.index(selected) - 1]
+
+
 FSX_PROMPT_OPTIONS = [
     "1200",
     "2400",
@@ -1011,6 +1032,7 @@ def run_create_workflow(
     debug: bool = False,
     non_interactive: bool = False,
     create_slurm_accounting_db: bool = False,
+    scan_slurm_accounting_db: bool = False,
 ) -> int:
     """End-to-end cluster creation: preflight → create → post-create.
 
@@ -1050,6 +1072,7 @@ def run_create_workflow(
         SlurmAccountingError,
         empty_slurm_accounting_render_blocks,
         ensure_slurm_accounting_db,
+        scan_slurm_accounting_ec2_candidates,
         slurm_accounting_render_blocks,
     )
     from daylily_ec.aws.ssm import wait_for_ssm_online
@@ -1355,7 +1378,7 @@ def run_create_workflow(
             "false",
         )
         accounting_create_requested = create_slurm_accounting_db or config_create_accounting
-        accounting_enabled = accounting_create_requested or _resolve_nonprompt_bool_config(
+        config_accounting_enabled = _resolve_nonprompt_bool_config(
             cfg,
             "slurm_accounting_enabled",
             "false",
@@ -1365,7 +1388,74 @@ def run_create_workflow(
         ui.fail(f"Slurm accounting config: {exc}")
         return EXIT_VALIDATION_FAILURE
 
-    if accounting_enabled:
+    if scan_slurm_accounting_db and accounting_create_requested:
+        logger.error("Slurm accounting scan was requested with create enabled.")
+        ui.fail(
+            "Slurm accounting scan cannot be combined with --create-slurm-accounting-db "
+            "or slurm_accounting_create_db=true."
+        )
+        return EXIT_VALIDATION_FAILURE
+
+    if scan_slurm_accounting_db:
+        if not cfn_outputs.vpc_id:
+            logger.error("Slurm accounting scan requires the baseline VPC output.")
+            ui.fail("Slurm accounting scan requires the baseline VPC output.")
+            return EXIT_VALIDATION_FAILURE
+
+        ui.step("Scanning EC2 for reusable Slurm accounting DB hosts ...")
+        try:
+            scan_candidates = scan_slurm_accounting_ec2_candidates(
+                aws_ctx,
+                region_az=region_az,
+                vpc_id=cfn_outputs.vpc_id,
+            )
+        except SlurmAccountingError as exc:
+            logger.error("Slurm accounting EC2 scan failed: %s", exc)
+            ui.fail(f"Slurm accounting DB scan: {exc}")
+            return EXIT_AWS_FAILURE
+
+        selectable_candidates = [
+            candidate for candidate in scan_candidates if candidate.selectable and candidate.db
+        ]
+        advisory_candidates = [
+            candidate for candidate in scan_candidates if not candidate.selectable
+        ]
+        for candidate in advisory_candidates[:5]:
+            ui.warn(
+                "Skipping non-selectable Slurm accounting candidate "
+                f"{candidate.instance_id}: {candidate.reason}"
+            )
+        if len(advisory_candidates) > 5:
+            ui.warn(
+                f"Skipping {len(advisory_candidates) - 5} additional non-selectable "
+                "Slurm accounting candidate(s)."
+            )
+
+        if not selectable_candidates:
+            ui.warn("No usable Slurm accounting DB candidates found; continuing without sacct DB.")
+        elif non_interactive:
+            ui.warn(
+                "Slurm accounting DB candidates were found, but --non-interactive was set; "
+                "continuing without sacct DB."
+            )
+        else:
+            selected_candidate = _prompt_slurm_accounting_candidate(selectable_candidates)
+            if selected_candidate is None:
+                ui.info("Slurm accounting DB skipped by selection.")
+            else:
+                accounting_db = selected_candidate.db
+
+        if accounting_db:
+            accounting_render_blocks = slurm_accounting_render_blocks(accounting_db)
+            ui.ok("Slurm accounting DB selected")
+            ui.detail("Accounting stack", accounting_db.stack_name)
+            ui.detail("Accounting URI", accounting_db.uri)
+            ui.detail("Accounting database", accounting_db.database_name)
+            ui.detail("Accounting user", accounting_db.username)
+            ui.detail("Accounting secret", accounting_db.password_secret_arn)
+            ui.detail("Accounting client SG", accounting_db.client_security_group_id)
+
+    elif accounting_create_requested or config_accounting_enabled:
         if not cfn_outputs.vpc_id:
             logger.error("Slurm accounting requires the baseline VPC output.")
             ui.fail("Slurm accounting requires the baseline VPC output.")

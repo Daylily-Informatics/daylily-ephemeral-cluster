@@ -1,0 +1,122 @@
+DAY-EC activated.
+DAY-EC activated.
+Attempting to deactivate existing environments & re-init with --project dyec5117 .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38  
+       _______ GREAT SUCCESS _______       
+[INFO] Patched /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml bclconvert direct mounted-input mode for 20260514_LH01106_0009_B23TVLGLT4: /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+[INFO] DayOA native BCL Convert lane-split rules detected; no DYEC runtime rule patch applied.
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs -p -j 192 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true bclconvert={"barcode_mismatches_index1":"0","barcode_mismatches_index2":"0","compression_threads":"64","conversion_threads":"4","decompression_threads":"32","fastq_gzip_compression_level":"1","force":"true","merge_lane_fastqs":"false","num_unknown_barcodes_reported":"1000","output_legacy_stats":"true","parallel_tiles":"24","partition":"i192mem","sample_sheet_settings":"{}","sample_sheet_settings_by_lane":"{}","shared_thread_odirect_output":"true","threads":"192","tile_compression_threads":"24","tile_conversion_threads":"2","tile_decompression_threads":"8","tile_parallel_tiles":"8","tile_shard_lanes":"L003","tile_shard_level":"lane","tile_shard_mem_mb":"180000","tile_shard_threads":"48","tmpdir":"/dev/shm"}
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+SNV Callers (final): []
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Creating conda environment workflow/envs/bclconvert_metrics_v0.1.yaml...
+Downloading and installing remote packages.
+Environment for /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/workflow/rules/../envs/bclconvert_metrics_v0.1.yaml created (location: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-225/841ac27cc5e7759e4ad9d0f5f4e02ac4_)
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cluster nodes: 192
+Job stats:
+job                           count    min threads    max threads
+--------------------------  -------  -------------  -------------
+bclconvert_validate_inputs        1              1              1
+produce_bclconvert_fastqs         1              1              1
+run_bclconvert                    1              1              1
+run_bclconvert_lane               1            192            192
+total                             4              1            192
+
+Select jobs to execute...
+
+[Tue Jun  2 00:11:10 2026]
+localrule bclconvert_validate_inputs:
+    input: /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv, /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/samples.tsv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+    jobid: 1
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_validate_inputs.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+        if [ -z /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 ]; then
+            echo "bclconvert.run_dir is required" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ ! -d /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 ]; then
+            echo "bclconvert.run_dir does not exist: /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ "true" = "false" ]; then
+            echo "keep_undetermined_fastqs=false is unsupported for the bclconvert bootstrap path" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        bcl_extra_args=
+        if [ -n "$bcl_extra_args" ]; then
+            echo "bclconvert.extra_args is not supported in this shell-only bootstrap workflow" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv \
+          --samples-tsv /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/samples.tsv \
+          --normalized-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv \
+          --rows-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
+        touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+        
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-225/841ac27cc5e7759e4ad9d0f5f4e02ac4_
+[Tue Jun  2 00:11:11 2026]
+Finished job 1.
+1 of 4 steps (25%) done
+Select jobs to execute...
+
+[Tue Jun  2 00:11:11 2026]
+rule run_bclconvert_lane:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/SampleSheet.csv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.log
+    jobid: 3
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/bclconvert.done; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    wildcards: lane=L003
+    threads: 192
+    resources: mem_mb=360000, mem_mib=343323, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=192, time=5440, partition=i192mem, vcpu=192, distribution=block, exclusive=--exclusive, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm bash workflow/scripts/run_bclconvert_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv 3 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/SampleSheet.csv false false false 1 24 4 64 32 true true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' -f 192 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.log results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003/Reports/fastq_list.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003/Reports/Demultiplex_Stats.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/bclconvert.done ""
+Submitted job 3 with external jobid '1'.

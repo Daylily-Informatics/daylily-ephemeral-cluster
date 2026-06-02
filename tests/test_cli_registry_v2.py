@@ -476,7 +476,63 @@ def test_create_command_passes_workflow_options(monkeypatch, tmp_path) -> None:
         "debug": True,
         "non_interactive": True,
         "create_slurm_accounting_db": True,
+        "scan_slurm_accounting_db": False,
     }
+
+
+def test_create_command_passes_scan_slurm_accounting_option(monkeypatch, tmp_path) -> None:
+    import daylily_ec.workflow.create_cluster as create_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    config_path = tmp_path / "daylily.yaml"
+    config_path.write_text("cluster_name: cluster-a\n", encoding="utf-8")
+
+    def fake_run_create_workflow(region_az: str, **kwargs) -> int:
+        calls["region_az"] = region_az
+        calls["kwargs"] = kwargs
+        return 0
+
+    monkeypatch.setattr(create_module, "run_create_workflow", fake_run_create_workflow)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--profile",
+            "dev",
+            "--config",
+            str(config_path),
+            "--scan-slurm-accounting-db",
+        ],
+    )
+
+    assert result.exit_code == 0
+    assert calls["region_az"] == "us-west-2d"
+    assert calls["kwargs"]["scan_slurm_accounting_db"] is True
+    assert calls["kwargs"]["create_slurm_accounting_db"] is False
+
+
+def test_create_command_rejects_scan_and_create_slurm_accounting_flags(
+    monkeypatch,
+) -> None:
+    _activate_dayec_runtime(monkeypatch)
+
+    result = runner.invoke(
+        app,
+        [
+            "create",
+            "--region-az",
+            "us-west-2d",
+            "--scan-slurm-accounting-db",
+            "--create-slurm-accounting-db",
+        ],
+    )
+
+    assert result.exit_code == 2
+    assert "--scan-slurm-accounting-db cannot be combined" in result.stderr
 
 
 def test_slurm_accounting_ensure_reports_resolved_db(monkeypatch) -> None:
@@ -1574,7 +1630,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.34" in launch_argv
+    assert "2.0.35" in launch_argv
     assert "--dy-command" in launch_argv
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
     assert "produce_cgt7p_snv_vcf" in dy_command

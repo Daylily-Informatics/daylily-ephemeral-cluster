@@ -581,6 +581,11 @@ def create(
         "--create-slurm-accounting-db",
         help="Create the DayEC Slurm accounting MariaDB stack if no tagged stack exists.",
     ),
+    scan_slurm_accounting_db: bool = typer.Option(
+        False,
+        "--scan-slurm-accounting-db",
+        help="Scan same-VPC EC2 instances for an existing Slurm accounting DB to reuse.",
+    ),
 ) -> None:
     """Create an ephemeral AWS ParallelCluster environment."""
 
@@ -588,6 +593,10 @@ def create(
 
     _warn_if_dayec_env_inactive()
     _ = repo_override
+    if create_slurm_accounting_db and scan_slurm_accounting_db:
+        raise typer.BadParameter(
+            "--scan-slurm-accounting-db cannot be combined with --create-slurm-accounting-db."
+        )
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -600,6 +609,7 @@ def create(
         debug=debug,
         non_interactive=non_interactive,
         create_slurm_accounting_db=create_slurm_accounting_db,
+        scan_slurm_accounting_db=scan_slurm_accounting_db,
     )
     raise SystemExit(rc)
 

@@ -1,0 +1,85 @@
+__LOG_FILE__ /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.log
+bcl-convert Version 00.000.000.4.0.3
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 24 --bcl-num-conversion-threads 4 --bcl-num-compression-threads 64 --bcl-num-decompression-threads 32 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --bcl-only-lane 3 -f
+  SoftwareVersion = 4.0.3
+WARNING: shared-thread-linux-native-asio output could have low performance or hang if output directory is on a distributed file system
+bcl-convert Version 00.000.000.4.0.3
+WARNING: Could not write replay file /var/log/bcl-convert/dragen_replay_1780361831271_24235.json: /var/log/bcl-convert/dragen_replay_1780361831271_24235.json: cannot open file
+DRAGEN replay file saved to /var/log/bcl-convert/dragen_replay_1780361831271_24235.json
+sh: 1: cannot create /var/log/bcl-convert/dragen_info_1780361831271_24235.log: Directory nonexistent
+DRAGEN registers saved to /var/log/bcl-convert/dragen_info_1780361831271_24235.log
+Hang diagnostic saved to /var/log/bcl-convert/hang_diag_1780361831271_24235.txt
+sh: 1: cannot create /var/log/bcl-convert/pstack_1780361831303_24235.log: Directory nonexistent
+pstack saved to /var/log/bcl-convert/pstack_1780361831303_24235.log
+/bin/sh: 1: cannot create /var/log/bcl-convert/pstack_1780361831303_24235.log: Directory nonexistent
+__LOG_TAIL__ /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.log
+prepared_lane_samplesheet lane=3 settings={"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"} out=results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/SampleSheet.csv
+run_bclconvert_lane L003 started: 2026-06-02T00:37:09+00:00
+host: i192mem-dy-all-1
+threads: 192
+TMPDIR: /dev/shm
+bcl_input_directory: /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003
+sample_sheet: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/SampleSheet.csv
+bcl_only_lane: 3
+tile_regex: <none>
+sample_sheet_settings_json: {"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}
+sample_sheet_settings_by_lane_json: {}
+output_legacy_stats: true
+num_unknown_barcodes_reported: 1000
+192
+Filesystem                Size  Used Avail Use% Mounted on
+tmpfs                     605G     0  605G   0% /dev/shm
+10.0.1.248@tcp:/3vbzxb4v  6.6T  159G  6.4T   3% /fsx
+10.0.1.248@tcp:/3vbzxb4v  6.6T  159G  6.4T   3% /fsx
+/usr/bin/singularity
+singularity_bind_args: --bind /fsx:/fsx
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc. 
+bcl_num_parallel_tiles: 24
+bcl_num_conversion_threads: 4
+bcl_num_compression_threads: 64
+bcl_num_decompression_threads: 32
+bcl_cpu_heavy_threads: 192
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 24 --bcl-num-conversion-threads 4 --bcl-num-compression-threads 64 --bcl-num-decompression-threads 32 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --bcl-only-lane 3 -f
+INFO:    Using cached SIF image
+Index Read 2 is marked as Reverse Complement in RunInfo.xml: The barcode and UMI outputs will be output in Reverse Complement of Sample Sheet inputs.
+Sample sheet being processed by common lib? Yes
+SampleSheet Settings: 
+  BarcodeMismatchesIndex1 = 0
+  BarcodeMismatchesIndex2 = 0
+  FastqCompressionFormat = gzip
+  OverrideCycles = Y151;I10;I10;Y151
+  SoftwareVersion = 4.0.3
+
+shared-thread-linux-native-asio output is enabled
+WARNING: shared-thread-linux-native-asio output could have low performance or hang if output directory is on a distributed file system
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2022 Illumina, Inc.
+Command Line: --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 24 --bcl-num-conversion-threads 4 --bcl-num-compression-threads 64 --bcl-num-decompression-threads 32 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --bcl-only-lane 3 -f 
+Conversion Begins.
+# CPU hw threads available: 64
+Parallel Tiles: 24. Threads Per Tile: 4
+SW compressors: 64
+SW decompressors: 32
+SW FASTQ compression level: 1
+
+The DRAGEN WatchDog service has detected a fault: Hang detected - there has been no system activity for 600 seconds
+    No thread activity for 600 seconds
+    No I/O activity detected for 600 seconds
+
+
+Dumping diagnostics....
+WARNING: Could not write replay file /var/log/bcl-convert/dragen_replay_1780361831271_24235.json: /var/log/bcl-convert/dragen_replay_1780361831271_24235.json: cannot open file
+DRAGEN replay file saved to /var/log/bcl-convert/dragen_replay_1780361831271_24235.json
+sh: 1: cannot create /var/log/bcl-convert/dragen_info_1780361831271_24235.log: Directory nonexistent
+DRAGEN registers saved to /var/log/bcl-convert/dragen_info_1780361831271_24235.log
+Hang diagnostic saved to /var/log/bcl-convert/hang_diag_1780361831271_24235.txt
+sh: 1: cannot create /var/log/bcl-convert/pstack_1780361831303_24235.log: Directory nonexistent
+pstack saved to /var/log/bcl-convert/pstack_1780361831303_24235.log
+
+Exception thrown in /data/jenkins/workspace/dragen_release_4.0/src/host/infra/debug/watchdog.cpp line 285 -- The DRAGEN WatchDog service is resetting DRAGEN
+terminate called after throwing an instance of 'WatchDogException'
+/bin/sh: 1: cannot create /var/log/bcl-convert/pstack_1780361831303_24235.log: Directory nonexistent
+  what():  Exception thrown in /data/jenkins/workspace/dragen_release_4.0/src/host/infra/debug/watchdog.cpp line 285 -- The DRAGEN WatchDog service is resetting DRAGEN

@@ -1,0 +1,218 @@
+DAY-EC activated.
+DAY-EC activated.
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Collecting docopt==0.6.2 (from -r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 5))
+  Using cached docopt-0.6.2-py2.py3-none-any.whl
+Collecting colr==0.9.1 (from -r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 6))
+  Using cached colr-0.9.1-py3-none-any.whl
+Requirement already satisfied: xmltodict in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from -r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 7)) (1.0.4)
+Collecting tabulate (from -r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 9))
+  Using cached tabulate-0.10.0-py3-none-any.whl.metadata (40 kB)
+Collecting ruamel.yaml (from -r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 10))
+  Downloading ruamel_yaml-0.19.1-py3-none-any.whl.metadata (16 kB)
+Collecting appdirs (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading appdirs-1.4.4-py2.py3-none-any.whl.metadata (9.0 kB)
+Collecting boto3 (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading boto3-1.43.19-py3-none-any.whl.metadata (6.6 kB)
+Collecting botocore (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading botocore-1.43.19-py3-none-any.whl.metadata (5.6 kB)
+Collecting configargparse (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading configargparse-1.7.5-py3-none-any.whl.metadata (23 kB)
+Collecting connection_pool>=0.0.3 (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading connection_pool-0.0.3.tar.gz (3.8 kB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Collecting datrie (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading datrie-0.8.3.tar.gz (499 kB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Collecting docutils (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading docutils-0.23-py3-none-any.whl.metadata (15 kB)
+Collecting gitpython (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading gitpython-3.1.50-py3-none-any.whl.metadata (14 kB)
+Collecting humanfriendly (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading humanfriendly-10.0-py2.py3-none-any.whl.metadata (9.2 kB)
+Requirement already satisfied: jinja2<4.0,>=3.0 in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (3.1.6)
+Collecting jsonschema (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Using cached jsonschema-4.26.0-py3-none-any.whl.metadata (7.6 kB)
+Collecting nbformat (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading nbformat-5.10.4-py3-none-any.whl.metadata (3.6 kB)
+Requirement already satisfied: psutil in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (7.2.2)
+Collecting pulp>=2.0 (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading pulp-3.3.2-py3-none-any.whl.metadata (8.6 kB)
+Requirement already satisfied: pyyaml in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (6.0.3)
+Requirement already satisfied: requests in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (2.34.2)
+Requirement already satisfied: reretry in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (0.11.8)
+Collecting smart_open>=3.0 (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading smart_open-7.6.1-py3-none-any.whl.metadata (25 kB)
+Collecting stopit (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading stopit-1.1.2.tar.gz (18 kB)
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Getting requirements to build wheel: started
+  Getting requirements to build wheel: finished with status 'done'
+  Preparing metadata (pyproject.toml): started
+  Preparing metadata (pyproject.toml): finished with status 'done'
+Collecting throttler (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading throttler-1.2.3-py3-none-any.whl.metadata (10 kB)
+Collecting toposort>=1.10 (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading toposort-1.10-py3-none-any.whl.metadata (4.1 kB)
+Collecting yte<2.0,>=1.0 (from snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading yte-1.9.4-py3-none-any.whl.metadata (3.1 kB)
+Requirement already satisfied: MarkupSafe>=2.0 in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from jinja2<4.0,>=3.0->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (3.0.3)
+Collecting argparse-dataclass<3,>=2.0.0 (from yte<2.0,>=1.0->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading argparse_dataclass-2.0.0-py3-none-any.whl.metadata (7.2 kB)
+Collecting dpath<3.0,>=2.1 (from yte<2.0,>=1.0->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading dpath-2.2.0-py3-none-any.whl.metadata (15 kB)
+Collecting html2image (from rgbw-colorspace-converter->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 4))
+  Downloading html2image-2.0.7-py3-none-any.whl.metadata (20 kB)
+Collecting ansi2html (from rgbw-colorspace-converter->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 4))
+  Downloading ansi2html-1.9.2-py3-none-any.whl.metadata (3.7 kB)
+Collecting jmespath<2.0.0,>=0.7.1 (from boto3->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading jmespath-1.1.0-py3-none-any.whl.metadata (7.6 kB)
+Collecting s3transfer<0.19.0,>=0.18.0 (from boto3->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Using cached s3transfer-0.18.0-py3-none-any.whl.metadata (1.7 kB)
+Requirement already satisfied: python-dateutil<3.0.0,>=2.1 in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from botocore->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (2.9.0.post0)
+Requirement already satisfied: urllib3!=2.2.0,<3,>=1.25.4 in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from botocore->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (2.7.0)
+Requirement already satisfied: six>=1.5 in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from python-dateutil<3.0.0,>=2.1->botocore->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (1.17.0)
+Collecting gitdb<5,>=4.0.1 (from gitpython->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading gitdb-4.0.12-py3-none-any.whl.metadata (1.2 kB)
+Collecting smmap<6,>=3.0.1 (from gitdb<5,>=4.0.1->gitpython->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading smmap-5.0.3-py3-none-any.whl.metadata (4.6 kB)
+Collecting websocket-client~=1.0 (from html2image->rgbw-colorspace-converter->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 4))
+  Downloading websocket_client-1.9.0-py3-none-any.whl.metadata (8.3 kB)
+Collecting attrs>=22.2.0 (from jsonschema->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading attrs-26.1.0-py3-none-any.whl.metadata (8.8 kB)
+Collecting jsonschema-specifications>=2023.03.6 (from jsonschema->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Using cached jsonschema_specifications-2025.9.1-py3-none-any.whl.metadata (2.9 kB)
+Collecting referencing>=0.28.4 (from jsonschema->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Using cached referencing-0.37.0-py3-none-any.whl.metadata (2.8 kB)
+Collecting rpds-py>=0.25.0 (from jsonschema->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Using cached rpds_py-2026.5.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (4.1 kB)
+Requirement already satisfied: typing-extensions>=4.4.0 in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from referencing>=0.28.4->jsonschema->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (4.15.0)
+Collecting fastjsonschema>=2.15 (from nbformat->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading fastjsonschema-2.21.2-py3-none-any.whl.metadata (2.3 kB)
+Collecting jupyter-core!=5.0.*,>=4.12 (from nbformat->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1))
+  Downloading jupyter_core-5.9.1-py3-none-any.whl.metadata (1.5 kB)
+Requirement already satisfied: traitlets>=5.1 in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from nbformat->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (5.15.0)
+Requirement already satisfied: platformdirs>=2.5 in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from jupyter-core!=5.0.*,>=4.12->nbformat->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (4.10.0)
+Requirement already satisfied: charset_normalizer<4,>=2 in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from requests->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (3.4.7)
+Requirement already satisfied: idna<4,>=2.5 in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from requests->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (3.17)
+Requirement already satisfied: certifi>=2023.5.7 in /home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages (from requests->snakemake==7.25.0+14.g903efe44->-r /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260601T234556Z/daylily-omics-analysis/config/day/condaenv.tnblhzvj.requirements.txt (line 1)) (2026.5.20)
+Downloading yte-1.9.4-py3-none-any.whl (10 kB)
+Downloading argparse_dataclass-2.0.0-py3-none-any.whl (8.8 kB)
+Downloading dpath-2.2.0-py3-none-any.whl (17 kB)
+Downloading tabulate-0.10.0-py3-none-any.whl (39 kB)
+Downloading ruamel_yaml-0.19.1-py3-none-any.whl (118 kB)
+Downloading pulp-3.3.2-py3-none-any.whl (16.4 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 16.4/16.4 MB 222.2 MB/s  0:00:00
+Downloading smart_open-7.6.1-py3-none-any.whl (64 kB)
+Downloading toposort-1.10-py3-none-any.whl (8.5 kB)
+Downloading ansi2html-1.9.2-py3-none-any.whl (17 kB)
+Downloading appdirs-1.4.4-py2.py3-none-any.whl (9.6 kB)
+Downloading boto3-1.43.19-py3-none-any.whl (140 kB)
+Downloading botocore-1.43.19-py3-none-any.whl (15.1 MB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 15.1/15.1 MB 249.0 MB/s  0:00:00
+Downloading jmespath-1.1.0-py3-none-any.whl (20 kB)
+Using cached s3transfer-0.18.0-py3-none-any.whl (88 kB)
+Downloading configargparse-1.7.5-py3-none-any.whl (27 kB)
+Downloading docutils-0.23-py3-none-any.whl (634 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 634.7/634.7 kB 63.0 MB/s  0:00:00
+Downloading gitpython-3.1.50-py3-none-any.whl (212 kB)
+Downloading gitdb-4.0.12-py3-none-any.whl (62 kB)
+Downloading smmap-5.0.3-py3-none-any.whl (24 kB)
+Downloading html2image-2.0.7-py3-none-any.whl (31 kB)
+Downloading websocket_client-1.9.0-py3-none-any.whl (82 kB)
+Downloading humanfriendly-10.0-py2.py3-none-any.whl (86 kB)
+Using cached jsonschema-4.26.0-py3-none-any.whl (90 kB)
+Downloading attrs-26.1.0-py3-none-any.whl (67 kB)
+Using cached jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+Using cached referencing-0.37.0-py3-none-any.whl (26 kB)
+Using cached rpds_py-2026.5.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (378 kB)
+Downloading nbformat-5.10.4-py3-none-any.whl (78 kB)
+Downloading fastjsonschema-2.21.2-py3-none-any.whl (24 kB)
+Downloading jupyter_core-5.9.1-py3-none-any.whl (29 kB)
+Downloading throttler-1.2.3-py3-none-any.whl (9.7 kB)
+Building wheels for collected packages: snakemake, chromedriver-binary-auto, rgbw-colorspace-converter, connection_pool, datrie, stopit
+  Building wheel for snakemake (pyproject.toml): started
+  Building wheel for snakemake (pyproject.toml): finished with status 'done'
+  Created wheel for snakemake: filename=snakemake-7.25.0+14.g903efe44-py3-none-any.whl size=367763 sha256=a38c6ab998dba9af9c1e962e208c21c26d770c5f7e623358d7c8f94f9d7b20b2
+  Stored in directory: /tmp/pip-ephem-wheel-cache-ovj9gnt_/wheels/f6/1f/d5/e7ce8232c5658c5e4c1c8ae79d36209f9caf4f28d318b1b53e
+  Building wheel for chromedriver-binary-auto (pyproject.toml): started
+  Building wheel for chromedriver-binary-auto (pyproject.toml): finished with status 'done'
+  Created wheel for chromedriver-binary-auto: filename=chromedriver_binary_auto-0.3.1-py3-none-any.whl size=9272434 sha256=399636524ff88a2a855a985195b9d193a66fde541cc84f4f47365f2b99b391d9
+  Stored in directory: /home/ubuntu/.cache/pip/wheels/a2/4e/3d/cf57868f5086326d7a2fa41ea8efbadd3a0585b222916593dd
+  Building wheel for rgbw-colorspace-converter (pyproject.toml): started
+  Building wheel for rgbw-colorspace-converter (pyproject.toml): finished with status 'done'
+  Created wheel for rgbw-colorspace-converter: filename=rgbw_colorspace_converter-0.1.4-py3-none-any.whl size=23408 sha256=cba02c0956035790ac14c9d45e886e131a24f5a2cad6f3230a6683d2897017fa
+  Stored in directory: /home/ubuntu/.cache/pip/wheels/1f/3a/b6/9c6524a6d2b2ea34754949a9945b9efafb998455afce8568e0
+  Building wheel for connection_pool (pyproject.toml): started
+  Building wheel for connection_pool (pyproject.toml): finished with status 'done'
+  Created wheel for connection_pool: filename=connection_pool-0.0.3-py3-none-any.whl size=4106 sha256=271f42f9f025e2f07b8a7b51c9e507e70852f966b8e9e5dbd81b773bb2dfc1f6
+  Stored in directory: /home/ubuntu/.cache/pip/wheels/2b/73/ac/bd9807cbc47e95c436b5d5afe6cca8299fdc69bf7bd9930618
+  Building wheel for datrie (pyproject.toml): started
+  Building wheel for datrie (pyproject.toml): finished with status 'done'
+  Created wheel for datrie: filename=datrie-0.8.3-cp311-cp311-linux_x86_64.whl size=163167 sha256=49b17a30eade421093124909bdfc0655a051bc1068345b69ec0e05f1e1ed073e
+  Stored in directory: /home/ubuntu/.cache/pip/wheels/22/37/ed/93394e0c4c9de31cf8fd4f233fb2c38de06216a8ad2e32b3cc
+  Building wheel for stopit (pyproject.toml): started
+  Building wheel for stopit (pyproject.toml): finished with status 'done'
+  Created wheel for stopit: filename=stopit-1.1.2-py3-none-any.whl size=11984 sha256=4950fa392f2c02c8c4b84c172403c23822a4e524e72d1876501d6579613c1495
+  Stored in directory: /home/ubuntu/.cache/pip/wheels/da/77/2d/adbc56bc4db95ad80c6d4e71cd69e2d9d122174904342e3f7f
+Successfully built snakemake chromedriver-binary-auto rgbw-colorspace-converter connection_pool datrie stopit
+Installing collected packages: toposort, stopit, fastjsonschema, docopt, connection_pool, colr, chromedriver-binary-auto, appdirs, websocket-client, throttler, tabulate, smmap, smart_open, ruamel.yaml, rpds-py, pulp, jupyter-core, jmespath, humanfriendly, dpath, docutils, datrie, configargparse, attrs, argparse-dataclass, ansi2html, yte, referencing, html2image, gitdb, botocore, s3transfer, rgbw-colorspace-converter, jsonschema-specifications, gitpython, jsonschema, boto3, nbformat, snakemake
+
+Successfully installed ansi2html-1.9.2 appdirs-1.4.4 argparse-dataclass-2.0.0 attrs-26.1.0 boto3-1.43.19 botocore-1.43.19 chromedriver-binary-auto-0.3.1 colr-0.9.1 configargparse-1.7.5 connection_pool-0.0.3 datrie-0.8.3 docopt-0.6.2 docutils-0.23 dpath-2.2.0 fastjsonschema-2.21.2 gitdb-4.0.12 gitpython-3.1.50 html2image-2.0.7 humanfriendly-10.0 jmespath-1.1.0 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 jupyter-core-5.9.1 nbformat-5.10.4 pulp-3.3.2 referencing-0.37.0 rgbw-colorspace-converter-0.1.4 rpds-py-2026.5.1 ruamel.yaml-0.19.1 s3transfer-0.18.0 smart_open-7.6.1 smmap-5.0.3 snakemake-7.25.0+14.g903efe44 stopit-1.1.2 tabulate-0.10.0 throttler-1.2.3 toposort-1.10 websocket-client-1.9.0 yte-1.9.4
+
+done
+#
+# To activate this environment, use
+#
+#     $ conda activate DAYOA
+#
+# To deactivate an active environment, use
+#
+#     $ conda deactivate
+
+DAYOA environment created successfully.
+Installing Mermaid CLI for DAYOA pipeline diagram rendering: @mermaid-js/mermaid-cli@11.15.0
+
+added 355 packages in 12s
+
+44 packages are looking for funding
+  run `npm fund` for details
+npm notice
+npm notice New minor version of npm available! 11.13.0 -> 11.16.0
+npm notice Changelog: https://github.com/npm/cli/releases/tag/v11.16.0
+npm notice To update run: npm install -g npm@11.16.0
+npm notice
+
+Try the following commands to get started:
+  source dyinit --project <PROJECT>
+  dy-a local
+  dy-r help
+
+Installation complete.
+Please log out and log back in, then run:
+  source dyinit --project <PROJECT>
+  dy-a local
+  dy-r help
+DAYOA install success
+Day CLI initialized for project 'dyec5117' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run--output truncated--

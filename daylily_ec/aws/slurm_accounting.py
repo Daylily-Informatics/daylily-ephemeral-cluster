@@ -93,6 +93,21 @@ class SlurmAccountingDb:
     instance_id: str = ""
 
 
+@dataclass(frozen=True)
+class SlurmAccountingScanCandidate:
+    """One EC2 scan hit for a possible Slurm accounting database host."""
+
+    instance_id: str
+    name: str
+    private_ip: str
+    availability_zone: str
+    vpc_id: str
+    source: str
+    selectable: bool
+    reason: str
+    db: SlurmAccountingDb | None = None
+
+
 def derive_slurm_accounting_stack_name(region_az: str) -> str:
     """Return the deterministic accounting stack name for a Region/AZ."""
     region_az = region_az.strip()
@@ -211,6 +226,93 @@ def discover_slurm_accounting_dbs(
             continue
         matches.append(_db_from_stack(stack))
     return matches
+
+
+def scan_slurm_accounting_ec2_candidates(
+    aws_ctx: Any,
+    *,
+    region_az: str,
+    vpc_id: str,
+) -> list[SlurmAccountingScanCandidate]:
+    """Scan same-VPC EC2 instances for reusable Slurm accounting DB candidates.
+
+    The scan is read-only. Candidates are selectable only when they can be
+    matched to the complete DayEC CloudFormation output contract required by
+    ParallelCluster.
+    """
+    del region_az  # Region is already fixed by aws_ctx; scan is VPC scoped.
+    if not vpc_id.strip():
+        raise SlurmAccountingError("VPC ID is required to scan Slurm accounting EC2 hosts.")
+
+    cfn = aws_ctx.client("cloudformation")
+    ec2 = aws_ctx.client("ec2")
+    valid_dbs, invalid_stack_reasons = _discover_accounting_dbs_by_instance_for_vpc(
+        cfn,
+        vpc_id=vpc_id,
+    )
+    instances = _list_running_instances_in_vpc(ec2, vpc_id=vpc_id)
+    security_groups = _describe_security_groups(
+        ec2,
+        _security_group_ids_for_instances(instances),
+    )
+
+    candidates: list[SlurmAccountingScanCandidate] = []
+    for instance in instances:
+        instance_id = str(instance.get("InstanceId") or "")
+        if not instance_id:
+            continue
+        tags = _tags_by_key(instance.get("Tags", []))
+        is_dayec_accounting_host = (
+            tags.get(ACCOUNTING_COMPONENT_TAG_KEY) == ACCOUNTING_COMPONENT_TAG_VALUE
+        )
+        db = valid_dbs.get(instance_id)
+        if db is not None:
+            candidates.append(
+                _candidate_from_instance(
+                    instance,
+                    source="dayec-stack",
+                    selectable=True,
+                    reason=f"Matched healthy DayEC accounting stack {db.stack_name}.",
+                    db=db,
+                )
+            )
+            continue
+
+        if is_dayec_accounting_host:
+            candidates.append(
+                _candidate_from_instance(
+                    instance,
+                    source="dayec-tagged",
+                    selectable=False,
+                    reason=invalid_stack_reasons.get(
+                        instance_id,
+                        "DayEC-tagged accounting instance has no matching healthy stack outputs.",
+                    ),
+                )
+            )
+            continue
+
+        if _instance_has_mysql_accounting_signal(instance, security_groups):
+            candidates.append(
+                _candidate_from_instance(
+                    instance,
+                    source="ec2-advisory",
+                    selectable=False,
+                    reason=(
+                        "Running same-VPC instance has MySQL/accounting EC2 metadata "
+                        "but no complete DayEC accounting stack outputs."
+                    ),
+                )
+            )
+
+    return sorted(
+        candidates,
+        key=lambda candidate: (
+            not candidate.selectable,
+            candidate.source != "dayec-stack",
+            candidate.name or candidate.instance_id,
+        ),
+    )
 
 
 def ensure_slurm_accounting_db(
@@ -386,6 +488,14 @@ def _stack_has_accounting_tags(stack: dict[str, Any], *, region_az: str, vpc_id:
     )
 
 
+def _stack_has_accounting_vpc_tags(stack: dict[str, Any], *, vpc_id: str) -> bool:
+    tags = _tags_by_key(stack.get("Tags", []))
+    return (
+        tags.get(ACCOUNTING_COMPONENT_TAG_KEY) == ACCOUNTING_COMPONENT_TAG_VALUE
+        and tags.get(ACCOUNTING_VPC_TAG_KEY) == vpc_id
+    )
+
+
 def _db_from_stack(stack: dict[str, Any]) -> SlurmAccountingDb:
     stack_name = str(stack.get("StackName") or "")
     status = str(stack.get("StackStatus") or "")
@@ -432,6 +542,40 @@ def _db_from_stack(stack: dict[str, Any]) -> SlurmAccountingDb:
     )
 
 
+def _discover_accounting_dbs_by_instance_for_vpc(
+    cfn: Any,
+    *,
+    vpc_id: str,
+) -> tuple[dict[str, SlurmAccountingDb], dict[str, str]]:
+    dbs: dict[str, SlurmAccountingDb] = {}
+    rejected: dict[str, str] = {}
+    for summary in _list_stack_summaries(cfn):
+        name = str(summary.get("StackName") or "")
+        if not name:
+            continue
+        stack = _describe_stack_or_none(cfn, name)
+        if stack is None or not _stack_has_accounting_vpc_tags(stack, vpc_id=vpc_id):
+            continue
+        outputs = _stack_outputs(stack)
+        instance_id = outputs.get("AccountingInstanceId", "").strip()
+        try:
+            db = _db_from_stack(stack)
+        except SlurmAccountingError as exc:
+            if instance_id:
+                rejected[instance_id] = str(exc)
+            continue
+        if db.instance_id:
+            dbs[db.instance_id] = db
+    return dbs, rejected
+
+
+def _stack_outputs(stack: dict[str, Any]) -> dict[str, str]:
+    return {
+        str(output.get("OutputKey")): str(output.get("OutputValue") or "")
+        for output in stack.get("Outputs", [])
+    }
+
+
 def _validate_uri(uri: str) -> None:
     value = uri.strip()
     if not value:
@@ -442,3 +586,121 @@ def _validate_uri(uri: str) -> None:
         )
     if ":" not in value:
         raise SlurmAccountingError("Accounting DB URI must include a port, e.g. host:3306.")
+
+
+def _tags_by_key(tags: Iterable[dict[str, Any]]) -> dict[str, str]:
+    return {str(tag.get("Key")): str(tag.get("Value") or "") for tag in tags}
+
+
+def _list_running_instances_in_vpc(ec2: Any, *, vpc_id: str) -> list[dict[str, Any]]:
+    try:
+        paginator = ec2.get_paginator("describe_instances")
+        instances: list[dict[str, Any]] = []
+        for page in paginator.paginate(
+            Filters=[
+                {"Name": "vpc-id", "Values": [vpc_id]},
+                {"Name": "instance-state-name", "Values": ["running"]},
+            ]
+        ):
+            for reservation in page.get("Reservations", []):
+                instances.extend(reservation.get("Instances", []) or [])
+        return instances
+    except (BotoCoreError, ClientError) as exc:
+        raise SlurmAccountingError(f"Unable to list EC2 instances for VPC {vpc_id}: {exc}") from exc
+    except Exception as exc:
+        raise SlurmAccountingError(f"Unable to list EC2 instances for VPC {vpc_id}: {exc}") from exc
+
+
+def _security_group_ids_for_instances(instances: Iterable[dict[str, Any]]) -> list[str]:
+    group_ids: set[str] = set()
+    for instance in instances:
+        for group in instance.get("SecurityGroups", []) or []:
+            group_id = str(group.get("GroupId") or "").strip()
+            if group_id:
+                group_ids.add(group_id)
+    return sorted(group_ids)
+
+
+def _describe_security_groups(ec2: Any, group_ids: list[str]) -> dict[str, dict[str, Any]]:
+    if not group_ids:
+        return {}
+    try:
+        groups: dict[str, dict[str, Any]] = {}
+        for offset in range(0, len(group_ids), 100):
+            response = ec2.describe_security_groups(GroupIds=group_ids[offset : offset + 100])
+            for group in response.get("SecurityGroups", []) or []:
+                group_id = str(group.get("GroupId") or "")
+                if group_id:
+                    groups[group_id] = group
+        return groups
+    except (BotoCoreError, ClientError) as exc:
+        raise SlurmAccountingError(f"Unable to inspect EC2 security groups: {exc}") from exc
+    except Exception as exc:
+        raise SlurmAccountingError(f"Unable to inspect EC2 security groups: {exc}") from exc
+
+
+def _candidate_from_instance(
+    instance: dict[str, Any],
+    *,
+    source: str,
+    selectable: bool,
+    reason: str,
+    db: SlurmAccountingDb | None = None,
+) -> SlurmAccountingScanCandidate:
+    tags = _tags_by_key(instance.get("Tags", []))
+    return SlurmAccountingScanCandidate(
+        instance_id=str(instance.get("InstanceId") or ""),
+        name=tags.get("Name", ""),
+        private_ip=str(instance.get("PrivateIpAddress") or ""),
+        availability_zone=str(instance.get("Placement", {}).get("AvailabilityZone") or ""),
+        vpc_id=str(instance.get("VpcId") or ""),
+        source=source,
+        selectable=selectable,
+        reason=reason,
+        db=db,
+    )
+
+
+def _instance_has_mysql_accounting_signal(
+    instance: dict[str, Any],
+    security_groups: dict[str, dict[str, Any]],
+) -> bool:
+    tags = _tags_by_key(instance.get("Tags", []))
+    text_parts = [
+        str(tags.get("Name", "")),
+        *[str(value) for value in tags.values()],
+    ]
+    for group in instance.get("SecurityGroups", []) or []:
+        group_id = str(group.get("GroupId") or "")
+        group_payload = security_groups.get(group_id, {})
+        text_parts.extend(
+            [
+                str(group.get("GroupName") or ""),
+                str(group_payload.get("GroupName") or ""),
+                str(group_payload.get("Description") or ""),
+            ]
+        )
+        if _security_group_allows_tcp_port(group_payload, 3306):
+            return True
+
+    text = " ".join(text_parts).lower()
+    return any(
+        token in text
+        for token in ("mysql", "mariadb", "slurm", "sacct", "accounting")
+    )
+
+
+def _security_group_allows_tcp_port(group: dict[str, Any], port: int) -> bool:
+    for permission in group.get("IpPermissions", []) or []:
+        protocol = str(permission.get("IpProtocol") or "")
+        if protocol == "-1":
+            return True
+        if protocol != "tcp":
+            continue
+        from_port = permission.get("FromPort")
+        to_port = permission.get("ToPort")
+        if from_port is None or to_port is None:
+            continue
+        if int(from_port) <= port <= int(to_port):
+            return True
+    return False

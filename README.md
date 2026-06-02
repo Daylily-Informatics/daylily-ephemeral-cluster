@@ -162,7 +162,7 @@ Each `test_data_profile` declares how source data is expected to appear on FSx:
 
 The catalog records the primary `source_s3_uri_template`, `source_fsx_prefix`, and, for run-analysis profiles, the required `SOURCE_S3_URI` and `MOUNT_ID` run-context columns. Historical or alternate validation roots stay in profile notes and `test_data_locations`.
 
-For BCL Convert run-analysis launches, DYEC patches the active DayOA profile for direct mounted input, zero barcode mismatches, and `merge_lane_fastqs: false`; the launcher then hard-requires a DayOA checkout that exposes native lane-split BCL rules and lane-level downstream report consumption.
+For BCL Convert run-analysis launches, DYEC patches the active DayOA profile for direct mounted input, zero barcode mismatches, `merge_lane_fastqs: false`, and `shared_thread_odirect_output: false`; the launcher then hard-requires a DayOA checkout that exposes native lane-split BCL rules and lane-level downstream report consumption.
 
 ## Dewey Registration And QEO MultiQC Loading
 

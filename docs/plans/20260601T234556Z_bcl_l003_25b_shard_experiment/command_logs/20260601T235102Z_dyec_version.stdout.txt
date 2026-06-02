@@ -1,0 +1,4 @@
+{
+  "app": "Daylily Ephemeral Cluster",
+  "version": "5.1.19.dev0+g0a59d18fc.d20260601"
+}

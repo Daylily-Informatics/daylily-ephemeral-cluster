@@ -1,0 +1,33 @@
+{
+  "arm": "shard032",
+  "existing_output_sizes": [
+    {
+      "bytes": 1078170508288,
+      "path": "/fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis"
+    },
+    {
+      "bytes": 1078212147200,
+      "path": "/fsx/analysis_results/ubuntu/bcl25b_l003_shard004_20260602T000733Z/daylily-omics-analysis"
+    },
+    {
+      "bytes": 1078276511744,
+      "path": "/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_20260602T000733Z/daylily-omics-analysis"
+    },
+    {
+      "bytes": 1078450300416,
+      "path": "/fsx/analysis_results/ubuntu/bcl25b_l003_shard016_20260602T000733Z/daylily-omics-analysis"
+    },
+    {
+      "bytes": 646921728,
+      "path": "/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis"
+    }
+  ],
+  "fsx_available_gib": 2268.4033203125,
+  "fsx_capacity_ok": true,
+  "fsx_mount": "/fsx",
+  "fsx_size_gib": 6685.359375,
+  "fsx_use_pct": "67%",
+  "fsx_used_gib": 4416.943603515625,
+  "max_existing_output_gib": 1004.3851103782654,
+  "required_available_gib": 1104.8236214155331
+}
