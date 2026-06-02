@@ -21,7 +21,7 @@ dependencies = [
     "pydantic-settings>=2.0.0",
     "typer>=0.12,<1",
     "cli-core-yo==2.1.1",
-    "daylily-omics-analysis==2.0.35",
+    "daylily-omics-analysis==2.0.37",
     # aws-parallelcluster 3.13.x still imports pkg_resources at runtime.
     "setuptools<81",
     # Used by legacy bin/*.py tools (installed via setup.py script_files).
@@ -51,6 +51,8 @@ daylily-ec = "daylily_ec.cli:main"
 dyec = "daylily_ec.cli:main"
 
 [tool.setuptools_scm]
+tag_regex = "^(?P<version>\\d+\\.\\d+\\.\\d+(?:\\.\\d+)?)$"
+git_describe_command = "git describe --dirty --tags --long --match '[0-9]*.[0-9]*.[0-9]*' --match '[0-9]*.[0-9]*.[0-9]*.[0-9]*' --exclude '*[!0-9.]*' --exclude '*.*.*.*.*'"
 version_scheme = "guess-next-dev"
 local_scheme = "node-and-date"
 fallback_version = "0.0.0"

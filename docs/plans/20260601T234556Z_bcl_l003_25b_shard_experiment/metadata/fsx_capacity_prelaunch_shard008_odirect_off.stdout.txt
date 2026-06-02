@@ -1,12 +1,5 @@
 DAY-EC activated.
 DAY-EC activated.
-timestamp_utc=2026-06-02T08:51:26Z
-df_bytes	7178349969408	6424733941760	753601085440	90%	/fsx
-df_human	6.6T	5.9T	702G	90%	/fsx
-output_bytes	1078170508288	/fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis
-output_bytes	1078212147200	/fsx/analysis_results/ubuntu/bcl25b_l003_shard004_20260602T000733Z/daylily-omics-analysis
-output_bytes	1078276511744	/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_20260602T000733Z/daylily-omics-analysis
-output_bytes	1078450300416	/fsx/analysis_results/ubuntu/bcl25b_l003_shard016_20260602T000733Z/daylily-omics-analysis
-output_bytes	1078809552896	/fsx/analysis_results/ubuntu/bcl25b_l003_shard032_20260602T000733Z/daylily-omics-analysis
-output_bytes	646921728	/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis
-output_bytes	603276917760	/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_odirect_off_20260602T000733Z/daylily-omics-analysis
+timestamp_utc=2026-06-02T09:34:07Z
+df_bytes	7178349969408	428968509440	6749368877056	6%	/fsx
+df_human	6.6T	400G	6.2T	6%	/fsx

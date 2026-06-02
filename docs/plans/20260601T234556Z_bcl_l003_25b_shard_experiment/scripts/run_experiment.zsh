@@ -41,14 +41,15 @@ analysis_id_for_arm() {
 dy_command_for_arm() {
   local shard_level="$1"
   local jobs="$2"
-  local shared_thread_odirect_output="${SHARED_THREAD_ODIRECT_OUTPUT:-false}"
+  local shared_thread_odirect_output="${SHARED_THREAD_ODIRECT_OUTPUT:-auto}"
   local merge_lane_fastqs="${MERGE_LANE_FASTQS:-false}"
+  local merge_tile_fastqs="${MERGE_TILE_FASTQS:-false}"
   local tile_parallel_tiles="${TILE_PARALLEL_TILES:-8}"
   local tile_conversion_threads="${TILE_CONVERSION_THREADS:-2}"
   local tile_compression_threads="${TILE_COMPRESSION_THREADS:-24}"
   local tile_decompression_threads="${TILE_DECOMPRESSION_THREADS:-8}"
   local tile_shard_threads="${TILE_SHARD_THREADS:-48}"
-  printf "bin/day_run produce_bclconvert_fastqs -p -j %s -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true bclconvert='{\"barcode_mismatches_index1\":\"0\",\"barcode_mismatches_index2\":\"0\",\"compression_threads\":\"64\",\"conversion_threads\":\"4\",\"decompression_threads\":\"32\",\"fastq_gzip_compression_level\":\"1\",\"force\":\"true\",\"merge_lane_fastqs\":\"%s\",\"num_unknown_barcodes_reported\":\"1000\",\"output_legacy_stats\":\"true\",\"parallel_tiles\":\"24\",\"partition\":\"i192mem\",\"sample_sheet_settings\":\"{}\",\"sample_sheet_settings_by_lane\":\"{}\",\"shared_thread_odirect_output\":\"%s\",\"threads\":\"192\",\"tile_compression_threads\":\"%s\",\"tile_conversion_threads\":\"%s\",\"tile_decompression_threads\":\"%s\",\"tile_parallel_tiles\":\"%s\",\"tile_shard_lanes\":\"L003\",\"tile_shard_level\":\"%s\",\"tile_shard_mem_mb\":\"180000\",\"tile_shard_threads\":\"%s\",\"tmpdir\":\"/dev/shm\"}'" "$jobs" "$merge_lane_fastqs" "$shared_thread_odirect_output" "$tile_compression_threads" "$tile_conversion_threads" "$tile_decompression_threads" "$tile_parallel_tiles" "$shard_level" "$tile_shard_threads"
+  printf "bin/day_run produce_bclconvert_fastqs -p -j %s -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true bclconvert='{\"barcode_mismatches_index1\":\"0\",\"barcode_mismatches_index2\":\"0\",\"compression_threads\":\"64\",\"conversion_threads\":\"4\",\"decompression_threads\":\"32\",\"fastq_gzip_compression_level\":\"1\",\"force\":\"true\",\"merge_lane_fastqs\":\"%s\",\"merge_tile_fastqs\":\"%s\",\"num_unknown_barcodes_reported\":\"1000\",\"output_legacy_stats\":\"true\",\"parallel_tiles\":\"24\",\"partition\":\"i192mem\",\"sample_sheet_settings\":\"{}\",\"sample_sheet_settings_by_lane\":\"{}\",\"shared_thread_odirect_output\":\"%s\",\"threads\":\"192\",\"tile_compression_threads\":\"%s\",\"tile_conversion_threads\":\"%s\",\"tile_decompression_threads\":\"%s\",\"tile_parallel_tiles\":\"%s\",\"tile_shard_lanes\":\"L003\",\"tile_shard_level\":\"%s\",\"tile_shard_mem_mb\":\"180000\",\"tile_shard_threads\":\"%s\",\"tmpdir\":\"/dev/shm\"}'" "$jobs" "$merge_lane_fastqs" "$merge_tile_fastqs" "$shared_thread_odirect_output" "$tile_compression_threads" "$tile_conversion_threads" "$tile_decompression_threads" "$tile_parallel_tiles" "$shard_level" "$tile_shard_threads"
 }
 
 preflight() {

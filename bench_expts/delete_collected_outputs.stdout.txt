@@ -1,0 +1,23 @@
+DAY-EC activated.
+DAY-EC activated.
+__DF_BEFORE__
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.248@tcp:/3vbzxb4v  6.6T  5.9T  702G  90% /fsx
+__DELETE__	623449803	/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z
+__DELETE__	602833418919	/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_odirect_off_20260602T000733Z
+__DELETE__	1077377314846	/fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z
+__DELETE__	1077391539131	/fsx/analysis_results/ubuntu/bcl25b_l003_shard004_20260602T000733Z
+__DELETE__	1077420379680	/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_20260602T000733Z
+__DELETE__	1077477982250	/fsx/analysis_results/ubuntu/bcl25b_l003_shard016_20260602T000733Z
+__DELETE__	1077593637188	/fsx/analysis_results/ubuntu/bcl25b_l003_shard032_20260602T000733Z
+__VERIFY__
+__DELETED__	/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z
+__DELETED__	/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_odirect_off_20260602T000733Z
+__DELETED__	/fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z
+__DELETED__	/fsx/analysis_results/ubuntu/bcl25b_l003_shard004_20260602T000733Z
+__DELETED__	/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_20260602T000733Z
+__DELETED__	/fsx/analysis_results/ubuntu/bcl25b_l003_shard016_20260602T000733Z
+__DELETED__	/fsx/analysis_results/ubuntu/bcl25b_l003_shard032_20260602T000733Z
+__DF_AFTER__
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.248@tcp:/3vbzxb4v  6.6T  2.1T  4.5T  32% /fsx

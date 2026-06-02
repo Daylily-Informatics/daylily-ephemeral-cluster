@@ -1,0 +1,25 @@
+DAY-EC activated.
+DAY-EC activated.
+__HOST_START__
+2026-06-02T11:05:37Z
+ip-10-0-0-225
+uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),20(dialout),24(cdrom),25(floppy),27(sudo),29(audio),30(dip),44(video),46(plugdev),119(netdev),120(lxd)
+__HOST_END__
+__SQUEUE_START__
+             JOBID PARTITION                             NAME     USER ST         TIME   TIME_LIMIT  NODES NODELIST(REASON)
+__SQUEUE_END__
+__PS_START__
+  49406       1 ubuntu   Ss   Tue Jun  2 00:01:16 2026    11:04:21 tmux new-session -d -s bcl25b_l003_whole_lane_20260602T000023Z -e DAYLILY_RUN_DIR=/home/ubuntu/daylily-runs/bcl25b_l003_whole_lane_20260602T000023Z -e DAYLILY_REPO_PATH=/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000023Z/daylily-omics-analysis -e DAYLILY_TMUX_LOG=/home/ubuntu/daylily-runs/bcl25b_l003_whole_lane_20260602T000023Z/tmux.log bash -lc 'source /home/ubuntu/daylily-runs/bcl25b_l003_whole_lane_20260602T000023Z/launch.sh >>/home/ubuntu/daylily-runs/bcl25b_l003_whole_lane_20260602T000023Z/tmux.log 2>&1'
+__PS_END__
+__TMUX_START__
+bcl25b_l003_shard002_20260602T000733Z: 1 windows (created Tue Jun  2 01:00:04 2026)
+bcl25b_l003_shard004_20260602T000733Z: 1 windows (created Tue Jun  2 01:38:49 2026)
+bcl25b_l003_shard008_20260602T000733Z: 1 windows (created Tue Jun  2 02:04:09 2026)
+bcl25b_l003_shard008_odirect_off_20260602T000733Z: 1 windows (created Tue Jun  2 09:34:37 2026)
+bcl25b_l003_shard016_20260602T000733Z: 1 windows (created Tue Jun  2 06:09:58 2026)
+bcl25b_l003_shard032_20260602T000733Z: 1 windows (created Tue Jun  2 06:44:18 2026)
+bcl25b_l003_whole_lane_20260602T000023Z: 1 windows (created Tue Jun  2 00:01:17 2026)
+bcl25b_l003_whole_lane_20260602T000418Z: 1 windows (created Tue Jun  2 00:04:44 2026)
+bcl25b_l003_whole_lane_20260602T000733Z: 1 windows (created Tue Jun  2 00:10:09 2026)
+bcl25b_l003_whole_lane_odirect_off_20260602T000733Z: 1 windows (created Tue Jun  2 07:27:25 2026)
+__TMUX_END__

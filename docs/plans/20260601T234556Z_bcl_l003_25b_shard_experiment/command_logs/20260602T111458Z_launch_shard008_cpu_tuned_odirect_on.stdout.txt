@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=bcl25b_l003_shard008_cpu_tuned_odirect_on_20260602T000733Z
+__DAYLILY_TMUX_SESSION__=bcl25b_l003_shard008_cpu_tuned_odirect_on_20260602T000733Z
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/bcl25b_l003_shard008_cpu_tuned_odirect_on_20260602T000733Z
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_cpu_tuned_odirect_on_20260602T000733Z/daylily-omics-analysis
+Tmux session 'bcl25b_l003_shard008_cpu_tuned_odirect_on_20260602T000733Z' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/bcl25b_l003_shard008_cpu_tuned_odirect_on_20260602T000733Z
+Workflow repo path: /fsx/analysis_results/ubuntu/bcl25b_l003_shard008_cpu_tuned_odirect_on_20260602T000733Z/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster dyec5117
+Then run: tmux attach -t bcl25b_l003_shard008_cpu_tuned_odirect_on_20260602T000733Z

@@ -4,6 +4,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import csv
 from pathlib import Path
 
 from daylily_ec.aws.ssm import resolve_headnode_instance_id, run_shell, wait_for_ssm_online
@@ -16,6 +17,19 @@ ANALYSIS_STAMP = os.environ.get("ANALYSIS_STAMP", EXP_STAMP)
 EXP_DIR = Path(os.environ.get("EXP_DIR", f"docs/plans/{EXP_STAMP}_bcl_l003_25b_shard_experiment"))
 ARM = os.environ["ARM"]
 GIB = 1024**3
+
+
+def fallback_max_output_bytes() -> int:
+    candidates = Path("bench_expts/deletion_candidates.tsv")
+    if not candidates.is_file():
+        return 0
+    rows = csv.DictReader(candidates.open(encoding="utf-8"), delimiter="\t")
+    sizes: list[int] = []
+    for row in rows:
+        value = str(row.get("analysis_bytes") or "").strip()
+        if value.isdigit():
+            sizes.append(int(value))
+    return max(sizes, default=0)
 
 
 def parse_result(stdout: str) -> dict[str, object]:
@@ -38,9 +52,14 @@ def parse_result(stdout: str) -> dict[str, object]:
             output_sizes.append({"bytes": int(size), "path": path})
     result["existing_output_sizes"] = output_sizes
     max_existing = max((int(item["bytes"]) for item in output_sizes), default=0)
+    baseline_source = "existing_outputs"
+    if max_existing == 0:
+        max_existing = fallback_max_output_bytes()
+        baseline_source = "bench_expts/deletion_candidates.tsv"
     required = int(max_existing * 1.10)
     available = int(float(result.get("fsx_available_gib", 0.0)) * GIB)
     result["max_existing_output_gib"] = max_existing / GIB
+    result["capacity_baseline_source"] = baseline_source
     result["required_available_gib"] = required / GIB
     result["fsx_capacity_ok"] = bool(required and available >= required)
     return result

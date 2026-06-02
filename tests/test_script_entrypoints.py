@@ -670,12 +670,13 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'replace_required_scalar("tmpdir", "/dev/shm")' in script
         assert 'replace_required_scalar("force", "true")' in script
         assert 'upsert_scalar("merge_lane_fastqs", "false")' in script
+        assert 'upsert_scalar("merge_tile_fastqs", "false")' in script
         assert 'replace_required_scalar("partition", "i192mem,i192bigmem")' in script
         assert 'replace_required_scalar("parallel_tiles", "24")' in script
         assert 'replace_required_scalar("conversion_threads", "4")' in script
         assert 'replace_required_scalar("compression_threads", "64")' in script
         assert 'replace_required_scalar("decompression_threads", "32")' in script
-        assert 'replace_required_scalar("shared_thread_odirect_output", "false")' in script
+        assert 'upsert_scalar("shared_thread_odirect_output", "auto")' in script
         assert 'upsert_scalar("num_unknown_barcodes_reported", "1000")' in script
         assert 'upsert_scalar("output_legacy_stats", "true")' in script
         assert 'upsert_scalar("barcode_mismatches_index1", "0")' in script
