@@ -120,3 +120,5 @@ _Append timestamped events here as cluster/mount/workflow/export actions occur._
 - `2026-06-03T16:23:26.424331+00:00` RUN-001 RUNQC SETUP FAILED: status exit_code=1 before workflow execution; log shows Mermaid CLI Chrome WS endpoint timeout during DAYOA environment initialization. Treat as runtime setup blocker, not runQC output failure; do not launch kitchensink until runQC/BCLConvert succeeds.
 
 - `2026-06-03T16:27:02.281475+00:00` RUN-001 RUNQC RETRY1 STARTED: persistent tmux `dayhoff_runqc_RUN001_MRGX9WR2_retry1_20260603`; separate commands sent: `source dyoainit`, `dy-a slurm hg38_broad`, `dy-r produce_illumina_run_qc_and_bclconvert ...`; `PUPPETEER_EXECUTABLE_PATH` set to installed chrome-headless-shell.
+
+- `2026-06-03T16:31:57.071670+00:00` RUN-001 RUNQC ACTIVE: `dy-r` accepted command in initialized DAYOA pane and is building DAG / creating run_qc conda env. Evidence: `20260603T151652Z_RUN-001_runqc_retry1_dyr_logs_latest.txt`. Kitchensink remains queued until runQC/BCLConvert outputs complete.

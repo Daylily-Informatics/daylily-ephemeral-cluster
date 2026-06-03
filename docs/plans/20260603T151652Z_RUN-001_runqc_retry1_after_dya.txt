@@ -1,0 +1,107 @@
+DAY-EC activated.
+DAY-EC activated.
+        (day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, l
+ogs).
+                                   Use --block-and-poll to wait for completion.
+
+        (day-deactivate / dy-d)   - Deactivate the current environment.
+                                   Use 'dy-d reset' to hard reset the environmen
+t.
+
+
+
+
+        . To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~
+/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode
+          ... which once run, you will copy the samples.tsv and units.tsv files
+to config/ in this directory.
+
+        (example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+                dy-a slurm hg38 # or hg38_broad or b37
+
+        (example): RUN ANALYSES
+
+                cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/sample
+s.tsv
+
+                cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.ts
+v
+
+
+
+                # Use target names directly (tab-complete available):
+
+                dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-
+read SNV concordance
+
+                dy-r produce_alignstats -p -k -j 20 -n         # Alignment stati
+stics
+
+
+
+                # Platform-specific targets:
+
+                dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+                dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV call
+ing
+
+                dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV call
+ing (use hg38_broad)
+
+
+
+                # Hybrid workflow targets:
+
+                dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina
++ONT CLI
+
+                dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+O
+NT CLI (use hg38_broad)
+
+                dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina
++ONT Modular
+
+                dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+O
+NT Modular (use hg38_broad)
+
+
+
+                # Remove -n to execute (not dry-run)
+
+(DAYOA) ubuntu@ip-10-0-0-251:/fsx/analysis_results/BigB-4-mk/M-RGX-9WR2/daylily-
+omics-analysis$ dy-a slurm hg38_broad
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project BigB-4-m
+k .
+ > >> >>>
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/BigB-4-mk/M-RGX-9WR2/dayl
+ily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/BigB-4-
+mk/M-RGX-9WR2/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/BigB-4-
+mk/M-RGX-9WR2/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+Using sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sci
+ences_Manufacturing_Corporation_eval.lic from ~/.config/daylily/daylily_cli_glob
+al.yaml
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
+     This might be fine if you have cloned a more recent release of daylily comp
+ared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster
+headnode for days+, this is not the intended use of daylily, a fresh build might
+ be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad
+       _______ GREAT SUCCESS _______
+[Dslu](DAYOA)
+

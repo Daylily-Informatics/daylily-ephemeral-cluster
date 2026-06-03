@@ -1,0 +1,5 @@
+DAY-EC activated.
+DAY-EC activated.
+0: [80x24] [history 260/2000, 72788 bytes] %0 (active)
+sent dy-r runQC/BCLConvert
+
