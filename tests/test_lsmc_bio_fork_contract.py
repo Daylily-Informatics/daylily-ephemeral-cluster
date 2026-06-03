@@ -1,0 +1,79 @@
+from pathlib import Path
+
+import tomllib
+
+import yaml
+
+
+REPO_ROOT = Path(__file__).resolve().parents[1]
+
+_OLD_ORG = "Daylily-" + "Informatics"
+
+FORBIDDEN_ACTIVE_REFERENCES = (
+    f"{_OLD_ORG}/daylily-omics-analysis",
+    f"{_OLD_ORG}/daylily-ephemeral-cluster",
+    f"github.com:{_OLD_ORG}/daylily-omics-analysis",
+    f"github.com:{_OLD_ORG}/daylily-ephemeral-cluster",
+    f"github.com/{_OLD_ORG}/daylily-omics-analysis",
+    f"github.com/{_OLD_ORG}/daylily-ephemeral-cluster",
+    "daylily-omics-analysis" + "==",
+)
+
+ACTIVE_PATHS = (
+    "README.md",
+    "pyproject.toml",
+    "config/daylily_cli_global.yaml",
+    "config/daylily_pipeline_command_catalog.yaml",
+    "daylily_ec/resources/payload/config/daylily_cli_global.yaml",
+    "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml",
+    "scripts/finish_headnode_cfg.sh",
+    "bin/quick_start_all_prereq_done_prior.bash",
+    "daylily_ec/workflow/create_cluster.py",
+    "tests/test_workflow.py",
+)
+
+
+def test_active_surfaces_do_not_reference_daylily_informatics_dayoa_or_dyec() -> None:
+    offenders: list[str] = []
+    for relative_path in ACTIVE_PATHS:
+        text = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        for forbidden in FORBIDDEN_ACTIVE_REFERENCES:
+            if forbidden in text:
+                offenders.append(f"{relative_path}: {forbidden}")
+
+    assert not offenders
+
+
+def test_pyproject_uses_lsmc_bio_dayoa_github_release_pin() -> None:
+    data = tomllib.loads((REPO_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
+    dependencies = data["project"]["dependencies"]
+
+    assert (
+        "daylily-omics-analysis @ "
+        "git+https://github.com/lsmc-bio/daylily-omics-analysis.git@5.0.1"
+    ) in dependencies
+
+
+def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
+    for relative_path in (
+        "config/daylily_cli_global.yaml",
+        "daylily_ec/resources/payload/config/daylily_cli_global.yaml",
+    ):
+        data = yaml.safe_load((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
+        daylily = data["daylily"]
+        assert daylily["git_ephemeral_cluster_repo_tag"] == "7.0.1"
+        assert daylily["git_ephemeral_cluster_repo_release_tag"] == "7.0.1"
+        assert (
+            daylily["git_ephemeral_cluster_repo"]
+            == "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git"
+        )
+
+    for relative_path in (
+        "config/daylily_pipeline_command_catalog.yaml",
+        "daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml",
+    ):
+        data = yaml.safe_load((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
+        repo = data["repositories"]["daylily-omics-analysis"]
+        assert repo["https_url"] == "https://github.com/lsmc-bio/daylily-omics-analysis.git"
+        assert repo["ssh_url"] == "git@github.com:lsmc-bio/daylily-omics-analysis.git"
+        assert repo["default_ref"] == "5.0.1"

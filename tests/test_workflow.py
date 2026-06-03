@@ -1536,12 +1536,12 @@ class TestConfigureHeadnode:
         ("origin_url", "expected_url"),
         [
             (
-                "git@github.com:Daylily-Informatics/daylily-ephemeral-cluster.git\n",
-                "https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git",
+                "git@github.com:lsmc-bio/daylily-ephemeral-cluster.git\n",
+                "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
             ),
             (
-                "ssh://git@github.com/Daylily-Informatics/daylily-ephemeral-cluster.git\n",
-                "https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git",
+                "ssh://git@github.com/lsmc-bio/daylily-ephemeral-cluster.git\n",
+                "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
             ),
         ],
     )

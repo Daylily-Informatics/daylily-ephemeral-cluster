@@ -13,7 +13,7 @@ $SSH "cat ~/.ssh/id_rsa.pub" 2>&1
 echo "=== Step 3: Clone daylily-ephemeral-cluster and install ==="
 $SSH "mkdir -p ~/projects && cd ~/projects && \
   if [ -d daylily-ephemeral-cluster ]; then echo 'repo already cloned'; \
-  else git clone -b main https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git daylily-ephemeral-cluster; fi && \
+  else git clone -b main https://github.com/lsmc-bio/daylily-ephemeral-cluster.git daylily-ephemeral-cluster; fi && \
   cd daylily-ephemeral-cluster && \
   (./bin/install_miniconda 2>&1 || echo 'miniconda install note') && \
   (./bin/init_dayec 2>&1 || echo 'init_dayec note')" 2>&1

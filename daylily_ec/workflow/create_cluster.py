@@ -1988,7 +1988,7 @@ def configure_headnode(
     repo_ref = daylily.get("git_ephemeral_cluster_repo_tag", "main")
     repo_url = daylily.get(
         "git_ephemeral_cluster_repo",
-        "https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git",
+        "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git",
     )
     repo_name = "daylily-ephemeral-cluster"
     try:

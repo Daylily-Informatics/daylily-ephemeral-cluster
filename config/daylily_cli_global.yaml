@@ -1,8 +1,8 @@
 ---
 daylily:
-  git_ephemeral_cluster_repo_tag: 7.0.0
-  git_ephemeral_cluster_repo_release_tag: 7.0.0
-  git_ephemeral_cluster_repo: https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git
+  git_ephemeral_cluster_repo_tag: 7.0.1
+  git_ephemeral_cluster_repo_release_tag: 7.0.1
+  git_ephemeral_cluster_repo: https://github.com/lsmc-bio/daylily-ephemeral-cluster.git
   analysis_root: /fsx/analysis_results/
   sentieon_lic_path: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
   sentieon_tmpdir: /dev/shm/

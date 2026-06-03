@@ -30,7 +30,7 @@ if [ -f ./activate ] && [ -f ./environment.yaml ]; then
 elif [ -f "./${REPO_DIR}/activate" ] && [ -f "./${REPO_DIR}/environment.yaml" ]; then
   cd "./${REPO_DIR}" || return 1 2>/dev/null || exit 1
 else
-  git clone --branch 0.7.620 --depth 1 https://github.com/Daylily-Informatics/daylily-ephemeral-cluster.git "./${REPO_DIR}" || return 1 2>/dev/null || exit 1
+  git clone --branch 0.7.620 --depth 1 https://github.com/lsmc-bio/daylily-ephemeral-cluster.git "./${REPO_DIR}" || return 1 2>/dev/null || exit 1
   cd "./${REPO_DIR}" || return 1 2>/dev/null || exit 1
 fi
 
