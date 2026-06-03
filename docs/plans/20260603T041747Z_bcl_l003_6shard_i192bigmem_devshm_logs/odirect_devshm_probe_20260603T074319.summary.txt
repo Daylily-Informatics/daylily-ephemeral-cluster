@@ -1,0 +1,17 @@
+timestamp_utc: 2026-06-03T07:43:19Z
+purpose: Check whether O_DIRECT open/write fails on /dev/shm for this cluster/kernel.
+
+headnode:
+  host: ip-10-0-0-235
+  /dev/shm: open_ok, write_ok
+  /tmp: open_ok, write_ok
+
+compute_node:
+  host: i192bigmem-dy-all-1
+  /dev/shm: open_ok, write_ok
+  /tmp: open_ok, write_ok
+
+interpretation:
+  - On this kernel, a tiny O_DIRECT open/write probe does not fail on /dev/shm.
+  - O_DIRECT remains semantically unhelpful for tmpfs because /dev/shm is memory-backed, not a block-device-backed filesystem where bypassing the page cache improves disk I/O.
+  - Current BCL Convert commands explicitly use --shared-thread-odirect-output false, so O_DIRECT is not the current observed failure mode.
