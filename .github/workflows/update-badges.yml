@@ -28,7 +28,7 @@ jobs:
         run: |
           mkdir -p .badges
           # newest tag by *creation date* (not semver)
-          LATEST_TAG="$(git for-each-ref --sort=-creatordate --format='%(refname:strip=2)' refs/tags | head -n1)"
+          LATEST_TAG="$(git for-each-ref --sort=-creatordate --format='%(refname:strip=2)' refs/tags | sed -n '1p')"
           echo "latest_tag=$LATEST_TAG" >> "$GITHUB_OUTPUT"
 
       - name: Write latest_tag.json
