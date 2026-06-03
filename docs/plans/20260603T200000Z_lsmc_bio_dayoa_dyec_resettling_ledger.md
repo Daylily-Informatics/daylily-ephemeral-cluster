@@ -35,15 +35,15 @@ back to `Daylily-Informatics`.
 | --- | --- | --- | --- | --- | --- |
 | 1 | Agent 2 | Reset lsmc-bio DayOA main to blessed Daylily `5.0.0` source | SUCCESS | `git reset --hard aed7c0078339e79459f4db3e30d7e89438467e19`; `git push --force-with-lease origin main`; GitHub recorded branch-protection bypass |  |
 | 1 | Agent 2 | Reset lsmc-bio DYEC main to blessed Daylily `7.0.0` source | SUCCESS | `git reset --hard 26aacae038ac5e21b9de49efb43c3fc47fdacf29`; `git push --force-with-lease origin main`; GitHub recorded branch-protection bypass |  |
-| 2 | Agent 3 | Rewire active DayOA surfaces to lsmc-bio | IN_PROGRESS | Active config, README/tool docs, setup-test clone URLs, launch helper, help text, and MultiQC provenance strings edited | Commit, test, release pending |
-| 2 | Agent 4 | Rewire active DYEC surfaces to lsmc-bio | IN_PROGRESS | Self config, payload self config, command catalog, payload catalog, bootstrap clone URLs, README badges, create-cluster default, tests, and DayOA dependency edited | Commit, test, release pending |
-| 3 | Agent 6 | Add DayOA active-reference guard | IN_PROGRESS | `tests/test_lsmc_bio_fork_contract.py` added in DayOA | Test pending |
-| 3 | Agent 6 | Add DYEC active-reference guard | IN_PROGRESS | `tests/test_lsmc_bio_fork_contract.py` added in DYEC | Test pending |
-| 4 | Agent 5 | DayOA GitHub-only release `5.0.1` | PENDING |  | Commit, tag, push, GitHub release pending |
-| 4 | Agent 5 | DYEC GitHub-only release `7.0.1` | PENDING |  | Commit, tag, push, GitHub release pending |
-| 5 | Agent 7 | Ursa follow-up pin update | PENDING |  | Must preserve existing dirty Ursa work or isolate in clean clone |
+| 2 | Agent 3 | Rewire active DayOA surfaces to lsmc-bio | SUCCESS | Commit `29211abf9eec106b5caeb439425e3b84730b4f5e`; active config, README/tool docs, setup-test clone URLs, launch helper, help text, and MultiQC provenance strings point to `lsmc-bio` |  |
+| 2 | Agent 4 | Rewire active DYEC surfaces to lsmc-bio | SUCCESS | Commit `66838de08ce4f742a880aab0964b6168a7deedbb`; self config, payload self config, command catalog, payload catalog, bootstrap clone URLs, README badges, create-cluster default, tests, and DayOA GitHub dependency point to `lsmc-bio` |  |
+| 3 | Agent 6 | Add DayOA active-reference guard | SUCCESS | `tests/test_lsmc_bio_fork_contract.py`; `python -m pytest -q tests/test_lsmc_bio_fork_contract.py tests/test_tool_catalog_docs.py tests/test_shell_wrapper_contracts.py` -> `22 passed` |  |
+| 3 | Agent 6 | Add DYEC active-reference guard | SUCCESS | `tests/test_lsmc_bio_fork_contract.py`; `python -m pytest -q tests/test_lsmc_bio_fork_contract.py tests/test_packaged_defaults.py tests/test_workflow.py::TestConfigureHeadnode::test_repo_checkout_uses_published_detached_tag` -> `10 passed` |  |
+| 4 | Agent 5 | DayOA GitHub-only release `5.0.1` | SUCCESS | Annotated tag `5.0.1` points to `29211abf9eec106b5caeb439425e3b84730b4f5e`; `git cat-file -t 5.0.1` -> `tag`; release URL `https://github.com/lsmc-bio/daylily-omics-analysis/releases/tag/5.0.1`; local `python -m build` completed | No Twine, `twup`, or PyPI upload command run |
+| 4 | Agent 5 | DYEC GitHub-only release `7.0.1` | SUCCESS | Annotated tag `7.0.1` points to `66838de08ce4f742a880aab0964b6168a7deedbb`; `git cat-file -t 7.0.1` -> `tag`; release URL `https://github.com/lsmc-bio/daylily-ephemeral-cluster/releases/tag/7.0.1`; local `python -m build` completed | No Twine, `twup`, or PyPI upload command run |
+| 5 | Agent 7 | Ursa follow-up pin update | SUCCESS | Used clean temp clone `/tmp/ursa-lsmc-dyec701.8U5VVV/daylily-ursa`; branch `codex/pin-lsmc-dyec-dayoa-20260603`; commit `d0e8448e694ef0ecfe1e6f60e6386a485fa61340`; PR `https://github.com/lsmc-bio/daylily-ursa/pull/14`; activated env installed DYEC `7.0.1` and DayOA `5.0.1` from lsmc-bio GitHub tags | Existing dirty local Ursa checkout left untouched |
 | 5 | Agent 7 | Bloom fork check | SUCCESS | `gh repo view lsmc-bio/bloom` succeeded; local checkout absent | No immediate Bloom pin update found yet |
-| 6 | Agent 8 | Validation and acceptance | PENDING |  | Run checks/builds after commits |
+| 6 | Agent 8 | Validation and acceptance | SUCCESS | DayOA: `git diff --check`, guard/docs/wrapper tests, `python -m build`; DYEC: `git diff --check`, TOML/YAML parse, guard/payload/workflow tests, `python -m build`; Ursa: `git diff --check`, TOML/JSON/YAML parse, `source ./activate lsmcfrk && python -m pytest -q tests/test_lsmc_bio_fork_contract.py tests/test_activation_metadata.py tests/test_daylily_ec_runner.py tests/test_cluster_headnode_diagnostics.py tests/test_admin_gui_and_cluster_routes.py` -> `47 passed, 90 warnings` | All ledger rows terminal |
 
 ## Notes
 
@@ -52,3 +52,8 @@ back to `Daylily-Informatics`.
   lsmc-bio without moving Daylily-Informatics tags.
 - Local upstream tag imports may create local tag-name collisions; only explicit
   lsmc-bio release tags are pushed.
+- `daylily-omics-analysis` `5.0.1` and `daylily-ephemeral-cluster` `7.0.1`
+  were built locally only for validation. No PyPI upload path was executed.
+- `daylily-ephemeral-cluster` release tag `7.0.1` remains at release commit
+  `66838de08ce4f742a880aab0964b6168a7deedbb`; this ledger closeout is committed
+  after the release tag on `main` and does not move `7.0.1`.
