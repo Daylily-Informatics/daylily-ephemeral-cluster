@@ -1,0 +1,24 @@
+timestamp_utc: 2026-06-03T07:49:20Z
+tmux_session: dayoa_bcl_l003_8tile_tilesmoke_20260603
+workset: /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_i192bigmem_devshm_20260603T0740Z/daylily-omics-analysis
+config: config/bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm.yaml
+command: dy-r produce_bclconvert_fastqs -p -k -j 10 -T 0 --rerun-triggers mtime --configfile config/bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm.yaml
+
+first_attempt:
+  status: failed_before_slurm_submission
+  exit_marker: __LIVE_TILESMOKE_EXIT__1
+  root_cause: Snakemake could not create the new top-level DRA output directory because the run mount root is owned by root:root mode 0755.
+  error: "PermissionError: [Errno 13] Permission denied"
+  slurm_jobs_submitted: 0
+
+permission_inspection:
+  run_mount_root: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+  owner: root:root
+  mode: 0755
+  ubuntu_touch_probe: fail
+  sudo_touch_probe: ok
+
+fix:
+  action: sudo install -d -o ubuntu -g ubuntu -m 0755
+  path: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm_20260603T0740Z
+  post_fix_state: exists, empty, ubuntu:ubuntu, 0755

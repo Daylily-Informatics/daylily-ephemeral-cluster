@@ -1,0 +1,38 @@
+timestamp_utc: 2026-06-03T07:46:55Z
+purpose: User-approved gate before killing stalled BCL controllers/jobs.
+
+squeue:
+  running:
+    - job: 49
+      shard: L003/0002_tiles0132-0262
+      elapsed: 0:16
+      host: i192bigmem-dy-all-1
+  pending:
+    - 50
+    - 51
+    - 52
+    - 53
+    - 54
+
+controller:
+  tmux_session: dayoa_bcl_l003_6shard_trapfix_20260603
+  command: dy-r produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime --configfile config/bclconvert_l003_6shard_i192bigmem_devshm_trapfix.yaml
+  retry_policy: pre-user-change, no -T 0
+
+active_bcl_convert_sample:
+  host: i192bigmem-dy-all-1
+  pid: 18893
+  cpu_percent_start: 4.1
+  cpu_percent_after_5s: 2.5
+  wchan: ldlm_completion_ast
+  read_bytes_start: 54439936
+  read_bytes_after_5s: 54448128
+  write_bytes_start: 0
+  write_bytes_after_5s: 0
+  dev_shm_size: 172K
+  dev_shm_files: 5
+
+interpretation:
+  - The old 6-shard controller continued automatic retry/submission because it was launched before -T 0 was requested.
+  - No BCL output writes were observed.
+  - Only tiny read progress was observed; the process remained in Lustre wait state.

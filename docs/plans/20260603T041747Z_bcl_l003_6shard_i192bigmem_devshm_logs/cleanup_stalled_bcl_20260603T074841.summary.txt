@@ -1,0 +1,28 @@
+timestamp_utc: 2026-06-03T07:48:41Z
+scope: user-approved cleanup of old stalled L003 6-shard BCL work only.
+
+cancelled_slurm_jobs:
+  - 49
+  - 50
+  - 51
+  - 52
+  - 53
+  - 54
+
+killed_tmux_sessions:
+  - dayoa_bcl_l003_6shard_argfix_20260603
+  - dayoa_bcl_l003_6shard_emptydirfix_20260603
+  - dayoa_bcl_l003_6shard_i192bigmem_devshm_20260603
+  - dayoa_bcl_l003_6shard_outputdirfix_20260603
+  - dayoa_bcl_l003_6shard_trapfix_20260603
+
+preserved_tmux_sessions:
+  - dayoa_bcl_l003_8tile_tilesmoke_20260603
+  - bcl2fq_scratch_dra_20260603T011121Z
+
+post_cleanup:
+  bcl_squeue: empty
+  matching_old_controller_processes: none
+
+note:
+  - No Slurm services, nodes, partitions, or scheduler configuration were modified.

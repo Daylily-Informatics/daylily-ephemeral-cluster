@@ -1,0 +1,33 @@
+timestamp_utc: 2026-06-03T07:47:40Z
+purpose: Longer 20-second confirmation sample before user-approved cleanup.
+
+squeue:
+  running:
+    - job: 49
+      shard: L003/0002_tiles0132-0262
+      elapsed: 1:01
+      host: i192bigmem-dy-all-1
+  pending:
+    - 50
+    - 51
+    - 52
+    - 53
+    - 54
+
+active_bcl_convert_sample:
+  host: i192bigmem-dy-all-1
+  pid: 18893
+  cpu_percent_start: 0.6
+  cpu_percent_after_20s: 0.4
+  wchan: ldlm_completion_ast
+  read_bytes_start: 54530048
+  read_bytes_after_20s: 54571008
+  write_bytes_start: 0
+  write_bytes_after_20s: 0
+  dev_shm_files_before: 5
+  dev_shm_files_after: 5
+
+interpretation:
+  - No output writes or /dev/shm growth were observed over the longer sample.
+  - CPU/IO activity was negligible and consistent with the previous stalled pattern.
+  - Proceeded with user-approved cancellation of the matching old BCL jobs/controllers.
