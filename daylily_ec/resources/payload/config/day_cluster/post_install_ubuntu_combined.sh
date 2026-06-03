@@ -36,6 +36,8 @@ runtime_assets_root="/fsx/references/runtime_assets"
 references_root="/fsx/references"
 reference_compat_root="/fsx/data"
 environment_cache_root="/fsx/resources/environments"
+work_root="/fsx/work"
+run_mounts_root="/fsx/run_dir_mounts"
 apptainer_deb="${runtime_assets_root}/cached_envs/apptainer_1.4.5_amd64.deb"
 apptainer_deb_sha256="70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05"
 reference_wait_timeout_seconds=1800
@@ -177,12 +179,19 @@ prepare_reference_compat_symlink() {
 prepare_common_writable_dirs() {
   install -d -m 1777 /tmp/jobs
   if [ -d /fsx ]; then
-    install -d -m 1777 /fsx/scratch /fsx/tmp "${environment_cache_root}"
+    install -d -m 1777 \
+      /fsx/scratch \
+      /fsx/tmp \
+      "${work_root}" \
+      "${run_mounts_root}" \
+      "${environment_cache_root}"
     install -d -m 0777 /fsx/analysis_results
     chmod a+rwx /fsx/analysis_results
     stat -c "Writable DayOA directory: %A %U:%G %n" \
       /fsx/scratch \
       /fsx/tmp \
+      "${work_root}" \
+      "${run_mounts_root}" \
       "${environment_cache_root}" \
       /fsx/analysis_results
   fi
@@ -192,10 +201,29 @@ prepare_headnode_writable_dirs() {
   install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/ubuntu
   install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/cromwell_executions
   install -d -m 0775 -o daylily -g daylily /fsx/analysis_results/daylily
+  install -d -m 0775 -o ubuntu -g ubuntu \
+    "${work_root}/ubuntu" \
+    "${work_root}/ubuntu/containers" \
+    "${work_root}/ubuntu/nextflow" \
+    "${work_root}/ubuntu/sarek"
+  install -d -m 0775 -o daylily -g daylily \
+    "${work_root}/daylily" \
+    "${work_root}/daylily/containers" \
+    "${work_root}/daylily/nextflow" \
+    "${work_root}/daylily/sarek"
   stat -c "Writable DayOA result directory: %A %U:%G %n" \
     /fsx/analysis_results/ubuntu \
     /fsx/analysis_results/cromwell_executions \
     /fsx/analysis_results/daylily
+  stat -c "Writable DayOA work directory: %A %U:%G %n" \
+    "${work_root}/ubuntu" \
+    "${work_root}/ubuntu/containers" \
+    "${work_root}/ubuntu/nextflow" \
+    "${work_root}/ubuntu/sarek" \
+    "${work_root}/daylily" \
+    "${work_root}/daylily/containers" \
+    "${work_root}/daylily/nextflow" \
+    "${work_root}/daylily/sarek"
 }
 
 prepare_dayoa_environment_cache() {
@@ -229,6 +257,25 @@ prepare_dayoa_environment_cache() {
     "${environment_cache_root}/containers/ubuntu/${host_name}" \
     "${environment_cache_root}/conda/daylily/${host_name}" \
     "${environment_cache_root}/containers/daylily/${host_name}"
+}
+
+install_headnode_runtime_cache_profile() {
+  cat <<'EOF' > /etc/profile.d/daylily-runtime-cache.sh
+# Managed by DAY-EC headnode setup.
+if [ -n "${USER:-}" ] && [ "${USER}" != "root" ] && [ -d /fsx/work ]; then
+  export DAYLILY_WORK_ROOT="${DAYLILY_WORK_ROOT:-/fsx/work/${USER}}"
+  export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-${DAYLILY_WORK_ROOT}/containers}"
+  export DAYLILY_NEXTFLOW_CACHE="${DAYLILY_NEXTFLOW_CACHE:-${DAYLILY_WORK_ROOT}/nextflow}"
+  export NXF_HOME="${NXF_HOME:-${DAYLILY_NEXTFLOW_CACHE}/home}"
+  export NXF_WORK="${NXF_WORK:-${DAYLILY_NEXTFLOW_CACHE}/work}"
+  export NXF_SINGULARITY_CACHEDIR="${NXF_SINGULARITY_CACHEDIR:-${DAYLILY_CONTAINER_CACHE}}"
+  export NXF_APPTAINER_CACHEDIR="${NXF_APPTAINER_CACHEDIR:-${DAYLILY_CONTAINER_CACHE}}"
+  export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-${DAYLILY_CONTAINER_CACHE}}"
+  export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-${DAYLILY_CONTAINER_CACHE}}"
+fi
+EOF
+  chmod 0644 /etc/profile.d/daylily-runtime-cache.sh
+  stat -c "DayOA runtime cache profile: %A %U:%G %n" /etc/profile.d/daylily-runtime-cache.sh
 }
 
 install_verified_s3_executable() {
@@ -299,6 +346,7 @@ if [ "${cfn_node_type}" == "HeadNode" ];then
   
 
   prepare_headnode_writable_dirs
+  install_headnode_runtime_cache_profile
 
 
   if [ ! -e /opt/slurm/sbin/sbatch ]; then

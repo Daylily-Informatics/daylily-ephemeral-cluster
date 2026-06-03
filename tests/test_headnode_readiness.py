@@ -7,6 +7,7 @@ import pytest
 
 from daylily_ec.aws.ssm import SsmCommandFailedError, SsmCommandResult
 from daylily_ec.headnode_readiness import (
+    REQUIRED_HEADNODE_WORK_DIRECTORIES,
     REQUIRED_ROLE_DIRECTORIES,
     REQUIRED_ROLE_FILES,
     REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES,
@@ -38,6 +39,11 @@ def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
         assert f"test -d {path}" in script
     for template in REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES:
         assert f"test -d {template.format(hostname='$(hostname)')}" in script
+    for path in REQUIRED_HEADNODE_WORK_DIRECTORIES:
+        assert f"test -d {path}" in script
+    assert "test -r /etc/profile.d/daylily-runtime-cache.sh" in script
+    assert "DAYLILY_CONTAINER_CACHE" in script
+    assert "NXF_SINGULARITY_CACHEDIR" in script
 
 
 def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
@@ -61,6 +67,11 @@ def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
     assert "/fsx/references/genomic_data" in script
     assert "/fsx/resources/environments/conda/ubuntu/$(hostname)" in script
     assert "/fsx/resources/environments/containers/ubuntu/$(hostname)" in script
+    assert "/fsx/work/ubuntu/containers" in script
+    assert "/fsx/work/ubuntu/nextflow" in script
+    assert "/fsx/work/ubuntu/sarek" in script
+    assert "/fsx/run_dir_mounts" in script
+    assert "/etc/profile.d/daylily-runtime-cache.sh" in script
     assert "/fsx/control_data/genomic_data" not in script
     assert "test ! -e /fsx/runtime_assets" in script
     assert "test -L /fsx/data" in script

@@ -22,6 +22,13 @@ REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES = (
     "/fsx/resources/environments/conda/ubuntu/{hostname}",
     "/fsx/resources/environments/containers/ubuntu/{hostname}",
 )
+REQUIRED_HEADNODE_WORK_DIRECTORIES = (
+    "/fsx/work/ubuntu",
+    "/fsx/work/ubuntu/containers",
+    "/fsx/work/ubuntu/nextflow",
+    "/fsx/work/ubuntu/sarek",
+    "/fsx/run_dir_mounts",
+)
 
 
 def build_headnode_readiness_script(repo_name: str = DEFAULT_HEADNODE_REPO_NAME) -> str:
@@ -33,6 +40,9 @@ def build_headnode_readiness_script(repo_name: str = DEFAULT_HEADNODE_REPO_NAME)
     writable_cache_checks = "\n".join(
         f"test -d {template.format(hostname='$(hostname)')}"
         for template in REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES
+    )
+    headnode_work_checks = "\n".join(
+        f"test -d {path}" for path in REQUIRED_HEADNODE_WORK_DIRECTORIES
     )
     return f"""
 set -euo pipefail
@@ -51,6 +61,10 @@ df -P /fsx >/dev/null
 {file_checks}
 {dir_checks}
 {writable_cache_checks}
+{headnode_work_checks}
+test -r /etc/profile.d/daylily-runtime-cache.sh
+grep -Fq 'DAYLILY_CONTAINER_CACHE' /etc/profile.d/daylily-runtime-cache.sh
+grep -Fq 'NXF_SINGULARITY_CACHEDIR' /etc/profile.d/daylily-runtime-cache.sh
 test ! -e /fsx/runtime_assets
 test -L /fsx/data
 test "$(readlink -f /fsx/data)" = /fsx/references

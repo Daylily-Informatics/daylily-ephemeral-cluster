@@ -1445,7 +1445,7 @@ class TestConfigureHeadnode:
             if cmd == ["git", "-C", str(repo_root), "rev-parse", "--short=12", "HEAD"]:
                 return subprocess.CompletedProcess(cmd, 0, "4f076d77359f\n", "")
             if cmd == ["git", "-C", str(repo_root), "tag", "--points-at", "HEAD"]:
-                return subprocess.CompletedProcess(cmd, 0, "5.1.28\n", "")
+                return subprocess.CompletedProcess(cmd, 0, "5.1.30\n", "")
             if cmd == [
                 "git",
                 "-C",
@@ -1454,9 +1454,9 @@ class TestConfigureHeadnode:
                 "--exit-code",
                 "--tags",
                 "origin",
-                "refs/tags/5.1.28",
+                "refs/tags/5.1.30",
             ]:
-                return subprocess.CompletedProcess(cmd, 0, "abc\trefs/tags/5.1.28\n", "")
+                return subprocess.CompletedProcess(cmd, 0, "abc\trefs/tags/5.1.30\n", "")
             raise AssertionError(f"unexpected subprocess.run call: {cmd}")
 
         mock_subprocess_run.side_effect = fake_git_run
@@ -1477,7 +1477,7 @@ class TestConfigureHeadnode:
 
         assert ok is True
         clone_cmd = mock_run_shell.call_args_list[0].args[2]
-        assert "git checkout --detach refs/tags/5.1.28" in clone_cmd
+        assert "git checkout --detach refs/tags/5.1.30" in clone_cmd
         assert "git checkout -B daylily-managed" not in clone_cmd
         mock_validate_headnode_readiness.assert_called_once()
         mock_write_remote_text.assert_not_called()

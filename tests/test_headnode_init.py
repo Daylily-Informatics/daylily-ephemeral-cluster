@@ -681,6 +681,8 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert 'runtime_assets_root="/fsx/references/runtime_assets"' in script
     assert 'references_root="/fsx/references"' in script
     assert 'environment_cache_root="/fsx/resources/environments"' in script
+    assert 'work_root="/fsx/work"' in script
+    assert 'run_mounts_root="/fsx/run_dir_mounts"' in script
     assert ".day.lsmc.bio" not in script
     assert 'control_data_root="/fsx/control_data"' not in script
     assert "Required DayOA role entries are visible" in script
@@ -702,10 +704,27 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "prepare_common_writable_dirs" in script
     assert "prepare_headnode_writable_dirs" in script
     assert "prepare_dayoa_environment_cache" in script
-    assert 'install -d -m 1777 /fsx/scratch /fsx/tmp "${environment_cache_root}"' in script
+    assert 'install -d -m 1777 \\' in script
+    assert '"${work_root}"' in script
+    assert '"${run_mounts_root}"' in script
     assert "install -d -m 0777 /fsx/analysis_results" in script
     assert "chmod a+rwx /fsx/analysis_results" in script
     assert "install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/ubuntu" in script
+    assert '"${work_root}/ubuntu/containers"' in script
+    assert '"${work_root}/ubuntu/nextflow"' in script
+    assert '"${work_root}/ubuntu/sarek"' in script
+    assert '"${work_root}/daylily/containers"' in script
+    assert "install_headnode_runtime_cache_profile" in script
+    assert "cat <<'EOF' > /etc/profile.d/daylily-runtime-cache.sh" in script
+    assert 'export DAYLILY_WORK_ROOT="${DAYLILY_WORK_ROOT:-/fsx/work/${USER}}"' in script
+    assert (
+        'export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-${DAYLILY_WORK_ROOT}/containers}"'
+        in script
+    )
+    assert (
+        'export NXF_SINGULARITY_CACHEDIR="${NXF_SINGULARITY_CACHEDIR:-${DAYLILY_CONTAINER_CACHE}}"'
+        in script
+    )
     assert (
         "DayOA conda and container caches are seeded from "
         "${runtime_assets_root}/cached_envs into ${environment_cache_root}" in script
@@ -747,6 +766,9 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     global_actions = script.split("# GLOBAL ACTIONS HeadNode and ComputeFleet", 1)[1]
     assert global_actions.index("prepare_dayoa_environment_cache") < global_actions.index(
         'if [ "${cfn_node_type}" == "HeadNode" ];then'
+    )
+    assert global_actions.index("prepare_headnode_writable_dirs") < global_actions.index(
+        "install_headnode_runtime_cache_profile"
     )
     assert script.index("cat <<'EOF' > /opt/slurm/sbin/check_tags.sh") < script.index(
         'if [ "${cfn_node_type}" == "ComputeFleet" ];then'
