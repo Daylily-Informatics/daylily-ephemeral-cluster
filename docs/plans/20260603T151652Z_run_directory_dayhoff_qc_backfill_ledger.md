@@ -122,3 +122,5 @@ _Append timestamped events here as cluster/mount/workflow/export actions occur._
 - `2026-06-03T16:27:02.281475+00:00` RUN-001 RUNQC RETRY1 STARTED: persistent tmux `dayhoff_runqc_RUN001_MRGX9WR2_retry1_20260603`; separate commands sent: `source dyoainit`, `dy-a slurm hg38_broad`, `dy-r produce_illumina_run_qc_and_bclconvert ...`; `PUPPETEER_EXECUTABLE_PATH` set to installed chrome-headless-shell.
 
 - `2026-06-03T16:31:57.071670+00:00` RUN-001 RUNQC ACTIVE: `dy-r` accepted command in initialized DAYOA pane and is building DAG / creating run_qc conda env. Evidence: `20260603T151652Z_RUN-001_runqc_retry1_dyr_logs_latest.txt`. Kitchensink remains queued until runQC/BCLConvert outputs complete.
+
+- `2026-06-03T16:35:35.789348+00:00` RUN-003 MOUNT VERIFIED: ONT chip2 DRA `dra-0a6f427e963c17107` AVAILABLE and headnode usable. RUN-005 MOUNT STARTED: ONT chip1 has S3 FASTQ evidence and DRA wait started while RUN-004 chip4 remains active.
