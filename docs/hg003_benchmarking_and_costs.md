@@ -9,7 +9,7 @@ This document tracks the public-safe HG003 benchmark plan and the 30x short-read
 
 ## Live HG003 5x Benchmark Scope
 
-Target cluster: `dyec0602bcl`
+Target cluster: `dyec5128`
 
 Dataset: HG003 5x Illumina paired FASTQs mounted under the configured reference bucket:
 
@@ -22,22 +22,27 @@ Benchmark arms:
 
 | Arm | Repository | Engine | Command profile | Status |
 |---|---|---|---|---|
-| DayOA | `daylily-omics-analysis` | Snakemake 7 through `dy-r` | DYEC catalog command `illumina_snv_alignstats`, DayOA `2.0.38` | Pending launch |
-| nf-core/Sarek | `daylily-sarek` | Nextflow / nf-core Sarek | `daylily-sarek` catalog ref `0.7.379`, nf-core/sarek 3.6.0 integration | Pending launch; `nextflow` was not on PATH during preflight |
+| DayOA | `daylily-omics-analysis` | Snakemake 7 through `dy-r` | Current DYEC catalog command `illumina_snv_alignstats`, DayOA `2.0.38`, genome `hg38_broad`, `-j 20` | Pending launch; blocked by active dyec5128 controller/job |
+| nf-core/Sarek | `daylily-sarek` | Nextflow / nf-core Sarek | Current catalog repo ref `0.7.379`; no runnable Sarek analysis command is currently present in the catalog | Pending launch; blocked by active dyec5128 controller/job and missing pinned Nextflow/Java runtime |
 
 Read-only preflight on 2026-06-03 found:
 
 - SSM headnode access works as `ubuntu`.
-- `/fsx` had about 6.2 TiB available.
+- `/fsx` had about 6.3 TiB available.
 - HG003 5x FASTQs, GIAB truth, `hg38_broad` BED, `/fsx/references`, `/fsx/resources`, `/fsx/analysis_results`, and cached runtime assets were present.
 - `tmux`, `squeue`, `sbatch`, `sinfo`, `day-clone`, `aws`, `python3`, `java`, `singularity`, `apptainer`, and `dyec` were present.
 - `sacct` binary was present, but Slurm accounting storage was disabled, so accounting queries were unavailable.
-- `nextflow` was missing from PATH.
-- Active BCL controller tmux sessions and pending jobs were present, so the benchmark launch remained gated.
+- Current catalog validation came from `config/daylily_pipeline_command_catalog.yaml`, not an old plan. `illumina_snv_alignstats` is DayOA `2.0.38` with targets `produce_sent_align`, `produce_dmd_dedup_cram`, `produce_sentd_snv_vcf`, `produce_snv_concordances`, and `produce_alignstats`.
+- `dyec samples stage ... --precheck-only` passed for the HG003 5x manifest: `rows checked=1, samples checked=1, source objects checked=20, concordance directories checked=1`.
+- `nextflow` was missing from the pinned runtime path checked for the Sarek arm, and the Java 21 path expected beside it was also missing.
+- Active DayOA/Snakemake controller processes and Slurm job `21` were present on dyec5128, so benchmark launch remains gated.
 
 Evidence paths:
 
-- `docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/logs/preflight_dyec0602bcl_hg003_5x.stdout_stderr.txt`
+- `docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/logs/preflight_dyec5128_hg003_5x_enforced_20260603.stdout_stderr.txt`
+- `docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/logs/preflight_dyec5128_hg003_5x_enforced_20260603.rc`
+- `docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/logs/current_catalog_dyec5128_hg003_20260603.txt`
+- `docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/logs/precheck_dyec5128_illumina_snv_alignstats_20260603.stdout.txt`
 - `docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/logs/aws_price_list_api_usw2_ondemand_20260603.tsv`
 
 ## Expected Measurements

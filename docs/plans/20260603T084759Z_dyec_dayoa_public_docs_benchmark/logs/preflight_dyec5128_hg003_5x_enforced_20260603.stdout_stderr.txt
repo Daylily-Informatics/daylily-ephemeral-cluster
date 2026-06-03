@@ -1,0 +1,242 @@
+DAY-EC activated.
+DAY-EC activated.
+
+===== identity =====
+Wed Jun  3 10:06:14 UTC 2026
+uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),20(dialout),24(cdrom),25(floppy),27(sudo),29(audio),30(dip),44(video),46(plugdev),119(netdev),120(lxd)
+ip-10-0-0-24.us-west-2.compute.internal
+/home/ubuntu
+SHELL=/bin/bash
+PATH=/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/home/ubuntu/.local/bin:/home/ubuntu/miniconda3/envs/DAY-EC/bin:/home/ubuntu/miniconda3/condabin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/opt/aws/bin:/opt/parallelcluster/pyenv/versions/3.12.8/envs/awsbatch_virtualenv/bin:/opt/slurm/bin:/opt/parallelcluster/pyenv/versions/3.12.8/envs/awsbatch_virtualenv/bin:/opt/slurm/bin
+
+===== filesystem =====
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.170@tcp:/vefjjb4v  6.6T  246G  6.3T   4% /fsx
+Filesystem                   1B-blocks         Used     Available Use% Mounted on
+10.0.1.170@tcp:/vefjjb4v 7178349969408 263946240000 6914391146496   4% /fsx
+
+===== required_paths =====
+drwxrwxrwt 11 root root 33280 Jun  3 09:48 /fsx
+dr-xr-xr-x 4 root root 33280 Jun  3 08:43 /fsx/references
+drwxr-xr-x 3 root root 33280 Jun  3 08:38 /fsx/resources
+drwxrwxrwx 6 root root 33280 Jun  3 08:50 /fsx/analysis_results
+-rwxr-xr-x 1 root root 3902280885 May 26 18:07 /fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz
+-rwxr-xr-x 1 root root 4023184443 May 26 18:07 /fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R2.fastq.gz
+drwxr-xr-x 8 root root 33280 Jun  3 08:42 /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003
+-rwxr-xr-x 1 root root 426 May 26 07:47 /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_broad_core.bed
+drwxr-xr-x 8 root root 33280 Jun  3 08:42 /fsx/references/runtime_assets/cached_envs
+
+===== commands =====
+ESSENTIAL tmux /usr/bin/tmux
+ESSENTIAL squeue /opt/slurm/bin/squeue
+ESSENTIAL sbatch /opt/slurm/bin/sbatch
+ESSENTIAL sinfo /opt/slurm/bin/sinfo
+ESSENTIAL day-clone /home/ubuntu/.local/bin/day-clone
+ESSENTIAL aws /home/ubuntu/miniconda3/envs/DAY-EC/bin/aws
+ESSENTIAL python3 /home/ubuntu/miniconda3/envs/DAY-EC/bin/python3
+OPTIONAL sacct /opt/slurm/bin/sacct
+MISSING_OPTIONAL nextflow
+OPTIONAL java /usr/bin/java
+OPTIONAL singularity /usr/bin/singularity
+OPTIONAL apptainer /usr/bin/apptainer
+OPTIONAL dyec /home/ubuntu/miniconda3/envs/DAY-EC/bin/dyec
+
+===== slurm_state =====
+Wed Jun 03 10:06:14 2026
+NODELIST                             NODES             PARTITION       STATE CPUS    S:C:T MEMORY TMP_DISK WEIGHT AVAIL_FE REASON
+bcl-convert-dy-nvme48-1                  1           bcl-convert       idle~ 48     48:1:1 373555        0   1000 dynamic, none
+bcl-convert-dy-nvme48-2                  1           bcl-convert       idle~ 48     48:1:1 373555        0   1000 dynamic, none
+bcl-convert-dy-nvme48-3                  1           bcl-convert       idle~ 48     48:1:1 373555        0   1000 dynamic, none
+bcl-convert-dy-nvme48-4                  1           bcl-convert       idle~ 48     48:1:1 373555        0   1000 dynamic, none
+bcl-convert-dy-nvme64-1                  1           bcl-convert       idle~ 64     64:1:1 498073        0   1000 dynamic, none
+bcl-convert-dy-nvme64-2                  1           bcl-convert       idle~ 64     64:1:1 498073        0   1000 dynamic, none
+bcl-convert-dy-nvme64-3                  1           bcl-convert       idle~ 64     64:1:1 498073        0   1000 dynamic, none
+bcl-convert-dy-nvme64-4                  1           bcl-convert       idle~ 64     64:1:1 498073        0   1000 dynamic, none
+bcl-convert-dy-nvme96-1                  1           bcl-convert       idle~ 96     96:1:1 747110        0   1000 dynamic, none
+bcl-convert-dy-nvme96-2                  1           bcl-convert       idle~ 96     96:1:1 747110        0   1000 dynamic, none
+bcl-convert-dy-nvme96-3                  1           bcl-convert       idle~ 96     96:1:1 747110        0   1000 dynamic, none
+bcl-convert-dy-nvme96-4                  1           bcl-convert       idle~ 96     96:1:1 747110        0   1000 dynamic, none
+bcl-convert-dy-nvme128-1                 1           bcl-convert       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+bcl-convert-dy-nvme128-2                 1           bcl-convert       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+bcl-convert-dy-nvme128-3                 1           bcl-convert       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+bcl-convert-dy-nvme128-4                 1           bcl-convert       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+bcl2fq-amd-192-test-dy-camd192-1         1   bcl2fq-amd-192-test       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+bcl2fq-amd-192-test-dy-camd192-2         1   bcl2fq-amd-192-test       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+bcl2fq-amd-192-test-dy-camd192-3         1   bcl2fq-amd-192-test       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+bcl2fq-amd-192-test-dy-camd192-4         1   bcl2fq-amd-192-test       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+bcl2fq-amd-192-test-dy-ramd192-1         1   bcl2fq-amd-192-test       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+bcl2fq-amd-192-test-dy-ramd192-2         1   bcl2fq-amd-192-test       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+bcl2fq-amd-192-test-dy-ramd192-3         1   bcl2fq-amd-192-test       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+bcl2fq-amd-192-test-dy-ramd192-4         1   bcl2fq-amd-192-test       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+bcl2fq-i192-nvme-test-dy-c8id192-1       1 bcl2fq-i192-nvme-test       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+bcl2fq-i192-nvme-test-dy-c8id192-2       1 bcl2fq-i192-nvme-test       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+bcl2fq-i192-nvme-test-dy-c8id192-3       1 bcl2fq-i192-nvme-test       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+bcl2fq-i192-nvme-test-dy-c8id192-4       1 bcl2fq-i192-nvme-test       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+bcl2fq-i192-nvme-test-dy-r8id192-1       1 bcl2fq-i192-nvme-test       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+bcl2fq-i192-nvme-test-dy-r8id192-2       1 bcl2fq-i192-nvme-test       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+bcl2fq-i192-nvme-test-dy-r8id192-3       1 bcl2fq-i192-nvme-test       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+bcl2fq-i192-nvme-test-dy-r8id192-4       1 bcl2fq-i192-nvme-test       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+bcl2fq-i384-nvme-test-dy-c8id384-1       1 bcl2fq-i384-nvme-test       idle~ 384   384:1:1 747110        0   1000 dynamic, Scheduler health che
+bcl2fq-i384-nvme-test-dy-c8id384-2       1 bcl2fq-i384-nvme-test   allocated 384   384:1:1 747110        0   1000 dynamic, none
+bcl2fq-i384-nvme-test-dy-c8id384-3       1 bcl2fq-i384-nvme-test       idle~ 384   384:1:1 747110        0   1000 dynamic, none
+bcl2fq-i384-nvme-test-dy-c8id384-4       1 bcl2fq-i384-nvme-test       idle~ 384   384:1:1 747110        0   1000 dynamic, Enabling node since
+bcl2fq-i384-nvme-test-dy-mr8id384-1      1 bcl2fq-i384-nvme-test       idle~ 384   384:1:1 149422        0   1000 dynamic, none
+bcl2fq-i384-nvme-test-dy-mr8id384-2      1 bcl2fq-i384-nvme-test       idle~ 384   384:1:1 149422        0   1000 dynamic, none
+bcl2fq-i384-nvme-test-dy-mr8id384-3      1 bcl2fq-i384-nvme-test       idle~ 384   384:1:1 149422        0   1000 dynamic, none
+bcl2fq-i384-nvme-test-dy-mr8id384-4      1 bcl2fq-i384-nvme-test       idle~ 384   384:1:1 149422        0   1000 dynamic, none
+i8-dy-r6gb64-1                           1                   i8*       idle~ 8       8:1:1  62259        0   1000 dynamic, none
+i8-dy-r7gb64-1                           1                   i8*       idle~ 8       8:1:1  62259        0   1000 dynamic, none
+i128-dy-c6gb256-1                        1                  i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-2                        1                  i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-3                        1                  i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-4                        1                  i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-5                        1                  i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-6                        1                  i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-7                        1                  i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-8                        1                  i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-m6gb512-1                        1                  i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-2                        1                  i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-3                        1                  i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-4                        1                  i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-5                        1                  i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-6                        1                  i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-7                        1                  i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-8                        1                  i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-r6gb1024r6-1                     1                  i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-2                     1                  i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-3                     1                  i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-4                     1                  i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-5                     1                  i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-6                     1                  i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-7                     1                  i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-8                     1                  i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i192-dy-all-1                            1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-2                            1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-3                            1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-4                            1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-5                            1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-6                            1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-7                            1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-8                            1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-9                            1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-10                           1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-11                           1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-12                           1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-13                           1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-14                           1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-15                           1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-16                           1                  i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192bigmem-dy-all-1                      1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-2                      1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-3                      1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-4                      1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-5                      1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-6                      1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-7                      1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-8                      1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-9                      1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-10                     1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-11                     1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-12                     1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-13                     1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-14                     1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-15                     1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-16                     1            i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192mem-dy-all-1                         1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-2                         1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-3                         1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-4                         1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-5                         1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-6                         1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-7                         1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-8                         1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-9                         1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-10                        1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-11                        1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-12                        1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-13                        1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-14                        1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-15                        1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-16                        1               i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+JOBID|PARTITION|NAME|USER|STATE|TIME|NODES|NODELIST(REASON)
+21|bcl2fq-i384-nvme-test|bwa_mem2_sort-Irl1-HG003-30x-150bpA-0-DBC6-PCR-FREE-ILMN-NOVASEQ|ubuntu|RUNNING|15:07|1|bcl2fq-i384-nvme-test-dy-c8id384-2
+active_slurm_jobs=1
+
+===== slurm_accounting =====
+slurm 24.05.8
+sacct_rc=1
+
+===== tmux =====
+x: 1 windows (created Wed Jun  3 08:51:02 2026) (attached)
+
+--- tmux:x ---
+0: bash* (3 panes) [239x21] [layout 490f,239x21,0,0{121x21,0,0[121x10,0,0,0,121x10,0,11,7],117x21,122,0,6}] @0 (active)
+0: [121x10] [history 1587/2000, 642050 bytes] %0
+1: [121x10] [history 45/2000, 19765 bytes] %7 (active)
+2: [117x21] [history 147/2000, 62676 bytes] %6
+d384-2
+Warning: Permanently added 'bcl2fq-i384-nvme-test-dy-c8id384-2' (ED25519) to the list of known hosts.
+Welcome to Ubuntu 22.04.5 LTS (GNU/Linux 6.8.0-1029-aws x86_64)
+
+ * Documentation:  https://help.ubuntu.com
+ * Management:     https://landscape.canonical.com
+ * Support:        https://ubuntu.com/pro
+
+ System information as of Wed Jun  3 09:52:06 UTC 2026
+
+  System load:  0.86               Processes:                 4153
+  Usage of /:   66.3% of 43.43GB   Users logged in:           0
+  Memory usage: 3%                 IPv4 address for enp141s0: 10.0.1.240
+  Swap usage:   0%
+
+ * Ubuntu Pro delivers the most comprehensive open source security and
+   compliance features.
+
+   https://ubuntu.com/aws/pro
+
+Expanded Security Maintenance for Applications is not enabled.
+
+421 updates can be applied immediately.
+351 of these updates are standard security updates.
+To see these additional updates run: apt list --upgradable
+
+14 additional security updates can be applied with ESM Apps.
+Learn more about enabling ESM Apps service at https://ubuntu.com/esm
+
+
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+Every 2.0s: squeue                                                   ip-10-0-0-24: Wed Jun  3 09:53:44
+
+DAY-EC activated.
+(DAY-EC) ubuntu@bcl2fq-i384-nvme-test-dy-c8id384-2:~$ exit
+logout
+Connection to bcl2fq-i384-nvme-test-dy-c8id384-2 closed.
+(DAY-EC) ubuntu@ip-10-0-0-24:/fsx/analysis_results/dyec5128/init/daylily-omics-analysis$ ssh bcl2fq-i384-nvme-test-dy-c8i
+d384-2watch squeue
+ssh: Could not resolve hostname bcl2fq-i384-nvme-test-dy-c8id384-2watch: Temporary failure in name resolution
+(DAY-EC) ubuntu@ip-10-0-0-24:/fsx/analysis_results/dyec5128/init/daylily-omics-analysis$ watch squeue
+(DAY-EC) ubuntu@ip-10-0-0-24:/fsx/analysis_results/dyec5128/init/daylily-omics-analysis$ squeue
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+                21 bcl2fq-i3 bwa_mem2   ubuntu  R       2:41      1 bcl2fq-i384-nvme-test-dy-c8id384-2
+(DAY-EC) ubuntu@ip-10-0-0-24:/fsx/analysis_results/dyec5128/init/daylily-omics-analysis$
+(DAY-EC) ubuntu@ip-10-0-0-24:/fsx/analysis_results/dyec5128/init/daylily-omics-analysis$ squeue
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)
+                21 bcl2fq-i3 bwa_mem2   ubuntu  R       3:19      1 bcl2fq-i384-nvme-test-dy-c8id384-2
+(DAY-EC) ubuntu@ip-10-0-0-24:/fsx/analysis_results/dyec5128/init/daylily-omics-analysis$
+
+===== controller_processes =====
+ubuntu     49742   11596  0 09:50 pts/1    00:00:00 bash bin/day_run produce_snv_concordances produce_bwa2a_align produce_sentd_snv_vcf dedup_doppelmark -p -k -j 1 --rerun-incomplete
+ubuntu     49934   49742  0 09:51 pts/1    00:00:00 bash bin/day_run produce_snv_concordances produce_bwa2a_align produce_sentd_snv_vcf dedup_doppelmark -p -k -j 1 --rerun-incomplete
+ubuntu     49935   49934  0 09:51 pts/1    00:00:05 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/dyec5128/init/daylily-omics-analysis/config/day_profiles/slurm produce_snv_concordances produce_bwa2a_align produce_sentd_snv_vcf dedup_doppelmark -p -k -j 1 --rerun-incomplete
+ubuntu     49936   49934  0 09:51 pts/1    00:00:00 bash bin/day_run produce_snv_concordances produce_bwa2a_align produce_sentd_snv_vcf dedup_doppelmark -p -k -j 1 --rerun-incomplete
+active_controller_processes=4
+
+===== nextflow_runtime =====
+MISSING_NEXTFLOW_24_10_5
+MISSING_JAVA_21
+
+===== existing_analysis_dirs =====
+PREFLIGHT_RESULT=FAIL
+Slurm accounting storage is disabled
+failed to run commands: exit status 1

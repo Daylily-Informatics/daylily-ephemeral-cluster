@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -14,7 +15,12 @@ from daylily_ec.aws.ssm import (
 
 PROFILE = "lsmc"
 REGION = "us-west-2"
-CLUSTER = "dyec0602bcl"
+CLUSTER = os.environ.get("DYEC_BENCHMARK_CLUSTER", "dyec5128")
+
+if not CLUSTER.startswith("dyec5128"):
+    raise SystemExit(
+        f"Refusing to run HG003 benchmark preflight on {CLUSTER!r}; expected dyec5128."
+    )
 
 REQUIRED_PATHS = [
     "/fsx",
@@ -86,6 +92,8 @@ done
 section slurm_state
 sinfo -Nel || true
 squeue -u ubuntu -o '%i|%P|%j|%u|%T|%M|%D|%R' || true
+active_jobs="$(squeue -h -u ubuntu | wc -l | tr -d ' ')"
+echo "active_slurm_jobs=$active_jobs"
 
 section slurm_accounting
 if command -v sacct >/dev/null 2>&1; then
@@ -109,24 +117,31 @@ for s in $(tmux list-sessions -F '#{{session_name}}' 2>/dev/null || true); do
 done
 
 section controller_processes
-ps -fu ubuntu | awk '/dy-r|day_run|snakemake|nextflow/ && !/awk/ {{print}}' || true
+controller_count="$(
+  ps -fu ubuntu | awk '/dy-r|day_run|snakemake|nextflow/ && !/awk/ {{print}}' | tee /tmp/dyec_benchmark_controllers.txt | wc -l | tr -d ' '
+)"
+cat /tmp/dyec_benchmark_controllers.txt
+echo "active_controller_processes=$controller_count"
 
 section nextflow_runtime
+missing_nextflow_runtime=0
 if [ -x /fsx/resources/environments/nextflow/24.10.5/nextflow ]; then
   PATH=/fsx/resources/environments/nextflow/24.10.5:$PATH JAVA_CMD=/fsx/resources/environments/nextflow/java-21/bin/java /fsx/resources/environments/nextflow/24.10.5/nextflow -version || true
 else
   echo "MISSING_NEXTFLOW_24_10_5"
+  missing_nextflow_runtime=$((missing_nextflow_runtime + 1))
 fi
 if [ -x /fsx/resources/environments/nextflow/java-21/bin/java ]; then
   /fsx/resources/environments/nextflow/java-21/bin/java -version || true
 else
   echo "MISSING_JAVA_21"
+  missing_nextflow_runtime=$((missing_nextflow_runtime + 1))
 fi
 
 section existing_analysis_dirs
 find /fsx/analysis_results/ubuntu -maxdepth 2 -type d -name '*hg003*' -o -name '*sarek*' -o -name '*benchmark*' 2>/dev/null | sort | tail -80 || true
 
-if [ "$missing_paths" -ne 0 ] || [ "$missing_commands" -ne 0 ]; then
+if [ "$missing_paths" -ne 0 ] || [ "$missing_commands" -ne 0 ] || [ "$active_jobs" -ne 0 ] || [ "$controller_count" -ne 0 ] || [ "$missing_nextflow_runtime" -ne 0 ]; then
   echo "PREFLIGHT_RESULT=FAIL"
   exit 70
 fi

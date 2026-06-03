@@ -1,0 +1,16 @@
+command_catalog_version=2
+repository=daylily-omics-analysis
+default_ref=2.0.38
+analysis_command_count=20
+command_id=illumina_snv_alignstats
+git_tag=2.0.38
+validated_version=2.0.38
+genome=hg38_broad
+jobs=20
+targets=produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats
+dy_command=bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20
+dryrun_dy_command=bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20 -n
+required_source_columns=ILMN_R1_FQ ILMN_R2_FQ
+repository=daylily-sarek
+default_ref=0.7.379
+analysis_command_count=0
