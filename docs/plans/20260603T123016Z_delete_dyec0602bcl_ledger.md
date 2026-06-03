@@ -81,3 +81,46 @@ Required confirmation:
 ```text
 CONFIRM DELETE CLUSTER dyec0602bcl
 ```
+
+## Live Delete
+
+Explicit user confirmation received:
+
+```text
+CONFIRM DELETE CLUSTER dyec0602bcl
+```
+
+Live command:
+
+```bash
+daylily-ec delete --cluster-name dyec0602bcl --region us-west-2 --profile lsmc --yes
+```
+
+Result:
+
+| Check | Evidence |
+| --- | --- |
+| Terminal state | `Cluster deleted` |
+| Cluster | `dyec0602bcl` |
+| Region | `us-west-2` |
+| Completion timestamp | `2026-06-03T12:46:08Z` |
+
+## Post-Delete Verification
+
+Read-only verification after the live delete:
+
+| Check | Command | Evidence |
+| --- | --- | --- |
+| ParallelCluster describe | `AWS_PROFILE=lsmc pcluster describe-cluster --cluster-name dyec0602bcl --region us-west-2` | `Cluster 'dyec0602bcl' does not exist or belongs to an incompatible ParallelCluster major version.` |
+| Daylily cluster listing | `daylily-ec cluster-info --region us-west-2 --profile lsmc` | `dyec0602bcl` absent; only `dyec5128` listed in `us-west-2` |
+| FSx filesystem | `AWS_PROFILE=lsmc aws fsx describe-file-systems --file-system-ids fs-05f90a39933f9b539 --region us-west-2` | `FileSystemNotFound` |
+| FSx DRA associations | `AWS_PROFILE=lsmc aws fsx describe-data-repository-associations --filters Name=file-system-id,Values=fs-05f90a39933f9b539 --region us-west-2` | `Associations: []` |
+
+## Terminal State
+
+| Row | State | Evidence |
+| --- | --- | --- |
+| Delete `dyec0602bcl` | `DONE` | `daylily-ec delete` exited `0` with `Cluster deleted` |
+| Verify cluster absence | `DONE` | ParallelCluster describe reports cluster absent |
+| Verify FSx removal | `DONE` | FSx reports `FileSystemNotFound` for `fs-05f90a39933f9b539` |
+| Verify DRA cleanup | `DONE` | FSx DRA association query returns no associations for deleted FSx |
