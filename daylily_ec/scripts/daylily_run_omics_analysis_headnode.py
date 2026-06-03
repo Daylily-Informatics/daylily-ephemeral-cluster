@@ -1850,7 +1850,6 @@ set -euo pipefail
 SESSION_NAME={shlex.quote(args.session_name)}
 ANALYSIS_ID={shlex.quote(analysis_id)}
 EXECUTING_ENTITY={shlex.quote(executing_entity)}
-REPLACE_EXISTING_ANALYSIS_DIR={replace_existing_analysis_dir}
 REPO_KEY={shlex.quote(args.repository)}
 analysis_root=$(python3 - <<'PYCONFIG'
 from pathlib import Path
