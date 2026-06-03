@@ -1,0 +1,16 @@
+DELETE_START 2026-06-03T01:10:04Z
+COMMAND python -m daylily_ec.cli delete --profile lsmc --region us-west-2 --cluster-name dyec5117
+
+── DELETE ──
+  › Preparing cluster deletion for 'dyec5117' in us-west-2
+  ⚠ Active FSx data repository activity exists on the cluster filesystem:
+    DRA: dra-0ab55b552007f1d6f /run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+-> 
+s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH0110
+6_0009_B23TVLGLT4/ (AVAILABLE)
+    DRA: dra-0139248ef10f3b6d2 /references/ -> s3://lsmc-dayoa-references-usw2 
+(AVAILABLE)
+  ⚠ FSx filesystems are still associated with the cluster:
+    FSx: fs-0bce2fa59e4aa5290
+  · Export results with `daylily-ec export` before deleting if needed.
+Type 'please delete' to proceed with cluster deletion: ✗ Unexpected error: 

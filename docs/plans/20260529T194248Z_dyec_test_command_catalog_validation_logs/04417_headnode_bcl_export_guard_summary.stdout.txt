@@ -1,0 +1,19 @@
+DAY-EC activated.
+DAY-EC activated.
+=== now ===
+2026-05-30T21:28:12Z
+=== fsx ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  8.1T  707G  93% /fsx
+=== dyec export processes ===
+2189540   81703 Ss+     02:07:02 bash -lc source /home/ubuntu/daylily-runs/ccv20260530r56_illumina_bclconvert/launch.sh >>/home/ubuntu/daylily-runs/ccv20260530r56_illumina_bclconvert/tmux.log 2>&1
+2327561 2189540 S+         23:11 /home/ubuntu/miniconda3/envs/DAY-EC/bin/python /home/ubuntu/miniconda3/envs/DAY-EC/bin/dyec export --region us-west-2 --cluster dyec-test --source-path /fsx/analysis_results/ubuntu/ccv20260530r56_illumina_bclconvert --destination-s3-uri s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r56_illumina_bclconvert/ --output-dir /home/ubuntu/daylily-runs/ccv20260530r56_illumina_bclconvert/export
+=== run dir links ===
+=== link path type ===
+absent: /fsx/analysis_results/ubuntu/ccv20260530r56_illumina_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+=== export files ===
+2026-05-30T19:21:09.8359348460Z 58897 /home/ubuntu/daylily-runs/ccv20260530r56_illumina_bclconvert/launch.sh
+2026-05-30T19:21:09.8379348460Z 0 /home/ubuntu/daylily-runs/ccv20260530r56_illumina_bclconvert/tmux-bootstrap.log
+2026-05-30T19:21:12.0639348210Z 395 /home/ubuntu/daylily-runs/ccv20260530r56_illumina_bclconvert/status.json
+2026-05-30T21:27:46.0299888390Z 68763 /home/ubuntu/daylily-runs/ccv20260530r56_illumina_bclconvert/tmux.log
+=== fsx export yaml ===

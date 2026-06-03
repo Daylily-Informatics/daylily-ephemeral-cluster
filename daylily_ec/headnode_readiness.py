@@ -19,8 +19,17 @@ REQUIRED_ROLE_DIRECTORIES = (
     "/fsx/references/runtime_assets/cached_envs/conda",
 )
 REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES = (
+    "/fsx/resources/environments/apptainer/cache/net",
     "/fsx/resources/environments/conda/ubuntu/{hostname}",
     "/fsx/resources/environments/containers/ubuntu/{hostname}",
+    "/fsx/resources/environments/nextflow",
+)
+REQUIRED_HEADNODE_WORK_DIRECTORIES = (
+    "/fsx/work/ubuntu",
+    "/fsx/work/ubuntu/containers",
+    "/fsx/work/ubuntu/nextflow",
+    "/fsx/work/ubuntu/sarek",
+    "/fsx/run_dir_mounts",
 )
 
 
@@ -33,6 +42,9 @@ def build_headnode_readiness_script(repo_name: str = DEFAULT_HEADNODE_REPO_NAME)
     writable_cache_checks = "\n".join(
         f"test -d {template.format(hostname='$(hostname)')}"
         for template in REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES
+    )
+    headnode_work_checks = "\n".join(
+        f"test -d {path}" for path in REQUIRED_HEADNODE_WORK_DIRECTORIES
     )
     return f"""
 set -euo pipefail
@@ -51,8 +63,15 @@ df -P /fsx >/dev/null
 {file_checks}
 {dir_checks}
 {writable_cache_checks}
+{headnode_work_checks}
+test -r /etc/profile.d/daylily-runtime-cache.sh
+grep -Fq 'DAYLILY_CONTAINER_CACHE' /etc/profile.d/daylily-runtime-cache.sh
+grep -Fq 'DAYLILY_APPTAINER_CACHE' /etc/profile.d/daylily-runtime-cache.sh
+grep -Fq 'DAYLILY_NEXTFLOW_SEED_CACHE' /etc/profile.d/daylily-runtime-cache.sh
+grep -Fq 'NXF_SINGULARITY_CACHEDIR' /etc/profile.d/daylily-runtime-cache.sh
 test ! -e /fsx/runtime_assets
-test ! -e /fsx/data
+test -L /fsx/data
+test "$(readlink -f /fsx/data)" = /fsx/references
 day-clone --list >/dev/null
 echo "DAY-EC headnode readiness validated"
 DAYLILY_HEADNODE_READINESS

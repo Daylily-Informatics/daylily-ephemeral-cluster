@@ -1,0 +1,7 @@
+DAY-EC activated.
+DAY-EC activated.
+/usr/bin/singularity
+=== 49599841644a581df7ed78059707ff95 docker://broadinstitute/gatk-nightly:2025-08-19-4.6.2.0-17-g2a1f41bf3-NIGHTLY-SNAPSHOT ===
+-rwxr-xr-x 1 ubuntu ubuntu 2.3G May 29 23:43 /fsx/resources/environments/containers/ubuntu/ip-10-0-0-88/49599841644a581df7ed78059707ff95.simg
+93ed876c24e2eca1cb6740e33f73e8ca478177c13345f411f241c3870a1a2867  /fsx/resources/environments/containers/ubuntu/ip-10-0-0-88/49599841644a581df7ed78059707ff95.simg
+=== 7a424a40c6fd659f4d052893dd3554fa docker://roche/sbxd-small-variant-caller:latest ===

@@ -1,0 +1,44 @@
+DAY-EC activated.
+DAY-EC activated.
+__USER__=ubuntu
+__HOST__=ip-10-0-0-235
+__INSTANCE__=
+__SINFO__
+PARTITION|NODES|CPUS|MEMORY|AVAIL_FEATURES|GRES|STATE|NODELIST
+i8*|1|8|62259|dynamic,r6i.2xlarge,r6gb64|(null)|idle~|i8-dy-r6gb64-1
+i8*|1|8|62259|dynamic,r7i.2xlarge,r7gb64|(null)|idle~|i8-dy-r7gb64-1
+i128|1|128|249036|dynamic,c6gb256|(null)|idle~|i128-dy-c6gb256-1
+i128|1|128|498073|dynamic,m6gb512|(null)|idle~|i128-dy-m6gb512-1
+i128|1|128|996147|dynamic,r6gb1024r6|(null)|idle~|i128-dy-r6gb1024r6-1
+i192|1|192|373555|dynamic,all|(null)|idle~|i192-dy-all-1
+i192mem|1|192|747110|dynamic,all|(null)|idle~|i192mem-dy-all-1
+i192bigmem|1|192|1494220|dynamic,all|(null)|idle~|i192bigmem-dy-all-1
+bcl2fq|4|48|373555|dynamic,nvme48|(null)|idle~|bcl2fq-dy-nvme48-[1-4]
+bcl2fq|4|64|498073|dynamic,i4i.16xlarge,nvme64|(null)|idle~|bcl2fq-dy-nvme64-[1-4]
+bcl2fq|4|96|747110|dynamic,nvme96|(null)|idle~|bcl2fq-dy-nvme96-[1-4]
+bcl2fq|4|128|996147|dynamic,i4i.32xlarge,nvme128|(null)|idle~|bcl2fq-dy-nvme128-[1-4]
+__SCONTROL_PARTITION__
+PartitionName=bcl2fq
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO ExclusiveTopo=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=UNLIMITED MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED MaxCPUsPerSocket=UNLIMITED
+   NodeSets=bcl2fq_nodes
+   Nodes=bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-4],bcl2fq-dy-nvme96-[1-4],bcl2fq-dy-nvme128-[1-4]
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=1344 TotalNodes=16 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+   TRES=cpu=1344,mem=10459540M,node=16,billing=1344
+   ResumeTimeout=GLOBAL SuspendTimeout=GLOBAL SuspendTime=GLOBAL PowerDownOnIdle=NO
+
+__RUN_MOUNT__
+drwxr-xr-x 9 root root 25600 Jun  3 01:00 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+-rwxr-xr-x 1 root root  5742 May 18 14:46 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+__DEST_EXISTS__=no
+__DEST_PARENT_WRITABLE__=no
+__DRA_MOUNT_DF__
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.213@tcp:/xtlzxb4v  6.6T   76M  6.6T   1% /fsx
+__TMUX__

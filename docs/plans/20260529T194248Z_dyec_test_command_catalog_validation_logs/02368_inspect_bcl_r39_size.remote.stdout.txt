@@ -1,0 +1,51 @@
+DAY-EC activated.
+DAY-EC activated.
+=== timestamp ===
+2026-05-30T10:31:28Z
+=== filesystem ===
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  4.9T  3.9T  56% /fsx
+=== scratch roots ===
+2026-05-30T10:10:35.0000000000 .bclconvert_scratch/3310.25321
+=== scratch sizes ===
+1.5T	.bclconvert_scratch
+1.5T	.bclconvert_scratch/3310.25321
+1.5T	.bclconvert_scratch/3310.25321/run
+=== result sizes ===
+316K	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert
+65K	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs
+=== newest scratch fastqs ===
+=== bcl log tail ===
+run_bclconvert started: 2026-05-30T10:10:34+00:00
+host: i192mem-dy-all-1
+threads: 192
+resources_mem_mb: 180000
+TMPDIR: /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch
+staging_mode: mounted_dev_shm
+scratch_root: /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch
+bcl_input_directory: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+source_s3_uri: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs
+192
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  3.4T  5.4T  39% /fsx
+10.0.1.96@tcp:/d4tzvb4v  8.8T  3.4T  5.4T  39% /fsx
+/usr/bin/singularity
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc.
+scratch_dir: /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321
+scratch_input_basis: mounted_metadata_plus_lane_root
+scratch_root_file_bytes: 4536017
+scratch_intensities_file_bytes: 52032652
+scratch_lane_root_disk_bytes: 3415224586752
+scratch_input_disk_bytes: 3415281155421
+scratch_input_apparent_bytes: 3415281155421
+scratch_required_bytes: 3416354897245
+scratch_available_bytes: 5900225085440
+Staging mounted BCL run directory to scratch: 2026-05-30T10:10:38+00:00
+mounted_stage_lanes: L001 L002 L003 L004 L005 L006 L007 L008
+mounted_stage_jobs: 64
+mounted_stage_cycle_dirs: 2576
+mounted_stage_regular_files: 11424
+Copying mounted BCL files with sharded cp: 2026-05-30T10:10:41+00:00

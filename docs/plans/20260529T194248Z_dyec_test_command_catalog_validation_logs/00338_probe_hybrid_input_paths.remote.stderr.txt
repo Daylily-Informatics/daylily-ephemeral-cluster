@@ -1,0 +1,2 @@
+/tmp/daylily-ssm-V2S1zm.sh: line 28: samtools: command not found
+/tmp/daylily-ssm-V2S1zm.sh: line 28: samtools: command not found

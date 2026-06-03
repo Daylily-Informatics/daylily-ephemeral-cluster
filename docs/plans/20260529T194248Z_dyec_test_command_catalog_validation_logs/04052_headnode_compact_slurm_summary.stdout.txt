@@ -1,0 +1,23 @@
+DAY-EC activated.
+DAY-EC activated.
+=== identity ===
+2026-05-30T19:08:56Z
+ip-10-0-0-88.us-west-2.compute.internal
+=== queue counts ===
+total_jobs=6
+state.CONFIGURING=6
+partition.i192mem=6
+=== job family counts ===
+      6 rtg_vcfeval_roi
+=== oldest jobs ===
+4630|i192mem|CONFIGURING|3:15|1|i192mem-dy-all-1|rtg_vcfeval_roi-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+4631|i192mem|CONFIGURING|3:15|1|i192mem-dy-all-1|rtg_vcfeval_roi-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+4632|i192mem|CONFIGURING|3:15|1|i192mem-dy-all-1|rtg_vcfeval_roi-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+4633|i192mem|CONFIGURING|3:15|1|i192mem-dy-all-1|rtg_vcfeval_roi-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+4634|i192mem|CONFIGURING|3:15|1|i192mem-dy-all-1|rtg_vcfeval_roi-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+4635|i192mem|CONFIGURING|3:14|1|i192mem-dy-all-1|rtg_vcfeval_roi-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+=== fsx ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  3.7T  5.1T  42% /fsx
+tmpfs                   tmpfs   199G  8.0K  199G   1% /dev/shm
+/dev/root               ext4    408G   42G  367G  11% /

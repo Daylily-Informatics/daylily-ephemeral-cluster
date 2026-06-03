@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_snv_vcf produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_expansionhunter --config 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' -j 125 -p -k -n",
+  "completed_at": "2026-05-31T15:46:59Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/dyec-515/d515_0531t1541_r2d_013_bjuice/daylily-omics-analysis",
+  "session_name": "d515_0531t1541_r2d_013_bjuice",
+  "started_at": "2026-05-31T15:46:38Z"
+}

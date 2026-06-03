@@ -1,0 +1,423 @@
+{
+  "generated_at": "2026-05-31T13:47:24Z",
+  "remaining": [],
+  "sessions": {
+    "d515_0531T134008_001_simple": {
+      "row_id": "RUN-001",
+      "command_id": "simple-test",
+      "analysis_id": "d515_0531T134008_001_simple",
+      "session": "d515_0531T134008_001_simple",
+      "rc": 0,
+      "launched": true,
+      "dry_run": false,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0001_RUN-001_simple-test.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0001_RUN-001_simple-test.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:40:27Z",
+          "completed_at": "2026-05-31T13:40:49Z",
+          "checked_at": "2026-05-31T13:45:19Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0001_RUN-001_simple-test.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0001_RUN-001_simple-test.stderr.txt"
+    },
+    "d515_0531T134008_d515d02_ilmn_snv": {
+      "row_id": "RUN-002",
+      "command_id": "illumina_snv_alignstats",
+      "source_alias": "illumina_hg003_5x",
+      "analysis_id": "d515_0531T134008_d515d02_ilmn_snv",
+      "session": "d515_0531T134008_d515d02_ilmn_snv",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/illumina_hg003_5x/20260531T133835Z_9e25bde7_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/illumina_hg003_5x/20260531T133835Z_9e25bde7_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0002_RUN-002_illumina_snv_alignstats.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0002_RUN-002_illumina_snv_alignstats.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:40:45Z",
+          "completed_at": "2026-05-31T13:41:06Z",
+          "checked_at": "2026-05-31T13:45:27Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0002_RUN-002_illumina_snv_alignstats.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0002_RUN-002_illumina_snv_alignstats.stderr.txt"
+    },
+    "d515_0531T134008_d515d03_ilmn_mqc": {
+      "row_id": "RUN-003",
+      "command_id": "illumina_snv_alignstats_relatedness_vep_multiqc",
+      "source_alias": "illumina_hg003_5x",
+      "analysis_id": "d515_0531T134008_d515d03_ilmn_mqc",
+      "session": "d515_0531T134008_d515d03_ilmn_mqc",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/illumina_hg003_5x/20260531T133835Z_9e25bde7_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/illumina_hg003_5x/20260531T133835Z_9e25bde7_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0003_RUN-003_illumina_snv_alignstats_relatedness_vep_multiqc.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0003_RUN-003_illumina_snv_alignstats_relatedness_vep_multiqc.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:41:04Z",
+          "completed_at": "2026-05-31T13:41:25Z",
+          "checked_at": "2026-05-31T13:45:36Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0003_RUN-003_illumina_snv_alignstats_relatedness_vep_multiqc.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0003_RUN-003_illumina_snv_alignstats_relatedness_vep_multiqc.stderr.txt"
+    },
+    "d515_0531T134008_d515d04_hg002_kit": {
+      "row_id": "RUN-004",
+      "command_id": "illumina_hg002_kitchensink_multiqc",
+      "source_alias": "illumina_hg002_kitchen",
+      "analysis_id": "d515_0531T134008_d515d04_hg002_kit",
+      "session": "d515_0531T134008_d515d04_hg002_kit",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/illumina_hg002_kitchen/20260531T133845Z_841077f6_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/illumina_hg002_kitchen/20260531T133845Z_841077f6_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0004_RUN-004_illumina_hg002_kitchensink_multiqc.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0004_RUN-004_illumina_hg002_kitchensink_multiqc.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:41:22Z",
+          "completed_at": "2026-05-31T13:41:43Z",
+          "checked_at": "2026-05-31T13:45:45Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0004_RUN-004_illumina_hg002_kitchensink_multiqc.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0004_RUN-004_illumina_hg002_kitchensink_multiqc.stderr.txt"
+    },
+    "d515_0531T134008_d515d05_ug_snv": {
+      "row_id": "RUN-005",
+      "command_id": "ultima_snv_alignstats",
+      "source_alias": "ultima_hg003_5x",
+      "analysis_id": "d515_0531T134008_d515d05_ug_snv",
+      "session": "d515_0531T134008_d515d05_ug_snv",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/ultima_hg003_5x/20260531T133859Z_b6f0130e_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/ultima_hg003_5x/20260531T133859Z_b6f0130e_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0005_RUN-005_ultima_snv_alignstats.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0005_RUN-005_ultima_snv_alignstats.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:41:41Z",
+          "completed_at": "2026-05-31T13:42:02Z",
+          "checked_at": "2026-05-31T13:45:53Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0005_RUN-005_ultima_snv_alignstats.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0005_RUN-005_ultima_snv_alignstats.stderr.txt"
+    },
+    "d515_0531T134008_d515d06_ug_mqc": {
+      "row_id": "RUN-006",
+      "command_id": "ultima_snv_alignstats_kitchensink",
+      "source_alias": "ultima_hg003_5x",
+      "analysis_id": "d515_0531T134008_d515d06_ug_mqc",
+      "session": "d515_0531T134008_d515d06_ug_mqc",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/ultima_hg003_5x/20260531T133859Z_b6f0130e_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/ultima_hg003_5x/20260531T133859Z_b6f0130e_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0006_RUN-006_ultima_snv_alignstats_kitchensink.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0006_RUN-006_ultima_snv_alignstats_kitchensink.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:41:59Z",
+          "completed_at": "2026-05-31T13:42:20Z",
+          "checked_at": "2026-05-31T13:46:02Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0006_RUN-006_ultima_snv_alignstats_kitchensink.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0006_RUN-006_ultima_snv_alignstats_kitchensink.stderr.txt"
+    },
+    "d515_0531T134008_d515d07_ont_snv": {
+      "row_id": "RUN-007",
+      "command_id": "ont_snv_alignstats",
+      "source_alias": "ont_hg003_5x",
+      "analysis_id": "d515_0531T134008_d515d07_ont_snv",
+      "session": "d515_0531T134008_d515d07_ont_snv",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/ont_hg003_5x/20260531T133909Z_9135f992_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/ont_hg003_5x/20260531T133909Z_9135f992_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0007_RUN-007_ont_snv_alignstats.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0007_RUN-007_ont_snv_alignstats.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:42:17Z",
+          "completed_at": "2026-05-31T13:42:39Z",
+          "checked_at": "2026-05-31T13:46:11Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0007_RUN-007_ont_snv_alignstats.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0007_RUN-007_ont_snv_alignstats.stderr.txt"
+    },
+    "d515_0531T134008_d515d08_ont_mqc": {
+      "row_id": "RUN-008",
+      "command_id": "ont_snv_alignstats_kitchensink",
+      "source_alias": "ont_hg003_5x",
+      "analysis_id": "d515_0531T134008_d515d08_ont_mqc",
+      "session": "d515_0531T134008_d515d08_ont_mqc",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/ont_hg003_5x/20260531T133909Z_9135f992_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/ont_hg003_5x/20260531T133909Z_9135f992_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0008_RUN-008_ont_snv_alignstats_kitchensink.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0008_RUN-008_ont_snv_alignstats_kitchensink.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:42:36Z",
+          "completed_at": "2026-05-31T13:42:57Z",
+          "checked_at": "2026-05-31T13:46:19Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0008_RUN-008_ont_snv_alignstats_kitchensink.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0008_RUN-008_ont_snv_alignstats_kitchensink.stderr.txt"
+    },
+    "d515_0531T134008_d515d09_pb_snv": {
+      "row_id": "RUN-009",
+      "command_id": "pacbio_snv_alignstats",
+      "source_alias": "pacbio_hg003_5x",
+      "analysis_id": "d515_0531T134008_d515d09_pb_snv",
+      "session": "d515_0531T134008_d515d09_pb_snv",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/pacbio_hg003_5x/20260531T133918Z_9ee3a972_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/pacbio_hg003_5x/20260531T133918Z_9ee3a972_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0009_RUN-009_pacbio_snv_alignstats.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0009_RUN-009_pacbio_snv_alignstats.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:42:54Z",
+          "completed_at": "2026-05-31T13:43:16Z",
+          "checked_at": "2026-05-31T13:46:28Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0009_RUN-009_pacbio_snv_alignstats.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0009_RUN-009_pacbio_snv_alignstats.stderr.txt"
+    },
+    "d515_0531T134008_d515d10_roche": {
+      "row_id": "RUN-010",
+      "command_id": "roche_snv_alignstats",
+      "source_alias": "roche_hg003_5x",
+      "analysis_id": "d515_0531T134008_d515d10_roche",
+      "session": "d515_0531T134008_d515d10_roche",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/roche_hg003_5x/20260531T133927Z_cf3f8c8f_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/roche_hg003_5x/20260531T133927Z_cf3f8c8f_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0010_RUN-010_roche_snv_alignstats.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0010_RUN-010_roche_snv_alignstats.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:43:13Z",
+          "completed_at": "2026-05-31T13:43:34Z",
+          "checked_at": "2026-05-31T13:46:37Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0010_RUN-010_roche_snv_alignstats.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0010_RUN-010_roche_snv_alignstats.stderr.txt"
+    },
+    "d515_0531T134008_d515d11_hio_snv": {
+      "row_id": "RUN-011",
+      "command_id": "hybrid_ilmn_ont_snv",
+      "source_alias": "hybrid_ilmn_ont_hg003_5x5x",
+      "analysis_id": "d515_0531T134008_d515d11_hio_snv",
+      "session": "d515_0531T134008_d515d11_hio_snv",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T133937Z_fd80f98a_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T133937Z_fd80f98a_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0011_RUN-011_hybrid_ilmn_ont_snv.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0011_RUN-011_hybrid_ilmn_ont_snv.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:43:31Z",
+          "completed_at": "2026-05-31T13:43:52Z",
+          "checked_at": "2026-05-31T13:46:47Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0011_RUN-011_hybrid_ilmn_ont_snv.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0011_RUN-011_hybrid_ilmn_ont_snv.stderr.txt"
+    },
+    "d515_0531T134008_d515d12_hio_mqc": {
+      "row_id": "RUN-012",
+      "command_id": "hybrid_ilmn_ont_snv_kitchensink",
+      "source_alias": "hybrid_ilmn_ont_hg003_5x5x",
+      "analysis_id": "d515_0531T134008_d515d12_hio_mqc",
+      "session": "d515_0531T134008_d515d12_hio_mqc",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T133937Z_fd80f98a_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T133937Z_fd80f98a_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0012_RUN-012_hybrid_ilmn_ont_snv_kitchensink.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0012_RUN-012_hybrid_ilmn_ont_snv_kitchensink.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:43:49Z",
+          "completed_at": "2026-05-31T13:44:10Z",
+          "checked_at": "2026-05-31T13:46:57Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0012_RUN-012_hybrid_ilmn_ont_snv_kitchensink.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0012_RUN-012_hybrid_ilmn_ont_snv_kitchensink.stderr.txt"
+    },
+    "d515_0531T134008_d515d13_bjuice": {
+      "row_id": "RUN-013",
+      "command_id": "inflection-bjuice-product-v0.1",
+      "source_alias": "hybrid_ilmn_ont_hg003_5x5x",
+      "analysis_id": "d515_0531T134008_d515d13_bjuice",
+      "session": "d515_0531T134008_d515d13_bjuice",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T133937Z_fd80f98a_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T133937Z_fd80f98a_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0013_RUN-013_inflection-bjuice-product-v0.1.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0013_RUN-013_inflection-bjuice-product-v0.1.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:44:07Z",
+          "completed_at": "2026-05-31T13:44:29Z",
+          "checked_at": "2026-05-31T13:47:06Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0013_RUN-013_inflection-bjuice-product-v0.1.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0013_RUN-013_inflection-bjuice-product-v0.1.stderr.txt"
+    },
+    "d515_0531T134008_d515d14_huo_snv": {
+      "row_id": "RUN-014",
+      "command_id": "hybrid_ultima_ont_snv",
+      "source_alias": "hybrid_ultima_ont_hg003_5x5x",
+      "analysis_id": "d515_0531T134008_d515d14_huo_snv",
+      "session": "d515_0531T134008_d515d14_huo_snv",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/hybrid_ultima_ont_hg003_5x5x/20260531T133947Z_9efcd6d4_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/hybrid_ultima_ont_hg003_5x5x/20260531T133947Z_9efcd6d4_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0014_RUN-014_hybrid_ultima_ont_snv.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0014_RUN-014_hybrid_ultima_ont_snv.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:44:26Z",
+          "completed_at": "2026-05-31T13:44:47Z",
+          "checked_at": "2026-05-31T13:47:15Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0014_RUN-014_hybrid_ultima_ont_snv.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0014_RUN-014_hybrid_ultima_ont_snv.stderr.txt"
+    },
+    "d515_0531T134008_d515d15_cg_mgi": {
+      "row_id": "RUN-015",
+      "command_id": "complete_genomics_mgi_snv_concordance",
+      "source_alias": "complete_genomics_mgi_hg003",
+      "analysis_id": "d515_0531T134008_d515d15_cg_mgi",
+      "session": "d515_0531T134008_d515d15_cg_mgi",
+      "samples_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/complete_genomics_mgi_hg003/20260531T133958Z_93c068af_samples.tsv",
+      "units_file": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/generated_sample_configs/complete_genomics_mgi_hg003/20260531T133958Z_93c068af_units.tsv",
+      "rc": 0,
+      "launched": true,
+      "dry_run": true,
+      "status_attempts": [
+        {
+          "rc": 0,
+          "stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0015_RUN-015_complete_genomics_mgi_snv_concordance.stdout.json",
+          "stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0015_RUN-015_complete_genomics_mgi_snv_concordance.stderr.txt",
+          "exit_code": 1,
+          "state": null,
+          "started_at": "2026-05-31T13:44:44Z",
+          "completed_at": "2026-05-31T13:45:06Z",
+          "checked_at": "2026-05-31T13:47:24Z"
+        }
+      ],
+      "latest_exit_code": 1,
+      "latest_state": null,
+      "latest_status_stdout": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0015_RUN-015_complete_genomics_mgi_snv_concordance.stdout.json",
+      "latest_status_stderr": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T140000Z_dyec515_non_bcl_launches/status/0015_RUN-015_complete_genomics_mgi_snv_concordance.stderr.txt"
+    }
+  }
+}

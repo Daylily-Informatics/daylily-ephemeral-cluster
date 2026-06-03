@@ -18,6 +18,7 @@ from __future__ import annotations
 
 import dataclasses
 import logging
+import uuid
 from typing import Any, Dict, List, Optional, Tuple
 from urllib.parse import urlparse
 
@@ -38,11 +39,9 @@ REQUIRED_S3_ROLES = (
     ROLE_REFERENCE,
     ROLE_CONTROL_DATA,
     ROLE_STAGING,
-)
-DISCOVERABLE_S3_ROLES = (
-    *REQUIRED_S3_ROLES,
     ROLE_EXPORT_DESTINATION,
 )
+DISCOVERABLE_S3_ROLES = (*REQUIRED_S3_ROLES,)
 
 
 @dataclasses.dataclass(frozen=True)
@@ -125,7 +124,18 @@ ROLE_REQUIRED_PREFIXES: Dict[str, Tuple[str, ...]] = {
         "runtime_assets/budget_tags/",
     ),
     ROLE_CONTROL_DATA: ("genomic_data/organism_reads/",),
-    ROLE_STAGING: (),
+    ROLE_STAGING: ("",),
+    ROLE_EXPORT_DESTINATION: ("",),
+}
+
+ROLE_REQUIRED_BUCKET_SUBSTRINGS: Dict[str, str] = {
+    ROLE_STAGING: "sequencing-data",
+    ROLE_EXPORT_DESTINATION: "sequencing-data",
+}
+
+ROLE_EXACT_PREFIXES: Dict[str, str] = {
+    ROLE_STAGING: "staged_external_data",
+    ROLE_EXPORT_DESTINATION: "derived",
 }
 
 ROLE_DISCOVERY_PREFIXES: Dict[str, Tuple[str, ...]] = {
@@ -139,12 +149,6 @@ ROLE_DISCOVERY_PREFIXES: Dict[str, Tuple[str, ...]] = {
     ),
     ROLE_STAGING: ("staged_external_data",),
     ROLE_EXPORT_DESTINATION: ("derived",),
-}
-
-ROLE_ROOT_BUCKET_HINTS: Dict[str, Tuple[str, ...]] = {
-    ROLE_REFERENCE: ("reference", "references"),
-    ROLE_CONTROL_DATA: ("control", "control-data", "control_data"),
-    ROLE_STAGING: ("stage", "staging"),
 }
 
 
@@ -257,30 +261,32 @@ def _safe_reference_prefix_exists(s3_client: Any, bucket_name: str, prefix: str)
         return False
 
 
-def _bucket_name_matches_role(role: str, bucket_name: str) -> bool:
-    lowered = bucket_name.lower()
-    return any(hint in lowered for hint in ROLE_ROOT_BUCKET_HINTS.get(role, ()))
-
-
 def _candidate_prefixes_for_role(role: str, bucket_name: str) -> Tuple[str, ...]:
     _ = bucket_name
     return ROLE_DISCOVERY_PREFIXES.get(role, ("",))
 
 
-def _role_candidate_meets_contract(s3_client: Any, spec: S3RoleSpec) -> bool:
+def _role_contract_issues(
+    s3_client: Any,
+    spec: S3RoleSpec,
+    *,
+    verify_writable: bool = False,
+) -> List[str]:
+    issues: List[str] = []
+
     if not _reference_role_bucket_exists(s3_client, spec.bucket):
-        return False
+        return [f"{spec.role}: bucket does not exist or is not accessible: {spec.bucket}"]
 
-    if spec.role == ROLE_STAGING:
-        if spec.prefix:
-            return _safe_reference_prefix_exists(s3_client, spec.bucket, f"{spec.prefix}/")
-        return _bucket_name_matches_role(spec.role, spec.bucket)
+    required_bucket_substring = ROLE_REQUIRED_BUCKET_SUBSTRINGS.get(spec.role)
+    if required_bucket_substring and required_bucket_substring not in spec.bucket:
+        issues.append(
+            f"{spec.role}: bucket name must contain {required_bucket_substring!r}: {spec.bucket}"
+        )
 
-    if spec.role == ROLE_EXPORT_DESTINATION:
-        return (
-            spec.prefix == "derived"
-            and "sequencing-data" in spec.bucket
-            and _safe_reference_prefix_exists(s3_client, spec.bucket, "derived/")
+    exact_prefix = ROLE_EXACT_PREFIXES.get(spec.role)
+    if exact_prefix is not None and spec.prefix != exact_prefix:
+        issues.append(
+            f"{spec.role}: URI prefix must be exactly {exact_prefix!r}, got {spec.prefix!r}"
         )
 
     if spec.role == ROLE_REFERENCE:
@@ -290,15 +296,54 @@ def _role_candidate_meets_contract(s3_client: Any, spec: S3RoleSpec) -> bool:
             spec.bucket,
             version_key,
         )
-        if bucket_version != DEFAULT_REFERENCE_VERSION:
-            return False
+        if bucket_version is None:
+            issues.append(f"{spec.role}: missing version marker {version_key}")
+        elif bucket_version != DEFAULT_REFERENCE_VERSION:
+            issues.append(
+                f"{spec.role}: version mismatch at {version_key} "
+                f"(expected {DEFAULT_REFERENCE_VERSION}, found {bucket_version})"
+            )
 
     for prefix in ROLE_REQUIRED_PREFIXES.get(spec.role, ()):
         key_prefix = role_prefix_key(spec, prefix)
-        if not _safe_reference_prefix_exists(s3_client, spec.bucket, key_prefix):
-            return False
+        try:
+            prefix_exists = _reference_prefix_exists(s3_client, spec.bucket, key_prefix)
+        except Exception as exc:
+            issues.append(f"{spec.role}: unable to inspect {key_prefix}: {exc}")
+            continue
+        if not prefix_exists:
+            issues.append(f"{spec.role}: missing objects under {key_prefix}")
 
-    return True
+    if verify_writable and spec.role == ROLE_EXPORT_DESTINATION:
+        write_issue = _verify_export_destination_writable(s3_client, spec)
+        if write_issue:
+            issues.append(write_issue)
+
+    return issues
+
+
+def _verify_export_destination_writable(s3_client: Any, spec: S3RoleSpec) -> str:
+    preflight_prefix = role_prefix_key(spec, "dayec-preflight/")
+    key = f"{preflight_prefix}write-check-{uuid.uuid4().hex}.txt"
+    try:
+        s3_client.put_object(
+            Bucket=spec.bucket,
+            Key=key,
+            Body=b"dayec export destination preflight\n",
+        )
+    except Exception as exc:
+        return f"{spec.role}: unable to write temporary object under {preflight_prefix}: {exc}"
+
+    try:
+        s3_client.delete_object(Bucket=spec.bucket, Key=key)
+    except Exception as exc:
+        return f"{spec.role}: wrote temporary object but could not delete {key}: {exc}"
+
+    return ""
+
+
+def _role_candidate_meets_contract(s3_client: Any, spec: S3RoleSpec) -> bool:
+    return not _role_contract_issues(s3_client, spec, verify_writable=False)
 
 
 def list_role_candidate_uris(
@@ -374,29 +419,13 @@ def verify_s3_roles(
     }
 
     for role, spec in specs.items():
-        if not _reference_role_bucket_exists(s3_client, spec.bucket):
-            issues.append(f"{role}: bucket does not exist or is not accessible: {spec.bucket}")
-            continue
-
-        if role == ROLE_REFERENCE:
-            version_key = role_prefix_key(spec, REFERENCE_VERSION_KEY)
-            bucket_version = _read_reference_role_version_for_key(
+        issues.extend(
+            _role_contract_issues(
                 s3_client,
-                spec.bucket,
-                version_key,
+                spec,
+                verify_writable=role == ROLE_EXPORT_DESTINATION,
             )
-            if bucket_version is None:
-                issues.append(f"{role}: missing version marker {version_key}")
-            elif bucket_version != DEFAULT_REFERENCE_VERSION:
-                issues.append(
-                    f"{role}: version mismatch at {version_key} "
-                    f"(expected {DEFAULT_REFERENCE_VERSION}, found {bucket_version})"
-                )
-
-        for prefix in ROLE_REQUIRED_PREFIXES.get(role, ()):
-            key_prefix = role_prefix_key(spec, prefix)
-            if not _reference_prefix_exists(s3_client, spec.bucket, key_prefix):
-                issues.append(f"{role}: missing objects under {key_prefix}")
+        )
 
     return not issues, details
 
@@ -491,6 +520,7 @@ def make_s3_bucket_preflight_step(
     reference_s3_uri: str = "",
     control_data_s3_uri: str = "",
     stage_s3_uri: str = "",
+    export_destination_s3_uri: str = "",
     profile: str = "",
     interactive: bool = False,
 ) -> Any:
@@ -512,6 +542,7 @@ def make_s3_bucket_preflight_step(
             ROLE_REFERENCE: reference_s3_uri,
             ROLE_CONTROL_DATA: control_data_s3_uri,
             ROLE_STAGING: stage_s3_uri,
+            ROLE_EXPORT_DESTINATION: export_destination_s3_uri,
         }
         ok, details = verify_s3_roles(role_values, profile=profile, region=region)
         if not details.get("roles"):
@@ -522,7 +553,7 @@ def make_s3_bucket_preflight_step(
                     details={"region": region, **details},
                     remediation=(
                         "Set explicit reference_s3_uri, control_data_s3_uri, "
-                        "and stage_s3_uri values."
+                        "stage_s3_uri, and export_destination_s3_uri values."
                     ),
                 )
             )
@@ -558,7 +589,8 @@ def make_s3_bucket_preflight_step(
                         "S3 role verification failed. Confirm every role bucket exists, "
                         "reference contains "
                         f"{REFERENCE_VERSION_KEY}={DEFAULT_REFERENCE_VERSION}, and role "
-                        "prefixes contain the required contract data."
+                        "prefixes contain the required contract data. Staging must use "
+                        "staged_external_data/ and export must use derived/."
                     ),
                 )
             )

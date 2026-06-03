@@ -1,0 +1,63 @@
+{
+  "cloudFormationStackStatus": "CREATE_COMPLETE",
+  "cloudformationStackArn": "arn:aws:cloudformation:us-west-2:108782052779:stack/dyec-test/92b9af50-5b06-11f1-a507-0a6267c778ff",
+  "clusterConfiguration": {
+    "url": "https://parallelcluster-4da281c1dc024f1c-v1-do-not-delete.s3.us-west-2.amazonaws.com/parallelcluster/3.13.2/clusters/dyec-test-mmttz2ca7fefguee/configs/cluster-config.yaml?versionId=TJeJXYfjEc0x4if2FX89Yi_qScgD6uW9&AWSAccessKeyId=AKIARSU7KMWVUNP6SU5X&Signature=0%2FmX5%2FV6ZG906p5JZVx7IOWhlcQ%3D&Expires=1780087940"
+  },
+  "clusterName": "dyec-test",
+  "clusterStatus": "CREATE_COMPLETE",
+  "computeFleetStatus": "RUNNING",
+  "creationTime": "2026-05-29T02:32:01.644Z",
+  "headNode": {
+    "instanceId": "i-0cac5db332e3c70e5",
+    "instanceType": "r7i.8xlarge",
+    "launchTime": "2026-05-29T02:45:32.000Z",
+    "privateIpAddress": "10.0.0.88",
+    "publicIpAddress": "16.145.136.128",
+    "state": "running"
+  },
+  "lastUpdatedTime": "2026-05-29T02:32:01.644Z",
+  "region": "us-west-2",
+  "scheduler": {
+    "type": "slurm"
+  },
+  "tags": [
+    {
+      "key": "aws-parallelcluster-daylily-git-deets",
+      "value": "none"
+    },
+    {
+      "key": "parallelcluster:version",
+      "value": "3.13.2"
+    },
+    {
+      "key": "aws-parallelcluster-enforce-budget",
+      "value": "skip"
+    },
+    {
+      "key": "aws-parallelcluster-jobid",
+      "value": "aws_profile-lsmc"
+    },
+    {
+      "key": "aws-parallelcluster-monitor-bucket",
+      "value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+    },
+    {
+      "key": "parallelcluster:cluster-name",
+      "value": "dyec-test"
+    },
+    {
+      "key": "aws-parallelcluster-clustername",
+      "value": "dyec-test"
+    },
+    {
+      "key": "aws-parallelcluster-project",
+      "value": "dyec-test"
+    },
+    {
+      "key": "aws-parallelcluster-username",
+      "value": "jmajor-root"
+    }
+  ],
+  "version": "3.13.2"
+}

@@ -1,0 +1,240 @@
+DAY-EC activated.
+DAY-EC activated.
+        else
+            echo "WARNING: libjemalloc not found in CONDA_PREFIX=$CONDA_PREFIX" >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log;
+        fi
+
+        # --- sentieon-cli dnascope-longread (PacBio HiFi) ---
+        # The CLI runs the full two-pass phased pipeline internally.
+        # Outputs: <basename>.vcf.gz (SNV/indel) and <basename>.sv.vcf.gz (SV)
+        cli_out="$TMPDIR/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.sentdpb";
+
+        echo "sentieon-cli dnascope-longread starting: model=/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopePacBio2.1.bundle tech=HiFi" >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log 2>&1;
+        set +e;
+        sentieon-cli dnascope-longread             -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta             -i results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.cram             -m "/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopePacBio2.1.bundle"             -d "/fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz"             -t 192             --tech HiFi              -b /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_diploid_male.bed   --haploid_bed /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_haploid_male.bed              "${cli_out}.vcf.gz" >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log 2>&1;
+        cli_rc=$?;
+        set -e;
+        echo "sentieon-cli exit code: $cli_rc" >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log 2>&1;
+        if [ $cli_rc -ne 0 ]; then
+            echo "ERROR: sentieon-cli dnascope-longread failed with exit code $cli_rc" >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log 2>&1;
+            exit $cli_rc;
+        fi
+
+        # --- Reheader SNV VCF: rename sample to cluster_sample ---
+        if [ -f "${cli_out}.vcf.gz" ]; then
+            oldname=$(bcftools query -l "${cli_out}.vcf.gz" | head -n1);
+            echo -e "${oldname}	TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO" > "$TMPDIR/rename.txt";
+            bcftools reheader -s "$TMPDIR/rename.txt" -o results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz "${cli_out}.vcf.gz" >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log 2>&1;
+            bcftools index -f -t --threads 192 -o results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz.tbi results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log 2>&1;
+        else
+            echo "ERROR: SNV VCF not produced by sentieon-cli" >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log 2>&1;
+            exit 20;
+        fi
+
+        # --- Reheader SV VCF ---
+        if [ -f "${cli_out}.sv.vcf.gz" ]; then
+            bcftools reheader -s "$TMPDIR/rename.txt" -o results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.sv.vcf.gz "${cli_out}.sv.vcf.gz" >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log 2>&1;
+            bcftools index -f -t --threads 192 -o results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.sv.vcf.gz.tbi results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.sv.vcf.gz >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log 2>&1;
+        else
+            echo "WARNING: SV VCF not produced; creating empty placeholder" >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log 2>&1;
+            touch results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.sv.vcf.gz results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.sv.vcf.gz.tbi;
+        fi
+
+        end_time=$(date +%s);
+        elapsed_time=$((($end_time - $start_time) / 60));
+        echo "Elapsed-Time-min:	$itype	$elapsed_time" >> results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/log/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.log 2>&1;
+
+
+Submitted job 1 with external jobid '189'.
+[Fri May 29 22:06:04 2026]
+Finished job 5.
+4 of 25 steps (16%) done
+Select jobs to execute...
+
+[Fri May 29 22:06:04 2026]
+rule alignstats:
+    input: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.cram, results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.cram.crai
+    output: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/alignqc/alignstats/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.alignstats.json
+    log: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/alignqc/alignstats/logs/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.alignstats.log
+    jobid: 24
+    benchmark: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/benchmarks/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.alignstats.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/alignqc/alignstats/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.alignstats.json; Input files updated by another job: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.cram, results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.cram.crai
+    wildcards: sample=TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO, alnr=sentmm2, ddup=na
+    threads: 96
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=96, time=5440, partition=i192,i192mem,i128, vcpu=96, distribution=block, exclusive=, constraint=, exclude=, include=, attempt_n=1
+
+resources/alignstats/alignstats  -C -U  -i results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.cram -T /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -o results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/alignqc/alignstats/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.alignstats.json  -j cram -v -P 96 -p 96 > results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/alignqc/alignstats/logs/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.alignstats.log;
+Submitted job 24 with external jobid '190'.
+[Fri May 29 22:07:34 2026]
+Finished job 24.
+5 of 25 steps (20%) done
+Select jobs to execute...
+
+[Fri May 29 22:07:34 2026]
+localrule finish_align_stats:
+    input: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/alignqc/alignstats/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.alignstats.json
+    output: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/alignqc/alignstats/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.alignstats.tsv
+    jobid: 23
+    reason: Missing output files: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/alignqc/alignstats/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.alignstats.tsv; Input files updated by another job: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/alignqc/alignstats/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.alignstats.json
+    wildcards: sample=TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO, alnr=sentmm2, ddup=na
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r6_pacbio_snv_alignstats/daylily-omics-analysis/config/global_AWSPC.yaml
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r6_pacbio_snv_alignstats/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+...INFO: Auto-detected aligners from env: ['sentmm2']
+aligners (final): [sentmm2]
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+...INFO: Auto-detected dedupers. DDUP updated to: ['na']
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentdpb']
+SNV Callers (final): [sentdpb]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r6_pacbio_snv_alignstats/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r6_pacbio_snv_alignstats/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=1, time=5440, vcpu=1
+Select jobs to execute...
+[Fri May 29 22:07:37 2026]
+Finished job 23.
+6 of 25 steps (24%) done
+Select jobs to execute...
+
+[Fri May 29 22:07:37 2026]
+localrule alignstats_gather:
+    input: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/alignqc/alignstats/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.alignstats.tsv
+    output: results/day/hg38_broad/other_reports/alignstats_summary_gather.done, results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+    log: results/day/hg38_broad/logs/alignstats_summary_gather.log
+    jobid: 22
+    benchmark: results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/other_reports/alignstats_summary_gather.done; Input files updated by another job: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/alignqc/alignstats/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.alignstats.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+ touch results/day/hg38_broad/other_reports/alignstats_summary_gather.done; touch results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/e28353b323f26af0747eb0fc4db2c579_
+[Fri May 29 22:07:38 2026]
+Finished job 22.
+7 of 25 steps (28%) done
+Select jobs to execute...
+
+[Fri May 29 22:07:38 2026]
+localrule alignstats_compile:
+    input: results/day/hg38_broad/other_reports/alignstats_summary_gather.done
+    output: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv, results/day/hg38_broad/other_reports/alignstats_csummary.tsv, results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv, results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
+    log: results/day/hg38_broad/logs/alignstats_summary_compile.log
+    jobid: 21
+    benchmark: results/day/hg38_broad/benchmarks/all.alignstats_smmary_compile.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv; Input files updated by another job: results/day/hg38_broad/other_reports/alignstats_summary_gather.done
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        python workflow/scripts/compile_alignstats.py           --mdir results/day/hg38_broad/           --log results/day/hg38_broad/logs/alignstats_summary_compile.log           --bsummary results/day/hg38_broad/other_reports/alignstats_bsummary.tsv           --csummary results/day/hg38_broad/other_reports/alignstats_csummary.tsv           --combo results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv           --generalstats results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
+
+[Fri May 29 22:07:38 2026]
+Finished job 21.
+8 of 25 steps (32%) done
+Removing temporary output results/day/hg38_broad/other_reports/alignstats_csummary.tsv.
+Select jobs to execute...
+
+[Fri May 29 22:07:38 2026]
+localrule produce_alignstats:
+    input: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv
+    jobid: 20
+    reason: Input files updated by another job: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Fri May 29 22:07:38 2026]
+Finished job 20.
+9 of 25 steps (36%) done
+Removing temporary output results/day/hg38_broad/other_reports/alignstats_bsummary.tsv.
+[Fri May 29 22:34:07 2026]
+Finished job 1.
+10 of 25 steps (40%) done
+Select jobs to execute...
+
+[Fri May 29 22:34:07 2026]
+rule rtg_vcfeval_roi:
+    input: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz, results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.vcf.gz, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.bed
+    output: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/_hg38_m_giabHC/summary.txt
+    log: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/logs/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.hg38_m_giabHC.rtg_vcfeval.log
+    jobid: 19
+    benchmark: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/benchmarks/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.hg38_m_giabHC.rtg_vcfeval.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/_hg38_m_giabHC/summary.txt; Input files updated by another job: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz, results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz.tbi
+    wildcards: sample=TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO, alnr=sentmm2, ddup=na, snv=sentdpb, cmpfootprint=hg38_m_giabHC
+    threads: 16
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+            export TMPDIR="/fsx/scratch/"
+            outdir="$(dirname results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/_hg38_m_giabHC/summary.txt)"
+            rm -rf "$outdir"
+
+            rtg vcfeval \
+              --decompose \
+              --squash-ploidy \
+              --ref-overlap \
+              -e /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.bed \
+              -b /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/hg38_m_giabHC/HG003.vcf.gz \
+              -c results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz \
+              -o "$outdir" \
+              -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
+              --threads 16 \
+              > results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/logs/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.hg38_m_giabHC.rtg_vcfeval.log 2>&1
+
+Submitted job 19 with external jobid '217'.
+
+[Fri May 29 22:34:07 2026]
+rule rtg_vcfeval_roi:
+    input: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz, results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.vcf.gz, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.bed
+    output: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/_giabHC/summary.txt
+    log: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/logs/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.giabHC.rtg_vcfeval.log
+    jobid: 13
+    benchmark: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/benchmarks/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.giabHC.rtg_vcfeval.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/_giabHC/summary.txt; Input files updated by another job: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz, results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz.tbi
+    wildcards: sample=TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO, alnr=sentmm2, ddup=na, snv=sentdpb, cmpfootprint=giabHC
+    threads: 16
+    resources: mem_mb=64000, mem_mib=61036, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+            export TMPDIR="/fsx/scratch/"
+            outdir="$(dirname results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/_giabHC/summary.txt)"
+            rm -rf "$outdir"
+
+            rtg vcfeval \
+              --decompose \
+              --squash-ploidy \
+              --ref-overlap \
+              -e /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.bed \
+              -b /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC/HG003.vcf.gz \
+              -c results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz \
+              -o "$outdir" \
+              -t /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.sdf \
+              --threads 16 \
+              > results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/logs/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.giabHC.rtg_vcfeval.log 2>&1
+
+Submitted job 13 with external jobid '218'.
+[Fri May 29 22:35:27 2026]
+Finished job 19.
+11 of 25 steps (44%) done
+Select jobs to execute...
+
+[Fri May 29 22:35:27 2026]
+rule rtg_vcfeval_roi:
+    input: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz, results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.snv.sort.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.vcf.gz, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.vcf.gz.tbi, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/giabHC_x_clinvar_genes/HG003.bed
+    output: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/_giabHC_x_clinvar_genes/summary.txt
+    log: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/logs/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.giabHC_x_clinvar_genes.rtg_vcfeval.log
+    jobid: 15
+    benchmark: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/benchmarks/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO.sentmm2.na.sentdpb.giabHC_x_clinvar_genes.rtg_vcfeval.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PACBIO-REVIO/align/sentmm2/na/snv/sentdpb/concordance/_giabHC_x_clinvar_genes/summary.txt; Input files updated by another job: results/day/hg38_broad/TVBPB5X-HG003-5x-1-D0-PF-PAC--output truncated--

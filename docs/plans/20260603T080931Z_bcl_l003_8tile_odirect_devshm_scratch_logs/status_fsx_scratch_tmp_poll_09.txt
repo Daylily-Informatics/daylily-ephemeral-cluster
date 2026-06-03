@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+time=2026-06-03T08:33:42Z
+squeue=61|bcl2fq|sleep_test.sh|PD|0:00|(BeginTime);60|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0001_tiles0001-0008|CF|4:37|i192bigmem-dy-all-1;
+fastq_count=0
+done_count=0
+bytes=10924
+fsx_scratch_size=33K
+
+log_tail=missing_bcl_log
+tmux_marker=

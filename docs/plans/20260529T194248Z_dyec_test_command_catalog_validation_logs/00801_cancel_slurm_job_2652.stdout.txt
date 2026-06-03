@@ -1,0 +1,7 @@
+DAY-EC activated.
+DAY-EC activated.
+=== before ===
+JOBID|PARTITION|CPUS|ST|TIME|NODES|NODELIST(REASON)|NAME
+2652|i192mem|192|R|30:50|1|i192mem-dy-all-1|run_bclconvert-run_bclconvert
+=== after ===
+JOBID|PARTITION|CPUS|ST|TIME|NODES|NODELIST(REASON)|NAME

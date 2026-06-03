@@ -1,0 +1,27 @@
+DAY-EC activated.
+DAY-EC activated.
+=== identity ===
+2026-05-30T18:28:36Z
+ip-10-0-0-88.us-west-2.compute.internal
+=== queue counts ===
+total_jobs=5
+state.CONFIGURING=1
+state.RUNNING=4
+partition.i192mem=1
+partition.i192=4
+=== job family counts ===
+      2 calc_coverage_evenness
+      1 sentdhuomr_stage1
+      1 sent_DNAscope
+      1 relatedness_batch_somalier_extract
+=== oldest jobs ===
+4515|i192|RUNNING|3:07|1|i192-dy-all-3|calc_coverage_evenness-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+4525|i192|RUNNING|2:58|1|i192-dy-all-1|relatedness_batch_somalier_extract-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+4529|i192|RUNNING|2:58|1|i192-dy-all-1|calc_coverage_evenness-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+4532|i192|CONFIGURING|2:58|1|i192-dy-all-4|sent_DNAscope-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+4538|i192mem|RUNNING|0:46|1|i192mem-dy-all-13|sentdhuomr_stage1-TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA
+=== fsx ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  3.7T  5.1T  43% /fsx
+tmpfs                   tmpfs   199G     0  199G   0% /dev/shm
+/dev/root               ext4    408G   42G  367G  11% /

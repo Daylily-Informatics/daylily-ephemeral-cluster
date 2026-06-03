@@ -1,0 +1,169 @@
+command_id=8e02ca9f-5546-4c6d-9546-b2fe560d7f9c
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T01:19:08+00:00
+__JOB_ID__=1
+__SQUEUE__
+             JOBID    PARTITION                     NAME     USER ST       TIME  NODES NODELIST(REASON)
+                 1       bcl2fq    bcl2fq_scratch_to_dra   ubuntu PD       0:00      1 (BeginTime)
+__JOB_DETAIL__
+JobId=1 JobName=bcl2fq_scratch_to_dra
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=PENDING Reason=BeginTime Dependency=(null)
+   Requeue=1 Restarts=1 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=365-00:00:00 TimeMin=N/A
+   SubmitTime=2026-06-03T01:18:41 EligibleTime=2026-06-03T01:19:52
+   AccrueTime=2026-06-03T01:19:52
+   StartTime=2026-06-03T01:19:52 EndTime=2027-06-03T01:19:52 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T01:18:16 Scheduler=Main
+   Partition=bcl2fq AllocNode:Sid=ip-10-0-0-235:16061
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=1-1 NumCPUs=48 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=48,mem=300G,node=1,billing=48
+   AllocTRES=cpu=48,node=1,billing=48
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=48 MinMemoryNode=300G MinTmpDiskNode=0
+   Features=nvme48 DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/bclconvert_scratch_to_dra.job.sh
+   WorkDir=/home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z
+   Comment=unknown-project-invalid-project 
+   StdErr=/home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/slurm-1.err
+   StdIn=/dev/null
+   StdOut=/home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/slurm-1.out
+   TresPerTask=cpu=48
+   
+
+__NODE_DETAIL__
+NodeName=bcl2fq-dy-nvme48-1 CoresPerSocket=1 
+   CPUAlloc=0 CPUEfctv=48 CPUTot=48 CPULoad=0.00
+   AvailableFeatures=dynamic,nvme48
+   ActiveFeatures=dynamic,nvme48
+   Gres=(null)
+   NodeAddr=bcl2fq-dy-nvme48-1 NodeHostName=bcl2fq-dy-nvme48-1 
+   RealMemory=373555 AllocMem=0 FreeMem=N/A Sockets=48 Boards=1
+   State=DOWN+CLOUD+NOT_RESPONDING+POWERING_UP ThreadsPerCore=1 TmpDisk=0 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=bcl2fq 
+   BootTime=None SlurmdStartTime=None
+   LastBusyTime=2026-06-03T01:18:41 ResumeAfterTime=None
+   CfgTRES=cpu=48,mem=373555M,billing=48
+   AllocTRES=
+   CurrentWatts=0 AveWatts=0
+   
+   Reason=(Code:InsufficientInstanceCapacity)Failure when resuming nodes [root@2026-06-03T01:18:41]
+
+__TMUX_CAPTURE__
+da-us-west-2d-jem-automate      ubuntu,ubuntu
+da-us-west-2d-jem-test2 ubuntu,ubuntu
+da-us-west-2d-jemblahhh ubuntu,ubuntu
+da-us-west-2d-jem-random        ubuntu,ubuntu
+da-us-west-2d-jembbbb   ubuntu,ubuntu
+da-us-west-2d-jemred    ubuntu,
+da-us-west-2d-lsmc-day2test     ubuntu,
+da-us-west-2d-jemlsmc   ubuntu,
+da-us-west-2d-jem2      ubuntu,
+da-us-west-2d-takethree ubuntu,
+da-us-west-2d-takefive  ubuntu,
+da-us-west-2d-takesix   ubuntu,
+da-us-west-2d-takeeight ubuntu,
+da-us-west-2d-takenine  ubuntu,
+da-us-west-2d-taketen   ubuntu,
+da-us-west-2d-takeeleven        ubuntu,
+da-us-west-2d-taketwelve        ubuntu,
+da-us-west-2d-take14    ubuntu,
+da-us-west-2d-take15    ubuntu,
+da-us-west-2d-take20    ubuntu,
+da-us-west-2d-jem-delme ubuntu,
+da-us-west-2d-jem-delme ubuntu,
+da-us-west-2d-jem-again ubuntu,
+da-us-west-2d-jem-threee        ubuntu,
+da-us-west-2d-jem-fourx ubuntu,
+da-us-west-2d-jem-andagain      ubuntu,
+da-us-west-2d-jem-againx        ubuntu,
+da-us-west-2d-jem-aaa   ubuntu,
+da-us-west-2d-jem-okgo  ubuntu,
+da-us-west-2d-bhfghdfgh ubuntu,
+da-us-west-2d-jkj       ubuntu,
+da-us-west-2d-dfghfghfghfg      ubuntu,
+da-us-west-2d-blahfdfg  ubuntu,
+da-us-west-2d-yoyoaa    ubuntu,
+da-us-west-2d-kkkl      ubuntu,
+da-us-west-2d-majors-cluster    ubuntu,
+da-us-west-2d-ghjghjghj ubuntu,
+da-us-west-2d-again     ubuntu,
+da-us-west-2d-branchtest        ubuntu,
+da-us-west-2d-jem-07348 ubuntu,
+da-us-west-2d-againokx  ubuntu,
+da-us-west-2d-jem-07355 ubuntu,
+da-us-west-2d-dayoa-07357       ubuntu,
+da-us-west-2d-dayoa-07357x      ubuntu,ubuntu
+da-us-west-2d-xxaabb    ubuntu,
+da-us-west-2d-xxaabb2   ubuntu,ubuntu
+da-us-west-2d-dyoa-usw2d-07375  ubuntu,
+da-us-west-2d-dyoa-bigboy       ubuntu,
+da-us-west-2d-dyoa-smn12-go     ubuntu,
+da-us-west-2d-giab-test ubuntu,
+da-us-west-2d-ifx-tests ubuntu,
+da-us-west-2d-lfg-usw2d ubuntu,
+da-us-west-2d-jem-split-test    ubuntu,
+da-us-west-2d-jemtest2  ubuntu,
+da-us-west-2d-jem-usw2-3        ubuntu,
+da-us-west-2d-uswest2d-A        ubuntu,
+da-us-west-2d-usw2d-B   ubuntu,
+da-us-west-2d-cher-usw2 ubuntu,
+da-us-west-2d-tearit-usw2       ubuntu,
+da-us-west-2d-gogogo    ubuntu,
+da-us-west-2d-josh-test-dev     ubuntu,
+da-us-west-2d-agbt-usw2d-primary        ubuntu,
+da-us-west-2d-agbt--wrkhrse-usw2        ubuntu,
+da-us-west-2d-agbt--12-usw2d    ubuntu,
+da-us-west-2d-agbt-12t-usw2d    ubuntu,
+da-us-west-2d-day-test-uswest2d ubuntu,daylily-service
+da-us-west-2d-day-forge-usw2d   ubuntu,root
+da-us-west-2d-agbt-heavy        ubuntu,
+da-us-west-2d-daylily-1773059211        ubuntu,root
+da-us-west-2d-ifx-go    ubuntu,daylily-service
+da-us-west-2d-and-again ubuntu,ubuntu
+da-us-west-2d-jemx2     ubuntu,root
+da-us-west-2d-y260609-frz       ubuntu
+da-us-west-2d-lsbio-fork-260509-124701  ubuntu
+da-us-west-2d-fk-260509-use     ubuntu
+da-us-west-2d-pilot-mk  ubuntu
+da-us-west-2d-pilot-largecluster        ubuntu
+da-us-west-2d-may26-d   ubuntu
+da-us-west-2d-dra-enabled       ubuntu
+da-us-west-2d-XLpilot   ubuntu
+da-us-west-2d-XL-pilot  ubuntu
+da-us-west-2d-tstVer4-1-1       ubuntu
+da-us-west-2d-fork-fixer        ubuntu
+da-us-west-2d-tstClu-4-1-1c     ubuntu
+da-us-west-2d-splitdra-ref-20260526     ubuntu
+da-us-west-2d-jem-bucktst3      ubuntu
+da-us-west-2d-blahab44  ubuntu
+da-us-west-2d-goodole3  ubuntu
+da-us-west-2d-dyec-test ubuntu
+da-us-west-2d-dyec5115  ubuntu
+da-us-west-2d-dyec5117  ubuntu
+da-us-west-2d-dyec0602bcl       ubuntu
+
+you may modify this script to fully block unknown projects, for now this will ta
+g with the specified project and proceed.
+a log of warnings/errors will be written to ./sbatch_errs.log
+setting project=unknown-project
+1
+             JOBID    PARTITION                     NAME     USER ST       TIME
+ NODES NODELIST(REASON)
+                 1       bcl2fq    bcl2fq_scratch_to_dra   ubuntu PD       0:00
+     1 (None)
+(DAY-EC) ubuntu@ip-10-0-0-235:~/daylily-runs/bcl2fq_scratch_to_dra_20260603T0111
+21Z$
+__WORK_LIST__
+2026-06-03 01:17 3452 /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/bclconvert_scratch_to_dra.job.sh
+2026-06-03 01:17 739 /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/submit_bclconvert_scratch_to_dra.sh
+2026-06-03 01:18 198 /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/squeue_initial.txt
+2026-06-03 01:18 2 /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/job_id.txt
+2026-06-03 01:18 5458 /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/sbatch_errs.log
+__LOG_TAIL__
+__DEST_SUMMARY__

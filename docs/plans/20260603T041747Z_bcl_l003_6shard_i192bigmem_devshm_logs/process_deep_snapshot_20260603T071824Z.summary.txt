@@ -1,0 +1,33 @@
+timestamp_utc	2026-06-03T07:18:24Z
+ssh_target	i192bigmem-dy-all-1
+slurm_job	47
+bcl_pid	12521
+
+== process ==
+stat	Il
+elapsed	11:58
+pcpu	0.0
+rss_kb	401504
+vsz_kb	946112
+threads	66
+wchan	ldlm_completion_ast
+
+== io ==
+rchar	55986607
+wchar	169686
+syscr	1792
+syscw	117
+read_bytes	53506048
+write_bytes	0
+cancelled_write_bytes	0
+
+== observed fds ==
+stdout	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_trapfix_20260603T0700Z/logs/run_bclconvert.L003.0003_tiles0263-0393.log
+input_fds	many /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Data/Intensities/BaseCalls/L003/C*.1/L003_1.cbcl files
+
+== output ==
+devshm_output_files	0
+write_bytes	0
+
+== interpretation ==
+The process has entered BCL Convert and opened L003 CBCL files, but the captured state shows it waiting in a Lustre/FSx path (`ldlm_completion_ast`) with no `/dev/shm` output yet.

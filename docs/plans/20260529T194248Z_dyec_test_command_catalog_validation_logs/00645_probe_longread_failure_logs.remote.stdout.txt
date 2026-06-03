@@ -1,0 +1,230 @@
+DAY-EC activated.
+DAY-EC activated.
+=== ccv20260529r6_ultima_snv_alignstats ===
+--- sentieon and concordance logs ---
+### results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/logs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.altair-v1.1.parse_vcfeval_summary.log
+could not convert string to float: 'na'
+ARGS ['workflow/scripts/parse-vcfeval-summary.py', 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1.1/summary.txt', 'TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA', '/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/altair-v1.1/HG003.bed', 'altair-v1.1', 'HG003', 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1.1/vcfeval_summary.parsed.tsv', 'na', 'ug', 'na', 'sentdug']
+VARCOV: -1 -- COVBINIS: -2
+ bcftools  annotate  -x INFO/datasets,INFO/platforms,INFO/callsetnames,INFO/platformnames,INFO/callable,INFO/datasetnames  --threads 16 -O z -o results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1.1/tp.vcf.gz; tabix -f results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz;
+Warning: The tag "datasets" not defined in the header
+Warning: The tag "platforms" not defined in the header
+Warning: The tag "callsetnames" not defined in the header
+Warning: The tag "platformnames" not defined in the header
+Warning: The tag "callable" not defined in the header
+Warning: The tag "datasetnames" not defined in the header
+[E::hts_open_format] Failed to open file "results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz" : No such file or directory
+[init_data] Error: cannot write to "results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz": No such file or directory
+tbx_index_build3 failed: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz
+env python workflow/scripts/classify_var_by_type_size.py results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz TP 349207502.0 results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1.1/tp.count TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA HG003
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 78, in <module>
+    with _open_text(in_vcf) as in_fh:
+         ^^^^^^^^^^^^^^^^^^
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 22, in _open_text
+    return gzip.open(path, "rt")
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/lib/python3.12/gzip.py", line 65, in open
+    binary_file = GzipFile(filename, gz_mode, compresslevel)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/lib/python3.12/gzip.py", line 201, in __init__
+    fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 100, in <module>
+    writers[key] = open(path, "w")
+                   ^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz.X_tv_snp.vcf'
+ bcftools  annotate  -x INFO/datasets,INFO/platforms,INFO/callsetnames,INFO/platformnames,INFO/callable,INFO/datasetnames  --threads 16 -O z -o results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1.1/fp.vcf.gz; tabix -f results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz;
+Warning: The tag "datasets" not defined in the header
+Warning: The tag "platforms" not defined in the header
+Warning: The tag "callsetnames" not defined in the header
+Warning: The tag "platformnames" not defined in the header
+Warning: The tag "callable" not defined in the header
+Warning: The tag "datasetnames" not defined in the header
+[E::hts_open_format] Failed to open file "results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz" : No such file or directory
+[init_data] Error: cannot write to "results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz": No such file or directory
+tbx_index_build3 failed: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz
+env python workflow/scripts/classify_var_by_type_size.py results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz FP 349207502.0 results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1.1/fp.count TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA HG003
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 78, in <module>
+    with _open_text(in_vcf) as in_fh:
+         ^^^^^^^^^^^^^^^^^^
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 22, in _open_text
+    return gzip.open(path, "rt")
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/lib/python3.12/gzip.py", line 65, in open
+    binary_file = GzipFile(filename, gz_mode, compresslevel)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/lib/python3.12/gzip.py", line 201, in __init__
+    fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 100, in <module>
+    writers[key] = open(path, "w")
+                   ^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz.X_tv_snp.vcf'
+ bcftools  annotate  -x INFO/datasets,INFO/platforms,INFO/callsetnames,INFO/platformnames,INFO/callable,INFO/datasetnames  --threads 16 -O z -o results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1.1/fn.vcf.gz; tabix -f results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz;
+[E::hts_open_format] Failed to open file "results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz" : No such file or directory
+[init_data] Error: cannot write to "results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz": No such file or directory
+tbx_index_build3 failed: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz
+env python workflow/scripts/classify_var_by_type_size.py results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz FN 349207502.0 results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1.1/fn.count TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA HG003
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 78, in <module>
+    with _open_text(in_vcf) as in_fh:
+         ^^^^^^^^^^^^^^^^^^
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 22, in _open_text
+    return gzip.open(path, "rt")
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/lib/python3.12/gzip.py", line 65, in open
+    binary_file = GzipFile(filename, gz_mode, compresslevel)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/lib/python3.12/gzip.py", line 201, in __init__
+    fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 100, in <module>
+    writers[key] = open(path, "w")
+                   ^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz.X_tv_snp.vcf'
+{'TP': {}, 'FP': {}, 'FN': {}}
+=== ccv20260529r6_ont_snv_alignstats ===
+--- sentieon and concordance logs ---
+### results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/logs/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.altair-v1.1.parse_vcfeval_summary.log
+could not convert string to float: 'na'
+ARGS ['workflow/scripts/parse-vcfeval-summary.py', 'results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1.1/summary.txt', 'TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION', '/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/altair-v1.1/HG003.bed', 'altair-v1.1', 'HG003', 'results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1.1/vcfeval_summary.parsed.tsv', 'na', 'ont', 'na', 'sentdont']
+VARCOV: -1 -- COVBINIS: -2
+ bcftools  annotate  -x INFO/datasets,INFO/platforms,INFO/callsetnames,INFO/platformnames,INFO/callable,INFO/datasetnames  --threads 16 -O z -o results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1.1/tp.vcf.gz; tabix -f results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz;
+Warning: The tag "datasets" not defined in the header
+Warning: The tag "platforms" not defined in the header
+Warning: The tag "callsetnames" not defined in the header
+Warning: The tag "platformnames" not defined in the header
+Warning: The tag "callable" not defined in the header
+Warning: The tag "datasetnames" not defined in the header
+[E::hts_open_format] Failed to open file "results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz" : No such file or directory
+[init_data] Error: cannot write to "results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz": No such file or directory
+tbx_index_build3 failed: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz
+env python workflow/scripts/classify_var_by_type_size.py results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz TP 349207502.0 results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1.1/tp.count TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION HG003
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 78, in <module>
+    with _open_text(in_vcf) as in_fh:
+         ^^^^^^^^^^^^^^^^^^
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 22, in _open_text
+    return gzip.open(path, "rt")
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/lib/python3.12/gzip.py", line 65, in open
+    binary_file = GzipFile(filename, gz_mode, compresslevel)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/lib/python3.12/gzip.py", line 201, in __init__
+    fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 100, in <module>
+    writers[key] = open(path, "w")
+                   ^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/tp_vcf_gz_stripped.vcf.gz.X_tv_snp.vcf'
+ bcftools  annotate  -x INFO/datasets,INFO/platforms,INFO/callsetnames,INFO/platformnames,INFO/callable,INFO/datasetnames  --threads 16 -O z -o results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1.1/fp.vcf.gz; tabix -f results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz;
+Warning: The tag "datasets" not defined in the header
+Warning: The tag "platforms" not defined in the header
+Warning: The tag "callsetnames" not defined in the header
+Warning: The tag "platformnames" not defined in the header
+Warning: The tag "callable" not defined in the header
+Warning: The tag "datasetnames" not defined in the header
+[E::hts_open_format] Failed to open file "results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz" : No such file or directory
+[init_data] Error: cannot write to "results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz": No such file or directory
+tbx_index_build3 failed: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz
+env python workflow/scripts/classify_var_by_type_size.py results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz FP 349207502.0 results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1.1/fp.count TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION HG003
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 78, in <module>
+    with _open_text(in_vcf) as in_fh:
+         ^^^^^^^^^^^^^^^^^^
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 22, in _open_text
+    return gzip.open(path, "rt")
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/lib/python3.12/gzip.py", line 65, in open
+    binary_file = GzipFile(filename, gz_mode, compresslevel)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/lib/python3.12/gzip.py", line 201, in __init__
+    fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 100, in <module>
+    writers[key] = open(path, "w")
+                   ^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fp_vcf_gz_stripped.vcf.gz.X_tv_snp.vcf'
+ bcftools  annotate  -x INFO/datasets,INFO/platforms,INFO/callsetnames,INFO/platformnames,INFO/callable,INFO/datasetnames  --threads 16 -O z -o results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1.1/fn.vcf.gz; tabix -f results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz;
+[E::hts_open_format] Failed to open file "results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz" : No such file or directory
+[init_data] Error: cannot write to "results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz": No such file or directory
+tbx_index_build3 failed: results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz
+env python workflow/scripts/classify_var_by_type_size.py results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz FN 349207502.0 results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1.1/fn.count TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION HG003
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 78, in <module>
+    with _open_text(in_vcf) as in_fh:
+         ^^^^^^^^^^^^^^^^^^
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 22, in _open_text
+    return gzip.open(path, "rt")
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/lib/python3.12/gzip.py", line 65, in open
+    binary_file = GzipFile(filename, gz_mode, compresslevel)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/lib/python3.12/gzip.py", line 201, in __init__
+    fileobj = self.myfileobj = builtins.open(filename, mode or 'rb')
+                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz'
+
+During handling of the above exception, another exception occurred:
+
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis/workflow/scripts/classify_var_by_type_size.py", line 100, in <module>
+    writers[key] = open(path, "w")
+                   ^^^^^^^^^^^^^^^
+FileNotFoundError: [Errno 2] No such file or directory: 'results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/concordance/_altair-v1_1/fn_vcf_gz_stripped.vcf.gz.X_tv_snp.vcf'
+{'TP': {}, 'FP': {}, 'FN': {}}
+### results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.snv.log
+progress 100% @chr21:39000001, elapsed 3.3s, est remaining 0.0s, peak mem 772MB, user 601.0s, sys 11.2s, output queue size 4533
+sw version: sentieon-genomics-202503.02
+os version: Linux 6.8.0-1029-aws
+cpu vendor: GenuineIntel
+ signature: 000806f8
+  features: bfebfbff 7ffefbff
+  extended: f3bfb7ef fb417ffe
+  amd bits: 2c100800 00000121
+     brand: Intel(R) Xeon(R) Platinum 8488C
+threads: 191 max 192
+algo: DNAModelApply
+license: sentieon:DNAscope=191 ont:dnamodel=1
+reads: 0
+contig: 3367 intervals 3217346917 bases
+advance: 3219322 calls 0.258 user 3.555 sys 3.949 real
+collect_data: 2780 calls 205.807 user 0.929 sys 207.694 real
+done: 1 calls 0.045 user 0.000 sys 0.045 real
+encode_data: 2780 calls 1.343 user 0.472 sys 1.923 real
+execute: 1 calls 0.004 user 0.000 sys 3.899 real
+fetch: 6494 calls 2.888 user 0.577 sys 3.643 real
+idle: 954 calls 0.043 user 0.030 sys 666.652 real
+init: 1 calls 1.647 user 0.540 sys 2.382 real
+predict: 2780 calls 275.540 user 0.113 sys 276.448 real
+write_vcf: 2780 calls 110.992 user 0.193 sys 111.421 real
+overall: 810348544 mem 605.086 user 13.651 sys 6.802 real
+cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 191 --interval_padding 0 --algo DNAModelApply --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle/haploid_model --vcf /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_hap1_patch.vcf.gz /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_hap1.vcf.gz
+This software is--output truncated--

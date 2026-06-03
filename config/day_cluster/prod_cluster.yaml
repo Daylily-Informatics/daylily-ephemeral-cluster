@@ -6,6 +6,7 @@ HeadNode:
   Networking:
     ElasticIp: true
     SubnetId: ${REGSUB_PUB_SUBNET}  # subnet-018d25d2f208a83a2
+    # ${REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING}
   DisableSimultaneousMultithreading: false
   Dcv:
     Enabled: false
@@ -35,7 +36,6 @@ HeadNode:
     AdditionalIamPolicies:
       - Policy: ${REGSUB_S3_IAM_POLICY} 
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-      - Policy: ${REGSUB_HEADNODE_TAILSCALE_IAM_POLICY}
 Scheduling:
   Scheduler: slurm
   SlurmSettings:
@@ -44,6 +44,7 @@ Scheduling:
     Dns:
       DisableManagedDns: false
     QueueUpdateStrategy: DRAIN
+    # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
   SlurmQueues:
     - Name: i8
       CapacityType: SPOT
@@ -215,6 +216,208 @@ Scheduling:
             - InstanceType: r7i.metal-48xl 
           MinCount: 0
           MaxCount: ${REGSUB_MAX_COUNT_192I}
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+      Networking:
+        SubnetIds:
+          - ${REGSUB_PRIVATE_SUBNET}
+      CustomActions:
+        OnNodeConfigured:
+          Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+          Args:
+            - ${REGSUB_REGION}
+            - ${REGSUB_S3_BUCKET_INIT}
+      Iam:
+        S3Access: *dayoa_s3_access
+        AdditionalIamPolicies:
+          - Policy: ${REGSUB_S3_IAM_POLICY}
+          - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+    - Name: bcl-convert
+      CapacityType: SPOT
+      AllocationStrategy: capacity-optimized
+      ComputeSettings:
+        LocalStorage:
+          # /scratch is node-local instance-store. It is ephemeral and not durable.
+          # BCL Convert jobs must copy successful outputs back to shared storage.
+          EphemeralVolume:
+            MountDir: /scratch
+      ComputeResources:
+        - Name: nvme128
+          Instances:
+            - InstanceType: i4i.32xlarge
+          MinCount: 0
+          MaxCount: 4
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+        - Name: nvme96
+          Instances:
+            - InstanceType: i4i.24xlarge
+            - InstanceType: i3en.24xlarge
+          MinCount: 0
+          MaxCount: 4
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+        - Name: nvme64
+          Instances:
+            - InstanceType: i4i.16xlarge
+          MinCount: 0
+          MaxCount: 4
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+        - Name: nvme48
+          Instances:
+            - InstanceType: i4i.12xlarge
+            - InstanceType: i3en.12xlarge
+          MinCount: 0
+          MaxCount: 4
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+      Networking:
+        SubnetIds:
+          - ${REGSUB_PRIVATE_SUBNET}
+      CustomActions:
+        OnNodeConfigured:
+          Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+          Args:
+            - ${REGSUB_REGION}
+            - ${REGSUB_S3_BUCKET_INIT}
+      Iam:
+        S3Access: *dayoa_s3_access
+        AdditionalIamPolicies:
+          - Policy: ${REGSUB_S3_IAM_POLICY}
+          - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+    - Name: bcl2fq-i192-nvme-test
+      CapacityType: SPOT
+      AllocationStrategy: capacity-optimized
+      ComputeSettings:
+        LocalStorage:
+          EphemeralVolume:
+            MountDir: /scratch
+      ComputeResources:
+        - Name: c8id192
+          Instances:
+            - InstanceType: c8id.metal-48xl
+          MinCount: 0
+          MaxCount: 4
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+        - Name: r8id192
+          Instances:
+            - InstanceType: r8id.metal-48xl
+          MinCount: 0
+          MaxCount: 4
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+      Networking:
+        SubnetIds:
+          - ${REGSUB_PRIVATE_SUBNET}
+      CustomActions:
+        OnNodeConfigured:
+          Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+          Args:
+            - ${REGSUB_REGION}
+            - ${REGSUB_S3_BUCKET_INIT}
+      Iam:
+        S3Access: *dayoa_s3_access
+        AdditionalIamPolicies:
+          - Policy: ${REGSUB_S3_IAM_POLICY}
+          - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+    - Name: bcl2fq-amd-192-test
+      CapacityType: SPOT
+      AllocationStrategy: capacity-optimized
+      ComputeResources:
+        - Name: camd192
+          Instances:
+            - InstanceType: c8a.metal-48xl
+            - InstanceType: c8a.48xlarge
+            - InstanceType: c6a.metal
+          MinCount: 0
+          MaxCount: 4
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+        - Name: ramd192
+          Instances:
+            - InstanceType: r6a.metal
+          MinCount: 0
+          MaxCount: 4
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+      Networking:
+        SubnetIds:
+          - ${REGSUB_PRIVATE_SUBNET}
+      CustomActions:
+        OnNodeConfigured:
+          Script: ${REGSUB_S3_BUCKET_INIT}/post_install_ubuntu_combined.sh
+          Args:
+            - ${REGSUB_REGION}
+            - ${REGSUB_S3_BUCKET_INIT}
+      Iam:
+        S3Access: *dayoa_s3_access
+        AdditionalIamPolicies:
+          - Policy: ${REGSUB_S3_IAM_POLICY}
+          - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
+    - Name: bcl2fq-i384-nvme-test
+      CapacityType: SPOT
+      AllocationStrategy: capacity-optimized
+      ComputeSettings:
+        LocalStorage:
+          EphemeralVolume:
+            MountDir: /scratch
+      ComputeResources:
+        - Name: c8id384
+          Instances:
+            - InstanceType: c8id.metal-96xl
+            - InstanceType: c8id.96xlarge
+          MinCount: 0
+          MaxCount: 4
+          SpotPrice: CALCULATE_MAX_SPOT_PRICE
+          Networking:
+            PlacementGroup:
+              Enabled: false
+          Efa:
+            Enabled: false
+        - Name: mr8id384
+          Instances:
+            - InstanceType: r8id.metal-96xl
+            - InstanceType: m8id.metal-96xl
+          MinCount: 0
+          MaxCount: 4
           SpotPrice: CALCULATE_MAX_SPOT_PRICE
           Networking:
             PlacementGroup:

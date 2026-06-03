@@ -19,7 +19,7 @@ from daylily_ec.scripts.common import CommandError, need_cmd, resolve_cluster, r
 
 
 def _load_default_repo() -> tuple[str, str]:
-    cfg_path = resource_path("config/daylily_available_repositories.yaml")
+    cfg_path = resource_path("config/daylily_pipeline_command_catalog.yaml")
     cfg = yaml.safe_load(Path(cfg_path).read_text(encoding="utf-8")) or {}
     repo_key = cfg.get("default_repository") or "daylily-omics-analysis"
     repo = (cfg.get("repositories") or {}).get(repo_key) or {}

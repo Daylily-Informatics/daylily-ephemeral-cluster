@@ -1,0 +1,47 @@
+command_id=21fdd5f4-5a35-469e-a60d-51a2353a2d5f
+DAY-EC activated.
+DAY-EC activated.
+wrote config/samples.tsv with 41 samples
+wrote config/bclconvert_scratch_dra.yaml
+ M config/day_profiles/local/templates/rule_config.yaml
+ M config/day_profiles/slurm/templates/rule_config.yaml
+ M tests/test_bclconvert_bootstrap.sh
+ M tests/test_bclconvert_multiqc.py
+ M workflow/rules/bclconvert.smk
+ M workflow/scripts/run_bclconvert_lane.sh
+?? config/bclconvert_scratch_dra.yaml
+42 config/samples.tsv
+bootstrap_bclconvert: true
+bclconvert:
+  run_id: fasts_from_bclconvert
+  run_dir: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+  sample_sheet: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+  output_root: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+  partition: bcl2fq
+  constraint: "--constraint=nvme48"
+  threads: 48
+  mem_mb: 300000
+  tmpdir: /scratch/dayoa_bclconvert_tmp
+  scratch_output_root: /scratch/dayoa_bclconvert
+  parallel_tiles: 8
+  conversion_threads: 2
+  compression_threads: 24
+  decompression_threads: 8
+  tile_shard_level: lane
+  tile_shard_lanes: ""
+  tile_shard_threads: 48
+  tile_shard_mem_mb: 300000
+  tile_parallel_tiles: 8
+  tile_conversion_threads: 2
+  tile_compression_threads: 24
+  tile_decompression_threads: 8
+  merge_lane_fastqs: false
+  merge_tile_fastqs: false
+  shared_thread_odirect_output: false
+  fastq_gzip_compression_level: 1
+  output_legacy_stats: true
+  num_unknown_barcodes_reported: 1000
+  strict_mode: false
+  first_tile_only: false
+  sampleproject_subdirectories: false
+  keep_undetermined_fastqs: true

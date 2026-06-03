@@ -1,0 +1,222 @@
+DAY-EC activated.
+DAY-EC activated.
+            exit 0
+        fi
+        if [[ "${#r1_inputs[@]}" -ne "${#r2_inputs[@]}" ]]; then
+            printf 'fastqc_subsampled requires matched R1/R2 FASTQ counts for %s; got R1=%s R2=%s
+' "JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ" "${#r1_inputs[@]}" "${#r2_inputs[@]}" >&2
+            exit 1
+        fi
+        fastqc_inputs=()
+        for idx in "${!r1_inputs[@]}"; do
+            lane_idx="$(printf '%03d' "$((idx + 1))")"
+            lane_suffix=""
+            if [[ "${#r1_inputs[@]}" -gt 1 ]]; then
+                lane_suffix=".${lane_idx}"
+            fi
+            r1_link="${input_dir}/${sample_name}.R1${lane_suffix}.fastq.gz"
+            r2_link="${input_dir}/${sample_name}.R2${lane_suffix}.fastq.gz"
+            ln -sfn "$(realpath "${r1_inputs[$idx]}")" "${r1_link}"
+            ln -sfn "$(realpath "${r2_inputs[$idx]}")" "${r2_link}"
+            fastqc_inputs+=("${r1_link}" "${r2_link}")
+        done
+        #fastqc -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc -t 32 -d results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp  <(seqkit sample --proportion 0.25 <(seqfu interleave -1 <(unpigz -c -q -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz) -2 <(unpigz -c -q -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz) ) )  ;
+        fastqc -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc -t 32 -d results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/tmp "${fastqc_inputs[@]}"
+        rm -f "${fastqc_inputs[@]}"
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done_subsampled_at_0.25;
+        ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/fastqc/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.fastqc.done;
+
+Submitted job 90 with external jobid '2661'.
+
+[Sat May 30 07:11:35 2026]
+rule seqfu:
+    input: /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz, /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log
+    jobid: 92
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+    threads: 16
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv);
+        r1_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz)
+        r2_inputs=(/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz)
+        if [[ "${#r1_inputs[@]}" -eq 0 && "${#r2_inputs[@]}" -eq 0 ]]; then
+            printf 'SKIP: seqfu found no paired FASTQ inputs for %s; likely CRAM/BAM-only or manifest FASTQ path is na.
+' "JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ" > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log
+            printf 'NO DATA FOUND
+' > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv
+            printf 'NO DATA FOUND
+' > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv
+            touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done
+            exit 0
+        fi
+        ( cat  <(gzip -dc -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz ) | env    seqfu stats --nice -b  --verbose --multiqc ./results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv - &
+        cat <(gzip -dc -- /fsx/staging/staged_external_sequencing_data/remote_stage_20260529T202437Z_6ac53e3a/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz ) | env    seqfu stats --nice -b  --verbose --multiqc ./results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv - &
+        wait;
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done;) > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.log
+        ls results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR1.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfuR2.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/seqqc/seqfu/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.seqfu.done;
+
+Submitted job 92 with external jobid '2662'.
+Touching output file results/day/hg38/other_reports/samtools_metrics_gather.done.
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+[Sat May 30 07:11:35 2026]
+Finished job 106.
+1 of 161 steps (1%) done
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+[Sat May 30 07:11:35 2026]
+Finished job 8.
+2 of 161 steps (1%) done
+[Sat May 30 07:11:35 2026]
+Finished job 7.
+3 of 161 steps (2%) done
+Select jobs to execute...
+
+[Sat May 30 07:11:35 2026]
+localrule workflow_staging:
+    input: logs/supporting_data_staging.done
+    output: logs/workflow_staging.done
+    log: logs/workflow_staging.log
+    jobid: 6
+    reason: Missing output files: logs/workflow_staging.done; Input files updated by another job: logs/supporting_data_staging.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+(mkdir -p results/ && mkdir -p logs/ && mkdir -p tmp/ && mkdir -p results/day/hg38/reports/ && mkdir -p results/day/hg38/other_reports ) > logs/workflow_staging.log 2>&1;mkdir -p results/day/hg38/other_reports;touch logs/workflow_staging.done
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/f02f4b1dcb4977fd9602b074e7c885b9_
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+aligners: [sent]
+aligners (final): [sent]
+deduper (final): [dmd]
+[Sat May 30 07:11:35 2026]
+Finished job 6.
+4 of 161 steps (2%) done
+Select jobs to execute...
+
+[Sat May 30 07:11:35 2026]
+Job 5: You can override the defalt mesage output to the terminal per rule execution if you wish, including wildcards and config variables.  This is for sample sample.
+Reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.dirsetup.ready; Input files updated by another job: logs/workflow_staging.done
+
+
+        ( mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.dirsetup.ready ) || echo "ERROR:: mkdir $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.dirsetup.ready )  FAILED";
+        touch results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.dirsetup.ready; ) > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.dirsetup.log 2>&1;
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/f02f4b1dcb4977fd9602b074e7c885b9_
+SNV Callers:[sentd]
+SNV Callers (final): [sentd]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/config/units.tsv
+[Sat May 30 07:11:36 2026]
+Finished job 5.
+5 of 161 steps (3%) done
+Select jobs to execute...
+
+[Sat May 30 07:11:36 2026]
+rule sentieon_bwa_sort:
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.dirsetup.ready, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.R1.fastq.gz, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.R2.fastq.gz
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.bam, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.bam.bai
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log
+    jobid: 4
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.alNsort.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.bam.bai, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.bam; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.dirsetup.ready, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.R1.fastq.gz, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.R2.fastq.gz
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+    priority: 5
+    threads: 192
+    resources: mem_mb=300000, mem_mib=286103, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=192, time=5440, partition=i192mem,i192bigmem, vcpu=192, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+
+        if [ -z "$SENTIEON_LICENSE" ]; then
+            echo "SENTIEON_LICENSE not set. Please set the SENTIEON_LICENSE environment variable to the license file path & make this update to your dyinit file as well." >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+            exit 3;
+        fi
+
+        if [ ! -f "$SENTIEON_LICENSE" ]; then
+            echo "The file referenced by SENTIEON_LICENSE ('$SENTIEON_LICENSE') does not exist. Please provide a valid file path." >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+            exit 4;
+        fi
+
+        TOKEN=$(curl -X PUT 'http://169.254.169.254/latest/api/token' -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600');
+        itype=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-type);
+        echo "INSTANCE TYPE: $itype" > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log;
+        start_time=$(date +%s);
+        export bwt_max_mem=180G ;
+        epocsec=$(date +'%s');
+
+        ulimit -n 65536 || echo "ulimit mod failed" > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+
+        timestamp=$(date +%Y%m%d%H%M%S)_$$;
+        main_bashpid=${BASHPID:-};
+        tmp_root=$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log)/../tmp;
+        mkdir -p "$tmp_root";
+        export TMPDIR="$tmp_root";
+        meta_tmp=$TMPDIR/sentieon_meta_$timestamp;
+        sort_tmp=$TMPDIR/sentieon_sort_$timestamp;
+        export SENTIEON_TMPDIR=$TMPDIR/sentieon_driver_tmp_$timestamp;
+        export APPTAINER_HOME=$meta_tmp/apptainer_home;
+
+        mkdir -p "$sort_tmp" "$SENTIEON_TMPDIR" "$APPTAINER_HOME";
+        trap 'status=$?; if [ "${BASHPID:-}" != "$main_bashpid" ]; then exit "$status"; fi; echo "Cleanup TMPDIR_BASE=$TMPDIR meta_tmp=$meta_tmp sort_tmp=$sort_tmp SENTIEON_TMPDIR=$SENTIEON_TMPDIR APPTAINER_HOME=$APPTAINER_HOME status=$status" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1; df -h "$TMPDIR" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1 || true; ls -ld "$TMPDIR" "$meta_tmp" "$sort_tmp" "$SENTIEON_TMPDIR" "$APPTAINER_HOME" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1 || true; find "$meta_tmp" -maxdepth 3 -type f -ls 2>/dev/null | head -200 >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1 || true; find "$sort_tmp" -maxdepth 3 -type f -ls 2>/dev/null | head -200 >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1 || true; find "$SENTIEON_TMPDIR" -maxdepth 3 -type f -ls 2>/dev/null | head -200 >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1 || true; if [ "$status" -eq 0 ]; then rm -rf "$meta_tmp" "$sort_tmp" "$SENTIEON_TMPDIR" 2>/dev/null || true; else echo "Preserving scratch after failure under $TMPDIR" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1; fi; trap - EXIT; exit "$status"' EXIT;
+        echo "TMPDIR_BASE: $TMPDIR" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log;
+        echo "META_TMP: $meta_tmp" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log;
+        echo "SORT_TMP: $sort_tmp" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log;
+        echo "SENTIEON_TMPDIR: $SENTIEON_TMPDIR" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log;
+        echo "APPTAINER_HOME: $APPTAINER_HOME" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log;
+
+        # Find the jemalloc library in the active conda environment
+        jemalloc_path="";
+        for _dir in "$CONDA_PREFIX/lib" "$CONDA_PREFIX/lib64" "$CONDA_PREFIX/lib/x86_64-linux-gnu"; do
+            if [[ -d "$_dir" ]]; then
+                for _ext in so dylib; do
+                    _candidate=$(find "$_dir" -maxdepth 1 -name "libjemalloc*.$_ext*" 2>/dev/null | head -n 1);
+                    if [[ -n "$_candidate" && -r "$_candidate" ]]; then
+                        jemalloc_path="$_candidate";
+                        break 2;
+                    fi
+                done
+            fi
+        done
+
+        # Check if jemalloc was found and set LD_PRELOAD accordingly
+        if [[ -n "$jemalloc_path" ]]; then
+            export LD_PRELOAD="$jemalloc_path";
+            export MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000;
+            echo "LD_PRELOAD set to: $LD_PRELOAD" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log;
+            echo "MALLOC_CONF set to: $MALLOC_CONF" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log;
+        else
+            echo "libjemalloc not found in CONDA_PREFIX=$CONDA_PREFIX (searched lib, lib64, lib/x86_64-linux-gnu)." >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log;
+            echo "libjemalloc not found in CONDA_PREFIX=$CONDA_PREFIX (searched lib, lib64, lib/x86_64-linux-gnu).";
+            exit 3;
+        fi
+
+        if [[ -n "" ]]; then
+            echo "ILMN_TRIM_READ_LENGTH: trimming reads via seqkit subseq" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+        fi
+
+        LD_PRELOAD=$LD_PRELOAD /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/sentieon bwa mem         -t 96    -k 19 -Y -M -K 10000000           -x /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaWGS2.2.bundle/bwa.model         -R "@RG\tID:JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ-$epocsec\tSM:JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ\tLB:JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ-LB-1\tPL:ILLUMINA"         /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta           <(   igzip -cd -T 32  -q  results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.R1.fastq.gz  )              <(   igzip -cd -T 32  -q  results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.R2.fastq.gz  )    | mbuffer -m 128G -q -s 2M           | /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/sentieon  util sort         -t  96         --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta         --cram_write_options version=3.0,compressor=rans         --sortblock_thread_count 96         --bam_compression 1         --temp_dir "$sort_tmp"         --intermediate_compress_level 1          --block_size 4G           --sam2bam         -o results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.bam - >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+
+        #samtools index -b -@ 192 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.bam.bai  >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+
+        end_time=$(date +%s);
+    	elapsed_time=$((($end_time - $start_time) / 60));
+        echo "Elapsed-Time-min:	$itype	$elapsed_time" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+
+Submitted job 4 with external jobid '2663'.
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 8
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=1, time=5440, vcpu=1
+Select jobs to execute...
+[Sat May 30 07:11:38 2026]
+Finished job 93.
+6 of 161 steps (4%) done

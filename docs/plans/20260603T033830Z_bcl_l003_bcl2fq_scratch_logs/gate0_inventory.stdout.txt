@@ -1,0 +1,61 @@
+command_id=55b22a9f-7890-4bfb-b319-a25c639d5a40
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T03:39:36+00:00
+__HOST__=ip-10-0-0-235
+__WHOAMI__=ubuntu
+
+__MOUNT_AND_DEST__
+run_dir=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 exists=yes
+sample_sheet=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv exists=yes
+basecalls_L003=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Data/Intensities/BaseCalls/L003 exists=yes
+dest=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_scratch_test exists=no
+parent_writable_by_ubuntu=no
+
+__BCL2FQ_PARTITION__
+PARTITION AVAIL TIMELIMIT NODES STATE NODELIST
+bcl2fq up infinite 4 down# bcl2fq-dy-nvme48-[1-4]
+bcl2fq up infinite 12 idle~ bcl2fq-dy-nvme64-[1-4],bcl2fq-dy-nvme96-[1-4],bcl2fq-dy-nvme128-[1-4]
+
+__BCL2FQ_NODES__
+NODELIST STATE CPUS MEMORY AVAIL_FEATURES REASON
+bcl2fq-dy-nvme48-1 down# 48 373555 dynamic,nvme48 (Code:InsufficientInstanceCapacity)Failure when resuming nodes
+bcl2fq-dy-nvme48-2 down# 48 373555 dynamic,nvme48 (Code:InsufficientInstanceCapacity)Failure when resuming nodes
+bcl2fq-dy-nvme48-3 down# 48 373555 dynamic,nvme48 (Code:InsufficientInstanceCapacity)Failure when resuming nodes
+bcl2fq-dy-nvme48-4 down# 48 373555 dynamic,nvme48 (Code:InsufficientInstanceCapacity)Failure when resuming nodes
+bcl2fq-dy-nvme64-1 idle~ 64 498073 dynamic,i4i.16xlarge,nvme64 none
+bcl2fq-dy-nvme64-2 idle~ 64 498073 dynamic,i4i.16xlarge,nvme64 none
+bcl2fq-dy-nvme64-3 idle~ 64 498073 dynamic,i4i.16xlarge,nvme64 none
+bcl2fq-dy-nvme64-4 idle~ 64 498073 dynamic,i4i.16xlarge,nvme64 none
+bcl2fq-dy-nvme96-1 idle~ 96 747110 dynamic,nvme96 none
+bcl2fq-dy-nvme96-2 idle~ 96 747110 dynamic,nvme96 none
+bcl2fq-dy-nvme96-3 idle~ 96 747110 dynamic,nvme96 none
+bcl2fq-dy-nvme96-4 idle~ 96 747110 dynamic,nvme96 none
+bcl2fq-dy-nvme128-1 idle~ 128 996147 dynamic,i4i.32xlarge,nvme128 none
+bcl2fq-dy-nvme128-2 idle~ 128 996147 dynamic,i4i.32xlarge,nvme128 none
+bcl2fq-dy-nvme128-3 idle~ 128 996147 dynamic,i4i.32xlarge,nvme128 none
+bcl2fq-dy-nvme128-4 idle~ 128 996147 dynamic,i4i.32xlarge,nvme128 none
+
+__QUEUE__
+             JOBID  PARTITION                                          NAME     USER ST       TIME  NODES                                                                 NODELIST(REASON)
+                 9     bcl2fq       run_bclconvert_lane-run_bclconvert_L005   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+                 8     bcl2fq       run_bclconvert_lane-run_bclconvert_L004   ubuntu PD       0:00      1                                                                      (BeginTime)
+                 7     bcl2fq       run_bclconvert_lane-run_bclconvert_L007   ubuntu PD       0:00      1                                                                      (BeginTime)
+                 6     bcl2fq       run_bclconvert_lane-run_bclconvert_L002   ubuntu PD       0:00      1                                                                      (BeginTime)
+                 5     bcl2fq       run_bclconvert_lane-run_bclconvert_L006   ubuntu PD       0:00      1                                                                      (BeginTime)
+                 4     bcl2fq       run_bclconvert_lane-run_bclconvert_L008   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+                 3     bcl2fq       run_bclconvert_lane-run_bclconvert_L003   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+                 2     bcl2fq       run_bclconvert_lane-run_bclconvert_L001   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+                 1     bcl2fq                         bcl2fq_scratch_to_dra   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+
+__TMUX__
+bcl2fq_scratch_dra_20260603T011121Z: 1 windows (created Wed Jun  3 01:18:13 2026)
+dayoa_bcl2fq_scratch_dra_20260603: 1 windows (created Wed Jun  3 03:05:52 2026)
+
+__DAYOA_HELPERS__
+/home/ubuntu/.local/bin/day-clone
+/usr/bin/tmux
+/usr/bin/git
+
+__FSX_WORKSETS__
+drwxrwxr-x 3 ubuntu ubuntu 33280 Jun  3 03:05 /fsx/analysis_results/dyec0602bcl

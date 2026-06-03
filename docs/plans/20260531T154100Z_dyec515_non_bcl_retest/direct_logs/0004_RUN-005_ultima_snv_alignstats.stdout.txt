@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=d515_0531t1541_r2d_005_ug_snv
+__DAYLILY_TMUX_SESSION__=d515_0531t1541_r2d_005_ug_snv
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/d515_0531t1541_r2d_005_ug_snv
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/dyec-515/d515_0531t1541_r2d_005_ug_snv/daylily-omics-analysis
+Tmux session 'd515_0531t1541_r2d_005_ug_snv' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/d515_0531t1541_r2d_005_ug_snv
+Workflow repo path: /fsx/analysis_results/dyec-515/d515_0531t1541_r2d_005_ug_snv/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster dyec-515
+Then run: tmux attach -t d515_0531t1541_r2d_005_ug_snv

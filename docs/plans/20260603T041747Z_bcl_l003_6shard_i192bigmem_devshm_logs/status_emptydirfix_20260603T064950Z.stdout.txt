@@ -1,0 +1,179 @@
+DAY-EC activated.
+COMMAND_ID=ff65062f-8a33-4f7c-9bf9-d532410fe708
+DAY-EC activated.
+DAY-EC activated.
+timestamp_utc	2026-06-03T06:49:56Z
+
+== squeue ==
+JOBID|PARTITION|NAME|STATE|TIME|NODES|CPUS|MIN_MEMORY|NODELIST(REASON)
+37|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0002_tiles0132-0262|PENDING|0:00|1|192|1200000M|(Resources)
+38|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0004_tiles0394-0524|PENDING|0:00|1|192|1200000M|(ReqNodeNotAvail, UnavailableNodes:i192bigmem-dy-all-1)
+39|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0006_tiles0655-0784|PENDING|0:00|1|192|1200000M|(ReqNodeNotAvail, UnavailableNodes:i192bigmem-dy-all-1)
+40|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0001_tiles0001-0131|PENDING|0:00|1|192|1200000M|(ReqNodeNotAvail, UnavailableNodes:i192bigmem-dy-all-1)
+41|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0003_tiles0263-0393|PENDING|0:00|1|192|1200000M|(Priority)
+36|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0005_tiles0525-0654|RUNNING|0:07|1|192|1200000M|i192bigmem-dy-all-1
+
+== sinfo ==
+PARTITION|AVAIL|TIMELIMIT|NODES|STATE|NODELIST|AVAIL_FEATURES|GRES
+i192bigmem|up|infinite|1|alloc|i192bigmem-dy-all-1|dynamic,all|(null)
+bcl2fq|up|infinite|4|idle~|bcl2fq-dy-nvme48-[1-4]|dynamic,nvme48|(null)
+bcl2fq|up|infinite|4|idle~|bcl2fq-dy-nvme64-[1-4]|dynamic,i4i.16xlarge,nvme64|(null)
+bcl2fq|up|infinite|4|idle~|bcl2fq-dy-nvme96-[1-4]|dynamic,nvme96|(null)
+bcl2fq|up|infinite|4|idle~|bcl2fq-dy-nvme128-[1-4]|dynamic,i4i.32xlarge,nvme128|(null)
+
+== tmux tail ==
+bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/tile_fastqs/
+L003/0003_tiles0263-0393 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/nor
+malized.SampleSheet.csv 3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/f
+asts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/ti
+le_reports/L003/0003_tiles0263-0393/SampleSheet.csv false false false 1 24 4 64
+32 false true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2":
+"0"}' '{}' __dayoa_no_force__ 192 /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T
+0642Z/logs/run_bclconvert.L003.0003_tiles0263-0393.log /fsx/run_dir_mounts/20260
+514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_
+emptydirfix_20260603T0642Z/tile_fastqs/L003/0003_tiles0263-0393/Reports/fastq_li
+st.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconver
+t_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/tile_fastqs/L003/0003
+_tiles0263-0393/Reports/Demultiplex_Stats.csv /fsx/run_dir_mounts/20260514_LH011
+06_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirf
+ix_20260603T0642Z/tile_reports/L003/0003_tiles0263-0393/bclconvert.done s_3_1367
++s_3_1368+s_3_1369+s_3_1370+s_3_1371+s_3_1372+s_3_1373+s_3_1374+s_3_1375+s_3_137
+6+s_3_1377+s_3_1378+s_3_1379+s_3_1380+s_3_1381+s_3_1382+s_3_1383+s_3_1384+s_3_13
+85+s_3_1386+s_3_1387+s_3_1388+s_3_1389+s_3_1390+s_3_1391+s_3_1392+s_3_1393+s_3_1
+394+s_3_1395+s_3_1396+s_3_1397+s_3_1398+s_3_1401+s_3_1402+s_3_1403+s_3_1404+s_3_
+1405+s_3_1406+s_3_1407+s_3_1408+s_3_1409+s_3_1410+s_3_1411+s_3_1412+s_3_1413+s_3
+_1414+s_3_1415+s_3_1416+s_3_1417+s_3_1418+s_3_1419+s_3_1420+s_3_1421+s_3_1422+s_
+3_1423+s_3_1424+s_3_1425+s_3_1426+s_3_1427+s_3_1428+s_3_1429+s_3_1430+s_3_1431+s
+_3_1432+s_3_1433+s_3_1434+s_3_1435+s_3_1436+s_3_1437+s_3_1438+s_3_1439+s_3_1440+
+s_3_1441+s_3_1442+s_3_1443+s_3_1444+s_3_1445+s_3_1446+s_3_1447+s_3_1448+s_3_1449
++s_3_1450+s_3_1451+s_3_1452+s_3_1453+s_3_1454+s_3_1455+s_3_1456+s_3_1457+s_3_145
+8+s_3_1459+s_3_1460+s_3_1461+s_3_1462+s_3_1463+s_3_1464+s_3_1465+s_3_1466+s_3_14
+67+s_3_1468+s_3_1469+s_3_1470+s_3_1471+s_3_1472+s_3_1473+s_3_1474+s_3_1475+s_3_1
+476+s_3_1477+s_3_1478+s_3_1479+s_3_1480+s_3_1481+s_3_1482+s_3_1483+s_3_1484+s_3_
+1485+s_3_1486+s_3_1487+s_3_1488+s_3_1489+s_3_1490+s_3_1491+s_3_1492+s_3_1493+s_3
+_1494+s_3_1495+s_3_1496+s_3_1497+s_3_1498+s_3_2101 /dev/shm/dayoa_bclconvert 650
+000000000
+        (one of the commands exited with non-zero exit code; note that snakemake
+ uses bash strict mode!)
+    cluster_jobid: 35
+
+Error executing rule run_bclconvert_tile_shard on cluster (jobid: 6, external: 3
+5, jobscript: /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devsh
+m_emptydirfix_20260603T0642Z/daylily-omics-analysis/.snakemake/tmp.q2c5pk4n/snak
+ejob.run_bclconvert_tile_shard.6.sh). For error details see the cluster log and
+the log files of the involved rule(s).
+Trying to restart job 6.
+Select jobs to execute...
+
+[Wed Jun  3 06:49:53 2026]
+rule run_bclconvert_tile_shard:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/validated.ok
+, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l00
+3_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/normalized.SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/tile_reports/L00
+3/0003_tiles0263-0393/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009
+_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_2026
+0603T0642Z/tile_fastqs/L003/0003_tiles0263-0393/Reports/fastq_list.csv, /fsx/run
+_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i
+192bigmem_devshm_emptydirfix_20260603T0642Z/tile_fastqs/L003/0003_tiles0263-0393
+/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVL
+GLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T06
+42Z/tile_reports/L003/0003_tiles0263-0393/SampleSheet.csv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/run_bclconvert
+.L003.0003_tiles0263-0393.log
+    jobid: 6
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/benchmarks/ru
+n_bclconvert.L003.0003_tiles0263-0393.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T
+0642Z/tile_fastqs/L003/0003_tiles0263-0393/Reports/Demultiplex_Stats.csv, /fsx/r
+un_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard
+_i192bigmem_devshm_emptydirfix_20260603T0642Z/tile_reports/L003/0003_tiles0263-0
+393/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_
+from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/tile_fa
+stqs/L003/0003_tiles0263-0393/Reports/fastq_list.csv; Input files updated by ano
+ther job: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclcon
+vert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/validated.ok,
+ /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003
+_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/normalized.SampleSheet.csv
+    wildcards: lane=L003, shard=0003_tiles0263-0393
+    threads: 192
+    resources: mem_mb=1200000, mem_mib=1144410, disk_mb=1000, disk_mib=954, tmpd
+ir=<TBD>, threads=192, time=5440, partition=i192bigmem, vcpu=192, distribution=b
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm/dayoa_bclconvert_tmp bash workflow/scripts/run_bclconvert_lane.s
+h docker://nfcore/bclconvert:4.0.3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/tile_fastqs/L003/000
+3_tiles0263-0393 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from
+_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/normalized.
+SampleSheet.csv 3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fro
+m_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/tile_repor
+ts/L003/0003_tiles0263-0393/SampleSheet.csv false false false 1 24 4 64 32 false
+ true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{
+}' __dayoa_no_force__ 192 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/f
+asts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/lo
+gs/run_bclconvert.L003.0003_tiles0263-0393.log /fsx/run_dir_mounts/20260514_LH01
+106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydir
+fix_20260603T0642Z/tile_fastqs/L003/0003_tiles0263-0393/Reports/fastq_list.csv /
+fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6
+shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/tile_fastqs/L003/0003_tiles02
+63-0393/Reports/Demultiplex_Stats.csv /fsx/run_dir_mounts/20260514_LH01106_0009_
+B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260
+603T0642Z/tile_reports/L003/0003_tiles0263-0393/bclconvert.done s_3_1367+s_3_136
+8+s_3_1369+s_3_1370+s_3_1371+s_3_1372+s_3_1373+s_3_1374+s_3_1375+s_3_1376+s_3_13
+77+s_3_1378+s_3_1379+s_3_1380+s_3_1381+s_3_1382+s_3_1383+s_3_1384+s_3_1385+s_3_1
+386+s_3_1387+s_3_1388+s_3_1389+s_3_1390+s_3_1391+s_3_1392+s_3_1393+s_3_1394+s_3_
+1395+s_3_1396+s_3_1397+s_3_1398+s_3_1401+s_3_1402+s_3_1403+s_3_1404+s_3_1405+s_3
+_1406+s_3_1407+s_3_1408+s_3_1409+s_3_1410+s_3_1411+s_3_1412+s_3_1413+s_3_1414+s_
+3_1415+s_3_1416+s_3_1417+s_3_1418+s_3_1419+s_3_1420+s_3_1421+s_3_1422+s_3_1423+s
+_3_1424+s_3_1425+s_3_1426+s_3_1427+s_3_1428+s_3_1429+s_3_1430+s_3_1431+s_3_1432+
+s_3_1433+s_3_1434+s_3_1435+s_3_1436+s_3_1437+s_3_1438+s_3_1439+s_3_1440+s_3_1441
++s_3_1442+s_3_1443+s_3_1444+s_3_1445+s_3_1446+s_3_1447+s_3_1448+s_3_1449+s_3_145
+0+s_3_1451+s_3_1452+s_3_1453+s_3_1454+s_3_1455+s_3_1456+s_3_1457+s_3_1458+s_3_14
+59+s_3_1460+s_3_1461+s_3_1462+s_3_1463+s_3_1464+s_3_1465+s_3_1466+s_3_1467+s_3_1
+468+s_3_1469+s_3_1470+s_3_1471+s_3_1472+s_3_1473+s_3_1474+s_3_1475+s_3_1476+s_3_
+1477+s_3_1478+s_3_1479+s_3_1480+s_3_1481+s_3_1482+s_3_1483+s_3_1484+s_3_1485+s_3
+_1486+s_3_1487+s_3_1488+s_3_1489+s_3_1490+s_3_1491+s_3_1492+s_3_1493+s_3_1494+s_
+3_1495+s_3_1496+s_3_1497+s_3_1498+s_3_2101 /dev/shm/dayoa_bclconvert 65000000000
+0
+Submitted job 6 with external jobid '41'.
+
+
+== controller processes ==
+ubuntu    125229  123480  0 06:43 pts/2    00:00:00 bash bin/day_run produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime --configfile config/bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix.yaml
+ubuntu    125406  125229  0 06:43 pts/2    00:00:00 bash bin/day_run produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime --configfile config/bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix.yaml
+ubuntu    125407  125406  1 06:43 pts/2    00:00:05 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime --configfile config/bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix.yaml
+ubuntu    125408  125406  0 06:43 pts/2    00:00:00 bash bin/day_run produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime --configfile config/bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix.yaml
+
+== dest counts ==
+fastq_count	0
+done_count	0
+fastq_list_count	0
+bench_count	1
+
+== bcl log signals ==
+2026-06-03T06:43:21.0000000000 259 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/bclconvert_validate_inputs.log
+2026-06-03T06:43:21.0000000000 259 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/bclconvert_validate_inputs.warnings.log
+2026-06-03T06:43:22.0000000000 0 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/validated.ok
+2026-06-03T06:49:56.0000000000 5795 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/run_bclconvert.L003.0005_tiles0525-0654.log
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/run_bclconvert.L003.0005_tiles0525-0654.log:1:scratch_available_bytes: 1278242455552
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/run_bclconvert.L003.0005_tiles0525-0654.log:2:scratch_available_bytes_min: 650000000000
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/run_bclconvert.L003.0005_tiles0525-0654.log:9:scratch_available_bytes_min: 650000000000
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/run_bclconvert.L003.0005_tiles0525-0654.log:10:run_output_dir: /dev/shm/dayoa_bclconvert/dayoa_bclconvert_36/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z_tile_fastqs_L003_0005_tiles0525-0654/output
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/run_bclconvert.L003.0005_tiles0525-0654.log:11:final_output_dir: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/tile_fastqs/L003/0005_tiles0525-0654
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/run_bclconvert.L003.0005_tiles0525-0654.log:37:bcl-convert command: singularity exec --bind /fsx:/fsx --bind /dev/shm/dayoa_bclconvert:/dev/shm/dayoa_bclconvert docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 --output-directory /dev/shm/dayoa_bclconvert/dayoa_bclconvert_36/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z_tile_fastqs_L003_0005_tiles0525-0654/output --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/tile_reports/L003/0005_tiles0525-0654/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 24 --bcl-num-conversion-threads 4 --bcl-num-compression-threads 64 --bcl-num-decompression-threads 32 --shared-thread-odirect-output false --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_2235+s_3_2236+s_3_2237+s_3_2238+s_3_2239+s_3_2240+s_3_2241+s_3_2242+s_3_2243+s_3_2244+s_3_2245+s_3_2246+s_3_2247+s_3_2248+s_3_2249+s_3_2250+s_3_2251+s_3_2252+s_3_2253+s_3_2254+s_3_2255+s_3_2256+s_3_2257+s_3_2258+s_3_2259+s_3_2260+s_3_2261+s_3_2262+s_3_2263+s_3_2264+s_3_2265+s_3_2266+s_3_2267+s_3_2268+s_3_2269+s_3_2270+s_3_2271+s_3_2272+s_3_2273+s_3_2274+s_3_2275+s_3_2276+s_3_2277+s_3_2278+s_3_2279+s_3_2280+s_3_2281+s_3_2282+s_3_2283+s_3_2284+s_3_2285+s_3_2286+s_3_2287+s_3_2288+s_3_2289+s_3_2290+s_3_2291+s_3_2292+s_3_2293+s_3_2294+s_3_2295+s_3_2296+s_3_2297+s_3_2298+s_3_2301+s_3_2302+s_3_2303+s_3_2304+s_3_2305+s_3_2306+s_3_2307+s_3_2308+s_3_2309+s_3_2310+s_3_2311+s_3_2312+s_3_2313+s_3_2314+s_3_2315+s_3_2316+s_3_2317+s_3_2318+s_3_2319+s_3_2320+s_3_2321+s_3_2322+s_3_2323+s_3_2324+s_3_2325+s_3_2326+s_3_2327+s_3_2328+s_3_2329+s_3_2330+s_3_2331+s_3_2332+s_3_2333+s_3_2334+s_3_2335+s_3_2336+s_3_2337+s_3_2338+s_3_2339+s_3_2340+s_3_2341+s_3_2342+s_3_2343+s_3_2344+s_3_2345+s_3_2346+s_3_2347+s_3_2348+s_3_2349+s_3_2350+s_3_2351+s_3_2352+s_3_2353+s_3_2354+s_3_2355+s_3_2356+s_3_2357+s_3_2358+s_3_2359+s_3_2360+s_3_2361+s_3_2362+s_3_2363+s_3_2364+s_3_2365+s_3_2366
+
+== slurm logs ==
+2026-06-03T06:48:48.0000000000 0 /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0003_tiles0263-0393.6.out
+2026-06-03T06:49:49.0000000000 12345 /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0003_tiles0263-0393.6.err
+2026-06-03T06:49:50.0000000000 0 /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0005_tiles0525-0654.8.out
+2026-06-03T06:49:55.0000000000 7611 /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0005_tiles0525-0654.8.err
+

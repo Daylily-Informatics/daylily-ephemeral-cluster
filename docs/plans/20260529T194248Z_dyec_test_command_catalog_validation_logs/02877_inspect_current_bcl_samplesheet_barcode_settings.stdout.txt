@@ -1,0 +1,21 @@
+DAY-EC activated.
+DAY-EC activated.
+RUN_DIR=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+RUN_DIR_EXISTS=yes
+DRY_NORMALIZED_EXISTS=no
+LIVE_NORMALIZED_EXISTS_AFTER_DELETE=no
+
+CANDIDATE_SAMPLE_SHEETS
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+
+SAMPLESHEET=/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert_dryrun/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+exists=no
+
+SAMPLESHEET=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+exists=yes
+sha256=c0414c91555893cc26714c006f6fdb859f2def73d99ad1a7fce19032397057f5
+settings_section_rows:
+  OverrideCycles,Y151;I10;I10;Y151
+data_header=Sample_ID,Index,Index2
+data_rows=41
+data_barcode_mismatch_columns=<none>

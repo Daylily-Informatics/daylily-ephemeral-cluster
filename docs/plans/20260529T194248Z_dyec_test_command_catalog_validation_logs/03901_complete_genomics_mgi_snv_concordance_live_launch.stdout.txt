@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=ccv20260530r54_complete_genomics_mgi_snv_concordance
+__DAYLILY_TMUX_SESSION__=ccv20260530r54_complete_genomics_mgi_snv_concordance
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ccv20260530r54_complete_genomics_mgi_snv_concordance
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/ccv20260530r54_complete_genomics_mgi_snv_concordance/daylily-omics-analysis
+Tmux session 'ccv20260530r54_complete_genomics_mgi_snv_concordance' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/ccv20260530r54_complete_genomics_mgi_snv_concordance
+Workflow repo path: /fsx/analysis_results/ubuntu/ccv20260530r54_complete_genomics_mgi_snv_concordance/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster dyec-test
+Then run: tmux attach -t ccv20260530r54_complete_genomics_mgi_snv_concordance

@@ -1,0 +1,168 @@
+DAY-EC activated.
+COMMAND_ID=5936527d-4b48-4de5-bb69-45f1a236d50c
+DAY-EC activated.
+DAY-EC activated.
+timestamp_utc	2026-06-03T06:43:14Z
+tmux_windows	1
+tmux_panes	1
+dryrun_exit	__DRYRUN_EMPTYDIRFIX_EXIT__=0
+tile_shard_rule_count	6
+full_lane_rule_count	0
+other_lane_wildcard_count	0
+partition_i192bigmem_hits	8
+threads_192_hits	6
+sentinel_hits	6
+devshm_hits	12
+
+== current squeue before live ==
+JOBID|PARTITION|NAME|STATE|TIME|NODES|CPUS|MIN_MEMORY|NODELIST(REASON)
+
+== tmux tail after launch ==
+3_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/lane_reports/L003/bclconve
+rt.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/lane_fastqs/L003/Re
+ports/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts
+_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/lane_f
+astqs/L003/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0
+009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_2
+0260603T0642Z/lane_reports/L003/SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/bclconvert.
+done
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/run_bclconvert
+.lane_fastqs_ready.log
+    jobid: 2
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/benchmarks/ru
+n_bclconvert.lane_fastqs_ready.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T
+0642Z/logs/bclconvert.done; Input files updated by another job: /fsx/run_dir_mou
+nts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigme
+m_devshm_emptydirfix_20260603T0642Z/lane_fastqs/L003/Reports/Demultiplex_Stats.c
+sv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l
+003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/validated.ok, /fsx/
+run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shar
+d_i192bigmem_devshm_emptydirfix_20260603T0642Z/lane_fastqs/L003/Reports/fastq_li
+st.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/lane_reports/L003/bc
+lconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/normalized.Sa
+mpleSheet.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/lane_reports/
+L003/SampleSheet.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/de
+v/shm/dayoa_bclconvert_tmp, threads=1, time=5440, partition=i192bigmem, vcpu=1,
+distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+            mkdir -p /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_
+from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs
+            : > /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_
+bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/run_bcl
+convert.lane_fastqs_ready.log
+            printf 'merge_lane_fastqs=false; lane FASTQs remain under %s for lan
+es %s\n' \
+              /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/lane_fastqs L0
+03 >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/run_bclconvert.la
+ne_fastqs_ready.log
+            touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fro
+m_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/bclco
+nvert.done
+
+
+[Wed Jun  3 06:41:55 2026]
+localrule produce_bclconvert_fastqs:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/validated.ok
+, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l00
+3_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/logs/bclconvert.done
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/fastqs.complete
+    log: results/day/hg38/logs/produce_bclconvert_fastqs.log
+    jobid: 0
+    benchmark: results/day/hg38/benchmarks/produce_bclconvert_fastqs.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T
+0642Z/fastqs.complete, results/day/hg38/benchmarks/produce_bclconvert_fastqs.ben
+ch.tsv; Input files updated by another job: /fsx/run_dir_mounts/20260514_LH01106
+_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix
+_20260603T0642Z/logs/validated.ok, /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603
+T0642Z/logs/bclconvert.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/de
+v/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=b
+lock, exclusive=, constraint=, exclude=, include=
+
+touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/fastqs.complete
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+bclconvert_validate_inputs          1              1              1
+merge_bclconvert_tile_shards        1              1              1
+produce_bclconvert_fastqs           1              1              1
+run_bclconvert                      1              1              1
+run_bclconvert_tile_shard           6            192            192
+total                              10              1            192
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        merge_bclconvert_tile_shards, produce_bclconvert_fastqs, run_bclconvert,
+ run_bclconvert_tile_shard
+    missing output files:
+        bclconvert_validate_inputs, merge_bclconvert_tile_shards, produce_bclcon
+vert_fastqs, run_bclconvert, run_bclconvert_tile_shard
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of ex
+ecution.
+RETURN CODE: 0
+__DRYRUN_EMPTYDIRFIX_EXIT__=0
+[Dslu](DAYOA) dy-r produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime
+--configfile config/bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix.yaml; e
+cho __LIVE_EMPTYDIRFIX_EXIT__=$?
+Your config files in /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigme
+m_devshm_emptydirfix_20260603T0642Z/daylily-omics-analysis/config/day_profiles/s
+lurm are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard
+_i192bigmem_devshm_emptydirfix_20260603T0642Z/daylily-omics-analysis/config/day_
+profiles/slurm produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime --co
+nfigfile config/bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix.yaml
+Config file config/global.yaml is extended by additional config specified via th
+e command line.
+loading global: /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_dev
+shm_emptydirfix_20260603T0642Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified
+via the command line.
+loading profile rule_config: /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i
+192bigmem_devshm_emptydirfix_20260603T0642Z/daylily-omics-analysis/config/day_pr
+ofiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional
+ config specified via the command line.
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+SNV Callers (final): []
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/dyec0
+602bcl/bcl_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/daylily-omic
+s-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/dyec060
+2bcl/bcl_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/daylily-omics-
+analysis/config/units.tsv
+Building DAG of jobs...
+
+
+== squeue after launch ==
+JOBID|PARTITION|NAME|STATE|TIME|NODES|CPUS|MIN_MEMORY|NODELIST(REASON)
+

@@ -1,0 +1,210 @@
+DAY-EC activated.
+DAY-EC activated.
+## ccv20260529r6_ultima_snv_alignstats
+### status
+{
+  "command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k",
+  "completed_at": "2026-05-29T21:21:13Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis",
+  "session_name": "ccv20260529r6_ultima_snv_alignstats",
+  "started_at": "2026-05-29T21:01:00Z"
+}
+### SNV rule logs
+1780089112.0000000000 7510 /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/logs/slurm/sentdug_concat_index_chunks/sentdug_concat_index_chunks.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.1.err
+1780089097.0000000000 55 /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.merge.sort.gatherered.log
+1780089090.0000000000 0 /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/logs/slurm/sentdug_concat_index_chunks/sentdug_concat_index_chunks.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.1.out
+1780089084.0000000000 7524 /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/logs/slurm/sentdug_sort_index_chunk_vcf/sentdug_sort_index_chunk_vcf.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.3.err
+1780089070.0000000000 0 /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/logs/slurm/sentdug_sort_index_chunk_vcf/sentdug_sort_index_chunk_vcf.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.3.out
+1780089062.0000000000 11176 /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/logs/slurm/sent_snv_ug/sent_snv_ug.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.4.err
+1780089061.0000000000 66 /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/logs/slurm/sent_snv_ug/sent_snv_ug.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.4.out
+1780089061.0000000000 11319 /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log
+--- /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/logs/slurm/sentdug_concat_index_chunks/sentdug_concat_index_chunks.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.1.err
+31:    reason: Missing output files: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.temp.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/benchmarks/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.merge.bench.tsv, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi
+--- tail /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/logs/slurm/sentdug_concat_index_chunks/sentdug_concat_index_chunks.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.1.err
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/config/global_AWSPC.yaml
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+[1m[48;5;166m[38;5;79m...WARNING: No aligners set in the config.[0m
+[1m[38;5;79maligners (final): [][0m
+[1m[48;5;166m[38;5;79m...INFO: No dedupers set in config. Defaulting to na (no dedup).[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected dedupers. DDUP updated to: ['na'][0m
+[1m[38;5;79mdeduper (final): [na][0m
+[1m[48;5;166m[38;5;79m...WARNING: No snv_callers set in the config.[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected SNV callers from env: ['sentdug'][0m
+[1m[38;5;79mSNV Callers (final): [sentdug][0m
+[1m[38;5;79mSomatic SNV Callers:[senttn][0m
+[1m[48;5;166m[38;5;79m... WARNING: No sv_callers set in the config.[0m
+[1m[38;5;79mSV Callers (final): [][0m
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 64
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=64, time=5440, vcpu=64
+Select jobs to execute...
+
+[Fri May 29 21:11:36 2026]
+rule sentdug_concat_index_chunks:
+    input: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.concat.vcf.gz.fofn
+    output: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.temp.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-
+    log: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.merge.sort.gatherered.log
+    jobid: 0
+    benchmark: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/benchmarks/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.merge.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.temp.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/benchmarks/TVBUG5X-HG003-5x
+    wildcards: sample=TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA, alnr=ug, ddup=na
+    priority: 47
+    threads: 64
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=64, time=5440, partition=i192,i192mem,i128, vcpu=64, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+
+        touch results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.merge.sort.gatherered.log;
+        mkdir -p $(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.merge.sort.gatherered.log);
+        # This is acceptable bc I am concatenating from the same tools output, not across tools
+        #touch results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.temp.vcf.gz;
+
+        bcftools concat -a -d all --threads 64 -f results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.concat.vcf.gz.fofn  -O z -o results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.temp.vcf.gz >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-U
+
+        export oldname=$(bcftools query -l results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.temp.vcf.gz | head -n1) >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.merge.sort.gatherered.log 2>&1;
+        echo -e "${oldname}	TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA" > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.rename.txt
+        bcftools reheader -s results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.rename.txt -o results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/T
+        bcftools index -f -t --threads 64 -o results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/
+
+        rm -rf $(dirname results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz)/vcfs >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.merge.sort.gatherered.log 2>&1;
+
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/f02f4b1dcb4977fd9602b074e7c885b9_
+Touching output file results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.
+Touching output file results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.sort.vcf.gz.tbi.
+[Fri May 29 21:11:52 2026]
+Finished job 0.
+1 of 1 steps (100%) done
+--- /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.merge.sort.gatherered.log
+--- tail /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.merge.sort.gatherered.log
+Checking the headers and starting positions of 1 files
+--- /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/logs/slurm/sentdug_sort_index_chunk_vcf/sentdug_sort_index_chunk_vcf.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.3.err
+30:    reason: Missing output files: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz
+--- tail /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/logs/slurm/sentdug_sort_index_chunk_vcf/sentdug_sort_index_chunk_vcf.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.3.err
+loading global: /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/config/global_AWSPC.yaml
+loading profile rule_config: /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+[1m[48;5;166m[38;5;79m...WARNING: No aligners set in the config.[0m
+[1m[38;5;79maligners (final): [][0m
+[1m[48;5;166m[38;5;79m...INFO: No dedupers set in config. Defaulting to na (no dedup).[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected dedupers. DDUP updated to: ['na'][0m
+[1m[38;5;79mdeduper (final): [na][0m
+[1m[48;5;166m[38;5;79m...WARNING: No snv_callers set in the config.[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected SNV callers from env: ['sentdug'][0m
+[1m[38;5;79mSNV Callers (final): [sentdug][0m
+[1m[38;5;79mSomatic SNV Callers:[senttn][0m
+[1m[48;5;166m[38;5;79m... WARNING: No sv_callers set in the config.[0m
+[1m[38;5;79mSV Callers (final): [][0m
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 64
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, threads=64, time=5440, vcpu=64
+Select jobs to execute...
+
+[Fri May 29 21:11:17 2026]
+rule sentdug_sort_index_chunk_vcf:
+    input: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.vcf
+    output: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcf
+    log: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz.log
+    jobid: 0
+    reason: Missing output files: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz.tbi, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/a
+    wildcards: sample=TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA, alnr=ug, ddup=na, dchrm=1-24
+    priority: 46
+    threads: 64
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=64, time=5440, partition=i192,i192mem, vcpu=64, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        #bedtools sort -header -i results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.vcf > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf 2>> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/
+        #awk 'BEGIN{header=1}
+        #    header && /^#/ {print; next}
+        #    header && /^[^#]/ {header=0; exit}' results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.vcf > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf 2>> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-U
+        #awk '/^[^#]/' results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.vcf | sort --buffer-size=210G -T /fsx/scratch/ --parallel=64 -k1,1V -k2,2n >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf 2>> result
+
+        cp results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.vcf results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/l
+        touch results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.vcf;
+        sleep 1;
+        bgzip -@ 64 results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz.log 2>&1;
+        touch results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf;
+
+        tabix -f -p vcf results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz.log 2>&1;
+
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/f02f4b1dcb4977fd9602b074e7c885b9_
+Touching output file results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.
+Touching output file results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz.
+Touching output file results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.sort.vcf.gz.tbi.
+[Fri May 29 21:11:24 2026]
+Finished job 0.
+1 of 1 steps (100%) done
+--- /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/logs/slurm/sent_snv_ug/sent_snv_ug.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.4.err
+31:    reason: Missing output files: results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.gvcf, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/benchmarks/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.bench.tsv, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.vcf, results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.gvcf.idx
+46:        if [ -z "$SENTIEON_LICENSE" ]; then
+47:            echo "SENTIEON_LICENSE not set. Please set the SENTIEON_LICENSE environment variable to the license file path & make this update to your dyinit file as well." >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log 2>&1;
+51:        if [ ! -f "$SENTIEON_LICENSE" ]; then
+52:            echo "The file referenced by SENTIEON_LICENSE ('$SENTIEON_LICENSE') does not exist. Please provide a valid file path." >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log 2>&1;
+62:        ulimit -n 65536 || echo "ulimit mod failed" > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log 2>&1;
+--- tail /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/logs/slurm/sent_snv_ug/sent_snv_ug.TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.4.err
+    wildcards: sample=TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA, alnr=ug, ddup=na, dchrm=1-24
+    priority: 45
+    threads: 192
+    resources: mem_mb=300000, mem_mib=286103, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=192, time=5440, partition=i192,i192mem, vcpu=192, distribution=block, exclusive=, constraint=, exclude=, include=, attempt_n=1
+
+
+
+        timestamp=$(date +%Y%m%d%H%M%S)_$$;
+        export TMPDIR=/dev/shm/sentdug_tmp_$timestamp;
+        mkdir -p $TMPDIR;
+        export APPTAINER_HOME=$TMPDIR;
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+        tdir=$TMPDIR;
+
+        if [ -z "$SENTIEON_LICENSE" ]; then
+            echo "SENTIEON_LICENSE not set. Please set the SENTIEON_LICENSE environment variable to the license file path & make this update to your dyinit file as well." >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log 2>&1;
+            exit 3;
+        fi
+
+        if [ ! -f "$SENTIEON_LICENSE" ]; then
+            echo "The file referenced by SENTIEON_LICENSE ('$SENTIEON_LICENSE') does not exist. Please provide a valid file path." >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log 2>&1;
+            exit 4;
+        fi
+
+        TOKEN=$(curl -X PUT 'http://169.254.169.254/latest/api/token' -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600');
+        itype=$(curl -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-type);
+        echo "INSTANCE TYPE: $itype" > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log;
+        echo "INSTANCE TYPE: $itype";
+        start_time=$(date +%s);
+
+        ulimit -n 65536 || echo "ulimit mod failed" > results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log 2>&1;
+
+
+        # Find the jemalloc library in the active conda environment
+        jemalloc_path="";
+        for _dir in "$CONDA_PREFIX/lib" "$CONDA_PREFIX/lib64" "$CONDA_PREFIX/lib/x86_64-linux-gnu"; do
+            if [[ -d "$_dir" ]]; then
+                for _ext in so dylib; do
+                    _candidate=$(find "$_dir" -maxdepth 1 -name "libjemalloc*.$_ext*" 2>/dev/null | head -n 1);
+                    if [[ -n "$_candidate" && -r "$_candidate" ]]; then
+                        jemalloc_path="$_candidate";
+                        break 2;
+                    fi
+                done
+            fi
+        done
+
+        # Check if jemalloc was found and set LD_PRELOAD accordingly
+        if [[ -n "$jemalloc_path" ]]; then
+            export LD_PRELOAD="$jemalloc_path";
+            export MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000;
+            echo "LD_PRELOAD set to: $LD_PRELOAD" >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log;
+            echo "MALLOC_CONF set to: $MALLOC_CONF" >> results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log;
+        else
+            echo "libjemalloc not found in CONDA_PREFIX=$CONDA_PREFIX (searched lib, lib64, l--output truncated--

@@ -1,0 +1,5 @@
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+2978  i192  48  CF  i192-dy-all-1  48  CONFIGURING  20000M  2:31  1  pre_prep_ultima_cram-TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA
+2660  i192mem  192  R  i192mem-dy-all-1  192  RUNNING  180000M  1:53:56  1  run_bclconvert-run_bclconvert

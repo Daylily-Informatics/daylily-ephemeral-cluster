@@ -1,0 +1,35 @@
+DAY-EC activated.
+DAY-EC activated.
+DELETION_TARGET_ANALYSIS_DIR=/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert
+DELETION_TARGET_SCRATCH_COPY_DIR=/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch
+PRESERVE_READONLY_DRA_MOUNT=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+== fsx before ==
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  7.9T  849G  91% /fsx
+== slurm safety check ==
+== target existence before ==
+drwxrwxr-x  3 ubuntu ubuntu 25600 May 30 10:10 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert
+drwxrwxr-x 24 ubuntu ubuntu 41472 May 30 13:21 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis
+drwxrwxr-x  3 ubuntu ubuntu 33280 May 30 10:10 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch
+4.5T	/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert
+readonly_dra_mount_present_before
+drwxr-xr-x 9 root root 25600 May 30 02:17 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+updated_run_state_status=/home/ubuntu/daylily-runs/ccv20260529r39_illumina_bclconvert/status.json
+removed_analysis_dir=/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert
+== target existence after ==
+analysis_dir_absent_after=/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert
+readonly_dra_mount_preserved_after=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+drwxr-xr-x 9 root root 25600 May 30 02:17 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+== fsx after ==
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  6.0T  2.8T  69% /fsx
+== status after ==
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": "2026-05-30T13:24:47Z",
+  "exit_code": 130,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260529r39_illumina_bclconvert",
+  "started_at": "2026-05-30T10:10:02Z",
+  "terminated_by": "user_requested_controller_stop_and_analysis_cleanup"
+}

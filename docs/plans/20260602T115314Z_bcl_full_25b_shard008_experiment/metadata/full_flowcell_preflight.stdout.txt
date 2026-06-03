@@ -1,0 +1,74 @@
+DAY-EC activated.
+DAY-EC activated.
+__ENV_START__
+whoami=ubuntu
+hostname=ip-10-0-0-225
+date_utc=2026-06-02T12:23:55Z
+run_dir=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+sample_sheet=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+runinfo=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml
+__ENV_END__
+__FSX_DF_H_START__
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.248@tcp:/3vbzxb4v  6.6T  398G  6.2T   6% /fsx
+__FSX_DF_H_END__
+__FSX_DF_BYTES_START__
+Filesystem                   1B-blocks         Used     Available Use% Mounted on
+10.0.1.248@tcp:/3vbzxb4v 7178349969408 427060494336 6751276892160   6% /fsx
+__FSX_DF_BYTES_END__
+__REMAINING_BCL_DIRS_START__
+__REMAINING_BCL_DIRS_END__
+__RUN_PATHS_START__
+exists	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+exists	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Data/Intensities/BaseCalls
+exists	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+exists	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml
+__RUN_PATHS_END__
+__LANES_START__
+L001
+L002
+L003
+L004
+L005
+L006
+L007
+L008
+__LANES_END__
+__LANE_TILE_COUNTS_START__
+L001	filter_files=784	cbcl_files=644
+L002	filter_files=784	cbcl_files=644
+L003	filter_files=784	cbcl_files=644
+L004	filter_files=784	cbcl_files=644
+L005	filter_files=784	cbcl_files=644
+L006	filter_files=784	cbcl_files=644
+L007	filter_files=784	cbcl_files=644
+L008	filter_files=784	cbcl_files=644
+__LANE_TILE_COUNTS_END__
+__RUNINFO_START__
+		<Flowcell>23TVLGLT4</Flowcell>
+		<Instrument>LH01106</Instrument>
+			<Read Number="1" NumCycles="151" IsIndexedRead="N" IsReverseComplement="N"/>
+			<Read Number="2" NumCycles="10" IsIndexedRead="Y" IsReverseComplement="N"/>
+			<Read Number="3" NumCycles="10" IsIndexedRead="Y" IsReverseComplement="Y"/>
+			<Read Number="4" NumCycles="151" IsIndexedRead="N" IsReverseComplement="N"/>
+		<FlowcellLayout LaneCount="8" SurfaceCount="2" SwathCount="4" TileCount="98">
+__RUNINFO_END__
+__SAMPLESHEET_LANES_START__
+data_rows=0
+lane_column=absent
+__SAMPLESHEET_LANES_END__
+__SQUEUE_START__
+__SQUEUE_END__
+__TMUX_START__
+bcl25b_l003_shard002_20260602T000733Z: 1 windows (created Tue Jun  2 01:00:04 2026)
+bcl25b_l003_shard004_20260602T000733Z: 1 windows (created Tue Jun  2 01:38:49 2026)
+bcl25b_l003_shard008_20260602T000733Z: 1 windows (created Tue Jun  2 02:04:09 2026)
+bcl25b_l003_shard008_cpu_tuned_odirect_on_20260602T000733Z: 1 windows (created Tue Jun  2 11:15:15 2026)
+bcl25b_l003_shard008_odirect_off_20260602T000733Z: 1 windows (created Tue Jun  2 09:34:37 2026)
+bcl25b_l003_shard016_20260602T000733Z: 1 windows (created Tue Jun  2 06:09:58 2026)
+bcl25b_l003_shard032_20260602T000733Z: 1 windows (created Tue Jun  2 06:44:18 2026)
+bcl25b_l003_whole_lane_20260602T000023Z: 1 windows (created Tue Jun  2 00:01:17 2026)
+bcl25b_l003_whole_lane_20260602T000418Z: 1 windows (created Tue Jun  2 00:04:44 2026)
+bcl25b_l003_whole_lane_20260602T000733Z: 1 windows (created Tue Jun  2 00:10:09 2026)
+bcl25b_l003_whole_lane_odirect_off_20260602T000733Z: 1 windows (created Tue Jun  2 07:27:25 2026)
+__TMUX_END__

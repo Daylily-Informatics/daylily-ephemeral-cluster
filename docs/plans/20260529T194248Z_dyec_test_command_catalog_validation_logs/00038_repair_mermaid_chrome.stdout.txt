@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+USER=ubuntu
+HOME=/home/ubuntu
+PATH=/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/home/ubuntu/.local/bin:/home/ubuntu/miniconda3/envs/DAYOA/bin:/home/ubuntu/miniconda3/condabin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/opt/aws/bin:/opt/parallelcluster/pyenv/versions/3.12.8/envs/awsbatch_virtualenv/bin:/opt/slurm/bin:/opt/parallelcluster/pyenv/versions/3.12.8/envs/awsbatch_virtualenv/bin:/opt/slurm/bin
+MMDC=/home/ubuntu/miniconda3/envs/DAYOA/bin/mmdc
+NPX=/home/ubuntu/miniconda3/envs/DAYOA/bin/npx
+11.15.0
+puppeteer-core=24.43.1
+chrome@149.0.7827.22 /home/ubuntu/.cache/puppeteer/chrome/linux-149.0.7827.22/chrome-linux64/chrome
+Generating single mermaid chart

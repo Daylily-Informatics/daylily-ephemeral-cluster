@@ -1,0 +1,114 @@
+DAY-EC activated.
+DAY-EC activated.
+=== whoami ===
+uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),20(dialout),24(cdrom),25(floppy),27(sudo),29(audio),30(dip),44(video),46(plugdev),119(netdev),120(lxd)
+=== tmux sessions ===
+ccv20260529_simple-test_dryrun: 1 windows (created Fri May 29 19:54:02 2026)
+ccv20260529r2_simple-test_dryrun: 1 windows (created Fri May 29 20:02:54 2026)
+ccv20260529r4_simple-test_dryrun: 1 windows (created Fri May 29 20:10:17 2026)
+ccv20260529r5_illumina_hg002_kitchensink_multiqc_dryrun: 1 windows (created Fri May 29 20:33:03 2026)
+ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc: 1 windows (created Fri May 29 20:38:08 2026)
+ccv20260529r5_illumina_snv_alignstats_relatedness_vep_multiqc_dryrun: 1 windows (created Fri May 29 20:28:19 2026)
+ccv20260529r5_simple-test_dryrun: 1 windows (created Fri May 29 20:21:14 2026)
+ccv20260529r5_ultima_snv_alignstats_dryrun: 1 windows (created Fri May 29 20:35:30 2026)
+ccv20260529r6_ont_snv_alignstats: 1 windows (created Fri May 29 21:22:52 2026)
+ccv20260529r6_ont_snv_alignstats_dryrun: 1 windows (created Fri May 29 21:14:13 2026)
+ccv20260529r6_ont_snv_alignstats_kitchensink: 1 windows (created Fri May 29 21:38:03 2026)
+ccv20260529r6_ont_snv_alignstats_kitchensink_dryrun: 1 windows (created Fri May 29 21:26:24 2026)
+ccv20260529r6_pacbio_snv_alignstats: 1 windows (created Fri May 29 21:55:20 2026)
+ccv20260529r6_pacbio_snv_alignstats_dryrun: 1 windows (created Fri May 29 21:48:53 2026)
+ccv20260529r6_ultima_snv_alignstats: 1 windows (created Fri May 29 21:00:58 2026)
+ccv20260529r6_ultima_snv_alignstats_dryrun: 1 windows (created Fri May 29 20:54:44 2026)
+ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun: 1 windows (created Fri May 29 21:03:59 2026)
+ccv20260529r7_hybrid_ilmn_ont_snv: 1 windows (created Fri May 29 23:40:38 2026)
+ccv20260529r7_hybrid_ilmn_ont_snv_dryrun: 1 windows (created Fri May 29 23:37:43 2026)
+ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink: 1 windows (created Fri May 29 23:40:38 2026)
+ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink_dryrun: 1 windows (created Fri May 29 23:37:43 2026)
+ccv20260529r7_illumina_snv_alignstats: 1 windows (created Fri May 29 23:38:25 2026)
+ccv20260529r7_illumina_snv_alignstats_dryrun: 1 windows (created Fri May 29 23:35:31 2026)
+ccv20260529r7_inflection-bjuice-product-v0_1_dryrun: 1 windows (created Sat May 30 00:04:05 2026)
+ccv20260529r7_roche_snv_alignstats_dryrun: 1 windows (created Fri May 29 23:32:36 2026)
+ccv20260529r7_simple-test: 1 windows (created Fri May 29 23:48:58 2026)
+ccv20260529r7_simple-test_dryrun: 1 windows (created Fri May 29 23:46:10 2026)
+ccv20260529r7_ultima_snv_alignstats_kitchensink: 1 windows (created Fri May 29 23:33:28 2026)
+ccv20260529r7_ultima_snv_alignstats_kitchensink_dryrun: 1 windows (created Fri May 29 23:30:34 2026)
+ccv20260529r8_inflection-bjuice-product-v0_1_dryrun: 1 windows (created Sat May 30 00:23:19 2026)
+=== target tmux ===
+tmux_session=absent
+=== process search ===
+=== run dir ===
+total 106
+drwxrwxr-x  3 ubuntu ubuntu 25600 May 30 00:25 .
+drwxrwxr-x 31 ubuntu ubuntu 41472 May 30 00:23 ..
+drwxrwxr-x 23 ubuntu ubuntu 41472 May 30 00:26 daylily-omics-analysis
+2026-05-30T00:25:55.0000000000 28 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/.Rhistory
+2026-05-30T00:25:55.0000000000 49 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/.RData
+2026-05-30T00:25:55.0000000000 721 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/.gitignore
+2026-05-30T00:25:56.0000000000 10752 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/alignstats_combo_mqc.tsv
+2026-05-30T00:25:56.0000000000 12841 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/Dockerfile
+2026-05-30T00:25:56.0000000000 129 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/MANIFEST.in
+2026-05-30T00:25:56.0000000000 15270 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/AGENTS.md
+2026-05-30T00:25:56.0000000000 22673 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/SampleSheet.csv
+2026-05-30T00:25:56.0000000000 3074 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/check_popvcf.py
+2026-05-30T00:25:56.0000000000 35149 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/LICENSE
+2026-05-30T00:25:56.0000000000 7688 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/README.md
+2026-05-30T00:25:57.0000000000 2011 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/download_presigned.sh
+2026-05-30T00:25:57.0000000000 20636 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/dyoainit
+2026-05-30T00:25:57.0000000000 2548 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/presigned_manifest.tsv
+2026-05-30T00:25:57.0000000000 3065 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/giab_30x_hg38_analysis_manifest.csv
+2026-05-30T00:25:57.0000000000 348 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/pyproject.toml
+2026-05-30T00:25:59.0000000000 10506 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/vcf_inventory.tsv
+2026-05-30T00:25:59.0000000000 3160 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/summary_results.tsv
+2026-05-30T00:25:59.0000000000 346 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/setup.py
+2026-05-30T00:26:08.0000000000 599 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/day_cmd.log
+2026-05-30T00:26:16.0000000000 0 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/.jemalloc_loc
+2026-05-30T00:26:19.0000000000 1580 /fsx/analysis_results/ubuntu/ccv20260529r8_inflection-bjuice-product-v0.1_dryrun/daylily-omics-analysis/unlock_fails.log
+=== status ===
+missing status.json
+=== bootstrap log ===
+missing tmux-bootstrap.log
+=== tmux log ===
+missing tmux.log
+=== launch script head ===
+missing launch.sh
+=== repo dir ===
+total 783
+drwxrwxr-x 23 ubuntu ubuntu 41472 May 30 00:26 .
+drwxrwxr-x  3 ubuntu ubuntu 25600 May 30 00:25 ..
+-rw-rw-r--  1 ubuntu ubuntu    49 May 30 00:25 .RData
+-rw-rw-r--  1 ubuntu ubuntu    28 May 30 00:25 .Rhistory
+drwxrwxr-x  8 ubuntu ubuntu 33280 May 30 00:25 .git
+-rwxrwxr-x  1 ubuntu ubuntu   721 May 30 00:25 .gitignore
+drwxrwxr-x  2 ubuntu ubuntu 33280 May 30 00:25 .ignore
+-rw-rw-r--  1 ubuntu ubuntu     0 May 30 00:26 .jemalloc_loc
+drwxrwxr-x  8 ubuntu ubuntu 33280 May 30 00:26 .snakemake
+drwxrwxr-x  3 ubuntu ubuntu 33280 May 30 00:25 .test_data
+-rw-rw-r--  1 ubuntu ubuntu 15270 May 30 00:25 AGENTS.md
+-rw-rw-r--  1 ubuntu ubuntu 12841 May 30 00:25 Dockerfile
+-rwxrwxr-x  1 ubuntu ubuntu 35149 May 30 00:25 LICENSE
+-rw-rw-r--  1 ubuntu ubuntu   129 May 30 00:25 MANIFEST.in
+-rw-rw-r--  1 ubuntu ubuntu  7688 May 30 00:25 README.md
+-rw-rw-r--  1 ubuntu ubuntu 22673 May 30 00:25 SampleSheet.csv
+-rw-rw-r--  1 ubuntu ubuntu 10752 May 30 00:25 alignstats_combo_mqc.tsv
+drwxrwxr-x  2 ubuntu ubuntu 33280 May 30 00:26 bcl2fq
+drwxrwxr-x  5 ubuntu ubuntu 41472 May 30 00:25 bin
+-rw-rw-r--  1 ubuntu ubuntu  3074 May 30 00:25 check_popvcf.py
+drwxrwxr-x 10 ubuntu ubuntu 33280 May 30 00:25 config
+drwxrwxr-x  2 ubuntu ubuntu 33280 May 30 00:25 dags
+drwxrwxr-x  2 ubuntu ubuntu 33280 May 30 00:26 day
+-rw-rw-r--  1 ubuntu ubuntu   599 May 30 00:26 day_cmd.log
+drwxrwxr-x  3 ubuntu ubuntu 33280 May 30 00:25 daylily_omics_analysis
+drwxrwxr-x  3 ubuntu ubuntu 33280 May 30 00:25 docker
+drwxrwxr-x  7 ubuntu ubuntu 33280 May 30 00:25 docs
+-rwxrwxr-x  1 ubuntu ubuntu  2011 May 30 00:25 download_presigned.sh
+-rwxrwxr-x  1 ubuntu ubuntu 20636 May 30 00:25 dyoainit
+drwxrwxr-x  6 ubuntu ubuntu 33280 May 30 00:25 etc
+-rw-rw-r--  1 ubuntu ubuntu  3065 May 30 00:25 giab_30x_hg38_analysis_manifest.csv
+drwxrwxr-x  2 ubuntu ubuntu 33280 May 30 00:26 logs
+-rw-rw-r--  1 ubuntu ubuntu  2548 May 30 00:25 presigned_manifest.tsv
+-rw-rw-r--  1 ubuntu ubuntu   348 May 30 00:25 pyproject.toml
+drwxrwxr-x  3 ubuntu ubuntu 33280 May 30 00:25 quarantine
+drwxrwxr-x 18 ubuntu ubuntu 33280 May 30 00:25 resources
+drwxrwxr-x  4 ubuntu ubuntu 33280 May 30 00:26 results
+drwxrwxr-x  2 ubuntu ubuntu 41472 May 30 00:25 scripts
+-rwxrwxr-x  1 ubuntu ubuntu   346 May 30 00:25 setup.py

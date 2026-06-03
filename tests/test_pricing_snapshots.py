@@ -67,6 +67,7 @@ def test_load_partition_instance_types_reads_packaged_prod_config():
     assert tuple(mapping.keys()) == DEFAULT_PRODUCTION_PARTITIONS
     assert "c7i.48xlarge" in mapping["i192"]
     assert "r7i.48xlarge" in mapping["i192bigmem"]
+    assert "c8id.96xlarge" in mapping["bcl2fq-i384-nvme-test"]
 
 
 def test_collect_pricing_snapshot_returns_raw_points():

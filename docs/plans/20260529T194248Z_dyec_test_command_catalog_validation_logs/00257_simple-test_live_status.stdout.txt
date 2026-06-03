@@ -1,0 +1,8 @@
+{
+  "command": "source dyoainit; dy-a local hg38; cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv; cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv; dy-r -p -k -j 1 help",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r7_simple-test/daylily-omics-analysis",
+  "session_name": "ccv20260529r7_simple-test",
+  "started_at": "2026-05-29T23:49:00Z"
+}

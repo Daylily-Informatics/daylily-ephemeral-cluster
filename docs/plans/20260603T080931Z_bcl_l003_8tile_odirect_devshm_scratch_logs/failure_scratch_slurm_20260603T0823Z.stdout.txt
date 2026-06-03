@@ -1,0 +1,85 @@
+DAY-EC activated.
+DAY-EC activated.
+__BCL_LOG_LS__
+-rw-rw-r-- 1 ubuntu ubuntu 0 Jun  3 08:21 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/run_bclconvert.L003.0001_tiles0001-0008.log
+__BCL_LOG_HEAD__
+__SLURM_FIND__
+2026-06-03T08:21:42.0000000000 0 /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0001_tiles0001-0008.4.out
+2026-06-03T08:21:48.0000000000 8429 /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0001_tiles0001-0008.4.err
+__SLURM_CONTENT__
+### /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0001_tiles0001-0008.4.out
+### /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0001_tiles0001-0008.4.err
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+[1m[48;5;166m[38;5;79m...WARNING: No aligners set in the config.[0m
+[1m[38;5;79maligners (final): [][0m
+[1m[48;5;166m[38;5;79m...INFO: No dedupers set in config. Defaulting to na (no dedup).[0m
+[1m[38;5;79mdeduper (final): [na][0m
+[1m[48;5;166m[38;5;79m...WARNING: No snv_callers set in the config.[0m
+[1m[38;5;79mSNV Callers (final): [][0m
+[1m[38;5;79mSomatic SNV Callers:[senttn][0m
+[1m[48;5;166m[38;5;79m... WARNING: No sv_callers set in the config.[0m
+[1m[38;5;79mSV Callers (final): [][0m
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 192
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=1200000, mem_mib=1144410, disk_mb=1000, disk_mib=954, threads=192, time=5440, vcpu=192
+Select jobs to execute...
+
+[Wed Jun  3 08:21:48 2026]
+rule run_bclconvert_tile_shard:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/validated.ok, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/normalized.SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_reports/L003/0001_tiles0001-0008/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/run_bclconvert.L003.0001_tiles0001-0008.log
+    jobid: 0
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/benchmarks/run_bclconvert.L003.0001_tiles0001-0008.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_reports/L003/0001_tiles0001-0008/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/benchmarks/run_bclconvert.L003.0001_tiles0001-0008.bench.tsv
+    wildcards: lane=L003, shard=0001_tiles0001-0008
+    threads: 192
+    resources: mem_mb=1200000, mem_mib=1144410, disk_mb=1000, disk_mib=954, tmpdir=/scratch/dayoa_bclconvert_tmp, threads=192, time=5440, partition=i192bigmem, vcpu=192, distribution=block, exclusive=--exclusive, constraint=, exclude=, include=
+
+TMPDIR=/scratch/dayoa_bclconvert_tmp bash workflow/scripts/run_bclconvert_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/normalized.SampleSheet.csv 3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv false false false 1 24 4 64 32 true true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' __dayoa_no_force__ 192 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/run_bclconvert.L003.0001_tiles0001-0008.log /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_list.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/Demultiplex_Stats.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_reports/L003/0001_tiles0001-0008/bclconvert.done s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108 /scratch/dayoa_bclconvert 20000000000
+Traceback (most recent call last):
+  File "/home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages/snakemake/__init__.py", line 757, in snakemake
+    success = workflow.execute(
+              ^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages/snakemake/workflow.py", line 1095, in execute
+    raise e
+  File "/home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages/snakemake/workflow.py", line 1091, in execute
+    success = self.scheduler.schedule()
+              ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages/snakemake/scheduler.py", line 606, in schedule
+    self.run(runjobs)
+  File "/home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages/snakemake/scheduler.py", line 655, in run
+    executor.run_jobs(
+  File "/home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages/snakemake/executors/__init__.py", line 155, in run_jobs
+    self.run(
+  File "/home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages/snakemake/executors/__init__.py", line 535, in run
+    future = self.run_single_job(job)
+             ^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages/snakemake/executors/__init__.py", line 588, in run_single_job
+    self.cached_or_run, job, run_wrapper, *self.job_args_and_prepare(job)
+                                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages/snakemake/executors/__init__.py", line 540, in job_args_and_prepare
+    job.prepare()
+  File "/home/ubuntu/miniconda3/envs/DAYOA/lib/python3.11/site-packages/snakemake/jobs.py", line 835, in prepare
+    os.makedirs(self.resources.tmpdir, exist_ok=True)
+  File "<frozen os>", line 215, in makedirs
+  File "<frozen os>", line 225, in makedirs
+PermissionError: [Errno 13] Permission denied: '/scratch'
+__SACCT_59__
+__NODE_SCRATCH_PROBE_IF_HOST_ALIVE__
+Warning: Permanently added 'i192bigmem-dy-all-1' (ED25519) to the list of known hosts.
+i192bigmem-dy-all-1
+uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),20(dialout),24(cdrom),25(floppy),27(sudo),29(audio),30(dip),44(video),46(plugdev),119(netdev),120(lxd)
+ls: cannot access '/scratch': No such file or directory
+ls: cannot access '/scratch/dayoa_bclconvert': No such file or directory
+ls: cannot access '/scratch/dayoa_bclconvert_tmp': No such file or directory
+df: /scratch: No such file or directory

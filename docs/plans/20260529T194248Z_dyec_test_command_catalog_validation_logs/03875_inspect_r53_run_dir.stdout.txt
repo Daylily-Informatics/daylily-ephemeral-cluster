@@ -1,0 +1,338 @@
+DAY-EC activated.
+DAY-EC activated.
+=== run dirs ===
+/home/ubuntu/daylily-runs/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun
+=== files named for session ===
+=== /home/ubuntu/daylily-runs/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun files ===
+2026-05-30T18:28:56.1368237980 59759 /home/ubuntu/daylily-runs/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/launch.sh
+2026-05-30T18:28:56.1388237980 0 /home/ubuntu/daylily-runs/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/tmux-bootstrap.log
+2026-05-30T18:29:22.8258247720 521 /home/ubuntu/daylily-runs/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/status.json
+2026-05-30T18:29:25.1218250870 75840 /home/ubuntu/daylily-runs/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/tmux.log
+--- /home/ubuntu/daylily-runs/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/launch.sh ---
+new = (
+    "            # Verify hap_bam integrity before indexing\n"
+    "            if ! samtools quickcheck {output.hap_bam} >> {log} 2>&1; then\n"
+    "                if grep -q \"ReadSequenceKmerGraphBuilder.*kmerSize >= 1\" {log}; then\n"
+    "                    echo \"DYEC_RUNTIME_REPAIR: HybridStage1 haplotype assembly hit Sentieon kmerSize assertion; replacing truncated hap BAM with an empty header-only BAM so insertion output can continue.\" >> {log}\n"
+    "                    rm -f {output.hap_bam} {output.hap_bam}.bai\n"
+    "                    : > {output.hap_bed}\n"
+    "                    : > {output.hap_vcf}\n"
+    "                    samtools view -H {input.ont_cram} | grep -E '^@(HD|SQ|RG)' | samtools view -bo {output.hap_bam} -\n"
+    "                else\n"
+    "                    echo \"ERROR: stage1_hap.bam failed integrity check - file may be truncated\" >> {log}\n"
+    "                    exit 1\n"
+    "                fi\n"
+    "            fi\n"
+    "\n"
+    "            # Index the hap BAM produced by HybridStage1 - required by stage2\n"
+    "            samtools index {output.hap_bam} >> {log} 2>&1"
+)
+
+text = path.read_text(encoding="utf-8")
+if new in text:
+    print(f"[INFO] Hybrid Ultima/ONT Stage1 assertion repair already present: {path}")
+    raise SystemExit(0)
+if old not in text:
+    raise SystemExit(f"[ERROR] Hybrid Ultima/ONT Stage1 assertion repair target not found in {path}")
+path.write_text(text.replace(old, new, 1), encoding="utf-8")
+print(f"[INFO] Patched Hybrid Ultima/ONT Stage1 assertion repair: {path}")
+PYHUSTAGE1
+}
+
+	BCLCONVERT_PROFILE_PATCH_REQUESTED=false
+	if [[ "$RUN_CONTEXT_MODE" == "true" ]]; then
+	  printf '%s' "$RUN_CONTEXT_PAYLOAD" > config/runs.tsv
+	  project_run_context_mounts
+	  materialize_runtime_table samples_table config/samples.tsv
+	  materialize_runtime_table units_table config/units.tsv
+	  if bclconvert_runtime_tables_requested; then
+	    generate_bclconvert_runtime_tables
+	    BCLCONVERT_PROFILE_PATCH_REQUESTED=true
+	  fi
+	  if ultima_run_qc_config_requested; then
+	    append_ultima_run_qc_config
+	  fi
+	elif [[ "$SAMPLE_CONFIG_MODE" == "true" ]]; then
+	  printf '%s' "$SAMPLES_PAYLOAD" > config/samples.tsv
+	  printf '%s' "$UNITS_PAYLOAD" > config/units.tsv
+	elif [[ "$INPUT_STAGING_MODE" == "true" ]]; then
+	  cp "$STAGE_SAMPLES" config/samples.tsv
+	  cp "$STAGE_UNITS" config/units.tsv
+	elif [[ "$BOOTSTRAP_TEST_CONFIG" == "true" ]]; then
+	  bootstrap_test_config
+	else
+	  echo "[INFO] Input staging skipped for this catalog command."
+	fi
+
+if [[ ! -f "$HOME/miniconda3/etc/profile.d/conda.sh" ]]; then
+  echo "[ERROR] Missing conda profile script at $HOME/miniconda3/etc/profile.d/conda.sh"
+  exit 10
+fi
+. "$HOME/miniconda3/etc/profile.d/conda.sh"
+shopt -s expand_aliases
+MERMAID_CHROME="$HOME/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome"
+if [[ -z "${PUPPETEER_EXECUTABLE_PATH:-}" && -x "$MERMAID_CHROME" ]]; then
+  export PUPPETEER_EXECUTABLE_PATH="$MERMAID_CHROME"
+fi
+
+run_dy_command() {
+  local command="$1"
+  local dyoainit_source_needed=false
+  if [[ "$command" == source\ dyoainit\;* ]]; then
+    dyoainit_source_needed=true
+    command="${command#source dyoainit;}"
+  elif [[ "$command" == .\ dyoainit\;* ]]; then
+    dyoainit_source_needed=true
+    command="${command#. dyoainit;}"
+  fi
+  command="${command#"${command%%[![:space:]]*}"}"
+  if [[ "$dyoainit_source_needed" == "true" ]]; then
+    set +u
+    set --
+    source dyoainit
+    local source_status=$?
+    set -u
+    if [[ "$source_status" != "0" ]]; then
+      return "$source_status"
+    fi
+  fi
+  set +u
+  eval "$command"
+  local command_status=$?
+  set -u
+  return "$command_status"
+}
+
+declare -a dyoa_args=()
+if [[ -n "$PROJECT_VALUE" ]]; then
+  dyoa_args+=(--project )
+  export PROJECT="$PROJECT_VALUE"
+else
+  unset PROJECT || true
+fi
+if [[ "$SKIP_PROJECT_CHECK" == "true" ]]; then
+  dyoa_args+=(--skip-project-check)
+fi
+if [[ "$DEFAULT_ACTIVATION" == "true" ]]; then
+  set +u
+  . dyoainit "${dyoa_args[@]}"
+  set -u
+  set +e
+  set +u
+  . bin/day_activate slurm hg38_broad remote
+  activate_status=$?
+  set -u
+  set -e
+  if [[ "$activate_status" != "0" ]]; then
+    echo "[ERROR] day_activate failed with status $activate_status"
+    exit "$activate_status"
+  fi
+fi
+if [[ "$BCLCONVERT_PROFILE_PATCH_REQUESTED" == "true" ]]; then
+  patch_bclconvert_profile_config
+  patch_bclconvert_lane_split
+fi
+	if ont_run_qc_runtime_repair_requested; then
+	  patch_pycoqc_readonly_sort
+	fi
+	if goleft_indexcov_runtime_repair_requested; then
+	  patch_goleft_indexcov_empty_sex_arg
+	fi
+	if mosdepth_empty_output_runtime_repair_requested; then
+	  patch_mosdepth_empty_outputs
+	fi
+	if rtg_vcfeval_parse_runtime_repair_requested; then
+	  patch_rtg_vcfeval_parse_output_dir
+	fi
+	if vep_zero_variant_runtime_repair_requested; then
+	  patch_vep_empty_concat_fofn
+	fi
+	if contam_identity_zero_variant_runtime_repair_requested; then
+	  patch_contam_identity_zero_variant_outputs
+	fi
+	if hybrid_ultima_ont_stage1_runtime_repair_requested; then
+	  patch_hybrid_ultima_ont_stage1_assertion
+	fi
+	set +e
+	run_dy_command "$DY_COMMAND"
+workflow_status=$?
+set -e
+should_export=false
+case "$EXPORT_TRIGGER" in
+  none) should_export=false ;;
+  on-success) [[ "$workflow_status" -eq 0 ]] && should_export=true ;;
+  on-fail) [[ "$workflow_status" -ne 0 ]] && should_export=true ;;
+  all) should_export=true ;;
+  *) echo "[ERROR] Invalid EXPORT_TRIGGER=$EXPORT_TRIGGER"; workflow_status=20 ;;
+esac
+if [[ "$should_export" == "true" ]]; then
+  if [[ -z "$EXPORT_DESTINATION_S3_URI" ]]; then
+    echo "[ERROR] Export requested but EXPORT_DESTINATION_S3_URI is empty"
+    workflow_status=21
+  else
+    if ! remove_run_dir_projection_links; then
+      workflow_status=22
+    else
+      mkdir -p "$DAYLILY_RUN_DIR/export"
+      registration_args=()
+      if [[ -n "$ARTIFACT_REGISTRATION_COMMAND_ID" ]]; then
+        registration_args+=(--artifact-registration-command-id "$ARTIFACT_REGISTRATION_COMMAND_ID")
+        registration_args+=(--dewey-url "$DEWEY_URL")
+        registration_args+=(--dewey-token-env "$DEWEY_TOKEN_ENV")
+        if [[ -n "$DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID" ]]; then
+          registration_args+=(--dewey-analysis-dir-external-object-id "$DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID")
+          registration_args+=(--dewey-run-artifact-euid "$DEWEY_RUN_ARTIFACT_EUID")
+          registration_args+=(--dewey-ursa-analysis-euid "$DEWEY_URSA_ANALYSIS_EUID")
+        fi
+      fi
+      set +e
+      env -u AWS_PROFILE -u AWS_DEFAULT_PROFILE dyec export         --region us-west-2         --cluster dyec-test         --source-path "$clone_root"         --destination-s3-uri "$EXPORT_DESTINATION_S3_URI"         --output-dir "$DAYLILY_RUN_DIR/export"         "${registration_args[@]}"
+      export_status=$?
+      set -e
+      if [[ "$export_status" -ne 0 ]]; then
+        echo "[ERROR] Export failed with status $export_status"
+        workflow_status="$export_status"
+      elif [[ "$DELETE_ON_EXPORT_SUCCESS" == "true" ]]; then
+        rm -rf -- "$clone_root"
+        echo "[INFO] Deleted FSx analysis directory after successful export: $clone_root"
+      fi
+    fi
+  fi
+fi
+export DAYLILY_STATUS_FINALIZED=1
+export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+export DAYLILY_STATUS_EXIT_CODE="$workflow_status"
+write_status
+echo "[INFO] Workflow exited with status $workflow_status"
+if [[ ! -d "$clone_root" ]]; then
+  exit "$workflow_status"
+fi
+exec bash -il
+
+--- /home/ubuntu/daylily-runs/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/status.json ---
+{
+  "command": "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete -n",
+  "completed_at": "2026-05-30T18:29:22Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun",
+  "started_at": "2026-05-30T18:28:58Z"
+}
+--- /home/ubuntu/daylily-runs/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/tmux-bootstrap.log ---
+--- /home/ubuntu/daylily-runs/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/tmux.log ---
+    priority: 45
+    threads: 192
+    resources: mem_mb=200000, mem_mib=190735, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=192, time=5440, partition=i192,i192mem,i192bigmem, vcpu=192, distribution=block, exclusive=, constraint=, exclude=, include=, attempt_n=1
+
+
+        export bwt_max_mem=100G;
+        timestamp=$(date +%Y%m%d%H%M%S)_$$;
+        main_bashpid=${BASHPID:-};
+        tmp_root=$(dirname results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/log/vcfs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.log)/../tmp;
+        mkdir -p "$tmp_root";
+        export TMPDIR="$tmp_root";
+        meta_tmp=$TMPDIR/cgt7p_meta_$timestamp;
+        export SENTIEON_TMPDIR=$TMPDIR/cgt7p_driver_$timestamp;
+        export APPTAINER_HOME=$meta_tmp/apptainer_home;
+        mkdir -p "$SENTIEON_TMPDIR" "$APPTAINER_HOME";
+
+        trap 'status=$?; if [ "${BASHPID:-}" != "$main_bashpid" ]; then exit "$status"; fi; if [ "$status" -eq 0 ]; then rm -rf "$meta_tmp" "$SENTIEON_TMPDIR" 2>/dev/null || true; else echo "Preserving scratch after failure under $TMPDIR" >> results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/log/vcfs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.log 2>&1; fi; trap - EXIT; exit "$status"' EXIT;
+        ulimit -n 65536 || echo "ulimit mod failed" > results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/log/vcfs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.log 2>&1;
+
+        if [ -z "${SENTIEON_LICENSE:-}" ]; then
+            echo "SENTIEON_LICENSE not set. Please set the SENTIEON_LICENSE environment variable to the license file path & make this update to your dyinit file as well." >> results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/log/vcfs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.log 2>&1;
+            exit 3;
+        fi
+
+        if [[ ! "$SENTIEON_LICENSE" =~ : ]] && [ ! -f "$SENTIEON_LICENSE" ]; then
+            echo "The file referenced by SENTIEON_LICENSE ('$SENTIEON_LICENSE') does not exist. Please provide a valid file path." >> results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/log/vcfs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.log 2>&1;
+            exit 4;
+        fi
+
+        TOKEN=$(curl -s -X PUT 'http://169.254.169.254/latest/api/token' -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600');
+        itype=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-type || echo "unknown");
+        echo "INSTANCE TYPE: $itype" > results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/log/vcfs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.log;
+        echo "INSTANCE TYPE: $itype";
+        start_time=$(date +%s);
+
+        /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/sentieon driver --thread_count 192         --interval chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --input results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cram         --algo DNAscope -d /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz --pcr_indel_model none --emit_mode variant         --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeMGIWGS2.1.bundle/dnascope.model results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.vcf.tmp >> results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/log/vcfs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.log 2>&1;
+
+        /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/sentieon driver -t 192         -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --algo DNAModelApply --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeMGIWGS2.1.bundle/dnascope.model -v results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.vcf.tmp results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.vcf >> results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/log/vcfs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.log 2>&1;
+
+        end_time=$(date +%s);
+        elapsed_time=$((($end_time - $start_time) / 60));
+        echo "Elapsed-Time-min:	$itype	$elapsed_time";
+        echo "Elapsed-Time-min:	$itype	$elapsed_time" >> results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/log/vcfs/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.log 2>&1;
+
+        touch results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.vcf;
+
+Would remove temporary output results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.vcf.tmp
+
+[Sat May 30 18:29:22 2026]
+localrule alignstats_gather:
+    input: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/alignqc/alignstats/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.alignstats.tsv, results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/na/alignqc/alignstats/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.na.alignstats.tsv
+    output: results/day/hg38_broad/other_reports/alignstats_summary_gather.done, results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+    log: results/day/hg38_broad/logs/alignstats_summary_gather.log
+    jobid: 8
+    benchmark: results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/other_reports/alignstats_summary_gather.done; Input files updated by another job: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/alignqc/alignstats/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.alignstats.tsv, results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/na/alignqc/alignstats/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.na.alignstats.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+ touch results/day/hg38_broad/other_reports/alignstats_summary_gather.done; touch results/day/hg38_broad/benchmarks/all.alignstats_summary.bench.tsv
+
+[Sat May 30 18:29:22 2026]
+rule cgt7p_sort_index_chunk_vcf:
+    input: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.vcf
+    output: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf, results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf.gz, results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf.gz.tbi
+    log: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/log/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf.gz.log
+    jobid: 20
+    reason: Missing output files: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf.gz.tbi; Input files updated by another job: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.vcf
+    wildcards: sample=TVBCG5X-HG003-5x-1-D0-PF-CG-MGI, alnr=sentcg, ddup=dmd, dchrm=1-24
+    priority: 46
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192,i192mem,i192bigmem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        bedtools sort -header -i results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.vcf > results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf 2> results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/log/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf.gz.log;
+        bgzip -f -c results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf > results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf.gz 2>> results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/log/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf.gz.log;
+        tabix -f -p vcf results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf.gz >> results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/log/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf.gz.log 2>&1;
+
+Would remove temporary output results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.vcf
+Would remove temporary output results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf
+
+[Sat May 30 18:29:22 2026]
+localrule alignstats_compile:
+    input: results/day/hg38_broad/other_reports/alignstats_summary_gather.done
+    output: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv, results/day/hg38_broad/other_reports/alignstats_csummary.tsv, results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv, results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
+    log: results/day/hg38_broad/logs/alignstats_summary_compile.log
+    jobid: 7
+    benchmark: results/day/hg38_broad/benchmarks/all.alignstats_smmary_compile.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/other_reports/alignstats_bsummary.tsv; Input files updated by another job: results/day/hg38_broad/other_reports/alignstats_summary_gather.done
+    threads: 2
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        python workflow/scripts/compile_alignstats.py           --mdir results/day/hg38_broad/           --log results/day/hg38_broad/logs/alignstats_summary_compile.log           --bsummary results/day/hg38_broad/other_reports/alignstats_bsummary.tsv           --csummary results/day/hg38_broad/other_reports/alignstats_csummary.tsv           --combo results/day/hg38_broad/other_reports/alignstats_combo_mqc.tsv           --generalstats results/day/hg38_broad/other_reports/alignstats_gs_mqc.tsv
+
+
+[Sat May 30 18:29:22 2026]
+localrule cgt7p_concat_fofn:
+    input: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf.gz.tbi
+    output: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.concat.vcf.gz.fofn, results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.concat.vcf.gz.fofn.tmp
+    log: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/log/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.concat.fofn.log
+    jobid: 19
+    benchmark: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/benchmarks/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.concat.fofn.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.concat.vcf.gz.fofn; Input files updated by another job: results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf.gz.tbi
+    wildcards: sample=TVBCG5X-HG003-5x-1-D0-PF-CG-MGI, alnr=sentcg, ddup=dmd
+    priority: 44
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        rm -f results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.concat.vcf.gz.fofn.tmp;
+        for i in results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/vcfs/1-24/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.1-24.snv.sort.vcf.gz.tbi; do
+            ii=$(echo "$i" | perl -pe 's/\.tbi$//g');
+            echo "$ii" >> results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.concat.vcf.gz.fofn.tmp;
+        done;
+        workflow/scripts/sort_concat_chrm_list.py results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.concat.vcf.gz.fofn.tmp TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p. results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.snv.concat.vcf.gz.fofn >> results/day/hg38_broad/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI/align/sentcg/dmd/snv/cgt7p/log/TVBCG5X-HG003-5x-1-D0-PF-CG-MGI.sentcg.dmd.cgt7p.concat.fofn.log 2>&1;
+
+Would remove tempo--output truncated--

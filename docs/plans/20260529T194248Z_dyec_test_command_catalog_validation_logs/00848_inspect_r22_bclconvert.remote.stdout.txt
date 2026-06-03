@@ -1,0 +1,30 @@
+DAY-EC activated.
+DAY-EC activated.
+aid=ccv20260529r22_illumina_bclconvert
+repo=/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis
+status_json:
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260529r22_illumina_bclconvert",
+  "started_at": "2026-05-30T05:58:29Z"
+}
+bclconvert_profile:
+recent_bcl_logs:
+/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log
+WARNING: sample sheet SoftwareVersion 4.3.16 is newer than pinned runtime 4.0.3
+INFO: normalized sample sheet SoftwareVersion from 4.3.16 to pinned runtime 4.0.3
+INFO: stripped unsupported BCLConvert setting GenerateFastqcMetrics from normalized sample sheet
+/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+WARNING: sample sheet SoftwareVersion 4.3.16 is newer than pinned runtime 4.0.3
+INFO: normalized sample sheet SoftwareVersion from 4.3.16 to pinned runtime 4.0.3
+INFO: stripped unsupported BCLConvert setting GenerateFastqcMetrics from normalized sample sheet
+slurm_queue:
+             JOBID            PARTITION    STATE       TIME TIME_LIMI  NODES                 NAME
+              2654              i192mem CONFIGUR       3:25 3-18:40:00      1 run_bclconvert-run_b
+scratch_usage:
+33K	/fsx/scratch/dayoa_bclconvert
+analysis_usage:
+352M	/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert

@@ -1,0 +1,22 @@
+DAY-EC activated.
+DAY-EC activated.
+time=2026-05-30T16:11:57Z
+localrules:
+    bclconvert_validate_inputs,
+    produce_bclconvert_fastqs,
+    produce_bclconvert_metrics,
+    produce_bclconvert_multiqc,
+    produce_bclconvert_fastqs_and_metrics,
+
+
+rule bclconvert_validate_inputs:
+    input:
+        sample_sheet=BCL_SAMPLE_SHEET,
+        samples_table=SAMPLES_TABLE,
+    output:
+        validated=BCL_VALIDATE_OK,
+        normalized_sample_sheet=BCL_NORMALIZED_SAMPLE_SHEET,
+        parsed_samplesheet_tsv=BCL_SAMPLESHEET_ROWS,
+    threads:
+        1
+    conda:

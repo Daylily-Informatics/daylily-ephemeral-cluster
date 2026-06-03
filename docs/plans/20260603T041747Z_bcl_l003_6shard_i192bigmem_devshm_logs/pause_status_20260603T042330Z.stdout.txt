@@ -1,0 +1,56 @@
+command_id=cb8bdff0-a8a0-4cf1-ad24-b407ce1da97f
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T04:22:08+00:00
+__QUEUE__
+JOBID              PARTITION    NAME                                                         USER     ST TIME       NODES  NODELIST(REASON)
+10                 bcl2fq       run_bclconvert_lane-run_bclconvert_L003                      ubuntu   PD 0:00       1      (BeginTime)
+9                  bcl2fq       run_bclconvert_lane-run_bclconvert_L005                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+8                  bcl2fq       run_bclconvert_lane-run_bclconvert_L004                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+7                  bcl2fq       run_bclconvert_lane-run_bclconvert_L007                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+6                  bcl2fq       run_bclconvert_lane-run_bclconvert_L002                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+5                  bcl2fq       run_bclconvert_lane-run_bclconvert_L006                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+4                  bcl2fq       run_bclconvert_lane-run_bclconvert_L008                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+3                  bcl2fq       run_bclconvert_lane-run_bclconvert_L003                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+2                  bcl2fq       run_bclconvert_lane-run_bclconvert_L001                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+1                  bcl2fq       bcl2fq_scratch_to_dra                                        ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+__JOB10__
+JobId=10 JobName=run_bclconvert_lane-run_bclconvert_L003
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=PENDING Reason=BeginTime Dependency=(null)
+   Requeue=1 Restarts=19 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A
+   SubmitTime=2026-06-03T04:21:04 EligibleTime=2026-06-03T04:22:15
+   AccrueTime=2026-06-03T04:22:15
+   StartTime=2026-06-03T04:22:15 EndTime=2026-06-06T23:02:15 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T04:20:48 Scheduler=Main
+   Partition=bcl2fq AllocNode:Sid=ip-10-0-0-235:46045
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=1 NumCPUs=48 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=48,mem=300000M,node=1,billing=48
+   AllocTRES=cpu=64,node=1,billing=64
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=48 MinMemoryNode=300000M MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/.snakemake/tmp.0am0859u/snakejob.run_bclconvert_lane.3.sh
+   WorkDir=/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis
+   Comment=dyec0602bcl 
+   StdErr=/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L003.3.err
+   StdIn=/dev/null
+   StdOut=/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L003.3.out
+   TresPerTask=cpu=48
+   
+
+__L003_DEST__
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_scratch_test/logs/bclconvert_validate_inputs.warnings.log
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_scratch_test/logs/validated.ok
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_scratch_test/logs/bclconvert_validate_inputs.log
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_scratch_test/normalized.SampleSheet.csv
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_scratch_test/tables/samplesheet_rows.tsv
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_scratch_test/benchmarks/bclconvert_validate_inputs.bench.tsv
+fastq_count=0
+marker_report_count=3
+

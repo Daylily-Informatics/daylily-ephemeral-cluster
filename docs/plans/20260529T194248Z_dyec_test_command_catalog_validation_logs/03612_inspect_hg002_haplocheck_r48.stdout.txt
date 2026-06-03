@@ -1,0 +1,112 @@
+DAY-EC activated.
+DAY-EC activated.
+=== patched rule markers ===
+341:            haplocheck_rc=$?
+345:%s	UNSUPPORTED_REFERENCE	0		0
+348:%s	UNSUPPORTED_REFERENCE	0		0
+350:                printf '<html><body>UNSUPPORTED_REFERENCE</body></html>
+352:                printf 'UNSUPPORTED_REFERENCE: haplocheck skipped because the input VCF is not restricted to rCRS positions.
+354:            elif [[ "$haplocheck_rc" -eq 0 ]]; then
+362:                exit "$haplocheck_rc"
+373:            printf 'NO_VARIANTS: haplocheck skipped because the input VCF has no variant records.
+=== haplocheck output files ===
+48 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.report.html
+181 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.raw.txt
+181 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt
+7130370 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.vcf.log
+=== haplocheck log tail ===
+Error! Position 56834254 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56834277 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56834289 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56834302 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56834560 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56834736 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56835530 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56835963 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56835975 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56835980 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56836132 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56836144 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56836177 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56836180 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56836194 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56836206 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56836586 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56837557 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56837944 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56837999 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56842093 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56842482 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56844959 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56848889 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56848892 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56850468 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56850480 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56850488 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56850491 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56850496 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56850512 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56853606 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56853618 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56853626 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56855606 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56855967 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56857445 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56857603 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56859251 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56860405 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56861285 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56861632 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56865836 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56865860 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56865938 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56866015 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56866833 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56866847 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56866870 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56866871 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56868240 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56868569 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56868647 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56870111 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56870257 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56870383 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56871631 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56873542 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56873588 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56874254 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56874581 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56876445 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56876571 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56876576 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56876621 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56876844 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56886638 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+Error! Position 56886662 outside the range. Please double check if VCF includes variants mapped to rCRS only.
+RUN Split Profile into Major/Minor Profile...
+RUN Classify Haplogroups...
+RUN Detect Contamination...
+RUN Write Contamination Report...
+Text report written to results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/.haplocheck_vcf_output.A6kDhY/contamination.txt.
+Raw report written to results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/.haplocheck_vcf_output.A6kDhY/contamination.raw.txt.
+Process file /reports/haplocheck.html...
+  Include style haplocheck.css...
+  Include javascript haplocheck.js...
+HTML Report written to /fsx/analysis_results/ubuntu/ccv20260530r48_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/.haplocheck_vcf_output.A6kDhY/contamination.html.
+OK Execution successful.
+UNSUPPORTED_REFERENCE: haplocheck skipped because the input VCF is not restricted to rCRS positions.
+=== declared outputs ===
+--- results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt
+-rw-rw-r-- 1 ubuntu ubuntu 181 May 30 17:40 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt
+SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
+JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ	UNSUPPORTED_REFERENCE	0		0
+--- results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.raw.txt
+-rw-rw-r-- 1 ubuntu ubuntu 181 May 30 17:40 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.raw.txt
+SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
+JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ	UNSUPPORTED_REFERENCE	0		0
+--- results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.report.html
+-rw-rw-r-- 1 ubuntu ubuntu 48 May 30 17:40 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.report.html
+<html><body>UNSUPPORTED_REFERENCE</body></html>
+=== latest snakemake log tail ===
+.snakemake/log/2026-05-30T175719.917084.snakemake.log
+Unlocking working directory.

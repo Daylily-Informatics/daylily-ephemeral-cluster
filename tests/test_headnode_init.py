@@ -197,11 +197,21 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
     assert "export DAY_AWS_REGION=us-west-2" in shell_code
     assert 'export APPTAINER_HOME="${APPTAINER_HOME:-/fsx/tmp/apptainer_home/$USER}"' in shell_code
     assert (
-        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-/fsx/tmp/apptainer_cache/$USER}"'
+        'export DAYLILY_APPTAINER_CACHE="${DAYLILY_APPTAINER_CACHE:-/fsx/resources/environments/apptainer}"'
         in shell_code
     )
-    assert 'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-$APPTAINER_CACHEDIR}"' in shell_code
-    assert "/fsx/resources/environments" not in shell_code
+    assert (
+        'export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-/fsx/resources/environments/containers/$USER/$(hostname)}"'
+        in shell_code
+    )
+    assert (
+        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-$DAYLILY_APPTAINER_CACHE}"'
+        in shell_code
+    )
+    assert (
+        'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-$APPTAINER_CACHEDIR}"' in shell_code
+    )
+    assert "/fsx/tmp/apptainer_cache" not in shell_code
     assert 'export DAY_ROOT="${PWD}"' in shell_code
     assert "reference_s3_uri=reference-bucket" in shell_code
     assert 'alias dy-b="${DAYLILY_EC_REPO_ROOT}/bin/init_dayec"' in shell_code
@@ -210,7 +220,7 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
     assert headnode.SQUEUE_FORMAT in shell_code
 
 
-def test_run_headnode_init_emit_shell_non_interactive_sends_warnings_to_stderr(
+def test_run_headnode_init_emit_shell_non_interactive_fails_on_missing_budget_tags(
     monkeypatch, capsys
 ) -> None:
     state = headnode.HeadnodeState(
@@ -224,10 +234,51 @@ def test_run_headnode_init_emit_shell_non_interactive_sends_warnings_to_stderr(
     rc = headnode.run_headnode_init(non_interactive=True, emit_shell=True)
     captured = capsys.readouterr()
 
-    assert rc == 0
-    assert "export DAY_PROJECT=da-us-west-2b-demo" in captured.out
+    assert rc == 1
+    assert captured.out == ""
     assert "Project:" not in captured.out
     assert "Warning: Budget tags file not found." in captured.err
+    assert "Error: Budget tag project membership is required" in captured.err
+
+
+def test_run_headnode_init_emit_shell_non_interactive_allows_explicit_skip(
+    monkeypatch, capsys
+) -> None:
+    state = headnode.HeadnodeState(
+        region="us-west-2",
+        project="da-us-west-2b-demo",
+        skip_project_check=True,
+        reference_s3_uri="reference-bucket",
+        warnings=["Budget tags file not found."],
+    )
+    monkeypatch.setattr(headnode, "collect_headnode_state", lambda **kwargs: state)
+
+    rc = headnode.run_headnode_init(
+        non_interactive=True,
+        emit_shell=True,
+        skip_project_check=True,
+    )
+    captured = capsys.readouterr()
+
+    assert rc == 0
+    assert "export DAY_PROJECT=da-us-west-2b-demo" in captured.out
+    assert "Warning: Budget tags file not found." in captured.err
+
+
+def test_run_headnode_init_emit_shell_non_interactive_fails_without_core_state(
+    monkeypatch, capsys
+) -> None:
+    state = headnode.HeadnodeState()
+    monkeypatch.setattr(headnode, "collect_headnode_state", lambda **kwargs: state)
+
+    rc = headnode.run_headnode_init(non_interactive=True, emit_shell=True)
+    captured = capsys.readouterr()
+
+    assert rc == 1
+    assert captured.out == ""
+    assert "Error: Headnode region is required" in captured.err
+    assert "Error: Headnode project is required" in captured.err
+    assert "Error: Reference S3 URI is required" in captured.err
 
 
 def test_run_headnode_init_interactive_mode_prompts_for_missing_budget(monkeypatch, capsys) -> None:
@@ -313,7 +364,7 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     (resources_dir / "config" / "daylily_cli_global.yaml").write_text(
         "daylily: {}\n", encoding="utf-8"
     )
-    (resources_dir / "config" / "daylily_available_repositories.yaml").write_text(
+    (resources_dir / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
         "default_repository: daylily-omics-analysis\nrepositories: {}\n",
         encoding="utf-8",
     )
@@ -431,6 +482,10 @@ def test_install_headnode_tools_writes_idempotent_login_bootstrap_block(tmp_path
     )
     assert "daylily_headnode_bootstrap()" not in bootstrap_text
     assert "unset -f daylily_headnode_bootstrap" not in bootstrap_text
+    assert (home_dir / ".config" / "daylily" / "daylily_pipeline_command_catalog.yaml").is_file()
+    legacy_catalog = home_dir / ".config" / "daylily" / "daylily_available_repositories.yaml"
+    assert legacy_catalog.is_symlink()
+    assert legacy_catalog.readlink() == Path("daylily_pipeline_command_catalog.yaml")
     assert (user_bin_dir / "day-clone").is_file()
     assert log_text.count("install_miniconda") >= 2
     assert log_text.count("activate") == 2
@@ -459,7 +514,7 @@ def test_install_headnode_tools_fails_when_miniconda_install_fails(tmp_path: Pat
     (resources_dir / "config" / "daylily_cli_global.yaml").write_text(
         "daylily: {}\n", encoding="utf-8"
     )
-    (resources_dir / "config" / "daylily_available_repositories.yaml").write_text(
+    (resources_dir / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
         "default_repository: daylily-omics-analysis\nrepositories: {}\n",
         encoding="utf-8",
     )
@@ -533,7 +588,7 @@ def test_install_headnode_tools_prefers_checkout_over_installed_resources(
             "daylily: {}\n",
             encoding="utf-8",
         )
-        (root / "config" / "daylily_available_repositories.yaml").write_text(
+        (root / "config" / "daylily_pipeline_command_catalog.yaml").write_text(
             "default_repository: daylily-omics-analysis\nrepositories: {}\n",
             encoding="utf-8",
         )
@@ -631,22 +686,20 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "70f19af846501acfbc2e42e7cfeee9ee11ddbbfa1c3502d0d99cde34e8e0af05" in script
     assert "reference_wait_timeout_seconds=1800" in script
     assert "wait_for_reference_data" in script
-    assert "runtime_assets_root=\"/fsx/references/runtime_assets\"" in script
-    assert "references_root=\"/fsx/references\"" in script
-    assert "environment_cache_root=\"/fsx/resources/environments\"" in script
-    assert (
-        'tailscale_authkey_ssm_parameter="/daylily/dayec/tailscale/headnode-authkey"'
-        in script
-    )
-    assert 'tailscale_dewey_url="https://dewey.day.lsmc.bio/"' in script
-    assert "control_data_root=\"/fsx/control_data\"" not in script
+    assert 'runtime_assets_root="/fsx/references/runtime_assets"' in script
+    assert 'references_root="/fsx/references"' in script
+    assert 'environment_cache_root="/fsx/resources/environments"' in script
+    assert 'work_root="/fsx/work"' in script
+    assert 'run_mounts_root="/fsx/run_dir_mounts"' in script
+    assert ".day.lsmc.bio" not in script
+    assert 'control_data_root="/fsx/control_data"' not in script
     assert "Required DayOA role entries are visible" in script
     assert "required DayOA role entries did not appear" in script
-    assert "[ -d \"${references_root}/genomic_data\" ]" in script
-    assert "[ -d \"${control_data_root}/genomic_data\" ]" not in script
-    assert "[ -d \"${staging_root}\" ]" not in script
+    assert '[ -d "${references_root}/genomic_data" ]' in script
+    assert '[ -d "${control_data_root}/genomic_data" ]' not in script
+    assert '[ -d "${staging_root}" ]' not in script
     assert "make_role_data_read_only" in script
-    assert "chmod a-w \"${role_root}\"" in script
+    assert 'chmod a-w "${role_root}"' in script
     assert 'stat -c "Role data permissions: %A %n" "${role_root}"' in script
     assert "fd-find ripgrep docker.io" in script
     assert "8c5d8eb0cb7f34784c872c4c70848fa442894165b7b5459cf6206a3f09c70369" in script
@@ -654,24 +707,46 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "cached Apptainer deb not found" in script
     assert 'apt-get install -y "${apptainer_deb}"' in script
     assert 'ln -sfn "$(command -v apptainer)" /usr/local/bin/singularity' in script
-    assert (
-        'ln -sfn "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar"'
-        in script
-    )
-    assert (
-        'ln -sfn "${runtime_assets_root}/tool_specific_resources/womtool_87.jar"'
-        in script
-    )
+    assert 'ln -sfn "${runtime_assets_root}/tool_specific_resources/cromwell_87.jar"' in script
+    assert 'ln -sfn "${runtime_assets_root}/tool_specific_resources/womtool_87.jar"' in script
     assert "prepare_common_writable_dirs" in script
     assert "prepare_headnode_writable_dirs" in script
     assert "prepare_dayoa_environment_cache" in script
-    assert "install_tailscale_headnode" in script
-    assert "configure_headnode_tailscale" in script
-    assert "verify_headnode_dewey_access" in script
-    assert 'install -d -m 1777 /fsx/scratch /fsx/tmp "${environment_cache_root}"' in script
+    assert 'install -d -m 1777 \\' in script
+    assert '"${work_root}"' in script
+    assert '"${run_mounts_root}"' in script
+    assert "install -d -m 0777 /fsx/analysis_results" in script
+    assert "chmod a+rwx /fsx/analysis_results" in script
     assert "install -d -m 0775 -o ubuntu -g ubuntu /fsx/analysis_results/ubuntu" in script
+    assert '"${work_root}/ubuntu/containers"' in script
+    assert '"${work_root}/ubuntu/nextflow"' in script
+    assert '"${work_root}/ubuntu/sarek"' in script
+    assert '"${work_root}/daylily/containers"' in script
+    assert "install_headnode_runtime_cache_profile" in script
+    assert "cat <<'EOF' > /etc/profile.d/daylily-runtime-cache.sh" in script
+    assert 'export DAYLILY_WORK_ROOT="${DAYLILY_WORK_ROOT:-/fsx/work/${USER}}"' in script
     assert (
-        "DayOA conda and container caches are seeded from "
+        'export DAYLILY_APPTAINER_CACHE="${DAYLILY_APPTAINER_CACHE:-/fsx/resources/environments/apptainer}"'
+        in script
+    )
+    assert (
+        'export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-${DAYLILY_WORK_ROOT}/containers}"'
+        in script
+    )
+    assert (
+        'export DAYLILY_NEXTFLOW_SEED_CACHE="${DAYLILY_NEXTFLOW_SEED_CACHE:-/fsx/resources/environments/nextflow}"'
+        in script
+    )
+    assert (
+        'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"'
+        in script
+    )
+    assert (
+        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"'
+        in script
+    )
+    assert (
+        "DayOA conda, container, and Nextflow caches are seeded from "
         "${runtime_assets_root}/cached_envs into ${environment_cache_root}" in script
     )
     assert "link_cached_entries" in script
@@ -679,16 +754,12 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert '"${environment_cache_root}/containers/${user_name}/${host_name}"' in script
     assert '"${runtime_assets_root}/cached_envs/conda"' in script
     assert '"${runtime_assets_root}/cached_envs/containers"' in script
-    assert "pkgs.tailscale.com/stable/ubuntu/${VERSION_CODENAME}.noarmor.gpg" in script
-    assert "pkgs.tailscale.com/stable/ubuntu/${VERSION_CODENAME}.tailscale-keyring.list" in script
-    assert "apt-get install -y tailscale" in script
-    assert "aws ssm get-parameter" in script
-    assert '--name "${tailscale_authkey_ssm_parameter}"' in script
-    assert '--auth-key="${authkey}"' in script
-    assert "--accept-dns=false" in script
-    assert "--accept-routes=false" in script
-    assert "empty Tailscale auth key from SSM parameter" in script
-    assert "Dewey reachable from headnode through Tailscale" in script
+    for removed in (
+        "tail" + "scale",
+        "headnode-" + "authkey",
+        "pkgs." + "tail" + "scale" + ".com",
+    ):
+        assert removed not in script.lower()
     assert "chmod -R a+wrx /fsx" not in script
     assert "Original sbatch already present" in script
     assert "Original srun already present" in script
@@ -710,6 +781,24 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "ppa:apptainer/ppa" not in script
     assert "command -v apptainer" in script
     assert "command -v singularity" in script
+    assert "cat <<'EOF' > /opt/slurm/sbin/check_tags.sh" in script
+    assert "* * * * * /opt/slurm/sbin/check_tags.sh" in script
+    global_actions = script.split("# GLOBAL ACTIONS HeadNode and ComputeFleet", 1)[1]
+    assert global_actions.index("prepare_dayoa_environment_cache") < global_actions.index(
+        'if [ "${cfn_node_type}" == "HeadNode" ];then'
+    )
+    assert global_actions.index("prepare_headnode_writable_dirs") < global_actions.index(
+        "install_headnode_runtime_cache_profile"
+    )
+    assert script.index("cat <<'EOF' > /opt/slurm/sbin/check_tags.sh") < script.index(
+        'if [ "${cfn_node_type}" == "ComputeFleet" ];then'
+    )
+    assert script.index('if [ "${cfn_node_type}" == "ComputeFleet" ];then') < script.index(
+        'echo "Expanding /dev/shm to 80% of total memory"'
+    )
+    compute_branch = script.split('if [ "${cfn_node_type}" == "ComputeFleet" ];then', 1)[1]
+    compute_branch = compute_branch.split("else", 1)[0]
+    assert "exit 0" not in compute_branch
 
 
 def test_packaged_post_install_bootstrap_matches_source() -> None:

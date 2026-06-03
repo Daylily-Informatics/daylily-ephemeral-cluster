@@ -1,0 +1,25 @@
+timestamp_utc: 2026-06-03T07:50:53Z
+tmux_session: dayoa_bcl_l003_8tile_tilesmoke_20260603
+command: dy-r produce_bclconvert_fastqs -p -k -j 10 -T 0 --rerun-triggers mtime --configfile config/bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm.yaml
+
+validation:
+  bclconvert_validate_inputs: finished
+
+submitted_jobs:
+  - slurm_job_id: 55
+    rule: run_bclconvert_tile_shard
+    lane: L003
+    shard: 0001_tiles0001-0008
+    partition: i192bigmem
+    threads: 192
+    exclusive: --exclusive
+    staging: /dev/shm/dayoa_bclconvert
+    odirect: "--shared-thread-odirect-output false"
+    tile_regex: s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108
+
+retry_policy:
+  snakemake_restart_times: 0
+  evidence: command includes -T 0
+
+status:
+  job_55: RUNNING on i192bigmem-dy-all-1

@@ -1,0 +1,22 @@
+DAY-EC activated.
+DAY-EC activated.
+=== status ===
+{
+  "command": "bin/day_run produce_ont_run_qc -p -j 5 -k --config run_context_file=config/runs.tsv samples_table=.test_data/data/samples.tsv units_table=.test_data/data/units.tsv",
+  "completed_at": "2026-05-30T05:47:01Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc/daylily-omics-analysis",
+  "session_name": "ccv20260529r21_ont_run_qc",
+  "started_at": "2026-05-30T05:44:04Z"
+}
+=== repo ===
+/fsx/analysis_results/ubuntu/ccv20260529r21_ont_run_qc/daylily-omics-analysis
+=== latest snakemake logs ===
+1780120020.0000000000 .snakemake/log/2026-05-30T054535.876975.snakemake.log
+1780120024.0000000000 .snakemake/log/2026-05-30T054701.588595.snakemake.log
+=== latest log path: .snakemake/log/2026-05-30T054701.588595.snakemake.log ===
+=== latest log tail ===
+Unlocking working directory.
+=== rule logs with errors ===
+results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log:31:Traceback (most recent call last):
+results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log:67:TypeError: unsupported format string passed to NoneType.__format__

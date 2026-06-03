@@ -1,0 +1,368 @@
+DAY-EC activated.
+DAY-EC activated.
+__TMUX__
+            touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fro
+m_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/bclco
+nvert.done
+
+
+[Wed Jun  3 08:21:01 2026]
+localrule produce_bclconvert_fastqs:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/validated.ok
+, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l00
+3_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/bclconvert.done
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/fastqs.complete
+    log: results/day/hg38/logs/produce_bclconvert_fastqs.log
+    jobid: 0
+    benchmark: results/day/hg38/benchmarks/produce_bclconvert_fastqs.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T08
+0931Z/fastqs.complete, results/day/hg38/benchmarks/produce_bclconvert_fastqs.ben
+ch.tsv; Input files updated by another job: /fsx/run_dir_mounts/20260514_LH01106
+_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_2
+0260603T080931Z/logs/validated.ok, /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T0
+80931Z/logs/bclconvert.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/de
+v/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=b
+lock, exclusive=, constraint=, exclude=, include=
+
+touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/fastqs.complete
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+bclconvert_validate_inputs          1              1              1
+merge_bclconvert_tile_shards        1              1              1
+produce_bclconvert_fastqs           1              1              1
+run_bclconvert                      1              1              1
+run_bclconvert_tile_shard           1            192            192
+total                               5              1            192
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        merge_bclconvert_tile_shards, produce_bclconvert_fastqs, run_bclconvert,
+ run_bclconvert_tile_shard
+    missing output files:
+        bclconvert_validate_inputs, merge_bclconvert_tile_shards, produce_bclcon
+vert_fastqs, run_bclconvert, run_bclconvert_tile_shard
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of ex
+ecution.
+RETURN CODE: 0
+__DRY_SCRATCH_ODIRECT_RC__0
+[Dslu](DAYOA) dy-r produce_bclconvert_fastqs -p -k -j 10 -T 0 --rerun-triggers m
+time --configfile config/bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_2026
+0603T080931Z.yaml; echo __LIVE_SCRATCH_ODIRECT_RC__$?
+Your config files in /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_
+odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/config/day_profiles/s
+lurm are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_
+tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/config/day_
+profiles/slurm produce_bclconvert_fastqs -p -k -j 10 -T 0 --rerun-triggers mtime
+ --configfile config/bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603
+T080931Z.yaml
+Config file config/global.yaml is extended by additional config specified via th
+e command line.
+loading global: /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odire
+ct_on_scratch_20260603T080931Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified
+via the command line.
+loading profile rule_config: /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_ti
+lesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/config/day_pr
+ofiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional
+ config specified via the command line.
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+SNV Callers (final): []
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/dyec0
+602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omic
+s-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/dyec060
+2bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-
+analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cluster nodes: 10
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+bclconvert_validate_inputs          1              1              1
+merge_bclconvert_tile_shards        1              1              1
+produce_bclconvert_fastqs           1              1              1
+run_bclconvert                      1              1              1
+run_bclconvert_tile_shard           1            192            192
+total                               5              1            192
+
+Select jobs to execute...
+
+[Wed Jun  3 08:21:40 2026]
+localrule bclconvert_validate_inputs:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv,
+ /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_2
+0260603T080931Z/daylily-omics-analysis/config/samples.tsv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/validated.o
+k, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l0
+03_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/normalized.SampleSheet.cs
+v, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l0
+03_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tables/samplesheet_rows.t
+sv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/bclconvert_val
+idate_inputs.log
+    jobid: 1
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/benchmarks/bc
+lconvert_validate_inputs.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T08
+0931Z/logs/validated.ok, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/nor
+malized.SampleSheet.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/de
+v/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=b
+lock, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from
+_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs /fsx/r
+un_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_
+tilesmoke_odirect_on_scratch_20260603T080931Z/tables
+        : > /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/bclconvert_
+validate_inputs.log
+        if [ -z /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 ]; then
+            echo "bclconvert.run_dir is required" >> /fsx/run_dir_mounts/2026051
+4_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_
+scratch_20260603T080931Z/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ ! -d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 ]; then
+            echo "bclconvert.run_dir does not exist: /fsx/run_dir_mounts/2026051
+4_LH01106_0009_B23TVLGLT4" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGL
+T4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931
+Z/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ "true" = "false" ]; then
+            echo "keep_undetermined_fastqs=false is unsupported for the bclconve
+rt bootstrap path" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts
+_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/b
+clconvert_validate_inputs.log
+            exit 2
+        fi
+        bcl_extra_args=
+        if [ -n "$bcl_extra_args" ]; then
+            echo "bclconvert.extra_args is not supported in this shell-only boot
+strap workflow" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fr
+om_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/bclc
+onvert_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Sa
+mpleSheet.csv \
+          --samples-tsv /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmo
+ke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/config/samples.tsv
+ \
+          --normalized-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/n
+ormalized.SampleSheet.csv \
+          --rows-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_
+from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tables/
+samplesheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/log
+s/bclconvert_validate_inputs.warnings.log \
+          >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bcl
+convert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/bclconvert
+_validate_inputs.log 2>&1
+        touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/validated
+.ok
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip
+-10-0-0-235/9d47d7d0d1fd2da30ac182cf088a614c_
+[Wed Jun  3 08:21:41 2026]
+Finished job 1.
+1 of 5 steps (20%) done
+Select jobs to execute...
+
+[Wed Jun  3 08:21:41 2026]
+rule run_bclconvert_tile_shard:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/validated.ok
+, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l00
+3_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/normalized.SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_reports/L00
+3/0001_tiles0001-0008/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009
+_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_202606
+03T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_list.csv, /fsx/run
+_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_ti
+lesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008
+/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVL
+GLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T0809
+31Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/run_bclconvert
+.L003.0001_tiles0001-0008.log
+    jobid: 4
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/benchmarks/ru
+n_bclconvert.L003.0001_tiles0001-0008.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T08
+0931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_list.csv, /fsx/run_dir_
+mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmo
+ke_odirect_on_scratch_20260603T080931Z/tile_reports/L003/0001_tiles0001-0008/bcl
+convert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L0
+03/0001_tiles0001-0008/Reports/Demultiplex_Stats.csv; Input files updated by ano
+ther job: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclcon
+vert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/validated.ok,
+ /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003
+_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/normalized.SampleSheet.csv
+    wildcards: lane=L003, shard=0001_tiles0001-0008
+    threads: 192
+    resources: mem_mb=1200000, mem_mib=1144410, disk_mb=1000, disk_mib=954, tmpd
+ir=<TBD>, threads=192, time=5440, partition=i192bigmem, vcpu=192, distribution=b
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+
+TMPDIR=/scratch/dayoa_bclconvert_tmp bash workflow/scripts/run_bclconvert_lane.s
+h docker://nfcore/bclconvert:4.0.3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L003/000
+1_tiles0001-0008 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from
+_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/normalized.
+SampleSheet.csv 3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fro
+m_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_repor
+ts/L003/0001_tiles0001-0008/SampleSheet.csv false false false 1 24 4 64 32 true
+true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}
+' __dayoa_no_force__ 192 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/log
+s/run_bclconvert.L003.0001_tiles0001-0008.log /fsx/run_dir_mounts/20260514_LH011
+06_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch
+_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_list.csv /f
+sx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8t
+ile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L003/0001_tiles000
+1-0008/Reports/Demultiplex_Stats.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B
+23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603
+T080931Z/tile_reports/L003/0001_tiles0001-0008/bclconvert.done s_3_1101+s_3_1102
++s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108 /scratch/dayoa_bclconvert
+ 20000000000
+Submitted job 4 with external jobid '59'.
+[Wed Jun  3 08:21:50 2026]
+Error in rule run_bclconvert_tile_shard:
+    jobid: 4
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/validated.ok
+, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l00
+3_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/normalized.SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_reports/L00
+3/0001_tiles0001-0008/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009
+_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_202606
+03T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_list.csv, /fsx/run
+_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_ti
+lesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008
+/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVL
+GLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T0809
+31Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/run_bclconvert
+.L003.0001_tiles0001-0008.log (check log file(s) for error details)
+    shell:
+        TMPDIR=/scratch/dayoa_bclconvert_tmp bash workflow/scripts/run_bclconver
+t_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/run_dir_mounts/20260514_LH01106_
+0009_B23TVLGLT4 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_
+bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/
+L003/0001_tiles0001-0008 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/nor
+malized.SampleSheet.csv 3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/f
+asts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/ti
+le_reports/L003/0001_tiles0001-0008/SampleSheet.csv false false false 1 24 4 64
+32 true true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "
+0"}' '{}' __dayoa_no_force__ 192 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TV
+LGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080
+931Z/logs/run_bclconvert.L003.0001_tiles0001-0008.log /fsx/run_dir_mounts/202605
+14_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on
+_scratch_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_lis
+t.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tile_fastqs/L003/0001_
+tiles0001-0008/Reports/Demultiplex_Stats.csv /fsx/run_dir_mounts/20260514_LH0110
+6_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_
+20260603T080931Z/tile_reports/L003/0001_tiles0001-0008/bclconvert.done s_3_1101+
+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108 /scratch/dayoa_bc
+lconvert 20000000000
+        (one of the commands exited with non-zero exit code; note that snakemake
+ uses bash strict mode!)
+    cluster_jobid: 59
+
+Error executing rule run_bclconvert_tile_shard on cluster (jobid: 4, external: 5
+9, jobscript: /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect
+_on_scratch_20260603T080931Z/daylily-omics-analysis/.snakemake/tmp.lkvxql6_/snak
+ejob.run_bclconvert_tile_shard.4.sh). For error details see the cluster log and
+the log files of the involved rule(s).
+Exiting because a job execution failed. Look above for error message
+
+        Womp Womp.  something went awry----
+RETURN CODE: 1
+__LIVE_SCRATCH_ODIRECT_RC__1
+[Dslu](DAYOA)
+__BCL_LOG__
+__SNAKEMAKE_LOGS__
+### /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/.snakemake/log/2026-06-03T082101.956089.snakemake.log
+WorkflowError in file /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/workflow/rules/common.smk, line 426:
+The units table was not found at /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/config/units.tsv. Create config/units.tsv or set --config units_table=/path/to/units.tsv.
+  File "/fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/workflow/Snakefile", line 66, in <module>
+  File "/fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/workflow/rules/global_common.smk", line 151, in <module>
+  File "/fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/workflow/rules/common.smk", line 1089, in <module>
+  File "/fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/workflow/rules/common.smk", line 426, in _load_units_table
+### /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/.snakemake/log/2026-06-03T082136.043540.snakemake.log
+Config file config/global.yaml is extended by additional config specified via the command line.
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cluster nodes: 10
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+bclconvert_validate_inputs          1              1              1
+merge_bclconvert_tile_shards        1              1              1
+produce_bclconvert_fastqs           1              1              1
+run_bclconvert                      1              1              1
+run_bclconvert_tile_shard           1            192            192
+total                               5              1            192
+
+Select jobs to execute...
+
+[Wed Jun  3 08:21:40 2026]
+localrule bclconvert_validate_inputs:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv, /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/daylily-omics-analysis/config/samples.tsv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/validated.ok, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/normalized.SampleSheet.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/tables/samplesheet_rows.tsv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/bclconvert_validate_inputs.log
+    jobid: 1
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/benchmarks/bclconvert_validate_inputs.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs/validated.ok, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/normalized.SampleSheet.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_scratch_20260603T080931Z/logs /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8t--output truncated--

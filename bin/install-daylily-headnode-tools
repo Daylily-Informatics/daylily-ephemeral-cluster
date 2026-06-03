@@ -150,7 +150,8 @@ CLUSTER_CONFIG_PATH="${DAYLILY_EC_CLUSTER_CONFIG_PATH:-/opt/parallelcluster/shar
 mkdir -p "$TARGET_CONFIG_DIR" "$USER_BIN_DIR"
 
 cp "$CONFIG_SOURCE_DIR/daylily_cli_global.yaml" "$TARGET_CONFIG_DIR/daylily_cli_global.yaml"
-cp "$CONFIG_SOURCE_DIR/daylily_available_repositories.yaml" "$TARGET_CONFIG_DIR/daylily_available_repositories.yaml"
+cp "$CONFIG_SOURCE_DIR/daylily_pipeline_command_catalog.yaml" "$TARGET_CONFIG_DIR/daylily_pipeline_command_catalog.yaml"
+ln -sfn daylily_pipeline_command_catalog.yaml "$TARGET_CONFIG_DIR/daylily_available_repositories.yaml"
 
 install -m 0755 "$REPO_ROOT/bin/headnode_utils/day-clone" "$USER_BIN_DIR/day-clone"
 echo "day-clone installed to $USER_BIN_DIR/day-clone"

@@ -1,0 +1,45 @@
+DAY-EC activated.
+DAY-EC activated.
+=== identity ===
+2026-05-30T18:03:05Z
+ip-10-0-0-88.us-west-2.compute.internal
+=== queue counts ===
+total_jobs=71
+state.CONFIGURING=1
+state.RUNNING=70
+partition.i192mem=68
+partition.i192=3
+=== job family counts ===
+     64 sentdhiomr_transfer
+      2 sentdhiomr_anno
+      1 sentdhiomr_model_apply
+      1 sentdhiomr_final_norm
+      1 no_dedup
+      1 cgt7p_DNAscope
+      1 alignstats
+=== oldest jobs ===
+4175|i192mem|RUNNING|3:09|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4200|i192mem|RUNNING|2:39|1|i192mem-dy-all-20|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4207|i192|CONFIGURING|2:33|1|i192-dy-all-2|cgt7p_DNAscope-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+4212|i192mem|RUNNING|2:28|1|i192mem-dy-all-4|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4215|i192mem|RUNNING|2:28|1|i192mem-dy-all-4|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4216|i192mem|RUNNING|2:28|1|i192mem-dy-all-4|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4222|i192mem|RUNNING|2:25|1|i192mem-dy-all-4|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4227|i192mem|RUNNING|2:13|1|i192mem-dy-all-20|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4230|i192mem|RUNNING|2:13|1|i192mem-dy-all-20|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4233|i192mem|RUNNING|2:12|1|i192mem-dy-all-20|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4234|i192mem|RUNNING|2:12|1|i192mem-dy-all-20|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4240|i192mem|RUNNING|1:59|1|i192mem-dy-all-20|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4243|i192mem|RUNNING|1:59|1|i192mem-dy-all-15|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4244|i192mem|RUNNING|1:59|1|i192mem-dy-all-15|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4247|i192mem|RUNNING|1:57|1|i192mem-dy-all-15|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4248|i192mem|RUNNING|1:57|1|i192mem-dy-all-15|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4249|i192mem|RUNNING|1:57|1|i192mem-dy-all-15|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4252|i192mem|RUNNING|1:48|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4255|i192mem|RUNNING|1:46|1|i192mem-dy-all-20|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+4256|i192mem|RUNNING|1:46|1|i192mem-dy-all-20|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+=== fsx ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  3.7T  5.1T  43% /fsx
+tmpfs                   tmpfs   199G     0  199G   0% /dev/shm
+/dev/root               ext4    408G   42G  367G  11% /

@@ -1,0 +1,27 @@
+timestamp_utc: 2026-06-03T07:56:00Z
+run_id: fasts_from_bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm_20260603T0740Z
+
+squeue:
+  running:
+    - job: 55
+      shard: L003/0001_tiles0001-0008
+      elapsed: 5:07
+      host: i192bigmem-dy-all-1
+
+active_bcl_convert:
+  host: i192bigmem-dy-all-1
+  pid: 20570
+  elapsed: 4:58
+  cpu_percent: 72.0
+  threads: 257
+  wchan: futex_wait_queue
+  rchar: 4401501839
+  wchar: 2016580232
+  read_bytes: 17452478464
+  write_bytes: 0
+  dev_shm_size: 1.9G
+  dev_shm_files: 94
+
+interpretation:
+  - Kernel write_bytes remains 0 because /dev/shm is tmpfs, but process wchar and /dev/shm size prove active memory-backed output writes.
+  - The run crossed from low-activity Lustre wait into active conversion between the 07:54:00 and 07:56:00 snapshots.

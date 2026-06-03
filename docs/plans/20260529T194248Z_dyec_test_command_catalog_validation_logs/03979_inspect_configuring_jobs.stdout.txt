@@ -1,0 +1,35 @@
+DAY-EC activated.
+DAY-EC activated.
+=== squeue detail ===
+JOBID|PARTITION|STATE|TIME|NODES|NODELIST(REASON)|NAME
+4622|i192|RUNNING|0:04|1|i192-dy-all-1|multiqc_final_wgs-multiqc_final
+4619|i192mem|RUNNING|14:19|1|i192mem-dy-all-13|sentieon_cgt7p_bwa_sort-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+=== scontrol configuring/running ===
+--- job 4622 ---
+JobId=4622
+JobName=multiqc_final_wgs-multiqc_final
+JobState=RUNNING
+Reason=None
+RunTime=00:00:04
+StartTime=2026-05-30T18:51:47
+Partition=i192
+NodeList=i192-dy-all-1
+BatchHost=i192-dy-all-1
+NumNodes=1
+NumCPUs=4
+Command=/fsx/analysis_results/ubuntu/ccv20260530r50_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/.snakemake/tmp.6iub5u6l/snakejob.multiqc_final_wgs.96.sh
+WorkDir=/fsx/analysis_results/ubuntu/ccv20260530r50_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis
+--- job 4619 ---
+JobId=4619
+JobName=sentieon_cgt7p_bwa_sort-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+JobState=RUNNING
+Reason=None
+RunTime=00:14:19
+StartTime=2026-05-30T18:37:32
+Partition=i192mem
+NodeList=i192mem-dy-all-13
+BatchHost=i192mem-dy-all-13
+NumNodes=1
+NumCPUs=192
+Command=/fsx/analysis_results/ubuntu/ccv20260530r54_complete_genomics_mgi_snv_concordance/daylily-omics-analysis/.snakemake/tmp.mjn1gesf/snakejob.sentieon_cgt7p_bwa_sort.1.sh
+WorkDir=/fsx/analysis_results/ubuntu/ccv20260530r54_complete_genomics_mgi_snv_concordance/daylily-omics-analysis

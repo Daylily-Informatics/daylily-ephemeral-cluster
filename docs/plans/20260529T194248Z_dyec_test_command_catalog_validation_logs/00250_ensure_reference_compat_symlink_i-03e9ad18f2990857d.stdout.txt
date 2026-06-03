@@ -1,0 +1,5 @@
+DAY-EC activated.
+DAY-EC activated.
+USER=ubuntu
+i192-dy-all-3.dyec-test.pcluster
+lrwxrwxrwx 1 root root 15 May 29 23:46 /fsx/data -> /fsx/references

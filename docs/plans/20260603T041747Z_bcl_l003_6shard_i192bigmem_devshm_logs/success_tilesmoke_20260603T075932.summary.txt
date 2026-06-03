@@ -1,0 +1,50 @@
+timestamp_utc: 2026-06-03T07:59:32Z
+run_id: fasts_from_bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm_20260603T0740Z
+final_dra_directory: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm_20260603T0740Z
+
+terminal_state:
+  dy_r_exit_marker: __LIVE_TILESMOKE_RELAUNCH_EXIT__0
+  squeue_matching_bcl_jobs: empty
+  fastq_count: 84
+  done_count: 3
+  report_count: 4
+  lanes_observed: L003
+
+bclconvert_job:
+  slurm_job_id: 55
+  shard: L003/0001_tiles0001-0008
+  tile_regex: s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108
+  started: 2026-06-03T07:51:00Z
+  move_from_scratch_started: 2026-06-03T07:56:18Z
+  finished: 2026-06-03T07:56:25Z
+  first_final_fastq_mtime: 2026-06-03T07:56:16Z
+  fastq_count: 84
+  transferred_bytes: 6.10G
+  rsync_rate: 813.85M bytes/sec
+  scratch_available_bytes: 1278242279424
+  scratch_cleanup_observed: /dev/shm returned to 172K in final log df output
+
+benchmark_run_bclconvert:
+  file: benchmarks/run_bclconvert.L003.0001_tiles0001-0008.bench.tsv
+  s: 324.7959
+  h_m_s: 0:05:24
+  max_rss_mb: 28389.21
+  io_in: 16644.01
+  io_out: 0.01
+  mean_load: 99.26
+  cpu_time: 322.83
+  hostname: i192bigmem-dy-all-1
+  instance_type: r7i.48xlarge
+  snakemake_threads: 192
+  task_cost: 0.365675
+
+other_benchmarks:
+  bclconvert_validate_inputs_s: 0.6546
+  merge_bclconvert_tile_shards_s: 0.2694
+  run_bclconvert_lane_fastqs_ready_s: 0.0106
+
+timing_interpretation:
+  - No substantial /dev/shm payload output was observed at the 07:54:00 snapshot, about 3:07 after Slurm job start.
+  - Substantial /dev/shm payload output was observed at the 07:56:00 snapshot, about 5:07 after Slurm job start.
+  - Final FASTQ mtimes and scratch-to-final move occurred around 07:56:16-07:56:18, about 5:16-5:18 after BCL Convert started.
+  - For this run, time to first observed substantial payload writing was between about 3 and 5 minutes, with final outputs visible by about 5:16.

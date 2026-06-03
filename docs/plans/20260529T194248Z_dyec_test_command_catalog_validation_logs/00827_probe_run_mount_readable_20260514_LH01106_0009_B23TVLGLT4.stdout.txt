@@ -1,0 +1,3 @@
+DAY-EC activated.
+DAY-EC activated.
+readable_projection=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml

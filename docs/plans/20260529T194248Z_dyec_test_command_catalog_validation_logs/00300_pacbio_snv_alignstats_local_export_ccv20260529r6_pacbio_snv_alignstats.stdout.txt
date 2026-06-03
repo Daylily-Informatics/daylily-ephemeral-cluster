@@ -1,0 +1,20 @@
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+  · Attached export DRA dra-03adda4240bdb9447 at
+/fsx/analysis_results/ubuntu/ccv20260529r6_pacbio_snv_alignstats/
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: dyec-test                                                          │
+│  FSx: fs-0df313e1751219cac                                                   │
+│  Source: /analysis_results/ubuntu/ccv20260529r6_pacbio_snv_alignstats/       │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260  │
+│  529r6_pacbio_snv_alignstats/                                                │
+│  Status file:                                                                │
+│  /Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-clust  │
+│  er/docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/e  │
+│  xport_receipts/ccv20260529r6_pacbio_snv_alignstats/fsx_export.yaml          │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯

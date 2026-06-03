@@ -1,0 +1,137 @@
+DAY-EC activated.
+DAY-EC activated.
+want=/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHCv5q
+total 130K
+drwxr-xr-x  4 root root 33K May 29 02:51 .
+drwxr-xr-x  4 root root 33K May 29 02:51 ..
+drwxr-xr-x 10 root root 33K May 29 02:51 v4.2.1
+drwxr-xr-x  3 root root 33K May 26 08:14 v5.0q
+total 328K
+drwxr-xr-x 10 root root  33K May 29 02:51 .
+drwxr-xr-x  4 root root  33K May 29 02:51 ..
+drwxr-xr-x 11 root root  33K May 29 02:51 HG001
+drwxr-xr-x 12 root root  33K May 26 08:14 HG002
+drwxr-xr-x  8 root root  33K May 29 02:51 HG003
+drwxr-xr-x 11 root root  33K May 29 02:51 HG004
+drwxr-xr-x 11 root root  33K May 29 02:51 HG005
+drwxr-xr-x 13 root root  33K May 29 02:51 HG006
+drwxr-xr-x 11 root root  33K May 29 02:51 HG007
+drwxr-xr-x  3 root root  33K May 29 02:51 HG2
+-rwxr-xr-x  1 root root    0 May 26 07:52 bed_regions.log
+-rwxr-xr-x  1 root root  642 May 26 07:52 calc_uniq_footprint.py
+-rwxr-xr-x  1 root root  636 May 26 07:52 calc_uniq_footprint.py~
+-rwxr-xr-x  1 root root 1.5K May 26 07:52 create_clinv.sh
+-rwxr-xr-x  1 root root  716 May 26 07:52 create_clinv.sh~
+-rwxr-xr-x  1 root root  746 May 26 07:52 proc_regions.sh
+total 390K
+drwxr-xr-x 12 root root 33K May 26 08:14 .
+drwxr-xr-x 10 root root 33K May 29 02:51 ..
+drwxr-xr-x  2 root root 33K May 29 02:51 altair-v1.1
+drwxr-xr-x  2 root root 33K May 29 02:51 clinvar_genes
+drwxr-xr-x  3 root root 33K May 29 02:51 giabHC
+drwxr-xr-x  2 root root 33K May 29 02:51 giabHC_x_clinvar_genes
+drwxr-xr-x  2 root root 33K May 29 02:51 giabHC_x_ultima
+drwxr-xr-x  2 root root 33K May 29 02:51 giabHC_x_ultima_x_clinvar
+drwxr-xr-x  2 root root 33K May 29 02:51 giabHCv5q
+drwxr-xr-x  2 root root 33K May 29 02:51 hg38
+drwxr-xr-x  2 root root 33K May 29 02:51 hg38_m_giabHC
+drwxr-xr-x  2 root root 33K May 29 02:51 ultima
+total 103K
+drwxr-xr-x  2 root root 33K May 29 02:51 .
+drwxr-xr-x 12 root root 33K May 26 08:14 ..
+lrwxrwxrwx  1 root root 137 May 26 07:49 HG002.bed -> /fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.benchmark.bed
+lrwxrwxrwx  1 root root 130 May 26 07:49 HG002.vcf.gz -> /fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz
+lrwxrwxrwx  1 root root 134 May 26 07:49 HG002.vcf.gz.tbi -> /fsx/data/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz.tbi
+
+HG002 candidate files under giab snv:
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/altair-v1.1/HG002.bed	5475200
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/altair-v1.1/HG002.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/altair-v1.1/HG002.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/clinvar_genes/HG002.bed	4684427
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/clinvar_genes/HG002.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/clinvar_genes/HG002.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/clinvar_genes/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/clinvar_genes/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/clinvar_genes/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed	11494021
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/HG002.bed	11494021
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/HG002.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/HG002.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed	11494021
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/HG002_GRCh38_1_22_v4.2.1_all.vcf.gz	249469064
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/HG002_GRCh38_1_22_v4.2.1_all.vcf.gz.tbi	1801590
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/HG002_GRCh38_1_22_v4.2.1_annotated.vcf.gz	1611292710
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/HG002_GRCh38_1_22_v4.2.1_annotated.vcf.gz.tbi	2115301
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/HG002_GRCh38_1_22_v4.2.1_benchmark_hifiasm_v11_phasetransfer.vcf.gz	175186444
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/HG002_GRCh38_1_22_v4.2.1_benchmark_hifiasm_v11_phasetransfer.vcf.gz.tbi	1633465
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/HG002_GRCh38_1_22_v4.2.1_benchmark_phased_MHCassembly_StrandSeqANDTrio.vcf.gz	162490215
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/HG002_GRCh38_1_22_v4.2.1_benchmark_phased_MHCassembly_StrandSeqANDTrio.vcf.gz.tbi	1661777
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/HG002_GRCh38_1_22_v4.2.1_callablemultinter_gt0.bed	9568083
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/HG002_GRCh38_1_22_v4.2.1_filteredsites.bed	54218978
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/HG002_NA24385_GRCh38_1_22_v4.2_benchmark_phased_StrandSeq_whatshap.vcf.gz	158066596
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/HG002_NA24385_GRCh38_1_22_v4.2_benchmark_phased_StrandSeq_whatshap.vcf.gz.tbi	1657761
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/inputvcfsandbeds/HG002_GRCh38_1_22_10xGenomics.vcf.gz	1584635531
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/inputvcfsandbeds/HG002_GRCh38_1_22_10xGenomics.vcf.gz.tbi	2069463
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/inputvcfsandbeds/HG002_GRCh38_1_22_10xGenomics_callable.bed	18521699
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/inputvcfsandbeds/HG002_GRCh38_1_22_PacBio_HiFi_DeepVariant.vcf.gz	112224382
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/inputvcfsandbeds/HG002_GRCh38_1_22_PacBio_HiFi_DeepVariant.vcf.gz.tbi	1606512
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/inputvcfsandbeds/HG002_GRCh38_1_22_PacBio_HiFi_DeepVariant_callable.bed	2933079
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/inputvcfsandbeds/HG002_GRCh38_1_22_PacBio_HiFi_GATK4.vcf.gz	250604472
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/inputvcfsandbeds/HG002_GRCh38_1_22_PacBio_HiFi_GATK4.vcf.gz.tbi	1565969
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/SupplementaryFiles/inputvcfsandbeds/HG002_GRCh38_1_22_PacBio_HiFi_GATK4_callable.bed	68757
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_clinvar_genes/HG002.bed	5658414
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_clinvar_genes/HG002.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_clinvar_genes/HG002.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_clinvar_genes/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_clinvar_genes/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_clinvar_genes/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed	11494021
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima/HG002.bed	171587412
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima/HG002.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima/HG002.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed	11494021
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima_x_clinvar/HG002.bed	39085649
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima_x_clinvar/HG002.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima_x_clinvar/HG002.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima_x_clinvar/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima_x_clinvar/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima_x_clinvar/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed	11494021
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38/HG002.bed	426
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38/HG002.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38/HG002.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed	11494021
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38_m_giabHC/HG002.bed	11597738
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38_m_giabHC/HG002.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38_m_giabHC/HG002.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38_m_giabHC/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38_m_giabHC/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38_m_giabHC/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed	11494021
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/ultima/HG002.bed	239624499
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/ultima/HG002.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/ultima/HG002.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/ultima/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/ultima/HG002_GRCh38_1_22_v4.2.1_benchmark.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/ultima/HG002_GRCh38_1_22_v4.2.1_benchmark_noinconsistent.bed	11494021
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG2/clinvar_genes/HG002.bed	4684427
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG2/clinvar_genes/HG002.vcf.gz	156252944
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG2/clinvar_genes/HG002.vcf.gz.tbi	1657747
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.benchmark.bed	685544
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz	42067644
+/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz.tbi	1547524
+
+giabHCv5q paths:
+d	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHCv5q	33280
+d	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q	33280
+f	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.benchmark.bed	685544
+f	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz	42067644
+f	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002_GRCh38_v5.0q_smvar.vcf.gz.tbi	1547524
+l	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHCv5q/HG002.bed	137
+l	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHCv5q/HG002.vcf.gz	130
+l	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHCv5q/HG002.vcf.gz.tbi	134
+l	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002.bed	137
+l	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002.vcf.gz	130
+l	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v5.0q/HG002/giabHCv5q/HG002.vcf.gz.tbi	134

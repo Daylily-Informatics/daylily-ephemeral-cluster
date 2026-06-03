@@ -1,0 +1,2 @@
+Slurm accounting storage is disabled
+ls: cannot access '/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics': No such file or directory

@@ -1,0 +1,14 @@
+DAY-EC activated.
+DAY-EC activated.
+USER=ubuntu
+HOME=/home/ubuntu
+PATH=/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/home/ubuntu/.local/bin:/home/ubuntu/miniconda3/envs/DAYOA/bin:/home/ubuntu/miniconda3/condabin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/opt/aws/bin:/opt/parallelcluster/pyenv/versions/3.12.8/envs/awsbatch_virtualenv/bin:/opt/slurm/bin:/opt/parallelcluster/pyenv/versions/3.12.8/envs/awsbatch_virtualenv/bin:/opt/slurm/bin
+MMDC=/home/ubuntu/miniconda3/envs/DAYOA/bin/mmdc
+NPX=/home/ubuntu/miniconda3/envs/DAYOA/bin/npx
+11.15.0
+puppeteer-core=24.43.1
+chrome@148.0.7778.97 /home/ubuntu/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome
+-rwxr-xr-x 1 ubuntu ubuntu 276917464 Apr 28 22:45 /home/ubuntu/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome
+Google Chrome for Testing 148.0.7778.97
+Generating single mermaid chart
+f1830bed1daa5390461e596da4112120355fa5a40b332a292d32612f6e2a0b26  /tmp/daylily_mermaid_validation.svg

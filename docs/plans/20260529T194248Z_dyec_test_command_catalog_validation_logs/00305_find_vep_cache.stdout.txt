@@ -1,0 +1,41 @@
+DAY-EC activated.
+DAY-EC activated.
+=== local VEP paths ===
+--- /fsx/references/runtime_assets/tool_specific_resources/vep
+total 98
+drwxr-xr-x  3 root root 33280 May 29 02:52 .
+drwxr-xr-x 13 root root 33280 May 29 02:52 ..
+drwxr-xr-x  3 root root 33280 May 29 02:52 homo_sapiens
+/fsx/references/runtime_assets/tool_specific_resources/vep
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38
+--- /fsx/data/runtime_assets/tool_specific_resources/vep
+total 98
+drwxr-xr-x  3 root root 33280 May 29 02:52 .
+drwxr-xr-x 13 root root 33280 May 29 02:52 ..
+drwxr-xr-x  3 root root 33280 May 29 02:52 homo_sapiens
+/fsx/data/runtime_assets/tool_specific_resources/vep
+/fsx/data/runtime_assets/tool_specific_resources/vep/homo_sapiens
+/fsx/data/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38
+--- /fsx/references/runtime_assets/tool_specific_resources
+total 432
+drwxr-xr-x 13 root root     33280 May 29 02:52 .
+dr-xr-xr-x  6 root root     33280 May 29 02:52 ..
+drwxr-xr-x  3 root root     33280 May 29 02:52 H_sapiens
+-rwxr-xr-x  1 root root 253034346 May 26 15:09 cromwell_87.jar
+drwxr-xr-x  2 root root     33280 May 29 02:52 ganon2
+drwxr-xr-x  4 root root     33280 May 29 02:52 longtr
+drwxr-xr-x  3 root root     33280 May 29 02:52 metagenomics
+drwxr-xr-x  2 root root     33280 May 29 02:52 read_haps
+drwxr-xr-x  2 root root     33280 May 29 02:52 sentieon_models_2_2
+drwxr-xr-x  3 root root     33280 May 29 02:52 sourmash
+drwxr-xr-x  3 root root     33280 May 29 02:52 ultima
+drwxr-xr-x  3 root root     33280 May 29 02:52 vep
+drwxr-xr-x  4 root root     41472 May 29 02:52 verifybam2
+drwxr-xr-x  3 root root     33280 May 29 02:52 verifybamid
+-rwxr-xr-x  1 root root 122320885 May 26 15:14 womtool_87.jar
+/fsx/references/runtime_assets/tool_specific_resources/ultima/beds/grch38
+/fsx/references/runtime_assets/tool_specific_resources/vep
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38
+=== S3 VEP prefixes ===

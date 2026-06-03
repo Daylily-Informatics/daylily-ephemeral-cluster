@@ -1,0 +1,289 @@
+command_id=8dbf44f6-a103-4580-8a4c-e3ed7226181e
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T06:24:08+00:00 attempt=1
+nvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/run_bclconvert.L0
+03.0002_tiles0132-0262.log /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_f
+astqs/L003/0002_tiles0132-0262/Reports/fastq_list.csv /fsx/run_dir_mounts/202605
+14_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_a
+rgfix_20260603T0620Z/tile_fastqs/L003/0002_tiles0132-0262/Reports/Demultiplex_St
+ats.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_reports/L003/0002_ti
+les0132-0262/bclconvert.done s_3_1234+s_3_1235+s_3_1236+s_3_1237+s_3_1238+s_3_12
+39+s_3_1240+s_3_1241+s_3_1242+s_3_1243+s_3_1244+s_3_1245+s_3_1246+s_3_1247+s_3_1
+248+s_3_1249+s_3_1250+s_3_1251+s_3_1252+s_3_1253+s_3_1254+s_3_1255+s_3_1256+s_3_
+1257+s_3_1258+s_3_1259+s_3_1260+s_3_1261+s_3_1262+s_3_1263+s_3_1264+s_3_1265+s_3
+_1266+s_3_1267+s_3_1268+s_3_1269+s_3_1270+s_3_1271+s_3_1272+s_3_1273+s_3_1274+s_
+3_1275+s_3_1276+s_3_1277+s_3_1278+s_3_1279+s_3_1280+s_3_1281+s_3_1282+s_3_1283+s
+_3_1284+s_3_1285+s_3_1286+s_3_1287+s_3_1288+s_3_1289+s_3_1290+s_3_1291+s_3_1292+
+s_3_1293+s_3_1294+s_3_1295+s_3_1296+s_3_1297+s_3_1298+s_3_1301+s_3_1302+s_3_1303
++s_3_1304+s_3_1305+s_3_1306+s_3_1307+s_3_1308+s_3_1309+s_3_1310+s_3_1311+s_3_131
+2+s_3_1313+s_3_1314+s_3_1315+s_3_1316+s_3_1317+s_3_1318+s_3_1319+s_3_1320+s_3_13
+21+s_3_1322+s_3_1323+s_3_1324+s_3_1325+s_3_1326+s_3_1327+s_3_1328+s_3_1329+s_3_1
+330+s_3_1331+s_3_1332+s_3_1333+s_3_1334+s_3_1335+s_3_1336+s_3_1337+s_3_1338+s_3_
+1339+s_3_1340+s_3_1341+s_3_1342+s_3_1343+s_3_1344+s_3_1345+s_3_1346+s_3_1347+s_3
+_1348+s_3_1349+s_3_1350+s_3_1351+s_3_1352+s_3_1353+s_3_1354+s_3_1355+s_3_1356+s_
+3_1357+s_3_1358+s_3_1359+s_3_1360+s_3_1361+s_3_1362+s_3_1363+s_3_1364+s_3_1365+s
+_3_1366 /dev/shm/dayoa_bclconvert 650000000000
+
+[Wed Jun  3 06:23:55 2026]
+rule merge_bclconvert_tile_shards:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_reports/L003/0001
+_tiles0001-0131/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TV
+LGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/
+tile_reports/L003/0002_tiles0132-0262/bclconvert.done, /fsx/run_dir_mounts/20260
+514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_
+argfix_20260603T0620Z/tile_reports/L003/0003_tiles0263-0393/bclconvert.done, /fs
+x/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6sh
+ard_i192bigmem_devshm_argfix_20260603T0620Z/tile_reports/L003/0004_tiles0394-052
+4/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fr
+om_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_reports/L
+003/0005_tiles0525-0654/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_00
+09_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_2026060
+3T0620Z/tile_reports/L003/0006_tiles0655-0784/bclconvert.done, /fsx/run_dir_moun
+ts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem
+_devshm_argfix_20260603T0620Z/tile_fastqs/L003/0001_tiles0001-0131/Reports/fastq
+_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/0002_
+tiles0132-0262/Reports/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009
+_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T
+0620Z/tile_fastqs/L003/0003_tiles0263-0393/Reports/fastq_list.csv, /fsx/run_dir_
+mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bi
+gmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/0004_tiles0394-0524/Reports/f
+astq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/0
+005_tiles0525-0654/Reports/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_
+0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260
+603T0620Z/tile_fastqs/L003/0006_tiles0655-0784/Reports/fastq_list.csv, /fsx/run_
+dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i1
+92bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/0001_tiles0001-0131/Repor
+ts/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/f
+asts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fa
+stqs/L003/0002_tiles0132-0262/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts
+/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_d
+evshm_argfix_20260603T0620Z/tile_fastqs/L003/0003_tiles0263-0393/Reports/Demulti
+plex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_
+bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/
+0004_tiles0394-0524/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_
+LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argf
+ix_20260603T0620Z/tile_fastqs/L003/0005_tiles0525-0654/Reports/Demultiplex_Stats
+.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/0006_tiles
+0655-0784/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_00
+09_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_2026060
+3T0620Z/normalized.SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/lane_reports/L003/bcl
+convert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/lane_fastqs/L003/Re
+ports/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts
+_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/lane_fastqs
+/L003/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B
+23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T06
+20Z/lane_reports/L003/SampleSheet.csv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/merge_bclconvert_ti
+le_shards.L003.log
+    jobid: 3
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/benchmarks/merge_b
+clconvert_tile_shards.L003.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z
+/lane_reports/L003/SampleSheet.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B2
+3TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T062
+0Z/lane_fastqs/L003/Reports/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106
+_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_2026
+0603T0620Z/lane_reports/L003/bclconvert.done, /fsx/run_dir_mounts/20260514_LH011
+06_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20
+260603T0620Z/lane_fastqs/L003/Reports/Demultiplex_Stats.csv; Input files updated
+ by another job: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from
+_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003
+/0001_tiles0001-0131/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514
+_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_arg
+fix_20260603T0620Z/tile_fastqs/L003/0003_tiles0263-0393/Reports/Demultiplex_Stat
+s.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconver
+t_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/0004_tile
+s0394-0524/Reports/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620
+Z/tile_fastqs/L003/0002_tiles0132-0262/Reports/fastq_list.csv, /fsx/run_dir_moun
+ts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem
+_devshm_argfix_20260603T0620Z/tile_reports/L003/0006_tiles0655-0784/bclconvert.d
+one, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_
+l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_reports/L003/0003_tiles
+0263-0393/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_f
+astqs/L003/0001_tiles0001-0131/Reports/fastq_list.csv, /fsx/run_dir_mounts/20260
+514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_
+argfix_20260603T0620Z/tile_fastqs/L003/0005_tiles0525-0654/Reports/fastq_list.cs
+v, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l0
+03_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/0003_tiles026
+3-0393/Reports/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLG
+LT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/ti
+le_reports/L003/0001_tiles0001-0131/bclconvert.done, /fsx/run_dir_mounts/2026051
+4_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_ar
+gfix_20260603T0620Z/tile_fastqs/L003/0004_tiles0394-0524/Reports/Demultiplex_Sta
+ts.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/0006_til
+es0655-0784/Reports/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B2
+3TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T062
+0Z/tile_fastqs/L003/0006_tiles0655-0784/Reports/Demultiplex_Stats.csv, /fsx/run_
+dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i1
+92bigmem_devshm_argfix_20260603T0620Z/tile_reports/L003/0002_tiles0132-0262/bclc
+onvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bcl
+convert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/000
+5_tiles0525-0654/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH0
+1106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_
+20260603T0620Z/tile_fastqs/L003/0002_tiles0132-0262/Reports/Demultiplex_Stats.cs
+v, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l0
+03_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_reports/L003/0005_tiles05
+25-0654/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_rep
+orts/L003/0004_tiles0394-0524/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01
+106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_2
+0260603T0620Z/normalized.SampleSheet.csv
+    wildcards: lane=L003
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TB
+D>, threads=1, time=5440, partition=i192bigmem, vcpu=1, distribution=block, excl
+usive=, constraint=, exclude=, include=
+
+python workflow/scripts/merge_bclconvert_tile_shards.py --tile-fastq-root /fsx/r
+un_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard
+_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs --lane-output-dir /fsx/run_
+dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i1
+92bigmem_devshm_argfix_20260603T0620Z/lane_fastqs/L003 --report-dir /fsx/run_dir
+_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192b
+igmem_devshm_argfix_20260603T0620Z/lane_fastqs/L003/Reports --lane L003 --shards
+ 0001_tiles0001-0131,0002_tiles0132-0262,0003_tiles0263-0393,0004_tiles0394-0524
+,0005_tiles0525-0654,0006_tiles0655-0784 --merge-fastqs false --sample-sheet /fs
+x/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6sh
+ard_i192bigmem_devshm_argfix_20260603T0620Z/normalized.SampleSheet.csv --lane-sa
+mple-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/lane_reports/L003/Samp
+leSheet.csv --done /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fr
+om_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/lane_reports/L
+003/bclconvert.done --log /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/f
+asts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/me
+rge_bclconvert_tile_shards.L003.log >> /fsx/run_dir_mounts/20260514_LH01106_0009
+_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T
+0620Z/logs/merge_bclconvert_tile_shards.L003.log 2>&1 && test -s /fsx/run_dir_mo
+unts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigm
+em_devshm_argfix_20260603T0620Z/lane_fastqs/L003/Reports/fastq_list.csv && test
+-s /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l0
+03_6shard_i192bigmem_devshm_argfix_20260603T0620Z/lane_fastqs/L003/Reports/Demul
+tiplex_Stats.csv
+
+[Wed Jun  3 06:23:55 2026]
+localrule run_bclconvert:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/validated.ok, /fs
+x/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6sh
+ard_i192bigmem_devshm_argfix_20260603T0620Z/normalized.SampleSheet.csv, /fsx/run
+_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i
+192bigmem_devshm_argfix_20260603T0620Z/lane_reports/L003/bclconvert.done, /fsx/r
+un_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard
+_i192bigmem_devshm_argfix_20260603T0620Z/lane_fastqs/L003/Reports/fastq_list.csv
+, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l00
+3_6shard_i192bigmem_devshm_argfix_20260603T0620Z/lane_fastqs/L003/Reports/Demult
+iplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from
+_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/lane_reports/L00
+3/SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconvert.done
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/run_bclconvert.lane
+_fastqs_ready.log
+    jobid: 2
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/benchmarks/run_bcl
+convert.lane_fastqs_ready.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z
+/logs/bclconvert.done; Input files updated by another job: /fsx/run_dir_mounts/2
+0260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_dev
+shm_argfix_20260603T0620Z/lane_fastqs/L003/Reports/fastq_list.csv, /fsx/run_dir_
+mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bi
+gmem_devshm_argfix_20260603T0620Z/lane_reports/L003/bclconvert.done, /fsx/run_di
+r_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192
+bigmem_devshm_argfix_20260603T0620Z/lane_fastqs/L003/Reports/Demultiplex_Stats.c
+sv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l
+003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/lane_reports/L003/SampleSheet
+.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/validated.ok, /fsx/run
+_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i
+192bigmem_devshm_argfix_20260603T0620Z/normalized.SampleSheet.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/de
+v/shm/dayoa_bclconvert_tmp, threads=1, time=5440, partition=i192bigmem, vcpu=1,
+distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+            mkdir -p /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_
+from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs
+            : > /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_
+bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/run_bclconve
+rt.lane_fastqs_ready.log
+            printf 'merge_lane_fastqs=false; lane FASTQs remain under %s for lan
+es %s\n' \
+              /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/lane_fastqs L003 >>
+ /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003
+_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/run_bclconvert.lane_fastqs_
+ready.log
+            touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fro
+m_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconvert
+.done
+
+
+[Wed Jun  3 06:23:55 2026]
+localrule produce_bclconvert_fastqs:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/validated.ok, /fs
+x/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6sh
+ard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconvert.done
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/fastqs.complete
+    log: results/day/hg38/logs/produce_bclconvert_fastqs.log
+    jobid: 0
+    benchmark: results/day/hg38/benchmarks/produce_bclconvert_fastqs.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z
+/fastqs.complete, results/day/hg38/benchmarks/produce_bclconvert_fastqs.bench.ts
+v; Input files updated by another job: /fsx/run_dir_mounts/20260514_LH01106_0009
+_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T
+0620Z/logs/validated.ok, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bcl
+convert.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/de
+v/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=b
+lock, exclusive=, constraint=, exclude=, include=
+
+touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/fastqs.complete
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+bclconvert_validate_inputs          1              1              1
+merge_bclconvert_tile_shards        1              1              1
+produce_bclconvert_fastqs           1              1              1
+run_bclconvert                      1              1              1
+run_bclconvert_tile_shard           6            192            192
+total                              10              1            192
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        merge_bclconvert_tile_shards, produce_bclconvert_fastqs, run_bclconvert,
+ run_bclconvert_tile_shard
+    missing output files:
+        bclconvert_validate_inputs, merge_bclconvert_tile_shards, produce_bclcon
+vert_fastqs, run_bclconvert, run_bclconvert_tile_shard
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of ex
+ecution.
+RETURN CODE: 0
+__DRYRUN_ARGFIX_EXIT__=0
+[Dslu](DAYOA)
+

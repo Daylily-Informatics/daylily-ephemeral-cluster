@@ -1,0 +1,154 @@
+command_id=784eeb5e-7cd1-479e-b719-c1249944ad3d
+DAY-EC activated.
+DAY-EC activated.
+__DATE_START__=2026-06-03T04:29:04+00:00
+SESSION=dayoa_bcl_l003_6shard_i192bigmem_devshm_20260603
+WORKSET=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis
+CONFIG=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/config/bclconvert_l003_6shard_i192bigmem_devshm.yaml
+__TMUX_TAIL_INITIAL__
+i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis$ source dyoainit
+Notice: --project not set. Using default project name: dyec0602bcl
+Notice: Cluster config sets aws-parallelcluster-enforce-budget=skip; skipping pr
+oject validation.
+Project: dyec0602bcl
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'dyec0602bcl' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a
+ detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Scie
+nces_Manufacturing_Corporation_eval.lic
+
+# conda environments:
+#
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-235/9d
+47d7d0d1fd2da30ac182cf088a614c_
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+dy-a slurm hg38
+Day CLI initialized for project 'dyec0602bcl' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+
+        (day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a
+Slurm or local environment.
+
+        {day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome bui
+ld for the current environment.
+
+        (day-run / dy-r)          - Run a command in the current environment.
+                                   <tab> for exposed targets, -<tab> for all com
+mand line flags.
+
+        (day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, l
+ogs).
+                                   Use --block-and-poll to wait for completion.
+
+        (day-deactivate / dy-d)   - Deactivate the current environment.
+                                   Use 'dy-d reset' to hard reset the environmen
+t.
+
+
+
+
+        . To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~
+/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode
+          ... which once run, you will copy the samples.tsv and units.tsv files
+to config/ in this directory.
+
+        (example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+                dy-a slurm hg38 # or hg38_broad or b37
+
+        (example): RUN ANALYSES
+
+                cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/sample
+s.tsv
+
+                cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.ts
+v
+
+
+
+                # Use target names directly (tab-complete available):
+
+                dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-
+read SNV concordance
+
+                dy-r produce_alignstats -p -k -j 20 -n         # Alignment stati
+stics
+
+
+
+                # Platform-specific targets:
+
+                dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+                dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV call
+ing
+
+                dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV call
+ing (use hg38_broad)
+
+
+
+                # Hybrid workflow targets:
+
+                dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina
++ONT CLI
+
+                dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+O
+NT CLI (use hg38_broad)
+
+                dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina
++ONT Modular
+
+                dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+O
+NT Modular (use hg38_broad)
+
+
+
+                # Remove -n to execute (not dry-run)
+
+(DAYOA) ubuntu@ip-10-0-0-235:/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i
+192bigmem_devshm_20260603T041747Z/daylily-omics-analysis$ dy-a slurm hg38
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyec0602
+bcl .
+dy-r produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime --configfile c
+onfig/bclconvert_l003_6shard_i192bigmem_devshm.yaml -n; printf '__DRYRUN_EXIT__=
+%s\n' "$?"
+Your config files in /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigme
+m_devshm_20260603T041747Z/daylily-omics-analysis/config/day_profiles/slurm are n
+ewer than the templates. clear 2 go.
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not
+found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a
+ detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Scie
+nces_Manufacturing_Corporation_eval.lic
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
+     This might be fine if you have cloned a more recent release of daylily comp
+ared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster
+headnode for days+, this is not the intended use of daylily, a fresh build might
+ be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+
+__DATE_END__=2026-06-03T04:29:14+00:00
+

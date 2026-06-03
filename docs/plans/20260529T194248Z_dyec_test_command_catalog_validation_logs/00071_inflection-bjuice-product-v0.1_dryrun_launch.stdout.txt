@@ -1,0 +1,7 @@
+Completed 27 Bytes/27 Bytes (161 Bytes/s) with 1 file(s) remaining
+upload: ../../../../../../var/folders/rk/2n95m40s1zs48qr48ynwhxwm0000gn/T/tmp5rwd16ly to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260529T204153Z_ece9e65a/_write_test.txt
+delete: s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260529T204153Z_ece9e65a/_write_test.txt
+Completed 442 Bytes/442 Bytes (2.5 KiB/s) with 1 file(s) remaining
+upload: docs/plans/20260526T224018Z_blahab44_inputs/20260529T204153Z_ece9e65a_samples.tsv to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260529T204153Z_ece9e65a/20260529T204153Z_ece9e65a_samples.tsv
+Completed 1.0 KiB/1.0 KiB (6.5 KiB/s) with 1 file(s) remaining
+upload: docs/plans/20260526T224018Z_blahab44_inputs/20260529T204153Z_ece9e65a_units.tsv to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260529T204153Z_ece9e65a/20260529T204153Z_ece9e65a_units.tsv

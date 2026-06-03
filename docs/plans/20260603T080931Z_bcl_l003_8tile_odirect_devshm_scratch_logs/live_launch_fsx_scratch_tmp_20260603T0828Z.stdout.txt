@@ -1,0 +1,107 @@
+DAY-EC activated.
+DAY-EC activated.
+marks/run_bclconvert.lane_fastqs_ready.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_202
+60603T082415Z/logs/bclconvert.done; Input files updated by another job: /fsx/run
+_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_ti
+lesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/normalized.SampleSheet.csv,
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_
+8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/lane_reports/L003/bc
+lconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/logs/
+validated.ok, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/lane_f
+astqs/L003/Reports/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20
+260603T082415Z/lane_reports/L003/SampleSheet.csv, /fsx/run_dir_mounts/20260514_L
+H01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx
+_scratch_tmp_20260603T082415Z/lane_fastqs/L003/Reports/Demultiplex_Stats.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/fs
+x/scratch/tmp/dayoa_bclconvert_tmp, threads=1, time=5440, partition=i192bigmem,
+vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+            mkdir -p /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_
+from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z
+/logs
+            : > /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_
+bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/logs
+/run_bclconvert.lane_fastqs_ready.log
+            printf 'merge_lane_fastqs=false; lane FASTQs remain under %s for lan
+es %s\n' \
+              /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/lane_f
+astqs L003 >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/logs/r
+un_bclconvert.lane_fastqs_ready.log
+            touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fro
+m_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/lo
+gs/bclconvert.done
+
+
+[Wed Jun  3 08:27:18 2026]
+localrule produce_bclconvert_fastqs:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/logs/vali
+dated.ok, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclcon
+vert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/logs/bclco
+nvert.done
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/fastqs.c
+omplete
+    log: results/day/hg38/logs/produce_bclconvert_fastqs.log
+    jobid: 0
+    benchmark: results/day/hg38/benchmarks/produce_bclconvert_fastqs.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_202
+60603T082415Z/fastqs.complete, results/day/hg38/benchmarks/produce_bclconvert_fa
+stqs.bench.tsv; Input files updated by another job: /fsx/run_dir_mounts/20260514
+_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_f
+sx_scratch_tmp_20260603T082415Z/logs/bclconvert.done, /fsx/run_dir_mounts/202605
+14_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on
+_fsx_scratch_tmp_20260603T082415Z/logs/validated.ok
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/de
+v/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=b
+lock, exclusive=, constraint=, exclude=, include=
+
+touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/fastqs.complet
+e
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+bclconvert_validate_inputs          1              1              1
+merge_bclconvert_tile_shards        1              1              1
+produce_bclconvert_fastqs           1              1              1
+run_bclconvert                      1              1              1
+run_bclconvert_tile_shard           1            192            192
+total                               5              1            192
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        merge_bclconvert_tile_shards, produce_bclconvert_fastqs, run_bclconvert,
+ run_bclconvert_tile_shard
+    missing output files:
+        bclconvert_validate_inputs, merge_bclconvert_tile_shards, produce_bclcon
+vert_fastqs, run_bclconvert, run_bclconvert_tile_shard
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of ex
+ecution.
+RETURN CODE: 0
+__DRY_FSXSCRATCH_ODIRECT_RC__0
+[Dslu](DAYOA) dy-r produce_bclconvert_fastqs -p -k -j 10 -T 0 --rerun-triggers m
+time --configfile config/bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_
+tmp_20260603T082415Z.yaml; echo __LIVE_FSXSCRATCH_ODIRECT_RC__$?
+Your config files in /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_
+odirect_on_fsx_scratch_tmp_20260603T082415Z/daylily-omics-analysis/config/day_pr
+ofiles/slurm are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_
+tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/daylily-omics-analysis/con
+fig/day_profiles/slurm produce_bclconvert_fastqs -p -k -j 10 -T 0 --rerun-trigge
+rs mtime --configfile config/bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scra
+tch_tmp_20260603T082415Z.yaml
+
+JOBID|PARTITION|NAME|USER|ST|TIME|NODES|NODELIST(REASON)

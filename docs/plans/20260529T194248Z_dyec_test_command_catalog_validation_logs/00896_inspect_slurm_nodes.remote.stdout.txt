@@ -1,0 +1,165 @@
+DAY-EC activated.
+DAY-EC activated.
+date:
+2026-05-30T06:26:20+00:00
+
+sinfo:
+Sat May 30 06:26:20 2026
+NODELIST               NODES  PARTITION       STATE CPUS    S:C:T MEMORY TMP_DISK WEIGHT AVAIL_FE REASON
+i8-dy-r6gb64-1             1        i8*       idle~ 8       8:1:1  62259        0   1000 dynamic, none
+i8-dy-r7gb64-1             1        i8*       idle~ 8       8:1:1  62259        0   1000 dynamic, none
+i128-dy-c6gb256-1          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-2          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-3          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-4          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-5          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-6          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-7          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-8          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-9          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-10         1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-11         1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-12         1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-13         1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-14         1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-m6gb512-1          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-2          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-3          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-4          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-5          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-6          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-7          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-8          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-9          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-10         1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-11         1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-12         1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-13         1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-14         1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-r6gb1024r6-1       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-2       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-3       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-4       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-5       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-6       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-7       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-8       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-9       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-10      1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-11      1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-12      1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-13      1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-14      1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i192-dy-all-1              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-2              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-3              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-4              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, Scheduler health che
+i192-dy-all-5              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-6              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-7              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-8              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-9              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-10             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-11             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-12             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-13             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-14             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-15             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-16             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-17             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-18             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-19             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-20             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192bigmem-dy-all-1        1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-2        1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-3        1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-4        1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-5        1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-6        1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-7        1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-8        1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-9        1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-10       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-11       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-12       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-13       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-14       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-15       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-16       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-17       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-18       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-19       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-20       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192mem-dy-all-1           1    i192mem  allocated# 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-2           1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-3           1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-4           1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-5           1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-6           1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-7           1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-8           1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-9           1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-10          1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-11          1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-12          1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-13          1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-14          1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-15          1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-16          1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-17          1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-18          1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-19          1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-20          1    i192mem       idle~ 192   192:1:1 747110        0   1000 dynamic, none
+
+squeue:
+             JOBID PARTITION         NAME     USER ST       TIME  NODES NODELIST(REASON)
+              2658   i192mem run_bclconve   ubuntu CF       1:41      1 i192mem-dy-all-1
+
+scontrol_job_2658:
+JobId=2658 JobName=run_bclconvert-run_bclconvert
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=CONFIGURING Reason=None Dependency=(null)
+   Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:01:41 TimeLimit=3-18:40:00 TimeMin=N/A
+   SubmitTime=2026-05-30T06:24:39 EligibleTime=2026-05-30T06:24:39
+   AccrueTime=2026-05-30T06:24:39
+   StartTime=2026-05-30T06:24:39 EndTime=2026-06-03T01:04:39 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-05-30T06:24:39 Scheduler=Main
+   Partition=i192mem AllocNode:Sid=ip-10-0-0-88:814902
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=i192mem-dy-all-1
+   BatchHost=i192mem-dy-all-1
+   NumNodes=1 NumCPUs=192 NumTasks=1 CPUs/Task=192 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=192,mem=180000M,node=1,billing=192
+   AllocTRES=cpu=192,node=1,billing=192
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=192 MinMemoryNode=180000M MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=OK Contiguous=0 Licenses=(null) Network=(null)
+   Command=/fsx/analysis_results/ubuntu/ccv20260529r25_illumina_bclconvert/daylily-omics-analysis/.snakemake/tmp.jizos4ke/snakejob.run_bclconvert.2.sh
+   WorkDir=/fsx/analysis_results/ubuntu/ccv20260529r25_illumina_bclconvert/daylily-omics-analysis
+   Comment=dyec-test
+   StdErr=/fsx/analysis_results/ubuntu/ccv20260529r25_illumina_bclconvert/daylily-omics-analysis/logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err
+   StdIn=/dev/null
+   StdOut=/fsx/analysis_results/ubuntu/ccv20260529r25_illumina_bclconvert/daylily-omics-analysis/logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.out
+   TresPerTask=cpu=192
+
+
+
+node_status:
+NodeName=i192mem-dy-all-1 Arch=x86_64 CoresPerSocket=1
+   CPUAlloc=192 CPUEfctv=192 CPUTot=192 CPULoad=0.00
+   AvailableFeatures=dynamic,all
+   ActiveFeatures=dynamic,all
+   Gres=(null)
+   NodeAddr=10.0.1.121 NodeHostName=i192mem-dy-all-1 Version=24.05.8
+   OS=Linux 6.8.0-1029-aws #31~22.04.1-Ubuntu SMP Thu Apr 24 21:16:18 UTC 2025
+   RealMemory=747110 AllocMem=0 FreeMem=759729 Sockets=192 Boards=1
+   State=ALLOCATED+CLOUD+NOT_RESPONDING+POWERING_UP ThreadsPerCore=1 TmpDisk=0 Weight=1000 Owner=N/A MCS_label=N/A
+   Partitions=i192mem
+   BootTime=2026-05-30T05:14:03 SlurmdStartTime=2026-05-30T05:17:07
+   LastBusyTime=Unknown ResumeAfterTime=None
+   CfgTRES=cpu=192,mem=747110M,billing=192
+   AllocTRES=cpu=192
+   CurrentWatts=0 AveWatts=0

@@ -5,18 +5,18 @@ Use this only when AWS setup, quotas, Session Manager, the DayEC config, and the
 ```bash
 source ./activate
 
-export AWS_PROFILE=daylily-service-lsmc
+export AWS_PROFILE=<non-default-profile>
 export REGION=us-west-2
 export REGION_AZ=us-west-2d
-export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
+export CLUSTER_NAME=<cluster-name>
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
-export REF_S3_URI=s3://lsmc-dayoa-references-usw2
-export CONTROL_DATA_S3_URI=s3://lsmc-dayoa-control-data-usw2
-export STAGE_S3_URI=s3://lsmc-ssf-sequencing-data/staged_external_data
-export ANALYSIS_RESULTS_S3_URI=s3://lsmc-dayoa-analysis-results-usw2
-export EXECUTING_ENTITY="${USER:-ubuntu}"
-export ANALYSIS_ID=dayoa
-export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
+export REF_S3_URI=s3://<reference-bucket>
+export CONTROL_DATA_S3_URI=s3://<control-data-bucket>
+export STAGE_S3_URI=s3://<staging-bucket>/<prefix>
+export ANALYSIS_RESULTS_S3_URI=s3://<analysis-results-bucket>/<prefix>
+export EXECUTING_ENTITY=ubuntu
+export ANALYSIS_ID=<analysis-id>
+export ANALYSIS_SAMPLES=./analysis_samples.tsv
 export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
 export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_ID"
 export EXPORT_S3_URI="$ANALYSIS_RESULTS_S3_URI/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID/"
@@ -39,7 +39,9 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 2.0.19
+  --git-tag 2.0.44 \
+  --genome hg38_broad \
+  --target produce_alignstats
 
 dyec export \
   --profile "$AWS_PROFILE" \

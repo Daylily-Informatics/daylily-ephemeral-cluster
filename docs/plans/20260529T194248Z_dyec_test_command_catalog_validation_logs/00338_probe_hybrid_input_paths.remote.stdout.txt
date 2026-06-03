@@ -1,0 +1,26 @@
+DAY-EC activated.
+DAY-EC activated.
+=== path stats ===
+/fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ont/HG003_5x.cleaned.cram size=5260585144 mode=-rwxr-xr-x user=root group=root target='/fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ont/HG003_5x.cleaned.cram'
+/fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ont/HG003_5x.cleaned.cram.crai size=34592 mode=-rwxr-xr-x user=root group=root target='/fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ont/HG003_5x.cleaned.cram.crai'
+/fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram size=8356213863 mode=-rwxr-xr-x user=root group=root target='/fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram'
+/fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram.crai size=136673 mode=-rwxr-xr-x user=root group=root target='/fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram.crai'
+=== quickcheck ===
+FAIL /fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ont/HG003_5x.cleaned.cram
+FAIL /fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram
+=== analysis manifests ===
+--- ccv20260529r7_hybrid_ilmn_ont_snv ---
+MISSING_REPO /fsx/analysis_results/ubuntu/ccv20260529r7_hybrid_ilmn_ont_snv/daylily-omics-analysis
+--- ccv20260529r7_hybrid_ilmn_ont_snv_kitchensink ---
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+HG003	blood	research	male	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/	true	false	gdna	na	HG003	1	1	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/
+RUNID	SAMPLEID	EXPERIMENTID	LANEID	BARCODEID	LIBPREP	SEQ_VENDOR	SEQ_PLATFORM	ILMN_R1_PATH	ILMN_R2_PATH	PACBIO_R1_PATH	PACBIO_R2_PATH	ONT_R1_PATH	ONT_R2_PATH	UG_R1_PATH	UG_R2_PATH	SUBSAMPLE_PCT	ILMN_TRIM_READ_LENGTH	SAMPLEUSE	BWA_KMER	DEEP_MODEL	ULTIMA_CRAM	ULTIMA_CRAM_ALIGNER	ULTIMA_CRAM_SNV_CALLER	ONT_CRAM	ONT_CRAM_ALIGNER	ONT_CRAM_SNV_CALLER	PB_BAM	PB_BAM_ALIGNER	PB_BAM_SNV_CALLER	ROCHE_BAM	ROCHE_BAM_ALIGNER	ROCHE_BAM_SNV_CALLER	ROCHE_DOWNSAMPLE_RATIO	LONGREADTRIM_READ_LENGTH	LONGREADTRIM_MODE	ULTIMA_SUBSAMPLE_PCT	ONT_SUBSAMPLE_PCT	ONT_BAM	ONT_BAM_ALIGNER	ONT_BAM_SNV_CALLER
+TVBHIO5X5X	HG003	ILMN5x-ONT5x	1	D0	PF	ILMN	NOVASEQ	/fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz	/fsx/references/genomic_data/organism_reads_slim/fastq/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R2.fastq.gz							na		posControl	19	WGS				/fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ont/HG003_5x.cleaned.cram	ont	sentdont
+--- ccv20260529r9_hybrid_ultima_ont_snv ---
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+HG003	blood	research	male	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/	true	false	gdna	na	HG003	1	1	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/
+RUNID	SAMPLEID	EXPERIMENTID	LANEID	BARCODEID	LIBPREP	SEQ_VENDOR	SEQ_PLATFORM	ILMN_R1_PATH	ILMN_R2_PATH	PACBIO_R1_PATH	PACBIO_R2_PATH	ONT_R1_PATH	ONT_R2_PATH	UG_R1_PATH	UG_R2_PATH	SUBSAMPLE_PCT	ILMN_TRIM_READ_LENGTH	SAMPLEUSE	BWA_KMER	DEEP_MODEL	ULTIMA_CRAM	ULTIMA_CRAM_ALIGNER	ULTIMA_CRAM_SNV_CALLER	ONT_CRAM	ONT_CRAM_ALIGNER	ONT_CRAM_SNV_CALLER	PB_BAM	PB_BAM_ALIGNER	PB_BAM_SNV_CALLER	ROCHE_BAM	ROCHE_BAM_ALIGNER	ROCHE_BAM_SNV_CALLER	ROCHE_DOWNSAMPLE_RATIO	LONGREADTRIM_READ_LENGTH	LONGREADTRIM_MODE	ULTIMA_SUBSAMPLE_PCT	ONT_SUBSAMPLE_PCT	ONT_BAM	ONT_BAM_ALIGNER	ONT_BAM_SNV_CALLER
+TVBHUO5X5X	HG003	UG5x-ONT5x	1	D0	PF	UG	ULTIMA									na		posControl	19	WGS	/fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram	ug	ug	/fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ont/HG003_5x.cleaned.cram	ont	sentdont
+=== live slurm ===
+JOBID|STATE|TIME|NODES|NODELIST(REASON)|NAME
+1894|RUNNING|3:14|1|i192mem-dy-all-20|sentdhuomr_stage1-TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA

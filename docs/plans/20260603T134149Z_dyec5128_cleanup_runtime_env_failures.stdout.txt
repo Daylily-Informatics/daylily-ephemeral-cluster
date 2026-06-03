@@ -1,0 +1,17 @@
+DAY-EC activated.
+DAY-EC activated.
+CLEANUP_START	2026-06-03T14:13:29Z
+FSX_BEFORE
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.170@tcp:/vefjjb4v  6.6T  308G  6.3T   5% /fsx
+REMOVE_YAML_WITHOUT_ENV
+DELETE	133	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/477cbca61a540fa9c86ae4110346556e_.yaml
+REMOVE_INCOMPLETE_CONDA_DIRS
+REMOVE_BROKEN_CONTAINER_LINKS
+REMOVE_TINY_REAL_CONTAINER_FILES
+REMAINING_INCOMPLETE
+FSX_AFTER
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.170@tcp:/vefjjb4v  6.6T  308G  6.3T   5% /fsx
+CLEANUP_DONE	2026-06-03T14:13:29Z
+

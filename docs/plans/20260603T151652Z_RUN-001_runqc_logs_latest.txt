@@ -1,0 +1,82 @@
+DAY-EC activated.
+DAY-EC activated.
+Using cached s3transfer-0.18.0-py3-none-any.whl (88 kB)
+Downloading configargparse-1.7.5-py3-none-any.whl (27 kB)
+Downloading docutils-0.23-py3-none-any.whl (634 kB)
+   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━ 634.7/634.7 kB 79.0 MB/s  0:00:00
+Downloading gitpython-3.1.50-py3-none-any.whl (212 kB)
+Downloading gitdb-4.0.12-py3-none-any.whl (62 kB)
+Downloading smmap-5.0.3-py3-none-any.whl (24 kB)
+Downloading html2image-2.0.7-py3-none-any.whl (31 kB)
+Downloading websocket_client-1.9.0-py3-none-any.whl (82 kB)
+Downloading humanfriendly-10.0-py2.py3-none-any.whl (86 kB)
+Using cached jsonschema-4.26.0-py3-none-any.whl (90 kB)
+Downloading attrs-26.1.0-py3-none-any.whl (67 kB)
+Using cached jsonschema_specifications-2025.9.1-py3-none-any.whl (18 kB)
+Using cached referencing-0.37.0-py3-none-any.whl (26 kB)
+Using cached rpds_py-2026.5.1-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (378 kB)
+Downloading nbformat-5.10.4-py3-none-any.whl (78 kB)
+Downloading fastjsonschema-2.21.2-py3-none-any.whl (24 kB)
+Downloading jupyter_core-5.9.1-py3-none-any.whl (29 kB)
+Downloading throttler-1.2.3-py3-none-any.whl (9.7 kB)
+Building wheels for collected packages: snakemake, chromedriver-binary-auto, rgbw-colorspace-converter, connection_pool, datrie, stopit
+  Building wheel for snakemake (pyproject.toml): started
+  Building wheel for snakemake (pyproject.toml): finished with status 'done'
+  Created wheel for snakemake: filename=snakemake-7.25.0+14.g903efe44-py3-none-any.whl size=367763 sha256=7df341cad04e10758af42d881cfe3e393f239763b1fb4adc5dc4abbd1ddb52f7
+  Stored in directory: /tmp/pip-ephem-wheel-cache-h3n_fczk/wheels/f6/1f/d5/e7ce8232c5658c5e4c1c8ae79d36209f9caf4f28d318b1b53e
+  Building wheel for chromedriver-binary-auto (pyproject.toml): started
+  Building wheel for chromedriver-binary-auto (pyproject.toml): finished with status 'done'
+  Created wheel for chromedriver-binary-auto: filename=chromedriver_binary_auto-0.3.1-py3-none-any.whl size=9272434 sha256=f251b31078526a5e16bfacc9af47f951ff8e2c5e88b89e716ed7d06fc4bde3f5
+  Stored in directory: /home/ubuntu/.cache/pip/wheels/a2/4e/3d/cf57868f5086326d7a2fa41ea8efbadd3a0585b222916593dd
+  Building wheel for rgbw-colorspace-converter (pyproject.toml): started
+  Building wheel for rgbw-colorspace-converter (pyproject.toml): finished with status 'done'
+  Created wheel for rgbw-colorspace-converter: filename=rgbw_colorspace_converter-0.1.4-py3-none-any.whl size=23408 sha256=2be9376be1e0d60b23eb0374b19246aaf037344ac8667b339b2f301e2bbbe658
+  Stored in directory: /home/ubuntu/.cache/pip/wheels/1f/3a/b6/9c6524a6d2b2ea34754949a9945b9efafb998455afce8568e0
+  Building wheel for connection_pool (pyproject.toml): started
+  Building wheel for connection_pool (pyproject.toml): finished with status 'done'
+  Created wheel for connection_pool: filename=connection_pool-0.0.3-py3-none-any.whl size=4106 sha256=13a0399d17fe948b1ce65ba49fd592b7cf17a848f28e7bdc53f3ccc9a08ac134
+  Stored in directory: /home/ubuntu/.cache/pip/wheels/2b/73/ac/bd9807cbc47e95c436b5d5afe6cca8299fdc69bf7bd9930618
+  Building wheel for datrie (pyproject.toml): started
+  Building wheel for datrie (pyproject.toml): finished with status 'done'
+  Created wheel for datrie: filename=datrie-0.8.3-cp311-cp311-linux_x86_64.whl size=163167 sha256=9aa3c89d36ad1f0ffc8f23edace7de22f7ab32dba51b17680173077b219a9d41
+  Stored in directory: /home/ubuntu/.cache/pip/wheels/22/37/ed/93394e0c4c9de31cf8fd4f233fb2c38de06216a8ad2e32b3cc
+  Building wheel for stopit (pyproject.toml): started
+  Building wheel for stopit (pyproject.toml): finished with status 'done'
+  Created wheel for stopit: filename=stopit-1.1.2-py3-none-any.whl size=11984 sha256=884f92404efbce10c3effb74cf03b33ca165bc316c5117517a293dc012e95212
+  Stored in directory: /home/ubuntu/.cache/pip/wheels/da/77/2d/adbc56bc4db95ad80c6d4e71cd69e2d9d122174904342e3f7f
+Successfully built snakemake chromedriver-binary-auto rgbw-colorspace-converter connection_pool datrie stopit
+Installing collected packages: toposort, stopit, fastjsonschema, docopt, connection_pool, colr, chromedriver-binary-auto, appdirs, websocket-client, throttler, tabulate, smmap, smart_open, ruamel.yaml, rpds-py, pulp, jupyter-core, jmespath, humanfriendly, dpath, docutils, datrie, configargparse, attrs, argparse-dataclass, ansi2html, yte, referencing, html2image, gitdb, botocore, s3transfer, rgbw-colorspace-converter, jsonschema-specifications, gitpython, jsonschema, boto3, nbformat, snakemake
+
+Successfully installed ansi2html-1.9.2 appdirs-1.4.4 argparse-dataclass-2.0.0 attrs-26.1.0 boto3-1.43.21 botocore-1.43.21 chromedriver-binary-auto-0.3.1 colr-0.9.1 configargparse-1.7.5 connection_pool-0.0.3 datrie-0.8.3 docopt-0.6.2 docutils-0.23 dpath-2.2.0 fastjsonschema-2.21.2 gitdb-4.0.12 gitpython-3.1.50 html2image-2.0.7 humanfriendly-10.0 jmespath-1.1.0 jsonschema-4.26.0 jsonschema-specifications-2025.9.1 jupyter-core-5.9.1 nbformat-5.10.4 pulp-3.3.2 referencing-0.37.0 rgbw-colorspace-converter-0.1.4 rpds-py-2026.5.1 ruamel.yaml-0.19.1 s3transfer-0.18.0 smart_open-7.6.1 smmap-5.0.3 snakemake-7.25.0+14.g903efe44 stopit-1.1.2 tabulate-0.10.0 throttler-1.2.3 toposort-1.10 websocket-client-1.9.0 yte-1.9.4
+
+done
+#
+# To activate this environment, use
+#
+#     $ conda activate DAYOA
+#
+# To deactivate an active environment, use
+#
+#     $ conda deactivate
+
+DAYOA environment created successfully.
+Installing Mermaid CLI for DAYOA pipeline diagram rendering: @mermaid-js/mermaid-cli@11.15.0
+
+added 355 packages in 12s
+
+44 packages are looking for funding
+  run `npm fund` for details
+npm warn allow-scripts 1 package has install scripts not yet covered by allowScripts:
+npm warn allow-scripts   puppeteer@24.43.1 (postinstall: node install.mjs)
+npm warn allow-scripts
+npm warn allow-scripts Run `npm approve-scripts --allow-scripts-pending` to review, or `npm approve-scripts <pkg>` to allow.
+Installing Mermaid Chrome headless shell payload: 148.0.7778.97
+chrome-headless-shell@148.0.7778.97 /home/ubuntu/.cache/puppeteer/chrome-headless-shell/linux-148.0.7778.97/chrome-headless-shell-linux64/chrome-headless-shell
+Generating single mermaid chart
+
+TimeoutError: Timed out after 30000 ms while waiting for the WS endpoint URL to appear in stdout!
+    at ChromeLauncher.launch (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/node_modules/puppeteer-core/lib/esm/puppeteer/node/BrowserLauncher.js:152:23)
+    at async run (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/src/index.js:623:19)
+    at async cli (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/src/index.js:260:3)
+
+mmdc smoke render failed after installing Chrome headless shell.

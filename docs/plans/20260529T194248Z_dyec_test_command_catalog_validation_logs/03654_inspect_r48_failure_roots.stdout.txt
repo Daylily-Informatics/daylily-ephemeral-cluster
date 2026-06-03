@@ -1,0 +1,210 @@
+DAY-EC activated.
+DAY-EC activated.
+=== hg002 read_haps prechecks ===
+--- /fsx/references/runtime_assets/tool_specific_resources/read_haps/read_haps
+MISSING
+--- /fsx/references/runtime_assets/tool_specific_resources/read_haps/high_quality_markers_deCODE_2015.txt.gz
+-rwxr-xr-x 1 root root 29M May 28 13:22 /fsx/references/runtime_assets/tool_specific_resources/read_haps/high_quality_markers_deCODE_2015.txt.gz
+executable=yes
+--- results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/compat_bam/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.legacy_compat.bam
+-rw-rw-r-- 1 ubuntu ubuntu 210M May 30 17:34 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/compat_bam/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.legacy_compat.bam
+executable=no
+--- results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.snv.sort.vcf.gz
+-rw-rw-r-- 1 ubuntu ubuntu 1.9M May 30 17:39 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.snv.sort.vcf.gz
+executable=no
+=== hg002 variant probe ===
+chr1	36354	.	A	G	12.5	MLrejected	AC=1;AF=0.5;AN=2;DP=3;Entropy=0.16;ExcessHet=3.0103;FS=4.771;GC=44;MLEAC=1;MLEAF=0.5;ML_PROB=0.63;MQ=0;MQ0=3;QD=4.17;SOR=2.225;UDP=3	GT:AD:DP:GQ:PL	0/1:1,2:3:2:11,0,2
+chr1	101674	.	CAAA	C	33.5	.	AC=2;AF=1;AN=2;DB;DP=1;Entropy=0;ExcessHet=3.0103;FS=0;GC=37.09;MLEAC=2;MLEAF=1;ML_PROB=0.05;MQ=0;MQ0=1;QD=33.5;RPA=16,13;RU=A;SOR=1.609;STR;UDP=1	GT:AD:DP:GQ:PL	1/1:0,1:1:3:45,3,0
+chr1	199092	.	A	C	83.1	.	AC=2;AF=1;AN=2;DB;DP=2;Entropy=0;ExcessHet=3.0103;FS=0;GC=35.95;MLEAC=2;MLEAF=1;ML_PROB=0.08;MQ=16;MQ0=0;NBQ=21.7;QD=41.55;ReadPosEndDist=11.5;SOR=0.693;UDP=2	GT:AD:DP:GQ:PGT:PID:PL	1/1:0,2:2:6:0|1:199092_A_C:83,6,0
+=== hybrid ultima stage1 log errors ===
+1707:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/assembler/ReadSequenceKmerGraphBuilder.h:101: GRAPH::ReadSequenceKmerGraphBuilder::ReadSequenceKmerGraphBuilder(KMerFactory&, const GRAPH::ReadSequenceList&, int, bool, bool, char, int, bool, bool): Assertion `kmerSize >= 1' failed.
+1879:ERROR: stage1_hap.bam failed integrity check - file may be truncated
+=== hybrid ultima stage1 log tail ===
+[M::mem_process_seqs] Processed 33334 reads in 11.987 CPU sec, 0.200 real sec
+[M::process] read 33334 sequences (10000200 bp) in 0.059 CPU sec, 0.220 real sec...
+[M::mem_process_seqs] Processed 33334 reads in 10.232 CPU sec, 0.179 real sec
+[M::process] read 33334 sequences (10000200 bp) in 0.051 CPU sec, 0.180 real sec...
+[M::mem_process_seqs] Processed 33334 reads in 13.058 CPU sec, 0.216 real sec
+[M::process] read 33334 sequences (10000200 bp) in 0.054 CPU sec, 0.238 real sec...
+[M::process] read 33334 sequences (10000200 bp) in 0.050 CPU sec, 0.158 real sec...
+driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/assembler/ReadSequenceKmerGraphBuilder.h:101: GRAPH::ReadSequenceKmerGraphBuilder::ReadSequenceKmerGraphBuilder(KMerFactory&, const GRAPH::ReadSequenceList&, int, bool, bool, char, int, bool, bool): Assertion `kmerSize >= 1' failed.
+[M::mem_process_seqs] Processed 33334 reads in 9.918 CPU sec, 0.171 real sec
+Signal 6:
+ code   -6
+ addr   0x3e800005950
+Registers:
+ rax    0000000000000000
+ rcx    00007e52e7a969fc
+ rdx    0000000000000006
+ rbx    00007e508ffff640
+ rsp    00007e508fffb670
+ rbp    0000000000005ca9
+ rsi    0000000000005ca9
+ rdi    0000000000005950
+ r8     00007e508fffb740
+ r9     0000000000000000
+ r10    0000000000000008
+ r11    0000000000000246
+ r12    0000000000000006
+ r13    0000000000000016
+ r14    00000000010aaacb
+ r15    00007e508046e2f0
+ rip    00007e52e7a969fc
+ rflags 0000000000000246
+Backtrace:
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0xd61209]
+/lib/x86_64-linux-gnu/libc.so.6(+0x42520)[0x7e52e7a42520]
+/lib/x86_64-linux-gnu/libc.so.6(pthread_kill+0x12c)[0x7e52e7a969fc]
+/lib/x86_64-linux-gnu/libc.so.6(raise+0x16)[0x7e52e7a42476]
+/lib/x86_64-linux-gnu/libc.so.6(abort+0xd3)[0x7e52e7a287f3]
+/lib/x86_64-linux-gnu/libc.so.6(+0x2871b)[0x7e52e7a2871b]
+/lib/x86_64-linux-gnu/libc.so.6(+0x39e96)[0x7e52e7a39e96]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0xb939b5]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0xb7a57e]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0xb8e20f]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0xa6333c]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0xa7ff80]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0xa82645]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0xac9b1b]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0xacd349]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0xd2a374]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0xac880d]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0xd2a924]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0x56fcc2]
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver[0x10389b0]
+/lib/x86_64-linux-gnu/libc.so.6(+0x94ac3)[0x7e52e7a94ac3]
+/lib/x86_64-linux-gnu/libc.so.6(+0x126850)[0x7e52e7b26850]
+[M::mem_process_seqs] Processed 33334 reads in 16.755 CPU sec, 0.111 real sec
+[M::process] read 244 sequences (73200 bp) in 0.002 CPU sec, 0.872 real sec...
+[M::mem_process_seqs] Processed 244 reads in 0.265 CPU sec, 0.004 real sec
+[M::process] read 33342 sequences (10000104 bp) in 0.023 CPU sec, 0.330 real sec...
+[M::process] read 33348 sequences (10000190 bp) in 0.036 CPU sec, 0.039 real sec...
+[M::process] read 33342 sequences (10000568 bp) in 0.039 CPU sec, 0.318 real sec...
+[M::process] read 33342 sequences (10000274 bp) in 0.041 CPU sec, 0.268 real sec...
+[M::mem_process_seqs] Processed 33342 reads in 347.395 CPU sec, 1.849 real sec
+[M::mem_process_seqs] Processed 33342 reads in 225.034 CPU sec, 1.198 real sec
+[M::mem_process_seqs] Processed 33348 reads in 256.912 CPU sec, 1.368 real sec
+sorting block 41, #reads = 627196 mem = 536880359 peak = 1034629120
+[M::process] read 33344 sequences (10000290 bp) in 0.057 CPU sec, 0.542 real sec...
+[M::process] read 33344 sequences (10000554 bp) in 0.045 CPU sec, 0.522 real sec...
+[M::process] read 33348 sequences (10000533 bp) in 0.040 CPU sec, 0.243 real sec...
+[M::mem_process_seqs] Processed 33342 reads in 291.672 CPU sec, 1.552 real sec
+[M::mem_process_seqs] Processed 33344 reads in 191.773 CPU sec, 1.021 real sec
+[M::process] read 33342 sequences (10000394 bp) in 0.056 CPU sec, 0.434 real sec...
+[M::process] read 33342 sequences (10000582 bp) in 0.045 CPU sec, 0.429 real sec...
+[M::mem_process_seqs] Processed 33344 reads in 435.838 CPU sec, 2.321 real sec
+[M::mem_process_seqs] Processed 33342 reads in 275.012 CPU sec, 1.464 real sec
+[M::mem_process_seqs] Processed 33348 reads in 286.808 CPU sec, 1.528 real sec
+[M::process] read 33342 sequences (10000402 bp) in 0.069 CPU sec, 0.296 real sec...
+[M::process] read 33342 sequences (10000106 bp) in 0.041 CPU sec, 0.358 real sec...
+[M::process] read 33342 sequences (10000131 bp) in 0.041 CPU sec, 0.449 real sec...
+[M::mem_process_seqs] Processed 33342 reads in 446.979 CPU sec, 2.379 real sec
+[M::mem_process_seqs] Processed 33342 reads in 324.122 CPU sec, 1.724 real sec
+[M::mem_process_seqs] Processed 33342 reads in 335.454 CPU sec, 1.786 real sec
+[M::process] read 33344 sequences (10000032 bp) in 0.069 CPU sec, 0.435 real sec...
+[M::process] read 33342 sequences (10000202 bp) in 0.036 CPU sec, 0.194 real sec...
+[M::process] read 33344 sequences (10000576 bp) in 0.038 CPU sec, 0.219 real sec...
+[M::mem_process_seqs] Processed 33342 reads in 460.957 CPU sec, 2.454 real sec
+sorting block 42, #reads = 419227 mem = 536881875 peak = 1034629120
+[M::mem_process_seqs] Processed 33342 reads in 295.815 CPU sec, 1.575 real sec
+[M::mem_process_seqs] Processed 33344 reads in 307.017 CPU sec, 1.637 real sec
+[M::process] read 33342 sequences (10000012 bp) in 0.071 CPU sec, 0.351 real sec...
+[M::process] read 33342 sequences (10000415 bp) in 0.056 CPU sec, 0.429 real sec...
+[M::process] read 33342 sequences (10000411 bp) in 0.044 CPU sec, 0.397 real sec...
+[M::mem_process_seqs] Processed 33344 reads in 292.153 CPU sec, 1.563 real sec
+[M::mem_process_seqs] Processed 33342 reads in 171.115 CPU sec, 0.914 real sec
+[M::process] read 33342 sequences (10000563 bp) in 0.054 CPU sec, 0.190 real sec...
+[M::process] read 33344 sequences (10000507 bp) in 0.050 CPU sec, 0.473 real sec...
+[M::mem_process_seqs] Processed 33342 reads in 452.294 CPU sec, 2.409 real sec
+[M::mem_process_seqs] Processed 33342 reads in 326.481 CPU sec, 1.738 real sec
+[M::mem_process_seqs] Processed 33342 reads in 355.826 CPU sec, 1.896 real sec
+[M::process] read 33342 sequences (10000157 bp) in 0.097 CPU sec, 0.402 real sec...
+[M::process] read 33342 sequences (10000326 bp) in 0.046 CPU sec, 0.150 real sec...
+[M::process] read 33342 sequences (10000418 bp) in 0.040 CPU sec, 0.169 real sec...
+[M::mem_process_seqs] Processed 33344 reads in 389.685 CPU sec, 2.074 real sec
+[M::mem_process_seqs] Processed 33342 reads in 249.845 CPU sec, 1.330 real sec
+[M::mem_process_seqs] Processed 33342 reads in 257.580 CPU sec, 1.372 real sec
+sorting block 43, #reads = 421605 mem = 536888560 peak = 1034629120
+[M::process] read 33346 sequences (10000333 bp) in 0.076 CPU sec, 0.378 real sec...
+[M::process] read 33342 sequences (10000181 bp) in 0.052 CPU sec, 0.386 real sec...
+[M::process] read 33344 sequences (10000265 bp) in 0.044 CPU sec, 0.210 real sec...
+[M::mem_process_seqs] Processed 33342 reads in 231.391 CPU sec, 1.248 real sec
+[M::mem_process_seqs] Processed 33346 reads in 181.102 CPU sec, 0.978 real sec
+[M::process] read 33344 sequences (10000506 bp) in 0.062 CPU sec, 0.209 real sec...
+[M::process] read 33340 sequences (10000313 bp) in 0.044 CPU sec, 0.182 real sec...
+[M::mem_process_seqs] Processed 33342 reads in 362.157 CPU sec, 1.929 real sec
+[M::mem_process_seqs] Processed 33344 reads in 258.088 CPU sec, 1.375 real sec
+[M::mem_process_seqs] Processed 33344 reads in 273.500 CPU sec, 1.458 real sec
+[M::process] read 20723 sequences (6215449 bp) in 0.040 CPU sec, 0.205 real sec...
+[M::mem_process_seqs] Processed 33340 reads in 186.678 CPU sec, 0.996 real sec
+[M::mem_process_seqs] Processed 20723 reads in 88.639 CPU sec, 0.474 real sec
+os version: Linux 6.8.0-1029-aws
+cpu vendor: GenuineIntel
+ signature: 000806f8
+  features: bfebfbff 7ffefbff
+  extended: f3bfb7ef fb417ffe
+  amd bits: 2c100800 00000121
+     brand: Intel(R) Xeon(R) Platinum 8488C
+threads: 188
+algo: bwa-mem
+license: sentieon:klib=188 ont:dnamodel=1
+reads: 27588701
+overall: 22009843712 mem 17725.461 user 1469.636 sys 405.177 real
+[main] Version: 0.7.17-r1188
+[main] CMD: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/bwa mem -R @RG\tID:TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA-1780163691\tSM:TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA\tLB:TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA-LB-1\tPL:HYBRID -t 188 -x /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridUltimaONT1.1.bundle/HybridStage1_bwa.model /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -
+[main] Real time: 405.217 sec; CPU: 19195.101 sec
+sorting block 44, #reads = 379275 mem = 417959709 peak = 1034629120
+uniq header count 1
+merging 45 blocks
+sw version: sentieon-genomics-202503.02
+os version: Linux 6.8.0-1029-aws
+cpu vendor: GenuineIntel
+ signature: 000806f8
+  features: bfebfbff 7ffefbff
+  extended: f3bfb7ef fb417ffe
+  amd bits: 2c100800 00000121
+     brand: Intel(R) Xeon(R) Platinum 8488C
+threads: 188 max 192
+algo: HybridStage1
+license: sentieon:HybridCaller=180 ont:dnamodel=1
+input file size: 5260585144
+contig: 291674 intervals 1538403047 bases
+CramRef::get: 49001877 calls 1603.220 user 123.211 sys 3311.433 real
+advance: 1732088 calls 15945.503 user 413.533 sys 34144.142 real
+done: 1 calls 0.000 user 0.001 sys 0.002 real
+execute: 1 calls 0.002 user 0.007 sys 402.510 real
+idle: 38325 calls 1.026 user 0.336 sys 41022.006 real
+init: 1 calls 0.001 user 0.000 sys 0.002 real
+overall: 18188099584 mem 15990.772 user 437.648 sys 420.868 real
+sw version: sentieon-genomics-202503.02
+os version: Linux 6.8.0-1029-aws
+cpu vendor: GenuineIntel
+ signature: 000806f8
+  features: bfebfbff 7ffefbff
+  extended: f3bfb7ef fb417ffe
+  amd bits: 2c100800 00000121
+     brand: Intel(R) Xeon(R) Platinum 8488C
+threads: 188 max 192
+algo: util-sort
+license: sentieon:util=1
+output file size: 1217293879
+output reads: 27957664
+bam_mem_sort: 45 calls 49.819 user 0.765 sys 59.070 real
+bam_write: 45 calls 8.801 user 1.907 sys 35.367 real
+execute: 1 calls 7.522 user 1.424 sys 435.783 real
+merge_files: 1 calls 7.501 user 1.410 sys 30.247 real
+parse_chunk: 717 calls 36.383 user 10.615 sys 68.209 real
+read_chunk: 1924 calls 13.004 user 13.520 sys 323.702 real
+sort_block: 1 calls 11.957 user 13.465 sys 294.926 real
+write_chunk: 1205 calls 6.995 user 0.752 sys 8.205 real
+overall: 5501190144 mem 377.127 user 40.431 sys 435.795 real
+results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/stage1_hap.bam was missing EOF block when one should be present.
+ERROR: stage1_hap.bam failed integrity check - file may be truncated
+=== hybrid ultima tmp files ===
+1736673 2026-05-30T17:44:12.0000000000 /fsx/analysis_results/ubuntu/ccv20260530r48_hybrid_ultima_ont_snv/daylily-omics-analysis/results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/initial.vcf.gz.tbi
+3153968 2026-05-30T18:02:08.0000000000 /fsx/analysis_results/ubuntu/ccv20260530r48_hybrid_ultima_ont_snv/daylily-omics-analysis/results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/hybrid_stage1.bam.bai
+3298380 2026-05-30T17:37:41.0000000000 /fsx/analysis_results/ubuntu/ccv20260530r48_hybrid_ultima_ont_snv/daylily-omics-analysis/results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/hybrid_mapq0.ex1000.bed
+3298442 2026-05-30T17:37:31.0000000000 /fsx/analysis_results/ubuntu/ccv20260530r48_hybrid_ultima_ont_snv/daylily-omics-analysis/results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/hybrid_mapq0.bed
+527635887 2026-05-30T17:44:12.0000000000 /fsx/analysis_results/ubuntu/ccv20260530r48_hybrid_ultima_ont_snv/daylily-omics-analysis/results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/initial.vcf.gz
+58279097 2026-05-30T17:46:02.0000000000 /fsx/analysis_results/ubuntu/ccv20260530r48_hybrid_ultima_ont_snv/daylily-omics-analysis/results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/selected.bed
+6979961 2026-05-30T17:46:22.0000000000 /fsx/analysis_results/ubuntu/ccv20260530r48_hybrid_ultima_ont_snv/daylily-omics-analysis/results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/merged_diff.bed

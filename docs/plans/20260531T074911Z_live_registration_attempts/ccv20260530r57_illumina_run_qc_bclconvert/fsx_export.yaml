@@ -1,0 +1,20 @@
+fsx_export:
+  schema_version: 4
+  status: error
+  phase: dewey_registration
+  cluster_name: null
+  region: us-west-2
+  analysis_dir: ubuntu/ccv20260530r57_illumina_run_qc_bclconvert
+  source_path: /analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/
+  headnode_path: /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/
+  fsx_root: /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/
+  dayoa_analysis_root: /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details:
+    message: 'S3 object is missing SHA-256 metadata required by Dewey: s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html'
+  registration_only: true
+  dewey_registration_status: error

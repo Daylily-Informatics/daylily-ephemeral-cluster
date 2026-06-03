@@ -1,0 +1,130 @@
+DAY-EC activated.
+DAY-EC activated.
+2026-06-02T09:58:34Z
+__BENCHMARKS_START__
+__BENCH__ run_bclconvert.L003.0001_tiles0001-0098.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+716.6102	0:11:56	107524.14	161671.25	107550.20	107554.88	76037.13	71282.07	532.81	3818.34	i192mem-dy-all-2	10.0.1.153	192	5.3283	m7i.metal-48xl	us-west-2d	3.163300	48	0.157420
+__BENCH__ run_bclconvert.L003.0002_tiles0099-0196.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+639.9787	0:10:39	106823.64	160866.10	106844.59	106849.08	65400.79	71233.06	586.49	3753.54	i192mem-dy-all-1	10.0.1.230	192	5.8651	m7i.metal-48xl	us-west-2d	3.163300	48	0.140586
+__BENCH__ run_bclconvert.L003.0003_tiles0197-0294.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+597.2271	0:09:57	107475.84	161790.21	107495.93	107500.65	69396.18	71701.66	649.52	3879.24	i192mem-dy-all-2	10.0.1.153	192	6.4954	m7i.metal-48xl	us-west-2d	3.163300	48	0.131195
+__BENCH__ run_bclconvert.L003.0004_tiles0295-0392.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+710.4900	0:11:50	106501.64	161036.83	106523.23	106527.88	50482.76	69122.18	521.70	3706.76	i192mem-dy-all-1	10.0.1.230	192	5.2172	m7i.metal-48xl	us-west-2d	3.163300	48	0.156076
+__BENCH__ run_bclconvert.L003.0005_tiles0393-0490.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+661.8164	0:11:01	107617.71	162121.00	107635.44	107640.09	68311.48	71749.18	586.55	3882.00	i192mem-dy-all-2	10.0.1.153	192	5.8657	m7i.metal-48xl	us-west-2d	3.163300	48	0.145384
+__BENCH__ run_bclconvert.L003.0006_tiles0491-0588.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+707.2956	0:11:47	100731.39	155898.61	100755.83	100760.58	75751.12	70265.18	517.64	3661.27	i192mem-dy-all-1	10.0.1.230	192	5.1764	m7i.metal-48xl	us-west-2d	3.163300	48	0.155374
+__BENCH__ run_bclconvert.L003.0007_tiles0589-0686.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+645.5680	0:10:45	103476.73	158107.55	103498.06	103502.76	64761.63	70047.94	578.33	3733.61	i192mem-dy-all-1	10.0.1.230	192	5.7834	m7i.metal-48xl	us-west-2d	3.163300	48	0.141814
+__BENCH__ run_bclconvert.L003.0008_tiles0687-0784.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+640.1860	0:10:40	103928.61	158129.58	103952.95	103957.54	50625.18	71127.18	587.65	3762.31	i192mem-dy-all-2	10.0.1.153	192	5.8769	m7i.metal-48xl	us-west-2d	3.163300	48	0.140632
+__BENCHMARKS_END__
+__SHARDS_START__
+0001_tiles0001-0098	84	74744298569	1780393894.0000000000
+0002_tiles0099-0196	84	74891496039	1780393814.0000000000
+0003_tiles0197-0294	84	75119347656	1780393773.0000000000
+0004_tiles0295-0392	84	74525630323	1780393884.0000000000
+0005_tiles0393-0490	84	75432099516	1780393844.0000000000
+0006_tiles0491-0588	84	75601212760	1780393884.0000000000
+0007_tiles0589-0686	84	75321209027	1780393824.0000000000
+0008_tiles0687-0784	84	75611682081	1780393814.0000000000
+__SHARDS_END__
+__DONE_START__
+/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0098	2026-06-02T09:51:34.0000000000Z
+/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0002_tiles0099-0196	2026-06-02T09:50:13.0000000000Z
+/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0003_tiles0197-0294	2026-06-02T09:49:33.0000000000Z
+/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0004_tiles0295-0392	2026-06-02T09:51:24.0000000000Z
+/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0005_tiles0393-0490	2026-06-02T09:50:44.0000000000Z
+/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0006_tiles0491-0588	2026-06-02T09:51:24.0000000000Z
+/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0007_tiles0589-0686	2026-06-02T09:50:24.0000000000Z
+/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0008_tiles0687-0784	2026-06-02T09:50:14.0000000000Z
+__DONE_END__
+__LOGS_START__
+__LOG__ run_bclconvert.L003.0001_tiles0001-0098.log 7098 2026-06-02 09:51:29.000000000 +0000
+bcl-convert Version 00.000.000.4.0.3
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0098 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0098/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output false --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108+s_3_1109+s_3_1110+s_3_1111+s_3_1112+s_3_1113+s_3_1114+s_3_1115+s_3_1116+s_3_1117+s_3_1118+s_3_1119+s_3_1120+s_3_1121+s_3_1122+s_3_1123+s_3_1124+s_3_1125+s_3_1126+s_3_1127+s_3_1128+s_3_1129+s_3_1130+s_3_1131+s_3_1132+s_3_1133+s_3_1134+s_3_1135+s_3_1136+s_3_1137+s_3_1138+s_3_1139+s_3_1140+s_3_1141+s_3_1142+s_3_1143+s_3_1144+s_3_1145+s_3_1146+s_3_1147+s_3_1148+s_3_1149+s_3_1150+s_3_1151+s_3_1152+s_3_1153+s_3_1154+s_3_1155+s_3_1156+s_3_1157+s_3_1158+s_3_1159+s_3_1160+s_3_1161+s_3_1162+s_3_1163+s_3_1164+s_3_1165+s_3_1166+s_3_1167+s_3_1168+s_3_1169+s_3_1170+s_3_1171+s_3_1172+s_3_1173+s_3_1174+s_3_1175+s_3_1176+s_3_1177+s_3_1178+s_3_1179+s_3_1180+s_3_1181+s_3_1182+s_3_1183+s_3_1184+s_3_1185+s_3_1186+s_3_1187+s_3_1188+s_3_1189+s_3_1190+s_3_1191+s_3_1192+s_3_1193+s_3_1194+s_3_1195+s_3_1196+s_3_1197+s_3_1198 -f
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 2 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 4 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 5 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 6 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 7 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 8 because RunInfo.xml file lists no tiles for it
+bcl-convert Version 00.000.000.4.0.3
+__LOG__ run_bclconvert.L003.0002_tiles0099-0196.log 7098 2026-06-02 09:50:12.000000000 +0000
+bcl-convert Version 00.000.000.4.0.3
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0002_tiles0099-0196 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0002_tiles0099-0196/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output false --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_1201+s_3_1202+s_3_1203+s_3_1204+s_3_1205+s_3_1206+s_3_1207+s_3_1208+s_3_1209+s_3_1210+s_3_1211+s_3_1212+s_3_1213+s_3_1214+s_3_1215+s_3_1216+s_3_1217+s_3_1218+s_3_1219+s_3_1220+s_3_1221+s_3_1222+s_3_1223+s_3_1224+s_3_1225+s_3_1226+s_3_1227+s_3_1228+s_3_1229+s_3_1230+s_3_1231+s_3_1232+s_3_1233+s_3_1234+s_3_1235+s_3_1236+s_3_1237+s_3_1238+s_3_1239+s_3_1240+s_3_1241+s_3_1242+s_3_1243+s_3_1244+s_3_1245+s_3_1246+s_3_1247+s_3_1248+s_3_1249+s_3_1250+s_3_1251+s_3_1252+s_3_1253+s_3_1254+s_3_1255+s_3_1256+s_3_1257+s_3_1258+s_3_1259+s_3_1260+s_3_1261+s_3_1262+s_3_1263+s_3_1264+s_3_1265+s_3_1266+s_3_1267+s_3_1268+s_3_1269+s_3_1270+s_3_1271+s_3_1272+s_3_1273+s_3_1274+s_3_1275+s_3_1276+s_3_1277+s_3_1278+s_3_1279+s_3_1280+s_3_1281+s_3_1282+s_3_1283+s_3_1284+s_3_1285+s_3_1286+s_3_1287+s_3_1288+s_3_1289+s_3_1290+s_3_1291+s_3_1292+s_3_1293+s_3_1294+s_3_1295+s_3_1296+s_3_1297+s_3_1298 -f
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 2 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 4 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 5 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 6 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 7 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 8 because RunInfo.xml file lists no tiles for it
+bcl-convert Version 00.000.000.4.0.3
+__LOG__ run_bclconvert.L003.0003_tiles0197-0294.log 7098 2026-06-02 09:49:29.000000000 +0000
+bcl-convert Version 00.000.000.4.0.3
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0003_tiles0197-0294 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0003_tiles0197-0294/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output false --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_1301+s_3_1302+s_3_1303+s_3_1304+s_3_1305+s_3_1306+s_3_1307+s_3_1308+s_3_1309+s_3_1310+s_3_1311+s_3_1312+s_3_1313+s_3_1314+s_3_1315+s_3_1316+s_3_1317+s_3_1318+s_3_1319+s_3_1320+s_3_1321+s_3_1322+s_3_1323+s_3_1324+s_3_1325+s_3_1326+s_3_1327+s_3_1328+s_3_1329+s_3_1330+s_3_1331+s_3_1332+s_3_1333+s_3_1334+s_3_1335+s_3_1336+s_3_1337+s_3_1338+s_3_1339+s_3_1340+s_3_1341+s_3_1342+s_3_1343+s_3_1344+s_3_1345+s_3_1346+s_3_1347+s_3_1348+s_3_1349+s_3_1350+s_3_1351+s_3_1352+s_3_1353+s_3_1354+s_3_1355+s_3_1356+s_3_1357+s_3_1358+s_3_1359+s_3_1360+s_3_1361+s_3_1362+s_3_1363+s_3_1364+s_3_1365+s_3_1366+s_3_1367+s_3_1368+s_3_1369+s_3_1370+s_3_1371+s_3_1372+s_3_1373+s_3_1374+s_3_1375+s_3_1376+s_3_1377+s_3_1378+s_3_1379+s_3_1380+s_3_1381+s_3_1382+s_3_1383+s_3_1384+s_3_1385+s_3_1386+s_3_1387+s_3_1388+s_3_1389+s_3_1390+s_3_1391+s_3_1392+s_3_1393+s_3_1394+s_3_1395+s_3_1396+s_3_1397+s_3_1398 -f
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 2 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 4 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 5 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 6 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 7 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 8 because RunInfo.xml file lists no tiles for it
+bcl-convert Version 00.000.000.4.0.3
+__LOG__ run_bclconvert.L003.0004_tiles0295-0392.log 7098 2026-06-02 09:51:23.000000000 +0000
+bcl-convert Version 00.000.000.4.0.3
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0004_tiles0295-0392 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0004_tiles0295-0392/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output false --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_1401+s_3_1402+s_3_1403+s_3_1404+s_3_1405+s_3_1406+s_3_1407+s_3_1408+s_3_1409+s_3_1410+s_3_1411+s_3_1412+s_3_1413+s_3_1414+s_3_1415+s_3_1416+s_3_1417+s_3_1418+s_3_1419+s_3_1420+s_3_1421+s_3_1422+s_3_1423+s_3_1424+s_3_1425+s_3_1426+s_3_1427+s_3_1428+s_3_1429+s_3_1430+s_3_1431+s_3_1432+s_3_1433+s_3_1434+s_3_1435+s_3_1436+s_3_1437+s_3_1438+s_3_1439+s_3_1440+s_3_1441+s_3_1442+s_3_1443+s_3_1444+s_3_1445+s_3_1446+s_3_1447+s_3_1448+s_3_1449+s_3_1450+s_3_1451+s_3_1452+s_3_1453+s_3_1454+s_3_1455+s_3_1456+s_3_1457+s_3_1458+s_3_1459+s_3_1460+s_3_1461+s_3_1462+s_3_1463+s_3_1464+s_3_1465+s_3_1466+s_3_1467+s_3_1468+s_3_1469+s_3_1470+s_3_1471+s_3_1472+s_3_1473+s_3_1474+s_3_1475+s_3_1476+s_3_1477+s_3_1478+s_3_1479+s_3_1480+s_3_1481+s_3_1482+s_3_1483+s_3_1484+s_3_1485+s_3_1486+s_3_1487+s_3_1488+s_3_1489+s_3_1490+s_3_1491+s_3_1492+s_3_1493+s_3_1494+s_3_1495+s_3_1496+s_3_1497+s_3_1498 -f
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 2 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 4 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 5 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 6 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 7 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 8 because RunInfo.xml file lists no tiles for it
+bcl-convert Version 00.000.000.4.0.3
+__LOG__ run_bclconvert.L003.0005_tiles0393-0490.log 7098 2026-06-02 09:50:34.000000000 +0000
+bcl-convert Version 00.000.000.4.0.3
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0005_tiles0393-0490 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0005_tiles0393-0490/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output false --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_2101+s_3_2102+s_3_2103+s_3_2104+s_3_2105+s_3_2106+s_3_2107+s_3_2108+s_3_2109+s_3_2110+s_3_2111+s_3_2112+s_3_2113+s_3_2114+s_3_2115+s_3_2116+s_3_2117+s_3_2118+s_3_2119+s_3_2120+s_3_2121+s_3_2122+s_3_2123+s_3_2124+s_3_2125+s_3_2126+s_3_2127+s_3_2128+s_3_2129+s_3_2130+s_3_2131+s_3_2132+s_3_2133+s_3_2134+s_3_2135+s_3_2136+s_3_2137+s_3_2138+s_3_2139+s_3_2140+s_3_2141+s_3_2142+s_3_2143+s_3_2144+s_3_2145+s_3_2146+s_3_2147+s_3_2148+s_3_2149+s_3_2150+s_3_2151+s_3_2152+s_3_2153+s_3_2154+s_3_2155+s_3_2156+s_3_2157+s_3_2158+s_3_2159+s_3_2160+s_3_2161+s_3_2162+s_3_2163+s_3_2164+s_3_2165+s_3_2166+s_3_2167+s_3_2168+s_3_2169+s_3_2170+s_3_2171+s_3_2172+s_3_2173+s_3_2174+s_3_2175+s_3_2176+s_3_2177+s_3_2178+s_3_2179+s_3_2180+s_3_2181+s_3_2182+s_3_2183+s_3_2184+s_3_2185+s_3_2186+s_3_2187+s_3_2188+s_3_2189+s_3_2190+s_3_2191+s_3_2192+s_3_2193+s_3_2194+s_3_2195+s_3_2196+s_3_2197+s_3_2198 -f
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 2 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 4 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 5 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 6 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 7 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 8 because RunInfo.xml file lists no tiles for it
+bcl-convert Version 00.000.000.4.0.3
+__LOG__ run_bclconvert.L003.0006_tiles0491-0588.log 7098 2026-06-02 09:51:19.000000000 +0000
+bcl-convert Version 00.000.000.4.0.3
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0006_tiles0491-0588 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0006_tiles0491-0588/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output false --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_2201+s_3_2202+s_3_2203+s_3_2204+s_3_2205+s_3_2206+s_3_2207+s_3_2208+s_3_2209+s_3_2210+s_3_2211+s_3_2212+s_3_2213+s_3_2214+s_3_2215+s_3_2216+s_3_2217+s_3_2218+s_3_2219+s_3_2220+s_3_2221+s_3_2222+s_3_2223+s_3_2224+s_3_2225+s_3_2226+s_3_2227+s_3_2228+s_3_2229+s_3_2230+s_3_2231+s_3_2232+s_3_2233+s_3_2234+s_3_2235+s_3_2236+s_3_2237+s_3_2238+s_3_2239+s_3_2240+s_3_2241+s_3_2242+s_3_2243+s_3_2244+s_3_2245+s_3_2246+s_3_2247+s_3_2248+s_3_2249+s_3_2250+s_3_2251+s_3_2252+s_3_2253+s_3_2254+s_3_2255+s_3_2256+s_3_2257+s_3_2258+s_3_2259+s_3_2260+s_3_2261+s_3_2262+s_3_2263+s_3_2264+s_3_2265+s_3_2266+s_3_2267+s_3_2268+s_3_2269+s_3_2270+s_3_2271+s_3_2272+s_3_2273+s_3_2274+s_3_2275+s_3_2276+s_3_2277+s_3_2278+s_3_2279+s_3_2280+s_3_2281+s_3_2282+s_3_2283+s_3_2284+s_3_2285+s_3_2286+s_3_2287+s_3_2288+s_3_2289+s_3_2290+s_3_2291+s_3_2292+s_3_2293+s_3_2294+s_3_2295+s_3_2296+s_3_2297+s_3_2298 -f
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 2 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 4 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 5 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 6 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 7 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 8 because RunInfo.xml file lists no tiles for it
+bcl-convert Version 00.000.000.4.0.3
+__LOG__ run_bclconvert.L003.0007_tiles0589-0686.log 7098 2026-06-02 09:50:18.000000000 +0000
+bcl-convert Version 00.000.000.4.0.3
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0007_tiles0589-0686 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0007_tiles0589-0686/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output false --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_2301+s_3_2302+s_3_2303+s_3_2304+s_3_2305+s_3_2306+s_3_2307+s_3_2308+s_3_2309+s_3_2310+s_3_2311+s_3_2312+s_3_2313+s_3_2314+s_3_2315+s_3_2316+s_3_2317+s_3_2318+s_3_2319+s_3_2320+s_3_2321+s_3_2322+s_3_2323+s_3_2324+s_3_2325+s_3_2326+s_3_2327+s_3_2328+s_3_2329+s_3_2330+s_3_2331+s_3_2332+s_3_2333+s_3_2334+s_3_2335+s_3_2336+s_3_2337+s_3_2338+s_3_2339+s_3_2340+s_3_2341+s_3_2342+s_3_2343+s_3_2344+s_3_2345+s_3_2346+s_3_2347+s_3_2348+s_3_2349+s_3_2350+s_3_2351+s_3_2352+s_3_2353+s_3_2354+s_3_2355+s_3_2356+s_3_2357+s_3_2358+s_3_2359+s_3_2360+s_3_2361+s_3_2362+s_3_2363+s_3_2364+s_3_2365+s_3_2366+s_3_2367+s_3_2368+s_3_2369+s_3_2370+s_3_2371+s_3_2372+s_3_2373+s_3_2374+s_3_2375+s_3_2376+s_3_2377+s_3_2378+s_3_2379+s_3_2380+s_3_2381+s_3_2382+s_3_2383+s_3_2384+s_3_2385+s_3_2386+s_3_2387+s_3_2388+s_3_2389+s_3_2390+s_3_2391+s_3_2392+s_3_2393+s_3_2394+s_3_2395+s_3_2396+s_3_2397+s_3_2398 -f
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 2 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 4 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 5 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 6 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 7 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 8 because RunInfo.xml file lists no tiles for it
+bcl-convert Version 00.000.000.4.0.3
+__LOG__ run_bclconvert.L003.0008_tiles0687-0784.log 7098 2026-06-02 09:50:12.000000000 +0000
+bcl-convert Version 00.000.000.4.0.3
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0008_tiles0687-0784 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0008_tiles0687-0784/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output false --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_2401+s_3_2402+s_3_2403+s_3_2404+s_3_2405+s_3_2406+s_3_2407+s_3_2408+s_3_2409+s_3_2410+s_3_2411+s_3_2412+s_3_2413+s_3_2414+s_3_2415+s_3_2416+s_3_2417+s_3_2418+s_3_2419+s_3_2420+s_3_2421+s_3_2422+s_3_2423+s_3_2424+s_3_2425+s_3_2426+s_3_2427+s_3_2428+s_3_2429+s_3_2430+s_3_2431+s_3_2432+s_3_2433+s_3_2434+s_3_2435+s_3_243--output truncated--

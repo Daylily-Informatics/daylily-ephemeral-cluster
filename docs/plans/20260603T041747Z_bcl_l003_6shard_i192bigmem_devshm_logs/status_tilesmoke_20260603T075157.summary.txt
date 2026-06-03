@@ -1,0 +1,29 @@
+timestamp_utc: 2026-06-03T07:51:57Z
+run_id: fasts_from_bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm_20260603T0740Z
+
+squeue:
+  running:
+    - job: 55
+      shard: L003/0001_tiles0001-0008
+      elapsed: 1:04
+      host: i192bigmem-dy-all-1
+
+outputs:
+  fastq_count: 0
+  done_count: 0
+  report_count: 0
+
+active_bcl_convert:
+  host: i192bigmem-dy-all-1
+  pid: 20570
+  elapsed: 0:56
+  cpu_percent: 0.5
+  wchan: ldlm_completion_ast
+  read_bytes: 98304
+  write_bytes: 0
+  dev_shm_size: 344K
+  dev_shm_files: 10
+
+interpretation:
+  - The 8-tile job is running with the requested short tile regex and O_DIRECT off.
+  - No final outputs have been produced yet.

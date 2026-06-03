@@ -1,0 +1,9 @@
+DAY-EC activated.
+DAY-EC activated.
+== before tmux ==
+pane={pane_id} pid={pane_pid} cmd={pane_current_command} active={pane_active}
+== controller process tree before ==
+== before slurm ==
+3310|run_bclconvert-run_bclconvert|RUNNING|3:11:29|1|i192mem-dy-all-1|/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis
+Sending Ctrl-C to tmux session ccv20260529r39_illumina_bclconvert
+Killing tmux session ccv20260529r39_illumina_bclconvert

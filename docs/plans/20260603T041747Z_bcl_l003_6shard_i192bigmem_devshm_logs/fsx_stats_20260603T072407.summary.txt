@@ -1,0 +1,34 @@
+timestamp_utc	2026-06-03T07:24:07Z
+
+== filesystem ==
+fsx_id	fs-05f90a39933f9b539
+deployment_type	SCRATCH_2
+storage_type	SSD
+storage_capacity_gb	7200
+mount	/fsx
+mount_source	10.0.1.213@tcp:/xtlzxb4v
+mount_options	rw,noatime,checksum,flock,user_xattr,lruresize,lazystatfs,nouser_fid2path,verbose,encrypt
+used_summary	149.9G / 6.5T
+ost_usage	OST0000-OST0005 each about 24-25G used, 3%
+
+== bcl process ==
+host	i192bigmem-dy-all-1
+pid	12521
+elapsed	17:41
+pcpu	0.0
+rss_kb	401504
+threads	66
+wchan	ldlm_completion_ast
+rchar	57730649
+wchar	169686
+read_bytes	54161408
+write_bytes	0
+
+== pidstat/atop summary ==
+pidstat_bcl_kb_rd_s	0.00
+pidstat_bcl_kb_wr_s	0.00
+vmstat_cpu_idle	about 100%
+iostat_node_cpu_idle	about 99.9%
+
+== interpretation ==
+The active BCL Convert payload is not saturating FSx or local disk throughput. The process is idle/waiting in Lustre client state and has written no /dev/shm output yet.

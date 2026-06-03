@@ -1,0 +1,13 @@
+## codex/dyec515-full-catalog-20260531...origin/codex/dyec515-full-catalog-20260531
+ M AGENTS.md
+ M docs/plans/20260601T144201Z_dyec_516_517_release_train_ledger.md
+?? docs/plans/20260601T165015Z_hg003_illumina_run_catalog.fastqs.tsv
+?? docs/plans/20260601T165015Z_hg003_illumina_run_catalog.json
+?? docs/plans/20260601T165015Z_hg003_illumina_run_catalog.md
+?? docs/plans/20260601T165015Z_hg003_illumina_run_catalog.runs.tsv
+?? docs/plans/20260601T165015Z_hg003_illumina_run_catalog.sample_rows.tsv
+?? docs/plans/20260601T165015Z_hg003_illumina_run_catalog.samplesheets.tsv
+?? docs/plans/20260601T165015Z_hg003_illumina_run_catalog_ledger.md
+?? docs/plans/20260601T165015Z_hg003_illumina_s3_catalog.py
+?? docs/plans/20260601T185255Z_dyec5117_ilmn_run_mount_ledger.md
+?? docs/plans/20260601T234556Z_bcl_l003_25b_shard_experiment/

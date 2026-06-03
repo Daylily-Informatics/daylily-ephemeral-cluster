@@ -15,7 +15,9 @@ runner = CliRunner()
 def test_get_version_prefers_source_tree(monkeypatch):
     versioning.get_version.cache_clear()
     monkeypatch.setattr(versioning, "_source_tree_version", lambda: "1.2.3")
-    monkeypatch.setattr(versioning, "_installed_version", lambda dist_name=versioning.DIST_NAME: "9.9.9")
+    monkeypatch.setattr(
+        versioning, "_installed_version", lambda dist_name=versioning.DIST_NAME: "9.9.9"
+    )
 
     assert versioning.get_version() == "1.2.3"
 
@@ -23,7 +25,9 @@ def test_get_version_prefers_source_tree(monkeypatch):
 def test_get_version_falls_back_to_installed_metadata(monkeypatch):
     versioning.get_version.cache_clear()
     monkeypatch.setattr(versioning, "_source_tree_version", lambda: None)
-    monkeypatch.setattr(versioning, "_installed_version", lambda dist_name=versioning.DIST_NAME: "2.3.4")
+    monkeypatch.setattr(
+        versioning, "_installed_version", lambda dist_name=versioning.DIST_NAME: "2.3.4"
+    )
 
     assert versioning.get_version() == "2.3.4"
 

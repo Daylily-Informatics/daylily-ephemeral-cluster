@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=d515_0531t1608_r3_005_ultima_snv_alignstats
+__DAYLILY_TMUX_SESSION__=d515_0531t1608_r3_005_ultima_snv_alignstats
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/d515_0531t1608_r3_005_ultima_snv_alignstats
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/dyec-515/d515_0531t1608_r3_005_ultima_snv_alignstats/daylily-omics-analysis
+Tmux session 'd515_0531t1608_r3_005_ultima_snv_alignstats' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/d515_0531t1608_r3_005_ultima_snv_alignstats
+Workflow repo path: /fsx/analysis_results/dyec-515/d515_0531t1608_r3_005_ultima_snv_alignstats/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster dyec-515
+Then run: tmux attach -t d515_0531t1608_r3_005_ultima_snv_alignstats

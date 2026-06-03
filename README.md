@@ -2,48 +2,90 @@
 
 [![Latest release](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_release_tag&label=latest%20release&cacheSeconds=300&color=teal)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/releases) [![Latest tag](https://img.shields.io/badge/dynamic/yaml?url=https%3A%2F%2Fraw.githubusercontent.com%2FDaylily-Informatics%2Fdaylily-ephemeral-cluster%2Fmain%2Fconfig%2Fdaylily_cli_global.yaml&query=%24.daylily.git_ephemeral_cluster_repo_tag&label=latest%20tag&color=pink&cacheSeconds=300)](https://github.com/Daylily-Informatics/daylily-ephemeral-cluster/tags)
 
-DayEC is the operator control plane for short-lived AWS ParallelCluster environments that run Daylily analysis workloads on FSx for Lustre. The current data plane is DRA-first: the cluster starts with reference data mounted at `/fsx/references`, run folders are attached only when needed under `/fsx/run_dir_mounts/<mount_id>`, workflow outputs stay under `/fsx/analysis_results/<executing_entity>/<analysis_id>`, and completed analysis directories are exported through a temporary direct DRA to a chosen S3 analysis bucket.
+Daylily Ephemeral Cluster, usually called DYEC or DayEC, is the Daylily control plane for short-lived AWS ParallelCluster environments. It renders cluster configuration, validates AWS prerequisites, creates FSx for Lustre storage, connects to headnodes through AWS Systems Manager, stages inputs, launches workflow repositories, exports completed analysis directories, and optionally registers exported evidence with Dewey for downstream QEO ingestion.
 
-The cluster is ephemeral. S3 buckets are durable. Verify the export receipt before deleting the cluster.
+The cluster is disposable. The S3 inputs, reference bucket, analysis-export bucket, command catalog, and evidence receipts are durable. Do not delete a cluster until the export receipt and expected S3 outputs are verified.
 
-## Supported Operator Contract
+## Philosophy
 
-Use the checkout environment and the CLI, not historical helper-script paths:
+DYEC is deliberately not a dogma-locked workflow manager. It provisions and exports the execution environment. The checked-out repository owns its workflow engine, command syntax, containers, profile, and final file layout below the analysis root. DayOA/Snakemake is the first-class Daylily workflow repository, and nf-core/Nextflow repositories such as `daylily-sarek` can also run on the same cluster when they honor the same FSx analysis-root and export contract.
 
-1. `source ./activate`
-2. `dyec preflight`
-3. `dyec create`
-4. `dyec headnode connect`
-5. `dyec samples stage` for sample-manifest inputs, or `dyec mounts create` for run-folder inputs
-6. `dyec workflow launch`
-7. `dyec export --source-path /fsx/analysis_results/<executing_entity>/<analysis_id> --destination-s3-uri s3://bucket/prefix/<executing_entity>/<analysis_id>/`
-8. inspect `fsx_export.yaml`
-9. `dyec delete --dry-run`
-10. `dyec delete`
+The operating contract is strict. Missing config, credentials, references, run mounts, licenses, runtime assets, invalid sample identity, unsafe path segments, non-empty export destinations, and malformed command catalog rows should fail hard. DYEC should not guess a bucket, invent a credential, choose a replacement reference, or silently fall back to a legacy launch path.
 
-`daylily-ec` and `dyec` are the same entrypoint. The shorter `dyec` form is used in examples.
+## Architecture
 
-## One Copy-Pasteable Lifecycle
+```mermaid
+flowchart LR
+  Operator["operator or service<br/>dyec CLI"] --> Config["explicit config<br/>AWS profile, region, buckets"]
+  Config --> Pcluster["AWS ParallelCluster"]
+  Pcluster --> Headnode["headnode<br/>ubuntu via SSM"]
+  Pcluster --> FSx["FSx for Lustre"]
+  RefBucket["reference S3 bucket"] -->|reference DRA| References["/fsx/references"]
+  RunBucket["run S3 prefix"] -->|optional run DRA| RunMount["/fsx/run_dir_mounts/<mount_id>"]
+  Headnode --> Repo["workflow repository checkout"]
+  References --> Repo
+  RunMount --> Repo
+  Repo --> Results["/fsx/analysis_results/<entity>/<analysis_id>"]
+  Results -->|temporary export DRA| AnalysisBucket["analysis S3 bucket"]
+  AnalysisBucket --> Receipt["fsx_export.yaml"]
+  Receipt --> Dewey["Dewey registration"]
+  Dewey --> QEO["QEO ingestion"]
+```
+
+## Filesystem Contract
+
+| Path | Owner | Purpose |
+|---|---|---|
+| `/fsx/references` | DYEC cluster config | Reference and runtime assets mounted from the configured reference bucket. |
+| `/fsx/control_data` | optional cluster config | Repeated-test or control assets when configured. |
+| `/fsx/run_dir_mounts/<mount_id>` | `dyec mounts` | Read-oriented S3 run-folder Data Repository Associations. |
+| `/fsx/analysis_results/<executing_entity>/<analysis_id>` | workflow repository | Repository checkout, logs, work state, outputs, reports, and benchmarks. |
+| `s3://<analysis-bucket>/<prefix>/<executing_entity>/<analysis_id>/` | `dyec export` | Durable export destination for one completed analysis directory. |
+
+Run mounts and references are inputs. They are not export sources. The export source is exactly one completed analysis directory under `/fsx/analysis_results/<executing_entity>/<analysis_id>`.
+
+## Setup
+
+Prerequisites:
+
+- AWS credentials for a non-default profile with ParallelCluster, EC2, IAM, CloudFormation, S3, FSx, SSM, CloudWatch, and related read/write permissions.
+- AWS region and availability zone selected for the cluster.
+- AWS Session Manager plugin installed locally.
+- AWS ParallelCluster CLI available through this repo environment.
+- Configured S3 buckets for references, optional control data, staging, and analysis exports.
+- A Daylily config file, normally `~/.config/daylily/daylily_ephemeral_cluster.yaml`, with explicit bucket and cluster settings.
+
+Activate the checkout and inspect the live CLI:
 
 ```bash
+cd /path/to/daylily-ephemeral-cluster
 source ./activate
+dyec --json version
+dyec --help
+dyec runtime status
+dyec --json repositories commands
+```
 
-export AWS_PROFILE=daylily-service-lsmc
+Use placeholders in examples until your environment has real values:
+
+```bash
+export AWS_PROFILE=<non-default-profile>
 export REGION=us-west-2
 export REGION_AZ=us-west-2d
-export CLUSTER_NAME=day-demo-$(date +%Y%m%d%H%M%S)
+export CLUSTER_NAME=<cluster-name>
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
-export REF_S3_URI=s3://lsmc-dayoa-references-usw2
-export CONTROL_DATA_S3_URI=s3://lsmc-dayoa-control-data-usw2
-export STAGE_S3_URI=s3://lsmc-ssf-sequencing-data/staged_external_data
-export ANALYSIS_BUCKET=s3://lsmc-dayoa-analysis-results-us-west-2
-export EXECUTING_ENTITY="${USER:-ubuntu}"
-export ANALYSIS_ID=dayoa
-export ANALYSIS_SAMPLES=etc/analysis_samples_template.tsv
-export STAGE_CFG_DIR="$PWD/tmp-stage-config/$CLUSTER_NAME"
-export EXPORT_DIR="$PWD/tmp-export/$ANALYSIS_ID"
-export EXPORT_S3_URI="$ANALYSIS_BUCKET/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID/"
+export REF_S3_URI=s3://<reference-bucket>
+export CONTROL_DATA_S3_URI=s3://<control-data-bucket>
+export STAGE_S3_URI=s3://<staging-bucket>/<prefix>
+export ANALYSIS_RESULTS_S3_URI=s3://<analysis-results-bucket>/<prefix>
+export EXECUTING_ENTITY=ubuntu
+export ANALYSIS_ID=<analysis-id>
+export EXPORT_S3_URI="$ANALYSIS_RESULTS_S3_URI/$EXECUTING_ENTITY/$ANALYSIS_ID/"
+```
 
+## Lifecycle
+
+```bash
 dyec preflight \
   --profile "$AWS_PROFILE" \
   --region-az "$REGION_AZ" \
@@ -58,121 +100,149 @@ dyec headnode connect \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME"
+```
 
-dyec samples stage "$ANALYSIS_SAMPLES" \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --reference-s3-uri "$REF_S3_URI" \
-  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
-  --stage-s3-uri "$STAGE_S3_URI" \
-  --config-dir "$STAGE_CFG_DIR"
+After connection, the supported headnode user is `ubuntu` in an interactive bash login shell. Manual DayOA workflow work belongs in a persistent `tmux` session and uses separate commands:
 
-dyec workflow launch \
+```bash
+source dyoainit
+dy-a slurm hg38_broad
+dy-r help -p -k -j 1 -n
+```
+
+For catalog-backed sample analysis, prefer `dyec samples run`:
+
+```bash
+dyec samples run ./analysis_samples.tsv \
+  --command-id illumina_snv_alignstats \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
+  --reference-s3-uri "$REF_S3_URI" \
+  --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
+  --stage-s3-uri "$STAGE_S3_URI" \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 2.0.5 \
   --export-destination-s3-uri "$EXPORT_S3_URI" \
-  --export-trigger on-success
+  --export-trigger on-success \
+  --dry-run
+```
 
-# For run-folder work, attach only the S3 prefix you need.
-dyec --json mounts create "s3://sequencer-run-bucket/runs/RUN123/" \
+For run-folder analysis, attach a read-only run mount before launching a run-context command:
+
+```bash
+dyec --json mounts create "s3://<sequencing-run-bucket>/<run-prefix>/" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --platform ILMN \
   --read-only \
-  --wait
+  --wait \
+  --timeout-seconds 3600
 
 dyec --json mounts verify \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --mount-id RUN123
+  --mount-id <mount_id>
+```
 
-dyec workflow launch \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --run-context-file ./runs.tsv \
-  --analysis-id "<run-analysis-id>" \
-  --executing-entity "$EXECUTING_ENTITY" \
-  --git-tag 2.0.5 \
-  --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
+Export exactly one completed analysis directory:
 
+```bash
 dyec export \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --source-path "/fsx/analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID" \
   --destination-s3-uri "$EXPORT_S3_URI" \
-  --output-dir "$EXPORT_DIR"
-
-cat "$EXPORT_DIR/fsx_export.yaml"
-
-dyec delete --dry-run \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
-
-dyec delete \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME"
+  --output-dir "./tmp-export/$ANALYSIS_ID"
 ```
 
-## Architecture At A Glance
+Inspect `fsx_export.yaml` before cleanup. Delete is destructive; run `dyec delete --dry-run` first and perform live deletion only after the intended effect is approved and understood.
 
-```mermaid
-flowchart LR
-  Ref["S3 reference bucket /data/"] -->|reference-data DRA| Data["/fsx/references"]
-  Run["S3 run prefix"] -->|ephemeral run DRA| Mount["/fsx/run_dir_mounts/<mount_id>"]
-  Data --> Workflow["DayOA workflow"]
-  Mount --> Workflow
-  Workflow --> Results["/fsx/analysis_results/..."]
-  Results --> Export["temporary direct export DRA on /analysis_results/<executing_entity>/<analysis_id>/"]
-  Export -->|EXPORT_TO_REPOSITORY| Analysis["S3 analysis bucket prefix /<executing_entity>/<analysis_id>/"]
+## CLI Surface
+
+Use `dyec --help` for the current root command list. Current major groups include:
+
+- `preflight`, `create`, `delete`, `drift`, `cluster-info`
+- `cluster`, `headnode`, `samples`, `workflow`
+- `repositories`, `mounts`, `mount`, `export`, `exports`
+- `slurm-accounting`, `aws`, `pricing`, `runtime`, `env`, `state`, `resources-dir`
+
+Important inspection commands:
+
+```bash
+dyec --json version
+dyec --json cluster describe --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
+dyec --json repositories commands
+dyec repositories commands --command-id illumina_snv_alignstats
+dyec workflow status --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session>
+dyec workflow logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session> --lines 100
 ```
 
-Key rules:
+The Slurm accounting helper manages external accounting infrastructure when configured. A running cluster can have the `sacct` binary installed while accounting storage is disabled; in that state `sacct` cannot provide job accounting records even though the command exists.
 
-- `/fsx/references` is the reference-data DRA created with the cluster.
-- `/fsx/run_dir_mounts/<mount_id>` is for read-oriented run inputs and is not an export source.
-- `/fsx/analysis_results/...` is where workflow checkouts and outputs live.
-- `dyec export` creates a temporary DRA on the exact completed analysis directory, runs `EXPORT_TO_REPOSITORY`, and detaches it with `DeleteDataInFileSystem=false`.
-- `fsx_export.yaml` is the v3 export receipt to keep before teardown.
+## Repository Catalog
 
-## Pipeline Catalog
+`config/daylily_pipeline_command_catalog.yaml` is the source of truth for blessed repositories and commands. The packaged copy under `daylily_ec/resources/payload/config/` must match it. The current catalog default for DayOA is `2.0.44`; `daylily-sarek` is also present as a Nextflow/nf-core Sarek repository entry.
 
-`config/daylily_available_repositories.yaml` is the source of truth for repositories and blessed launch profiles. The packaged copy under `daylily_ec/resources/payload/config/` must match it.
+On the headnode, `day-clone` consumes the same repository catalog:
 
-The current DayOA pin is `2.0.5` for the repository default and every DayOA command. Catalog v2 separates:
+```bash
+day-clone --list
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 2.0.44 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 2.0.44
+```
 
-- `sample_analysis`: uses `analysis_samples.tsv`, stages inputs, and writes `samples.tsv` / `units.tsv`.
-- `run_analysis`: uses `runs.tsv`, requires a run DRA, and launches run-folder workflows such as Illumina run QC and BCL Convert.
+`-t` is the short form of `--git-tag`; `-d` is the short form of the required `--destination`. When `--repository` is omitted, `day-clone` uses the catalog `default_repository`. When `--git-tag`/`-t` is omitted, it uses the selected repository's `default_ref`. The checkout lands at `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`, where `relative_path` comes from the catalog row.
 
-## What This Repo Ships
+Catalog command classes:
 
-- `source ./activate`: creates or repairs the `DAY-EC` environment and installs the checkout editable
-- `dyec` / `daylily-ec`: preflight, create, headnode, sample, workflow, mount, export, delete, state, repository, pricing, and AWS validation commands
-- DRA-backed ParallelCluster templates under `config/day_cluster/`
-- packaged resources under `daylily_ec/resources/payload/`
-- `day-clone` for headnode repository checkouts
-- tests that guard the catalog, packaged resources, SSM behavior, DRA mounts, export receipts, and environment contract
+- `utility`: no sample or run inputs, usually used for smoke tests.
+- `sample_analysis`: consumes `analysis_samples.tsv`, stages sample/unit manifests, and launches a repository command.
+- `run_analysis`: consumes `runs.tsv` and requires a matching `/fsx/run_dir_mounts/<mount_id>` input mount.
 
-## Read This Next
+## Reference Bucket Contract
 
-- [docs/dra_fsx_strategy.md](docs/dra_fsx_strategy.md): current DRA-enabled FSx strategy and diagrams
-- [docs/ultra_rapid_start.md](docs/ultra_rapid_start.md): shortest current run path
-- [docs/quickest_start.md](docs/quickest_start.md): guided walkthrough with checks
-- [docs/operations.md](docs/operations.md): day-2 operations
-- [docs/cli_reference.md](docs/cli_reference.md): command reference
-- [docs/aws_setup.md](docs/aws_setup.md): AWS prerequisites
-- [docs/monitoring_and_troubleshooting.md](docs/monitoring_and_troubleshooting.md): failure triage
-- [docs/testing_and_debugging.md](docs/testing_and_debugging.md): local and AWS-backed validation
-- [docs/DAY_EC_ENVIRONMENT.md](docs/DAY_EC_ENVIRONMENT.md): environment contract
-- [docs/pip_install.md](docs/pip_install.md): pip install path
-- [docs/archive/README.md](docs/archive/README.md): historical material only
+The reference bucket is mounted to `/fsx/references` at cluster creation. It should contain:
+
+- organism references and indexes for supported genome builds
+- GIAB truth resources and high-confidence BEDs where concordance targets need them
+- slim sample read fixtures used by catalog validation
+- runtime assets that must be present before workflow activation, such as pinned tool installs, container caches, and licensed commercial tool assets
+- tool-specific resource directories for annotation, STR, contamination, metagenomics, or other optional targets
+
+DYEC does not choose alternate references at runtime. If a command catalog row points to a missing path, the launch should fail during staging, profile activation, or workflow execution with a clear missing-asset error.
+
+## Supporting Services
+
+- **Dewey**: DYEC can register exported DayOA evidence after a successful export when the command catalog declares an explicit `artifact_registration` policy.
+- **QEO**: QEO loading is requested through Dewey/outbox events. DayOA emits local evidence; DYEC maps that evidence to exported S3 artifacts.
+- **Ursa**: Ursa can own operator worksets and launch UX above DYEC. DYEC remains the cluster and export control plane.
+- **PCUI**: PCUI-style interfaces should call the same catalog and CLI/API surfaces rather than duplicating launch policy.
+- **Slurm**: Slurm is cluster infrastructure. Monitoring with `squeue`, `sacct` when configured, logs, and DYEC status commands is allowed. Scheduler, node, job, drain/resume, requeue, cancel, or service interventions require explicit operator approval.
+
+## Contributing
+
+When adding a runnable pipeline repository:
+
+- add a repository row to the command catalog with a pinned `default_ref`
+- verify `day-clone --repository <repo-key> --destination <analysis-id> --git-tag <ref>` produces the intended checkout path
+- add explicit command rows for supported launch profiles
+- declare input contract, required columns, genome build, targets, jobs, and runtime parameters
+- make the repository write all durable outputs below `/fsx/analysis_results/<executing_entity>/<analysis_id>`
+- document export-relevant reports, logs, benchmarks, and manifests
+- add tests for catalog rendering, command validation, and dry-run behavior where possible
+- avoid compatibility aliases, inferred defaults, or fallback command paths
+
+Historical plans and terminal working docs live under `docs/jem_working_docs/`. Active ledgers remain in `docs/plans/`.
+
+## Further Reading
+
+- [Quickest Start](docs/quickest_start.md)
+- [CLI Reference](docs/cli_reference.md)
+- [Pipeline Manager Launches](docs/pipeline_manager_launches.md)
+- [DRA and FSx Strategy](docs/dra_fsx_strategy.md)
+- [HG003 Benchmarking And Costs](docs/hg003_benchmarking_and_costs.md)
+- [Working Docs Archive Index](docs/jem_working_docs/INDEX.md)

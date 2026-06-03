@@ -1,0 +1,209 @@
+DAY-EC activated.
+DAY-EC activated.
+host:
+i192mem-dy-all-1
+Sat May 30 06:37:51 UTC 2026
+
+job_processes:
+    PID    PPID STAT     ELAPSED %CPU %MEM COMMAND
+  34407   34406 Sl         04:09  6.6  0.0 python
+  35306   34407 S          04:03  0.0  0.0 bash
+  37926   35306 S          03:45  0.0  0.0 xargs
+  37927   37926 S          03:45  0.0  0.0 bash
+  37928   37926 S          03:45  0.0  0.0 bash
+  37929   37926 S          03:45  0.0  0.0 bash
+  37930   37926 S          03:45  0.0  0.0 bash
+  37931   37926 S          03:45  0.0  0.0 bash
+  37934   37926 S          03:45  0.0  0.0 bash
+  37935   37926 S          03:45  0.0  0.0 bash
+  37939   37926 S          03:45  0.0  0.0 bash
+  37941   37926 S          03:45  0.0  0.0 bash
+  37944   37926 S          03:45  0.0  0.0 bash
+  37948   37926 S          03:45  0.0  0.0 bash
+  37950   37926 S          03:45  0.0  0.0 bash
+  37954   37926 S          03:45  0.0  0.0 bash
+  37957   37926 S          03:45  0.0  0.0 bash
+  37960   37926 S          03:45  0.0  0.0 bash
+  37964   37926 S          03:45  0.0  0.0 bash
+  37969   37926 S          03:45  0.0  0.0 bash
+  37973   37926 S          03:45  0.0  0.0 bash
+  37977   37926 S          03:45  0.0  0.0 bash
+  37982   37926 S          03:45  0.0  0.0 bash
+  37988   37926 S          03:45  0.0  0.0 bash
+  37991   37926 S          03:45  0.0  0.0 bash
+  37995   37926 S          03:45  0.0  0.0 bash
+  37999   37926 S          03:45  0.0  0.0 bash
+  38002   37926 S          03:45  0.0  0.0 bash
+  38007   37926 S          03:45  0.0  0.0 bash
+  38013   37926 S          03:45  0.0  0.0 bash
+  38016   37926 S          03:45  0.0  0.0 bash
+  38018   37926 S          03:45  0.0  0.0 bash
+  38023   37926 S          03:45  0.0  0.0 bash
+  38027   37926 S          03:45  0.0  0.0 bash
+  38030   37926 S          03:45  0.0  0.0 bash
+  38034   37926 S          03:45  0.0  0.0 bash
+  38038   37926 S          03:45  0.0  0.0 bash
+  38041   37926 S          03:45  0.0  0.0 bash
+  38044   37926 S          03:45  0.0  0.0 bash
+  38050   37926 S          03:45  0.0  0.0 bash
+  38055   37926 S          03:45  0.0  0.0 bash
+  38058   37926 S          03:45  0.0  0.0 bash
+  38061   37926 S          03:45  0.0  0.0 bash
+  38064   37926 S          03:45  0.0  0.0 bash
+  38070   37926 S          03:45  0.0  0.0 bash
+  38074   37926 S          03:45  0.0  0.0 bash
+  38079   37926 S          03:45  0.0  0.0 bash
+  38083   37926 S          03:45  0.0  0.0 bash
+  38085   37926 S          03:45  0.0  0.0 bash
+  38094   37926 S          03:45  0.0  0.0 bash
+  38097   37926 S          03:45  0.0  0.0 bash
+  38100   37926 S          03:45  0.0  0.0 bash
+  38103   37926 S          03:45  0.0  0.0 bash
+  38108   37926 S          03:45  0.0  0.0 bash
+  38112   37926 S          03:45  0.0  0.0 bash
+  38115   37926 S          03:45  0.0  0.0 bash
+  38120   37926 S          03:45  0.0  0.0 bash
+  38122   37926 S          03:45  0.0  0.0 bash
+  38126   37926 S          03:45  0.0  0.0 bash
+  38131   37926 S          03:45  0.0  0.0 bash
+  38133   37926 S          03:45  0.0  0.0 bash
+  38137   37926 S          03:45  0.0  0.0 bash
+  38140   37926 S          03:45  0.0  0.0 bash
+  38141   37926 S          03:45  0.0  0.0 bash
+  38147   37926 S          03:45  0.0  0.0 bash
+  38150   37926 S          03:45  0.0  0.0 bash
+  38152   37926 S          03:45  0.0  0.0 bash
+  39048   37957 I          01:30  1.1  0.0 cp
+  39051   38150 I          01:30  1.0  0.0 cp
+  39063   37948 I          01:29  1.3  0.0 cp
+  39081   37941 I          01:28  0.9  0.0 cp
+  39126   37999 I          01:25  1.1  0.0 cp
+  39195   38007 I          01:18  1.1  0.0 cp
+  39255   37930 I          01:12  1.1  0.0 cp
+  39270   37995 I          01:11  0.7  0.0 cp
+  39327   38034 I          01:02  1.3  0.0 cp
+  39360   37939 I          01:00  1.3  0.0 cp
+  39366   37927 I          01:00  0.8  0.0 cp
+  39372   37944 I          00:59  1.5  0.0 cp
+  39378   38083 I          00:59  0.8  0.0 cp
+  39381   37929 I          00:58  0.5  0.0 cp
+  39384   38147 I          00:58  1.4  0.0 cp
+  39387   38030 I          00:56  1.3  0.0 cp
+  39477   37991 I          00:52  0.6  0.0 cp
+  39489   37977 I          00:52  1.5  0.0 cp
+  39607   38013 I          00:49  0.6  0.0 cp
+  39623   38018 I          00:48  1.5  0.0 cp
+  39875   38038 I          00:48  1.3  0.0 cp
+  40365   37950 I          00:48  1.4  0.0 cp
+  40381   38058 I          00:47  0.5  0.0 cp
+  40387   38085 I          00:46  0.6  0.0 cp
+  40390   38133 I          00:46  1.6  0.0 cp
+  40399   38023 I          00:45  1.5  0.0 cp
+  40405   38064 I          00:44  1.7  0.0 cp
+  40414   38103 I          00:43  1.0  0.0 cp
+  40420   38131 I          00:41  1.2  0.0 cp
+  40423   37960 I          00:38  1.5  0.0 cp
+  40440   38050 I          00:34  1.9  0.0 cp
+  40443   37934 I          00:32  1.5  0.0 cp
+  40447   38061 I          00:31  0.3  0.0 cp
+  40450   38112 I          00:29  1.7  0.0 cp
+  40456   38152 I          00:27  1.6  0.0 cp
+  40468   38115 I          00:25  1.4  0.0 cp
+  40471   38027 I          00:25  1.6  0.0 cp
+  40477   37973 I          00:25  1.3  0.0 cp
+  40480   38074 I          00:24  1.6  0.0 cp
+  40483   37935 R          00:24  1.5  0.0 cp
+  40486   37954 D          00:23  0.2  0.0 cp
+  40492   38044 I          00:23  1.6  0.0 cp
+  40495   38094 I          00:23  0.9  0.0 cp
+  40498   38140 I          00:22  1.4  0.0 cp
+  40501   38122 I          00:22  1.6  0.0 cp
+  40504   37931 I          00:20  1.8  0.0 cp
+  40507   37982 I          00:19  0.8  0.0 cp
+  40511   38137 I          00:14  2.3  0.0 cp
+  40518   38002 I          00:11  0.4  0.0 cp
+  40527   38141 I          00:10  1.6  0.0 cp
+  40534   37928 D          00:09  0.0  0.0 cp
+  40540   38055 I          00:08  1.0  0.0 cp
+  40543   37988 I          00:08  0.0  0.0 cp
+  40546   38041 I          00:08  1.7  0.0 cp
+  40549   38100 I          00:08  1.6  0.0 cp
+  40552   38016 I          00:07  2.0  0.0 cp
+  40555   37964 I          00:07  0.0  0.0 cp
+  40558   38097 I          00:06  0.0  0.0 cp
+  40619   38079 I          00:05  0.0  0.0 cp
+  40627   37969 I          00:04  0.0  0.0 cp
+  40640   38120 I          00:04  0.0  0.0 cp
+  40643   38126 D          00:04  2.2  0.0 cp
+  40699   38070 I          00:01  0.0  0.0 cp
+  40702   38108 I          00:01  0.0  0.0 cp
+
+scratch_summary:
+88G	/fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch
+517
+308
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L004/C287.1/L004_2.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L004/C57.1/L004_1.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L004/C66.1/L004_2.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C115.1/L007_1.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C118.1/L007_2.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C128.1/L007_1.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C141.1/L007_2.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C156.1/L007_2.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C171.1/L007_2.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C190.1/L007_1.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C200.1/L007_2.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C205.1/L007_2.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C213.1/L007_2.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C216.1/L007_1.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C233.1/L007_1.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C304.1/L007_1.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C54.1/L007_2.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C62.1/L007_1.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C66.1/L007_2.cbcl
+1780123072.0000000000 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/run/Data/Intensities/BaseCalls/L007/C74.1/L007_1.cbcl
+
+rsync_logs:
+/fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/rsync_logs/cycle_dirs.txt
+2576 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/rsync_logs/cycle_dirs.txt
+/fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/rsync_logs/basecall_files.nul
+0 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306/rsync_logs/basecall_files.nul
+
+run_log_tail:
+run_bclconvert started: 2026-05-30T06:33:47+00:00
+host: i192mem-dy-all-1
+threads: 192
+resources_mem_mb: 180000
+TMPDIR: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch
+staging_mode: mounted_dev_shm
+scratch_root: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch
+bcl_input_directory: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+source_s3_uri: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs
+192
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  195G  8.6T   3% /fsx
+10.0.1.96@tcp:/d4tzvb4v  8.8T  195G  8.6T   3% /fsx
+/usr/bin/singularity
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc.
+scratch_dir: /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/2660.35306
+scratch_input_basis: mounted_metadata_plus_lane_root
+scratch_root_file_bytes: 4536017
+scratch_intensities_file_bytes: 52032652
+scratch_lane_root_disk_bytes: 92860928
+scratch_input_disk_bytes: 149429597
+scratch_input_apparent_bytes: 149429597
+scratch_required_bytes: 1671460212
+scratch_available_bytes: 9361524129792
+Staging mounted BCL run directory to scratch: 2026-05-30T06:33:54+00:00
+mounted_stage_lanes: L001 L002 L003 L004 L005 L006 L007 L008
+mounted_stage_jobs: 64
+mounted_stage_cycle_dirs: 2576
+mounted_stage_regular_files: 11424
+Copying mounted BCL files with sharded cp: 2026-05-30T06:34:06+00:00
+
+slurm:
+             JOBID PARTITION         NAME     USER ST       TIME  NODES NODELIST(REASON)
+              2660   i192mem run_bclconve   ubuntu  R       4:11      1 i192mem-dy-all-1

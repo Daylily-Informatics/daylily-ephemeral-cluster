@@ -1,0 +1,22 @@
+DAY-EC activated.
+DAY-EC activated.
+host=ip-10-0-0-88
+2026-05-30T07:03:49+00:00
+== /fsx/control_data ==
+missing
+== /fsx/references ==
+dr-xr-xr-x 4 root root 33280 May 29 02:52 /fsx/references
+== /fsx/references/genomic_data/organism_reads/H_sapiens/giab/MGI/mgi_reads ==
+missing
+== /fsx/data/genomic_data/organism_reads/H_sapiens/giab/MGI/mgi_reads ==
+missing
+== /fsx/staging/staged_external_sequencing_data/remote_stage_20260530T065816Z_a3c70c2e ==
+drwxr-xr-x 2 root root 25600 May 30 07:01 /fsx/staging/staged_external_sequencing_data/remote_stage_20260530T065816Z_a3c70c2e
+== staged samples paths ==
+/fsx/staging/staged_external_sequencing_data/remote_stage_20260530T065816Z_a3c70c2e/20260530T065816Z_a3c70c2e_samples.tsv
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+HG003	blood	research	male	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/	true	false	gdna	na	HG003	1	1	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG003/
+== staged units paths ==
+/fsx/staging/staged_external_sequencing_data/remote_stage_20260530T065816Z_a3c70c2e/20260530T065816Z_a3c70c2e_units.tsv
+RUNID	SAMPLEID	EXPERIMENTID	LANEID	BARCODEID	LIBPREP	SEQ_VENDOR	SEQ_PLATFORM	ILMN_R1_PATH	ILMN_R2_PATH	PACBIO_R1_PATH	PACBIO_R2_PATH	ONT_R1_PATH	ONT_R2_PATH	UG_R1_PATH	UG_R2_PATH	SUBSAMPLE_PCT	ILMN_TRIM_READ_LENGTH	SAMPLEUSE	BWA_KMER	DEEP_MODEL	ULTIMA_CRAM	ULTIMA_CRAM_ALIGNER	ULTIMA_CRAM_SNV_CALLER	ONT_CRAM	ONT_CRAM_ALIGNER	ONT_CRAM_SNV_CALLER	PB_BAM	PB_BAM_ALIGNER	PB_BAM_SNV_CALLER	ROCHE_BAM	ROCHE_BAM_ALIGNER	ROCHE_BAM_SNV_CALLER	ROCHE_DOWNSAMPLE_RATIO	LONGREADTRIM_READ_LENGTH	LONGREADTRIM_MODE	ULTIMA_SUBSAMPLE_PCT	ONT_SUBSAMPLE_PCT	ONT_BAM	ONT_BAM_ALIGNER	ONT_BAM_SNV_CALLER
+TVBCG5X	HG003	5x	1	D0	PF	CG/MGI	MGI	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/MGI/mgi_reads/ML150002521_L01_UDB-386_1.fq.gz	/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/MGI/mgi_reads/ML150002521_L01_UDB-386_2.fq.gz							0.05		posControl	19	WGS

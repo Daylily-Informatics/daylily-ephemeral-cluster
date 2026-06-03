@@ -1,0 +1,20 @@
+fsx_export:
+  schema_version: 4
+  status: error
+  phase: dewey_registration
+  cluster_name: null
+  region: us-west-2
+  analysis_dir: ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc
+  source_path: /analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/
+  headnode_path: /fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/
+  fsx_root: /fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/
+  dayoa_analysis_root: /fsx/analysis_results/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/daylily-omics-analysis/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details:
+    message: 'S3 object is missing SHA-256 metadata required by Dewey: s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260529r30_illumina_snv_alignstats_relatedness_vep_multiqc/daylily-omics-analysis/results/day/hg38_broad/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.cram'
+  registration_only: true
+  dewey_registration_status: error

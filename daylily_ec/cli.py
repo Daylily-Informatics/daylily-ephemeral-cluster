@@ -74,21 +74,15 @@ def _validate_analysis_launch_options(
             field_name="executing_entity",
         )
         if export_trigger not in EXPORT_TRIGGERS:
-            raise ValueError(
-                "export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS))
-            )
+            raise ValueError("export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS)))
         if export_destination_s3_uri and export_trigger == "none":
             raise ValueError(
                 "--export-trigger must not be none when --export-destination-s3-uri is set"
             )
         if export_trigger != "none" and not export_destination_s3_uri:
-            raise ValueError(
-                "--export-destination-s3-uri is required when --export-trigger is set"
-            )
+            raise ValueError("--export-destination-s3-uri is required when --export-trigger is set")
         if delete_on_export_success and not export_destination_s3_uri:
-            raise ValueError(
-                "--delete-on-export-success requires --export-destination-s3-uri"
-            )
+            raise ValueError("--delete-on-export-success requires --export-destination-s3-uri")
         if export_destination_s3_uri:
             validate_export_destination_s3_uri(
                 export_destination_s3_uri,
@@ -98,6 +92,22 @@ def _validate_analysis_launch_options(
                     headnode=True,
                 ),
             )
+    except (RuntimeError, ValueError) as exc:
+        raise typer.BadParameter(str(exc)) from exc
+
+
+def _resolve_executing_entity_option(
+    *,
+    executing_entity: Optional[str],
+    cluster: Optional[str],
+) -> str:
+    from daylily_ec.analysis_identity import validate_analysis_segment
+
+    candidate = (executing_entity or "").strip() or (cluster or "").strip()
+    if not candidate:
+        raise typer.BadParameter("--executing-entity is required when --cluster is omitted")
+    try:
+        return validate_analysis_segment(candidate, field_name="executing_entity")
     except (RuntimeError, ValueError) as exc:
         raise typer.BadParameter(str(exc)) from exc
 
@@ -566,6 +576,16 @@ def create(
         "--non-interactive",
         help="Disable interactive prompts; use config defaults or fail.",
     ),
+    create_slurm_accounting_db: bool = typer.Option(
+        False,
+        "--create-slurm-accounting-db",
+        help="Create the DayEC Slurm accounting MariaDB stack if no tagged stack exists.",
+    ),
+    scan_slurm_accounting_db: bool = typer.Option(
+        False,
+        "--scan-slurm-accounting-db",
+        help="Scan same-VPC EC2 instances for an existing Slurm accounting DB to reuse.",
+    ),
 ) -> None:
     """Create an ephemeral AWS ParallelCluster environment."""
 
@@ -573,6 +593,10 @@ def create(
 
     _warn_if_dayec_env_inactive()
     _ = repo_override
+    if create_slurm_accounting_db and scan_slurm_accounting_db:
+        raise typer.BadParameter(
+            "--scan-slurm-accounting-db cannot be combined with --create-slurm-accounting-db."
+        )
     if debug:
         logging.basicConfig(level=logging.DEBUG)
 
@@ -584,8 +608,100 @@ def create(
         pass_on_warn=pass_on_warn,
         debug=debug,
         non_interactive=non_interactive,
+        create_slurm_accounting_db=create_slurm_accounting_db,
+        scan_slurm_accounting_db=scan_slurm_accounting_db,
     )
     raise SystemExit(rc)
+
+
+def slurm_accounting_ensure(
+    region_az: str = typer.Option(
+        ...,
+        "--region-az",
+        help="AWS region + availability zone (e.g. us-west-2b).",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        help="AWS CLI profile. Defaults to AWS_PROFILE env var.",
+    ),
+    stack_name: str = typer.Option(
+        "",
+        "--stack-name",
+        help="Explicit DayEC Slurm accounting stack name. Defaults from --region-az.",
+    ),
+    database_name: str = typer.Option(
+        "dayec_slurm_acct",
+        "--database-name",
+        help="Slurm accounting database name.",
+    ),
+    db_username: str = typer.Option(
+        "slurm_acct",
+        "--db-username",
+        help="Slurm accounting database user name.",
+    ),
+    instance_type: str = typer.Option(
+        "t4g.micro",
+        "--instance-type",
+        help="EC2 instance type for a newly created MariaDB host.",
+    ),
+) -> None:
+    """Ensure a DayEC Slurm accounting MariaDB stack for one VPC/AZ."""
+
+    from daylily_ec.aws.cloudformation import ensure_pcluster_env_stack
+    from daylily_ec.aws.context import AWSContext
+    from daylily_ec.aws.slurm_accounting import (
+        SlurmAccountingError,
+        ensure_slurm_accounting_db,
+    )
+
+    _warn_if_dayec_env_inactive()
+    try:
+        aws_ctx = AWSContext.build(region_az, profile=profile)
+        cfn_outputs = ensure_pcluster_env_stack(aws_ctx, region_az)
+        if not cfn_outputs.vpc_id or not cfn_outputs.private_subnet_id:
+            raise SlurmAccountingError(
+                "Baseline stack is missing VPC or private subnet outputs."
+            )
+        db = ensure_slurm_accounting_db(
+            aws_ctx,
+            region_az=region_az,
+            vpc_id=cfn_outputs.vpc_id,
+            private_subnet_id=cfn_outputs.private_subnet_id,
+            create_if_missing=True,
+            stack_name=stack_name,
+            database_name=database_name,
+            username=db_username,
+            instance_type=instance_type,
+        )
+    except Exception as exc:  # noqa: BLE001
+        _exit_headnode_error(exc)
+
+    payload = {
+        "stack_name": db.stack_name,
+        "status": db.status,
+        "uri": db.uri,
+        "private_ip": db.private_ip,
+        "database_name": db.database_name,
+        "username": db.username,
+        "password_secret_arn": db.password_secret_arn,
+        "client_security_group_id": db.client_security_group_id,
+        "instance_id": db.instance_id,
+    }
+    if _json_mode():
+        output.emit_json(payload)
+        return
+
+    output.heading("Slurm accounting DB")
+    output.print_text(f"Stack:     {db.stack_name}")
+    output.print_text(f"Status:    {db.status}")
+    output.print_text(f"URI:       {db.uri}")
+    output.print_text(f"Database:  {db.database_name}")
+    output.print_text(f"User:      {db.username}")
+    output.print_text(f"Secret:    {db.password_secret_arn}")
+    output.print_text(f"Client SG: {db.client_security_group_id}")
+    if db.instance_id:
+        output.print_text(f"Instance:  {db.instance_id}")
 
 
 def preflight(
@@ -1133,7 +1249,9 @@ def export(
         artifact_registration_policy = command.artifact_registration
         artifact_registration_genome = command.genome
         if not dewey_url:
-            raise typer.BadParameter("--dewey-url is required with --artifact-registration-command-id")
+            raise typer.BadParameter(
+                "--dewey-url is required with --artifact-registration-command-id"
+            )
         if not dewey_token_env:
             raise typer.BadParameter(
                 "--dewey-token-env is required with --artifact-registration-command-id"
@@ -1161,6 +1279,7 @@ def export(
             dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
             dewey_run_artifact_euid=dewey_run_artifact_euid,
             dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
+            artifact_registration_command_id=artifact_registration_command_id or "",
         )
     )
     raise typer.Exit(rc)
@@ -1285,6 +1404,109 @@ def exports_detach(
         )
     except Exception as exc:  # noqa: BLE001
         _exit_headnode_error(exc)
+
+
+def exports_register_dewey(
+    source_path: str = typer.Option(
+        ...,
+        "--source-path",
+        help="Exported analysis directory under /fsx/analysis_results/<executing-entity>/<analysis-id>/.",
+    ),
+    destination_s3_uri: str = typer.Option(
+        ...,
+        "--destination-s3-uri",
+        help="Existing S3 URI ending in <executing-entity>/<analysis-id>/.",
+    ),
+    region: str = typer.Option(..., "--region", help="AWS region for S3 access."),
+    output_dir: Path = typer.Option(
+        ...,
+        "--output-dir",
+        help="Directory where fsx_export.yaml and dewey_registration_receipt.json will be written.",
+    ),
+    artifact_registration_command_id: str = typer.Option(
+        ...,
+        "--artifact-registration-command-id",
+        help="Repository catalog command id whose explicit artifact_registration policy should be applied.",
+    ),
+    manifest_source: str = typer.Option(
+        ...,
+        "--manifest-source",
+        help="Registration manifest source: dayoa-manifest or s3-inventory.",
+    ),
+    repository_catalog: Optional[Path] = typer.Option(
+        None,
+        "--repository-catalog",
+        help="Repository catalog YAML path. Defaults to the packaged catalog.",
+    ),
+    dewey_url: str = typer.Option(..., "--dewey-url", help="Dewey base URL."),
+    dewey_token_env: str = typer.Option(
+        ...,
+        "--dewey-token-env",
+        help="Environment variable containing the Dewey bearer token.",
+    ),
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    verbose: bool = typer.Option(False, "--verbose", help="Enable verbose registration logging."),
+    dewey_analysis_dir_external_object_id: str = typer.Option(
+        "",
+        "--dewey-analysis-dir-external-object-id",
+        help="External object id for the exported daylily-omics-analysis S3 directory.",
+    ),
+    dewey_run_artifact_euid: str = typer.Option(
+        "",
+        "--dewey-run-artifact-euid",
+        help="Dewey run artifact EUID to link to the exported analysis directory external object.",
+    ),
+    dewey_ursa_analysis_euid: str = typer.Option(
+        "",
+        "--dewey-ursa-analysis-euid",
+        help="Ursa analysis EUID to link to the exported analysis directory external object.",
+    ),
+) -> None:
+    """Register an existing exported analysis directory with Dewey without running FSx export."""
+
+    from daylily_ec.repositories import load_repository_catalog
+    from daylily_ec.workflow.export_data import (
+        RegisterExistingExportOptions,
+        configure_logging,
+        run_dewey_registration_for_existing_export,
+    )
+
+    _warn_if_dayec_env_inactive()
+    normalized_manifest_source = manifest_source.strip().replace("-", "_")
+    if normalized_manifest_source not in {"dayoa_manifest", "s3_inventory"}:
+        raise typer.BadParameter("--manifest-source must be dayoa-manifest or s3-inventory")
+    _validate_dewey_analysis_directory_link_options(
+        artifact_registration_command_id=artifact_registration_command_id,
+        dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
+        dewey_run_artifact_euid=dewey_run_artifact_euid,
+        dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
+    )
+    catalog = load_repository_catalog(repository_catalog)
+    command = catalog.get_command(artifact_registration_command_id)
+    if command.artifact_registration is None:
+        raise typer.BadParameter(
+            f"Command {artifact_registration_command_id!r} has no artifact_registration policy"
+        )
+    configure_logging(verbose)
+    rc = run_dewey_registration_for_existing_export(
+        RegisterExistingExportOptions(
+            source_path=source_path,
+            destination_s3_uri=destination_s3_uri,
+            region=region,
+            profile=profile,
+            output_dir=output_dir.expanduser().resolve(),
+            artifact_registration_policy=command.artifact_registration,
+            artifact_registration_genome=command.genome,
+            artifact_registration_manifest_source=normalized_manifest_source,
+            artifact_registration_command_id=artifact_registration_command_id,
+            dewey_url=dewey_url,
+            dewey_token_env=dewey_token_env,
+            dewey_analysis_dir_external_object_id=dewey_analysis_dir_external_object_id,
+            dewey_run_artifact_euid=dewey_run_artifact_euid,
+            dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
+        )
+    )
+    raise typer.Exit(rc)
 
 
 def delete(
@@ -2019,6 +2241,14 @@ def samples_stage(
         "--precheck-only",
         help="Validate the manifest and exit without staging or writing generated configs.",
     ),
+    config_only: bool = typer.Option(
+        False,
+        "--config-only",
+        help=(
+            "Validate the manifest and write generated samples.tsv/units.tsv locally without "
+            "creating a staged-prefix DRA."
+        ),
+    ),
 ) -> None:
     """Stage analysis samples and generate workflow manifests."""
 
@@ -2052,6 +2282,8 @@ def samples_stage(
         argv.append("--debug")
     if precheck_only:
         argv.append("--precheck-only")
+    if config_only:
+        argv.append("--config-only")
 
     try:
         rc = _invoke_stage_samples(argv)
@@ -2075,10 +2307,11 @@ def samples_run(
         "--analysis-id",
         help="Required analysis identifier used for the FSx analysis directory.",
     ),
-    executing_entity: str = typer.Option(
-        ...,
+    executing_entity: Optional[str] = typer.Option(
+        None,
         "--executing-entity",
-        help="User or system identifier used under /fsx/analysis_results.",
+        "-u",
+        help="User or system identifier used under /fsx/analysis_results. Defaults to --cluster.",
     ),
     reference_s3_uri: str = typer.Option(
         ...,
@@ -2198,7 +2431,7 @@ def samples_run(
     catalog_config: Optional[Path] = typer.Option(
         None,
         "--catalog-config",
-        help="Path to daylily_available_repositories.yaml.",
+        help="Path to daylily_pipeline_command_catalog.yaml.",
     ),
     debug: bool = typer.Option(
         False,
@@ -2215,9 +2448,13 @@ def samples_run(
     _warn_if_dayec_env_inactive()
     analysis_path = analysis_samples.expanduser().resolve()
     try:
+        resolved_executing_entity = _resolve_executing_entity_option(
+            executing_entity=executing_entity,
+            cluster=cluster,
+        )
         _validate_analysis_launch_options(
             analysis_id=analysis_id,
-            executing_entity=executing_entity,
+            executing_entity=resolved_executing_entity,
             export_destination_s3_uri=export_destination_s3_uri,
             export_trigger=export_trigger,
             delete_on_export_success=delete_on_export_success,
@@ -2294,7 +2531,7 @@ def samples_run(
         resolved_git_tag = git_tag or command.git_tag
         workflow_cli_argv = command.launch_argv(
             analysis_id=analysis_id,
-            executing_entity=executing_entity,
+            executing_entity=resolved_executing_entity,
             git_tag=resolved_git_tag,
             profile=resolved_profile,
             region=resolved_region,
@@ -2334,7 +2571,7 @@ def samples_run(
             "compatible_data_modes": command.compatible_data_modes,
             "detected_data_modes": data_modes,
             "analysis_id": analysis_id,
-            "executing_entity": executing_entity,
+            "executing_entity": resolved_executing_entity,
             "dry_run": dry_run,
             "dy_command": command.dryrun_dy_command if dry_run else command.dy_command,
             "export_destination_s3_uri": export_destination_s3_uri,
@@ -2379,10 +2616,35 @@ def workflow_launch(
         "--run-context-file",
         help="Local runs.tsv file to copy to config/runs.tsv for run-analysis workflows.",
     ),
+    samples_file: Optional[Path] = typer.Option(
+        None,
+        "--samples-file",
+        help="Local samples.tsv file to copy to config/samples.tsv for sample-analysis workflows.",
+    ),
+    units_file: Optional[Path] = typer.Option(
+        None,
+        "--units-file",
+        help="Local units.tsv file to copy to config/units.tsv for sample-analysis workflows.",
+    ),
     stage_base: str = typer.Option(
         "/fsx/staging/staged_external_sequencing_data",
         "--stage-base",
         help="Base staging directory to scan when --stage-dir is omitted.",
+    ),
+    input_staging: bool = typer.Option(
+        True,
+        "--input-staging/--no-input-staging",
+        help="Copy staged samples/units into the workflow clone.",
+    ),
+    default_activation: bool = typer.Option(
+        True,
+        "--default-activation/--no-default-activation",
+        help="Run the standard dyoainit plus Slurm day_activate setup before --dy-command.",
+    ),
+    bootstrap_test_config: bool = typer.Option(
+        False,
+        "--bootstrap-test-config",
+        help="Copy DayOA bundled test samples and units into config/ before launch.",
     ),
     session_name: Optional[str] = typer.Option(
         None,
@@ -2394,10 +2656,11 @@ def workflow_launch(
         "--analysis-id",
         help="Required analysis identifier used for the FSx analysis directory.",
     ),
-    executing_entity: str = typer.Option(
-        ...,
+    executing_entity: Optional[str] = typer.Option(
+        None,
         "--executing-entity",
-        help="User or system identifier used under /fsx/analysis_results.",
+        "-u",
+        help="User or system identifier used under /fsx/analysis_results. Defaults to --cluster.",
     ),
     repository: str = typer.Option(
         "daylily-omics-analysis",
@@ -2510,9 +2773,13 @@ def workflow_launch(
     from daylily_ec.scripts.common import CommandError
 
     _warn_if_dayec_env_inactive()
+    resolved_executing_entity = _resolve_executing_entity_option(
+        executing_entity=executing_entity,
+        cluster=cluster,
+    )
     _validate_analysis_launch_options(
         analysis_id=analysis_id,
-        executing_entity=executing_entity,
+        executing_entity=resolved_executing_entity,
         export_destination_s3_uri=export_destination_s3_uri,
         export_trigger=export_trigger,
         delete_on_export_success=delete_on_export_success,
@@ -2543,10 +2810,12 @@ def workflow_launch(
         ("--cluster", cluster),
         ("--stage-dir", stage_dir),
         ("--run-context-file", str(run_context_file.expanduser()) if run_context_file else None),
+        ("--samples-file", str(samples_file.expanduser()) if samples_file else None),
+        ("--units-file", str(units_file.expanduser()) if units_file else None),
         ("--stage-base", stage_base),
         ("--session-name", resolved_session_name),
         ("--analysis-id", analysis_id),
-        ("--executing-entity", executing_entity),
+        ("--executing-entity", resolved_executing_entity),
         ("--repository", repository),
         ("--git-tag", git_tag),
         ("--project", project),
@@ -2570,6 +2839,12 @@ def workflow_launch(
     ):
         if value is not None:
             argv.extend([flag, value])
+    if not input_staging:
+        argv.append("--no-input-staging")
+    if not default_activation:
+        argv.append("--no-default-activation")
+    if bootstrap_test_config:
+        argv.append("--bootstrap-test-config")
     argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
     if no_containerized:
         argv.append("--no-containerized")
@@ -2590,7 +2865,7 @@ def repositories_commands(
     config: Optional[Path] = typer.Option(
         None,
         "--config",
-        help="Path to daylily_available_repositories.yaml.",
+        help="Path to daylily_pipeline_command_catalog.yaml.",
     ),
     repository: Optional[str] = typer.Option(
         None,
@@ -2738,7 +3013,7 @@ def mounts_create(
     read_only: bool = typer.Option(
         True,
         "--read-only/--no-read-only",
-        help="Keep the source S3 run directory read-only by policy.",
+        help="Keep the source S3 prefix read-only by policy. Writeback requires .atlas_rw.",
     ),
     batch_import_metadata_on_create: bool = typer.Option(
         True,
@@ -2753,18 +3028,18 @@ def mounts_create(
     auto_export: Optional[str] = typer.Option(
         None,
         "--auto-export",
-        help="Forbidden unless --allow-writeback-admin and --no-read-only are set.",
+        help="Forbidden unless --allow-writeback-admin, --no-read-only, and .atlas_rw are set.",
     ),
     allow_writeback_admin: bool = typer.Option(
         False,
         "--allow-writeback-admin",
         help="Explicit admin override allowing AutoExport writeback policy.",
     ),
-    wait: bool = typer.Option(True, "--wait/--no-wait", help="Wait for AVAILABLE."),
+    wait: bool = typer.Option(False, "--wait/--no-wait", help="Wait for AVAILABLE."),
     timeout_seconds: int = typer.Option(900, "--timeout-seconds", help="Wait timeout."),
     tag: List[str] = typer.Option([], "--tag", help="Repeatable KEY=VALUE DRA tag."),
 ) -> None:
-    """Create a read-only FSx DRA for a sequencer run directory."""
+    """Create an FSx DRA mount; defaults read-only unless writeback is explicitly allowed."""
 
     from daylily_ec.run_mounts import format_mount_created
 
@@ -2816,7 +3091,7 @@ def mount_rundir(
     auto_import: str = typer.Option("NEW,CHANGED", "--auto-import"),
     auto_export: Optional[str] = typer.Option(None, "--auto-export"),
     allow_writeback_admin: bool = typer.Option(False, "--allow-writeback-admin"),
-    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    wait: bool = typer.Option(False, "--wait/--no-wait"),
     timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
     tag: List[str] = typer.Option([], "--tag"),
 ) -> None:
@@ -2908,7 +3183,7 @@ def mounts_delete(
     fsx_file_system_id: Optional[str] = typer.Option(None, "--fsx-file-system-id"),
     region: str = typer.Option(..., "--region"),
     profile: Optional[str] = typer.Option(None, "--profile"),
-    wait: bool = typer.Option(True, "--wait/--no-wait"),
+    wait: bool = typer.Option(False, "--wait/--no-wait"),
     timeout_seconds: int = typer.Option(900, "--timeout-seconds"),
 ) -> None:
     """Delete one FSx DRA without deleting S3 objects or cached FSx data."""
@@ -3276,6 +3551,18 @@ def register(registry, cli_spec) -> None:
     )
     register_group_commands(
         registry,
+        "slurm-accounting",
+        "Slurm accounting database helpers.",
+        [
+            (
+                "ensure",
+                slurm_accounting_ensure,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+        ],
+    )
+    register_group_commands(
+        registry,
         "cluster",
         "ParallelCluster inspection helpers.",
         [
@@ -3340,6 +3627,11 @@ def register(registry, cli_spec) -> None:
                 "detach",
                 exports_detach,
                 required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+            (
+                "register-dewey",
+                exports_register_dewey,
+                required_policy(supports_json=True, mutates_state=True),
             ),
         ],
     )

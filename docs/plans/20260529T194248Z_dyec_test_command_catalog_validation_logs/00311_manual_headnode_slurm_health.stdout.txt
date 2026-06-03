@@ -1,0 +1,217 @@
+DAY-EC activated.
+DAY-EC activated.
+=== sinfo summary ===
+PARTITION|AVAIL|NODES|STATE|CPUS(A/I/O/T)|MEMORY|GRES|NODELIST
+i8*|up|2|idle~|0/16/0/16|62259|(null)|i8-dy-r6gb64-1,i8-dy-r7gb64-1
+i128|up|42|idle~|0/5376/0/5376|249036+|(null)|i128-dy-c6gb256-[1-14],i128-dy-m6gb512-[1-14],i128-dy-r6gb1024r6-[1-14]
+i192|up|20|idle~|0/3840/0/3840|373555|(null)|i192-dy-all-[1-20]
+i192mem|up|2|idle%|0/384/0/384|747110|(null)|i192mem-dy-all-[18,20]
+i192mem|up|11|mix|1016/1096/0/2112|747110|(null)|i192mem-dy-all-[3,6-13,15,19]
+i192mem|up|3|alloc|576/0/0/576|747110|(null)|i192mem-dy-all-[1-2,5]
+i192mem|up|4|idle|0/768/0/768|747110|(null)|i192mem-dy-all-[4,14,16-17]
+i192bigmem|up|3|idle%|0/576/0/576|1494220|(null)|i192bigmem-dy-all-[4-5,16]
+i192bigmem|up|6|idle~|0/1152/0/1152|1494220|(null)|i192bigmem-dy-all-[2-3,17-20]
+i192bigmem|up|11|idle|0/2112/0/2112|1494220|(null)|i192bigmem-dy-all-[1,6-15]
+=== nodes ===
+Sat May 30 00:17:31 2026
+NODELIST               NODES  PARTITION       STATE CPUS    S:C:T MEMORY TMP_DISK WEIGHT AVAIL_FE REASON
+i8-dy-r6gb64-1             1        i8*       idle~ 8       8:1:1  62259        0   1000 dynamic, none
+i8-dy-r7gb64-1             1        i8*       idle~ 8       8:1:1  62259        0   1000 dynamic, none
+i128-dy-c6gb256-1          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-2          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-3          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-4          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-5          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-6          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-7          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-8          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-9          1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-10         1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-11         1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-12         1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-13         1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-c6gb256-14         1       i128       idle~ 128   128:1:1 249036        0   1000 dynamic, none
+i128-dy-m6gb512-1          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-2          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-3          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-4          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-5          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-6          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-7          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-8          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-9          1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-10         1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-11         1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-12         1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-13         1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-m6gb512-14         1       i128       idle~ 128   128:1:1 498073        0   1000 dynamic, none
+i128-dy-r6gb1024r6-1       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-2       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-3       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-4       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-5       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-6       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-7       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-8       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-9       1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-10      1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-11      1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-12      1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-13      1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i128-dy-r6gb1024r6-14      1       i128       idle~ 128   128:1:1 996147        0   1000 dynamic, none
+i192-dy-all-1              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-2              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-3              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-4              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, Scheduler health che
+i192-dy-all-5              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-6              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-7              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-8              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-9              1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-10             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-11             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-12             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-13             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-14             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-15             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-16             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-17             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-18             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-19             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192-dy-all-20             1       i192       idle~ 192   192:1:1 373555        0   1000 dynamic, none
+i192bigmem-dy-all-1        1 i192bigmem        idle 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-2        1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-3        1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-4        1 i192bigmem       idle% 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-5        1 i192bigmem       idle% 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-6        1 i192bigmem        idle 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-7        1 i192bigmem        idle 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-8        1 i192bigmem        idle 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-9        1 i192bigmem        idle 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-10       1 i192bigmem        idle 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-11       1 i192bigmem        idle 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-12       1 i192bigmem        idle 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-13       1 i192bigmem        idle 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-14       1 i192bigmem        idle 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-15       1 i192bigmem        idle 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-16       1 i192bigmem       idle% 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-17       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-18       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-19       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192bigmem-dy-all-20       1 i192bigmem       idle~ 192   192:1:1 149422        0   1000 dynamic, none
+i192mem-dy-all-1           1    i192mem   allocated 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-2           1    i192mem   allocated 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-3           1    i192mem       mixed 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-4           1    i192mem        idle 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-5           1    i192mem   allocated 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-6           1    i192mem       mixed 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-7           1    i192mem       mixed 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-8           1    i192mem       mixed 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-9           1    i192mem       mixed 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-10          1    i192mem       mixed 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-11          1    i192mem       mixed 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-12          1    i192mem       mixed 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-13          1    i192mem       mixed 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-14          1    i192mem        idle 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-15          1    i192mem       mixed 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-16          1    i192mem        idle 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-17          1    i192mem        idle 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-18          1    i192mem       idle% 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-19          1    i192mem       mixed 192   192:1:1 747110        0   1000 dynamic, none
+i192mem-dy-all-20          1    i192mem       idle% 192   192:1:1 747110        0   1000 dynamic, none
+=== queue ===
+JOBID|PARTITION|CPUS|ST|TIME|NODES|NODELIST(REASON)|NAME
+1516|i192mem|8|R|0:03|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1517|i192mem|8|R|0:03|1|i192mem-dy-all-3|sentdhiomr_final_norm-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1518|i192mem|8|R|0:03|1|i192mem-dy-all-3|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1519|i192mem|8|R|0:03|1|i192mem-dy-all-3|sentdhiomr_final_norm-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1520|i192mem|8|R|0:03|1|i192mem-dy-all-3|sentdhiomr_final_norm-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1510|i192mem|8|R|0:05|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1511|i192mem|8|R|0:05|1|i192mem-dy-all-2|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1512|i192mem|8|R|0:05|1|i192mem-dy-all-2|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1513|i192mem|8|R|0:05|1|i192mem-dy-all-2|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1514|i192mem|8|R|0:05|1|i192mem-dy-all-3|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1515|i192mem|8|R|0:05|1|i192mem-dy-all-3|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1509|i192mem|8|R|0:06|1|i192mem-dy-all-2|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1507|i192mem|8|R|0:07|1|i192mem-dy-all-2|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1508|i192mem|48|R|0:07|1|i192mem-dy-all-2|sentdhiomr_model_apply-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1500|i192mem|8|R|0:08|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1501|i192mem|8|R|0:08|1|i192mem-dy-all-2|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1502|i192mem|8|R|0:08|1|i192mem-dy-all-2|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1503|i192mem|8|R|0:08|1|i192mem-dy-all-2|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1504|i192mem|8|R|0:08|1|i192mem-dy-all-2|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1505|i192mem|48|R|0:08|1|i192mem-dy-all-2|sentdhiomr_model_apply-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1506|i192mem|8|R|0:08|1|i192mem-dy-all-2|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1497|i192mem|8|R|0:09|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1498|i192mem|8|R|0:09|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1499|i192mem|8|R|0:09|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1494|i192mem|8|R|0:10|1|i192mem-dy-all-5|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1495|i192mem|8|R|0:10|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1496|i192mem|8|R|0:10|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1490|i192mem|8|R|0:11|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1491|i192mem|8|R|0:11|1|i192mem-dy-all-5|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1492|i192mem|8|R|0:11|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1493|i192mem|8|R|0:11|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1489|i192mem|8|R|0:12|1|i192mem-dy-all-5|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1483|i192mem|8|R|0:18|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1484|i192mem|8|R|0:18|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1485|i192mem|8|R|0:18|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1487|i192mem|8|R|0:18|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1488|i192mem|8|R|0:18|1|i192mem-dy-all-5|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1479|i192mem|8|R|0:19|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1480|i192mem|8|R|0:19|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1481|i192mem|8|R|0:19|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1482|i192mem|8|R|0:19|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1476|i192mem|8|R|0:20|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1477|i192mem|8|R|0:20|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1472|i192mem|8|R|0:22|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1473|i192mem|8|R|0:22|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1468|i192mem|8|R|0:23|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1469|i192mem|8|R|0:23|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1466|i192mem|8|R|0:24|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1467|i192mem|8|R|0:24|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1464|i192mem|8|R|0:25|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1465|i192mem|8|R|0:25|1|i192mem-dy-all-19|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1462|i192mem|8|R|0:32|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1463|i192mem|8|R|0:32|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1458|i192mem|8|R|0:33|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1459|i192mem|8|R|0:33|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1460|i192mem|8|R|0:33|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1461|i192mem|8|R|0:33|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1451|i192mem|8|R|0:35|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1452|i192mem|8|R|0:35|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1453|i192mem|8|R|0:35|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1454|i192mem|8|R|0:35|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1456|i192mem|8|R|0:35|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1448|i192mem|8|R|0:37|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1449|i192mem|8|R|0:37|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1450|i192mem|8|R|0:37|1|i192mem-dy-all-1|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1446|i192mem|8|R|0:39|1|i192mem-dy-all-1|sentdhiomr_anno-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1445|i192mem|8|R|0:40|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1437|i192mem|8|R|0:46|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1438|i192mem|8|R|0:46|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1439|i192mem|8|R|0:46|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1440|i192mem|8|R|0:46|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1441|i192mem|8|R|0:46|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1442|i192mem|8|R|0:46|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1444|i192mem|8|R|0:46|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1435|i192mem|8|R|0:47|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1432|i192mem|8|R|0:48|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1433|i192mem|8|R|0:48|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1434|i192mem|8|R|0:48|1|i192mem-dy-all-5|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1427|i192mem|8|R|0:50|1|i192mem-dy-all-7|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1428|i192mem|8|R|0:50|1|i192mem-dy-all-7|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1429|i192mem|8|R|0:50|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1430|i192mem|8|R|0:50|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1431|i192mem|8|R|0:50|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1423|i192mem|8|R|0:51|1|i192mem-dy-all-5|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1424|i192mem|8|R|0:51|1|i192mem-dy-all-5|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1425|i192mem|8|R|0:51|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1426|i192mem|8|R|0:51|1|i192mem-dy-all-6|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1420|i192mem|8|R|0:52|1|i192mem-dy-all-5|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1421|i192mem|8|R|0:52|1|i192mem-dy-all-5|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1422|i192mem|8|R|0:52|1|i192mem-dy-all-5|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1419|i192mem|8|R|0:54|1|i192mem-dy-all-5|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1418|i192mem|8|R|0:55|1|i192mem-dy-all-5|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1414|i192mem|8|R|1:00|1|i192mem-dy-all-7|sentdhiomr_transfer-TVBHIO5X5X-HG003-ILMN5x-ONT5x-1-D0-PF-ILMN-NOVASEQ
+1415|i192mem|8|R|1:00|1|i192mem-d--output truncated--

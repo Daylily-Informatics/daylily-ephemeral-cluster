@@ -1,0 +1,22 @@
+DAY-EC activated.
+DAY-EC activated.
+tmux sessions:
+windows:
+panes:
+chrome paths:
+/home/ubuntu/.cache/puppeteer/chrome-headless-shell/linux-148.0.7778.97/chrome-headless-shell-linux64/chrome-headless-shell
+repo tag:
+2.0.43
+status file:
+{
+  "command": "dy-r produce_illumina_run_qc_and_bclconvert -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true --rerun-triggers mtime",
+  "completed_at": "2026-06-03T16:20:07Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/BigB-4-mk/M-RGX-9WR2/daylily-omics-analysis",
+  "session_name": "dayhoff_runqc_RUN001_MRGX9WR2_20260603",
+  "started_at": "2026-06-03T16:17:36Z"
+}
+
+no server running on /tmp/tmux-1000/default
+no server running on /tmp/tmux-1000/default
+no server running on /tmp/tmux-1000/default

@@ -1,0 +1,27 @@
+DAY-EC activated.
+DAY-EC activated.
+=== ultima rule log ===
+Traceback (most recent call last):
+  File "/fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc/daylily-omics-analysis/workflow/scripts/summarize_run_qc_report.py", line 197, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc/daylily-omics-analysis/workflow/scripts/summarize_run_qc_report.py", line 183, in main
+    rows = _placeholder_rows(args, "UG")
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc/daylily-omics-analysis/workflow/scripts/summarize_run_qc_report.py", line 150, in _placeholder_rows
+    ("metrics_rows", str(_count_rows(metrics))),
+                         ^^^^^^^^^^^^^^^^^^^^
+  File "/fsx/analysis_results/ubuntu/ccv20260529r13_ultima_run_qc/daylily-omics-analysis/workflow/scripts/summarize_run_qc_report.py", line 35, in _count_rows
+    sample = handle.read(4096)
+             ^^^^^^^^^^^^^^^^^
+OSError: [Errno 61] No data available
+=== metrics path stat ===
+  File: /fsx/run_dir_mounts/602221-20260417_2346/602221-S10_B-Z0310-CATGACAGTAATGAT/602221-S10_B-Z0310-CATGACAGTAATGAT.csv
+  Size: 1014      	Blocks: 1          IO Block: 4194304 regular file
+Device: 4e708ceh/82249934d	Inode: 144115205390067166  Links: 1
+Access: (0755/-rwxr-xr-x)  Uid: (    0/    root)   Gid: (    0/    root)
+Access: 2026-04-23 01:52:59.000000000 +0000
+Modify: 2026-04-23 01:52:59.000000000 +0000
+Change: 2026-05-30 03:06:08.000000000 +0000
+ Birth: 2026-05-30 03:06:08.000000000 +0000
+=== metrics path head ===

@@ -1,0 +1,6 @@
+DAY-EC activated.
+DAY-EC activated.
+=== headnode reference compatibility path ===
+lrwxrwxrwx 1 root root 15 May 29 23:37 /fsx/data -> /fsx/references
+=== compute-node reference compatibility path ===
+--- i128-dy-c6gb256-1

@@ -1,0 +1,16 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_STAGE_DIR__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260530T005818Z_a0182839
+__DAYLILY_STAGE_SAMPLES__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260530T005818Z_a0182839/20260530T005818Z_a0182839_samples.tsv
+__DAYLILY_STAGE_UNITS__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260530T005818Z_a0182839/20260530T005818Z_a0182839_units.tsv
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=ccv20260529r10_inflection-bjuice-product-v0.1
+__DAYLILY_TMUX_SESSION__=ccv20260529r10_inflection-bjuice-product-v0_1
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ccv20260529r10_inflection-bjuice-product-v0.1
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/ccv20260529r10_inflection-bjuice-product-v0.1/daylily-omics-analysis
+Tmux session 'ccv20260529r10_inflection-bjuice-product-v0.1' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/ccv20260529r10_inflection-bjuice-product-v0.1
+Workflow repo path: /fsx/analysis_results/ubuntu/ccv20260529r10_inflection-bjuice-product-v0.1/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster dyec-test
+Then run: tmux attach -t ccv20260529r10_inflection-bjuice-product-v0.1

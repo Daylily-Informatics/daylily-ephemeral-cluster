@@ -1,0 +1,1 @@
+2ec4565f (HEAD -> codex/dyec-dewey-registration-refactor-20260528, tag: 5.0.31, origin/codex/dyec-dewey-registration-refactor-20260528) Pin DYEC catalog to DayOA 2.0.23

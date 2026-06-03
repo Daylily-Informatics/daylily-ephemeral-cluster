@@ -1,0 +1,1 @@
+✗ FSx file system fs-0192642b439759d7d already has 8 active DRAs.

@@ -1,0 +1,6 @@
+DAY-EC activated.
+DAY-EC activated.
+started_session=ccv20260530r42_bclconvert_rc0_recheck
+run_dir=/home/ubuntu/daylily-runs/ccv20260530r42_bclconvert_rc0_recheck
+status_file=/home/ubuntu/daylily-runs/ccv20260530r42_bclconvert_rc0_recheck/status.json
+tmux_log=/home/ubuntu/daylily-runs/ccv20260530r42_bclconvert_rc0_recheck/tmux.log

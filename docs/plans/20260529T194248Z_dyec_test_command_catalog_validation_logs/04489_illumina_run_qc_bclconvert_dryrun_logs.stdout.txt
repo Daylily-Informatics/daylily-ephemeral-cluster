@@ -1,0 +1,82 @@
+DAY-EC activated.
+DAY-EC activated.
+          --fastq-manifest-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_fastq_manifest_mqc.tsv \
+          --lane-summary-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/bclconvert_lane_summary_mqc.tsv \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs/logs/bclconvert_metrics_multiqc_exports.log 2>&1
+
+
+[Sat May 30 21:51:58 2026]
+rule multiqc_bclconvert:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log
+    jobid: 20
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/multiqc_bclconvert.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log
+        multiqc -f \
+          -m bclconvert \
+          -m custom_content \
+          --config config/external_tools/multiqc_config.yaml \
+          --template default \
+          --filename multiqc_report.html \
+          --outdir results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert \
+          results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports \
+          results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_inputs \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/multiqc_bclconvert.log 2>&1
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
+
+
+[Sat May 30 21:51:58 2026]
+localrule produce_bclconvert_fastqs_and_metrics:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete
+    jobid: 6
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete
+
+[Sat May 30 21:51:58 2026]
+localrule produce_illumina_run_qc_and_bclconvert:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete
+    jobid: 0
+    reason: Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Job stats:
+job                                       count    min threads    max threads
+--------------------------------------  -------  -------------  -------------
+bclconvert_generate_units_tsv                 1              1              1
+bclconvert_metrics_multiqc_exports            1              1              1
+bclconvert_metrics_summary                    1              1              1
+bclconvert_validate_inputs                    1              1              1
+illumina_run_qc_fetch_metric_subset           1              1              1
+illumina_run_qc_interop_summary               1              1              1
+illumina_run_qc_json                          1              1              1
+illumina_run_qc_multiqc                       1              1              1
+illumina_run_qc_report                        1              1              1
+multiqc_bclconvert                            1              1              1
+produce_bclconvert_fastqs_and_metrics         1              1              1
+produce_illumina_run_qc_and_bclconvert        1              1              1
+run_bclconvert                                1              1              1
+run_bclconvert_lane                           8            192            192
+total                                        21              1            192
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        bclconvert_generate_units_tsv, bclconvert_metrics_multiqc_exports, bclconvert_metrics_summary, illumina_run_qc_interop_summary, illumina_run_qc_json, illumina_run_qc_multiqc, illumina_run_qc_report, multiqc_bclconvert, produce_bclconvert_fastqs_and_metrics, produce_illumina_run_qc_and_bclconvert, run_bclconvert, run_bclconvert_lane
+    missing output files:
+        bclconvert_generate_units_tsv, bclconvert_metrics_multiqc_exports, bclconvert_metrics_summary, bclconvert_validate_inputs, illumina_run_qc_fetch_metric_subset, illumina_run_qc_interop_summary, illumina_run_qc_json, illumina_run_qc_multiqc, illumina_run_qc_report, multiqc_bclconvert, produce_bclconvert_fastqs_and_metrics, run_bclconvert, run_bclconvert_lane
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.
+RETURN CODE: 0
+[INFO] Workflow exited with status 0
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert_dryrun/daylily-omics-analysis$

@@ -1,0 +1,62 @@
+DAY-EC activated.
+DAY-EC activated.
+SYNC_START	2026-06-03T14:02:55Z
+DEST_ROOT	s3://lsmc-dayoa-references-usw2/runtime_assets/cached_envs
+SYNC_CONDA_ENVS
+SYNC_ENV	0b1aa0bf84b641b1fca3480164585362_	406986407	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/0b1aa0bf84b641b1fca3480164585362_
+COPY_YAML	0b1aa0bf84b641b1fca3480164585362_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/0b1aa0bf84b641b1fca3480164585362_.yaml
+SYNC_ENV	299e0fbc02639cada3d27463747d90ee_	352250021	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/299e0fbc02639cada3d27463747d90ee_
+COPY_YAML	299e0fbc02639cada3d27463747d90ee_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/299e0fbc02639cada3d27463747d90ee_.yaml
+SYNC_ENV	386784e83dca731ed0bee02ad1e29b2e_	419204461	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/386784e83dca731ed0bee02ad1e29b2e_
+COPY_YAML	386784e83dca731ed0bee02ad1e29b2e_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/386784e83dca731ed0bee02ad1e29b2e_.yaml
+SYNC_ENV	4e50312f9c958dfca057b2c605426602_	74385318	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/4e50312f9c958dfca057b2c605426602_
+COPY_YAML	4e50312f9c958dfca057b2c605426602_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/4e50312f9c958dfca057b2c605426602_.yaml
+SYNC_ENV	5054602efe27c1789764b4b6065a11d6_	95202643	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5054602efe27c1789764b4b6065a11d6_
+COPY_YAML	5054602efe27c1789764b4b6065a11d6_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5054602efe27c1789764b4b6065a11d6_.yaml
+SYNC_ENV	5b93cf1d179903b1bf3ce7b68514bf72_	241579779	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5b93cf1d179903b1bf3ce7b68514bf72_
+COPY_YAML	5b93cf1d179903b1bf3ce7b68514bf72_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5b93cf1d179903b1bf3ce7b68514bf72_.yaml
+SYNC_ENV	608d52898d6f0fe50a35015ee2955834_	480606467	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_
+COPY_YAML	608d52898d6f0fe50a35015ee2955834_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_.yaml
+SYNC_ENV	650f152e7cc096c99ec308ec652b338a_	1482574313	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/650f152e7cc096c99ec308ec652b338a_
+COPY_YAML	650f152e7cc096c99ec308ec652b338a_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/650f152e7cc096c99ec308ec652b338a_.yaml
+SYNC_ENV	6a98d5a34ca1b5ab4b0a831930b7bb10_	279209686	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_
+COPY_YAML	6a98d5a34ca1b5ab4b0a831930b7bb10_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_.yaml
+SYNC_ENV	6e599cfa2e57aebd626e37eb557a3324_	74385330	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6e599cfa2e57aebd626e37eb557a3324_
+COPY_YAML	6e599cfa2e57aebd626e37eb557a3324_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6e599cfa2e57aebd626e37eb557a3324_.yaml
+SYNC_ENV	70bd9d1b705d48d95c302435f63a874d_	241657550	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/70bd9d1b705d48d95c302435f63a874d_
+COPY_YAML	70bd9d1b705d48d95c302435f63a874d_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/70bd9d1b705d48d95c302435f63a874d_.yaml
+SYNC_ENV	788e729f1e0864dea51355773486d36a_	759895270	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_
+COPY_YAML	788e729f1e0864dea51355773486d36a_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_.yaml
+SYNC_ENV	7b3dbc6b9eae05a003fb9812033f0657_	105257785	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/7b3dbc6b9eae05a003fb9812033f0657_
+COPY_YAML	7b3dbc6b9eae05a003fb9812033f0657_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/7b3dbc6b9eae05a003fb9812033f0657_.yaml
+SYNC_ENV	93ebe1238530a7b88d9b0377f9f327b0_	240151874	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_
+COPY_YAML	93ebe1238530a7b88d9b0377f9f327b0_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_.yaml
+SYNC_ENV	953bd0b4f71e6bbda7ceac1c77ba9bcb_	528485571	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_
+COPY_YAML	953bd0b4f71e6bbda7ceac1c77ba9bcb_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_.yaml
+SYNC_ENV	ac1c3ad4a398b8d1d8ea053c637bc6fc_	1002305420	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_
+COPY_YAML	ac1c3ad4a398b8d1d8ea053c637bc6fc_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_.yaml
+SYNC_ENV	cbee441bab3740ee8e092ae8f9cbb3b9_	1205516133	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_
+COPY_YAML	cbee441bab3740ee8e092ae8f9cbb3b9_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_.yaml
+SYNC_ENV	d8a099cbe66aacd85d9653887f51ccba_	1426333317	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_
+COPY_YAML	d8a099cbe66aacd85d9653887f51ccba_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_.yaml
+SYNC_ENV	e41dc845345d49d1be556ec6298452d7_	675947463	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_
+COPY_YAML	e41dc845345d49d1be556ec6298452d7_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_.yaml
+SYNC_ENV	fc10530623cc428bfa51464b358f203e_	241486382	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/fc10530623cc428bfa51464b358f203e_
+COPY_YAML	fc10530623cc428bfa51464b358f203e_	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/fc10530623cc428bfa51464b358f203e_.yaml
+SYNC_REAL_CONTAINER_IMAGES
+SYNC_NEXTFLOW
+665M	/fsx/resources/environments/nextflow
+SYNC_APPTAINER_NET_CACHE
+21561344	/fsx/tmp/apptainer_cache/cache/net/fc8a81f9e8389462c3f5e143e349473fc235c41aec9b5dfff03e97ca8ad4e990
+293392384	/fsx/tmp/apptainer_cache/cache/net/958ba17c86400a87b75de85c3946fb7d4ef91295774d2c9564627f3be40e05b8
+46305280	/fsx/tmp/apptainer_cache/cache/net/02868b9daca0f4d24dfd109e7560f9294a7eb77469438f2f56cf542d7a4f2775
+65908736	/fsx/tmp/apptainer_cache/cache/net/3cd87ddbb25205245b518f7f83b83b540cb355886b211de831b72a5a3805fca2
+91607040	/fsx/tmp/apptainer_cache/cache/net/d606e926ac8a1c4dcf4eea949675ac77095a4647694a248431fa0d9a5ae58c95
+NET_CACHE_ABSENT	/fsx/tnmp/apptainer_cache
+S3_VERIFY_COUNTS
+conda	404287	20408513126
+containers	3	699359232
+nextflow	9241	781379156
+apptainer_cache/cache/net	5	518774784
+SYNC_DONE	2026-06-03T14:30:18Z
+

@@ -1,0 +1,3 @@
+No such user name: {pane_pid}
+/tmp/daylily-ssm-21d7IW.sh: line 44: ${' '}${#jobs[@]} > 0: bad substitution
+failed to run commands: exit status 1

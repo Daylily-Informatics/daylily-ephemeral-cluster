@@ -1,0 +1,320 @@
+DAY-EC activated.
+DAY-EC activated.
+=== stage2 rule ===
+rule sentdhuomr_stage2:
+    """Stage2: generate unmap BAM, alt BAM, and refined BED"""
+    input:
+        stage1_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage1.bam",
+        hap_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/stage1_hap.bam",
+        hap_bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/stage1_hap.bed",
+    output:
+        bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2.bed",
+        unmap_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2_unmap.bam",
+        alt_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2_alt.bam",
+    wildcard_constraints:
+        alnr="|".join(ALIGNERS_DHUOMR)
+    log:
+        MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/log/{sample}.{alnr}.{ddup}.{dchrm}.stage2.log",
+    threads: config['sentdhuomr']['threads_medium']
+    conda:
+        "../envs/sentieon_v0.3.yaml"
+    benchmark:
+        MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.sentdhuomr.{dchrm}.stage2.bench.tsv"
+    resources:
+        partition="i192mem,i192bigmem",
+        threads=config['sentdhuomr']['threads_medium'],
+        vcpu=config['sentdhuomr']['threads_medium'],
+        mem_mb=config['sentdhuomr']['mem_mb_medium'],
+    params:
+        huref=config["supporting_files"]["files"]["huref"]["fasta"]["name"],
+        model=config["sentdhuomr"]["dna_scope_snv_model"],
+        use_threads=config["sentdhuomr"]["use_threads_medium"],
+        cluster_sample=ret_sample,
+    shell:
+        """
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        timestamp=$(date +%Y%m%d%H%M%S);
+        export TMPDIR="/dev/shm/sentdhuomr_s2_${{timestamp}}_$$";
+        export SENTIEON_TMPDIR="$TMPDIR";
+        mkdir -p "$TMPDIR";
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+
+        echo "Starting Stage 2 at $(date)" >> {log}
+
+        sentieon driver -r {params.huref} -t {params.use_threads} \
+            --temp_dir $TMPDIR \
+            -i {input.stage1_bam} -i {input.hap_bam} \
+            --algo HybridStage2 \
+            --model {params.model}/HybridStage2.model \
+            --hap_bed {input.hap_bed} \
+            --unmap_bam {output.unmap_bam} \
+            --alt_bam {output.alt_bam} \
+            --all_bed {output.bed} >> {log} 2>&1
+
+        echo "Stage 2 completed at $(date)" >> {log}
+        """
+
+
+
+# ---------------------------------------------------------------------------
+# Rule 8: Stage 3 - Re-alignment with stage2 outputs
+=== stage3 rule ===
+    """Stage3: HybridStage3 on all reads + stage2 BAMs → sorted BAM"""
+    input:
+        ug_cram=MDIR + "{sample}/align/{alnr}/{sample}.cram",
+        ont_cram=MDIR + "{sample}/align/ont/{sample}.cram",
+        unmap_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2_unmap.bam",
+        alt_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2_alt.bam",
+        bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2.bed",
+    output:
+        bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage3.bam",
+    wildcard_constraints:
+        alnr="|".join(ALIGNERS_DHUOMR)
+    log:
+        MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/log/{sample}.{alnr}.{ddup}.{dchrm}.stage3.log",
+    threads: config['sentdhuomr']['threads']  # Full node: stage3 pipes driver → util sort (2 concurrent processes)
+    conda:
+        "../envs/sentieon_v0.3.yaml"
+    benchmark:
+        MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.sentdhuomr.{dchrm}.stage3.bench.tsv"
+    resources:
+        partition="i192mem,i192bigmem",
+        threads=config['sentdhuomr']['threads'],
+        vcpu=config['sentdhuomr']['threads'],
+        mem_mb=config['sentdhuomr']['mem_mb'],
+    params:
+        huref=config["supporting_files"]["files"]["huref"]["fasta"]["name"],
+        model=config["sentdhuomr"]["dna_scope_snv_model"],
+        use_threads=config["sentdhuomr"]["use_threads"],
+        cluster_sample=ret_sample,
+    shell:
+        """
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        timestamp=$(date +%Y%m%d%H%M%S);
+        export TMPDIR="/dev/shm/sentdhuomr_s3_${{timestamp}}_$$";
+        export SENTIEON_TMPDIR="$TMPDIR";
+        mkdir -p "$TMPDIR";
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+
+        echo "Starting Stage 3 at $(date)" >> {log}
+
+        # NOTE: Input ONT BAM must have clean @PG headers (no broken PP chain).
+        # Use bin/util/fix_ont_cram_headers.sh to pre-process if needed.
+
+        # Build --replace_rg args: LR reads get LR:1 tag for hybrid model
+        LR_RG_ARGS=""
+        for rgid in $(samtools view -H {input.ont_cram} | grep '^@RG' | sed 's/.*ID:\([^\\t]*\).*/\\1/'); do
+            LR_RG_ARGS="$LR_RG_ARGS --replace_rg ${{rgid}}=ID:${{rgid}}\\tSM:{params.cluster_sample}\\tLR:1"
+        done
+        SR_RG_ARGS=""
+        for rgid in $(samtools view -H {input.ug_cram} | grep '^@RG' | sed 's/.*ID:\([^\\t]*\).*/\\1/'); do
+            SR_RG_ARGS="$SR_RG_ARGS --replace_rg ${{rgid}}=ID:${{rgid}}\\tSM:{params.cluster_sample}"
+        done
+
+        sentieon driver -r {params.huref} -t {params.use_threads} \
+            --temp_dir $TMPDIR \
+            $LR_RG_ARGS -i {input.ont_cram} \
+            $SR_RG_ARGS -i {input.ug_cram} \
+            $LR_RG_ARGS -i {input.unmap_bam} \
+            $LR_RG_ARGS -i {input.alt_bam} \
+            --interval {input.bed} \
+            --algo HybridStage3 \
+            --model {params.model}/HybridStage3.model \
+            - 2>> {log} | \
+        sentieon util sort \
+            -i - -t {params.use_threads} \
+            --temp_dir $TMPDIR \
+            -o {output.bam} >> {log} 2>&1
+
+        echo "Stage 3 completed at $(date)" >> {log}
+        """
+
+
+# ---------------------------------------------------------------------------
+# Rule 9: Pass 2 - Second-pass variant calling on refined regions
+# ---------------------------------------------------------------------------
+rule sentdhuomr_pass2:
+    """Second-pass variant calling on stage3 BAM + ONT reads"""
+    input:
+        ont_cram=MDIR + "{sample}/align/ont/{sample}.cram",
+        stage3_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage3.bam",
+=== subset/final vicinity ===
+        bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2.bed",
+    output:
+        vcf=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_pass2.vcf.gz",
+        tbi=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_pass2.vcf.gz.tbi",
+    wildcard_constraints:
+        alnr="|".join(ALIGNERS_DHUOMR)
+    log:
+        MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/log/{sample}.{alnr}.{ddup}.{dchrm}.pass2.log",
+    threads: config['sentdhuomr']['threads']
+    conda:
+        "../envs/sentieon_v0.3.yaml"
+    benchmark:
+        MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.sentdhuomr.{dchrm}.pass2.bench.tsv"
+    resources:
+        partition="i192mem,i192bigmem",
+        threads=config['sentdhuomr']['threads'],
+        vcpu=config['sentdhuomr']['threads'],
+        mem_mb=config['sentdhuomr']['mem_mb'],
+    params:
+        huref=config["supporting_files"]["files"]["huref"]["fasta"]["name"],
+        model=config["sentdhuomr"]["dna_scope_snv_model"],
+        diploid_bed=get_diploid_bed_interval_arg,  # Use --interval for sentieon driver
+        use_threads=config["sentdhuomr"]["use_threads"],
+        cluster_sample=ret_sample,
+        pop_vcf=config["supporting_files"]["files"]["popvcf"]["name"],
+    shell:
+        """
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        timestamp=$(date +%Y%m%d%H%M%S);
+        export TMPDIR="/dev/shm/sentdhuomr_p2_${{timestamp}}_$$";
+        export SENTIEON_TMPDIR="$TMPDIR";
+        mkdir -p "$TMPDIR";
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+
+        echo "Starting Pass 2 DNAscope at $(date)" >> {log}
+
+        # Build --replace_rg args: LR reads get LR:1 tag for hybrid model.
+        # This also unifies SM tags across ont_cram and stage3_bam so sentieon
+        # driver sees a single sample (stage3_bam inherits LR RGs from ONT input).
+        LR_RG_ARGS=""
+        for rgid in $(samtools view -H {input.ont_cram} | grep '^@RG' | sed 's/.*ID:\([^\\t]*\).*/\\1/'); do
+            LR_RG_ARGS="$LR_RG_ARGS --replace_rg ${{rgid}}=ID:${{rgid}}\\tSM:{params.cluster_sample}\\tLR:1"
+        done
+
+        sentieon driver -r {params.huref} -t {params.use_threads} \
+            --temp_dir $TMPDIR \
+            $LR_RG_ARGS -i {input.ont_cram} \
+            -i {input.stage3_bam} \
+            --interval {input.bed} \
+            {params.diploid_bed} \
+            --algo DNAscope \
+            -d {params.pop_vcf} \
+            --model {params.model}/hybrid.model \
+            --pcr_indel_model none \
+            {output.vcf} >> {log} 2>&1
+
+        echo "Pass 2 completed at $(date)" >> {log}
+        """
+
+
+# ---------------------------------------------------------------------------
+# Rule 10: Subset - Subset pass-1 VCF to complement of stage2 regions
+# ---------------------------------------------------------------------------
+rule sentdhuomr_subset:
+    """Subset pass-1 VCF to complement of stage2 regions"""
+    input:
+        vcf=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/initial.vcf.gz",
+        bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2.bed",
+    output:
+        vcf=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/mix_subset.vcf.gz",
+        tbi=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/mix_subset.vcf.gz.tbi",
+    wildcard_constraints:
+        alnr="|".join(ALIGNERS_DHUOMR)
+    log:
+        MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/log/{sample}.{alnr}.{ddup}.{dchrm}.subset.log",
+    threads: config['sentdhuomr']['threads_light']
+    conda:
+        "../envs/sentieon_v0.3.yaml"
+    resources:
+        partition="i192mem,i192bigmem",
+        threads=config['sentdhuomr']['threads_light'],
+        vcpu=config['sentdhuomr']['threads_light'],
+        mem_mb=config['sentdhuomr']['mem_mb_light'],
+    params:
+        cluster_sample=ret_sample,
+    shell:
+        """
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        echo "Subsetting pass-1 VCF at $(date)" >> {log}
+
+        if [ -s {input.bed} ]; then
+            bcftools view --threads {threads} -T ^{input.bed} {input.vcf} 2>> {log} | \
+            sentieon util vcfconvert -t {threads} - {output.vcf} >> {log} 2>&1
+        else
+            sentieon util vcfconvert -t {threads} {input.vcf} {output.vcf} >> {log} 2>&1
+        fi
+
+        # Ensure index exists (sentieon util vcfconvert should create it, but verify)
+        if [ ! -f {output.tbi} ]; then
+            tabix -p vcf -@ {threads} {output.vcf} >> {log} 2>&1
+        fi
+
+        echo "Subset completed at $(date)" >> {log}
+        """
+
+
+# ---------------------------------------------------------------------------
+# Rule 11: Concat Pass - Concatenate subset + pass2 VCFs
+# ---------------------------------------------------------------------------
+rule sentdhuomr_concat_pass:
+    """Concatenate subset + pass2 VCFs"""
+    input:
+        subset=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/mix_subset.vcf.gz",
+        subset_tbi=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/mix_subset.vcf.gz.tbi",
+        pass2=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_pass2.vcf.gz",
+        pass2_tbi=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_pass2.vcf.gz.tbi",
+    output:
+        vcf=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/combined_tmp.vcf.gz",
+    wildcard_constraints:
+        alnr="|".join(ALIGNERS_DHUOMR)
+    log:
+        MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/log/{sample}.{alnr}.{ddup}.{dchrm}.concat_pass.log",
+    threads: config['sentdhuomr']['threads_light']
+    conda:
+        "../envs/vanilla_v0.1.yaml"
+    resources:
+        partition="i192mem,i192bigmem",
+        threads=config['sentdhuomr']['threads_light'],
+        vcpu=config['sentdhuomr']['threads_light'],
+        mem_mb=config['sentdhuomr']['mem_mb_light'],
+    params:
+        cluster_sample=ret_sample,
+    shell:
+        """
+        set -euo pipefail
+        echo "Concatenating subset + pass2 VCFs at $(date)" >> {log}
+        bcftools concat --threads {threads} -W=tbi --output {output.vcf} -aD {input.subset} {input.pass2} >> {log} 2>&1
+        echo "Concat completed at $(date)" >> {log}
+        """
+
+
+
+# ---------------------------------------------------------------------------
+# Rule 12: Annotation - Hybrid-specific annotations
+# ---------------------------------------------------------------------------
+rule sentdhuomr_anno:
+    """Annotate VCF with hybrid-specific annotations"""
+    input:
+        vcf=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/combined_tmp.vcf.gz",
+        hap_bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/stage1_hap.bed",
+    output:
+        vcf=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/combined_tmp_anno.vcf.gz",
+        tbi=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/combined_tmp_anno.vcf.gz.tbi",
+    wildcard_constraints:
+        alnr="|".join(ALIGNERS_DHUOMR)
+    log:
+        MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/log/{sample}.{alnr}.{ddup}.{dchrm}.anno.log",
+    threads: config['sentdhuomr']['threads_light']
+    conda:
+        "../envs/sentieon_v0.3.yaml"
+    resources:
+        partition="i192mem,i192bigmem",
+        threads=config['sentdhuomr']['threads_light'],
+        vcpu=config['sentdhuomr']['threads_light'],
+        mem_mb=config['sentdhuomr']['mem_mb_light'],
+    params:
+        use_threads=config["sentdhuomr"]["use_threads_light"],
+        cluster_sample=ret_sample,
+    shell:
+        """
+        set -euo pipefail

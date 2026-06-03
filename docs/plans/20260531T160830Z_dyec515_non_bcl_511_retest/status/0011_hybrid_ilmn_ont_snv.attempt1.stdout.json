@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf --config 'dedupers=[\"dmd\"]' -p -j 100 -k -n",
+  "completed_at": "2026-05-31T16:16:20Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/dyec-515/d515_0531t1608_r3_011_hybrid_ilmn_ont_snv/daylily-omics-analysis",
+  "session_name": "d515_0531t1608_r3_011_hybrid_ilmn_ont_snv",
+  "started_at": "2026-05-31T16:15:55Z"
+}

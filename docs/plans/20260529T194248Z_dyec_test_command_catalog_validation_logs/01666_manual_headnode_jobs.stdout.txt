@@ -1,0 +1,12 @@
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+3104  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  16000M  0:02  1  parse_vcfeval_summary_roi-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+3098  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  16000M  0:12  1  parse_vcfeval_summary_roi-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+3099  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  16000M  0:12  1  parse_vcfeval_summary_roi-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+3100  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  16000M  0:12  1  parse_vcfeval_summary_roi-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+3101  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  16000M  0:12  1  parse_vcfeval_summary_roi-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+3103  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  16000M  0:12  1  parse_vcfeval_summary_roi-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+3096  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  16000M  0:13  1  parse_vcfeval_summary_roi-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+3041  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  62.50G  1:06  1  rtg_vcfeval_roi-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+2660  i192mem  192  R  i192mem-dy-all-1  192  RUNNING  180000M  2:15:13  1  run_bclconvert-run_bclconvert

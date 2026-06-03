@@ -15,11 +15,14 @@ from daylily_ec.resources import resource_path
 
 CATALOG_VERSION = 2
 SUPPORTED_CATALOG_VERSIONS = {1, CATALOG_VERSION}
-COMMAND_CLASSES = {"sample_analysis", "run_analysis"}
+COMMAND_CLASSES = {"sample_analysis", "run_analysis", "utility"}
+COMMAND_TYPES = {"prod", "test", "dev"}
 INPUT_CONTRACTS = {"sample_manifest", "run_context", "none"}
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
 VALIDATION_STATUSES = {"success", "failed", "blocked", "not_run"}
+SOURCE_MOUNT_MODES = {"none", "default_mounted", "run_dra_required"}
 ARTIFACT_REGISTRATION_INCLUDE_MODES = {"classification", "path"}
+ARTIFACT_REGISTRATION_MANIFEST_SOURCES = {"dayoa_manifest", "s3_inventory"}
 
 
 def _clean_id(value: str, *, field_name: str) -> str:
@@ -88,9 +91,7 @@ class InputContractDefinition(BaseModel):
 
     @field_validator("generated_tables")
     @classmethod
-    def _validate_generated_tables(
-        cls, values: Dict[str, TableSchema]
-    ) -> Dict[str, TableSchema]:
+    def _validate_generated_tables(cls, values: Dict[str, TableSchema]) -> Dict[str, TableSchema]:
         for key in values:
             _clean_id(key, field_name="generated_tables key")
         return values
@@ -117,9 +118,7 @@ class CommandInputRequirements(BaseModel):
 
     @field_validator("accepted_source_column_sets")
     @classmethod
-    def _validate_accepted_source_column_sets(
-        cls, values: List[List[str]]
-    ) -> List[List[str]]:
+    def _validate_accepted_source_column_sets(cls, values: List[List[str]]) -> List[List[str]]:
         cleaned_sets: List[List[str]] = []
         for column_set in values:
             cleaned = [str(value).strip() for value in column_set]
@@ -132,15 +131,131 @@ class CommandInputRequirements(BaseModel):
 
     @field_validator("required_run_context_values")
     @classmethod
-    def _validate_required_run_context_values(
-        cls, values: Dict[str, str]
-    ) -> Dict[str, str]:
+    def _validate_required_run_context_values(cls, values: Dict[str, str]) -> Dict[str, str]:
         return {
             _clean_id(key, field_name="required_run_context_values key"): _clean_id(
                 value, field_name="required_run_context_values value"
             )
             for key, value in values.items()
         }
+
+
+class TestDataLocation(BaseModel):
+    """Default-mounted catalog validation data root."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    location_id: str
+    description: str
+    mount_path: str
+    data_root: str
+    s3_uri: str = ""
+    applies_to_command_classes: List[str] = Field(default_factory=list)
+
+    @field_validator("location_id", "description", "mount_path", "data_root")
+    @classmethod
+    def _validate_required_strings(cls, value: str) -> str:
+        return _clean_id(value, field_name="test_data_locations value")
+
+    @field_validator("s3_uri")
+    @classmethod
+    def _validate_optional_s3_uri(cls, value: str) -> str:
+        return str(value or "").strip()
+
+    @field_validator("applies_to_command_classes")
+    @classmethod
+    def _validate_command_classes(cls, values: List[str]) -> List[str]:
+        cleaned = [str(value).strip() for value in values]
+        if any(not value for value in cleaned):
+            raise ValueError("applies_to_command_classes values must not be empty")
+        unknown = set(cleaned) - COMMAND_CLASSES
+        if unknown:
+            raise ValueError(
+                "applies_to_command_classes must use known command classes: "
+                + ", ".join(sorted(unknown))
+            )
+        return cleaned
+
+
+class TestDataProfile(BaseModel):
+    """Reusable source-data profile for validating catalog commands."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    description: str
+    source_mount_mode: str
+    source_s3_uri_template: str = ""
+    source_fsx_prefix: str = ""
+    locations: List[str] = Field(default_factory=list)
+    run_context_source_s3_column: str = ""
+    run_context_mount_id_column: str = ""
+    source_notes: List[str] = Field(default_factory=list)
+
+    @field_validator("description", "source_mount_mode")
+    @classmethod
+    def _validate_required_strings(cls, value: str) -> str:
+        return _clean_id(value, field_name="test_data_profiles value")
+
+    @field_validator("source_mount_mode")
+    @classmethod
+    def _validate_source_mount_mode(cls, value: str) -> str:
+        cleaned = _clean_id(value, field_name="test_data_profiles.source_mount_mode")
+        if cleaned not in SOURCE_MOUNT_MODES:
+            raise ValueError(
+                "test_data_profiles.source_mount_mode must be one of: "
+                + ", ".join(sorted(SOURCE_MOUNT_MODES))
+            )
+        return cleaned
+
+    @field_validator(
+        "locations",
+        "source_notes",
+    )
+    @classmethod
+    def _validate_string_lists(cls, values: List[str]) -> List[str]:
+        cleaned = [str(value).strip() for value in values]
+        if any(not value for value in cleaned):
+            raise ValueError("test_data_profiles list values must not be empty")
+        if len(set(cleaned)) != len(cleaned):
+            raise ValueError("test_data_profiles list values must be unique")
+        return cleaned
+
+    @field_validator(
+        "source_s3_uri_template",
+        "source_fsx_prefix",
+        "run_context_source_s3_column",
+        "run_context_mount_id_column",
+    )
+    @classmethod
+    def _validate_optional_strings(cls, value: str) -> str:
+        return str(value or "").strip()
+
+    @model_validator(mode="after")
+    def _validate_mount_contract(self) -> "TestDataProfile":
+        if self.source_mount_mode == "none":
+            if self.locations or self.source_s3_uri_template or self.source_fsx_prefix:
+                raise ValueError("source_mount_mode none must not declare source locations")
+            if self.run_context_source_s3_column or self.run_context_mount_id_column:
+                raise ValueError("source_mount_mode none must not declare run-context columns")
+        elif self.source_mount_mode == "default_mounted":
+            if not self.locations:
+                raise ValueError("default_mounted profiles must declare locations")
+            if not self.source_s3_uri_template:
+                raise ValueError("default_mounted profiles must declare source_s3_uri_template")
+            if not self.source_fsx_prefix:
+                raise ValueError("default_mounted profiles must declare source_fsx_prefix")
+            if self.run_context_source_s3_column or self.run_context_mount_id_column:
+                raise ValueError("default_mounted profiles must not declare run-context columns")
+        elif self.source_mount_mode == "run_dra_required":
+            if not self.source_s3_uri_template:
+                raise ValueError("run_dra_required profiles must declare source_s3_uri_template")
+            if not self.source_fsx_prefix:
+                raise ValueError("run_dra_required profiles must declare source_fsx_prefix")
+            if not self.run_context_source_s3_column:
+                raise ValueError("run_dra_required profiles must declare run_context_source_s3_column")
+            if not self.run_context_mount_id_column:
+                raise ValueError("run_dra_required profiles must declare run_context_mount_id_column")
+        return self
 
 
 class CommandValidationRun(BaseModel):
@@ -193,8 +308,7 @@ class CommandValidationRun(BaseModel):
         cleaned = _clean_id(value, field_name="validation status").lower()
         if cleaned not in VALIDATION_STATUSES:
             raise ValueError(
-                "validation status must be one of: "
-                + ", ".join(sorted(VALIDATION_STATUSES))
+                "validation status must be one of: " + ", ".join(sorted(VALIDATION_STATUSES))
             )
         return cleaned
 
@@ -216,12 +330,38 @@ class ArtifactRegistrationIdentity(BaseModel):
         return _clean_id(value, field_name="artifact registration identity")
 
 
+class ArtifactRegistrationMultiQCReport(BaseModel):
+    """Explicit MultiQC report root registered from an exported analysis."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    report_kind: str
+    html_path: str
+    data_dir_path: str
+
+    @field_validator("report_kind", "html_path", "data_dir_path")
+    @classmethod
+    def _validate_required_strings(cls, value: str) -> str:
+        return _clean_id(value, field_name="artifact_registration.multiqc_reports value")
+
+    @field_validator("html_path", "data_dir_path")
+    @classmethod
+    def _validate_relative_paths(cls, value: str) -> str:
+        cleaned = str(value).strip()
+        if cleaned.startswith("/"):
+            raise ValueError("artifact registration MultiQC paths must be relative")
+        if ".." in Path(cleaned).parts:
+            raise ValueError("artifact registration MultiQC paths must not contain '..'")
+        return cleaned
+
+
 class ArtifactRegistrationPolicy(BaseModel):
     """Explicit command policy for registering exported DayOA evidence."""
 
     model_config = ConfigDict(extra="forbid")
 
     enabled: bool
+    manifest_source: str
     evidence_manifest_path: str
     include_classifications: List[str] = Field(default_factory=list)
     include_paths: List[str] = Field(default_factory=list)
@@ -229,9 +369,11 @@ class ArtifactRegistrationPolicy(BaseModel):
     parser_family_hint: str
     multiqc_report_kind: str
     multiqc_version: str
+    multiqc_reports: List[ArtifactRegistrationMultiQCReport] = Field(default_factory=list)
     identity: ArtifactRegistrationIdentity
 
     @field_validator(
+        "manifest_source",
         "evidence_manifest_path",
         "parser_family_hint",
         "multiqc_report_kind",
@@ -240,6 +382,17 @@ class ArtifactRegistrationPolicy(BaseModel):
     @classmethod
     def _validate_required_strings(cls, value: str) -> str:
         return _clean_id(value, field_name="artifact_registration value")
+
+    @field_validator("manifest_source")
+    @classmethod
+    def _validate_manifest_source(cls, value: str) -> str:
+        cleaned = _clean_id(value, field_name="artifact_registration.manifest_source")
+        if cleaned not in ARTIFACT_REGISTRATION_MANIFEST_SOURCES:
+            raise ValueError(
+                "artifact_registration.manifest_source must be one of: "
+                + ", ".join(sorted(ARTIFACT_REGISTRATION_MANIFEST_SOURCES))
+            )
+        return cleaned
 
     @field_validator("include_classifications", "include_paths")
     @classmethod
@@ -269,6 +422,11 @@ class ArtifactRegistrationPolicy(BaseModel):
             raise ValueError(
                 "enabled artifact_registration requires include_classifications or include_paths"
             )
+        if self.enabled and self.parser_family_hint == "multiqc" and not self.multiqc_reports:
+            raise ValueError("enabled MultiQC artifact_registration requires multiqc_reports")
+        report_kinds = [report.report_kind for report in self.multiqc_reports]
+        if len(set(report_kinds)) != len(report_kinds):
+            raise ValueError("artifact_registration.multiqc_reports report_kind values must be unique")
         return self
 
 
@@ -279,6 +437,9 @@ class AnalysisCommand(BaseModel):
 
     command_id: str
     repository: str = ""
+    type: str
+    validated_version: str
+    test_data_profile: str
     display_name: str
     description: str = ""
     datasource: str
@@ -288,9 +449,7 @@ class AnalysisCommand(BaseModel):
     requires_staging: bool
     requires_run_mount: bool
     runtime_parameters: Dict[str, Any] = Field(default_factory=dict)
-    input_requirements: CommandInputRequirements = Field(
-        default_factory=CommandInputRequirements
-    )
+    input_requirements: CommandInputRequirements = Field(default_factory=CommandInputRequirements)
     targets: List[str]
     genome: str
     jobs: int = Field(gt=0)
@@ -310,6 +469,9 @@ class AnalysisCommand(BaseModel):
 
     @field_validator(
         "command_id",
+        "type",
+        "validated_version",
+        "test_data_profile",
         "display_name",
         "datasource",
         "launcher",
@@ -323,6 +485,14 @@ class AnalysisCommand(BaseModel):
     @classmethod
     def _validate_non_empty(cls, value: str) -> str:
         return _clean_id(value, field_name="value")
+
+    @field_validator("type")
+    @classmethod
+    def _validate_type(cls, value: str) -> str:
+        cleaned = _clean_id(value, field_name="type")
+        if cleaned not in COMMAND_TYPES:
+            raise ValueError("type must be one of: " + ", ".join(sorted(COMMAND_TYPES)))
+        return cleaned
 
     @field_validator(
         "targets",
@@ -355,13 +525,9 @@ class AnalysisCommand(BaseModel):
         if self.launcher != "workflow_launch":
             raise ValueError("launcher must be workflow_launch")
         if self.command_class not in COMMAND_CLASSES:
-            raise ValueError(
-                "command_class must be one of: " + ", ".join(sorted(COMMAND_CLASSES))
-            )
+            raise ValueError("command_class must be one of: " + ", ".join(sorted(COMMAND_CLASSES)))
         if self.input_contract not in INPUT_CONTRACTS:
-            raise ValueError(
-                "input_contract must be one of: " + ", ".join(sorted(INPUT_CONTRACTS))
-            )
+            raise ValueError("input_contract must be one of: " + ", ".join(sorted(INPUT_CONTRACTS)))
         if self.command_class == "sample_analysis":
             if self.input_contract != "sample_manifest":
                 raise ValueError("sample_analysis commands must use sample_manifest input")
@@ -376,6 +542,13 @@ class AnalysisCommand(BaseModel):
                 raise ValueError("run_analysis commands must not require sample staging")
             if not self.requires_run_mount:
                 raise ValueError("run_analysis commands must require run mounts")
+        if self.command_class == "utility":
+            if self.input_contract != "none":
+                raise ValueError("utility commands must use none input")
+            if self.requires_staging:
+                raise ValueError("utility commands must not require sample staging")
+            if self.requires_run_mount:
+                raise ValueError("utility commands must not require run mounts")
         if not self.compatible_platforms:
             raise ValueError("compatible_platforms must not be empty")
         if not self.compatible_data_modes:
@@ -413,6 +586,8 @@ class AnalysisCommand(BaseModel):
         session_name: Optional[str] = None,
         project: Optional[str] = None,
         run_context_file: Optional[str] = None,
+        samples_file: Optional[str] = None,
+        units_file: Optional[str] = None,
         dry_run: bool = False,
         skip_project_check: bool = True,
         export_destination_s3_uri: Optional[str] = None,
@@ -434,9 +609,7 @@ class AnalysisCommand(BaseModel):
         )
         resolved_git_tag = git_tag or self.git_tag
         if export_trigger not in EXPORT_TRIGGERS:
-            raise ValueError(
-                "export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS))
-            )
+            raise ValueError("export_trigger must be one of: " + ", ".join(sorted(EXPORT_TRIGGERS)))
         if export_destination_s3_uri and export_trigger == "none":
             raise ValueError(
                 "export_trigger must not be 'none' when export_destination_s3_uri is set"
@@ -478,12 +651,18 @@ class AnalysisCommand(BaseModel):
                     f"runtime_parameters.run_context_file is required for {self.command_id}"
                 )
             runtime_config = " ".join(
-                shlex.quote(f"{key}={value}")
-                for key, value in self.runtime_parameters.items()
+                shlex.quote(f"{key}={value}") for key, value in self.runtime_parameters.items()
             )
             dy_command = f"{dy_command} --config {runtime_config}"
         elif run_context_file:
             raise ValueError("run_context_file is only valid for run_analysis commands")
+        if samples_file or units_file:
+            if not (samples_file and units_file):
+                raise ValueError("samples_file and units_file must be provided together")
+            if self.input_contract != "sample_manifest":
+                raise ValueError(
+                    "samples_file and units_file are only valid for sample_analysis commands"
+                )
         if stage_dir and not self.requires_staging:
             raise ValueError("stage_dir is only valid for commands that require staging")
         argv = [
@@ -508,6 +687,8 @@ class AnalysisCommand(BaseModel):
             ("--cluster", cluster),
             ("--stage-dir", stage_dir),
             ("--run-context-file", run_context_file),
+            ("--samples-file", samples_file),
+            ("--units-file", units_file),
             ("--session-name", session_name),
             ("--project", project),
         ):
@@ -516,6 +697,9 @@ class AnalysisCommand(BaseModel):
         argv.append("--skip-project-check" if skip_project_check else "--strict-project-check")
         if self.no_containerized:
             argv.append("--no-containerized")
+        if self.input_contract == "none":
+            argv.extend(["--no-input-staging", "--no-default-activation"])
+            argv.append("--bootstrap-test-config")
         if export_destination_s3_uri:
             argv.extend(["--export-destination-s3-uri", export_destination_s3_uri])
         if export_trigger != "none":
@@ -563,13 +747,15 @@ class RepositoryDefinition(BaseModel):
 
 
 class RepositoryCatalog(BaseModel):
-    """Complete daylily_available_repositories.yaml contract."""
+    """Complete daylily_pipeline_command_catalog.yaml contract."""
 
     model_config = ConfigDict(extra="forbid")
 
     command_catalog_version: int
     default_repository: str
     input_contracts: Dict[str, InputContractDefinition] = Field(default_factory=dict)
+    test_data_locations: List[TestDataLocation] = Field(default_factory=list)
+    test_data_profiles: Dict[str, TestDataProfile] = Field(default_factory=dict)
     repositories: Dict[str, RepositoryDefinition]
 
     @model_validator(mode="after")
@@ -588,6 +774,15 @@ class RepositoryCatalog(BaseModel):
                 "input_contracts contains unknown contract id(s): "
                 + ", ".join(sorted(unknown_contracts))
             )
+        location_ids = {location.location_id for location in self.test_data_locations}
+        for profile_id, profile in self.test_data_profiles.items():
+            _clean_id(profile_id, field_name="test_data_profiles key")
+            unknown_locations = set(profile.locations) - location_ids
+            if unknown_locations:
+                raise ValueError(
+                    f"test_data_profile {profile_id!r} references unknown location(s): "
+                    + ", ".join(sorted(unknown_locations))
+                )
         seen: set[str] = set()
         for repo_key, repo in self.repositories.items():
             for command in repo.analysis_commands:
@@ -595,10 +790,55 @@ class RepositoryCatalog(BaseModel):
                     raise ValueError(f"Duplicate analysis command id: {command.command_id}")
                 seen.add(command.command_id)
                 command.repository = repo_key
-                if command.input_contract != "none" and command.input_contract not in self.input_contracts:
+                if (
+                    command.input_contract != "none"
+                    and command.input_contract not in self.input_contracts
+                ):
                     raise ValueError(
                         f"Missing input_contracts definition for {command.input_contract!r}"
                     )
+                if command.test_data_profile not in self.test_data_profiles:
+                    raise ValueError(
+                        f"Command {command.command_id!r} references unknown "
+                        f"test_data_profile {command.test_data_profile!r}"
+                    )
+                profile = self.test_data_profiles[command.test_data_profile]
+                if command.command_class == "utility" and profile.source_mount_mode != "none":
+                    raise ValueError(
+                        f"Command {command.command_id!r} is utility but test_data_profile "
+                        f"{command.test_data_profile!r} is {profile.source_mount_mode!r}"
+                    )
+                if (
+                    command.command_class == "sample_analysis"
+                    and profile.source_mount_mode == "run_dra_required"
+                ):
+                    raise ValueError(
+                        f"Command {command.command_id!r} is sample_analysis but "
+                        f"test_data_profile {command.test_data_profile!r} requires a run DRA"
+                    )
+                if command.command_class == "run_analysis":
+                    if profile.source_mount_mode != "run_dra_required":
+                        raise ValueError(
+                            f"Command {command.command_id!r} is run_analysis but "
+                            f"test_data_profile {command.test_data_profile!r} is "
+                            f"{profile.source_mount_mode!r}"
+                        )
+                    contract = self.input_contracts.get(command.input_contract)
+                    source_table = contract.source_table if contract is not None else None
+                    required_columns = (
+                        set(source_table.required_columns) if source_table is not None else set()
+                    )
+                    missing_columns = {
+                        profile.run_context_source_s3_column,
+                        profile.run_context_mount_id_column,
+                    } - required_columns
+                    if missing_columns:
+                        raise ValueError(
+                            f"Command {command.command_id!r} uses run DRA profile "
+                            f"{command.test_data_profile!r}, but input_contract "
+                            f"{command.input_contract!r} is missing required column(s): "
+                            + ", ".join(sorted(missing_columns))
+                        )
         return self
 
     def commands(self) -> List[AnalysisCommand]:
@@ -622,6 +862,13 @@ class RepositoryCatalog(BaseModel):
                 key: contract.model_dump(mode="json")
                 for key, contract in self.input_contracts.items()
             },
+            "test_data_locations": [
+                location.model_dump(mode="json") for location in self.test_data_locations
+            ],
+            "test_data_profiles": {
+                key: profile.model_dump(mode="json")
+                for key, profile in self.test_data_profiles.items()
+            },
             "repositories": {
                 repo_key: repo.model_dump(mode="json")
                 for repo_key, repo in self.repositories.items()
@@ -631,7 +878,7 @@ class RepositoryCatalog(BaseModel):
 
 
 def default_catalog_path() -> Path:
-    return resource_path("config/daylily_available_repositories.yaml")
+    return resource_path("config/daylily_pipeline_command_catalog.yaml")
 
 
 def _migrate_v1_analysis_commands(raw: Dict[str, Any]) -> Dict[str, Any]:
@@ -643,6 +890,17 @@ def _migrate_v1_analysis_commands(raw: Dict[str, Any]) -> Dict[str, Any]:
         {
             "sample_manifest": {
                 "description": "Migrated v1 sample manifest contract.",
+            }
+        },
+    )
+    migrated.setdefault(
+        "test_data_profiles",
+        {
+            "legacy_v1": {
+                "description": "Legacy v1 command profile created during catalog migration.",
+                "source_mount_mode": "none",
+                "locations": [],
+                "source_notes": [],
             }
         },
     )
@@ -664,6 +922,9 @@ def _migrate_v1_analysis_commands(raw: Dict[str, Any]) -> Dict[str, Any]:
                     continue
                 command = dict(command_value)
                 command["command_class"] = "sample_analysis"
+                command["type"] = "dev"
+                command["validated_version"] = str(repo.get("default_ref", "main"))
+                command["test_data_profile"] = "legacy_v1"
                 command["input_contract"] = "sample_manifest"
                 command["requires_staging"] = True
                 command["requires_run_mount"] = False

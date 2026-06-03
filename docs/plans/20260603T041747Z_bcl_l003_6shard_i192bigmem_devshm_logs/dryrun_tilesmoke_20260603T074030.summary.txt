@@ -1,0 +1,32 @@
+timestamp_utc: 2026-06-03T07:40:30Z
+tmux_session: dayoa_bcl_l003_8tile_tilesmoke_20260603
+workset: /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_i192bigmem_devshm_20260603T0740Z/daylily-omics-analysis
+source_commit: a0c3a81
+config: config/bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm.yaml
+run_id: fasts_from_bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm_20260603T0740Z
+final_dra_directory: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm_20260603T0740Z
+
+command:
+  - cd /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_i192bigmem_devshm_20260603T0740Z/daylily-omics-analysis
+  - source dyoainit
+  - dy-a slurm hg38
+  - dy-r produce_bclconvert_fastqs -p -k -j 10 -T 0 --rerun-triggers mtime --configfile config/bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm.yaml -n
+
+dryrun:
+  exit: 0
+  run_bclconvert_tile_shard_jobs: 1
+  full_lane_run_bclconvert_lane_jobs: 0
+  lane: L003
+  shard: 0001_tiles0001-0008
+  threads: 192
+  partition: i192bigmem
+  exclusive: --exclusive
+  scratch_output_root: /dev/shm/dayoa_bclconvert
+  scratch_available_bytes_min: 650000000000
+  tile_regex: s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108
+  merge_tile_fastqs: false
+  merge_lane_fastqs: false
+
+note:
+  - This was a dry-run only.
+  - No live tile-smoke job was submitted while the original trapfix controller still had active/pending jobs.

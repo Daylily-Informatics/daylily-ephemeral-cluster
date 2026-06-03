@@ -1,0 +1,165 @@
+DAY-EC activated.
+COMMAND_ID=13d243ad-5f8e-4c4d-8018-bc5dcf2eb029
+DAY-EC activated.
+DAY-EC activated.
+timestamp_utc	2026-06-03T06:34:06Z
+
+== squeue ==
+JOBID|PARTITION|NAME|STATE|TIME|NODES|CPUS|MIN_MEMORY|NODELIST(REASON)
+23|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0003_tiles0263-0393|CONFIGURING|4:06|1|192|1200000M|i192bigmem-dy-all-1
+24|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0005_tiles0525-0654|PENDING|0:00|1|192|1200000M|(Resources)
+25|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0002_tiles0132-0262|PENDING|0:00|1|192|1200000M|(Priority)
+26|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0004_tiles0394-0524|PENDING|0:00|1|192|1200000M|(Priority)
+27|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0006_tiles0655-0784|PENDING|0:00|1|192|1200000M|(Priority)
+28|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0001_tiles0001-0131|PENDING|0:00|1|192|1200000M|(Priority)
+
+== scontrol jobs 23-28 ==
+JobId=23 JobName=run_bclconvert_tile_shard-run_bclconvert_L003_0003_tiles0263-0393    UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A    Priority=1 Nice=0 Account=(null) QOS=(null)    JobState=CONFIGURING Reason=None Dependency=(null)    Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0    RunTime=00:04:06 TimeLimit=3-18:40:00 TimeMin=N/A    SubmitTime=2026-06-03T06:30:00 EligibleTime=2026-06-03T06:30:00    AccrueTime=2026-06-03T06:30:00    StartTime=2026-06-03T06:30:00 EndTime=2026-06-07T01:10:00 Deadline=N/A    SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T06:30:00 Scheduler=Main    Partition=i192bigmem AllocNode:Sid=ip-10-0-0-235:110979    ReqNodeList=(null) ExcNodeList=(null)    NodeList=i192bigmem-dy-all-1    BatchHost=i192bigmem-dy-all-1    NumNodes=1 NumCPUs=192 NumTasks=1 CPUs/Task=192 ReqB:S:C:T=0:0:*:*    ReqTRES=cpu=192,mem=1200000M,node=1,billing=192    AllocTRES=cpu=192,node=1,billing=192    Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*    MinCPUsNode=192 MinMemoryNode=1200000M MinTmpDiskNode=0    Features=(null) DelayBoot=00:00:00    OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)    Command=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/.snakemake/tmp.1n_19yw1/snakejob.run_bclconvert_tile_shard.6.sh    WorkDir=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis    Comment=dyec0602bcl     StdErr=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0003_tiles0263-0393.6.err    StdIn=/dev/null    StdOut=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0003_tiles0263-0393.6.out    TresPerTask=cpu=192      
+JobId=24 JobName=run_bclconvert_tile_shard-run_bclconvert_L003_0005_tiles0525-0654    UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A    Priority=1 Nice=0 Account=(null) QOS=(null)    JobState=PENDING Reason=Resources Dependency=(null)    Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0    RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A    SubmitTime=2026-06-03T06:30:01 EligibleTime=2026-06-03T06:30:01    AccrueTime=2026-06-03T06:30:01    StartTime=2026-06-07T01:10:00 EndTime=2026-06-10T19:50:00 Deadline=N/A    SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T06:33:49 Scheduler=Backfill:*    Partition=i192bigmem AllocNode:Sid=ip-10-0-0-235:110979    ReqNodeList=(null) ExcNodeList=(null)    NodeList=    NumNodes=1 NumCPUs=192 NumTasks=1 CPUs/Task=192 ReqB:S:C:T=0:0:*:*    ReqTRES=cpu=192,mem=1200000M,node=1,billing=192    AllocTRES=(null)    Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*    MinCPUsNode=192 MinMemoryNode=1200000M MinTmpDiskNode=0    Features=(null) DelayBoot=00:00:00    OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)    Command=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/.snakemake/tmp.1n_19yw1/snakejob.run_bclconvert_tile_shard.8.sh    WorkDir=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis    Comment=dyec0602bcl     StdErr=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0005_tiles0525-0654.8.err    StdIn=/dev/null    StdOut=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0005_tiles0525-0654.8.out    TresPerTask=cpu=192      
+JobId=25 JobName=run_bclconvert_tile_shard-run_bclconvert_L003_0002_tiles0132-0262    UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A    Priority=1 Nice=0 Account=(null) QOS=(null)    JobState=PENDING Reason=Priority Dependency=(null)    Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0    RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A    SubmitTime=2026-06-03T06:30:01 EligibleTime=2026-06-03T06:30:01    AccrueTime=2026-06-03T06:30:01    StartTime=2026-06-07T01:10:00 EndTime=2026-06-10T19:50:00 Deadline=N/A    SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T06:33:49 Scheduler=Backfill:*    Partition=i192bigmem AllocNode:Sid=ip-10-0-0-235:110979    ReqNodeList=(null) ExcNodeList=(null)    NodeList=    NumNodes=1 NumCPUs=192 NumTasks=1 CPUs/Task=192 ReqB:S:C:T=0:0:*:*    ReqTRES=cpu=192,mem=1200000M,node=1,billing=192    AllocTRES=(null)    Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*    MinCPUsNode=192 MinMemoryNode=1200000M MinTmpDiskNode=0    Features=(null) DelayBoot=00:00:00    OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)    Command=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/.snakemake/tmp.1n_19yw1/snakejob.run_bclconvert_tile_shard.5.sh    WorkDir=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis    Comment=dyec0602bcl     StdErr=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0002_tiles0132-0262.5.err    StdIn=/dev/null    StdOut=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0002_tiles0132-0262.5.out    TresPerTask=cpu=192      
+JobId=26 JobName=run_bclconvert_tile_shard-run_bclconvert_L003_0004_tiles0394-0524    UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A    Priority=1 Nice=0 Account=(null) QOS=(null)    JobState=PENDING Reason=Priority Dependency=(null)    Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0    RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A    SubmitTime=2026-06-03T06:30:01 EligibleTime=2026-06-03T06:30:01    AccrueTime=2026-06-03T06:30:01    StartTime=2026-06-07T01:10:00 EndTime=2026-06-10T19:50:00 Deadline=N/A    SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T06:33:49 Scheduler=Backfill:*    Partition=i192bigmem AllocNode:Sid=ip-10-0-0-235:110979    ReqNodeList=(null) ExcNodeList=(null)    NodeList=    NumNodes=1 NumCPUs=192 NumTasks=1 CPUs/Task=192 ReqB:S:C:T=0:0:*:*    ReqTRES=cpu=192,mem=1200000M,node=1,billing=192    AllocTRES=(null)    Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*    MinCPUsNode=192 MinMemoryNode=1200000M MinTmpDiskNode=0    Features=(null) DelayBoot=00:00:00    OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)    Command=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/.snakemake/tmp.1n_19yw1/snakejob.run_bclconvert_tile_shard.7.sh    WorkDir=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis    Comment=dyec0602bcl     StdErr=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0004_tiles0394-0524.7.err    StdIn=/dev/null    StdOut=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0004_tiles0394-0524.7.out    TresPerTask=cpu=192      
+JobId=27 JobName=run_bclconvert_tile_shard-run_bclconvert_L003_0006_tiles0655-0784    UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A    Priority=1 Nice=0 Account=(null) QOS=(null)    JobState=PENDING Reason=Priority Dependency=(null)    Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0    RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A    SubmitTime=2026-06-03T06:30:01 EligibleTime=2026-06-03T06:30:01    AccrueTime=2026-06-03T06:30:01    StartTime=2026-06-07T01:10:00 EndTime=2026-06-10T19:50:00 Deadline=N/A    SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T06:33:49 Scheduler=Backfill:*    Partition=i192bigmem AllocNode:Sid=ip-10-0-0-235:110979    ReqNodeList=(null) ExcNodeList=(null)    NodeList=    NumNodes=1 NumCPUs=192 NumTasks=1 CPUs/Task=192 ReqB:S:C:T=0:0:*:*    ReqTRES=cpu=192,mem=1200000M,node=1,billing=192    AllocTRES=(null)    Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*    MinCPUsNode=192 MinMemoryNode=1200000M MinTmpDiskNode=0    Features=(null) DelayBoot=00:00:00    OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)    Command=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/.snakemake/tmp.1n_19yw1/snakejob.run_bclconvert_tile_shard.9.sh    WorkDir=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis    Comment=dyec0602bcl     StdErr=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0006_tiles0655-0784.9.err    StdIn=/dev/null    StdOut=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0006_tiles0655-0784.9.out    TresPerTask=cpu=192      
+JobId=28 JobName=run_bclconvert_tile_shard-run_bclconvert_L003_0001_tiles0001-0131    UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A    Priority=1 Nice=0 Account=(null) QOS=(null)    JobState=PENDING Reason=Priority Dependency=(null)    Requeue=1 Restarts=0 BatchFlag=1 Reboot=0 ExitCode=0:0    RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A    SubmitTime=2026-06-03T06:30:01 EligibleTime=2026-06-03T06:30:01    AccrueTime=2026-06-03T06:30:01    StartTime=2026-06-07T01:10:00 EndTime=2026-06-10T19:50:00 Deadline=N/A    SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T06:33:49 Scheduler=Backfill:*    Partition=i192bigmem AllocNode:Sid=ip-10-0-0-235:110979    ReqNodeList=(null) ExcNodeList=(null)    NodeList=    NumNodes=1 NumCPUs=192 NumTasks=1 CPUs/Task=192 ReqB:S:C:T=0:0:*:*    ReqTRES=cpu=192,mem=1200000M,node=1,billing=192    AllocTRES=(null)    Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*    MinCPUsNode=192 MinMemoryNode=1200000M MinTmpDiskNode=0    Features=(null) DelayBoot=00:00:00    OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)    Command=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/.snakemake/tmp.1n_19yw1/snakejob.run_bclconvert_tile_shard.4.sh    WorkDir=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis    Comment=dyec0602bcl     StdErr=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0001_tiles0001-0131.4.err    StdIn=/dev/null    StdOut=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0001_tiles0001-0131.4.out    TresPerTask=cpu=192      
+
+== sinfo selected ==
+PARTITION|AVAIL|TIMELIMIT|NODES|STATE|NODELIST|AVAIL_FEATURES|GRES
+i192bigmem|up|infinite|1|alloc#|i192bigmem-dy-all-1|dynamic,all|(null)
+bcl2fq|up|infinite|4|idle~|bcl2fq-dy-nvme48-[1-4]|dynamic,nvme48|(null)
+bcl2fq|up|infinite|4|idle~|bcl2fq-dy-nvme64-[1-4]|dynamic,i4i.16xlarge,nvme64|(null)
+bcl2fq|up|infinite|4|idle~|bcl2fq-dy-nvme96-[1-4]|dynamic,nvme96|(null)
+bcl2fq|up|infinite|4|idle~|bcl2fq-dy-nvme128-[1-4]|dynamic,i4i.32xlarge,nvme128|(null)
+
+== tmux tail ==
+h docker://nfcore/bclconvert:4.0.3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/0006_til
+es0655-0784 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/normalized.SampleShee
+t.csv 3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_reports/L003/0006_ti
+les0655-0784/SampleSheet.csv false false false 1 24 4 64 32 false true 1000 '{"B
+arcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' __dayoa_no_f
+orce__ 192 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/run_bclconvert.L0
+03.0006_tiles0655-0784.log /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_f
+astqs/L003/0006_tiles0655-0784/Reports/fastq_list.csv /fsx/run_dir_mounts/202605
+14_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_a
+rgfix_20260603T0620Z/tile_fastqs/L003/0006_tiles0655-0784/Reports/Demultiplex_St
+ats.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_reports/L003/0006_ti
+les0655-0784/bclconvert.done s_3_2367+s_3_2368+s_3_2369+s_3_2370+s_3_2371+s_3_23
+72+s_3_2373+s_3_2374+s_3_2375+s_3_2376+s_3_2377+s_3_2378+s_3_2379+s_3_2380+s_3_2
+381+s_3_2382+s_3_2383+s_3_2384+s_3_2385+s_3_2386+s_3_2387+s_3_2388+s_3_2389+s_3_
+2390+s_3_2391+s_3_2392+s_3_2393+s_3_2394+s_3_2395+s_3_2396+s_3_2397+s_3_2398+s_3
+_2401+s_3_2402+s_3_2403+s_3_2404+s_3_2405+s_3_2406+s_3_2407+s_3_2408+s_3_2409+s_
+3_2410+s_3_2411+s_3_2412+s_3_2413+s_3_2414+s_3_2415+s_3_2416+s_3_2417+s_3_2418+s
+_3_2419+s_3_2420+s_3_2421+s_3_2422+s_3_2423+s_3_2424+s_3_2425+s_3_2426+s_3_2427+
+s_3_2428+s_3_2429+s_3_2430+s_3_2431+s_3_2432+s_3_2433+s_3_2434+s_3_2435+s_3_2436
++s_3_2437+s_3_2438+s_3_2439+s_3_2440+s_3_2441+s_3_2442+s_3_2443+s_3_2444+s_3_244
+5+s_3_2446+s_3_2447+s_3_2448+s_3_2449+s_3_2450+s_3_2451+s_3_2452+s_3_2453+s_3_24
+54+s_3_2455+s_3_2456+s_3_2457+s_3_2458+s_3_2459+s_3_2460+s_3_2461+s_3_2462+s_3_2
+463+s_3_2464+s_3_2465+s_3_2466+s_3_2467+s_3_2468+s_3_2469+s_3_2470+s_3_2471+s_3_
+2472+s_3_2473+s_3_2474+s_3_2475+s_3_2476+s_3_2477+s_3_2478+s_3_2479+s_3_2480+s_3
+_2481+s_3_2482+s_3_2483+s_3_2484+s_3_2485+s_3_2486+s_3_2487+s_3_2488+s_3_2489+s_
+3_2490+s_3_2491+s_3_2492+s_3_2493+s_3_2494+s_3_2495+s_3_2496+s_3_2497+s_3_2498 /
+dev/shm/dayoa_bclconvert 650000000000
+Submitted job 9 with external jobid '27'.
+
+[Wed Jun  3 06:30:01 2026]
+rule run_bclconvert_tile_shard:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/validated.ok, /fs
+x/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6sh
+ard_i192bigmem_devshm_argfix_20260603T0620Z/normalized.SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_reports/L003/000
+1_tiles0001-0131/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z
+/tile_fastqs/L003/0001_tiles0001-0131/Reports/fastq_list.csv, /fsx/run_dir_mount
+s/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_
+devshm_argfix_20260603T0620Z/tile_fastqs/L003/0001_tiles0001-0131/Reports/Demult
+iplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from
+_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_reports/L00
+3/0001_tiles0001-0131/SampleSheet.csv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/run_bclconvert.L003
+.0001_tiles0001-0131.log
+    jobid: 4
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/benchmarks/run_bcl
+convert.L003.0001_tiles0001-0131.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z
+/tile_reports/L003/0001_tiles0001-0131/bclconvert.done, /fsx/run_dir_mounts/2026
+0514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm
+_argfix_20260603T0620Z/tile_fastqs/L003/0001_tiles0001-0131/Reports/fastq_list.c
+sv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l
+003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/0001_tiles00
+01-0131/Reports/Demultiplex_Stats.csv; Input files updated by another job: /fsx/
+run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shar
+d_i192bigmem_devshm_argfix_20260603T0620Z/logs/validated.ok, /fsx/run_dir_mounts
+/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_d
+evshm_argfix_20260603T0620Z/normalized.SampleSheet.csv
+    wildcards: lane=L003, shard=0001_tiles0001-0131
+    threads: 192
+    resources: mem_mb=1200000, mem_mib=1144410, disk_mb=1000, disk_mib=954, tmpd
+ir=<TBD>, threads=192, time=5440, partition=i192bigmem, vcpu=192, distribution=b
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm/dayoa_bclconvert_tmp bash workflow/scripts/run_bclconvert_lane.s
+h docker://nfcore/bclconvert:4.0.3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_fastqs/L003/0001_til
+es0001-0131 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/normalized.SampleShee
+t.csv 3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_reports/L003/0001_ti
+les0001-0131/SampleSheet.csv false false false 1 24 4 64 32 false true 1000 '{"B
+arcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' __dayoa_no_f
+orce__ 192 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/run_bclconvert.L0
+03.0001_tiles0001-0131.log /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_f
+astqs/L003/0001_tiles0001-0131/Reports/fastq_list.csv /fsx/run_dir_mounts/202605
+14_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_a
+rgfix_20260603T0620Z/tile_fastqs/L003/0001_tiles0001-0131/Reports/Demultiplex_St
+ats.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tile_reports/L003/0001_ti
+les0001-0131/bclconvert.done s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_11
+06+s_3_1107+s_3_1108+s_3_1109+s_3_1110+s_3_1111+s_3_1112+s_3_1113+s_3_1114+s_3_1
+115+s_3_1116+s_3_1117+s_3_1118+s_3_1119+s_3_1120+s_3_1121+s_3_1122+s_3_1123+s_3_
+1124+s_3_1125+s_3_1126+s_3_1127+s_3_1128+s_3_1129+s_3_1130+s_3_1131+s_3_1132+s_3
+_1133+s_3_1134+s_3_1135+s_3_1136+s_3_1137+s_3_1138+s_3_1139+s_3_1140+s_3_1141+s_
+3_1142+s_3_1143+s_3_1144+s_3_1145+s_3_1146+s_3_1147+s_3_1148+s_3_1149+s_3_1150+s
+_3_1151+s_3_1152+s_3_1153+s_3_1154+s_3_1155+s_3_1156+s_3_1157+s_3_1158+s_3_1159+
+s_3_1160+s_3_1161+s_3_1162+s_3_1163+s_3_1164+s_3_1165+s_3_1166+s_3_1167+s_3_1168
++s_3_1169+s_3_1170+s_3_1171+s_3_1172+s_3_1173+s_3_1174+s_3_1175+s_3_1176+s_3_117
+7+s_3_1178+s_3_1179+s_3_1180+s_3_1181+s_3_1182+s_3_1183+s_3_1184+s_3_1185+s_3_11
+86+s_3_1187+s_3_1188+s_3_1189+s_3_1190+s_3_1191+s_3_1192+s_3_1193+s_3_1194+s_3_1
+195+s_3_1196+s_3_1197+s_3_1198+s_3_1201+s_3_1202+s_3_1203+s_3_1204+s_3_1205+s_3_
+1206+s_3_1207+s_3_1208+s_3_1209+s_3_1210+s_3_1211+s_3_1212+s_3_1213+s_3_1214+s_3
+_1215+s_3_1216+s_3_1217+s_3_1218+s_3_1219+s_3_1220+s_3_1221+s_3_1222+s_3_1223+s_
+3_1224+s_3_1225+s_3_1226+s_3_1227+s_3_1228+s_3_1229+s_3_1230+s_3_1231+s_3_1232+s
+_3_1233 /dev/shm/dayoa_bclconvert 650000000000
+Submitted job 4 with external jobid '28'.
+
+
+== processes ==
+ubuntu    118021  110979  0 06:29 pts/1    00:00:00 bash bin/day_run produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime --configfile config/bclconvert_l003_6shard_i192bigmem_devshm_argfix.yaml
+ubuntu    118202  118021  0 06:29 pts/1    00:00:00 bash bin/day_run produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime --configfile config/bclconvert_l003_6shard_i192bigmem_devshm_argfix.yaml
+ubuntu    118203  118202  2 06:29 pts/1    00:00:05 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime --configfile config/bclconvert_l003_6shard_i192bigmem_devshm_argfix.yaml
+ubuntu    118204  118202  0 06:29 pts/1    00:00:00 bash bin/day_run produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime --configfile config/bclconvert_l003_6shard_i192bigmem_devshm_argfix.yaml
+
+== dest counts ==
+fastq_count	0
+done_count	0
+fastq_list_count	0
+bench_count	1
+
+== bcl log grep ==
+
+== slurm log listing ==
+
+== shard bench list ==
+

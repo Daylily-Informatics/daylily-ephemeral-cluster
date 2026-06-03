@@ -1,0 +1,21 @@
+command_id=b359ad43-327d-42b5-9ff8-087453e53c25
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T06:28:05+00:00
+__NEW_SAMPLES__
+42 /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/samples.tsv
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+HG001-a	blood	research	unknown	na	false	false	blood	na	HG001-a	na	na	na
+HG001-b	blood	research	unknown	na	false	false	blood	na	HG001-b	na	na	na
+HG001-c	blood	research	unknown	na	false	false	blood	na	HG001-c	na	na	na
+HG002-a	blood	research	unknown	na	false	false	blood	na	HG002-a	na	na	na
+HG002-b	blood	research	unknown	na	false	false	blood	na	HG002-b	na	na	na
+HG002-c	blood	research	unknown	na	false	false	blood	na	HG002-c	na	na	na
+HG003-a	blood	research	unknown	na	false	false	blood	na	HG003-a	na	na	na
+HG003-b	blood	research	unknown	na	false	false	blood	na	HG003-b	na	na	na
+HG003-c	blood	research	unknown	na	false	false	blood	na	HG003-c	na	na	na
+HG004-a	blood	research	unknown	na	false	false	blood	na	HG004-a	na	na	na
+HG004-b	blood	research	unknown	na	false	false	blood	na	HG004-b	na	na	na
+__SQUEUE__
+             JOBID    PARTITION                                               NAME    STATE       TIME      NODES NODELIST(REASON)
+

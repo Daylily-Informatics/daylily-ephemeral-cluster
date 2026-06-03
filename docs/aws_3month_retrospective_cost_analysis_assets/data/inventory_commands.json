@@ -172,7 +172,7 @@
     "region": "us-west-2"
   },
   {
-    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/aquarium-dev-tailscale-sidecar",
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/aquarium-dev-network-overlay-sidecar",
     "region": "us-west-2"
   },
   {
@@ -192,11 +192,11 @@
     "region": "us-west-2"
   },
   {
-    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/terrarium-dev-tailscale-sidecar",
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/terrarium-dev-network-overlay-sidecar",
     "region": "us-west-2"
   },
   {
-    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/terrarium-prod-tailscale-sidecar",
+    "cmd": "aws ecr list-tags-for-resource --resource-arn arn:aws:ecr:us-west-2:108782052779:repository/terrarium-prod-network-overlay-sidecar",
     "region": "us-west-2"
   },
   {

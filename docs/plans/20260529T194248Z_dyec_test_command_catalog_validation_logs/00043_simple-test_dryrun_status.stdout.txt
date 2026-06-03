@@ -1,0 +1,8 @@
+{
+  "command": "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r5_simple-test_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r5_simple-test_dryrun",
+  "started_at": "2026-05-29T20:21:16Z"
+}

@@ -1,0 +1,43 @@
+DAY-EC activated.
+DAY-EC activated.
+time=2026-06-03T08:18:43Z
+squeue=57|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0001_tiles0001-0008|R|0:24|i192bigmem-dy-all-1;
+fastq_count=0
+done_count=0
+bytes=20456
+log_tail=threads: 192
+TMPDIR: /dev/shm/dayoa_bclconvert_tmp
+scratch_output_root: /dev/shm/dayoa_bclconvert
+scratch_available_bytes_min: 650000000000
+run_output_dir: /dev/shm/dayoa_bclconvert/dayoa_bclconvert_57/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z_tile_fastqs_L003_0001_tiles0001-0008/output
+final_output_dir: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008
+bcl_input_directory: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+output_directory: /dev/shm/dayoa_bclconvert/dayoa_bclconvert_57/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z_tile_fastqs_L003_0001_tiles0001-0008/output
+sample_sheet: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv
+bcl_only_lane: 3
+tile_regex: s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108
+sample_sheet_settings_json: {"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}
+sample_sheet_settings_by_lane_json: {}
+output_legacy_stats: true
+num_unknown_barcodes_reported: 1000
+192
+Filesystem                Size  Used Avail Use% Mounted on
+tmpfs                     1.2T     0  1.2T   0% /dev/shm
+10.0.1.213@tcp:/xtlzxb4v  6.6T  404G  6.2T   7% /fsx
+tmpfs                     1.2T     0  1.2T   0% /dev/shm
+10.0.1.213@tcp:/xtlzxb4v  6.6T  404G  6.2T   7% /fsx
+/usr/bin/singularity
+singularity_bind_args: --bind /fsx:/fsx --bind /dev/shm/dayoa_bclconvert:/dev/shm/dayoa_bclconvert
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc. 
+bcl_num_parallel_tiles: 24
+bcl_num_conversion_threads: 4
+bcl_num_compression_threads: 64
+bcl_num_decompression_threads: 32
+bcl_cpu_heavy_threads: 192
+bcl-convert command: singularity exec --bind /fsx:/fsx --bind /dev/shm/dayoa_bclconvert:/dev/shm/dayoa_bclconvert docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 --output-directory /dev/shm/dayoa_bclconvert/dayoa_bclconvert_57/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z_tile_fastqs_L003_0001_tiles0001-0008/output --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 24 --bcl-num-conversion-threads 4 --bcl-num-compression-threads 64 --bcl-num-decompression-threads 32 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108
+INFO:    Using cached SIF image
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 2 because RunInfo.xml file lists no tiles for it
+tmux_marker=

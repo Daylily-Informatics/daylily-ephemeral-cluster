@@ -1,0 +1,4 @@
+write_patch_command_id=a0a82acf-ee59-400b-b24e-bbb4685a0697
+DAY-EC activated.
+DAY-EC activated.
+wrote /home/ubuntu/daylily-runs/bcl_l003_bcl2fq_scratch_20260603T033830Z/dayoa_bcl_scratch_support.patch bytes=19538

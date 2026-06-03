@@ -73,7 +73,7 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --dry-run
 ```
 
-The catalog pin for DayOA commands is `2.0.8`.
+The catalog pin for DayOA commands is `2.0.44`.
 
 ## Attach Run Folders
 
@@ -88,7 +88,8 @@ dyec --json mounts create "s3://sequencer-run-bucket/runs/RUN123/" \
   --read-only \
   --batch-import-metadata-on-create \
   --auto-import NEW,CHANGED \
-  --wait
+  --wait \
+  --timeout-seconds 3600
 ```
 
 Rules:
@@ -117,12 +118,21 @@ dyec --json mounts delete \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --mount-id RUN123 \
-  --wait
+  --wait \
+  --timeout-seconds 3600
 ```
 
 Deletion detaches the DRA with `DeleteDataInFileSystem=False`; it does not delete S3 objects.
 
 ## Launch Workflows
+
+DYEC launch mechanics are manager-agnostic at the FSx boundary: the repository
+checkout and durable outputs must stay under
+`/fsx/analysis_results/<executing_entity>/<analysis_id>/`, then `dyec export`
+exports that whole analysis directory. DayOA catalog rows are Snakemake 7
+workflows; Nextflow, Snakemake 8, and future Cromwell/WDL repositories need
+manager-native commands and output paths. See
+[`pipeline_manager_launches.md`](pipeline_manager_launches.md).
 
 Sample-manifest workflow:
 
@@ -134,7 +144,9 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.8
+  --git-tag 2.0.44 \
+  --genome hg38_broad \
+  --target produce_alignstats
 ```
 
 Run-folder workflow:
@@ -147,11 +159,24 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.8 \
-  --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
+  --git-tag 2.0.44 \
+  --genome hg38_broad \
+  --jobs 5 \
+  --target produce_illumina_run_qc \
+  --snakemake-extra "--config run_context_file=config/runs.tsv"
 ```
 
 The launcher creates `/home/ubuntu/daylily-runs/<session>/` with `launch.sh`, `tmux.log`, and `status.json`.
+
+For repo-native work that is not a catalog workflow command, clone the pinned repository on the headnode and then follow that repository's documented launch path:
+
+```bash
+day-clone --list
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 2.0.44 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 2.0.44
+```
+
+`-t` is the short form of `--git-tag`; `-d` is required and is the short form of `--destination`. The clone target is `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`.
 
 ## Monitor
 
@@ -211,6 +236,12 @@ DYEC then loads the exported DayOA evidence manifest, maps selected relative
 paths to S3 URIs through `fsx_export.yaml`, posts to Dewey, and writes
 `dewey_registration_receipt.json`. Missing policy, manifest, Dewey URL, token,
 or invalid Dewey response is a hard failure.
+
+Use the command catalog's `test_data_profile.source_mount_mode` before launch:
+`default_mounted` data should already be visible through the cluster's default
+reference/control-data DRAs; `run_dra_required` data must have a `runs.tsv`
+`SOURCE_S3_URI` and `MOUNT_ID` and a verified `/fsx/run_dir_mounts/<MOUNT_ID>/`
+projection; `none` commands should not receive sample or run-source inputs.
 
 ## Delete
 

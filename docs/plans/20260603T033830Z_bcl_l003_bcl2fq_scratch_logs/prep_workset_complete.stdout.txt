@@ -1,0 +1,91 @@
+command_id=53d5004a-f736-43cc-b3fc-3e009c038aaf
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T03:45:15+00:00
+wrote config/samples.tsv with 41 samples
+wrote config/bclconvert_l003_scratch.yaml
+
+__REPO_STATUS__
+ M config/day/day_env_installer.sh
+ M config/day_profiles/local/templates/rule_config.yaml
+ M config/day_profiles/slurm/templates/rule_config.yaml
+ M tests/test_bclconvert_bootstrap.sh
+ M tests/test_bclconvert_multiqc.py
+ M tests/test_shell_wrapper_contracts.py
+ M workflow/rules/bclconvert.smk
+ M workflow/scripts/run_bclconvert_lane.sh
+?? config/bclconvert_l003_scratch.yaml
+
+__CONFIG__
+bootstrap_bclconvert: true
+bclconvert:
+  run_id: fasts_from_bclconvert_l003_scratch_test
+  run_dir: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+  sample_sheet: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+  output_root: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+  partition: bcl2fq
+  constraint: ""
+  threads: 48
+  mem_mb: 300000
+  tmpdir: /scratch/dayoa_bclconvert_tmp
+  scratch_output_root: /scratch/dayoa_bclconvert
+  parallel_tiles: 8
+  conversion_threads: 2
+  compression_threads: 24
+  decompression_threads: 8
+  tile_shard_level: lane
+  tile_shard_lanes: "3"
+  tile_shard_threads: 48
+  tile_shard_mem_mb: 300000
+  tile_parallel_tiles: 8
+  tile_conversion_threads: 2
+  tile_compression_threads: 24
+  tile_decompression_threads: 8
+  merge_lane_fastqs: false
+  merge_tile_fastqs: false
+  shared_thread_odirect_output: false
+  fastq_gzip_compression_level: 1
+  output_legacy_stats: true
+  num_unknown_barcodes_reported: 1000
+  strict_mode: false
+  first_tile_only: false
+  sampleproject_subdirectories: false
+  keep_undetermined_fastqs: true
+
+__SAMPLES__
+42 config/samples.tsv
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+HG001-a	blood	research	unknown	na	false	false	blood	na	HG001-a	na	na	na
+HG001-b	blood	research	unknown	na	false	false	blood	na	HG001-b	na	na	na
+HG001-c	blood	research	unknown	na	false	false	blood	na	HG001-c	na	na	na
+HG002-a	blood	research	unknown	na	false	false	blood	na	HG002-a	na	na	na
+
+__DEST__
+drwxr-xr-x 2 ubuntu ubuntu 33792 Jun  3 03:43 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_scratch_test
+dest_file_count=0
+
+__CONTRACT_PROBES__
+config/day_profiles/slurm/templates/rule_config.yaml:132:    scratch_output_root: ""
+config/day_profiles/slurm/templates/rule_config.yaml:138:    tile_shard_lanes: ""
+workflow/scripts/run_bclconvert_lane.sh:30:scratch_output_root="${27:-}"
+workflow/scripts/run_bclconvert_lane.sh:48:if [[ -n "$scratch_output_root" ]]; then
+workflow/scripts/run_bclconvert_lane.sh:49:  if [[ "$scratch_output_root" != /* ]]; then
+workflow/scripts/run_bclconvert_lane.sh:50:    echo "bclconvert.scratch_output_root must be an absolute path: $scratch_output_root" >> "$log_path"
+workflow/scripts/run_bclconvert_lane.sh:54:  scratch_work_dir="${scratch_output_root%/}/dayoa_bclconvert_${SLURM_JOB_ID:-manual_$$}/${safe_output_id}"
+workflow/scripts/run_bclconvert_lane.sh:77:echo "scratch_output_root: ${scratch_output_root:-<none>}" >> "$log_path"
+workflow/scripts/run_bclconvert_lane.sh:93:if [[ -n "$scratch_output_root" ]]; then
+workflow/scripts/run_bclconvert_lane.sh:94:  singularity_bind_args+=(--bind "$scratch_output_root:$scratch_output_root")
+workflow/rules/bclconvert.smk:151:BCL_CONSTRAINT = str(BCLCFG.get("constraint", "") or "")
+workflow/rules/bclconvert.smk:153:BCL_SCRATCH_OUTPUT_ROOT = str(BCLCFG.get("scratch_output_root", "") or "").rstrip("/")
+workflow/rules/bclconvert.smk:263:BCL_TILE_SHARD_LANES_RAW = BCLCFG.get("tile_shard_lanes", "")
+workflow/rules/bclconvert.smk:311:        raise WorkflowError("bclconvert.tile_shard_lanes includes absent lanes: " + ",".join(unknown))
+workflow/rules/bclconvert.smk:517:        constraint=BCL_CONSTRAINT,
+workflow/rules/bclconvert.smk:528:        scratch_output_root=BCL_SCRATCH_OUTPUT_ROOT,
+workflow/rules/bclconvert.smk:560:        "{output.demux_stats:q} {output.done:q} \"\" {params.scratch_output_root:q}"
+workflow/rules/bclconvert.smk:579:        constraint=BCL_CONSTRAINT,
+workflow/rules/bclconvert.smk:589:        scratch_output_root=BCL_SCRATCH_OUTPUT_ROOT,
+workflow/rules/bclconvert.smk:622:        "{output.demux_stats:q} {output.done:q} {params.tile_regex:q} {params.scratch_output_root:q}"
+workflow/rules/bclconvert.smk:654:        constraint=BCL_CONSTRAINT,
+workflow/rules/bclconvert.smk:704:            constraint=BCL_CONSTRAINT,
+workflow/rules/bclconvert.smk:744:            constraint=BCL_CONSTRAINT,
+workflow/rules/bclconvert.smk:902:        constraint=BCL_CONSTRAINT,

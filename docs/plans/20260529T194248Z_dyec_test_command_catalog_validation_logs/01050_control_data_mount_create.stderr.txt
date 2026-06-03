@@ -1,0 +1,2 @@
+✗ Unsupported platform 'CONTROL_DATA'; expected one of ILMN, ONT, OTHER, PACBIO,
+STAGING, ULTIMA.

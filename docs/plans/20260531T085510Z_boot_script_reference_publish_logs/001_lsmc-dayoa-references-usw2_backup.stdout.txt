@@ -1,0 +1,9 @@
+{
+    "ServerSideEncryption": "AES256",
+    "CopyObjectResult": {
+        "ETag": "\"093556f503c95b6f1e9e4ef4aa4e372c\"",
+        "LastModified": "2026-05-31T08:56:22.000Z",
+        "ChecksumType": "FULL_OBJECT",
+        "ChecksumCRC32": "CDP+ZA=="
+    }
+}

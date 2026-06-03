@@ -1,0 +1,21 @@
+__LOG_FILE__ /fsx/analysis_results/ubuntu/bcl25b_l003_shard032_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0001_tiles0001-0025.log
+bcl-convert Version 00.000.000.4.0.3
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_l003_shard032_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0025 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0025/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108+s_3_1109+s_3_1110+s_3_1111+s_3_1112+s_3_1113+s_3_1114+s_3_1115+s_3_1116+s_3_1117+s_3_1118+s_3_1119+s_3_1120+s_3_1121+s_3_1122+s_3_1123+s_3_1124+s_3_1125 -f
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 2 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 4 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 5 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 6 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 7 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 8 because RunInfo.xml file lists no tiles for it
+  SoftwareVersion = 4.0.3
+WARNING: shared-thread-linux-native-asio output could have low performance or hang if output directory is on a distributed file system
+bcl-convert Version 00.000.000.4.0.3
+__LOG_TAIL__ /fsx/analysis_results/ubuntu/bcl25b_l003_shard032_20260602T000733Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0001_tiles0001-0025.log
+prepared_lane_samplesheet lane=3 settings={"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"} out=results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0025/SampleSheet.csv
+run_bclconvert_lane L003 started: 2026-06-02T06:49:00+00:00
+host: i192mem-dy-all-3
+threads: 48
+TMPDIR: /dev/shm
+bcl_input_directory: /fsx/analysis_results/ubuntu/bcl25b_l003_shard032_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclcon--output truncated--

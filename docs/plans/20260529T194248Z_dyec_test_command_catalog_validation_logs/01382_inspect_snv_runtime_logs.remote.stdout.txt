@@ -1,0 +1,189 @@
+DAY-EC activated.
+DAY-EC activated.
+## ccv20260529r6_ultima_snv_alignstats
+1780089097.0000000000 55 /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.merge.sort.gatherered.log
+1780089089.0000000000 0 /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.cocncat.fofn.log
+1780089061.0000000000 11319 /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log
+--- /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.merge.sort.gatherered.log
+--- tail /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.snv.merge.sort.gatherered.log
+Checking the headers and starting positions of 1 files
+--- /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log
+4:cmdline: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/libexec/driver -t 190 -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -i results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.cram --interval chr1,chr2,chr3,chr4,chr5,chr6,chr7,chr8,chr9,chr10,chr11,chr12,chr13,chr14,chr15,chr16,chr17,chr18,chr19,chr20,chr21,chr22,chrX,chrY --read_filter UltimaReadFilter --algo DNAscope -d /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonUltima1.1.bundle/dnascope.model --pcr_indel_model none --emit_mode variant results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.gvcf
+5:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+26:sw version: sentieon-genomics-202503.02
+27:os version: Linux 6.8.0-1029-aws
+36:license: sentieon:DNAscope=190 ultima:dnamodel=1 ultima:preprocess=1
+66:done: 1 calls 0.006 user 0.002 sys 0.012 real
+80:cmdline: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/libexec/driver -t 190 -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --algo DNAModelApply --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonUltima1.1.bundle/dnascope.model -v results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.gvcf results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/vcfs/1-24/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.vcf
+81:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+102:sw version: sentieon-genomics-202503.02
+103:os version: Linux 6.8.0-1029-aws
+112:license: sentieon:DNAscope=190 ultima:dnamodel=1
+117:done: 1 calls 0.004 user 0.003 sys 0.011 real
+--- tail /fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdug/log/vcfs/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA.ug.na.sentdug.1-24.snv.log
+os version: Linux 6.8.0-1029-aws
+cpu vendor: GenuineIntel
+ signature: 000806f8
+  features: bfebfbff 7ffefbff
+  extended: f3bfb7ef fb417ffe
+  amd bits: 2c100800 00000121
+     brand: Intel(R) Xeon(R) Platinum 8488C
+threads: 190 max 192
+algo: DNAscope
+license: sentieon:DNAscope=190 ultima:dnamodel=1 ultima:preprocess=1
+input file size: 8356213863
+output file size: 1337515538
+contig: 24 intervals 3088269832 bases
+"assemble": 13761673 calls 5561.123 user 694.406 sys 7174.722 real
+"assemble_addRead": 13761673 calls 73.730 user 36.381 sys 146.655 real
+"assemble_buildGraph": 13761673 calls 1219.215 user 142.340 sys 1738.330 real
+"assemble_computecigar": 13761673 calls 1704.904 user 68.079 sys 1823.898 real
+"assemble_convert_kmergarph": 13761673 calls 127.166 user 40.301 sys 202.191 real
+"assemble_kg_build_clear": 13761673 calls 9.792 user 37.764 sys 54.244 real
+"assemble_kg_build_prepare": 13761673 calls 290.984 user 42.054 sys 443.515 real
+"assemble_kg_build_threading": 13761673 calls 1210.818 user 71.491 sys 1642.765 real
+"assemble_kg_op1": 13761673 calls 302.188 user 43.263 sys 421.409 real
+"assemble_kp_fixup": 250221775 calls 3061.335 user 1090.303 sys 4271.977 real
+"estimateParameter": 13761673 calls 2.063 user 32.221 sys 45.022 real
+"findHaplotype": 13761673 calls 1802.240 user 145.560 sys 2009.286 real
+"kmerpath_add_lower_path": 250221775 calls 364.260 user 1018.456 sys 1414.249 real
+"kmerpath_connect": 250221775 calls 1085.103 user 888.930 sys 2042.049 real
+"kmerpath_merge": 250221775 calls 343.875 user 1082.199 sys 1396.169 real
+"selectHaplotype": 10421 calls 69.738 user 0.543 sys 70.383 real
+CramRef::get: 9064 calls 35.195 user 12.574 sys 75.248 real
+active: 3091383 calls 40.348 user 10.894 sys 97.451 real
+advance: 3088281 calls 915.525 user 247.643 sys 1826.811 real
+annotate: 4633473 calls 221.442 user 10.780 sys 234.233 real
+assemble_region: 13761673 calls 7492.976 user 1085.121 sys 9653.530 real
+build_variants: 6589054 calls 18.588 user 12.946 sys 32.927 real
+calc: 3091383 calls 49.035 user 10.375 sys 120.867 real
+calc_region: 6589054 calls 7546.730 user 349.394 sys 8147.899 real
+call_region: 6589045 calls 332.272 user 36.410 sys 372.327 real
+clip_region: 20350727 calls 48.057 user 63.625 sys 143.308 real
+done: 1 calls 0.006 user 0.002 sys 0.012 real
+execute: 1 calls 0.001 user 0.001 sys 187.779 real
+fetch: 3091383 calls 24.923 user 8.283 sys 52.093 real
+fetch_db: 6589054 calls 400.124 user 60.830 sys 523.133 real
+fetch_ref: 16853056 calls 37.696 user 57.649 sys 154.850 real
+fetch_region: 13761673 calls 33.283 user 47.994 sys 118.925 real
+idle: 131684 calls 29.564 user 1.464 sys 23459.901 real
+init: 1 calls 0.037 user 0.011 sys 62.118 real
+pairhmm: 6610305 calls 7113.698 user 53.872 sys 7214.208 real
+realign: 6596077 calls 1027.794 user 16.402 sys 1053.011 real
+region: 3091383 calls 18023.043 user 2202.793 sys 19592.293 real
+tracker: 3091383 calls 933.973 user 87.441 sys 1317.903 real
+trim_region: 13761673 calls 28.536 user 39.846 sys 75.505 real
+overall: 16171622400 mem 20984.904 user 2704.977 sys 258.035 real
+cmdline: /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/libexec/driver -t 190 -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --algo DNAModelApply --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonUltima1.1.bundle/dnascope.model -v results/day/hg38_broad/TVBUG5X-HG003-5x-1-D0-PF-UG-ULTIMA/align/
+This software is licensed to johnm@lsmc.com by Sentieon Inc.
+progress 5% @chr1:187000001, elapsed 0.8s, est remaining 14.5s, peak mem 959MB, user 63.9s, sys 1.3s, output queue size 159
+progress 10% @chr2:46000001, elapsed 1.2s, est remaining 11.0s, peak mem 1124MB, user 152.4s, sys 2.3s, output queue size 320
+progress 15% @chr3:93000001, elapsed 1.6s, est remaining 9.3s, peak mem 1187MB, user 234.7s, sys 2.8s, output queue size 362
+progress 20% @chr3:139000001, elapsed 2.0s, est remaining 8.2s, peak mem 1245MB, user 315.0s, sys 3.2s, output queue size 523
+progress 25% @chr4:63000001, elapsed 2.5s, est remaining 7.6s, peak mem 1338MB, user 397.6s, sys 3.6s, output queue size 683
+progress 30% @chr5:140000001, elapsed 3.0s, est remaining 7.0s, peak mem 1371MB, user 487.4s, sys 4.0s, output queue size 387
+progress 35% @chr6:22000001, elapsed 3.5s, est remaining 6.5s, peak mem 1384MB, user 573.4s, sys 4.3s, output queue size 389
+progress 40% @chr7:96000001, elapsed 4.0s, est remaining 6.0s, peak mem 1469MB, user 663.5s, sys 4.7s, output queue size 550
+progress 45% @chr8:82000001, elapsed 4.4s, est remaining 5.4s, peak mem 1469MB, user 744.8s, sys 5.0s, output queue size 713
+progress 50% @chr8:138000001, elapsed 4.9s, est remaining 4.9s, peak mem 1495MB, user 837.1s, sys 5.4s, output queue size 874
+progress 55% @chr10:26000001, elapsed 5.4s, est remaining 4.4s, peak mem 1533MB, user 932.6s, sys 5.7s, output queue size 1035
+progress 60% @chr11:25000001, elapsed 5.8s, est remaining 3.9s, peak mem 1533MB, user 1018.8s, sys 6.1s, output queue size 1197
+progress 65% @chr13:39000001, elapsed 6.3s, est remaining 3.4s, peak mem 1533MB, user 1100.3s, sys 6.3s, output queue size 1359
+progress 70% @chr16:39000001, elapsed 6.7s, est remaining 2.9s, peak mem 1534MB, user 1179.7s, sys 6.5s, output queue size 1521
+progress 75% @chr15:92000001, elapsed 7.2s, est remaining 2.4s, peak mem 1554MB, user 1270.9s, sys 6.8s, output queue size 1683
+progress 80% @chr17:79000001, elapsed 7.7s, est remaining 1.9s, peak mem 1586MB, user 1369.3s, sys 7.2s, output queue size 864
+progress 85% @chr20:24000001, elapsed 8.2s, est remaining 1.5s, peak mem 1673MB, user 1461.9s, sys 7.6s, output queue size 1026
+progress 90% @chrY:47000001, elapsed 8.5s, est remaining 0.9s, peak mem 1673MB, user 1518.5s, sys 8.0s, output queue size 1187
+progress 95% @chr6_GL000256v2_alt:1000001, elapsed 8.5s, est remaining 0.4s, peak mem 1673MB, user 1533.9s, sys 9.4s, output queue size 2418
+progress 100% @chr20:29000001, elapsed 9.8s, est remaining 0.0s, peak mem 1673MB, user 1601.0s, sys 11.1s, output queue size 3741
+sw version: sentieon-genomics-202503.02
+os version: Linux 6.8.0-1029-aws
+cpu vendor: GenuineIntel
+ signature: 000806f8
+  features: bfebfbff 7ffefbff
+  extended: f3bfb7ef fb417ffe
+  amd bits: 2c100800 00000121
+     brand: Intel(R) Xeon(R) Platinum 8488C
+threads: 190 max 192
+algo: DNAModelApply
+license: sentieon:DNAscope=190 ultima:dnamodel=1
+reads: 0
+contig: 3367 intervals 3217346917 bases
+advance: 3219322 calls 0.234 user 1.652 sys 1.906 real
+collect_data: 2962 calls 395.504 user 2.336 sys 398.252 real
+done: 1 calls 0.004 user 0.003 sys 0.011 real
+encode_data: 2962 calls 6.035 user 0.911 sys 6.986 real
+execute: 1 calls 0.001 user 0.000 sys 9.986 real
+fetch: 6494 calls 1.891 user 1.432 sys 21.322 real
+idle: 941 calls 0.056 user 0.012 sys 791.372 real
+init: 1 calls 1.286 user 0.411 sys 1.780 real
+predict: 2962 calls 967.018 user 0.489 sys 968.327 real
+write_vcf: 2960 calls 227.920 user 1.663 sys 229.786 real
+overall: 1754558464 mem 1602.717 user 15.820 sys 12.838 real
+Elapsed-Time-min:	m7i.metal-48xl	4
+## ccv20260529r6_ont_snv_alignstats
+1780090698.0000000000 62165 /fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.snv.log
+--- /fsx/analysis_results/ubuntu/ccv20260529r6_ont_snv_alignstats/daylily-omics-analysis/results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/na/snv/sentdont/log/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.na.sentdont.snv.log
+4:sentieon-cli dnascope-longread starting: model=/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle tech=ONT
+5:sentieon-cli dnascope-longread retain_tmpdir enabled; TMPDIR=/dev/shm/sentdont_tmp_20260529212514_50374
+6:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --input results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.cram --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 191 --interval /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_diploid_male.bed --interval_padding 0 --algo DNAscope --dbsnp /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle/diploid_model /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_tmp.vcf.gz
+7:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+28:sw version: sentieon-genomics-202503.02
+29:os version: Linux 6.8.0-1029-aws
+38:license: sentieon:DNAscope=191 ont:dnamodel=1
+68:done: 1 calls 0.110 user 0.005 sys 0.116 real
+82:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --input results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.cram --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 191 --interval /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_diploid_male.bed --interval_padding 0 --algo LongReadSV --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle/longreadsv.model /dev/shm/sentdont_tmp_20260529212514_50374/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.ont.sentdont.sv.vcf.gz
+83:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+116:sw version: sentieon-genomics-202503.02
+117:os version: Linux 6.8.0-1029-aws
+126:license: sentieon:LongReadSV=191 ont:svmodel=1
+152:done: 1 calls 1.544 user 0.089 sys 19.896 real
+160:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 191 --interval_padding 0 --algo DNAModelApply --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle/diploid_model --vcf /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_tmp.vcf.gz /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid.vcf.gz
+161:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+182:sw version: sentieon-genomics-202503.02
+183:os version: Linux 6.8.0-1029-aws
+192:license: sentieon:DNAscope=191 ont:dnamodel=1
+197:done: 1 calls 0.085 user 0.001 sys 0.086 real
+206:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --input results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.cram --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 191 --interval /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_diploid_male.bed --interval_padding 0 --algo VariantPhaser --vcf /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid.vcf.gz --out_bed /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_phased.bed --out_ext /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_phased.ext.vcf.gz --max_depth 1000 /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_phased.vcf.gz
+207:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+228:sw version: sentieon-genomics-202503.02
+229:os version: Linux 6.8.0-1029-aws
+238:license: sentieon:VariantPhaser=191
+249:done: 1 calls 0.147 user 0.008 sys 0.156 real
+258:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/util vcfconvert - /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_phased_phased.vcf.gz
+259:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+260:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --input results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.cram --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 191 --interval /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_phased.bed --interval_padding 0 --read_filter PhasedReadFilter,phased_vcf=/dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_phased.ext.vcf.gz,phase_select=tag --algo RepeatModel --phased --min_map_qual 1 --min_group_count 10000 --read_flag_mask drop=supplementary --repeat_extension 5 --max_repeat_unit_size 2 --min_repeat_count 6 /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_repeat.model
+261:version: sentieon-genomics-202503.02
+262:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+266:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/util vcfconvert - /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_phased_unphased.vcf.gz
+267:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+268:version: sentieon-genomics-202503.02
+286:sw version: sentieon-genomics-202503.02
+287:os version: Linux 6.8.0-1029-aws
+296:license: sentieon:DNAscope=191
+301:done: 1 calls 0.775 user 0.044 sys 0.820 real
+310:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --input results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.cram --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 191 --interval /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_phased.bed --interval_padding 0 --read_filter PhasedReadFilter,phased_vcf=/dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_phased.ext.vcf.gz,phase_select=1 --algo DNAscopeHP --dbsnp /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle/haploid_hp_model --pcr_indel_model /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_repeat.model /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_hap1_tmp.vcf.gz
+311:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+332:sw version: sentieon-genomics-202503.02
+333:os version: Linux 6.8.0-1029-aws
+342:license: sentieon:DNAscope=191 ont:dnamodel=1
+350:done: 1 calls 0.068 user 0.005 sys 0.073 real
+359:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --input results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.cram --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 191 --interval /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_phased.bed --interval_padding 0 --read_filter PhasedReadFilter,phased_vcf=/dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_phased.ext.vcf.gz,phase_select=2 --algo DNAscopeHP --dbsnp /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle/haploid_hp_model --pcr_indel_model /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_repeat.model /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_hap2_tmp.vcf.gz
+360:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+381:sw version: sentieon-genomics-202503.02
+382:os version: Linux 6.8.0-1029-aws
+391:license: sentieon:DNAscope=191 ont:dnamodel=1
+399:done: 1 calls 0.068 user 0.003 sys 0.071 real
+408:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --input results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.cram --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 191 --interval /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_unphased.bed --interval_padding 0 --algo DNAscopeHP --dbsnp /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle/diploid_hp_model --pcr_indel_model /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_repeat.model /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_diploid_phased_unphased_hp.vcf.gz
+409:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+430:sw version: sentieon-genomics-202503.02
+431:os version: Linux 6.8.0-1029-aws
+440:license: sentieon:DNAscope=191 ont:dnamodel=1
+448:done: 1 calls 0.081 user 0.004 sys 0.086 real
+457:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --input results/day/hg38_broad/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION/align/ont/TVBONT5X-HG003-5x-1-D0-PF-ONT-PROMETHION.cram --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 191 --interval /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/hg38_haploid_male.bed --interval_padding 0 --algo DNAscope --dbsnp /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle/haploid_model /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/haploid.vcf.gz --algo DNAscopeHP --dbsnp /fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle/haploid_hp_model --pcr_indel_model /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_repeat.model /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/haploid_hp.vcf.gz
+458:This software is licensed to johnm@lsmc.com by Sentieon Inc.
+479:sw version: sentieon-genomics-202503.02
+480:os version: Linux 6.8.0-1029-aws
+489:license: sentieon:DNAscope=191 ont:dnamodel=1
+519:done: 1 calls 0.014 user 0.000 sys 0.017 real
+534:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver --reference /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta --thread_count 191 --interval_padding 0 --algo DNAModelApply --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/DNAscopeONT2.2.bundle/DNAscopeONT2.2.bundle/haploid_model --vcf /dev/shm/sentdont_tmp_20260529212514_50374/tmpsdhgtwz0/out_hap2_patch.vcf.gz /dev/shm/sent--output truncated--

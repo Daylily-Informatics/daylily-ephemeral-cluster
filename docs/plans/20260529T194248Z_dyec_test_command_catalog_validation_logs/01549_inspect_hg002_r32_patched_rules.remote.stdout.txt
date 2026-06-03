@@ -1,0 +1,325 @@
+DAY-EC activated.
+DAY-EC activated.
+## go_left.smk
+     1	# ###### GOLEFT
+     2	#
+     3	# coverage metrics calculation tools.
+     4	# goleft
+     5	# github: https://github.com/brentp/goleft
+     6	# paper:  https://academic.oup.com/gigascience/article/6/11/gix090/4160383
+     7
+     8
+     9
+    10	rule goleft:
+    11	    input:
+    12	        cram=MDIR + "{sample}/align/{alnr}/{ddup}/{sample}.{alnr}.{ddup}.cram",
+    13	        crai=MDIR + "{sample}/align/{alnr}/{ddup}/{sample}.{alnr}.{ddup}.cram.crai",
+    14	    output:
+    15	        done=touch(MDIR + "{sample}/align/{alnr}/{ddup}/alignqc/goleft.done"),
+    16	        donetwo=touch(MDIR + "{sample}/align/{alnr}/{ddup}/alignqc/goleft/golefttwo.done"),
+    17	    params:
+    18	        cluster_sample=ret_sample,
+    19	        sexchrms="",
+    20	        huref=config["supporting_files"]["files"]["huref"]["fasta"]["name"],
+    21	    benchmark:
+    22	        MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.goleft.bench.tsv"
+    23	    resources:
+    24	        vcpu=config["go_left"]["threads"],
+    25	        partition=config["go_left"]["partition"],
+    26	    log:
+    27	        MDIR + "{sample}/align/{alnr}/{ddup}/alignqc/goleft/logs/goleft.log",
+    28	    threads: config["go_left"]["threads"]
+    29	    conda:
+    30	        config["go_left"]["env_yaml"]
+    31	    shell:
+    32	        """
+    33	        #set +euo pipefail;
+    34
+    35	        rm -rf $(dirname {output.donetwo} ) || echo rmGOLfailed ;
+    36	        mkdir -p $(dirname {output.donetwo} )/logs ;
+    37
+    38	        export gl=$(dirname {output.donetwo} ) ;
+    39	        export REF_PATH={params.huref};
+    40	        goleft indexcov --directory $gl --fai {params.huref}.fai {input.crai} >> {log} 2>&1;
+    41
+    42	        touch {output.done}; touch {output.donetwo};
+    43
+    44	        """
+## alignstats mosdepth references
+workflow/rules/multiqc_final_wgs.smk:290:            + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.summary.txt",
+workflow/rules/mosdepth.smk:9:rule mosdepth:
+workflow/rules/mosdepth.smk:15:        + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.summary.txt",
+workflow/rules/mosdepth.smk:16:        global_dist=MDIR
+workflow/rules/mosdepth.smk:17:        + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.global.dist.txt",
+workflow/rules/mosdepth.smk:18:        region_dist=MDIR
+workflow/rules/mosdepth.smk:19:        + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.region.dist.txt",
+workflow/rules/mosdepth.smk:44:        rm -f {log.a:q} {output.summary:q} {output.global_dist:q} {output.region_dist:q}
+workflow/rules/mosdepth.smk:45:        mosdepth --threads {threads} --by {params.core_bed:q} --use-median -n --fast-mode --mapq {params.mapq} -f {params.huref:q} -T {params.T:q} {log.b:q} {input.cram:q} > {log.a:q} 2>&1
+workflow/rules/mosdepth.smk:47:        test -s {output.summary:q} || (printf 'ERROR: mosdepth summary output is missing or empty: %s\n' {output.summary:q} | tee -a {log.a:q} >&2; exit 1)
+workflow/rules/mosdepth.smk:48:        test -s {output.global_dist:q} || (printf 'ERROR: mosdepth global_dist output is missing or empty: %s\n' {output.global_dist:q} | tee -a {log.a:q} >&2; exit 1)
+workflow/rules/mosdepth.smk:49:        test -s {output.region_dist:q} || (printf 'ERROR: mosdepth region_dist output is missing or empty: %s\n' {output.region_dist:q} | tee -a {log.a:q} >&2; exit 1)
+workflow/rules/mosdepth.smk:58:        + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.summary.txt", sample=SSAMPS, alnr=QC_CRAM_ALIGNERS, ddup=qc_alignment_dedupers()),
+workflow/rules/mosdepth.smk:60:        + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.global.dist.txt", sample=SSAMPS, alnr=QC_CRAM_ALIGNERS, ddup=qc_alignment_dedupers()),
+workflow/rules/mosdepth.smk:62:        + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.region.dist.txt", sample=SSAMPS, alnr=QC_CRAM_ALIGNERS, ddup=qc_alignment_dedupers()),
+workflow/rules/multiqc_cov_aln.smk:70:            + "{sample}/align/{alnr}/{ddup}/alignqc/mosdepth/{sample}.{alnr}.{ddup}.mosdepth.summary.txt",
+## contam_identity.smk
+     1	######### GLOBAL CONTAMINATION / IDENTITY EVIDENCE BUNDLE
+     2	# DayOA emits evidence only. R2 owns interpretation, disposition, and release.
+     3
+     4	from snakemake.exceptions import WorkflowError
+     5
+     6
+     7	CONTAM_IDENTITY_ROOT = MDIR + "other_reports/contam_identity"
+     8	CONTAM_IDENTITY_SAMPLES = qc_eligible_sample_ids(SSAMPS)
+     9	CONTAM_IDENTITY_TARGETS = {
+    10	    "produce_global_contam_check",
+    11	    "produce_haplocheck_contam_identity",
+    12	    "produce_read_haps_contam_identity",
+    13	}
+    14
+    15
+    16	def contam_identity_enabled_for_multiqc():
+    17	    return bool(CONTAM_IDENTITY_TARGETS & _requested_targets()) or qc_tool_enabled(
+    18	        "contam_identity", long_running=True, default=False
+    19	    )
+    20
+    21
+    22	def _contam_identity_config():
+    23	    cfg = config.get("contam_identity")
+    24	    if not isinstance(cfg, dict):
+    25	        raise WorkflowError(
+    26	            "Global contamination/identity requires an explicit contam_identity "
+    27	            "config block."
+    28	        )
+    29	    return cfg
+    30
+    31
+    32	def contam_identity_primary_snv_caller():
+    33	    cfg = _contam_identity_config()
+    34	    caller = str(cfg.get("primary_snv_caller", "") or "").strip()
+    35	    if not caller:
+    36	        raise WorkflowError(
+    37	            "Global contamination/identity requires explicit "
+    38	            "contam_identity.primary_snv_caller."
+    39	        )
+    40	    configured_callers = config.get("snv_callers")
+    41	    if not isinstance(configured_callers, list) or not configured_callers:
+    42	        raise WorkflowError(
+    43	            "Global contamination/identity requires explicit snv_callers config; "
+    44	            "contam_identity.primary_snv_caller must not rely on auto-detected "
+    45	            "caller state."
+    46	        )
+    47	    if caller not in configured_callers:
+    48	        raise WorkflowError(
+    49	            "contam_identity.primary_snv_caller must be present in the explicit "
+    50	            f"snv_callers config; observed primary_snv_caller={caller!r}, "
+    51	            f"snv_callers={configured_callers!r}."
+    52	        )
+    53	    if caller not in snv_CALLERS:
+    54	        raise WorkflowError(
+    55	            "contam_identity.primary_snv_caller is explicit, but it is not active "
+    56	            f"in the parsed Snakemake caller set; observed primary_snv_caller={caller!r}, "
+    57	            f"snv_CALLERS={snv_CALLERS!r}."
+    58	        )
+    59	    return caller
+    60
+    61
+    62	def _contam_identity_required_cfg(section, keys, allow_empty=()):
+    63	    cfg = config.get(section)
+    64	    if not isinstance(cfg, dict):
+    65	        raise WorkflowError(f"Global contamination/identity requires config block {section}.")
+    66	    missing = [
+    67	        key
+    68	        for key in keys
+    69	        if key not in allow_empty
+    70	        and str(cfg.get(key, "") or "").strip() in {"", "None", "none", "NA", "na"}
+    71	    ]
+    72	    missing.extend(key for key in allow_empty if key not in cfg)
+    73	    if missing:
+    74	        raise WorkflowError(
+    75	            "Global contamination/identity is missing explicit config value(s): "
+    76	            + ", ".join(f"{section}.{key}" for key in missing)
+    77	        )
+    78	    return cfg
+    79
+    80
+    81	def _contam_identity_alignment_pairs():
+    82	    pairs = [
+    83	        (alnr, ddup)
+    84	        for alnr in QC_CRAM_ALIGNERS
+    85	        for ddup in qc_contamination_dedupers()
+    86	    ]
+    87	    if not pairs:
+    88	        raise WorkflowError(
+    89	            "Global contamination/identity requires at least one CRAM-capable "
+    90	            "alignment/deduper pair."
+    91	        )
+    92	    return pairs
+    93
+    94
+    95	def _contam_identity_primary_snv_pairs():
+    96	    caller = contam_identity_primary_snv_caller()
+    97	    pairs = [
+    98	        (alnr, caller)
+    99	        for alnr, caller in valid_snv_alnr_pairs(QC_CRAM_ALIGNERS, [caller])
+   100	    ]
+   101	    if not pairs:
+   102	        raise WorkflowError(
+   103	            "Global contamination/identity primary SNV caller produced no valid "
+   104	            f"CRAM-capable aligner pairs: {caller!r}."
+   105	        )
+   106	    return pairs
+   107
+   108
+   109	def _contam_identity_primary_snv_vcf(wildcards):
+   110	    caller = contam_identity_primary_snv_caller()
+   111	    if str(wildcards.snv) != caller:
+   112	        raise WorkflowError(
+   113	            f"Contam identity requested snv={wildcards.snv!r}, but "
+   114	            f"contam_identity.primary_snv_caller={caller!r}."
+   115	        )
+   116	    return (
+   117	        MDIR
+   118	        + f"{wildcards.sample}/align/{wildcards.alnr}/{wildcards.ddup}/snv/{caller}/"
+   119	        + f"{wildcards.sample}.{wildcards.alnr}.{wildcards.ddup}.{caller}.snv.sort.vcf.gz"
+   120	    )
+   121
+   122
+   123	def _contam_identity_primary_snv_tbi(wildcards):
+   124	    return _contam_identity_primary_snv_vcf(wildcards) + ".tbi"
+   125
+   126
+   127	def _haplocheck_modes():
+   128	    cfg = _contam_identity_required_cfg(
+   129	        "haplocheck",
+   130	        (
+   131	            "env_yaml",
+   132	            "threads",
+   133	            "mem_mb",
+   134	            "partition",
+   135	            "haplocheck_command",
+   136	            "cloudgene_command",
+   137	            "cloudgene_app",
+   138	        ),
+   139	    )
+   140	    modes = _as_config_list(cfg.get("input_modes", []))
+   141	    unsupported = sorted(set(modes) - {"bam", "vcf"})
+   142	    if unsupported:
+   143	        raise WorkflowError(
+   144	            "haplocheck.input_modes supports only 'bam' and 'vcf'; observed "
+   145	            + ", ".join(unsupported)
+   146	        )
+   147	    if not modes:
+   148	        raise WorkflowError("haplocheck.input_modes must include 'bam', 'vcf', or both.")
+   149	    return modes
+   150
+   151
+   152	def _haplocheck_bam_outputs(suffix):
+   153	    if "bam" not in _haplocheck_modes():
+   154	        return []
+   155	    return expand(
+   156	        MDIR
+   157	        + "{sample}/align/{alnr}/{ddup}/alignqc/contam_identity/haplocheck/bam/"
+   158	        + "{sample}.{alnr}.{ddup}.haplocheck."
+   159	        + suffix,
+   160	        sample=CONTAM_IDENTITY_SAMPLES,
+   161	        alnr=QC_CRAM_ALIGNERS,
+   162	        ddup=qc_contamination_dedupers(),
+   163	    )
+   164
+   165
+   166	def _haplocheck_vcf_outputs(suffix):
+   167	    if "vcf" not in _haplocheck_modes():
+   168	        return []
+   169	    pairs = _contam_identity_primary_snv_pairs()
+   170	    return expand(
+   171	        MDIR
+   172	        + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/haplocheck/vcf/"
+   173	        + "{sample}.{alnr}.{ddup}.{snv}.haplocheck."
+   174	        + suffix,
+   175	        sample=CONTAM_IDENTITY_SAMPLES,
+   176	        alnr=[pair[0] for pair in pairs],
+   177	        snv=[pair[1] for pair in pairs],
+   178	        ddup=qc_variant_dedupers(),
+   179	    )
+   180
+   181
+   182	def _haplocheck_outputs(suffix):
+   183	    return _haplocheck_bam_outputs(suffix) + _haplocheck_vcf_outputs(suffix)
+   184
+   185
+   186	def _read_haps_outputs(suffix):
+   187	    # Explicit required config: read_haps.reliable_snp_file
+   188	    _contam_identity_required_cfg(
+   189	        "read_haps",
+   190	        (
+   191	            "env_yaml",
+   192	            "threads",
+   193	            "mem_mb",
+   194	            "partition",
+   195	            "read_haps_command",
+   196	            "reliable_snp_file",
+   197	            "extra_args",
+   198	        ),
+   199	        allow_empty=("extra_args",),
+   200	    )
+   201	    pairs = _contam_identity_primary_snv_pairs()
+   202	    return expand(
+   203	        MDIR
+   204	        + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/read_haps/"
+   205	        + "{sample}.{alnr}.{ddup}.{snv}."
+   206	        + suffix,
+   207	        sample=CONTAM_IDENTITY_SAMPLES,
+   208	        alnr=[pair[0] for pair in pairs],
+   209	        snv=[pair[1] for pair in pairs],
+   210	        ddup=qc_variant_dedupers(),
+   211	    )
+   212
+   213
+   214	def contam_identity_multiqc_inputs(wildcards=None):
+   215	    if not contam_identity_enabled_for_multiqc():
+   216	        return []
+   217	    return [
+   218	        MDIR + "other_reports/contam_identity_mqc.tsv",
+   219	        MDIR + "other_reports/haplocheck_mtdna_mqc.tsv",
+   220	        MDIR + "other_reports/read_haps_mqc.tsv",
+   221	    ]
+   222
+   223
+   224	def _contam_identity_native_inputs(wildcards=None):
+   225	    if not contam_identity_enabled_for_multiqc():
+   226	        return []
+   227	    return (
+   228	        _haplocheck_outputs("contamination.txt")
+   229	        + _haplocheck_outputs("contamination.raw.txt")
+   230	        + _haplocheck_outputs("report.html")
+   231	        + _read_haps_outputs("read_haps.txt")
+   232	    )
+   233
+   234
+   235	localrules:
+   236	    contam_identity_mqc_gather,
+   237	    produce_global_contam_check,
+   238	    produce_haplocheck_contam_identity,
+   239	    produce_read_haps_contam_identity,
+   240
+   241
+   242	rule haplocheck_bam_contam_identity:
+   243	    input:
+   244	        bam=rules.legacy_cram_compat_bam.output.bam,
+   245	        bai=rules.legacy_cram_compat_bam.output.bai,
+   246	    output:
+   247	        contamination=MDIR + "{sample}/align/{alnr}/{ddup}/alignqc/contam_identity/haplocheck/bam/{sample}.{alnr}.{ddup}.haplocheck.contamination.txt",
+   248	        raw=MDIR + "{sample}/align/{alnr}/{ddup}/alignqc/contam_identity/haplocheck/bam/{sample}.{alnr}.{ddup}.haplocheck.contamination.raw.txt",
+   249	        html=MDIR + "{sample}/align/{alnr}/{ddup}/alignqc/contam_identity/haplocheck/bam/{sample}.{alnr}.{ddup}.haplocheck.report.html",
+   250	    log:
+   251	        MDIR + "{sample}/align/{alnr}/{ddup}/alignqc/contam_identity/haplocheck/bam/logs/{sample}.{alnr}.{ddup}.haplocheck.bam.log",
+   252	    benchmark:
+   253	        MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.haplocheck_bam.bench.tsv"
+   254	    conda:
+   255	        config["haplocheck"]["env_yaml"]
+   256	    threads: config["haplocheck"]["threads"]
+   257	    resources:
+   258	        vcpu=config["haplocheck"]["threads"],
+   259	        mem_mb=config["haplocheck"]["mem_mb"],
+   260	        partition=config["haplocheck"]["partition"],

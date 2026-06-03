@@ -1,0 +1,18 @@
+DAY-EC activated.
+COMMAND_ID=f44dc920-b0e2-42c9-9c9c-ed2115780df7
+STATUS=Failed RC=1
+DAY-EC activated.
+DAY-EC activated.
+timestamp_utc	2026-06-03T07:01:15Z
+dryrun_exit	__DRYRUN_TRAPFIX_EXIT__=0
+shards	6
+full_lane	0
+other_lanes	0
+i192_hits	8
+threads_hits	6
+sentinel_hits	0
+devshm_hits	12
+
+STDERR:
+dry-run validation failed
+failed to run commands: exit status 1

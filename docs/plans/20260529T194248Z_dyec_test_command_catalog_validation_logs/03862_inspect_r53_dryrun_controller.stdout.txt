@@ -1,0 +1,127 @@
+DAY-EC activated.
+DAY-EC activated.
+=== root ===
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun
+=== top-level files ===
+2026-05-30T18:29:05.0000000000 10752 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/alignstats_combo_mqc.tsv
+2026-05-30T18:29:05.0000000000 12841 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/Dockerfile
+2026-05-30T18:29:05.0000000000 129 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/MANIFEST.in
+2026-05-30T18:29:05.0000000000 15270 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/AGENTS.md
+2026-05-30T18:29:05.0000000000 22673 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/SampleSheet.csv
+2026-05-30T18:29:05.0000000000 28 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/.Rhistory
+2026-05-30T18:29:05.0000000000 3074 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/check_popvcf.py
+2026-05-30T18:29:05.0000000000 35149 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/LICENSE
+2026-05-30T18:29:05.0000000000 49 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/.RData
+2026-05-30T18:29:05.0000000000 721 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/.gitignore
+2026-05-30T18:29:05.0000000000 7688 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/README.md
+2026-05-30T18:29:06.0000000000 2011 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/download_presigned.sh
+2026-05-30T18:29:06.0000000000 20636 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/dyoainit
+2026-05-30T18:29:06.0000000000 2548 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/presigned_manifest.tsv
+2026-05-30T18:29:06.0000000000 3065 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/giab_30x_hg38_analysis_manifest.csv
+2026-05-30T18:29:06.0000000000 348 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/pyproject.toml
+2026-05-30T18:29:08.0000000000 10506 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/vcf_inventory.tsv
+2026-05-30T18:29:08.0000000000 3160 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/summary_results.tsv
+2026-05-30T18:29:08.0000000000 346 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/setup.py
+2026-05-30T18:29:17.0000000000 508 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/day_cmd.log
+2026-05-30T18:29:23.0000000000 0 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/.jemalloc_loc
+2026-05-30T18:29:25.0000000000 1606 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/unlock_fails.log
+=== status ===
+=== likely controller/log files ===
+2026-05-30T18:29:05.0000000000 2741 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/helpers/fetch_hg38_giabvcf.log
+2026-05-30T18:29:05.0000000000 904 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/helpers/fetch_b37_giabvcf.log
+2026-05-30T18:29:17.0000000000 508 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/day_cmd.log
+2026-05-30T18:29:24.0000000000 450 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/logs/about.log
+2026-05-30T18:29:25.0000000000 1606 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/unlock_fails.log
+2026-05-30T18:29:25.0000000000 29 /fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/.snakemake/log/2026-05-30T182922.949559.snakemake.log
+=== grep errors ===
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:380:                raise EnaError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:431:                except ValueError:
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:441:    raise EnaError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:523:        raise ValueError(f"Unsupported download type: {plan.download_type}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:669:        raise EnaError("--parallel must be at least 1.")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:695:        raise EnaError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:706:        raise EnaError(f"No metadata returned for: {', '.join(missing_runs)}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:720:        raise EnaError(reason)
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:785:                    raise EnaError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:796:                except FileNotFoundError:
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:800:        raise EnaError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:843:                except subprocess.CalledProcessError as exc:
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:844:                    raise EnaError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:886:    except EnaError as exc:
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/fetch_err_sources.py:887:        print(f"ERROR: {exc}", file=sys.stderr)
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/gen_experiment_uid.py:30:        raise ValueError("datetime must be timezone-aware")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/gen_experiment_uid.py:41:        raise ValueError("EXID must be exactly 13 chars and end with 'Z' (YYMMDDHHMMSSZ)")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/gen_experiment_uid.py:87:            raise SystemExit(f"ERROR: file not found: {tsv_path}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/gen_experiment_uid.py:99:                raise SystemExit("ERROR: units.tsv has no EXPERIMENTID column")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/monitor_ifx_go.sh:23:  echo "ERROR: Base path does not exist: $BASE_PATH" >&2
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/monitor_ifx_go.sh:57:    echo "ERROR: squeue not found on PATH" >&2
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/monitor_ifx_go.sh:63:    echo "ERROR: failed to query SLURM job status" >&2
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/helpers/common.py:43:            #raise ValueError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/_gen_validate.py:89:    if grep -q "IndexError" "$DRYLOG"; then
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/_gen_validate.py:90:        echo "  FAIL  IndexError found" | tee -a "$REPORT"
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/_gen_validate.py:91:        grep "IndexError" "$DRYLOG" | head -3 | tee -a "$REPORT"
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/_gen_validate.py:93:        echo "  PASS  No IndexError" | tee -a "$REPORT"
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/_gen_validate.py:101:    echo "  Errors: $ERR_CNT, Warnings: $WARN_CNT" | tee -a "$REPORT"
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/run_all_dragen.sh:20:  echo "ERROR: No VCFs matched: $VCF_GLOB" >&2
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/downsample_cram_batch.sh:46:    echo "ERROR: Input CRAM not found: $INPUT_CRAM"
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/downsample_cram_batch.sh:67:    echo "ERROR: Reference FASTA not found: $REFERENCE"
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/extract_fastq_from_ultima_cram.sh:40:        echo "ERROR: file not found: $f" >&2
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/extract_fastq_from_ultima_cram.sh:47:    echo "ERROR: output already exists: $OUTPUT_FQ" >&2
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/extract_fastq_from_ultima_cram.sh:116:    echo "❌ ERROR: output file not created" >&2
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/cat_basespace_fqs_to_single_r1r2_s3.sh:29:        echo "❌ [$(date)] Error uploading ${GIAB_SAMPLE}_${read_dir} to S3"
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:29:DEFAULT_BASE_ERROR = 0.001
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:105:            except ValueError:
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:143:        raise ValueError(f"No usable biallelic AF sites found in {sites_vcf}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:194:                raise ValueError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:217:        raise ValueError("pileup region size must be >= 0")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:311:                raise RuntimeError("samtools mpileup did not provide stdout")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:317:            raise RuntimeError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:325:        except FileNotFoundError:
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:340:        raise ValueError("threads must be >= 1")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:463:        raise ValueError("max_contamination must be > 0 and < 1")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:465:        raise ValueError("grid_step must be > 0 and <= max_contamination")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:481:    base_error: float = DEFAULT_BASE_ERROR,
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:485:        raise ValueError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:551:                    raise ValueError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:565:            except ValueError:
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:574:        raise ValueError(f"No usable donor genotypes for {sample_id} in {vcf_path}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:625:        raise ValueError(f"No usable donor genotypes for {sample_id} in {bam_path}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:647:            raise ValueError(f"Candidate manifest missing columns: {sorted(missing)}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:675:                raise ValueError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:748:    base_error: float = DEFAULT_BASE_ERROR,
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:752:        raise ValueError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:990:    parser.add_argument("--base-error", type=float, default=DEFAULT_BASE_ERROR)
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:1001:            raise ValueError("--reference is required with --bam")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:1003:            raise ValueError("--sites-vcf is required with --bam")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:1045:            raise ValueError("--reference is required with --candidate-manifest")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/genotype_free_contam_estimator.py:1089:        print(f"ERROR: {exc}", file=sys.stderr)
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/dump_fastq_from_bam_cram.sh:34:        echo "Error: Output directory '$dir' does not exist."
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/dump_fastq_from_bam_cram.sh:42:        echo "Error: Output file '$1' already exists."
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/dump_fastq_from_bam_cram.sh:49:    echo "Error: Input file '$input_file' does not exist."
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/dump_fastq_from_bam_cram.sh:57:        echo "Error: Reference file must be provided for CRAM input."
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/dump_fastq_from_bam_cram.sh:63:        echo "Error: Reference file '$reference' does not exist."
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/profile_freshness_warn.bash:28:                colr "ERROR: Failed to copy template yaml files." "$DY_ET2" "$DY_EB1" "$DY_ES2" 1>&2
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/profile_freshness_warn.bash:33:                colr "ERROR: Failed to copy template bash files." "$DY_ET2" "$DY_EB1" "$DY_ES2" 1>&2
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/alignstats_compile.sh:33:# Error handling
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:135:        raise ValueError(f"{name} must be numeric: {value}") from exc
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:137:        raise ValueError(f"{name} must be greater than zero: {value}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:149:            raise ValueError(f"contamination level must be less than 100: {item}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:152:        raise ValueError("at least one contamination level is required")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:159:        raise ValueError("total_read_pairs must be greater than zero")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:162:        raise ValueError("contamination_pct must be less than 100")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:193:        raise FileNotFoundError(f"required tool not found on PATH: {name}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:200:        raise FileNotFoundError(f"required input FASTQ is missing: {path}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:226:            raise ValueError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:231:            raise ValueError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:336:        raise FileExistsError(
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:353:            raise RuntimeError(f"truncated FASTQ record at end of {source}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:356:        raise RuntimeError(f"truncated FASTQ record in {source}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:387:        raise subprocess.CalledProcessError(rc, f"pigz writer for {label}", stderr=stderr)
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:394:        raise subprocess.CalledProcessError(rc, f"pigz reader for {label}", stderr=stderr)
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:432:            raise RuntimeError("pigz reader did not expose stdout")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:439:                raise RuntimeError(f"paired FASTQs have different record counts: {source_name}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:469:        raise FileNotFoundError(f"expected output was not created: {path}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:471:        raise RuntimeError(f"expected output is empty: {path}")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:612:        raise ValueError("--threads must be at least 1")
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/make_giab_hg002_hg003_contam_fastqs.py:635:        print(f"ERROR: {exc}", file=sys.stderr)
+/fsx/analysis_results/ubuntu/ccv20260530r53_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis/bin/util/extract_fastq_from_roche_bam.sh:43:    echo "ERROR: BAM not found: --output truncated--

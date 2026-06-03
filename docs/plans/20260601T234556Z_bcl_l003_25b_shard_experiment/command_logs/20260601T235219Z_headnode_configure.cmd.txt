@@ -1,0 +1,1 @@
+source ./activate >/dev/null && dyec headnode configure --profile lsmc --region us-west-2 --cluster dyec5117

@@ -1,0 +1,3 @@
+DAY-EC activated.
+DAY-EC activated.
+-rwx------ 1 ubuntu ubuntu 1476 May 31 08:52 /home/ubuntu/bcl_lane_bench_20260531T083038Z/status.sh

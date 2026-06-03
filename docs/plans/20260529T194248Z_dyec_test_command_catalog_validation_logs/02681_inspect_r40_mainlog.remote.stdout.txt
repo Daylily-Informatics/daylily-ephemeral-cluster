@@ -1,0 +1,141 @@
+DAY-EC activated.
+DAY-EC activated.
+=== main logs ===
+total 797
+-rw-rw-r-- 1 ubuntu ubuntu     29 May 30 10:57 2026-05-30T105733.328654.snakemake.log
+-rw-rw-r-- 1 ubuntu ubuntu 775041 May 30 10:57 2026-05-30T102941.838238.snakemake.log
+=== .snakemake/log/2026-05-30T105733.328654.snakemake.log tail ===
+Unlocking working directory.
+=== .snakemake/log/2026-05-30T105733.328654.snakemake.log errors ===
+=== .snakemake/log/2026-05-30T102941.838238.snakemake.log tail ===
+148 of 161 steps (92%) done
+[Sat May 30 10:56:41 2026]
+Finished job 144.
+149 of 161 steps (93%) done
+Select jobs to execute...
+
+[Sat May 30 10:56:41 2026]
+rule parse_vcfeval_summary_roi:
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/summary.txt, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHCv5q/HG002.bed
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHCv5q.parse_vcfeval_summary.log
+    jobid: 143
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHCv5q.parse_vcfeval_summary.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/summary.txt
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ, alnr=sent, ddup=dmd, snv=sentd, cmpfootprint=giabHCv5q
+    threads: 16
+    resources: mem_mb=16000, mem_mib=15259, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+
+            outdir="$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/summary.txt)"
+            # This file is legacy/debug; parse-vcfeval-summary.py uses its dirname to place the MQC TSV.
+            legacy_parsed="$outdir/vcfeval_summary.parsed.tsv"
+
+            # Keep mean depth behavior identical to the current rule (effectively NA/-1).
+            allvar_mean_dp="na"
+
+            # Prevent parse script from over-threading bcftools when many ROIs run concurrently.
+            export DAYLILY_BCFTOOLS_THREADS="16"
+
+            mkdir -p "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv)"
+
+            python workflow/scripts/parse-vcfeval-summary.py \
+              results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/summary.txt \
+              JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ \
+              /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHCv5q/HG002.bed \
+              giabHCv5q \
+              HG002 \
+              "$legacy_parsed" \
+              "$allvar_mean_dp" \
+              sent \
+              dmd \
+              sentd \
+              > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHCv5q.parse_vcfeval_summary.log 2>&1
+
+            # Hard check: the legacy script should have written the MQC output where we declared it.
+            test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv
+
+Submitted job 143 with external jobid '3422'.
+[Sat May 30 10:57:11 2026]
+Finished job 143.
+150 of 161 steps (93%) done
+Select jobs to execute...
+
+[Sat May 30 10:57:11 2026]
+rule prep_for_concordance_check:
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.snv.sort.vcf.gz, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.snv.sort.vcf.gz.tbi, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_altair-v1.1/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_clinvar_genes/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_clinvar_genes_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_clinvar_genes/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_clinvar_genes_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_x_clinvar_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_ultima_concordance.mqc.tsv
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/concordance.done, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/concordance.fofn, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/concordance.fin.cmds
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.concordance.log
+    jobid: 130
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.concordance.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/concordance.done; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.snv.sort.vcf.gz.tbi, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_altair-v1.1/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_ultima_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_clinvar_genes/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_clinvar_genes_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_x_clinvar_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_clinvar_genes/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_clinvar_genes_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.snv.sort.vcf.gz
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ, alnr=sent, ddup=dmd, snv=sentd
+    priority: 48
+    threads: 8
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set +euo pipefail;
+
+            mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/concordance.done);
+            mkdir -p $(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.concordance.log);
+
+            utc_ts=$(date -u +%Y-%m-%dT%H:%M:%SZ);
+
+            # Write informational fofn
+            {
+                echo "# Refactor: per-ROI jobs are scheduled by Snakemake; this file is informational.";
+                echo "# generated_at_utc=$utc_ts";
+                echo "# truth_dir=/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/";
+                echo "# footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,giabHC_x_ultima,giabHC_x_ultima_x_clinvar,giabHCv5q,hg38,hg38_m_giabHC,ultima";
+                for mqc in results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_altair-v1.1/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_clinvar_genes/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_clinvar_genes_concordance.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_clinvar_genes/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_clinvar_genes_concordance.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_concordance.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_x_clinvar_concordance.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_ultima_concordance.mqc.tsv; do
+                    echo "$mqc";
+                done;
+            } > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/concordance.fofn;
+
+            # Write informational fin.cmds
+            {
+                echo "# Refactor: see Snakemake DAG for exact commands.";
+                echo "# generated_at_utc=$utc_ts";
+            } > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/concordance.fin.cmds;
+
+            # SKIPPED sentinel if no mqcs
+            if [ "10" -eq 0 ]; then
+                echo "No truthset ROI directories found; concordance skipped." > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/concordance.done.SKIPPED;
+            fi;
+
+            # Log
+            echo "Concordance sentinel complete. footprints=altair-v1.1,clinvar_genes,giabHC,giabHC_x_clinvar_genes,giabHC_x_ultima,giabHC_x_ultima_x_clinvar,giabHCv5q,hg38,hg38_m_giabHC,ultima mqcs=10" >> results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.concordance.log;
+
+Submitted job 130 with external jobid '3423'.
+[Sat May 30 10:57:21 2026]
+Finished job 130.
+151 of 161 steps (94%) done
+Select jobs to execute...
+
+[Sat May 30 10:57:21 2026]
+localrule produce_snv_concordances:
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/concordance.done, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_altair-v1.1/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_clinvar_genes/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_clinvar_genes_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_clinvar_genes/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_clinvar_genes_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_x_clinvar_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_ultima_concordance.mqc.tsv
+    output: results/day/hg38/other_reports/giab_concordance_mqc.tsv
+    jobid: 129
+    reason: Missing output files: results/day/hg38/other_reports/giab_concordance_mqc.tsv; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_altair-v1.1/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHCv5q/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHCv5q_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_ultima_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_clinvar_genes/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_clinvar_genes_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_x_clinvar_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/concordance.done, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_clinvar_genes/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_clinvar_genes_concordance.mqc.tsv, results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv
+    priority: 48
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat May 30 10:57:24 2026]
+Finished job 129.
+152 of 161 steps (94%) done
+Exiting because a job execution failed. Look above for error message
+=== .snakemake/log/2026-05-30T102941.838238.snakemake.log errors ===
+850:	        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.human_unmapped.quick.fastq.gz || (echo "ERROR: failed to write unmapped FASTQ: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.human_unmapped.quick.fastq.gz" | tee -a results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.unmapped_metagenomics_kraken2_quick.log; exit 1)
+853:	            echo "ERROR: unmapped FASTQ line count is not divisible by four: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.human_unmapped.quick.fastq.gz" | tee -a results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.unmapped_metagenomics_kraken2_quick.log
+870:        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.kraken2.quick.report.txt || (echo "ERROR: Kraken2 report is empty: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.kraken2.quick.report.txt" | tee -a results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.unmapped_metagenomics_kraken2_quick.log; exit 1)
+871:        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.kraken2.quick.output.tsv || (echo "ERROR: Kraken2 output is empty: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.kraken2.quick.output.tsv" | tee -a results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.unmapped_metagenomics_kraken2_quick.log; exit 1)
+895:        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.cram || (echo "ERROR: missing alignment input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.cram" | tee -a results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.unmapped_metagenomics_sourmash_gather.log; exit 1)
+896:        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.cram.crai || (echo "ERROR: missing alignment index input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.cram.crai" | tee -a results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.unmapped_metagenomics_sourmash_gather.log; exit 1)
+899:                echo "ERROR: unmapped_metagenomics.sourmash_databases entry is not a readable sourmash collection path: $database" | tee -a results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.unmapped_metagenomics_sourmash_gather.log
+903:        test all = all || (echo "ERROR: unmapped_metagenomics.read_limit must be 'all' for full-unmapped sourmash gather mode." | tee -a results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.unmapped_metagenomics_sourmash_gather.log; exit 1)
+904:        test DNA = DNA || (echo "ERROR: unmapped_metagenomics.sourmash_moltype must be 'DNA'." | tee -a results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.unmapped_metagenomics_sourmash_gather.log; exit 1)
+908:	        test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/unmapped_metagenomics/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.--output truncated--

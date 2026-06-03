@@ -1,0 +1,147 @@
+DAY-EC activated.
+DAY-EC activated.
+__PATHS__
+fastq_dir=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq
+log_root=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert
+__FASTQ_DIR_STAT__
+2026-06-01 19:14:36.000000000 +0000\t156160\t/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq
+__FASTQ_SUMMARY__
+fastq_files=672
+fastq_bytes=4993039853037
+fastq_gib=4650.130731
+first_fastq_epoch=1779116172.0000000000
+first_fastq_mtime=2026-05-18T14:56:12.0000000000Z
+first_fastq_size=6274983683
+first_fastq_path=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/BUCCAL1-a_S22_L001_R1_001.fastq.gz
+last_fastq_epoch=1779136226.0000000000
+last_fastq_mtime=2026-05-18T20:30:26.0000000000Z
+last_fastq_size=46501437516
+last_fastq_path=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/Undetermined_S0_L008_R1_001.fastq.gz
+fastq_mtime_span_seconds=20054.000
+fastq_mtime_span_hours=5.570556
+first_5_fastqs_by_mtime
+1779116172.0000000000	2026-05-18T14:56:12.0000000000Z	6274983683	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/BUCCAL1-a_S22_L001_R1_001.fastq.gz
+1779116173.0000000000	2026-05-18T14:56:13.0000000000Z	6253241032	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/BUCCAL1-a_S22_L003_R1_001.fastq.gz
+1779116173.0000000000	2026-05-18T14:56:13.0000000000Z	6295142864	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/BUCCAL1-a_S22_L002_R1_001.fastq.gz
+1779116174.0000000000	2026-05-18T14:56:14.0000000000Z	6276828284	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/BUCCAL1-a_S22_L004_R1_001.fastq.gz
+1779116180.0000000000	2026-05-18T14:56:20.0000000000Z	6396732652	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/BUCCAL1-a_S22_L001_R2_001.fastq.gz
+last_5_fastqs_by_mtime
+1779136040.0000000000	2026-05-18T20:27:20.0000000000Z	44833691341	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/Undetermined_S0_L007_R2_001.fastq.gz
+1779136101.0000000000	2026-05-18T20:28:21.0000000000Z	46419839932	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/Undetermined_S0_L006_R1_001.fastq.gz
+1779136106.0000000000	2026-05-18T20:28:26.0000000000Z	44672223966	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/Undetermined_S0_L008_R2_001.fastq.gz
+1779136192.0000000000	2026-05-18T20:29:52.0000000000Z	46879581549	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/Undetermined_S0_L007_R1_001.fastq.gz
+1779136226.0000000000	2026-05-18T20:30:26.0000000000Z	46501437516	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/Undetermined_S0_L008_R1_001.fastq.gz
+__FASTQ_BY_LANE__
+L001	files=84	bytes=623801615972	gib=580.960527
+L002	files=84	bytes=624274107884	gib=581.400569
+L003	files=84	bytes=623388166814	gib=580.575473
+L004	files=84	bytes=625586701035	gib=582.623017
+L005	files=84	bytes=625280815596	gib=582.338139
+L006	files=84	bytes=621593393923	gib=578.903960
+L007	files=84	bytes=625686967165	gib=582.716397
+L008	files=84	bytes=623428084648	gib=580.612649
+__REPORT_FILES__
+2026-05-18T19:31:02.0000000000Z	4982214	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/Reports/Adapter_Cycle_Metrics.csv
+2026-05-18T19:31:16.0000000000Z	36608	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/Reports/Adapter_Metrics.csv
+2026-05-18T19:31:31.0000000000Z	55323	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/Reports/Quality_Metrics.csv
+2026-05-18T19:31:48.0000000000Z	41201778	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/Reports/Quality_Tile_Metrics.csv
+2026-05-18T19:32:04.0000000000Z	40400	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/BCLConvert/fastq/Reports/fastq_list.csv
+__LOG_FILES__
+2026-05-18T14:51:43.0000000000Z	156	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/DCKR_RA-stderr_0248175.txt
+2026-05-18T14:51:44.0000000000Z	4855	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/DCKR_RA-stdout_0248175.txt
+2026-05-18T14:51:45.0000000000Z	1	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stderr_3034040.txt
+2026-05-18T14:51:45.0000000000Z	1	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stderr_3034041.txt
+2026-05-18T14:51:46.0000000000Z	1	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stderr_3034042.txt
+2026-05-18T14:51:47.0000000000Z	1	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stderr_3034043.txt
+2026-05-18T14:51:47.0000000000Z	1	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stderr_3034044.txt
+2026-05-18T14:51:48.0000000000Z	1	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stderr_3034045.txt
+2026-05-18T14:51:49.0000000000Z	1	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stderr_3034046.txt
+2026-05-18T14:51:50.0000000000Z	1	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stderr_3034047.txt
+2026-05-18T14:51:50.0000000000Z	3009	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034040.txt
+2026-05-18T14:51:51.0000000000Z	3009	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034041.txt
+2026-05-18T14:51:51.0000000000Z	3009	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034042.txt
+2026-05-18T14:51:52.0000000000Z	3009	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034043.txt
+2026-05-18T14:51:53.0000000000Z	3009	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034044.txt
+2026-05-18T14:51:54.0000000000Z	3009	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034045.txt
+2026-05-18T14:51:55.0000000000Z	3009	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034046.txt
+2026-05-18T14:51:55.0000000000Z	3009	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034047.txt
+2026-05-18T14:51:56.0000000000Z	1	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/P2FSW-stderr_3034048.txt
+2026-05-18T14:51:57.0000000000Z	5810	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/P2FSW-stdout_3034048.txt
+2026-05-18T14:51:58.0000000000Z	2234	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/bcl2fastq.dragen_events.csv
+2026-05-18T14:51:59.0000000000Z	435	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_0248175.txt
+2026-05-18T14:52:00.0000000000Z	1038	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034040.txt
+2026-05-18T14:52:02.0000000000Z	1038	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034041.txt
+2026-05-18T14:52:03.0000000000Z	1038	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034042.txt
+2026-05-18T14:52:04.0000000000Z	1038	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034043.txt
+2026-05-18T14:52:05.0000000000Z	1038	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034044.txt
+2026-05-18T14:52:07.0000000000Z	1038	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034045.txt
+2026-05-18T14:52:08.0000000000Z	1038	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034046.txt
+2026-05-18T14:52:10.0000000000Z	1038	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034047.txt
+2026-05-18T14:52:12.0000000000Z	949	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034048.txt
+2026-05-18T14:54:06.0000000000Z	31	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/bcl_convert.config
+2026-05-18T15:03:41.0000000000Z	411	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/MSFQCGEN-stderr_3829823.txt
+2026-05-18T15:03:41.0000000000Z	452	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0001/MSFQCGEN-stderr_3829822.txt
+2026-05-18T15:03:42.0000000000Z	411	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0003/MSFQCGEN-stderr_3829824.txt
+2026-05-18T15:03:42.0000000000Z	411	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0004/MSFQCGEN-stderr_3829825.txt
+2026-05-18T15:03:54.0000000000Z	1054033	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/MSFQCGEN-stdout_3829823.txt
+2026-05-18T15:03:54.0000000000Z	1055029	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0004/MSFQCGEN-stdout_3829825.txt
+2026-05-18T15:03:54.0000000000Z	1158860	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0001/MSFQCGEN-stdout_3829822.txt
+2026-05-18T15:03:55.0000000000Z	1055060	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0003/MSFQCGEN-stdout_3829824.txt
+2026-05-18T15:04:02.0000000000Z	765	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0001/cmdline_3829822.txt
+2026-05-18T15:04:02.0000000000Z	765	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/cmdline_3829823.txt
+2026-05-18T15:04:02.0000000000Z	765	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0004/cmdline_3829825.txt
+2026-05-18T15:04:03.0000000000Z	765	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0003/cmdline_3829824.txt
+2026-05-18T15:04:08.0000000000Z	446223	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/dragen_run_1778951917916_3829823.log
+2026-05-18T15:04:08.0000000000Z	446274	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0004/dragen_run_1778951917916_3829825.log
+2026-05-18T15:04:08.0000000000Z	446367	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0003/dragen_run_1778951917905_3829824.log
+2026-05-18T15:04:08.0000000000Z	489992	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0001/dragen_run_1778951917905_3829822.log
+2026-05-18T15:04:13.0000000000Z	30840	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/fastq_list.csv
+2026-05-18T15:04:14.0000000000Z	31176	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0004/fastq_list.csv
+2026-05-18T15:04:14.0000000000Z	31320	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0003/fastq_list.csv
+2026-05-18T15:04:14.0000000000Z	33776	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0001/fastq_list.csv
+2026-05-18T15:04:18.0000000000Z	5052	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/fqc.dragen_events.csv
+2026-05-18T15:04:18.0000000000Z	5052	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0004/fqc.dragen_events.csv
+2026-05-18T15:04:19.0000000000Z	5052	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0003/fqc.dragen_events.csv
+2026-05-18T15:04:19.0000000000Z	5529	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0001/fqc.dragen_events.csv
+2026-05-18T15:04:23.0000000000Z	50882	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0001/ms-fastqc-replay.json
+2026-05-18T15:04:23.0000000000Z	50882	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/ms-fastqc-replay.json
+2026-05-18T15:04:23.0000000000Z	50882	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0003/ms-fastqc-replay.json
+2026-05-18T15:04:23.0000000000Z	50882	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0004/ms-fastqc-replay.json
+2026-05-18T15:04:27.0000000000Z	96	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0001/ms-fastqc.time_metrics.csv
+2026-05-18T15:04:27.0000000000Z	96	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/ms-fastqc.time_metrics.csv
+2026-05-18T15:04:27.0000000000Z	96	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0003/ms-fastqc.time_metrics.csv
+2026-05-18T15:04:27.0000000000Z	96	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0004/ms-fastqc.time_metrics.csv
+2026-05-18T15:04:30.0000000000Z	152	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/samples.config
+2026-05-18T15:04:30.0000000000Z	166	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0004/samples.config
+2026-05-18T15:04:31.0000000000Z	167	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0001/samples.config
+2026-05-18T15:04:31.0000000000Z	172	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0003/samples.config
+__LOG_GREP__
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034046.txt:7:  SoftwareVersion = 4.3.16
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034046.txt:10:Generating run log at /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_7/dragen_run_1778948471983_3034046.log
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034046.txt:11:Command Line: /usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 7 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_7 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034046.txt:12:DRAGEN Host Software Version 4.3.16 (software mode)
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034046.txt:13:DRAGEN Daemon Software Version (none)
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034046.txt:22:Conversion Information:
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034046.txt:45:DRAGEN finished normally
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034041.txt:7:  SoftwareVersion = 4.3.16
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034041.txt:10:Generating run log at /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_2/dragen_run_1778948471951_3034041.log
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034041.txt:11:Command Line: /usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 2 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_2 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034041.txt:12:DRAGEN Host Software Version 4.3.16 (software mode)
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034041.txt:13:DRAGEN Daemon Software Version (none)
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034041.txt:22:Conversion Information:
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034041.txt:45:DRAGEN finished normally
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034046.txt:1:/usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034046.txt:5:/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034046.txt:6:--bcl-conversion-only
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034046.txt:25:/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_7
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034041.txt:1:/usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034041.txt:5:/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034041.txt:6:--bcl-conversion-only
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034041.txt:25:/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_2
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/fastq_list.csv:2:AGTAAATAAG.CTTGGGACGC.1,HG004-c,UnknownLibrary,1,/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/HG004-c_S12_L001_R1_001.fastq.gz,/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/HG004-c_S12_L001_R2_001.fastq.gz
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/fastq_list.csv:3:TATGTAGAGA.CTAACTCAGA.1,HG005-a,UnknownLibrary,1,/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/HG005-a_S13_L001_R1_001.fastq.gz,/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/HG005-a_S13_L001_R2_001.fastq.gz
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/fastq_list.csv:4:CTGACTCCAC.GCGTATAACA.1,HG005-b,UnknownLibrary,1,/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/HG005-b_S14_L001_R1_001.fastq.gz,/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/HG005-b_S14_L001_R2_001.fastq.gz
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/fastq_list.csv:5:GTACCGAATA.AAGAGTAAGG.1,HG005-c,UnknownLibrary,1,/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/HG005-c_S15_L001_R1_001.fastq.gz,/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/HG005-c_S15_L001_R2_001.fastq.gz
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/fastq_list.csv:6:TTTACAAGAT.CGGCGATACA.1,HG006-a,UnknownLibrary,1,/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/HG006-a_S16_L001_R1_001.fastq.gz,/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/HG006-a_S16_L001_R2_001.fastq.gz
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/fastq_list.csv:7:GTCCTCCTGC.CAGCAGCCTC.1,HG006-b,UnknownLibrary,1,/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/HG006-b_S17_L001_R1_001.fastq.gz,/usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/HG006-b_S17_L001_R2_001.fastq.gz
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/msl_0001/msg_0002/fastq_list.csv:8:GAAACAGCGT.TCCAACACGT.1,HG006-c,UnknownLibrar--output truncated--

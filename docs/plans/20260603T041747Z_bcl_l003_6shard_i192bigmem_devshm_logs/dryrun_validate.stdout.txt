@@ -1,0 +1,50 @@
+command_id=caf19dc6-4c82-4fc3-8489-f5a75e3c07b1
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T04:31:06+00:00
+__EXIT_MARKERS__
+onfig/bclconvert_l003_6shard_i192bigmem_devshm.yaml -n; printf '__DRYRUN_EXIT__=
+__DRYRUN_EXIT__=0
+__JOB_STATS__
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+bclconvert_validate_inputs          1              1              1
+merge_bclconvert_tile_shards        1              1              1
+produce_bclconvert_fastqs           1              1              1
+run_bclconvert                      1              1              1
+run_bclconvert_tile_shard           6            192            192
+total                              10              1            192
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+bclconvert_validate_inputs          1              1              1
+merge_bclconvert_tile_shards        1              1              1
+produce_bclconvert_fastqs           1              1              1
+run_bclconvert                      1              1              1
+run_bclconvert_tile_shard           6            192            192
+total                              10              1            192
+__COUNTS__
+tile_rule_count=6
+lane_rule_count=0
+l003_wildcard_count=7
+other_lane_wildcard_count=0
+i192bigmem_resource_count=8
+threads_192_count=6
+exclusive_count=6
+devshm_staging_count=0
+__SHARDS__
+wildcards: lane=L003, shard=0001_tiles0001-0131
+wildcards: lane=L003, shard=0002_tiles0132-0262
+wildcards: lane=L003, shard=0003_tiles0263-0393
+wildcards: lane=L003, shard=0004_tiles0394-0524
+wildcards: lane=L003, shard=0005_tiles0525-0654
+wildcards: lane=L003, shard=0006_tiles0655-0784
+__ERRORS__
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+

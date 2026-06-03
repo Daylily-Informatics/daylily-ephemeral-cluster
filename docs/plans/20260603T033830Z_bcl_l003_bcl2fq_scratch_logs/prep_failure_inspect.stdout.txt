@@ -1,0 +1,25 @@
+command_id=6f4d0f8a-cdcb-42bb-a671-25d861415716
+DAY-EC activated.
+DAY-EC activated.
+__SAMPLESHEET_SECTIONS__
+1: [Header],
+7: [Reads]
+13: [BCLConvert_Settings]
+19: [BCLConvert_Data]
+20: Sample_ID,Index,Index2
+63: [Cloud_Settings]
+66: [Cloud_Data]
+67: Sample_ID,ProjectName,LibraryName,LibraryPrepKitName,IndexAdapterKitName
+
+__REPO_STATUS__
+ M config/day/day_env_installer.sh
+ M config/day_profiles/local/templates/rule_config.yaml
+ M config/day_profiles/slurm/templates/rule_config.yaml
+ M tests/test_bclconvert_bootstrap.sh
+ M tests/test_bclconvert_multiqc.py
+ M tests/test_shell_wrapper_contracts.py
+ M workflow/rules/bclconvert.smk
+ M workflow/scripts/run_bclconvert_lane.sh
+
+__DEST__
+drwxr-xr-x 2 ubuntu ubuntu 33792 Jun  3 03:43 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_scratch_test

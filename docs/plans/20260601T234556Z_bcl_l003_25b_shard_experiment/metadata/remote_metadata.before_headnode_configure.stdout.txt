@@ -1,0 +1,91 @@
+DAY-EC activated.
+DAY-EC activated.
+whoami=ubuntu
+hostname=ip-10-0-0-225
+date_utc=2026-06-01T23:51:23Z
+run_dir=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+sample_sheet=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+runinfo=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml
+runparameters=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/RunParameters.xml
+basecalls=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Data/Intensities/BaseCalls
+day_clone_path=/home/ubuntu/.local/bin/day-clone
+__DAY_CLONE_LIST_START__
+Available repositories:
+
+- daylily-omics-analysis: Daylily Omics Analysis
+    Primary whole genome and multiomics workflows.
+    Default ref: 2.0.33
+
+- rna-seq-star-deseq2: RNA-seq STAR + DESeq2
+    RNA sequencing alignment and differential expression analysis workflows.
+    Default ref: main
+
+- daylily-sarek: daylily-sarek
+    sarek nf-core analysis workflows.
+    Default ref: 0.7.379
+
+__DAY_CLONE_LIST_END__
+__FSX_DF_START__
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.248@tcp:/3vbzxb4v  6.6T   76M  6.6T   1% /fsx
+__FSX_DF_END__
+__FSX_MOUNT_START__
+TARGET SOURCE                   FSTYPE OPTIONS
+/fsx   10.0.1.248@tcp:/3vbzxb4v lustre rw,noatime,checksum,flock,user_xattr,lruresize,lazystatfs,nouser_fid2path,verbose,encrypt
+__FSX_MOUNT_END__
+__RUN_ROOT_LS_START__
+total 401
+drwxr-xr-x   9 root root   25600 Jun  1 19:14 .
+drwxr-xr-x   3 root root   33280 Jun  1 18:56 ..
+drwxr-xr-x   3 root root   33280 Jun  1 19:14 Analysis
+-rwxr-xr-x   1 root root       0 May 18 14:46 CopyComplete.txt
+drwxr-xr-x   3 root root   33280 Jun  1 19:14 Data
+drwxr-xr-x   2 root root   90624 Jun  1 19:14 InstrumentAnalyticsLogs
+drwxr-xr-x 324 root root   90624 Jun  1 19:14 InterOp
+drwxr-xr-x   2 root root   33280 Jun  1 19:14 Logs
+-rwxr-xr-x   1 root root 4367440 May 18 14:46 Manifest.tsv
+-rwxr-xr-x   1 root root     794 May 19 01:13 OOW.done
+-rwxr-xr-x   1 root root       1 May 18 14:46 RTAComplete.txt
+-rwxr-xr-x   1 root root       2 May 18 14:46 RTAExited.txt
+-rwxr-xr-x   1 root root     803 May 18 14:46 RunCompletionStatus.xml
+-rwxr-xr-x   1 root root  157676 May 18 14:46 RunInfo.xml
+-rwxr-xr-x   1 root root    3559 May 18 14:46 RunParameters.xml
+-rwxr-xr-x   1 root root    5742 May 18 14:46 SampleSheet.csv
+drwxr-xr-x  10 root root   33280 Jun  1 19:14 Thumbnail_Images
+drwxr-xr-x   2 root root   33280 Jun  1 19:15 _lsmc_ingest
+__RUN_ROOT_LS_END__
+__LANE_DIRS_START__
+L001
+L002
+L003
+L004
+L005
+L006
+L007
+L008
+__LANE_DIRS_END__
+lane003_filter_count=784
+__RUNINFO_FLOWCELL_START__
+		<Flowcell>23TVLGLT4</Flowcell>
+		<Instrument>LH01106</Instrument>
+			<Read Number="1" NumCycles="151" IsIndexedRead="N" IsReverseComplement="N"/>
+			<Read Number="2" NumCycles="10" IsIndexedRead="Y" IsReverseComplement="N"/>
+			<Read Number="3" NumCycles="10" IsIndexedRead="Y" IsReverseComplement="Y"/>
+			<Read Number="4" NumCycles="151" IsIndexedRead="N" IsReverseComplement="N"/>
+__RUNINFO_FLOWCELL_END__
+__RUNPARAMETERS_FLOWCELL_START__
+  <Side>B</Side>
+  <InstrumentType>NovaSeqXPlus</InstrumentType>
+  <InstrumentSerialNumber>LH01106</InstrumentSerialNumber>
+  <FlowCellName>NovaSeqXSeries B4</FlowCellName>
+  <FlowCellType>NovaSeqXSeriesB4</FlowCellType>
+      <Type>FlowCell</Type>
+__RUNPARAMETERS_FLOWCELL_END__
+__BCL_CONVERT_PATH_START__
+__BCL_CONVERT_PATH_END__
+__BCL_CONVERT_VERSION_START__
+bcl-convert not on headnode PATH outside workflow/container
+__BCL_CONVERT_VERSION_END__
+__SNAKEMAKE_VERSION_START__
+snakemake not on bare headnode PATH
+__SNAKEMAKE_VERSION_END__

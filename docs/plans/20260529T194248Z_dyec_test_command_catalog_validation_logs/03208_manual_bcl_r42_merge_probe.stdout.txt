@@ -1,0 +1,21 @@
+DAY-EC activated.
+DAY-EC activated.
+time=2026-05-30T15:59:14Z
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  7.8T  966G  90% /fsx
+squeue:
+3545 i192mem 1 R i192mem-dy-all-9 3000M 5:35 run_bclconvert-run_bclconvert_merge_lanes
+run_dir_projection_links:
+fastq_dir_listing:
+594
+lane_fastq_dirs:
+L001
+L002
+L003
+L004
+L005
+L006
+L007
+L008
+merge_log_tail:
+merge log missing: /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/logs/bclconvert/run_bclconvert.merge_lanes.log

@@ -1,0 +1,8 @@
+DAY-EC activated.
+DAY-EC activated.
+session=dayhoff_runqc_RUN001_MRGX9WR2_retry1_20260603
+repo=/fsx/analysis_results/BigB-4-mk/M-RGX-9WR2/daylily-omics-analysis
+log=/home/ubuntu/daylily-runs/dayhoff_runqc_RUN001_MRGX9WR2_retry1_20260603/manual_relaunch.log
+0: bash* (1 panes) [80x24] [layout b25d,80x24,0,0,0] @0 (active)
+0: [80x24] [history 0/2000, 3368 bytes] %0 (active)
+

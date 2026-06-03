@@ -1,0 +1,162 @@
+DAY-EC activated.
+DAY-EC activated.
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log
+    jobid: 2
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/pycoqc.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log
+        command -v pycoQC >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
+        mapfile -t summary_files < results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+        pycoQC \
+          -f "${summary_files[@]}" \
+          -o results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html \
+          -j results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json \
+          --report_title 20260513_ONT_HG003 \
+          >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+
+[Sat May 30 06:00:04 2026]
+localrule ont_run_qc_nanoplot:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log
+    jobid: 5
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/nanoplot.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    threads: 8
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log
+        command -v NanoPlot >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log 2>&1
+        mapfile -t summary_files < results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+        NanoPlot \
+          --summary "${summary_files[@]}" \
+          --loglength \
+          --tsv_stats \
+          --info_in_report \
+          -t 8 \
+          -o results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot \
+          -p 20260513_ONT_HG003. \
+          >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log 2>&1
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+Touching output file results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done.
+[Sat May 30 06:00:47 2026]
+Finished job 5.
+2 of 6 steps (33%) done
+[Sat May 30 06:00:50 2026]
+Finished job 2.
+3 of 6 steps (50%) done
+Select jobs to execute...
+
+[Sat May 30 06:00:50 2026]
+localrule ont_run_qc_multiqc:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json, results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log
+    jobid: 4
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/multiqc.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html) $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log)
+        multiqc --version > results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log 2>&1 || true
+        multiqc -f \
+          -m pycoqc \
+          -m nanostat \
+          --filename "$(basename results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html)" \
+          --outdir "$(dirname results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html)" \
+          results/runs/20260513_ONT_HG003/run_qc/ont >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log 2>&1
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/73dbbd9209dde9d5b560eca76639c2a0_
+
+[Sat May 30 06:00:50 2026]
+localrule ont_run_qc_report:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/summary.html, results/runs/20260513_ONT_HG003/run_qc/ont/summary.tsv, results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.log
+    jobid: 1
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/ont_run_qc_report.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/summary.html) $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/summary.tsv) $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.log)
+        python workflow/scripts/summarize_run_qc_report.py \
+          --platform ONT \
+          --run-s3-uri s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/ \
+          --metrics-path results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json \
+          --output-html results/runs/20260513_ONT_HG003/run_qc/ont/summary.html \
+          --output-tsv results/runs/20260513_ONT_HG003/run_qc/ont/summary.tsv \
+          --done results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done > results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.log 2>&1
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+[Sat May 30 06:00:51 2026]
+Finished job 1.
+4 of 6 steps (67%) done
+[Sat May 30 06:01:03 2026]
+Finished job 4.
+5 of 6 steps (83%) done
+Select jobs to execute...
+
+[Sat May 30 06:01:03 2026]
+localrule produce_ont_run_qc:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done, results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html
+    jobid: 0
+    reason: Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done, results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat May 30 06:01:03 2026]
+Finished job 0.
+6 of 6 steps (100%) done
+Complete log: .snakemake/log/2026-05-30T055959.652702.snakemake.log
+
+
+	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
+
+
+
+]]]]--------WORKFLOW SUCCESS====================]]]]]--
+RETURN CODE: 0
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the
+supported path is `source ./activate`.
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-05-30 06:01:06,822 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
+  · Attached export DRA dra-0d8459a336d7d53ea at
+/fsx/analysis_results/ubuntu/ccv20260529r22_ont_run_qc/
+2026-05-30 06:28:24,057 INFO Task task-0b3824c213417abf1 status: PENDING
+2026-05-30 06:28:54,238 INFO Task task-0b3824c213417abf1 status: EXECUTING
+2026-05-30 06:29:24,595 INFO Task task-0b3824c213417abf1 status: SUCCEEDED
+2026-05-30 06:29:40,585 INFO Wrote export status to /home/ubuntu/daylily-runs/ccv20260529r22_ont_run_qc/export/fsx_export.yaml
+
+╭────────────────────────────── Export complete ───────────────────────────────╮
+│                                                                              │
+│  Cluster: dyec-test                                                          │
+│  FSx: fs-0df313e1751219cac                                                   │
+│  Source: /analysis_results/ubuntu/ccv20260529r22_ont_run_qc/                 │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260  │
+│  529r22_ont_run_qc/                                                          │
+│  Status file:                                                                │
+│  /home/ubuntu/daylily-runs/ccv20260529r22_ont_run_qc/export/fsx_export.yaml  │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+[INFO] Deleted FSx analysis directory after successful export: /fsx/analysis_results/ubuntu/ccv20260529r22_ont_run_qc
+[INFO] Workflow exited with status 0

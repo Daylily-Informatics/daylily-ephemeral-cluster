@@ -1,0 +1,15 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_STAGE_DIR__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T232720Z_25b0ceca
+__DAYLILY_STAGE_SAMPLES__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T232720Z_25b0ceca/20260529T232720Z_25b0ceca_samples.tsv
+__DAYLILY_STAGE_UNITS__=/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T232720Z_25b0ceca/20260529T232720Z_25b0ceca_units.tsv
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=ccv20260529r7_ultima_snv_alignstats_kitchensink
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ccv20260529r7_ultima_snv_alignstats_kitchensink
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/ccv20260529r7_ultima_snv_alignstats_kitchensink/daylily-omics-analysis
+Tmux session 'ccv20260529r7_ultima_snv_alignstats_kitchensink' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/ccv20260529r7_ultima_snv_alignstats_kitchensink
+Workflow repo path: /fsx/analysis_results/ubuntu/ccv20260529r7_ultima_snv_alignstats_kitchensink/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster dyec-test
+Then run: tmux attach -t ccv20260529r7_ultima_snv_alignstats_kitchensink

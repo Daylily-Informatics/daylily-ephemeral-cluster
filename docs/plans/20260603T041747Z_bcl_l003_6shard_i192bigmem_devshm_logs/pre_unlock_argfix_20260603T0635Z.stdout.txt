@@ -1,0 +1,11 @@
+command_id=3003e5e9-c20e-4d72-923f-6f7cf989f11a
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T06:29:01+00:00
+__SQUEUE__
+             JOBID    PARTITION                                               NAME    STATE       TIME      NODES NODELIST(REASON)
+__PROCESSES__
+__LOCKS__
+5866	/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/.snakemake/locks/0.output.lock
+6776	/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/.snakemake/locks/0.input.lock
+

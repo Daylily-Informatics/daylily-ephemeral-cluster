@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k",
+  "completed_at": "2026-05-30T10:14:38Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r35_ont_snv_alignstats_kitchensink/daylily-omics-analysis",
+  "session_name": "ccv20260529r35_ont_snv_alignstats_kitchensink",
+  "started_at": "2026-05-30T09:28:39Z"
+}

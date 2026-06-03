@@ -1,0 +1,249 @@
+DAY-EC activated.
+DAY-EC activated.
+Cloning into '/fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis'...
+Note: switching to '317c1ee567b9ed80592455e955d2b06aba63c25e'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+Updating files:  36% (458/1272)Updating files:  37% (471/1272)Updating files:  38% (484/1272)Updating files:  39% (497/1272)Updating files:  40% (509/1272)Updating files:  41% (522/1272)Updating files:  42% (535/1272)Updating files:  43% (547/1272)Updating files:  44% (560/1272)Updating files:  45% (573/1272)Updating files:  46% (586/1272)Updating files:  47% (598/1272)Updating files:  48% (611/1272)Updating files:  49% (624/1272)Updating files:  50% (636/1272)Updating files:  51% (649/1272)Updating files:  52% (662/1272)Updating files:  53% (675/1272)Updating files:  54% (687/1272)Updating files:  55% (700/1272)Updating files:  56% (713/1272)Updating files:  57% (726/1272)Updating files:  58% (738/1272)Updating files:  59% (751/1272)Updating files:  60% (764/1272)Updating files:  61% (776/1272)Updating files:  62% (789/1272)Updating files:  63% (802/1272)Updating files:  64% (815/1272)Updating files:  65% (827/1272)Updating files:  66% (840/1272)Updating files:  66% (842/1272)Updating files:  67% (853/1272)Updating files:  68% (865/1272)Updating files:  69% (878/1272)Updating files:  69% (886/1272)Updating files:  70% (891/1272)Updating files:  71% (904/1272)Updating files:  72% (916/1272)Updating files:  73% (929/1272)Updating files:  74% (942/1272)Updating files:  75% (954/1272)Updating files:  76% (967/1272)Updating files:  77% (980/1272)Updating files:  78% (993/1272)Updating files:  79% (1005/1272)Updating files:  80% (1018/1272)Updating files:  81% (1031/1272)Updating files:  82% (1044/1272)Updating files:  83% (1056/1272)Updating files:  84% (1069/1272)Updating files:  85% (1082/1272)Updating files:  86% (1094/1272)Updating files:  87% (1107/1272)Updating files:  88% (1120/1272)Updating files:  89% (1133/1272)Updating files:  90% (1145/1272)Updating files:  90% (1150/1272)Updating files:  91% (1158/1272)Updating files:  92% (1171/1272)Updating files:  93% (1183/1272)Updating files:  94% (1196/1272)Updating files:  95% (1209/1272)Updating files:  96% (1222/1272)Updating files:  97% (1234/1272)Updating files:  98% (1247/1272)Updating files:  99% (1260/1272)Updating files: 100% (1272/1272)Updating files: 100% (1272/1272), done.
+Cloning repository...
+
+Great success! Daylily repository cloned.
+Repository: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
+Reference : 2.0.34
+Location  : /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis
+
+To get started:
+  cd /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis
+  # initialize and run the analysis repository per its documentation
+[INFO] Projected mounted RUN_DIR values through config/run_dir_links
+[INFO] Wrote BCL Convert bootstrap samples for 41 samples from /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv; units table left absent for DayOA bootstrap
+Notice: --project not set. Using default project name: dyec5117
+Project: dyec5117
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'dyec5117' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+# conda environments:
+#
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-225/841ac27cc5e7759e4ad9d0f5f4e02ac4_
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'dyec5117' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyec5117 .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38  
+       _______ GREAT SUCCESS _______       
+[INFO] Patched /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml bclconvert direct mounted-input mode for 20260514_LH01106_0009_B23TVLGLT4: /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+[INFO] DayOA native BCL Convert lane-split rules detected; no DYEC runtime rule patch applied.
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs -p -j 96 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true bclconvert={"barcode_mismatches_index1":"0","barcode_mismatches_index2":"0","compression_threads":"64","conversion_threads":"4","decompression_threads":"32","fastq_gzip_compression_level":"1","force":"true","merge_lane_fastqs":"false","num_unknown_barcodes_reported":"1000","output_legacy_stats":"true","parallel_tiles":"24","partition":"i192mem","sample_sheet_settings":"{}","sample_sheet_settings_by_lane":"{}","shared_thread_odirect_output":"true","threads":"192","tile_compression_threads":"24","tile_conversion_threads":"2","tile_decompression_threads":"8","tile_parallel_tiles":"8","tile_shard_lanes":"L003","tile_shard_level":"2","tile_shard_mem_mb":"180000","tile_shard_threads":"48","tmpdir":"/dev/shm"}
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+SNV Callers (final): []
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cluster nodes: 96
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+bclconvert_validate_inputs          1              1              1
+merge_bclconvert_tile_shards        1              1              1
+produce_bclconvert_fastqs           1              1              1
+run_bclconvert                      1              1              1
+run_bclconvert_tile_shard           2             48             48
+total                               6              1             48
+
+Select jobs to execute...
+
+[Tue Jun  2 01:00:35 2026]
+localrule bclconvert_validate_inputs:
+    input: /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv, /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/samples.tsv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+    jobid: 1
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_validate_inputs.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables
+        : > results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+        if [ -z /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 ]; then
+            echo "bclconvert.run_dir is required" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ ! -d /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 ]; then
+            echo "bclconvert.run_dir does not exist: /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ "true" = "false" ]; then
+            echo "keep_undetermined_fastqs=false is unsupported for the bclconvert bootstrap path" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        bcl_extra_args=
+        if [ -n "$bcl_extra_args" ]; then
+            echo "bclconvert.extra_args is not supported in this shell-only bootstrap workflow" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv \
+          --samples-tsv /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/samples.tsv \
+          --normalized-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv \
+          --rows-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
+        touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+        
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-225/841ac27cc5e7759e4ad9d0f5f4e02ac4_
+[Tue Jun  2 01:00:36 2026]
+Finished job 1.
+1 of 6 steps (17%) done
+Select jobs to execute...
+
+[Tue Jun  2 01:00:36 2026]
+rule run_bclconvert_tile_shard:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0392/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0392/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0392/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0392/SampleSheet.csv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0001_tiles0001-0392.log
+    jobid: 4
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0001_tiles0001-0392.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0392/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0392/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0392/Reports/Demultiplex_Stats.csv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+    wildcards: lane=L003, shard=0001_tiles0001-0392
+    threads: 48
+    resources: mem_mb=180000, mem_mib=171662, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=48, time=5440, partition=i192mem, vcpu=48, distribution=block, exclusive=, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm bash workflow/scripts/run_bclconvert_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/analysis_results/ubuntu/bcl25b_l003_shard002_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0392 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv 3 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0392/SampleSheet.csv false false false 1 8 2 24 8 true true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' -f 48 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0001_tiles0001-0392.log results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0392/Reports/fastq_list.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0392/Reports/Demultiplex_Stats.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0392/bclconvert.done s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108+s_3_1109+s_3_1110+s_3_1111+s_3_1112+s_3_1113+s_3_1114+s_3_1115+s_3_1116+s_3_1117+s_3_1118+s_3_1119+s_3_1120+s_3_1121+s_3_1122+s_3_1123+s_3_1124+s_3_1125+s_3_1126+s_3_1127+s_3_1128+s_3_1129+s_3_1130+s_3_1131+s_3_1132+s_3_1133+s_3_1134+s_3_1135+s_3_1136+s_3_1137+s_3_1138+s_3_1139+s_3_1140+s_3_1141+s_3_1142+s_3_1143+s_3_1144+s_3_1145+s_3_1146+s_3_1147+s_3_1148+s_3_1149+s_3_1150+s_3_1151+s_3_1152+s_3_1153+s_3_1154+s_3_1155+s_3_1156+s_3_1157+s_3_1158+s_3_1159+s_3_1160+s_3_1161+s_3_1162+s_3_1163+s_3_1164+s_3_1165+s_3_1166+s_3_1167+s_3_1168+s_3_1169+s_3_1170+s_3_1171+s_3_1172+s_3_1173+s_3_1174+s_3_1175+s_3_1176+s_3_1177+s_3_1178+s_3_1179+s_3_1180+s_3_1181+s_3_1182+s_3_1183+s_3_1184+s_3_1185+s_3_1186+s_3_1187+s_3_1188+s_3_1189+s_3_1190+s_3_1191+s_3_1192+s_3_1193+s_3_1194+s_3_1195+s_3_1196+s_3_1197+s_3_1198+s_3_1201+s_3_1202+s_3_1203+s_3_1204+s_3_1205+s_3_1206+s_3_1207+s_3_1208+s_3_1209+s_3_1210+s_3_1211+s_3_1212+s_3_1213+s_3_1214+s_3_1215+s_3_1216+s_3_1217+s_3_1218+s_3_1219+s_3_1220+s_3_1221+s_3_1222+s_3_1223+s_3_1224+s_3_1225+s_3_1226+s_3_1227+s_3_1228+s_3_1229+s_3_1230+s_3_1231+s_3_1232+s_3_1233+s_3_1234+s_3_1235+s_3_1236+s_3_1237+s_3_1238+s_3_1239+s_3_1240+s_3_1241+s_3_1242+s_3_1243+s_3_1244+s_3_1245+s_3_1246+s_3_1247+s_3_1248+s_3_1249+s_3_1250+s_3_1251+s_3_1252+s_3_1253+s_3_1254+s_3_1255+s_3_1256+s_3_1257+s_3_1258+s_3_1259+s_3_1260+s_3_1261+s_3_1262+s_3_1263+s_3_1264+s_3_1265+s_3_1266+s_3_1267+s_3_1268+s_3_1269+s_3_1270+s_3_1271+s_3_1272+s_3_1273+s_3_1274+s_3_1275+s_3_1276+s_3_1277+s_3_1278+s_3_1279+s_3_1280+s_3_1281+s_3_1282+s_3_1283+s_3_1284+s_3_1285+s_3_1286+s_3_1287+s_3_1288+s_3_1289+s_3_1290+s_3_1291+s_3_1292+s_3_1293+s_3_1294+s_3_1295+s_3_1296+s_3_1297+s_3_1298+s_3_1301+s_3_1302+s_3_1303+s_3_1304+s_3_1305+s_3_1306+s_3_1307+s_3_1308+s_3_1309+s_3_1310+s_3_1311+s_3_1312+s_3_1313+s_3_1314+s_3_1315+s_3_1316+s_3_1317+s_3_1318+s_3_1319+s_3_1320+s_3_1321+s_3_1322+s_3_1323+s_3_1324+s_3_1325+s_3_1326+s_3_1327+s_3_1328+s_3_1329+s_3_1330+s_3_1331+s_3_1332+s_3_1333+s_3_1334+s_3_1335+s_3_1336+s_3_1337+s_3_1338+s_3_1339+s_3_1340+s_3_1341+s_3_1342+s_3_1343+s_3_1344+s_3_1345+s_3_1346+s_3_1347+s_3_1348+s_3_1349+s_3_1350+s_3_1351+s_3_1352+s_3_1353+s_3_1354+s_3_1355+s_3_1356+s_3_1357+s_3_1358+s_3_1359+s_3_1360+s_3_1361+s_3_1362+s_3_1363+s_3_1364+s_3_1365+s_3_1366+s_3_1367+s_3_1368+s_3_1369+s_3_1370+s_3_1371+s_3_1372+s_3_1373+s_3_1374+s_3_1375+s_3_1376+s_3_1377+s_3_1378+s_3_1379+s_3_1380+s_3_1381+s_3_1382+s_3_1383+s_3_1384+s_3_1385+s_3_1386+s_3_1387+s_3_1388+s_3_1389+s_3_1390+s_3_1391+s_3_1392+s_3_1393+s_3_1394+s_3_1395+s_3_1396+s_3_1397+s_3_1398+s_3_1401+s_3_1402+s_3_1403+s_3_1404+s_3_1405+s_3_1406+s_3_1407+s_3_1408+s_3_1409+s_3_1410+s_3_1411+s_3_1412+s_3_1413+s_3_1414+s_3_1415+s_3_1416+s_3_1417+s_3_1418+s_3_1419+s_3_1420+s_3_1421+s_3_1422+s_3_1423+s_3_1424+s_3_1425+s_3_1426+s_3_1427+s_3_1428+s_3_1429+s_3_1430+s_3_1431+s_3_1432+s_3_1433+s_3_1434+s_3_1435+s_3_1436+s_3_1437+s_3_1438+s_3_1439+s_3_1440+s_3_1441+s_3_1442+s_3_1443+s_3_1444+s_3_1445+s_3_1446+s_3_1447+s_3_1448+s_3_1449+s_3_1450+s_3_1451+s_3_1452+s_3_1453+s_3_1454+s_3_1455+s_3_1456+s_3_1457+s_3_1458+s_3_1459+s_3_1460+s_3_1461+s_3_1462+s_3_1463+s_3_1464+s_3_1465+s_3_1466+s_3_1467+s_3_1468+s_3_1469+s_3_1470+s_3_1471+s_3_1472+s_3_1473+s_3_1474+s_3_1475+s_3_1476+s_3_1477+s_3_1478+s_3_1479+s_3_1480+s_3_1481+s_3_1482+s_3_1483+s_3_1484+s_3_1485+s_3_1486+s_3_1487+s_3_1488+s_3_1489+s_3_1490+s_3_1491+s_3_1492+s_3_1493+s_3_1494+s_3_1495+s_3_1496+s_3_1497+s_3_1498
+Submitted job 4 with external jobid '3'.
+
+[Tue Jun  2 01:00:36 2026]
+rule run_bclconvert_tile_shard:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0002_tiles0393-0784/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0002_tiles0393-0784/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0002_tiles0393-0784/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0002_tiles0393-0784/SampleSheet.csv
+    log: r--output truncated--

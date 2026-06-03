@@ -1,0 +1,199 @@
+command_id=108db8f6-6a56-4110-98b1-81ca1d1b09df
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T06:16:37+00:00
+__SESSION__=dayoa_bcl_l003_6shard_i192bigmem_devshm_20260603
+0: bash* (1 panes) [80x24] [layout b260,80x24,0,0,3] @3 (active)
+0: [80x24] [history 1923/2000, 749304 bytes] %3 (active)
+__PANE_TAIL_BEFORE__
+3_1446+s_3_1447+s_3_1448+s_3_1449+s_3_1450+s_3_1451+s_3_1452+s_3_1453+s_3_1454+s
+_3_1455+s_3_1456+s_3_1457+s_3_1458+s_3_1459+s_3_1460+s_3_1461+s_3_1462+s_3_1463+
+s_3_1464+s_3_1465+s_3_1466+s_3_1467+s_3_1468+s_3_1469+s_3_1470+s_3_1471+s_3_1472
++s_3_1473+s_3_1474+s_3_1475+s_3_1476+s_3_1477+s_3_1478+s_3_1479+s_3_1480+s_3_148
+1+s_3_1482+s_3_1483+s_3_1484+s_3_1485+s_3_1486+s_3_1487+s_3_1488+s_3_1489+s_3_14
+90+s_3_1491+s_3_1492+s_3_1493+s_3_1494+s_3_1495+s_3_1496+s_3_1497+s_3_1498+s_3_2
+101 /dev/shm/dayoa_bclconvert 650000000000
+        (one of the commands exited with non-zero exit code; note that snakemake
+ uses bash strict mode!)
+    cluster_jobid: 21
+
+Error executing rule run_bclconvert_tile_shard on cluster (jobid: 6, external: 2
+1, jobscript: /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devsh
+m_20260603T041747Z/daylily-omics-analysis/.snakemake/tmp.1k8yes_m/snakejob.run_b
+clconvert_tile_shard.6.sh). For error details see the cluster log and the log fi
+les of the involved rule(s).
+[Wed Jun  3 04:37:38 2026]
+Error in rule run_bclconvert_tile_shard:
+    jobid: 8
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_6shard_i192bigmem_devshm/logs/validated.ok, /fsx/run_dir_mounts/20260
+514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm/
+normalized.SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm/tile_reports/L003/0005_tiles0525-0654/bclco
+nvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm/tile_fastqs/L003/0005_tiles0525-0654/Report
+s/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fro
+m_bclconvert_l003_6shard_i192bigmem_devshm/tile_fastqs/L003/0005_tiles0525-0654/
+Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLG
+LT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm/tile_reports/L003/0005_t
+iles0525-0654/SampleSheet.csv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_6shard_i192bigmem_devshm/logs/run_bclconvert.L003.0005_tiles0525-0654.l
+og (check log file(s) for error details)
+    shell:
+        TMPDIR=/dev/shm/dayoa_bclconvert_tmp bash workflow/scripts/run_bclconver
+t_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/run_dir_mounts/20260514_LH01106_
+0009_B23TVLGLT4 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_
+bclconvert_l003_6shard_i192bigmem_devshm/tile_fastqs/L003/0005_tiles0525-0654 /f
+sx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6s
+hard_i192bigmem_devshm/normalized.SampleSheet.csv 3 /fsx/run_dir_mounts/20260514
+_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm/til
+e_reports/L003/0005_tiles0525-0654/SampleSheet.csv false false false 1 24 4 64 3
+2 false true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "
+0"}' '{}'  192 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_6shard_i192bigmem_devshm/logs/run_bclconvert.L003.0005_tiles0525-
+0654.log /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_6shard_i192bigmem_devshm/tile_fastqs/L003/0005_tiles0525-0654/Reports/f
+astq_list.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_6shard_i192bigmem_devshm/tile_fastqs/L003/0005_tiles0525-0654/Repo
+rts/Demultiplex_Stats.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/f
+asts_from_bclconvert_l003_6shard_i192bigmem_devshm/tile_reports/L003/0005_tiles0
+525-0654/bclconvert.done s_3_2235+s_3_2236+s_3_2237+s_3_2238+s_3_2239+s_3_2240+s
+_3_2241+s_3_2242+s_3_2243+s_3_2244+s_3_2245+s_3_2246+s_3_2247+s_3_2248+s_3_2249+
+s_3_2250+s_3_2251+s_3_2252+s_3_2253+s_3_2254+s_3_2255+s_3_2256+s_3_2257+s_3_2258
++s_3_2259+s_3_2260+s_3_2261+s_3_2262+s_3_2263+s_3_2264+s_3_2265+s_3_2266+s_3_226
+7+s_3_2268+s_3_2269+s_3_2270+s_3_2271+s_3_2272+s_3_2273+s_3_2274+s_3_2275+s_3_22
+76+s_3_2277+s_3_2278+s_3_2279+s_3_2280+s_3_2281+s_3_2282+s_3_2283+s_3_2284+s_3_2
+285+s_3_2286+s_3_2287+s_3_2288+s_3_2289+s_3_2290+s_3_2291+s_3_2292+s_3_2293+s_3_
+2294+s_3_2295+s_3_2296+s_3_2297+s_3_2298+s_3_2301+s_3_2302+s_3_2303+s_3_2304+s_3
+_2305+s_3_2306+s_3_2307+s_3_2308+s_3_2309+s_3_2310+s_3_2311+s_3_2312+s_3_2313+s_
+3_2314+s_3_2315+s_3_2316+s_3_2317+s_3_2318+s_3_2319+s_3_2320+s_3_2321+s_3_2322+s
+_3_2323+s_3_2324+s_3_2325+s_3_2326+s_3_2327+s_3_2328+s_3_2329+s_3_2330+s_3_2331+
+s_3_2332+s_3_2333+s_3_2334+s_3_2335+s_3_2336+s_3_2337+s_3_2338+s_3_2339+s_3_2340
++s_3_2341+s_3_2342+s_3_2343+s_3_2344+s_3_2345+s_3_2346+s_3_2347+s_3_2348+s_3_234
+9+s_3_2350+s_3_2351+s_3_2352+s_3_2353+s_3_2354+s_3_2355+s_3_2356+s_3_2357+s_3_23
+58+s_3_2359+s_3_2360+s_3_2361+s_3_2362+s_3_2363+s_3_2364+s_3_2365+s_3_2366 /dev/
+shm/dayoa_bclconvert 650000000000
+        (one of the commands exited with non-zero exit code; note that snakemake
+ uses bash strict mode!)
+    cluster_jobid: 22
+
+Error executing rule run_bclconvert_tile_shard on cluster (jobid: 8, external: 2
+2, jobscript: /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devsh
+m_20260603T041747Z/daylily-omics-analysis/.snakemake/tmp.1k8yes_m/snakejob.run_b
+clconvert_tile_shard.8.sh). For error details see the cluster log and the log fi
+les of the involved rule(s).
+Exiting because a job execution failed. Look above for error message
+
+        Womp Womp.  something went awry----
+RETURN CODE: 1
+__LIVE_EXIT__=1
+[Dslu](DAYOA)
+__SEND_SETUP__
+__PANE_TAIL_AFTER_SETUP_SEND__
+________________________________________________________
+Using explicit SENTIEON_LICENSE: /fsx/references/runtime_assets/cached_envs/Life
+_Sciences_Manufacturing_Corporation_eval.lic
+
+# conda environments:
+#
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-235/9d
+47d7d0d1fd2da30ac182cf088a614c_
+base                   /home/ubuntu/miniconda3
+DAY-EC                 /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                * /home/ubuntu/miniconda3/envs/DAYOA
+
+dy-a slurm hg38
+Day CLI initialized for project 'dyec0602bcl' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+
+        (day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a
+Slurm or local environment.
+
+        {day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome bui
+ld for the current environment.
+
+        (day-run / dy-r)          - Run a command in the current environment.
+                                   <tab> for exposed targets, -<tab> for all com
+mand line flags.
+
+        (day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, l
+ogs).
+                                   Use --block-and-poll to wait for completion.
+
+        (day-deactivate / dy-d)   - Deactivate the current environment.
+                                   Use 'dy-d reset' to hard reset the environmen
+t.
+
+
+
+
+        . To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~
+/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode
+          ... which once run, you will copy the samples.tsv and units.tsv files
+to config/ in this directory.
+
+        (example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+                dy-a slurm hg38 # or hg38_broad or b37
+
+        (example): RUN ANALYSES
+
+                cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/sample
+s.tsv
+
+                cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.ts
+v
+
+
+
+                # Use target names directly (tab-complete available):
+
+                dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-
+read SNV concordance
+
+                dy-r produce_alignstats -p -k -j 20 -n         # Alignment stati
+stics
+
+
+
+                # Platform-specific targets:
+
+                dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+                dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV call
+ing
+
+                dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV call
+ing (use hg38_broad)
+
+
+
+                # Hybrid workflow targets:
+
+                dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina
++ONT CLI
+
+                dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+O
+NT CLI (use hg38_broad)
+
+                dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina
++ONT Modular
+
+                dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+O
+NT Modular (use hg38_broad)
+
+
+
+                # Remove -n to execute (not dry-run)
+
+(DAYOA) [Dslu]dy-a slurm hg38
+Requesting profile: slurm
+
+

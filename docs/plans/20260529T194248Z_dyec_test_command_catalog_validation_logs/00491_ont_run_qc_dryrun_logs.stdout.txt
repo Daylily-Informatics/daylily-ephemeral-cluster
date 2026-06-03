@@ -1,0 +1,242 @@
+DAY-EC activated.
+DAY-EC activated.
+            exit 2
+        fi
+
+
+[Sat May 30 03:14:57 2026]
+localrule ont_run_qc_collect_summaries:
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/collect_summaries.log
+    jobid: 3
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/collect_summaries.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt) $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/collect_summaries.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/collect_summaries.log
+        if [ -z /fsx/run_dir_mounts/20260513_ONT_HG003/ ]; then
+            echo "config/runs.tsv with PLATFORM=ONT and RUN_DIR is required for mounted ONT run QC" >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/collect_summaries.log
+            exit 2
+        fi
+        test -d /fsx/run_dir_mounts/20260513_ONT_HG003/
+        find /fsx/run_dir_mounts/20260513_ONT_HG003/ -type f \( -name 'sequencing_summary*.txt' -o -name 'sequencing_summary*.txt.gz' \) \
+          | sort > results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+        if [ ! -s results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt ]; then
+            echo "No sequencing_summary*.txt files found under /fsx/run_dir_mounts/20260513_ONT_HG003/" >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/collect_summaries.log
+            exit 2
+        fi
+
+
+[Sat May 30 03:14:57 2026]
+localrule ont_run_qc_pycoqc:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log
+    jobid: 2
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/pycoqc.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log
+        command -v pycoQC >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
+        mapfile -t summary_files < results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+        pycoQC \
+          -f "${summary_files[@]}" \
+          -o results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html \
+          -j results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json \
+          --report_title 20260513_ONT_HG003 \
+          >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+
+
+[Sat May 30 03:14:57 2026]
+localrule ont_run_qc_nanoplot:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log
+    jobid: 5
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/nanoplot.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    threads: 8
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log
+        command -v NanoPlot >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log 2>&1
+        mapfile -t summary_files < results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+        NanoPlot \
+          --summary "${summary_files[@]}" \
+          --loglength \
+          --tsv_stats \
+          --info_in_report \
+          -t 8 \
+          -o results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot \
+          -p 20260513_ONT_HG003. \
+          >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/nanoplot.log 2>&1
+
+
+[Sat May 30 03:14:57 2026]
+localrule ont_demux_fastq_qc:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/fastq_group_dirs.txt
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/ont_demux_fastq_qc.done
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+    jobid: 7
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/demux_fastq_qc.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/ont_demux_fastq_qc.done; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/fastq_group_dirs.txt
+    threads: 8
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+        command -v seqkit >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        command -v nanoq >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        command -v NanoStat >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        command -v NanoPlot >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        while IFS= read -r fastq_dir; do
+            status="$(basename "$(dirname "$fastq_dir")")"
+            barcode="$(basename "$fastq_dir")"
+            sample="20260513_ONT_HG003-${status}-${barcode}"
+            sample_out="results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/$sample"
+            file_list="$sample_out/$sample.fastq_files.txt"
+            mkdir -p "$sample_out/nanoplot"
+            find "$fastq_dir" -maxdepth 1 -type f \( -name '*.fastq.gz' -o -name '*.fq.gz' \) \
+              | sort > "$file_list"
+            if [ ! -s "$file_list" ]; then
+                echo "No FASTQs found for $sample under $fastq_dir" >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+                exit 2
+            fi
+            mapfile -t fastqs < "$file_list"
+            seqkit stats --tabular "${fastqs[@]}" \
+              > "$sample_out/$sample.seqkit_stats.tsv" \
+              2>> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+            nanoq "${fastqs[@]}" \
+              > "$sample_out/$sample.nanoq.txt" \
+              2>> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+            NanoStat --fastq "${fastqs[@]}" \
+              > "$sample_out/$sample.NanoStat.fastq.txt" \
+              2>> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+            NanoPlot \
+              --fastq "${fastqs[@]}" \
+              --loglength \
+              --tsv_stats \
+              --info_in_report \
+              -t 8 \
+              -o "$sample_out/nanoplot" \
+              -p "$sample." \
+              >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        done < results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/fastq_group_dirs.txt
+
+
+[Sat May 30 03:14:57 2026]
+localrule ont_run_qc_multiqc:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json, results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log
+    jobid: 4
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/multiqc.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html) $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log)
+        multiqc --version > results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log 2>&1 || true
+        multiqc -f \
+          -m pycoqc \
+          -m nanostat \
+          --filename "$(basename results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html)" \
+          --outdir "$(dirname results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html)" \
+          results/runs/20260513_ONT_HG003/run_qc/ont >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/multiqc.log 2>&1
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html
+
+
+[Sat May 30 03:14:57 2026]
+localrule ont_run_qc_report:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/summary.html, results/runs/20260513_ONT_HG003/run_qc/ont/summary.tsv, results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.log
+    jobid: 1
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/ont_run_qc_report.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/summary.html) $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/summary.tsv) $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.log)
+        python workflow/scripts/summarize_run_qc_report.py \
+          --platform ONT \
+          --run-s3-uri s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/ \
+          --metrics-path results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json \
+          --output-html results/runs/20260513_ONT_HG003/run_qc/ont/summary.html \
+          --output-tsv results/runs/20260513_ONT_HG003/run_qc/ont/summary.tsv \
+          --done results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done > results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.log 2>&1
+
+
+[Sat May 30 03:14:57 2026]
+localrule ont_demux_fastq_multiqc:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/ont_demux_fastq_qc.done
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/ont_demux_fastq.multiqc.html
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_multiqc.log
+    jobid: 6
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/demux_fastq_multiqc.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/ont_demux_fastq.multiqc.html; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/ont_demux_fastq_qc.done
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/ont_demux_fastq.multiqc.html) $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_multiqc.log)
+        multiqc --version > results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_multiqc.log 2>&1 || true
+        multiqc -f \
+          -m nanostat \
+          -m seqkit \
+          -m nanoq \
+          --filename "$(basename results/runs/20260513_ONT_HG003/run_qc/ont/ont_demux_fastq.multiqc.html)" \
+          --outdir "$(dirname results/runs/20260513_ONT_HG003/run_qc/ont/ont_demux_fastq.multiqc.html)" \
+          results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_multiqc.log 2>&1
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/ont_demux_fastq.multiqc.html
+
+
+[Sat May 30 03:14:57 2026]
+localrule produce_ont_run_qc_and_demux_multiqc:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done, results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html, results/runs/20260513_ONT_HG003/run_qc/ont/ont_demux_fastq.multiqc.html
+    jobid: 0
+    reason: Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/logs/ont_run_qc_report.done, results/runs/20260513_ONT_HG003/run_qc/ont/multiqc_report.html, results/runs/20260513_ONT_HG003/run_qc/ont/ont_demux_fastq.multiqc.html
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+Job stats:
+job                                     count    min threads    max threads
+------------------------------------  -------  -------------  -------------
+ont_demux_fastq_group_list                  1              1              1
+ont_demux_fastq_multiqc                     1              1              1
+ont_demux_fastq_qc                          1              8              8
+ont_run_qc_collect_summaries                1              1              1
+ont_run_qc_multiqc                          1              1              1
+ont_run_qc_nanoplot                         1              8              8
+ont_run_qc_pycoqc                           1              1              1
+ont_run_qc_report                           1              1              1
+produce_ont_run_qc_and_demux_multiqc        1              1              1
+total                                       9              1              8
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        ont_demux_fastq_multiqc, ont_demux_fastq_qc, ont_run_qc_multiqc, ont_run_qc_nanoplot, ont_run_qc_pycoqc, ont_run_qc_report, produce_ont_run_qc_and_demux_multiqc
+    missing output files:
+        ont_demux_fastq_group_list, ont_demux_fastq_multiqc, ont_demux_fastq_qc, ont_run_qc_collect_summaries, ont_run_qc_multiqc, ont_run_qc_nanoplot, ont_run_qc_pycoqc, ont_run_qc_report
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of execution.
+RETURN CODE: 0
+[INFO] Workflow exited with status 0
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260529r11_ont_run_qc_dryrun/daylily-omics-analysis$

@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete -n",
+  "completed_at": "2026-05-31T13:45:06Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/dyec-515/d515_0531T134008_d515d15_cg_mgi/daylily-omics-analysis",
+  "session_name": "d515_0531T134008_d515d15_cg_mgi",
+  "started_at": "2026-05-31T13:44:44Z"
+}

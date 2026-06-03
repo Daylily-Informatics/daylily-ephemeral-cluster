@@ -1,0 +1,9 @@
+command_id=55b8247e-da1a-44ef-a308-45d26c0ed5fa
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T02:59:04+00:00
+__SQUEUE__
+             JOBID    PARTITION                     NAME     USER ST       TIME  NODES                                             NODELIST(REASON)
+                 1       bcl2fq    bcl2fq_scratch_to_dra   ubuntu PD       0:00      1   (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+__DEST_COUNT__
+0

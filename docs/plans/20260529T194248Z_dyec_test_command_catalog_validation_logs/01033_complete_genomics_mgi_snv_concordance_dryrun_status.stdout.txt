@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_sentcg_align produce_dmd_dedup_cram produce_cgt7p_snv_vcf produce_alignstats produce_snv_concordances -p -j 20 -k -T 1 --retries 0 --rerun-incomplete --keep-incomplete -n",
+  "completed_at": "2026-05-30T07:02:30Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r26_complete_genomics_mgi_snv_concordance_dryrun/daylily-omics-analysis",
+  "session_name": "ccv20260529r26_complete_genomics_mgi_snv_concordance_dryrun",
+  "started_at": "2026-05-30T07:01:58Z"
+}

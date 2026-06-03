@@ -6,6 +6,7 @@ HeadNode:
   Networking:
     ElasticIp: true
     SubnetId: ${REGSUB_PUB_SUBNET}  # subnet-018d25d2f208a83a2
+    # ${REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING}
   DisableSimultaneousMultithreading: false
   Dcv:
     Enabled: false
@@ -35,7 +36,6 @@ HeadNode:
     AdditionalIamPolicies:
       - Policy: ${REGSUB_S3_IAM_POLICY}
       - Policy: arn:aws:iam::aws:policy/AmazonSSMManagedInstanceCore
-      - Policy: ${REGSUB_HEADNODE_TAILSCALE_IAM_POLICY}
 Scheduling:
   Scheduler: slurm
   SlurmSettings:
@@ -44,6 +44,7 @@ Scheduling:
     Dns:
       DisableManagedDns: false
     QueueUpdateStrategy: DRAIN
+    # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
   SlurmQueues:
     - Name: i8
       CapacityType: SPOT

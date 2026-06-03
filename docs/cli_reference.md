@@ -2,13 +2,23 @@
 
 This reference is grounded in the current `dyec` / `daylily-ec` command surface. Both executable names use the same entrypoint.
 
-## Root Commands
+## Global Options
 
 ```bash
 dyec --help
+dyec --json version
 ```
 
-Current commands:
+Global options:
+
+- `--json`: emit machine-readable JSON where supported
+- `--dry-run`: plan the command without persistent changes when the command supports it
+- `--no-color`: disable ANSI styling
+- `--debug`: enable debug diagnostics
+
+## Root Commands
+
+Current root commands:
 
 - `version`
 - `info`
@@ -23,6 +33,7 @@ Current commands:
 - `runtime`
 - `pricing`
 - `aws`
+- `slurm-accounting`
 - `cluster`
 - `headnode`
 - `samples`
@@ -33,7 +44,19 @@ Current commands:
 - `mount`
 - `state`
 
-Use global `--json` for machine-readable output where supported.
+## Allowed Command Model
+
+DYEC commands should either inspect state, create an explicit cluster resource from config, launch a documented repository command, attach a documented input mount, export one completed analysis directory, or delete a named cluster after approval. Do not use DYEC docs or examples to smuggle in guessed buckets, guessed references, root SSH, PEM files, direct scheduler intervention, or legacy helper paths.
+
+Manual DayOA workflow commands on a headnode must use the DayOA wrapper sequence:
+
+```bash
+source dyoainit
+dy-a slurm hg38_broad
+dy-r <targets> <flags>
+```
+
+DYEC may launch DayOA through `dyec samples run` or `dyec workflow launch`; agents should not invoke `snakemake` directly for DayOA work.
 
 ## Create And Preflight
 
@@ -49,15 +72,7 @@ dyec create \
   --config "$DAY_EX_CFG"
 ```
 
-`create` runs preflight, renders the ParallelCluster YAML, creates the cluster, waits for the headnode, configures DayEC on the headnode over SSM, and validates the supported `ubuntu` login shell.
-
-When storage URI config values are blank and `create` is run interactively,
-DYEC discovers contract-valid candidates in the selected profile and region,
-including the export destination. It auto-selects a URI only when exactly one
-candidate is valid, presents numbered choices when multiple candidates are
-valid, and asks for an explicit S3 URI when no valid candidates are found.
-`--non-interactive` does not discover or prompt; the config must provide
-explicit URIs.
+`create` runs preflight, renders the ParallelCluster YAML, creates the cluster, waits for the headnode, configures DayEC on the headnode over SSM, and validates the supported `ubuntu` login shell. In non-interactive automation, storage URIs and identity values must be explicit in config or flags.
 
 Important options:
 
@@ -67,6 +82,8 @@ Important options:
 - `--pass-on-warn`
 - `--debug`
 - `--non-interactive`
+- `--create-slurm-accounting-db`
+- `--scan-slurm-accounting-db`
 
 ## Cluster
 
@@ -76,7 +93,7 @@ dyec --json cluster describe --profile "$AWS_PROFILE" --region "$REGION" --clust
 dyec cluster wait --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
-`cluster-info` remains available, but `cluster list` is the preferred current operator surface.
+`cluster-info` remains available, but `cluster list` and `cluster describe` are the preferred current inspection surfaces.
 
 ## Headnode
 
@@ -87,7 +104,7 @@ dyec headnode info --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUST
 dyec headnode jobs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
-Supported headnode command payloads run as `ubuntu`. Interactive sessions use `SSM-SessionManagerRunShell` and must land in `/home/ubuntu` in a bash login shell.
+Supported headnode command payloads run as `ubuntu`. Interactive sessions use AWS Session Manager and must land in `/home/ubuntu` in a bash login shell.
 
 ## Samples
 
@@ -107,43 +124,28 @@ dyec samples stage "$ANALYSIS_SAMPLES" \
 
 ```bash
 dyec samples run "$ANALYSIS_SAMPLES" \
-  --command-id complete_genomics_mgi_snv_concordance \
+  --command-id illumina_snv_alignstats \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --reference-s3-uri "$REF_S3_URI" \
   --control-data-s3-uri "$CONTROL_DATA_S3_URI" \
   --stage-s3-uri "$STAGE_S3_URI" \
-  --analysis-id dayoa \
-  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$EXECUTING_ENTITY" \
+  --export-destination-s3-uri "$EXPORT_S3_URI" \
+  --export-trigger on-success \
   --dry-run
 ```
 
-Important options:
-
-- `--reference-s3-uri`
-- `--control-data-s3-uri`
-- `--stage-s3-uri`
-- `--config-dir`
-- `--stage-target`
-- `--run-metric-staging RUN_UID:PLATFORM:FOFN`
-- `--command-id`
-- `--analysis-id`
-- `--executing-entity`
-- `--export-destination-s3-uri`
-- `--export-trigger`
-- `--delete-on-export-success`
-- `--artifact-registration-command-id`
-- `--dewey-url`
-- `--dewey-token-env`
-- `--git-tag`
+Important options include `--command-id`, `--analysis-id`, `--executing-entity`, `--export-destination-s3-uri`, `--export-trigger`, `--artifact-registration-command-id`, `--dewey-url`, `--dewey-token-env`, and `--git-tag`.
 
 ## Run Mounts
 
-Run mounts are FSx Data Repository Associations from selected S3 run prefixes to `/run_dir_mounts/<mount_id>/`, visible on the headnode as `/fsx/run_dir_mounts/<mount_id>/`. The mount id defaults to the final folder in the S3 URI.
+Run mounts are FSx Data Repository Associations from selected S3 run prefixes to `/run_dir_mounts/<mount_id>/`, visible on the headnode as `/fsx/run_dir_mounts/<mount_id>/`. The mount id defaults to the final folder in the S3 URI unless explicitly supplied.
 
 ```bash
-dyec --json mounts create "s3://sequencer-run-bucket/runs/RUN123/" \
+dyec --json mounts create "s3://<sequencing-run-bucket>/<run-prefix>/" \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
@@ -151,7 +153,8 @@ dyec --json mounts create "s3://sequencer-run-bucket/runs/RUN123/" \
   --read-only \
   --batch-import-metadata-on-create \
   --auto-import NEW,CHANGED \
-  --wait
+  --wait \
+  --timeout-seconds 3600
 
 dyec --json mounts list \
   --profile "$AWS_PROFILE" \
@@ -162,25 +165,14 @@ dyec --json mounts describe \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --mount-id RUN123
+  --mount-id <mount_id>
 
 dyec --json mounts verify \
   --profile "$AWS_PROFILE" \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
-  --mount-id RUN123
-
-dyec --json mounts delete \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --cluster "$CLUSTER_NAME" \
-  --mount-id RUN123 \
-  --wait
+  --mount-id <mount_id>
 ```
-
-`mounts verify` is currently headnode-only. It returns exit code `0` when the `/fsx/...` path is usable and nonzero when it is not.
-
-`dyec mount rundir` is an alias for `dyec mounts create`.
 
 Default behavior is read-oriented:
 
@@ -189,9 +181,11 @@ Default behavior is read-oriented:
 - no deletion of S3 objects on detach
 - overlapping active FSx paths or S3 prefixes are rejected
 
+Do not treat run-mount creation as failed only because it has been in `CREATING` for a few minutes. Large dynamic FSx associations can legitimately take around 30 minutes; use an explicit timeout comfortably above that when waiting.
+
 ## Workflow
 
-Sample-manifest launch:
+Sample-manifest launch with staged manifests:
 
 ```bash
 dyec workflow launch \
@@ -199,12 +193,16 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
-  --analysis-id dayoa \
-  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.19
+  --analysis-id "$ANALYSIS_ID" \
+  --executing-entity "$EXECUTING_ENTITY" \
+  --repository daylily-omics-analysis \
+  --git-tag 2.0.44 \
+  --genome hg38_broad \
+  --jobs 20 \
+  --target produce_alignstats
 ```
 
-Run-context launch:
+Run-context launch with an explicit `runs.tsv`:
 
 ```bash
 dyec workflow launch \
@@ -213,12 +211,16 @@ dyec workflow launch \
   --cluster "$CLUSTER_NAME" \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
-  --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.19 \
-  --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
+  --executing-entity "$EXECUTING_ENTITY" \
+  --repository daylily-omics-analysis \
+  --git-tag 2.0.44 \
+  --genome hg38_broad \
+  --jobs 5 \
+  --target produce_illumina_run_qc \
+  --snakemake-extra "--config run_context_file=config/runs.tsv"
 ```
 
-Workflow launch requires `--analysis-id` and `--executing-entity`; both must be safe path segments. The headnode checkout root is `/fsx/analysis_results/<executing_entity>/<analysis_id>/`, and the repository checkout sits below it.
+`workflow launch` requires `--analysis-id`; `--executing-entity` should be a stable safe path segment. The headnode checkout root is `/fsx/analysis_results/<executing_entity>/<analysis_id>/`, and the repository checkout sits below it.
 
 Auto-export options:
 
@@ -228,10 +230,6 @@ Auto-export options:
 - `--artifact-registration-command-id`: command-catalog policy to apply after successful export
 - `--dewey-url`: Dewey base URL for DYEC registration requests
 - `--dewey-token-env`: environment variable containing the Dewey bearer token on the headnode
-
-Artifact registration requires auto-export and a command with an explicit
-catalog policy. DayOA writes only local evidence artifacts; DYEC owns Dewey
-requests after export.
 
 Inspect:
 
@@ -243,21 +241,32 @@ dyec workflow logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUST
 ## Repository Catalog
 
 ```bash
-dyec repositories commands
-dyec repositories commands --config config/daylily_available_repositories.yaml
-dyec repositories commands --command-id illumina_run_qc
+dyec --json repositories commands
+dyec repositories commands --config config/daylily_pipeline_command_catalog.yaml
+dyec repositories commands --command-id illumina_snv_alignstats
 ```
 
-The catalog is version 2. DayOA repository and command pins are `2.0.19`.
+The catalog is version 2. The current DayOA repository default and DayOA command pins are `2.0.44`; `daylily-sarek` is present as a Nextflow/nf-core Sarek repository entry.
+
+Headnode repository cloning uses the same catalog:
+
+```bash
+day-clone --list
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 2.0.44 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 2.0.44
+```
+
+`-t` is the short form of `--git-tag`; `-d` is the short form of `--destination` and is required for every clone. If `--repository` is omitted, `day-clone` uses `default_repository` from `daylily_pipeline_command_catalog.yaml`. If `--git-tag`/`-t` is omitted, it uses the selected repository row's `default_ref`. Missing catalog rows, missing URLs, missing cluster identity, unsafe path segments, or an existing destination directory are hard failures.
 
 Command classes:
 
+- `utility`: no sample or run source data
 - `sample_analysis`: uses `analysis_samples.tsv`, staging, `samples.tsv`, and `units.tsv`
 - `run_analysis`: uses `runs.tsv` and requires a run mount
 
 ## Export
 
-Root export runs the complete explicit output-DRA workflow on one completed analysis directory:
+Root export runs the explicit output-DRA workflow on one completed analysis directory:
 
 ```bash
 dyec export \
@@ -294,14 +303,22 @@ dyec --json exports run --profile "$AWS_PROFILE" --region "$REGION" --source-pat
 dyec --json exports detach --profile "$AWS_PROFILE" --region "$REGION" --association-id "$EXPORT_DRA_ID"
 ```
 
+## Slurm Accounting
+
+```bash
+dyec slurm-accounting ensure --help
+dyec create --scan-slurm-accounting-db --profile "$AWS_PROFILE" --region-az "$REGION_AZ" --config "$DAY_EX_CFG"
+```
+
+The helper manages external Slurm accounting database infrastructure when configured. On a running cluster, `sacct --version` may succeed while job-account queries fail if Slurm accounting storage is disabled. Treat that as an infrastructure/config state, not as a reason to restart Slurm or modify jobs.
+
 ## Delete
 
 ```bash
 dyec delete --dry-run --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
-dyec delete --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME"
 ```
 
-Use `--yes` only when the destructive delete has already been approved.
+Live delete is destructive. Use non-dry-run delete only after a separate explicit approval for the exact cluster.
 
 ## AWS Validation
 

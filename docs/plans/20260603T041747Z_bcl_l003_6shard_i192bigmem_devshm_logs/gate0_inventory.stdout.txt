@@ -1,0 +1,409 @@
+command_id=fb25cea5-5862-4b49-8be8-5ee949e8c75b
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T04:20:47+00:00
+__HOST__=ip-10-0-0-235
+__WHOAMI__=ubuntu
+__MOUNT_DEST__
+exists=yes path=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+first_child=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/InterOp
+exists=yes path=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+exists=yes path=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Data/Intensities/BaseCalls/L003
+first_child=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Data/Intensities/BaseCalls/L003/s_3_2147.filter
+exists=no path=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm
+run_parent_writable=no
+__L003_SIZE__
+426171200666	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Data/Intensities/BaseCalls/L003
+total_files=1428 total_bytes=426160328346
+ext=cbcl files=644 bytes=421061120218
+ext=filter files=784 bytes=5099208128
+__RUNINFO__
+exists=True path=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml
+reads=1:151:N,2:10:Y,3:10:Y,4:151:N
+layout=LaneCount=8 SurfaceCount=2 SwathCount=4 TileCount=98
+__I192BIGMEM_PARTITION__
+PARTITION AVAIL NODES STATE CPUS MEMORY GRES NODELIST REASON
+i192bigmem up 1 idle~ 192 1494220 (null) i192bigmem-dy-all-1 none
+PartitionName=i192bigmem
+   AllowGroups=ALL AllowAccounts=ALL AllowQos=ALL
+   AllocNodes=ALL Default=NO QoS=N/A
+   DefaultTime=NONE DisableRootJobs=NO ExclusiveUser=NO ExclusiveTopo=NO GraceTime=0 Hidden=NO
+   MaxNodes=UNLIMITED MaxTime=UNLIMITED MinNodes=0 LLN=NO MaxCPUsPerNode=UNLIMITED MaxCPUsPerSocket=UNLIMITED
+   NodeSets=i192bigmem_nodes
+   Nodes=i192bigmem-dy-all-1
+   PriorityJobFactor=1 PriorityTier=1 RootOnly=NO ReqResv=NO OverSubscribe=NO
+   OverTimeLimit=NONE PreemptMode=OFF
+   State=UP TotalCPUs=192 TotalNodes=1 SelectTypeParameters=NONE
+   JobDefaults=(null)
+   DefMemPerNode=UNLIMITED MaxMemPerNode=UNLIMITED
+   TRES=cpu=192,mem=1494220M,node=1,billing=192
+   ResumeTimeout=GLOBAL SuspendTimeout=GLOBAL SuspendTime=GLOBAL PowerDownOnIdle=NO
+
+__I192BIGMEM_NODES__
+NODELIST STATE CPUS MEMORY GRES REASON
+i192bigmem-dy-all-1 idle~ 192 1494220 (null) none
+__QUEUE__
+JOBID              PARTITION    NAME                                                         USER     ST TIME       NODES  NODELIST(REASON)
+10                 bcl2fq       run_bclconvert_lane-run_bclconvert_L003                      ubuntu   CF 0:00       1      bcl2fq-dy-nvme64-2
+1                  bcl2fq       bcl2fq_scratch_to_dra                                        ubuntu   PD 0:00       1      (BeginTime)
+2                  bcl2fq       run_bclconvert_lane-run_bclconvert_L001                      ubuntu   PD 0:00       1      (BeginTime)
+3                  bcl2fq       run_bclconvert_lane-run_bclconvert_L003                      ubuntu   PD 0:00       1      (BeginTime)
+8                  bcl2fq       run_bclconvert_lane-run_bclconvert_L004                      ubuntu   PD 0:00       1      (BeginTime)
+9                  bcl2fq       run_bclconvert_lane-run_bclconvert_L005                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-1)
+7                  bcl2fq       run_bclconvert_lane-run_bclconvert_L007                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-1)
+6                  bcl2fq       run_bclconvert_lane-run_bclconvert_L002                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-1)
+5                  bcl2fq       run_bclconvert_lane-run_bclconvert_L006                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-1)
+4                  bcl2fq       run_bclconvert_lane-run_bclconvert_L008                      ubuntu   PD 0:00       1      (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-1)
+__BCL_JOB_DETAILS__
+--- job=10 name=run_bclconvert_lane-run_bclconvert_L003
+JobId=10 JobName=run_bclconvert_lane-run_bclconvert_L003
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=CONFIGURING Reason=None Dependency=(null)
+   Requeue=1 Restarts=18 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A
+   SubmitTime=2026-06-03T04:19:00 EligibleTime=2026-06-03T04:20:11
+   AccrueTime=2026-06-03T04:20:11
+   StartTime=2026-06-03T04:20:48 EndTime=2026-06-06T23:00:48 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T04:20:48 Scheduler=Main
+   Partition=bcl2fq AllocNode:Sid=ip-10-0-0-235:46045
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=bcl2fq-dy-nvme64-2
+   BatchHost=bcl2fq-dy-nvme64-2
+   NumNodes=1 NumCPUs=64 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=48,mem=300000M,node=1,billing=48
+   AllocTRES=cpu=64,node=1,billing=64
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=48 MinMemoryNode=300000M MinTmpDiskNode=0
+   Features=(null) DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/.snakemake/tmp.0am0859u/snakejob.run_bclconvert_lane.3.sh
+   WorkDir=/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis
+   Comment=dyec0602bcl 
+   StdErr=/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L003.3.err
+   StdIn=/dev/null
+   StdOut=/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L003.3.out
+   TresPerTask=cpu=48
+   
+
+--- job=1 name=bcl2fq_scratch_to_dra
+JobId=1 JobName=bcl2fq_scratch_to_dra
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=PENDING Reason=BeginTime Dependency=(null)
+   Requeue=1 Restarts=12 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=365-00:00:00 TimeMin=N/A
+   SubmitTime=2026-06-03T04:20:02 EligibleTime=2026-06-03T04:21:13
+   AccrueTime=2026-06-03T04:21:13
+   StartTime=2026-06-03T04:21:13 EndTime=2027-06-03T04:21:13 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T04:19:48 Scheduler=Main
+   Partition=bcl2fq AllocNode:Sid=ip-10-0-0-235:16061
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=1-1 NumCPUs=48 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=48,mem=300G,node=1,billing=48
+   AllocTRES=cpu=48,node=1,billing=48
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=48 MinMemoryNode=300G MinTmpDiskNode=0
+   Features=nvme48 DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/bclconvert_scratch_to_dra.job.sh
+   WorkDir=/home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z
+   Comment=unknown-project-invalid-project 
+   StdErr=/home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/slurm-1.err
+   StdIn=/dev/null
+   StdOut=/home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/slurm-1.out
+   TresPerTask=cpu=48
+   
+
+--- job=2 name=run_bclconvert_lane-run_bclconvert_L001
+JobId=2 JobName=run_bclconvert_lane-run_bclconvert_L001
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=PENDING Reason=BeginTime Dependency=(null)
+   Requeue=1 Restarts=3 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A
+   SubmitTime=2026-06-03T04:20:02 EligibleTime=2026-06-03T04:21:13
+   AccrueTime=2026-06-03T04:21:13
+   StartTime=2026-06-03T04:21:13 EndTime=2026-06-06T23:01:13 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T04:19:48 Scheduler=Main
+   Partition=bcl2fq AllocNode:Sid=ip-10-0-0-235:25989
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=1 NumCPUs=48 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=48,mem=300000M,node=1,billing=48
+   AllocTRES=cpu=48,node=1,billing=48
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=48 MinMemoryNode=300000M MinTmpDiskNode=0
+   Features=nvme48 DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/.snakemake/tmp.3zvrk8zo/snakejob.run_bclconvert_lane.3.sh
+   WorkDir=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis
+   Comment=dyec0602bcl 
+   StdErr=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L001.3.err
+   StdIn=/dev/null
+   StdOut=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L001.3.out
+   TresPerTask=cpu=48
+   
+
+--- job=3 name=run_bclconvert_lane-run_bclconvert_L003
+JobId=3 JobName=run_bclconvert_lane-run_bclconvert_L003
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=PENDING Reason=BeginTime Dependency=(null)
+   Requeue=1 Restarts=3 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A
+   SubmitTime=2026-06-03T04:20:02 EligibleTime=2026-06-03T04:21:13
+   AccrueTime=2026-06-03T04:21:13
+   StartTime=2026-06-03T04:21:13 EndTime=2026-06-06T23:01:13 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T04:19:48 Scheduler=Main
+   Partition=bcl2fq AllocNode:Sid=ip-10-0-0-235:25989
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=1 NumCPUs=48 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=48,mem=300000M,node=1,billing=48
+   AllocTRES=cpu=48,node=1,billing=48
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=48 MinMemoryNode=300000M MinTmpDiskNode=0
+   Features=nvme48 DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/.snakemake/tmp.3zvrk8zo/snakejob.run_bclconvert_lane.5.sh
+   WorkDir=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis
+   Comment=dyec0602bcl 
+   StdErr=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L003.5.err
+   StdIn=/dev/null
+   StdOut=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L003.5.out
+   TresPerTask=cpu=48
+   
+
+--- job=8 name=run_bclconvert_lane-run_bclconvert_L004
+JobId=8 JobName=run_bclconvert_lane-run_bclconvert_L004
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=PENDING Reason=BeginTime Dependency=(null)
+   Requeue=1 Restarts=2 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A
+   SubmitTime=2026-06-03T04:20:02 EligibleTime=2026-06-03T04:21:13
+   AccrueTime=2026-06-03T04:21:13
+   StartTime=2026-06-03T04:21:13 EndTime=2026-06-06T23:01:13 Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T04:19:48 Scheduler=Main
+   Partition=bcl2fq AllocNode:Sid=ip-10-0-0-235:25989
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=1 NumCPUs=48 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=48,mem=300000M,node=1,billing=48
+   AllocTRES=cpu=48,node=1,billing=48
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=48 MinMemoryNode=300000M MinTmpDiskNode=0
+   Features=nvme48 DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/.snakemake/tmp.3zvrk8zo/snakejob.run_bclconvert_lane.6.sh
+   WorkDir=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis
+   Comment=dyec0602bcl 
+   StdErr=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L004.6.err
+   StdIn=/dev/null
+   StdOut=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L004.6.out
+   TresPerTask=cpu=48
+   
+
+--- job=9 name=run_bclconvert_lane-run_bclconvert_L005
+JobId=9 JobName=run_bclconvert_lane-run_bclconvert_L005
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-1 Dependency=(null)
+   Requeue=1 Restarts=1 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A
+   SubmitTime=2026-06-03T03:52:09 EligibleTime=2026-06-03T03:53:20
+   AccrueTime=2026-06-03T03:53:20
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T04:20:48 Scheduler=Main
+   Partition=bcl2fq AllocNode:Sid=ip-10-0-0-235:25989
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=1 NumCPUs=48 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=48,mem=300000M,node=1,billing=48
+   AllocTRES=cpu=48,node=1,billing=48
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=48 MinMemoryNode=300000M MinTmpDiskNode=0
+   Features=nvme48 DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/.snakemake/tmp.3zvrk8zo/snakejob.run_bclconvert_lane.7.sh
+   WorkDir=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis
+   Comment=dyec0602bcl 
+   StdErr=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L005.7.err
+   StdIn=/dev/null
+   StdOut=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L005.7.out
+   TresPerTask=cpu=48
+   
+
+--- job=7 name=run_bclconvert_lane-run_bclconvert_L007
+JobId=7 JobName=run_bclconvert_lane-run_bclconvert_L007
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-1 Dependency=(null)
+   Requeue=1 Restarts=2 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A
+   SubmitTime=2026-06-03T04:06:05 EligibleTime=2026-06-03T04:07:16
+   AccrueTime=2026-06-03T04:07:16
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T04:20:48 Scheduler=Main
+   Partition=bcl2fq AllocNode:Sid=ip-10-0-0-235:25989
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=1 NumCPUs=48 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=48,mem=300000M,node=1,billing=48
+   AllocTRES=cpu=48,node=1,billing=48
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=48 MinMemoryNode=300000M MinTmpDiskNode=0
+   Features=nvme48 DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/.snakemake/tmp.3zvrk8zo/snakejob.run_bclconvert_lane.9.sh
+   WorkDir=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis
+   Comment=dyec0602bcl 
+   StdErr=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L007.9.err
+   StdIn=/dev/null
+   StdOut=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L007.9.out
+   TresPerTask=cpu=48
+   
+
+--- job=6 name=run_bclconvert_lane-run_bclconvert_L002
+JobId=6 JobName=run_bclconvert_lane-run_bclconvert_L002
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-1 Dependency=(null)
+   Requeue=1 Restarts=2 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A
+   SubmitTime=2026-06-03T04:06:05 EligibleTime=2026-06-03T04:07:16
+   AccrueTime=2026-06-03T04:07:16
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T04:20:48 Scheduler=Main
+   Partition=bcl2fq AllocNode:Sid=ip-10-0-0-235:25989
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=1 NumCPUs=48 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=48,mem=300000M,node=1,billing=48
+   AllocTRES=cpu=48,node=1,billing=48
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=48 MinMemoryNode=300000M MinTmpDiskNode=0
+   Features=nvme48 DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/.snakemake/tmp.3zvrk8zo/snakejob.run_bclconvert_lane.4.sh
+   WorkDir=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis
+   Comment=dyec0602bcl 
+   StdErr=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L002.4.err
+   StdIn=/dev/null
+   StdOut=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L002.4.out
+   TresPerTask=cpu=48
+   
+
+--- job=5 name=run_bclconvert_lane-run_bclconvert_L006
+JobId=5 JobName=run_bclconvert_lane-run_bclconvert_L006
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-1 Dependency=(null)
+   Requeue=1 Restarts=2 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A
+   SubmitTime=2026-06-03T04:06:05 EligibleTime=2026-06-03T04:07:16
+   AccrueTime=2026-06-03T04:07:16
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T04:20:48 Scheduler=Main
+   Partition=bcl2fq AllocNode:Sid=ip-10-0-0-235:25989
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=1 NumCPUs=48 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=48,mem=300000M,node=1,billing=48
+   AllocTRES=cpu=48,node=1,billing=48
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=48 MinMemoryNode=300000M MinTmpDiskNode=0
+   Features=nvme48 DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/.snakemake/tmp.3zvrk8zo/snakejob.run_bclconvert_lane.8.sh
+   WorkDir=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis
+   Comment=dyec0602bcl 
+   StdErr=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L006.8.err
+   StdIn=/dev/null
+   StdOut=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L006.8.out
+   TresPerTask=cpu=48
+   
+
+--- job=4 name=run_bclconvert_lane-run_bclconvert_L008
+JobId=4 JobName=run_bclconvert_lane-run_bclconvert_L008
+   UserId=ubuntu(1000) GroupId=ubuntu(1000) MCS_label=N/A
+   Priority=1 Nice=0 Account=(null) QOS=(null)
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-1 Dependency=(null)
+   Requeue=1 Restarts=2 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=3-18:40:00 TimeMin=N/A
+   SubmitTime=2026-06-03T04:06:05 EligibleTime=2026-06-03T04:07:16
+   AccrueTime=2026-06-03T04:07:16
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   SuspendTime=None SecsPreSuspend=0 LastSchedEval=2026-06-03T04:20:48 Scheduler=Main
+   Partition=bcl2fq AllocNode:Sid=ip-10-0-0-235:25989
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=1 NumCPUs=48 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   ReqTRES=cpu=48,mem=300000M,node=1,billing=48
+   AllocTRES=cpu=48,node=1,billing=48
+   Socks/Node=* NtasksPerN:B:S:C=0:0:*:* CoreSpec=*
+   MinCPUsNode=48 MinMemoryNode=300000M MinTmpDiskNode=0
+   Features=nvme48 DelayBoot=00:00:00
+   OverSubscribe=NO Contiguous=0 Licenses=(null) Network=(null)
+   Command=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/.snakemake/tmp.3zvrk8zo/snakejob.run_bclconvert_lane.10.sh
+   WorkDir=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis
+   Comment=dyec0602bcl 
+   StdErr=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L008.10.err
+   StdIn=/dev/null
+   StdOut=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/logs/slurm/run_bclconvert_lane/run_bclconvert_lane.run_bclconvert_L008.10.out
+   TresPerTask=cpu=48
+   
+
+__TMUX__
+bcl2fq_scratch_dra_20260603T011121Z: 1 windows (created Wed Jun  3 01:18:13 2026)
+dayoa_bcl2fq_scratch_dra_20260603: 1 windows (created Wed Jun  3 03:05:52 2026)
+dayoa_bcl_l003_bcl2fq_scratch_20260603: 1 windows (created Wed Jun  3 03:46:04 2026)
+__TMUX_BCL_PANES__
+--- session=bcl2fq_scratch_dra_20260603T011121Z
+0: bash* (1 panes) [80x24] [layout b25d,80x24,0,0,0] @0 (active)
+0: [80x24] [history 140/2000, 49648 bytes] %0 (active)
+da-us-west-2d-jem-automate      ubuntu,ubuntu
+da-us-west-2d-jem-test2 ubuntu,ubuntu
+da-us-west-2d-jemblahhh ubuntu,ubuntu
+da-us-west-2d-jem-random        ubuntu,ubuntu
+da-us-west-2d-jembbbb   ubuntu,ubuntu
+da-us-west-2d-jemred    ubuntu,
+da-us-west-2d-lsmc-day2test     ubuntu,
+da-us-west-2d-jemlsmc   ubuntu,
+da-us-west-2d-jem2      ubuntu,
+da-us-west-2d-takethree ubuntu,
+da-us-west-2d-takefive  ubuntu,
+da-us-west-2d-takesix   ubuntu,
+da-us-west-2d-takeeight ubuntu,
+da-us-west-2d-takenine  ubuntu,
+da-us-west-2d-taketen   ubuntu,
+da-us-west-2d-takeeleven        ubuntu,
+da-us-west-2d-taketwelve        ubuntu,
+da-us-west-2d-take14    ubuntu,
+da-us-west-2d-take15    ubuntu,
+da-us-west-2d-take20    ubuntu,
+da-us-west-2d-jem-delme ubuntu,
+da-us-west-2d-jem-delme ubuntu,
+da-us-west-2d-jem-again ubuntu,
+da-us-west-2d-jem-threee        ubuntu,
+da-us-west-2d-jem-fourx ubuntu,
+da-us-west-2d-jem-andagain      ubuntu,
+da-us-west-2d-jem-againx        ubuntu,
+da-us-west-2d-jem-aaa   ubuntu,
+da-us-west-2d-jem-okgo  ubuntu,
+da-us-west-2d-bhfghdfgh ubuntu,
+da-us-west-2d-jkj       ubuntu,
+da-us-west-2d-dfghfghfghfg      ubuntu,
+da-us-west-2d-blahfdfg  ubuntu,
+da-us-west-2d-yoyoaa    ubuntu,
+da-us-west-2d-kkkl      ubuntu,
+da-us-west-2d-majors-cluster    ubuntu,
+da-us-west-2d-ghjghjghj ubuntu,
+da-us-west-2d-again     ubuntu,
+da-us-west-2d-branchtest        ubuntu,
+da-us-west-2d-jem-07348 ubuntu,
+da-us-west-2d-againokx  ubuntu,
+da-us-west-2d-jem-07355 ubuntu,
+da-us---output truncated--

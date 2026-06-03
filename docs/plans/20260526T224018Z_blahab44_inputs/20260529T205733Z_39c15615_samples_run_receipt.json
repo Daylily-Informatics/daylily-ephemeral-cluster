@@ -1,0 +1,63 @@
+{
+  "analysis_id": "ccv20260529r6_ultima_snv_alignstats",
+  "analysis_samples": "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260526T224018Z_blahab44_inputs/ultima_hg003_5x.tsv",
+  "command_id": "ultima_snv_alignstats",
+  "compatible_data_modes": [
+    "ultima_solo"
+  ],
+  "delete_on_export_success": true,
+  "detected_data_modes": [
+    "ultima_solo"
+  ],
+  "dewey_analysis_dir_external_object_id": null,
+  "dewey_run_artifact_euid": null,
+  "dewey_ursa_analysis_euid": null,
+  "dry_run": false,
+  "dy_command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k",
+  "executing_entity": "ubuntu",
+  "export_destination_s3_uri": "s3://lsmc-dayoa-analysis-results-usw2/validation/dyec-test/ubuntu/ccv20260529r6_ultima_snv_alignstats/",
+  "export_trigger": "on-success",
+  "git_tag": "2.0.23",
+  "remote_stage_dir": "/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T205733Z_39c15615",
+  "replace_existing_analysis_dir": false,
+  "samples_tsv": "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260526T224018Z_blahab44_inputs/20260529T205733Z_39c15615_samples.tsv",
+  "session_name": "ccv20260529r6_ultima_snv_alignstats",
+  "units_tsv": "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260526T224018Z_blahab44_inputs/20260529T205733Z_39c15615_units.tsv",
+  "workflow_argv": [
+    "workflow",
+    "launch",
+    "--repository",
+    "daylily-omics-analysis",
+    "--analysis-id",
+    "ccv20260529r6_ultima_snv_alignstats",
+    "--executing-entity",
+    "ubuntu",
+    "--git-tag",
+    "2.0.23",
+    "--genome",
+    "hg38_broad",
+    "--dy-command",
+    "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances -p -j 20 -k",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "dyec-test",
+    "--stage-dir",
+    "/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T205733Z_39c15615",
+    "--session-name",
+    "ccv20260529r6_ultima_snv_alignstats",
+    "--skip-project-check",
+    "--export-destination-s3-uri",
+    "s3://lsmc-dayoa-analysis-results-usw2/validation/dyec-test/ubuntu/ccv20260529r6_ultima_snv_alignstats/",
+    "--export-trigger",
+    "on-success",
+    "--delete-on-export-success"
+  ],
+  "workflow_launch": {
+    "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats/daylily-omics-analysis",
+    "run_dir": "/home/ubuntu/daylily-runs/ccv20260529r6_ultima_snv_alignstats",
+    "session_name": "ccv20260529r6_ultima_snv_alignstats"
+  }
+}

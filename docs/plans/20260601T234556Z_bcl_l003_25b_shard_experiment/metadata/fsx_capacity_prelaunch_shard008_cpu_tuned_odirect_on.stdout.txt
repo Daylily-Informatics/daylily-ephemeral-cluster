@@ -1,0 +1,6 @@
+DAY-EC activated.
+DAY-EC activated.
+timestamp_utc=2026-06-02T11:14:43Z
+df_bytes	7178349969408	1507243982848	5671093403648	21%	/fsx
+df_human	6.6T	1.4T	5.2T	21%	/fsx
+output_bytes	1078283320320	/fsx/analysis_results/ubuntu/bcl25b_l003_shard008_odirect_off_20260602T000733Z/daylily-omics-analysis

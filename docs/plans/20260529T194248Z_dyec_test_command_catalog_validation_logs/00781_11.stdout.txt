@@ -1,0 +1,107 @@
+DAY-EC activated.
+DAY-EC activated.
+/fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_/lib/python3.13/site-packages/pycoQC/pycoQC_plot.py
+# -*- coding: utf-8 -*-
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~IMPORTS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+
+# Standard library imports
+from collections import *
+import warnings
+import datetime
+
+# Third party imports
+import numpy as np
+import pandas as pd
+from scipy.ndimage import gaussian_filter, gaussian_filter1d
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+
+# Local lib import
+from pycoQC.common import *
+from pycoQC.pycoQC_parse import pycoQC_parse
+from pycoQC import __name__ as package_name
+from pycoQC import __version__ as package_version
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~GLOBAL SETTINGS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+# Set seed for deterministic random sampling
+SEED = 42
+np.random.RandomState(seed=SEED)
+
+# Silence futurewarnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~MAIN CLASS~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~#
+class pycoQC_plot ():
+
+    def __init__ (self,
+        parser:pycoQC_parse,
+        min_pass_qual:int=7,
+        sample:int=100000,
+        verbose:bool=False,
+        quiet:bool=False):
+        """
+        * parser
+            A pycoQC_parse object
+        * min_pass_qual
+            Minimum quality to consider a read as 'pass
+        * sample
+            If not None a n number of reads will be randomly selected instead of the entire dataset for plotting function (deterministic sampling)
+        """
+
+        # Set logging level
+        self.logger = get_logger (name=__name__, verbose=verbose, quiet=quiet)
+        self.logger.warning ("Loading plotting interface")
+
+        # Save args to self values
+        self.min_pass_qual = min_pass_qual
+        self.sample = sample
+
+        # Check that parser is a valid instance of pycoQC_parse
+        if not isinstance(parser, pycoQC_parse):
+            raise pycoQCError ("{} is not a valid pycoQC_parse object".format(parser))
+        self.parser = parser
+
+        # Extract values from parser object
+        self.all_df = parser.reads_df
+        if self.has_alignment:
+            self.ref_len_dict = parser.ref_len_dict
+            self.alignments_df = parser.alignments_df
+
+        # Save df wiews and compute scaling factors
+        if sample and len(self.all_df)>sample:
+            self.all_sample_df = self.all_df.sample(n=sample, random_state=SEED)
+            self.all_scaling_factor = len(self.all_df)/sample
+        else:
+            self.all_sample_df = self.all_df
+            self.all_scaling_factor = 1
+
+        self.pass_df = self.all_df[self.all_df["mean_qscore"]>=min_pass_qual]
+        if sample and len(self.pass_df)>sample:
+            self.pass_sample_df = self.pass_df.sample(n=sample, random_state=SEED)
+            self.pass_scaling_factor = len(self.pass_df)/sample
+        else:
+                offset[ref]=v
+            cumsum+=rlen
+        return offset
+
+    #~~~~~~~PRIVATE METHODS~~~~~~~#
+    @staticmethod
+    def _compute_quantiles (data):
+        d = OrderedDict ()
+        quantil_lab = ("Min","C1","D1","Q1","Median","Q3","D9","C99","Max")
+        quantile_val = np.quantile(data.dropna(), q=[0,0.01,0.1,0.25,0.5,0.75,0.9,0.99,1])
+        for lab, val in (zip(quantil_lab, quantile_val)):
+            d[lab] = val
+        return d
+
+    @staticmethod
+    def _compute_N50 (data):
+        data = data.dropna().values
+        data.sort()
+        half_sum = data.sum()/2
+        cum_sum = 0
+        for v in data:
+            cum_sum += v
+            if cum_sum >= half_sum:
+                return int(v)

@@ -1,0 +1,4 @@
+Precheck passed: rows checked=1, samples checked=1, source objects checked=22, concordance directories checked=1.
+Generated configuration files:
+  samples.tsv -> /Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T160830Z_dyec515_non_bcl_511_retest/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T161142Z_dbbcb8ec_samples.tsv
+  units.tsv   -> /Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260531T160830Z_dyec515_non_bcl_511_retest/generated_sample_configs/hybrid_ilmn_ont_hg003_5x5x/20260531T161142Z_dbbcb8ec_units.tsv

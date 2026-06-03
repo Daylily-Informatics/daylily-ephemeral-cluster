@@ -1,0 +1,153 @@
+command_id=e1e6464a-47bf-4743-8cc7-39941dde5946
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T06:27:28+00:00
+__CANDIDATE_SAMPLES__
+--- /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/config/samples.tsv
+42 /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/config/samples.tsv
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+HG001-a	blood	research	unknown	na	false	false	blood	na	HG001-a	na	na	na
+HG001-b	blood	research	unknown	na	false	false	blood	na	HG001-b	na	na	na
+HG001-c	blood	research	unknown	na	false	false	blood	na	HG001-c	na	na	na
+HG002-a	blood	research	unknown	na	false	false	blood	na	HG002-a	na	na	na
+HG002-b	blood	research	unknown	na	false	false	blood	na	HG002-b	na	na	na
+HG002-c	blood	research	unknown	na	false	false	blood	na	HG002-c	na	na	na
+HG003-a	blood	research	unknown	na	false	false	blood	na	HG003-a	na	na	na
+HG003-b	blood	research	unknown	na	false	false	blood	na	HG003-b	na	na	na
+HG003-c	blood	research	unknown	na	false	false	blood	na	HG003-c	na	na	na
+HG004-a	blood	research	unknown	na	false	false	blood	na	HG004-a	na	na	na
+HG004-b	blood	research	unknown	na	false	false	blood	na	HG004-b	na	na	na
+HG004-c	blood	research	unknown	na	false	false	blood	na	HG004-c	na	na	na
+HG005-a	blood	research	unknown	na	false	false	blood	na	HG005-a	na	na	na
+HG005-b	blood	research	unknown	na	false	false	blood	na	HG005-b	na	na	na
+HG005-c	blood	research	unknown	na	false	false	blood	na	HG005-c	na	na	na
+HG006-a	blood	research	unknown	na	false	false	blood	na	HG006-a	na	na	na
+HG006-b	blood	research	unknown	na	false	false	blood	na	HG006-b	na	na	na
+HG006-c	blood	research	unknown	na	false	false	blood	na	HG006-c	na	na	na
+HG007-a	blood	research	unknown	na	false	false	blood	na	HG007-a	na	na	na
+--- /fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/config/samples.tsv
+42 /fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/config/samples.tsv
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+HG001-a	blood	research	unknown	na	false	false	blood	na	HG001-a	na	na	na
+HG001-b	blood	research	unknown	na	false	false	blood	na	HG001-b	na	na	na
+HG001-c	blood	research	unknown	na	false	false	blood	na	HG001-c	na	na	na
+HG002-a	blood	research	unknown	na	false	false	blood	na	HG002-a	na	na	na
+HG002-b	blood	research	unknown	na	false	false	blood	na	HG002-b	na	na	na
+HG002-c	blood	research	unknown	na	false	false	blood	na	HG002-c	na	na	na
+HG003-a	blood	research	unknown	na	false	false	blood	na	HG003-a	na	na	na
+HG003-b	blood	research	unknown	na	false	false	blood	na	HG003-b	na	na	na
+HG003-c	blood	research	unknown	na	false	false	blood	na	HG003-c	na	na	na
+HG004-a	blood	research	unknown	na	false	false	blood	na	HG004-a	na	na	na
+HG004-b	blood	research	unknown	na	false	false	blood	na	HG004-b	na	na	na
+HG004-c	blood	research	unknown	na	false	false	blood	na	HG004-c	na	na	na
+HG005-a	blood	research	unknown	na	false	false	blood	na	HG005-a	na	na	na
+HG005-b	blood	research	unknown	na	false	false	blood	na	HG005-b	na	na	na
+HG005-c	blood	research	unknown	na	false	false	blood	na	HG005-c	na	na	na
+HG006-a	blood	research	unknown	na	false	false	blood	na	HG006-a	na	na	na
+HG006-b	blood	research	unknown	na	false	false	blood	na	HG006-b	na	na	na
+HG006-c	blood	research	unknown	na	false	false	blood	na	HG006-c	na	na	na
+HG007-a	blood	research	unknown	na	false	false	blood	na	HG007-a	na	na	na
+--- /fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/config/samples.tsv
+42 /fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/config/samples.tsv
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+HG001-a	blood	research	unknown	na	false	false	blood	na	HG001-a	na	na	na
+HG001-b	blood	research	unknown	na	false	false	blood	na	HG001-b	na	na	na
+HG001-c	blood	research	unknown	na	false	false	blood	na	HG001-c	na	na	na
+HG002-a	blood	research	unknown	na	false	false	blood	na	HG002-a	na	na	na
+HG002-b	blood	research	unknown	na	false	false	blood	na	HG002-b	na	na	na
+HG002-c	blood	research	unknown	na	false	false	blood	na	HG002-c	na	na	na
+HG003-a	blood	research	unknown	na	false	false	blood	na	HG003-a	na	na	na
+HG003-b	blood	research	unknown	na	false	false	blood	na	HG003-b	na	na	na
+HG003-c	blood	research	unknown	na	false	false	blood	na	HG003-c	na	na	na
+HG004-a	blood	research	unknown	na	false	false	blood	na	HG004-a	na	na	na
+HG004-b	blood	research	unknown	na	false	false	blood	na	HG004-b	na	na	na
+HG004-c	blood	research	unknown	na	false	false	blood	na	HG004-c	na	na	na
+HG005-a	blood	research	unknown	na	false	false	blood	na	HG005-a	na	na	na
+HG005-b	blood	research	unknown	na	false	false	blood	na	HG005-b	na	na	na
+HG005-c	blood	research	unknown	na	false	false	blood	na	HG005-c	na	na	na
+HG006-a	blood	research	unknown	na	false	false	blood	na	HG006-a	na	na	na
+HG006-b	blood	research	unknown	na	false	false	blood	na	HG006-b	na	na	na
+HG006-c	blood	research	unknown	na	false	false	blood	na	HG006-c	na	na	na
+HG007-a	blood	research	unknown	na	false	false	blood	na	HG007-a	na	na	na
+__SAMPLESHEET_HEAD__
+[Header],
+FileFormatVersion,2
+RunName,20260514_ILMN_Altair_Run_3
+InstrumentPlatform,NovaSeqXSeries
+IndexOrientation,Forward
+
+[Reads]
+Read1Cycles,151
+Read2Cycles,151
+Index1Cycles,10
+Index2Cycles,10
+
+[BCLConvert_Settings]
+SoftwareVersion,4.3.16
+OverrideCycles,Y151;I10;I10;Y151
+FastqCompressionFormat,gzip
+GenerateFastqcMetrics,true
+
+[BCLConvert_Data]
+Sample_ID,Index,Index2
+HG001-a,GAGTAATATA,CCGACCGTGA
+HG001-b,CGTCATGCTA,TAAAGTTCGT
+HG001-c,TTGGCTAGGT,TATAGGAGTA
+HG002-a,AGTCGACTCT,CGATCGTAAT
+HG002-b,ACCAGCGCTC,CAAACTCGTC
+HG002-c,AAAGAACATG,AATGGGAACT
+HG003-a,TACACAGAGT,TACCGGGACA
+HG003-b,CCGATAATAG,TGCTGATCAA
+HG003-c,CCGCTTAAGG,GATCGTGATT
+HG004-a,CCCTCCCTGC,ACTCCGACAG
+HG004-b,CACCTGCCGA,TGACACTCAT
+HG004-c,AGTAAATAAG,GCGTCCCAAG
+HG005-a,TATGTAGAGA,TCTGAGTTAG
+HG005-b,CTGACTCCAC,TGTTATACGC
+HG005-c,GTACCGAATA,CCTTACTCTT
+HG006-a,TTTACAAGAT,TGTATCGCCG
+HG006-b,GTCCTCCTGC,GAGGCTGCTG
+HG006-c,GAAACAGCGT,ACGTGTTGGA
+HG007-a,AACAAATTCA,CCATTTCCCA
+HG007-b,ATGGCTTCCG,CCGCACTCCT
+HG007-c,CAACTATGCA,CCAGAGTGAC
+BUCCAL1-a,ATTGCGAAGG,CTGAGGGCAC
+BUCCAL1-b,ATTGGTGCGG,ACGACCTAAT
+BUCCAL2-a,GCGAACGCAA,TTGTCAGAGA
+BUCCAL2-b,AGCGGGAGAT,ACAACAGCCT
+BUCCAL3-a,TAGCAAGGCT,GACCTACTGA
+BUCCAL3-b,GATAGAGAGG,CTCCGTCGAT
+BUCCAL4-a,ATAGGGAACA,TAAAGTATCG
+BUCCAL5-a,ACCACTTCTG,ATAAGGCCCA
+BUCCAL6-a,CAATAACGGC,TGCATGTGTA
+BUCCAL7-a,CGCGTGATCG,TAGGATCGGA
+BUCCAL8-a,TAGGCCATCG,ACGTTGGAGA
+BUCCAL9-a,TGCGCCGCAT,TGCGGTTCAG
+NA05115-a,ACTAGTCTCT,TTGTACATAG
+NA09216-a,TTCGAGCCCA,CCAGAACTTC
+NA07439-a,ACAGTTTATA,ATCGCACTTG
+NA20241-a,CGCAGATAGC,CAGAGCAGTG
+NA05212-a,CTAGACTTGT,TGGAGTCGTG
+NA15849-a,CATAGGAATG,TATTGCAGTG
+NA20208-a,AGGTCTACCA,TAACTCCCGG
+NTC,AATTCGACCT,AATATGCAAC
+
+[Cloud_Settings]
+GeneratedVersion,2.7.0.202411112342
+
+[Cloud_Data]
+Sample_ID,ProjectName,LibraryName,LibraryPrepKitName,IndexAdapterKitName
+HG001-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG001-a_GAGTAATATA_CCGACCGTGA,,
+HG001-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG001-b_CGTCATGCTA_TAAAGTTCGT,,
+HG001-c,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG001-c_TTGGCTAGGT_TATAGGAGTA,,
+HG002-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG002-a_AGTCGACTCT_CGATCGTAAT,,
+HG002-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG002-b_ACCAGCGCTC_CAAACTCGTC,,
+HG002-c,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG002-c_AAAGAACATG_AATGGGAACT,,
+HG003-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG003-a_TACACAGAGT_TACCGGGACA,,
+HG003-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG003-b_CCGATAATAG_TGCTGATCAA,,
+HG003-c,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG003-c_CCGCTTAAGG_GATCGTGATT,,
+HG004-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG004-a_CCCTCCCTGC_ACTCCGACAG,,
+HG004-b,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG004-b_CACCTGCCGA_TGACACTCAT,,
+HG004-c,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG004-c_AGTAAATAAG_GCGTCCCAAG,,
+HG005-a,20260514_ILMN_Altair_Run_3_2026-05-14T19_12_08_5b45dd9,HG005-a_TATGTAGAGA_TCTGAGTTAG,,
+

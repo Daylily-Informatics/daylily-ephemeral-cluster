@@ -1,0 +1,25 @@
+DAY-EC activated.
+DAY-EC activated.
+=== identity ===
+2026-05-30T20:25:25Z
+ip-10-0-0-88.us-west-2.compute.internal
+=== queue counts ===
+total_jobs=8
+state.RUNNING=8
+partition.i192mem=8
+=== job family counts ===
+      8 run_bclconvert_lane
+=== oldest jobs ===
+4643|i192mem|RUNNING|59:38|1|i192mem-dy-all-1|run_bclconvert_lane-run_bclconvert_L006
+4644|i192mem|RUNNING|59:38|1|i192mem-dy-all-2|run_bclconvert_lane-run_bclconvert_L002
+4645|i192mem|RUNNING|59:38|1|i192mem-dy-all-3|run_bclconvert_lane-run_bclconvert_L007
+4647|i192mem|RUNNING|59:38|1|i192mem-dy-all-5|run_bclconvert_lane-run_bclconvert_L005
+4648|i192mem|RUNNING|59:38|1|i192mem-dy-all-6|run_bclconvert_lane-run_bclconvert_L001
+4649|i192mem|RUNNING|59:38|1|i192mem-dy-all-7|run_bclconvert_lane-run_bclconvert_L003
+4650|i192mem|RUNNING|59:38|1|i192mem-dy-all-8|run_bclconvert_lane-run_bclconvert_L008
+4646|i192mem|RUNNING|59:08|1|i192mem-dy-all-4|run_bclconvert_lane-run_bclconvert_L004
+=== fsx ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  7.2T  1.6T  83% /fsx
+tmpfs                   tmpfs   199G     0  199G   0% /dev/shm
+/dev/root               ext4    408G   42G  367G  11% /

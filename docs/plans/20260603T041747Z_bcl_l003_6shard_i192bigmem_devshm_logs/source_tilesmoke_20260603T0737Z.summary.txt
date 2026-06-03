@@ -1,0 +1,30 @@
+timestamp_utc: 2026-06-03T07:37:00Z
+repo: /Users/jmajor/projects/daylily/daylily-omics-analysis
+branch: codex/dayoa-bclconvert-tile-shards-20260601
+commit: a0c3a81
+commit_subject: Add BCL Convert tile smoke sharding
+
+changed_files:
+  - workflow/rules/bclconvert.smk
+  - tests/test_bclconvert_multiqc.py
+  - tests/test_bclconvert_bootstrap.sh
+  - config/day_profiles/local/templates/rule_config.yaml
+  - config/day_profiles/slurm/templates/rule_config.yaml
+  - docs/workflows/bclconvert.md
+
+new_contract:
+  - bclconvert.tile_shard_level: tile_smoke
+  - bclconvert.tile_shard_tile_limit: non-negative integer, default 0
+  - bclconvert.tile_shard_tile_names: comma/list of numeric tile ids or exact tile names, default empty
+  - tile_smoke creates exactly one run_bclconvert_tile_shard job for the selected lane tiles
+  - tile_smoke fails DAG construction if no explicit tile limit/list is configured
+
+verification:
+  - python -m pytest -q tests/test_bclconvert_multiqc.py -> 13 passed
+  - bash tests/test_bclconvert_bootstrap.sh -> 11 passed
+  - git diff --check -> clean
+
+push:
+  remote: git@github.com:Daylily-Informatics/daylily-omics-analysis.git
+  branch: codex/dayoa-bclconvert-tile-shards-20260601
+  range: e61c090..a0c3a81

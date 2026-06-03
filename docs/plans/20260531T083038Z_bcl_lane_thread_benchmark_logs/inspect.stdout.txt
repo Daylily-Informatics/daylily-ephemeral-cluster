@@ -1,0 +1,21 @@
+DAY-EC activated.
+DAY-EC activated.
+SECTION identity
+ip-10-0-0-88
+uid=1000(ubuntu) gid=1000(ubuntu) groups=1000(ubuntu),4(adm),20(dialout),24(cdrom),25(floppy),27(sudo),29(audio),30(dip),44(video),46(plugdev),119(netdev),120(lxd)
+2026-05-31T08:34:45+00:00
+SECTION fs
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  3.7T  5.1T  42% /fsx
+tmpfs                    199G     0  199G   0% /dev/shm
+SECTION run_dir
+drwxr-xr-x   9 root root  25600 May 30 02:17 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+drwxr-xr-x 324 root root 156160 May 30 02:17 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Data/Intensities/BaseCalls/L003
+-rwxr-xr-x   1 root root   5742 May 18 14:46 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+SECTION sample_sheet_settings
+SoftwareVersion,4.3.16
+OverrideCycles,Y151;I10;I10;Y151
+FastqCompressionFormat,gzip
+GenerateFastqcMetrics,true
+
+SECTION queue

@@ -1,0 +1,165 @@
+DAY-EC activated.
+DAY-EC activated.
+Cloning into '/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis'...
+Note: switching to '317c1ee567b9ed80592455e955d2b06aba63c25e'.
+
+You are in 'detached HEAD' state. You can look around, make experimental
+changes and commit them, and you can discard any commits you make in this
+state without impacting any branches by switching back to a branch.
+
+If you want to create a new branch to retain commits you create, you may
+do so (now or later) by using -c with the switch command. Example:
+
+  git switch -c <new-branch-name>
+
+Or undo this operation with:
+
+  git switch -
+
+Turn off this advice by setting config variable advice.detachedHead to false
+
+Updating files:  36% (458/1272)Updating files:  37% (471/1272)Updating files:  38% (484/1272)Updating files:  39% (497/1272)Updating files:  40% (509/1272)Updating files:  41% (522/1272)Updating files:  42% (535/1272)Updating files:  43% (547/1272)Updating files:  44% (560/1272)Updating files:  45% (573/1272)Updating files:  46% (586/1272)Updating files:  47% (598/1272)Updating files:  48% (611/1272)Updating files:  49% (624/1272)Updating files:  50% (636/1272)Updating files:  51% (649/1272)Updating files:  52% (662/1272)Updating files:  53% (675/1272)Updating files:  54% (687/1272)Updating files:  55% (700/1272)Updating files:  56% (713/1272)Updating files:  57% (726/1272)Updating files:  58% (738/1272)Updating files:  59% (751/1272)Updating files:  60% (764/1272)Updating files:  61% (776/1272)Updating files:  62% (789/1272)Updating files:  63% (802/1272)Updating files:  64% (815/1272)Updating files:  65% (827/1272)Updating files:  66% (840/1272)Updating files:  66% (842/1272)Updating files:  67% (853/1272)Updating files:  68% (865/1272)Updating files:  69% (878/1272)Updating files:  69% (886/1272)Updating files:  70% (891/1272)Updating files:  71% (904/1272)Updating files:  72% (916/1272)Updating files:  73% (929/1272)Updating files:  74% (942/1272)Updating files:  75% (954/1272)Updating files:  76% (967/1272)Updating files:  77% (980/1272)Updating files:  78% (993/1272)Updating files:  79% (1005/1272)Updating files:  80% (1018/1272)Updating files:  81% (1031/1272)Updating files:  82% (1044/1272)Updating files:  83% (1056/1272)Updating files:  84% (1069/1272)Updating files:  85% (1082/1272)Updating files:  86% (1094/1272)Updating files:  87% (1107/1272)Updating files:  88% (1120/1272)Updating files:  89% (1133/1272)Updating files:  90% (1145/1272)Updating files:  91% (1158/1272)Updating files:  92% (1171/1272)Updating files:  93% (1183/1272)Updating files:  94% (1196/1272)Updating files:  95% (1209/1272)Updating files:  96% (1222/1272)Updating files:  97% (1234/1272)Updating files:  98% (1247/1272)Updating files:  99% (1260/1272)Updating files: 100% (1272/1272)Updating files: 100% (1272/1272), done.
+Cloning repository...
+
+Great success! Daylily repository cloned.
+Repository: https://github.com/Daylily-Informatics/daylily-omics-analysis.git
+Reference : 2.0.34
+Location  : /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis
+
+To get started:
+  cd /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis
+  # initialize and run the analysis repository per its documentation
+[INFO] Projected mounted RUN_DIR values through config/run_dir_links
+[INFO] Wrote BCL Convert bootstrap samples for 41 samples from /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv; units table left absent for DayOA bootstrap
+Notice: --project not set. Using default project name: dyec5117
+Project: dyec5117
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'dyec5117' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+# conda environments:
+#
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'dyec5117' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyec5117 .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+WARNING: sentieon lic file /fsx/references/runtime_assets/cached_envs/x.lic not found.
+WARNING: SENTIEON_LICENSE was not configured with a valid file; auto assigning a detected Sentieon license: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38  
+       _______ GREAT SUCCESS _______       
+[INFO] Patched /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml bclconvert direct mounted-input mode for 20260514_LH01106_0009_B23TVLGLT4: /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+[INFO] DayOA native BCL Convert lane-split rules detected; no DYEC runtime rule patch applied.
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs -p -j 192 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true bclconvert={"barcode_mismatches_index1":"0","barcode_mismatches_index2":"0","compression_threads":"64","conversion_threads":"4","decompression_threads":"32","fastq_gzip_compression_level":"1","force":"true","merge_lane_fastqs":"false","num_unknown_barcodes_reported":"1000","output_legacy_stats":"true","parallel_tiles":"24","partition":"i192mem","sample_sheet_settings":"{}","sample_sheet_settings_by_lane":"{}","shared_thread_odirect_output":"true","threads":"192","tile_compression_threads":"24","tile_conversion_threads":"2","tile_decompression_threads":"8","tile_parallel_tiles":"8","tile_shard_lanes":"L003","tile_shard_level":"lane","tile_shard_mem_mb":"180000","tile_shard_threads":"48","tmpdir":"/dev/shm"}
+ERROR: Mermaid PDF rendering failed for /fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis/pipeline_workflow_planned.mmd: Generating single mermaid chart
+
+Error: Could not find Chrome (ver. 148.0.7778.97). This can occur if either
+ 1. you did not perform an installation before running the script (e.g. `npx puppeteer browsers install chrome-headless-shell`) or
+ 2. your cache path is incorrectly configured (which is: /home/ubuntu/.cache/puppeteer).
+For (2), check out our guide on configuring puppeteer at https://pptr.dev/guides/configuration.
+    at ChromeLauncher.resolveExecutablePath (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/node_modules/puppeteer-core/lib/esm/puppeteer/node/BrowserLauncher.js:307:27)
+    at ChromeLauncher.computeLaunchArguments (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/node_modules/puppeteer-core/lib/esm/puppeteer/node/ChromeLauncher.js:86:24)
+    at async ChromeLauncher.launch (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/node_modules/puppeteer-core/lib/esm/puppeteer/node/BrowserLauncher.js:55:28)
+    at async run (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/src/index.js:623:19)
+    at async cli (file:///home/ubuntu/miniconda3/envs/DAYOA/lib/node_modules/@mermaid-js/mermaid-cli/src/index.js:260:3)
+[INFO] Workflow exited with status 2
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-225:/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000418Z/daylily-omics-analysis$

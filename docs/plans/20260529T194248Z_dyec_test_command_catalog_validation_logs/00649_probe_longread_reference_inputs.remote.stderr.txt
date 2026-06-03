@@ -1,0 +1,3 @@
+/tmp/daylily-ssm-w6gkzC.sh: line 16: samtools: command not found
+/tmp/daylily-ssm-w6gkzC.sh: line 17: samtools: command not found
+failed to run commands: exit status 127

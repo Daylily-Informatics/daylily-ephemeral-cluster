@@ -6,7 +6,7 @@ usage() {
     echo "Usage: $0 [-c comment] [-p partition] [-t threads]"
     echo "Defaults:"
     echo "  - comment: RnD"
-    echo "  - partition: i8 (options: i8, i128, i192, i192mem, i128mem)"
+    echo "  - partition: i8 (options: i8, i128, i192, i192mem, i128mem, bcl2fq-i384-nvme-test)"
     echo "  - threads: nproc"
     exit "$code"
 }

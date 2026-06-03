@@ -1,0 +1,5 @@
+Mount deleted: remote_stage_20260529T211910Z_c1ed04ec
+Purpose: staging
+Association ID:
+FSx file system: fs-0df313e1751219cac
+Lifecycle: DELETED

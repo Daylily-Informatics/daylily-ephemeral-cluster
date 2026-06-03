@@ -1,0 +1,13 @@
+{
+  "arm": "shard008_odirect_off",
+  "capacity_baseline_source": "bench_expts/deletion_candidates.tsv",
+  "existing_output_sizes": [],
+  "fsx_available_gib": 6285.839599609375,
+  "fsx_capacity_ok": true,
+  "fsx_mount": "/fsx",
+  "fsx_size_gib": 6685.359375,
+  "fsx_use_pct": "6%",
+  "fsx_used_gib": 399.508056640625,
+  "max_existing_output_gib": 1003.587280575186,
+  "required_available_gib": 1103.9460086319596
+}

@@ -1,0 +1,10 @@
+DAY-EC activated.
+DAY-EC activated.
+submitted_at=2026-05-31T08:45:23+00:00
+run_dir=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+sample_sheet=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+fsx_baseline_192	4673
+fsx_threadseek_192	4674
+fsx_oversub_384	4675
+fsx_pack3x64	4676
+shm_threadseek_192	4677

@@ -1,0 +1,13 @@
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+2853  i192  16  R  i192-dy-all-1  16  RUNNING  62.50G  4:14  1  vep_chromosome-TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ
+2837  i192  16  R  i192-dy-all-2  16  RUNNING  62.50G  4:17  1  vep_chromosome-TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ
+2860  i192mem  192  R  i192mem-dy-all-3  192  RUNNING  300000M  0:09  1  sentieon_bwa_sort-JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ
+2799  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  62.50G  1:09  1  rtg_vcfeval_roi-TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ
+2801  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  62.50G  1:09  1  rtg_vcfeval_roi-TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ
+2803  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  62.50G  1:09  1  rtg_vcfeval_roi-TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ
+2804  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  62.50G  1:09  1  rtg_vcfeval_roi-TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ
+2806  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  62.50G  1:09  1  rtg_vcfeval_roi-TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ
+2807  i192mem  16  R  i192mem-dy-all-2  16  RUNNING  62.50G  1:09  1  rtg_vcfeval_roi-TVBILMN5X-HG003-5x-1-D0-PF-ILMN-NOVASEQ
+2660  i192mem  192  R  i192mem-dy-all-1  192  RUNNING  180000M  1:34:13  1  run_bclconvert-run_bclconvert

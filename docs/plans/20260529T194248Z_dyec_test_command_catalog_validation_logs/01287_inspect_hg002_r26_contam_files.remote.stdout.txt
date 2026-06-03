@@ -1,0 +1,41 @@
+DAY-EC activated.
+DAY-EC activated.
+## read_haps files
+0 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.log
+## read_haps output
+## read_haps log
+## haplocheck files
+2080 /fsx/analysis_results/ubuntu/ccv20260529r26_illumina_hg002_kitchensink_multiqc/daylily-omics-analysis/results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.vcf.log
+## haplocheck log
+
+haplocheck 1.3.3
+https://github.com/genepi/haplocheck
+(c) 2020 Sebastian Schoenherr, Hansi Weissensteiner, Lukas Forer
+
+Check for Contamination..
+RUN Load file...
+RUN Split Profile into Major/Minor Profile...
+RUN Classify Haplogroups...
+RUN Detect Contamination...
+RUN Write Contamination Report...
+Text report written to results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/.haplocheck_vcf_output.Y12Mdv/contamination.txt.
+Raw report written to results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/.haplocheck_vcf_output.Y12Mdv/contamination.raw.txt.
+java.lang.IllegalArgumentException: Cannot calculate quantiles of an empty dataset
+	at com.google.common.base.Preconditions.checkArgument(Preconditions.java:142)
+	at com.google.common.math.Quantiles$ScaleAndIndex.computeInPlace(Quantiles.java:280)
+	at com.google.common.math.Quantiles$ScaleAndIndex.compute(Quantiles.java:235)
+	at genepi.haplocheck.steps.report.ReportGenerator.getSummary(ReportGenerator.java:67)
+	at genepi.haplocheck.steps.report.ReportGenerator.generate(ReportGenerator.java:36)
+	at genepi.haplocheck.steps.ContaminationStep.detectContamination(ContaminationStep.java:94)
+	at genepi.haplocheck.steps.ContaminationStep.run(ContaminationStep.java:36)
+	at genepi.haplocheck.commands.ContaminationCommand.call(ContaminationCommand.java:55)
+	at genepi.haplocheck.commands.ContaminationCommand.call(ContaminationCommand.java:1)
+	at picocli.CommandLine.executeUserObject(CommandLine.java:1933)
+	at picocli.CommandLine.access$1100(CommandLine.java:145)
+	at picocli.CommandLine$RunLast.executeUserObjectOfLastSubcommandWithSameParent(CommandLine.java:2332)
+	at picocli.CommandLine$RunLast.handle(CommandLine.java:2326)
+	at picocli.CommandLine$RunLast.handle(CommandLine.java:2291)
+	at picocli.CommandLine$AbstractParseResultHandler.execute(CommandLine.java:2159)
+	at picocli.CommandLine.execute(CommandLine.java:2058)
+	at genepi.haplocheck.App.main(App.java:32)
+ERROR Contamination failed

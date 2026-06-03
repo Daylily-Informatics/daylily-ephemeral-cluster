@@ -1,0 +1,242 @@
+DAY-EC activated.
+DAY-EC activated.
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+        command -v seqkit >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        command -v nanoq >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        command -v NanoStat >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        command -v NanoPlot >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        while IFS= read -r fastq_dir; do
+            status="$(basename "$(dirname "$fastq_dir")")"
+            barcode="$(basename "$fastq_dir")"
+            sample="20260513_ONT_HG003-${status}-${barcode}"
+            sample_out="results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/$sample"
+            file_list="$sample_out/$sample.fastq_files.txt"
+            mkdir -p "$sample_out/nanoplot"
+            find "$fastq_dir" -maxdepth 1 -type f \( -name '*.fastq.gz' -o -name '*.fq.gz' \) \
+              | sort > "$file_list"
+            if [ ! -s "$file_list" ]; then
+                echo "No FASTQs found for $sample under $fastq_dir" >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+                exit 2
+            fi
+            mapfile -t fastqs < "$file_list"
+            seqkit stats --tabular "${fastqs[@]}" \
+              > "$sample_out/$sample.seqkit_stats.tsv" \
+              2>> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+            nanoq "${fastqs[@]}" \
+              > "$sample_out/$sample.nanoq.txt" \
+              2>> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+            NanoStat --fastq "${fastqs[@]}" \
+              > "$sample_out/$sample.NanoStat.fastq.txt" \
+              2>> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+            NanoPlot \
+              --fastq "${fastqs[@]}" \
+              --loglength \
+              --tsv_stats \
+              --info_in_report \
+              -t 8 \
+              -o "$sample_out/nanoplot" \
+              -p "$sample." \
+              >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        done < results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/fastq_group_dirs.txt
+
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Trying to restart job 7.
+Select jobs to execute...
+
+[Sat May 30 03:17:48 2026]
+localrule ont_demux_fastq_qc:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/fastq_group_dirs.txt
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/ont_demux_fastq_qc.done
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+    jobid: 7
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/demux_fastq_qc.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/ont_demux_fastq_qc.done; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/fastq_group_dirs.txt
+    threads: 8
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+        command -v seqkit >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        command -v nanoq >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        command -v NanoStat >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        command -v NanoPlot >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        while IFS= read -r fastq_dir; do
+            status="$(basename "$(dirname "$fastq_dir")")"
+            barcode="$(basename "$fastq_dir")"
+            sample="20260513_ONT_HG003-${status}-${barcode}"
+            sample_out="results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/$sample"
+            file_list="$sample_out/$sample.fastq_files.txt"
+            mkdir -p "$sample_out/nanoplot"
+            find "$fastq_dir" -maxdepth 1 -type f \( -name '*.fastq.gz' -o -name '*.fq.gz' \) \
+              | sort > "$file_list"
+            if [ ! -s "$file_list" ]; then
+                echo "No FASTQs found for $sample under $fastq_dir" >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+                exit 2
+            fi
+            mapfile -t fastqs < "$file_list"
+            seqkit stats --tabular "${fastqs[@]}" \
+              > "$sample_out/$sample.seqkit_stats.tsv" \
+              2>> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+            nanoq "${fastqs[@]}" \
+              > "$sample_out/$sample.nanoq.txt" \
+              2>> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+            NanoStat --fastq "${fastqs[@]}" \
+              > "$sample_out/$sample.NanoStat.fastq.txt" \
+              2>> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+            NanoPlot \
+              --fastq "${fastqs[@]}" \
+              --loglength \
+              --tsv_stats \
+              --info_in_report \
+              -t 8 \
+              -o "$sample_out/nanoplot" \
+              -p "$sample." \
+              >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        done < results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/fastq_group_dirs.txt
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+[Sat May 30 03:17:49 2026]
+Error in rule ont_demux_fastq_qc:
+    jobid: 7
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/fastq_group_dirs.txt
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/ont_demux_fastq_qc.done
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+    shell:
+
+        set -euo pipefail
+        mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+        command -v seqkit >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        command -v nanoq >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        command -v NanoStat >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        command -v NanoPlot >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        while IFS= read -r fastq_dir; do
+            status="$(basename "$(dirname "$fastq_dir")")"
+            barcode="$(basename "$fastq_dir")"
+            sample="20260513_ONT_HG003-${status}-${barcode}"
+            sample_out="results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/$sample"
+            file_list="$sample_out/$sample.fastq_files.txt"
+            mkdir -p "$sample_out/nanoplot"
+            find "$fastq_dir" -maxdepth 1 -type f \( -name '*.fastq.gz' -o -name '*.fq.gz' \) \
+              | sort > "$file_list"
+            if [ ! -s "$file_list" ]; then
+                echo "No FASTQs found for $sample under $fastq_dir" >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+                exit 2
+            fi
+            mapfile -t fastqs < "$file_list"
+            seqkit stats --tabular "${fastqs[@]}" \
+              > "$sample_out/$sample.seqkit_stats.tsv" \
+              2>> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+            nanoq "${fastqs[@]}" \
+              > "$sample_out/$sample.nanoq.txt" \
+              2>> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+            NanoStat --fastq "${fastqs[@]}" \
+              > "$sample_out/$sample.NanoStat.fastq.txt" \
+              2>> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log
+            NanoPlot \
+              --fastq "${fastqs[@]}" \
+              --loglength \
+              --tsv_stats \
+              --info_in_report \
+              -t 8 \
+              -o "$sample_out/nanoplot" \
+              -p "$sample." \
+              >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/demux_fastq_qc.log 2>&1
+        done < results/runs/20260513_ONT_HG003/run_qc/ont/demux_fastq_qc/fastq_group_dirs.txt
+
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+[Sat May 30 03:18:23 2026]
+Error in rule ont_run_qc_pycoqc:
+    jobid: 2
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+    shell:
+
+        set -euo pipefail
+        mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log
+        command -v pycoQC >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
+        mapfile -t summary_files < results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+        pycoQC \
+          -f "${summary_files[@]}" \
+          -o results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html \
+          -j results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json \
+          --report_title 20260513_ONT_HG003 \
+          >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Trying to restart job 2.
+Select jobs to execute...
+
+[Sat May 30 03:18:23 2026]
+localrule ont_run_qc_pycoqc:
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log
+    jobid: 2
+    benchmark: results/runs/20260513_ONT_HG003/run_qc/ont/benchmarks/pycoqc.bench.tsv
+    reason: Missing output files: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html; Input files updated by another job: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log
+        command -v pycoQC >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
+        mapfile -t summary_files < results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+        pycoQC \
+          -f "${summary_files[@]}" \
+          -o results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html \
+          -j results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json \
+          --report_title 20260513_ONT_HG003 \
+          >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+Touching output file results/runs/20260513_ONT_HG003/run_qc/ont/nanoplot/nanoplot.done.
+[Sat May 30 03:18:29 2026]
+Finished job 5.
+3 of 9 steps (33%) done
+[Sat May 30 03:18:57 2026]
+Error in rule ont_run_qc_pycoqc:
+    jobid: 2
+    input: results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+    output: results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html, results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+    log: results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/a99ea18d415639f67a6e85afdbe2fe1b_
+    shell:
+
+        set -euo pipefail
+        mkdir -p results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc $(dirname results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log)
+        : > results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log
+        command -v pycoQC >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
+        mapfile -t summary_files < results/runs/20260513_ONT_HG003/run_qc/ont/tables/sequencing_summary_files.txt
+        pycoQC \
+          -f "${summary_files[@]}" \
+          -o results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html \
+          -j results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json \
+          --report_title 20260513_ONT_HG003 \
+          >> results/runs/20260513_ONT_HG003/run_qc/ont/logs/pycoqc.log 2>&1
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.html
+        test -s results/runs/20260513_ONT_HG003/run_qc/ont/pycoqc/pycoQC.json
+
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+
+Exiting because a job execution failed. Look above for error message
+
+        Womp Womp.  something went awry----
+RETURN CODE: 1
+[INFO] Workflow exited with status 1
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-88:/fsx/analysis_results/ubuntu/ccv20260529r11_ont_run_qc/daylily-omics-analysis$

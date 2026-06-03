@@ -1,0 +1,6 @@
+DAY-EC activated.
+DAY-EC activated.
+0: bash* (1 panes) [80x24] [layout b25d,80x24,0,0,0] @0 (active)
+0: [80x24] [history 116/2000, 36180 bytes] %0 (active)
+resent plain source dyoainit
+

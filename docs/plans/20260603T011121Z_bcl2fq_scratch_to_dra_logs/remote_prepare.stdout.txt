@@ -1,0 +1,6 @@
+DAY-EC activated.
+DAY-EC activated.
+drwxr-xr-x 10 root   root   25600 Jun  3 01:15 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+drwxr-xr-x  2 ubuntu ubuntu   512 Jun  3 01:15 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+drwxrwxr-x  3 ubuntu ubuntu  4096 Jun  3 01:15 /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z
+__DEST_CONTENT_COUNT__=0

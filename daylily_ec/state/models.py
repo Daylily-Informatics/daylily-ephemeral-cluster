@@ -163,6 +163,14 @@ class StateRecord(BaseModel):
     heartbeat_email: str = ""
     heartbeat_schedule_expression: str = ""
 
+    # -- Slurm accounting ----------------------------------------------------
+    slurm_accounting_stack_name: str = ""
+    slurm_accounting_uri: str = ""
+    slurm_accounting_secret_arn: str = ""
+    slurm_accounting_client_security_group_id: str = ""
+    slurm_accounting_database_name: str = ""
+    slurm_accounting_username: str = ""
+
     # -- Generated artifact paths --------------------------------------------
     init_template_path: str = ""
     cluster_yaml_path: str = ""

@@ -1,0 +1,7 @@
+DAY-EC activated.
+DAY-EC activated.
+reference=/fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta
+=== /fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram ===
+-rwxr-xr-x 1 root root 7.8G May 26 18:05 /fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram
+-rwxr-xr-x 1 root root 134K May 26 18:06 /fsx/references/genomic_data/organism_reads_slim/cram/H_sapiens/giab/agbt_2026/ug/HG003_5x.cleaned.cram.crai
+idxstats_rows=0

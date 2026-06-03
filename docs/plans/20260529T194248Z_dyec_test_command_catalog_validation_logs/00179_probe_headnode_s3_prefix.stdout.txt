@@ -1,0 +1,4 @@
+DAY-EC activated.
+DAY-EC activated.
+Completed 51 Bytes/51 Bytes (714 Bytes/s) with 1 file(s) remainingupload: ../../tmp/tmp.XdZcVzmCNZ to s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/probe/_dyec_probe_1780093062.txt
+delete: s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/probe/_dyec_probe_1780093062.txt

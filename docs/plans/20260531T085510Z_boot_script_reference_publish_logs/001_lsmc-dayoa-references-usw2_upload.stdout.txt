@@ -1,0 +1,2 @@
+Completed 16.5 KiB/16.5 KiB (96.3 KiB/s) with 1 file(s) remaining
+upload: config/day_cluster/post_install_ubuntu_combined.sh to s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh

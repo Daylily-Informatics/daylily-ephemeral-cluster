@@ -1,0 +1,133 @@
+→ Creating cluster in us-west-2d ...
+
+── INIT · dyec0602bcl ──
+    Account: 108782052779
+    User: root
+    Region: us-west-2 (us-west-2d)
+
+── PREFLIGHT ──
+  ✓ iam.policy.global
+  ✓ iam.policy.regional
+  ✓ iam.pcluster_omics_policy
+  ✓ config.repository_catalog
+  ✓ quota.ondemand_vcpu
+  ✓ quota.spot_vcpu
+  ✓ quota.vpcs
+  ✓ quota.elastic_ips
+  ✓ quota.nat_gateways
+  ✓ quota.internet_gateways
+  ✓ s3.role_config
+  ✓ s3.role_verify
+  ✓ Preflight passed — 12 checks OK
+
+── RESOURCE RESOLUTION ──
+  › Ensuring baseline CFN stack ...
+  ✓ CFN stack ready
+  ✓ Resources resolved
+    Reference: s3://lsmc-dayoa-references-usw2/
+    Control data: s3://lsmc-dayoa-control-data-usw2/
+    Runtime assets: s3://lsmc-dayoa-references-usw2/runtime_assets
+    Staging: s3://lsmc-ssf-sequencing-data/staged_external_data/
+    Export destination: s3://lsmc-ssf-sequencing-data/derived/
+    Subnets: pub=subnet-0e9acb65aba5a0330  priv=subnet-087a4872d0c34e642
+    Policy: arn:aws:iam::108782052779:policy/pclusterTagsAndBudget
+  › Publishing cluster boot config to runtime assets ...
+  ✓ Cluster boot config published: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_
+ubuntu_combined.sh
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/sbatch
+    Boot config: 
+s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/sleep_test.sh
+
+── PRE-CREATE: BUDGETS & HEARTBEAT ──
+
+── RENDER CLUSTER YAML ──
+  › Rendering YAML template ...
+  › Applying spot prices ...
+  ✓ Cluster YAML ready: 
+/Users/jmajor/.config/daylily/dyec0602bcl_cluster_20260602235841.yaml
+
+── DRY-RUN VALIDATION ──
+  › Running pcluster dry-run ...
+  ✓ Dry-run passed
+
+── CREATE CLUSTER ──
+  › Submitting cluster creation: dyec0602bcl ...
+  ✓ Cluster creation submitted
+
+── MONITOR ──
+  › Waiting for CREATE_COMPLETE ...
+  › Cluster creating ... 1s
+  › Cluster creating ... 32s
+  › Cluster creating ... 1m 4s
+  › Cluster creating ... 1m 35s
+  › Cluster creating ... 2m 6s
+  › Cluster creating ... 2m 38s
+  › Cluster creating ... 3m 10s
+  › Cluster creating ... 3m 41s
+  › Cluster creating ... 4m 12s
+  › Cluster creating ... 4m 44s
+  › Cluster creating ... 5m 15s
+  › Cluster creating ... 5m 47s
+  › Cluster creating ... 6m 19s
+  › Cluster creating ... 6m 50s
+  › Cluster creating ... 7m 21s
+  › Cluster creating ... 7m 53s
+  › Cluster creating ... 8m 24s
+  › Cluster creating ... 8m 56s
+  › Cluster creating ... 9m 27s
+  › Cluster creating ... 9m 59s
+  › Cluster creating ... 10m 30s
+  › Cluster creating ... 11m 2s
+  › Cluster creating ... 11m 33s
+  › Cluster creating ... 12m 5s
+  › Cluster creating ... 12m 36s
+  › Cluster creating ... 13m 8s
+  › Cluster creating ... 13m 39s
+  › Cluster creating ... 14m 11s
+  › Cluster creating ... 14m 43s
+  › Cluster creating ... 15m 14s
+  › Cluster creating ... 15m 46s
+  › Cluster creating ... 16m 18s
+  › Cluster creating ... 16m 49s
+  › Cluster creating ... 17m 21s
+  › Cluster creating ... 17m 53s
+  › Cluster creating ... 18m 24s
+  › Cluster creating ... 18m 56s
+  › Cluster creating ... 19m 27s
+  › Cluster creating ... 19m 59s
+  › Cluster creating ... 20m 31s
+  › Cluster creating ... 21m 2s
+  › Cluster creating ... 21m 34s
+  ✓ Cluster created in 22m 7s
+
+── HEADNODE CONFIGURATION ──
+  › Waiting for headnode SSM registration ...
+  › Configuring headnode ...
+  ✓ Headnode configured
+
+── POST-CREATE: BUDGETS ──
+  › Ensuring budgets ...
+  ✓ Budgets: global=daylily-global, cluster=da-us-west-2d-dyec0602bcl
+
+── POST-CREATE: HEARTBEAT ──
+  › Configuring heartbeat ...
+  ✓ Heartbeat configured (source=existing_role:eventbridge-scheduler-to-sns)
+
+── STATE SNAPSHOT ──
+  › Writing state record ...
+  ✓ State written: 
+/Users/jmajor/.config/daylily/state_dyec0602bcl_20260602235841.json
+
+╭───────────────────────── CLUSTER CREATION COMPLETE ──────────────────────────╮
+│                                                                              │
+│  Cluster:  dyec0602bcl                                                       │
+│  Region:   us-west-2 (us-west-2d)                                            │
+│  Elapsed:  22m 7s                                                            │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster dyec0602bcl
+...fin!

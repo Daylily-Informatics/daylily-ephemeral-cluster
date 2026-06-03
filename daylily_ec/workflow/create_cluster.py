@@ -74,6 +74,7 @@ CLUSTER_BOOT_CONFIG_FILENAMES = (
     "sbatch",
     "sleep_test.sh",
 )
+BOOT_CONFIG_REFERENCE_COMPAT_LINE = b'reference_compat_root="/fsx/data"'
 
 
 @dataclass(frozen=True)
@@ -96,16 +97,24 @@ def clear_preflight_steps() -> None:
 
 
 def _git_stdout(repo_root: Path, *args: str) -> str:
-    proc = subprocess.run(
+    proc = _git_run(repo_root, *args)
+    if proc.returncode != 0:
+        detail = _git_failure_detail(proc, f"git {' '.join(args)} failed")
+        raise RuntimeError(detail)
+    return proc.stdout.strip()
+
+
+def _git_run(repo_root: Path, *args: str) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(
         ["git", "-C", str(repo_root), *args],
         check=False,
         capture_output=True,
         text=True,
     )
-    if proc.returncode != 0:
-        detail = proc.stderr.strip() or proc.stdout.strip() or f"git {' '.join(args)} failed"
-        raise RuntimeError(detail)
-    return proc.stdout.strip()
+
+
+def _git_failure_detail(proc: subprocess.CompletedProcess[str], fallback: str) -> str:
+    return proc.stderr.strip() or proc.stdout.strip() or fallback
 
 
 def _normalize_headnode_repo_url(repo_url: str) -> str:
@@ -143,7 +152,22 @@ def _resolve_headnode_repo_spec(default_url: str, default_ref: str) -> HeadnodeR
     repo_url = _normalize_headnode_repo_url(
         _git_stdout(repo_root, "config", "--get", "remote.origin.url")
     )
-    repo_ref = _git_stdout(repo_root, "symbolic-ref", "--short", "HEAD")
+    repo_ref = _resolve_headnode_repo_ref(repo_root)
+    return HeadnodeRepoSpec(url=repo_url, ref=repo_ref)
+
+
+def _resolve_headnode_repo_ref(repo_root: Path) -> str:
+    branch = _git_run(repo_root, "symbolic-ref", "--short", "HEAD")
+    if branch.returncode == 0:
+        repo_ref = branch.stdout.strip()
+        if not repo_ref:
+            raise RuntimeError("Current checkout branch could not be determined")
+        return _require_published_branch(repo_root, repo_ref)
+
+    return _require_published_detached_tag(repo_root)
+
+
+def _require_published_branch(repo_root: Path, repo_ref: str) -> str:
     published = subprocess.run(
         ["git", "-C", str(repo_root), "ls-remote", "--exit-code", "--heads", "origin", repo_ref],
         check=False,
@@ -158,7 +182,37 @@ def _resolve_headnode_repo_spec(default_url: str, default_ref: str) -> HeadnodeR
             f"Current checkout branch is not available on origin: {repo_ref} ({detail})"
         )
 
-    return HeadnodeRepoSpec(url=repo_url, ref=repo_ref)
+    return repo_ref
+
+
+def _require_published_detached_tag(repo_root: Path) -> str:
+    head = _git_stdout(repo_root, "rev-parse", "--short=12", "HEAD")
+    tag_output = _git_stdout(repo_root, "tag", "--points-at", "HEAD")
+    tags = [line.strip() for line in tag_output.splitlines() if line.strip()]
+    if not tags:
+        raise RuntimeError(
+            f"Current checkout is detached at {head} and no exact tag points at HEAD; "
+            "checkout a published branch or release tag before configuring the headnode"
+        )
+    if len(tags) > 1:
+        raise RuntimeError(
+            "Current detached checkout has multiple exact tags; checkout a branch or leave "
+            f"only one intended release tag at HEAD before configuring the headnode: {', '.join(tags)}"
+        )
+
+    tag = tags[0]
+    tag_ref = f"refs/tags/{tag}"
+    published = subprocess.run(
+        ["git", "-C", str(repo_root), "ls-remote", "--exit-code", "--tags", "origin", tag_ref],
+        check=False,
+        capture_output=True,
+        text=True,
+    )
+    if published.returncode != 0:
+        detail = _git_failure_detail(published, "tag not published on origin")
+        raise RuntimeError(f"Current checkout tag is not available on origin: {tag} ({detail})")
+
+    return tag_ref
 
 
 def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: str) -> str:
@@ -168,6 +222,16 @@ def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: s
     origin_ref_q = shlex.quote(f"refs/remotes/origin/{repo_ref}")
     origin_checkout_q = shlex.quote(f"origin/{repo_ref}")
     repo_error_q = shlex.quote(f"Expected ~/projects/{repo_name} to be a git checkout")
+    if repo_ref.startswith("refs/tags/"):
+        checkout_cmd = f"git checkout --detach {repo_ref_q}"
+    else:
+        checkout_cmd = (
+            f"if git show-ref --verify --quiet {origin_ref_q}; then "
+            f"git checkout -B daylily-managed {origin_checkout_q}; "
+            "else "
+            f"git checkout --detach {repo_ref_q}; "
+            "fi"
+        )
 
     return (
         "mkdir -p ~/projects && cd ~/projects && "
@@ -179,11 +243,7 @@ def _build_headnode_repo_sync_command(repo_name: str, repo_url: str, repo_ref: s
         "git fetch origin --tags --prune && "
         "git reset --hard HEAD && "
         "git clean -fdx && "
-        f"if git show-ref --verify --quiet {origin_ref_q}; then "
-        f"git checkout -B daylily-managed {origin_checkout_q}; "
-        "else "
-        f"git checkout --detach {repo_ref_q}; "
-        "fi"
+        + checkout_cmd
     )
 
 
@@ -271,7 +331,7 @@ def exit_code_for(report: PreflightReport) -> int:
 
 def _repository_catalog_path() -> Path:
     """Return the repository catalog path used by local create/headnode setup."""
-    local_catalog = Path("config/daylily_available_repositories.yaml")
+    local_catalog = Path("config/daylily_pipeline_command_catalog.yaml")
     if local_catalog.exists():
         return local_catalog
 
@@ -388,6 +448,17 @@ def _parse_s3_destination(uri: str) -> tuple[str, str]:
     return parsed.netloc, parsed.path.lstrip("/").rstrip("/")
 
 
+def _boot_body_contains_legacy_fsx_data(filename: str, body: bytes) -> bool:
+    if b"/fsx/data" not in body:
+        return False
+    if filename != "post_install_ubuntu_combined.sh":
+        return True
+    return any(
+        b"/fsx/data" in line and BOOT_CONFIG_REFERENCE_COMPAT_LINE not in line
+        for line in body.splitlines()
+    )
+
+
 def publish_cluster_boot_config(
     s3_client: Any,
     *,
@@ -408,7 +479,7 @@ def publish_cluster_boot_config(
         if not source.is_file():
             raise FileNotFoundError(f"Cluster boot config source not found: {source}")
         body = source.read_bytes()
-        if b"/fsx/data" in body:
+        if _boot_body_contains_legacy_fsx_data(filename, body):
             raise ValueError(f"Cluster boot config contains legacy /fsx/data path: {source}")
         bodies.append((filename, body))
 
@@ -474,6 +545,27 @@ def _prompt_select(label: str, choices: List[str]) -> str:
         if 1 <= index <= len(choices):
             return choices[index - 1]
         typer.echo("Invalid selection. Enter one of the listed numbers.")
+
+
+def _format_slurm_accounting_candidate(candidate: Any) -> str:
+    db = candidate.db
+    if db is None:
+        return (
+            f"{candidate.instance_id} ({candidate.name or candidate.private_ip}) "
+            f"[{candidate.source}: {candidate.reason}]"
+        )
+    label = candidate.name or candidate.private_ip or candidate.instance_id
+    return f"{db.stack_name} | {db.uri} | {label} | {candidate.instance_id}"
+
+
+def _prompt_slurm_accounting_candidate(candidates: List[Any]) -> Any | None:
+    choices = ["Skip Slurm accounting"] + [
+        _format_slurm_accounting_candidate(candidate) for candidate in candidates
+    ]
+    selected = _prompt_select("Slurm accounting DB", choices)
+    if selected == choices[0]:
+        return None
+    return candidates[choices.index(selected) - 1]
 
 
 FSX_PROMPT_OPTIONS = [
@@ -647,6 +739,28 @@ def _resolve_config_value(
         if allow_empty and not required:
             return ""
         typer.echo(f"{label} cannot be empty.")
+
+
+def _resolve_nonprompt_config_value(cfg: Any, key: str, default_value: str = "") -> str:
+    """Resolve a config value without adding an interactive prompt."""
+    from daylily_ec.config.triplets import get_effective_default, resolve_value
+
+    triplet = cfg.ephemeral_cluster.config.get(key)
+    if triplet is not None:
+        resolved = resolve_value(triplet)
+        if resolved:
+            return resolved.strip()
+    return (get_effective_default(cfg, key, default_value) or "").strip()
+
+
+def _resolve_nonprompt_bool_config(cfg: Any, key: str, default_value: str = "false") -> bool:
+    """Resolve a non-interactive boolean config value with strict validation."""
+    raw = _resolve_nonprompt_config_value(cfg, key, default_value).strip().lower()
+    if raw in ("1", "true", "yes", "y", "on"):
+        return True
+    if raw in ("0", "false", "no", "n", "off", ""):
+        return False
+    raise ValueError(f"{key} must be true or false, got '{raw}'.")
 
 
 def _prompt_s3_role_choice(label: str, candidates: List[str], *, default_value: str = "") -> str:
@@ -917,6 +1031,8 @@ def run_create_workflow(
     pass_on_warn: bool = False,
     debug: bool = False,
     non_interactive: bool = False,
+    create_slurm_accounting_db: bool = False,
+    scan_slurm_accounting_db: bool = False,
 ) -> int:
     """End-to-end cluster creation: preflight → create → post-create.
 
@@ -937,7 +1053,6 @@ def run_create_workflow(
     )
     from daylily_ec.aws.heartbeat import ensure_heartbeat
     from daylily_ec.aws.iam import (
-        headnode_tailscale_authkey_policy_arn,
         make_iam_preflight_step,
         resolve_scheduler_role,
     )
@@ -948,6 +1063,17 @@ def run_create_workflow(
         ROLE_REFERENCE,
         ROLE_STAGING,
         make_s3_bucket_preflight_step,
+    )
+    from daylily_ec.aws.slurm_accounting import (
+        DEFAULT_ACCOUNTING_DATABASE_NAME,
+        DEFAULT_ACCOUNTING_INSTANCE_TYPE,
+        DEFAULT_ACCOUNTING_USERNAME,
+        SlurmAccountingDb,
+        SlurmAccountingError,
+        empty_slurm_accounting_render_blocks,
+        ensure_slurm_accounting_db,
+        scan_slurm_accounting_ec2_candidates,
+        slurm_accounting_render_blocks,
     )
     from daylily_ec.aws.ssm import wait_for_ssm_online
     from daylily_ec.aws.spot_pricing import apply_spot_prices
@@ -1102,6 +1228,7 @@ def run_create_workflow(
             reference_s3_uri=reference_s3_uri,
             control_data_s3_uri=control_data_s3_uri,
             stage_s3_uri=stage_s3_uri,
+            export_destination_s3_uri=export_destination_s3_uri,
             profile=aws_ctx.profile,
             interactive=not non_interactive,
         ),
@@ -1129,14 +1256,11 @@ def run_create_workflow(
     reference_storage_bucket_name = _role_bucket(s3_roles, "reference")
     from daylily_ec.aws.s3 import normalize_role_s3_uri
 
-    try:
-        export_destination_spec = normalize_role_s3_uri(
-            export_destination_s3_uri,
-            role="export_destination",
-        )
-    except ValueError as exc:
-        ui.fail(f"Export destination S3 URI: {exc}")
-        return EXIT_VALIDATION_FAILURE
+    export_destination_s3_uri = _role_uri(s3_roles, "export_destination")
+    export_destination_spec = normalize_role_s3_uri(
+        export_destination_s3_uri,
+        role="export_destination",
+    )
 
     cluster_boot_s3_uri = _s3_uri_join(
         reference_s3_uri,
@@ -1245,6 +1369,145 @@ def run_create_workflow(
     ui.detail("Subnets", f"pub={public_subnet}  priv={private_subnet}")
     ui.detail("Policy", policy_arn)
 
+    accounting_db: Optional[SlurmAccountingDb] = None
+    accounting_render_blocks = empty_slurm_accounting_render_blocks()
+    try:
+        config_create_accounting = _resolve_nonprompt_bool_config(
+            cfg,
+            "slurm_accounting_create_db",
+            "false",
+        )
+        accounting_create_requested = create_slurm_accounting_db or config_create_accounting
+        config_accounting_enabled = _resolve_nonprompt_bool_config(
+            cfg,
+            "slurm_accounting_enabled",
+            "false",
+        )
+    except ValueError as exc:
+        logger.error("Slurm accounting config validation failed: %s", exc)
+        ui.fail(f"Slurm accounting config: {exc}")
+        return EXIT_VALIDATION_FAILURE
+
+    if scan_slurm_accounting_db and accounting_create_requested:
+        logger.error("Slurm accounting scan was requested with create enabled.")
+        ui.fail(
+            "Slurm accounting scan cannot be combined with --create-slurm-accounting-db "
+            "or slurm_accounting_create_db=true."
+        )
+        return EXIT_VALIDATION_FAILURE
+
+    if scan_slurm_accounting_db:
+        if not cfn_outputs.vpc_id:
+            logger.error("Slurm accounting scan requires the baseline VPC output.")
+            ui.fail("Slurm accounting scan requires the baseline VPC output.")
+            return EXIT_VALIDATION_FAILURE
+
+        ui.step("Scanning EC2 for reusable Slurm accounting DB hosts ...")
+        try:
+            scan_candidates = scan_slurm_accounting_ec2_candidates(
+                aws_ctx,
+                region_az=region_az,
+                vpc_id=cfn_outputs.vpc_id,
+            )
+        except SlurmAccountingError as exc:
+            logger.error("Slurm accounting EC2 scan failed: %s", exc)
+            ui.fail(f"Slurm accounting DB scan: {exc}")
+            return EXIT_AWS_FAILURE
+
+        selectable_candidates = [
+            candidate for candidate in scan_candidates if candidate.selectable and candidate.db
+        ]
+        advisory_candidates = [
+            candidate for candidate in scan_candidates if not candidate.selectable
+        ]
+        for candidate in advisory_candidates[:5]:
+            ui.warn(
+                "Skipping non-selectable Slurm accounting candidate "
+                f"{candidate.instance_id}: {candidate.reason}"
+            )
+        if len(advisory_candidates) > 5:
+            ui.warn(
+                f"Skipping {len(advisory_candidates) - 5} additional non-selectable "
+                "Slurm accounting candidate(s)."
+            )
+
+        if not selectable_candidates:
+            ui.warn("No usable Slurm accounting DB candidates found; continuing without sacct DB.")
+        elif non_interactive:
+            ui.warn(
+                "Slurm accounting DB candidates were found, but --non-interactive was set; "
+                "continuing without sacct DB."
+            )
+        else:
+            selected_candidate = _prompt_slurm_accounting_candidate(selectable_candidates)
+            if selected_candidate is None:
+                ui.info("Slurm accounting DB skipped by selection.")
+            else:
+                accounting_db = selected_candidate.db
+
+        if accounting_db:
+            accounting_render_blocks = slurm_accounting_render_blocks(accounting_db)
+            ui.ok("Slurm accounting DB selected")
+            ui.detail("Accounting stack", accounting_db.stack_name)
+            ui.detail("Accounting URI", accounting_db.uri)
+            ui.detail("Accounting database", accounting_db.database_name)
+            ui.detail("Accounting user", accounting_db.username)
+            ui.detail("Accounting secret", accounting_db.password_secret_arn)
+            ui.detail("Accounting client SG", accounting_db.client_security_group_id)
+
+    elif accounting_create_requested or config_accounting_enabled:
+        if not cfn_outputs.vpc_id:
+            logger.error("Slurm accounting requires the baseline VPC output.")
+            ui.fail("Slurm accounting requires the baseline VPC output.")
+            return EXIT_VALIDATION_FAILURE
+
+        accounting_stack_name = _resolve_nonprompt_config_value(
+            cfg,
+            "slurm_accounting_stack_name",
+            "",
+        )
+        accounting_database_name = _resolve_nonprompt_config_value(
+            cfg,
+            "slurm_accounting_database_name",
+            DEFAULT_ACCOUNTING_DATABASE_NAME,
+        )
+        accounting_username = _resolve_nonprompt_config_value(
+            cfg,
+            "slurm_accounting_db_username",
+            DEFAULT_ACCOUNTING_USERNAME,
+        )
+        accounting_instance_type = _resolve_nonprompt_config_value(
+            cfg,
+            "slurm_accounting_instance_type",
+            DEFAULT_ACCOUNTING_INSTANCE_TYPE,
+        )
+
+        ui.step("Resolving Slurm accounting DB ...")
+        try:
+            accounting_db = ensure_slurm_accounting_db(
+                aws_ctx,
+                region_az=region_az,
+                vpc_id=cfn_outputs.vpc_id,
+                private_subnet_id=private_subnet,
+                create_if_missing=accounting_create_requested,
+                stack_name=accounting_stack_name,
+                database_name=accounting_database_name,
+                username=accounting_username,
+                instance_type=accounting_instance_type,
+            )
+        except SlurmAccountingError as exc:
+            logger.error("Slurm accounting DB resolution failed: %s", exc)
+            ui.fail(f"Slurm accounting DB: {exc}")
+            return EXIT_AWS_FAILURE
+        accounting_render_blocks = slurm_accounting_render_blocks(accounting_db)
+        ui.ok("Slurm accounting DB ready")
+        ui.detail("Accounting stack", accounting_db.stack_name)
+        ui.detail("Accounting URI", accounting_db.uri)
+        ui.detail("Accounting database", accounting_db.database_name)
+        ui.detail("Accounting user", accounting_db.username)
+        ui.detail("Accounting secret", accounting_db.password_secret_arn)
+        ui.detail("Accounting client SG", accounting_db.client_security_group_id)
+
     ui.step("Publishing cluster boot config to runtime assets ...")
     try:
         uploaded_boot_config = publish_cluster_boot_config(
@@ -1294,9 +1557,6 @@ def run_create_workflow(
         "REGSUB_PUB_SUBNET": public_subnet,
         "REGSUB_S3_BUCKET_INIT": cluster_boot_s3_uri,
         "REGSUB_S3_IAM_POLICY": policy_arn,
-        "REGSUB_HEADNODE_TAILSCALE_IAM_POLICY": headnode_tailscale_authkey_policy_arn(
-            aws_ctx.account_id,
-        ),
         "REGSUB_PRIVATE_SUBNET": private_subnet,
         "REGSUB_S3_REFERENCE_BUCKET": _role_bucket(s3_roles, "reference"),
         "REGSUB_S3_CONTROL_DATA_BUCKET": _role_bucket(s3_roles, "control_data"),
@@ -1378,6 +1638,7 @@ def run_create_workflow(
         "REGSUB_HEARTBEAT_EMAIL": post_create_inputs.heartbeat_email,
         "REGSUB_HEARTBEAT_SCHEDULE": post_create_inputs.heartbeat_schedule,
         "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN": (post_create_inputs.heartbeat_scheduler_role_arn),
+        **accounting_render_blocks,
     }
 
     ui.step("Rendering YAML template ...")
@@ -1612,6 +1873,20 @@ def run_create_workflow(
         "heartbeat_email": post_create_inputs.heartbeat_email,
         "heartbeat_schedule": post_create_inputs.heartbeat_schedule,
         "heartbeat_scheduler_role_arn": (post_create_inputs.heartbeat_scheduler_role_arn),
+        "slurm_accounting_enabled": "true" if accounting_db else "false",
+        "slurm_accounting_create_db": "false",
+        "slurm_accounting_stack_name": accounting_db.stack_name if accounting_db else "",
+        "slurm_accounting_database_name": accounting_db.database_name if accounting_db else "",
+        "slurm_accounting_db_username": accounting_db.username if accounting_db else "",
+        "slurm_accounting_instance_type": (
+            _resolve_nonprompt_config_value(
+                cfg,
+                "slurm_accounting_instance_type",
+                DEFAULT_ACCOUNTING_INSTANCE_TYPE,
+            )
+            if accounting_db
+            else ""
+        ),
     }
     next_run_path = CONFIG_DIR / f"{cluster_name}_next_run_{ts}.yaml"
     write_next_run_template(cfg, final_values, next_run_path)
@@ -1639,6 +1914,14 @@ def run_create_workflow(
         heartbeat_role_arn=hb_result.role_arn if hb_result.success else "",
         heartbeat_email=post_create_inputs.heartbeat_email,
         heartbeat_schedule_expression=post_create_inputs.heartbeat_schedule,
+        slurm_accounting_stack_name=accounting_db.stack_name if accounting_db else "",
+        slurm_accounting_uri=accounting_db.uri if accounting_db else "",
+        slurm_accounting_secret_arn=accounting_db.password_secret_arn if accounting_db else "",
+        slurm_accounting_client_security_group_id=(
+            accounting_db.client_security_group_id if accounting_db else ""
+        ),
+        slurm_accounting_database_name=accounting_db.database_name if accounting_db else "",
+        slurm_accounting_username=accounting_db.username if accounting_db else "",
         init_template_path=init_template_path,
         cluster_yaml_path=cluster_yaml_path,
         resolved_cli_config_path=str(next_run_path),
@@ -1772,14 +2055,14 @@ def configure_headnode(
 
     if repo_overrides:
         logger.info("  ▸ Deploying repository overrides ...")
-        user_avail = Path.home() / ".config" / "daylily" / "daylily_available_repositories.yaml"
+        user_avail = Path.home() / ".config" / "daylily" / "daylily_pipeline_command_catalog.yaml"
         avail_repos_path = (
             user_avail
             if user_avail.exists()
             else (
-                Path("config/daylily_available_repositories.yaml")
-                if Path("config/daylily_available_repositories.yaml").exists()
-                else resource_path("config/daylily_available_repositories.yaml")
+                Path("config/daylily_pipeline_command_catalog.yaml")
+                if Path("config/daylily_pipeline_command_catalog.yaml").exists()
+                else resource_path("config/daylily_pipeline_command_catalog.yaml")
             )
         )
         if avail_repos_path.exists():
@@ -1795,7 +2078,7 @@ def configure_headnode(
                 write_remote_text(
                     head_node_instance_id,
                     region,
-                    "~/.config/daylily/daylily_available_repositories.yaml",
+                    "~/.config/daylily/daylily_pipeline_command_catalog.yaml",
                     yaml.safe_dump(repos_cfg, default_flow_style=False, sort_keys=False),
                     profile=profile,
                 )
@@ -1912,6 +2195,11 @@ def run_preflight_only(
             reference_s3_uri=get_effective_default(cfg, "reference_s3_uri", ""),
             control_data_s3_uri=get_effective_default(cfg, "control_data_s3_uri", ""),
             stage_s3_uri=get_effective_default(cfg, "stage_s3_uri", ""),
+            export_destination_s3_uri=get_effective_default(
+                cfg,
+                "export_destination_s3_uri",
+                "",
+            ),
             profile=aws_ctx.profile,
             interactive=not non_interactive,
         ),

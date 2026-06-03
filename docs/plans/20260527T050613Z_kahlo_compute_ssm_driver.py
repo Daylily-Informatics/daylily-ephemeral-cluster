@@ -3,7 +3,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import os
 import shlex
 import time
 from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -92,7 +91,9 @@ def probe_instance(
 
     result["stdout"] = stdout
     result["stderr"] = stderr
-    result["probes"] = [parse_probe(line) for line in stdout.splitlines() if line.startswith("PROBE|")]
+    result["probes"] = [
+        parse_probe(line) for line in stdout.splitlines() if line.startswith("PROBE|")
+    ]
     result["finished_at"] = time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime())
     return result
 
@@ -153,7 +154,11 @@ def main() -> int:
             print(summarize_probe(item))
 
     results["compute_probe_results"].sort(
-        key=lambda item: (item["cluster"], str(item["instance"].get("queue_name")), item["instance"]["instance_id"])
+        key=lambda item: (
+            item["cluster"],
+            str(item["instance"].get("queue_name")),
+            item["instance"]["instance_id"],
+        )
     )
     Path(args.output).write_text(json.dumps(results, indent=2, sort_keys=True), encoding="utf-8")
     print(f"wrote {args.output}")

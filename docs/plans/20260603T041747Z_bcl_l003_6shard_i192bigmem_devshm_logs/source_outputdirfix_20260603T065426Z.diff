@@ -1,0 +1,66 @@
+diff --git a/tests/test_bclconvert_bootstrap.sh b/tests/test_bclconvert_bootstrap.sh
+index 7fac37f..b31364f 100644
+--- a/tests/test_bclconvert_bootstrap.sh
++++ b/tests/test_bclconvert_bootstrap.sh
+@@ -592,6 +592,9 @@ assert "expected 28 arguments" in helper_text
+ assert "__dayoa_no_force__" in helper_text
+ assert "find \"$final_output_dir\" -mindepth 1 ! -type d -print -quit" in helper_text
+ assert "BCL output directory contains existing files; refusing to overwrite" in helper_text
++assert "find \"$run_output_dir\" -depth -type d -empty -delete" in helper_text
++assert "BCL run output directory exists after empty skeleton cleanup" in helper_text
++assert "mkdir -p \"$run_output_dir\"" not in helper_text
+ assert "rule bclconvert_demux_fastq_qc:" in text
+ assert "workflow/scripts/prepare_bclconvert_demux_fastqc_inputs.py" in text
+ assert "BCL_DEMUX_FASTQC_MQC" in text
+diff --git a/tests/test_bclconvert_multiqc.py b/tests/test_bclconvert_multiqc.py
+index 01bbe8e..4551eb8 100644
+--- a/tests/test_bclconvert_multiqc.py
++++ b/tests/test_bclconvert_multiqc.py
+@@ -83,6 +83,9 @@ def test_bclconvert_rule_exports_metrics_to_genome_build_multiqc_dir() -> None:
+     assert 'if [[ "$force_arg" == "__dayoa_no_force__" ]]; then' in lane_helper
+     assert 'find "$final_output_dir" -mindepth 1 ! -type d -print -quit' in lane_helper
+     assert "BCL output directory contains existing files; refusing to overwrite" in lane_helper
++    assert 'find "$run_output_dir" -depth -type d -empty -delete' in lane_helper
++    assert "BCL run output directory exists after empty skeleton cleanup" in lane_helper
++    assert 'mkdir -p "$run_output_dir"' not in lane_helper
+     assert "bclconvert.scratch_output_root must be an absolute path" in lane_helper
+     assert "BCL scratch output root free bytes below required minimum" in lane_helper
+     assert 'rsync -a --remove-source-files --human-readable --stats "$run_output_dir/" "$final_output_dir/"' in lane_helper
+diff --git a/workflow/scripts/run_bclconvert_lane.sh b/workflow/scripts/run_bclconvert_lane.sh
+index 514fa6c..ab2bf28 100755
+--- a/workflow/scripts/run_bclconvert_lane.sh
++++ b/workflow/scripts/run_bclconvert_lane.sh
+@@ -73,7 +73,7 @@ if [[ -n "$scratch_output_root" ]]; then
+     echo "Scratch work directory already exists; refusing to overwrite: $scratch_work_dir" >> "$log_path"
+     exit 2
+   fi
+-  mkdir -p "$run_output_dir"
++  mkdir -p "$scratch_work_dir"
+   if [[ "$scratch_available_bytes_min" -gt 0 ]]; then
+     scratch_available_bytes="$(df -PB1 "$scratch_output_root" | awk 'NR == 2 {print $4}')"
+     echo "scratch_available_bytes: ${scratch_available_bytes:-<unknown>}" >> "$log_path"
+@@ -88,7 +88,14 @@ if [[ -n "$scratch_output_root" ]]; then
+     fi
+   fi
+ else
+-  mkdir -p "$run_output_dir"
++  mkdir -p "$(dirname "$run_output_dir")"
++fi
++if [[ -d "$run_output_dir" ]]; then
++  find "$run_output_dir" -depth -type d -empty -delete 2>/dev/null || true
++fi
++if [[ -e "$run_output_dir" ]]; then
++  echo "BCL run output directory exists after empty skeleton cleanup; refusing to overwrite: $run_output_dir" >> "$log_path"
++  exit 2
+ fi
+ 
+ python workflow/scripts/prepare_bclconvert_lane_samplesheet.py \
+@@ -117,7 +124,7 @@ echo "sample_sheet_settings_by_lane_json: $sample_sheet_settings_by_lane_json" >
+ echo "output_legacy_stats: $output_legacy_stats" >> "$log_path"
+ echo "num_unknown_barcodes_reported: $num_unknown_barcodes_reported" >> "$log_path"
+ nproc >> "$log_path" 2>&1 || true
+-df -h "$TMPDIR" "$run_dir" "$run_output_dir" "$(dirname "$final_output_dir")" >> "$log_path" 2>&1 || true
++df -h "$TMPDIR" "$run_dir" "$(dirname "$run_output_dir")" "$(dirname "$final_output_dir")" >> "$log_path" 2>&1 || true
+ command -v singularity >> "$log_path" 2>&1
+ singularity_bind_args=(--bind /fsx:/fsx)
+ if [[ -n "$scratch_output_root" ]]; then

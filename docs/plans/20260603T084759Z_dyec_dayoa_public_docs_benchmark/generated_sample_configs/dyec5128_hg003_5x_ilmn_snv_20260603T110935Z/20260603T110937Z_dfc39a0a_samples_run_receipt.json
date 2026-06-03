@@ -1,0 +1,58 @@
+{
+  "analysis_id": "dyec5128_hg003_5x_ilmn_snv_20260603T110935Z",
+  "analysis_samples": "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260526T224018Z_blahab44_inputs/illumina_hg003_5x.tsv",
+  "command_id": "illumina_snv_alignstats",
+  "compatible_data_modes": [
+    "ilmn_solo"
+  ],
+  "delete_on_export_success": false,
+  "detected_data_modes": [
+    "ilmn_solo"
+  ],
+  "dewey_analysis_dir_external_object_id": null,
+  "dewey_run_artifact_euid": null,
+  "dewey_ursa_analysis_euid": null,
+  "dry_run": false,
+  "dy_command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20",
+  "executing_entity": "ubuntu",
+  "export_destination_s3_uri": null,
+  "export_trigger": "none",
+  "git_tag": "2.0.38",
+  "remote_stage_dir": "/fsx/staging/staged_external_sequencing_data/remote_stage_20260603T110937Z_dfc39a0a",
+  "replace_existing_analysis_dir": false,
+  "samples_tsv": "docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/generated_sample_configs/dyec5128_hg003_5x_ilmn_snv_20260603T110935Z/20260603T110937Z_dfc39a0a_samples.tsv",
+  "session_name": "dyec5128_hg003_5x_ilmn_snv_20260603T110935Z",
+  "units_tsv": "docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/generated_sample_configs/dyec5128_hg003_5x_ilmn_snv_20260603T110935Z/20260603T110937Z_dfc39a0a_units.tsv",
+  "workflow_argv": [
+    "workflow",
+    "launch",
+    "--repository",
+    "daylily-omics-analysis",
+    "--analysis-id",
+    "dyec5128_hg003_5x_ilmn_snv_20260603T110935Z",
+    "--executing-entity",
+    "ubuntu",
+    "--git-tag",
+    "2.0.38",
+    "--genome",
+    "hg38_broad",
+    "--dy-command",
+    "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -p -k -j 20",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "dyec5128",
+    "--stage-dir",
+    "/fsx/staging/staged_external_sequencing_data/remote_stage_20260603T110937Z_dfc39a0a",
+    "--session-name",
+    "dyec5128_hg003_5x_ilmn_snv_20260603T110935Z",
+    "--skip-project-check"
+  ],
+  "workflow_launch": {
+    "repo_path": "/fsx/analysis_results/ubuntu/dyec5128_hg003_5x_ilmn_snv_20260603T110935Z/daylily-omics-analysis",
+    "run_dir": "/home/ubuntu/daylily-runs/dyec5128_hg003_5x_ilmn_snv_20260603T110935Z",
+    "session_name": "dyec5128_hg003_5x_ilmn_snv_20260603T110935Z"
+  }
+}

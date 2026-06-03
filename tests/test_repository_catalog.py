@@ -14,8 +14,17 @@ runner = CliRunner()
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CATALOG_PATH = REPO_ROOT / "config" / "daylily_available_repositories.yaml"
+CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG_PATH = (
+    REPO_ROOT
+    / "daylily_ec"
+    / "resources"
+    / "payload"
+    / "config"
+    / "daylily_pipeline_command_catalog.yaml"
+)
+OLD_CATALOG_LINK = REPO_ROOT / "config" / "daylily_available_repositories.yaml"
+OLD_PACKAGED_CATALOG_LINK = (
     REPO_ROOT
     / "daylily_ec"
     / "resources"
@@ -24,12 +33,86 @@ PACKAGED_CATALOG_PATH = (
     / "daylily_available_repositories.yaml"
 )
 UNVALIDATED_COMMAND_IDS = {
+    "simple-test",
     "illumina_run_qc_bclconvert",
     "ultima_snv_alignstats_kitchensink",
     "ont_snv_alignstats_kitchensink",
     "hybrid_ilmn_ont_snv_kitchensink",
     "inflection-bjuice-product-v0.1",
 }
+SIMPLE_TEST_DY_COMMAND = "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
+
+
+def _minimal_run_catalog_yaml(
+    *,
+    profile_id: str = "illumina_run_directory",
+    profile_mode: str = "run_dra_required",
+    run_context_columns: str = "[RUNID, SOURCE_S3_URI, MOUNT_ID]",
+) -> str:
+    source_fsx_prefix = (
+        "/fsx/run_dir_mounts/{MOUNT_ID}/"
+        if profile_mode == "run_dra_required"
+        else "/fsx/references/example-runs/run1/"
+    )
+    run_dra_columns = (
+        "    run_context_source_s3_column: SOURCE_S3_URI\n"
+        "    run_context_mount_id_column: MOUNT_ID\n"
+        if profile_mode == "run_dra_required"
+        else ""
+    )
+    return f"""
+command_catalog_version: 2
+default_repository: repo
+input_contracts:
+  run_context:
+    description: "Run context."
+    source_table:
+      path: config/runs.tsv
+      required_columns: {run_context_columns}
+test_data_locations:
+  - location_id: default_run_data
+    description: "Run data."
+    mount_path: /fsx/control_data
+    data_root: /fsx/control_data/run_data
+    s3_uri: s3://example-control/run_data/
+    applies_to_command_classes: [run_analysis]
+test_data_profiles:
+  {profile_id}:
+    description: "Run profile."
+    source_mount_mode: {profile_mode}
+    source_s3_uri_template: s3://example-runs/run1/
+    source_fsx_prefix: {source_fsx_prefix}
+{run_dra_columns.rstrip()}
+    locations: [default_run_data]
+repositories:
+  repo:
+    https_url: https://example.invalid/repo.git
+    default_ref: main
+    relative_path: repo
+    analysis_commands:
+      - command_id: run_cmd
+        type: prod
+        validated_version: main
+        test_data_profile: {profile_id}
+        display_name: Run Command
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: run_analysis
+        input_contract: run_context
+        requires_staging: false
+        requires_run_mount: true
+        targets: [produce_illumina_run_qc]
+        genome: hg38
+        jobs: 1
+        aligners: []
+        dedupers: []
+        snv_callers: []
+        sv_callers: []
+        dy_command: bin/day_run produce_illumina_run_qc
+        dryrun_dy_command: bin/day_run produce_illumina_run_qc -n
+        compatible_platforms: [ILMN]
+        compatible_data_modes: [run_directory_mount]
+"""
 
 
 def test_repository_catalog_loads_initial_blessed_command() -> None:
@@ -38,6 +121,28 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
 
     assert catalog.command_catalog_version == 2
     manifest_contract = catalog.input_contracts["sample_manifest"]
+    assert [location.location_id for location in catalog.test_data_locations] == [
+        "default_reference_reads_slim",
+        "default_control_reads_slim",
+        "default_control_run_data",
+    ]
+    assert catalog.test_data_locations[0].mount_path == "/fsx/references"
+    assert (
+        catalog.test_data_locations[0].data_root
+        == "/fsx/references/genomic_data/organism_reads_slim"
+    )
+    assert "default reference mount" in catalog.test_data_locations[0].description
+    default_reads = catalog.test_data_profiles["default_reads_slim"]
+    assert default_reads.source_mount_mode == "default_mounted"
+    assert (
+        default_reads.source_s3_uri_template
+        == "s3://lsmc-dayoa-references-usw2/genomic_data/organism_reads_slim/"
+    )
+    assert default_reads.source_fsx_prefix == (
+        "/fsx/references/genomic_data/organism_reads_slim/"
+    )
+    assert default_reads.run_context_source_s3_column == ""
+    assert default_reads.run_context_mount_id_column == ""
     assert manifest_contract.source_table is not None
     assert manifest_contract.source_table.path == "analysis_samples.tsv"
     assert manifest_contract.source_table.required_columns == [
@@ -93,7 +198,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "2.0.19"
+    assert command.git_tag == "2.0.44"
     assert len(command.validation_runs) == 1
     validation_run = command.validation_runs[0]
     assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -117,8 +222,23 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
         multiqc_command.artifact_registration.evidence_manifest_path
         == "results/day/{genome}/reports/dayoa_evidence_manifest.json"
     )
+    assert multiqc_command.artifact_registration.manifest_source == "dayoa_manifest"
     assert "multiqc_html" in multiqc_command.artifact_registration.include_classifications
+    assert "alignment_cram" in multiqc_command.artifact_registration.include_classifications
+    assert "samples_manifest" in multiqc_command.artifact_registration.include_classifications
+    assert "units_manifest" in multiqc_command.artifact_registration.include_classifications
+    assert "config/samples.tsv" in multiqc_command.artifact_registration.include_paths
+    assert "config/units.tsv" in multiqc_command.artifact_registration.include_paths
+    assert multiqc_command.artifact_registration.multiqc_reports[0].report_kind == "final"
     assert multiqc_command.artifact_registration.identity.analysis_euid == "{analysis_id}"
+
+    run_qc_command = catalog.get_command("illumina_run_qc_bclconvert")
+    assert run_qc_command.artifact_registration is not None
+    assert run_qc_command.artifact_registration.manifest_source == "s3_inventory"
+    assert {report.report_kind for report in run_qc_command.artifact_registration.multiqc_reports} == {
+        "bclconvert",
+        "run_qc_illumina",
+    }
 
     launch_argv = command.launch_argv(
         analysis_id="run-1",
@@ -131,7 +251,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.19" in launch_argv
+    assert "2.0.44" in launch_argv
 
     export_argv = command.launch_argv(
         analysis_id="run-1",
@@ -204,6 +324,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     command_ids = {command.command_id for command in catalog.commands()}
     assert {
+        "simple-test",
         "illumina_snv_alignstats",
         "illumina_snv_alignstats_relatedness_vep_multiqc",
         "illumina_hg002_kitchensink_multiqc",
@@ -242,7 +363,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert command.dryrun_dy_command.endswith(" -n")
             assert command.compatible_platforms
             assert command.compatible_data_modes
-            assert command.git_tag == "2.0.19"
+            assert command.git_tag == "2.0.44"
             assert (
                 command.input_requirements.required_source_columns
                 or command.input_requirements.accepted_source_column_sets
@@ -271,7 +392,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "2.0.19"
+        assert command.git_tag == "2.0.44"
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
@@ -448,11 +569,31 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert inflection_bjuice.snv_callers == ["sentdhiomr"]
     assert inflection_bjuice.sv_callers == ["sentdhiomr"]
     assert "produce_sentdhiomr_segdup" in inflection_bjuice.dy_command
-    assert 'sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"}' in (
-        inflection_bjuice.dy_command
-    )
+    assert 'sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"}' in (inflection_bjuice.dy_command)
     assert " -j 125 -p -k" in inflection_bjuice.dy_command
     assert inflection_bjuice.dryrun_dy_command.endswith(" -n")
+
+    simple_test = catalog.get_command("simple-test")
+    assert simple_test.command_class == "utility"
+    assert simple_test.input_contract == "none"
+    assert simple_test.requires_staging is False
+    assert simple_test.requires_run_mount is False
+    assert simple_test.targets == ["help"]
+    assert simple_test.genome == "hg38"
+    assert simple_test.jobs == 1
+    assert simple_test.dy_command == SIMPLE_TEST_DY_COMMAND
+    assert simple_test.dryrun_dy_command == simple_test.dy_command
+    simple_launch_argv = simple_test.launch_argv(
+        analysis_id="simple-test",
+        executing_entity="johnm",
+    )
+    assert "--dy-command" in simple_launch_argv
+    assert simple_test.dy_command in simple_launch_argv
+    assert "--no-input-staging" in simple_launch_argv
+    assert "--no-default-activation" in simple_launch_argv
+    assert "--bootstrap-test-config" in simple_launch_argv
+    assert "--stage-dir" not in simple_launch_argv
+    assert "--run-context-file" not in simple_launch_argv
 
 
 def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
@@ -479,6 +620,15 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert command.input_contract == "run_context"
     assert command.requires_staging is False
     assert command.requires_run_mount is True
+    run_profile = catalog.test_data_profiles[command.test_data_profile]
+    assert run_profile.source_mount_mode == "run_dra_required"
+    assert run_profile.source_s3_uri_template == (
+        "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/"
+        "20260514_LH01106_0009_B23TVLGLT4/"
+    )
+    assert run_profile.source_fsx_prefix == "/fsx/run_dir_mounts/{MOUNT_ID}/"
+    assert run_profile.run_context_source_s3_column == "SOURCE_S3_URI"
+    assert run_profile.run_context_mount_id_column == "MOUNT_ID"
     assert command.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
         "samples_table": ".test_data/data/samples.tsv",
@@ -517,8 +667,7 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert combined.targets == ["produce_illumina_run_qc_and_bclconvert"]
     assert combined.runtime_parameters == {
         "run_context_file": "config/runs.tsv",
-        "samples_table": ".test_data/data/bclconvert/samples.tsv",
-        "units_table": ".test_data/data/bclconvert/units.tsv",
+        "bootstrap_bclconvert": "true",
     }
     combined_argv = combined.launch_argv(
         analysis_id="run-qc-bclconvert",
@@ -528,11 +677,12 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     )
     combined_dy_command = combined_argv[combined_argv.index("--dy-command") + 1]
     assert "produce_illumina_run_qc_and_bclconvert" in combined_dy_command
-    assert "samples_table=.test_data/data/bclconvert/samples.tsv" in combined_dy_command
-    assert "units_table=.test_data/data/bclconvert/units.tsv" in combined_dy_command
+    assert "bootstrap_bclconvert=true" in combined_dy_command
+    assert "bclconvert/samples.tsv" not in combined_dy_command
+    assert "bclconvert/units.tsv" not in combined_dy_command
 
     ont = catalog.get_command("ont_run_qc")
-    assert ont.targets == ["produce_ont_run_qc_and_demux_multiqc"]
+    assert ont.targets == ["produce_ont_run_qc"]
     ont_argv = ont.launch_argv(
         analysis_id="ont-run-qc",
         executing_entity="johnm",
@@ -540,8 +690,38 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
         dry_run=True,
     )
     ont_dy_command = ont_argv[ont_argv.index("--dy-command") + 1]
-    assert "produce_ont_run_qc_and_demux_multiqc" in ont_dy_command
+    assert "produce_ont_run_qc" in ont_dy_command
+    assert "produce_ont_run_qc_and_demux_multiqc" not in ont_dy_command
     assert "run_context_file=config/runs.tsv" in ont_dy_command
+
+
+def test_repository_catalog_rejects_run_analysis_without_run_dra_profile(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "bad-run-profile.yaml"
+    path.write_text(
+        _minimal_run_catalog_yaml(
+            profile_id="default_reads_slim",
+            profile_mode="default_mounted",
+        ),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="run_analysis but test_data_profile"):
+        load_repository_catalog(path)
+
+
+def test_repository_catalog_rejects_run_dra_profile_without_mount_columns(
+    tmp_path: Path,
+) -> None:
+    path = tmp_path / "bad-run-columns.yaml"
+    path.write_text(
+        _minimal_run_catalog_yaml(run_context_columns="[RUNID, SOURCE_S3_URI]"),
+        encoding="utf-8",
+    )
+
+    with pytest.raises(ValueError, match="missing required column\\(s\\): MOUNT_ID"):
+        load_repository_catalog(path)
 
 
 def test_repository_catalog_v1_migrates_to_sample_analysis(tmp_path: Path) -> None:
@@ -637,6 +817,13 @@ def test_packaged_repository_catalog_matches_source_catalog() -> None:
     )
 
 
+def test_legacy_catalog_filename_is_symlink_to_pipeline_command_catalog() -> None:
+    assert OLD_CATALOG_LINK.is_symlink()
+    assert OLD_CATALOG_LINK.resolve() == CATALOG_PATH
+    assert OLD_PACKAGED_CATALOG_LINK.is_symlink()
+    assert OLD_PACKAGED_CATALOG_LINK.resolve() == PACKAGED_CATALOG_PATH
+
+
 def test_daylily_sarek_repository_uses_valid_pinned_ref() -> None:
     catalog = load_repository_catalog(CATALOG_PATH)
     repository = catalog.repositories["daylily-sarek"]
@@ -660,9 +847,17 @@ def test_repositories_commands_json_cli_lists_blessed_command() -> None:
 
     assert result.exit_code == 0
     payload = json.loads(result.stdout)
-    assert payload["input_contracts"]["sample_manifest"]["source_table"][
-        "required_columns"
-    ] == [
+    assert payload["test_data_locations"][0]["data_root"] == (
+        "/fsx/references/genomic_data/organism_reads_slim"
+    )
+    assert payload["test_data_profiles"]["default_reads_slim"]["source_mount_mode"] == (
+        "default_mounted"
+    )
+    assert payload["test_data_profiles"]["illumina_run_directory"]["source_mount_mode"] == (
+        "run_dra_required"
+    )
+    assert "default reference mount" in payload["test_data_locations"][0]["description"]
+    assert payload["input_contracts"]["sample_manifest"]["source_table"]["required_columns"] == [
         "RUN_ID",
         "SAMPLE_ID",
         "EXPERIMENTID",

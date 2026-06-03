@@ -1,0 +1,5 @@
+DAY-EC activated.
+DAY-EC activated.
+0: [80x24] [history 232/2000, 63792 bytes] %0 (active)
+sent dy-a slurm hg38_broad
+

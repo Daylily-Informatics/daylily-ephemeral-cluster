@@ -1,0 +1,40 @@
+Completed 27 Bytes/27 Bytes (171 Bytes/s) with 1 file(s) remaining
+upload: ../../../../../../var/folders/rk/2n95m40s1zs48qr48ynwhxwm0000gn/T/tmpf55k0zk2 to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T101953Z_7ef87e2c/_write_test.txt
+delete: s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T101953Z_7ef87e2c/_write_test.txt
+Completed 8.0 MiB/77.6 MiB (14.8 MiB/s) with 1 file(s) remaining
+Completed 16.0 MiB/77.6 MiB (29.2 MiB/s) with 1 file(s) remaining
+Completed 24.0 MiB/77.6 MiB (43.0 MiB/s) with 1 file(s) remaining
+Completed 32.0 MiB/77.6 MiB (56.7 MiB/s) with 1 file(s) remaining
+Completed 40.0 MiB/77.6 MiB (66.0 MiB/s) with 1 file(s) remaining
+Completed 48.0 MiB/77.6 MiB (78.9 MiB/s) with 1 file(s) remaining
+Completed 56.0 MiB/77.6 MiB (90.8 MiB/s) with 1 file(s) remaining
+Completed 64.0 MiB/77.6 MiB (97.1 MiB/s) with 1 file(s) remaining
+Completed 72.0 MiB/77.6 MiB (106.3 MiB/s) with 1 file(s) remaining
+Completed 77.6 MiB/77.6 MiB (91.8 MiB/s) with 1 file(s) remaining
+copy: s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG002_0.1x_R1.fastq.gz to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T101953Z_7ef87e2c/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz
+Completed 8.0 MiB/79.5 MiB (16.5 MiB/s) with 1 file(s) remaining
+Completed 16.0 MiB/79.5 MiB (30.2 MiB/s) with 1 file(s) remaining
+Completed 24.0 MiB/79.5 MiB (45.2 MiB/s) with 1 file(s) remaining
+Completed 32.0 MiB/79.5 MiB (58.9 MiB/s) with 1 file(s) remaining
+Completed 40.0 MiB/79.5 MiB (71.9 MiB/s) with 1 file(s) remaining
+Completed 48.0 MiB/79.5 MiB (81.0 MiB/s) with 1 file(s) remaining
+Completed 56.0 MiB/79.5 MiB (92.3 MiB/s) with 1 file(s) remaining
+Completed 63.5 MiB/79.5 MiB (103.7 MiB/s) with 1 file(s) remaining
+Completed 71.5 MiB/79.5 MiB (116.3 MiB/s) with 1 file(s) remaining
+Completed 79.5 MiB/79.5 MiB (128.4 MiB/s) with 1 file(s) remaining
+copy: s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG002_0.1x_R2.fastq.gz to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T101953Z_7ef87e2c/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz
+Completed 442 Bytes/442 Bytes (2.8 KiB/s) with 1 file(s) remaining
+upload: docs/plans/20260526T223700Z_goodole3_inputs/20260530T101953Z_7ef87e2c_samples.tsv to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T101953Z_7ef87e2c/20260530T101953Z_7ef87e2c_samples.tsv
+Completed 976 Bytes/976 Bytes (1.1 KiB/s) with 1 file(s) remaining
+upload: docs/plans/20260526T223700Z_goodole3_inputs/20260530T101953Z_7ef87e2c_units.tsv to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T101953Z_7ef87e2c/20260530T101953Z_7ef87e2c_units.tsv
+Precheck passed: rows checked=1, samples checked=1, source objects checked=32, concordance directories checked=1.
+Remote staging completed successfully.
+Remote FSx stage directory: /fsx/staging/staged_external_sequencing_data/remote_stage_20260530T101953Z_7ef87e2c
+Staging DRA: dra-0689b2d609ca04eae
+Staging DRA lifecycle: AVAILABLE
+Staged files (2):
+  /fsx/staging/staged_external_sequencing_data/remote_stage_20260530T101953Z_7ef87e2c/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R1.fastq.gz
+  /fsx/staging/staged_external_sequencing_data/remote_stage_20260530T101953Z_7ef87e2c/JEMILMN0P1_HG002-NOVASEQ-PF-gdna-0p1x_D0_0/HG002_0.1x_R2.fastq.gz
+Generated configuration files:
+  samples.tsv -> s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T101953Z_7ef87e2c/20260530T101953Z_7ef87e2c_samples.tsv
+  units.tsv   -> s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T101953Z_7ef87e2c/20260530T101953Z_7ef87e2c_units.tsv

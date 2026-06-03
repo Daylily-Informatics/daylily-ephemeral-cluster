@@ -1,0 +1,316 @@
+DAY-EC activated.
+DAY-EC activated.
+            set -euo pipefail
+
+            outdir="$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_clinvar_genes/summary.txt)"
+            # This file is legacy/debug; parse-vcfeval-summary.py uses its dirname to place the MQC TSV.
+            legacy_parsed="$outdir/vcfeval_summary.parsed.tsv"
+
+            # Keep mean depth behavior identical to the current rule (effectively NA/-1).
+            allvar_mean_dp="na"
+
+            # Prevent parse script from over-threading bcftools when many ROIs run concurrently.
+            export DAYLILY_BCFTOOLS_THREADS="16"
+
+            mkdir -p "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_clinvar_genes/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_clinvar_genes_concordance.mqc.tsv)"
+
+            python workflow/scripts/parse-vcfeval-summary.py \
+              results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_clinvar_genes/summary.txt \
+              JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ \
+              /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_clinvar_genes/HG002.bed \
+              giabHC_x_clinvar_genes \
+              HG002 \
+              "$legacy_parsed" \
+              "$allvar_mean_dp" \
+              sent \
+              dmd \
+              sentd \
+              > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHC_x_clinvar_genes.parse_vcfeval_summary.log 2>&1
+
+            # Hard check: the legacy script should have written the MQC output where we declared it.
+            test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_clinvar_genes/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_clinvar_genes_concordance.mqc.tsv
+
+Submitted job 29 with external jobid '3273'.
+[Sat May 30 09:57:52 2026]
+Finished job 34.
+134 of 161 steps (83%) done
+Select jobs to execute...
+
+[Sat May 30 09:57:52 2026]
+rule parse_vcfeval_summary_roi:
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/summary.txt, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima_x_clinvar/HG002.bed
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_x_clinvar_concordance.mqc.tsv
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHC_x_ultima_x_clinvar.parse_vcfeval_summary.log
+    jobid: 33
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHC_x_ultima_x_clinvar.parse_vcfeval_summary.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_x_clinvar_concordance.mqc.tsv; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/summary.txt
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ, alnr=sent, ddup=dmd, snv=sentd, cmpfootprint=giabHC_x_ultima_x_clinvar
+    threads: 16
+    resources: mem_mb=16000, mem_mib=15259, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+
+            outdir="$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/summary.txt)"
+            # This file is legacy/debug; parse-vcfeval-summary.py uses its dirname to place the MQC TSV.
+            legacy_parsed="$outdir/vcfeval_summary.parsed.tsv"
+
+            # Keep mean depth behavior identical to the current rule (effectively NA/-1).
+            allvar_mean_dp="na"
+
+            # Prevent parse script from over-threading bcftools when many ROIs run concurrently.
+            export DAYLILY_BCFTOOLS_THREADS="16"
+
+            mkdir -p "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_x_clinvar_concordance.mqc.tsv)"
+
+            python workflow/scripts/parse-vcfeval-summary.py \
+              results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/summary.txt \
+              JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ \
+              /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima_x_clinvar/HG002.bed \
+              giabHC_x_ultima_x_clinvar \
+              HG002 \
+              "$legacy_parsed" \
+              "$allvar_mean_dp" \
+              sent \
+              dmd \
+              sentd \
+              > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHC_x_ultima_x_clinvar.parse_vcfeval_summary.log 2>&1
+
+            # Hard check: the legacy script should have written the MQC output where we declared it.
+            test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima_x_clinvar/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_x_clinvar_concordance.mqc.tsv
+
+Submitted job 33 with external jobid '3274'.
+[Sat May 30 09:57:52 2026]
+Finished job 40.
+135 of 161 steps (84%) done
+[Sat May 30 09:57:52 2026]
+Finished job 32.
+136 of 161 steps (84%) done
+Select jobs to execute...
+
+[Sat May 30 09:57:52 2026]
+rule parse_vcfeval_summary_roi:
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/summary.txt, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38_m_giabHC/HG002.bed
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.hg38_m_giabHC.parse_vcfeval_summary.log
+    jobid: 39
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.hg38_m_giabHC.parse_vcfeval_summary.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/summary.txt
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ, alnr=sent, ddup=dmd, snv=sentd, cmpfootprint=hg38_m_giabHC
+    threads: 16
+    resources: mem_mb=16000, mem_mib=15259, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+
+            outdir="$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/summary.txt)"
+            # This file is legacy/debug; parse-vcfeval-summary.py uses its dirname to place the MQC TSV.
+            legacy_parsed="$outdir/vcfeval_summary.parsed.tsv"
+
+            # Keep mean depth behavior identical to the current rule (effectively NA/-1).
+            allvar_mean_dp="na"
+
+            # Prevent parse script from over-threading bcftools when many ROIs run concurrently.
+            export DAYLILY_BCFTOOLS_THREADS="16"
+
+            mkdir -p "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv)"
+
+            python workflow/scripts/parse-vcfeval-summary.py \
+              results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/summary.txt \
+              JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ \
+              /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38_m_giabHC/HG002.bed \
+              hg38_m_giabHC \
+              HG002 \
+              "$legacy_parsed" \
+              "$allvar_mean_dp" \
+              sent \
+              dmd \
+              sentd \
+              > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.hg38_m_giabHC.parse_vcfeval_summary.log 2>&1
+
+            # Hard check: the legacy script should have written the MQC output where we declared it.
+            test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38_m_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_m_giabHC_concordance.mqc.tsv
+
+Submitted job 39 with external jobid '3275'.
+
+[Sat May 30 09:57:52 2026]
+rule parse_vcfeval_summary_roi:
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/summary.txt, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima/HG002.bed
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_concordance.mqc.tsv
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHC_x_ultima.parse_vcfeval_summary.log
+    jobid: 31
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHC_x_ultima.parse_vcfeval_summary.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_concordance.mqc.tsv; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/summary.txt
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ, alnr=sent, ddup=dmd, snv=sentd, cmpfootprint=giabHC_x_ultima
+    threads: 16
+    resources: mem_mb=16000, mem_mib=15259, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+
+            outdir="$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/summary.txt)"
+            # This file is legacy/debug; parse-vcfeval-summary.py uses its dirname to place the MQC TSV.
+            legacy_parsed="$outdir/vcfeval_summary.parsed.tsv"
+
+            # Keep mean depth behavior identical to the current rule (effectively NA/-1).
+            allvar_mean_dp="na"
+
+            # Prevent parse script from over-threading bcftools when many ROIs run concurrently.
+            export DAYLILY_BCFTOOLS_THREADS="16"
+
+            mkdir -p "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_concordance.mqc.tsv)"
+
+            python workflow/scripts/parse-vcfeval-summary.py \
+              results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/summary.txt \
+              JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ \
+              /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC_x_ultima/HG002.bed \
+              giabHC_x_ultima \
+              HG002 \
+              "$legacy_parsed" \
+              "$allvar_mean_dp" \
+              sent \
+              dmd \
+              sentd \
+              > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHC_x_ultima.parse_vcfeval_summary.log 2>&1
+
+            # Hard check: the legacy script should have written the MQC output where we declared it.
+            test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC_x_ultima/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_x_ultima_concordance.mqc.tsv
+
+Submitted job 31 with external jobid '3276'.
+[Sat May 30 09:57:52 2026]
+Finished job 25.
+137 of 161 steps (85%) done
+[Sat May 30 09:58:02 2026]
+Finished job 28.
+138 of 161 steps (86%) done
+Select jobs to execute...
+
+[Sat May 30 09:58:02 2026]
+rule parse_vcfeval_summary_roi:
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/summary.txt, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/HG002.bed
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHC.parse_vcfeval_summary.log
+    jobid: 27
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHC.parse_vcfeval_summary.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/summary.txt
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ, alnr=sent, ddup=dmd, snv=sentd, cmpfootprint=giabHC
+    threads: 16
+    resources: mem_mb=16000, mem_mib=15259, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+
+            outdir="$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/summary.txt)"
+            # This file is legacy/debug; parse-vcfeval-summary.py uses its dirname to place the MQC TSV.
+            legacy_parsed="$outdir/vcfeval_summary.parsed.tsv"
+
+            # Keep mean depth behavior identical to the current rule (effectively NA/-1).
+            allvar_mean_dp="na"
+
+            # Prevent parse script from over-threading bcftools when many ROIs run concurrently.
+            export DAYLILY_BCFTOOLS_THREADS="16"
+
+            mkdir -p "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv)"
+
+            python workflow/scripts/parse-vcfeval-summary.py \
+              results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/summary.txt \
+              JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ \
+              /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/giabHC/HG002.bed \
+              giabHC \
+              HG002 \
+              "$legacy_parsed" \
+              "$allvar_mean_dp" \
+              sent \
+              dmd \
+              sentd \
+              > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.giabHC.parse_vcfeval_summary.log 2>&1
+
+            # Hard check: the legacy script should have written the MQC output where we declared it.
+            test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_giabHC/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_giabHC_concordance.mqc.tsv
+
+Submitted job 27 with external jobid '3277'.
+[Sat May 30 09:58:02 2026]
+Finished job 24.
+139 of 161 steps (86%) done
+[Sat May 30 09:58:02 2026]
+Finished job 38.
+140 of 161 steps (87%) done
+[Sat May 30 09:58:02 2026]
+Finished job 29.
+141 of 161 steps (88%) done
+Select jobs to execute...
+
+[Sat May 30 09:58:02 2026]
+rule parse_vcfeval_summary_roi:
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/summary.txt, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38/HG002.bed
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.hg38.parse_vcfeval_summary.log
+    jobid: 37
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.hg38.parse_vcfeval_summary.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/summary.txt
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ, alnr=sent, ddup=dmd, snv=sentd, cmpfootprint=hg38
+    threads: 16
+    resources: mem_mb=16000, mem_mib=15259, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+
+            outdir="$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/summary.txt)"
+            # This file is legacy/debug; parse-vcfeval-summary.py uses its dirname to place the MQC TSV.
+            legacy_parsed="$outdir/vcfeval_summary.parsed.tsv"
+
+            # Keep mean depth behavior identical to the current rule (effectively NA/-1).
+            allvar_mean_dp="na"
+
+            # Prevent parse script from over-threading bcftools when many ROIs run concurrently.
+            export DAYLILY_BCFTOOLS_THREADS="16"
+
+            mkdir -p "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv)"
+
+            python workflow/scripts/parse-vcfeval-summary.py \
+              results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/summary.txt \
+              JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ \
+              /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/hg38/HG002.bed \
+              hg38 \
+              HG002 \
+              "$legacy_parsed" \
+              "$allvar_mean_dp" \
+              sent \
+              dmd \
+              sentd \
+              > results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.hg38.parse_vcfeval_summary.log 2>&1
+
+            # Hard check: the legacy script should have written the MQC output where we declared it.
+            test -s results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_hg38/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_hg38_concordance.mqc.tsv
+
+Submitted job 37 with external jobid '3278'.
+
+[Sat May 30 09:58:02 2026]
+rule parse_vcfeval_summary_roi:
+    input: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_altair-v1.1/summary.txt, /fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/altair-v1.1/HG002.bed
+    output: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_altair-v1.1/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv
+    log: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.altair-v1.1.parse_vcfeval_summary.log
+    jobid: 23
+    benchmark: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/benchmarks/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.altair-v1.1.parse_vcfeval_summary.bench.tsv
+    reason: Missing output files: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_altair-v1.1/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv; Input files updated by another job: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_altair-v1.1/summary.txt
+    wildcards: sample=JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ, alnr=sent, ddup=dmd, snv=sentd, cmpfootprint=altair-v1.1
+    threads: 16
+    resources: mem_mb=16000, mem_mib=15259, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=16, time=5440, partition=i192mem,i192bigmem, vcpu=16, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+
+            outdir="$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_altair-v1.1/summary.txt)"
+            # This file is legacy/debug; parse-vcfeval-summary.py uses its dirname to place the MQC TSV.
+            legacy_parsed="$outdir/vcfeval_summary.parsed.tsv"
+
+            # Keep mean depth behavior identical to the current rule (effectively NA/-1).
+            allvar_mean_dp="na"
+
+            # Prevent parse script from over-threading bcftools when many ROIs run concurrently.
+            export DAYLILY_BCFTOOLS_THREADS="16"
+
+            mkdir -p "$(dirname results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/concordance/_altair-v1.1/snv_JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ_altair-v1.1_concordance.mqc.tsv)"
+
+            python workflow/scripts/parse-vcfeval-summary.py \
+              results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/c--output truncated--

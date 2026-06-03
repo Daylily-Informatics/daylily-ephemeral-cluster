@@ -5,6 +5,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import pytest
+import yaml
 
 from daylily_ec.render.renderer import (
     ALL_SUBSTITUTION_KEYS,
@@ -12,6 +13,11 @@ from daylily_ec.render.renderer import (
     REQUIRED_KEYS,
     render_template,
     write_init_artifacts,
+)
+from daylily_ec.aws.slurm_accounting import (
+    SlurmAccountingDb,
+    empty_slurm_accounting_render_blocks,
+    slurm_accounting_render_blocks,
 )
 
 
@@ -42,7 +48,7 @@ def _full_subs() -> dict[str, str]:
 
 class TestConstants:
     def test_all_keys_count(self):
-        assert len(ALL_SUBSTITUTION_KEYS) == 32
+        assert len(ALL_SUBSTITUTION_KEYS) == 33
 
     def test_required_keys_subset(self):
         assert REQUIRED_KEYS.issubset(ALL_SUBSTITUTION_KEYS)
@@ -138,27 +144,95 @@ class TestAllSubstitutionKeys:
 
     def test_known_keys_present(self):
         expected = {
-            "REGSUB_REGION", "REGSUB_PUB_SUBNET", "REGSUB_KEYNAME",
+            "REGSUB_REGION",
+            "REGSUB_PUB_SUBNET",
+            "REGSUB_KEYNAME",
             "REGSUB_S3_BUCKET_INIT",
             "REGSUB_S3_IAM_POLICY",
-            "REGSUB_HEADNODE_TAILSCALE_IAM_POLICY",
             "REGSUB_PRIVATE_SUBNET",
-            "REGSUB_S3_REFERENCE_BUCKET", "REGSUB_S3_CONTROL_DATA_BUCKET",
+            "REGSUB_S3_REFERENCE_BUCKET",
+            "REGSUB_S3_CONTROL_DATA_BUCKET",
             "REGSUB_S3_STAGE_BUCKET",
             "REGSUB_S3_EXPORT_BUCKET",
-            "REGSUB_S3_REFERENCE_URI", "REGSUB_S3_CONTROL_DATA_URI",
+            "REGSUB_S3_REFERENCE_URI",
+            "REGSUB_S3_CONTROL_DATA_URI",
             "REGSUB_S3_STAGE_URI",
-            "REGSUB_FSX_SIZE", "REGSUB_DETAILED_MONITORING",
-            "REGSUB_CLUSTER_NAME", "REGSUB_USERNAME", "REGSUB_PROJECT",
-            "REGSUB_DELETE_LOCAL_ROOT", "REGSUB_SAVE_FSX",
-            "REGSUB_ENFORCE_BUDGET", "REGSUB_AWS_ACCOUNT_ID",
-            "REGSUB_ALLOCATION_STRATEGY", "REGSUB_DAYLILY_GIT_DEETS",
-            "REGSUB_MAX_COUNT_8I", "REGSUB_MAX_COUNT_128I",
-            "REGSUB_MAX_COUNT_192I", "REGSUB_HEADNODE_INSTANCE_TYPE",
-            "REGSUB_HEARTBEAT_EMAIL", "REGSUB_HEARTBEAT_SCHEDULE",
+            "REGSUB_FSX_SIZE",
+            "REGSUB_DETAILED_MONITORING",
+            "REGSUB_CLUSTER_NAME",
+            "REGSUB_USERNAME",
+            "REGSUB_PROJECT",
+            "REGSUB_DELETE_LOCAL_ROOT",
+            "REGSUB_SAVE_FSX",
+            "REGSUB_ENFORCE_BUDGET",
+            "REGSUB_AWS_ACCOUNT_ID",
+            "REGSUB_ALLOCATION_STRATEGY",
+            "REGSUB_DAYLILY_GIT_DEETS",
+            "REGSUB_MAX_COUNT_8I",
+            "REGSUB_MAX_COUNT_128I",
+            "REGSUB_MAX_COUNT_192I",
+            "REGSUB_HEADNODE_INSTANCE_TYPE",
+            "REGSUB_HEARTBEAT_EMAIL",
+            "REGSUB_HEARTBEAT_SCHEDULE",
             "REGSUB_HEARTBEAT_SCHEDULER_ROLE_ARN",
+            "REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING",
+            "REGSUB_SLURM_ACCOUNTING_DATABASE",
         }
         assert ALL_SUBSTITUTION_KEYS == expected
+
+    def test_accounting_disabled_template_has_no_dangling_tokens(self):
+        template = (
+            Path(__file__).resolve().parents[1] / "config/day_cluster/prod_cluster.yaml"
+        ).read_text(encoding="utf-8")
+        subs = _full_subs()
+        subs.update(empty_slurm_accounting_render_blocks())
+
+        rendered = render_template(template, subs)
+
+        assert "REGSUB_SLURM_ACCOUNTING" not in rendered
+        assert "PasswordSecretArn:" not in rendered
+        assert "DatabaseName:" not in rendered
+        payload = yaml.safe_load(rendered)
+        assert "Database" not in payload["Scheduling"]["SlurmSettings"]
+
+    def test_accounting_enabled_template_includes_slurm_database(self):
+        template = (
+            Path(__file__).resolve().parents[1] / "config/day_cluster/prod_cluster.yaml"
+        ).read_text(encoding="utf-8")
+        db = SlurmAccountingDb(
+            stack_name="dayec-slurm-accounting-us-west-2b",
+            status="CREATE_COMPLETE",
+            uri="10.0.1.10:3306",
+            private_ip="10.0.1.10",
+            database_name="dayec_slurm_acct",
+            username="slurm_acct",
+            password_secret_arn="arn:aws:secretsmanager:us-west-2:123456789012:secret:acct",
+            client_security_group_id="sg-0123456789abcdef0",
+            instance_id="i-0123456789abcdef0",
+        )
+        subs = _full_subs()
+        subs.update(slurm_accounting_render_blocks(db))
+
+        rendered = render_template(template, subs)
+
+        assert "AdditionalSecurityGroups:" in rendered
+        assert "Database:" in rendered
+        assert "Uri: 10.0.1.10:3306" in rendered
+        assert "UserName: slurm_acct" in rendered
+        assert "PasswordSecretArn: arn:aws:secretsmanager" in rendered
+        assert "DatabaseName: dayec_slurm_acct" in rendered
+        payload = yaml.safe_load(rendered)
+        assert payload["HeadNode"]["Networking"]["AdditionalSecurityGroups"] == [
+            "sg-0123456789abcdef0"
+        ]
+        assert payload["Scheduling"]["SlurmSettings"]["Database"] == {
+            "Uri": "10.0.1.10:3306",
+            "UserName": "slurm_acct",
+            "PasswordSecretArn": (
+                "arn:aws:secretsmanager:us-west-2:123456789012:secret:acct"
+            ),
+            "DatabaseName": "dayec_slurm_acct",
+        }
 
 
 # ── TestWriteInitArtifacts ───────────────────────────────────────────
@@ -174,7 +248,10 @@ class TestWriteInitArtifacts:
         tpl = self._write_template(tmp_path)
         out_dir = tmp_path / "out"
         yaml_init, init_tpl = write_init_artifacts(
-            "prod", "20260211140000", str(tpl), MINIMAL_SUBS,
+            "prod",
+            "20260211140000",
+            str(tpl),
+            MINIMAL_SUBS,
             config_dir=out_dir,
         )
         assert Path(yaml_init).is_file()
@@ -184,7 +261,10 @@ class TestWriteInitArtifacts:
         tpl = self._write_template(tmp_path)
         out_dir = tmp_path / "out"
         yaml_init, _ = write_init_artifacts(
-            "prod", "20260211140000", str(tpl), MINIMAL_SUBS,
+            "prod",
+            "20260211140000",
+            str(tpl),
+            MINIMAL_SUBS,
             config_dir=out_dir,
         )
         assert Path(yaml_init).read_text() == MINI_TEMPLATE
@@ -193,7 +273,10 @@ class TestWriteInitArtifacts:
         tpl = self._write_template(tmp_path)
         out_dir = tmp_path / "out"
         _, init_tpl = write_init_artifacts(
-            "prod", "20260211140000", str(tpl), MINIMAL_SUBS,
+            "prod",
+            "20260211140000",
+            str(tpl),
+            MINIMAL_SUBS,
             config_dir=out_dir,
         )
         content = Path(init_tpl).read_text()
@@ -204,7 +287,10 @@ class TestWriteInitArtifacts:
         tpl = self._write_template(tmp_path)
         out_dir = tmp_path / "out"
         yaml_init, init_tpl = write_init_artifacts(
-            "mycluster", "20260211", str(tpl), MINIMAL_SUBS,
+            "mycluster",
+            "20260211",
+            str(tpl),
+            MINIMAL_SUBS,
             config_dir=out_dir,
         )
         assert "mycluster_cluster_20260211.yaml.init" in yaml_init
@@ -214,14 +300,21 @@ class TestWriteInitArtifacts:
         tpl = self._write_template(tmp_path)
         out_dir = tmp_path / "deep" / "nested"
         write_init_artifacts(
-            "prod", "ts", str(tpl), MINIMAL_SUBS, config_dir=out_dir,
+            "prod",
+            "ts",
+            str(tpl),
+            MINIMAL_SUBS,
+            config_dir=out_dir,
         )
         assert out_dir.is_dir()
 
     def test_missing_template_raises(self, tmp_path: Path):
         with pytest.raises(FileNotFoundError, match="Template not found"):
             write_init_artifacts(
-                "prod", "ts", "/no/such/file.yaml", MINIMAL_SUBS,
+                "prod",
+                "ts",
+                "/no/such/file.yaml",
+                MINIMAL_SUBS,
                 config_dir=tmp_path,
             )
 
@@ -231,7 +324,11 @@ class TestWriteInitArtifacts:
         del subs["REGSUB_REGION"]
         with pytest.raises(ValueError, match="REGSUB_REGION"):
             write_init_artifacts(
-                "prod", "ts", str(tpl), subs, config_dir=tmp_path,
+                "prod",
+                "ts",
+                str(tpl),
+                subs,
+                config_dir=tmp_path,
             )
 
     def test_byte_stable_artifacts(self, tmp_path: Path):
@@ -239,9 +336,17 @@ class TestWriteInitArtifacts:
         d1 = tmp_path / "run1"
         d2 = tmp_path / "run2"
         _, p1 = write_init_artifacts(
-            "c", "ts", str(tpl), MINIMAL_SUBS, config_dir=d1,
+            "c",
+            "ts",
+            str(tpl),
+            MINIMAL_SUBS,
+            config_dir=d1,
         )
         _, p2 = write_init_artifacts(
-            "c", "ts", str(tpl), MINIMAL_SUBS, config_dir=d2,
+            "c",
+            "ts",
+            str(tpl),
+            MINIMAL_SUBS,
+            config_dir=d2,
         )
         assert Path(p1).read_bytes() == Path(p2).read_bytes()

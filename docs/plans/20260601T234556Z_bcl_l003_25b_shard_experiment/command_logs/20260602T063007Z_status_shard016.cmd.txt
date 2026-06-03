@@ -1,0 +1,1 @@
+dyec --json workflow status --profile lsmc --region us-west-2 --cluster dyec5117 --session bcl25b_l003_shard016_20260602T000733Z

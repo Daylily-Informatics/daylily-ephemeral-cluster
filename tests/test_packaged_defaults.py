@@ -17,6 +17,9 @@ ACTIVE_CLUSTER_TEMPLATES = (
     "config/day_cluster/cromwell_test.yaml",
     "config/day_cluster/regions/all_clusters.yaml",
 )
+ACTIVE_CFN_TEMPLATES = (
+    "config/day_cluster/slurm_accounting_mysql_ec2.yml",
+)
 
 
 def test_create_workflow_loads_default_config_outside_repo(tmp_path, monkeypatch):
@@ -101,15 +104,23 @@ def test_active_cluster_templates_use_contract_role_dras() -> None:
         assert "${REGSUB_S3_STAGE_URI}/" not in text
         assert all(item["BatchImportMetaDataOnCreate"] is True for item in associations)
         assert all(
-            item["AutoImportPolicy"] == ["NEW", "CHANGED", "DELETED"]
-            for item in associations
+            item["AutoImportPolicy"] == ["NEW", "CHANGED", "DELETED"] for item in associations
         )
 
 
 def test_packaged_cluster_templates_match_source_templates() -> None:
     for relative_path in ACTIVE_CLUSTER_TEMPLATES:
         source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
-        packaged = (
-            REPO_ROOT / "daylily_ec/resources/payload" / relative_path
-        ).read_text(encoding="utf-8")
+        packaged = (REPO_ROOT / "daylily_ec/resources/payload" / relative_path).read_text(
+            encoding="utf-8"
+        )
+        assert packaged == source
+
+
+def test_packaged_cfn_templates_match_source_templates() -> None:
+    for relative_path in ACTIVE_CFN_TEMPLATES:
+        source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        packaged = (REPO_ROOT / "daylily_ec/resources/payload" / relative_path).read_text(
+            encoding="utf-8"
+        )
         assert packaged == source

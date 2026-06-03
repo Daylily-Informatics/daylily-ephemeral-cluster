@@ -1,0 +1,37 @@
+DAY-EC activated.
+DAY-EC activated.
+now=2026-05-30T13:05:49Z
+host=i192mem-dy-all-1
+bcl_pid=73008
+  73008 Sl    987 10.8    02:11:03 85779564 143180360 bcl-convert /usr/local/bin/bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/run --output-directory /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/
+scratch_total=4.4T
+scratch_run=3.2T
+scratch_fastqs=1.3T
+fastq_file_count=257
+fastq_bytes=1350900287488
+newest_fastq_files
+2026-05-30T13:05:55.0000000000 1526726656 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL1-a_S22_L003_R1_001.fastq.gz
+2026-05-30T13:05:55.0000000000 1541406720 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL1-b_S23_L003_R2_001.fastq.gz
+2026-05-30T13:05:55.0000000000 1546649600 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL1-a_S22_L003_R2_001.fastq.gz
+2026-05-30T13:05:55.0000000000 1664090112 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL2-b_S25_L003_R2_001.fastq.gz
+2026-05-30T13:05:55.0000000000 1688207360 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL3-a_S26_L003_R2_001.fastq.gz
+2026-05-30T13:05:55.0000000000 1689255936 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL2-a_S24_L003_R2_001.fastq.gz
+2026-05-30T13:05:55.0000000000 1690304512 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL2-a_S24_L003_R1_001.fastq.gz
+2026-05-30T13:05:55.0000000000 1715470336 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL3-b_S27_L003_R2_001.fastq.gz
+2026-05-30T13:05:56.0000000000 1271922688 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL8-a_S32_L003_R2_001.fastq.gz
+2026-05-30T13:05:56.0000000000 1425014784 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL7-a_S31_L003_R2_001.fastq.gz
+2026-05-30T13:05:56.0000000000 1525678080 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL4-a_S28_L003_R1_001.fastq.gz
+2026-05-30T13:05:56.0000000000 1525678080 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL4-a_S28_L003_R2_001.fastq.gz
+2026-05-30T13:05:56.0000000000 1622147072 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL5-a_S29_L003_R1_001.fastq.gz
+2026-05-30T13:05:56.0000000000 1634729984 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL2-b_S25_L003_R1_001.fastq.gz
+2026-05-30T13:05:56.0000000000 1639972864 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL5-a_S29_L003_R2_001.fastq.gz
+2026-05-30T13:05:56.0000000000 1673527296 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL3-a_S26_L003_R1_001.fastq.gz
+2026-05-30T13:05:56.0000000000 1695547392 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL3-b_S27_L003_R1_001.fastq.gz
+2026-05-30T13:05:56.0000000000 1749024768 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL6-a_S30_L003_R1_001.fastq.gz
+2026-05-30T13:05:56.0000000000 1767899136 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL6-a_S30_L003_R2_001.fastq.gz
+2026-05-30T13:05:56.0000000000 1914699776 /fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch/3310.25321/fastqs/BUCCAL9-a_S33_L003_R2_001.fastq.gz
+log_mtime=2026-05-30 10:54:45.000000000 +0000 3018
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  7.8T 1005G  89% /fsx
+10.0.1.96@tcp:/d4tzvb4v  8.8T  7.8T 1005G  89% /fsx
+10.0.1.96@tcp:/d4tzvb4v  8.8T  7.8T 1005G  89% /fsx

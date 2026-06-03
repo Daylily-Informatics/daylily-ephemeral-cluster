@@ -1,0 +1,113 @@
+DAY-EC activated.
+DAY-EC activated.
+aid=ccv20260529r22_illumina_bclconvert
+repo=/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis
+status_json:
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260529r22_illumina_bclconvert",
+  "started_at": "2026-05-30T05:58:29Z"
+}
+bclconvert_profile:
+recent_bcl_logs:
+/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log
+WARNING: sample sheet SoftwareVersion 4.3.16 is newer than pinned runtime 4.0.3
+INFO: normalized sample sheet SoftwareVersion from 4.3.16 to pinned runtime 4.0.3
+INFO: stripped unsupported BCLConvert setting GenerateFastqcMetrics from normalized sample sheet
+/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+WARNING: sample sheet SoftwareVersion 4.3.16 is newer than pinned runtime 4.0.3
+INFO: normalized sample sheet SoftwareVersion from 4.3.16 to pinned runtime 4.0.3
+INFO: stripped unsupported BCLConvert setting GenerateFastqcMetrics from normalized sample sheet
+/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+run_bclconvert started: 2026-05-30T06:02:50+00:00
+host: i192mem-dy-all-2
+threads: 192
+resources_mem_mb: 180000
+TMPDIR: /fsx/scratch
+staging_mode: output_dev_shm
+scratch_root: /fsx/scratch/dayoa_bclconvert
+bcl_input_directory: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+source_s3_uri: s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs
+192
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  192G  8.6T   3% /fsx
+10.0.1.96@tcp:/d4tzvb4v  8.8T  192G  8.6T   3% /fsx
+/usr/bin/singularity
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc.
+/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis/logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.out
+/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert/daylily-omics-analysis/logs/slurm/run_bclconvert/run_bclconvert.run_bclconvert.2.err
+                ;;
+        esac
+
+        parallel_tiles=8
+        conversion_threads=8
+        compression_threads=12
+        decompression_threads=4
+        per_tile_threads="$((conversion_threads + compression_threads + decompression_threads))"
+        if [ "$per_tile_threads" -lt 1 ]; then
+            echo "BCLConvert per-tile thread total must be >= 1" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+            exit 2
+        fi
+        max_parallel_tiles="$((192 / per_tile_threads))"
+        if [ "$max_parallel_tiles" -lt 1 ]; then
+            echo "BCLConvert thread allocation is too small: threads=192 per_tile_threads=$per_tile_threads" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+            exit 2
+        fi
+        if [ "$parallel_tiles" -gt "$max_parallel_tiles" ]; then
+            echo "Reducing BCLConvert parallel tiles from $parallel_tiles to $max_parallel_tiles for threads=192" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+            parallel_tiles="$max_parallel_tiles"
+        fi
+        echo "bcl_num_parallel_tiles: $parallel_tiles" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+        echo "bcl_num_conversion_threads: $conversion_threads" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+        echo "bcl_num_compression_threads: $compression_threads" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+        echo "bcl_num_decompression_threads: $decompression_threads" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+
+        bcl_flags=(
+          --bcl-input-directory "$effective_run_dir"
+          --output-directory "$effective_output_dir"
+          --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+          --strict-mode false
+          --first-tile-only false
+          --bcl-sampleproject-subdirectories false
+          --fastq-gzip-compression-level 1
+          --bcl-num-parallel-tiles "$parallel_tiles"
+          --bcl-num-conversion-threads "$conversion_threads"
+          --bcl-num-compression-threads "$compression_threads"
+          --bcl-num-decompression-threads "$decompression_threads"
+          --shared-thread-odirect-output false
+        )
+        force_arg=
+        if [ -n "$force_arg" ]; then
+            bcl_flags+=("$force_arg")
+        fi
+
+        printf 'bcl-convert command:' >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+        printf ' %q' singularity exec docker://nfcore/bclconvert:4.0.3 bcl-convert "${bcl_flags[@]}" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+        printf '\n' >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+        singularity exec docker://nfcore/bclconvert:4.0.3 bcl-convert "${bcl_flags[@]}" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log 2>&1
+
+        if [ "$staging_mode" = "dev_shm" ] || [ "$staging_mode" = "mounted_dev_shm" ] || [ "$staging_mode" = "s3_dev_shm" ] || [ "$staging_mode" = "output_dev_shm" ]; then
+            echo "Copying BCLConvert outputs from scratch to result tree: $(date -Is)" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+            cp -a "$effective_output_dir"/. results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/
+            df -h "$scratch_root" results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log 2>&1 || true
+        fi
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/fastq_list.csv
+        test -s results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/fastqs/Reports/Demultiplex_Stats.csv
+        echo "run_bclconvert finished: $(date -Is)" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.log
+        touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done
+
+slurm_queue:
+             JOBID            PARTITION    STATE       TIME TIME_LIMI  NODES                 NAME
+              2654              i192mem  RUNNING       0:27 3-18:40:00      1 run_bclconvert-run_b
+scratch_usage:
+65K	/fsx/scratch/dayoa_bclconvert
+/fsx/scratch/dayoa_bclconvert/2654.11051
+33K	/fsx/scratch/dayoa_bclconvert/2654.11051
+analysis_usage:
+376M	/fsx/analysis_results/ubuntu/ccv20260529r22_illumina_bclconvert

@@ -1,0 +1,130 @@
+DAY-EC activated.
+DAY-EC activated.
+=== i192mem-dy-all-9 ===
+i192mem-dy-all-9
+2026-05-30T14:33:18+00:00
+ 14:33:18 up 4 min,  0 users,  load average: 1.24, 0.60, 0.25
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  3.4T  5.4T  39% /fsx
+tmpfs                    605G     0  605G   0% /dev/shm
+run_mount=yes
+active
+● slurmd.service - Slurm node daemon
+     Loaded: loaded (/etc/systemd/system/slurmd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sat 2026-05-30 14:33:16 UTC; 2s ago
+   Main PID: 10095 (slurmd)
+      Tasks: 1 (limit: 629145)
+     Memory: 12.8M
+        CPU: 240ms
+     CGroup: /system.slice/slurmd.service
+             └─10095 /opt/slurm/sbin/slurmd -D -s -N i192mem-dy-all-9 --instance-id i-0fadae36862584545 --instance-type m7i.metal-48xl
+
+May 30 14:33:16 i192mem-dy-all-9 systemd[1]: Started Slurm node daemon.
+May 30 14:33:16 i192mem-dy-all-9 slurmd[10095]: slurmd: error: UnkillableStepTimeout must be at least 5 times greater than MessageTimeout, otherwise nodes may go down with the reason "KillTaskFailed". Current values: UnkillableStepTimeout=180, MessageTimeout=60
+May 30 14:33:16 i192mem-dy-all-9 slurmd[10095]: error: UnkillableStepTimeout must be at least 5 times greater than MessageTimeout, otherwise nodes may go down with the reason "KillTaskFailed". Current values: UnkillableStepTimeout=180, MessageTimeout=60
+May 30 14:33:16 i192mem-dy-all-9 slurmd[10095]: slurmd: slurmd version 24.05.8 started
+May 30 14:33:16 i192mem-dy-all-9 slurmd[10095]: slurmd: slurmd started on Sat, 30 May 2026 14:33:16 +0000
+May 30 14:33:16 i192mem-dy-all-9 slurmd[10095]: slurmd: CPUs=192 Boards=1 Sockets=192 Cores=1 Threads=1 Memory=773772 TmpDisk=44471 Uptime=258 CPUSpecList=(null) FeaturesAvail=(null) FeaturesActive=(null)
+May 30 14:33:17 i192mem-dy-all-9 slurmd[10095]: slurmd: task/affinity: task_p_slurmd_batch_request: task_p_slurmd_batch_request: 3537
+May 30 14:33:17 i192mem-dy-all-9 slurmd[10095]: slurmd: task/affinity: batch_bind: job 3537 CPU input mask for node: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+May 30 14:33:17 i192mem-dy-all-9 slurmd[10095]: slurmd: task/affinity: batch_bind: job 3537 CPU final HW mask for node: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+May 30 14:33:17 i192mem-dy-all-9 slurmd[10095]: slurmd: Launching batch job 3537 for UID 1000
+    PID    PPID STAT %CPU %MEM     ELAPSED CMD
+  10130   10129 Dl    739  0.0       00:02 /home/ubuntu/miniconda3/envs/DAYOA/bin/python -m snakemake --snakefile /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/workflow/Snakefile --target-jobs run_bclconvert_lane:lane=L006 --allowed-rules run_bclconvert_lane --cores all --attempt 1 --force-use-threads --resources mem_mb=180000 mem_mib=171662 disk_mb=1000 disk_mib=954 threads=192 time=5440 vcpu=192 --wait-for-files /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/.snakemake/tmp.75tr6v54 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv --force --keep-target-files --keep-remote --max-inventory-time 0 --nocolor --notemp --no-hooks --nolock --ignore-incomplete --rerun-triggers code input software-env params mtime --skip-script-cleanup --use-conda --conda-frontend conda --conda-prefix /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88 --conda-base-path /home/ubuntu/miniconda3 --use-singularity --singularity-prefix /fsx/resources/environments/containers/ubuntu/ip-10-0-0-88 --singularity-args   -B /fsx:/fsx -B /tmp:/tmp -B $PWD/:$PWD   -B /dev/fd:/dev/fd  -B /dev/shm:$PWD/resources/dev/shm -B /dev/shm:/dev/shm  --wrapper-prefix https://github.com/snakemake/snakemake-wrappers/raw/ --config run_context_file=config/runs.tsv bootstrap_bclconvert=true --printshellcmds --latency-wait 100 --scheduler greedy --scheduler-solver-path /home/ubuntu/miniconda3/envs/DAYOA/bin --default-resources mem_mb=3000 disk_mb=1000 tmpdir=system_tmpdir threads=1 time=5440 partition=i192,i128,i192mem vcpu=1 distribution=block exclusive='' constraint='' exclude='' include='' --mode 2
+   9889    3320 Sl   36.1  0.0       00:07 /opt/cinc/embedded/bin/ruby --disable-gems /bin/cinc-client --local-mode --config /etc/chef/client.rb --log_level info --logfile /var/log/chef-client.log --force-formatter --no-color --chef-zero-port 8889 --json-attributes /etc/chef/dna.json --override-runlist aws-parallelcluster-entrypoints::finalize
+  10142   10058 S    11.0  0.0       00:01 /opt/parallelcluster/pyenv/versions/3.12.8/envs/node_virtualenv/bin/python3.12 /opt/parallelcluster/pyenv/versions/3.12.8/envs/node_virtualenv/bin/computemgtd
+  10134       1 Ss    4.0  0.0       00:01 /lib/systemd/systemd --user
+  10058       1 Ss    3.6  0.0       00:03 /opt/parallelcluster/pyenv/versions/3.12.8/envs/cookbook_virtualenv/bin/python3.12 /opt/parallelcluster/pyenv/versions/3.12.8/envs/cookbook_virtualenv/bin/supervisord -n -c /etc/supervisord.conf
+      1       0 Ss    2.1  0.0       04:16 /sbin/init
+  10126       1 Sl    2.0  0.0       00:02 slurmstepd: [3537.batch]
+  10150   10134 Ssl   2.0  0.0       00:01 /usr/bin/pulseaudio --daemonize=no --log-target=journal
+    442       2 S     1.7  0.0       04:16 [migration/71]
+    448       2 S     1.7  0.0       04:16 [migration/72]
+    454       2 S     1.7  0.0       04:16 [migration/73]
+    460       2 S     1.7  0.0       04:16 [migration/74]
+    466       2 S     1.7  0.0       04:16 [migration/75]
+    472       2 S     1.7  0.0       04:16 [migration/76]
+    478       2 S     1.7  0.0       04:16 [migration/77]
+    484       2 S     1.7  0.0       04:16 [migration/78]
+    490       2 S     1.7  0.0       04:16 [migration/79]
+    496       2 S     1.7  0.0       04:16 [migration/80]
+    502       2 S     1.7  0.0       04:16 [migration/81]
+    508       2 S     1.7  0.0       04:16 [migration/82]
+    514       2 S     1.7  0.0       04:16 [migration/83]
+    520       2 S     1.7  0.0       04:16 [migration/84]
+    526       2 S     1.7  0.0       04:16 [migration/85]
+    532       2 S     1.7  0.0       04:16 [migration/86]
+May 30 14:33:16 i192mem-dy-all-9 systemd[1]: Started Slurm node daemon.
+May 30 14:33:16 i192mem-dy-all-9 slurmd[10095]: slurmd: error: UnkillableStepTimeout must be at least 5 times greater than MessageTimeout, otherwise nodes may go down with the reason "KillTaskFailed". Current values: UnkillableStepTimeout=180, MessageTimeout=60
+May 30 14:33:16 i192mem-dy-all-9 slurmd[10095]: error: UnkillableStepTimeout must be at least 5 times greater than MessageTimeout, otherwise nodes may go down with the reason "KillTaskFailed". Current values: UnkillableStepTimeout=180, MessageTimeout=60
+May 30 14:33:16 i192mem-dy-all-9 slurmd[10095]: slurmd: slurmd version 24.05.8 started
+May 30 14:33:16 i192mem-dy-all-9 slurmd[10095]: slurmd: slurmd started on Sat, 30 May 2026 14:33:16 +0000
+May 30 14:33:16 i192mem-dy-all-9 slurmd[10095]: slurmd: CPUs=192 Boards=1 Sockets=192 Cores=1 Threads=1 Memory=773772 TmpDisk=44471 Uptime=258 CPUSpecList=(null) FeaturesAvail=(null) FeaturesActive=(null)
+May 30 14:33:17 i192mem-dy-all-9 slurmd[10095]: slurmd: task/affinity: task_p_slurmd_batch_request: task_p_slurmd_batch_request: 3537
+May 30 14:33:17 i192mem-dy-all-9 slurmd[10095]: slurmd: task/affinity: batch_bind: job 3537 CPU input mask for node: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+May 30 14:33:17 i192mem-dy-all-9 slurmd[10095]: slurmd: task/affinity: batch_bind: job 3537 CPU final HW mask for node: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+May 30 14:33:17 i192mem-dy-all-9 slurmd[10095]: slurmd: Launching batch job 3537 for UID 1000
+=== i192mem-dy-all-10 ===
+i192mem-dy-all-10
+2026-05-30T14:33:19+00:00
+ 14:33:19 up 4 min,  0 users,  load average: 0.93, 0.55, 0.24
+Filesystem               Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v  8.8T  3.4T  5.4T  39% /fsx
+tmpfs                    605G     0  605G   0% /dev/shm
+run_mount=yes
+active
+● slurmd.service - Slurm node daemon
+     Loaded: loaded (/etc/systemd/system/slurmd.service; enabled; vendor preset: enabled)
+     Active: active (running) since Sat 2026-05-30 14:33:10 UTC; 8s ago
+   Main PID: 10066 (slurmd)
+      Tasks: 1 (limit: 629145)
+     Memory: 12.7M
+        CPU: 240ms
+     CGroup: /system.slice/slurmd.service
+             └─10066 /opt/slurm/sbin/slurmd -D -s -N i192mem-dy-all-10 --instance-id i-0e6dc9911967cd989 --instance-type m7i.metal-48xl
+
+May 30 14:33:10 i192mem-dy-all-10 systemd[1]: Started Slurm node daemon.
+May 30 14:33:10 i192mem-dy-all-10 slurmd[10066]: slurmd: error: UnkillableStepTimeout must be at least 5 times greater than MessageTimeout, otherwise nodes may go down with the reason "KillTaskFailed". Current values: UnkillableStepTimeout=180, MessageTimeout=60
+May 30 14:33:10 i192mem-dy-all-10 slurmd[10066]: error: UnkillableStepTimeout must be at least 5 times greater than MessageTimeout, otherwise nodes may go down with the reason "KillTaskFailed". Current values: UnkillableStepTimeout=180, MessageTimeout=60
+May 30 14:33:11 i192mem-dy-all-10 slurmd[10066]: slurmd: slurmd version 24.05.8 started
+May 30 14:33:11 i192mem-dy-all-10 slurmd[10066]: slurmd: slurmd started on Sat, 30 May 2026 14:33:11 +0000
+May 30 14:33:11 i192mem-dy-all-10 slurmd[10066]: slurmd: CPUs=192 Boards=1 Sockets=192 Cores=1 Threads=1 Memory=773772 TmpDisk=44471 Uptime=253 CPUSpecList=(null) FeaturesAvail=(null) FeaturesActive=(null)
+May 30 14:33:17 i192mem-dy-all-10 slurmd[10066]: slurmd: task/affinity: task_p_slurmd_batch_request: task_p_slurmd_batch_request: 3538
+May 30 14:33:17 i192mem-dy-all-10 slurmd[10066]: slurmd: task/affinity: batch_bind: job 3538 CPU input mask for node: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+May 30 14:33:17 i192mem-dy-all-10 slurmd[10066]: slurmd: task/affinity: batch_bind: job 3538 CPU final HW mask for node: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+May 30 14:33:17 i192mem-dy-all-10 slurmd[10066]: slurmd: Launching batch job 3538 for UID 1000
+    PID    PPID STAT %CPU %MEM     ELAPSED CMD
+  10130   10129 Sl    498  0.0       00:03 /home/ubuntu/miniconda3/envs/DAYOA/bin/python -m snakemake --snakefile /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/workflow/Snakefile --target-jobs run_bclconvert_lane:lane=L002 --allowed-rules run_bclconvert_lane --cores all --attempt 1 --force-use-threads --resources mem_mb=180000 mem_mib=171662 disk_mb=1000 disk_mib=954 threads=192 time=5440 vcpu=192 --wait-for-files /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/.snakemake/tmp.75tr6v54 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv --force --keep-target-files --keep-remote --max-inventory-time 0 --nocolor --notemp --no-hooks --nolock --ignore-incomplete --rerun-triggers code input software-env params mtime --skip-script-cleanup --use-conda --conda-frontend conda --conda-prefix /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88 --conda-base-path /home/ubuntu/miniconda3 --use-singularity --singularity-prefix /fsx/resources/environments/containers/ubuntu/ip-10-0-0-88 --singularity-args   -B /fsx:/fsx -B /tmp:/tmp -B $PWD/:$PWD   -B /dev/fd:/dev/fd  -B /dev/shm:$PWD/resources/dev/shm -B /dev/shm:/dev/shm  --wrapper-prefix https://github.com/snakemake/snakemake-wrappers/raw/ --config run_context_file=config/runs.tsv bootstrap_bclconvert=true --printshellcmds --latency-wait 100 --scheduler greedy --scheduler-solver-path /home/ubuntu/miniconda3/envs/DAYOA/bin --default-resources mem_mb=3000 disk_mb=1000 tmpdir=system_tmpdir threads=1 time=5440 partition=i192,i128,i192mem vcpu=1 distribution=block exclusive='' constraint='' exclude='' include='' --mode 2
+  10308       1 Ss    3.0  0.0       00:01 /lib/systemd/systemd --user
+      1       0 Ss    2.1  0.0       04:17 /sbin/init
+  10324   10308 Ssl   2.0  0.0       00:01 /usr/bin/pulseaudio --daemonize=no --log-target=journal
+    352       2 S     1.7  0.0       04:17 [migration/56]
+    358       2 S     1.7  0.0       04:17 [migration/57]
+    364       2 S     1.7  0.0       04:17 [migration/58]
+    370       2 S     1.7  0.0       04:17 [migration/59]
+    376       2 S     1.7  0.0       04:17 [migration/60]
+    382       2 S     1.7  0.0       04:17 [migration/61]
+    388       2 S     1.7  0.0       04:17 [migration/62]
+    394       2 S     1.7  0.0       04:17 [migration/63]
+    400       2 S     1.7  0.0       04:17 [migration/64]
+    406       2 S     1.7  0.0       04:17 [migration/65]
+    412       2 S     1.7  0.0       04:17 [migration/66]
+    418       2 S     1.7  0.0       04:17 [migration/67]
+    424       2 S     1.7  0.0       04:17 [migration/68]
+    430       2 S     1.7  0.0       04:17 [migration/69]
+    436       2 S     1.7  0.0       04:17 [migration/70]
+    442       2 S     1.7  0.0       04:17 [migration/71]
+    448       2 S     1.7  0.0       04:17 [migration/72]
+    454       2 S     1.7  0.0       04:17 [migration/73]
+    460       2 S     1.7  0.0       04:17 [migration/74]
+    466       2 S     1.7  0.0       04:17 [migration/75]
+May 30 14:33:10 i192mem-dy-all-10 systemd[1]: Started Slurm node daemon.
+May 30 14:33:10 i192mem-dy-all-10 slurmd[10066]: slurmd: error: UnkillableStepTimeout must be at least 5 times greater than MessageTimeout, otherwise nodes may go down with the reason "KillTaskFailed". Current values: UnkillableStepTimeout=180, MessageTimeout=60
+May 30 14:33:10 i192mem-dy-all-10 slurmd[10066]: error: UnkillableStepTimeout must be at least 5 times greater than MessageTimeout, otherwise nodes may go down with the reason "KillTaskFailed". Current values: UnkillableStepTimeout=180, MessageTimeout=60
+May 30 14:33:11 i192mem-dy-all-10 slurmd[10066]: slurmd: slurmd version 24.05.8 started
+May 30 14:33:11 i192mem-dy-all-10 slurmd[10066]: slurmd: slurmd started on Sat, 30 May 2026 14:33:11 +0000
+May 30 14:33:11 i192mem-dy-all-10 slurmd[10066]: slurmd: CPUs=192 Boards=1 Sockets=192 Cores=1 Threads=1 Memory=773772 TmpDisk=44471 Uptime=253 CPUSpecList=(null) FeaturesAvail=(null) FeaturesActive=(null)
+May 30 14:33:17 i192mem-dy-all-10 slurmd[10066]: slurmd: task/affinity: task_p_slurmd_batch_request: task_p_slurmd_batch_request: 3538
+May 30 14:33:17 i192mem-dy-all-10 slurmd[10066]: slurmd: task/affinity: batch_bind: job 3538 CPU input mask for node: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+May 30 14:33:17 i192mem-dy-all-10 slurmd[10066]: slurmd: task/affinity: batch_bind: job 3538 CPU final HW mask for node: 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF
+May 30 14:33:17 i192mem-dy-all-10 slurmd[10066]: slurmd: Launching batch job 3538 for UID 1000

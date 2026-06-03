@@ -1,0 +1,64 @@
+# delete dyec5123 start 2026-06-02T20:33:43Z
+DAY-EC activated.
+
+── DELETE ──
+  › Preparing cluster deletion for 'dyec5123' in us-west-2
+  ⚠ Active FSx data repository activity exists on the cluster filesystem:
+    DRA: dra-084f8b81621127ad3 /references/ -> s3://lsmc-dayoa-references-usw2 
+(AVAILABLE)
+  ⚠ FSx filesystems are still associated with the cluster:
+    FSx: fs-07ebeaadd6b8a9283
+  · Export results with `daylily-ec export` before deleting if needed.
+  · Skipping confirmation (--yes provided).
+  · Heartbeat resources removed where present.
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (2s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (19s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (36s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (53s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (1m 10s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (1m 27s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (1m 44s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (2m 1s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (2m 18s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (2m 35s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (2m 52s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (3m 9s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (3m 26s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (3m 43s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (4m 0s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (4m 17s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (4m 34s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (4m 51s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (5m 9s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (5m 28s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (5m 45s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (6m 2s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (6m 19s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (6m 37s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (6m 54s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (7m 11s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (7m 28s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (7m 46s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (8m 3s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (8m 20s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (8m 37s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (8m 55s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (9m 12s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (9m 31s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (9m 50s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (10m 11s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (10m 32s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (10m 54s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (11m 17s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (11m 39s)
+  › Cluster deleting ... status: DELETE_IN_PROGRESS (11m 57s)
+describe-cluster failed (rc=1): /Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+
+╭────────────────────────────── Cluster deleted ───────────────────────────────╮
+│                                                                              │
+│  Cluster: dyec5123                                                           │
+│  Region: us-west-2                                                           │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
+# delete dyec5123 end 2026-06-02T20:46:04Z

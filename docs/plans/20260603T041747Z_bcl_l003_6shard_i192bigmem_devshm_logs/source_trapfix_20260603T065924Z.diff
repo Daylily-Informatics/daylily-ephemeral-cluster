@@ -1,0 +1,56 @@
+diff --git a/tests/test_bclconvert_bootstrap.sh b/tests/test_bclconvert_bootstrap.sh
+index b31364f..b1043f2 100644
+--- a/tests/test_bclconvert_bootstrap.sh
++++ b/tests/test_bclconvert_bootstrap.sh
+@@ -590,6 +590,11 @@ assert "{params.force:q} {threads:q} {log:q}" not in text
+ helper_text = Path("workflow/scripts/run_bclconvert_lane.sh").read_text()
+ assert "expected 28 arguments" in helper_text
+ assert "__dayoa_no_force__" in helper_text
++assert "trap cleanup_scratch EXIT" in helper_text
++assert "expected_scratch_prefix=" in helper_text
++assert "/dayoa_bclconvert_" in helper_text
++assert "rm -rf --" in helper_text
++assert "scratch_work_dir" in helper_text
+ assert "find \"$final_output_dir\" -mindepth 1 ! -type d -print -quit" in helper_text
+ assert "BCL output directory contains existing files; refusing to overwrite" in helper_text
+ assert "find \"$run_output_dir\" -depth -type d -empty -delete" in helper_text
+diff --git a/tests/test_bclconvert_multiqc.py b/tests/test_bclconvert_multiqc.py
+index 4551eb8..b00fcee 100644
+--- a/tests/test_bclconvert_multiqc.py
++++ b/tests/test_bclconvert_multiqc.py
+@@ -81,6 +81,9 @@ def test_bclconvert_rule_exports_metrics_to_genome_build_multiqc_dir() -> None:
+     assert 'if [[ "$#" -ne 28 ]]; then' in lane_helper
+     assert "pass __dayoa_no_force__ or -f for the force argument" in lane_helper
+     assert 'if [[ "$force_arg" == "__dayoa_no_force__" ]]; then' in lane_helper
++    assert "trap cleanup_scratch EXIT" in lane_helper
++    assert 'expected_scratch_prefix="${scratch_output_root%/}/dayoa_bclconvert_"' in lane_helper
++    assert 'rm -rf -- "$scratch_work_dir"' in lane_helper
+     assert 'find "$final_output_dir" -mindepth 1 ! -type d -print -quit' in lane_helper
+     assert "BCL output directory contains existing files; refusing to overwrite" in lane_helper
+     assert 'find "$run_output_dir" -depth -type d -empty -delete' in lane_helper
+diff --git a/workflow/scripts/run_bclconvert_lane.sh b/workflow/scripts/run_bclconvert_lane.sh
+index ab2bf28..e481553 100755
+--- a/workflow/scripts/run_bclconvert_lane.sh
++++ b/workflow/scripts/run_bclconvert_lane.sh
+@@ -39,6 +39,21 @@ final_output_dir="$lane_output_dir"
+ run_output_dir="$final_output_dir"
+ scratch_work_dir=""
+ 
++cleanup_scratch() {
++  local rc=$?
++  local expected_scratch_prefix
++  if [[ -n "$scratch_work_dir" && -d "$scratch_work_dir" ]]; then
++    expected_scratch_prefix="${scratch_output_root%/}/dayoa_bclconvert_"
++    if [[ -z "$scratch_output_root" || "$scratch_work_dir" != "$expected_scratch_prefix"* ]]; then
++      echo "refusing BCL scratch cleanup outside expected root after exit rc=$rc: $scratch_work_dir" >> "$log_path"
++      return
++    fi
++    echo "cleaning BCL scratch work directory after exit rc=$rc: $scratch_work_dir" >> "$log_path"
++    rm -rf -- "$scratch_work_dir"
++  fi
++}
++trap cleanup_scratch EXIT
++
+ mkdir -p "$(dirname "$final_output_dir")" "$(dirname "$lane_sample_sheet")" "$(dirname "$log_path")"
+ : > "$log_path"
+ if [[ "$force_arg" == "__dayoa_no_force__" ]]; then

@@ -1,0 +1,2 @@
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+645.0674	0:10:45	99254.18	153177.93	99272.44	99277.04	135278.52	0.18	1281.05	8263.73	i192mem-dy-all-1	10.0.1.55	192	12.8106	m7i.metal-48xl	us-west-2d	3.169800	48	0.141995

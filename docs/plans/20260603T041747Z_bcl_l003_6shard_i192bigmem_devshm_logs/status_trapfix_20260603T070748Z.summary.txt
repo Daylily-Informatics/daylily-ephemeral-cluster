@@ -1,0 +1,22 @@
+timestamp_utc	2026-06-03T07:07:48Z
+
+== squeue ==
+JOBID|PARTITION|NAME|STATE|TIME|NODES|CPUS|MIN_MEMORY|NODELIST(REASON)
+48|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0005_tiles0525-0654|PENDING|0:00|1|192|1200000M|(Resources)
+49|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0002_tiles0132-0262|PENDING|0:00|1|192|1200000M|(Priority)
+50|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0004_tiles0394-0524|PENDING|0:00|1|192|1200000M|(Priority)
+51|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0006_tiles0655-0784|PENDING|0:00|1|192|1200000M|(Priority)
+52|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0001_tiles0001-0131|PENDING|0:00|1|192|1200000M|(Priority)
+47|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0003_tiles0263-0393|RUNNING|1:30|1|192|1200000M|i192bigmem-dy-all-1
+
+== counts ==
+fastq_count	0
+done_count	0
+report_count	0
+
+== log evidence ==
+log	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_trapfix_20260603T0700Z/logs/run_bclconvert.L003.0003_tiles0263-0393.log
+scratch_available_bytes	1278242455552
+scratch_available_bytes_min	650000000000
+run_output_dir	/dev/shm/dayoa_bclconvert/dayoa_bclconvert_47/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_trapfix_20260603T0700Z_tile_fastqs_L003_0003_tiles0263-0393/output
+final_output_dir	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_trapfix_20260603T0700Z/tile_fastqs/L003/0003_tiles0263-0393

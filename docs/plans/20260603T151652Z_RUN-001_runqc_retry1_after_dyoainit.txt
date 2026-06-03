@@ -1,0 +1,230 @@
+DAY-EC activated.
+DAY-EC activated.
+windows
+0: bash* (1 panes) [80x24] [layout b25d,80x24,0,0,0] @0 (active)
+panes
+0: [80x24] [history 106/2000, 32460 bytes] %0 (active)
+pane_capture
+cd '/fsx/analysis_results/BigB-4-mk/M-RGX-9WR2/daylily-omics-analysis'
+export PUPPETEER_EXECUTABLE_PATH='/home/ubuntu/.cache/puppeteer/chrome-headless-
+shell/linux-148.0.7778.97/chrome-headless-shell-linux64/chrome-headless-shell'
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+source dyoainit 2>&1 | tee -a '/home/ubuntu/daylily-runs/dayhoff_runqc_RUN001_MR
+GX9WR2_retry1_20260603/manual_relaunch.log'
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-251:~$ cd '/fsx/analysis_results/BigB-4-mk/M-RGX-9WR2/
+daylily-omics-analysis'
+(DAY-EC) ubuntu@ip-10-0-0-251:/fsx/analysis_results/BigB-4-mk/M-RGX-9WR2/daylily
+-omics-analysis$ export PUPPETEER_EXECUTABLE_PATH='/home/ubuntu/.cache/puppeteer
+/chrome-headless-shell/linux-148.0.7778.97/chrome-headless-shell-linux64/chrome-
+headless-shell'
+(DAY-EC) ubuntu@ip-10-0-0-251:/fsx/analysis_results/BigB-4-mk/M-RGX-9WR2/daylily
+-omics-analysis$ source dyoainit 2>&1 | tee -a '/home/ubuntu/daylily-runs/dayhof
+f_runqc_RUN001_MRGX9WR2_retry1_20260603/manual_relaunch.log'
+Notice: --project not set. Using default project name: BigB-4-mk
+Notice: Cluster config sets aws-parallelcluster-enforce-budget=skip; skipping pr
+oject validation.
+Project: BigB-4-mk
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'BigB-4-mk' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+Using configured Sentieon license file: /fsx/references/runtime_assets/cached_en
+vs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+# conda environments:
+#
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'BigB-4-mk' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+
+        (day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a
+Slurm or local environment.
+
+        {day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome bui
+ld for the current environment.
+
+        (day-run / dy-r)          - Run a command in the current environment.
+                                   <tab> for exposed targets, -<tab> for all com
+mand line flags.
+
+        (day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, l
+ogs).
+                                   Use --block-and-poll to wait for completion.
+
+        (day-deactivate / dy-d)   - Deactivate the current environment.
+                                   Use 'dy-d reset' to hard reset the environmen
+t.
+
+
+
+
+        . To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~
+/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode
+          ... which once run, you will copy the samples.tsv and units.tsv files
+to config/ in this directory.
+
+        (example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+                dy-a slurm hg38 # or hg38_broad or b37
+
+        (example): RUN ANALYSES
+
+                cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/sample
+s.tsv
+
+                cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.ts
+v
+
+
+
+                # Use target names directly (tab-complete available):
+
+                dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-
+read SNV concordance
+
+                dy-r produce_alignstats -p -k -j 20 -n         # Alignment stati
+stics
+
+
+
+                # Platform-specific targets:
+
+                dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+                dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV call
+ing
+
+                dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV call
+ing (use hg38_broad)
+
+
+
+                # Hybrid workflow targets:
+
+                dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina
++ONT CLI
+
+                dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+O
+NT CLI (use hg38_broad)
+
+                dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina
++ONT Modular
+
+                dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+O
+NT Modular (use hg38_broad)
+
+
+
+                # Remove -n to execute (not dry-run)
+
+(DAY-EC) ubuntu@ip-10-0-0-251:/fsx/analysis_results/BigB-4-mk/M-RGX-9WR2/daylily
+-omics-analysis$
+log_tail
+Notice: --project not set. Using default project name: BigB-4-mk
+Notice: Cluster config sets aws-parallelcluster-enforce-budget=skip; skipping project validation.
+Project: BigB-4-mk
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'BigB-4-mk' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+Using configured Sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+# conda environments:
+#
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'BigB-4-mk' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+

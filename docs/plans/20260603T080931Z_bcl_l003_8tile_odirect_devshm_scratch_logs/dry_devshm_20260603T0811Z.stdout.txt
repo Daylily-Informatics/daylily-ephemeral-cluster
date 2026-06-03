@@ -1,0 +1,286 @@
+DAY-EC activated.
+DAY-EC activated.
+strap workflow" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fr
+om_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/bclco
+nvert_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Sa
+mpleSheet.csv \
+          --samples-tsv /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmo
+ke_odirect_on_devshm_20260603T080931Z/daylily-omics-analysis/config/samples.tsv
+\
+          --normalized-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/no
+rmalized.SampleSheet.csv \
+          --rows-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_
+from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tables/s
+amplesheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs
+/bclconvert_validate_inputs.warnings.log \
+          >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bcl
+convert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/bclconvert_
+validate_inputs.log 2>&1
+        touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/validated.
+ok
+
+
+[Wed Jun  3 08:13:06 2026]
+rule run_bclconvert_tile_shard:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/validated.ok,
+ /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003
+_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/normalized.SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_reports/L003
+/0001_tiles0001-0008/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_
+B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603
+T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_list.csv, /fsx/run_d
+ir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tile
+smoke_odirect_on_devshm_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Re
+ports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT
+4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/
+tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/run_bclconvert.
+L003.0001_tiles0001-0008.log
+    jobid: 4
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/benchmarks/run
+_bclconvert.L003.0001_tiles0001-0008.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080
+931Z/tile_reports/L003/0001_tiles0001-0008/bclconvert.done, /fsx/run_dir_mounts/
+20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odir
+ect_on_devshm_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/Demu
+ltiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fr
+om_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_fastq
+s/L003/0001_tiles0001-0008/Reports/fastq_list.csv; Input files updated by anothe
+r job: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconver
+t_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/normalized.SampleSheet
+.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/validated.ok
+    wildcards: lane=L003, shard=0001_tiles0001-0008
+    threads: 192
+    resources: mem_mb=1200000, mem_mib=1144410, disk_mb=1000, disk_mib=954, tmpd
+ir=<TBD>, threads=192, time=5440, partition=i192bigmem, vcpu=192, distribution=b
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm/dayoa_bclconvert_tmp bash workflow/scripts/run_bclconvert_lane.s
+h docker://nfcore/bclconvert:4.0.3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_fastqs/L003/0001
+_tiles0001-0008 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_
+bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/normalized.Sa
+mpleSheet.csv 3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_
+bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_reports/
+L003/0001_tiles0001-0008/SampleSheet.csv false false false 1 24 4 64 32 true tru
+e 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' _
+_dayoa_no_force__ 192 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts
+_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/ru
+n_bclconvert.L003.0001_tiles0001-0008.log /fsx/run_dir_mounts/20260514_LH01106_0
+009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_2026
+0603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_list.csv /fsx/ru
+n_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_t
+ilesmoke_odirect_on_devshm_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008
+/Reports/Demultiplex_Stats.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLG
+LT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931
+Z/tile_reports/L003/0001_tiles0001-0008/bclconvert.done s_3_1101+s_3_1102+s_3_11
+03+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108 /dev/shm/dayoa_bclconvert 650000
+000000
+
+[Wed Jun  3 08:13:06 2026]
+rule merge_bclconvert_tile_shards:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_reports/L003/
+0001_tiles0001-0008/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B
+23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T
+080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_list.csv, /fsx/run_di
+r_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tiles
+moke_odirect_on_devshm_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Rep
+orts/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/n
+ormalized.SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_reports/L003
+/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fro
+m_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_fastqs
+/L003/Reports/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGL
+T4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z
+/lane_fastqs/L003/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH
+01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devs
+hm_20260603T080931Z/lane_reports/L003/SampleSheet.csv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/merge_bclconver
+t_tile_shards.L003.log
+    jobid: 3
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/benchmarks/mer
+ge_bclconvert_tile_shards.L003.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080
+931Z/lane_reports/L003/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_000
+9_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_202606
+03T080931Z/lane_reports/L003/SampleSheet.csv, /fsx/run_dir_mounts/20260514_LH011
+06_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_
+20260603T080931Z/lane_fastqs/L003/Reports/fastq_list.csv, /fsx/run_dir_mounts/20
+260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirec
+t_on_devshm_20260603T080931Z/lane_fastqs/L003/Reports/Demultiplex_Stats.csv; Inp
+ut files updated by another job: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TV
+LGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T0809
+31Z/tile_reports/L003/0001_tiles0001-0008/bclconvert.done, /fsx/run_dir_mounts/2
+0260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odire
+ct_on_devshm_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/Demul
+tiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fro
+m_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/normalized.
+SampleSheet.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from
+_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_fastqs/
+L003/0001_tiles0001-0008/Reports/fastq_list.csv
+    wildcards: lane=L003
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=<TB
+D>, threads=1, time=5440, partition=i192bigmem, vcpu=1, distribution=block, excl
+usive=, constraint=, exclude=, include=
+
+python workflow/scripts/merge_bclconvert_tile_shards.py --tile-fastq-root /fsx/r
+un_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_
+tilesmoke_odirect_on_devshm_20260603T080931Z/tile_fastqs --lane-output-dir /fsx/
+run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile
+_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_fastqs/L003 --report-dir /fsx
+/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8til
+e_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_fastqs/L003/Reports --lane L
+003 --shards 0001_tiles0001-0008 --merge-fastqs false --sample-sheet /fsx/run_di
+r_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tiles
+moke_odirect_on_devshm_20260603T080931Z/normalized.SampleSheet.csv --lane-sample
+-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconver
+t_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_reports/L003/Samp
+leSheet.csv --done /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fr
+om_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_repor
+ts/L003/bclconvert.done --log /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGL
+T4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z
+/logs/merge_bclconvert_tile_shards.L003.log >> /fsx/run_dir_mounts/20260514_LH01
+106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm
+_20260603T080931Z/logs/merge_bclconvert_tile_shards.L003.log 2>&1 && test -s /fs
+x/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8ti
+le_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_fastqs/L003/Reports/fastq_l
+ist.csv && test -s /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fr
+om_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_fastq
+s/L003/Reports/Demultiplex_Stats.csv
+
+[Wed Jun  3 08:13:06 2026]
+localrule run_bclconvert:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/validated.ok,
+ /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003
+_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/normalized.SampleSheet.csv,
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_
+8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_reports/L003/bclconvert.
+done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_fastqs/L003/Report
+s/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fro
+m_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_fastqs
+/L003/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B
+23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T
+080931Z/lane_reports/L003/SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/bclconvert.d
+one
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/run_bclconvert.
+lane_fastqs_ready.log
+    jobid: 2
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/benchmarks/run
+_bclconvert.lane_fastqs_ready.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080
+931Z/logs/bclconvert.done; Input files updated by another job: /fsx/run_dir_moun
+ts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_o
+direct_on_devshm_20260603T080931Z/normalized.SampleSheet.csv, /fsx/run_dir_mount
+s/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_od
+irect_on_devshm_20260603T080931Z/lane_fastqs/L003/Reports/fastq_list.csv, /fsx/r
+un_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_
+tilesmoke_odirect_on_devshm_20260603T080931Z/lane_reports/L003/SampleSheet.csv,
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_
+8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_reports/L003/bclconvert.
+done, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/validated.ok, /fsx
+/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8til
+e_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_fastqs/L003/Reports/Demultip
+lex_Stats.csv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/de
+v/shm/dayoa_bclconvert_tmp, threads=1, time=5440, partition=i192bigmem, vcpu=1,
+distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+            set -euo pipefail
+            mkdir -p /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_
+from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs
+            : > /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_
+bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/run_bclc
+onvert.lane_fastqs_ready.log
+            printf 'merge_lane_fastqs=false; lane FASTQs remain under %s for lan
+es %s\n' \
+              /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/lane_fastqs L00
+3 >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_
+l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/run_bclconvert.lane
+_fastqs_ready.log
+            touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fro
+m_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/bclcon
+vert.done
+
+
+[Wed Jun  3 08:13:06 2026]
+localrule produce_bclconvert_fastqs:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/validated.ok,
+ /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003
+_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/bclconvert.done
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/fastqs.complete
+    log: results/day/hg38/logs/produce_bclconvert_fastqs.log
+    jobid: 0
+    benchmark: results/day/hg38/benchmarks/produce_bclconvert_fastqs.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080
+931Z/fastqs.complete, results/day/hg38/benchmarks/produce_bclconvert_fastqs.benc
+h.tsv; Input files updated by another job: /fsx/run_dir_mounts/20260514_LH01106_
+0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_202
+60603T080931Z/logs/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_B2
+3TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T0
+80931Z/logs/validated.ok
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/de
+v/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=b
+lock, exclusive=, constraint=, exclude=, include=
+
+touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/fastqs.complete
+Job stats:
+job                             count    min threads    max threads
+----------------------------  -------  -------------  -------------
+bclconvert_validate_inputs          1              1              1
+merge_bclconvert_tile_shards        1              1              1
+produce_bclconvert_fastqs           1              1              1
+run_bclconvert                      1              1              1
+run_bclconvert_tile_shard           1            192            192
+total                               5              1            192
+
+Reasons:
+    (check individual jobs above for details)
+    input files updated by another job:
+        merge_bclconvert_tile_shards, produce_bclconvert_fastqs, run_bclconvert,
+ run_bclconvert_tile_shard
+    missing output files:
+        bclconvert_validate_inputs, merge_bclconvert_tile_shards, produce_bclcon
+vert_fastqs, run_bclconvert, run_bclconvert_tile_shard
+
+This was a dry-run (flag -n). The order of jobs does not reflect the order of ex
+ecution.
+RETURN CODE: 0
+__DRY_DEVSHM_ODIRECT_RC__0
+[Dslu](DAYOA)

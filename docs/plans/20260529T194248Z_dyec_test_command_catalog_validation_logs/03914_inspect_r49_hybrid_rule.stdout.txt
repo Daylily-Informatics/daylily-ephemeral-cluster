@@ -1,0 +1,60 @@
+DAY-EC activated.
+DAY-EC activated.
+=== rule sentdhuomr_stage1 vicinity ===
+17:8. Stage 3: Re-alignment with stage2 outputs
+19:10. Subset: Subset pass-1 VCF to complement of stage2 regions
+115:        samtools quickcheck -v {input.ug_cram} >> {log} 2>&1
+121:        samtools quickcheck -v {input.ont_cram} >> {log} 2>&1
+371:rule sentdhuomr_stage1:
+378:        hap_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/stage1_hap.bam",
+379:        hap_bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/stage1_hap.bed",
+380:        hap_vcf=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/stage1_hap.vcf",
+453:                --algo HybridStage1 \
+454:                --model {params.model}/HybridStage1_ins.model \
+463:                -x {params.model}/HybridStage1_bwa.model \
+476:                --algo HybridStage1 \
+477:                --model {params.model}/HybridStage1.model \
+487:                --algo HybridStage1 \
+488:                --model {params.model}/HybridStage1_ins.model \
+498:                -x {params.model}/HybridStage1_bwa.model \
+510:            if ! samtools quickcheck {output.hap_bam} >> {log} 2>&1; then
+511:                if grep -q "ReadSequenceKmerGraphBuilder.*kmerSize >= 1" {log}; then
+512:                    echo "DYEC_RUNTIME_REPAIR: HybridStage1 haplotype assembly hit Sentieon kmerSize assertion; replacing truncated hap BAM with an empty header-only BAM so insertion output can continue." >> {log}
+518:                    echo "ERROR: stage1_hap.bam failed integrity check - file may be truncated" >> {log}
+523:            # Index the hap BAM produced by HybridStage1 - required by stage2
+534:rule sentdhuomr_stage2:
+538:        hap_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/stage1_hap.bam",
+539:        hap_bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/stage1_hap.bed",
+541:        bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2.bed",
+542:        unmap_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2_unmap.bam",
+543:        alt_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2_alt.bam",
+547:        MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/log/{sample}.{alnr}.{ddup}.{dchrm}.stage2.log",
+552:        MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.sentdhuomr.{dchrm}.stage2.bench.tsv"
+592:# Rule 8: Stage 3 - Re-alignment with stage2 outputs
+595:    """Stage3: HybridStage3 on all reads + stage2 BAMs → sorted BAM"""
+599:        unmap_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2_unmap.bam",
+600:        alt_bam=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2_alt.bam",
+601:        bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2.bed",
+676:        bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2.bed",
+739:# Rule 10: Subset - Subset pass-1 VCF to complement of stage2 regions
+742:    """Subset pass-1 VCF to complement of stage2 regions"""
+745:        bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/hybrid_stage2.bed",
+829:        hap_bed=MDIR + "{sample}/align/{alnr}/{ddup}/snv/sentdhuomr/vcfs/{dchrm}/tmp/stage1_hap.bed",
+=== stage1 log markers ===
+11:cmdline: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-88/29eea103be50f20bc3f27f94244bbb15_/share/sentieon-202503.02-0/libexec/driver -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta -t 188 --temp_dir /dev/shm/sentdhuomr_s1_20260530182757_91013 -i results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ont/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.cram --interval results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/merged_diff.bed --algo HybridStage1 --model /fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/HybridUltimaONT1.1.bundle/HybridStage1.model --hap_bam results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/stage1_hap.bam --hap_bed results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/stage1_hap.bed --hap_vcf results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/stage1_hap.vcf -
+1065:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/assembler/ReadSequenceKmerGraphBuilder.h:101: GRAPH::ReadSequenceKmerGraphBuilder::ReadSequenceKmerGraphBuilder(KMerFactory&, const GRAPH::ReadSequenceList&, int, bool, bool, char, int, bool, bool): Assertion `kmerSize >= 1' failed.
+1235:results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/vcfs/1-24/tmp/stage1_hap.bam was missing EOF block when one should be present.
+1236:DYEC_RUNTIME_REPAIR: HybridStage1 haplotype assembly hit Sentieon kmerSize assertion; replacing truncated hap BAM with an empty header-only BAM so insertion output can continue.
+=== stage2 log markers ===
+4:ERROR: failed to find target hap HAP_chr1:9710-10160_0
+5:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/vcall/HapCutAltMap.cpp:1687: void HybridStage2::Engine::execRegion(const Interval&): Assertion `0' failed.
+28:ERROR: failed to find target hap HAP_chr1:13224136-13224586_0
+29:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/vcall/HapCutAltMap.cpp:1687: void HybridStage2::Engine::execRegion(const Interval&): Assertion `0' failed.
+52:ERROR: failed to find target hap HAP_chr1:22001920-22002370_0
+53:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/vcall/HapCutAltMap.cpp:1687: void HybridStage2::Engine::execRegion(const Interval&): Assertion `0' failed.
+82:ERROR: failed to find target hap HAP_chr1:12007655-12008105_0
+86:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/vcall/HapCutAltMap.cpp:1687: void HybridStage2::Engine::execRegion(const Interval&): Assertion `0' failed.
+155:ERROR: failed to find target hap HAP_chr1:39999980-40000430_0
+157:driver: /home/xliu/build/sentieon-genomics-202503.02.rc5/variant/src/algo/vcall/HapCutAltMap.cpp:1687: void HybridStage2::Engine::execRegion(const Interval&): Assertion `0' failed.
+=== stage1 outputs ===
+2026-05-30T18:35:21.0000000000 101391 results/day/hg38_broad/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA/align/ug/na/snv/sentdhuomr/log/../log/TVBHUO5X5X-HG003-UG5x-ONT5x-1-D0-PF-UG-ULTIMA.ug.na.1-24.stage1.log

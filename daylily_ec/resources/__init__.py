@@ -41,6 +41,7 @@ def _expected_subpaths(root: Path) -> Iterable[Path]:
     yield root / "config"
     yield root / "config" / "day_cluster" / "prod_cluster.yaml"
     yield root / "config" / "day_cluster" / "pcluster_env.yml"
+    yield root / "config" / "day_cluster" / "slurm_accounting_mysql_ec2.yml"
     yield root / "environment.yaml"
     yield root / "etc"
     yield root / "bin"
@@ -60,8 +61,9 @@ def _validate_resources_dir(root: Path) -> None:
 
 def _resources_need_refresh(dest: Path, src: Path) -> bool:
     for rel in (
-        "config/daylily_available_repositories.yaml",
+        "config/daylily_pipeline_command_catalog.yaml",
         "config/day_cluster/prod_cluster.yaml",
+        "config/day_cluster/slurm_accounting_mysql_ec2.yml",
         "config/day_cluster/post_install_ubuntu_combined.sh",
         "config/day_cluster/sbatch",
         "config/day_cluster/sleep_test.sh",
@@ -107,7 +109,7 @@ def ensure_extracted() -> Path:
             tempfile.mkdtemp(prefix=f"{dest.name}.tmp-", dir=str(tmp_parent))
         )
         try:
-            shutil.copytree(src, tmp_dir, dirs_exist_ok=True)
+            shutil.copytree(src, tmp_dir, dirs_exist_ok=True, symlinks=True)
             quarantine_dir = tmp_dir / "quarantine"
             if quarantine_dir.exists():
                 shutil.rmtree(quarantine_dir, ignore_errors=True)

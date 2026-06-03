@@ -1,0 +1,154 @@
+DAY-EC activated.
+DAY-EC activated.
+=== now ===
+2026-05-31T00:16:19Z
+=== status.json ===
+{
+  "command": "bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260530r57_illumina_run_qc_bclconvert",
+  "started_at": "2026-05-30T21:52:38Z"
+}
+=== slurm ===
+=== fsx ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  8.1T  707G  93% /fsx
+tmpfs                   tmpfs   199G     0  199G   0% /dev/shm
+/dev/root               ext4    408G   42G  367G  11% /
+=== controller processes ===
+2348153   81703 Ss+   0.0  0.0    02:23:43 bash -lc source /home/ubuntu/daylily-runs/ccv20260530r57_illumina_run_qc_bclconvert/launch.sh >>/home/ubuntu/daylily-runs/ccv20260530r57_illumina_run_qc_bclconvert/tmux.log 2>&1
+2422216 2348153 S+    0.0  0.0       42:39 /home/ubuntu/miniconda3/envs/DAY-EC/bin/python /home/ubuntu/miniconda3/envs/DAY-EC/bin/dyec export --region us-west-2 --cluster dyec-test --source-path /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert --destination-s3-uri s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/ --output-dir /home/ubuntu/daylily-runs/ccv20260530r57_illumina_run_qc_bclconvert/export
+=== run-dir projection link ===
+link_absent /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+=== latest snakemake log tail ===
+latest_log=/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/.snakemake/log/2026-05-30T233340.873699.snakemake.log
+WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/workflow/rules/common.smk, line 426:
+The units table was not found at /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/config/units.tsv. Create config/units.tsv or set --config units_table=/path/to/units.tsv.
+  File "/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/workflow/Snakefile", line 66, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/workflow/rules/global_common.smk", line 151, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 1089, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 426, in _load_units_table
+=== tmux log tail ===
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete
+    jobid: 6
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/index_hopping.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/demultiplex_stats.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/multiqc_report.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/rollup.json, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/unknown_barcodes.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/metrics/fastq_manifest.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert_metrics_mqc.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/generated.units.tsv
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete
+Touching output file results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete.
+[Sat May 30 23:31:29 2026]
+Finished job 6.
+20 of 21 steps (95%) done
+Select jobs to execute...
+
+[Sat May 30 23:31:29 2026]
+localrule produce_illumina_run_qc_and_bclconvert:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete
+    jobid: 0
+    reason: Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/summary.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/run_qc/illumina/multiqc_report.html, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/bclconvert.bootstrap.complete
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+[Sat May 30 23:31:29 2026]
+Finished job 0.
+21 of 21 steps (100%) done
+Complete log: .snakemake/log/2026-05-30T215301.097987.snakemake.log
+
+
+	WARNING!!!! ALL Directories Are Remaining Unlocked. To have directories lock automatically upon successful completion, set --lock-analysis-dirs when calling day-run.
+
+
+[1m[48;5;205m[30m
+]]]]--------WORKFLOW SUCCESS====================]]]]]--[0m
+[5m[48;5;118m[30mRETURN CODE: 0[0m
+[INFO] Removing run-directory projection before export: /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 -> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+⚠ Active conda environment is 'DAYOA', not DAY-EC. Continuing anyway; the
+supported path is `source ./activate`.
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+2026-05-30 23:33:41,064 INFO Found credentials from IAM Role: dyec-test-RoleHeadNode-eJMKI1vZVQBE
+  · Attached export DRA dra-00a88684e523c8868 at
+/fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/
+2026-05-30 23:36:31,116 INFO Task task-0d328c73f7d8ec534 status: PENDING
+2026-05-30 23:37:01,474 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:37:31,687 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:38:01,907 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:38:32,282 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:39:02,492 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:39:32,728 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:40:02,971 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:40:33,322 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:41:03,550 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:41:33,892 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:42:04,152 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:42:34,454 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:43:04,640 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:43:34,978 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:44:05,315 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:44:35,506 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:45:05,692 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:45:35,966 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:46:06,169 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:46:36,362 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:47:06,592 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:47:36,768 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:48:06,964 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:48:37,291 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:49:07,591 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:49:37,779 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:50:08,206 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:50:38,526 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:51:08,736 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:51:38,939 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:52:09,130 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:52:39,376 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:53:09,548 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:53:39,781 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:54:10,074 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:54:40,282 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:55:10,562 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:55:40,855 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:56:11,059 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:56:41,237 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:57:11,517 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:57:41,714 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:58:11,975 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:58:42,163 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:59:12,333 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-30 23:59:42,501 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:00:12,682 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:00:43,198 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:01:13,502 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:01:43,812 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:02:14,005 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:02:44,201 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:03:14,379 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:03:44,530 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:04:14,692 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:04:44,887 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:05:15,095 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:05:45,362 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:06:15,663 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:06:45,941 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:07:16,142 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:07:46,310 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:08:16,498 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:08:46,677 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:09:16,933 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:09:47,100 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:10:17,354 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:10:47,771 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:11:18,074 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:11:48,274 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:12:18,439 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:12:48,752 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:13:19,062 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:13:49,292 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:14:19,663 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:14:49,866 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:15:20,061 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+2026-05-31 00:15:50,248 INFO Task task-0d328c73f7d8ec534 status: EXECUTING
+=== export files ===

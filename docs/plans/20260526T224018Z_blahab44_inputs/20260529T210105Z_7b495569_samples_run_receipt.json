@@ -1,0 +1,59 @@
+{
+  "analysis_id": "ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun",
+  "analysis_samples": "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260526T224018Z_blahab44_inputs/ultima_hg003_5x.tsv",
+  "command_id": "ultima_snv_alignstats_kitchensink",
+  "compatible_data_modes": [
+    "ultima_solo"
+  ],
+  "delete_on_export_success": false,
+  "detected_data_modes": [
+    "ultima_solo"
+  ],
+  "dewey_analysis_dir_external_object_id": null,
+  "dewey_run_artifact_euid": null,
+  "dewey_ursa_analysis_euid": null,
+  "dry_run": true,
+  "dy_command": "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n",
+  "executing_entity": "ubuntu",
+  "export_destination_s3_uri": null,
+  "export_trigger": "none",
+  "git_tag": "2.0.23",
+  "remote_stage_dir": "/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T210105Z_7b495569",
+  "replace_existing_analysis_dir": false,
+  "samples_tsv": "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260526T224018Z_blahab44_inputs/20260529T210105Z_7b495569_samples.tsv",
+  "session_name": "ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun",
+  "units_tsv": "/Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster/docs/plans/20260526T224018Z_blahab44_inputs/20260529T210105Z_7b495569_units.tsv",
+  "workflow_argv": [
+    "workflow",
+    "launch",
+    "--repository",
+    "daylily-omics-analysis",
+    "--analysis-id",
+    "ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun",
+    "--executing-entity",
+    "ubuntu",
+    "--git-tag",
+    "2.0.23",
+    "--genome",
+    "hg38_broad",
+    "--dy-command",
+    "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdug_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k -n",
+    "--profile",
+    "lsmc",
+    "--region",
+    "us-west-2",
+    "--cluster",
+    "dyec-test",
+    "--stage-dir",
+    "/fsx/staging/staged_external_sequencing_data/remote_stage_20260529T210105Z_7b495569",
+    "--session-name",
+    "ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun",
+    "--skip-project-check",
+    "--dry-run"
+  ],
+  "workflow_launch": {
+    "repo_path": "/fsx/analysis_results/ubuntu/ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun/daylily-omics-analysis",
+    "run_dir": "/home/ubuntu/daylily-runs/ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun",
+    "session_name": "ccv20260529r6_ultima_snv_alignstats_kitchensink_dryrun"
+  }
+}

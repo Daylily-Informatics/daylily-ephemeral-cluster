@@ -7,8 +7,8 @@
 After activation:
 
 ```bash
-dyec version
-daylily-ec version
+dyec --json version
+daylily-ec --json version
 dyec runtime status
 aws --version
 pcluster version
@@ -28,10 +28,10 @@ Python packaging is defined by `pyproject.toml`. The active package includes:
 
 The repository catalog must remain synchronized between:
 
-- `config/daylily_available_repositories.yaml`
-- `daylily_ec/resources/payload/config/daylily_available_repositories.yaml`
+- `config/daylily_pipeline_command_catalog.yaml`
+- `daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml`
 
-Current DayOA catalog pins are `2.0.19`.
+Current DayOA catalog pins are `2.0.44`.
 
 ## Stale Editable Installs
 
@@ -61,9 +61,10 @@ Expected on the headnode:
 whoami
 pwd
 command -v day-clone
+day-clone --list
 ```
 
-The supported user is `ubuntu`.
+The supported user is `ubuntu`. `day-clone --list` prints the clone syntax and repository rows from `/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml`; if that command fails, repair headnode configuration instead of guessing repository URLs or tags.
 
 ## Local Validation
 

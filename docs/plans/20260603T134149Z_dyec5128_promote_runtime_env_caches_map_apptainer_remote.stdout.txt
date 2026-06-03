@@ -1,0 +1,7 @@
+DAY-EC activated.
+DAY-EC activated.
+HOST=ip-10-0-0-24
+SNAKEMAKE_SINGULARITY_PREFIX_CONTENTS
+WORKFLOW_CONTAINER_STRING_SEARCH
+
+failed to run commands: exit status 1

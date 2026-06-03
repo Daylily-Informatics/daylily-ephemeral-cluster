@@ -1,0 +1,154 @@
+DAY-EC activated.
+DAY-EC activated.
+__MSLB2F_STDOUT_SUMMARIES__
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034040.txt
+7:  SoftwareVersion = 4.3.16
+10:Generating run log at /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_1/dragen_run_1778948471959_3034040.log
+11:Command Line: /usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 1 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_1 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+12:DRAGEN Host Software Version 4.3.16 (software mode)
+22:Conversion Information:
+33:Lane 1 Post-run Information:
+35:    Total Genomic Reads: 8574243878
+42:RUN TIME                                                                         Time converting BCL to fastq                                      00:57:24.535   3444.54
+45:DRAGEN finished normally
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034041.txt
+7:  SoftwareVersion = 4.3.16
+10:Generating run log at /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_2/dragen_run_1778948471951_3034041.log
+11:Command Line: /usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 2 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_2 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+12:DRAGEN Host Software Version 4.3.16 (software mode)
+22:Conversion Information:
+33:Lane 2 Post-run Information:
+35:    Total Genomic Reads: 8555256744
+42:RUN TIME                                                                         Time converting BCL to fastq                                      00:49:24.649   2964.65
+45:DRAGEN finished normally
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034042.txt
+7:  SoftwareVersion = 4.3.16
+10:Generating run log at /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_3/dragen_run_1778948471960_3034042.log
+11:Command Line: /usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 3 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_3 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+12:DRAGEN Host Software Version 4.3.16 (software mode)
+22:Conversion Information:
+33:Lane 3 Post-run Information:
+35:    Total Genomic Reads: 8536581684
+42:RUN TIME                                                                         Time converting BCL to fastq                                      00:57:17.107   3437.11
+45:DRAGEN finished normally
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034043.txt
+7:  SoftwareVersion = 4.3.16
+10:Generating run log at /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_4/dragen_run_1778948471972_3034043.log
+11:Command Line: /usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 4 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_4 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+12:DRAGEN Host Software Version 4.3.16 (software mode)
+22:Conversion Information:
+33:Lane 4 Post-run Information:
+35:    Total Genomic Reads: 8494359798
+42:RUN TIME                                                                         Time converting BCL to fastq                                      00:49:04.118   2944.12
+45:DRAGEN finished normally
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034044.txt
+7:  SoftwareVersion = 4.3.16
+10:Generating run log at /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_5/dragen_run_1778948471982_3034044.log
+11:Command Line: /usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 5 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_5 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+12:DRAGEN Host Software Version 4.3.16 (software mode)
+22:Conversion Information:
+33:Lane 5 Post-run Information:
+35:    Total Genomic Reads: 8520330156
+42:RUN TIME                                                                         Time converting BCL to fastq                                      00:56:01.942   3361.94
+45:DRAGEN finished normally
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034045.txt
+7:  SoftwareVersion = 4.3.16
+10:Generating run log at /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_6/dragen_run_1778948471973_3034045.log
+11:Command Line: /usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 6 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_6 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+12:DRAGEN Host Software Version 4.3.16 (software mode)
+22:Conversion Information:
+33:Lane 6 Post-run Information:
+35:    Total Genomic Reads: 8485524386
+42:RUN TIME                                                                         Time converting BCL to fastq                                      00:49:00.794   2940.79
+45:DRAGEN finished normally
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034046.txt
+7:  SoftwareVersion = 4.3.16
+10:Generating run log at /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_7/dragen_run_1778948471983_3034046.log
+11:Command Line: /usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 7 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_7 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+12:DRAGEN Host Software Version 4.3.16 (software mode)
+22:Conversion Information:
+33:Lane 7 Post-run Information:
+35:    Total Genomic Reads: 8521602192
+42:RUN TIME                                                                         Time converting BCL to fastq                                      00:56:41.592   3401.59
+45:DRAGEN finished normally
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/MSLB2F-stdout_3034047.txt
+7:  SoftwareVersion = 4.3.16
+10:Generating run log at /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_8/dragen_run_1778948471984_3034047.log
+11:Command Line: /usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 8 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_8 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+12:DRAGEN Host Software Version 4.3.16 (software mode)
+22:Conversion Information:
+33:Lane 8 Post-run Information:
+35:    Total Genomic Reads: 8539089436
+42:RUN TIME                                                                         Time converting BCL to fastq                                      00:49:41.064   2981.06
+45:DRAGEN finished normally
+__BCL2FASTQ_EVENTS__
+time,label
+2026-05-16 09:21:12,DRAGEN START
+2026-05-16 09:21:12,DRAGEN START
+2026-05-16 09:21:12,DRAGEN START
+2026-05-16 09:21:12,DRAGEN START
+2026-05-16 09:21:12,DRAGEN START
+2026-05-16 09:21:12,DRAGEN START
+2026-05-16 09:21:12,DRAGEN START
+2026-05-16 09:21:12,DRAGEN START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST STOP
+2026-05-16 09:21:12,BCL CONVERSION START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST STOP
+2026-05-16 09:21:12,BCL CONVERSION START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST STOP
+2026-05-16 09:21:12,BCL CONVERSION START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST STOP
+2026-05-16 09:21:12,BCL CONVERSION START
+2026-05-16 09:21:12,DRAGEN START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST STOP
+2026-05-16 09:21:12,BCL CONVERSION START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST STOP
+2026-05-16 09:21:12,BCL CONVERSION START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST STOP
+2026-05-16 09:21:12,BCL CONVERSION START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST STOP
+2026-05-16 09:21:12,BCL CONVERSION START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST START
+2026-05-16 09:21:12,POPULATE_READ_GROUP_LIST STOP
+2026-05-16 09:21:12,BCL CONVERSION START
+2026-05-16 10:10:13,BCL CONVERSION STOP
+2026-05-16 10:10:13,DRAGEN STOP
+2026-05-16 10:10:16,BCL CONVERSION STOP
+2026-05-16 10:10:16,DRAGEN STOP
+2026-05-16 10:10:36,BCL CONVERSION STOP
+2026-05-16 10:10:36,DRAGEN STOP
+2026-05-16 10:10:53,BCL CONVERSION STOP
+2026-05-16 10:10:53,DRAGEN STOP
+2026-05-16 10:17:14,BCL CONVERSION STOP
+2026-05-16 10:17:14,DRAGEN STOP
+2026-05-16 10:17:53,BCL CONVERSION STOP
+2026-05-16 10:17:53,DRAGEN STOP
+2026-05-16 10:18:29,BCL CONVERSION STOP
+2026-05-16 10:18:29,DRAGEN STOP
+2026-05-16 10:18:36,BCL CONVERSION STOP
+2026-05-16 10:18:36,DRAGEN STOP
+2026-05-16 10:24:11,BCL CONVERSION STOP
+2026-05-16 10:24:11,DRAGEN STOP
+__CMDLINES__
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034040.txt
+/usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 1 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_1 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034041.txt
+/usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 2 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_2 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034042.txt
+/usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 3 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_3 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034043.txt
+/usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 4 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_4 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034044.txt
+/usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 5 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_5 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034045.txt
+/usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/SampleSheet.csv --bcl-only-lane 6 --bcl-use-hw false --num-threads 8 --bcl-num-hw-decompressors 0 --output-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/fastq/Lane_6 --watchdog-max-vmem-threshold 112GB --bcl-sample-list /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/demux/sample_list.csv --force 
+### /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Analysis/1/Data/logs/BCLConvert/cmdline_3034046.txt
+/usr/local/illumina/apps/dragen-client/4.3.16/bin/dragen --logging-to-output-dir true --events-log-file /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/analysis_tmp/20260514_LH01106_0009_B23TVLGLT4/logs/BCLConvert/bcl2fastq.dragen_events.csv --bcl-conversion-only true --fastq-compression-format-override gzip --run-info /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/RunInfo.xml --bcl-input-directory /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4 --sample-sheet /usr/local/illumina/runs/20260514_LH01106_0009_B23TVLGLT4/Analysis/resources/Sampl--output truncated--

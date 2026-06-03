@@ -1,0 +1,31 @@
+timestamp_utc: 2026-06-03T07:54:00Z
+run_id: fasts_from_bclconvert_l003_8tile_tilesmoke_i192bigmem_devshm_20260603T0740Z
+
+squeue:
+  running:
+    - job: 55
+      shard: L003/0001_tiles0001-0008
+      elapsed: 3:07
+      host: i192bigmem-dy-all-1
+
+outputs:
+  fastq_count: 0
+  done_count: 0
+  report_count: 0
+  benchmark_files:
+    - bclconvert_validate_inputs.bench.tsv
+
+active_bcl_convert:
+  host: i192bigmem-dy-all-1
+  pid: 20570
+  elapsed: 2:58
+  cpu_percent: 0.1
+  wchan: ldlm_completion_ast
+  read_bytes: 2547712
+  write_bytes: 0
+  dev_shm_size: 344K
+  dev_shm_files: 10
+
+interpretation:
+  - The 8-tile smoke remains live but is showing the same low-activity Lustre wait pattern.
+  - No output write/move evidence exists yet.

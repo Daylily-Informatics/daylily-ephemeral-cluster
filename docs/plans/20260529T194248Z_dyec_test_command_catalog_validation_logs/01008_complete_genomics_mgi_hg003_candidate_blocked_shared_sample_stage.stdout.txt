@@ -1,0 +1,16 @@
+Completed 27 Bytes/27 Bytes (141 Bytes/s) with 1 file(s) remaining
+upload: ../../../../../../var/folders/rk/2n95m40s1zs48qr48ynwhxwm0000gn/T/tmpgy0r0ixi to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T065816Z_a3c70c2e/_write_test.txt
+delete: s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T065816Z_a3c70c2e/_write_test.txt
+Completed 442 Bytes/442 Bytes (2.3 KiB/s) with 1 file(s) remaining
+upload: docs/plans/20260526T224018Z_blahab44_inputs/20260530T065816Z_a3c70c2e_samples.tsv to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T065816Z_a3c70c2e/20260530T065816Z_a3c70c2e_samples.tsv
+Completed 885 Bytes/885 Bytes (4.8 KiB/s) with 1 file(s) remaining
+upload: docs/plans/20260526T224018Z_blahab44_inputs/20260530T065816Z_a3c70c2e_units.tsv to s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T065816Z_a3c70c2e/20260530T065816Z_a3c70c2e_units.tsv
+Precheck passed: rows checked=1, samples checked=1, source objects checked=20, concordance directories checked=1.
+Remote staging completed successfully.
+Remote FSx stage directory: /fsx/staging/staged_external_sequencing_data/remote_stage_20260530T065816Z_a3c70c2e
+Staging DRA: dra-0223ea2f48f8f639c
+Staging DRA lifecycle: AVAILABLE
+Staged files (0):
+Generated configuration files:
+  samples.tsv -> s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T065816Z_a3c70c2e/20260530T065816Z_a3c70c2e_samples.tsv
+  units.tsv   -> s3://lsmc-ssf-sequencing-data/staged_external_data/remote_stage_20260530T065816Z_a3c70c2e/20260530T065816Z_a3c70c2e_units.tsv

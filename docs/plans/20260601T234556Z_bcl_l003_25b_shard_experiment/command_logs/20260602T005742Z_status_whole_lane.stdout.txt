@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_bclconvert_fastqs -p -j 192 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true bclconvert='{\"barcode_mismatches_index1\":\"0\",\"barcode_mismatches_index2\":\"0\",\"compression_threads\":\"64\",\"conversion_threads\":\"4\",\"decompression_threads\":\"32\",\"fastq_gzip_compression_level\":\"1\",\"force\":\"true\",\"merge_lane_fastqs\":\"false\",\"num_unknown_barcodes_reported\":\"1000\",\"output_legacy_stats\":\"true\",\"parallel_tiles\":\"24\",\"partition\":\"i192mem\",\"sample_sheet_settings\":\"{}\",\"sample_sheet_settings_by_lane\":\"{}\",\"shared_thread_odirect_output\":\"true\",\"threads\":\"192\",\"tile_compression_threads\":\"24\",\"tile_conversion_threads\":\"2\",\"tile_decompression_threads\":\"8\",\"tile_parallel_tiles\":\"8\",\"tile_shard_lanes\":\"L003\",\"tile_shard_level\":\"lane\",\"tile_shard_mem_mb\":\"180000\",\"tile_shard_threads\":\"48\",\"tmpdir\":\"/dev/shm\"}'",
+  "completed_at": "2026-06-02T00:57:27Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/bcl25b_l003_whole_lane_20260602T000733Z/daylily-omics-analysis",
+  "session_name": "bcl25b_l003_whole_lane_20260602T000733Z",
+  "started_at": "2026-06-02T00:10:12Z"
+}

@@ -5,6 +5,19 @@
 - For Daylily/DayOA/DAY-EC headnode workflow work, use an interactive `ubuntu` tmux/login-shell pane for controllers and workflow commands. Run setup as separate commands in that pane (`source dyoainit`, then `dy-a ...`, then `dy-r ...`) so aliases/functions are defined before use.
 - SSM Run Command is for simple inspection or for writing helper scripts through the supported helpers. Do not launch workflow controllers or rely on `dy-*` aliases from non-interactive SSM scripts.
 
+# DayOA Workflow Command Contract
+
+- Read `AGENTS-HOW-TO-RUN-DAYOA.md` before any DayOA workflow work.
+- Never invoke `snakemake` directly for DayOA workflow work, including dry-runs, unlocks, help, live runs, or recovery commands. Always use the DayOA wrapper command `dy-r` from an initialized DayOA shell. `dy-r` passes all targets and flags through to Snakemake for you.
+- DayOA workflow work must run inside a persistent, meaningfully named `tmux` session on the headnode, as the `ubuntu` user, with an interactive bash login shell. The `tmux` session must remain alive after any submitted command exits so status and follow-up commands can use the same initialized shell.
+- The required DayOA sequence is:
+  1. `cd /path/to/daylily-omics-analysis`
+  2. `source dyoainit`
+  3. `dy-a slurm hg38` or `dy-a slurm hg38_broad`
+  4. `dy-r <targets> <flags>`
+- Example DayOA smoke/dry-run command: `dy-r help -p -k -j 1 -n`.
+- For BCL/DayOA execution, send these commands into the persistent `tmux` pane as separate commands. Do not collapse setup and execution into a one-shot non-interactive SSM script.
+
 # Safety Preferences
 
 - Do not execute destructive AWS resource changes unless the user gives a second explicit approval after being told the action is destructive.
@@ -38,6 +51,20 @@
 
 - `pcluster` is not an `aws` CLI subcommand. Do not pass AWS CLI-only flags such as `--json` to `pcluster`; ParallelCluster commands emit JSON by default.
 
+# DYEC Run Mounts
+
+- Do not treat FSx/DYEC run-mount creation as timed out before at least 30 minutes. Dynamic FSx data repository associations can legitimately stay in `CREATING` for around 30 minutes, especially large Illumina run directories.
+- When running `dyec mounts create --wait` or equivalent run-mount operations, set an explicit timeout comfortably above 30 minutes when the CLI supports it, and continue read-only lifecycle polling rather than retrying, duplicating, deleting, or declaring failure at the default short timeout.
+
 # Version Tags
 
 - Daylily version tags should not use a leading `v`. When determining the next version, use non-`v` semver tags as the source of truth.
+
+# Slurm Service Boundary
+
+- Do not perform Slurm service, daemon, scheduler, partition, accounting, node-health, node drain/resume, or queue interventions unless the user first receives a specific proposal for that exact Slurm action and explicitly approves it in the current thread.
+- In Dayhoff, DayOA, and DYEC work, Slurm is an expected infrastructure service, not an optimization target for the coding agent. Do not restart `slurmd`, repair nodes, modify Slurm config, alter partitions, drain/resume nodes, tune scheduling, or otherwise administer Slurm while running workflow tests.
+- Jobs in Slurm `CF`/`CONFIGURING` can legitimately remain there while ParallelCluster creates spot instances from scratch; this can take tens of minutes. This is information for status reporting only, not a trigger for action or job management.
+- Do not actively manage workflow jobs. Scheduling, retries, queue state, and job lifecycle are Snakemake/Slurm responsibilities. Do not cancel, requeue, hold, release, reprioritize, drain/resume, restart services for, or otherwise manipulate jobs or scheduler state unless the user explicitly approves that exact action in the current thread.
+- Monitoring and reporting are allowed. Jobs running for more than 3 hours may be flagged as `needs investigation`, but do not take corrective action without confirmed user approval.
+- If Slurm is unavailable or unhealthy, record the blocker and route the durable fix through ParallelCluster/pcluster configuration or infrastructure code changes.

@@ -1,0 +1,2 @@
+Completed 16.5 KiB/16.5 KiB (95.9 KiB/s) with 1 file(s) remaining
+download: s3://daylily-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh to docs/plans/20260531T085510Z_boot_script_reference_publish_logs/daylily-dayoa-references-usw2.post_install_ubuntu_combined.sh

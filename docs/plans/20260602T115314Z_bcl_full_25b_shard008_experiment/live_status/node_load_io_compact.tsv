@@ -1,0 +1,18 @@
+DAY-EC activated.
+DAY-EC activated.
+timestamp_utc	2026-06-02T12:59:33Z
+node	load1	load5	load15	nproc	cpu_busy_pct_3s	mem_avail_gib	net_rx_mib_s	net_tx_mib_s	blk_read_mib_s	blk_write_mib_s	bcl_cpu	python_cpu	singularity_cpu	bash_cpu	snakemake_cpu	bcl_n	python_n	singularity_n	bash_n	snakemake_n
+i192mem-dy-all-1	0.01	0.54	0.48	192	0.0	741.4	0.0	0.0	0.0	0.0	bcl-convert_cpu=0.0	python_cpu=7.6	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-10	0.00	0.32	0.33	192	0.0	741.4	0.0	0.0	0.0	0.0	bcl-convert_cpu=0.0	python_cpu=7.6	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-11	0.05	0.17	0.17	192	0.0	741.5	0.0	0.0	0.0	0.0	bcl-convert_cpu=0.0	python_cpu=7.6	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-12	0.00	0.22	1.20	192	0.0	741.3	0.0	0.0	0.0	0.0	bcl-convert_cpu=0.0	python_cpu=7.6	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-13	0.00	0.24	0.24	192	0.0	741.4	0.0	0.0	0.0	0.0	bcl-convert_cpu=0.0	python_cpu=7.6	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-14	0.00	0.20	1.04	192	0.0	741.4	0.0	0.0	0.0	0.0	bcl-convert_cpu=0.0	python_cpu=7.2	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-2	1.06	2.34	3.65	192	0.0	741.2	0.0	0.0	0.0	0.0	bcl-convert_cpu=1.9	python_cpu=7.4	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-3	0.00	0.13	0.15	192	0.1	741.2	0.0	0.0	0.0	0.9	bcl-convert_cpu=0.0	python_cpu=7.2	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-4	0.00	0.12	0.18	192	0.0	741.3	0.0	0.0	0.0	0.0	bcl-convert_cpu=0.0	python_cpu=7.1	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-5	0.00	0.96	3.01	192	0.0	741.3	0.0	0.0	0.0	0.0	bcl-convert_cpu=1.4	python_cpu=7.2	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-6	0.05	0.26	0.24	192	0.0	741.4	0.0	0.0	0.0	0.0	bcl-convert_cpu=0.0	python_cpu=7.2	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-7	0.08	0.99	2.82	192	0.0	741.0	0.0	0.0	0.0	0.0	bcl-convert_cpu=0.3	python_cpu=3.8	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-8	0.00	0.11	0.13	192	0.0	741.1	0.0	0.0	0.0	0.0	bcl-convert_cpu=0.0	python_cpu=6.8	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0
+i192mem-dy-all-9	0.05	0.34	1.34	192	0.0	741.4	0.0	0.0	0.0	0.0	bcl-convert_cpu=0.0	python_cpu=6.8	singularity_cpu=0.0	bash_cpu=0.0	snakemake_cpu=0.0	bcl-convert_n=4	python_n=4	singularity_n=0	bash_n=4	snakemake_n=0

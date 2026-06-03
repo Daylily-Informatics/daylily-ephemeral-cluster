@@ -1,0 +1,180 @@
+DAY-EC activated.
+DAY-EC activated.
+## goleft files
+1780128578.0000000000 196 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/goleft/logs/goleft.log
+1780128560.0000000000 194 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/logs/goleft.log
+## goleft logs
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/goleft/logs/goleft.log
+2026/05/30 08:09:38 indexcov: no usable chromsomes in bam: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.cram.crai
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/goleft/logs/goleft.log
+2026/05/30 08:09:20 indexcov: no usable chromsomes in bam: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.cram.crai
+## mosdepth files
+1780128579.0000000000 2276 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.thresholds.bed.gz.csi
+1780128579.0000000000 225 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.mosdepth.log
+1780128579.0000000000 2247 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.regions.bed.gz.csi
+1780128579.0000000000 1627 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.thresholds.bed.gz
+1780128579.0000000000 1485 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.regions.bed.gz
+1780128579.0000000000 0 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd
+1780128568.0000000000 2276 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.thresholds.bed.gz.csi
+1780128568.0000000000 2247 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.regions.bed.gz.csi
+1780128568.0000000000 223 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.log
+1780128568.0000000000 1627 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.thresholds.bed.gz
+1780128568.0000000000 1485 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.regions.bed.gz
+1780128568.0000000000 0 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na
+## mosdepth logs
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.mosdepth.log
+ERROR: mosdepth global_dist output is missing or empty: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.mosdepth.global.dist.txt
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.log
+ERROR: mosdepth global_dist output is missing or empty: results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/na/alignqc/mosdepth/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.na.mosdepth.global.dist.txt
+## contam identity files
+1780128662.0000000000 0 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.log
+1780128652.0000000000 38 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.report.html
+1780128652.0000000000 171 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.txt
+1780128652.0000000000 171 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.contamination.raw.txt
+1780128640.0000000000 78 results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.vcf.log
+## contam identity log tails
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/haplocheck/vcf/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.haplocheck.vcf.log
+NO_VARIANTS: haplocheck skipped because the input VCF has no variant records.
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/contam_identity/read_haps/logs/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.read_haps.log
+## vep cache directories
+/fsx/references/runtime_assets/tool_specific_resources/vep
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/1
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/10
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/11
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/12
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/13
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/14
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/15
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/16
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/17
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/18
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/19
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/2
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/20
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/21
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/22
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/3
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/4
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/5
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/6
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/7
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/8
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/9
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000008.2
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000009.2
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000194.1
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000195.1
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000205.2
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000213.1
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000214.1
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000216.2
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000218.1
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000219.1
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000220.1
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000221.1
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000224.1
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/GL000225.1
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1012_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1046_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1047_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG107_HG2565_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG109_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1206_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG126_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1277_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1296_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1298_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1299_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1309_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1311_HG2539_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1320_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1342_HG2282_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1343_HG173_HG459_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1362_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1369_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1384_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1395_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1398_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG142_HG150_NOVEL_TEST
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1445_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1466_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1485_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1506_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1507_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1509_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG151_NOVEL_TEST
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1521_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1523_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1524_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG152_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1532_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1535_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1651_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1708_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1815_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1817_1_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1832_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG1_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2002_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2021_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2022_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2023_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2030_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2031_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2046_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2047_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2052_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2057_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2058_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2060_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2062_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2063_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2066_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2067_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2068_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2069_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2072_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2077_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2087_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2088_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2095_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2104_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2111_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2114_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2115_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2116_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2118_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2121_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2128_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2133_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2140_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2158_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2176_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2191_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2198_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2213_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2216_PATCH
+/fsx/references/runtime_assets/tool_specific_resources/vep/homo_sapiens/114_GRCh38/HG2217_PATCH
+## vep logs
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr1/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr1.input.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr1/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr1.vep.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr10/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr10.input.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr10/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr10.vep.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr11/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr11.input.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr11/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr11.vep.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr12/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr12.input.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr12/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr12.vep.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.input.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr13/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr13.vep.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr14/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr14.input.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr14/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr14.vep.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr15/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr15.input.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr15/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr15.vep.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.input.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr16/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr16.vep.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr17/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr17.input.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr17/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr17.vep.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr18/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr18.input.log
+### results/day/hg38/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ/align/sent/dmd/snv/sentd/vep/chunks/chr18/log/JEMILMN0P1-HG002-0p1x-1-D0-PF-ILMN-NOVASEQ.sent.dmd.sentd.chr18.vep.log

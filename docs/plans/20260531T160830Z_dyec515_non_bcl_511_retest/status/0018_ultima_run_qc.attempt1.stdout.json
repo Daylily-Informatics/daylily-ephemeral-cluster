@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_ultima_run_qc -p -j 5 -k -n",
+  "completed_at": "2026-05-31T16:18:14Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/dyec-515/d515_0531t1608_r3_018_ultima_run_qc/daylily-omics-analysis",
+  "session_name": "d515_0531t1608_r3_018_ultima_run_qc",
+  "started_at": "2026-05-31T16:18:04Z"
+}

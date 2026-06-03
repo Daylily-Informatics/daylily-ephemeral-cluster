@@ -1,0 +1,4 @@
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+2654  i192mem  192  CF  i192mem-dy-all-2  192  CONFIGURING  180000M  3:25  1  run_bclconvert-run_bclconvert

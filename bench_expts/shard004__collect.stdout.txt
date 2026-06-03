@@ -1,0 +1,27 @@
+DAY-EC activated.
+DAY-EC activated.
+__ANALYSIS_BYTES__	1077391539131
+__BENCH_FILE__	results/day/hg38/benchmarks/produce_bclconvert_fastqs.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+0.0079	0:00:00	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA	NA
+__BENCH_FILE__	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/bclconvert_validate_inputs.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+0.5124	0:00:00	15.78	39.40	7.48	8.17	0.00	0.00	0.00	0.01	ip-10-0-0-225	54.148.239.185	32	0.0195	r7i.8xlarge	us-west-2d	0.946700	1	0.000004
+__BENCH_FILE__	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/merge_bclconvert_tile_shards.L003.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+632.1867	0:10:32	25.50	46.07	22.50	22.66	396711.00	442301.60	90.63	573.28	i192mem-dy-all-1	10.0.1.55	192	0.9068	m7i.metal-48xl	us-west-2d	3.163300	1	0.002893
+__BENCH_FILE__	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0001_tiles0001-0196.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+649.3160	0:10:49	98492.87	155204.23	99199.33	99203.85	137681.10	0.18	1276.30	8286.95	i192mem-dy-all-1	10.0.1.55	192	12.7626	m7i.metal-48xl	us-west-2d	3.169800	48	0.142931
+__BENCH_FILE__	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0002_tiles0197-0392.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+651.8069	0:10:51	99974.48	152284.90	99993.48	99998.17	98590.59	0.19	1246.71	8126.36	i192mem-dy-all-1	10.0.1.55	192	12.4674	m7i.metal-48xl	us-west-2d	3.169800	48	0.143479
+__BENCH_FILE__	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0003_tiles0393-0588.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+645.0674	0:10:45	99254.18	153177.93	99272.44	99277.04	135278.52	0.18	1281.05	8263.73	i192mem-dy-all-1	10.0.1.55	192	12.8106	m7i.metal-48xl	us-west-2d	3.169800	48	0.141995
+__BENCH_FILE__	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0004_tiles0589-0784.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+739.2035	0:12:19	106775.29	160654.94	106798.62	106803.30	99728.75	0.18	1109.13	8198.71	i192mem-dy-all-1	10.0.1.55	192	11.0913	m7i.metal-48xl	us-west-2d	3.169800	48	0.162717
+__BENCH_FILE__	results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.lane_fastqs_ready.bench.tsv
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+0.0163	0:00:00	3.25	7.80	0.34	0.53	0.00	0.00	0.00	0.00	ip-10-0-0-225	54.148.239.185	32	0.0000	r7i.8xlarge	us-west-2d	0.946700	1	0.000000

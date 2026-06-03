@@ -1,0 +1,8 @@
+{
+  "command": "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help",
+  "completed_at": "2026-05-31T16:13:15Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/dyec-515/d515_0531t1608_r3_001_simple_test/daylily-omics-analysis",
+  "session_name": "d515_0531t1608_r3_001_simple_test",
+  "started_at": "2026-05-31T16:12:46Z"
+}

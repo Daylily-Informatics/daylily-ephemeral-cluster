@@ -1,0 +1,16 @@
+DAY-EC activated.
+DAY-EC activated.
+=== rule_config files with bclconvert scratch settings ===
+--- ./config/day_profiles/slurm/rule_config.yaml
+119:    force: "true"
+128:    tmpdir: "/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch"
+129:    staging_mode: "mounted_dev_shm"
+130:    scratch_root: "/fsx/analysis_results/ubuntu/ccv20260529r39_illumina_bclconvert/daylily-omics-analysis/.bclconvert_scratch"
+131:    scratch_size_multiplier: "1"
+--- ./config/day_profiles/slurm/templates/rule_config.yaml
+119:    force: false
+128:    tmpdir: "/dev/shm"
+129:    staging_mode: "mounted_dev_shm"
+130:    scratch_root: "/dev/shm/dayoa_bclconvert"
+131:    scratch_size_multiplier: 4
+=== tmux environment hints ===

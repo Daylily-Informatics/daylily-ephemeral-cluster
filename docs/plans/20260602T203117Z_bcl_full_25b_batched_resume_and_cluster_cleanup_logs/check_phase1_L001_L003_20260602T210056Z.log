@@ -1,0 +1,51 @@
+DAY-EC activated.
+DAY-EC activated.
+CHECK_LABEL phase1_L001_L003
+DF
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.248@tcp:/3vbzxb4v  6.6T  3.9T  2.8T  59% /fsx
+PATH_STATE
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L001
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L001
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L001
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L001
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/merge_bclconvert_tile_shards.L001.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L001.0001_tiles0001-0098.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L001.0002_tiles0099-0196.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L001.0003_tiles0197-0294.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L001.0004_tiles0295-0392.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L001.0005_tiles0393-0490.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L001.0006_tiles0491-0588.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L001.0007_tiles0589-0686.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L001.0008_tiles0687-0784.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/merge_bclconvert_tile_shards.L001.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L001.0001_tiles0001-0098.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L001.0002_tiles0099-0196.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L001.0003_tiles0197-0294.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L001.0004_tiles0295-0392.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L001.0005_tiles0393-0490.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L001.0006_tiles0491-0588.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L001.0007_tiles0589-0686.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L001.0008_tiles0687-0784.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_fastqs/L003
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/lane_reports/L003
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/merge_bclconvert_tile_shards.L003.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0001_tiles0001-0098.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0002_tiles0099-0196.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0003_tiles0197-0294.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0004_tiles0295-0392.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0005_tiles0393-0490.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0006_tiles0491-0588.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0007_tiles0589-0686.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0008_tiles0687-0784.bench.tsv
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/merge_bclconvert_tile_shards.L003.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0001_tiles0001-0098.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0002_tiles0099-0196.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0003_tiles0197-0294.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0004_tiles0295-0392.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0005_tiles0393-0490.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0006_tiles0491-0588.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0007_tiles0589-0686.log
+ABSENT	-	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_odirect_off_20260602T115314Z/daylily-omics-analysis/results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0008_tiles0687-0784.log

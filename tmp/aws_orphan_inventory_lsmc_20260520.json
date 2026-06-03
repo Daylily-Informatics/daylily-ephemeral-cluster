@@ -211,7 +211,7 @@
         "instance_type": "t3.micro",
         "kind": "instance:running",
         "launch_time": "2026-05-15T23:02:28+00:00",
-        "name": "terrarium-dev-tailscale-router",
+        "name": "terrarium-dev-network-overlay-router",
         "private_ip": "10.40.10.114",
         "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
         "region": "us-west-2",
@@ -252,7 +252,7 @@
         "instance_type": "t3.micro",
         "kind": "instance:running",
         "launch_time": "2026-05-18T21:32:41+00:00",
-        "name": "terrarium-prod-tailscale-router",
+        "name": "terrarium-prod-network-overlay-router",
         "private_ip": "10.40.10.97",
         "reason": "EC2 instance is running; running instances incur compute cost and stopped instances keep attached EBS volumes.",
         "region": "us-west-2",
@@ -1526,7 +1526,7 @@
       },
       {
         "CreationTime": "2026-04-28 15:46:10-07:00",
-        "CreationToken": "aquarium-dev-tailscale-state",
+        "CreationToken": "aquarium-dev-network-overlay-state",
         "Encrypted": true,
         "FileSystemArn": "arn:aws:elasticfilesystem:us-west-2:108782052779:file-system/fs-0266962e5cabeb0b1",
         "FileSystemId": "fs-0266962e5cabeb0b1",
@@ -1535,7 +1535,7 @@
         },
         "KmsKeyId": "arn:aws:kms:us-west-2:108782052779:key/d5942b82-fb41-4b19-8db5-6f538f664446",
         "LifeCycleState": "available",
-        "Name": "aquarium-dev-tailscale-state",
+        "Name": "aquarium-dev-network-overlay-state",
         "NumberOfMountTargets": 2,
         "OwnerId": "108782052779",
         "PerformanceMode": "generalPurpose",
@@ -1553,7 +1553,7 @@
           },
           {
             "Key": "Name",
-            "Value": "aquarium-dev-tailscale-state"
+            "Value": "aquarium-dev-network-overlay-state"
           },
           {
             "Key": "Project",
@@ -1570,7 +1570,7 @@
       },
       {
         "CreationTime": "2026-04-03 11:05:35-07:00",
-        "CreationToken": "terrarium-prod-tailscale-state",
+        "CreationToken": "terrarium-prod-network-overlay-state",
         "Encrypted": true,
         "FileSystemArn": "arn:aws:elasticfilesystem:us-west-2:108782052779:file-system/fs-0f2fd326e8b3e0bb8",
         "FileSystemId": "fs-0f2fd326e8b3e0bb8",
@@ -1579,7 +1579,7 @@
         },
         "KmsKeyId": "arn:aws:kms:us-west-2:108782052779:key/d5942b82-fb41-4b19-8db5-6f538f664446",
         "LifeCycleState": "available",
-        "Name": "terrarium-prod-tailscale-state",
+        "Name": "terrarium-prod-network-overlay-state",
         "NumberOfMountTargets": 2,
         "OwnerId": "108782052779",
         "PerformanceMode": "generalPurpose",
@@ -1597,7 +1597,7 @@
           },
           {
             "Key": "Name",
-            "Value": "terrarium-prod-tailscale-state"
+            "Value": "terrarium-prod-network-overlay-state"
           },
           {
             "Key": "Project",
@@ -1614,7 +1614,7 @@
       },
       {
         "CreationTime": "2026-04-03 10:42:26-07:00",
-        "CreationToken": "terrarium-dev-tailscale-state",
+        "CreationToken": "terrarium-dev-network-overlay-state",
         "Encrypted": true,
         "FileSystemArn": "arn:aws:elasticfilesystem:us-west-2:108782052779:file-system/fs-03e6ba9c06e5cccc7",
         "FileSystemId": "fs-03e6ba9c06e5cccc7",
@@ -1623,7 +1623,7 @@
         },
         "KmsKeyId": "arn:aws:kms:us-west-2:108782052779:key/d5942b82-fb41-4b19-8db5-6f538f664446",
         "LifeCycleState": "available",
-        "Name": "terrarium-dev-tailscale-state",
+        "Name": "terrarium-dev-network-overlay-state",
         "NumberOfMountTargets": 2,
         "OwnerId": "108782052779",
         "PerformanceMode": "generalPurpose",
@@ -1641,7 +1641,7 @@
           },
           {
             "Key": "Name",
-            "Value": "terrarium-dev-tailscale-state"
+            "Value": "terrarium-dev-network-overlay-state"
           },
           {
             "Key": "Project",

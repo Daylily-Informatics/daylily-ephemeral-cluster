@@ -1,0 +1,227 @@
+DAY-EC activated.
+DAY-EC activated.
+timestamp_utc 2026-06-02T13:06:44Z
+repo /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+
+== failed shard rule logs and BCL logs ==
+## L008.0007_tiles0589-0686
+-- BCL log tail --
+prepared_lane_samplesheet lane=8 settings={"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"} out=results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L008/0007_tiles0589-0686/SampleSheet.csv
+run_bclconvert_lane L008 started: 2026-06-02T12:42:12+00:00
+host: i192mem-dy-all-7
+threads: 48
+TMPDIR: /dev/shm
+bcl_input_directory: /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0007_tiles0589-0686
+sample_sheet: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L008/0007_tiles0589-0686/SampleSheet.csv
+bcl_only_lane: 8
+tile_regex: s_8_2301+s_8_2302+s_8_2303+s_8_2304+s_8_2305+s_8_2306+s_8_2307+s_8_2308+s_8_2309+s_8_2310+s_8_2311+s_8_2312+s_8_2313+s_8_2314+s_8_2315+s_8_2316+s_8_2317+s_8_2318+s_8_2319+s_8_2320+s_8_2321+s_8_2322+s_8_2323+s_8_2324+s_8_2325+s_8_2326+s_8_2327+s_8_2328+s_8_2329+s_8_2330+s_8_2331+s_8_2332+s_8_2333+s_8_2334+s_8_2335+s_8_2336+s_8_2337+s_8_2338+s_8_2339+s_8_2340+s_8_2341+s_8_2342+s_8_2343+s_8_2344+s_8_2345+s_8_2346+s_8_2347+s_8_2348+s_8_2349+s_8_2350+s_8_2351+s_8_2352+s_8_2353+s_8_2354+s_8_2355+s_8_2356+s_8_2357+s_8_2358+s_8_2359+s_8_2360+s_8_2361+s_8_2362+s_8_2363+s_8_2364+s_8_2365+s_8_2366+s_8_2367+s_8_2368+s_8_2369+s_8_2370+s_8_2371+s_8_2372+s_8_2373+s_8_2374+s_8_2375+s_8_2376+s_8_2377+s_8_2378+s_8_2379+s_8_2380+s_8_2381+s_8_2382+s_8_2383+s_8_2384+s_8_2385+s_8_2386+s_8_2387+s_8_2388+s_8_2389+s_8_2390+s_8_2391+s_8_2392+s_8_2393+s_8_2394+s_8_2395+s_8_2396+s_8_2397+s_8_2398
+sample_sheet_settings_json: {"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}
+sample_sheet_settings_by_lane_json: {}
+output_legacy_stats: true
+num_unknown_barcodes_reported: 1000
+48
+Filesystem                Size  Used Avail Use% Mounted on
+tmpfs                     605G     0  605G   0% /dev/shm
+10.0.1.248@tcp:/3vbzxb4v  6.6T  877G  5.7T  14% /fsx
+10.0.1.248@tcp:/3vbzxb4v  6.6T  877G  5.7T  14% /fsx
+/usr/bin/singularity
+singularity_bind_args: --bind /fsx:/fsx
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc. 
+bcl_num_parallel_tiles: 8
+bcl_num_conversion_threads: 2
+bcl_num_compression_threads: 24
+bcl_num_decompression_threads: 8
+bcl_cpu_heavy_threads: 48
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0007_tiles0589-0686 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L008/0007_tiles0589-0686/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_8_2301+s_8_2302+s_8_2303+s_8_2304+s_8_2305+s_8_2306+s_8_2307+s_8_2308+s_8_2309+s_8_2310+s_8_2311+s_8_2312+s_8_2313+s_8_2314+s_8_2315+s_8_2316+s_8_2317+s_8_2318+s_8_2319+s_8_2320+s_8_2321+s_8_2322+s_8_2323+s_8_2324+s_8_2325+s_8_2326+s_8_2327+s_8_2328+s_8_2329+s_8_2330+s_8_2331+s_8_2332+s_8_2333+s_8_2334+s_8_2335+s_8_2336+s_8_2337+s_8_2338+s_8_2339+s_8_2340+s_8_2341+s_8_2342+s_8_2343+s_8_2344+s_8_2345+s_8_2346+s_8_2347+s_8_2348+s_8_2349+s_8_2350+s_8_2351+s_8_2352+s_8_2353+s_8_2354+s_8_2355+s_8_2356+s_8_2357+s_8_2358+s_8_2359+s_8_2360+s_8_2361+s_8_2362+s_8_2363+s_8_2364+s_8_2365+s_8_2366+s_8_2367+s_8_2368+s_8_2369+s_8_2370+s_8_2371+s_8_2372+s_8_2373+s_8_2374+s_8_2375+s_8_2376+s_8_2377+s_8_2378+s_8_2379+s_8_2380+s_8_2381+s_8_2382+s_8_2383+s_8_2384+s_8_2385+s_8_2386+s_8_2387+s_8_2388+s_8_2389+s_8_2390+s_8_2391+s_8_2392+s_8_2393+s_8_2394+s_8_2395+s_8_2396+s_8_2397+s_8_2398 -f
+INFO:    Using cached SIF image
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 2 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 3 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 4 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 5 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 6 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 7 because RunInfo.xml file lists no tiles for it
+Index Read 2 is marked as Reverse Complement in RunInfo.xml: The barcode and UMI outputs will be output in Reverse Complement of Sample Sheet inputs.
+Sample sheet being processed by common lib? Yes
+SampleSheet Settings: 
+  BarcodeMismatchesIndex1 = 0
+  BarcodeMismatchesIndex2 = 0
+  FastqCompressionFormat = gzip
+  OverrideCycles = Y151;I10;I10;Y151
+  SoftwareVersion = 4.0.3
+
+shared-thread-linux-native-asio output is enabled
+WARNING: shared-thread-linux-native-asio output could have low performance or hang if output directory is on a distributed file system
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2022 Illumina, Inc.
+Command Line: --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0007_tiles0589-0686 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L008/0007_tiles0589-0686/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_8_2301+s_8_2302+s_8_2303+s_8_2304+s_8_2305+s_8_2306+s_8_2307+s_8_2308+s_8_2309+s_8_2310+s_8_2311+s_8_2312+s_8_2313+s_8_2314+s_8_2315+s_8_2316+s_8_2317+s_8_2318+s_8_2319+s_8_2320+s_8_2321+s_8_2322+s_8_2323+s_8_2324+s_8_2325+s_8_2326+s_8_2327+s_8_2328+s_8_2329+s_8_2330+s_8_2331+s_8_2332+s_8_2333+s_8_2334+s_8_2335+s_8_2336+s_8_2337+s_8_2338+s_8_2339+s_8_2340+s_8_2341+s_8_2342+s_8_2343+s_8_2344+s_8_2345+s_8_2346+s_8_2347+s_8_2348+s_8_2349+s_8_2350+s_8_2351+s_8_2352+s_8_2353+s_8_2354+s_8_2355+s_8_2356+s_8_2357+s_8_2358+s_8_2359+s_8_2360+s_8_2361+s_8_2362+s_8_2363+s_8_2364+s_8_2365+s_8_2366+s_8_2367+s_8_2368+s_8_2369+s_8_2370+s_8_2371+s_8_2372+s_8_2373+s_8_2374+s_8_2375+s_8_2376+s_8_2377+s_8_2378+s_8_2379+s_8_2380+s_8_2381+s_8_2382+s_8_2383+s_8_2384+s_8_2385+s_8_2386+s_8_2387+s_8_2388+s_8_2389+s_8_2390+s_8_2391+s_8_2392+s_8_2393+s_8_2394+s_8_2395+s_8_2396+s_8_2397+s_8_2398 -f 
+Conversion Begins.
+# CPU hw threads available: 64
+Parallel Tiles: 8. Threads Per Tile: 2
+SW compressors: 24
+SW decompressors: 8
+SW FASTQ compression level: 1
+
+The DRAGEN WatchDog service has detected a fault: Hang detected - there has been no system activity for 600 seconds
+    No thread activity for 600 seconds
+    No I/O activity detected for 600 seconds
+
+
+Dumping diagnostics....
+WARNING: Could not write replay file /var/log/bcl-convert/dragen_replay_1780405335005_31940.json: /var/log/bcl-convert/dragen_replay_1780405335005_31940.json: cannot open file
+DRAGEN replay file saved to /var/log/bcl-convert/dragen_replay_1780405335005_31940.json
+sh: 1: cannot create /var/log/bcl-convert/dragen_info_1780405335005_31940.log: Directory nonexistent
+DRAGEN registers saved to /var/log/bcl-convert/dragen_info_1780405335005_31940.log
+Hang diagnostic saved to /var/log/bcl-convert/hang_diag_1780405335005_31940.txt
+sh: 1: cannot create /var/log/bcl-convert/pstack_1780405335017_31940.log: Directory nonexistent
+pstack saved to /var/log/bcl-convert/pstack_1780405335017_31940.log
+
+Exception thrown in /data/jenkins/workspace/dragen_release_4.0/src/host/infra/debug/watchdog.cpp line 285 -- The DRAGEN WatchDog service is resetting DRAGEN
+/bin/sh: 1: cannot create /var/log/bcl-convert/pstack_1780405335017_31940.log: Directory nonexistent
+terminate called after throwing an instance of 'WatchDogException'
+  what():  Exception thrown in /data/jenkins/workspace/dragen_release_4.0/src/host/infra/debug/watchdog.cpp line 285 -- The DRAGEN WatchDog service is resetting DRAGEN
+-- benchmark if any --
+MISSING results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L008.0007_tiles0589-0686.bench.tsv
+-- output/report presence --
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0007_tiles0589-0686/Logs/Info.log
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0007_tiles0589-0686/Logs/Errors.log
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0007_tiles0589-0686/Logs/Warnings.log
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0007_tiles0589-0686/Reports/RunInfo.xml
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0007_tiles0589-0686/Reports/SampleSheet.csv
+
+## L002.0005_tiles0393-0490
+-- BCL log tail --
+prepared_lane_samplesheet lane=2 settings={"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"} out=results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L002/0005_tiles0393-0490/SampleSheet.csv
+run_bclconvert_lane L002 started: 2026-06-02T12:42:13+00:00
+host: i192mem-dy-all-7
+threads: 48
+TMPDIR: /dev/shm
+bcl_input_directory: /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0005_tiles0393-0490
+sample_sheet: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L002/0005_tiles0393-0490/SampleSheet.csv
+bcl_only_lane: 2
+tile_regex: s_2_2101+s_2_2102+s_2_2103+s_2_2104+s_2_2105+s_2_2106+s_2_2107+s_2_2108+s_2_2109+s_2_2110+s_2_2111+s_2_2112+s_2_2113+s_2_2114+s_2_2115+s_2_2116+s_2_2117+s_2_2118+s_2_2119+s_2_2120+s_2_2121+s_2_2122+s_2_2123+s_2_2124+s_2_2125+s_2_2126+s_2_2127+s_2_2128+s_2_2129+s_2_2130+s_2_2131+s_2_2132+s_2_2133+s_2_2134+s_2_2135+s_2_2136+s_2_2137+s_2_2138+s_2_2139+s_2_2140+s_2_2141+s_2_2142+s_2_2143+s_2_2144+s_2_2145+s_2_2146+s_2_2147+s_2_2148+s_2_2149+s_2_2150+s_2_2151+s_2_2152+s_2_2153+s_2_2154+s_2_2155+s_2_2156+s_2_2157+s_2_2158+s_2_2159+s_2_2160+s_2_2161+s_2_2162+s_2_2163+s_2_2164+s_2_2165+s_2_2166+s_2_2167+s_2_2168+s_2_2169+s_2_2170+s_2_2171+s_2_2172+s_2_2173+s_2_2174+s_2_2175+s_2_2176+s_2_2177+s_2_2178+s_2_2179+s_2_2180+s_2_2181+s_2_2182+s_2_2183+s_2_2184+s_2_2185+s_2_2186+s_2_2187+s_2_2188+s_2_2189+s_2_2190+s_2_2191+s_2_2192+s_2_2193+s_2_2194+s_2_2195+s_2_2196+s_2_2197+s_2_2198
+sample_sheet_settings_json: {"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}
+sample_sheet_settings_by_lane_json: {}
+output_legacy_stats: true
+num_unknown_barcodes_reported: 1000
+48
+Filesystem                Size  Used Avail Use% Mounted on
+tmpfs                     605G     0  605G   0% /dev/shm
+10.0.1.248@tcp:/3vbzxb4v  6.6T  877G  5.7T  14% /fsx
+10.0.1.248@tcp:/3vbzxb4v  6.6T  877G  5.7T  14% /fsx
+/usr/bin/singularity
+singularity_bind_args: --bind /fsx:/fsx
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc. 
+bcl_num_parallel_tiles: 8
+bcl_num_conversion_threads: 2
+bcl_num_compression_threads: 24
+bcl_num_decompression_threads: 8
+bcl_cpu_heavy_threads: 48
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0005_tiles0393-0490 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L002/0005_tiles0393-0490/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_2_2101+s_2_2102+s_2_2103+s_2_2104+s_2_2105+s_2_2106+s_2_2107+s_2_2108+s_2_2109+s_2_2110+s_2_2111+s_2_2112+s_2_2113+s_2_2114+s_2_2115+s_2_2116+s_2_2117+s_2_2118+s_2_2119+s_2_2120+s_2_2121+s_2_2122+s_2_2123+s_2_2124+s_2_2125+s_2_2126+s_2_2127+s_2_2128+s_2_2129+s_2_2130+s_2_2131+s_2_2132+s_2_2133+s_2_2134+s_2_2135+s_2_2136+s_2_2137+s_2_2138+s_2_2139+s_2_2140+s_2_2141+s_2_2142+s_2_2143+s_2_2144+s_2_2145+s_2_2146+s_2_2147+s_2_2148+s_2_2149+s_2_2150+s_2_2151+s_2_2152+s_2_2153+s_2_2154+s_2_2155+s_2_2156+s_2_2157+s_2_2158+s_2_2159+s_2_2160+s_2_2161+s_2_2162+s_2_2163+s_2_2164+s_2_2165+s_2_2166+s_2_2167+s_2_2168+s_2_2169+s_2_2170+s_2_2171+s_2_2172+s_2_2173+s_2_2174+s_2_2175+s_2_2176+s_2_2177+s_2_2178+s_2_2179+s_2_2180+s_2_2181+s_2_2182+s_2_2183+s_2_2184+s_2_2185+s_2_2186+s_2_2187+s_2_2188+s_2_2189+s_2_2190+s_2_2191+s_2_2192+s_2_2193+s_2_2194+s_2_2195+s_2_2196+s_2_2197+s_2_2198 -f
+INFO:    Using cached SIF image
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+Index Read 2 is marked as Reverse Complement in RunInfo.xml: The barcode and UMI outputs will be output in Reverse Complement of Sample Sheet inputs.
+Sample sheet being processed by common lib? Yes
+SampleSheet Settings: 
+  BarcodeMismatchesIndex1 = 0
+  BarcodeMismatchesIndex2 = 0
+  FastqCompressionFormat = gzip
+  OverrideCycles = Y151;I10;I10;Y151
+  SoftwareVersion = 4.0.3
+
+shared-thread-linux-native-asio output is enabled
+WARNING: shared-thread-linux-native-asio output could have low performance or hang if output directory is on a distributed file system
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2022 Illumina, Inc.
+Command Line: --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0005_tiles0393-0490 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L002/0005_tiles0393-0490/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_2_2101+s_2_2102+s_2_2103+s_2_2104+s_2_2105+s_2_2106+s_2_2107+s_2_2108+s_2_2109+s_2_2110+s_2_2111+s_2_2112+s_2_2113+s_2_2114+s_2_2115+s_2_2116+s_2_2117+s_2_2118+s_2_2119+s_2_2120+s_2_2121+s_2_2122+s_2_2123+s_2_2124+s_2_2125+s_2_2126+s_2_2127+s_2_2128+s_2_2129+s_2_2130+s_2_2131+s_2_2132+s_2_2133+s_2_2134+s_2_2135+s_2_2136+s_2_2137+s_2_2138+s_2_2139+s_2_2140+s_2_2141+s_2_2142+s_2_2143+s_2_2144+s_2_2145+s_2_2146+s_2_2147+s_2_2148+s_2_2149+s_2_2150+s_2_2151+s_2_2152+s_2_2153+s_2_2154+s_2_2155+s_2_2156+s_2_2157+s_2_2158+s_2_2159+s_2_2160+s_2_2161+s_2_2162+s_2_2163+s_2_2164+s_2_2165+s_2_2166+s_2_2167+s_2_2168+s_2_2169+s_2_2170+s_2_2171+s_2_2172+s_2_2173+s_2_2174+s_2_2175+s_2_2176+s_2_2177+s_2_2178+s_2_2179+s_2_2180+s_2_2181+s_2_2182+s_2_2183+s_2_2184+s_2_2185+s_2_2186+s_2_2187+s_2_2188+s_2_2189+s_2_2190+s_2_2191+s_2_2192+s_2_2193+s_2_2194+s_2_2195+s_2_2196+s_2_2197+s_2_2198 -f 
+Conversion Begins.
+# CPU hw threads available: 64
+Parallel Tiles: 8. Threads Per Tile: 2
+SW compressors: 24
+SW decompressors: 8
+SW FASTQ compression level: 1
+
+The DRAGEN WatchDog service has detected a fault: Hang detected - there has been no system activity for 600 seconds
+    No thread activity for 600 seconds
+    No I/O activity detected for 600 seconds
+
+
+Dumping diagnostics....
+WARNING: Could not write replay file /var/log/bcl-convert/dragen_replay_1780405335340_31981.json: /var/log/bcl-convert/dragen_replay_1780405335340_31981.json: cannot open file
+DRAGEN replay file saved to /var/log/bcl-convert/dragen_replay_1780405335340_31981.json
+sh: 1: cannot create /var/log/bcl-convert/dragen_info_1780405335340_31981.log: Directory nonexistent
+DRAGEN registers saved to /var/log/bcl-convert/dragen_info_1780405335340_31981.log
+Hang diagnostic saved to /var/log/bcl-convert/hang_diag_1780405335340_31981.txt
+sh: 1: cannot create /var/log/bcl-convert/pstack_1780405335351_31981.log: Directory nonexistent
+pstack saved to /var/log/bcl-convert/pstack_1780405335351_31981.log
+
+Exception thrown in /data/jenkins/workspace/dragen_release_4.0/src/host/infra/debug/watchdog.cpp line 285 -- The DRAGEN WatchDog service is resetting DRAGEN
+/bin/sh: 1: terminate called after throwing an instance of 'cannot create /var/log/bcl-convert/pstack_1780405335351_31981.log: Directory nonexistentWatchDogException
+'
+  what():  Exception thrown in /data/jenkins/workspace/dragen_release_4.0/src/host/infra/debug/watchdog.cpp line 285 -- The DRAGEN WatchDog service is resetting DRAGEN
+-- benchmark if any --
+MISSING results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L002.0005_tiles0393-0490.bench.tsv
+-- output/report presence --
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0005_tiles0393-0490/Logs/Errors.log
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0005_tiles0393-0490/Logs/Info.log
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0005_tiles0393-0490/Logs/Warnings.log
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0005_tiles0393-0490/Reports/RunInfo.xml
+results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0005_tiles0393-0490/Reports/SampleSheet.csv
+
+## L005.0002_tiles0099-0196
+-- BCL log tail --
+prepared_lane_samplesheet lane=5 settings={"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"} out=results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L005/0002_tiles0099-0196/SampleSheet.csv
+run_bclconvert_lane L005 started: 2026-06-02T12:42:08+00:00
+host: i192mem-dy-all-7
+threads: 48
+TMPDIR: /dev/shm
+bcl_input_directory: /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4
+output_directory: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L005/0002_tiles0099-0196
+sample_sheet: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L005/0002_tiles0099-0196/SampleSheet.csv
+bcl_only_lane: 5
+tile_regex: s_5_1201+s_5_1202+s_5_1203+s_5_1204+s_5_1205+s_5_1206+s_5_1207+s_5_1208+s_5_1209+s_5_1210+s_5_1211+s_5_1212+s_5_1213+s_5_1214+s_5_1215+s_5_1216+s_5_1217+s_5_1218+s_5_1219+s_5_1220+s_5_1221+s_5_1222+s_5_1223+s_5_1224+s_5_1225+s_5_1226+s_5_1227+s_5_1228+s_5_1229+s_5_1230+s_5_1231+s_5_1232+s_5_1233+s_5_1234+s_5_1235+s_5_1236+s_5_1237+s_5_1238+s_5_1239+s_5_1240+s_5_1241+s_5_1242+s_5_1243+s_5_1244+s_5_1245+s_5_1246+s_5_1247+s_5_1248+s_5_1249+s_5_1250+s_5_1251+s_5_1252+s_5_1253+s_5_1254+s_5_1255+s_5_1256+s_5_1257+s_5_1258+s_5_1259+s_5_1260+s_5_1261+s_5_1262+s_5_1263+s_5_1264+s_5_1265+s_5_1266+s_5_1267+s_5_1268+s_5_1269+s_5_1270+s_5_1271+s_5_1272+s_5_1273+s_5_1274+s_5_1275+s_5_1276+s_5_1277+s_5_1278+s_5_1279+s_5_1280+s_5_1281+s_5_1282+s_5_1283+s_5_1284+s_5_1285+s_5_1286+s_5_1287+s_5_1288+s_5_1289+s_5_1290+s_5_1291+s_5_1292+s_5_1293+s_5_1294+s_5_1295+s_5_1296+s_5_1297+s_5_1298
+sample_sheet_settings_json: {"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}
+sample_sheet_settings_by_lane_json: {}
+output_legacy_stats: true
+num_unknown_barcodes_reported: 1000
+48
+Filesystem                Size  Used Avail Use% Mounted on
+tmpfs                     605G     0  605G   0% /dev/shm
+10.0.1.248@tcp:/3vbzxb4v  6.6T  872G  5.7T  14% /fsx
+10.0.1.248@tcp:/3vbzxb4v  6.6T  872G  5.7T  14% /fsx
+/usr/bin/singularity
+singularity_bind_args: --bind /fsx:/fsx
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc. 
+bcl_num_parallel_tiles: 8
+bcl_num_conversion_threads: 2
+bcl_num_compression_threads: 24
+bcl_num_decompression_threads: 8
+bcl_cpu_heavy_threads: 48
+bcl-convert command: singularity exec --bind /fsx:/fsx docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L005/0002_tiles0099-0196 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L005/0002_tiles0099-0196/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 8 --bcl-num-conversion-threads 2 --bcl-num-compression-threads 24 --bcl-num-decompression-threads 8 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_5_1201+s_5_1202+s_5_1203+s_5_1204+s_5_1205+s_5_1206+s_5_1207+s_5_1208+s_5_1209+s_5_1210+s_5_1211+s_5_1212+s_5_1213+s_5_1214+s_5_1215+s_5_1216+s_5_1217+s_5_1218+s_5_1219+s_5_1220+s_5_1221+s_5_1222+s_5_1223+s_5_1224+s_5_1225+s_5_1226+s_5_1227+s_5_1228+s_5_1229+s_5_1230+s_5_1231+s_5_1232+s_5_1233+s_5_1234+s_5_1235+s_5_1236+s_5_1237+s_5_1238+s_5_1239+s_5_1240+s_5_1241+s_5_1242+s_5_1243+s_5_1244+s_5_1245+s_5_1246+s_5_1247+s_5_1248+s_5_1249+s_5_1250+s_5_1251+s_5_1252+s_5_1253+s_5_1254+s_5_1255+s_5_1256+s_5_1257+s_5_1258+s_5_1259+s_5_1260+s_5_1261+s_5_1262+s_5_1263+s_5_1264+s_5_1265+s_5_1266+s_5_1267+s_5_1268+s_5_1269+s_5_1270+s_5_1271+s_5_1272+s_5_1273+s_5_1274+s_5_1275+s_5_1276+s_5_1277+s_5_1278+s_5_1279+s_5_1280+s_5_1281+s_5_1282+s_5_1283+s_5_1284+s_5_1285+s_5_1286+s_5_1287+s_5_1288+s_5_1289+s_5_1290+s_5_1291+s_5_1292+s_5_1293+s_5_1294+s_5_1295+s_5_1296+s_5_1297+s_5_1298 -f
+INFO:    Using cached SIF image
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 2 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 3 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 4 because RunInfo.xml file lists no tiles for it
+Index Read 2 is marked as Reverse Complement in RunInfo.xml: The barcode and UMI outputs will be output in Reverse Complement of Sample Sheet inputs.
+Sample sheet being processed by common lib? Yes
+SampleSheet Settings: 
+  BarcodeMismatchesIndex1 = 0
+  BarcodeMismatchesIndex2 = 0
+  FastqCompressionFormat = gzip
+  OverrideCycles = Y151;I10;I10;Y151
+  SoftwareVersion = 4.0.3
+
+shared-thread-linux-native-asio output is enabled
+WARNING: shared-thread-linux-native-asio output could have low performance or hang if output directory is on a distributed file system
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2022 Illumina, Inc.
+Command Line: --bcl-input-directory /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 --output-directory results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L005/0002_tiles0099-0196 --sample-sheet results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/--output truncated--

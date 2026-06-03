@@ -1,0 +1,126 @@
+DAY-EC activated.
+DAY-EC activated.
+        if [ -n "$bcl_extra_args" ]; then
+            echo "bclconvert.extra_args is not supported in this shell-only bootstrap workflow" >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/analysis_results/ubuntu/bcl25b_l003_shard016_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv \
+          --samples-tsv /fsx/analysis_results/ubuntu/bcl25b_l003_shard016_20260602T000733Z/daylily-omics-analysis/config/samples.tsv \
+          --normalized-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv \
+          --rows-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tables/samplesheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.warnings.log \
+          >> results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/bclconvert_validate_inputs.log 2>&1
+        touch results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+        
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip-10-0-0-225/841ac27cc5e7759e4ad9d0f5f4e02ac4_
+[Tue Jun  2 06:10:31 2026]
+Finished job 1.
+1 of 20 steps (5%) done
+Select jobs to execute...
+
+[Tue Jun  2 06:10:31 2026]
+rule run_bclconvert_tile_shard:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0049/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0049/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0049/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0049/SampleSheet.csv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0001_tiles0001-0049.log
+    jobid: 4
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0001_tiles0001-0049.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0049/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0049/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0049/Reports/Demultiplex_Stats.csv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+    wildcards: lane=L003, shard=0001_tiles0001-0049
+    threads: 48
+    resources: mem_mb=180000, mem_mib=171662, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=48, time=5440, partition=i192mem, vcpu=48, distribution=block, exclusive=, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm bash workflow/scripts/run_bclconvert_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/analysis_results/ubuntu/bcl25b_l003_shard016_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0049 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv 3 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0049/SampleSheet.csv false false false 1 8 2 24 8 true true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' -f 48 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0001_tiles0001-0049.log results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0049/Reports/fastq_list.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0001_tiles0001-0049/Reports/Demultiplex_Stats.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0001_tiles0001-0049/bclconvert.done s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108+s_3_1109+s_3_1110+s_3_1111+s_3_1112+s_3_1113+s_3_1114+s_3_1115+s_3_1116+s_3_1117+s_3_1118+s_3_1119+s_3_1120+s_3_1121+s_3_1122+s_3_1123+s_3_1124+s_3_1125+s_3_1126+s_3_1127+s_3_1128+s_3_1129+s_3_1130+s_3_1131+s_3_1132+s_3_1133+s_3_1134+s_3_1135+s_3_1136+s_3_1137+s_3_1138+s_3_1139+s_3_1140+s_3_1141+s_3_1142+s_3_1143+s_3_1144+s_3_1145+s_3_1146+s_3_1147+s_3_1148+s_3_1149
+Submitted job 4 with external jobid '20'.
+
+[Tue Jun  2 06:10:31 2026]
+rule run_bclconvert_tile_shard:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0008_tiles0344-0392/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0008_tiles0344-0392/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0008_tiles0344-0392/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0008_tiles0344-0392/SampleSheet.csv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0008_tiles0344-0392.log
+    jobid: 11
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0008_tiles0344-0392.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0008_tiles0344-0392/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0008_tiles0344-0392/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0008_tiles0344-0392/Reports/fastq_list.csv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+    wildcards: lane=L003, shard=0008_tiles0344-0392
+    threads: 48
+    resources: mem_mb=180000, mem_mib=171662, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=48, time=5440, partition=i192mem, vcpu=48, distribution=block, exclusive=, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm bash workflow/scripts/run_bclconvert_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/analysis_results/ubuntu/bcl25b_l003_shard016_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0008_tiles0344-0392 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv 3 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0008_tiles0344-0392/SampleSheet.csv false false false 1 8 2 24 8 true true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' -f 48 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0008_tiles0344-0392.log results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0008_tiles0344-0392/Reports/fastq_list.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0008_tiles0344-0392/Reports/Demultiplex_Stats.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0008_tiles0344-0392/bclconvert.done s_3_1450+s_3_1451+s_3_1452+s_3_1453+s_3_1454+s_3_1455+s_3_1456+s_3_1457+s_3_1458+s_3_1459+s_3_1460+s_3_1461+s_3_1462+s_3_1463+s_3_1464+s_3_1465+s_3_1466+s_3_1467+s_3_1468+s_3_1469+s_3_1470+s_3_1471+s_3_1472+s_3_1473+s_3_1474+s_3_1475+s_3_1476+s_3_1477+s_3_1478+s_3_1479+s_3_1480+s_3_1481+s_3_1482+s_3_1483+s_3_1484+s_3_1485+s_3_1486+s_3_1487+s_3_1488+s_3_1489+s_3_1490+s_3_1491+s_3_1492+s_3_1493+s_3_1494+s_3_1495+s_3_1496+s_3_1497+s_3_1498
+Submitted job 11 with external jobid '21'.
+
+[Tue Jun  2 06:10:31 2026]
+rule run_bclconvert_tile_shard:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0009_tiles0393-0441/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0009_tiles0393-0441/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0009_tiles0393-0441/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0009_tiles0393-0441/SampleSheet.csv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0009_tiles0393-0441.log
+    jobid: 12
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0009_tiles0393-0441.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0009_tiles0393-0441/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0009_tiles0393-0441/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0009_tiles0393-0441/Reports/fastq_list.csv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+    wildcards: lane=L003, shard=0009_tiles0393-0441
+    threads: 48
+    resources: mem_mb=180000, mem_mib=171662, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=48, time=5440, partition=i192mem, vcpu=48, distribution=block, exclusive=, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm bash workflow/scripts/run_bclconvert_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/analysis_results/ubuntu/bcl25b_l003_shard016_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0009_tiles0393-0441 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv 3 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0009_tiles0393-0441/SampleSheet.csv false false false 1 8 2 24 8 true true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' -f 48 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0009_tiles0393-0441.log results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0009_tiles0393-0441/Reports/fastq_list.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0009_tiles0393-0441/Reports/Demultiplex_Stats.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0009_tiles0393-0441/bclconvert.done s_3_2101+s_3_2102+s_3_2103+s_3_2104+s_3_2105+s_3_2106+s_3_2107+s_3_2108+s_3_2109+s_3_2110+s_3_2111+s_3_2112+s_3_2113+s_3_2114+s_3_2115+s_3_2116+s_3_2117+s_3_2118+s_3_2119+s_3_2120+s_3_2121+s_3_2122+s_3_2123+s_3_2124+s_3_2125+s_3_2126+s_3_2127+s_3_2128+s_3_2129+s_3_2130+s_3_2131+s_3_2132+s_3_2133+s_3_2134+s_3_2135+s_3_2136+s_3_2137+s_3_2138+s_3_2139+s_3_2140+s_3_2141+s_3_2142+s_3_2143+s_3_2144+s_3_2145+s_3_2146+s_3_2147+s_3_2148+s_3_2149
+Submitted job 12 with external jobid '22'.
+
+[Tue Jun  2 06:10:31 2026]
+rule run_bclconvert_tile_shard:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0010_tiles0442-0490/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0010_tiles0442-0490/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0010_tiles0442-0490/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0010_tiles0442-0490/SampleSheet.csv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0010_tiles0442-0490.log
+    jobid: 13
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0010_tiles0442-0490.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0010_tiles0442-0490/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0010_tiles0442-0490/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0010_tiles0442-0490/Reports/Demultiplex_Stats.csv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+    wildcards: lane=L003, shard=0010_tiles0442-0490
+    threads: 48
+    resources: mem_mb=180000, mem_mib=171662, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=48, time=5440, partition=i192mem, vcpu=48, distribution=block, exclusive=, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm bash workflow/scripts/run_bclconvert_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/analysis_results/ubuntu/bcl25b_l003_shard016_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0010_tiles0442-0490 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv 3 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0010_tiles0442-0490/SampleSheet.csv false false false 1 8 2 24 8 true true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' -f 48 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0010_tiles0442-0490.log results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0010_tiles0442-0490/Reports/fastq_list.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0010_tiles0442-0490/Reports/Demultiplex_Stats.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0010_tiles0442-0490/bclconvert.done s_3_2150+s_3_2151+s_3_2152+s_3_2153+s_3_2154+s_3_2155+s_3_2156+s_3_2157+s_3_2158+s_3_2159+s_3_2160+s_3_2161+s_3_2162+s_3_2163+s_3_2164+s_3_2165+s_3_2166+s_3_2167+s_3_2168+s_3_2169+s_3_2170+s_3_2171+s_3_2172+s_3_2173+s_3_2174+s_3_2175+s_3_2176+s_3_2177+s_3_2178+s_3_2179+s_3_2180+s_3_2181+s_3_2182+s_3_2183+s_3_2184+s_3_2185+s_3_2186+s_3_2187+s_3_2188+s_3_2189+s_3_2190+s_3_2191+s_3_2192+s_3_2193+s_3_2194+s_3_2195+s_3_2196+s_3_2197+s_3_2198
+Submitted job 13 with external jobid '23'.
+
+[Tue Jun  2 06:10:31 2026]
+rule run_bclconvert_tile_shard:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0003_tiles0099-0147/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0003_tiles0099-0147/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0003_tiles0099-0147/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0003_tiles0099-0147/SampleSheet.csv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0003_tiles0099-0147.log
+    jobid: 6
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0003_tiles0099-0147.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0003_tiles0099-0147/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0003_tiles0099-0147/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0003_tiles0099-0147/Reports/fastq_list.csv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+    wildcards: lane=L003, shard=0003_tiles0099-0147
+    threads: 48
+    resources: mem_mb=180000, mem_mib=171662, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=48, time=5440, partition=i192mem, vcpu=48, distribution=block, exclusive=, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm bash workflow/scripts/run_bclconvert_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/analysis_results/ubuntu/bcl25b_l003_shard016_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0003_tiles0099-0147 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv 3 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0003_tiles0099-0147/SampleSheet.csv false false false 1 8 2 24 8 true true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' -f 48 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0003_tiles0099-0147.log results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0003_tiles0099-0147/Reports/fastq_list.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0003_tiles0099-0147/Reports/Demultiplex_Stats.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0003_tiles0099-0147/bclconvert.done s_3_1201+s_3_1202+s_3_1203+s_3_1204+s_3_1205+s_3_1206+s_3_1207+s_3_1208+s_3_1209+s_3_1210+s_3_1211+s_3_1212+s_3_1213+s_3_1214+s_3_1215+s_3_1216+s_3_1217+s_3_1218+s_3_1219+s_3_1220+s_3_1221+s_3_1222+s_3_1223+s_3_1224+s_3_1225+s_3_1226+s_3_1227+s_3_1228+s_3_1229+s_3_1230+s_3_1231+s_3_1232+s_3_1233+s_3_1234+s_3_1235+s_3_1236+s_3_1237+s_3_1238+s_3_1239+s_3_1240+s_3_1241+s_3_1242+s_3_1243+s_3_1244+s_3_1245+s_3_1246+s_3_1247+s_3_1248+s_3_1249
+Submitted job 6 with external jobid '24'.
+
+[Tue Jun  2 06:10:31 2026]
+rule run_bclconvert_tile_shard:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0014_tiles0638-0686/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0014_tiles0638-0686/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0014_tiles0638-0686/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0014_tiles0638-0686/SampleSheet.csv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0014_tiles0638-0686.log
+    jobid: 17
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0014_tiles0638-0686.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0014_tiles0638-0686/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0014_tiles0638-0686/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0014_tiles0638-0686/Reports/Demultiplex_Stats.csv; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+    wildcards: lane=L003, shard=0014_tiles0638-0686
+    threads: 48
+    resources: mem_mb=180000, mem_mib=171662, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=48, time=5440, partition=i192mem, vcpu=48, distribution=block, exclusive=, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm bash workflow/scripts/run_bclconvert_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/analysis_results/ubuntu/bcl25b_l003_shard016_20260602T000733Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0014_tiles0638-0686 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv 3 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0014_tiles0638-0686/SampleSheet.csv false false false 1 8 2 24 8 true true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' -f 48 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0014_tiles0638-0686.log results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0014_tiles0638-0686/Reports/fastq_list.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0014_tiles0638-0686/Reports/Demultiplex_Stats.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0014_tiles0638-0686/bclconvert.done s_3_2350+s_3_2351+s_3_2352+s_3_2353+s_3_2354+s_3_2355+s_3_2356+s_3_2357+s_3_2358+s_3_2359+s_3_2360+s_3_2361+s_3_2362+s_3_2363+s_3_2364+s_3_2365+s_3_2366+s_3_2367+s_3_2368+s_3_2369+s_3_2370+s_3_2371+s_3_2372+s_3_2373+s_3_2374+s_3_2375+s_3_2376+s_3_2377+s_3_2378+s_3_2379+s_3_2380+s_3_2381+s_3_2382+s_3_2383+s_3_2384+s_3_2385+s_3_2386+s_3_2387+s_3_2388+s_3_2389+s_3_2390+s_3_2391+s_3_2392+s_3_2393+s_3_2394+s_3_2395+s_3_2396+s_3_2397+s_3_2398
+Submitted job 17 with external jobid '25'.
+
+[Tue Jun  2 06:10:31 2026]
+rule run_bclconvert_tile_shard:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0005_tiles0197-0245/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0005_tiles0197-0245/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0005_tiles0197-0245/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0005_tiles0197-0245/SampleSheet.csv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L003.0005_tiles0197-0245.log
+    jobid: 8
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L003.0005_tiles0197-0245.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0005_tiles0197-0245/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L003/0005_tiles0197-0245/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L003/0005_tiles0197-0245/bclconvert.done; Input files updated by another job: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok
+    wildcards: lane=L003, shard=0005_tiles0197-0245
+    threads: 48
+    resources: mem_mb=180000, mem_mib=171662, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=48, time=5440, partition=i192mem, vcpu=48, distribution=block, exclusive=, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm bash workflow/scripts/run_bclconvert_lane.sh docker://nfcore/bcl--output truncated--

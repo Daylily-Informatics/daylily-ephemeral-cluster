@@ -1,0 +1,15 @@
+DAY-EC activated.
+DAY-EC activated.
+=== now ===
+2026-05-31T00:20:48Z
+=== df ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  8.1T  707G  93% /fsx
+tmpfs                   tmpfs   199G     0  199G   0% /dev/shm
+/dev/root               ext4    408G   42G  367G  11% /
+=== slurm ===
+=== active validation processes ===
+  81703       1 Ss    0.0  0.0  1-04:26:45 tmux new-session -d -s ccv20260529_simple-test_dryrun -e DAYLILY_RUN_DIR=/home/ubuntu/daylily-runs/ccv20260529_simple-test_dryrun -e DAYLILY_REPO_PATH=/fsx/analysis_results/ubuntu/ccv20260529_simple-test_dryrun/daylily-omics-analysis -e DAYLILY_TMUX_LOG=/home/ubuntu/daylily-runs/ccv20260529_simple-test_dryrun/tmux.log bash -lc 'source /home/ubuntu/daylily-runs/ccv20260529_simple-test_dryrun/launch.sh >>/home/ubuntu/daylily-runs/ccv20260529_simple-test_dryrun/tmux.log 2>&1'
+2348153   81703 Ss+   0.0  0.0    02:28:11 bash -lc source /home/ubuntu/daylily-runs/ccv20260530r57_illumina_run_qc_bclconvert/launch.sh >>/home/ubuntu/daylily-runs/ccv20260530r57_illumina_run_qc_bclconvert/tmux.log 2>&1
+2422216 2348153 S+    0.0  0.0       47:07 /home/ubuntu/miniconda3/envs/DAY-EC/bin/python /home/ubuntu/miniconda3/envs/DAY-EC/bin/dyec export --region us-west-2 --cluster dyec-test --source-path /fsx/analysis_results/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert --destination-s3-uri s3://lsmc-ssf-sequencing-data/derived/validation/dyec-test/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/ --output-dir /home/ubuntu/daylily-runs/ccv20260530r57_illumina_run_qc_bclconvert/export
+=== /fsx top level ===

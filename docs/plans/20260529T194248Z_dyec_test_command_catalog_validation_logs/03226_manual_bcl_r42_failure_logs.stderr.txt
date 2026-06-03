@@ -1,0 +1,1 @@
+cat: /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/status.json: No such file or directory

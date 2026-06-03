@@ -1,0 +1,102 @@
+DAY-EC activated.
+DAY-EC activated.
+time=2026-05-30T16:22:12Z
+squeue:
+processes:
+ 590445   81703 Ss+     13:59:21  0.0  0.0 bash -il
+ 600107   81703 Ss+     13:36:35  0.0  0.0 bash -il
+ 602509   81703 Ss+     13:33:51  0.0  0.0 bash -il
+ 608979   81703 Ss+     13:13:10  0.0  0.0 bash -il
+ 608998   81703 Ss+     13:13:10  0.0  0.0 bash -il
+ 609000   81703 Ss+     13:13:10  0.0  0.0 bash -il
+ 615887   81703 Ss+     13:10:25  0.0  0.0 bash -il
+ 615899   81703 Ss+     13:10:25  0.0  0.0 bash -il
+ 616061   81703 Ss+     13:10:23  0.0  0.0 bash -il
+ 625009   81703 Ss+     13:07:41  0.0  0.0 bash -il
+ 628057   81703 Ss+     13:04:56  0.0  0.0 bash -il
+ 633350   81703 Ss+     12:57:38  0.0  0.0 bash -il
+ 636846   81703 Ss+     12:54:54  0.0  0.0 bash -il
+ 641561   81703 Ss+     12:50:00  0.0  0.0 bash -il
+ 645470   81703 Ss+     12:47:15  0.0  0.0 bash -il
+ 650123   81703 Ss+     12:40:23  0.0  0.0 bash -il
+ 650126   81703 Ss+     12:40:23  0.0  0.0 bash -il
+ 650130   81703 Ss+     12:40:23  0.0  0.0 bash -il
+ 655070   81703 Ss+     12:37:38  0.0  0.0 bash -il
+ 659987   81703 Ss+     12:31:17  0.0  0.0 bash -il
+ 659989   81703 Ss+     12:31:17  0.0  0.0 bash -il
+ 660018   81703 Ss+     12:31:17  0.0  0.0 bash -il
+ 666931   81703 Ss+     12:28:32  0.0  0.0 bash -il
+ 666945   81703 Ss+     12:28:32  0.0  0.0 bash -il
+ 666959   81703 Ss+     12:28:32  0.0  0.0 bash -il
+ 679575   81703 Ss+     12:15:44  0.0  0.0 bash -il
+ 679582   81703 Ss+     12:15:44  0.0  0.0 bash -il
+ 684085   81703 Ss+     12:12:59  0.0  0.0 bash -il
+ 684087   81703 Ss+     12:12:59  0.0  0.0 bash -il
+ 720452   81703 Ss+     11:29:52  0.0  0.0 bash -il
+ 724061   81703 Ss+     11:27:07  0.0  0.0 bash -il
+ 729368   81703 Ss+     11:18:03  0.0  0.0 bash -il
+ 731520   81703 Ss+     11:12:12  0.0  0.0 bash -il
+ 739137   81703 Ss+     11:00:55  0.0  0.0 bash -il
+ 743748   81703 Ss+     10:58:11  0.0  0.0 bash -il
+ 766667   81703 Ss+     10:40:54  0.0  0.0 bash -il
+ 770583   81703 Ss+     10:38:10  0.0  0.0 bash -il
+ 786397   81703 Ss+     10:26:28  0.0  0.0 bash -il
+ 786428   81703 Ss+     10:26:27  0.0  0.0 bash -il
+ 791858   81703 Ss+     10:23:44  0.0  0.0 bash -il
+ 797846   81703 Ss+     10:20:45  0.0  0.0 bash -il
+ 804059   81703 Ss+     10:16:49  0.0  0.0 bash -il
+ 806764   81703 Ss+     10:14:05  0.0  0.0 bash -il
+ 812200   81703 Ss+     10:00:45  0.0  0.0 bash -il
+ 814902   81703 Ss+     09:58:01  0.0  0.0 bash -il
+ 821054   81703 Ss+     09:50:04  0.0  0.0 bash -il
+ 823400   81703 Ss+     09:49:00  0.0  0.0 bash -il
+ 832936   81703 Ss+     09:33:39  0.0  0.0 bash -il
+ 836832   81703 Ss+     09:31:50  0.0  0.0 bash -il
+ 847474   81703 Ss+     09:20:16  0.0  0.0 bash -il
+ 869889   81703 Ss+     09:02:24  0.0  0.0 bash -il
+ 889251   81703 Ss+     08:53:37  0.0  0.0 bash -il
+ 898155   81703 Ss+     08:45:56  0.0  0.0 bash -il
+ 928439   81703 Ss+     08:29:47  0.0  0.0 bash -il
+ 942457   81703 Ss+     08:20:24  0.0  0.0 bash -il
+ 948714   81703 Ss+     08:18:47  0.0  0.0 bash -il
+ 998743   81703 Ss+     07:58:44  0.0  0.0 bash -il
+1018368   81703 Ss+     07:47:54  0.0  0.0 bash -il
+1063124   81703 Ss+     07:23:06  0.0  0.0 bash -il
+1088033   81703 Ss+     07:03:44  0.0  0.0 bash -il
+1092222   81703 Ss+     07:02:33  0.0  0.0 bash -il
+1110971   81703 Ss+     06:54:46  0.0  0.0 bash -il
+1231719   81703 Ss+     06:25:33  0.0  0.0 bash -il
+1239392   81703 Ss+     06:21:34  0.0  0.0 bash -il
+1242830   81703 Ss+     06:20:30  0.0  0.0 bash -il
+1286946   81703 Ss+     05:56:50  0.0  0.0 bash -il
+1294262   81703 Ss+     05:54:07  0.0  0.0 bash -il
+1298084   81703 Ss+     05:52:56  0.0  0.0 bash -il
+1471034   81703 Ss+     04:14:36  0.0  0.0 bash -il
+1474492   81703 Ss+     04:11:41  0.0  0.0 bash -il
+1485959   81703 Ss+     04:04:52  0.0  0.0 bash -il
+1648593   81703 Ss+     03:34:04  0.0  0.0 bash -il
+1648595   81703 Ss+     03:34:04  0.0  0.0 bash -il
+1719095   81703 Ss+     02:10:13  0.0  0.0 bash -il
+1722039   81703 Ss+     02:04:32  0.0  0.0 bash -il
+1730251   81703 Ss+     01:54:33  0.0  0.0 bash -il
+1871708       1 S          03:23  0.0  0.0 sleep 900
+1873202 1873201 S          00:04  0.0  0.0 bash -l /tmp/daylily-ssm-MsvJA1.sh
+1873300 1873202 R          00:00  0.0  0.0 ps -u ubuntu -o pid,ppid,stat,etime,pcpu,pmem,cmd --sort=start_time
+1873301 1873202 S          00:00  0.0  0.0 tail -80
+direct status:
+{
+  "command": "bin/day_run produce_bclconvert_fastqs_and_metrics -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true",
+  "completed_at": "2026-05-30T16:18:52Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis",
+  "session_name": "ccv20260530r42_bclconvert_rc0_direct",
+  "started_at": "2026-05-30T16:18:38Z"
+}
+
+latest snakemake log:
+WorkflowError in file /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk, line 426:
+The units table was not found at /fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/config/units.tsv. Create config/units.tsv or set --config units_table=/path/to/units.tsv.
+  File "/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/workflow/Snakefile", line 66, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/workflow/rules/global_common.smk", line 151, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 1089, in <module>
+  File "/fsx/analysis_results/ubuntu/ccv20260530r42_illumina_bclconvert/daylily-omics-analysis/workflow/rules/common.smk", line 426, in _load_units_table

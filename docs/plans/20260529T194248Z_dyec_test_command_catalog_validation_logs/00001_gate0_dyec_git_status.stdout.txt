@@ -1,0 +1,4 @@
+## codex/dyec-dewey-registration-refactor-20260528...origin/codex/dyec-dewey-registration-refactor-20260528
+?? docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_ledger.md
+?? docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/command_log.tsv
+?? docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/dyec_test_catalog_driver.py

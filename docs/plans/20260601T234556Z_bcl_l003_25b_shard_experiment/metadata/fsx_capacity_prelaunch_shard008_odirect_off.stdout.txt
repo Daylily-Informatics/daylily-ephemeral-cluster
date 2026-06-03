@@ -1,0 +1,5 @@
+DAY-EC activated.
+DAY-EC activated.
+timestamp_utc=2026-06-02T09:34:07Z
+df_bytes	7178349969408	428968509440	6749368877056	6%	/fsx
+df_human	6.6T	400G	6.2T	6%	/fsx

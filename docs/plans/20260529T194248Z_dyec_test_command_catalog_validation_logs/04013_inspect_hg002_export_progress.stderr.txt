@@ -1,0 +1,2 @@
+
+aws: [ERROR]: The config profile (lsmc) could not be found

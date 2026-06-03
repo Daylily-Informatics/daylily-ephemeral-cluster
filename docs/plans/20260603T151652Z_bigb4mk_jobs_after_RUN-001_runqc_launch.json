@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": "contract_violation",
+    "details": {
+      "command": "headnode/jobs"
+    },
+    "message": "JSON mode is not supported for this command."
+  }
+}

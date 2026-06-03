@@ -1,0 +1,74 @@
+DAY-EC activated.
+COMMAND_ID=e8e28ae7-017d-44df-b1b0-3a3e7dadaa30
+DAY-EC activated.
+DAY-EC activated.
+timestamp_utc	2026-06-03T06:40:39Z
+base	/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z
+workset	/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/daylily-omics-analysis
+run_id	fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z
+dest	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z
+git_head	3a3837a
+
+== config bclconvert block ==
+bootstrap_bclconvert: true
+
+bclconvert:
+  run_dir: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+  sample_sheet: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+  output_root: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+  run_id: fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z
+
+  partition: i192bigmem
+  constraint: ""
+  threads: 192
+  mem_mb: 1200000
+
+  tmpdir: /dev/shm/dayoa_bclconvert_tmp
+  scratch_output_root: /dev/shm/dayoa_bclconvert
+  scratch_available_bytes_min: 650000000000
+
+  parallel_tiles: 24
+  conversion_threads: 4
+  compression_threads: 64
+  decompression_threads: 32
+
+  tile_shard_level: 6
+  tile_shard_lanes: "3"
+  tile_shard_threads: 192
+  tile_shard_mem_mb: 1200000
+  tile_parallel_tiles: 24
+  tile_conversion_threads: 4
+  tile_compression_threads: 64
+  tile_decompression_threads: 32
+
+  merge_lane_fastqs: false
+  merge_tile_fastqs: false
+  shared_thread_odirect_output: false
+  fastq_gzip_compression_level: 1
+  output_legacy_stats: true
+  num_unknown_barcodes_reported: 1000
+  strict_mode: false
+  first_tile_only: false
+  sampleproject_subdirectories: false
+  keep_undetermined_fastqs: true
+
+== samples head ==
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+HG001-a	blood	research	unknown	na	false	false	blood	na	HG001-a	na	na	na
+HG001-b	blood	research	unknown	na	false	false	blood	na	HG001-b	na	na	na
+HG001-c	blood	research	unknown	na	false	false	blood	na	HG001-c	na	na	na
+HG002-a	blood	research	unknown	na	false	false	blood	na	HG002-a	na	na	na
+HG002-b	blood	research	unknown	na	false	false	blood	na	HG002-b	na	na	na
+HG002-c	blood	research	unknown	na	false	false	blood	na	HG002-c	na	na	na
+HG003-a	blood	research	unknown	na	false	false	blood	na	HG003-a	na	na	na
+
+== destination ==
+drwxr-xr-x 2 ubuntu ubuntu 1024 Jun  3 06:40 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z
+
+== status ==
+?? config/bclconvert_l003_6shard_i192bigmem_devshm_emptydirfix.yaml
+
+STDERR:
+Cloning into '/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_emptydirfix_20260603T0642Z/daylily-omics-analysis'...
+Updating files:  55% (703/1272)Updating files:  56% (713/1272)Updating files:  57% (726/1272)Updating files:  58% (738/1272)Updating files:  59% (751/1272)Updating files:  60% (764/1272)Updating files:  61% (776/1272)Updating files:  62% (789/1272)Updating files:  63% (802/1272)Updating files:  64% (815/1272)Updating files:  65% (827/1272)Updating files:  66% (840/1272)Updating files:  67% (853/1272)Updating files:  68% (865/1272)Updating files:  69% (878/1272)Updating files:  69% (886/1272)Updating files:  70% (891/1272)Updating files:  71% (904/1272)Updating files:  72% (916/1272)Updating files:  73% (929/1272)Updating files:  74% (942/1272)Updating files:  75% (954/1272)Updating files:  76% (967/1272)Updating files:  77% (980/1272)Updating files:  78% (993/1272)Updating files:  79% (1005/1272)Updating files:  80% (1018/1272)Updating files:  81% (1031/1272)Updating files:  82% (1044/1272)Updating files:  83% (1056/1272)Updating files:  84% (1069/1272)Updating files:  85% (1082/1272)Updating files:  86% (1094/1272)Updating files:  86% (1100/1272)Updating files:  87% (1107/1272)Updating files:  88% (1120/1272)Updating files:  89% (1133/1272)Updating files:  90% (1145/1272)Updating files:  91% (1158/1272)Updating files:  92% (1171/1272)Updating files:  93% (1183/1272)Updating files:  94% (1196/1272)Updating files:  95% (1209/1272)Updating files:  96% (1222/1272)Updating files:  97% (1234/1272)Updating files:  98% (1247/1272)Updating files:  99% (1260/1272)Updating files: 100% (1272/1272)Updating files: 100% (1272/1272), done.
+

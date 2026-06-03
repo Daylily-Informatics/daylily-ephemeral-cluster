@@ -1,0 +1,21 @@
+DAY-EC activated.
+DAY-EC activated.
+=== identity ===
+2026-05-30T18:56:45Z
+ip-10-0-0-88.us-west-2.compute.internal
+=== queue counts ===
+total_jobs=2
+state.RUNNING=2
+partition.i192mem=1
+partition.i192=1
+=== job family counts ===
+      1 no_dedup
+      1 doppelmark_dups
+=== oldest jobs ===
+4623|i192|RUNNING|1:46|1|i192-dy-all-1|no_dedup-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+4624|i192mem|RUNNING|1:46|1|i192mem-dy-all-13|doppelmark_dups-TVBCG5X-HG003-5x-1-D0-PF-CG-MGI
+=== fsx ===
+Filesystem              Type    Size  Used Avail Use% Mounted on
+10.0.1.96@tcp:/d4tzvb4v lustre  8.8T  3.7T  5.1T  42% /fsx
+tmpfs                   tmpfs   199G     0  199G   0% /dev/shm
+/dev/root               ext4    408G   42G  367G  11% /

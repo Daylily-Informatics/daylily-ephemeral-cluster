@@ -1,0 +1,1 @@
+3d5e86c (HEAD -> codex/dayoa-local-evidence-dewey-refactor-20260528, tag: 2.0.23, origin/codex/dayoa-local-evidence-dewey-refactor-20260528) Finalize DayOA 2.0.23 release ledger

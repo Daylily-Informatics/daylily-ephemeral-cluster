@@ -215,7 +215,7 @@ validate_config_file() {
 
 # Repository override storage
 declare -A REPO_OVERRIDES=()
-AVAILABLE_REPOS_FILE="config/daylily_available_repositories.yaml"
+AVAILABLE_REPOS_FILE="config/daylily_pipeline_command_catalog.yaml"
 
 # Validate a repository override argument (format: repo-key:git-ref)
 validate_repo_override() {
