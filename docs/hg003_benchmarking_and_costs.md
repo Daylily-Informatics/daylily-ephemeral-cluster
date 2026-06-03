@@ -22,7 +22,7 @@ Benchmark arms:
 
 | Arm | Repository | Engine | Command profile | Status |
 |---|---|---|---|---|
-| DayOA | `daylily-omics-analysis` | Snakemake 7 through `dy-r` | Current DYEC catalog command `illumina_snv_alignstats`, DayOA `2.0.38`, genome `hg38_broad`, `-j 20` | Pending launch; blocked by active dyec5128 controller/job |
+| DayOA | `daylily-omics-analysis` | Snakemake 7 through `dy-r` | Current DYEC catalog command `illumina_snv_alignstats`, DayOA `2.0.38`, genome `hg38_broad`, `-j 20` | Launched as `dyec5128_hg003_5x_ilmn_snv_20260603T110935Z`; terminal metrics pending |
 | nf-core/Sarek | `daylily-sarek` | Nextflow / nf-core Sarek | Current catalog repo ref `0.7.379`; no runnable Sarek analysis command is currently present in the catalog | Pending launch; blocked by active dyec5128 controller/job and missing pinned Nextflow/Java runtime |
 
 Read-only preflight on 2026-06-03 found:
@@ -43,6 +43,8 @@ Evidence paths:
 - `docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/logs/preflight_dyec5128_hg003_5x_enforced_20260603.rc`
 - `docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/logs/current_catalog_dyec5128_hg003_20260603.txt`
 - `docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/logs/precheck_dyec5128_illumina_snv_alignstats_20260603.stdout.txt`
+- `docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/logs/launch_dyec5128_hg003_5x_ilmn_snv_20260603T110935Z.stdout.txt`
+- `docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/generated_sample_configs/dyec5128_hg003_5x_ilmn_snv_20260603T110935Z/20260603T110937Z_dfc39a0a_samples_run_receipt.json`
 - `docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/logs/aws_price_list_api_usw2_ondemand_20260603.tsv`
 
 ## Expected Measurements
