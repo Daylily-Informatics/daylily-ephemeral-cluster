@@ -1,0 +1,24 @@
+Traceback (most recent call last):
+  File "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/daylily_ec/aws/ssm.py", line 294, in run_shell
+    response = client.send_command(**send_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ValidationException: An error occurred (ValidationException) when calling the SendCommand operation: 2 validation errors detected: Value 'Write /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/bclconvert_scratch_to_dra.job.sh' at 'comment' failed to satisfy constraint: Member must have length less than or equal to 100; Value 'Write /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/bclconvert_scratch_to_dra.job.sh' at 'comment' failed to satisfy constraint: Member must satisfy regular expression pattern: ^.{0,100}$
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "<stdin>", line 34, in <module>
+  File "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/daylily_ec/aws/ssm.py", line 367, in write_remote_text
+    return run_shell(
+           ^^^^^^^^^^
+  File "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/daylily_ec/aws/ssm.py", line 296, in run_shell
+    raise SsmError(f"Unable to start SSM Run Command on '{instance_id}': {exc}") from exc
+daylily_ec.aws.ssm.SsmError: Unable to start SSM Run Command on 'i-0c36c39770c533c8e': An error occurred (ValidationException) when calling the SendCommand operation: 2 validation errors detected: Value 'Write /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/bclconvert_scratch_to_dra.job.sh' at 'comment' failed to satisfy constraint: Member must have length less than or equal to 100; Value 'Write /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/bclconvert_scratch_to_dra.job.sh' at 'comment' failed to satisfy constraint: Member must satisfy regular expression pattern: ^.{0,100}$

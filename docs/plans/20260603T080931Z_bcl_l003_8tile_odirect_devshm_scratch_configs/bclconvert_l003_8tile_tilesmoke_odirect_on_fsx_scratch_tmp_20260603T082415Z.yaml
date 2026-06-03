@@ -1,0 +1,46 @@
+bootstrap_bclconvert: true
+samples_table: config/samples.tsv
+
+bclconvert:
+  run_dir: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+  sample_sheet: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv
+  output_root: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+  run_id: fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z
+
+  partition: i192bigmem
+  constraint: ""
+  threads: 192
+  mem_mb: 1200000
+
+  tmpdir: /fsx/scratch/tmp/dayoa_bclconvert_tmp
+  scratch_output_root: /fsx/scratch/tmp
+  scratch_available_bytes_min: 20000000000
+
+  parallel_tiles: 24
+  conversion_threads: 4
+  compression_threads: 64
+  decompression_threads: 32
+
+  tile_shard_level: tile_smoke
+  tile_shard_lanes: "3"
+  tile_shard_tile_limit: 8
+  tile_shard_tile_names: ""
+  tile_shard_threads: 192
+  tile_shard_mem_mb: 1200000
+  tile_parallel_tiles: 24
+  tile_conversion_threads: 4
+  tile_compression_threads: 64
+  tile_decompression_threads: 32
+
+  merge_lane_fastqs: false
+  merge_tile_fastqs: false
+  shared_thread_odirect_output: true
+  fastq_gzip_compression_level: 1
+  output_legacy_stats: true
+  num_unknown_barcodes_reported: 1000
+  strict_mode: false
+  first_tile_only: false
+  sampleproject_subdirectories: false
+  keep_undetermined_fastqs: true
+  barcode_mismatches_index1: 0
+  barcode_mismatches_index2: 0

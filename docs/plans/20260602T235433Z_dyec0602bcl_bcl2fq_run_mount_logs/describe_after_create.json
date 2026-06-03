@@ -1,0 +1,63 @@
+{
+  "creationTime": "2026-06-02T23:59:18.766Z",
+  "headNode": {
+    "launchTime": "2026-06-03T00:11:50.000Z",
+    "instanceId": "i-0c36c39770c533c8e",
+    "publicIpAddress": "44.255.242.91",
+    "instanceType": "r7i.8xlarge",
+    "state": "running",
+    "privateIpAddress": "10.0.0.235"
+  },
+  "version": "3.13.2",
+  "clusterConfiguration": {
+    "url": "https://parallelcluster-4da281c1dc024f1c-v1-do-not-delete.s3.us-west-2.amazonaws.com/parallelcluster/3.13.2/clusters/dyec0602bcl-tsdfs05p2llwq8wu/configs/cluster-config.yaml?versionId=WCUaEq_2UafRXJaXG52v9PonNUKyWld5&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIARSU7KMWVUNP6SU5X%2F20260603%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260603T002406Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=6e2394f1446a89e6d7dc1160509936b24c9cf4a59454745c586f461ffba8a711"
+  },
+  "tags": [
+    {
+      "value": "none",
+      "key": "aws-parallelcluster-daylily-git-deets"
+    },
+    {
+      "value": "3.13.2",
+      "key": "parallelcluster:version"
+    },
+    {
+      "value": "skip",
+      "key": "aws-parallelcluster-enforce-budget"
+    },
+    {
+      "value": "aws_profile-lsmc",
+      "key": "aws-parallelcluster-jobid"
+    },
+    {
+      "value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config",
+      "key": "aws-parallelcluster-monitor-bucket"
+    },
+    {
+      "value": "dyec0602bcl",
+      "key": "parallelcluster:cluster-name"
+    },
+    {
+      "value": "dyec0602bcl",
+      "key": "aws-parallelcluster-clustername"
+    },
+    {
+      "value": "dyec0602bcl",
+      "key": "aws-parallelcluster-project"
+    },
+    {
+      "value": "jmajor-root",
+      "key": "aws-parallelcluster-username"
+    }
+  ],
+  "cloudFormationStackStatus": "CREATE_COMPLETE",
+  "clusterName": "dyec0602bcl",
+  "computeFleetStatus": "RUNNING",
+  "cloudformationStackArn": "arn:aws:cloudformation:us-west-2:108782052779:stack/dyec0602bcl/114fdac0-5edf-11f1-8c24-0a053569e4ad",
+  "lastUpdatedTime": "2026-06-02T23:59:18.766Z",
+  "region": "us-west-2",
+  "clusterStatus": "CREATE_COMPLETE",
+  "scheduler": {
+    "type": "slurm"
+  }
+}

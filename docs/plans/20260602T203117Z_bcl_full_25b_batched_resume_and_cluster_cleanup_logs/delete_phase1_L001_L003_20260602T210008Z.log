@@ -1,0 +1,15 @@
+Traceback (most recent call last):
+  File "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260602T203117Z_bcl_full_25b_batched_resume_and_cluster_cleanup_logs/bcl_batch_tools.py", line 405, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260602T203117Z_bcl_full_25b_batched_resume_and_cluster_cleanup_logs/bcl_batch_tools.py", line 400, in main
+    args.func(args)
+  File "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260602T203117Z_bcl_full_25b_batched_resume_and_cluster_cleanup_logs/bcl_batch_tools.py", line 375, in delete_manifest
+    stdout = remote(script, timeout=1800, comment=f"Delete {args.label} manifest")
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/docs/plans/20260602T203117Z_bcl_full_25b_batched_resume_and_cluster_cleanup_logs/bcl_batch_tools.py", line 48, in remote
+    result = run_shell(
+             ^^^^^^^^^^
+  File "/Users/jmajor/.codex/worktrees/be82/daylily-ephemeral-cluster/daylily_ec/aws/ssm.py", line 333, in run_shell
+    raise SsmCommandFailedError(
+daylily_ec.aws.ssm.SsmCommandFailedError: SSM command 'b43746ff-e1e0-47f9-8ca2-0fcbe32db1f7' failed with status=Failed rc=1

@@ -1,0 +1,13 @@
+DAY-EC activated.
+DAY-EC activated.
+__WORKSET__=/fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/daylily-omics-analysis
+__SESSION__=dayoa_bcl_l003_8tile_odirect_fsxscratch_20260603
+__CONFIG__=config/bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z.yaml
+__RUN_ID__=fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z
+__DRA_DIR__=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z
+__HEAD__=a0c3a81
+__FSX_SCRATCH__
+drwxrwxrwt 4 root   root   33280 Jun  3 08:26 /fsx/scratch
+drwxrwxr-x 2 ubuntu ubuntu 33280 Jun  3 08:26 /fsx/scratch/tmp
+__SQUEUE__
+JOBID|PARTITION|NAME|USER|ST|TIME|NODES|NODELIST(REASON)

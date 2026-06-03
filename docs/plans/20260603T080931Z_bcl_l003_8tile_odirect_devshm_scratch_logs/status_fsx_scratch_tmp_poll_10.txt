@@ -1,0 +1,50 @@
+DAY-EC activated.
+DAY-EC activated.
+time=2026-06-03T08:34:18Z
+squeue=61|bcl2fq|sleep_test.sh|PD|0:00|(BeginTime);60|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0001_tiles0001-0008|R|0:29|i192bigmem-dy-all-1;
+fastq_count=0
+done_count=0
+bytes=20446
+fsx_scratch_size=1.9G
+
+log_tail=scratch_available_bytes: 6737338433536
+scratch_available_bytes_min: 20000000000
+prepared_lane_samplesheet lane=3 settings={"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"} out=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv
+run_bclconvert_lane L003 started: 2026-06-03T08:33:56+00:00
+host: i192bigmem-dy-all-1
+threads: 192
+TMPDIR: /fsx/scratch/tmp/dayoa_bclconvert_tmp
+scratch_output_root: /fsx/scratch/tmp
+scratch_available_bytes_min: 20000000000
+run_output_dir: /fsx/scratch/tmp/dayoa_bclconvert_60/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z_tile_fastqs_L003_0001_tiles0001-0008/output
+final_output_dir: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/tile_fastqs/L003/0001_tiles0001-0008
+bcl_input_directory: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+output_directory: /fsx/scratch/tmp/dayoa_bclconvert_60/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z_tile_fastqs_L003_0001_tiles0001-0008/output
+sample_sheet: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv
+bcl_only_lane: 3
+tile_regex: s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108
+sample_sheet_settings_json: {"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}
+sample_sheet_settings_by_lane_json: {}
+output_legacy_stats: true
+num_unknown_barcodes_reported: 1000
+192
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.213@tcp:/xtlzxb4v  6.6T  411G  6.2T   7% /fsx
+10.0.1.213@tcp:/xtlzxb4v  6.6T  411G  6.2T   7% /fsx
+10.0.1.213@tcp:/xtlzxb4v  6.6T  411G  6.2T   7% /fsx
+10.0.1.213@tcp:/xtlzxb4v  6.6T  411G  6.2T   7% /fsx
+/usr/bin/singularity
+singularity_bind_args: --bind /fsx:/fsx --bind /fsx/scratch/tmp:/fsx/scratch/tmp
+INFO:    Using cached SIF image
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2018 Illumina, Inc. 
+bcl_num_parallel_tiles: 24
+bcl_num_conversion_threads: 4
+bcl_num_compression_threads: 64
+bcl_num_decompression_threads: 32
+bcl_cpu_heavy_threads: 192
+bcl-convert command: singularity exec --bind /fsx:/fsx --bind /fsx/scratch/tmp:/fsx/scratch/tmp docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 --output-directory /fsx/scratch/tmp/dayoa_bclconvert_60/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z_tile_fastqs_L003_0001_tiles0001-0008/output --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 24 --bcl-num-conversion-threads 4 --bcl-num-compression-threads 64 --bcl-num-decompression-threads 32 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108
+INFO:    Using cached SIF image
+WARNING: skipping lane 1 because RunInfo.xml file lists no tiles for it
+WARNING: skipping lane 2 because RunInfo.xml file lists no tiles for it
+tmux_marker=

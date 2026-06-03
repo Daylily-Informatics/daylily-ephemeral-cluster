@@ -1,0 +1,21 @@
+command_id=d618b879-876b-4c1d-b6fe-d2438c9b1d5d
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T03:26:24+00:00
+__BENCH_FILES__
+2026-06-03 03:17 307 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/benchmarks/bclconvert_validate_inputs.bench.tsv
+__BENCH_CONTENTS__
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+0.5314	0:00:00	18.00	43.52	13.02	13.37	0.00	0.02	0.00	0.04	ip-10-0-0-235	44.255.242.91	32	0.0753	r7i.8xlarge	us-west-2d	0.957600	1	0.000004
+__LANE_BENCH_EXPECTED__
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/benchmarks/run_bclconvert.L001.bench.tsv missing
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/benchmarks/run_bclconvert.L002.bench.tsv missing
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/benchmarks/run_bclconvert.L003.bench.tsv missing
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/benchmarks/run_bclconvert.L004.bench.tsv missing
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/benchmarks/run_bclconvert.L005.bench.tsv missing
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/benchmarks/run_bclconvert.L006.bench.tsv missing
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/benchmarks/run_bclconvert.L007.bench.tsv missing
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/benchmarks/run_bclconvert.L008.bench.tsv missing
+__STDERR__
+/tmp/daylily-ssm-kqmM7n.sh: line 14: printf: --: invalid option
+printf: usage: printf [-v var] format [arguments]

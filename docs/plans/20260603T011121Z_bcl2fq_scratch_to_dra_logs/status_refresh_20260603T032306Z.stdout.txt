@@ -1,0 +1,275 @@
+command_id=a64aae1c-83fb-4363-807b-df21a006310f
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T03:23:11+00:00
+__HOST__=ip-10-0-0-235
+__WHOAMI__=ubuntu
+
+__SQUEUE__
+             JOBID  PARTITION                                          NAME     USER ST       TIME  NODES                                                                 NODELIST(REASON)
+                 9     bcl2fq       run_bclconvert_lane-run_bclconvert_L005   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+                 8     bcl2fq       run_bclconvert_lane-run_bclconvert_L004   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+                 7     bcl2fq       run_bclconvert_lane-run_bclconvert_L007   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+                 6     bcl2fq       run_bclconvert_lane-run_bclconvert_L002   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+                 5     bcl2fq       run_bclconvert_lane-run_bclconvert_L006   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+                 4     bcl2fq       run_bclconvert_lane-run_bclconvert_L008   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+                 3     bcl2fq       run_bclconvert_lane-run_bclconvert_L003   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+                 2     bcl2fq       run_bclconvert_lane-run_bclconvert_L001   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+                 1     bcl2fq                         bcl2fq_scratch_to_dra   ubuntu PD       0:00      1                       (ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4])
+
+__BCL2FQ_NODES__
+NODELIST STATE CPUS MEMORY AVAIL_FEATURES REASON
+bcl2fq-dy-nvme48-1 idle~ 48 373555 dynamic,nvme48 Enabling node since insufficient capacity timeout expired
+bcl2fq-dy-nvme48-2 idle~ 48 373555 dynamic,nvme48 Enabling node since insufficient capacity timeout expired
+bcl2fq-dy-nvme48-3 idle~ 48 373555 dynamic,nvme48 Enabling node since insufficient capacity timeout expired
+bcl2fq-dy-nvme48-4 idle~ 48 373555 dynamic,nvme48 Enabling node since insufficient capacity timeout expired
+bcl2fq-dy-nvme64-1 idle~ 64 498073 dynamic,i4i.16xlarge,nvme64 none
+bcl2fq-dy-nvme64-2 idle~ 64 498073 dynamic,i4i.16xlarge,nvme64 none
+bcl2fq-dy-nvme64-3 idle~ 64 498073 dynamic,i4i.16xlarge,nvme64 none
+bcl2fq-dy-nvme64-4 idle~ 64 498073 dynamic,i4i.16xlarge,nvme64 none
+bcl2fq-dy-nvme96-1 idle~ 96 747110 dynamic,nvme96 none
+bcl2fq-dy-nvme96-2 idle~ 96 747110 dynamic,nvme96 none
+bcl2fq-dy-nvme96-3 idle~ 96 747110 dynamic,nvme96 none
+bcl2fq-dy-nvme96-4 idle~ 96 747110 dynamic,nvme96 none
+bcl2fq-dy-nvme128-1 idle~ 128 996147 dynamic,i4i.32xlarge,nvme128 none
+bcl2fq-dy-nvme128-2 idle~ 128 996147 dynamic,i4i.32xlarge,nvme128 none
+bcl2fq-dy-nvme128-3 idle~ 128 996147 dynamic,i4i.32xlarge,nvme128 none
+bcl2fq-dy-nvme128-4 idle~ 128 996147 dynamic,i4i.32xlarge,nvme128 none
+
+__TMUX_SESSIONS__
+bcl2fq_scratch_dra_20260603T011121Z: 1 windows (created Wed Jun  3 01:18:13 2026)
+dayoa_bcl2fq_scratch_dra_20260603: 1 windows (created Wed Jun  3 03:05:52 2026)
+
+__DAYOA_TMUX_TAIL__
+LGLT4/fasts_from_bclconvert/lane_reports/L007/bclconvert.done, /fsx/run_dir_moun
+ts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_reports/L007/Samp
+leSheet.csv; Input files updated by another job: /fsx/run_dir_mounts/20260514_LH
+01106_0009_B23TVLGLT4/fasts_from_bclconvert/logs/validated.ok, /fsx/run_dir_moun
+ts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/normalized.SampleSheet
+.csv
+    wildcards: lane=L007
+    threads: 48
+    resources: mem_mb=300000, mem_mib=286103, disk_mb=1000, disk_mib=954, tmpdir
+=<TBD>, threads=48, time=5440, partition=bcl2fq, vcpu=48, distribution=block, ex
+clusive=--exclusive, constraint=--constraint=nvme48, exclude=, include=
+
+TMPDIR=/scratch/dayoa_bclconvert_tmp bash workflow/scripts/run_bclconvert_lane.s
+h docker://nfcore/bclconvert:4.0.3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt/lane_fastqs/L007 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_f
+rom_bclconvert/normalized.SampleSheet.csv 7 /fsx/run_dir_mounts/20260514_LH01106
+_0009_B23TVLGLT4/fasts_from_bclconvert/lane_reports/L007/SampleSheet.csv false f
+alse false 1 8 2 24 8 false true 1000 '{"BarcodeMismatchesIndex1": "0", "Barcode
+MismatchesIndex2": "0"}' '{}'  48 /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert/logs/run_bclconvert.L007.log /fsx/run_dir_mounts/20
+260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_fastqs/L007/Reports/fa
+stq_list.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bcl
+convert/lane_fastqs/L007/Reports/Demultiplex_Stats.csv /fsx/run_dir_mounts/20260
+514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_reports/L007/bclconvert.d
+one "" /scratch/dayoa_bclconvert
+Submitted job 9 with external jobid '7'.
+
+[Wed Jun  3 03:17:02 2026]
+rule run_bclconvert_lane:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert/logs/validated.ok, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert/normalized.SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert/lane_reports/L004/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0
+009_B23TVLGLT4/fasts_from_bclconvert/lane_fastqs/L004/Reports/fastq_list.csv, /f
+sx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_fa
+stqs/L004/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_00
+09_B23TVLGLT4/fasts_from_bclconvert/lane_reports/L004/SampleSheet.csv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert/logs/run_bclconvert.L004.log
+    jobid: 6
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert/benchmarks/run_bclconvert.L004.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert/lane_reports/L004/bclconvert.done, /fsx/run_dir_mou
+nts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_fastqs/L004/Repo
+rts/fastq_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_f
+rom_bclconvert/lane_reports/L004/SampleSheet.csv, /fsx/run_dir_mounts/20260514_L
+H01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_fastqs/L004/Reports/Demultiple
+x_Stats.csv; Input files updated by another job: /fsx/run_dir_mounts/20260514_LH
+01106_0009_B23TVLGLT4/fasts_from_bclconvert/logs/validated.ok, /fsx/run_dir_moun
+ts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/normalized.SampleSheet
+.csv
+    wildcards: lane=L004
+    threads: 48
+    resources: mem_mb=300000, mem_mib=286103, disk_mb=1000, disk_mib=954, tmpdir
+=<TBD>, threads=48, time=5440, partition=bcl2fq, vcpu=48, distribution=block, ex
+clusive=--exclusive, constraint=--constraint=nvme48, exclude=, include=
+
+TMPDIR=/scratch/dayoa_bclconvert_tmp bash workflow/scripts/run_bclconvert_lane.s
+h docker://nfcore/bclconvert:4.0.3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt/lane_fastqs/L004 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_f
+rom_bclconvert/normalized.SampleSheet.csv 4 /fsx/run_dir_mounts/20260514_LH01106
+_0009_B23TVLGLT4/fasts_from_bclconvert/lane_reports/L004/SampleSheet.csv false f
+alse false 1 8 2 24 8 false true 1000 '{"BarcodeMismatchesIndex1": "0", "Barcode
+MismatchesIndex2": "0"}' '{}'  48 /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert/logs/run_bclconvert.L004.log /fsx/run_dir_mounts/20
+260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_fastqs/L004/Reports/fa
+stq_list.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bcl
+convert/lane_fastqs/L004/Reports/Demultiplex_Stats.csv /fsx/run_dir_mounts/20260
+514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_reports/L004/bclconvert.d
+one "" /scratch/dayoa_bclconvert
+Submitted job 6 with external jobid '8'.
+
+[Wed Jun  3 03:17:02 2026]
+rule run_bclconvert_lane:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert/logs/validated.ok, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert/normalized.SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert/lane_reports/L005/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0
+009_B23TVLGLT4/fasts_from_bclconvert/lane_fastqs/L005/Reports/fastq_list.csv, /f
+sx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_fa
+stqs/L005/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_00
+09_B23TVLGLT4/fasts_from_bclconvert/lane_reports/L005/SampleSheet.csv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert/logs/run_bclconvert.L005.log
+    jobid: 7
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert/benchmarks/run_bclconvert.L005.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert/lane_fastqs/L005/Reports/fastq_list.csv, /fsx/run_d
+ir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_fastqs/L00
+5/Reports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TV
+LGLT4/fasts_from_bclconvert/lane_reports/L005/SampleSheet.csv, /fsx/run_dir_moun
+ts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_reports/L005/bclc
+onvert.done; Input files updated by another job: /fsx/run_dir_mounts/20260514_LH
+01106_0009_B23TVLGLT4/fasts_from_bclconvert/logs/validated.ok, /fsx/run_dir_moun
+ts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/normalized.SampleSheet
+.csv
+    wildcards: lane=L005
+    threads: 48
+    resources: mem_mb=300000, mem_mib=286103, disk_mb=1000, disk_mib=954, tmpdir
+=<TBD>, threads=48, time=5440, partition=bcl2fq, vcpu=48, distribution=block, ex
+clusive=--exclusive, constraint=--constraint=nvme48, exclude=, include=
+
+TMPDIR=/scratch/dayoa_bclconvert_tmp bash workflow/scripts/run_bclconvert_lane.s
+h docker://nfcore/bclconvert:4.0.3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt/lane_fastqs/L005 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_f
+rom_bclconvert/normalized.SampleSheet.csv 5 /fsx/run_dir_mounts/20260514_LH01106
+_0009_B23TVLGLT4/fasts_from_bclconvert/lane_reports/L005/SampleSheet.csv false f
+alse false 1 8 2 24 8 false true 1000 '{"BarcodeMismatchesIndex1": "0", "Barcode
+MismatchesIndex2": "0"}' '{}'  48 /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert/logs/run_bclconvert.L005.log /fsx/run_dir_mounts/20
+260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_fastqs/L005/Reports/fa
+stq_list.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bcl
+convert/lane_fastqs/L005/Reports/Demultiplex_Stats.csv /fsx/run_dir_mounts/20260
+514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/lane_reports/L005/bclconvert.d
+one "" /scratch/dayoa_bclconvert
+Submitted job 7 with external jobid '9'.
+
+
+__DIRECT_TMUX_TAIL__
+da-us-west-2d-jem-delme ubuntu,
+da-us-west-2d-jem-delme ubuntu,
+da-us-west-2d-jem-again ubuntu,
+da-us-west-2d-jem-threee        ubuntu,
+da-us-west-2d-jem-fourx ubuntu,
+da-us-west-2d-jem-andagain      ubuntu,
+da-us-west-2d-jem-againx        ubuntu,
+da-us-west-2d-jem-aaa   ubuntu,
+da-us-west-2d-jem-okgo  ubuntu,
+da-us-west-2d-bhfghdfgh ubuntu,
+da-us-west-2d-jkj       ubuntu,
+da-us-west-2d-dfghfghfghfg      ubuntu,
+da-us-west-2d-blahfdfg  ubuntu,
+da-us-west-2d-yoyoaa    ubuntu,
+da-us-west-2d-kkkl      ubuntu,
+da-us-west-2d-majors-cluster    ubuntu,
+da-us-west-2d-ghjghjghj ubuntu,
+da-us-west-2d-again     ubuntu,
+da-us-west-2d-branchtest        ubuntu,
+da-us-west-2d-jem-07348 ubuntu,
+da-us-west-2d-againokx  ubuntu,
+da-us-west-2d-jem-07355 ubuntu,
+da-us-west-2d-dayoa-07357       ubuntu,
+da-us-west-2d-dayoa-07357x      ubuntu,ubuntu
+da-us-west-2d-xxaabb    ubuntu,
+da-us-west-2d-xxaabb2   ubuntu,ubuntu
+da-us-west-2d-dyoa-usw2d-07375  ubuntu,
+da-us-west-2d-dyoa-bigboy       ubuntu,
+da-us-west-2d-dyoa-smn12-go     ubuntu,
+da-us-west-2d-giab-test ubuntu,
+da-us-west-2d-ifx-tests ubuntu,
+da-us-west-2d-lfg-usw2d ubuntu,
+da-us-west-2d-jem-split-test    ubuntu,
+da-us-west-2d-jemtest2  ubuntu,
+da-us-west-2d-jem-usw2-3        ubuntu,
+da-us-west-2d-uswest2d-A        ubuntu,
+da-us-west-2d-usw2d-B   ubuntu,
+da-us-west-2d-cher-usw2 ubuntu,
+da-us-west-2d-tearit-usw2       ubuntu,
+da-us-west-2d-gogogo    ubuntu,
+da-us-west-2d-josh-test-dev     ubuntu,
+da-us-west-2d-agbt-usw2d-primary        ubuntu,
+da-us-west-2d-agbt--wrkhrse-usw2        ubuntu,
+da-us-west-2d-agbt--12-usw2d    ubuntu,
+da-us-west-2d-agbt-12t-usw2d    ubuntu,
+da-us-west-2d-day-test-uswest2d ubuntu,daylily-service
+da-us-west-2d-day-forge-usw2d   ubuntu,root
+da-us-west-2d-agbt-heavy        ubuntu,
+da-us-west-2d-daylily-1773059211        ubuntu,root
+da-us-west-2d-ifx-go    ubuntu,daylily-service
+da-us-west-2d-and-again ubuntu,ubuntu
+da-us-west-2d-jemx2     ubuntu,root
+da-us-west-2d-y260609-frz       ubuntu
+da-us-west-2d-lsbio-fork-260509-124701  ubuntu
+da-us-west-2d-fk-260509-use     ubuntu
+da-us-west-2d-pilot-mk  ubuntu
+da-us-west-2d-pilot-largecluster        ubuntu
+da-us-west-2d-may26-d   ubuntu
+da-us-west-2d-dra-enabled       ubuntu
+da-us-west-2d-XLpilot   ubuntu
+da-us-west-2d-XL-pilot  ubuntu
+da-us-west-2d-tstVer4-1-1       ubuntu
+da-us-west-2d-fork-fixer        ubuntu
+da-us-west-2d-tstClu-4-1-1c     ubuntu
+da-us-west-2d-splitdra-ref-20260526     ubuntu
+da-us-west-2d-jem-bucktst3      ubuntu
+da-us-west-2d-blahab44  ubuntu
+da-us-west-2d-goodole3  ubuntu
+da-us-west-2d-dyec-test ubuntu
+da-us-west-2d-dyec5115  ubuntu
+da-us-west-2d-dyec5117  ubuntu
+da-us-west-2d-dyec0602bcl       ubuntu
+
+you may modify this script to fully block unknown projects, for now this will ta
+g with the specified project and proceed.
+a log of warnings/errors will be written to ./sbatch_errs.log
+setting project=unknown-project
+1
+             JOBID    PARTITION                     NAME     USER ST       TIME
+ NODES NODELIST(REASON)
+                 1       bcl2fq    bcl2fq_scratch_to_dra   ubuntu PD       0:00
+     1 (None)
+(DAY-EC) ubuntu@ip-10-0-0-235:~/daylily-runs/bcl2fq_scratch_to_dra_20260603T0111
+21Z$
+
+__PROCS__
+ubuntu     30890   25989  0 03:16 pts/1    00:00:00 bash bin/day_run produce_bclconvert_fastqs -p -k -j 8 --rerun-triggers mtime --configfile config/bclconvert_scratch_dra.yaml
+ubuntu     31067   30890  0 03:16 pts/1    00:00:00 bash bin/day_run produce_bclconvert_fastqs -p -k -j 8 --rerun-triggers mtime --configfile config/bclconvert_scratch_dra.yaml
+ubuntu     31068   31067  1 03:16 pts/1    00:00:05 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs -p -k -j 8 --rerun-triggers mtime --configfile config/bclconvert_scratch_dra.yaml
+ubuntu     31069   31067  0 03:16 pts/1    00:00:00 bash bin/day_run produce_bclconvert_fastqs -p -k -j 8 --rerun-triggers mtime --configfile config/bclconvert_scratch_dra.yaml
+
+__DEST_SUMMARY__
+dest=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+total_files=6
+fastq_files=0
+done_files=0
+latest_files
+2026-06-03 03:17  /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/benchmarks/bclconvert_validate_inputs.bench.tsv
+2026-06-03 03:17  /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/logs/bclconvert_validate_inputs.log
+2026-06-03 03:17  /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/logs/bclconvert_validate_inputs.warnings.log
+2026-06-03 03:17  /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/logs/validated.ok
+2026-06-03 03:17  /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/normalized.SampleSheet.csv
+2026-06-03 03:17  /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert/tables/samplesheet_rows.tsv
+
+__SCRATCH_SUMMARY__
+scratch root absent: /scratch/dayoa_bclconvert

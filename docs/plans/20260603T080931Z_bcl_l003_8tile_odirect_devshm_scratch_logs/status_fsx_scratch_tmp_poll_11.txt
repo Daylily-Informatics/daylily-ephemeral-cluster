@@ -1,0 +1,55 @@
+DAY-EC activated.
+DAY-EC activated.
+time=2026-06-03T08:34:55Z
+squeue=61|bcl2fq|sleep_test.sh|CF|0:06|bcl2fq-dy-nvme64-1;62|i192bigmem|merge_bclconvert_tile_shards-merge_bclconvert_tile_shards_L003|R|0:02|i192bigmem-dy-all-1;
+fastq_count=84
+done_count=1
+bytes=6102406897
+fsx_scratch_size=98K
+
+log_tail=WARNING: skipping lane 8 because RunInfo.xml file lists no tiles for it
+Index Read 2 is marked as Reverse Complement in RunInfo.xml: The barcode and UMI outputs will be output in Reverse Complement of Sample Sheet inputs.
+Sample sheet being processed by common lib? Yes
+SampleSheet Settings: 
+  BarcodeMismatchesIndex1 = 0
+  BarcodeMismatchesIndex2 = 0
+  FastqCompressionFormat = gzip
+  OverrideCycles = Y151;I10;I10;Y151
+  SoftwareVersion = 4.0.3
+
+shared-thread-linux-native-asio output is enabled
+WARNING: shared-thread-linux-native-asio output could have low performance or hang if output directory is on a distributed file system
+bcl-convert Version 00.000.000.4.0.3
+Copyright (c) 2014-2022 Illumina, Inc.
+Command Line: --bcl-input-directory /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 --output-directory /fsx/scratch/tmp/dayoa_bclconvert_60/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z_tile_fastqs_L003_0001_tiles0001-0008/output --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_fsx_scratch_tmp_20260603T082415Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 24 --bcl-num-conversion-threads 4 --bcl-num-compression-threads 64 --bcl-num-decompression-threads 32 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108 
+Conversion Begins.
+# CPU hw threads available: 64
+Parallel Tiles: 24. Threads Per Tile: 4
+SW compressors: 64
+SW decompressors: 32
+SW FASTQ compression level: 1
+Conversion Complete.
+moving BCL Convert output from scratch to final output directory: 2026-06-03T08:34:35+00:00
+
+Number of files: 125 (reg: 120, dir: 5)
+Number of created files: 123 (reg: 120, dir: 3)
+Number of deleted files: 0
+Number of regular files transferred: 120
+Total file size: 6.10G bytes
+Total transferred file size: 6.10G bytes
+Literal data: 6.10G bytes
+Matched data: 0 bytes
+File list size: 0
+File list generation time: 0.007 seconds
+File list transfer time: 0.000 seconds
+Total bytes sent: 6.10G
+Total bytes received: 5.59K
+
+sent 6.10G bytes  received 5.59K bytes  452.14M bytes/sec
+total size is 6.10G  speedup is 1.00
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.213@tcp:/xtlzxb4v  6.6T  418G  6.2T   7% /fsx
+10.0.1.213@tcp:/xtlzxb4v  6.6T  418G  6.2T   7% /fsx
+10.0.1.213@tcp:/xtlzxb4v  6.6T  418G  6.2T   7% /fsx
+run_bclconvert_lane L003 finished: 2026-06-03T08:34:48+00:00
+tmux_marker=

@@ -1,0 +1,28 @@
+DAY-EC activated.
+DAY-EC activated.
+__COUNTS__
+fastq_count=84
+done_count=3
+total_bytes=6102999247
+__BENCH_TILE__
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+45.6894	0:00:45	34015.37	50775.18	34132.93	34133.12	15921.94	0.01	343.16	156.82	i192bigmem-dy-all-1	10.0.1.217	192	3.4323	r7i.48xlarge	us-west-2d	4.053100	192	0.051440
+__BENCH_MERGE__
+s	h:m:s	max_rss	max_vms	max_uss	max_pss	io_in	io_out	mean_load	cpu_time	hostname	ip	nproc	cpu_efficiency	instance_type	region_az	spot_cost	snakemake_threads	task_cost
+0.2792	0:00:00	15.00	40.71	8.73	10.81	0.04	0.00	0.00	0.02	i192bigmem-dy-all-1	10.0.1.217	192	0.0716	r7i.48xlarge	us-west-2d	4.053100	1	0.000002
+__LOG_KEY_LINES__
+scratch_available_bytes: 1278242455552
+scratch_available_bytes_min: 650000000000
+run_bclconvert_lane L003 started: 2026-06-03T08:18:27+00:00
+scratch_available_bytes_min: 650000000000
+run_output_dir: /dev/shm/dayoa_bclconvert/dayoa_bclconvert_57/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z_tile_fastqs_L003_0001_tiles0001-0008/output
+final_output_dir: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008
+bcl-convert command: singularity exec --bind /fsx:/fsx --bind /dev/shm/dayoa_bclconvert:/dev/shm/dayoa_bclconvert docker://nfcore/bclconvert:4.0.3 bcl-convert --bcl-input-directory /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 --output-directory /dev/shm/dayoa_bclconvert/dayoa_bclconvert_57/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z_tile_fastqs_L003_0001_tiles0001-0008/output --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 24 --bcl-num-conversion-threads 4 --bcl-num-compression-threads 64 --bcl-num-decompression-threads 32 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108
+shared-thread-linux-native-asio output is enabled
+WARNING: shared-thread-linux-native-asio output could have low performance or hang if output directory is on a distributed file system
+Command Line: --bcl-input-directory /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 --output-directory /dev/shm/dayoa_bclconvert/dayoa_bclconvert_57/fsx_run_dir_mounts_20260514_LH01106_0009_B23TVLGLT4_fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z_tile_fastqs_L003_0001_tiles0001-0008/output --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv --strict-mode false --first-tile-only false --bcl-sampleproject-subdirectories false --fastq-gzip-compression-level 1 --bcl-num-parallel-tiles 24 --bcl-num-conversion-threads 4 --bcl-num-compression-threads 64 --bcl-num-decompression-threads 32 --shared-thread-odirect-output true --output-legacy-stats true --num-unknown-barcodes-reported 1000 --tiles s_3_1101+s_3_1102+s_3_1103+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108 
+Conversion Begins.
+Conversion Complete.
+moving BCL Convert output from scratch to final output directory: 2026-06-03T08:19:05+00:00
+sent 6.10G bytes  received 5.59K bytes  813.85M bytes/sec
+run_bclconvert_lane L003 finished: 2026-06-03T08:19:12+00:00

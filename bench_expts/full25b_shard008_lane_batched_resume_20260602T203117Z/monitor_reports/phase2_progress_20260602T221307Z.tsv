@@ -1,0 +1,15 @@
+DAY-EC activated.
+DAY-EC activated.
+PROGRESS_TS	2026-06-02T22:13:17Z
+LANES	L002,L006,L008
+DF
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.248@tcp:/3vbzxb4v  6.6T  4.8T  1.9T  73% /fsx
+AVG_COMPLETE_SHARD_FASTQ_GIB	69.964
+COMPLETE_SHARDS_USED_FOR_AVG	24
+LANE_COMPLETION	lane	done	missing
+LANE_COMPLETION	L002	8	0
+LANE_COMPLETION	L006	8	0
+LANE_COMPLETION	L008	8	0
+ACTIVE_JOBS	jobid	state	elapsed	nodes	lane	shard	fastq_count	fastq_gib	progress_vs_avg	eta
+ACTIVE_JOBS	none

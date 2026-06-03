@@ -1,0 +1,167 @@
+DAY-EC activated.
+DAY-EC activated.
+timestamp_utc 2026-06-02T13:05:57Z
+repo /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+
+== nonempty run_bclconvert slurm files ==
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L001_0001_tiles0001-0098.4.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L001_0002_tiles0099-0196.5.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L001_0003_tiles0197-0294.6.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L001_0004_tiles0295-0392.7.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L001_0005_tiles0393-0490.8.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L001_0006_tiles0491-0588.9.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L001_0007_tiles0589-0686.10.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L001_0008_tiles0687-0784.11.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0001_tiles0001-0098.13.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0002_tiles0099-0196.14.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0003_tiles0197-0294.15.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0004_tiles0295-0392.16.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0006_tiles0491-0588.18.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0007_tiles0589-0686.19.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0008_tiles0687-0784.20.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L004_0001_tiles0001-0098.31.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L004_0002_tiles0099-0196.32.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L004_0003_tiles0197-0294.33.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L004_0004_tiles0295-0392.34.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L004_0005_tiles0393-0490.35.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L004_0006_tiles0491-0588.36.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L004_0007_tiles0589-0686.37.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L004_0008_tiles0687-0784.38.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0001_tiles0001-0098.40.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0003_tiles0197-0294.42.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0004_tiles0295-0392.43.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0005_tiles0393-0490.44.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0006_tiles0491-0588.45.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0007_tiles0589-0686.46.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0008_tiles0687-0784.47.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L006_0001_tiles0001-0098.49.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L006_0002_tiles0099-0196.50.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L006_0003_tiles0197-0294.51.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L006_0004_tiles0295-0392.52.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L006_0005_tiles0393-0490.53.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L006_0006_tiles0491-0588.54.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L006_0007_tiles0589-0686.55.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L006_0008_tiles0687-0784.56.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L007_0001_tiles0001-0098.58.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L007_0002_tiles0099-0196.59.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L007_0003_tiles0197-0294.60.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L007_0004_tiles0295-0392.61.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L007_0005_tiles0393-0490.62.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L007_0006_tiles0491-0588.63.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L007_0007_tiles0589-0686.64.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L007_0008_tiles0687-0784.65.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0001_tiles0001-0098.67.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0002_tiles0099-0196.68.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0003_tiles0197-0294.69.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0004_tiles0295-0392.70.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0005_tiles0393-0490.71.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0006_tiles0491-0588.72.err
+5712	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0008_tiles0687-0784.74.err
+5780	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0001_tiles0001-0098.22.err
+5780	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0002_tiles0099-0196.23.err
+5780	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0003_tiles0197-0294.24.err
+5780	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0004_tiles0295-0392.25.err
+5780	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0005_tiles0393-0490.26.err
+5780	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0006_tiles0491-0588.27.err
+5780	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0007_tiles0589-0686.28.err
+5780	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L003_0008_tiles0687-0784.29.err
+9242	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0005_tiles0393-0490.17.err
+9242	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0002_tiles0099-0196.41.err
+9242	logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0007_tiles0589-0686.73.err
+
+== compact grep across run_bclconvert slurm files ==
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0007_tiles0589-0686.73.err:40:Error in rule run_bclconvert_tile_shard:
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0007_tiles0589-0686.73.err:44:    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L008.0007_tiles0589-0686.log (check log file(s) for error details)
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0007_tiles0589-0686.73.err:47:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0007_tiles0589-0686.73.err:49:Removing output files of failed job run_bclconvert_tile_shard since they might be corrupted:
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0007_tiles0589-0686.73.err:52:Exiting because a job execution failed. Look above for error message
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0005_tiles0393-0490.17.err:40:Error in rule run_bclconvert_tile_shard:
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0005_tiles0393-0490.17.err:44:    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L002.0005_tiles0393-0490.log (check log file(s) for error details)
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0005_tiles0393-0490.17.err:47:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0005_tiles0393-0490.17.err:49:Removing output files of failed job run_bclconvert_tile_shard since they might be corrupted:
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0005_tiles0393-0490.17.err:52:Exiting because a job execution failed. Look above for error message
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0002_tiles0099-0196.41.err:40:Error in rule run_bclconvert_tile_shard:
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0002_tiles0099-0196.41.err:44:    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L005.0002_tiles0099-0196.log (check log file(s) for error details)
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0002_tiles0099-0196.41.err:47:        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0002_tiles0099-0196.41.err:49:Removing output files of failed job run_bclconvert_tile_shard since they might be corrupted:
+logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L005_0002_tiles0099-0196.41.err:52:Exiting because a job execution failed. Look above for error message
+
+== selected failure file tails ==
+-- logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0002_tiles0099-0196.14.err --
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+[1m[48;5;166m[38;5;79m...WARNING: No aligners set in the config.[0m
+[1m[38;5;79maligners (final): [][0m
+[1m[48;5;166m[38;5;79m...INFO: No dedupers set in config. Defaulting to na (no dedup).[0m
+[1m[38;5;79mdeduper (final): [na][0m
+[1m[48;5;166m[38;5;79m...WARNING: No snv_callers set in the config.[0m
+[1m[38;5;79mSNV Callers (final): [][0m
+[1m[38;5;79mSomatic SNV Callers:[senttn][0m
+[1m[48;5;166m[38;5;79m... WARNING: No sv_callers set in the config.[0m
+[1m[38;5;79mSV Callers (final): [][0m
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 48
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=180000, mem_mib=171662, disk_mb=1000, disk_mib=954, threads=48, time=5440, vcpu=48
+Select jobs to execute...
+
+[Tue Jun  2 12:53:31 2026]
+rule run_bclconvert_tile_shard:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L002/0002_tiles0099-0196/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0002_tiles0099-0196/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0002_tiles0099-0196/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L002/0002_tiles0099-0196/SampleSheet.csv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L002.0002_tiles0099-0196.log
+    jobid: 0
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L002.0002_tiles0099-0196.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L002.0002_tiles0099-0196.bench.tsv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L002/0002_tiles0099-0196/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0002_tiles0099-0196/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L002/0002_tiles0099-0196/SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0002_tiles0099-0196/Reports/fastq_list.csv
+    wildcards: lane=L002, shard=0002_tiles0099-0196
+    threads: 48
+    resources: mem_mb=180000, mem_mib=171662, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=48, time=5440, partition=i192mem, vcpu=48, distribution=block, exclusive=, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm bash workflow/scripts/run_bclconvert_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0002_tiles0099-0196 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv 2 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L002/0002_tiles0099-0196/SampleSheet.csv false false false 1 8 2 24 8 true true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' -f 48 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L002.0002_tiles0099-0196.log results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0002_tiles0099-0196/Reports/fastq_list.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L002/0002_tiles0099-0196/Reports/Demultiplex_Stats.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L002/0002_tiles0099-0196/bclconvert.done s_2_1201+s_2_1202+s_2_1203+s_2_1204+s_2_1205+s_2_1206+s_2_1207+s_2_1208+s_2_1209+s_2_1210+s_2_1211+s_2_1212+s_2_1213+s_2_1214+s_2_1215+s_2_1216+s_2_1217+s_2_1218+s_2_1219+s_2_1220+s_2_1221+s_2_1222+s_2_1223+s_2_1224+s_2_1225+s_2_1226+s_2_1227+s_2_1228+s_2_1229+s_2_1230+s_2_1231+s_2_1232+s_2_1233+s_2_1234+s_2_1235+s_2_1236+s_2_1237+s_2_1238+s_2_1239+s_2_1240+s_2_1241+s_2_1242+s_2_1243+s_2_1244+s_2_1245+s_2_1246+s_2_1247+s_2_1248+s_2_1249+s_2_1250+s_2_1251+s_2_1252+s_2_1253+s_2_1254+s_2_1255+s_2_1256+s_2_1257+s_2_1258+s_2_1259+s_2_1260+s_2_1261+s_2_1262+s_2_1263+s_2_1264+s_2_1265+s_2_1266+s_2_1267+s_2_1268+s_2_1269+s_2_1270+s_2_1271+s_2_1272+s_2_1273+s_2_1274+s_2_1275+s_2_1276+s_2_1277+s_2_1278+s_2_1279+s_2_1280+s_2_1281+s_2_1282+s_2_1283+s_2_1284+s_2_1285+s_2_1286+s_2_1287+s_2_1288+s_2_1289+s_2_1290+s_2_1291+s_2_1292+s_2_1293+s_2_1294+s_2_1295+s_2_1296+s_2_1297+s_2_1298
+-- logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L002_0002_tiles0099-0196.14.out --
+-- logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0006_tiles0491-0588.72.err --
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+[1m[48;5;166m[38;5;79m...WARNING: No aligners set in the config.[0m
+[1m[38;5;79maligners (final): [][0m
+[1m[48;5;166m[38;5;79m...INFO: No dedupers set in config. Defaulting to na (no dedup).[0m
+[1m[38;5;79mdeduper (final): [na][0m
+[1m[48;5;166m[38;5;79m...WARNING: No snv_callers set in the config.[0m
+[1m[38;5;79mSNV Callers (final): [][0m
+[1m[38;5;79mSomatic SNV Callers:[senttn][0m
+[1m[48;5;166m[38;5;79m... WARNING: No sv_callers set in the config.[0m
+[1m[38;5;79mSV Callers (final): [][0m
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+Using shell: /home/ubuntu/miniconda3/envs/DAY-EC/bin/bash
+Provided cores: 48
+Rules claiming more threads will be scaled down.
+Provided resources: mem_mb=180000, mem_mib=171662, disk_mb=1000, disk_mib=954, threads=48, time=5440, vcpu=48
+Select jobs to execute...
+
+[Tue Jun  2 12:53:31 2026]
+rule run_bclconvert_tile_shard:
+    input: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/validated.ok, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv
+    output: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L008/0006_tiles0491-0588/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0006_tiles0491-0588/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0006_tiles0491-0588/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L008/0006_tiles0491-0588/SampleSheet.csv
+    log: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L008.0006_tiles0491-0588.log
+    jobid: 0
+    benchmark: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L008.0006_tiles0491-0588.bench.tsv
+    reason: Missing output files: results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L008/0006_tiles0491-0588/bclconvert.done, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0006_tiles0491-0588/Reports/fastq_list.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L008/0006_tiles0491-0588/SampleSheet.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0006_tiles0491-0588/Reports/Demultiplex_Stats.csv, results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/benchmarks/run_bclconvert.L008.0006_tiles0491-0588.bench.tsv
+    wildcards: lane=L008, shard=0006_tiles0491-0588
+    threads: 48
+    resources: mem_mb=180000, mem_mib=171662, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=48, time=5440, partition=i192mem, vcpu=48, distribution=block, exclusive=, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm bash workflow/scripts/run_bclconvert_lane.sh docker://nfcore/bclconvert:4.0.3 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis/config/run_dir_links/20260514_LH01106_0009_B23TVLGLT4 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0006_tiles0491-0588 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/normalized.SampleSheet.csv 8 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L008/0006_tiles0491-0588/SampleSheet.csv false false false 1 8 2 24 8 true true 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' -f 48 results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/logs/run_bclconvert.L008.0006_tiles0491-0588.log results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0006_tiles0491-0588/Reports/fastq_list.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_fastqs/L008/0006_tiles0491-0588/Reports/Demultiplex_Stats.csv results/runs/20260514_LH01106_0009_B23TVLGLT4/bclconvert/tile_reports/L008/0006_tiles0491-0588/bclconvert.done s_8_2201+s_8_2202+s_8_2203+s_8_2204+s_8_2205+s_8_2206+s_8_2207+s_8_2208+s_8_2209+s_8_2210+s_8_2211+s_8_2212+s_8_2213+s_8_2214+s_8_2215+s_8_2216+s_8_2217+s_8_2218+s_8_2219+s_8_2220+s_8_2221+s_8_2222+s_8_2223+s_8_2224+s_8_2225+s_8_2226+s_8_2227+s_8_2228+s_8_2229+s_8_2230+s_8_2231+s_8_2232+s_8_2233+s_8_2234+s_8_2235+s_8_2236+s_8_2237+s_8_2238+s_8_2239+s_8_2240+s_8_2241+s_8_2242+s_8_2243+s_8_2244+s_8_2245+s_8_2246+s_8_2247+s_8_2248+s_8_2249+s_8_2250+s_8_2251+s_8_2252+s_8_2253+s_8_2254+s_8_2255+s_8_2256+s_8_2257+s_8_2258+s_8_2259+s_8_2260+s_8_2261+s_8_2262+s_8_2263+s_8_2264+s_8_2265+s_8_2266+s_8_2267+s_8_2268+s_8_2269+s_8_2270+s_8_2271+s_8_2272+s_8_2273+s_8_2274+s_8_2275+s_8_2276+s_8_2277+s_8_2278+s_8_2279+s_8_2280+s_8_2281+s_8_2282+s_8_2283+s_8_2284+s_8_2285+s_8_2286+s_8_2287+s_8_2288+s_8_2289+s_8_2290+s_8_2291+s_8_2292+s_8_2293+s_8_2294+s_8_2295+s_8_2296+s_8_2297+s_8_2298
+-- logs/slurm/run_bclconvert_tile_shard/run_bclconvert_tile_shard.run_bclconvert_L008_0006_tiles0491-0588.72.out --

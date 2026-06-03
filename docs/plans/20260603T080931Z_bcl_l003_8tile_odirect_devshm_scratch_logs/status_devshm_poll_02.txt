@@ -1,0 +1,160 @@
+DAY-EC activated.
+DAY-EC activated.
+__TIME__=2026-06-03T08:15:38Z
+__SQUEUE_BEGIN__
+JOBID|PARTITION|NAME|USER|ST|TIME|NODES|NODELIST(REASON)
+57|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0001_tiles0001-0008|ubuntu|CF|1:55|1|i192bigmem-dy-all-1
+__SQUEUE_END__
+__COUNTS__
+fastq_count=0
+done_count=0
+bytes=10923
+__LOG_TAIL_BEGIN__
+missing_bcl_log
+__LOG_TAIL_END__
+__TMUX_TAIL_BEGIN__
+clconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/benchmarks/bcl
+convert_validate_inputs.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080
+931Z/normalized.SampleSheet.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TV
+LGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T0809
+31Z/logs/validated.ok
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/de
+v/shm, threads=1, time=5440, partition=i192,i128,i192mem, vcpu=1, distribution=b
+lock, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        mkdir -p /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from
+_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs /fsx/ru
+n_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_t
+ilesmoke_odirect_on_devshm_20260603T080931Z/tables
+        : > /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/bclconvert_v
+alidate_inputs.log
+        if [ -z /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 ]; then
+            echo "bclconvert.run_dir is required" >> /fsx/run_dir_mounts/2026051
+4_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_
+devshm_20260603T080931Z/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ ! -d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 ]; then
+            echo "bclconvert.run_dir does not exist: /fsx/run_dir_mounts/2026051
+4_LH01106_0009_B23TVLGLT4" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGL
+T4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z
+/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ "true" = "false" ]; then
+            echo "keep_undetermined_fastqs=false is unsupported for the bclconve
+rt bootstrap path" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts
+_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/bc
+lconvert_validate_inputs.log
+            exit 2
+        fi
+        bcl_extra_args=
+        if [ -n "$bcl_extra_args" ]; then
+            echo "bclconvert.extra_args is not supported in this shell-only boot
+strap workflow" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fr
+om_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/bclco
+nvert_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Sa
+mpleSheet.csv \
+          --samples-tsv /fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmo
+ke_odirect_on_devshm_20260603T080931Z/daylily-omics-analysis/config/samples.tsv
+\
+          --normalized-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/no
+rmalized.SampleSheet.csv \
+          --rows-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_
+from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tables/s
+amplesheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs
+/bclconvert_validate_inputs.warnings.log \
+          >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bcl
+convert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/bclconvert_
+validate_inputs.log 2>&1
+        touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/validated.
+ok
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip
+-10-0-0-235/9d47d7d0d1fd2da30ac182cf088a614c_
+[Wed Jun  3 08:13:43 2026]
+Finished job 1.
+1 of 5 steps (20%) done
+Select jobs to execute...
+
+[Wed Jun  3 08:13:43 2026]
+rule run_bclconvert_tile_shard:
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclco
+nvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/validated.ok,
+ /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003
+_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/normalized.SampleSheet.csv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_reports/L003
+/0001_tiles0001-0008/bclconvert.done, /fsx/run_dir_mounts/20260514_LH01106_0009_
+B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603
+T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_list.csv, /fsx/run_d
+ir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tile
+smoke_odirect_on_devshm_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Re
+ports/Demultiplex_Stats.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT
+4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/
+tile_reports/L003/0001_tiles0001-0008/SampleSheet.csv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/run_bclconvert.
+L003.0001_tiles0001-0008.log
+    jobid: 4
+    benchmark: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_b
+clconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/benchmarks/run
+_bclconvert.L003.0001_tiles0001-0008.bench.tsv
+    reason: Missing output files: /fsx/run_dir_mounts/20260514_LH01106_0009_B23T
+VLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080
+931Z/tile_reports/L003/0001_tiles0001-0008/bclconvert.done, /fsx/run_dir_mounts/
+20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odir
+ect_on_devshm_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fast
+q_list.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_fastqs/L003/
+0001_tiles0001-0008/Reports/Demultiplex_Stats.csv; Input files updated by anothe
+r job: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconver
+t_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/normalized.SampleSheet
+.csv, /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/validated.ok
+    wildcards: lane=L003, shard=0001_tiles0001-0008
+    threads: 192
+    resources: mem_mb=1200000, mem_mib=1144410, disk_mb=1000, disk_mib=954, tmpd
+ir=<TBD>, threads=192, time=5440, partition=i192bigmem, vcpu=192, distribution=b
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+
+TMPDIR=/dev/shm/dayoa_bclconvert_tmp bash workflow/scripts/run_bclconvert_lane.s
+h docker://nfcore/bclconvert:4.0.3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23
+TVLGLT4 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconve
+rt_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_fastqs/L003/0001
+_tiles0001-0008 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_
+bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/normalized.Sa
+mpleSheet.csv 3 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_
+bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/tile_reports/
+L003/0001_tiles0001-0008/SampleSheet.csv false false false 1 24 4 64 32 true tru
+e 1000 '{"BarcodeMismatchesIndex1": "0", "BarcodeMismatchesIndex2": "0"}' '{}' _
+_dayoa_no_force__ 192 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts
+_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/logs/ru
+n_bclconvert.L003.0001_tiles0001-0008.log /fsx/run_dir_mounts/20260514_LH01106_0
+009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_2026
+0603T080931Z/tile_fastqs/L003/0001_tiles0001-0008/Reports/fastq_list.csv /fsx/ru
+n_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_t
+ilesmoke_odirect_on_devshm_20260603T080931Z/tile_fastqs/L003/0001_tiles0001-0008
+/Reports/Demultiplex_Stats.csv /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLG
+LT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931
+Z/tile_reports/L003/0001_tiles0001-0008/bclconvert.done s_3_1101+s_3_1102+s_3_11
+03+s_3_1104+s_3_1105+s_3_1106+s_3_1107+s_3_1108 /dev/shm/dayoa_bclconvert 650000
+000000
+Submitted job 4 with external jobid '57'.
+
+__TMUX_TAIL_END__

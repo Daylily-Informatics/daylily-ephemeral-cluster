@@ -1,0 +1,89 @@
+DAY-EC activated.
+DAY-EC activated.
+timestamp_utc 2026-06-02T13:12:39Z
+analysis bcl25b_full_shard008_retry1_20260602T115314Z
+run_dir /home/ubuntu/daylily-runs/bcl25b_full_shard008_retry1_20260602T115314Z
+analysis_dir /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z
+repo /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+
+== before df ==
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.248@tcp:/3vbzxb4v  6.6T  2.5T  4.1T  38% /fsx
+
+== stop tmux controller ==
+killed_tmux bcl25b_full_shard008_retry1_20260602T115314Z
+
+== identify slurm jobs for exact repo workdir ==
+matched_job 210 RUNNING run_bclconvert_tile_shard-run_bclconvert_L002_0002_tiles0099-0196 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 209 RUNNING run_bclconvert_tile_shard-run_bclconvert_L008_0006_tiles0491-0588 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 175 RUNNING run_bclconvert_tile_shard-run_bclconvert_L005_0008_tiles0687-0784 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 176 RUNNING run_bclconvert_tile_shard-run_bclconvert_L008_0001_tiles0001-0098 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 177 RUNNING run_bclconvert_tile_shard-run_bclconvert_L007_0004_tiles0295-0392 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 178 RUNNING run_bclconvert_tile_shard-run_bclconvert_L001_0002_tiles0099-0196 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 179 RUNNING run_bclconvert_tile_shard-run_bclconvert_L005_0003_tiles0197-0294 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 180 RUNNING run_bclconvert_tile_shard-run_bclconvert_L004_0007_tiles0589-0686 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 181 RUNNING run_bclconvert_tile_shard-run_bclconvert_L004_0001_tiles0001-0098 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 182 RUNNING run_bclconvert_tile_shard-run_bclconvert_L008_0008_tiles0687-0784 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 183 RUNNING run_bclconvert_tile_shard-run_bclconvert_L002_0006_tiles0491-0588 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 184 RUNNING run_bclconvert_tile_shard-run_bclconvert_L008_0002_tiles0099-0196 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 185 RUNNING run_bclconvert_tile_shard-run_bclconvert_L001_0008_tiles0687-0784 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 186 RUNNING run_bclconvert_tile_shard-run_bclconvert_L007_0005_tiles0393-0490 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 187 RUNNING run_bclconvert_tile_shard-run_bclconvert_L006_0007_tiles0589-0686 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 188 RUNNING run_bclconvert_tile_shard-run_bclconvert_L006_0001_tiles0001-0098 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 189 RUNNING run_bclconvert_tile_shard-run_bclconvert_L005_0004_tiles0295-0392 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 190 RUNNING run_bclconvert_tile_shard-run_bclconvert_L004_0008_tiles0687-0784 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 191 RUNNING run_bclconvert_tile_shard-run_bclconvert_L004_0002_tiles0099-0196 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 192 RUNNING run_bclconvert_tile_shard-run_bclconvert_L008_0003_tiles0197-0294 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 193 RUNNING run_bclconvert_tile_shard-run_bclconvert_L001_0007_tiles0589-0686 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 194 RUNNING run_bclconvert_tile_shard-run_bclconvert_L007_0006_tiles0491-0588 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 195 RUNNING run_bclconvert_tile_shard-run_bclconvert_L004_0003_tiles0197-0294 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 196 RUNNING run_bclconvert_tile_shard-run_bclconvert_L002_0007_tiles0589-0686 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 197 RUNNING run_bclconvert_tile_shard-run_bclconvert_L008_0004_tiles0295-0392 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 198 RUNNING run_bclconvert_tile_shard-run_bclconvert_L002_0003_tiles0197-0294 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 199 RUNNING run_bclconvert_tile_shard-run_bclconvert_L001_0003_tiles0197-0294 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 200 RUNNING run_bclconvert_tile_shard-run_bclconvert_L006_0003_tiles0197-0294 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 201 RUNNING run_bclconvert_tile_shard-run_bclconvert_L005_0006_tiles0491-0588 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 202 RUNNING run_bclconvert_tile_shard-run_bclconvert_L006_0008_tiles0687-0784 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 203 RUNNING run_bclconvert_tile_shard-run_bclconvert_L004_0004_tiles0295-0392 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 204 RUNNING run_bclconvert_tile_shard-run_bclconvert_L006_0002_tiles0099-0196 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 205 RUNNING run_bclconvert_tile_shard-run_bclconvert_L002_0008_tiles0687-0784 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 206 RUNNING run_bclconvert_tile_shard-run_bclconvert_L002_0001_tiles0001-0098 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 207 RUNNING run_bclconvert_tile_shard-run_bclconvert_L005_0005_tiles0393-0490 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 208 RUNNING run_bclconvert_tile_shard-run_bclconvert_L001_0004_tiles0295-0392 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 159 RUNNING run_bclconvert_tile_shard-run_bclconvert_L002_0004_tiles0295-0392 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 160 RUNNING run_bclconvert_tile_shard-run_bclconvert_L001_0006_tiles0491-0588 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 161 RUNNING run_bclconvert_tile_shard-run_bclconvert_L007_0003_tiles0197-0294 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 162 RUNNING run_bclconvert_tile_shard-run_bclconvert_L006_0006_tiles0491-0588 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 163 RUNNING run_bclconvert_tile_shard-run_bclconvert_L001_0001_tiles0001-0098 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 164 RUNNING run_bclconvert_tile_shard-run_bclconvert_L004_0006_tiles0491-0588 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 165 RUNNING run_bclconvert_tile_shard-run_bclconvert_L004_0005_tiles0393-0490 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 166 RUNNING run_bclconvert_tile_shard-run_bclconvert_L007_0008_tiles0687-0784 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 167 RUNNING run_bclconvert_tile_shard-run_bclconvert_L001_0005_tiles0393-0490 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 168 RUNNING run_bclconvert_tile_shard-run_bclconvert_L007_0002_tiles0099-0196 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 169 RUNNING run_bclconvert_tile_shard-run_bclconvert_L006_0005_tiles0393-0490 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 170 RUNNING run_bclconvert_tile_shard-run_bclconvert_L005_0007_tiles0589-0686 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 171 RUNNING run_bclconvert_tile_shard-run_bclconvert_L005_0001_tiles0001-0098 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 172 RUNNING run_bclconvert_tile_shard-run_bclconvert_L008_0005_tiles0393-0490 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 173 RUNNING run_bclconvert_tile_shard-run_bclconvert_L007_0007_tiles0589-0686 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 174 RUNNING run_bclconvert_tile_shard-run_bclconvert_L007_0001_tiles0001-0098 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+matched_job 158 RUNNING run_bclconvert_tile_shard-run_bclconvert_L006_0004_tiles0295-0392 /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z/daylily-omics-analysis
+
+== cancel matched jobs ==
+scancelled 210 209 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 158
+
+== wait matched jobs absent ==
+still_present 210 209 175 176 177 178 179 180 181 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201 202 203 204 205 206 207 208 159 160 161 162 163 164 165 166 167 168 169 170 171 172 173 174 158
+still_present 210 209 175 176 177 178 179 181 182 183 184 185 187 189 191 192 193 195 196 197 198 199 201 202 203 205 206 207 208 159 160 161 162 163 167 168 169 170 171 172 174
+still_present 177 178 183 196 199 205 208 161 163 168 174
+still_present 177 178 183 196 199 205 208 161 163 168 174
+matched_jobs_absent
+
+== delete analysis dir ==
+563G	/fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z
+deleted /fsx/analysis_results/ubuntu/bcl25b_full_shard008_retry1_20260602T115314Z
+
+== after df ==
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.248@tcp:/3vbzxb4v  6.6T  2.5T  4.1T  38% /fsx
+
+done

@@ -1,0 +1,49 @@
+command_id=3418cce9-c2b1-4371-82ca-fdced54c2e8b
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T02:58:15+00:00
+__JOB_ID__=1
+__SQUEUE__
+             JOBID    PARTITION                     NAME     USER ST       TIME  NODES                         NODELIST(REASON)
+                 1       bcl2fq    bcl2fq_scratch_to_dra   ubuntu PD       0:00      1 (ReqNodeNotAvail, UnavailableNodes:bcl2f
+__JOB_CORE__
+JobId=1 JobName=bcl2fq_scratch_to_dra
+   JobState=PENDING Reason=ReqNodeNotAvail,_UnavailableNodes:bcl2fq-dy-nvme48-[1-4] Dependency=(null)
+   Requeue=1 Restarts=8 BatchFlag=1 Reboot=0 ExitCode=0:0
+   RunTime=00:00:00 TimeLimit=365-00:00:00 TimeMin=N/A
+   SubmitTime=2026-06-03T02:55:18 EligibleTime=2026-06-03T02:56:29
+   StartTime=Unknown EndTime=Unknown Deadline=N/A
+   ReqNodeList=(null) ExcNodeList=(null)
+   NodeList=
+   NumNodes=1-1 NumCPUs=48 NumTasks=1 CPUs/Task=48 ReqB:S:C:T=0:0:*:*
+   Features=nvme48 DelayBoot=00:00:00
+   Comment=unknown-project-invalid-project 
+   StdErr=/home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/slurm-1.err
+   StdOut=/home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/slurm-1.out
+__BCL2FQ_NODES__
+NODELIST STATE CPUS MEMORY AVAIL_FEATURES REASON
+bcl2fq-dy-nvme48-1 down# 48 373555 dynamic,nvme48 (Code:InsufficientInstanceCapacity)Failure when resuming nodes
+bcl2fq-dy-nvme48-2 down~ 48 373555 dynamic,nvme48 (Code:InsufficientInstanceCapacity)Temporarily disabling node due to insufficient capacity
+bcl2fq-dy-nvme48-3 down~ 48 373555 dynamic,nvme48 (Code:InsufficientInstanceCapacity)Temporarily disabling node due to insufficient capacity
+bcl2fq-dy-nvme48-4 down~ 48 373555 dynamic,nvme48 (Code:InsufficientInstanceCapacity)Temporarily disabling node due to insufficient capacity
+bcl2fq-dy-nvme64-1 idle~ 64 498073 dynamic,i4i.16xlarge,nvme64 none
+bcl2fq-dy-nvme64-2 idle~ 64 498073 dynamic,i4i.16xlarge,nvme64 none
+bcl2fq-dy-nvme64-3 idle~ 64 498073 dynamic,i4i.16xlarge,nvme64 none
+bcl2fq-dy-nvme64-4 idle~ 64 498073 dynamic,i4i.16xlarge,nvme64 none
+bcl2fq-dy-nvme96-1 idle~ 96 747110 dynamic,nvme96 none
+bcl2fq-dy-nvme96-2 idle~ 96 747110 dynamic,nvme96 none
+bcl2fq-dy-nvme96-3 idle~ 96 747110 dynamic,nvme96 none
+bcl2fq-dy-nvme96-4 idle~ 96 747110 dynamic,nvme96 none
+bcl2fq-dy-nvme128-1 idle~ 128 996147 dynamic,i4i.32xlarge,nvme128 none
+bcl2fq-dy-nvme128-2 idle~ 128 996147 dynamic,i4i.32xlarge,nvme128 none
+bcl2fq-dy-nvme128-3 idle~ 128 996147 dynamic,i4i.32xlarge,nvme128 none
+bcl2fq-dy-nvme128-4 idle~ 128 996147 dynamic,i4i.32xlarge,nvme128 none
+__WORK_FILES__
+2026-06-03 01:17 3452 /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/bclconvert_scratch_to_dra.job.sh
+2026-06-03 01:17 739 /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/submit_bclconvert_scratch_to_dra.sh
+2026-06-03 01:18 198 /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/squeue_initial.txt
+2026-06-03 01:18 2 /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/job_id.txt
+2026-06-03 01:18 5458 /home/ubuntu/daylily-runs/bcl2fq_scratch_to_dra_20260603T011121Z/sbatch_errs.log
+__LOG_TAIL__
+__DEST_COUNT__
+0

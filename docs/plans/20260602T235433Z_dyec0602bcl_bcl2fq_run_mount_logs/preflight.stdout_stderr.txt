@@ -1,0 +1,16 @@
+→ Running preflight for us-west-2d ...
+  ✓ iam.policy.global
+  ✓ iam.policy.regional
+  ✓ iam.pcluster_omics_policy
+  ✓ config.repository_catalog
+  ✓ quota.ondemand_vcpu
+  ✓ quota.spot_vcpu
+  ✓ quota.vpcs
+  ✓ quota.elastic_ips
+  ✓ quota.nat_gateways
+  ✓ quota.internet_gateways
+  ✗ s3.role_config: Set explicit reference_s3_uri, control_data_s3_uri, 
+stage_s3_uri, and export_destination_s3_uri values.
+Preflight FAIL detected — aborting.
+  [FAIL] s3.role_config: Set explicit reference_s3_uri, control_data_s3_uri, stage_s3_uri, and export_destination_s3_uri values.
+Preflight failed.

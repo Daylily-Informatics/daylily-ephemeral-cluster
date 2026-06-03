@@ -1,0 +1,10 @@
+DAY-EC activated.
+DAY-EC activated.
+__WORKSET__=/fsx/analysis_results/dyec0602bcl/bcl_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z/daylily-omics-analysis
+__SESSION__=dayoa_bcl_l003_8tile_odirect_devshm_20260603
+__CONFIG__=config/bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z.yaml
+__RUN_ID__=fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z
+__DRA_DIR__=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_8tile_tilesmoke_odirect_on_devshm_20260603T080931Z
+__HEAD__=a0c3a81
+__SQUEUE__
+JOBID|PARTITION|NAME|USER|ST|TIME|NODES|NODELIST(REASON)

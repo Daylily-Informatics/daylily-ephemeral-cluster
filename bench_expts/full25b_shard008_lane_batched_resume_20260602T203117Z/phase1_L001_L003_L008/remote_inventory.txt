@@ -1,0 +1,13 @@
+DAY-EC activated.
+DAY-EC activated.
+REMOTE_OUT	/tmp/bcl_phase1_evidence_20260602T203117Z
+FILES
+/tmp/bcl_phase1_evidence_20260602T203117Z/benchmark_files.tsv	5145
+/tmp/bcl_phase1_evidence_20260602T203117Z/deletion_manifest.tsv	9503
+/tmp/bcl_phase1_evidence_20260602T203117Z/fastq_sizes.tsv	483232
+/tmp/bcl_phase1_evidence_20260602T203117Z/fastq_totals.tsv	478
+/tmp/bcl_phase1_evidence_20260602T203117Z/lane_completion.tsv	59
+/tmp/bcl_phase1_evidence_20260602T203117Z/remote_inventory.txt	59
+DF
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.248@tcp:/3vbzxb4v  6.6T  5.0T  1.7T  76% /fsx

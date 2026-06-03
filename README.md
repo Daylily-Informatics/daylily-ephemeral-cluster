@@ -185,7 +185,7 @@ The Slurm accounting helper manages external accounting infrastructure when conf
 
 ## Repository Catalog
 
-`config/daylily_pipeline_command_catalog.yaml` is the source of truth for blessed repositories and commands. The packaged copy under `daylily_ec/resources/payload/config/` must match it. The current catalog default for DayOA is `2.0.38`; `daylily-sarek` is also present as a Nextflow/nf-core Sarek repository entry.
+`config/daylily_pipeline_command_catalog.yaml` is the source of truth for blessed repositories and commands. The packaged copy under `daylily_ec/resources/payload/config/` must match it. The current catalog default for DayOA is `2.0.41`; `daylily-sarek` is also present as a Nextflow/nf-core Sarek repository entry.
 
 Catalog command classes:
 

@@ -1,0 +1,13 @@
+VERIFY_TS 2026-06-03T02:57:01Z
+PCLUSTER_DESCRIBE
+/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/pcluster/api/controllers/common.py:20: UserWarning: pkg_resources is deprecated as an API. See https://setuptools.pypa.io/en/latest/pkg_resources.html. The pkg_resources package is slated for removal as early as 2025-11-30. Refrain from using this package or pin to Setuptools<81.
+  from pkg_resources import packaging
+{
+  "message": "Cluster 'dyec5117' does not exist or belongs to an incompatible ParallelCluster major version."
+}
+PCLUSTER_RC 1
+EC2_INSTANCES
+CFN_STACKS
+
+aws: [ERROR]: An error occurred (ValidationError) when calling the DescribeStacks operation: Stack with id dyec5117 does not exist
+CFN_RC 254

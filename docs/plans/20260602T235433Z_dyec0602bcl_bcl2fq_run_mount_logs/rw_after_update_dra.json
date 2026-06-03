@@ -1,0 +1,35 @@
+{
+    "Associations": [
+        {
+            "AssociationId": "dra-04d1f5b3dd1cc75a4",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-05f90a39933f9b539/dra-04d1f5b3dd1cc75a4",
+            "FileSystemId": "fs-05f90a39933f9b539",
+            "Lifecycle": "AVAILABLE",
+            "FileSystemPath": "/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/",
+            "DataRepositoryPath": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "S3": {
+                "AutoImportPolicy": {
+                    "Events": [
+                        "NEW",
+                        "CHANGED"
+                    ]
+                },
+                "AutoExportPolicy": {
+                    "Events": [
+                        "NEW",
+                        "CHANGED"
+                    ]
+                }
+            },
+            "Tags": [
+                {
+                    "Key": "lsmc:purpose",
+                    "Value": "run-dir-mount"
+                }
+            ],
+            "CreationTime": 1780446271.559
+        }
+    ]
+}

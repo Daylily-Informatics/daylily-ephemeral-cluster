@@ -1,0 +1,17 @@
+{
+  "available_bytes": 6751276892160,
+  "available_minus_expected_bytes": 1927714789792,
+  "expected_full_bytes": 4823562102368,
+  "lane_fastq_bytes_basis": 602945262796,
+  "lanes": [
+    "L001",
+    "L002",
+    "L003",
+    "L004",
+    "L005",
+    "L006",
+    "L007",
+    "L008"
+  ],
+  "squeue_rows": 0
+}

@@ -1,0 +1,6 @@
+DELETE_START 2026-06-03T01:09:53Z
+COMMAND python -m daylily_ec.cli delete --profile lsmc --region us-west-2 --cluster dyec5117
+Usage: python -m daylily_ec.cli delete [OPTIONS]
+Try 'python -m daylily_ec.cli delete --help' for help.
+
+Error: No such option '--cluster'. Did you mean '--cluster-name'?

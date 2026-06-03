@@ -73,7 +73,7 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --dry-run
 ```
 
-The catalog pin for DayOA commands is `2.0.38`.
+The catalog pin for DayOA commands is `2.0.41`.
 
 ## Attach Run Folders
 
@@ -144,7 +144,7 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.38 \
+  --git-tag 2.0.41 \
   --genome hg38_broad \
   --target produce_alignstats
 ```
@@ -159,7 +159,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.38 \
+  --git-tag 2.0.41 \
   --genome hg38_broad \
   --jobs 5 \
   --target produce_illumina_run_qc \

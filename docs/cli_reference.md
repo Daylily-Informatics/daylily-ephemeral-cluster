@@ -196,7 +196,7 @@ dyec workflow launch \
   --analysis-id "$ANALYSIS_ID" \
   --executing-entity "$EXECUTING_ENTITY" \
   --repository daylily-omics-analysis \
-  --git-tag 2.0.38 \
+  --git-tag 2.0.41 \
   --genome hg38_broad \
   --jobs 20 \
   --target produce_alignstats
@@ -213,7 +213,7 @@ dyec workflow launch \
   --analysis-id run-qc \
   --executing-entity "$EXECUTING_ENTITY" \
   --repository daylily-omics-analysis \
-  --git-tag 2.0.38 \
+  --git-tag 2.0.41 \
   --genome hg38_broad \
   --jobs 5 \
   --target produce_illumina_run_qc \
@@ -246,7 +246,7 @@ dyec repositories commands --config config/daylily_pipeline_command_catalog.yaml
 dyec repositories commands --command-id illumina_snv_alignstats
 ```
 
-The catalog is version 2. The current DayOA repository default and DayOA command pins are `2.0.38`; `daylily-sarek` is present as a Nextflow/nf-core Sarek repository entry.
+The catalog is version 2. The current DayOA repository default and DayOA command pins are `2.0.41`; `daylily-sarek` is present as a Nextflow/nf-core Sarek repository entry.
 
 Command classes:
 

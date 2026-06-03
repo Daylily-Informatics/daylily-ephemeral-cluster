@@ -1,0 +1,9 @@
+DAY-EC activated.
+DAY-EC activated.
+time=2026-06-03T08:18:07Z
+squeue=57|i192bigmem|run_bclconvert_tile_shard-run_bclconvert_L003_0001_tiles0001-0008|CF|4:24|i192bigmem-dy-all-1;
+fastq_count=0
+done_count=0
+bytes=10923
+log_tail=missing_bcl_log
+tmux_marker=
