@@ -187,6 +187,16 @@ The Slurm accounting helper manages external accounting infrastructure when conf
 
 `config/daylily_pipeline_command_catalog.yaml` is the source of truth for blessed repositories and commands. The packaged copy under `daylily_ec/resources/payload/config/` must match it. The current catalog default for DayOA is `2.0.41`; `daylily-sarek` is also present as a Nextflow/nf-core Sarek repository entry.
 
+On the headnode, `day-clone` consumes the same repository catalog:
+
+```bash
+day-clone --list
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 2.0.41 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 2.0.41
+```
+
+`-t` is the short form of `--git-tag`; `-d` is the short form of the required `--destination`. When `--repository` is omitted, `day-clone` uses the catalog `default_repository`. When `--git-tag`/`-t` is omitted, it uses the selected repository's `default_ref`. The checkout lands at `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`, where `relative_path` comes from the catalog row.
+
 Catalog command classes:
 
 - `utility`: no sample or run inputs, usually used for smoke tests.
@@ -218,6 +228,7 @@ DYEC does not choose alternate references at runtime. If a command catalog row p
 When adding a runnable pipeline repository:
 
 - add a repository row to the command catalog with a pinned `default_ref`
+- verify `day-clone --repository <repo-key> --destination <analysis-id> --git-tag <ref>` produces the intended checkout path
 - add explicit command rows for supported launch profiles
 - declare input contract, required columns, genome build, targets, jobs, and runtime parameters
 - make the repository write all durable outputs below `/fsx/analysis_results/<executing_entity>/<analysis_id>`

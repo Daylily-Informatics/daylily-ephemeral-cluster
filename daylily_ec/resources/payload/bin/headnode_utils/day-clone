@@ -171,6 +171,10 @@ def derive_default_path(repo_url: str) -> str:
 
 
 def print_available_repositories(repositories: Dict[str, Dict[str, Any]]) -> None:
+    print("Clone syntax:")
+    print("  day-clone --repository <repo-key> --destination <analysis-id> --git-tag <ref>")
+    print("  day-clone -d <analysis-id> -t <ref>  # uses default_repository")
+    print()
     print("Available repositories:\n")
     for key, repo in repositories.items():
         name = repo.get("display_name", key)

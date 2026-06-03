@@ -77,7 +77,7 @@ Headnode work is Session-Manager-first:
 - interactive sessions use `dyec headnode connect`
 - command payloads run as `ubuntu`
 - the supported shell is a login bash shell in `/home/ubuntu`
-- `day-clone` clones configured repositories under the FSx analysis root
+- `day-clone` clones configured repositories under the FSx analysis root; use `day-clone --list` to inspect catalog rows, `day-clone --repository <repo-key> --destination <analysis-id> --git-tag <ref>` for explicit clones, or `day-clone -d <analysis-id> -t <ref>` for the default repository
 
 Manual root sessions or user switching are not part of the supported path.
 

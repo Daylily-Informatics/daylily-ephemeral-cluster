@@ -91,12 +91,13 @@ exec bash -l
 whoami
 pwd
 command -v day-clone
+day-clone --list
 command -v tmux
 command -v squeue
 exit
 ```
 
-Expected user is `ubuntu` and the login shell starts in `/home/ubuntu`.
+Expected user is `ubuntu` and the login shell starts in `/home/ubuntu`. `day-clone --list` must print the repository rows and clone syntax from the headnode catalog.
 
 ## 5. Sample-Manifest Analysis
 

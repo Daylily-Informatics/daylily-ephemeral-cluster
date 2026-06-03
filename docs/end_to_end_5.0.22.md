@@ -135,6 +135,7 @@ On the headnode:
 whoami
 pwd
 command -v day-clone
+day-clone --list
 command -v tmux
 exit
 ```
@@ -144,6 +145,7 @@ Expected:
 - `whoami` -> `ubuntu`
 - `pwd` -> `/home/ubuntu`
 - `day-clone` and `tmux` are available
+- `day-clone --list` prints repository rows and clone syntax from the headnode catalog
 
 If this fails, run `dyec headnode configure` rather than using raw SSH or root:
 

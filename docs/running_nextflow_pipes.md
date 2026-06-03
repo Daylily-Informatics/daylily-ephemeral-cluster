@@ -7,7 +7,7 @@ The validated example is `daylily-sarek` at ref `0.7.379`, which is nf-core/sare
 ## Boundaries
 
 - DAY-EC creates and deletes the ParallelCluster, manages run-data DRAs, exports completed analysis directories, and gives supported SSM access to the headnode.
-- `daylily-sarek` is a repository catalog row, not a DAY-EC workflow command. Clone it with `day-clone` and launch `nextflow` directly on the headnode.
+- `daylily-sarek` is a repository catalog row, not a DAY-EC workflow command. Clone it with `day-clone --repository daylily-sarek --destination <analysis-id> --git-tag 0.7.379` and launch `nextflow` directly on the headnode.
 - Nextflow output must land under `/fsx/analysis_results/<executing_entity>/<analysis_id>/`.
 - `dyec export` only exports a completed analysis directory whose source path is exactly `/fsx/analysis_results/<executing_entity>/<analysis_id>`.
 - CloudFront publication is not a `dyec` subcommand. Public docs may link only to an already-approved no-auth URL that returns HTTP 200.
@@ -204,6 +204,8 @@ default_ref=0.7.379
 analysis_commands=[]
 ```
 
+`day-clone -t 0.7.379` is equivalent to `day-clone --git-tag 0.7.379`, but runbook scripts use the long form so the pinned ref is visible in logs.
+
 ## 5. Headnode Preflight For Nextflow
 
 ```bash
@@ -381,7 +383,7 @@ executing_entity = os.environ["EXECUTING_ENTITY"]
 target = resolve_headnode_instance_id(cluster, region, profile=profile)
 script = f'''
 set -euo pipefail
-day-clone --repository daylily-sarek --destination {analysis_id!r} --executing-entity {executing_entity!r}
+day-clone --repository daylily-sarek --destination {analysis_id!r} --git-tag 0.7.379 --executing-entity {executing_entity!r}
 repo=/fsx/analysis_results/{executing_entity}/{analysis_id}/sarek
 test -d "$repo"
 cd "$repo"

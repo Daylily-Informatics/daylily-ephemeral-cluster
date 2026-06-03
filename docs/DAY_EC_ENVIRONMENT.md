@@ -61,9 +61,10 @@ Expected on the headnode:
 whoami
 pwd
 command -v day-clone
+day-clone --list
 ```
 
-The supported user is `ubuntu`.
+The supported user is `ubuntu`. `day-clone --list` prints the clone syntax and repository rows from `/home/ubuntu/.config/daylily/daylily_pipeline_command_catalog.yaml`; if that command fails, repair headnode configuration instead of guessing repository URLs or tags.
 
 ## Local Validation
 

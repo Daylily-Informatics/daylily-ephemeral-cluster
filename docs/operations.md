@@ -168,6 +168,16 @@ dyec workflow launch \
 
 The launcher creates `/home/ubuntu/daylily-runs/<session>/` with `launch.sh`, `tmux.log`, and `status.json`.
 
+For repo-native work that is not a catalog workflow command, clone the pinned repository on the headnode and then follow that repository's documented launch path:
+
+```bash
+day-clone --list
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 2.0.41 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 2.0.41
+```
+
+`-t` is the short form of `--git-tag`; `-d` is required and is the short form of `--destination`. The clone target is `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`.
+
 ## Monitor
 
 ```bash

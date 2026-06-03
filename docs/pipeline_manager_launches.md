@@ -16,7 +16,7 @@ Every manager should satisfy the same operational contract:
 
 | Requirement | Contract |
 |---|---|
-| Repository checkout | Use `dyec workflow launch`, `dyec samples run`, or `day-clone` so the checkout is under `/fsx/analysis_results/<executing_entity>/<analysis_id>/`. |
+| Repository checkout | Use `dyec workflow launch`, `dyec samples run`, or `day-clone --repository <repo-key> --destination <analysis-id> --git-tag <ref>` so the checkout is under `/fsx/analysis_results/<executing_entity>/<analysis_id>/`. |
 | Inputs | Use staged sample manifests, `runs.tsv`, reference/control mounts, run mounts, or explicit manager-native input files. Do not copy large mounted run folders into the result tree. |
 | Outputs | Write manager logs, work state, reports, benchmarks, and final outputs below the analysis directory. |
 | Monitoring | Use `dyec workflow status` and `dyec workflow logs` for DYEC-launched sessions; use manager-native logs and read-only Slurm inspection for direct headnode launches. |
@@ -90,7 +90,7 @@ Nextflow workflows can run on the same cluster and use the same export boundary.
 Use this pattern when the Nextflow pipeline has manager-native inputs rather than DayOA `samples.tsv` and `units.tsv`:
 
 ```bash
-day-clone --repository daylily-sarek --destination "$ANALYSIS_ID" --executing-entity ubuntu
+day-clone --repository daylily-sarek --destination "$ANALYSIS_ID" --git-tag 0.7.379 --executing-entity ubuntu
 cd "/fsx/analysis_results/ubuntu/$ANALYSIS_ID/sarek"
 nextflow run . \
   -profile daylily_ephemeral_cluster \

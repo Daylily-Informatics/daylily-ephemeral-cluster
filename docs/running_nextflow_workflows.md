@@ -7,7 +7,7 @@ This runbook covers Nextflow workflows registered in the DAY-EC repository catal
 The source catalog is `config/daylily_pipeline_command_catalog.yaml`. The packaged copy at `daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml` must be byte-for-byte identical.
 
 - `illumina_bclconvert` and `illumina_run_qc_bclconvert` are nf-core BCL Convert command rows that run through the DAY-EC workflow launcher.
-- `daylily-sarek` is a repository row. It intentionally has `analysis_commands: []`; clone it with `day-clone` and run Nextflow directly.
+- `daylily-sarek` is a repository row. It intentionally has `analysis_commands: []`; clone it with `day-clone --repository daylily-sarek --destination <analysis-id> --git-tag 0.7.379` and run Nextflow directly.
 - `daylily-sarek.default_ref` is pinned to `0.7.379`, which resolves to Sarek commit `d776c68b2d3b6ea6f3d5318777142e936e2c7d6b`.
 
 ## Local Activation And AWS Context
@@ -160,7 +160,7 @@ target = resolve_headnode_instance_id(cluster, region, profile=profile)
 script = r'''
 set -euo pipefail
 run_id="RUN_ID_PLACEHOLDER"
-day-clone --repository daylily-sarek --destination "$run_id" --executing-entity ubuntu
+day-clone --repository daylily-sarek --destination "$run_id" --git-tag 0.7.379 --executing-entity ubuntu
 repo=/fsx/analysis_results/ubuntu/$run_id/sarek
 test -d "$repo"
 cd "$repo"

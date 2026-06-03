@@ -42,6 +42,7 @@ Expected:
 whoami
 pwd
 command -v day-clone
+day-clone --list
 ```
 
 `whoami` must be `ubuntu`.

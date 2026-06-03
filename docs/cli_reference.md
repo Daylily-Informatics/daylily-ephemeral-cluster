@@ -248,6 +248,16 @@ dyec repositories commands --command-id illumina_snv_alignstats
 
 The catalog is version 2. The current DayOA repository default and DayOA command pins are `2.0.41`; `daylily-sarek` is present as a Nextflow/nf-core Sarek repository entry.
 
+Headnode repository cloning uses the same catalog:
+
+```bash
+day-clone --list
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 2.0.41 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 2.0.41
+```
+
+`-t` is the short form of `--git-tag`; `-d` is the short form of `--destination` and is required for every clone. If `--repository` is omitted, `day-clone` uses `default_repository` from `daylily_pipeline_command_catalog.yaml`. If `--git-tag`/`-t` is omitted, it uses the selected repository row's `default_ref`. Missing catalog rows, missing URLs, missing cluster identity, unsafe path segments, or an existing destination directory are hard failures.
+
 Command classes:
 
 - `utility`: no sample or run source data

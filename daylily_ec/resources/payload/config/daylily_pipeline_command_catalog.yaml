@@ -1,6 +1,12 @@
 ---
 command_catalog_version: 2
 default_repository: daylily-omics-analysis
+# day-clone consumes the repository rows below directly:
+#   day-clone --repository <repo-key> --destination <analysis-id> --git-tag <ref>
+#   day-clone -d <analysis-id> -t <ref>
+# If --repository is omitted, day-clone uses default_repository. If --git-tag/-t
+# is omitted, it uses the selected repository's default_ref. The checkout path
+# below /fsx/analysis_results/<executing_entity>/<analysis_id>/ is relative_path.
 input_contracts:
   sample_manifest:
     description: "DayEC stages analysis_samples.tsv into DayOA config/samples.tsv and config/units.tsv."
