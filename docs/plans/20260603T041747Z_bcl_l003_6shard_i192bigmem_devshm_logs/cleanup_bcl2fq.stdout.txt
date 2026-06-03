@@ -1,0 +1,59 @@
+command_id=7ddfedce-89cf-4044-afa5-657bb85c838e
+DAY-EC activated.
+DAY-EC activated.
+__DATE_START__=2026-06-03T04:23:29+00:00
+__QUEUE_BEFORE__
+JOBID             |STATE         |NAME                                                                  |NODELIST                      |NODELIST(REASON)
+10                |PENDING       |run_bclconvert_lane-run_bclconvert_L003                               |                              |(BeginTime)
+9                 |PENDING       |run_bclconvert_lane-run_bclconvert_L005                               |                              |(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+8                 |PENDING       |run_bclconvert_lane-run_bclconvert_L004                               |                              |(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+7                 |PENDING       |run_bclconvert_lane-run_bclconvert_L007                               |                              |(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+6                 |PENDING       |run_bclconvert_lane-run_bclconvert_L002                               |                              |(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+5                 |PENDING       |run_bclconvert_lane-run_bclconvert_L006                               |                              |(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+4                 |PENDING       |run_bclconvert_lane-run_bclconvert_L008                               |                              |(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+3                 |PENDING       |run_bclconvert_lane-run_bclconvert_L003                               |                              |(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+2                 |PENDING       |run_bclconvert_lane-run_bclconvert_L001                               |                              |(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+1                 |PENDING       |bcl2fq_scratch_to_dra                                                 |                              |(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+__PROCESSES_BEFORE__
+  30890   25989 ubuntu   S+   Wed Jun  3 03:16:32 2026 bash bin/day_run produce_bclconvert_fastqs -p -k -j 8 --rerun-triggers mtime --configfile config/bclconvert_scratch_dra.yaml
+  31067   30890 ubuntu   S+   Wed Jun  3 03:16:34 2026 bash bin/day_run produce_bclconvert_fastqs -p -k -j 8 --rerun-triggers mtime --configfile config/bclconvert_scratch_dra.yaml
+  31068   31067 ubuntu   Sl+  Wed Jun  3 03:16:34 2026 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs -p -k -j 8 --rerun-triggers mtime --configfile config/bclconvert_scratch_dra.yaml
+  31069   31067 ubuntu   S+   Wed Jun  3 03:16:34 2026 bash bin/day_run produce_bclconvert_fastqs -p -k -j 8 --rerun-triggers mtime --configfile config/bclconvert_scratch_dra.yaml
+  48541   46045 ubuntu   S+   Wed Jun  3 03:48:39 2026 bash bin/day_run produce_bclconvert_fastqs -p -k -j 1 --rerun-triggers mtime --configfile config/bclconvert_l003_scratch.yaml
+  48717   48541 ubuntu   S+   Wed Jun  3 03:48:41 2026 bash bin/day_run produce_bclconvert_fastqs -p -k -j 1 --rerun-triggers mtime --configfile config/bclconvert_l003_scratch.yaml
+  48718   48717 ubuntu   Sl+  Wed Jun  3 03:48:41 2026 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs -p -k -j 1 --rerun-triggers mtime --configfile config/bclconvert_l003_scratch.yaml
+  48719   48717 ubuntu   S+   Wed Jun  3 03:48:41 2026 bash bin/day_run produce_bclconvert_fastqs -p -k -j 1 --rerun-triggers mtime --configfile config/bclconvert_l003_scratch.yaml
+__PRESERVE_SELECTION__
+preserve_job=<none>
+__STOP_CONTROLLERS__
+sending C-c to dayoa_bcl2fq_scratch_dra_20260603
+sending C-c to dayoa_bcl_l003_bcl2fq_scratch_20260603
+__TERM_EXACT_CONTROLLER_PROCESSES__
+  31069       1 ubuntu   S    Wed Jun  3 03:16:34 2026 bash bin/day_run produce_bclconvert_fastqs -p -k -j 8 --rerun-triggers mtime --configfile config/bclconvert_scratch_dra.yaml
+  48719       1 ubuntu   S    Wed Jun  3 03:48:41 2026 bash bin/day_run produce_bclconvert_fastqs -p -k -j 1 --rerun-triggers mtime --configfile config/bclconvert_l003_scratch.yaml
+terminating pattern=bin/day_run produce_bclconvert_fastqs .*config/bclconvert_scratch_dra.yaml pids=31069
+terminating pattern=bin/day_run produce_bclconvert_fastqs .*config/bclconvert_l003_scratch.yaml pids=48719
+terminating pattern=snakemake .*config/bclconvert_scratch_dra.yaml pids=31068
+terminating pattern=snakemake .*config/bclconvert_l003_scratch.yaml pids=48718
+__CANCEL_MATCHING_BCL2FQ_JOBS__
+scancel_job=10 state=PENDING name=run_bclconvert_lane-run_bclconvert_L003 nodelist= reason=(BeginTime)
+scancel_job=9 state=PENDING name=run_bclconvert_lane-run_bclconvert_L005 nodelist= reason=(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+scancel_job=8 state=PENDING name=run_bclconvert_lane-run_bclconvert_L004 nodelist= reason=(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+scancel_job=7 state=PENDING name=run_bclconvert_lane-run_bclconvert_L007 nodelist= reason=(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+scancel_job=6 state=PENDING name=run_bclconvert_lane-run_bclconvert_L002 nodelist= reason=(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+scancel_job=5 state=PENDING name=run_bclconvert_lane-run_bclconvert_L006 nodelist= reason=(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+scancel_job=4 state=PENDING name=run_bclconvert_lane-run_bclconvert_L008 nodelist= reason=(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+scancel_job=3 state=PENDING name=run_bclconvert_lane-run_bclconvert_L003 nodelist= reason=(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+scancel_job=2 state=PENDING name=run_bclconvert_lane-run_bclconvert_L001 nodelist= reason=(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+scancel_job=1 state=PENDING name=bcl2fq_scratch_to_dra nodelist= reason=(ReqNodeNotAvail, UnavailableNodes:bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme64-[1-2])
+__QUEUE_AFTER__
+JOBID             |STATE         |NAME                                                                  |NODELIST                      |NODELIST(REASON)
+__PROCESSES_AFTER__
+  31068       1 ubuntu   Sl   Wed Jun  3 03:16:34 2026 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs -p -k -j 8 --rerun-triggers mtime --configfile config/bclconvert_scratch_dra.yaml
+  48718       1 ubuntu   Sl   Wed Jun  3 03:48:41 2026 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/config/day_profiles/slurm produce_bclconvert_fastqs -p -k -j 1 --rerun-triggers mtime --configfile config/bclconvert_l003_scratch.yaml
+__TMUX_AFTER__
+bcl2fq_scratch_dra_20260603T011121Z: 1 windows (created Wed Jun  3 01:18:13 2026)
+dayoa_bcl2fq_scratch_dra_20260603: 1 windows (created Wed Jun  3 03:05:52 2026)
+dayoa_bcl_l003_bcl2fq_scratch_20260603: 1 windows (created Wed Jun  3 03:46:04 2026)
+__DATE_END__=2026-06-03T04:23:48+00:00
+

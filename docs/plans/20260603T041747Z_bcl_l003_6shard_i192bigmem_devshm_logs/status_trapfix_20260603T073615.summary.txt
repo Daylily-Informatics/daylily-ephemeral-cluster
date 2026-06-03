@@ -1,0 +1,51 @@
+timestamp_utc: 2026-06-03T07:36:15Z
+active_run_id: fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_trapfix_20260603T0700Z
+
+squeue:
+  running:
+    - job: 48
+      rule: run_bclconvert_tile_shard
+      shard: L003/0005_tiles0525-0654
+      elapsed: 9:45
+      host: i192bigmem-dy-all-1
+      cpus: 192
+      mem: 1200000M
+  pending:
+    - job: 49
+      reason: Resources
+    - job: 50
+      reason: Priority
+    - job: 51
+      reason: Priority
+    - job: 52
+      reason: Priority
+    - job: 53
+      reason: Priority
+      note: automatic retry for failed shard L003/0003_tiles0263-0393 from the pre--T0 controller
+
+outputs:
+  fastq_count: 0
+  done_count: 0
+  report_count: 0
+
+failed_shards:
+  - job: 47
+    shard: L003/0003_tiles0263-0393
+    evidence: slurm err shows bcl-convert aborted with core dump, then Snakemake submitted automatic retry job 53.
+
+active_bcl_convert:
+  job: 48
+  pid: 16009
+  elapsed: 9:39
+  cpu_percent: 0.0
+  rss_kb: 400180
+  threads: 66
+  wchan: ldlm_completion_ast
+  read_bytes: 53293056
+  write_bytes: 0
+  dev_shm_dayoa_bclconvert: 172K
+
+interpretation:
+  - The current full-lane 6-shard attempt remains non-productive.
+  - Existing controller was launched before the user requested -T 0, so automatic retry job 53 is scheduler/controller behavior from that old command.
+  - No scheduler intervention was performed.

@@ -1,0 +1,73 @@
+command_id=f1f105da-9a3b-4d31-b7cc-d0b2fa010a8a
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T04:25:21+00:00
+__HELPERS__
+/home/ubuntu/.local/bin/day-clone
+/usr/bin/git
+/usr/bin/rsync
+/home/ubuntu/miniconda3/envs/DAY-EC/bin/python3
+__CANDIDATE_CHECKOUTS__
+checkout=/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis
+d3c1bf1
+ M config/day/day_env_installer.sh
+ M config/day_profiles/local/templates/rule_config.yaml
+ M config/day_profiles/slurm/templates/rule_config.yaml
+ M tests/test_bclconvert_bootstrap.sh
+ M tests/test_bclconvert_multiqc.py
+ M tests/test_shell_wrapper_contracts.py
+ M workflow/rules/bclconvert.smk
+ M workflow/scripts/run_bclconvert_lane.sh
+?? config/bclconvert_l003_scratch.yaml
+?? pipeline_details.md
+?? pipeline_workflow_checkpoint_20260603T034840Z.mmd
+?? pipeline_workflow_checkpoint_20260603T034840Z.pdf
+?? pipeline_workflow_checkpoint_20260603T040341Z.mmd
+?? pipeline_workflow_checkpoint_20260603T040341Z.pdf
+?? pipeline_workflow_checkpoint_20260603T041842Z.mmd
+?? pipeline_workflow_checkpoint_20260603T041842Z.pdf
+?? pipeline_workflow_checkpoint_20260603T042330Z.mmd
+?? pipeline_workflow_checkpoint_20260603T042330Z.pdf
+?? pipeline_workflow_planned.mmd
+?? pipeline_workflow_planned.pdf
+?? sbatch_errs.log
+has_dyoainit=yes
+/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:153:BCL_SCRATCH_OUTPUT_ROOT = str(BCLCFG.get("scratch_output_root", "") or "").rstrip("/")
+/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:522:        exclusive="--exclusive",
+/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:528:        scratch_output_root=BCL_SCRATCH_OUTPUT_ROOT,
+/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:589:        scratch_output_root=BCL_SCRATCH_OUTPUT_ROOT,
+checkout=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis
+d3c1bf1
+ M config/day/day_env_installer.sh
+ M config/day_profiles/local/templates/rule_config.yaml
+ M config/day_profiles/slurm/templates/rule_config.yaml
+ M tests/test_bclconvert_bootstrap.sh
+ M tests/test_bclconvert_multiqc.py
+ M tests/test_shell_wrapper_contracts.py
+ M workflow/rules/bclconvert.smk
+ M workflow/scripts/run_bclconvert_lane.sh
+?? config/bclconvert_scratch_dra.yaml
+?? pipeline_details.md
+?? pipeline_workflow_checkpoint_20260603T031634Z.mmd
+?? pipeline_workflow_checkpoint_20260603T031634Z.pdf
+?? pipeline_workflow_checkpoint_20260603T033135Z.mmd
+?? pipeline_workflow_checkpoint_20260603T033135Z.pdf
+?? pipeline_workflow_checkpoint_20260603T034636Z.mmd
+?? pipeline_workflow_checkpoint_20260603T034636Z.pdf
+?? pipeline_workflow_checkpoint_20260603T040137Z.mmd
+?? pipeline_workflow_checkpoint_20260603T040137Z.pdf
+?? pipeline_workflow_checkpoint_20260603T041637Z.mmd
+?? pipeline_workflow_checkpoint_20260603T041637Z.pdf
+?? pipeline_workflow_checkpoint_20260603T042330Z.mmd
+?? pipeline_workflow_checkpoint_20260603T042330Z.pdf
+?? pipeline_workflow_planned.mmd
+?? pipeline_workflow_planned.pdf
+?? sbatch_errs.log
+has_dyoainit=yes
+/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/workflow/rules/bclconvert.smk:153:BCL_SCRATCH_OUTPUT_ROOT = str(BCLCFG.get("scratch_output_root", "") or "").rstrip("/")
+/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/workflow/rules/bclconvert.smk:522:        exclusive="--exclusive",
+/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/workflow/rules/bclconvert.smk:528:        scratch_output_root=BCL_SCRATCH_OUTPUT_ROOT,
+/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis/workflow/rules/bclconvert.smk:589:        scratch_output_root=BCL_SCRATCH_OUTPUT_ROOT,
+missing_checkout=/home/ubuntu/daylily-omics-analysis
+missing_checkout=/fsx/analysis_results/ubuntu/daylily-omics-analysis
+

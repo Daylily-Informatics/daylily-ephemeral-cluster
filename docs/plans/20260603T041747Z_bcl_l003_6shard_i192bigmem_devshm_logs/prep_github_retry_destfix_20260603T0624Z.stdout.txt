@@ -1,0 +1,19 @@
+command_id=e54519a0-ba7d-4aea-a9ed-f27065342f82
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T06:22:27+00:00
+__WORKSET__
+head=b5c1be5
+## codex/dayoa-bclconvert-tile-shards-20260601...origin/codex/dayoa-bclconvert-tile-shards-20260601
+?? config/bclconvert_l003_6shard_i192bigmem_devshm_argfix.yaml
+__DEST_PERMS_BEFORE__
+drwxr-xr-x 12 root root 25600 Jun  3 04:28 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4
+__CREATE_DEST__
+drwxr-xr-x 2 ubuntu ubuntu 1024 Jun  3 06:22 /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z
+dest_empty=yes
+WORK=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis
+CONFIG=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/bclconvert_l003_6shard_i192bigmem_devshm_argfix.yaml
+DEST=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z
+__SQUEUE__
+             JOBID    PARTITION                                               NAME    STATE       TIME      NODES NODELIST(REASON)
+

@@ -1,0 +1,61 @@
+command_id=27b96996-bcb9-45c2-9673-2525916d7376
+DAY-EC activated.
+DAY-EC activated.
+__DATE_START__=2026-06-03T04:28:11+00:00
+__SOURCE__
+d3c1bf1
+__CREATE_WORKSET__
+__PATCH_WORKSET__
+__CONFIG__
+__DEST__
+dest_empty=yes
+__VERIFY_PATCH__
+d3c1bf1
+ M config/day/day_env_installer.sh
+ M config/day_profiles/local/templates/rule_config.yaml
+ M config/day_profiles/slurm/templates/rule_config.yaml
+ M tests/test_bclconvert_bootstrap.sh
+ M tests/test_bclconvert_multiqc.py
+ M tests/test_shell_wrapper_contracts.py
+ M workflow/rules/bclconvert.smk
+ M workflow/scripts/run_bclconvert_lane.sh
+?? config/bclconvert_l003_6shard_i192bigmem_devshm.yaml
+?? config/bclconvert_l003_scratch.yaml
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/config/bclconvert_l003_6shard_i192bigmem_devshm.yaml:15:  scratch_output_root: /dev/shm/dayoa_bclconvert
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/config/bclconvert_l003_6shard_i192bigmem_devshm.yaml:16:  scratch_available_bytes_min: 650000000000
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:30:scratch_output_root="${27:-}"
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:31:scratch_available_bytes_min="${28:-0}"
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:49:if [[ -n "$scratch_output_root" ]]; then
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:50:  if [[ "$scratch_output_root" != /* ]]; then
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:51:    echo "bclconvert.scratch_output_root must be an absolute path: $scratch_output_root" >> "$log_path"
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:54:  if [[ ! "$scratch_available_bytes_min" =~ ^[0-9]+$ ]]; then
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:55:    echo "bclconvert.scratch_available_bytes_min must be a non-negative integer: $scratch_available_bytes_min" >> "$log_path"
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:59:  scratch_work_dir="${scratch_output_root%/}/dayoa_bclconvert_${SLURM_JOB_ID:-manual_$$}/${safe_output_id}"
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:66:  if [[ "$scratch_available_bytes_min" -gt 0 ]]; then
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:67:    scratch_available_bytes="$(df -PB1 "$scratch_output_root" | awk 'NR == 2 {print $4}')"
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:69:    echo "scratch_available_bytes_min: $scratch_available_bytes_min" >> "$log_path"
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:71:      echo "Unable to determine free bytes for BCL scratch output root: $scratch_output_root" >> "$log_path"
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:74:    if [[ "$scratch_available_bytes" -lt "$scratch_available_bytes_min" ]]; then
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:75:      echo "BCL scratch output root free bytes below required minimum: available=$scratch_available_bytes required=$scratch_available_bytes_min path=$scratch_output_root" >> "$log_path"
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:95:echo "scratch_output_root: ${scratch_output_root:-<none>}" >> "$log_path"
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:96:echo "scratch_available_bytes_min: $scratch_available_bytes_min" >> "$log_path"
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:112:if [[ -n "$scratch_output_root" ]]; then
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh:113:  singularity_bind_args+=(--bind "$scratch_output_root:$scratch_output_root")
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:153:BCL_SCRATCH_OUTPUT_ROOT = str(BCLCFG.get("scratch_output_root", "") or "").rstrip("/")
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:154:BCL_SCRATCH_AVAILABLE_BYTES_MIN = _intish(BCLCFG.get("scratch_available_bytes_min", 0), 0)
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:523:        exclusive="--exclusive",
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:529:        scratch_output_root=BCL_SCRATCH_OUTPUT_ROOT,
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:530:        scratch_available_bytes_min=BCL_SCRATCH_AVAILABLE_BYTES_MIN,
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:562:        "{output.demux_stats:q} {output.done:q} \"\" {params.scratch_output_root:q}"
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:565:rule run_bclconvert_tile_shard:
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:586:        exclusive="--exclusive",
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:592:        scratch_output_root=BCL_SCRATCH_OUTPUT_ROOT,
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:593:        scratch_available_bytes_min=BCL_SCRATCH_AVAILABLE_BYTES_MIN,
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:626:        "{output.demux_stats:q} {output.done:q} {params.tile_regex:q} {params.scratch_output_root:q} "
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk:627:        "{params.scratch_available_bytes_min:q}"
+tile_shard_contract=ok
+WORKSET=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis
+CONFIG=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/config/bclconvert_l003_6shard_i192bigmem_devshm.yaml
+DEST=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm
+__DATE_END__=2026-06-03T04:28:19+00:00
+

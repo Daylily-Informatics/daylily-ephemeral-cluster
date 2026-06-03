@@ -1,0 +1,18 @@
+command_id=bf630b2b-f42c-4e92-b74d-d70fe6eeb601
+DAY-EC activated.
+DAY-EC activated.
+__DATE_START__=2026-06-03T04:24:28+00:00
+__PROCESSES_BEFORE_FINAL__
+no_processes pattern=bin/day_run produce_bclconvert_fastqs .*config/bclconvert_scratch_dra.yaml
+no_processes pattern=bin/day_run produce_bclconvert_fastqs .*config/bclconvert_l003_scratch.yaml
+no_processes pattern=snakemake .*config/bclconvert_scratch_dra.yaml
+no_processes pattern=snakemake .*config/bclconvert_l003_scratch.yaml
+__QUEUE_AFTER_FINAL__
+JOBID             |STATE         |NAME                                                                  |NODELIST                      |NODELIST(REASON)
+__PROCESSES_AFTER_FINAL__
+__TMUX_AFTER_FINAL__
+killing_tmux_session=dayoa_bcl2fq_scratch_dra_20260603
+killing_tmux_session=dayoa_bcl_l003_bcl2fq_scratch_20260603
+bcl2fq_scratch_dra_20260603T011121Z: 1 windows (created Wed Jun  3 01:18:13 2026)
+__DATE_END__=2026-06-03T04:24:31+00:00
+

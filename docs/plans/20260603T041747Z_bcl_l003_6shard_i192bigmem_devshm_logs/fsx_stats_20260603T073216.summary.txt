@@ -1,0 +1,68 @@
+timestamp_utc: 2026-06-03T07:32:16Z
+cluster: dyec0602bcl
+headnode: i-0c36c39770c533c8e
+compute_host: i192bigmem-dy-all-1
+
+slurm:
+  running:
+    - job: 48
+      rule: run_bclconvert_tile_shard
+      shard: L003/0005_tiles0525-0654
+      elapsed: 5:46
+      host: i192bigmem-dy-all-1
+      cpus: 192
+      mem: 1200000M
+  pending:
+    - job: 49
+      reason: Resources
+    - job: 50
+      reason: Priority
+    - job: 51
+      reason: Priority
+    - job: 52
+      reason: Priority
+    - job: 53
+      reason: Priority
+
+outputs:
+  fastq_count: 0
+  done_count: 0
+  report_count: 0
+
+fsx:
+  mount: /fsx
+  source: 10.0.1.213@tcp:/xtlzxb4v
+  type: lustre
+  options: rw,noatime,checksum,flock,user_xattr,lruresize,lazystatfs,nouser_fid2path,verbose,encrypt
+  capacity: 6.6T
+  used: 218G
+  available: 6.4T
+  use_percent: 4
+
+dev_shm:
+  capacity: 1.2T
+  used: 172K
+  available: 1.2T
+  use_percent: 1
+  dayoa_bclconvert_size: 172K
+  dayoa_bclconvert_file_count: 5
+
+bcl_convert_process:
+  pid: 16009
+  stat: Il
+  elapsed: 5:39
+  cpu_percent: 0.0
+  rss_kb: 400180
+  threads: 66
+  wchan: ldlm_completion_ast
+  read_bytes: 52826112
+  write_bytes: 0
+  cancelled_write_bytes: 0
+  tile_regex_shape: exact_plus_joined_tile_terms
+  tile_regex_note: active shard command carries a long exact OR expression for tiles s_3_2235 through s_3_2366 with gaps.
+
+interpretation:
+  - The compute node is not CPU, memory, local disk, or /dev/shm constrained.
+  - The BCL Convert process has opened L003 CBCL files but is not producing /dev/shm output.
+  - The observed state is consistent with a Lustre client lock/metadata wait or BCL Convert/Lustre interaction, not raw FSx bandwidth saturation.
+  - Moving the path from /fsx/run_dir_mounts to /run_dir_mounts would not improve performance if it is backed by the same Lustre filesystem.

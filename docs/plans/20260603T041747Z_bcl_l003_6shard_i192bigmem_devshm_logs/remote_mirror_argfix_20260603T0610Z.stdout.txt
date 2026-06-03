@@ -1,0 +1,48 @@
+instance=i-0c36c39770c533c8e
+init workflow/rules/bclconvert.smk 6cddcae1-9f00-41c7-947e-62508302c22b
+chunk workflow/rules/bclconvert.smk 1 77066ff4-735a-4724-b5bb-1fed8c96f9a0
+chunk workflow/rules/bclconvert.smk 2 f6eb70fe-5eea-4d95-adda-eaaf7abac6e2
+chunk workflow/rules/bclconvert.smk 3 1e2a24da-3bbe-452a-bb2c-822efb81deb7
+chunk workflow/rules/bclconvert.smk 4 2daf37f5-d7cc-4b4d-b55f-7f6c87a64895
+chunk workflow/rules/bclconvert.smk 5 badf601e-27ba-4c80-86b4-f99753fe57ec
+chunk workflow/rules/bclconvert.smk 6 8d1ef9f3-be66-4e22-8510-1b3ac450a937
+chunk workflow/rules/bclconvert.smk 7 1760388c-7eec-4c4e-9745-36ff4e86b02e
+DAY-EC activated.
+DAY-EC activated.
+rel=workflow/rules/bclconvert.smk
+remote=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/rules/bclconvert.smk
+expected_sha256=473486ae59f2021b3fc388cc60841108884ea980a2f114792e878491b044b1ac
+actual_sha256=473486ae59f2021b3fc388cc60841108884ea980a2f114792e878491b044b1ac
+init workflow/scripts/run_bclconvert_lane.sh 96819c54-4564-4a0e-930c-f13f4fe180f6
+chunk workflow/scripts/run_bclconvert_lane.sh 1 aa35dfc4-b505-4bf0-9622-bb1883517817
+chunk workflow/scripts/run_bclconvert_lane.sh 2 ec544cc9-23a8-4e07-91ab-3280c03bd4e3
+DAY-EC activated.
+DAY-EC activated.
+rel=workflow/scripts/run_bclconvert_lane.sh
+remote=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh
+expected_sha256=bd87b121903951f08d2b27c13cd85fee037d688c33b6996d89cefce7c4c25664
+actual_sha256=bd87b121903951f08d2b27c13cd85fee037d688c33b6996d89cefce7c4c25664
+init tests/test_bclconvert_multiqc.py 31a91ba5-1e89-48ae-8247-897cf10470bf
+chunk tests/test_bclconvert_multiqc.py 1 885afaa0-431c-4201-b9d3-c21e224291d5
+chunk tests/test_bclconvert_multiqc.py 2 cd37923d-5fa3-4bff-a431-ba48cf447f98
+chunk tests/test_bclconvert_multiqc.py 3 d4832b6a-fa9a-40ac-ab5d-fbc7c1a02499
+chunk tests/test_bclconvert_multiqc.py 4 deedfbb9-bd11-43ff-a6cd-e96a07e11320
+chunk tests/test_bclconvert_multiqc.py 5 d69a7ef1-7ebe-4cdf-9167-ac8b46459e61
+chunk tests/test_bclconvert_multiqc.py 6 5661b531-1ddb-49ba-a0c8-8261b744f37a
+DAY-EC activated.
+DAY-EC activated.
+rel=tests/test_bclconvert_multiqc.py
+remote=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/tests/test_bclconvert_multiqc.py
+expected_sha256=9371d19cd803fe4663a23db0624f0b767f05c0297d323a8626818e66d48c44e0
+actual_sha256=9371d19cd803fe4663a23db0624f0b767f05c0297d323a8626818e66d48c44e0
+init tests/test_bclconvert_bootstrap.sh d73f3500-1858-48d1-84cd-8719153dd546
+chunk tests/test_bclconvert_bootstrap.sh 1 bcd7e3ce-01e1-49da-a8a3-7c3c540afa03
+chunk tests/test_bclconvert_bootstrap.sh 2 479b9199-0818-40d9-a6d5-baec7a40ed3e
+chunk tests/test_bclconvert_bootstrap.sh 3 a6c6aaf7-14eb-45d2-a326-8b08e5612287
+chunk tests/test_bclconvert_bootstrap.sh 4 8f1cc77b-36f6-45e2-bd13-1d72c26b7144
+DAY-EC activated.
+DAY-EC activated.
+rel=tests/test_bclconvert_bootstrap.sh
+remote=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis/tests/test_bclconvert_bootstrap.sh
+expected_sha256=518067c5a4e64e33819c2a540125c239040bb0fc14559e930bb72767bd419b29
+actual_sha256=518067c5a4e64e33819c2a540125c239040bb0fc14559e930bb72767bd419b29

@@ -1,0 +1,41 @@
+timestamp_utc: 2026-06-03T07:41:51Z
+active_run_id: fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_trapfix_20260603T0700Z
+
+squeue:
+  running:
+    - job: 48
+      shard: L003/0005_tiles0525-0654
+      elapsed: 15:21
+      host: i192bigmem-dy-all-1
+  pending:
+    - job: 49
+      reason: Resources
+    - job: 50
+      reason: Priority
+    - job: 51
+      reason: Priority
+    - job: 52
+      reason: Priority
+    - job: 53
+      reason: Priority
+
+outputs:
+  fastq_count: 0
+  done_count: 0
+  report_count: 0
+
+active_bcl_convert:
+  pid: 16009
+  elapsed: 15:14
+  cpu_percent: 0.0
+  rss_kb: 400180
+  threads: 66
+  wchan: ldlm_completion_ast
+  read_bytes: 53948416
+  write_bytes: 0
+  dev_shm_dayoa_bclconvert: 172K
+
+interpretation:
+  - The original 6-shard run remains non-productive.
+  - No FASTQs, reports, or done markers have appeared.
+  - No scheduler intervention was performed.

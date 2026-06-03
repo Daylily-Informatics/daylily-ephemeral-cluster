@@ -1,0 +1,165 @@
+command_id=98519db0-61df-4d2a-a0c2-b94c334682df
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T06:26:23+00:00
+__SQUEUE__
+             JOBID    PARTITION                                                       NAME      STATE       TIME      NODES NODELIST(REASON)
+__SINFO__
+PARTITION AVAIL NODES STATE CPUS MEMORY NODELIST REASON
+i192bigmem up 1 idle~ 192 1494220 i192bigmem-dy-all-1 none
+bcl2fq up 8 idle~ 48+ 373555+ bcl2fq-dy-nvme48-[1-4],bcl2fq-dy-nvme96-[1-4] Enabling node since insufficient capacity timeout expired
+bcl2fq up 8 idle~ 64+ 498073+ bcl2fq-dy-nvme64-[1-4],bcl2fq-dy-nvme128-[1-4] Scheduler health check failed
+__TMUX_TAIL__
+_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs /fsx/run_di
+r_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192
+bigmem_devshm_argfix_20260603T0620Z/tables
+        : > /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconvert_valid
+ate_inputs.log
+        if [ -z /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 ]; then
+            echo "bclconvert.run_dir is required" >> /fsx/run_dir_mounts/2026051
+4_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_ar
+gfix_20260603T0620Z/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ ! -d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 ]; then
+            echo "bclconvert.run_dir does not exist: /fsx/run_dir_mounts/2026051
+4_LH01106_0009_B23TVLGLT4" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGL
+T4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/log
+s/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ "true" = "false" ]; then
+            echo "keep_undetermined_fastqs=false is unsupported for the bclconve
+rt bootstrap path" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts
+_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclcon
+vert_validate_inputs.log
+            exit 2
+        fi
+        bcl_extra_args=
+        if [ -n "$bcl_extra_args" ]; then
+            echo "bclconvert.extra_args is not supported in this shell-only boot
+strap workflow" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fr
+om_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconver
+t_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Sa
+mpleSheet.csv \
+          --samples-tsv /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bi
+gmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/samples.tsv \
+          --normalized-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/normal
+ized.SampleSheet.csv \
+          --rows-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_
+from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tables/sampl
+esheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bcl
+convert_validate_inputs.warnings.log \
+          >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bcl
+convert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconvert_vali
+date_inputs.log 2>&1
+        touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/validated.ok
+
+Activating conda environment: ../../../../resources/environments/conda/ubuntu/ip
+-10-0-0-235/9d47d7d0d1fd2da30ac182cf088a614c_
+[Wed Jun  3 06:25:49 2026]
+Error in rule bclconvert_validate_inputs:
+    jobid: 1
+    input: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/SampleSheet.csv,
+ /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_2026
+0603T0620Z/daylily-omics-analysis/config/samples.tsv
+    output: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/validated.ok, /f
+sx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6s
+hard_i192bigmem_devshm_argfix_20260603T0620Z/normalized.SampleSheet.csv, /fsx/ru
+n_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_
+i192bigmem_devshm_argfix_20260603T0620Z/tables/samplesheet_rows.tsv
+    log: /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconv
+ert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconvert_validate
+_inputs.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-235/9d47d7d0d1
+fd2da30ac182cf088a614c_
+    shell:
+
+        set -euo pipefail
+        mkdir -p /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from
+_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs /fsx/run_di
+r_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192
+bigmem_devshm_argfix_20260603T0620Z/tables
+        : > /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclc
+onvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconvert_valid
+ate_inputs.log
+        if [ -z /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 ]; then
+            echo "bclconvert.run_dir is required" >> /fsx/run_dir_mounts/2026051
+4_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_ar
+gfix_20260603T0620Z/logs/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ ! -d /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 ]; then
+            echo "bclconvert.run_dir does not exist: /fsx/run_dir_mounts/2026051
+4_LH01106_0009_B23TVLGLT4" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGL
+T4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/log
+s/bclconvert_validate_inputs.log
+            exit 2
+        fi
+        if [ "true" = "false" ]; then
+            echo "keep_undetermined_fastqs=false is unsupported for the bclconve
+rt bootstrap path" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts
+_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclcon
+vert_validate_inputs.log
+            exit 2
+        fi
+        bcl_extra_args=
+        if [ -n "$bcl_extra_args" ]; then
+            echo "bclconvert.extra_args is not supported in this shell-only boot
+strap workflow" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fr
+om_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconver
+t_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Sa
+mpleSheet.csv \
+          --samples-tsv /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bi
+gmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/samples.tsv \
+          --normalized-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/normal
+ized.SampleSheet.csv \
+          --rows-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_
+from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tables/sampl
+esheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bcl
+convert_validate_inputs.warnings.log \
+          >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bcl
+convert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconvert_vali
+date_inputs.log 2>&1
+        touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/validated.ok
+
+        (one of the commands exited with non-zero exit code; note that snakemake
+ uses bash strict mode!)
+
+Exiting because a job execution failed. Look above for error message
+
+        Womp Womp.  something went awry----
+RETURN CODE: 1
+__LIVE_ARGFIX_EXIT__=1
+[Dslu](DAYOA)
+__DEST_COUNTS__
+120K	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z
+fastq_count=0
+done_count=0
+bench_count=0
+fastq_list_count=0
+__RUN_LOGS_HEAD__
+__SLURM_LOGS__
+

@@ -1,0 +1,18 @@
+command_id=2ee817d7-1d93-4279-b2f3-4acac92e7b5e
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T06:27:00+00:00
+__VALIDATE_LOG__
+--- /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconvert_validate_inputs.log
+WARNING: sample sheet SoftwareVersion 4.3.16 is newer than pinned runtime 4.0.3
+ERROR: Sample_ID HG001-a at line 21 is not present in samples.tsv
+--- /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconvert_validate_inputs.warnings.log
+missing
+__SAMPLES__
+-rw-rw-r-- 1 ubuntu ubuntu 446 Jun  3 06:23 /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/samples.tsv
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+ANA0-HG002	blood	research	male	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/	true	false	blood	na	HG002	1	1	/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/controls/giab/snv/v4.2.1/HG002/
+__SAMPLESHEET_SAMPLE_IDS__
+sample_ids_count 0
+sample_ids_unique 
+

@@ -1,0 +1,25 @@
+timestamp_utc	2026-06-03T07:16:13Z
+headnode_tmux_session	glances_i192bigmem_dy_all_1_20260603
+ssh_target	i192bigmem-dy-all-1
+slurm_job	47
+
+== captured glances summary ==
+host	i192bigmem-dy-all-1
+platform	Ubuntu 22.04 64bit / Linux 6.8.0-1029-aws
+cpu_model	Intel(R) Xeon(R) Platinum 8488C
+cpu_count	192-core
+cpu_overall	0.0%
+mem_used	15.3G
+mem_total	1.45T
+swap_used	0
+load_1min	0.17
+load_5min	0.20
+load_15min	0.23
+observed_process	bcl-convert --bcl-input-directory /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4 --output-directory /dev/shm/dayoa_bclconvert/...
+observed_bcl_convert_cpu	0.0%
+observed_bcl_convert_rss	392M
+observed_bcl_convert_state	I
+
+== note ==
+The glances pane is live. Attach from the headnode with:
+tmux attach -t glances_i192bigmem_dy_all_1_20260603

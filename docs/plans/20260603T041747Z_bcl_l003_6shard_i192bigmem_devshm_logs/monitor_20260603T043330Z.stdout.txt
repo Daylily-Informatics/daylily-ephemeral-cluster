@@ -1,0 +1,37 @@
+command_id=7b1620ea-6957-41f0-8393-3e9e9b75060b
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T04:33:53+00:00
+__QUEUE__
+JOBID              PARTITION    NAME                                                                   USER     ST TIME       NODES  NODELIST(REASON)
+11                 i192bigmem   run_bclconvert_tile_shard-run_bclconvert_L003_0002_tiles0132-0262      ubuntu   CF 2:02       1      i192bigmem-dy-all-1
+12                 i192bigmem   run_bclconvert_tile_shard-run_bclconvert_L003_0004_tiles0394-0524      ubuntu   PD 0:00       1      (Resources)
+13                 i192bigmem   run_bclconvert_tile_shard-run_bclconvert_L003_0006_tiles0655-0784      ubuntu   PD 0:00       1      (Priority)
+14                 i192bigmem   run_bclconvert_tile_shard-run_bclconvert_L003_0001_tiles0001-0131      ubuntu   PD 0:00       1      (Priority)
+15                 i192bigmem   run_bclconvert_tile_shard-run_bclconvert_L003_0003_tiles0263-0393      ubuntu   PD 0:00       1      (Priority)
+16                 i192bigmem   run_bclconvert_tile_shard-run_bclconvert_L003_0005_tiles0525-0654      ubuntu   PD 0:00       1      (Priority)
+__I192BIGMEM__
+PARTITION AVAIL NODES STATE CPUS MEMORY GRES NODELIST REASON
+i192bigmem up 1 alloc# 192 1494220 (null) i192bigmem-dy-all-1 none
+NODELIST STATE CPUS MEMORY GRES REASON
+i192bigmem-dy-all-1 alloc# 192 1494220 (null) none
+__TMUX_EXIT_MARKERS__
+lock, exclusive=, constraint=, exclude=, include=
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+Submitted job 5 with external jobid '11'.
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+Submitted job 7 with external jobid '12'.
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+Submitted job 9 with external jobid '13'.
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+Submitted job 4 with external jobid '14'.
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+Submitted job 6 with external jobid '15'.
+lock, exclusive=--exclusive, constraint=, exclude=, include=
+Submitted job 8 with external jobid '16'.
+__RUN_LOGS__
+__DEST_COUNTS__
+fastq_count=0
+/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm/benchmarks/bclconvert_validate_inputs.bench.tsv
+211K	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm
+

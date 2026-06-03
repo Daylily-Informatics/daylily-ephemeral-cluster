@@ -1,0 +1,71 @@
+COMMAND_ID=8f165fde-2555-451a-a019-91ca1fd797c3
+STATUS=Success
+RC=0
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T06:14:12+00:00
+__HOST__=ip-10-0-0-235
+__WHOAMI__=ubuntu
+__SQUEUE__
+             JOBID    PARTITION                                                                             NAME       USER ST       TIME  NODES NODELIST(REASON)
+__SQUEUE_RC__=0
+__DAYOA_BCL_PROCS__
+__TMUX_SESSIONS__
+bcl2fq_scratch_dra_20260603T011121Z: 1 windows (created Wed Jun  3 01:18:13 2026)
+dayoa_bcl_l003_6shard_i192bigmem_devshm_20260603: 1 windows (created Wed Jun  3 04:29:04 2026)
+__SINFO_BCL__
+NODELIST|PARTITION|STATE|CPUS(A/I/O/T)|MEMORY|AVAIL_FEATURES|REASON
+bcl2fq-dy-nvme48-1|bcl2fq|idle~|0/48/0/48|373555|dynamic,nvme48|Enabling node since insufficient capacity timeout expired
+bcl2fq-dy-nvme48-2|bcl2fq|idle~|0/48/0/48|373555|dynamic,nvme48|Enabling node since insufficient capacity timeout expired
+bcl2fq-dy-nvme48-3|bcl2fq|idle~|0/48/0/48|373555|dynamic,nvme48|Enabling node since insufficient capacity timeout expired
+bcl2fq-dy-nvme48-4|bcl2fq|idle~|0/48/0/48|373555|dynamic,nvme48|Enabling node since insufficient capacity timeout expired
+bcl2fq-dy-nvme64-1|bcl2fq|idle~|0/64/0/64|498073|dynamic,i4i.16xlarge,nvme64|Scheduler health check failed
+bcl2fq-dy-nvme64-2|bcl2fq|idle~|0/64/0/64|498073|dynamic,i4i.16xlarge,nvme64|Scheduler health check failed
+bcl2fq-dy-nvme64-3|bcl2fq|idle~|0/64/0/64|498073|dynamic,i4i.16xlarge,nvme64|Scheduler health check failed
+bcl2fq-dy-nvme64-4|bcl2fq|idle~|0/64/0/64|498073|dynamic,i4i.16xlarge,nvme64|Scheduler health check failed
+bcl2fq-dy-nvme96-1|bcl2fq|idle~|0/96/0/96|747110|dynamic,nvme96|Enabling node since insufficient capacity timeout expired
+bcl2fq-dy-nvme96-2|bcl2fq|idle~|0/96/0/96|747110|dynamic,nvme96|Enabling node since insufficient capacity timeout expired
+bcl2fq-dy-nvme96-3|bcl2fq|idle~|0/96/0/96|747110|dynamic,nvme96|Enabling node since insufficient capacity timeout expired
+bcl2fq-dy-nvme96-4|bcl2fq|idle~|0/96/0/96|747110|dynamic,nvme96|Enabling node since insufficient capacity timeout expired
+bcl2fq-dy-nvme128-1|bcl2fq|idle~|0/128/0/128|996147|dynamic,i4i.32xlarge,nvme128|Scheduler health check failed
+bcl2fq-dy-nvme128-2|bcl2fq|idle~|0/128/0/128|996147|dynamic,i4i.32xlarge,nvme128|Scheduler health check failed
+bcl2fq-dy-nvme128-3|bcl2fq|idle~|0/128/0/128|996147|dynamic,i4i.32xlarge,nvme128|Scheduler health check failed
+bcl2fq-dy-nvme128-4|bcl2fq|idle~|0/128/0/128|996147|dynamic,i4i.32xlarge,nvme128|Scheduler health check failed
+i192bigmem-dy-all-1|i192bigmem|idle~|0/192/0/192|1494220|dynamic,all|none
+__DEST_SUMMARIES__
+DEST=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+fastq_files=0
+done_markers=1
+total_files=14
+214K	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert
+DEST=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_scratch_test
+fastq_files=0
+done_markers=1
+total_files=7
+211K	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_scratch_test
+DEST=/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm
+fastq_files=0
+done_markers=1
+total_files=12
+214K	/fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bclconvert_l003_6shard_i192bigmem_devshm
+__REMOTE_ARG_CONTRACT__
+WORKSET=/fsx/analysis_results/dyec0602bcl/bcl2fq_scratch_dra_dayoa_20260603/daylily-omics-analysis
+541:        force="-f" if BCL_FORCE else "",
+603:        force="-f" if BCL_FORCE else "",
+23:force_arg="${20}"
+136:if [[ -n "$force_arg" ]]; then
+137:  bcl_flags+=("$force_arg")
+WORKSET=/fsx/analysis_results/dyec0602bcl/bcl_l003_bcl2fq_scratch_20260603T033830Z/daylily-omics-analysis
+541:        force="-f" if BCL_FORCE else "",
+603:        force="-f" if BCL_FORCE else "",
+23:force_arg="${20}"
+136:if [[ -n "$force_arg" ]]; then
+137:  bcl_flags+=("$force_arg")
+WORKSET=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_20260603T041747Z/daylily-omics-analysis
+543:        force_arg="-f" if BCL_FORCE else "__dayoa_no_force__",
+561:        "{params.force_arg:q} {threads:q} {log:q} {output.fastq_list:q} "
+608:        force_arg="-f" if BCL_FORCE else "__dayoa_no_force__",
+626:        "{params.force_arg:q} {threads:q} {log:q} {output.fastq_list:q} "
+23:force_arg="${20}"
+155:if [[ -n "$force_arg" ]]; then
+156:  bcl_flags+=("$force_arg")

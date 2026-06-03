@@ -1,0 +1,131 @@
+command_id=6e958c97-5e47-4778-ba68-fd3091cd0a75
+DAY-EC activated.
+DAY-EC activated.
+__DATE__=2026-06-03T06:29:24+00:00
+__PANE__
+        bcl_extra_args=
+        if [ -n "$bcl_extra_args" ]; then
+            echo "bclconvert.extra_args is not supported in this shell-only boot
+strap workflow" >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_fr
+om_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconver
+t_validate_inputs.log
+            exit 2
+        fi
+        python workflow/scripts/parse_bclconvert_samplesheet.py \
+          --sample-sheet /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/Sa
+mpleSheet.csv \
+          --samples-tsv /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bi
+gmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/samples.tsv \
+          --normalized-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/
+fasts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/normal
+ized.SampleSheet.csv \
+          --rows-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_
+from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/tables/sampl
+esheet_rows.tsv \
+          --runtime-version 4.0.3 \
+          --sampleproject-subdirectories false \
+          --warnings-out /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fa
+sts_from_bclconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bcl
+convert_validate_inputs.warnings.log \
+          >> /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bcl
+convert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/bclconvert_vali
+date_inputs.log 2>&1
+        touch /fsx/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/fasts_from_bc
+lconvert_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/logs/validated.ok
+
+        (one of the commands exited with non-zero exit code; note that snakemake
+ uses bash strict mode!)
+
+Exiting because a job execution failed. Look above for error message
+
+        Womp Womp.  something went awry----
+RETURN CODE: 1
+__LIVE_ARGFIX_EXIT__=1
+[Dslu](DAYOA) dy-r produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime
+--configfile config/bclconvert_l003_6shard_i192bigmem_devshm_argfix.yaml; printf
+ "__LIVE_ARGFIX2_EXIT__=%s\n" "$?"
+Your config files in /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigme
+m_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/day_profiles/slurm
+are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard
+_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/day_profi
+les/slurm produce_bclconvert_fastqs -p -k -j 10 --rerun-triggers mtime --configf
+ile config/bclconvert_l003_6shard_i192bigmem_devshm_argfix.yaml
+Config file config/global.yaml is extended by additional config specified via th
+e command line.
+loading global: /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_dev
+shm_argfix_20260603T0620Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified
+via the command line.
+loading profile rule_config: /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i
+192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/day_profile
+s/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional
+ config specified via the command line.
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+SNV Callers (final): []
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/dyec0
+602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-ana
+lysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/dyec060
+2bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analy
+sis/config/units.tsv
+Building DAG of jobs...
+LockException:
+Error: Directory cannot be locked. Please make sure that no other Snakemake proc
+ess is trying to create the same files in the following directory:
+/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260
+603T0620Z/daylily-omics-analysis
+If you are sure that no other instances of snakemake are running on this directo
+ry, the remaining lock was likely caused by a kill signal or a power loss. It ca
+n be removed with the --unlock argument.
+RETURN CODE: 1
+__LIVE_ARGFIX2_EXIT__=1
+[Dslu](DAYOA) dy-r --unlock --configfile config/bclconvert_l003_6shard_i192bigme
+m_devshm_argfix.yaml; printf "__UNLOCK_ARGFIX_EXIT__=%s\n" "$?"
+Your config files in /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigme
+m_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/day_profiles/slurm
+are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/dyec0602bcl/bcl_l003_6shard
+_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/day_profi
+les/slurm --unlock --configfile config/bclconvert_l003_6shard_i192bigmem_devshm_
+argfix.yaml
+Config file config/global.yaml is extended by additional config specified via th
+e command line.
+loading global: /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i192bigmem_dev
+shm_argfix_20260603T0620Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified
+via the command line.
+loading profile rule_config: /fsx/analysis_results/dyec0602bcl/bcl_l003_6shard_i
+192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analysis/config/day_profile
+s/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional
+ config specified via the command line.
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+SNV Callers (final): []
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/dyec0
+602bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-ana
+lysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/dyec060
+2bcl/bcl_l003_6shard_i192bigmem_devshm_argfix_20260603T0620Z/daylily-omics-analy
+sis/config/units.tsv
+Unlocking working directory.
+
+__LOCKS_AFTER_SEND__
+

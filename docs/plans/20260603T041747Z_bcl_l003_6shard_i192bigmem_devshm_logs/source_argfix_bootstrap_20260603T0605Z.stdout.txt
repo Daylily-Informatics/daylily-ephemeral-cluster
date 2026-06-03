@@ -1,0 +1,26 @@
+==========================================
+BCL Convert Bootstrap Test Suite
+==========================================
+
+[0;32mPASS[0m: parse valid BCL Convert sample sheet fixture and warn-only on version mismatch
+[0;32mPASS[0m: preserve Index and Index2 as strings
+[0;32mPASS[0m: reject duplicate (Lane, Sample_ID, Index, Index2)
+[0;32mPASS[0m: validate Sample_ID values against samples.tsv
+[0;32mPASS[0m: reject sample sheets missing required sections
+[0;32mPASS[0m: generate generated.units.tsv from stub fastq_list.csv
+[0;32mPASS[0m: summarize stub Demultiplex_Stats.csv and preserve Undetermined rows
+[0;32mPASS[0m: accept header-only Index_Hopping_Counts.csv
+[1;33mINFO[0m: snakemake not available; using static bootstrap gating assertions
+[0;32mPASS[0m: allow blank or missing units.tsv only for bootstrap targets
+[1;33mINFO[0m: snakemake not available; using static non-bootstrap gating assertions
+[0;32mPASS[0m: keep non-bootstrap targets failing on blank or missing units.tsv
+[0;32mPASS[0m: verify nf-core container invocation and shell-only new rules
+
+==========================================
+Test Results
+==========================================
+Total:  11
+Passed: 11
+Failed: 0
+==========================================
+exit=0

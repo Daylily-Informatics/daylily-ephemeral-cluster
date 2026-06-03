@@ -1,0 +1,321 @@
+diff --git a/tests/test_bclconvert_bootstrap.sh b/tests/test_bclconvert_bootstrap.sh
+index 5be2191..672595e 100644
+--- a/tests/test_bclconvert_bootstrap.sh
++++ b/tests/test_bclconvert_bootstrap.sh
+@@ -562,6 +562,9 @@ assert "DAYOA_BCLCONVERT_LANE_SPLIT = True" in text
+ assert "DAYOA_BCLCONVERT_TILE_SHARDS = True" in text
+ assert "BCL_MERGE_LANE_FASTQS" in text
+ assert "BCL_MERGE_TILE_FASTQS" in text
++assert "BCL_CONSTRAINT" in text
++assert "BCL_SCRATCH_OUTPUT_ROOT" in text
++assert "BCL_SCRATCH_AVAILABLE_BYTES_MIN" in text
+ assert "BCL_SHARED_THREAD_ODIRECT_OUTPUT_RAW" in text
+ assert "BCL_TILE_SHARDING_ACTIVE" in text
+ assert "rule run_bclconvert_lane:" in text
+diff --git a/tests/test_bclconvert_multiqc.py b/tests/test_bclconvert_multiqc.py
+index d093eed..b3f7b38 100644
+--- a/tests/test_bclconvert_multiqc.py
++++ b/tests/test_bclconvert_multiqc.py
+@@ -54,8 +54,11 @@ def test_bclconvert_rule_exports_metrics_to_genome_build_multiqc_dir() -> None:
+     assert 'BCL_TILE_SHARD_REGEX = "|".join(re.escape(row["shard"])' in rule
+     assert 'BCL_MERGE_LANE_FASTQS = _bool(BCLCFG.get("merge_lane_fastqs", False), False)' in rule
+     assert 'BCL_MERGE_TILE_FASTQS = _bool(BCLCFG.get("merge_tile_fastqs", False), False)' in rule
+-    assert 'BCL_SHARED_THREAD_ODIRECT_OUTPUT_RAW = BCLCFG.get("shared_thread_odirect_output", "auto")' in rule
+-    assert "BCL_SHARED_THREAD_ODIRECT_OUTPUT = BCL_TILE_SHARDING_ACTIVE" in rule
++    assert 'BCL_CONSTRAINT = str(BCLCFG.get("constraint", "") or "")' in rule
++    assert 'BCL_SCRATCH_OUTPUT_ROOT = str(BCLCFG.get("scratch_output_root", "") or "").rstrip("/")' in rule
++    assert 'BCL_SCRATCH_AVAILABLE_BYTES_MIN = _intish(BCLCFG.get("scratch_available_bytes_min", 0), 0)' in rule
++    assert 'BCL_SHARED_THREAD_ODIRECT_OUTPUT_RAW = BCLCFG.get("shared_thread_odirect_output", False)' in rule
++    assert "BCL_SHARED_THREAD_ODIRECT_OUTPUT = False" in rule
+     assert "rule run_bclconvert_lane:" in rule
+     assert "rule run_bclconvert_tile_shard:" in rule
+     assert "rule merge_bclconvert_tile_shards:" in rule
+@@ -73,6 +76,12 @@ def test_bclconvert_rule_exports_metrics_to_genome_build_multiqc_dir() -> None:
+     assert "--output-legacy-stats" in lane_helper
+     assert "--num-unknown-barcodes-reported" in lane_helper
+     assert "--bind /fsx:/fsx" in lane_helper
++    assert 'scratch_output_root="${27:-}"' in lane_helper
++    assert 'scratch_available_bytes_min="${28:-0}"' in lane_helper
++    assert "BCL output directory is not empty; refusing to overwrite" in lane_helper
++    assert "bclconvert.scratch_output_root must be an absolute path" in lane_helper
++    assert "BCL scratch output root free bytes below required minimum" in lane_helper
++    assert 'rsync -a --remove-source-files --human-readable --stats "$run_output_dir/" "$final_output_dir/"' in lane_helper
+     assert "ALLOWED_SETTINGS" in samplesheet_helper
+     assert "BCL_LANE_ROOT = Path(BCL_RUN_DIR)" in rule
+     assert "sample_sheet_settings_json=BCL_SAMPLE_SHEET_SETTINGS_JSON" in rule
+@@ -81,6 +90,10 @@ def test_bclconvert_rule_exports_metrics_to_genome_build_multiqc_dir() -> None:
+     assert "BCL_OUTPUT_LEGACY_STATS" in rule
+     assert "BCL_NUM_UNKNOWN_BARCODES_REPORTED" in rule
+     assert "exclusive=\"--exclusive\"" in rule
++    tile_shard_block = rule[rule.index("rule run_bclconvert_tile_shard:") :]
++    tile_shard_block = tile_shard_block.split("\nrule ", 1)[0]
++    assert 'exclusive="--exclusive"' in tile_shard_block
++    assert "scratch_available_bytes_min=BCL_SCRATCH_AVAILABLE_BYTES_MIN" in tile_shard_block
+     assert "rule bclconvert_demux_fastq_qc:" in rule
+     assert "workflow/scripts/prepare_bclconvert_demux_fastqc_inputs.py" in rule
+     assert "BCL_DEMUX_FASTQC_MQC" in rule
+@@ -186,6 +199,8 @@ def test_bclconvert_custom_data_is_registered_for_multiqc() -> None:
+         assert profile["bclconvert"]["merge_tile_fastqs"] is False
+         assert profile["bclconvert"]["tile_shard_level"] == "lane"
+         assert profile["bclconvert"]["tile_shard_lanes"] == ""
++        assert profile["bclconvert"]["constraint"] == ""
++        assert profile["bclconvert"]["scratch_output_root"] == ""
+         assert "tile_shard_threads" in profile["bclconvert"]
+         assert "tile_shard_mem_mb" in profile["bclconvert"]
+         assert "tile_parallel_tiles" in profile["bclconvert"]
+@@ -202,11 +217,12 @@ def test_bclconvert_custom_data_is_registered_for_multiqc() -> None:
+     assert slurm_bcl["threads"] == 192
+     assert slurm_bcl["mem_mb"] == 360000
+     assert slurm_bcl["partition"] == "i192mem,i192bigmem"
++    assert slurm_bcl["constraint"] == ""
+     assert slurm_bcl["parallel_tiles"] == 24
+     assert slurm_bcl["conversion_threads"] == 4
+     assert slurm_bcl["compression_threads"] == 64
+     assert slurm_bcl["decompression_threads"] == 32
+-    assert slurm_bcl["shared_thread_odirect_output"] == "auto"
++    assert slurm_bcl["shared_thread_odirect_output"] is False
+     assert slurm_bcl["demux_qc_threads"] == 32
+     assert slurm_bcl["demux_qc_mem_mb"] == 64000
+     assert slurm_bcl["tile_shard_threads"] == 48
+diff --git a/workflow/rules/bclconvert.smk b/workflow/rules/bclconvert.smk
+index 8ebd0f0..d6e8e18 100644
+--- a/workflow/rules/bclconvert.smk
++++ b/workflow/rules/bclconvert.smk
+@@ -148,13 +148,16 @@ SAMPLES_TABLE = str(
+ BCL_THREADS = _intish(BCLCFG.get("threads", 1), 1)
+ BCL_MEM_MB = _intish(BCLCFG.get("mem_mb", 3000), 3000)
+ BCL_PARTITION = str(BCLCFG.get("partition", "i192mem,i192bigmem") or "i192mem,i192bigmem")
++BCL_CONSTRAINT = str(BCLCFG.get("constraint", "") or "")
+ BCL_TMPDIR = str(BCLCFG.get("tmpdir", "/dev/shm") or "/dev/shm")
++BCL_SCRATCH_OUTPUT_ROOT = str(BCLCFG.get("scratch_output_root", "") or "").rstrip("/")
++BCL_SCRATCH_AVAILABLE_BYTES_MIN = _intish(BCLCFG.get("scratch_available_bytes_min", 0), 0)
+ BCL_PARALLEL_TILES = _intish(BCLCFG.get("parallel_tiles", 1), 1)
+ BCL_CONVERSION_THREADS = _intish(BCLCFG.get("conversion_threads", BCL_THREADS), BCL_THREADS)
+ BCL_COMPRESSION_THREADS = _intish(BCLCFG.get("compression_threads", BCL_THREADS), BCL_THREADS)
+ BCL_DECOMPRESSION_THREADS = _intish(BCLCFG.get("decompression_threads", max(1, BCL_THREADS // 2)), max(1, BCL_THREADS // 2))
+ BCL_FASTQ_GZIP_COMPRESSION_LEVEL = _intish(BCLCFG.get("fastq_gzip_compression_level", 1), 1)
+-BCL_SHARED_THREAD_ODIRECT_OUTPUT_RAW = BCLCFG.get("shared_thread_odirect_output", "auto")
++BCL_SHARED_THREAD_ODIRECT_OUTPUT_RAW = BCLCFG.get("shared_thread_odirect_output", False)
+ BCL_OUTPUT_LEGACY_STATS = _bool(BCLCFG.get("output_legacy_stats", True), True)
+ BCL_NUM_UNKNOWN_BARCODES_REPORTED = _intish(BCLCFG.get("num_unknown_barcodes_reported", 1000), 1000)
+ BCL_DEMUX_QC_THREADS = _intish(BCLCFG.get("demux_qc_threads", min(max(BCL_THREADS, 1), 32)), min(max(BCL_THREADS, 1), 32))
+@@ -389,7 +392,7 @@ BCL_TILE_SHARDS_BY_LANE = {
+ }
+ BCL_TILE_SHARDING_ACTIVE = bool(BCL_TILE_SHARD_ROWS)
+ if str(BCL_SHARED_THREAD_ODIRECT_OUTPUT_RAW).strip().lower() in {"", "auto", "none"}:
+-    BCL_SHARED_THREAD_ODIRECT_OUTPUT = BCL_TILE_SHARDING_ACTIVE
++    BCL_SHARED_THREAD_ODIRECT_OUTPUT = False
+ else:
+     BCL_SHARED_THREAD_ODIRECT_OUTPUT = _bool(BCL_SHARED_THREAD_ODIRECT_OUTPUT_RAW, False)
+ BCL_REQUESTED_LANES = [lane for lane in BCL_LANES if lane in BCL_TILE_SHARD_LANE_SET]
+@@ -512,6 +515,7 @@ rule run_bclconvert_lane:
+         BCL_THREADS
+     resources:
+         partition=BCL_PARTITION,
++        constraint=BCL_CONSTRAINT,
+         vcpu=BCL_THREADS,
+         threads=BCL_THREADS,
+         mem_mb=BCL_MEM_MB,
+@@ -522,6 +526,8 @@ rule run_bclconvert_lane:
+         run_dir=BCL_RUN_DIR,
+         container_uri=BCL_CONTAINER_URI,
+         tmpdir=BCL_TMPDIR,
++        scratch_output_root=BCL_SCRATCH_OUTPUT_ROOT,
++        scratch_available_bytes_min=BCL_SCRATCH_AVAILABLE_BYTES_MIN,
+         lane_number=lambda wildcards: str(int(wildcards.lane[1:])),
+         lane_output_dir=lambda wildcards: f"{BCL_LANE_FASTQ_ROOT}/{wildcards.lane}",
+         parallel_tiles=BCL_PARALLEL_TILES,
+@@ -553,7 +559,8 @@ rule run_bclconvert_lane:
+         "{params.output_legacy_stats:q} {params.num_unknown_barcodes_reported:q} "
+         "{params.sample_sheet_settings_json:q} {params.sample_sheet_settings_by_lane_json:q} "
+         "{params.force:q} {threads:q} {log:q} {output.fastq_list:q} "
+-        "{output.demux_stats:q} {output.done:q} \"\""
++        "{output.demux_stats:q} {output.done:q} \"\" {params.scratch_output_root:q} "
++        "{params.scratch_available_bytes_min:q}"
+ 
+ 
+ rule run_bclconvert_tile_shard:
+@@ -572,15 +579,19 @@ rule run_bclconvert_tile_shard:
+         BCL_TILE_SHARD_THREADS
+     resources:
+         partition=BCL_PARTITION,
++        constraint=BCL_CONSTRAINT,
+         vcpu=BCL_TILE_SHARD_THREADS,
+         threads=BCL_TILE_SHARD_THREADS,
+         mem_mb=BCL_TILE_SHARD_MEM_MB,
+         tmpdir=BCL_TMPDIR,
++        exclusive="--exclusive",
+     params:
+         cluster_sample=lambda wildcards: f"run_bclconvert_{wildcards.lane}_{wildcards.shard}",
+         run_dir=BCL_RUN_DIR,
+         container_uri=BCL_CONTAINER_URI,
+         tmpdir=BCL_TMPDIR,
++        scratch_output_root=BCL_SCRATCH_OUTPUT_ROOT,
++        scratch_available_bytes_min=BCL_SCRATCH_AVAILABLE_BYTES_MIN,
+         lane_number=lambda wildcards: str(int(wildcards.lane[1:])),
+         lane_output_dir=lambda wildcards: f"{BCL_TILE_FASTQ_ROOT}/{wildcards.lane}/{wildcards.shard}",
+         tile_regex=lambda wildcards: BCL_TILE_REGEX_BY_KEY[f"{wildcards.lane}/{wildcards.shard}"],
+@@ -613,7 +624,8 @@ rule run_bclconvert_tile_shard:
+         "{params.output_legacy_stats:q} {params.num_unknown_barcodes_reported:q} "
+         "{params.sample_sheet_settings_json:q} {params.sample_sheet_settings_by_lane_json:q} "
+         "{params.force:q} {threads:q} {log:q} {output.fastq_list:q} "
+-        "{output.demux_stats:q} {output.done:q} {params.tile_regex:q}"
++        "{output.demux_stats:q} {output.done:q} {params.tile_regex:q} {params.scratch_output_root:q} "
++        "{params.scratch_available_bytes_min:q}"
+ 
+ 
+ rule merge_bclconvert_tile_shards:
+@@ -645,6 +657,7 @@ rule merge_bclconvert_tile_shards:
+         1
+     resources:
+         partition=BCL_PARTITION,
++        constraint=BCL_CONSTRAINT,
+         vcpu=1,
+         threads=1,
+         mem_mb=3000,
+@@ -694,6 +707,7 @@ if BCL_MERGE_LANE_FASTQS:
+             1
+         resources:
+             partition=BCL_PARTITION,
++            constraint=BCL_CONSTRAINT,
+             vcpu=1,
+             threads=1,
+             mem_mb=3000,
+@@ -733,6 +747,7 @@ else:
+             1
+         resources:
+             partition=BCL_PARTITION,
++            constraint=BCL_CONSTRAINT,
+             vcpu=1,
+             threads=1,
+             mem_mb=3000,
+@@ -890,6 +905,7 @@ rule bclconvert_demux_fastq_qc:
+         FASTQC_ENV
+     resources:
+         partition=BCL_PARTITION,
++        constraint=BCL_CONSTRAINT,
+         vcpu=BCL_DEMUX_QC_THREADS,
+         threads=BCL_DEMUX_QC_THREADS,
+         mem_mb=BCL_DEMUX_QC_MEM_MB,
+diff --git a/workflow/scripts/run_bclconvert_lane.sh b/workflow/scripts/run_bclconvert_lane.sh
+index 59222ec..dbcb6bd 100755
+--- a/workflow/scripts/run_bclconvert_lane.sh
++++ b/workflow/scripts/run_bclconvert_lane.sh
+@@ -27,8 +27,14 @@ fastq_list="${23}"
+ demux_stats="${24}"
+ done_path="${25}"
+ tile_regex="${26:-}"
++scratch_output_root="${27:-}"
++scratch_available_bytes_min="${28:-0}"
+ 
+-mkdir -p "$lane_output_dir" "$(dirname "$lane_sample_sheet")" "$(dirname "$log_path")"
++final_output_dir="$lane_output_dir"
++run_output_dir="$final_output_dir"
++scratch_work_dir=""
++
++mkdir -p "$(dirname "$final_output_dir")" "$(dirname "$lane_sample_sheet")" "$(dirname "$log_path")"
+ : > "$log_path"
+ export TMPDIR="${TMPDIR:-/dev/shm}"
+ mkdir -p "$TMPDIR"
+@@ -36,6 +42,43 @@ if [[ ! -d "$run_dir" ]]; then
+   echo "BCL input directory does not exist: $run_dir" >> "$log_path"
+   exit 2
+ fi
++if [[ -d "$final_output_dir" ]] && find "$final_output_dir" -mindepth 1 -print -quit | grep -q .; then
++  echo "BCL output directory is not empty; refusing to overwrite: $final_output_dir" >> "$log_path"
++  exit 2
++fi
++if [[ -n "$scratch_output_root" ]]; then
++  if [[ "$scratch_output_root" != /* ]]; then
++    echo "bclconvert.scratch_output_root must be an absolute path: $scratch_output_root" >> "$log_path"
++    exit 2
++  fi
++  if [[ ! "$scratch_available_bytes_min" =~ ^[0-9]+$ ]]; then
++    echo "bclconvert.scratch_available_bytes_min must be a non-negative integer: $scratch_available_bytes_min" >> "$log_path"
++    exit 2
++  fi
++  safe_output_id="$(printf '%s' "$final_output_dir" | sed -e 's#^/##' -e 's#[^A-Za-z0-9._-]#_#g')"
++  scratch_work_dir="${scratch_output_root%/}/dayoa_bclconvert_${SLURM_JOB_ID:-manual_$$}/${safe_output_id}"
++  run_output_dir="${scratch_work_dir}/output"
++  if [[ -e "$scratch_work_dir" ]]; then
++    echo "Scratch work directory already exists; refusing to overwrite: $scratch_work_dir" >> "$log_path"
++    exit 2
++  fi
++  mkdir -p "$run_output_dir"
++  if [[ "$scratch_available_bytes_min" -gt 0 ]]; then
++    scratch_available_bytes="$(df -PB1 "$scratch_output_root" | awk 'NR == 2 {print $4}')"
++    echo "scratch_available_bytes: ${scratch_available_bytes:-<unknown>}" >> "$log_path"
++    echo "scratch_available_bytes_min: $scratch_available_bytes_min" >> "$log_path"
++    if [[ -z "$scratch_available_bytes" || ! "$scratch_available_bytes" =~ ^[0-9]+$ ]]; then
++      echo "Unable to determine free bytes for BCL scratch output root: $scratch_output_root" >> "$log_path"
++      exit 2
++    fi
++    if [[ "$scratch_available_bytes" -lt "$scratch_available_bytes_min" ]]; then
++      echo "BCL scratch output root free bytes below required minimum: available=$scratch_available_bytes required=$scratch_available_bytes_min path=$scratch_output_root" >> "$log_path"
++      exit 2
++    fi
++  fi
++else
++  mkdir -p "$run_output_dir"
++fi
+ 
+ python workflow/scripts/prepare_bclconvert_lane_samplesheet.py \
+   --sample-sheet "$sample_sheet" \
+@@ -49,8 +92,12 @@ echo "run_bclconvert_lane L$(printf '%03d' "$lane_number") started: $(date -Is)"
+ echo "host: $(hostname)" >> "$log_path"
+ echo "threads: $threads" >> "$log_path"
+ echo "TMPDIR: $TMPDIR" >> "$log_path"
++echo "scratch_output_root: ${scratch_output_root:-<none>}" >> "$log_path"
++echo "scratch_available_bytes_min: $scratch_available_bytes_min" >> "$log_path"
++echo "run_output_dir: $run_output_dir" >> "$log_path"
++echo "final_output_dir: $final_output_dir" >> "$log_path"
+ echo "bcl_input_directory: $run_dir" >> "$log_path"
+-echo "output_directory: $lane_output_dir" >> "$log_path"
++echo "output_directory: $run_output_dir" >> "$log_path"
+ echo "sample_sheet: $lane_sample_sheet" >> "$log_path"
+ echo "bcl_only_lane: $lane_number" >> "$log_path"
+ echo "tile_regex: ${tile_regex:-<none>}" >> "$log_path"
+@@ -59,9 +106,12 @@ echo "sample_sheet_settings_by_lane_json: $sample_sheet_settings_by_lane_json" >
+ echo "output_legacy_stats: $output_legacy_stats" >> "$log_path"
+ echo "num_unknown_barcodes_reported: $num_unknown_barcodes_reported" >> "$log_path"
+ nproc >> "$log_path" 2>&1 || true
+-df -h "$TMPDIR" "$run_dir" "$lane_output_dir" >> "$log_path" 2>&1 || true
++df -h "$TMPDIR" "$run_dir" "$run_output_dir" "$(dirname "$final_output_dir")" >> "$log_path" 2>&1 || true
+ command -v singularity >> "$log_path" 2>&1
+ singularity_bind_args=(--bind /fsx:/fsx)
++if [[ -n "$scratch_output_root" ]]; then
++  singularity_bind_args+=(--bind "$scratch_output_root:$scratch_output_root")
++fi
+ echo "singularity_bind_args: ${singularity_bind_args[*]}" >> "$log_path"
+ singularity exec "${singularity_bind_args[@]}" "$container_uri" bcl-convert --version >> "$log_path" 2>&1
+ 
+@@ -83,7 +133,7 @@ echo "bcl_cpu_heavy_threads: $heavy_threads" >> "$log_path"
+ 
+ bcl_flags=(
+   --bcl-input-directory "$run_dir"
+-  --output-directory "$lane_output_dir"
++  --output-directory "$run_output_dir"
+   --sample-sheet "$lane_sample_sheet"
+   --strict-mode "$strict_mode"
+   --first-tile-only "$first_tile_only"
+@@ -111,8 +161,20 @@ printf ' %q' singularity exec "${singularity_bind_args[@]}" "$container_uri" bcl
+ printf '\n' >> "$log_path"
+ singularity exec "${singularity_bind_args[@]}" "$container_uri" bcl-convert "${bcl_flags[@]}" >> "$log_path" 2>&1
+ 
++run_fastq_list="$run_output_dir/Reports/fastq_list.csv"
++run_demux_stats="$run_output_dir/Reports/Demultiplex_Stats.csv"
++test -s "$run_fastq_list"
++test -s "$run_demux_stats"
++if [[ -n "$scratch_work_dir" ]]; then
++  echo "moving BCL Convert output from scratch to final output directory: $(date -Is)" >> "$log_path"
++  mkdir -p "$final_output_dir"
++  rsync -a --remove-source-files --human-readable --stats "$run_output_dir/" "$final_output_dir/" >> "$log_path" 2>&1
++  find "$run_output_dir" -depth -type d -empty -delete 2>/dev/null || true
++  find "$scratch_work_dir" -depth -type d -empty -delete 2>/dev/null || true
++fi
+ test -s "$fastq_list"
+ test -s "$demux_stats"
+ mkdir -p "$(dirname "$done_path")"
+ touch "$done_path"
++df -h "$TMPDIR" "$run_dir" "$final_output_dir" >> "$log_path" 2>&1 || true
+ echo "run_bclconvert_lane L$(printf '%03d' "$lane_number") finished: $(date -Is)" >> "$log_path"
