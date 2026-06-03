@@ -1,0 +1,486 @@
+DAY-EC activated.
+DAY-EC activated.
+HOST=ip-10-0-0-24
+AWS_IDENTITY
+{
+    "UserId": "AROARSU7KMWVWOAMEFFTK:i-092ed82f571bfbc2f",
+    "Account": "108782052779",
+    "Arn": "arn:aws:sts::108782052779:assumed-role/dyec5128-RoleHeadNode-OPuRnHqhyjxj/i-092ed82f571bfbc2f"
+}
+DEST_CONDA_EXISTING
+                           PRE 05822a2009e78c2ce66483548c93bc90_/
+                           PRE 4ccf662e3c47c1d194250b668a918cb0_/
+                           PRE 53f40ecc487f59c0106948094149d68f_/
+                           PRE 8f9d5f2eb41496ccdbbc32d4a635e63c_/
+                           PRE 90535532b5c085f6da620d414197a1b3_/
+                           PRE b1e21e866d8f229144555d1c7a6674e4_/
+                           PRE dc7019ae2957291b7fd9955ae255a6d1_/
+2026-05-26 14:59:23         95 05822a2009e78c2ce66483548c93bc90_.yaml
+2026-05-26 15:00:33        150 4ccf662e3c47c1d194250b668a918cb0_.yaml
+2026-05-26 15:01:10        180 53f40ecc487f59c0106948094149d68f_.yaml
+2026-05-26 15:02:19         99 8f9d5f2eb41496ccdbbc32d4a635e63c_.yaml
+2026-05-26 15:02:57        213 90535532b5c085f6da620d414197a1b3_.yaml
+2026-05-26 15:06:05        200 b1e21e866d8f229144555d1c7a6674e4_.yaml
+2026-05-26 15:07:15         57 dc7019ae2957291b7fd9955ae255a6d1_.yaml
+2026-05-26 15:10:47         32 hold
+DEST_CONTAINERS_EXISTING
+2026-05-26 22:07:25  351748096 0cf0f68bb95f27c2fb097742ca8a47e7.simg
+2026-05-26 22:14:39  235851776 27d2131deefbb283d9ca695343698d4b.simg
+2026-05-26 15:10:47  111759360 c00914a60e21cceb34581232a917d832.simg
+APPTAINER_VERSION
+apptainer version 1.4.5
+APPTAINER_CACHE_LIST
+NAME                     DATE CREATED           SIZE             TYPE
+02868b9daca0f4d24dfd10   2026-06-03 12:41:52    44.16 MiB        net
+3cd87ddbb25205245b518f   2026-06-03 12:41:51    62.86 MiB        net
+958ba17c86400a87b75de8   2026-06-03 12:48:18    279.80 MiB       net
+d606e926ac8a1c4dcf4eea   2026-06-03 12:48:20    87.36 MiB        net
+fc8a81f9e8389462c3f5e1   2026-06-03 12:42:03    20.56 MiB        net
+
+There are 5 container file(s) using 494.74 MiB and 0 oci blob file(s) using 0.00 KiB of space
+Total space used: 494.74 MiB
+NET_OBJECT_INSPECTION
+ROOT=/fsx/tmp/apptainer_cache
+FILE=/fsx/tmp/apptainer_cache/cache/net/02868b9daca0f4d24dfd109e7560f9294a7eb77469438f2f56cf542d7a4f2775
+size_bytes=46305280
+a /usr/bin/env run-singularity script executable (binary data)
+INSPECT_JSON_HEAD
+{
+	"data": {
+		"attributes": {
+			"labels": {
+				"org.label-schema.build-arch": "amd64",
+				"org.label-schema.build-date": "Friday_17_January_2025_17:20:57_UTC",
+				"org.label-schema.schema-version": "1.0",
+				"org.label-schema.usage.singularity.deffile.bootstrap": "docker",
+				"org.label-schema.usage.singularity.deffile.from": "mambaorg/micromamba:1.5.10-noble",
+				"org.label-schema.usage.singularity.version": "3.11.4",
+				"org.opencontainers.image.created": "2024-09-23T16:10:59.098Z",
+				"org.opencontainers.image.description": "Rapid builds of small Conda-based containers using micromamba.",
+				"org.opencontainers.image.licenses": "Apache-2.0",
+				"org.opencontainers.image.ref.name": "ubuntu",
+				"org.opencontainers.image.revision": "37bfa82a0fc1d2085e4b722fac4f747d0fa132c5",
+				"org.opencontainers.image.source": "https://github.com/mamba-org/micromamba-docker",
+				"org.opencontainers.image.title": "micromamba-docker",
+				"org.opencontainers.image.url": "https://github.com/mamba-org/micromamba-docker",
+				"org.opencontainers.image.version": "noble"
+			}
+		}
+	},
+	"type": "container"
+}
+
+STRINGS_HINTS
+BWAb
+BWa
+BWaA
+BwA^j
+Bwa
+GaTk
+ONt
+OnT
+OnTC2
+Ont
+Ont^
+VEPm
+VEp
+VeP
+VeP2
+bWA
+bWAe9R
+bwA
+docker
+docker2singularity.sh
+docker\nFrom:
+gaTk
+oNT{
+ont
+ontainer
+ontainers
+ontainers.image.created
+ontainers.image.description
+ontainers.image.licenses
+ontainers.image.ref.name
+ontainers.image.revision
+ontainers.image.source
+ontainers.image.title
+ontainers.image.url
+ontainers.image.version
+ontext/conda.yml
+vEPW
+vEP}
+veP4U
+vePA
+FILE=/fsx/tmp/apptainer_cache/cache/net/3cd87ddbb25205245b518f7f83b83b540cb355886b211de831b72a5a3805fca2
+size_bytes=65908736
+a /usr/bin/env run-singularity script executable (binary data)
+INSPECT_JSON_HEAD
+{
+	"data": {
+		"attributes": {
+			"labels": {
+				"org.label-schema.build-arch": "amd64",
+				"org.label-schema.build-date": "Wednesday_26_March_2025_12:20:30_UTC",
+				"org.label-schema.schema-version": "1.0",
+				"org.label-schema.usage.singularity.deffile.bootstrap": "docker",
+				"org.label-schema.usage.singularity.deffile.from": "mambaorg/micromamba:1.5.10-noble",
+				"org.label-schema.usage.singularity.version": "3.11.4",
+				"org.opencontainers.image.created": "2024-09-23T16:10:59.098Z",
+				"org.opencontainers.image.description": "Rapid builds of small Conda-based containers using micromamba.",
+				"org.opencontainers.image.licenses": "Apache-2.0",
+				"org.opencontainers.image.ref.name": "ubuntu",
+				"org.opencontainers.image.revision": "37bfa82a0fc1d2085e4b722fac4f747d0fa132c5",
+				"org.opencontainers.image.source": "https://github.com/mamba-org/micromamba-docker",
+				"org.opencontainers.image.title": "micromamba-docker",
+				"org.opencontainers.image.url": "https://github.com/mamba-org/micromamba-docker",
+				"org.opencontainers.image.version": "noble"
+			}
+		}
+	},
+	"type": "container"
+}
+
+STRINGS_HINTS
+BWa
+BwA
+BwATSw
+BwA^j
+Bwa
+BwaO
+GaTk
+ONT
+ONTy
+ONt
+OnTC2
+OnTx
+OnTzh
+Ont
+VEPm
+VEp
+VeP
+VeP2
+VePB
+bWA
+bWAe9R
+bwA
+bwAhz
+bwa
+docker
+docker2singularity.sh
+docker\nFrom:
+gaTk
+oNT{
+onT
+onTM
+onTjq
+ont
+ontainer
+ontainers
+ontainers.image.created
+ontainers.image.description
+ontainers.image.licenses
+ontainers.image.ref.name
+ontainers.image.revision
+ontainers.image.source
+ontainers.image.title
+ontainers.image.url
+ontainers.image.version
+ontext/conda.yml
+vEPW
+vEP}
+vEP~ML
+vePA
+FILE=/fsx/tmp/apptainer_cache/cache/net/958ba17c86400a87b75de85c3946fb7d4ef91295774d2c9564627f3be40e05b8
+size_bytes=293392384
+a /usr/bin/env run-singularity script executable (binary data)
+INSPECT_JSON_HEAD
+{
+	"data": {
+		"attributes": {
+			"labels": {
+				"org.label-schema.build-arch": "amd64",
+				"org.label-schema.build-date": "Saturday_4_March_2023_18:43:18_UTC",
+				"org.label-schema.schema-version": "1.0",
+				"org.label-schema.usage.singularity.deffile.bootstrap": "docker",
+				"org.label-schema.usage.singularity.deffile.from": "quay.io/biocontainers/fastqc:0.12.1--hdfd78af_0",
+				"org.label-schema.usage.singularity.version": "3.8.3"
+			}
+		}
+	},
+	"type": "container"
+}
+
+STRINGS_HINTS
+BWA
+BWA%
+BWA)M
+BWA=
+BWA@
+BWAA
+BWAC
+BWALH
+BWAT
+BWAWC
+BWAf
+BWAt
+BWa
+BWa)
+BWa+
+BWa?
+BWaL
+BWaVsS*j
+BWaY
+BWaZR
+BWan3
+BWa~
+BwA
+BwA7r
+BwAA
+BwAV)
+BwAW
+BwAY
+BwAj
+BwAq
+BwAwC
+BwAwa81
+Bwa
+Bwa&
+BwaG
+BwaZaz
+Bway
+GATk
+Library
+ONT
+ONT(
+ONT)
+ONT0
+ONT?
+ONTK
+ONTU
+ONT]
+ONTl
+ONTn
+ONt
+ONtQO
+ONtS
+ONtW
+ONtW,N
+ONtd
+ONtf$
+ONtw6
+ORASc
+OnT
+OnT?)
+OnTN
+Ont9
+Ont:k
+Ont=
+OntH[
+OntL
+OntZ
+Ontb1
+QUayP
+QuaYtN
+VEP
+VEP6a
+VEPX
+VEPg
+VEP|0
+VEp
+VEp*
+VEp8
+VEpA
+VEpi
+VeP
+VeP$hu
+VePF=un
+VePH!Q
+VePu2
+VeP{
+Vep
+Vep*
+Vep9
+VepZ
+Vepk
+Vepo
+Vep|U
+bWA
+bWA5
+bWAN
+bWAz
+bWa
+bWa*#
+bWa-
+bWa2
+bWaE
+bWaEp(
+bWaH
+bWar
+bWav
+bWaw
+bwA
+bwA&
+bwA)
+bwA5
+bwA87Hj
+bwAG
+bwAK
+bwAUkYoqP
+bwAcj
+bwa
+bwa0
+bwaA
+bwaO
+FILE=/fsx/tmp/apptainer_cache/cache/net/d606e926ac8a1c4dcf4eea949675ac77095a4647694a248431fa0d9a5ae58c95
+size_bytes=91607040
+a /usr/bin/env run-singularity script executable (binary data)
+INSPECT_JSON_HEAD
+{
+	"data": {
+		"attributes": {
+			"labels": {
+				"org.label-schema.build-arch": "amd64",
+				"org.label-schema.build-date": "Tuesday_25_March_2025_13:27:59_UTC",
+				"org.label-schema.schema-version": "1.0",
+				"org.label-schema.usage.singularity.deffile.bootstrap": "docker",
+				"org.label-schema.usage.singularity.deffile.from": "mambaorg/micromamba:1.5.10-noble",
+				"org.label-schema.usage.singularity.version": "3.11.4",
+				"org.opencontainers.image.created": "2024-09-23T16:10:59.098Z",
+				"org.opencontainers.image.description": "Rapid builds of small Conda-based containers using micromamba.",
+				"org.opencontainers.image.licenses": "Apache-2.0",
+				"org.opencontainers.image.ref.name": "ubuntu",
+				"org.opencontainers.image.revision": "37bfa82a0fc1d2085e4b722fac4f747d0fa132c5",
+				"org.opencontainers.image.source": "https://github.com/mamba-org/micromamba-docker",
+				"org.opencontainers.image.title": "micromamba-docker",
+				"org.opencontainers.image.url": "https://github.com/mamba-org/micromamba-docker",
+				"org.opencontainers.image.version": "noble"
+			}
+		}
+	},
+	"type": "container"
+}
+
+STRINGS_HINTS
+BWAt
+BWa
+BwA
+BwATSw
+BwAV)
+BwA^j
+Bwa
+BwaO
+GaTk
+ONT
+ONT0
+ONTy
+ONt
+OnT?)
+OnTC2
+OnTx
+OnTzh
+Ont
+Ont9
+Ontb1
+VEPm
+VEp
+VeP
+VeP$hu
+VeP2
+VePB
+Vep
+VepI
+Vep|U
+bWA
+bWAe9R
+bwA
+bwAK
+bwAhz
+bwa
+bwaY
+docker
+docker2singularity.sh
+docker\nFrom:
+gaTk
+oNT
+oNTN|q
+oNT{
+oNt
+onT
+onTM
+onTjq
+ont
+ontainer
+ontainers
+ontainers.image.created
+ontainers.image.description
+ontainers.image.licenses
+ontainers.image.ref.name
+ontainers.image.revision
+ontainers.image.source
+ontainers.image.title
+ontainers.image.url
+ontainers.image.version
+ontext/conda.yml
+vEP
+vEP(
+vEPW
+vEP}
+vEP~ML
+vePA
+FILE=/fsx/tmp/apptainer_cache/cache/net/fc8a81f9e8389462c3f5e143e349473fc235c41aec9b5dfff03e97ca8ad4e990
+size_bytes=21561344
+a /usr/bin/env run-singularity script executable (binary data)
+INSPECT_JSON_HEAD
+{
+	"data": {
+		"attributes": {
+			"labels": {
+				"bash": "GNU bash, version 5.2.15(1)-release (x86_64-pc-linux-gnu)",
+				"busybox": "BusyBox v1.36.1 (2023-10-17 11:19:33 UTC) multi-call binary.",
+				"deb-list": "gcc-12-base_12.2.0-14_amd64.deb|libc6_2.36-9+deb12u3_amd64.deb|libgcc-s1_12.2.0-14_amd64.deb|base-passwd_3.6.1_amd64.deb|bash_5.2.15-2+b2_amd64.deb|libc-bin_2.36-9+deb12u3_amd64.deb|libcrypt1_1%3a4.4.33-2_amd64.deb|libtinfo6_6.4-4_amd64.deb|login_1%3a4.13+dfsg1-1+b1_amd64.deb|ncurses-base_6.4-4_all.deb|base-files_12.4+deb12u2_amd64.deb",
+				"glibc": "GNU C Library (Debian GLIBC 2.36-9+deb12u3) stable release version 2.36.",
+				"io.buildah.version": "1.23.1",
+				"org.label-schema.build-arch": "amd64",
+				"org.label-schema.build-date": "Friday_1_March_2024_6:35:59_UTC",
+				"org.label-schema.schema-version": "1.0",
+				"org.label-schema.usage.singularity.deffile.bootstrap": "docker",
+				"org.label-schema.usage.singularity.deffile.from": "quay.io/bioconda/base-glibc-busybox-bash:latest",
+				"org.label-schema.usage.singularity.version": "3.10.4",
+				"pkg-list": "gcc-12-base|libc6|libgcc-s1|base-passwd|bash|libc-bin|libcrypt1|libtinfo6|login|ncurses-base|base-files"
+			}
+		}
+	},
+	"type": "container"
+}
+
+STRINGS_HINTS
+Library
+ONT?
+OnT
+OnTbkZ
+OntZ
+Ont|
+VEP
+VEP~
+VEp
+VEp8
+VePF3
+Vep
+bWa
+bWav
+bwAG
+docker
+docker2singularity.sh
+docker\nFrom:
+oNT
+onT
+onT5
+ont
+ontainer
+ontr
+quay.io/bioconda/base-glibc-busybox-bash:latest
+quay.io/bioconda/base-glibc-busybox-bash:latest\n\n%setup\n\n
+vep
+ROOT=/fsx/tnmp/apptainer_cache
+ABSENT
+

@@ -114,7 +114,7 @@ def test_day_clone_short_destination_and_tag_clone_default_repository(monkeypatc
 
     monkeypatch.setattr(module.subprocess, "run", fake_run)
 
-    rc = module.main(["-d", "analysis", "-t", "2.0.41"])
+    rc = module.main(["-d", "analysis", "-t", "2.0.42"])
 
     assert rc == 0
     assert clone_calls == [
@@ -122,7 +122,7 @@ def test_day_clone_short_destination_and_tag_clone_default_repository(monkeypatc
             "git",
             "clone",
             "--branch",
-            "2.0.41",
+            "2.0.42",
             "https://github.com/Daylily-Informatics/test-repo.git",
             str(clone_root / "dyec-515" / "analysis" / "test-repo"),
         ]
@@ -134,7 +134,7 @@ def test_day_clone_short_tag_still_requires_destination(monkeypatch, tmp_path, c
     global_config, available_repos, _clone_root = _write_configs(tmp_path)
     _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
 
-    rc = module.main(["-t", "2.0.41"])
+    rc = module.main(["-t", "2.0.42"])
 
     assert rc == 1
     assert "--destination (-d) is required" in capsys.readouterr().err

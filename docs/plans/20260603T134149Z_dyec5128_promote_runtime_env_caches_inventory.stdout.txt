@@ -1,0 +1,245 @@
+DAY-EC activated.
+DAY-EC activated.
+INVENTORY_TS=2026-06-03T13:43:07Z
+HOST=ip-10-0-0-24
+SQUEUE
+JOBID|PARTITION|NAME|USER|STATE|TIME|NODES|NODELIST(REASON)|CPUS|MIN_MEMORY
+107|bcl2fq-i384-nvme-test|bwa_mem2_sort-Irl1-HG003-30x-150bpA-0-DBC6-PCR-FREE-ILMN-NOVASEQ|ubuntu|RUNNING|52:47|1|bcl2fq-i384-nvme-test-dy-c8id384-2|384|650000M
+SHARED_CACHE_CONDA
+d	05822a2009e78c2ce66483548c93bc90_	/fsx/references/runtime_assets/cached_envs/conda/05822a2009e78c2ce66483548c93bc90_	
+d	4ccf662e3c47c1d194250b668a918cb0_	/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_	
+d	53f40ecc487f59c0106948094149d68f_	/fsx/references/runtime_assets/cached_envs/conda/53f40ecc487f59c0106948094149d68f_	
+d	8f9d5f2eb41496ccdbbc32d4a635e63c_	/fsx/references/runtime_assets/cached_envs/conda/8f9d5f2eb41496ccdbbc32d4a635e63c_	
+d	90535532b5c085f6da620d414197a1b3_	/fsx/references/runtime_assets/cached_envs/conda/90535532b5c085f6da620d414197a1b3_	
+d	b1e21e866d8f229144555d1c7a6674e4_	/fsx/references/runtime_assets/cached_envs/conda/b1e21e866d8f229144555d1c7a6674e4_	
+d	dc7019ae2957291b7fd9955ae255a6d1_	/fsx/references/runtime_assets/cached_envs/conda/dc7019ae2957291b7fd9955ae255a6d1_	
+f	05822a2009e78c2ce66483548c93bc90_.yaml	/fsx/references/runtime_assets/cached_envs/conda/05822a2009e78c2ce66483548c93bc90_.yaml	
+f	4ccf662e3c47c1d194250b668a918cb0_.yaml	/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_.yaml	
+f	53f40ecc487f59c0106948094149d68f_.yaml	/fsx/references/runtime_assets/cached_envs/conda/53f40ecc487f59c0106948094149d68f_.yaml	
+f	8f9d5f2eb41496ccdbbc32d4a635e63c_.yaml	/fsx/references/runtime_assets/cached_envs/conda/8f9d5f2eb41496ccdbbc32d4a635e63c_.yaml	
+f	90535532b5c085f6da620d414197a1b3_.yaml	/fsx/references/runtime_assets/cached_envs/conda/90535532b5c085f6da620d414197a1b3_.yaml	
+f	b1e21e866d8f229144555d1c7a6674e4_.yaml	/fsx/references/runtime_assets/cached_envs/conda/b1e21e866d8f229144555d1c7a6674e4_.yaml	
+f	dc7019ae2957291b7fd9955ae255a6d1_.yaml	/fsx/references/runtime_assets/cached_envs/conda/dc7019ae2957291b7fd9955ae255a6d1_.yaml	
+f	hold	/fsx/references/runtime_assets/cached_envs/conda/hold	
+SHARED_CACHE_CONTAINERS
+f	0cf0f68bb95f27c2fb097742ca8a47e7.simg	/fsx/references/runtime_assets/cached_envs/containers/0cf0f68bb95f27c2fb097742ca8a47e7.simg	
+f	27d2131deefbb283d9ca695343698d4b.simg	/fsx/references/runtime_assets/cached_envs/containers/27d2131deefbb283d9ca695343698d4b.simg	
+f	c00914a60e21cceb34581232a917d832.simg	/fsx/references/runtime_assets/cached_envs/containers/c00914a60e21cceb34581232a917d832.simg	
+LOCAL_CONDA_CANDIDATES
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/0b1aa0bf84b641b1fca3480164585362_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/0b1aa0bf84b641b1fca3480164585362_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/0b1aa0bf84b641b1fca3480164585362_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/0b1aa0bf84b641b1fca3480164585362_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/0b1aa0bf84b641b1fca3480164585362_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/0b1aa0bf84b641b1fca3480164585362_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/0b1aa0bf84b641b1fca3480164585362_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/0b1aa0bf84b641b1fca3480164585362_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/0b1aa0bf84b641b1fca3480164585362_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/0b1aa0bf84b641b1fca3480164585362_/x86_64-conda-linux-gnu	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/299e0fbc02639cada3d27463747d90ee_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/299e0fbc02639cada3d27463747d90ee_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/299e0fbc02639cada3d27463747d90ee_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/299e0fbc02639cada3d27463747d90ee_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/299e0fbc02639cada3d27463747d90ee_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/299e0fbc02639cada3d27463747d90ee_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/299e0fbc02639cada3d27463747d90ee_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/299e0fbc02639cada3d27463747d90ee_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/299e0fbc02639cada3d27463747d90ee_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/386784e83dca731ed0bee02ad1e29b2e_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/386784e83dca731ed0bee02ad1e29b2e_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/386784e83dca731ed0bee02ad1e29b2e_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/386784e83dca731ed0bee02ad1e29b2e_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/386784e83dca731ed0bee02ad1e29b2e_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/386784e83dca731ed0bee02ad1e29b2e_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/386784e83dca731ed0bee02ad1e29b2e_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/386784e83dca731ed0bee02ad1e29b2e_/x86_64-conda-linux-gnu	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/4e50312f9c958dfca057b2c605426602_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/4e50312f9c958dfca057b2c605426602_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/4e50312f9c958dfca057b2c605426602_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/4e50312f9c958dfca057b2c605426602_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/4e50312f9c958dfca057b2c605426602_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/4e50312f9c958dfca057b2c605426602_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/4e50312f9c958dfca057b2c605426602_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/4e50312f9c958dfca057b2c605426602_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/4e50312f9c958dfca057b2c605426602_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5054602efe27c1789764b4b6065a11d6_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5054602efe27c1789764b4b6065a11d6_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5054602efe27c1789764b4b6065a11d6_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5054602efe27c1789764b4b6065a11d6_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5054602efe27c1789764b4b6065a11d6_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5054602efe27c1789764b4b6065a11d6_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5054602efe27c1789764b4b6065a11d6_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5054602efe27c1789764b4b6065a11d6_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5054602efe27c1789764b4b6065a11d6_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5b93cf1d179903b1bf3ce7b68514bf72_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5b93cf1d179903b1bf3ce7b68514bf72_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5b93cf1d179903b1bf3ce7b68514bf72_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5b93cf1d179903b1bf3ce7b68514bf72_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5b93cf1d179903b1bf3ce7b68514bf72_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5b93cf1d179903b1bf3ce7b68514bf72_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5b93cf1d179903b1bf3ce7b68514bf72_/man	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5b93cf1d179903b1bf3ce7b68514bf72_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5b93cf1d179903b1bf3ce7b68514bf72_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/5b93cf1d179903b1bf3ce7b68514bf72_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_/man	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/608d52898d6f0fe50a35015ee2955834_/x86_64-conda-linux-gnu	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/650f152e7cc096c99ec308ec652b338a_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/650f152e7cc096c99ec308ec652b338a_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/650f152e7cc096c99ec308ec652b338a_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/650f152e7cc096c99ec308ec652b338a_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/650f152e7cc096c99ec308ec652b338a_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/650f152e7cc096c99ec308ec652b338a_/man	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/650f152e7cc096c99ec308ec652b338a_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/650f152e7cc096c99ec308ec652b338a_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/650f152e7cc096c99ec308ec652b338a_/x86_64-conda-linux-gnu	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_/compiler_compat	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6a98d5a34ca1b5ab4b0a831930b7bb10_/x86_64-conda-linux-gnu	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6e599cfa2e57aebd626e37eb557a3324_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6e599cfa2e57aebd626e37eb557a3324_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6e599cfa2e57aebd626e37eb557a3324_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6e599cfa2e57aebd626e37eb557a3324_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6e599cfa2e57aebd626e37eb557a3324_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6e599cfa2e57aebd626e37eb557a3324_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6e599cfa2e57aebd626e37eb557a3324_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6e599cfa2e57aebd626e37eb557a3324_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/6e599cfa2e57aebd626e37eb557a3324_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/70bd9d1b705d48d95c302435f63a874d_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/70bd9d1b705d48d95c302435f63a874d_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/70bd9d1b705d48d95c302435f63a874d_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/70bd9d1b705d48d95c302435f63a874d_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/70bd9d1b705d48d95c302435f63a874d_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/70bd9d1b705d48d95c302435f63a874d_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/70bd9d1b705d48d95c302435f63a874d_/man	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/70bd9d1b705d48d95c302435f63a874d_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/70bd9d1b705d48d95c302435f63a874d_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/70bd9d1b705d48d95c302435f63a874d_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_/compiler_compat	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/788e729f1e0864dea51355773486d36a_/x86_64-conda-linux-gnu	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/7b3dbc6b9eae05a003fb9812033f0657_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/7b3dbc6b9eae05a003fb9812033f0657_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/7b3dbc6b9eae05a003fb9812033f0657_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/7b3dbc6b9eae05a003fb9812033f0657_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/7b3dbc6b9eae05a003fb9812033f0657_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/7b3dbc6b9eae05a003fb9812033f0657_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/7b3dbc6b9eae05a003fb9812033f0657_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/7b3dbc6b9eae05a003fb9812033f0657_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/7b3dbc6b9eae05a003fb9812033f0657_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_/compiler_compat	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/93ebe1238530a7b88d9b0377f9f327b0_/x86_64-conda-linux-gnu	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_/compiler_compat	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/953bd0b4f71e6bbda7ceac1c77ba9bcb_/x86_64-conda-linux-gnu	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/compiler_compat	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/fonts	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/man	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/var	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/ac1c3ad4a398b8d1d8ea053c637bc6fc_/x86_64-conda-linux-gnu	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/compiler_compat	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/fonts	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/man	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/var	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/cbee441bab3740ee8e092ae8f9cbb3b9_/x86_64-conda-linux-gnu	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_/fonts	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_/var	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/d8a099cbe66aacd85d9653887f51ccba_/x86_64-conda-linux-gnu	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/fonts	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/man	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/opt	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/ssl	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/e41dc845345d49d1be556ec6298452d7_/var	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/fc10530623cc428bfa51464b358f203e_/bin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/fc10530623cc428bfa51464b358f203e_/conda-meta	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/fc10530623cc428bfa51464b358f203e_/etc	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/fc10530623cc428bfa51464b358f203e_/include	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/fc10530623cc428bfa51464b358f203e_/lib	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/fc10530623cc428bfa51464b358f203e_/libexec	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/fc10530623cc428bfa51464b358f203e_/man	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/fc10530623cc428bfa51464b358f203e_/sbin	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/fc10530623cc428bfa51464b358f203e_/share	
+d	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-24/fc10530623cc428bfa51464b358f203e_/ssl	
+LOCAL_CONDA_YAMLS
+LOCAL_CONTAINER_CANDIDATES
+l	91	/fsx/resources/environments/containers/daylily/bcl2fq-i192-nvme-test-dy-c8id192-1/0cf0f68bb95f27c2fb097742ca8a47e7.simg	/fsx/references/runtime_assets/cached_envs/containers/0cf0f68bb95f27c2fb097742ca8a47e7.simg
+l	91	/fsx/resources/environments/containers/daylily/bcl2fq-i192-nvme-test-dy-c8id192-1/27d2131deefbb283d9ca695343698d4b.simg	/fsx/references/runtime_assets/cached_envs/containers/27d2131deefbb283d9ca695343698d4b.simg
+l	91	/fsx/resources/environments/containers/daylily/bcl2fq-i192-nvme-test-dy-c8id192-1/c00914a60e21cceb34581232a917d832.simg	/fsx/references/runtime_assets/cached_envs/containers/c00914a60e21cceb34581232a917d832.simg
+l	91	/fsx/resources/environments/containers/daylily/bcl2fq-i384-nvme-test-dy-c8id384-1--output truncated--
+

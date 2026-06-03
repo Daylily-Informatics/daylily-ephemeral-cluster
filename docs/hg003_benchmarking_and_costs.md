@@ -22,7 +22,7 @@ Benchmark arms:
 
 | Arm | Repository | Engine | Command profile | Status |
 |---|---|---|---|---|
-| DayOA | `daylily-omics-analysis` | Snakemake 7 through `dy-r` | Current DYEC catalog command `illumina_snv_alignstats`, DayOA `2.0.41`, genome `hg38_broad`, `-j 20` | Launched as `dyec5128_hg003_5x_ilmn_snv_20260603T110935Z`; terminal metrics pending |
+| DayOA | `daylily-omics-analysis` | Snakemake 7 through `dy-r` | Current DYEC catalog command `illumina_snv_alignstats`, DayOA `2.0.42`, genome `hg38_broad`, `-j 20` | Launched as `dyec5128_hg003_5x_ilmn_snv_20260603T110935Z`; terminal metrics pending |
 | nf-core/Sarek | `daylily-sarek` | Nextflow / nf-core Sarek | Current catalog repo ref `0.7.379`; no runnable Sarek analysis command is currently present in the catalog | Pending launch; blocked by active dyec5128 controller/job and missing pinned Nextflow/Java runtime |
 
 Read-only preflight on 2026-06-03 found:
@@ -32,7 +32,7 @@ Read-only preflight on 2026-06-03 found:
 - HG003 5x FASTQs, GIAB truth, `hg38_broad` BED, `/fsx/references`, `/fsx/resources`, `/fsx/analysis_results`, and cached runtime assets were present.
 - `tmux`, `squeue`, `sbatch`, `sinfo`, `day-clone`, `aws`, `python3`, `java`, `singularity`, `apptainer`, and `dyec` were present.
 - `sacct` binary was present, but Slurm accounting storage was disabled, so accounting queries were unavailable.
-- Current catalog validation came from `config/daylily_pipeline_command_catalog.yaml`, not an old plan. `illumina_snv_alignstats` is DayOA `2.0.41` with targets `produce_sent_align`, `produce_dmd_dedup_cram`, `produce_sentd_snv_vcf`, `produce_snv_concordances`, and `produce_alignstats`.
+- Current catalog validation came from `config/daylily_pipeline_command_catalog.yaml`, not an old plan. `illumina_snv_alignstats` is DayOA `2.0.42` with targets `produce_sent_align`, `produce_dmd_dedup_cram`, `produce_sentd_snv_vcf`, `produce_snv_concordances`, and `produce_alignstats`.
 - `dyec samples stage ... --precheck-only` passed for the HG003 5x manifest: `rows checked=1, samples checked=1, source objects checked=20, concordance directories checked=1`.
 - `nextflow` was missing from the pinned runtime path checked for the Sarek arm, and the Java 21 path expected beside it was also missing.
 - Active DayOA/Snakemake controller processes and Slurm job `21` were present on dyec5128, so benchmark launch remains gated.

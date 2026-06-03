@@ -18,6 +18,7 @@ DEFAULT_PRODUCTION_PARTITIONS: tuple[str, ...] = (
     "i192",
     "i192mem",
     "i192bigmem",
+    "bcl2fq-i384-nvme-test",
 )
 _INSTANCE_TYPE_BATCH_SIZE = 100
 

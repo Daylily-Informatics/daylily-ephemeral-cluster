@@ -19,8 +19,10 @@ REQUIRED_ROLE_DIRECTORIES = (
     "/fsx/references/runtime_assets/cached_envs/conda",
 )
 REQUIRED_WRITABLE_CACHE_DIRECTORY_TEMPLATES = (
+    "/fsx/resources/environments/apptainer/cache/net",
     "/fsx/resources/environments/conda/ubuntu/{hostname}",
     "/fsx/resources/environments/containers/ubuntu/{hostname}",
+    "/fsx/resources/environments/nextflow",
 )
 REQUIRED_HEADNODE_WORK_DIRECTORIES = (
     "/fsx/work/ubuntu",
@@ -64,6 +66,8 @@ df -P /fsx >/dev/null
 {headnode_work_checks}
 test -r /etc/profile.d/daylily-runtime-cache.sh
 grep -Fq 'DAYLILY_CONTAINER_CACHE' /etc/profile.d/daylily-runtime-cache.sh
+grep -Fq 'DAYLILY_APPTAINER_CACHE' /etc/profile.d/daylily-runtime-cache.sh
+grep -Fq 'DAYLILY_NEXTFLOW_SEED_CACHE' /etc/profile.d/daylily-runtime-cache.sh
 grep -Fq 'NXF_SINGULARITY_CACHEDIR' /etc/profile.d/daylily-runtime-cache.sh
 test ! -e /fsx/runtime_assets
 test -L /fsx/data

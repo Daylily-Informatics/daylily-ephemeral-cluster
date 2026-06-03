@@ -232,8 +232,22 @@ prepare_dayoa_environment_cache() {
   local user_name
 
   install -d -m 1777 \
+    "${environment_cache_root}/apptainer" \
+    "${environment_cache_root}/apptainer/cache" \
+    "${environment_cache_root}/apptainer/cache/net" \
     "${environment_cache_root}/conda" \
-    "${environment_cache_root}/containers"
+    "${environment_cache_root}/containers" \
+    "${environment_cache_root}/nextflow"
+
+  link_cached_entries \
+    "${runtime_assets_root}/cached_envs/apptainer_cache/cache/net" \
+    "${environment_cache_root}/apptainer/cache/net" \
+    optional
+
+  link_cached_entries \
+    "${runtime_assets_root}/cached_envs/nextflow" \
+    "${environment_cache_root}/nextflow" \
+    optional
 
   for user_name in ubuntu daylily; do
     install -d -m 1777 \
@@ -251,8 +265,11 @@ prepare_dayoa_environment_cache() {
 
   stat -c "Writable DayOA cache directory: %A %U:%G %n" \
     "${environment_cache_root}" \
+    "${environment_cache_root}/apptainer" \
+    "${environment_cache_root}/apptainer/cache/net" \
     "${environment_cache_root}/conda" \
     "${environment_cache_root}/containers" \
+    "${environment_cache_root}/nextflow" \
     "${environment_cache_root}/conda/ubuntu/${host_name}" \
     "${environment_cache_root}/containers/ubuntu/${host_name}" \
     "${environment_cache_root}/conda/daylily/${host_name}" \
@@ -264,14 +281,16 @@ install_headnode_runtime_cache_profile() {
 # Managed by DAY-EC headnode setup.
 if [ -n "${USER:-}" ] && [ "${USER}" != "root" ] && [ -d /fsx/work ]; then
   export DAYLILY_WORK_ROOT="${DAYLILY_WORK_ROOT:-/fsx/work/${USER}}"
+  export DAYLILY_APPTAINER_CACHE="${DAYLILY_APPTAINER_CACHE:-/fsx/resources/environments/apptainer}"
   export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-${DAYLILY_WORK_ROOT}/containers}"
   export DAYLILY_NEXTFLOW_CACHE="${DAYLILY_NEXTFLOW_CACHE:-${DAYLILY_WORK_ROOT}/nextflow}"
+  export DAYLILY_NEXTFLOW_SEED_CACHE="${DAYLILY_NEXTFLOW_SEED_CACHE:-/fsx/resources/environments/nextflow}"
   export NXF_HOME="${NXF_HOME:-${DAYLILY_NEXTFLOW_CACHE}/home}"
   export NXF_WORK="${NXF_WORK:-${DAYLILY_NEXTFLOW_CACHE}/work}"
   export NXF_SINGULARITY_CACHEDIR="${NXF_SINGULARITY_CACHEDIR:-${DAYLILY_CONTAINER_CACHE}}"
   export NXF_APPTAINER_CACHEDIR="${NXF_APPTAINER_CACHEDIR:-${DAYLILY_CONTAINER_CACHE}}"
-  export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-${DAYLILY_CONTAINER_CACHE}}"
-  export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-${DAYLILY_CONTAINER_CACHE}}"
+  export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"
+  export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"
 fi
 EOF
   chmod 0644 /etc/profile.d/daylily-runtime-cache.sh
@@ -298,7 +317,7 @@ wait_for_reference_data
 make_role_data_read_only
 prepare_reference_compat_symlink
 prepare_dayoa_environment_cache
-echo "DayOA conda and container caches are seeded from ${runtime_assets_root}/cached_envs into ${environment_cache_root}"
+echo "DayOA conda, container, and Nextflow caches are seeded from ${runtime_assets_root}/cached_envs into ${environment_cache_root}"
 
 # Configure hugepages and namespaces (common to both head and compute nodes)
 echo "vm.nr_hugepages=2048" | tee -a /etc/sysctl.conf

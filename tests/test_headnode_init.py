@@ -197,13 +197,21 @@ def test_build_shell_code_exports_expected_compatibility_helpers(monkeypatch) ->
     assert "export DAY_AWS_REGION=us-west-2" in shell_code
     assert 'export APPTAINER_HOME="${APPTAINER_HOME:-/fsx/tmp/apptainer_home/$USER}"' in shell_code
     assert (
-        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-/fsx/tmp/apptainer_cache/$USER}"'
+        'export DAYLILY_APPTAINER_CACHE="${DAYLILY_APPTAINER_CACHE:-/fsx/resources/environments/apptainer}"'
+        in shell_code
+    )
+    assert (
+        'export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-/fsx/resources/environments/containers/$USER/$(hostname)}"'
+        in shell_code
+    )
+    assert (
+        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-$DAYLILY_APPTAINER_CACHE}"'
         in shell_code
     )
     assert (
         'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-$APPTAINER_CACHEDIR}"' in shell_code
     )
-    assert "/fsx/resources/environments" not in shell_code
+    assert "/fsx/tmp/apptainer_cache" not in shell_code
     assert 'export DAY_ROOT="${PWD}"' in shell_code
     assert "reference_s3_uri=reference-bucket" in shell_code
     assert 'alias dy-b="${DAYLILY_EC_REPO_ROOT}/bin/init_dayec"' in shell_code
@@ -718,15 +726,27 @@ def test_post_install_bootstrap_logs_and_fails_hard_for_missing_apptainer() -> N
     assert "cat <<'EOF' > /etc/profile.d/daylily-runtime-cache.sh" in script
     assert 'export DAYLILY_WORK_ROOT="${DAYLILY_WORK_ROOT:-/fsx/work/${USER}}"' in script
     assert (
+        'export DAYLILY_APPTAINER_CACHE="${DAYLILY_APPTAINER_CACHE:-/fsx/resources/environments/apptainer}"'
+        in script
+    )
+    assert (
         'export DAYLILY_CONTAINER_CACHE="${DAYLILY_CONTAINER_CACHE:-${DAYLILY_WORK_ROOT}/containers}"'
         in script
     )
     assert (
-        'export NXF_SINGULARITY_CACHEDIR="${NXF_SINGULARITY_CACHEDIR:-${DAYLILY_CONTAINER_CACHE}}"'
+        'export DAYLILY_NEXTFLOW_SEED_CACHE="${DAYLILY_NEXTFLOW_SEED_CACHE:-/fsx/resources/environments/nextflow}"'
         in script
     )
     assert (
-        "DayOA conda and container caches are seeded from "
+        'export SINGULARITY_CACHEDIR="${SINGULARITY_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"'
+        in script
+    )
+    assert (
+        'export APPTAINER_CACHEDIR="${APPTAINER_CACHEDIR:-${DAYLILY_APPTAINER_CACHE}}"'
+        in script
+    )
+    assert (
+        "DayOA conda, container, and Nextflow caches are seeded from "
         "${runtime_assets_root}/cached_envs into ${environment_cache_root}" in script
     )
     assert "link_cached_entries" in script

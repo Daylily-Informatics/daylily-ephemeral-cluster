@@ -43,6 +43,8 @@ def test_readiness_script_requires_day_ec_tools_and_fsx_reference_assets():
         assert f"test -d {path}" in script
     assert "test -r /etc/profile.d/daylily-runtime-cache.sh" in script
     assert "DAYLILY_CONTAINER_CACHE" in script
+    assert "DAYLILY_APPTAINER_CACHE" in script
+    assert "DAYLILY_NEXTFLOW_SEED_CACHE" in script
     assert "NXF_SINGULARITY_CACHEDIR" in script
 
 

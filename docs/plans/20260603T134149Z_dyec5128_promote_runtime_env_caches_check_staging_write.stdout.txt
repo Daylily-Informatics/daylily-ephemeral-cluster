@@ -1,0 +1,10 @@
+DAY-EC activated.
+DAY-EC activated.
+PROBE	s3://lsmc-dayoa-staging-usw2/runtime_cache_promotion_probe/dyec5128-20260603T135716Z.txt	WRITE_FAIL
+PROBE	s3://lsmc-dayoa-analysis-results-usw2/runtime_cache_promotion_probe/dyec5128-20260603T135716Z.txt	WRITE_FAIL
+PROBE	s3://lsmc-dayoa-runtime-assets-usw2/runtime_cache_promotion_probe/dyec5128-20260603T135716Z.txt	WRITE_FAIL
+
+upload failed: - to s3://lsmc-dayoa-staging-usw2/runtime_cache_promotion_probe/dyec5128-20260603T135716Z.txt An error occurred (AccessDenied) when calling the PutObject operation: User: arn:aws:sts::108782052779:assumed-role/dyec5128-RoleHeadNode-OPuRnHqhyjxj/i-092ed82f571bfbc2f is not authorized to perform: s3:PutObject on resource: "arn:aws:s3:::lsmc-dayoa-staging-usw2/runtime_cache_promotion_probe/dyec5128-20260603T135716Z.txt" because no identity-based policy allows the s3:PutObject action
+upload failed: - to s3://lsmc-dayoa-analysis-results-usw2/runtime_cache_promotion_probe/dyec5128-20260603T135716Z.txt An error occurred (AccessDenied) when calling the PutObject operation: User: arn:aws:sts::108782052779:assumed-role/dyec5128-RoleHeadNode-OPuRnHqhyjxj/i-092ed82f571bfbc2f is not authorized to perform: s3:PutObject on resource: "arn:aws:s3:::lsmc-dayoa-analysis-results-usw2/runtime_cache_promotion_probe/dyec5128-20260603T135716Z.txt" because no identity-based policy allows the s3:PutObject action
+upload failed: - to s3://lsmc-dayoa-runtime-assets-usw2/runtime_cache_promotion_probe/dyec5128-20260603T135716Z.txt An error occurred (AccessDenied) when calling the PutObject operation: User: arn:aws:sts::108782052779:assumed-role/dyec5128-RoleHeadNode-OPuRnHqhyjxj/i-092ed82f571bfbc2f is not authorized to perform: s3:PutObject on resource: "arn:aws:s3:::lsmc-dayoa-runtime-assets-usw2/runtime_cache_promotion_probe/dyec5128-20260603T135716Z.txt" because no identity-based policy allows the s3:PutObject action
+

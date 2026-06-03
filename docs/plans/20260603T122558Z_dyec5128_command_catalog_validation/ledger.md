@@ -77,3 +77,39 @@ Gate 0 requires:
 - Slurm state is recorded.
 
 If Gate 0 remains blocked, the driver records the exact command and stderr in `events.jsonl` and `report.md`, and does not create mounts or launch workflows.
+
+## 2026-06-03T13:35:38Z Success Cleanup
+
+The user requested cleanup of successful command-catalog analysis result
+directories after FSx space pressure. The cleanup manifest is:
+
+```text
+docs/plans/20260603T122558Z_dyec5128_command_catalog_validation/success_cleanup_manifest.md
+```
+
+Deleted and verified absent:
+
+- `/fsx/analysis_results/dyec5128/ccv5128_20260603T122558Z_01_simple-test_dryrun`
+- `/fsx/analysis_results/dyec5128/ccv5128_20260603T122558Z_02_illumina_snv_alignstats_dryrun`
+- `/fsx/analysis_results/dyec5128/ccv5128_20260603T122558Z_03_illumina_snv_alignstats_relatedness_vep_multiqc_dryrun`
+- `/fsx/analysis_results/dyec5128/ccv5128_20260603T122558Z_04_illumina_hg002_kitchensink_multiqc_dryrun`
+- `/fsx/analysis_results/dyec5128/ccv5128_20260603T122558Z_05_ultima_snv_alignstats_dryrun`
+
+The successful live `simple-test` directory was already absent, consistent with
+`--export-trigger on-success --delete-on-export-success`.
+
+Remaining command-catalog analysis directories were failed live runs and were
+left in place:
+
+- `/fsx/analysis_results/dyec5128/ccv5128_20260603T122558Z_02_illumina_snv_alignstats`
+- `/fsx/analysis_results/dyec5128/ccv5128_20260603T122558Z_03_illumina_snv_alignstats_relatedness_vep_multiqc`
+- `/fsx/analysis_results/dyec5128/ccv5128_20260603T122558Z_04_illumina_hg002_kitchensink_multiqc`
+- `/fsx/analysis_results/dyec5128/ccv5128_20260603T122558Z_05_ultima_snv_alignstats`
+
+Code/change notes to preserve:
+
+- The validation driver had to render catalog commands through `source dyoainit; dy-a ...; dy-r ...`; direct `bin/day_run`/Snakemake submission is intentionally refused by the driver.
+- The current command catalog now reports DayOA tag `2.0.41` for the failed Illumina retry candidates, but those retries were not launched because the user requested no more catalog jobs.
+- The failed live Illumina commands need a DayOA fix or verification for the `produce_snv_concordances` benchmark failure: `AttributeError: 'NoneType' object has no attribute 'snakemake_threads'`.
+- The HG002 kitchensink command needs the `cyrius_v0.1` environment build/cache issue resolved or seeded into `/fsx/references/runtime_assets/cached_envs/conda`.
+- The boot script symlinks existing cached conda/container entries from `/fsx/references/runtime_assets/cached_envs/{conda,containers}` into `/fsx/resources/environments/{conda,containers}/<user>/<host>`; it does not promote newly built envs back into the reference cache.
