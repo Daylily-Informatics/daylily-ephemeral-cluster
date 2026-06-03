@@ -1,6 +1,6 @@
 # Running Nextflow Pipelines With DAY-EC
 
-This is a standalone operator runbook for running an nf-core/Nextflow pipeline on a DAY-EC cluster, exporting results through the DAY-EC DRA export path, exposing selected report artifacts through an existing CloudFront report distribution, and shutting the cluster down after export verification.
+This is a standalone operator runbook for running an nf-core/Nextflow pipeline on a DAY-EC cluster, exporting results through the DAY-EC DRA export path, verifying any already-approved public report link, and shutting the cluster down after export verification.
 
 The validated example is `daylily-sarek` at ref `0.7.379`, which is nf-core/sarek 3.6.0. The same lifecycle applies to other Nextflow repositories, but do not assume their profile, samplesheet, reference, or Nextflow-version requirements are identical.
 
@@ -10,16 +10,16 @@ The validated example is `daylily-sarek` at ref `0.7.379`, which is nf-core/sare
 - `daylily-sarek` is a repository catalog row, not a DAY-EC workflow command. Clone it with `day-clone` and launch `nextflow` directly on the headnode.
 - Nextflow output must land under `/fsx/analysis_results/<executing_entity>/<analysis_id>/`.
 - `dyec export` only exports a completed analysis directory whose source path is exactly `/fsx/analysis_results/<executing_entity>/<analysis_id>`.
-- CloudFront publication is not a `dyec` subcommand. Use the existing report distribution and AWS CLI after the DRA export has put objects in S3.
-- Cluster deletion is destructive. Run `dyec delete --dry-run` first and do not run the live delete until the export receipt and CloudFront URL have been verified.
+- CloudFront publication is not a `dyec` subcommand. Public docs may link only to an already-approved no-auth URL that returns HTTP 200.
+- Cluster deletion is destructive. Run `dyec delete --dry-run` first and do not run the live delete until the export receipt and any required public URL have been verified.
 
 ## 1. Activate The DAY-EC Checkout
 
 ```bash
-cd /Users/jmajor/.codex/worktrees/dyec-fsx-dra-mounts/daylily-ephemeral-cluster
+cd /path/to/daylily-ephemeral-cluster
 source ./activate
 
-dyec version
+dyec --json version
 dyec runtime status
 dyec info
 aws --version
@@ -38,19 +38,19 @@ Expected:
 Use explicit values. Do not rely on inferred AWS profile, region, bucket, or cluster names.
 
 ```bash
-export AWS_PROFILE=lsmc
+export AWS_PROFILE=<non-default-profile>
 export AWS_REGION=us-west-2
 export REGION=us-west-2
 export REGION_AZ=us-west-2d
 
-export CLUSTER_NAME=nextflow-sarek-$(date -u +%Y%m%d%H%M%S)
+export CLUSTER_NAME=<cluster-name>
 export DAY_EX_CFG="$HOME/.config/daylily/daylily_ephemeral_cluster.yaml"
 export DAY_PROJECT_NAME="da-us-west-2d-$CLUSTER_NAME"
 
-export REF_S3_URI=s3://lsmc-dayoa-references-usw2
-export CONTROL_DATA_S3_URI=s3://lsmc-dayoa-control-data-usw2
-export STAGE_S3_URI=s3://lsmc-ssf-sequencing-data/staged_external_data
-export ANALYSIS_RESULTS_S3_URI=s3://lsmc-dayoa-analysis-results-usw2
+export REF_S3_URI=s3://<reference-bucket>
+export CONTROL_DATA_S3_URI=s3://<control-data-bucket>
+export STAGE_S3_URI=s3://<staging-bucket>/<prefix>
+export ANALYSIS_RESULTS_S3_URI=s3://<analysis-results-bucket>/<prefix>
 
 export EXECUTING_ENTITY=ubuntu
 export ANALYSIS_ID=sarek-nextflow-$(date -u +%Y%m%dT%H%M%SZ)
@@ -328,7 +328,8 @@ dyec --json mounts create "$RUN_FASTQ_S3_URI" \
   --mount-id "$RUN_MOUNT_ID" \
   --platform ILMN \
   --read-only \
-  --wait
+  --wait \
+  --timeout-seconds 3600
 
 dyec --json mounts verify \
   --profile "$AWS_PROFILE" \
@@ -712,10 +713,10 @@ aws s3api head-object \
   --key "analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID/sarek/results/multiqc/multiqc_report.html"
 ```
 
-If the analysis-results S3 URI contains a parent prefix after the bucket name, set `EXPORT_BUCKET` and `EXPORT_KEY_PREFIX` explicitly before running S3 or CloudFront checks:
+If the analysis-results S3 URI contains a parent prefix after the bucket name, set `EXPORT_BUCKET` and `EXPORT_KEY_PREFIX` explicitly before running S3 checks:
 
 ```bash
-export EXPORT_BUCKET=lsmc-dayoa-analysis-results-usw2
+export EXPORT_BUCKET=<analysis-results-bucket>
 export EXPORT_KEY_PREFIX="analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID"
 aws s3api head-object \
   --profile "$AWS_PROFILE" \
@@ -724,181 +725,23 @@ aws s3api head-object \
   --key "$EXPORT_KEY_PREFIX/sarek/results/multiqc/multiqc_report.html"
 ```
 
-## 13. Publish A CloudFront Link
+## 13. Public Report Link
 
-Use the existing Basic-auth report distribution when it is the approved publishing surface. The known LSMC report distribution used by prior DAY-EC reports is:
-
-```bash
-export CF_DISTRIBUTION_ID=E1O1EGAADAALSL
-export CF_DOMAIN=dlqovrcm5y71h.cloudfront.net
-```
-
-Set these values for the exported analysis:
+Do not create, mutate, or publish a CloudFront distribution from this runbook. Public docs may include a report URL only when an existing no-auth URL has already been approved for publication and verified with HTTP 200.
 
 ```bash
-export EXPORT_BUCKET=lsmc-dayoa-analysis-results-usw2
-export EXPORT_KEY_PREFIX="analysis_results/$EXECUTING_ENTITY/$ANALYSIS_ID"
-export REPORT_RELATIVE_KEY="sarek/results/multiqc/multiqc_report.html"
-export CF_REPORT_PATH="$EXPORT_KEY_PREFIX/$REPORT_RELATIVE_KEY"
-export CF_REPORT_URL="https://$CF_DOMAIN/$CF_REPORT_PATH"
+export REPORT_URL=https://<public-report-domain>/<path>/multiqc_report.html
+curl -sS -I "$REPORT_URL" | sed -n '1,20p'
 ```
 
-Check S3 before touching CloudFront:
+Acceptance for a public documentation link:
 
-```bash
-aws s3api head-object \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --bucket "$EXPORT_BUCKET" \
-  --key "$CF_REPORT_PATH"
-```
+- unauthenticated request returns `HTTP/2 200` or `HTTP/1.1 200`
+- no credentials, signed URL, Basic auth, private distribution id, or internal-only URL pattern is required
+- the report is meant for public benchmark inspection
+- the verified URL is recorded with the benchmark/export evidence
 
-Inspect the existing distribution:
-
-```bash
-aws cloudfront get-distribution \
-  --id "$CF_DISTRIBUTION_ID" \
-  --profile "$AWS_PROFILE" \
-  > "$EXPORT_DIR/cloudfront_distribution.json"
-
-jq -r '.Distribution.DomainName' "$EXPORT_DIR/cloudfront_distribution.json"
-jq -r '.Distribution.Status' "$EXPORT_DIR/cloudfront_distribution.json"
-jq -r '.Distribution.DistributionConfig.Origins.Items[] | [.Id, .DomainName, (.OriginPath // "")] | @tsv' "$EXPORT_DIR/cloudfront_distribution.json"
-jq -r '.Distribution.DistributionConfig.CacheBehaviors.Items[]? | [.PathPattern, .TargetOriginId] | @tsv' "$EXPORT_DIR/cloudfront_distribution.json"
-```
-
-First try verification. If the distribution already has a matching origin and cache behavior, no mutation is needed:
-
-```bash
-curl -sS -I "$CF_REPORT_URL" | sed -n '1,20p'
-```
-
-Expected unauthenticated behavior for the LSMC report distribution is `401` with `Basic realm="LSMC QC"`. Verify with credentials only in a secure shell:
-
-```bash
-read -r -s -p "CloudFront basic auth user:pass: " CF_BASIC_AUTH
-printf '\n'
-curl -sS -u "$CF_BASIC_AUTH" -I "$CF_REPORT_URL" | sed -n '1,30p'
-unset CF_BASIC_AUTH
-```
-
-If unauthenticated returns `401` but authenticated returns `403`, Basic auth is working and S3 access or cache behavior is missing for this prefix. Record the exact target prefix and get approval before mutating bucket policy or the distribution.
-
-### Add A Scoped S3 Read Grant
-
-This modifies the S3 bucket policy. Use a unique statement id and grant only the exported analysis prefix.
-
-```bash
-export CF_POLICY_SID="AllowCloudFrontRead${ANALYSIS_ID//[^A-Za-z0-9]/}$(date -u +%Y%m%d)"
-export CF_SOURCE_ARN="arn:aws:cloudfront::$(aws sts get-caller-identity --profile "$AWS_PROFILE" --query Account --output text):distribution/$CF_DISTRIBUTION_ID"
-export CF_RESOURCE_ARN="arn:aws:s3:::$EXPORT_BUCKET/$EXPORT_KEY_PREFIX/*"
-
-aws s3api get-bucket-policy \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --bucket "$EXPORT_BUCKET" \
-  --query Policy \
-  --output text \
-  > "$EXPORT_DIR/bucket_policy.current.json"
-
-jq -e --arg sid "$CF_POLICY_SID" '([.Statement[]?.Sid] | index($sid)) | not' "$EXPORT_DIR/bucket_policy.current.json"
-
-jq \
-  --arg sid "$CF_POLICY_SID" \
-  --arg resource "$CF_RESOURCE_ARN" \
-  --arg source_arn "$CF_SOURCE_ARN" \
-  '.Statement += [{
-    "Sid": $sid,
-    "Effect": "Allow",
-    "Principal": {"Service": "cloudfront.amazonaws.com"},
-    "Action": "s3:GetObject",
-    "Resource": $resource,
-    "Condition": {"StringEquals": {"AWS:SourceArn": $source_arn}}
-  }]' \
-  "$EXPORT_DIR/bucket_policy.current.json" \
-  > "$EXPORT_DIR/bucket_policy.updated.json"
-
-aws s3api put-bucket-policy \
-  --profile "$AWS_PROFILE" \
-  --region "$REGION" \
-  --bucket "$EXPORT_BUCKET" \
-  --policy "file://$EXPORT_DIR/bucket_policy.updated.json"
-```
-
-### Add Or Reuse A Cache Behavior
-
-If the distribution already has an origin for the S3 bucket root, set `CF_TARGET_ORIGIN_ID` to that origin id. Do not create a new distribution.
-
-```bash
-export CF_PATH_PATTERN="$EXPORT_KEY_PREFIX/*"
-export CF_TARGET_ORIGIN_ID="replace-with-existing-origin-id-for-export-bucket-root"
-test "$CF_TARGET_ORIGIN_ID" != "replace-with-existing-origin-id-for-export-bucket-root"
-
-aws cloudfront get-distribution-config \
-  --profile "$AWS_PROFILE" \
-  --id "$CF_DISTRIBUTION_ID" \
-  > "$EXPORT_DIR/cloudfront_config.current.json"
-
-jq -r '.ETag' "$EXPORT_DIR/cloudfront_config.current.json" > "$EXPORT_DIR/cloudfront_config.etag"
-jq -e --arg path "$CF_PATH_PATTERN" '[(.DistributionConfig.CacheBehaviors.Items // [])[]?.PathPattern] | index($path) | not' "$EXPORT_DIR/cloudfront_config.current.json"
-
-jq \
-  --arg path "$CF_PATH_PATTERN" \
-  --arg origin "$CF_TARGET_ORIGIN_ID" \
-  '.DistributionConfig
-   | .CacheBehaviors.Items = ((.CacheBehaviors.Items // []) + [(.DefaultCacheBehavior | .PathPattern = $path | .TargetOriginId = $origin)])
-   | .CacheBehaviors.Quantity = (.CacheBehaviors.Items | length)' \
-  "$EXPORT_DIR/cloudfront_config.current.json" \
-  > "$EXPORT_DIR/cloudfront_config.updated.json"
-
-aws cloudfront update-distribution \
-  --profile "$AWS_PROFILE" \
-  --id "$CF_DISTRIBUTION_ID" \
-  --if-match "$(cat "$EXPORT_DIR/cloudfront_config.etag")" \
-  --distribution-config "file://$EXPORT_DIR/cloudfront_config.updated.json"
-```
-
-Wait for deployment:
-
-```bash
-aws cloudfront wait distribution-deployed \
-  --profile "$AWS_PROFILE" \
-  --id "$CF_DISTRIBUTION_ID"
-```
-
-Invalidate the report path and nearby MultiQC assets:
-
-```bash
-aws cloudfront create-invalidation \
-  --profile "$AWS_PROFILE" \
-  --distribution-id "$CF_DISTRIBUTION_ID" \
-  --paths "/$CF_REPORT_PATH" "/$EXPORT_KEY_PREFIX/sarek/results/multiqc/*" \
-  > "$EXPORT_DIR/cloudfront_invalidation.json"
-
-aws cloudfront wait invalidation-completed \
-  --profile "$AWS_PROFILE" \
-  --distribution-id "$CF_DISTRIBUTION_ID" \
-  --id "$(jq -r '.Invalidation.Id' "$EXPORT_DIR/cloudfront_invalidation.json")"
-```
-
-Verify the URL:
-
-```bash
-curl -sS -I "$CF_REPORT_URL" | sed -n '1,20p'
-
-read -r -s -p "CloudFront basic auth user:pass: " CF_BASIC_AUTH
-printf '\n'
-curl -sS -u "$CF_BASIC_AUTH" -I "$CF_REPORT_URL" | sed -n '1,30p'
-unset CF_BASIC_AUTH
-
-printf '%s\n' "$CF_REPORT_URL"
-```
-
-Expected final behavior:
-
-- Unauthenticated request returns `401` for a Basic-auth protected distribution.
-- Authenticated request returns `200`.
-- `content-type` for MultiQC HTML is `text/html` or `text/html; charset=utf-8`.
+If no existing public no-auth 200 URL is available, record the link as blocked. Creating or repairing public CloudFront exposure requires a separate approval and belongs in an internal execution ledger, not in public operator docs.
 
 ## 14. Shut Down The Pipeline And Cluster
 
@@ -927,7 +770,8 @@ dyec --json mounts delete \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --mount-id "$RUN_MOUNT_ID" \
-  --wait
+  --wait \
+  --timeout-seconds 3600
 ```
 
 Before deleting the cluster, verify export and CloudFront one more time:

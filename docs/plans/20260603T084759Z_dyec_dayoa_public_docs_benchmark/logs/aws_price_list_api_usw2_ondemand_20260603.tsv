@@ -1,0 +1,11 @@
+generated_at_utc=2026-06-03T09:12:20.102091+00:00
+source=AWS Price List API GetProducts AmazonEC2 Linux Shared OnDemand
+region=us-west-2
+location=US West (Oregon)
+instance_type	usd_per_hour
+c7i.48xlarge	8.568
+c7i.24xlarge	4.284
+r7i.4xlarge	1.0584
+g5.48xlarge	16.288
+p4d.24xlarge	21.95764
+p5.48xlarge	55.04

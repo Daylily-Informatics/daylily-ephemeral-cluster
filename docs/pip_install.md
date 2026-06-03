@@ -33,8 +33,8 @@ The shell still needs:
 Verify:
 
 ```bash
-dyec version
-daylily-ec version
+dyec --json version
+daylily-ec --json version
 pcluster version
 aws --version
 session-manager-plugin
@@ -42,7 +42,7 @@ session-manager-plugin
 
 ## Catalog Resources
 
-Installed packages use packaged resources under `daylily_ec/resources/payload/`. The packaged repository catalog must match the source catalog. Current DayOA pins are `2.0.29`.
+Installed packages use packaged resources under `daylily_ec/resources/payload/`. The packaged repository catalog must match the source catalog. Current DayOA pins are `2.0.38`.
 
 For local development after changing catalog or resource files:
 

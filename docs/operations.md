@@ -73,7 +73,7 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --dry-run
 ```
 
-The catalog pin for DayOA commands is `2.0.29`.
+The catalog pin for DayOA commands is `2.0.38`.
 
 ## Attach Run Folders
 
@@ -88,7 +88,8 @@ dyec --json mounts create "s3://sequencer-run-bucket/runs/RUN123/" \
   --read-only \
   --batch-import-metadata-on-create \
   --auto-import NEW,CHANGED \
-  --wait
+  --wait \
+  --timeout-seconds 3600
 ```
 
 Rules:
@@ -117,7 +118,8 @@ dyec --json mounts delete \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --mount-id RUN123 \
-  --wait
+  --wait \
+  --timeout-seconds 3600
 ```
 
 Deletion detaches the DRA with `DeleteDataInFileSystem=False`; it does not delete S3 objects.
@@ -142,7 +144,9 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.29
+  --git-tag 2.0.38 \
+  --genome hg38_broad \
+  --target produce_alignstats
 ```
 
 Run-folder workflow:
@@ -155,8 +159,11 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.29 \
-  --dy-command "bin/day_run produce_illumina_run_qc --config run_context_file=config/runs.tsv -p -j 5 -k"
+  --git-tag 2.0.38 \
+  --genome hg38_broad \
+  --jobs 5 \
+  --target produce_illumina_run_qc \
+  --snakemake-extra "--config run_context_file=config/runs.tsv"
 ```
 
 The launcher creates `/home/ubuntu/daylily-runs/<session>/` with `launch.sh`, `tmux.log`, and `status.json`.

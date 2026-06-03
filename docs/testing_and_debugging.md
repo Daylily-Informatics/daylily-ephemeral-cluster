@@ -11,7 +11,7 @@ This repo has four validation layers:
 
 ```bash
 source ./activate
-dyec version
+dyec --json version
 dyec runtime status
 aws --version
 pcluster version
@@ -56,10 +56,10 @@ The source and packaged catalogs must match:
 cmp -s config/daylily_pipeline_command_catalog.yaml daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml
 ```
 
-The current DayOA pin should be `2.0.29` everywhere in the catalog:
+The current DayOA pin should be `2.0.38` everywhere in the catalog:
 
 ```bash
-rg -n "0\\.7\\.758|\\b1\\.0\\.[0-9]\\b" \
+rg -n "2\\.0\\.29|0\\.7\\.758|\\b1\\.0\\.[0-9]\\b" \
   config/daylily_pipeline_command_catalog.yaml \
   daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml \
   tests
