@@ -5,6 +5,19 @@
 - For Daylily/DayOA/DAY-EC headnode workflow work, use an interactive `ubuntu` tmux/login-shell pane for controllers and workflow commands. Run setup as separate commands in that pane (`source dyoainit`, then `dy-a ...`, then `dy-r ...`) so aliases/functions are defined before use.
 - SSM Run Command is for simple inspection or for writing helper scripts through the supported helpers. Do not launch workflow controllers or rely on `dy-*` aliases from non-interactive SSM scripts.
 
+# DayOA Workflow Command Contract
+
+- Read `AGENTS-HOW-TO-RUN-DAYOA.md` before any DayOA workflow work.
+- Never invoke `snakemake` directly for DayOA workflow work, including dry-runs, unlocks, help, live runs, or recovery commands. Always use the DayOA wrapper command `dy-r` from an initialized DayOA shell. `dy-r` passes all targets and flags through to Snakemake for you.
+- DayOA workflow work must run inside a persistent, meaningfully named `tmux` session on the headnode, as the `ubuntu` user, with an interactive bash login shell. The `tmux` session must remain alive after any submitted command exits so status and follow-up commands can use the same initialized shell.
+- The required DayOA sequence is:
+  1. `cd /path/to/daylily-omics-analysis`
+  2. `source dyoainit`
+  3. `dy-a slurm hg38` or `dy-a slurm hg38_broad`
+  4. `dy-r <targets> <flags>`
+- Example DayOA smoke/dry-run command: `dy-r help -p -k -j 1 -n`.
+- For BCL/DayOA execution, send these commands into the persistent `tmux` pane as separate commands. Do not collapse setup and execution into a one-shot non-interactive SSM script.
+
 # Safety Preferences
 
 - Do not execute destructive AWS resource changes unless the user gives a second explicit approval after being told the action is destructive.
@@ -37,6 +50,11 @@
 # ParallelCluster CLI
 
 - `pcluster` is not an `aws` CLI subcommand. Do not pass AWS CLI-only flags such as `--json` to `pcluster`; ParallelCluster commands emit JSON by default.
+
+# DYEC Run Mounts
+
+- Do not treat FSx/DYEC run-mount creation as timed out before at least 30 minutes. Dynamic FSx data repository associations can legitimately stay in `CREATING` for around 30 minutes, especially large Illumina run directories.
+- When running `dyec mounts create --wait` or equivalent run-mount operations, set an explicit timeout comfortably above 30 minutes when the CLI supports it, and continue read-only lifecycle polling rather than retrying, duplicating, deleting, or declaring failure at the default short timeout.
 
 # Version Tags
 

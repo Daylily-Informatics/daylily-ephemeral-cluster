@@ -219,7 +219,7 @@ replace_required_scalar("conversion_threads", "4")
 replace_required_scalar("compression_threads", "64")
 replace_required_scalar("decompression_threads", "32")
 replace_required_scalar("fastq_gzip_compression_level", "1")
-upsert_scalar("shared_thread_odirect_output", "auto")
+upsert_scalar("shared_thread_odirect_output", "false")
 upsert_scalar("output_legacy_stats", "true")
 upsert_scalar("num_unknown_barcodes_reported", "1000")
 # Untested pending feature: optional sample-sheet injections stay unset unless explicitly
