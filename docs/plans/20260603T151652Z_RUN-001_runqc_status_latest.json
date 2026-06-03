@@ -1,0 +1,8 @@
+{
+  "command": "dy-r produce_illumina_run_qc_and_bclconvert -p -j 20 -k --config run_context_file=config/runs.tsv bootstrap_bclconvert=true --rerun-triggers mtime",
+  "completed_at": "2026-06-03T16:20:07Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/BigB-4-mk/M-RGX-9WR2/daylily-omics-analysis",
+  "session_name": "dayhoff_runqc_RUN001_MRGX9WR2_20260603",
+  "started_at": "2026-06-03T16:17:36Z"
+}

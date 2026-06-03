@@ -1,0 +1,6 @@
+DAY-EC activated.
+DAY-EC activated.
+0: bash* (1 panes) [80x24] [layout b25d,80x24,0,0,0] @0 (active)
+0: [80x24] [history 106/2000, 32460 bytes] %0 (active)
+sent dy-a and dy-r to dayhoff_runqc_RUN001_MRGX9WR2_retry1_20260603
+

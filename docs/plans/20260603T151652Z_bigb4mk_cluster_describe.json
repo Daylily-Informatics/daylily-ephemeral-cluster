@@ -1,0 +1,63 @@
+{
+  "cloudFormationStackStatus": "CREATE_COMPLETE",
+  "cloudformationStackArn": "arn:aws:cloudformation:us-west-2:108782052779:stack/BigB-4-mk/69484cb0-5f59-11f1-a1e4-062c613c1de3",
+  "clusterConfiguration": {
+    "url": "https://parallelcluster-4da281c1dc024f1c-v1-do-not-delete.s3.us-west-2.amazonaws.com/parallelcluster/3.13.2/clusters/bigb-4-mk-8yh8pprej8qrfpl3/configs/cluster-config.yaml?versionId=BZm7GawfZmDHoRhlCS3fG4DWN04pcJXV&X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Credential=AKIARSU7KMWVUNP6SU5X%2F20260603%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Date=20260603T160110Z&X-Amz-SignedHeaders=host&X-Amz-Expires=3600&X-Amz-Signature=225ff7120c21850d1f211f95a4e01619a1da654d03dbb810bf1ff7425fcb3090"
+  },
+  "clusterName": "BigB-4-mk",
+  "clusterStatus": "CREATE_COMPLETE",
+  "computeFleetStatus": "RUNNING",
+  "creationTime": "2026-06-03T14:35:04.959Z",
+  "headNode": {
+    "instanceId": "i-0c03cb6be3c84d53b",
+    "instanceType": "r7i.8xlarge",
+    "launchTime": "2026-06-03T14:48:38.000Z",
+    "privateIpAddress": "10.0.0.251",
+    "publicIpAddress": "100.22.161.210",
+    "state": "running"
+  },
+  "lastUpdatedTime": "2026-06-03T14:35:04.959Z",
+  "region": "us-west-2",
+  "scheduler": {
+    "type": "slurm"
+  },
+  "tags": [
+    {
+      "key": "aws-parallelcluster-daylily-git-deets",
+      "value": "none"
+    },
+    {
+      "key": "parallelcluster:version",
+      "value": "3.13.2"
+    },
+    {
+      "key": "aws-parallelcluster-enforce-budget",
+      "value": "skip"
+    },
+    {
+      "key": "aws-parallelcluster-jobid",
+      "value": "aws_profile-lsmc"
+    },
+    {
+      "key": "aws-parallelcluster-monitor-bucket",
+      "value": "s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config"
+    },
+    {
+      "key": "parallelcluster:cluster-name",
+      "value": "BigB-4-mk"
+    },
+    {
+      "key": "aws-parallelcluster-clustername",
+      "value": "BigB-4-mk"
+    },
+    {
+      "key": "aws-parallelcluster-project",
+      "value": "BigB-4-mk"
+    },
+    {
+      "key": "aws-parallelcluster-username",
+      "value": "jmajor-root"
+    }
+  ],
+  "version": "3.13.2"
+}

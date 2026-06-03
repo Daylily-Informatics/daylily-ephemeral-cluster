@@ -1,0 +1,9 @@
+DAY-EC activated.
+DAY-EC activated.
+pwd=/fsx/analysis_results/BigB-4-mk/M-RGX-9WR2/daylily-omics-analysis
+2.0.43
+aed7c0078339e79459f4db3e30d7e89438467e19
+## HEAD (no branch)
+?? config/run_dir_links/
+?? config/runs.tsv
+

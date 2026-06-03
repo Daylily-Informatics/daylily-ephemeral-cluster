@@ -1,0 +1,122 @@
+[
+  {
+    "command_id": "illumina_run_qc_bclconvert",
+    "found": true,
+    "command_class": "run_analysis",
+    "input_contract": "run_context",
+    "requires_staging": false,
+    "requires_run_mount": true,
+    "genome": "hg38_broad",
+    "jobs": 20,
+    "targets": [
+      "produce_illumina_run_qc_and_bclconvert"
+    ],
+    "dy_command": "bin/day_run produce_illumina_run_qc_and_bclconvert -p -j 20 -k",
+    "artifact_registration_enabled": true
+  },
+  {
+    "command_id": "ont_run_qc",
+    "found": true,
+    "command_class": "run_analysis",
+    "input_contract": "run_context",
+    "requires_staging": false,
+    "requires_run_mount": true,
+    "genome": "hg38_broad",
+    "jobs": 5,
+    "targets": [
+      "produce_ont_run_qc"
+    ],
+    "dy_command": "bin/day_run produce_ont_run_qc -p -j 5 -k",
+    "artifact_registration_enabled": false
+  },
+  {
+    "command_id": "illumina_hg002_kitchensink_multiqc",
+    "found": true,
+    "command_class": "sample_analysis",
+    "input_contract": "sample_manifest",
+    "requires_staging": true,
+    "requires_run_mount": false,
+    "genome": "hg38",
+    "jobs": 200,
+    "targets": [
+      "produce_sent_align",
+      "produce_dmd_dedup_cram",
+      "produce_sentd_snv_vcf",
+      "produce_alignstats",
+      "produce_snv_concordances",
+      "produce_relatedness",
+      "produce_gatk_contam_estimate",
+      "produce_site_mix_contam_estimate",
+      "produce_global_contam_check",
+      "produce_vep",
+      "produce_expansionhunter",
+      "produce_htd_calls",
+      "produce_metagenomics",
+      "produce_multiqc_all"
+    ],
+    "dy_command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\"]' 'htd_callers=[\"cyrius\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\",\"contam_identity\"]}' -j 200 -p -k --rerun-triggers mtime",
+    "artifact_registration_enabled": true
+  },
+  {
+    "command_id": "ont_snv_alignstats_kitchensink",
+    "found": true,
+    "command_class": "sample_analysis",
+    "input_contract": "sample_manifest",
+    "requires_staging": true,
+    "requires_run_mount": false,
+    "genome": "hg38_broad",
+    "jobs": 5,
+    "targets": [
+      "produce_alignstats",
+      "produce_sentdont_snv_vcf",
+      "produce_snv_concordances",
+      "produce_relatedness",
+      "produce_vep",
+      "produce_multiqc_all"
+    ],
+    "dy_command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k",
+    "artifact_registration_enabled": true
+  },
+  {
+    "command_id": "hybrid_ilmn_ont_snv_kitchensink",
+    "found": true,
+    "command_class": "sample_analysis",
+    "input_contract": "sample_manifest",
+    "requires_staging": true,
+    "requires_run_mount": false,
+    "genome": "hg38_broad",
+    "jobs": 100,
+    "targets": [
+      "produce_snv_concordances",
+      "produce_sentdhiomr_sv",
+      "produce_sentdhiomr_snv_vcf",
+      "produce_relatedness",
+      "produce_vep",
+      "produce_multiqc_all"
+    ],
+    "dy_command": "bin/day_run produce_snv_concordances produce_sentdhiomr_sv produce_sentdhiomr_snv_vcf produce_relatedness produce_vep produce_multiqc_all --config 'dedupers=[\"dmd\"]' 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k",
+    "artifact_registration_enabled": true
+  },
+  {
+    "command_id": "illumina_snv_alignstats_relatedness_vep_multiqc",
+    "found": true,
+    "command_class": "sample_analysis",
+    "input_contract": "sample_manifest",
+    "requires_staging": true,
+    "requires_run_mount": false,
+    "genome": "hg38_broad",
+    "jobs": 100,
+    "targets": [
+      "produce_sent_align",
+      "produce_dmd_dedup_cram",
+      "produce_sentd_snv_vcf",
+      "produce_alignstats",
+      "produce_snv_concordances",
+      "produce_relatedness",
+      "produce_vep",
+      "produce_multiqc_all"
+    ],
+    "dy_command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 100 -k",
+    "artifact_registration_enabled": true
+  }
+]
