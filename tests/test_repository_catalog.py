@@ -198,7 +198,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "2.0.44"
+    assert command.git_tag == "5.0.2"
     assert len(command.validation_runs) == 1
     validation_run = command.validation_runs[0]
     assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -251,7 +251,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.44" in launch_argv
+    assert "5.0.2" in launch_argv
 
     export_argv = command.launch_argv(
         analysis_id="run-1",
@@ -336,7 +336,6 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "roche_snv_alignstats",
         "hybrid_ilmn_ont_snv",
         "hybrid_ilmn_ont_snv_kitchensink",
-        "hybrid_ultima_ont_snv",
         "complete_genomics_mgi_snv_concordance",
     } <= command_ids
 
@@ -363,7 +362,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert command.dryrun_dy_command.endswith(" -n")
             assert command.compatible_platforms
             assert command.compatible_data_modes
-            assert command.git_tag == "2.0.44"
+            assert command.git_tag == "5.0.2"
             assert (
                 command.input_requirements.required_source_columns
                 or command.input_requirements.accepted_source_column_sets
@@ -392,7 +391,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "2.0.44"
+        assert command.git_tag == "5.0.2"
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets
@@ -419,15 +418,6 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_sentdhiom_sv" not in hybrid_ilmn_ont.dy_command
     assert "produce_sentdhiom_snv_vcf" not in hybrid_ilmn_ont.dy_command
     assert "dedupers=[" in hybrid_ilmn_ont.dy_command
-
-    hybrid_ultima_ont = catalog.get_command("hybrid_ultima_ont_snv")
-    assert hybrid_ultima_ont.aligners == ["ug"]
-    assert hybrid_ultima_ont.dedupers == ["na"]
-    assert hybrid_ultima_ont.snv_callers == ["sentdhuomr"]
-    assert "produce_sentdhuomr_snv_vcf" in hybrid_ultima_ont.dy_command
-    assert "produce_sentdhuom_snv_vcf" not in hybrid_ultima_ont.dy_command
-    assert hybrid_ultima_ont.validation_runs[0].status == "failed"
-    assert "sentdhuomr_hybrid_select" in hybrid_ultima_ont.validation_runs[0].failure_cause
 
     for command in catalog.commands():
         if command.command_class != "sample_analysis":

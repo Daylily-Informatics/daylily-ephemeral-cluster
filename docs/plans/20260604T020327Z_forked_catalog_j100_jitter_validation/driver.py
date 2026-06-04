@@ -71,8 +71,6 @@ SOURCE_MANIFESTS = {
     / "docs/plans/20260526T224018Z_blahab44_inputs/roche_hg003_5x.tsv",
     "hybrid_ilmn_ont_hg003_5x5x": ROOT
     / "docs/plans/20260526T224018Z_blahab44_inputs/hybrid_ilmn_ont_hg003_5x5x.tsv",
-    "hybrid_ultima_ont_hg003_5x5x": ROOT
-    / "docs/plans/20260526T224018Z_blahab44_inputs/hybrid_ultima_ont_hg003_5x5x.tsv",
     "complete_genomics_mgi_hg003": ROOT
     / "docs/plans/20260526T224018Z_blahab44_inputs/complete_genomics_mgi_hg003_candidate_blocked.tsv",
 }
@@ -90,7 +88,6 @@ COMMAND_SOURCE_ALIAS = {
     "hybrid_ilmn_ont_snv": "hybrid_ilmn_ont_hg003_5x5x",
     "hybrid_ilmn_ont_snv_kitchensink": "hybrid_ilmn_ont_hg003_5x5x",
     "inflection-bjuice-product-v0.1": "hybrid_ilmn_ont_hg003_5x5x",
-    "hybrid_ultima_ont_snv": "hybrid_ultima_ont_hg003_5x5x",
     "complete_genomics_mgi_snv_concordance": "complete_genomics_mgi_hg003",
 }
 
@@ -140,7 +137,6 @@ COMMAND_ORDER = [
     "hybrid_ilmn_ont_snv",
     "hybrid_ilmn_ont_snv_kitchensink",
     "inflection-bjuice-product-v0.1",
-    "hybrid_ultima_ont_snv",
     "complete_genomics_mgi_snv_concordance",
     "illumina_run_qc",
     "illumina_bclconvert",
@@ -174,7 +170,7 @@ SAMPLE_BATCHES = [
         "hybrid_ilmn_ont_snv_kitchensink",
         "inflection-bjuice-product-v0.1",
     ],
-    ["hybrid_ultima_ont_snv", "complete_genomics_mgi_snv_concordance"],
+    ["complete_genomics_mgi_snv_concordance"],
 ]
 
 
