@@ -129,6 +129,36 @@ def test_day_clone_short_destination_and_tag_clone_default_repository(monkeypatc
     ]
 
 
+def test_day_clone_full_sha_clones_then_detaches(monkeypatch, tmp_path):
+    module = _load_day_clone()
+    global_config, available_repos, clone_root = _write_configs(tmp_path)
+    _patch_day_clone_paths(module, global_config, available_repos, monkeypatch)
+    _patch_cluster_name_source(module, monkeypatch, tmp_path)
+    clone_calls: list[list[str]] = []
+    commit_sha = "9f442ed1f32ecb19cf0163c41d196974f8198364"
+    target = str(clone_root / "dyec-515" / "analysis" / "test-repo")
+
+    def fake_run(cmd, check):
+        clone_calls.append(cmd)
+        assert check is True
+        return subprocess.CompletedProcess(cmd, 0)
+
+    monkeypatch.setattr(module.subprocess, "run", fake_run)
+
+    rc = module.main(["-d", "analysis", "-t", commit_sha])
+
+    assert rc == 0
+    assert clone_calls == [
+        [
+            "git",
+            "clone",
+            "https://github.com/Daylily-Informatics/test-repo.git",
+            target,
+        ],
+        ["git", "-C", target, "checkout", "--detach", commit_sha],
+    ]
+
+
 def test_day_clone_short_tag_still_requires_destination(monkeypatch, tmp_path, capsys):
     module = _load_day_clone()
     global_config, available_repos, _clone_root = _write_configs(tmp_path)

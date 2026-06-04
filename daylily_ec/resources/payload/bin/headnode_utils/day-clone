@@ -15,6 +15,7 @@ CONFIG_DIR = os.path.expanduser("~/.config/daylily")
 GLOBAL_CONFIG_PATH = os.path.join(CONFIG_DIR, "daylily_cli_global.yaml")
 AVAILABLE_REPOS_PATH = os.path.join(CONFIG_DIR, "daylily_pipeline_command_catalog.yaml")
 SAFE_SEGMENT_RE = re.compile(r"^[A-Za-z0-9][A-Za-z0-9._-]*$")
+FULL_COMMIT_SHA_RE = re.compile(r"^[0-9a-fA-F]{40}$")
 CLUSTER_NAME_ENV_KEYS = (
     "DAYLILY_CLUSTER_NAME",
     "DAY_EC_CLUSTER_NAME",
@@ -154,13 +155,19 @@ def clone_repository(
     ref: Optional[str],
 ) -> None:
     cmd = ["git", "clone"]
-    if ref:
+    detached_commit = ref if ref and FULL_COMMIT_SHA_RE.fullmatch(ref) else None
+    if ref and not detached_commit:
         cmd.extend(["--branch", ref])
     cmd.extend([git_url, destination])
     try:
         subprocess.run(cmd, check=True)
     except subprocess.CalledProcessError as exc:
         raise RuntimeError(f"Git clone failed with exit code {exc.returncode}.") from exc
+    if detached_commit:
+        try:
+            subprocess.run(["git", "-C", destination, "checkout", "--detach", detached_commit], check=True)
+        except subprocess.CalledProcessError as exc:
+            raise RuntimeError(f"Git checkout failed with exit code {exc.returncode}.") from exc
 
 
 def derive_default_path(repo_url: str) -> str:
