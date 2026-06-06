@@ -505,7 +505,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     ont_kitchensink = catalog.get_command("ont_snv_alignstats_kitchensink")
     assert ont_kitchensink.validation_runs == []
     assert ont_kitchensink.targets == [
+        "produce_sentmm2ont_align",
         "produce_alignstats",
+        "produce_na_dedup_cram",
         "produce_sentdont_snv_vcf",
         "produce_snv_concordances",
         "produce_relatedness",
@@ -515,7 +517,10 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert ont_kitchensink.aligners == ["ont"]
     assert ont_kitchensink.dedupers == ["na"]
     assert ont_kitchensink.snv_callers == ["sentdont"]
-    assert "produce_sentmm2ont_align" not in ont_kitchensink.dy_command
+    assert "produce_sentmm2ont_align" in ont_kitchensink.dy_command
+    assert "produce_na_dedup_cram" in ont_kitchensink.dy_command
+    assert "--rerun-triggers mtime" in ont_kitchensink.dy_command
+    assert "--rerun-triggers mtime -n" in ont_kitchensink.dryrun_dy_command
     assert "produce_multiqc_all" in ont_kitchensink.dy_command
     assert "multiqc_qc=" in ont_kitchensink.dy_command
 

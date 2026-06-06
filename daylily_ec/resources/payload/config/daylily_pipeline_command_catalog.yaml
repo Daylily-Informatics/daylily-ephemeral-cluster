@@ -652,7 +652,9 @@ repositories:
             - [ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
             - [ONT_BAM, ONT_BAM_ALIGNER, ONT_BAM_SNV_CALLER]
         targets:
+          - produce_sentmm2ont_align
           - produce_alignstats
+          - produce_na_dedup_cram
           - produce_sentdont_snv_vcf
           - produce_snv_concordances
           - produce_relatedness
@@ -667,8 +669,8 @@ repositories:
         snv_callers:
           - sentdont
         sv_callers: []
-        dy_command: "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k"
-        dryrun_dy_command: "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k -n"
+        dy_command: "bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k --rerun-triggers mtime"
+        dryrun_dy_command: "bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k --rerun-triggers mtime -n"
         compatible_platforms:
           - ONT
         compatible_data_modes:

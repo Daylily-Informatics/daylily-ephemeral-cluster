@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import json
 import os
+import shutil
 import subprocess
 from typing import Iterable, Optional
 
@@ -13,12 +14,7 @@ class CommandError(RuntimeError):
 
 
 def need_cmd(name: str) -> None:
-    if subprocess.run(
-        ["/bin/sh", "-lc", f"command -v {name} >/dev/null 2>&1"],
-        check=False,
-        stdout=subprocess.DEVNULL,
-        stderr=subprocess.DEVNULL,
-    ).returncode != 0:
+    if shutil.which(name) is None:
         raise CommandError(f"Missing required command: {name}")
 
 
