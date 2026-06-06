@@ -61,8 +61,8 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
     ):
         data = yaml.safe_load((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
         daylily = data["daylily"]
-        assert daylily["git_ephemeral_cluster_repo_tag"] == "7.0.3"
-        assert daylily["git_ephemeral_cluster_repo_release_tag"] == "7.0.3"
+        assert daylily["git_ephemeral_cluster_repo_tag"] == "7.0.4"
+        assert daylily["git_ephemeral_cluster_repo_release_tag"] == "7.0.4"
         assert (
             daylily["git_ephemeral_cluster_repo"]
             == "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git"
