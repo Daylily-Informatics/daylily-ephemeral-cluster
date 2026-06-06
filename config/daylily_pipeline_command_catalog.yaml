@@ -665,16 +665,16 @@ repositories:
           - results/day/hg38_broad/reports/DAY_final_multiqc.html
           - results/day/hg38_broad/reports/dayoa_evidence_manifest.json
         genome: hg38_broad
-        jobs: 5
+        jobs: 250
         aligners:
-          - ont
+          - sentmm2ont
         dedupers:
           - na
         snv_callers:
           - sentdont
         sv_callers: []
-        dy_command: "bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k --rerun-triggers mtime"
-        dryrun_dy_command: "bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k --rerun-triggers mtime -n"
+        dy_command: "bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 250 -k --rerun-triggers mtime"
+        dryrun_dy_command: "bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 250 -k --rerun-triggers mtime -n"
         compatible_platforms:
           - ONT
         compatible_data_modes:
@@ -814,12 +814,10 @@ repositories:
         requires_run_mount: false
         runtime_parameters: {}
         input_requirements:
-          required_source_columns:
-            - ILMN_R1_FQ
-            - ILMN_R2_FQ
-            - ONT_CRAM
-            - ONT_CRAM_ALIGNER
-            - ONT_CRAM_SNV_CALLER
+          accepted_source_column_sets:
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_FASTQ_PREFIX]
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
         targets:
           - produce_snv_concordances
           - produce_sentdhiomr_sv
@@ -877,12 +875,10 @@ repositories:
         requires_run_mount: false
         runtime_parameters: {}
         input_requirements:
-          required_source_columns:
-            - ILMN_R1_FQ
-            - ILMN_R2_FQ
-            - ONT_CRAM
-            - ONT_CRAM_ALIGNER
-            - ONT_CRAM_SNV_CALLER
+          accepted_source_column_sets:
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_FASTQ_PREFIX]
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
         targets:
           - produce_snv_concordances
           - produce_sentdhiomr_sv
@@ -924,24 +920,22 @@ repositories:
         requires_run_mount: false
         runtime_parameters: {}
         input_requirements:
-          required_source_columns:
-            - ILMN_R1_FQ
-            - ILMN_R2_FQ
-            - ONT_CRAM
-            - ONT_CRAM_ALIGNER
-            - ONT_CRAM_SNV_CALLER
+          accepted_source_column_sets:
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_R1_FQ]
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_FASTQ_PREFIX]
+            - [ILMN_R1_FQ, ILMN_R2_FQ, ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
         targets:
           - produce_sent_align
           - produce_dmd_dedup_cram
-          - produce_sentdhiomr_sv
-          - produce_snv_concordances
           - produce_sentdhiomr_snv_vcf
+          - produce_sentdhiomr_sv
           - produce_sentdhiomr_cnv
-          - produce_sentdhiomr_mito
           - produce_sentdhiomr_segdup
+          - produce_sentdhiomr_mito
           - produce_expansionhunter
+          - produce_alignstats
         genome: hg38_broad
-        jobs: 125
+        jobs: 250
         aligners:
           - sent
         dedupers:
@@ -950,8 +944,8 @@ repositories:
           - sentdhiomr
         sv_callers:
           - sentdhiomr
-        dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_snv_vcf produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_expansionhunter --config 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' -j 125 -p -k"
-        dryrun_dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_snv_vcf produce_sentdhiomr_cnv produce_sentdhiomr_mito produce_sentdhiomr_segdup produce_expansionhunter --config 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' -j 125 -p -k -n"
+        dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"sentdhiomr\"]' 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' -j 250 -p -k --rerun-triggers mtime -T 0"
+        dryrun_dy_command: "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"sentdhiomr\"]' 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' -j 250 -p -k --rerun-triggers mtime -T 0 -n"
         compatible_platforms:
           - ILMN
           - ONT

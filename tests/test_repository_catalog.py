@@ -418,6 +418,9 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_sentdhiom_sv" not in hybrid_ilmn_ont.dy_command
     assert "produce_sentdhiom_snv_vcf" not in hybrid_ilmn_ont.dy_command
     assert "dedupers=[" in hybrid_ilmn_ont.dy_command
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
+        hybrid_ilmn_ont.input_requirements.accepted_source_column_sets
+    )
 
     for command in catalog.commands():
         if command.command_class != "sample_analysis":
@@ -520,13 +523,15 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "results/day/hg38_broad/reports/DAY_final_multiqc.html",
         "results/day/hg38_broad/reports/dayoa_evidence_manifest.json",
     ]
-    assert ont_kitchensink.aligners == ["ont"]
+    assert ont_kitchensink.jobs == 250
+    assert ont_kitchensink.aligners == ["sentmm2ont"]
     assert ont_kitchensink.dedupers == ["na"]
     assert ont_kitchensink.snv_callers == ["sentdont"]
     assert "produce_sentmm2ont_align" in ont_kitchensink.dy_command
     assert "produce_na_dedup_cram" in ont_kitchensink.dy_command
     assert "--rerun-triggers mtime" in ont_kitchensink.dy_command
     assert "--rerun-triggers mtime -n" in ont_kitchensink.dryrun_dy_command
+    assert " -j 250 " in ont_kitchensink.dy_command
     assert "produce_multiqc_all" in ont_kitchensink.dy_command
     assert "results/day/hg38_broad/reports/DAY_final_multiqc.html" in ont_kitchensink.dy_command
     assert "results/day/hg38_broad/reports/dayoa_evidence_manifest.json" in ont_kitchensink.dy_command
@@ -552,28 +557,38 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_sentdhiom_snv_vcf" not in hybrid_kitchensink.dy_command
     assert "produce_multiqc_all" in hybrid_kitchensink.dy_command
     assert "multiqc_qc=" in hybrid_kitchensink.dy_command
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
+        hybrid_kitchensink.input_requirements.accepted_source_column_sets
+    )
 
     inflection_bjuice = catalog.get_command("inflection-bjuice-product-v0.1")
     assert inflection_bjuice.validation_runs == []
     assert inflection_bjuice.targets == [
         "produce_sent_align",
         "produce_dmd_dedup_cram",
-        "produce_sentdhiomr_sv",
-        "produce_snv_concordances",
         "produce_sentdhiomr_snv_vcf",
+        "produce_sentdhiomr_sv",
         "produce_sentdhiomr_cnv",
-        "produce_sentdhiomr_mito",
         "produce_sentdhiomr_segdup",
+        "produce_sentdhiomr_mito",
         "produce_expansionhunter",
+        "produce_alignstats",
     ]
-    assert inflection_bjuice.jobs == 125
+    assert inflection_bjuice.jobs == 250
     assert inflection_bjuice.aligners == ["sent"]
     assert inflection_bjuice.dedupers == ["dmd"]
     assert inflection_bjuice.snv_callers == ["sentdhiomr"]
     assert inflection_bjuice.sv_callers == ["sentdhiomr"]
+    assert ["ILMN_R1_FQ", "ILMN_R2_FQ", "ONT_R1_FQ"] in (
+        inflection_bjuice.input_requirements.accepted_source_column_sets
+    )
     assert "produce_sentdhiomr_segdup" in inflection_bjuice.dy_command
     assert 'sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"}' in (inflection_bjuice.dy_command)
-    assert " -j 125 -p -k" in inflection_bjuice.dy_command
+    assert 'aligners=["sent"]' in inflection_bjuice.dy_command
+    assert 'dedupers=["dmd"]' in inflection_bjuice.dy_command
+    assert 'snv_callers=["sentdhiomr"]' in inflection_bjuice.dy_command
+    assert 'sv_callers=["sentdhiomr"]' in inflection_bjuice.dy_command
+    assert " -j 250 -p -k --rerun-triggers mtime -T 0" in inflection_bjuice.dy_command
     assert inflection_bjuice.dryrun_dy_command.endswith(" -n")
 
     simple_test = catalog.get_command("simple-test")
