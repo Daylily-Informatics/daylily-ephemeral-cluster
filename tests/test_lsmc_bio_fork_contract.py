@@ -50,7 +50,7 @@ def test_pyproject_uses_lsmc_bio_dayoa_github_release_pin() -> None:
 
     assert (
         "daylily-omics-analysis @ "
-        "git+https://github.com/lsmc-bio/daylily-omics-analysis.git@5.0.1"
+        "git+https://github.com/lsmc-bio/daylily-omics-analysis.git@5.0.2"
     ) in dependencies
 
 
@@ -76,4 +76,4 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
         repo = data["repositories"]["daylily-omics-analysis"]
         assert repo["https_url"] == "https://github.com/lsmc-bio/daylily-omics-analysis.git"
         assert repo["ssh_url"] == "git@github.com:lsmc-bio/daylily-omics-analysis.git"
-        assert repo["default_ref"] == "5.0.1"
+        assert repo["default_ref"] == "5.0.2"

@@ -430,6 +430,8 @@ repositories:
           - produce_htd_calls
           - produce_metagenomics
           - produce_multiqc_all
+          - results/day/hg38/reports/DAY_final_multiqc.html
+          - results/day/hg38/reports/dayoa_evidence_manifest.json
         genome: hg38
         jobs: 200
         aligners:
@@ -440,9 +442,9 @@ repositories:
           - sentd
         sv_callers: []
         dy_command: >-
-          bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics","contam_identity"]}' -j 200 -p -k --rerun-triggers mtime
+          bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics","contam_identity"]}' -j 200 -p -k --rerun-triggers mtime
         dryrun_dy_command: >-
-          bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics","contam_identity"]}' -j 200 -p -k --rerun-triggers mtime -n
+          bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all results/day/hg38/reports/DAY_final_multiqc.html results/day/hg38/reports/dayoa_evidence_manifest.json --config 'aligners=["sent"]' 'dedupers=["dmd"]' 'snv_callers=["sentd"]' 'htd_callers=["cyrius"]' 'multiqc_qc={"enable_tools":["vep","metagenomics","contam_identity"]}' -j 200 -p -k --rerun-triggers mtime -n
         compatible_platforms:
           - ILMN
         compatible_data_modes:
