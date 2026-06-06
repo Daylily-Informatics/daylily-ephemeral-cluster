@@ -50,7 +50,7 @@ def test_pyproject_uses_lsmc_bio_dayoa_github_release_pin() -> None:
 
     assert (
         "daylily-omics-analysis @ "
-        "git+https://github.com/lsmc-bio/daylily-omics-analysis.git@5.0.2"
+        "git+https://github.com/lsmc-bio/daylily-omics-analysis.git@5.0.3"
     ) in dependencies
 
 
@@ -61,8 +61,8 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
     ):
         data = yaml.safe_load((REPO_ROOT / relative_path).read_text(encoding="utf-8"))
         daylily = data["daylily"]
-        assert daylily["git_ephemeral_cluster_repo_tag"] == "7.0.1"
-        assert daylily["git_ephemeral_cluster_repo_release_tag"] == "7.0.1"
+        assert daylily["git_ephemeral_cluster_repo_tag"] == "7.0.3"
+        assert daylily["git_ephemeral_cluster_repo_release_tag"] == "7.0.3"
         assert (
             daylily["git_ephemeral_cluster_repo"]
             == "https://github.com/lsmc-bio/daylily-ephemeral-cluster.git"
@@ -76,4 +76,4 @@ def test_catalogs_and_self_config_are_lsmc_bio_pinned() -> None:
         repo = data["repositories"]["daylily-omics-analysis"]
         assert repo["https_url"] == "https://github.com/lsmc-bio/daylily-omics-analysis.git"
         assert repo["ssh_url"] == "git@github.com:lsmc-bio/daylily-omics-analysis.git"
-        assert repo["default_ref"] == "5.0.2"
+        assert repo["default_ref"] == "5.0.3"
