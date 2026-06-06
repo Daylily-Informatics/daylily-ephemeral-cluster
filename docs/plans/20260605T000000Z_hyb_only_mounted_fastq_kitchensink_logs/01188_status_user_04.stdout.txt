@@ -1,0 +1,47 @@
+## ILMN_STATUS
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\"]' 'htd_callers=[\"cyrius\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\",\"contam_identity\"]}' -j 200 -p -k --rerun-triggers mtime",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis",
+  "session_name": "hybonly_ilmn_kitchensink_mounted_20260606T053415Z",
+  "started_at": "2026-06-06T05:59:22Z"
+}
+## ONT_LIMITED_STATUS
+{
+  "command": "bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram -p -j 5 -k --rerun-triggers mtime",
+  "completed_at": "2026-06-06T08:30:49Z",
+  "exit_code": 130,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_ont_alignsort_alignstats_dedupna_live_20260606T074825Z/daylily-omics-analysis",
+  "session_name": "hybonly_ont_alignsort_alignstats_dedupna_live_20260606T074825Z",
+  "started_at": "2026-06-06T07:48:50Z",
+  "stop_cancelled_slurm_job_ids": [
+    "850",
+    "851",
+    "848",
+    "849",
+    "847"
+  ],
+  "stop_reason": "dyec workflow stop",
+  "stopped": true
+}
+## ILMN_PROGRESS
+524 of 729 steps (72%) done
+525 of 729 steps (72%) done
+526 of 729 steps (72%) done
+527 of 729 steps (72%) done
+528 of 729 steps (72%) done
+529 of 729 steps (73%) done
+530 of 729 steps (73%) done
+531 of 729 steps (73%) done
+532 of 729 steps (73%) done
+533 of 729 steps (73%) done
+## QUEUE_FILTERED
+DAY-EC activated.
+694  i192  8  R  i192-dy-all-3  8  RUNNING  16000M  1:18:30  1  haplocheck_vcf_contam_identity-20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ
+620  i192  8  R  i192-dy-all-1  8  RUNNING  16000M  1:19:49  1  haplocheck_vcf_contam_identity-20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ
+561  i192  8  R  i192-dy-all-5  8  RUNNING  16000M  1:20:49  1  haplocheck_vcf_contam_identity-20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ
+487  i192  8  R  i192-dy-all-14  8  RUNNING  16000M  1:22:13  1  haplocheck_vcf_contam_identity-20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ
+417  i192  8  R  i192-dy-all-1  8  RUNNING  16000M  1:24:23  1  haplocheck_vcf_contam_identity-20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ
+351  i192  8  R  i192-dy-all-1  8  RUNNING  16000M  1:27:08  1  haplocheck_vcf_contam_identity-20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ
+256  i192  8  R  i192-dy-all-1  8  RUNNING  16000M  1:31:36  1  haplocheck_vcf_contam_identity-20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ

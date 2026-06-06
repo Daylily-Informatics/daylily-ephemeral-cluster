@@ -1,0 +1,44 @@
+DAY-EC activated.
+DAY-EC activated.
+PATH=/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/home/ubuntu/.local/bin:/home/ubuntu/miniconda3/envs/DAY-EC/bin:/home/ubuntu/miniconda3/condabin:/opt/amazon/openmpi/bin:/opt/amazon/efa/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin:/snap/bin:/opt/aws/bin:/opt/parallelcluster/pyenv/versions/3.12.8/envs/awsbatch_virtualenv/bin:/opt/slurm/bin:/opt/parallelcluster/pyenv/versions/3.12.8/envs/awsbatch_virtualenv/bin:/opt/slurm/bin
+conda
+conda_sh=/home/ubuntu/miniconda3/etc/profile.d/conda.sh
+total 36
+drwxr-xr-x 10 root root 4096 Jun 20  2025 amazon
+drwxr-xr-x  4 root root 4096 Jun  6 00:08 aws
+drwxr-xr-x  5 root root 4096 Jun 20  2025 cinc
+drwx--x--x  4 root root 4096 Jun  6 00:18 containerd
+drwxr-xr-x  8 root root 4096 Jun 20  2025 intel
+drwxr-xr-x  5 root root 4096 Jun 20  2025 libjwt
+drwxr-xr-x 11 root root 4096 Jun  6 00:08 parallelcluster
+drwxr-xr-x  7 root root 4096 Jun 20  2025 pmix
+drwxr-xr-x  8 root root 4096 Jun  6 00:08 slurm
+total 208
+drwxr-x--- 15 ubuntu ubuntu  4096 Jun  6 07:17 .
+drwxr-xr-x  6 root   root    4096 Jun  6 00:18 ..
+drwx------  2 ubuntu ubuntu  4096 Jun  6 07:17 .apptainer
+-rw-------  1 ubuntu ubuntu    17 Jun  6 05:16 .bash_history
+-rw-r--r--  1 ubuntu ubuntu   220 Jan  6  2022 .bash_logout
+-rw-rw-r--  1 ubuntu ubuntu   702 Jun  6 00:29 .bash_profile
+-rw-r--r--  1 ubuntu ubuntu  4473 Jun  6 00:29 .bashrc
+drwx------ 11 ubuntu ubuntu  4096 Jun  6 07:16 .cache
+drwxrwxr-x  3 ubuntu ubuntu  4096 Jun  6 00:27 .conda
+-rw-rw-r--  1 ubuntu ubuntu   173 Jun  6 05:41 .condarc
+drwx------  5 ubuntu ubuntu  4096 Jun  6 07:16 .config
+drwxrwxr-x  3 ubuntu ubuntu  4096 Jun  6 07:09 .java
+drwxrwxr-x  5 ubuntu ubuntu  4096 Jun  6 00:29 .local
+drwxrwxr-x  5 ubuntu ubuntu  4096 Jun  6 05:42 .npm
+drwxrwxr-x  2 ubuntu ubuntu  4096 Jun  6 05:40 .parallel
+-rw-r--r--  1 ubuntu ubuntu   807 Jan  6  2022 .profile
+drwx------  2 ubuntu ubuntu  4096 Jun  6 00:08 .ssh
+-rw-rw-r--  1 ubuntu ubuntu   482 Jun  6 00:27 .zshrc
+drwxrwxr-x 20 ubuntu ubuntu  4096 Jun  6 10:59 daylily-runs
+drwxrwxr-x  5 ubuntu ubuntu  4096 Jun  6 10:57 daylily-staged-configs
+-rw-rw-r--  1 ubuntu ubuntu   667 Jun  6 02:51 hyb_only_launch_ilmn_stage_20260606T010256Z.sh
+-rw-rw-r--  1 ubuntu ubuntu   658 Jun  6 02:32 hyb_only_launch_ont_stage_20260606T010256Z.sh
+-rwxrwxr-x  1 ubuntu ubuntu 48475 Jun  6 02:51 hyb_only_stage_ilmn_data_20260606T010256Z.sh
+-rwxrwxr-x  1 ubuntu ubuntu  3388 Jun  6 03:10 hyb_only_stage_ilmn_parallel_20260606T010256Z.sh
+-rwxrwxr-x  1 ubuntu ubuntu  2514 Jun  6 02:30 hyb_only_stage_ont_data_20260606T010256Z.sh
+-rw-rw-r--  1 ubuntu ubuntu 50733 Jun  6 02:05 hyb_only_stage_scratch_data_20260606T010256Z.sh
+drwxrwxr-x 19 ubuntu ubuntu  4096 Jun  6 05:41 miniconda3
+drwxrwxr-x  3 ubuntu ubuntu  4096 Jun  6 00:27 projects

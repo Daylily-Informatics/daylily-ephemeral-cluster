@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=hybonly_ilmn_kitchensink_mounted_20260606T053415Z
+__DAYLILY_TMUX_SESSION__=hybonly_ilmn_kitchensink_mounted_20260606T053415Z
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/hybonly_ilmn_kitchensink_mounted_20260606T053415Z
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis
+Tmux session 'hybonly_ilmn_kitchensink_mounted_20260606T053415Z' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/hybonly_ilmn_kitchensink_mounted_20260606T053415Z
+Workflow repo path: /fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster hyb-only
+Then run: tmux attach -t hybonly_ilmn_kitchensink_mounted_20260606T053415Z

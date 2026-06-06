@@ -62,6 +62,7 @@ EXPECTED_COMMANDS = {
     ("workflow", "launch"),
     ("workflow", "status"),
     ("workflow", "logs"),
+    ("workflow", "stop"),
     ("repositories", "commands"),
     ("mounts", "list"),
     ("mounts", "create"),
@@ -184,6 +185,7 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     workflow_launch_cmd = registry.get_command(("workflow", "launch"))
     workflow_status_cmd = registry.get_command(("workflow", "status"))
     workflow_logs_cmd = registry.get_command(("workflow", "logs"))
+    workflow_stop_cmd = registry.get_command(("workflow", "stop"))
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
     mounts_list_cmd = registry.get_command(("mounts", "list"))
     mounts_create_cmd = registry.get_command(("mounts", "create"))
@@ -295,6 +297,10 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
 
     assert workflow_logs_cmd is not None
     assert workflow_logs_cmd.policy.mutates_state is False
+
+    assert workflow_stop_cmd is not None
+    assert workflow_stop_cmd.policy.supports_json is True
+    assert workflow_stop_cmd.policy.mutates_state is True
 
     assert repositories_commands_cmd is not None
     assert repositories_commands_cmd.policy.supports_json is True
@@ -1630,7 +1636,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "2.0.44" in launch_argv
+    assert "5.0.3" in launch_argv
     assert "--dy-command" in launch_argv
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
     assert "produce_cgt7p_snv_vcf" in dy_command
@@ -2259,6 +2265,180 @@ def test_workflow_logs_tails_tmux_log_via_ssm(monkeypatch) -> None:
     assert "line 1" in result.stdout
     assert "tmux.log" in calls["script"]
     assert "tail -n 50" in calls["script"]
+
+
+def test_workflow_stop_kills_controller_via_ssm(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a",
+            "us-west-2",
+            "i-abc123",
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        calls["run_shell"] = (instance_id, region, script, kwargs)
+        payload = {
+            "session_name": "sess-1",
+            "run_dir": "/home/ubuntu/daylily-runs/sess-1",
+            "tmux_session_name": "sess-1",
+            "tmux_session_before": True,
+            "tmux_session_after": False,
+            "killed_tmux_session": True,
+            "cancel_slurm_jobs": False,
+            "job_name_pattern": "",
+            "slurm_jobs_before": [],
+            "scancelled_job_ids": [],
+            "slurm_jobs_after": [],
+            "status_path": "/home/ubuntu/daylily-runs/sess-1/status.json",
+            "status_updated": True,
+        }
+        return SsmCommandResult(
+            "cmd-1",
+            instance_id,
+            "Success",
+            0,
+            "DAY-EC activated.\n__DAYLILY_WORKFLOW_STOP__="
+            + json.dumps(payload, sort_keys=True)
+            + "\n",
+            "",
+        )
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "workflow",
+            "stop",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--session",
+            "sess-1",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["killed_tmux_session"] is True
+    assert payload["cancel_slurm_jobs"] is False
+    _instance_id, _region, script, kwargs = calls["run_shell"]
+    assert "DAYLILY_WORKFLOW_SESSION=sess-1" in script
+    assert "DAYLILY_CANCEL_SLURM_JOBS=false" in script
+    assert 'run(["tmux", "kill-session"' in script
+    assert 'status["exit_code"] = 130' in script
+    assert "scancel" in script
+    assert kwargs["profile"] == "dev"
+
+
+def test_workflow_stop_can_cancel_slurm_jobs_with_explicit_pattern(monkeypatch) -> None:
+    import daylily_ec.aws.ssm as ssm_module
+
+    calls: dict[str, object] = {}
+    _activate_dayec_runtime(monkeypatch)
+    _patch_headnode_selection(monkeypatch)
+    monkeypatch.setattr(
+        ssm_module,
+        "resolve_headnode_instance_id",
+        lambda _cluster, _region, *, profile=None: HeadNodeTarget(
+            "cluster-a",
+            "us-west-2",
+            "i-abc123",
+        ),
+    )
+    monkeypatch.setattr(ssm_module, "wait_for_ssm_online", lambda *args, **kwargs: None)
+
+    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+        calls["script"] = script
+        payload = {
+            "session_name": "sess-1",
+            "run_dir": "/home/ubuntu/daylily-runs/sess-1",
+            "tmux_session_name": "sess-1",
+            "tmux_session_before": True,
+            "tmux_session_after": False,
+            "killed_tmux_session": True,
+            "cancel_slurm_jobs": True,
+            "job_name_pattern": "ONT-4Coriells|sentmm2ont",
+            "slurm_jobs_before": [{"job_id": "101", "name": "sentmm2ont-ONT-4Coriells"}],
+            "scancelled_job_ids": ["101"],
+            "slurm_jobs_after": [],
+            "status_path": "/home/ubuntu/daylily-runs/sess-1/status.json",
+            "status_updated": True,
+        }
+        return SsmCommandResult(
+            "cmd-1",
+            instance_id,
+            "Success",
+            0,
+            "__DAYLILY_WORKFLOW_STOP__=" + json.dumps(payload, sort_keys=True) + "\n",
+            "",
+        )
+
+    monkeypatch.setattr(ssm_module, "run_shell", fake_run_shell)
+
+    result = runner.invoke(
+        app,
+        [
+            "--json",
+            "workflow",
+            "stop",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--session",
+            "sess-1",
+            "--cancel-slurm-jobs",
+            "--job-name-pattern",
+            "ONT-4Coriells|sentmm2ont",
+        ],
+    )
+
+    assert result.exit_code == 0
+    payload = json.loads(result.stdout)
+    assert payload["scancelled_job_ids"] == ["101"]
+    assert "DAYLILY_CANCEL_SLURM_JOBS=true" in calls["script"]
+    assert "DAYLILY_JOB_NAME_PATTERN='ONT-4Coriells|sentmm2ont'" in calls["script"]
+
+
+def test_workflow_stop_requires_job_pattern_for_slurm_cancellation(monkeypatch) -> None:
+    _activate_dayec_runtime(monkeypatch)
+    result = runner.invoke(
+        app,
+        [
+            "workflow",
+            "stop",
+            "--profile",
+            "dev",
+            "--region",
+            "us-west-2",
+            "--cluster",
+            "cluster-a",
+            "--session",
+            "sess-1",
+            "--cancel-slurm-jobs",
+        ],
+    )
+
+    assert result.exit_code != 0
+    assert "--job-name-pattern is required with --cancel-slurm-jobs" in (
+        result.stdout + result.stderr
+    )
 
 
 def test_delete_dry_run_never_calls_delete_workflow(monkeypatch) -> None:

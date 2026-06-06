@@ -1,0 +1,37 @@
+SSM cfg init 20260606T083347Z_63d147c7_samples.tsv: f837f334-c239-4d1e-9286-11c01cb73d14 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T083347Z_63d147c7_samples.tsv 1: c2fefaf0-a995-49d0-9f9f-f63eaefff965 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg final 20260606T083347Z_63d147c7_samples.tsv: 56fc79c6-1caf-44f1-bbbf-973e486a8ec3 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+-rw-r--r-- 1 ubuntu ubuntu 456 Jun  6 08:53 /home/ubuntu/daylily-staged-configs/hybonly_ont_chipbarcode_limited_20260606T085229Z_config/20260606T083347Z_63d147c7_samples.tsv
+f9bed18025f2193842932034b3964b23fa96e0653583b94bd8c9df1c1a0e5abd  /home/ubuntu/daylily-staged-configs/hybonly_ont_chipbarcode_limited_20260606T085229Z_config/20260606T083347Z_63d147c7_samples.tsv
+PUT /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_config_by_chip_barcode/20260606T083347Z_63d147c7_samples.tsv -> /home/ubuntu/daylily-staged-configs/hybonly_ont_chipbarcode_limited_20260606T085229Z_config/20260606T083347Z_63d147c7_samples.tsv bytes=456 sha256=f9bed18025f2193842932034b3964b23fa96e0653583b94bd8c9df1c1a0e5abd
+SSM cfg init 20260606T083347Z_63d147c7_units.tsv: d9535b73-978e-404e-9bca-c595521dfabd rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T083347Z_63d147c7_units.tsv 1: 59236206-3509-48a5-9826-a605288f0288 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T083347Z_63d147c7_units.tsv 2: e56bb7b5-fae4-4356-94c6-0bb2c4bb459b rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T083347Z_63d147c7_units.tsv 3: 178250ac-f6f4-4880-8cf4-a01056a1dab5 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T083347Z_63d147c7_units.tsv 4: 30ef8b84-a17b-40b6-82b5-7fdde1eafe65 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T083347Z_63d147c7_units.tsv 5: 900cf11a-d5b6-4aab-a31f-27bb8b9fba07 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg final 20260606T083347Z_63d147c7_units.tsv: 66ddc8e2-6a89-4f94-8c58-a5e8c1c04600 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+-rw-r--r-- 1 ubuntu ubuntu 103870 Jun  6 08:54 /home/ubuntu/daylily-staged-configs/hybonly_ont_chipbarcode_limited_20260606T085229Z_config/20260606T083347Z_63d147c7_units.tsv
+37f7d8b5aa04a0c29811823d473bdcb4634b9889a88cb2dba5b54311fb0877c0  /home/ubuntu/daylily-staged-configs/hybonly_ont_chipbarcode_limited_20260606T085229Z_config/20260606T083347Z_63d147c7_units.tsv
+PUT /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_config_by_chip_barcode/20260606T083347Z_63d147c7_units.tsv -> /home/ubuntu/daylily-staged-configs/hybonly_ont_chipbarcode_limited_20260606T085229Z_config/20260606T083347Z_63d147c7_units.tsv bytes=103870 sha256=37f7d8b5aa04a0c29811823d473bdcb4634b9889a88cb2dba5b54311fb0877c0
+REMOTE_STAGE_DIR=/home/ubuntu/daylily-staged-configs/hybonly_ont_chipbarcode_limited_20260606T085229Z_config

@@ -1,0 +1,4 @@
+Usage: dyec mounts verify [OPTIONS]
+Try 'dyec mounts verify --help' for help.
+
+Error: Got unexpected extra argument (ont-4coriells-chip4)

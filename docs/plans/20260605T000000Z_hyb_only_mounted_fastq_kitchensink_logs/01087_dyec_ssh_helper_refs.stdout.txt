@@ -1,0 +1,200 @@
+daylily_ec/cli.py:92:                    headnode=True,
+daylily_ec/cli.py:305:        "headnode_launched_at": head_node.get("launchTime", "N/A"),
+daylily_ec/cli.py:312:def _cluster_headnode_config_status(
+daylily_ec/cli.py:320:        row["headnode_configured"] = None
+daylily_ec/cli.py:321:        row["headnode_configured_text"] = "N/A"
+daylily_ec/cli.py:322:        row["headnode_config_error"] = "headnode instance id is unavailable"
+daylily_ec/cli.py:344:            comment=f"Check headnode configuration for {row['name']}",
+daylily_ec/cli.py:347:        row["headnode_configured"] = False
+daylily_ec/cli.py:348:        row["headnode_configured_text"] = "NO"
+daylily_ec/cli.py:349:        row["headnode_config_error"] = (
+daylily_ec/cli.py:354:        row["headnode_configured"] = False
+daylily_ec/cli.py:355:        row["headnode_configured_text"] = "NO"
+daylily_ec/cli.py:356:        row["headnode_config_error"] = str(exc)
+daylily_ec/cli.py:359:    row["headnode_configured"] = True
+daylily_ec/cli.py:360:    row["headnode_configured_text"] = "YES"
+daylily_ec/cli.py:361:    row["headnode_config_error"] = ""
+daylily_ec/cli.py:389:            _cluster_headnode_config_status(row, profile=profile, region=region)
+daylily_ec/cli.py:491:                    row["headnode_configured_text"],
+daylily_ec/cli.py:494:                    row["headnode_launched_at"],
+daylily_ec/cli.py:530:                row["headnode_configured_text"],
+daylily_ec/cli.py:533:                row["headnode_launched_at"],
+daylily_ec/cli.py:678:        _exit_headnode_error(exc)
+daylily_ec/cli.py:944:        help="Include status, headnode configuration, and timestamp columns.",
+daylily_ec/cli.py:977:        _exit_headnode_error(exc)
+daylily_ec/cli.py:1021:        _exit_headnode_error(exc)
+daylily_ec/cli.py:1070:        _exit_headnode_error(exc)
+daylily_ec/cli.py:1083:            _exit_headnode_error(exc)
+daylily_ec/cli.py:1324:                f"Headnode path: {record.headnode_path}\n"
+daylily_ec/cli.py:1329:        _exit_headnode_error(exc)
+daylily_ec/cli.py:1375:        _exit_headnode_error(exc)
+daylily_ec/cli.py:1406:        _exit_headnode_error(exc)
+daylily_ec/cli.py:1777:def headnode_init(
+daylily_ec/cli.py:1781:        help="Budget/project name to export into the headnode shell.",
+daylily_ec/cli.py:1804:    """Initialize headnode shell state and optionally repair missing project budgets."""
+daylily_ec/cli.py:1806:    from daylily_ec.headnode import run_headnode_init
+daylily_ec/cli.py:1810:        run_headnode_init(
+daylily_ec/cli.py:1820:def _resolve_headnode_cli_selection(
+daylily_ec/cli.py:1840:def _resolve_headnode_cli_target(
+daylily_ec/cli.py:1846:    from daylily_ec.aws.ssm import resolve_headnode_instance_id
+daylily_ec/cli.py:1848:    resolved_profile, resolved_region, resolved_cluster = _resolve_headnode_cli_selection(
+daylily_ec/cli.py:1853:    target = resolve_headnode_instance_id(
+daylily_ec/cli.py:1861:def _describe_headnode_cluster(
+daylily_ec/cli.py:1899:def _exit_headnode_error(exc: BaseException) -> None:
+daylily_ec/cli.py:1904:def headnode_connect(
+daylily_ec/cli.py:1927:    """Open an ubuntu bash login shell on a cluster headnode via Session Manager."""
+daylily_ec/cli.py:1934:        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+daylily_ec/cli.py:1967:        _exit_headnode_error(exc)
+daylily_ec/cli.py:1970:def headnode_info(
+daylily_ec/cli.py:1988:    """Return the full pcluster describe-cluster payload for a headnode."""
+daylily_ec/cli.py:1994:        resolved_profile, resolved_region, resolved_cluster = _resolve_headnode_cli_selection(
+daylily_ec/cli.py:1999:        payload = _describe_headnode_cluster(
+daylily_ec/cli.py:2005:        _exit_headnode_error(exc)
+daylily_ec/cli.py:2013:def headnode_jobs(
+daylily_ec/cli.py:2031:    """Print Slurm jobs from the headnode using the Daylily sq format."""
+daylily_ec/cli.py:2039:    from daylily_ec.headnode import SQUEUE_FORMAT
+daylily_ec/cli.py:2044:        resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
+daylily_ec/cli.py:2061:            comment="Daylily headnode Slurm jobs",
+daylily_ec/cli.py:2066:        _exit_headnode_error(exc)
+daylily_ec/cli.py:2068:        _exit_headnode_error(exc)
+daylily_ec/cli.py:2076:def headnode_configure(
+daylily_ec/cli.py:2099:    """Configure a cluster headnode through the supported SSM bootstrap."""
+daylily_ec/cli.py:2103:    from daylily_ec.scripts.daylily_cfg_headnode import _load_repo_overrides
+daylily_ec/cli.py:2104:    from daylily_ec.workflow.create_cluster import configure_headnode
+daylily_ec/cli.py:2108:        resolved_profile, resolved_region, resolved_cluster, target = _resolve_headnode_cli_target(
+daylily_ec/cli.py:2120:        ok = configure_headnode(
+daylily_ec/cli.py:2130:        _exit_headnode_error(exc)
+daylily_ec/cli.py:2142:    from daylily_ec.scripts.daylily_run_omics_analysis_headnode import main as launch_main
+daylily_ec/cli.py:2291:        _exit_headnode_error(exc)
+daylily_ec/cli.py:2597:        _exit_headnode_error(exc)
+daylily_ec/cli.py:2771:    """Launch daylily-omics-analysis inside tmux on the headnode."""
+daylily_ec/cli.py:2861:        _exit_headnode_error(exc)
+daylily_ec/cli.py:2914:        _exit_headnode_error(exc)
+daylily_ec/cli.py:3069:        _exit_headnode_error(exc)
+daylily_ec/cli.py:3125:        _exit_headnode_error(exc)
+daylily_ec/cli.py:3150:        _exit_headnode_error(exc)
+daylily_ec/cli.py:3176:        _exit_headnode_error(exc)
+daylily_ec/cli.py:3206:        _exit_headnode_error(exc)
+daylily_ec/cli.py:3219:    """Verify a run mount path is usable on the cluster headnode."""
+daylily_ec/cli.py:3236:        _exit_headnode_error(exc)
+daylily_ec/cli.py:3264:        resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
+daylily_ec/cli.py:3302:        _exit_headnode_error(exc)
+daylily_ec/cli.py:3328:    """Read a workflow status.json file from the headnode."""
+daylily_ec/cli.py:3344:        _exit_headnode_error(exc)
+daylily_ec/cli.py:3360:    """Tail a workflow tmux.log file from the headnode."""
+daylily_ec/cli.py:3470:        _exit_headnode_error(exc)
+daylily_ec/cli.py:3576:        "headnode",
+daylily_ec/cli.py:3579:            ("init", headnode_init, REQUIRED_MUTATING_INTERACTIVE),
+daylily_ec/cli.py:3580:            ("connect", headnode_connect, required_policy(interactive=True)),
+daylily_ec/cli.py:3581:            ("info", headnode_info, REQUIRED_JSON),
+daylily_ec/cli.py:3582:            ("jobs", headnode_jobs, required_policy()),
+daylily_ec/cli.py:3583:            ("configure", headnode_configure, REQUIRED_MUTATING_LONG_RUNNING),
+tests/test_ssm_e2e_runner.py:14:    assert (runner_module.REPO_ROOT / "bin" / "daylily-cfg-headnode").is_file()
+tests/test_ssm_e2e_runner.py:131:    assert "daylily-ssh-into-headnode" in command[-1]
+tests/test_ssm_e2e_runner.py:163:def test_validate_headnode_bootstrap_uses_shared_readiness_helper(
+tests/test_ssm_e2e_runner.py:183:    monkeypatch.setattr(runner_module, "validate_headnode_readiness", fake_validate)
+tests/test_ssm_e2e_runner.py:185:    runner_module._validate_headnode_bootstrap(
+tests/test_ssm_e2e_runner.py:200:                "comment": "Daylily SSH-to-SSM E2E headnode readiness validation",
+tests/test_ssm_e2e_runner.py:207:            "name": "validate-headnode-bootstrap",
+tests/test_ssm_e2e_runner.py:210:                "command": "ssm:headnode-readiness",
+tests/test_ssm_e2e_runner.py:408:        "resolve_headnode_instance_id",
+tests/test_ssm_e2e_runner.py:423:        "_validate_headnode_bootstrap",
+tests/test_ssm_e2e_runner.py:424:        lambda *args, **kwargs: calls.append("validate-headnode-bootstrap"),
+tests/test_ssm_e2e_runner.py:514:    assert "configure-headnode" in step_names
+tests/test_ssm_e2e_runner.py:560:        "resolve_headnode_instance_id",
+tests/test_ssm_e2e_runner.py:575:        "_validate_headnode_bootstrap",
+tests/test_ssm_e2e_runner.py:576:        lambda *args, **kwargs: calls.append("validate-headnode-bootstrap"),
+tests/test_ssm_e2e_runner.py:655:    assert "configure-headnode" in calls
+tests/test_ssm_e2e_runner.py:657:    assert "--cluster" in commands_by_name["configure-headnode"]
+tests/test_ssm_e2e_runner.py:671:        "resolve_headnode_instance_id",
+tests/test_ssm_e2e_runner.py:686:        "_validate_headnode_bootstrap",
+tests/test_headnode_readiness.py:9:from daylily_ec.headnode_readiness import (
+tests/test_headnode_readiness.py:14:    build_headnode_readiness_script,
+tests/test_headnode_readiness.py:15:    validate_headnode_readiness,
+tests/test_headnode_readiness.py:20:    script = build_headnode_readiness_script()
+tests/test_headnode_readiness.py:51:def test_validate_headnode_readiness_runs_shared_script_as_ubuntu():
+tests/test_headnode_readiness.py:54:    with patch("daylily_ec.headnode_readiness.run_shell", return_value=expected) as mock_run_shell:
+tests/test_headnode_readiness.py:55:        result = validate_headnode_readiness(
+tests/test_headnode_readiness.py:89:def test_validate_headnode_readiness_propagates_ssm_failures():
+tests/test_headnode_readiness.py:102:    with patch("daylily_ec.headnode_readiness.run_shell", side_effect=failure):
+tests/test_headnode_readiness.py:104:            validate_headnode_readiness("i-abc123", "us-west-2", profile="test")
+daylily_ec/aws/validation.py:133:    headnode_instance_type: str
+daylily_ec/aws/validation.py:134:    headnode_vcpus: int
+daylily_ec/aws/validation.py:135:    headnode_root_volume_type: str
+daylily_ec/aws/validation.py:136:    headnode_root_volume_gib: int
+daylily_ec/aws/validation.py:144:        values = {self.headnode_instance_type}
+daylily_ec/aws/validation.py:167:        return self.headnode_vcpus + sum(
+daylily_ec/aws/validation.py:177:            "headnode_instance_type": self.headnode_instance_type,
+daylily_ec/aws/validation.py:178:            "headnode_vcpus": self.headnode_vcpus,
+daylily_ec/aws/validation.py:179:            "headnode_root_volume_type": self.headnode_root_volume_type,
+daylily_ec/aws/validation.py:180:            "headnode_root_volume_gib": self.headnode_root_volume_gib,
+daylily_ec/aws/validation.py:362:        for marker in ("bash -l", ".bash_profile", "daylily-headnode-bootstrap.sh")
+daylily_ec/aws/validation.py:567:    headnode = payload.get("HeadNode", {}) or {}
+daylily_ec/aws/validation.py:568:    if not isinstance(headnode, dict):
+daylily_ec/aws/validation.py:570:    headnode_instance_type = str(headnode.get("InstanceType") or "").strip()
+daylily_ec/aws/validation.py:571:    if not headnode_instance_type:
+daylily_ec/aws/validation.py:574:        ((headnode.get("LocalStorage") or {}).get("RootVolume") or {})
+daylily_ec/aws/validation.py:575:        if isinstance(headnode.get("LocalStorage") or {}, dict)
+daylily_ec/aws/validation.py:578:    headnode_root_volume_type = str(root_volume.get("VolumeType") or "").strip()
+daylily_ec/aws/validation.py:579:    headnode_root_volume_gib = _coerce_positive_int(
+daylily_ec/aws/validation.py:607:    instance_types = {headnode_instance_type}
+daylily_ec/aws/validation.py:666:        headnode_instance_type=headnode_instance_type,
+daylily_ec/aws/validation.py:667:        headnode_vcpus=vcpus_by_type[headnode_instance_type],
+daylily_ec/aws/validation.py:668:        headnode_root_volume_type=headnode_root_volume_type,
+daylily_ec/aws/validation.py:669:        headnode_root_volume_gib=headnode_root_volume_gib,
+daylily_ec/aws/validation.py:1263:    if shape.headnode_root_volume_type == "gp3":
+daylily_ec/aws/validation.py:1270:                required_value=shape.headnode_root_volume_gib / 1024,
+daylily_ec/aws/validation.py:1281:                    "volume_type": shape.headnode_root_volume_type,
+daylily_ec/aws/validation.py:1282:                    "headnode_root_volume_gib": shape.headnode_root_volume_gib,
+daylily_ec/aws/validation.py:1529:            "headnode_instance_type",
+tests/test_export.py:366:    assert receipt["headnode_path"] == "/fsx/analysis_results/johnm/illumina_run_qc/"
+daylily_ec/aws/ssm.py:1:"""AWS Systems Manager helpers for PEM-free headnode access and orchestration."""
+daylily_ec/aws/ssm.py:54:    """Resolved headnode target for Session Manager operations."""
+daylily_ec/aws/ssm.py:98:def resolve_headnode_instance_id(
+daylily_ec/aws/ssm.py:104:    """Resolve the headnode EC2 instance id for a ParallelCluster cluster."""
+daylily_ec/aws/ssm.py:436:        and "daylily-headnode-bootstrap.sh" not in linux_shell_profile
+tests/test_aws_validation.py:161:    assert shape.headnode_root_volume_type == "gp3"
+scripts/run_headnode_cfg.sh:7:echo "=== Running headnode configuration for day-test-uswest2d ==="
+scripts/run_headnode_cfg.sh:8:source ./bin/daylily-cfg-headnode ~/.ssh/lsmc-omics-us-west-2.pem us-west-2 daylily-service-lsmc day-test-uswest2d
+tests/test_stage_samples_from_local_to_headnode.py:326:def test_headnode_visible_path_rejects_legacy_data_prefix() -> None:
+tests/test_stage_samples_from_local_to_headnode.py:328:        module.headnode_visible_path("/data")
+tests/test_stage_samples_from_local_to_headnode.py:330:        module.headnode_visible_path("/fsx/data")
+tests/test_stage_samples_from_local_to_headnode.py:332:        module.headnode_visible_path("/fsx/staging/staged_external_sequencing_data/remote_stage_1")
+tests/test_stage_samples_from_local_to_headnode.py:335:    assert module.is_headnode_visible_path("/fsx/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
+tests/test_stage_samples_from_local_to_headnode.py:336:    assert module.is_headnode_visible_path("/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
+tests/test_stage_samples_from_local_to_headnode.py:337:    assert module.is_headnode_visible_path("/fsx/scratch/ILMN/S1_R1.fastq.gz")
+tests/test_stage_samples_from_local_to_headnode.py:339:        module.headnode_visible_path("/run_dir_mounts/RUN123/fastqs/S1_R1.fastq.gz")
+tests/test_stage_samples_from_local_to_headnode.py:343:        module.headnode_visible_path("/fsx/scratch/ILMN/S1_R1.fastq.gz")
+tests/test_stage_samples_from_local_to_headnode.py:346:    assert module.headnode_visible_path("/tmp/local") == "/tmp/local"
+tests/test_stage_samples_from_local_to_headnode.py:602:            headnode_path="/fsx/staging/staged_external_sequencing_data/remote_stage_test/",
+tests/test_stage_samples_from_local_to_headnode.py:647:            module.headnode_visible_path(path)
+tests/test_stage_samples_from_local_to_headnode.py:2181:                "/fsx/staging/staged_external_sequencing_data/remote_stage_existing/run_metrics/headnode.txt",
+tests/test_stage_samples_from_local_to_headnode.py:2206:        "/fsx/staging/staged_external_sequencing_data/remote_stage_existing/run_metrics/headnode.txt",
+tests/test_stage_samples_from_local_to_headnode.py:2213:            "/fsx/staging/staged_external_sequencing_data/remote_stage_existing/run_metrics/headnode.txt",
+tests/test_stage_samples_from_local_to_headnode.py:2214:            "headnode.txt",
+tests/test_stage_samples_from_local_to_headnode.py:2229:            source="/fsx/staging/staged_external_sequencing_data/remote_stage_existing/run_metrics/headnode.txt",
+tests/test_stage_samples_from_local_to_headnode.py:2230:            destination_relative_path="headnode.txt",
+tests/test_stage_samples_from_local_to_headnode.py:2255:            "s3://stage-bucket/remote_stage_existing/run_metrics/headnode.txt",
+tests/test_stage_samples_from_local_to_headnode.py:2256:            "s3://stage-bucket/remote_stage_test/runs/RUN-1/headnode.txt",
+tests/test_stage_samples_from_local_to_headnode.py:2264:        "/fsx/staging/staged_external_sequencing_data/remote_stage_test/runs/RUN-1/headnode.txt",
+daylily_ec/aws/slurm_accounting.py:162:        "REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING": format_headnode_networking_block(
+daylily_ec/aws/slurm_accounting.py:169:def format_headnode_networking_block(client_security_group_id: str) -> str:
+daylily_ec/aws/__init__.py:117:    resolve_headnode_instance_id,
+daylily_ec/aws/__init__.py:224:    "resolve_headnode_instance_id",
+tests/test_headnode_init.py:10:import daylily_ec.headnode as headnode
+tests/test_headnode_init.py:54:def test_collect_headnode_state_reads_project_budget_and_bucket(
+tests/test_headnode_init.py:87:    monkeypatch.setattr(headnode.getpass, "getuser", lambda: "alice")
+tests/test_headnode_init.py:88:    monkeypatch.setattr(headnode, "_build_session", lambda region, profile: _FakeSession(budgets))
+tests/test_headnode_init.py:90:    state = headnode.collect_headnode_state(
+tests/test_headnode_init.py:112:def test_collect_headnode_state_skip_project_check_preserves_detected_project(
+tests/test_headnode_init.py:131:    monkeypatch.setattr(headnode.getpass, "getuser", lambda: "alice")
+tests/test_headnode_init.py:133:    state = headnode.collect_headnode_state(
+tests/test_headnode_init.py:145:def test_collect_headnode_state_does_not_fall_back_to_global_when_project_is_not_authorized(
+tests/test_headnode_init.py:167:    monkeypatch.setattr(headnode.getpass, "getuser", lambda: "alice")
+tests/test_headnode_init.py:168:    monkeypatch.setattr(headnode, "_build_session", lambda region, profile: _FakeSession([]))
+tests/test_headnode_init.py:170:    state = headnode.collect_headnode_state(
+tests/test_headnode_init.py:184:    shell_code = headnode.build_shell_code(
+tests/test_headnode_init.py:185:        headnode.HeadnodeState(
+tests/test_headnode_init.py:220:    assert headnode.SQUEUE_FORMAT in shell_code
+tests/test_headnode_init.py:223:def test_run_headnode_init_emit_shell_non_interactive_fails_on_missing_budget_tags(
+tests/test_headnode_init.py:226:    state = headnode.HeadnodeState(

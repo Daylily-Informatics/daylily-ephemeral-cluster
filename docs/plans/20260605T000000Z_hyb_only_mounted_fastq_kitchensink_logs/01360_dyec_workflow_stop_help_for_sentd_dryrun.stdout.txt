@@ -1,0 +1,23 @@
+                                                                                
+ Usage: dyec workflow stop [OPTIONS]                                            
+                                                                                
+ Stop a headnode workflow tmux controller, with explicit optional Slurm         
+ cancellation.                                                                  
+                                                                                
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ --profile                       TEXT     AWS CLI profile.                    │
+│ --region                        TEXT     AWS region.                         │
+│ --cluster,--cluster-name        TEXT                                         │
+│ --session                       TEXT     Tmux session/run name.              │
+│ --run-dir                       TEXT     Explicit run directory.             │
+│ --cancel-slurm-jobs                      Also cancel active Slurm jobs whose │
+│                                          names match --job-name-pattern.     │
+│ --job-name-pattern              TEXT     Python regex used to select Slurm   │
+│                                          job names when --cancel-slurm-jobs  │
+│                                          is set.                             │
+│ --timeout                       INTEGER  Maximum seconds for the remote stop │
+│                                          command.                            │
+│                                          [default: 120]                      │
+│ --help                                   Show this message and exit.         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+

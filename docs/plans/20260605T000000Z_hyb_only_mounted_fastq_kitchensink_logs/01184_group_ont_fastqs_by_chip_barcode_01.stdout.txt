@@ -1,0 +1,4 @@
+input_rows=885
+grouped_rows=13
+output=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_analysis_samples_by_chip_barcode.tsv
+summary=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_analysis_samples_by_chip_barcode.summary.tsv

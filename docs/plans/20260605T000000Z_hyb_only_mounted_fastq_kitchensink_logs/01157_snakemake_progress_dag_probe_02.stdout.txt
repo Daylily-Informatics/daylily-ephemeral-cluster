@@ -1,0 +1,6 @@
+COMMAND_ID=2a38d198-dfec-4c7e-9465-b7fee1e56389
+{
+  "Status": "Success",
+  "Stdout": "DAY-EC activated.\n",
+  "Stderr": ""
+}

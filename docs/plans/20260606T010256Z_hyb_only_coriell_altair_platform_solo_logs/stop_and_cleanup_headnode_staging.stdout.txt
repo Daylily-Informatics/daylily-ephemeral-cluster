@@ -1,0 +1,33 @@
+DAY-EC activated.
+DAY-EC activated.
+start_cleanup	2026-06-06T03:24:33Z
+before_processes
+ubuntu     25793       1  0 02:32 ?        00:00:00 tmux new-session -d -s hybonly_stage_ont_20260606T010256Z bash -l -c '/home/ubuntu/hyb_only_stage_ont_data_20260606T010256Z.sh > /fsx/scratch/ONT/logs/tmux_stage_ont.stdout.txt 2> /fsx/scratch/ONT/logs/tmux_stage_ont.stderr.txt; rc=$?; echo $rc > /fsx/scratch/ONT/logs/tmux_stage_ont.rc; exit $rc'
+ubuntu     25794   25793  0 02:32 pts/0    00:00:00 bash -l -c /home/ubuntu/hyb_only_stage_ont_data_20260606T010256Z.sh > /fsx/scratch/ONT/logs/tmux_stage_ont.stdout.txt 2> /fsx/scratch/ONT/logs/tmux_stage_ont.stderr.txt; rc=$?; echo $rc > /fsx/scratch/ONT/logs/tmux_stage_ont.rc; exit $rc
+ubuntu     25844   25794  0 02:32 pts/0    00:00:00 bash /home/ubuntu/hyb_only_stage_ont_data_20260606T010256Z.sh
+ubuntu     35440   25793  0 03:10 pts/2    00:00:00 bash -l -c /home/ubuntu/hyb_only_stage_ilmn_parallel_20260606T010256Z.sh > /fsx/scratch/ILMN/logs/tmux_stage_ilmn_parallel.stdout.txt 2> /fsx/scratch/ILMN/logs/tmux_stage_ilmn_parallel.stderr.txt; rc=$?; echo $rc > /fsx/scratch/ILMN/logs/tmux_stage_ilmn_parallel.rc; exit $rc
+ubuntu     35489   35440  0 03:10 pts/2    00:00:00 bash /home/ubuntu/hyb_only_stage_ilmn_parallel_20260606T010256Z.sh
+ubuntu     35519   35501 99 03:10 pts/2    00:14:20 gzip -t /fsx/scratch/ILMN/Altair-HG001-a_S1_R1_001.fastq.gz
+ubuntu     37100   35504 99 03:14 pts/2    00:10:05 gzip -t /fsx/scratch/ILMN/Altair-HG001-b_S2_R2_001.fastq.gz
+ubuntu     37102   35502 99 03:14 pts/2    00:10:07 gzip -t /fsx/scratch/ILMN/Altair-HG001-a_S1_R2_001.fastq.gz
+ubuntu     37104   35503 99 03:14 pts/2    00:10:03 gzip -t /fsx/scratch/ILMN/Altair-HG001-b_S2_R1_001.fastq.gz
+ubuntu     38785   25844  0 03:24 pts/0    00:00:00 cat -- /fsx/run_dir_mounts/ont-4coriells-chip1/fastq_pass/barcode20/PBM13545_pass_barcode20_f3392d36_eb9b0a06_11.fastq.gz
+killed_tmux	hybonly_stage_ont_20260606T010256Z
+tmux_absent	hybonly_stage_ilmn_20260606T010256Z
+killed_tmux	hybonly_stage_ilmn_parallel_20260606T010256Z
+after_processes
+ubuntu     38785       1  0 03:24 ?        00:00:00 cat -- /fsx/run_dir_mounts/ont-4coriells-chip1/fastq_pass/barcode20/PBM13545_pass_barcode20_f3392d36_eb9b0a06_11.fastq.gz
+before_du
+114G	/fsx/scratch/ONT
+132G	/fsx/scratch/ILMN
+after_ls
+df
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  384G  8.4T   5% /fsx
+active_run_dir_mounts
+ilmn-lh01121-b23ww2nlt4-fastq	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq
+ont-4coriells-chip1	/fsx/run_dir_mounts/ont-4coriells-chip1
+ont-4coriells-chip2	/fsx/run_dir_mounts/ont-4coriells-chip2
+ont-4coriells-chip3	/fsx/run_dir_mounts/ont-4coriells-chip3
+ont-4coriells-chip4	/fsx/run_dir_mounts/ont-4coriells-chip4
+finish_cleanup	2026-06-06T03:24:50Z

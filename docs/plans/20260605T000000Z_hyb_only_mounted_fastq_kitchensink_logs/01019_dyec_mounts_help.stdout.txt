@@ -1,0 +1,17 @@
+                                                                                
+ Usage: dyec mounts [OPTIONS] COMMAND [ARGS]...                                 
+                                                                                
+ FSx run-directory mount helpers.                                               
+                                                                                
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                  │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ list      List managed FSx DRA mounts.                                       │
+│ create    Create an FSx DRA mount; defaults read-only unless writeback is    │
+│           explicitly allowed.                                                │
+│ describe  Describe one FSx run directory mount.                              │
+│ delete    Delete one FSx DRA without deleting S3 objects or cached FSx data. │
+│ verify    Verify a run mount path is usable on the cluster headnode.         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+

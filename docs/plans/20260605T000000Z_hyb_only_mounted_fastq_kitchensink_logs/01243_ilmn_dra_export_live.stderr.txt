@@ -1,0 +1,3 @@
+⚠ Active conda environment is 'base', not DAY-EC. Continuing anyway; the 
+supported path is `source ./activate`.
+2026-06-06 02:49:35,958 INFO Found credentials in shared credentials file: ~/.aws/credentials

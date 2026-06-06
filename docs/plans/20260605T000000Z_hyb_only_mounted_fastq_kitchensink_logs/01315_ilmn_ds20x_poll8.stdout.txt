@@ -1,0 +1,51 @@
+DAY-EC activated.
+DAY-EC activated.
+SESSION_STATUS
+present
+MARKERS
+DONE=missing
+FAILED=missing
+OUTPUTS
+TMP_OUTPUTS
+NA00232.R1.530789.fastq.gz	3119109043
+NA00232.R2.530789.fastq.gz	3220223709
+NA03986.R1.530789.fastq.gz	3352083638
+NA03986.R2.530789.fastq.gz	3537235796
+NA05164.R1.530789.fastq.gz	3921211952
+NA05164.R2.530789.fastq.gz	4112990387
+NA09677.R1.530789.fastq.gz	3379103745
+NA09677.R2.530789.fastq.gz	3527180852
+LOG_TAILS
+--- NA00232.downsample.log
+START 2026-06-06T11:05:20Z
+sample=NA00232 target_cov=20 source_cov=43.00 fraction=0.4651162791 seed=2302
+--- NA03986.downsample.log
+START 2026-06-06T11:05:20Z
+sample=NA03986 target_cov=20 source_cov=35.19 fraction=0.5683432793 seed=3986
+--- NA05164.downsample.log
+START 2026-06-06T11:05:20Z
+sample=NA05164 target_cov=20 source_cov=32.91 fraction=0.6077195381 seed=5164
+--- NA09677.downsample.log
+START 2026-06-06T11:05:20Z
+sample=NA09677 target_cov=20 source_cov=39.75 fraction=0.5031446541 seed=9677
+PROCS
+ubuntu    530789   53952  0 11:05 pts/15   00:00:00 bash /fsx/analysis_results/4_nas_ds_to_20x/scripts/run_downsample_20x.sh
+ubuntu    530797  530789  0 11:05 pts/15   00:00:00 bash /fsx/analysis_results/4_nas_ds_to_20x/scripts/run_downsample_20x.sh
+ubuntu    530799  530789  0 11:05 pts/15   00:00:00 bash /fsx/analysis_results/4_nas_ds_to_20x/scripts/run_downsample_20x.sh
+ubuntu    530801  530789  0 11:05 pts/15   00:00:00 bash /fsx/analysis_results/4_nas_ds_to_20x/scripts/run_downsample_20x.sh
+ubuntu    530802  530797 99 11:05 pts/15   00:11:56 python3 /fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py --sample NA00232 --r1 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R1_001.fastq.gz --r2 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R2_001.fastq.gz --out-r1 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA00232.R1.530789.fastq.gz --out-r2 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA00232.R2.530789.fastq.gz --fraction 0.4651162791 --seed 2302 --pigz-threads 4
+ubuntu    530804  530789  0 11:05 pts/15   00:00:00 bash /fsx/analysis_results/4_nas_ds_to_20x/scripts/run_downsample_20x.sh
+ubuntu    530806  530799 99 11:05 pts/15   00:11:56 python3 /fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py --sample NA09677 --r1 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R1_001.fastq.gz --r2 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R2_001.fastq.gz --out-r1 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA09677.R1.530789.fastq.gz --out-r2 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA09677.R2.530789.fastq.gz --fraction 0.5031446541 --seed 9677 --pigz-threads 4
+ubuntu    530807  530801 99 11:05 pts/15   00:11:56 python3 /fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py --sample NA03986 --r1 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA03986-DMPK_S48_R1_001.fastq.gz --r2 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA03986-DMPK_S48_R2_001.fastq.gz --out-r1 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA03986.R1.530789.fastq.gz --out-r2 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA03986.R2.530789.fastq.gz --fraction 0.5683432793 --seed 3986 --pigz-threads 4
+ubuntu    530809  530804 99 11:05 pts/15   00:11:56 python3 /fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py --sample NA05164 --r1 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA05164-DMPK_S49_R1_001.fastq.gz --r2 /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA05164-DMPK_S49_R2_001.fastq.gz --out-r1 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA05164.R1.530789.fastq.gz --out-r2 /fsx/analysis_results/4_nas_ds_to_20x/tmp/NA05164.R2.530789.fastq.gz --fraction 0.6077195381 --seed 5164 --pigz-threads 4
+ubuntu    530810  530802 99 11:05 pts/15   00:17:47 pigz -p 4 -c
+ubuntu    530811  530802 99 11:05 pts/15   00:18:23 pigz -p 4 -c
+ubuntu    530812  530806 99 11:05 pts/15   00:19:13 pigz -p 4 -c
+ubuntu    530813  530806 99 11:05 pts/15   00:20:06 pigz -p 4 -c
+ubuntu    530817  530807 99 11:05 pts/15   00:19:02 pigz -p 4 -c
+ubuntu    530819  530807 99 11:05 pts/15   00:20:08 pigz -p 4 -c
+ubuntu    530820  530809 99 11:05 pts/15   00:22:12 pigz -p 4 -c
+ubuntu    530822  530809 99 11:05 pts/15   00:23:23 pigz -p 4 -c
+DF
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  1.3T  7.5T  15% /fsx

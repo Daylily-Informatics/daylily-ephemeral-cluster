@@ -1,0 +1,22 @@
+DAY-EC activated.
+DAY-EC activated.
+NOW_UTC	2026-06-06T12:24:56Z
+
+## BEFORE
+NA00232-SMN_S46_ds20x_R1_001.fastq.gz.seqkit.914_0.tmp.gz	15481420538
+
+## SUBMIT
+SBATCH_CMD=sbatch --partition=i192\,i192mem\,i192bigmem --cpus-per-task=96 --array=0 --job-name=ilmn_ds20x_seqkit --output=/fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_%A_%a.out --error=/fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_%A_%a.err /fsx/analysis_results/4_nas_ds_to_20x/scripts/seqkit_downsample_one.sh 
+Submitted batch job 964
+
+## SQUEUE
+             JOBID PARTITION                         NAME ST         TIME  NODES NODELIST(REASON)
+               963      i192 gen_samstats-ONT-4Coriells-c  R         2:12      1 i192-dy-all-1
+             913_3      i192            ilmn_ds20x_seqkit  R         4:45      1 i192-dy-all-1
+               955      i192 calc_coverage_evenness-ONT-4  R         4:45      1 i192-dy-all-1
+               958      i192 calc_coverage_evenness-ONT-4  R         4:45      1 i192-dy-all-1
+               960      i192 gen_samstats-ONT-4Coriells-c  R         4:45      1 i192-dy-all-1
+               962      i192 calc_coverage_evenness-ONT-4  R         4:45      1 i192-dy-all-1
+             913_1      i192            ilmn_ds20x_seqkit  R        51:15      1 i192-dy-all-4
+             913_2      i192            ilmn_ds20x_seqkit  R        51:15      1 i192-dy-all-4
+           964_[0] i192,i192            ilmn_ds20x_seqkit PD         0:00      1 (None)

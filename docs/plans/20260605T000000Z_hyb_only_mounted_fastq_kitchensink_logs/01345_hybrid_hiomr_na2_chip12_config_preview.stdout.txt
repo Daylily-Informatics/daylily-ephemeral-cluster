@@ -1,0 +1,7 @@
+samples
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+NA00232	gdna	research	male	na	false	false	gdna	na	NA00232	1	1	na
+NA09677	gdna	research	male	na	false	false	gdna	na	NA09677	1	1	na
+units_summary
+NA00232	HYB-4Coriells-chip1-chip2	chip1-chip2	barcode18-chip1-chip2	146	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R1_001.fastq.gz	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R2_001.fastq.gz
+NA09677	HYB-4Coriells-chip1-chip2	chip1-chip2	barcode19-chip1-chip2	146	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R1_001.fastq.gz	/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R2_001.fastq.gz

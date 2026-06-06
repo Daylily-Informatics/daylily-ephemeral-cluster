@@ -1,0 +1,14 @@
+DAY-EC activated.
+DAY-EC activated.
+summary
+NA00232	chips=chip1,chip2	ont_fastqs=146
+NA09677	chips=chip1,chip2	ont_fastqs=146
+bytes
+NA00232	ILMN	83126547776
+NA00232	ONT	35953095532
+NA09677	ILMN	79532891720
+NA09677	ONT	46050882035
+total_paths=296
+missing=0
+zero_byte=0
+off_run_mount=0

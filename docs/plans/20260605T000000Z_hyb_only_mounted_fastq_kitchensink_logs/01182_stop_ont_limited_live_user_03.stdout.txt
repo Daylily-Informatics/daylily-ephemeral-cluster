@@ -1,0 +1,42 @@
+{
+  "cancel_slurm_jobs": true,
+  "job_name_pattern": "(ONT-4Coriells|sentmm2ont)",
+  "killed_tmux_session": true,
+  "run_dir": "/home/ubuntu/daylily-runs/hybonly_ont_alignsort_alignstats_dedupna_live_20260606T074825Z",
+  "scancelled_job_ids": [
+    "850",
+    "851",
+    "848",
+    "849",
+    "847"
+  ],
+  "session_name": "hybonly_ont_alignsort_alignstats_dedupna_live_20260606T074825Z",
+  "slurm_jobs_after": [],
+  "slurm_jobs_before": [
+    {
+      "job_id": "850",
+      "name": "sentmm2ont_align_sort-ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0017-PF-ONT-PROMETHION"
+    },
+    {
+      "job_id": "851",
+      "name": "sentmm2ont_align_sort-ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-0014-PF-ONT-PROMETHION"
+    },
+    {
+      "job_id": "848",
+      "name": "sentmm2ont_align_sort-ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-0000-PF-ONT-PROMETHION"
+    },
+    {
+      "job_id": "849",
+      "name": "sentmm2ont_align_sort-ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0016-PF-ONT-PROMETHION"
+    },
+    {
+      "job_id": "847",
+      "name": "sentmm2ont_align_sort-ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0017-PF-ONT-PROMETHION"
+    }
+  ],
+  "status_path": "/home/ubuntu/daylily-runs/hybonly_ont_alignsort_alignstats_dedupna_live_20260606T074825Z/status.json",
+  "status_updated": true,
+  "tmux_session_after": false,
+  "tmux_session_before": true,
+  "tmux_session_name": "hybonly_ont_alignsort_alignstats_dedupna_live_20260606T074825Z"
+}

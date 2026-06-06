@@ -1,0 +1,14 @@
+Traceback (most recent call last):
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/put_remote_config_chunks.py", line 132, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/put_remote_config_chunks.py", line 120, in main
+    put_file(
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/put_remote_config_chunks.py", line 86, in put_file
+    _run(
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/put_remote_config_chunks.py", line 31, in _run
+    result = run_shell(
+             ^^^^^^^^^^
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/daylily_ec/aws/ssm.py", line 333, in run_shell
+    raise SsmCommandFailedError(
+daylily_ec.aws.ssm.SsmCommandFailedError: SSM command 'f306a570-f761-4e69-8c32-545bc0f26d7b' failed with status=Failed rc=1

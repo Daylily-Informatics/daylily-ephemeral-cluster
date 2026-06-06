@@ -1,0 +1,11 @@
+Name: daylily-ephemeral-cluster
+Version: 7.0.2.dev2+gebc59c09.d20260604
+Summary: Infrastructure-as-code for ephemeral AWS ParallelCluster environments for bioinformatics
+Home-page: 
+Author: 
+Author-email: Daylily Informatics <daylily@daylilyinformatics.com>
+License-Expression: GPL-3.0-only
+Location: /Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages
+Editable project location: /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+Requires: aws-parallelcluster, black, boto3, boto3-stubs, cli-core-yo, daylily-omics-analysis, ipython, moto, mypy, prompt-toolkit, pydantic, pydantic-settings, pytest, pytest-cov, python-dateutil, pyyaml, requests, ruamel.yaml, ruff, setuptools, tabulate, typeguard, typer, yamllint
+Required-by: 

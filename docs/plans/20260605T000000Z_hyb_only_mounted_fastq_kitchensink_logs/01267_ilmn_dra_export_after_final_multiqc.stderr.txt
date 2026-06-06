@@ -1,0 +1,5 @@
+⚠ Active conda environment is 'base', not DAY-EC. Continuing anyway; the 
+supported path is `source ./activate`.
+2026-06-06 03:11:45,179 INFO Found credentials in shared credentials file: ~/.aws/credentials
+2026-06-06 03:11:48,848 ERROR FSx export failed: source_path overlaps existing FSx data repository association dra-045fb815b04f5c3f3 at /analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/.
+2026-06-06 03:11:48,849 INFO Wrote export status to /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ilmn_dra_export_20260606T101135Z/fsx_export.yaml

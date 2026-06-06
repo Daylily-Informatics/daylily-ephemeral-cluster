@@ -1,0 +1,11 @@
+Traceback (most recent call last):
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/restart_ilmn_haplocheck96_dryrun_tmux.py", line 198, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/restart_ilmn_haplocheck96_dryrun_tmux.py", line 174, in main
+    script = _remote_script(args.session, args.repo_path)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/restart_ilmn_haplocheck96_dryrun_tmux.py", line 123, in _remote_script
+    print(f"bad haplocheck config in {path}")
+                                      ^^^^
+NameError: name 'path' is not defined. Did you mean: 'Path'?

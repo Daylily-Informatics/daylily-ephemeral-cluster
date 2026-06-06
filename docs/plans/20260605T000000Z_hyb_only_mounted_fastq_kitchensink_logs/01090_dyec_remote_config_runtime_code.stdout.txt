@@ -1,0 +1,207 @@
+    bootstrap_test_config_literal = "true" if args.bootstrap_test_config else "false"
+    run_context_payload = shlex.quote(run_context_content or "")
+    samples_payload = shlex.quote(samples_content or "")
+    units_payload = shlex.quote(units_content or "")
+    export_destination_literal = shlex.quote(args.export_destination_s3_uri or "")
+    delete_on_export_success = "true" if args.delete_on_export_success else "false"
+    replace_existing_analysis_dir = "true" if args.replace_existing_analysis_dir else "false"
+    if stage_config is None:
+        stage_samples_path = ""
+        stage_units_path = ""
+    else:
+        stage_samples_path = stage_config.samples_path
+        stage_units_path = stage_config.units_path
+    write_status_python = shlex.quote(
+        "import json, os, pathlib; "
+        "path = pathlib.Path(os.environ['DAYLILY_STATUS_FILE']); "
+        "exit_code_raw = os.environ.get('DAYLILY_STATUS_EXIT_CODE', ''); "
+        "exit_code = None if exit_code_raw in ('', '__PENDING__') else "
+        "(int(exit_code_raw) if exit_code_raw.lstrip('-').isdigit() else exit_code_raw); "
+        "payload = dict("
+        "session_name=os.environ['DAYLILY_STATUS_SESSION'], "
+        "repo_path=os.environ['DAYLILY_STATUS_REPO_PATH'], "
+        "started_at=os.environ.get('DAYLILY_STATUS_STARTED_AT') or None, "
+        "completed_at=os.environ.get('DAYLILY_STATUS_COMPLETED_AT') or None, "
+        "exit_code=exit_code, "
+        "command=os.environ['DAYLILY_STATUS_COMMAND']); "
+        "path.parent.mkdir(parents=True, exist_ok=True); "
+        "path.write_text(json.dumps(payload, indent=2, sort_keys=True) + '\\n', encoding='utf-8')"
+    )
+    run_context_projection_python = shlex.quote(BCL_RUN_CONTEXT_PROJECTION_SCRIPT)
+    bclconvert_profile_patch_python = shlex.quote(BCLCONVERT_PROFILE_PATCH_SCRIPT)
+    pipeline_script = f"""
+set -euo pipefail
+if [[ "$(id -un)" != "ubuntu" ]]; then
+  echo "__DAYLILY_ERROR__=wrong_user"
+  exit 6
+	fi
+	SESSION_NAME={shlex.quote(args.session_name)}
+	ANALYSIS_ID={shlex.quote(analysis_id)}
+	EXECUTING_ENTITY={shlex.quote(executing_entity)}
+	RUN_CONTEXT_MODE={run_context_mode_literal}
+	SAMPLE_CONFIG_MODE={sample_config_mode_literal}
+	INPUT_STAGING_MODE={input_staging_mode_literal}
+	DEFAULT_ACTIVATION={default_activation_literal}
+	BOOTSTRAP_TEST_CONFIG={bootstrap_test_config_literal}
+	RUN_CONTEXT_PAYLOAD={run_context_payload}
+	SAMPLES_PAYLOAD={samples_payload}
+	UNITS_PAYLOAD={units_payload}
+	STAGE_SAMPLES={shlex.quote(stage_samples_path)}
+	STAGE_UNITS={shlex.quote(stage_units_path)}
+	PROJECT_VALUE={project_arg if project_arg else ""}
+	SKIP_PROJECT_CHECK={skip_check}
+	DY_COMMAND={dy_command_literal}
+	EXPORT_DESTINATION_S3_URI={export_destination_literal}
+	EXPORT_TRIGGER={shlex.quote(args.export_trigger)}
+	DELETE_ON_EXPORT_SUCCESS={delete_on_export_success}
+	REPLACE_EXISTING_ANALYSIS_DIR={replace_existing_analysis_dir}
+	ARTIFACT_REGISTRATION_COMMAND_ID={shlex.quote(args.artifact_registration_command_id)}
+	DEWEY_URL={shlex.quote(args.dewey_url)}
+	DEWEY_TOKEN_ENV={shlex.quote(args.dewey_token_env)}
+	DEWEY_ANALYSIS_DIR_EXTERNAL_OBJECT_ID={shlex.quote(args.dewey_analysis_dir_external_object_id)}
+	DEWEY_RUN_ARTIFACT_EUID={shlex.quote(args.dewey_run_artifact_euid)}
+	DEWEY_URSA_ANALYSIS_EUID={shlex.quote(args.dewey_ursa_analysis_euid)}
+STATUS_FILE="${{DAYLILY_RUN_DIR}}/status.json"
+TMUX_LOG="${{DAYLILY_TMUX_LOG}}"
+
+write_status() {{
+  python3 -c {write_status_python}
+}}
+
+export DAYLILY_STATUS_FILE="$STATUS_FILE"
+export DAYLILY_STATUS_SESSION="$SESSION_NAME"
+export DAYLILY_STATUS_REPO_PATH="${{DAYLILY_REPO_PATH}}"
+export DAYLILY_STATUS_COMMAND="$DY_COMMAND"
+export DAYLILY_STATUS_STARTED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+export DAYLILY_STATUS_COMPLETED_AT=""
+export DAYLILY_STATUS_EXIT_CODE="__PENDING__"
+write_status
+
+trap 'status=$?; if [[ "${{DAYLILY_STATUS_FINALIZED:-0}}" != "1" ]]; then export DAYLILY_STATUS_COMPLETED_AT="$(date -u +%Y-%m-%dT%H:%M:%SZ)"; export DAYLILY_STATUS_EXIT_CODE="$status"; write_status; fi' EXIT
+
+clone_root="$(dirname "${{DAYLILY_REPO_PATH}}")"
+repo_path="${{DAYLILY_REPO_PATH}}"
+mkdir -p "$(dirname "$clone_root")"
+
+remove_run_dir_projection_links() {{
+  local links_dir="$repo_path/config/run_dir_links"
+  local entry
+  if [[ ! -e "$links_dir" ]]; then
+    return 0
+  fi
+  if [[ ! -d "$links_dir" ]]; then
+    echo "[ERROR] Refusing to export with non-directory run projection path: $links_dir"
+    return 1
+  fi
+  while IFS= read -r -d '' entry; do
+    if [[ ! -L "$entry" ]]; then
+      echo "[ERROR] Refusing to export with non-symlink run projection: $entry"
+      return 1
+    fi
+    echo "[INFO] Removing run-directory projection before export: $entry -> $(readlink "$entry")"
+}}
+
+patch_contam_identity_zero_variant_outputs() {{
+  python3 - <<'PYCONTAMZERO'
+from pathlib import Path
+
+path = Path("workflow/rules/contam_identity.smk")
+if not path.is_file():
+    raise SystemExit(f"[ERROR] contamination identity runtime repair target missing: {{path}}")
+
+hap_old = (
+    "        {{params.command:q}} --out \\"$result_prefix\\" --raw {{input.vcf:q}} > {{log:q}} 2>&1\\n"
+    '        test -s "$result_dir/contamination.txt"\\n'
+    '        test -s "$result_dir/contamination.raw.txt"\\n'
+    '        test -s "$result_dir/contamination.html"\\n'
+    '        cp "$result_dir/contamination.txt" {{output.contamination:q}}\\n'
+    '        cp "$result_dir/contamination.raw.txt" {{output.raw:q}}\\n'
+    '        cp "$result_dir/contamination.html" {{output.html:q}}'
+)
+hap_new = (
+    "        set +o pipefail\\n"
+    "        if gzip -cd {{input.vcf:q}} | grep -m 1 -q -v '^#'; then\\n"
+    "            has_variants=true\\n"
+    "        else\\n"
+    "            has_variants=false\\n"
+    "        fi\\n"
+    "        set -o pipefail\\n"
+    '        if [[ "$has_variants" == "true" ]]; then\\n'
+    "            set +e\\n"
+    "            {{params.command:q}} --out \\"$result_prefix\\" --raw {{input.vcf:q}} > {{log:q}} 2>&1\\n"
+    "            haplocheck_rc=$?\\n"
+    "            set -e\\n"
+    "            if grep -q 'outside the range.*rCRS only' {{log:q}}; then\\n"
+    "                printf 'SampleID\\tContamination Status\\tContamination Level\\tDistance\\tSample Coverage\\tMajor Haplogroup\\tMinor Haplogroup\\n%s\\tUNSUPPORTED_REFERENCE\\t0\\t\\t0\\t\\t\\n' {{wildcards.sample:q}} > {{output.contamination:q}}\\n"
+    "                printf 'SampleID\\tContamination Status\\tContamination Level\\tDistance\\tSample Coverage\\tMajor Haplogroup\\tMinor Haplogroup\\n%s\\tUNSUPPORTED_REFERENCE\\t0\\t\\t0\\t\\t\\n' {{wildcards.sample:q}} > {{output.raw:q}}\\n"
+    "                printf '<html><body>UNSUPPORTED_REFERENCE</body></html>\\n' > {{output.html:q}}\\n"
+    "                printf 'UNSUPPORTED_REFERENCE: haplocheck skipped because the input VCF is not restricted to rCRS positions.\\n' >> {{log:q}}\\n"
+    '            elif [[ "$haplocheck_rc" -eq 0 ]]; then\\n'
+    '                test -s "$result_dir/contamination.txt"\\n'
+    '                test -s "$result_dir/contamination.raw.txt"\\n'
+    '                test -s "$result_dir/contamination.html"\\n'
+    '                cp "$result_dir/contamination.txt" {{output.contamination:q}}\\n'
+    '                cp "$result_dir/contamination.raw.txt" {{output.raw:q}}\\n'
+    '                cp "$result_dir/contamination.html" {{output.html:q}}\\n'
+    "            else\\n"
+    '                exit "$haplocheck_rc"\\n'
+    "            fi\\n"
+    "        else\\n"
+    "            printf 'SampleID\\tContamination Status\\tContamination Level\\tDistance\\tSample Coverage\\tMajor Haplogroup\\tMinor Haplogroup\\n%s\\tNO_VARIANTS\\t0\\t\\t0\\t\\t\\n' {{wildcards.sample:q}} > {{output.contamination:q}}\\n"
+    "            printf 'SampleID\\tContamination Status\\tContamination Level\\tDistance\\tSample Coverage\\tMajor Haplogroup\\tMinor Haplogroup\\n%s\\tNO_VARIANTS\\t0\\t\\t0\\t\\t\\n' {{wildcards.sample:q}} > {{output.raw:q}}\\n"
+    "            printf '<html><body>NO_VARIANTS</body></html>\\n' > {{output.html:q}}\\n"
+    "            printf 'NO_VARIANTS: haplocheck skipped because the input VCF has no variant records.\\n' > {{log:q}}\\n"
+    "        fi"
+)
+
+read_haps_original_old = (
+    "        command -v {{params.command:q}} > /dev/null\\n"
+    "        test -s {{params.reliable_snp_file:q}}\\n"
+    "        {{params.command:q}} {{params.extra_args}} -fa {{params.ref:q}} {{input.bam:q}} {{params.reliable_snp_file:q}} {{input.vcf:q}} > {{output.txt:q}} 2> {{log:q}}\\n"
+    "        test -s {{output.txt:q}}\\n"
+    "        grep -q 'PASS_FAIL' {{output.txt:q}}\\n"
+    "        grep -q 'REASON' {{output.txt:q}}"
+)
+read_haps_partial_old = (
+    "        command -v {{params.command:q}} > /dev/null\\n"
+    "        test -s {{params.reliable_snp_file:q}}\\n"
+    "        set +o pipefail\\n"
+    "        if gzip -cd {{input.vcf:q}} | grep -m 1 -q -v '^#'; then\\n"
+    "            has_variants=true\\n"
+    "        else\\n"
+    "            has_variants=false\\n"
+    "        fi\\n"
+    "        set -o pipefail\\n"
+    '        if [[ "$has_variants" == "true" ]]; then\\n'
+    "            {{params.command:q}} {{params.extra_args}} -fa {{params.ref:q}} {{input.bam:q}} {{params.reliable_snp_file:q}} {{input.vcf:q}} > {{output.txt:q}} 2> {{log:q}}\\n"
+    "        else\\n"
+    "            printf 'SNP_PAIRS ERROR_PAIRS DOUBLE_ERROR_PAIR_COUNT DOUBLE_ERROR_FRACTION REL_ERROR_FRACTION NONSENSE_FRACTION PASS_FAIL REASON\\n0 0 0 0 0 0 NO_DATA NO_VARIANTS\\n' > {{output.txt:q}}\\n"
+    "            printf 'NO_VARIANTS: read_haps skipped because the input VCF has no variant records.\\n' > {{log:q}}\\n"
+    "        fi\\n"
+    "        test -s {{output.txt:q}}\\n"
+    "        grep -q 'PASS_FAIL' {{output.txt:q}}\\n"
+    "        grep -q 'REASON' {{output.txt:q}}"
+)
+read_haps_empty_failure_old = (
+    "        set +o pipefail\\n"
+    "        if gzip -cd {{input.vcf:q}} | grep -m 1 -q -v '^#'; then\\n"
+    "            has_variants=true\\n"
+    "        else\\n"
+    "            has_variants=false\\n"
+    "        fi\\n"
+    "        set -o pipefail\\n"
+    '        if [[ "$has_variants" == "true" ]]; then\\n'
+    "            command -v {{params.command:q}} > /dev/null\\n"
+    "            test -s {{params.reliable_snp_file:q}}\\n"
+    "            {{params.command:q}} {{params.extra_args}} -fa {{params.ref:q}} {{input.bam:q}} {{params.reliable_snp_file:q}} {{input.vcf:q}} > {{output.txt:q}} 2> {{log:q}}\\n"
+    "        else\\n"
+    "            printf 'SNP_PAIRS ERROR_PAIRS DOUBLE_ERROR_PAIR_COUNT DOUBLE_ERROR_FRACTION REL_ERROR_FRACTION NONSENSE_FRACTION PASS_FAIL REASON\\n0 0 0 0 0 0 NO_DATA NO_VARIANTS\\n' > {{output.txt:q}}\\n"
+    "            printf 'NO_VARIANTS: read_haps skipped because the input VCF has no variant records.\\n' > {{log:q}}\\n"
+    "        fi\\n"
+    "        test -s {{output.txt:q}}\\n"
+    "        grep -q 'PASS_FAIL' {{output.txt:q}}\\n"
+    "        grep -q 'REASON' {{output.txt:q}}"
+)
+read_haps_strict_precheck_old = (
+    "        set +o pipefail\\n"
+    "        if gzip -cd {{input.vcf:q}} | grep -m 1 -q -v '^#'; then\\n"

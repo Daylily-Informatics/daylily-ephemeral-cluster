@@ -1,0 +1,64 @@
+DAY-EC activated.
+DAY-EC activated.
+NOW_UTC	2026-06-06T12:32:08Z
+
+## DF
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  1.4T  7.4T  16% /fsx
+
+## SQUEUE_DS
+             JOBID PARTITION                         NAME ST         TIME  NODES NODELIST(REASON)
+             964_0      i192            ilmn_ds20x_seqkit  R         3:27      1 i192-dy-all-2
+             913_3      i192            ilmn_ds20x_seqkit  R        11:57      1 i192-dy-all-1
+             913_1      i192            ilmn_ds20x_seqkit  R        58:27      1 i192-dy-all-4
+             913_2      i192            ilmn_ds20x_seqkit  R        58:27      1 i192-dy-all-4
+
+## FINALS
+MISSING	/fsx/analysis_results/4_nas_ds_to_20x/NA00232-SMN_S46_ds20x_R1_001.fastq.gz
+MISSING	/fsx/analysis_results/4_nas_ds_to_20x/NA00232-SMN_S46_ds20x_R2_001.fastq.gz
+MISSING	/fsx/analysis_results/4_nas_ds_to_20x/NA09677-SMN_S47_ds20x_R1_001.fastq.gz
+MISSING	/fsx/analysis_results/4_nas_ds_to_20x/NA09677-SMN_S47_ds20x_R2_001.fastq.gz
+
+## ALL_FILES
+NA00232-SMN_S46_ds20x_R1_001.fastq.gz.seqkit.964_0.tmp.gz	3792454272
+NA03986-DMPK_S48_ds20x_R1_001.fastq.gz.seqkit.916_2.tmp.gz	17473881214
+NA03986-DMPK_S48_ds20x_R2_001.fastq.gz.seqkit.916_2.tmp.gz	18405311268
+NA05164-DMPK_S49_ds20x_R1_001.fastq.gz.seqkit.913_3.tmp.gz	7894853590
+NA09677-SMN_S47_ds20x_R1_001.fastq.gz.seqkit.915_1.tmp.gz	17645396330
+NA09677-SMN_S47_ds20x_R2_001.fastq.gz.seqkit.915_1.tmp.gz	9485307683
+downsample_plan.tsv	1489
+downsample_plan_seqkit.tsv	1489
+
+## RECENT_LOGS
+--- seqkit_913_1.out
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/bin/seqkit
+seqkit v2.9.0
+SLURM_JOB_ID=915
+SLURM_ARRAY_TASK_ID=1
+SLURM_CPUS_PER_TASK=96
+HOSTNAME=i192-dy-all-4
+START_UTC=2026-06-06T11:33:42Z
+sample=NA09677 target_cov=20 source_cov=39.75 fraction=0.5031446541 seed=9677
+r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R1_001.fastq.gz
+r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R2_001.fastq.gz
+out_r1=/fsx/analysis_results/4_nas_ds_to_20x/NA09677-SMN_S47_ds20x_R1_001.fastq.gz
+out_r2=/fsx/analysis_results/4_nas_ds_to_20x/NA09677-SMN_S47_ds20x_R2_001.fastq.gz
+--- seqkit_913_1.err
+[INFO][0m sample by proportion
+[INFO][0m 273920406 sequences outputted
+[INFO][0m sample by proportion
+--- seqkit_964_0.out
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/bin/seqkit
+seqkit v2.9.0
+SLURM_JOB_ID=964
+SLURM_ARRAY_TASK_ID=0
+SLURM_CPUS_PER_TASK=96
+HOSTNAME=i192-dy-all-2
+START_UTC=2026-06-06T12:28:43Z
+sample=NA00232 target_cov=20 source_cov=43.00 fraction=0.4651162791 seed=2302
+r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R1_001.fastq.gz
+r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R2_001.fastq.gz
+out_r1=/fsx/analysis_results/4_nas_ds_to_20x/NA00232-SMN_S46_ds20x_R1_001.fastq.gz
+out_r2=/fsx/analysis_results/4_nas_ds_to_20x/NA00232-SMN_S46_ds20x_R2_001.fastq.gz
+--- seqkit_964_0.err
+[INFO][0m sample by proportion

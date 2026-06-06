@@ -1,0 +1,231 @@
+!=0
+'#'=1
+'$'=85693
+'*'=( pipefail )
+-=569Xl
+0=-euo
+'?'=0
+@=( pipefail )
+ARGC=1
+CDPATH=''
+CODEX_CI=1
+CODEX_INTERNAL_ORIGINATOR_OVERRIDE='Codex Desktop'
+CODEX_SHELL=1
+CODEX_THREAD_ID=019e9015-6e7f-7e43-8486-49046a17534b
+COLORTERM=''
+COLUMNS=0
+COMMAND_MODE=unix2003
+CONDA_DEFAULT_ENV=base
+CONDA_EXE=/Users/jmajor/miniconda3/bin/conda
+CONDA_PREFIX=/Users/jmajor/miniconda3
+CONDA_PROMPT_MODIFIER='(base)'
+CONDA_PYTHON_EXE=/Users/jmajor/miniconda3/bin/python
+CONDA_SHLVL=1
+CPUTYPE=arm64
+DISABLE_AUTO_UPDATE=true
+EGID=20
+EUID=501
+FIGNORE=''
+FPATH=/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+FUNCNEST=700
+GH_PAGER=cat
+GID=20
+GIT_PAGER=cat
+HISTCHARS='!^#'
+HISTCMD=0
+HISTSIZE=30
+HOME=/Users/jmajor
+HOST=Johns-MacBook-Pro.local
+IFS=$' \t\n\C-@'
+KEYBOARD_HACK=''
+KEYTIMEOUT=40
+LANG=C.UTF-8
+LC_ALL=C.UTF-8
+LC_CTYPE=C.UTF-8
+LINENO=1
+LINES=0
+LISTMAX=100
+LOGNAME=jmajor
+LOG_FORMAT=json
+MACHTYPE=x86_64
+MAILCHECK=60
+MAILPATH=''
+MANPATH=''
+MODULE_PATH=/usr/lib/zsh/5.9
+MallocNanoZone=0
+NO_COLOR=1
+NULLCMD=cat
+OLDPWD=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+OPTARG=''
+OPTIND=1
+OSLogRateLimit=64
+OSTYPE=darwin25.0
+PAGER=cat
+PATH=/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/bin:/Users/jmajor/.codex/tmp/arg0/codex-arg0wVr1rQ:/Users/jmajor/miniconda3/bin:/Users/jmajor/miniconda3/condabin:/Applications/Codex.app/Contents/Resources
+PPID=85606
+PROMPT=''
+PROMPT2=''
+PROMPT3='?# '
+PROMPT4='+%N:%i> '
+PS1=''
+PS2=''
+PS3='?# '
+PS4='+%N:%i> '
+PSVAR=''
+PWD=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+RANDOM=23091
+READNULLCMD=more
+RUST_LOG=warn
+SAVEHIST=0
+SECONDS=0
+SHELL=/bin/zsh
+SHLVL=3
+SPROMPT='zsh: correct '\''%R'\'' to '\''%r'\'' [nyae]? '
+SSH_AUTH_SOCK=/var/run/com.apple.launchd.n46yQXkmau/Listeners
+TERM=dumb
+TIMEFMT='%J  %U user %S system %P cpu %*E total'
+TMPDIR=/var/folders/rk/2n95m40s1zs48qr48ynwhxwm0000gn/T/
+TMPPREFIX=/tmp/zsh
+TRY_BLOCK_ERROR=-1
+TRY_BLOCK_INTERRUPT=-1
+TTY=''
+TTYIDLE=-1
+UID=501
+USER=jmajor
+USERNAME=jmajor
+VENDOR=apple
+WATCH
+WORDCHARS='*?_-.[]~=/&;!#$%^(){}<>'
+XPC_FLAGS=0x0
+XPC_SERVICE_NAME=0
+ZSH_ARGZERO=-euo
+ZSH_EVAL_CONTEXT=cmdarg
+ZSH_EXECUTION_STRING=set
+ZSH_NAME=zsh
+ZSH_PATCHLEVEL=zsh-5.9-0-g73d3173
+ZSH_SUBSHELL=0
+ZSH_TMUX_AUTOSTART=false
+ZSH_TMUX_AUTOSTARTED=true
+ZSH_VERSION=5.9
+_=set
+_CE_CONDA=''
+_CE_M=''
+_CONDA_EXE=/Users/jmajor/miniconda3/bin/conda
+_CONDA_ROOT=/Users/jmajor/miniconda3
+__CFBundleIdentifier=com.openai.codex
+__CF_USER_TEXT_ENCODING=0x1F5:0x0:0x0
+aliases
+argv=( pipefail )
+builtins
+cdpath=(  )
+commands
+dirstack
+dis_aliases
+dis_builtins
+dis_functions
+dis_functions_source
+dis_galiases
+dis_patchars
+dis_reswords
+dis_saliases
+fignore=(  )
+fpath=( /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.9/functions )
+funcfiletrace
+funcsourcetrace
+funcstack
+functions
+functions_source
+functrace
+galiases
+histchars='!^#'
+history
+historywords
+jobdirs
+jobstates
+jobtexts
+keymaps
+mailpath=(  )
+manpath=(  )
+module_path=( /usr/lib/zsh/5.9 )
+modules
+nameddirs
+options
+parameters
+patchars
+path=( /usr/local/bin /System/Cryptexes/App/usr/bin /usr/bin /bin /usr/sbin /sbin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin /pkg/env/global/bin /Library/Apple/usr/bin /opt/homebrew/bin /Users/jmajor/.codex/tmp/arg0/codex-arg0wVr1rQ /Users/jmajor/miniconda3/bin /Users/jmajor/miniconda3/condabin /Applications/Codex.app/Contents/Resources )
+pipestatus=( 0 )
+prompt=''
+psvar=(  )
+reswords
+saliases
+signals=( EXIT HUP INT QUIT ILL TRAP ABRT EMT FPE KILL BUS SEGV SYS PIPE ALRM TERM URG STOP TSTP CONT CHLD TTIN TTOU IO XCPU XFSZ VTALRM PROF WINCH INFO USR1 USR2 ZERR DEBUG )
+status=0
+termcap
+terminfo
+userdirs
+usergroups
+watch
+widgets
+zsh_eval_context=( cmdarg )
+zsh_scheduled_events
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"sentdhiomr\"]' 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' -j 125 -p -k --rerun-triggers mtime -n",
+  "completed_at": "2026-06-06T12:31:16Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na2_chip12_varalign_dryrun_20260606T122800Z/daylily-omics-analysis",
+  "session_name": "hybonly_hybrid_hiomr_na2_chip12_varalign_dryrun_20260606T122800Z",
+  "started_at": "2026-06-06T12:30:50Z"
+}
+
+## LOGS
+DAY-EC activated.
+DAY-EC activated.
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        echo "Starting final normalization at $(date)" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.16.final_norm.log
+
+        bcftools view --threads 8 -a -e 'GT="0/0"' results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/16/tmp/combined_apply.vcf.gz 2>> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.16.final_norm.log |         bcftools norm --threads 8 -f /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta 2>> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.16.final_norm.log |         bin/dayoa_sentieon util vcfconvert -t 8 - results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/16/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.16.snv.sort.vcf.gz >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.16.final_norm.log 2>&1
+
+        echo "Final normalization completed at $(date)" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.16.final_norm.log
+        
+
+[Sat Jun  6 12:31:15 2026]
+rule sentdhiomr_final_norm:
+    input: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/2/tmp/combined_apply.vcf.gz
+    output: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/2/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.2.snv.sort.vcf.gz, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/2/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.2.snv.sort.vcf.gz.tbi
+    log: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.2.final_norm.log
+    jobid: 56
+    benchmark: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/benchmarks/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.2.final_norm.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/2/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.2.snv.sort.vcf.gz.tbi; Input files updated by another job: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/2/tmp/combined_apply.vcf.gz
+    wildcards: sample=HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ, alnr=ont, ddup=dmd, dchrm=2
+    threads: 8
+    resources: mem_mb=16000, mem_mib=15259, disk_mb=1000, disk_mib=954, tmpdir=<TBD>, threads=8, time=5440, partition=i192mem,i192bigmem, vcpu=8, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        set -euo pipefail
+        export PATH=$PATH:/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bin/
+
+        echo "Starting final normalization at $(date)" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.2.final_norm.log
+
+        bcftools view --threads 8 -a -e 'GT="0/0"' results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/2/tmp/combined_apply.vcf.gz 2>> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.2.final_norm.log |         bcftools norm --threads 8 -f /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.fasta 2>> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.2.final_norm.log |         bin/dayoa_sentieon util vcfconvert -t 8 - results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/2/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.2.snv.sort.vcf.gz >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.2.final_norm.log 2>&1
+
+        echo "Final normalization completed at $(date)" >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA00232-SMN-chip1-chip2-barcode18-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.2.final_norm.log
+        
+
+[Sat Jun  6 12:31:15 2026]
+localrule sentdhiomr_concat_fofn:
+    input: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/1/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.1.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/2/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.2.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.3.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/4/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.4.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/5/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.5.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/6/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.6.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/7/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.7.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/8/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.8.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/9/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.9.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/10/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.10.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.11.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/12/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.12.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/13/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.13.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.14.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.15.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/16/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.16.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/17-19/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.17-19.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/20-25/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.20-25.snv.sort.vcf.gz.tbi
+    output: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.concat.vcf.gz.fofn, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.concat.vcf.gz.fofn.tmp
+    log: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/log/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.concat.fofn.log
+    jobid: 737
+    benchmark: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/benchmarks/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.concat.fofn.bench.tsv
+    reason: Missing output files: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.snv.concat.vcf.gz.fofn; Input files updated by another job: results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.15.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/8/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.8.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.11.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/13/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.13.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/17-19/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.17-19.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.14.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/10/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.10.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/12/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.12.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.3.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/6/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.6.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/7/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.7.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/16/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.16.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/20-25/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.20-25.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/5/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.5.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/1/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.1.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/9/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.9.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/2/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.2.snv.sort.vcf.gz.tbi, results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/4/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.4.snv.sort.vcf.gz.tbi
+    wildcards: sample=HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ, alnr=ont, ddup=dmd
+    priority: 44
+    resources: mem_mb=3000, mem_mib=2862, disk_mb=1000, disk_mib=954, tmpdir=/dev/shm, threads=1, time=5440, partition=i192,i128,i192mem,bcl2fq-i384-nvme-test, vcpu=1, distribution=block, exclusive=, constraint=, exclude=, include=
+
+
+        for i in results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/1/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.1.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/2/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.2.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/3/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.3.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/4/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.4.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/5/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.5.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/6/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.6.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/7/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.7.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/8/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.8.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/9/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.9.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/10/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.10.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/11/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.11.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/12/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.12.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/13/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.13.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/14/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.14.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/15/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.15.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/16/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.16.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/17-19/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.17-19.snv.sort.vcf.gz.tbi results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/vcfs/20-25/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ.ont.dmd.sentdhiomr.20-25.snv.sort.vcf.gz.tbi; do
+            ii=$(echo $i | perl -pe 's/\.tbi$//g'; );
+            echo $ii >> results/day/hg38_broad/HYB-4Coriells-chip1-chip2-NA09677-SMN-chip1-chip2-barcode19-chip1-chip2-PF-ILMN-NOVASEQ/align/ont/dmd/snv/sentdhiomr/HYB-4Coriells-chip1-chip2-NA09677-SM--output truncated--

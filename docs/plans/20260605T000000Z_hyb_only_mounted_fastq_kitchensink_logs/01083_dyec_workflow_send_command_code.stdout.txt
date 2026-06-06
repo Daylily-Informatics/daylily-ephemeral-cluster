@@ -1,0 +1,153 @@
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:30:    payload = base64.b64encode(gzip.compress(source.encode("utf-8"), mtime=0)).decode("ascii")
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:33:        f"exec(gzip.decompress(base64.b64decode({payload!r})).decode('utf-8'))"
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:253:    stage_dir: str
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:274:    stage_dir = samples_path = units_path = None
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:277:            stage_dir = line.split("=", 1)[1].strip()
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:284:    if not (stage_dir and samples_path and units_path):
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:286:    return RemoteConfig(stage_dir, samples_path, units_path)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:309:    stage_dir: Optional[str],
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:313:    if stage_dir:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:314:        target_dir = normalize_remote_path(stage_dir.rstrip("/"))
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:323:last_error=missing_stage_dir
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:327:    samples_file=$(ls -1 "$STAGE_DIR"/*_samples.tsv 2>/dev/null | head -n 1 || true)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:328:    units_file=$(ls -1 "$STAGE_DIR"/*_units.tsv 2>/dev/null | head -n 1 || true)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:329:    if [[ -n "$samples_file" && -n "$units_file" ]]; then
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:331:      echo "__DAYLILY_STAGE_SAMPLES__=$samples_file"
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:332:      echo "__DAYLILY_STAGE_UNITS__=$units_file"
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:338:    last_error=missing_stage_dir
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:342:    if [[ "$last_error" == "missing_stage_dir" ]]; then
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:372:    samples_file=$(ls -1 "$latest_dir"/*_samples.tsv 2>/dev/null | head -n 1 || true)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:373:    units_file=$(ls -1 "$latest_dir"/*_units.tsv 2>/dev/null | head -n 1 || true)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:374:    if [[ -n "$samples_file" && -n "$units_file" ]]; then
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:376:      echo "__DAYLILY_STAGE_SAMPLES__=$samples_file"
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:377:      echo "__DAYLILY_STAGE_UNITS__=$units_file"
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:486:        dest="input_staging",
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:605:    parser.set_defaults(skip_project_check=True, input_staging=True, default_activation=True)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:700:        if not args.input_staging:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:702:        if args.stage_dir:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:704:        if args.samples_file or args.units_file:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:713:    elif args.samples_file or args.units_file:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:714:        if not args.input_staging:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:718:        if args.stage_dir:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:720:        if not args.samples_file or not args.units_file:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:722:        samples_path = Path(args.samples_file).expanduser()
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:723:        units_path = Path(args.units_file).expanduser()
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:731:    elif args.input_staging:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:736:            args.stage_dir,
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:740:        if args.stage_dir:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:768:    input_staging_mode_literal = "true" if args.input_staging else "false"
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:812:	INPUT_STAGING_MODE={input_staging_mode_literal}
+daylily_ec/aws/ssm.py:236:    encoded = base64.b64encode(script.encode("utf-8")).decode("ascii")
+daylily_ec/aws/ssm.py:240:        "path.write_text(base64.b64decode(os.environ['DAYLILY_SSM_B64']).decode('utf-8'), encoding='utf-8')"
+daylily_ec/aws/ssm.py:245:            # AWS-RunShellScript uses /bin/sh for the transport wrapper on Ubuntu.
+daylily_ec/aws/ssm.py:287:            "DocumentName": "AWS-RunShellScript",
+daylily_ec/aws/ssm.py:294:        response = client.send_command(**send_kwargs)
+daylily_ec/aws/ssm.py:352:    encoded = base64.b64encode(content.encode("utf-8")).decode("ascii")
+daylily_ec/aws/ssm.py:363:                "path.write_text(base64.b64decode(os.environ['DAYLILY_REMOTE_B64']).decode('utf-8'), encoding='utf-8')"
+daylily_ec/repositories.py:585:        stage_dir: Optional[str] = None,
+daylily_ec/repositories.py:589:        samples_file: Optional[str] = None,
+daylily_ec/repositories.py:590:        units_file: Optional[str] = None,
+daylily_ec/repositories.py:659:        if samples_file or units_file:
+daylily_ec/repositories.py:660:            if not (samples_file and units_file):
+daylily_ec/repositories.py:661:                raise ValueError("samples_file and units_file must be provided together")
+daylily_ec/repositories.py:664:                    "samples_file and units_file are only valid for sample_analysis commands"
+daylily_ec/repositories.py:666:        if stage_dir and not self.requires_staging:
+daylily_ec/repositories.py:667:            raise ValueError("stage_dir is only valid for commands that require staging")
+daylily_ec/repositories.py:688:            ("--stage-dir", stage_dir),
+daylily_ec/repositories.py:690:            ("--samples-file", samples_file),
+daylily_ec/repositories.py:691:            ("--units-file", units_file),
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:30:    payload = base64.b64encode(gzip.compress(source.encode("utf-8"), mtime=0)).decode("ascii")
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:33:        f"exec(gzip.decompress(base64.b64decode({payload!r})).decode('utf-8'))"
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:253:    stage_dir: str
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:274:    stage_dir = samples_path = units_path = None
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:277:            stage_dir = line.split("=", 1)[1].strip()
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:284:    if not (stage_dir and samples_path and units_path):
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:286:    return RemoteConfig(stage_dir, samples_path, units_path)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:309:    stage_dir: Optional[str],
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:313:    if stage_dir:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:314:        target_dir = normalize_remote_path(stage_dir.rstrip("/"))
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:323:last_error=missing_stage_dir
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:327:    samples_file=$(ls -1 "$STAGE_DIR"/*_samples.tsv 2>/dev/null | head -n 1 || true)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:328:    units_file=$(ls -1 "$STAGE_DIR"/*_units.tsv 2>/dev/null | head -n 1 || true)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:329:    if [[ -n "$samples_file" && -n "$units_file" ]]; then
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:331:      echo "__DAYLILY_STAGE_SAMPLES__=$samples_file"
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:332:      echo "__DAYLILY_STAGE_UNITS__=$units_file"
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:338:    last_error=missing_stage_dir
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:342:    if [[ "$last_error" == "missing_stage_dir" ]]; then
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:372:    samples_file=$(ls -1 "$latest_dir"/*_samples.tsv 2>/dev/null | head -n 1 || true)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:373:    units_file=$(ls -1 "$latest_dir"/*_units.tsv 2>/dev/null | head -n 1 || true)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:374:    if [[ -n "$samples_file" && -n "$units_file" ]]; then
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:376:      echo "__DAYLILY_STAGE_SAMPLES__=$samples_file"
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:377:      echo "__DAYLILY_STAGE_UNITS__=$units_file"
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:486:        dest="input_staging",
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:605:    parser.set_defaults(skip_project_check=True, input_staging=True, default_activation=True)
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:700:        if not args.input_staging:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:702:        if args.stage_dir:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:704:        if args.samples_file or args.units_file:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:713:    elif args.samples_file or args.units_file:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:714:        if not args.input_staging:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:718:        if args.stage_dir:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:720:        if not args.samples_file or not args.units_file:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:722:        samples_path = Path(args.samples_file).expanduser()
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:723:        units_path = Path(args.units_file).expanduser()
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:731:    elif args.input_staging:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:736:            args.stage_dir,
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:740:        if args.stage_dir:
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:768:    input_staging_mode_literal = "true" if args.input_staging else "false"
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:812:	INPUT_STAGING_MODE={input_staging_mode_literal}
+daylily_ec/workflow/export_data.py:536:            value = base64.b64decode(checksum).hex()
+daylily_ec/cli.py:2147:def _parse_remote_stage_dir(stage_stdout: str) -> str:
+daylily_ec/cli.py:2152:            stage_dir = line.split(":", 1)[1].strip()
+daylily_ec/cli.py:2153:            if stage_dir:
+daylily_ec/cli.py:2154:                return stage_dir
+daylily_ec/cli.py:2529:        remote_stage_dir = _parse_remote_stage_dir(stage_stdout)
+daylily_ec/cli.py:2539:            stage_dir=remote_stage_dir,
+daylily_ec/cli.py:2564:        stage_name = Path(remote_stage_dir.rstrip("/")).name
+daylily_ec/cli.py:2585:            "remote_stage_dir": remote_stage_dir,
+daylily_ec/cli.py:2609:    stage_dir: Optional[str] = typer.Option(
+daylily_ec/cli.py:2619:    samples_file: Optional[Path] = typer.Option(
+daylily_ec/cli.py:2624:    units_file: Optional[Path] = typer.Option(
+daylily_ec/cli.py:2634:    input_staging: bool = typer.Option(
+daylily_ec/cli.py:2811:        ("--stage-dir", stage_dir),
+daylily_ec/cli.py:2813:        ("--samples-file", str(samples_file.expanduser()) if samples_file else None),
+daylily_ec/cli.py:2814:        ("--units-file", str(units_file.expanduser()) if units_file else None),
+daylily_ec/cli.py:2842:    if not input_staging:
+daylily_ec/ssh_to_ssm_e2e_runner.py:288:def parse_remote_stage_dir(stdout: str) -> str:
+daylily_ec/ssh_to_ssm_e2e_runner.py:887:    remote_stage_dir = parse_remote_stage_dir(stage_stdout)
+daylily_ec/ssh_to_ssm_e2e_runner.py:893:        remote_stage_dir=remote_stage_dir,
+daylily_ec/ssh_to_ssm_e2e_runner.py:905:        remote_stage_dir,
+daylily_ec/stage_samples.py:340:    stage_directive: str
+daylily_ec/stage_samples.py:2200:def normalize_stage_directive(value: str) -> str:
+daylily_ec/stage_samples.py:2334:        stage_directive=normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE)),
+daylily_ec/stage_samples.py:2545:        directive = normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
+daylily_ec/stage_samples.py:2835:            normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
+daylily_ec/stage_samples.py:3212:                directive = normalize_stage_directive(get_entry_value(normalized, STAGE_DIRECTIVE))
+daylily_ec/stage_samples.py:3442:        if entry.staging.stage_directive == "pass_through":
+daylily_ec/stage_samples.py:3446:        if entry.staging.stage_directive == "mounted_readonly":
+daylily_ec/stage_samples.py:3512:    if row.staging.stage_directive in {"pass_through", "mounted_readonly"}:
+daylily_ec/stage_samples.py:3574:    if row.staging.stage_directive == "stage_data":
+daylily_ec/stage_samples.py:3775:                    entry.staging.stage_directive,
+daylily_ec/stage_samples.py:3843:                    entry.staging.stage_directive,
+daylily_ec/stage_samples.py:3942:            row.row_number for row in prechecked_rows if row.staging.stage_directive == "stage_data"
+daylily_ec/stage_samples.py:3974:    samples_filename = f"{timestamp}_samples.tsv"
+daylily_ec/stage_samples.py:3975:    units_filename = f"{timestamp}_units.tsv"
+daylily_ec/stage_samples.py:3982:    samples_path = config_dir / samples_filename
+daylily_ec/stage_samples.py:3983:    units_path = config_dir / units_filename
+daylily_ec/stage_samples.py:3996:    remote_samples_path = f"{stage.remote_s3_stage}/{samples_filename}"
+daylily_ec/stage_samples.py:3997:    remote_units_path = f"{stage.remote_s3_stage}/{units_filename}"
+daylily_ec/resources/payload/config/day_cluster/prod_cluster.yaml:53:        - Name: r7gb64
+daylily_ec/resources/payload/config/day_cluster/prod_cluster.yaml:64:        - Name: r6gb64
+daylily_ec/resources/payload/bin/check_prereq_sw.sh:85:required_commands=(
+daylily_ec/resources/payload/config/day_cluster/prod_cluster_dragen.yaml:53:        - Name: r7gb64
+daylily_ec/resources/payload/config/day_cluster/prod_cluster_dragen.yaml:64:        - Name: r6gb64
+daylily_ec/resources/payload/bin/daylily-analysis-samples-to-manifest-new.py:321:            stage_directive = get_entry_value(primary_entry, STAGE_DIRECTIVE)
+daylily_ec/resources/payload/bin/daylily-analysis-samples-to-manifest-new.py:322:            copy_files_to_target(primary_r1, staged_r1, stage_directive == "link_data")
+daylily_ec/resources/payload/bin/daylily-analysis-samples-to-manifest-new.py:323:            copy_files_to_target(primary_r2, staged_r2, stage_directive == "link_data")
+daylily_ec/resources/payload/bin/daylily-analysis-samples-to-manifest-new.py:427:    samples_filename = f"{run_id_for_filename}_{timestamp}_samples.tsv"
+daylily_ec/resources/payload/bin/daylily-analysis-samples-to-manifest-new.py:428:    units_filename = f"{run_id_for_filename}_{timestamp}_units.tsv"
+daylily_ec/resources/payload/bin/daylily-analysis-samples-to-manifest-new.py:430:    samples_tsv_path = os.path.join(output_dir, samples_filename)
+daylily_ec/resources/payload/bin/daylily-analysis-samples-to-manifest-new.py:431:    units_tsv_path = os.path.join(output_dir, units_filename)
+daylily_ec/resources/payload/config/day_cluster/prod_cluster_variant.yaml:53:        - Name: r7gb64
+daylily_ec/resources/payload/config/day_cluster/prod_cluster_variant.yaml:64:        - Name: r6gb64
+daylily_ec/resources/payload/config/day_cluster/regions/all_clusters.yaml:53:        - Name: r7gb64
+daylily_ec/resources/payload/config/day_cluster/regions/all_clusters.yaml:65:        - Name: r6gb64

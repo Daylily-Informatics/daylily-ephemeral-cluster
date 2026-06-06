@@ -1,0 +1,52 @@
+SSM cfg init 20260606T053415Z_13973636_samples.tsv: d3d07883-42bc-4a24-a540-a450a4d8df83 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T053415Z_13973636_samples.tsv 1: 2e41d91c-a786-4dec-927c-6fe458585443 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg final 20260606T053415Z_13973636_samples.tsv: cee4cf15-bd14-41d4-90ef-a9710227b796 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+-rw-r--r-- 1 ubuntu ubuntu 456 Jun  6 05:49 /home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config/20260606T053415Z_13973636_samples.tsv
+f9bed18025f2193842932034b3964b23fa96e0653583b94bd8c9df1c1a0e5abd  /home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config/20260606T053415Z_13973636_samples.tsv
+PUT /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_config/20260606T053415Z_13973636_samples.tsv -> /home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config/20260606T053415Z_13973636_samples.tsv bytes=456 sha256=f9bed18025f2193842932034b3964b23fa96e0653583b94bd8c9df1c1a0e5abd
+SSM cfg init 20260606T053415Z_13973636_units.tsv: e4c8b872-2f1f-408c-ae5e-d9f6e8c2e64d rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T053415Z_13973636_units.tsv 1: e9f16607-da05-4db2-843a-72f125be4f23 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T053415Z_13973636_units.tsv 2: 110a231b-7735-4c50-9fcb-d1e4f4c8c304 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T053415Z_13973636_units.tsv 3: 590876d0-aad4-4425-92e0-2eddea6559c5 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T053415Z_13973636_units.tsv 4: 0a867e79-7ab0-4bec-91fd-519673b9152a rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T053415Z_13973636_units.tsv 5: 635a8a09-e361-4a6f-bb63-2058f17d2d30 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T053415Z_13973636_units.tsv 6: 74b1264b-ff18-4c63-8390-232edb01f0e8 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T053415Z_13973636_units.tsv 7: bde13348-5ad5-4e03-a10e-0d58f62f21a8 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T053415Z_13973636_units.tsv 8: 5bd0aaa6-8030-4760-87fb-9c25bdd9ac51 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T053415Z_13973636_units.tsv 9: b4fbb273-3fe2-4ea0-9475-39072260423d rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T053415Z_13973636_units.tsv 10: b3839818-702a-43ef-bdf7-5709395e5ee7 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg final 20260606T053415Z_13973636_units.tsv: d6f67399-c50e-48be-bcff-a4ee7265b601 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+-rw-r--r-- 1 ubuntu ubuntu 217727 Jun  6 05:51 /home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config/20260606T053415Z_13973636_units.tsv
+f5aa583b2fb1b768de79be691b1488ce21af56f212af53a71d685f0121480b50  /home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config/20260606T053415Z_13973636_units.tsv
+PUT /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_config/20260606T053415Z_13973636_units.tsv -> /home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config/20260606T053415Z_13973636_units.tsv bytes=217727 sha256=f5aa583b2fb1b768de79be691b1488ce21af56f212af53a71d685f0121480b50
+REMOTE_STAGE_DIR=/home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config

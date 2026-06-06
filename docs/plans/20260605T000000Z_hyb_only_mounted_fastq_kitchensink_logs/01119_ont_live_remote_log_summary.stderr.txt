@@ -1,0 +1,8 @@
+Traceback (most recent call last):
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/extract_remote_tmux_log.py", line 79, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/extract_remote_tmux_log.py", line 59, in main
+    script = REMOTE_SCRIPT_TEMPLATE.format(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+KeyError: 'path'

@@ -1,0 +1,10 @@
+Traceback (most recent call last):
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/restart_ilmn_ds20x_seqkit_sbatch.py", line 187, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/restart_ilmn_ds20x_seqkit_sbatch.py", line 172, in main
+    result = run_shell(
+             ^^^^^^^^^^
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/daylily_ec/aws/ssm.py", line 333, in run_shell
+    raise SsmCommandFailedError(
+daylily_ec.aws.ssm.SsmCommandFailedError: SSM command '3d828207-7ca6-4df6-b4d6-4154cf3ca841' failed with status=Failed rc=1

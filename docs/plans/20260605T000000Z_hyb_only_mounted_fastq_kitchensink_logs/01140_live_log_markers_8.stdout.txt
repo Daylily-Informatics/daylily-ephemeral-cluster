@@ -1,0 +1,22 @@
+## ONT retry1
+            echo "ERROR: TMPDIR disappeared before pipeline start: $tdir" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0006-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0006-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+                echo "ERROR: unsupported sentmm2ont input kind: fastq" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0006-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0006-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+Submitted job 1490 with external jobid '65'.
+Finished job 318.
+rule sentmm2ont_align_sort:
+        ulimit -n 65536 || echo "ulimit mod failed";
+            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0010-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0010-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+            echo "ERROR: TMPDIR disappeared before pipeline start: $tdir" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0010-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0010-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+                echo "ERROR: unsupported sentmm2ont input kind: fastq" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0010-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0010-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+Submitted job 1506 with external jobid '66'.
+Finished job 2686.
+rule sentmm2ont_align_sort:
+        ulimit -n 65536 || echo "ulimit mod failed";
+            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0004-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0004-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+## ILMN
+Submitted job 20 with external jobid '16'.
+rule sentieon_bwa_sort:
+        ulimit -n 65536 || echo "ulimit mod failed" > results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ/align/sent/logs/20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;
+Submitted job 38 with external jobid '17'.
+rule sentieon_bwa_sort:
+        ulimit -n 65536 || echo "ulimit mod failed" > results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ/align/sent/logs/20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ.sent.sort.log 2>&1;

@@ -1,0 +1,85 @@
+2495:    def maybe_check_source_path(
+2703:            maybe_check_source_path(r1_field, source_path)
+2714:            maybe_check_source_path(r2_field, source_path)
+2733:        maybe_check_source_path(CONCORDANCE_CONTROL_PATH, concordance_source, allow_directory=True)
+2737:        maybe_check_source_path(ULTIMA_CRAM, source)
+2757:        maybe_check_source_path(ONT_CRAM, source)
+2774:        maybe_check_source_path(PB_BAM, source)
+2795:        maybe_check_source_path(ONT_BAM, source)
+2814:        maybe_check_source_path(ROCHE_BAM, source)
+            "use pass_through or mounted_readonly."
+        ),
+    )
+    parser.add_argument(
+        "--run-metric-staging",
+        action="append",
+        default=[],
+        metavar="RUN_UID:PLATFORM:FOFN",
+        help=(
+            "Copy run-level metric files listed in FOFN under runs/<RUN_UID>/ in the "
+            "remote stage. Can be specified multiple times."
+        ),
+    )
+    return parser.parse_args(argv)
+
+
+def ensure_profile(profile: Optional[str]) -> str:
+    if not profile:
+        raise CommandError("AWS profile is required. Set AWS_PROFILE or pass --profile.")
+    return profile
+
+
+def parse_s3_uri(uri: str) -> Tuple[str, str]:
+    if not uri.startswith("s3://"):
+        raise CommandError(f"Expected an s3:// URI, received: {uri}")
+    without_scheme = uri[5:]
+    if "/" in without_scheme:
+        bucket, key = without_scheme.split("/", 1)
+    else:
+        bucket, key = without_scheme, ""
+    return bucket, key
+
+
+def normalise_stage_target(stage_target: str) -> str:
+    stage_target = stage_target.strip()
+    if stage_target == "/data" or stage_target.startswith("/data/"):
+        raise CommandError("Stage target must use /fsx/staging; /data is not supported.")
+    if stage_target == "/fsx/data" or stage_target.startswith("/fsx/data/"):
+        raise CommandError("Stage target must use /fsx/staging; /fsx/data is not supported.")
+    reject_retired_stage_path(stage_target)
+    if not (stage_target == "/fsx/staging" or stage_target.startswith("/fsx/staging/")):
+        raise CommandError("Stage target must be under /fsx/staging.")
+    stage_target = stage_target.rstrip("/")
+    if not (
+        stage_target == ACTIVE_EXTERNAL_STAGE_ROOT
+        or stage_target.startswith(f"{ACTIVE_EXTERNAL_STAGE_ROOT}/")
+    ):
+        raise CommandError(
+            f"Stage target must be under {ACTIVE_EXTERNAL_STAGE_ROOT}; "
+            "other /fsx/staging subpaths are not supported for external sequencing data."
+        )
+    return stage_target
+
+
+def build_stage_paths(stage_target: str, bucket_uri: str) -> StagePaths:
+    stage_target = normalise_stage_target(stage_target)
+    timestamp = dt.datetime.utcnow().strftime("%Y%m%dT%H%M%SZ")
+    remote_stage_name = f"remote_stage_{timestamp}_{uuid.uuid4().hex[:8]}"
+    remote_fsx_stage = f"{stage_target}/{remote_stage_name}"
+
+    bucket, prefix = parse_s3_uri(bucket_uri.rstrip("/"))
+    prefix = prefix.rstrip("/")
+    stage_root_uri = f"s3://{bucket}/{prefix}" if prefix else f"s3://{bucket}"
+    remote_s3_stage = _join_s3_uri(stage_root_uri, remote_stage_name)
+    return StagePaths(
+        remote_fsx_root=stage_target,
+        remote_stage_name=remote_stage_name,
+        remote_fsx_stage=remote_fsx_stage,
+        remote_s3_stage=remote_s3_stage,
+    )
+
+
+def create_staged_prefix_mount(
+    stage: StagePaths,
+    *,
+    cluster_name: Optional[str],

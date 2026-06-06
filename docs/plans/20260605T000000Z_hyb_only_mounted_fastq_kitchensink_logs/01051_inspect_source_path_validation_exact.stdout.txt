@@ -1,0 +1,41 @@
+                row_number=row_number,
+                default_field=field,
+                default_path=path,
+                exc=exc,
+            )
+        )
+
+    def maybe_check_source_path(
+        field: str,
+        path: str,
+        *,
+        allow_directory: bool = False,
+    ) -> None:
+        if not check_access or not path:
+            return
+        if directive == "mounted_readonly" and field in MOUNTED_READONLY_SOURCE_FIELDS:
+            return
+        try:
+            check_source_path(
+                path,
+                reference_s3_uri=reference_s3_uri,
+                aws_env=aws_env,
+                debug=debug,
+                allow_directory=allow_directory,
+            )
+        except CommandError as exc:
+            add_issue(field, str(exc), path)
+
+    def maybe_validate_sidecars(
+        field: str,
+        path: str,
+        *,
+        sidecar_suffixes: Sequence[str],
+    ) -> None:
+        if not check_access or not path:
+            return
+        if directive == "mounted_readonly" and field in MOUNTED_READONLY_SOURCE_FIELDS:
+            return
+        for suffix in sidecar_suffixes:
+            sidecar = f"{path}{suffix}"
+            try:

@@ -2656,12 +2656,15 @@ def collect_manifest_row_issues(
                 row_number=row_number,
                 require_r2=r1_field != ONT_R1_FQ,
             )
-            if len(r1_paths) > 1 and (r1_field, r2_field) != (ILMN_R1_FQ, ILMN_R2_FQ):
+            if len(r1_paths) > 1 and (r1_field, r2_field) not in {
+                (ILMN_R1_FQ, ILMN_R2_FQ),
+                (ONT_R1_FQ, ONT_R2_FQ),
+            }:
                 add_issue(
                     f"{r1_field}/{r2_field}",
                     (
-                        f"Row {row_number} comma-separated FASTQ lists are only supported for "
-                        f"{ILMN_R1_FQ}/{ILMN_R2_FQ}."
+                        f"Row {row_number} comma-separated FASTQ lists are only supported "
+                        f"for {ILMN_R1_FQ}/{ILMN_R2_FQ} or {ONT_R1_FQ}/{ONT_R2_FQ}."
                     ),
                     r1_value,
                 )
@@ -3497,18 +3500,22 @@ def emit_single_raw_group(
         require_r2=r1_field != ONT_R1_FQ,
     )
     if len(r1_paths) > 1:
-        if (r1_field, r2_field) != (ILMN_R1_FQ, ILMN_R2_FQ):
+        if (r1_field, r2_field) not in {
+            (ILMN_R1_FQ, ILMN_R2_FQ),
+            (ONT_R1_FQ, ONT_R2_FQ),
+        }:
             raise CommandError(
-                f"Row {row.row_number} comma-separated FASTQ lists are only supported for "
-                f"{ILMN_R1_FQ}/{ILMN_R2_FQ}."
+                f"Row {row.row_number} comma-separated FASTQ lists are only supported "
+                f"for {ILMN_R1_FQ}/{ILMN_R2_FQ} or {ONT_R1_FQ}/{ONT_R2_FQ}."
             )
-        validate_fastq_pair_order(
-            r1_paths,
-            r2_paths,
-            row_number=row.row_number,
-            r1_field=r1_field,
-            r2_field=r2_field,
-        )
+        if r2_paths:
+            validate_fastq_pair_order(
+                r1_paths,
+                r2_paths,
+                row_number=row.row_number,
+                r1_field=r1_field,
+                r2_field=r2_field,
+            )
     if row.staging.stage_directive in {"pass_through", "mounted_readonly"}:
         for path in r1_paths:
             require_headnode_visible_path(path, field=r1_field)

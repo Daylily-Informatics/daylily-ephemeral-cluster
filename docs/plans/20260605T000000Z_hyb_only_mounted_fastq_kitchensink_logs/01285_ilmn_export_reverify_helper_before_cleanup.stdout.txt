@@ -1,0 +1,26 @@
+prefix=s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/
+required:
+2026-06-06 03:15:30   12675488 DAY_final_multiqc.html
+2026-06-06 03:15:30   26705126 multiqc_data.json
+2026-06-06 03:15:30    4177078 dayoa_evidence_manifest.json
+summary:
+2026-06-06 03:15:30      13734 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/parse_bclconvert_samplesheet.py
+2026-06-06 03:15:29       5962 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/parse_truvari_summary.py
+2026-06-06 03:15:30       5624 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/prepare_bclconvert_demux_fastqc_inputs.py
+2026-06-06 03:15:30       6615 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/prepare_bclconvert_lane_samplesheet.py
+2026-06-06 03:15:29      11744 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/relatedness_report.py
+2026-06-06 03:15:30       9119 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/run_bclconvert_lane.sh
+2026-06-06 03:15:30        717 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/sort_concat_chrm_list.py
+2026-06-06 03:15:30      30718 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/stage_multiqc_inputs.py
+2026-06-06 03:15:29       6647 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/summarize_run_qc_report.py
+2026-06-06 03:15:29       7350 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/summarize_unmapped_ganon2.py
+2026-06-06 03:15:29       7141 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/summarize_unmapped_metagenomics.py
+2026-06-06 03:15:30       9606 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/summarize_unmapped_sourmash.py
+2026-06-06 03:15:29       3656 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/tiddit_sv_to_multiqc.py
+2026-06-06 03:15:29       3810 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/validate_multiqc_sample_ids.py
+2026-06-06 03:15:30        138 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/write_dayoa_evidence_manifest.py
+2026-06-06 03:15:30       2937 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/write_illumina_run_qc_json.py
+2026-06-06 03:15:29       2417 derived/analysis_results/hyb-only/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis/workflow/scripts/write_interop_summary_csv.py
+
+Total Objects: 16042
+   Total Size: 255917543393

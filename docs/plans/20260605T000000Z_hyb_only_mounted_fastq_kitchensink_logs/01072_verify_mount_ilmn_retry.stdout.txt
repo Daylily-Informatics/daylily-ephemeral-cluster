@@ -1,0 +1,5 @@
+Mount verified: ilmn-lh01121-b23ww2nlt4-fastq
+Purpose: run
+Association ID: dra-0fd8deafaec933073
+Headnode path: /fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/
+Lifecycle: AVAILABLE

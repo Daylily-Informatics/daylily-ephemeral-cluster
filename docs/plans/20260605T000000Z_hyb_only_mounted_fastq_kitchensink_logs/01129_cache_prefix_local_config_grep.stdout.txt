@@ -1,0 +1,51 @@
+/Users/jmajor/.config/daylily/hyb-only_next_run_20260605235208.yaml:3:    reference_s3_uri: [USESETVALUE, '', 's3://lsmc-dayoa-references-usw2/']
+/Users/jmajor/.config/daylily/hyb-only_next_run_20260605235208.yaml:4:    control_data_s3_uri: [USESETVALUE, '', 's3://lsmc-dayoa-control-data-usw2/']
+/Users/jmajor/.config/daylily/hyb-only_next_run_20260605235208.yaml:5:    stage_s3_uri: [USESETVALUE, '', 's3://lsmc-ssf-sequencing-data/staged_external_data/']
+/Users/jmajor/.config/daylily/hyb-only_next_run_20260605235208.yaml:6:    export_destination_s3_uri: [USESETVALUE, '', 's3://lsmc-ssf-sequencing-data/derived/']
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:24:        s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh       # head and each compute can have different scripts if desired
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:27:      - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:83:          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:86:        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:138:          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:141:        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:173:          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:176:        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:206:          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:209:        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:237:          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:240:        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:308:          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:311:        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:353:          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:356:        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:396:          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:399:        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:443:          s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:446:        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:469:      DataRepositoryPath: s3://lsmc-dayoa-references-usw2/
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:485:- Key: aws-parallelcluster-monitor-bucket
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml:486:  Value: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_cluster_20260605235208.yaml.init:474:  - Key: aws-parallelcluster-monitor-bucket
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:22:      Script: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh # head and each compute can have different scripts if desired
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:25:        - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:80:          Script: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:83:            - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:134:          Script: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:137:            - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:168:          Script: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:171:            - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:200:          Script: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:203:            - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:230:          Script: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:233:            - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:300:          Script: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:303:            - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:344:          Script: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:347:            - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:386:          Script: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:389:            - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:432:          Script: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config/post_install_ubuntu_combined.sh
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:435:            - s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:458:          DataRepositoryPath: s3://lsmc-dayoa-references-usw2/
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:474:  - Key: aws-parallelcluster-monitor-bucket
+/Users/jmajor/.config/daylily/hyb-only_init_template_20260605235208.yaml:475:    Value: s3://lsmc-dayoa-references-usw2/runtime_assets/cluster_boot_config

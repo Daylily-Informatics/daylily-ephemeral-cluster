@@ -1,0 +1,6 @@
+COMMAND_ID=812a4120-1d20-4e62-8659-c042b001f3f7
+{
+  "Status": "Failed",
+  "Stderr": "Traceback (most recent call last):\n  File \"<string>\", line 56, in <module>\n  File \"/usr/lib/python3.10/subprocess.py\", line 503, in run\n    with Popen(*popenargs, **kwargs) as process:\n  File \"/usr/lib/python3.10/subprocess.py\", line 971, in __init__\n    self._execute_child(args, executable, preexec_fn, close_fds,\n  File \"/usr/lib/python3.10/subprocess.py\", line 1863, in _execute_child\n    raise child_exception_type(errno_num, err_msg, err_filename)\nFileNotFoundError: [Errno 2] No such file or directory: 'squeue'\nfailed to run commands: exit status 1",
+  "Stdout": ""
+}

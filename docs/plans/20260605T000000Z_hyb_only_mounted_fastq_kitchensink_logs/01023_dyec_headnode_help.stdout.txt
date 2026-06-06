@@ -1,0 +1,18 @@
+                                                                                
+ Usage: dyec headnode [OPTIONS] COMMAND [ARGS]...                               
+                                                                                
+ Headnode bootstrap and shell-context helpers.                                  
+                                                                                
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                  │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ init       Initialize headnode shell state and optionally repair missing     │
+│            project budgets.                                                  │
+│ connect    Open an ubuntu bash login shell on a cluster headnode via Session │
+│            Manager.                                                          │
+│ info       Return the full pcluster describe-cluster payload for a headnode. │
+│ jobs       Print Slurm jobs from the headnode using the Daylily sq format.   │
+│ configure  Configure a cluster headnode through the supported SSM bootstrap. │
+╰──────────────────────────────────────────────────────────────────────────────╯
+

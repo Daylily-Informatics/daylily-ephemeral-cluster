@@ -1,0 +1,24 @@
+DAY-EC activated.
+DAY-EC activated.
+files
+-rw-rw-r-- 1 ubuntu ubuntu 13M Jun  6 10:06 results/day/hg38/reports/DAY_final_multiqc.html
+-rw-rw-r-- 1 ubuntu ubuntu 26M Jun  6 10:06 results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json
+-rw-rw-r-- 1 ubuntu ubuntu 4.0M Jun  6 10:11 results/day/hg38/reports/dayoa_evidence_manifest.json
+-rw-rw-r-- 1 ubuntu ubuntu 9.9K Jun  6 10:06 results/day/hg38/reports/logs/all__mqc_fin_a.log
+-rw-rw-r-- 1 ubuntu ubuntu 0 Jun  6 10:11 results/day/hg38/logs/produce_multiqc_all.log
+controllers
+ubuntu    498261   53952  0 10:01 ?        00:00:00 sh -c cat >> /home/ubuntu/daylily-runs/hybonly_ilmn_final_multiqc_file_20260606T100052Z/tmux.log
+last_workflow_lines
+[32mFinished job 712.[0m
+[32m4 of 7 steps (57%) done[0m
+    reason: Missing output files: results/day/hg38/reports/DAY_final_multiqc_data/multiqc_general_stats.txt, results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json, results/day/hg38/reports/DAY_final_multiqc_data/multiqc.log, results/day/hg38/reports/DAY_final_multiqc_data/multiqc_sources.txt, results/day/hg38/reports/DAY_final_multiqc.html; Input files updated by another job: results/day/hg38/other_reports/rules_benchmark_data_mqc.tsv, results/day/hg38/logs/report_components_aggregated.done, results/day/hg38/reports/multiqc_inputs/final/.stage.done, results/day/hg38/reports/multiqc_inputs/final/manifest.tsv
+[32mFinished job 1.[0m
+[32m5 of 7 steps (71%) done[0m
+[32mlocalrule write_dayoa_evidence_manifest:
+    reason: Missing output files: results/day/hg38/reports/dayoa_evidence_manifest.json; Input files updated by another job: results/day/hg38/reports/DAY_final_multiqc_data/multiqc_general_stats.txt, results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json, results/day/hg38/other_reports/contam_identity_mqc.tsv, results/day/hg38/reports/DAY_final_multiqc_data/multiqc_sources.txt, results/day/hg38/reports/DAY_final_multiqc_data/multiqc.log, results/day/hg38/other_reports/haplocheck_mtdna_mqc.tsv, results/day/hg38/other_reports/read_haps_mqc.tsv, results/day/hg38/other_reports/rules_benchmark_data_mqc.tsv, results/day/hg38/reports/multiqc_inputs/final/manifest.tsv, results/day/hg38/reports/DAY_final_multiqc.html
+[32mFinished job 713.[0m
+[32m6 of 7 steps (86%) done[0m
+[32mFinished job 0.[0m
+[32m7 of 7 steps (100%) done[0m
+]]]]--------WORKFLOW SUCCESS====================]]]]]---------------------------[0m
+[5m[48;5;118m[30mRETURN CODE: 0[0m

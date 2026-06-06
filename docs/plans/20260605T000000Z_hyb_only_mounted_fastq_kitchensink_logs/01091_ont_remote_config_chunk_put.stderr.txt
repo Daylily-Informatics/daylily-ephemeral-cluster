@@ -1,0 +1,30 @@
+Traceback (most recent call last):
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/daylily_ec/aws/ssm.py", line 294, in run_shell
+    response = client.send_command(**send_kwargs)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/botocore/client.py", line 606, in _api_call
+    return self._make_api_call(operation_name, kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/botocore/context.py", line 123, in wrapper
+    return func(*args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "/Users/jmajor/miniconda3/envs/DAY-EC/lib/python3.11/site-packages/botocore/client.py", line 1094, in _make_api_call
+    raise error_class(parsed_response, operation_name)
+botocore.errorfactory.ValidationException: An error occurred (ValidationException) when calling the SendCommand operation: 2 validation errors detected: Value 'init /home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config/20260606T053415Z_13973636_samples.tsv' at 'comment' failed to satisfy constraint: Member must satisfy regular expression pattern: ^.{0,100}$; Value 'init /home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config/20260606T053415Z_13973636_samples.tsv' at 'comment' failed to satisfy constraint: Member must have length less than or equal to 100
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/put_remote_config_chunks.py", line 131, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/put_remote_config_chunks.py", line 119, in main
+    put_file(
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/put_remote_config_chunks.py", line 68, in put_file
+    _run(instance_id, region, profile, init_script, f"init {remote_path}")
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/put_remote_config_chunks.py", line 31, in _run
+    result = run_shell(
+             ^^^^^^^^^^
+  File "/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/daylily_ec/aws/ssm.py", line 296, in run_shell
+    raise SsmError(f"Unable to start SSM Run Command on '{instance_id}': {exc}") from exc
+daylily_ec.aws.ssm.SsmError: Unable to start SSM Run Command on 'i-05374380b57fad901': An error occurred (ValidationException) when calling the SendCommand operation: 2 validation errors detected: Value 'init /home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config/20260606T053415Z_13973636_samples.tsv' at 'comment' failed to satisfy constraint: Member must satisfy regular expression pattern: ^.{0,100}$; Value 'init /home/ubuntu/daylily-staged-configs/hybonly_ont_kitchensink_mounted_20260606T053415Z_config/20260606T053415Z_13973636_samples.tsv' at 'comment' failed to satisfy constraint: Member must have length less than or equal to 100

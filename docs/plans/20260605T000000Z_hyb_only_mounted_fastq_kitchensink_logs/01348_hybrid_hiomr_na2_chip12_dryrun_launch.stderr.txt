@@ -1,0 +1,5 @@
+⚠ Active conda environment is 'base', not DAY-EC. Continuing anyway; the 
+supported path is `source ./activate`.
+✗ Unexpected error: Unable to start SSM Run Command on 'i-05374380b57fad901': An
+error occurred (MaxDocumentSizeExceeded) when calling the SendCommand operation:
+The total size of your parameter(s) and document exceeds the 97KB limit.

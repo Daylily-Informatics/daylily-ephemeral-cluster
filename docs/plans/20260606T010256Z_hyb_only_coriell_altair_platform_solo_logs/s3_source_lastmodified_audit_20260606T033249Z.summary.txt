@@ -1,0 +1,5 @@
+total_expected	935
+seen	935
+missing	0
+modified_after_gate0	0
+evidence	docs/plans/20260606T010256Z_hyb_only_coriell_altair_platform_solo_logs/s3_source_lastmodified_audit_20260606T033249Z.tsv

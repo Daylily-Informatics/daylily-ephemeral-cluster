@@ -1,0 +1,16 @@
+                                                                                
+ Usage: dyec workflow [OPTIONS] COMMAND [ARGS]...                               
+                                                                                
+ Headnode workflow helpers.                                                     
+                                                                                
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ --help          Show this message and exit.                                  │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Commands ───────────────────────────────────────────────────────────────────╮
+│ launch  Launch daylily-omics-analysis inside tmux on the headnode.           │
+│ status  Read a workflow status.json file from the headnode.                  │
+│ logs    Tail a workflow tmux.log file from the headnode.                     │
+│ stop    Stop a headnode workflow tmux controller, with explicit optional     │
+│         Slurm cancellation.                                                  │
+╰──────────────────────────────────────────────────────────────────────────────╯
+

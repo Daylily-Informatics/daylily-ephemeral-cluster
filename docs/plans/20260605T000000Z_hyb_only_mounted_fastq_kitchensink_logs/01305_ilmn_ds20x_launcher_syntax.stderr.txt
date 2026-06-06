@@ -1,0 +1,4 @@
+  File "docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/start_ilmn_ds20x_tmux.py", line 221
+    """
+       ^
+SyntaxError: f-string: expecting '}'

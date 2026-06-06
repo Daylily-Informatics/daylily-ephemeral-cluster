@@ -1,0 +1,6 @@
+     456 /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_config/20260606T053415Z_13973636_samples.tsv
+  217727 /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_config/20260606T053415Z_13973636_units.tsv
+  218183 total
+       5 /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_config/20260606T053415Z_13973636_samples.tsv
+     886 /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_config/20260606T053415Z_13973636_units.tsv
+     891 total

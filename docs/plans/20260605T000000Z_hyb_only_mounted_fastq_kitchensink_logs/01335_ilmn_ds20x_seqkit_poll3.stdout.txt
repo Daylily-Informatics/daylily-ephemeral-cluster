@@ -1,0 +1,62 @@
+DAY-EC activated.
+DAY-EC activated.
+SQUEUE
+             JOBID      PARTITION               NAME ST       TIME  NODES NODELIST(REASON)
+             913_3           i192  ilmn_ds20x_seqkit  R       1:52      1 i192-dy-all-5
+             913_2           i192  ilmn_ds20x_seqkit  R       1:52      1 i192-dy-all-4
+             913_1           i192  ilmn_ds20x_seqkit  R       1:52      1 i192-dy-all-4
+             913_0           i192  ilmn_ds20x_seqkit  R       5:34      1 i192-dy-all-3
+FILES
+5278389345	/fsx/analysis_results/4_nas_ds_to_20x/NA00232-SMN_S46_ds20x_R1_001.fastq.gz.seqkit.914_0.tmp.gz
+2434400997	/fsx/analysis_results/4_nas_ds_to_20x/NA03986-DMPK_S48_ds20x_R1_001.fastq.gz.seqkit.916_2.tmp.gz
+2403364613	/fsx/analysis_results/4_nas_ds_to_20x/NA05164-DMPK_S49_ds20x_R1_001.fastq.gz.seqkit.913_3.tmp.gz
+2190381056	/fsx/analysis_results/4_nas_ds_to_20x/NA09677-SMN_S47_ds20x_R1_001.fastq.gz.seqkit.915_1.tmp.gz
+RECENT_LOGS
+--- /fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_913_0.out
+SLURM_CPUS_PER_TASK=96
+HOSTNAME=i192-dy-all-3
+START_UTC=2026-06-06T11:30:01Z
+sample=NA00232 target_cov=20 source_cov=43.00 fraction=0.4651162791 seed=2302
+r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R1_001.fastq.gz
+r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA00232-SMN_S46_R2_001.fastq.gz
+out_r1=/fsx/analysis_results/4_nas_ds_to_20x/NA00232-SMN_S46_ds20x_R1_001.fastq.gz
+out_r2=/fsx/analysis_results/4_nas_ds_to_20x/NA00232-SMN_S46_ds20x_R2_001.fastq.gz
+--- /fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_913_1.out
+SLURM_CPUS_PER_TASK=96
+HOSTNAME=i192-dy-all-4
+START_UTC=2026-06-06T11:33:42Z
+sample=NA09677 target_cov=20 source_cov=39.75 fraction=0.5031446541 seed=9677
+r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R1_001.fastq.gz
+r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA09677-SMN_S47_R2_001.fastq.gz
+out_r1=/fsx/analysis_results/4_nas_ds_to_20x/NA09677-SMN_S47_ds20x_R1_001.fastq.gz
+out_r2=/fsx/analysis_results/4_nas_ds_to_20x/NA09677-SMN_S47_ds20x_R2_001.fastq.gz
+--- /fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_913_2.out
+SLURM_CPUS_PER_TASK=96
+HOSTNAME=i192-dy-all-4
+START_UTC=2026-06-06T11:33:42Z
+sample=NA03986 target_cov=20 source_cov=35.19 fraction=0.5683432793 seed=3986
+r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA03986-DMPK_S48_R1_001.fastq.gz
+r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA03986-DMPK_S48_R2_001.fastq.gz
+out_r1=/fsx/analysis_results/4_nas_ds_to_20x/NA03986-DMPK_S48_ds20x_R1_001.fastq.gz
+out_r2=/fsx/analysis_results/4_nas_ds_to_20x/NA03986-DMPK_S48_ds20x_R2_001.fastq.gz
+--- /fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_913_3.out
+SLURM_CPUS_PER_TASK=96
+HOSTNAME=i192-dy-all-5
+START_UTC=2026-06-06T11:33:42Z
+sample=NA05164 target_cov=20 source_cov=32.91 fraction=0.6077195381 seed=5164
+r1=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA05164-DMPK_S49_R1_001.fastq.gz
+r2=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/NA05164-DMPK_S49_R2_001.fastq.gz
+out_r1=/fsx/analysis_results/4_nas_ds_to_20x/NA05164-DMPK_S49_ds20x_R1_001.fastq.gz
+out_r2=/fsx/analysis_results/4_nas_ds_to_20x/NA05164-DMPK_S49_ds20x_R2_001.fastq.gz
+ERR
+--- /fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_913_0.err
+[INFO][0m sample by proportion
+--- /fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_913_1.err
+[INFO][0m sample by proportion
+--- /fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_913_2.err
+[INFO][0m sample by proportion
+--- /fsx/analysis_results/4_nas_ds_to_20x/logs/seqkit_913_3.err
+[INFO][0m sample by proportion
+FSX
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  1.3T  7.5T  15% /fsx

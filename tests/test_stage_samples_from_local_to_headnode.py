@@ -524,6 +524,69 @@ def test_pass_through_accepts_single_end_ont_fastq(
     assert units[0]["ONT_R2_PATH"] == "na"
 
 
+def test_pass_through_accepts_comma_separated_single_end_ont_fastqs(
+    monkeypatch: pytest.MonkeyPatch,
+    tmp_path: Path,
+) -> None:
+    analysis_samples = _write_manifest(
+        tmp_path,
+        "\t".join(
+            [
+                "RUN_ID",
+                "SAMPLE_ID",
+                "EXPERIMENTID",
+                "SAMPLE_TYPE",
+                "LIB_PREP",
+                "SEQ_VENDOR",
+                "SEQ_PLATFORM",
+                "LANE",
+                "SEQBC_ID",
+                "PATH_TO_CONCORDANCE_DATA_DIR",
+                "ONT_R1_FQ",
+                "ONT_R2_FQ",
+                "STAGE_DIRECTIVE",
+            ]
+        ),
+        [
+            "\t".join(
+                [
+                    "RUN-1",
+                    "NA00232",
+                    "SMN",
+                    "gdna",
+                    "LSK114",
+                    "ONT",
+                    "PROMETHION",
+                    "chip1",
+                    "barcode18-chip1",
+                    "na",
+                    "/fsx/run_dir_mounts/ont-chip1/fastq_pass/barcode18/read1.fastq.gz,/fsx/run_dir_mounts/ont-chip1/fastq_pass/barcode18/read2.fastq.gz",
+                    "",
+                    "pass_through",
+                ]
+            )
+        ],
+    )
+
+    monkeypatch.setattr(module, "check_s3_path", lambda *args, **kwargs: None)
+    rows = _prechecked_rows(monkeypatch, analysis_samples)
+    _samples, units, created, _run_ids = module.process_samples(
+        analysis_samples,
+        _stage_paths(),
+        reference_s3_uri=_s3_role_uris(),
+        aws_env={},
+        debug=False,
+        rows=rows,
+    )
+
+    assert created == []
+    assert units[0]["ONT_R1_PATH"] == (
+        "/fsx/run_dir_mounts/ont-chip1/fastq_pass/barcode18/read1.fastq.gz,"
+        "/fsx/run_dir_mounts/ont-chip1/fastq_pass/barcode18/read2.fastq.gz"
+    )
+    assert units[0]["ONT_R2_PATH"] == "na"
+
+
 def test_stage_data_rejects_single_end_ont_fastq(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,

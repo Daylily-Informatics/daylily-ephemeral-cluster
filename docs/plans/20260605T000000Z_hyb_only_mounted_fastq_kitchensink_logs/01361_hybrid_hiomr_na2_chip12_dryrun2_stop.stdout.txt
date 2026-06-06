@@ -1,0 +1,15 @@
+{
+  "cancel_slurm_jobs": false,
+  "job_name_pattern": "",
+  "killed_tmux_session": true,
+  "run_dir": "/home/ubuntu/daylily-runs/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun2_20260606T120700Z",
+  "scancelled_job_ids": [],
+  "session_name": "hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun2_20260606T120700Z",
+  "slurm_jobs_after": [],
+  "slurm_jobs_before": [],
+  "status_path": "/home/ubuntu/daylily-runs/hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun2_20260606T120700Z/status.json",
+  "status_updated": true,
+  "tmux_session_after": false,
+  "tmux_session_before": true,
+  "tmux_session_name": "hybonly_hybrid_hiomr_na2_chip12_fastq_dryrun2_20260606T120700Z"
+}

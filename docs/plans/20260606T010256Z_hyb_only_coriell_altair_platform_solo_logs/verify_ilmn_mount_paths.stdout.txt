@@ -1,0 +1,17 @@
+DAY-EC activated.
+DAY-EC activated.
+time_utc=2026-06-06T02:50:36Z
+root=/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq
+100
+/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-BUCCAL1-a_S22_R1_001.fastq.gz
+/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-BUCCAL1-a_S22_R2_001.fastq.gz
+/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-BUCCAL1-b_S23_R1_001.fastq.gz
+/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-BUCCAL1-b_S23_R2_001.fastq.gz
+/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-BUCCAL2-a_S24_R1_001.fastq.gz
+/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-BUCCAL2-a_S24_R2_001.fastq.gz
+/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-BUCCAL2-b_S25_R1_001.fastq.gz
+/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-BUCCAL2-b_S25_R2_001.fastq.gz
+/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-BUCCAL3-a_S26_R1_001.fastq.gz
+/fsx/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/Altair-BUCCAL3-a_S26_R2_001.fastq.gz
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T   96G  8.7T   2% /fsx

@@ -1,0 +1,17 @@
+                                                                                
+ Usage: dyec mounts verify [OPTIONS]                                            
+                                                                                
+ Verify a run mount path is usable on the cluster headnode.                     
+                                                                                
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│    --mount-id                      TEXT                                      │
+│    --association-id                TEXT                                      │
+│ *  --cluster,--cluster-name        TEXT     [required]                       │
+│    --fsx-file-system-id            TEXT                                      │
+│ *  --region                        TEXT     [required]                       │
+│    --profile                       TEXT                                      │
+│    --platform                      TEXT                                      │
+│    --timeout-seconds               INTEGER  [default: 300]                   │
+│    --help                                   Show this message and exit.      │
+╰──────────────────────────────────────────────────────────────────────────────╯
+

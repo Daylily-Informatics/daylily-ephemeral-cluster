@@ -1,0 +1,5 @@
+DAY-EC activated.
+DAY-EC activated.
+SESSION=ilmn_ds20x_20260606T110315Z
+DEST=/fsx/analysis_results/4_nas_ds_to_20x
+ilmn_ds20x_20260606T110315Z: 1 windows (created Sat Jun  6 11:05:20 2026)

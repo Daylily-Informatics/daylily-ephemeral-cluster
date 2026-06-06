@@ -3375,6 +3375,203 @@ def workflow_logs(
         typer.echo(result.stderr.rstrip(), err=True)
 
 
+def _parse_workflow_stop_payload(stdout: str) -> dict[str, Any]:
+    from daylily_ec.scripts.common import CommandError
+
+    marker = "__DAYLILY_WORKFLOW_STOP__="
+    for line in stdout.splitlines():
+        if line.startswith(marker):
+            payload = json.loads(line.split("=", 1)[1])
+            if not isinstance(payload, dict):
+                raise CommandError("Workflow stop payload contained non-object JSON.")
+            return payload
+    raise CommandError("Workflow stop output did not include a stop payload marker.")
+
+
+def workflow_stop(
+    profile: Optional[str] = typer.Option(None, "--profile", help="AWS CLI profile."),
+    region: Optional[str] = typer.Option(None, "--region", help="AWS region."),
+    cluster: Optional[str] = typer.Option(None, "--cluster", "--cluster-name"),
+    session: Optional[str] = typer.Option(None, "--session", help="Tmux session/run name."),
+    run_dir: Optional[str] = typer.Option(None, "--run-dir", help="Explicit run directory."),
+    cancel_slurm_jobs: bool = typer.Option(
+        False,
+        "--cancel-slurm-jobs",
+        help="Also cancel active Slurm jobs whose names match --job-name-pattern.",
+    ),
+    job_name_pattern: Optional[str] = typer.Option(
+        None,
+        "--job-name-pattern",
+        help="Python regex used to select Slurm job names when --cancel-slurm-jobs is set.",
+    ),
+    timeout: int = typer.Option(
+        120,
+        "--timeout",
+        help="Maximum seconds for the remote stop command.",
+    ),
+) -> None:
+    """Stop a headnode workflow tmux controller, with explicit optional Slurm cancellation."""
+
+    from daylily_ec.aws.ssm import SsmError, run_shell, wait_for_ssm_online
+    from daylily_ec.scripts.common import CommandError
+
+    _warn_if_dayec_env_inactive()
+    if cancel_slurm_jobs and not str(job_name_pattern or "").strip():
+        raise typer.BadParameter("--job-name-pattern is required with --cancel-slurm-jobs")
+    if job_name_pattern and not cancel_slurm_jobs:
+        raise typer.BadParameter("--job-name-pattern requires --cancel-slurm-jobs")
+
+    try:
+        resolved_run_dir = _workflow_run_dir(session, run_dir)
+        resolved_session = session or Path(resolved_run_dir).name
+        resolved_profile, resolved_region, _resolved_cluster, target = _resolve_headnode_cli_target(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+        )
+        wait_for_ssm_online(
+            target.instance_id,
+            resolved_region,
+            profile=resolved_profile,
+            timeout=120,
+        )
+        script = f"""
+set -euo pipefail
+export DAYLILY_WORKFLOW_SESSION={shlex.quote(resolved_session)}
+export DAYLILY_WORKFLOW_RUN_DIR={shlex.quote(resolved_run_dir)}
+export DAYLILY_CANCEL_SLURM_JOBS={shlex.quote("true" if cancel_slurm_jobs else "false")}
+export DAYLILY_JOB_NAME_PATTERN={shlex.quote(job_name_pattern or "")}
+python3 - <<'PY'
+import datetime
+import json
+import os
+import pathlib
+import re
+import subprocess
+import sys
+
+
+def run(command):
+    return subprocess.run(command, capture_output=True, text=True)
+
+
+def require_command(name):
+    result = run(["bash", "-lc", f"command -v {{name}}"])
+    if result.returncode != 0:
+        raise SystemExit(f"required command not found on headnode PATH: {{name}}")
+
+
+def tmux_session_name(session_name):
+    return re.sub(r"[^A-Za-z0-9_-]", "_", session_name)
+
+
+def tmux_present(name):
+    return run(["tmux", "has-session", "-t", f"={{name}}"]).returncode == 0
+
+
+def slurm_jobs_matching(pattern_text):
+    require_command("squeue")
+    pattern = re.compile(pattern_text)
+    result = run(["squeue", "-h", "-o", "%A\\t%j"])
+    if result.returncode != 0:
+        raise SystemExit(result.stderr.strip() or result.stdout.strip() or "squeue failed")
+    jobs = []
+    for raw_line in result.stdout.splitlines():
+        if not raw_line.strip():
+            continue
+        try:
+            job_id, job_name = raw_line.split("\\t", 1)
+        except ValueError:
+            continue
+        if pattern.search(job_name):
+            jobs.append({{"job_id": job_id, "name": job_name}})
+    return jobs
+
+
+session = os.environ["DAYLILY_WORKFLOW_SESSION"]
+run_dir = pathlib.Path(os.environ["DAYLILY_WORKFLOW_RUN_DIR"])
+cancel_slurm = os.environ["DAYLILY_CANCEL_SLURM_JOBS"] == "true"
+job_name_pattern = os.environ.get("DAYLILY_JOB_NAME_PATTERN", "")
+session_tmux = tmux_session_name(session)
+require_command("tmux")
+before_tmux = tmux_present(session_tmux)
+jobs_before = slurm_jobs_matching(job_name_pattern) if cancel_slurm else []
+
+killed_tmux = False
+if before_tmux:
+    kill = run(["tmux", "kill-session", "-t", f"={{session_tmux}}"])
+    if kill.returncode != 0:
+        raise SystemExit(kill.stderr.strip() or kill.stdout.strip() or "tmux kill-session failed")
+    killed_tmux = True
+
+scancelled_job_ids = []
+if cancel_slurm and jobs_before:
+    require_command("scancel")
+    scancelled_job_ids = [job["job_id"] for job in jobs_before]
+    cancel = run(["scancel", *scancelled_job_ids])
+    if cancel.returncode != 0:
+        raise SystemExit(cancel.stderr.strip() or cancel.stdout.strip() or "scancel failed")
+
+after_tmux = tmux_present(session_tmux)
+jobs_after = slurm_jobs_matching(job_name_pattern) if cancel_slurm else []
+status_path = run_dir / "status.json"
+status_updated = False
+if killed_tmux or scancelled_job_ids:
+    now = datetime.datetime.now(datetime.timezone.utc).isoformat(timespec="seconds").replace("+00:00", "Z")
+    status = {{}}
+    if status_path.is_file():
+        try:
+            status = json.loads(status_path.read_text(encoding="utf-8") or "{{}}")
+        except json.JSONDecodeError:
+            status = {{}}
+    if not isinstance(status, dict):
+        status = {{}}
+    status.setdefault("session_name", session)
+    status["completed_at"] = now
+    status["exit_code"] = 130
+    status["stopped"] = True
+    status["stop_reason"] = "dyec workflow stop"
+    status["stop_cancelled_slurm_job_ids"] = scancelled_job_ids
+    status_path.parent.mkdir(parents=True, exist_ok=True)
+    status_path.write_text(json.dumps(status, indent=2, sort_keys=True) + "\\n", encoding="utf-8")
+    status_updated = True
+
+payload = {{
+    "session_name": session,
+    "run_dir": str(run_dir),
+    "tmux_session_name": session_tmux,
+    "tmux_session_before": before_tmux,
+    "tmux_session_after": after_tmux,
+    "killed_tmux_session": killed_tmux,
+    "cancel_slurm_jobs": cancel_slurm,
+    "job_name_pattern": job_name_pattern,
+    "slurm_jobs_before": jobs_before,
+    "scancelled_job_ids": scancelled_job_ids,
+    "slurm_jobs_after": jobs_after,
+    "status_path": str(status_path),
+    "status_updated": status_updated,
+}}
+print("__DAYLILY_WORKFLOW_STOP__=" + json.dumps(payload, sort_keys=True))
+PY
+"""
+        result = run_shell(
+            target.instance_id,
+            resolved_region,
+            script,
+            profile=resolved_profile,
+            timeout=timeout,
+            comment=f"Stop Daylily workflow {resolved_session}",
+        )
+        payload = _parse_workflow_stop_payload(result.stdout)
+    except (CommandError, SsmError, TimeoutError, json.JSONDecodeError) as exc:
+        _exit_headnode_error(exc)
+
+    if _json_mode():
+        output.emit_json(payload)
+        return
+    typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+
+
 def _state_payload(path: Path) -> dict[str, Any]:
     from daylily_ec.state.store import load_state_record
 
@@ -3600,6 +3797,7 @@ def register(registry, cli_spec) -> None:
             ("launch", workflow_launch, REQUIRED_MUTATING_LONG_RUNNING),
             ("status", workflow_status, REQUIRED_JSON),
             ("logs", workflow_logs, required_policy()),
+            ("stop", workflow_stop, required_policy(supports_json=True, mutates_state=True)),
         ],
     )
     register_group_commands(

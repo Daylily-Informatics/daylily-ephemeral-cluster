@@ -1,0 +1,10 @@
+DAY-EC activated.
+DAY-EC activated.
+BUILT_ENV_ROOT=/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81
+25
+19G	/fsx/resources/environments/conda/ubuntu/ip-10-0-0-81
+CACHED_ENV_ROOT=/fsx/references/runtime_assets/cached_envs/conda
+27
+1.2G	/fsx/references/runtime_assets/cached_envs/conda
+
+

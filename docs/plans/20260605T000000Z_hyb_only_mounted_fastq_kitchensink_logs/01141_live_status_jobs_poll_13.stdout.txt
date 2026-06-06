@@ -1,0 +1,45 @@
+{
+  "command": "bin/day_run produce_alignstats produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 5 -k --rerun-triggers mtime",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_ont_kitchensink_mounted_20260606T053415Z_retry1/daylily-omics-analysis",
+  "session_name": "hybonly_ont_kitchensink_mounted_20260606T053415Z_retry1",
+  "started_at": "2026-06-06T06:20:47Z"
+}
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_alignstats produce_snv_concordances produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_expansionhunter produce_htd_calls produce_metagenomics produce_multiqc_all --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentd\"]' 'htd_callers=[\"cyrius\"]' 'multiqc_qc={\"enable_tools\":[\"vep\",\"metagenomics\",\"contam_identity\"]}' -j 200 -p -k --rerun-triggers mtime",
+  "completed_at": null,
+  "exit_code": null,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_ilmn_kitchensink_mounted_20260606T053415Z/daylily-omics-analysis",
+  "session_name": "hybonly_ilmn_kitchensink_mounted_20260606T053415Z",
+  "started_at": "2026-06-06T05:59:22Z"
+}
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+94  i192  4  R  i192-dy-all-1  4  RUNNING  16000M  0:36  1  no_dedup-20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ
+92  i192  4  R  i192-dy-all-1  4  RUNNING  16000M  1:16  1  no_dedup-20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ
+91  i192  192  R  i192-dy-all-4  192  RUNNING  200000M  1:31  1  sentmm2ont_align_sort-ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-0001-PF-ONT-PROMETHION
+89  i192  4  R  i192-dy-all-1  4  RUNNING  16000M  1:37  1  no_dedup-20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ
+87  i192  192  R  i192-dy-all-3  192  RUNNING  200000M  1:41  1  sentmm2ont_align_sort-ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0001-PF-ONT-PROMETHION
+88  i192  192  R  i192-dy-all-7  192  RUNNING  200000M  1:41  1  sentmm2ont_align_sort-ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0013-PF-ONT-PROMETHION
+86  i192  192  R  i192-dy-all-6  192  RUNNING  200000M  1:52  1  sentmm2ont_align_sort-ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-0011-PF-ONT-PROMETHION
+85  i192  4  R  i192-dy-all-1  4  RUNNING  16000M  1:57  1  no_dedup-20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ
+83  i192  192  R  i192-dy-all-5  192  RUNNING  200000M  2:02  1  sentmm2ont_align_sort-ONT-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-0009-PF-ONT-PROMETHION
+82  i192  4  R  i192-dy-all-1  4  RUNNING  16000M  3:28  1  no_dedup-20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ
+72  i192  4  R  i192-dy-all-1  4  RUNNING  16000M  6:20  1  no_dedup-20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ
+62  i192  4  R  i192-dy-all-1  4  RUNNING  16000M  9:33  1  no_dedup-20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ
+1  i192  32  R  i192-dy-all-1  32  RUNNING  3000M  40:18  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ
+2  i192  32  R  i192-dy-all-1  32  RUNNING  3000M  40:18  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ
+3  i192  32  R  i192-dy-all-1  32  RUNNING  3000M  40:18  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ
+5  i192  32  R  i192-dy-all-1  32  RUNNING  3000M  40:18  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ
+8  i192  32  R  i192-dy-all-2  32  RUNNING  3000M  40:18  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ
+12  i192  32  R  i192-dy-all-2  32  RUNNING  3000M  40:18  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ
+14  i192  32  R  i192-dy-all-2  32  RUNNING  3000M  40:18  1  fastqc_subsampled-20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ
+95  i192mem  192  R  i192mem-dy-all-2  192  RUNNING  200000M  0:36  1  doppelmark_dups-20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ
+93  i192mem  192  R  i192mem-dy-all-1  192  RUNNING  200000M  1:16  1  doppelmark_dups-20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ
+90  i192mem  192  R  i192mem-dy-all-4  192  RUNNING  200000M  1:35  1  doppelmark_dups-20260526-LH01121-0004-B23WW2NLT4-HG003-b-GIAB-all-S8-PF-ILMN-NOVASEQ
+84  i192mem  192  R  i192mem-dy-all-5  192  RUNNING  200000M  1:57  1  doppelmark_dups-20260526-LH01121-0004-B23WW2NLT4-NA00232-SMN-all-S46-PF-ILMN-NOVASEQ
+81  i192mem  192  R  i192mem-dy-all-6  192  RUNNING  200000M  3:28  1  doppelmark_dups-20260526-LH01121-0004-B23WW2NLT4-NA09677-SMN-all-S47-PF-ILMN-NOVASEQ
+73  i192mem  192  R  i192mem-dy-all-7  192  RUNNING  200000M  6:20  1  doppelmark_dups-20260526-LH01121-0004-B23WW2NLT4-NA03986-DMPK-all-S48-PF-ILMN-NOVASEQ
+63  i192mem  192  R  i192mem-dy-all-3  192  RUNNING  200000M  9:33  1  doppelmark_dups-20260526-LH01121-0004-B23WW2NLT4-NA05164-DMPK-all-S49-PF-ILMN-NOVASEQ

@@ -1,0 +1,4 @@
+Usage: dyec headnode [OPTIONS] COMMAND [ARGS]...
+Try 'dyec headnode --help' for help.
+
+Error: No such command 'run'.

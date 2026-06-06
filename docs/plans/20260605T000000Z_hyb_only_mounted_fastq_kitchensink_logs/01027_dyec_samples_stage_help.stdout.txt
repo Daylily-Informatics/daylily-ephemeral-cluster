@@ -1,0 +1,55 @@
+                                                                                
+ Usage: dyec samples stage [OPTIONS] ANALYSIS_SAMPLES                           
+                                                                                
+ Stage analysis samples and generate workflow manifests.                        
+                                                                                
+╭─ Arguments ──────────────────────────────────────────────────────────────────╮
+│ *    analysis_samples      PATH  Path to analysis_samples.tsv. [required]    │
+╰──────────────────────────────────────────────────────────────────────────────╯
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ *  --reference-s3-uri                 TEXT     S3 URI mapped to              │
+│                                                /fsx/references.              │
+│                                                [required]                    │
+│ *  --control-data-s3-uri              TEXT     S3 URI mapped to              │
+│                                                /fsx/control_data.            │
+│                                                [required]                    │
+│ *  --stage-s3-uri                     TEXT     S3 URI used as the exact root │
+│                                                for external staging          │
+│                                                remote_stage_* prefixes.      │
+│                                                [required]                    │
+│    --config-dir                       PATH     Directory for generated       │
+│                                                samples.tsv and units.tsv.    │
+│    --stage-target                     TEXT     FSx staging base directory.   │
+│                                                [default:                     │
+│                                                /fsx/staging/staged_external… │
+│    --run-metric-staging               TEXT     Copy run metric files into    │
+│                                                runs/<RUN_UID>/ from          │
+│                                                RUN_UID:PLATFORM:FOFN. Can be │
+│                                                specified multiple times.     │
+│    --profile                          TEXT     AWS CLI profile. Defaults to  │
+│                                                AWS_PROFILE env var.          │
+│    --region                           TEXT     AWS region. Defaults to       │
+│                                                AWS_REGION/AWS_DEFAULT_REGIO… │
+│    --cluster,--cluster-name           TEXT     ParallelCluster name for      │
+│                                                creating the staged-prefix    │
+│                                                FSx DRA.                      │
+│    --fsx-file-system-id               TEXT     FSx file system id for        │
+│                                                creating the staged-prefix    │
+│                                                DRA.                          │
+│    --staging-mount-timeout-se…        INTEGER  Seconds to wait for the       │
+│                                                staged-prefix DRA to become   │
+│                                                available.                    │
+│                                                [default: 900]                │
+│    --debug                                     Print AWS CLI commands before │
+│                                                execution.                    │
+│    --precheck-only                             Validate the manifest and     │
+│                                                exit without staging or       │
+│                                                writing generated configs.    │
+│    --config-only                               Validate the manifest and     │
+│                                                write generated               │
+│                                                samples.tsv/units.tsv locally │
+│                                                without creating a            │
+│                                                staged-prefix DRA.            │
+│    --help                                      Show this message and exit.   │
+╰──────────────────────────────────────────────────────────────────────────────╯
+

@@ -1,0 +1,16 @@
+DAY-EC activated.
+DAY-EC activated.
+/fsx/analysis_results/4_nas_ds_to_20x/downsample_plan.tsv
+/fsx/analysis_results/4_nas_ds_to_20x/logs/NA00232.downsample.log
+/fsx/analysis_results/4_nas_ds_to_20x/logs/NA03986.downsample.log
+/fsx/analysis_results/4_nas_ds_to_20x/logs/NA05164.downsample.log
+/fsx/analysis_results/4_nas_ds_to_20x/logs/NA09677.downsample.log
+/fsx/analysis_results/4_nas_ds_to_20x/scripts/paired_downsample_fastq.py
+/fsx/analysis_results/4_nas_ds_to_20x/scripts/run_downsample_20x.sh
+282K	/fsx/analysis_results/4_nas_ds_to_20x
+             JOBID PARTITION     NAME ST       TIME  NODES NODELIST(REASON)
+               912      i192 calc_cov  R       0:34      1 i192-dy-all-3
+               911      i192 gatk_con  R       1:34      1 i192-dy-all-1
+               907      i192 gatk_con  R       3:18      1 i192-dy-all-2
+               903   i192mem sent_snv  R      14:17      1 i192mem-dy-all-4
+               902   i192mem sent_snv  R      14:27      1 i192mem-dy-all-5

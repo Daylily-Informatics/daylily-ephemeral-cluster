@@ -1,0 +1,17 @@
+DAY-EC activated.
+DAY-EC activated.
+SQUEUE
+             JOBID      PARTITION               NAME ST       TIME  NODES NODELIST(REASON)
+             913_3           i192  ilmn_ds20x_seqkit  R       7:51      1 i192-dy-all-5
+             913_2           i192  ilmn_ds20x_seqkit  R       7:51      1 i192-dy-all-4
+             913_1           i192  ilmn_ds20x_seqkit  R       7:51      1 i192-dy-all-4
+             913_0           i192  ilmn_ds20x_seqkit  R      11:33      1 i192-dy-all-3
+FILES
+7599390978	/fsx/analysis_results/4_nas_ds_to_20x/NA00232-SMN_S46_ds20x_R1_001.fastq.gz.seqkit.914_0.tmp.gz
+8589138085	/fsx/analysis_results/4_nas_ds_to_20x/NA03986-DMPK_S48_ds20x_R1_001.fastq.gz.seqkit.916_2.tmp.gz
+6393949285	/fsx/analysis_results/4_nas_ds_to_20x/NA05164-DMPK_S49_ds20x_R1_001.fastq.gz.seqkit.913_3.tmp.gz
+7151804369	/fsx/analysis_results/4_nas_ds_to_20x/NA09677-SMN_S47_ds20x_R1_001.fastq.gz.seqkit.915_1.tmp.gz
+STATS
+FSX
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  1.3T  7.5T  15% /fsx

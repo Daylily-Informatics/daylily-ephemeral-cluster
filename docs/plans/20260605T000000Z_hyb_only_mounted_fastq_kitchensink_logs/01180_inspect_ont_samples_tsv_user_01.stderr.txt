@@ -1,0 +1,3 @@
+awk: illegal field $(), name "EXPERIMENTID"
+ input record number 2, file docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/ont_config/20260606T053415Z_13973636_samples.tsv
+ source line number 1

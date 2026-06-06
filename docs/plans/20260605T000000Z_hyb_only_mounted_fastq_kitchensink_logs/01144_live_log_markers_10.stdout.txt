@@ -1,0 +1,30 @@
+## ONT retry1
+            echo "ERROR: TMPDIR disappeared before pipeline start: $tdir" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0015-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0015-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+                echo "ERROR: unsupported sentmm2ont input kind: fastq" >> results/day/hg38_broad/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0015-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-0015-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+Submitted job 1526 with external jobid '104'.
+Finished job 350.
+rule sentmm2ont_align_sort:
+        ulimit -n 65536 || echo "ulimit mod failed";
+            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0017-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0017-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+            echo "ERROR: TMPDIR disappeared before pipeline start: $tdir" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0017-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0017-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+                echo "ERROR: unsupported sentmm2ont input kind: fastq" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0017-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-0017-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+Submitted job 366 with external jobid '105'.
+Finished job 354.
+rule sentmm2ont_align_sort:
+        ulimit -n 65536 || echo "ulimit mod failed";
+            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38_broad/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-0000-PF-ONT-PROMETHION/align/sentmm2ont/logs/ONT-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-0000-PF-ONT-PROMETHION.sentmm2ont_sort.log 2>&1;
+## ILMN
+Submitted job 605 with external jobid '92'.
+rule doppelmark_dups:
+        ulimit -n 65536 || echo "ulimit mod failed" > results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ/align/sent/dmd/logs/dedupe.dmd.20260526-LH01121-0004-B23WW2NLT4-HG003-a-GIAB-all-S7-PF-ILMN-NOVASEQ.sent.log 2>&1;
+Submitted job 4 with external jobid '93'.
+Finished job 20.
+localrule produce_sent_align:
+rule no_dedup:
+Submitted job 615 with external jobid '94'.
+rule doppelmark_dups:
+        ulimit -n 65536 || echo "ulimit mod failed" > results/day/hg38/20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ/align/sent/dmd/logs/dedupe.dmd.20260526-LH01121-0004-B23WW2NLT4-HG003-c-GIAB-all-S9-PF-ILMN-NOVASEQ.sent.log 2>&1;
+Submitted job 19 with external jobid '95'.
+Finished job 724.
+Finished job 37.
+localrule prep_sentD_chunkdirs:

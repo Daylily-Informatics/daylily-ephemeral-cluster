@@ -1,0 +1,288 @@
+DAY-EC activated.
+DAY-EC activated.
+session=hybonly_ont_kitchensink_rest_20260606T102845Z
+tmux=present
+0: bash* (1 panes) [80x24] [layout 5965,80x24,0,0,16] @16 (active)
+0: [80x24] [history 253/2000, 81721 bytes] %16 (active)
+capture_tail:
+                cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/sample
+s.tsv
+
+                cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.ts
+v
+
+
+
+                # Use target names directly (tab-complete available):
+
+                dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-
+read SNV concordance
+
+                dy-r produce_alignstats -p -k -j 20 -n         # Alignment stati
+stics
+
+
+
+                # Platform-specific targets:
+
+                dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+                dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV call
+ing
+
+                dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV call
+ing (use hg38_broad)
+
+
+
+                # Hybrid workflow targets:
+
+                dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina
++ONT CLI
+
+                dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+O
+NT CLI (use hg38_broad)
+
+                dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina
++ONT Modular
+
+                dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+O
+NT Modular (use hg38_broad)
+
+
+
+                # Remove -n to execute (not dry-run)
+
+(DAYOA) ubuntu@ip-10-0-0-81:/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode
+_limited_live_20260606T090222Z/daylily-omics-analysis$ dy-a slurm hg38_broad
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project hyb-only
+ .
+Your config files in /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limite
+d_live_20260606T090222Z/daylily-omics-analysis/config/day_profiles/slurm are new
+er than the templates. clear 2 go.
+yq is already installed.
+Using sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sci
+ences_Manufacturing_Corporation_eval.lic from ~/.config/daylily/daylily_cli_glob
+al.yaml
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null
+     This might be fine if you have cloned a more recent release of daylily comp
+ared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster
+headnode for days+, this is not the intended use of daylily, a fresh build might
+ be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad
+       _______ GREAT SUCCESS _______
+[Dslu](DAYOA) dy-r produce_sentmm2ont_align produce_alignstats produce_na_dedup_
+cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produ
+ce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html
+ results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'multiqc_q
+c={"enable_tools":["vep"]}' -p -j 5 -k --rerun-triggers mtime
+Your config files in /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limite
+d_live_20260606T090222Z/daylily-omics-analysis/config/day_profiles/slurm are new
+er than the templates. clear 2 go.
+...AUTO-CONFIG: dedupers=na (from target rules → env)
+...AUTO-CONFIG: aligners=sentmm2ont (from target rules → env)
+...AUTO-CONFIG: snv_callers=sentdont (from target rules → env)
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/hybonly_ont_chipbarc
+ode_limited_live_20260606T090222Z/daylily-omics-analysis/config/day_profiles/slu
+rm produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sen
+tdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_m
+ultiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg3
+8_broad/reports/dayoa_evidence_manifest.json --config multiqc_qc={"enable_tools"
+:["vep"]} -p -j 5 -k --rerun-triggers mtime
+Config file config/global.yaml is extended by additional config specified via th
+e command line.
+loading global: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_liv
+e_20260606T090222Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified
+via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcod
+e_limited_live_20260606T090222Z/daylily-omics-analysis/config/day_profiles/slurm
+/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional
+ config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'c
+hr''.
+...WARNING: No aligners set in the config.
+...INFO: Auto-detected aligners from env: ['sentmm2ont']
+aligners (final): [sentmm2ont]
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+...INFO: Auto-detected dedupers. DDUP updated to: ['na']
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentdont']
+SNV Callers (final): [sentdont]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubunt
+u/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/c
+onfig/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/
+hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/con
+fig/units.tsv
+Building DAG of jobs...
+
+tmux_log=/home/ubuntu/daylily-runs/hybonly_ont_kitchensink_rest_20260606T102845Z/tmux.log
+tmux_log_tail:
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3a0e4f206e093d942d8271fad4d35296_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/3d0893252281fa51ad1d8a1c220b797a_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/4c31f8647962b8e3834ad37fb4a58585_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/78f3045fcae4980edd6182a4d4c7b898_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/7c29ee1ebe032a24169825719f2e1a4d_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8d1cfbb0e385ff40e65802642a116261_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/a2363387ce455d48f02d1fd7a1643fdc_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/adc26e8656bed67f886fa90365098b54_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/aeb93d5e853ec27fe200a4a0e6b1cb1b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/b63d181b1412fcb12187b3f526fa0fb7_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/b7b00565f6d6e15ef0dac3373783b014_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/bc1a74e52dbef168e070adef567b9cfa_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/be5f834cbbdb5fa84aa89d321fd38c36_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/cb3e084a2b91b0f9dbf54b67853eb975_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/cbbbc9232aca1ecab85b8cd15aaa8927_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/eba8eddca110a7475a7d6f3081ca273b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/ece8bf2dfb9a32ee5a36d91fa49a722b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/fb5136439b50c216431e912fdab988a8_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/ff4326369a074729b1ce16ec028c4a31_
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'hyb-only' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+[?2004h(DAYOA) ubuntu@ip-10-0-0-81:/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis$ dy-a slurm hg38_broad
+[?2004lRequesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project hyb-only .
+Your config files in /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+yq is already installed.
+Using sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic from ~/.config/daylily/daylily_cli_global.yaml
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad  
+       _______ GREAT SUCCESS _______       
+[?2004h[36;1m[Dslu][0m(DAYOA) dy-r produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={"enable_tools":["vep"]}' -p -j 5 -k --rerun-triggers mtime
+[?2004l[1m[48;5;88m[38;5;79mYour config files in /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.[0m
+[1m[48;5;17m[38;5;76m...AUTO-CONFIG: dedupers=na (from target rules → env)[0m
+[1m[48;5;17m[38;5;76m...AUTO-CONFIG: aligners=sentmm2ont (from target rules → env)[0m
+[1m[48;5;17m[38;5;76m...AUTO-CONFIG: snv_callers=sentdont (from target rules → env)[0m
+[1m[40m[38;5;118mExecuting: snakemake --profile=/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/config/day_profiles/slurm produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config multiqc_qc={"enable_tools":["vep"]} -p -j 5 -k --rerun-triggers mtime[0m
+[33mConfig file config/global.yaml is extended by additional config specified via the command line.[0m
+loading global: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/config/global_AWSPC.yaml
+[33mConfig file config/global_AWSPC.yaml is extended by additional config specified via the command line.[0m
+loading profile rule_config: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+[33mConfig file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.[0m
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+[1m[48;5;166m[38;5;79m...WARNING: No aligners set in the config.[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected aligners from env: ['sentmm2ont'][0m
+[1m[38;5;79maligners (final): [sentmm2ont][0m
+[1m[48;5;166m[38;5;79m...INFO: No dedupers set in config. Defaulting to na (no dedup).[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected dedupers. DDUP updated to: ['na'][0m
+[1m[38;5;79mdeduper (final): [na][0m
+[1m[48;5;166m[38;5;79m...WARNING: No snv_callers set in the config.[0m
+[1m[48;5;166m[38;5;79m...INFO: Auto-detected SNV callers from env: ['sentdont'][0m
+[1m[38;5;79mSNV Callers (final): [sentdont][0m
+[1m[38;5;79mSomatic SNV Callers:[senttn][0m
+[1m[48;5;166m[38;5;79m... WARNING: No sv_callers set in the config.[0m
+[1m[38;5;79mSV Callers (final): [][0m
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/config/units.tsv
+[33mBuilding DAG of jobs...[0m
+reports:
+MISSING /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/results/day/hg38_broad/reports/DAY_final_multiqc.html
+MISSING /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/results/day/hg38_broad/reports/DAY_final_multiqc_data/multiqc_data.json
+MISSING /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/results/day/hg38_broad/reports/dayoa_evidence_manifest.json
+MISSING /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/results/day/hg38_broad/logs/produce_multiqc_all.log
+latest_snakemake_log:
+/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/.snakemake/log/2026-06-06T102910.104898.snakemake.log
+Building DAG of jobs...
+controllers:
+ubuntu    508242  507803  1 10:29 pts/13   00:00:00 bash bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config multiqc_qc={"enable_tools":["vep"]} -p -j 5 -k --rerun-triggers mtime
+ubuntu    508479  508242  0 10:29 pts/13   00:00:00 bash bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config multiqc_qc={"enable_tools":["vep"]} -p -j 5 -k --rerun-triggers mtime
+ubuntu    508480  508479 99 10:29 pts/13   00:00:04 /home/ubuntu/miniconda3/envs/DAYOA/bin/python /home/ubuntu/miniconda3/envs/DAYOA/bin/snakemake --profile=/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/config/day_profiles/slurm produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config multiqc_qc={"enable_tools":["vep"]} -p -j 5 -k --rerun-triggers mtime
+ubuntu    508481  508479  0 10:29 pts/13   00:00:00 bash bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config multiqc_qc={"enable_tools":["vep"]} -p -j 5 -k --rerun-triggers mtime
+slurm:
+             JOBID PARTITION     NAME    STATE       TIME  NODES     NODELIST(REASON)

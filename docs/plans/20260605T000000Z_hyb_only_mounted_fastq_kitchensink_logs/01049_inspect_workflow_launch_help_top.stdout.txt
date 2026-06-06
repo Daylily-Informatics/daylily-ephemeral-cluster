@@ -1,0 +1,90 @@
+                                                                                
+ Usage: dyec workflow launch [OPTIONS]                                          
+                                                                                
+ Launch daylily-omics-analysis inside tmux on the headnode.                     
+                                                                                
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│    --profile                                    TEXT     AWS CLI profile.    │
+│    --region                                     TEXT     AWS region.         │
+│    --cluster,--clust…                           TEXT     ParallelCluster     │
+│                                                          name.               │
+│    --stage-dir                                  TEXT     Specific staging    │
+│                                                          directory           │
+│                                                          containing          │
+│                                                          generated           │
+│                                                          manifests.          │
+│    --run-context-file                           PATH     Local runs.tsv file │
+│                                                          to copy to          │
+│                                                          config/runs.tsv for │
+│                                                          run-analysis        │
+│                                                          workflows.          │
+│    --samples-file                               PATH     Local samples.tsv   │
+│                                                          file to copy to     │
+│                                                          config/samples.tsv  │
+│                                                          for sample-analysis │
+│                                                          workflows.          │
+│    --units-file                                 PATH     Local units.tsv     │
+│                                                          file to copy to     │
+│                                                          config/units.tsv    │
+│                                                          for sample-analysis │
+│                                                          workflows.          │
+│    --stage-base                                 TEXT     Base staging        │
+│                                                          directory to scan   │
+│                                                          when --stage-dir is │
+│                                                          omitted.            │
+│                                                          [default:           │
+│                                                          /fsx/staging/stage… │
+│    --input-staging         --no-input-stagi…             Copy staged         │
+│                                                          samples/units into  │
+│                                                          the workflow clone. │
+│                                                          [default:           │
+│                                                          input-staging]      │
+│    --default-activat…      --no-default-act…             Run the standard    │
+│                                                          dyoainit plus Slurm │
+│                                                          day_activate setup  │
+│                                                          before              │
+│                                                          --dy-command.       │
+│                                                          [default:           │
+│                                                          default-activation] │
+│    --bootstrap-test-…                                    Copy DayOA bundled  │
+│                                                          test samples and    │
+│                                                          units into config/  │
+│                                                          before launch.      │
+│    --session-name                               TEXT     Tmux session name.  │
+│                                                          Defaults to         │
+│                                                          --analysis-id.      │
+│ *  --analysis-id                                TEXT     Required analysis   │
+│                                                          identifier used for │
+│                                                          the FSx analysis    │
+│                                                          directory.          │
+│                                                          [required]          │
+│    --executing-entity  -u                       TEXT     User or system      │
+│                                                          identifier used     │
+│                                                          under               │
+│                                                          /fsx/analysis_resu… │
+│                                                          Defaults to         │
+│                                                          --cluster.          │
+│    --repository                                 TEXT     Repository key to   │
+│                                                          pass to day-clone.  │
+│                                                          [default:           │
+│                                                          daylily-omics-anal… │
+│    --git-tag           -t                       TEXT     Git branch or tag   │
+│                                                          passed to           │
+│                                                          day-clone.          │
+│                                                          [default: main]     │
+│    --project                                    TEXT     Project/budget for  │
+│                                                          dyoainit.           │
+│    --skip-project-ch…      --strict-project…             Skip or enable      │
+│                                                          upstream project    │
+│                                                          validation in       │
+│                                                          dyoainit.           │
+│                                                          [default:           │
+│                                                          skip-project-check] │
+│    --genome                                     TEXT     Genome build.       │
+│                                                          [default: hg38]     │
+│    --jobs                                       INTEGER  Snakemake job       │
+│                                                          count.              │
+│                                                          [default: 6]        │
+│    --aligners                                   TEXT     Comma-separated     │
+│                                                          aligner list.       │
+│                                                          [default: bwa2a]    │

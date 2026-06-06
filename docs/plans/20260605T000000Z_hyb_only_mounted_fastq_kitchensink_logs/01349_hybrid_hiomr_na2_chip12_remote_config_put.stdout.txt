@@ -1,0 +1,28 @@
+SSM cfg init 20260606T120700Z_hybrid_hiomr_na2_chip12_samples.tsv: ee3734bc-8481-4d79-a4c3-603e46b36226 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T120700Z_hybrid_hiomr_na2_chip12_samples.tsv 1: 5536dd7b-0679-4bcd-bfd7-300154e72482 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg final 20260606T120700Z_hybrid_hiomr_na2_chip12_samples.tsv: c3495c1d-15bd-44b0-8fdb-81da01fe538c rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+-rw-r--r-- 1 ubuntu ubuntu 321 Jun  6 12:03 /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na2_chip12_fastq_20260606T120700Z_config/20260606T120700Z_hybrid_hiomr_na2_chip12_samples.tsv
+75527fcad235eb5b2854e64b1f2952947ade667af4ce4bb3cd55e593398fb843  /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na2_chip12_fastq_20260606T120700Z_config/20260606T120700Z_hybrid_hiomr_na2_chip12_samples.tsv
+PUT /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/hybrid_hiomr_na2_chip12_fastq_config/20260606T120700Z_hybrid_hiomr_na2_chip12_samples.tsv -> /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na2_chip12_fastq_20260606T120700Z_config/20260606T120700Z_hybrid_hiomr_na2_chip12_samples.tsv bytes=321 sha256=75527fcad235eb5b2854e64b1f2952947ade667af4ce4bb3cd55e593398fb843
+SSM cfg init 20260606T120700Z_hybrid_hiomr_na2_chip12_units.tsv: e643ee09-4b50-405a-aee7-fa1ee188c6b7 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T120700Z_hybrid_hiomr_na2_chip12_units.tsv 1: 3c884df2-dbda-4a26-be25-177fb998b0c3 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg append 20260606T120700Z_hybrid_hiomr_na2_chip12_units.tsv 2: 4bd8187e-5e33-48c6-8cd5-ea27590d9816 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+SSM cfg final 20260606T120700Z_hybrid_hiomr_na2_chip12_units.tsv: 28acf8bc-c26d-48cd-a61d-f47f86fbeac8 rc=0 status=Success
+DAY-EC activated.
+DAY-EC activated.
+-rw-r--r-- 1 ubuntu ubuntu 34717 Jun  6 12:04 /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na2_chip12_fastq_20260606T120700Z_config/20260606T120700Z_hybrid_hiomr_na2_chip12_units.tsv
+895a71841d4ffd680d4147551b0c2b57676221a9711ab3b0a7b14435daf3d691  /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na2_chip12_fastq_20260606T120700Z_config/20260606T120700Z_hybrid_hiomr_na2_chip12_units.tsv
+PUT /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/hybrid_hiomr_na2_chip12_fastq_config/20260606T120700Z_hybrid_hiomr_na2_chip12_units.tsv -> /home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na2_chip12_fastq_20260606T120700Z_config/20260606T120700Z_hybrid_hiomr_na2_chip12_units.tsv bytes=34717 sha256=895a71841d4ffd680d4147551b0c2b57676221a9711ab3b0a7b14435daf3d691
+REMOTE_STAGE_DIR=/home/ubuntu/daylily-staged-configs/hybonly_hybrid_hiomr_na2_chip12_fastq_20260606T120700Z_config

@@ -1,0 +1,22 @@
+{
+    "CommandId": "f306a570-f761-4e69-8c32-545bc0f26d7b",
+    "InstanceId": "i-05374380b57fad901",
+    "Comment": "cfg append 20260606T053415Z_13973636_samples.tsv 1",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 1,
+    "ExecutionStartDateTime": "2026-06-06T05:48:34.502Z",
+    "ExecutionElapsedTime": "PT4.626S",
+    "ExecutionEndDateTime": "2026-06-06T05:48:38.502Z",
+    "Status": "Failed",
+    "StatusDetails": "Failed",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "  File \"<string>\", line 1\n    import base64, os, pathlib; path = pathlib.Path(os.environ['DAYLILY_REMOTE_PATH']); with path.open('ab') as handle:     handle.write(base64.b64decode(os.environ['DAYLILY_CHUNK_B64']))\n                                                                                        ^^^^\nSyntaxError: invalid syntax\nfailed to run commands: exit status 1",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

@@ -1,0 +1,6 @@
+DF	10.0.1.131@tcp:/ovxjlb4v  8.8T  254G  8.5T   3% /fsx
+DF	Filesystem                Size  Used Avail Use% Mounted on
+ONT_COUNT	chip1/b--output truncated--/	1	0
+ONT_COUNT	chip1/barcode18/NA00232	73	19642355519
+ONT_COUNT	chip1/barcode19/NA09677	73	24335691496
+ONT_COUNT	chip1/barcode20/NA03986	9	8434441465

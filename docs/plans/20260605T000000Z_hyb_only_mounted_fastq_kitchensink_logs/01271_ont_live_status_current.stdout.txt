@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram -p -j 5 -k --rerun-triggers mtime",
+  "completed_at": "2026-06-06T09:45:10Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis",
+  "session_name": "hybonly_ont_chipbarcode_limited_live_20260606T090222Z",
+  "started_at": "2026-06-06T09:02:51Z"
+}

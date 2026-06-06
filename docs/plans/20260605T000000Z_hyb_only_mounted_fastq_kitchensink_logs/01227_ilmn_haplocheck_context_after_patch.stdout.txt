@@ -1,0 +1,177 @@
+DAY-EC activated.
+DAY-EC activated.
+contam_identity_context:
+   300	        contamination=MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/haplocheck/vcf/{sample}.{alnr}.{ddup}.{snv}.haplocheck.contamination.txt",
+   301	        raw=MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/haplocheck/vcf/{sample}.{alnr}.{ddup}.{snv}.haplocheck.contamination.raw.txt",
+   302	        html=MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/haplocheck/vcf/{sample}.{alnr}.{ddup}.{snv}.haplocheck.report.html",
+   303	    log:
+   304	        MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/haplocheck/vcf/logs/{sample}.{alnr}.{ddup}.{snv}.haplocheck.vcf.log",
+   305	    benchmark:
+   306	        MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.{snv}.haplocheck_vcf.bench.tsv"
+   307	    conda:
+   308	        config["haplocheck"]["env_yaml"]
+   309	    threads: config["haplocheck"]["threads"]
+   310	    resources:
+   311	        vcpu=config["haplocheck"]["threads"],
+   312	        mem_mb=config["haplocheck"]["mem_mb"],
+   313	        partition=config["haplocheck"]["partition"],
+   314	    params:
+   315	        command=config["haplocheck"]["haplocheck_command"],
+   316	        sample_ok=lambda wildcards: require_qc_eligible_sample(
+   317	            wildcards, "Haplocheck VCF"
+   318	        ),
+   319	        cluster_sample=ret_sample,
+   320	    shell:
+   321	        r"""
+   322	        set -euo pipefail
+   323	        test {params.sample_ok:q} = ok
+   324	        export HAPLOCHECK_THREADS={threads}
+   325	        export JAVA_TOOL_OPTIONS="-XX:ActiveProcessorCount={threads} -XX:+UseParallelGC -XX:ParallelGCThreads={threads} -Djava.util.concurrent.ForkJoinPool.common.parallelism={threads} ${JAVA_TOOL_OPTIONS:-}"
+   326	        outdir="$(dirname {output.contamination:q})"
+   327	        mkdir -p "$outdir" "$(dirname {log:q})"
+   328	        command -v {params.command:q} > /dev/null
+   329	        result_dir="$(mktemp -d "$outdir/.haplocheck_vcf_output.XXXXXX")"
+   330	        result_prefix="$result_dir/contamination.txt"
+   331	        cleanup() {{
+   332	            rm -rf "$result_dir"
+   333	        }}
+   334	        trap cleanup EXIT
+   335	        set +o pipefail
+   336	        if gzip -cd {input.vcf:q} | grep -m 1 -q -v '^#'; then
+   337	            has_variants=true
+   338	        else
+   339	            has_variants=false
+   340	        fi
+   341	        set -o pipefail
+   342	        if [[ "$has_variants" == "true" ]]; then
+   343	            set +e
+   344	            {params.command:q} --out "$result_prefix" --raw {input.vcf:q} > {log:q} 2>&1
+   345	            haplocheck_rc=$?
+   346	            set -e
+   347	            if grep -q 'outside the range.*rCRS only' {log:q}; then
+   348	                printf 'SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
+   349	%s	UNSUPPORTED_REFERENCE	0		0		
+   350	' {wildcards.sample:q} > {output.contamination:q}
+   351	                printf 'SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
+   352	%s	UNSUPPORTED_REFERENCE	0		0		
+   353	' {wildcards.sample:q} > {output.raw:q}
+   354	                printf '<html><body>UNSUPPORTED_REFERENCE</body></html>
+   355	' > {output.html:q}
+   356	                printf 'UNSUPPORTED_REFERENCE: haplocheck skipped because the input VCF is not restricted to rCRS positions.
+   357	' >> {log:q}
+   358	            elif [[ "$haplocheck_rc" -eq 0 ]]; then
+   359	                test -s "$result_dir/contamination.txt"
+   360	                test -s "$result_dir/contamination.raw.txt"
+   361	                test -s "$result_dir/contamination.html"
+   362	                cp "$result_dir/contamination.txt" {output.contamination:q}
+   363	                cp "$result_dir/contamination.raw.txt" {output.raw:q}
+   364	                cp "$result_dir/contamination.html" {output.html:q}
+   365	            else
+   366	                exit "$haplocheck_rc"
+   367	            fi
+   368	        else
+   369	            printf 'SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
+   370	%s	NO_VARIANTS	0		0		
+   371	' {wildcards.sample:q} > {output.contamination:q}
+   372	            printf 'SampleID	Contamination Status	Contamination Level	Distance	Sample Coverage	Major Haplogroup	Minor Haplogroup
+   373	%s	NO_VARIANTS	0		0		
+   374	' {wildcards.sample:q} > {output.raw:q}
+   375	            printf '<html><body>NO_VARIANTS</body></html>
+   376	' > {output.html:q}
+   377	            printf 'NO_VARIANTS: haplocheck skipped because the input VCF has no variant records.
+   378	' > {log:q}
+   379	        fi
+   380	        """
+   381	
+   382	
+   383	rule read_haps_contam_identity:
+   384	    input:
+   385	        bam=rules.legacy_cram_compat_bam.output.bam,
+   386	        bai=rules.legacy_cram_compat_bam.output.bai,
+   387	        vcf=_contam_identity_primary_snv_vcf,
+   388	        tbi=_contam_identity_primary_snv_tbi,
+   389	    output:
+   390	        txt=MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/read_haps/{sample}.{alnr}.{ddup}.{snv}.read_haps.txt",
+   391	    log:
+   392	        MDIR + "{sample}/align/{alnr}/{ddup}/snv/{snv}/contam_identity/read_haps/logs/{sample}.{alnr}.{ddup}.{snv}.read_haps.log",
+   393	    benchmark:
+   394	        MDIR + "{sample}/benchmarks/{sample}.{alnr}.{ddup}.{snv}.read_haps.bench.tsv"
+   395	    conda:
+   396	        config["read_haps"]["env_yaml"]
+   397	    threads: config["read_haps"]["threads"]
+   398	    resources:
+   399	        vcpu=config["read_haps"]["threads"],
+   400	        mem_mb=config["read_haps"]["mem_mb"],
+   401	        partition=config["read_haps"]["partition"],
+   402	    params:
+   403	        command=config["read_haps"]["read_haps_command"],
+   404	        reliable_snp_file=config["read_haps"]["reliable_snp_file"],
+   405	        extra_args=config["read_haps"]["extra_args"],
+   406	        ref=config["supporting_files"]["files"]["huref"]["fasta"]["name"],
+   407	        sample_ok=lambda wildcards: require_qc_eligible_sample(
+   408	            wildcards, "read_haps"
+   409	        ),
+   410	        cluster_sample=ret_sample,
+   411	    shell:
+   412	        r"""
+   413	        set -euo pipefail
+   414	        test {params.sample_ok:q} = ok
+   415	        mkdir -p "$(dirname {output.txt:q})" "$(dirname {log:q})"
+   416	        set +o pipefail
+   417	        if gzip -cd {input.vcf:q} | grep -m 1 -q -v '^#'; then
+   418	            has_variants=true
+   419	        else
+   420	            has_variants=false
+   421	        fi
+   422	        set -o pipefail
+   423	        if [[ "$has_variants" == "true" ]]; then
+   424	            if ! command -v {params.command:q} > /dev/null; then
+   425	                printf 'SNP_PAIRS ERROR_PAIRS DOUBLE_ERROR_PAIR_COUNT DOUBLE_ERROR_FRACTION REL_ERROR_FRACTION NONSENSE_FRACTION PASS_FAIL REASON
+   426	0 0 0 0 0 0 NO_DATA READ_HAPS_UNAVAILABLE
+   427	' > {output.txt:q}
+   428	                printf 'READ_HAPS_UNAVAILABLE: read_haps command is unavailable: %s
+   429	' {params.command:q} > {log:q}
+   430	            elif [[ ! -s {params.reliable_snp_file:q} ]]; then
+   431	                printf 'SNP_PAIRS ERROR_PAIRS DOUBLE_ERROR_PAIR_COUNT DOUBLE_ERROR_FRACTION REL_ERROR_FRACTION NONSENSE_FRACTION PASS_FAIL REASON
+   432	0 0 0 0 0 0 NO_DATA READ_HAPS_MARKERS_UNAVAILABLE
+   433	' > {output.txt:q}
+   434	                printf 'READ_HAPS_MARKERS_UNAVAILABLE: read_haps marker file is missing or empty: %s
+   435	' {params.reliable_snp_file:q} > {log:q}
+   436	            else
+   437	                set +e
+   438	                {params.command:q} {params.extra_args} -fa {params.ref:q} {input.bam:q} {params.reliable_snp_file:q} {input.vcf:q} > {output.txt:q} 2> {log:q}
+   439	                read_haps_rc=$?
+   440	                set -e
+   441	                if [[ "$read_haps_rc" != "0" ]] || [[ ! -s {output.txt:q} ]] || ! grep -q 'PASS_FAIL' {output.txt:q} || ! grep -q 'REASON' {output.txt:q}; then
+   442	                printf 'SNP_PAIRS ERROR_PAIRS DOUBLE_ERROR_PAIR_COUNT DOUBLE_ERROR_FRACTION REL_ERROR_FRACTION NONSENSE_FRACTION PASS_FAIL REASON
+   443	0 0 0 0 0 0 NO_DATA READ_HAPS_FAILED
+   444	' > {output.txt:q}
+   445	                    printf 'READ_HAPS_FAILED: read_haps exited with status %s or wrote no usable QC table.
+   446	' "$read_haps_rc" >> {log:q}
+   447	                fi
+   448	            fi
+   449	        else
+   450	            printf 'SNP_PAIRS ERROR_PAIRS DOUBLE_ERROR_PAIR_COUNT DOUBLE_ERROR_FRACTION REL_ERROR_FRACTION NONSENSE_FRACTION PASS_FAIL REASON
+   451	0 0 0 0 0 0 NO_DATA NO_VARIANTS
+   452	' > {output.txt:q}
+   453	            printf 'NO_VARIANTS: read_haps skipped because the input VCF has no variant records.
+   454	' > {log:q}
+   455	        fi
+rule_config_haplocheck_context:
+1332-
+1333-contam_identity:
+1334-    primary_snv_caller: "sentd"
+1335-
+1336:haplocheck:
+1337-    env_yaml: "../envs/haplocheck_v0.1.yaml"
+1338-    haplocheck_command: "haplocheck"
+1339-    cloudgene_command: "cloudgene"
+1340-    cloudgene_app: "haplocheck@1.2.2"
+1341-    input_modes: ["vcf"]
+1342-    threads: 96
+1343-    mem_mb: 16000
+1344-    partition: "i192,i192mem,i192bigmem"
+1345-
+1346-read_haps:
+1347-    env_yaml: "../envs/read_haps_v0.1.yaml"
+1348-    read_haps_command: "/fsx/references/runtime_assets/tool_specific_resources/read_haps/read_haps"

@@ -342,6 +342,25 @@ def parse_auto_export_events(
     return _parse_event_tokens(raw, default=())
 
 
+def enforce_run_mount_readonly_policy(
+    *,
+    file_system_path: str,
+    read_only: bool,
+    auto_export_events: Sequence[str],
+) -> None:
+    """Keep run-directory mount projections permanently read-only."""
+    normalized = _normalize_absolute_fsx_api_path(file_system_path)
+    if not normalized.startswith(FSX_RUN_MOUNT_ROOT):
+        return
+    if (not read_only) or auto_export_events:
+        raise RunMountError(
+            "Mounts under /run_dir_mounts/ are always read-only and must not use "
+            "AutoExport. For read/write or AutoExport DRA mounts, choose an explicit "
+            "non-/run_dir_mounts --file-system-path and opt in with "
+            "--allow-writeback-admin."
+        )
+
+
 def atlas_rw_marker_candidates(source_s3_uri: str) -> List[tuple[str, str]]:
     """Return allowed ancestor marker keys for an opt-in read/write S3 prefix."""
     normalized = normalize_s3_uri(source_s3_uri)
@@ -431,6 +450,11 @@ def create_run_mount(
     )
     auto_import_events = list(request.auto_import_events)
     auto_export_events = list(request.auto_export_events)
+    enforce_run_mount_readonly_policy(
+        file_system_path=file_system_path,
+        read_only=request.read_only,
+        auto_export_events=auto_export_events,
+    )
     writeback_requested = (not request.read_only) or bool(auto_export_events)
     verified_rw_marker: Optional[str] = None
     if writeback_requested:

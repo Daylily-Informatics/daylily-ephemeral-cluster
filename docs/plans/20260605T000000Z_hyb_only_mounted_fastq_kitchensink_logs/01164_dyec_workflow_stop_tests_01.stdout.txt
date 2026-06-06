@@ -1,0 +1,42 @@
+============================= test session starts ==============================
+platform darwin -- Python 3.13.13, pytest-9.0.3, pluggy-1.6.0
+rootdir: /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+configfile: pyproject.toml
+plugins: anyio-4.12.1, cov-7.1.0
+collected 106 items / 103 deselected / 3 selected
+
+tests/test_cli_registry_v2.py ..F                                        [100%]
+
+=================================== FAILURES ===================================
+________ test_workflow_stop_requires_job_pattern_for_slurm_cancellation ________
+
+monkeypatch = <_pytest.monkeypatch.MonkeyPatch object at 0x1089c1c70>
+
+    def test_workflow_stop_requires_job_pattern_for_slurm_cancellation(monkeypatch) -> None:
+        _activate_dayec_runtime(monkeypatch)
+        result = runner.invoke(
+            app,
+            [
+                "workflow",
+                "stop",
+                "--profile",
+                "dev",
+                "--region",
+                "us-west-2",
+                "--cluster",
+                "cluster-a",
+                "--session",
+                "sess-1",
+                "--cancel-slurm-jobs",
+            ],
+        )
+    
+        assert result.exit_code != 0
+>       assert "--job-name-pattern is required with --cancel-slurm-jobs" in result.stdout
+E       AssertionError: assert '--job-name-pattern is required with --cancel-slurm-jobs' in ''
+E        +  where '' = <Result SystemExit(2)>.stdout
+
+tests/test_cli_registry_v2.py:2439: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_cli_registry_v2.py::test_workflow_stop_requires_job_pattern_for_slurm_cancellation
+================= 1 failed, 2 passed, 103 deselected in 0.57s ==================

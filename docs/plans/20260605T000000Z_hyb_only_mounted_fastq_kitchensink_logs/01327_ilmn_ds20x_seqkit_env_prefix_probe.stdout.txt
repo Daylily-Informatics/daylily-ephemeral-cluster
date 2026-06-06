@@ -1,0 +1,7 @@
+DAY-EC activated.
+DAY-EC activated.
+drwxr-xr-x 12 root root 25600 Jun  6 00:13 /fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/bin/bwa-mem2
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/bin/seqkit
+/fsx/references/runtime_assets/cached_envs/conda/4ccf662e3c47c1d194250b668a918cb0_/conda-meta
+seqkit v2.9.0

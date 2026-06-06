@@ -1,0 +1,56 @@
+DAY-EC activated.
+DAY-EC activated.
+time_utc=2026-06-06T03:01:50Z
+df=/fsx
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T  242G  8.5T   3% /fsx
+tmux=hybonly_stage_ont_20260606T010256Z
+tmux_state=running
+DAY-EC activated.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ont_dir
+total 48G
+-rw-rw-r-- 1 ubuntu ubuntu 48G Jun  6 02:42 NA00232_SMN_R1_all.fastq.gz
+drwxrwxr-x 2 ubuntu ubuntu 33K Jun  6 02:32 logs
+drwxrwxr-x 2 ubuntu ubuntu 33K Jun  6 02:55 manifests
+drwxrwxr-x 2 ubuntu ubuntu 33K Jun  6 02:55 tmp
+ont_tmp_dir
+total 39G
+-rw-rw-r-- 1 ubuntu ubuntu 26K Jun  6 02:55 NA09677.paths.25844
+-rw-rw-r-- 1 ubuntu ubuntu 39G Jun  6 03:01 NA09677_SMN_R1_all.fastq.gz.tmp.25844
+stage_processes
+ubuntu     25793       1  0 02:32 ?        00:00:00 tmux new-session -d -s hybonly_stage_ont_20260606T010256Z bash -l -c '/home/ubuntu/hyb_only_stage_ont_data_20260606T010256Z.sh > /fsx/scratch/ONT/logs/tmux_stage_ont.stdout.txt 2> /fsx/scratch/ONT/logs/tmux_stage_ont.stderr.txt; rc=$?; echo $rc > /fsx/scratch/ONT/logs/tmux_stage_ont.rc; exit $rc'
+ubuntu     25794   25793  0 02:32 pts/0    00:00:00 bash -l -c /home/ubuntu/hyb_only_stage_ont_data_20260606T010256Z.sh > /fsx/scratch/ONT/logs/tmux_stage_ont.stdout.txt 2> /fsx/scratch/ONT/logs/tmux_stage_ont.stderr.txt; rc=$?; echo $rc > /fsx/scratch/ONT/logs/tmux_stage_ont.rc; exit $rc
+ubuntu     25844   25794  0 02:32 pts/0    00:00:00 bash /home/ubuntu/hyb_only_stage_ont_data_20260606T010256Z.sh
+ubuntu     31561   30523 99 02:54 pts/1    00:07:31 gzip -t /fsx/scratch/ILMN/Altair-HG001-a_S1_R1_001.fastq.gz
+ubuntu     33799   25844  0 03:01 pts/0    00:00:00 cat -- /fsx/run_dir_mounts/ont-4coriells-chip2/fastq_pass/barcode19/PBM14931_pass_barcode19_9bbdbb3f_7e492b4e_51.fastq.gz
+ont_log_tail
+start_ont	2026-06-06T02:32:53Z
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T   92M  8.8T   1% /fsx
+CMD	2026-06-06T02:32:53Z	cat 219 sources to /fsx/scratch/ONT/NA00232_SMN_R1_all.fastq.gz
+DONE	2026-06-06T02:55:16Z	NA00232	/fsx/scratch/ONT/NA00232_SMN_R1_all.fastq.gz	51444000878
+CMD	2026-06-06T02:55:17Z	cat 228 sources to /fsx/scratch/ONT/NA09677_SMN_R1_all.fastq.gz
+ont_rc

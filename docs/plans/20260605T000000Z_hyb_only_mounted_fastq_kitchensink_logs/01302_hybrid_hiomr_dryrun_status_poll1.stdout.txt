@@ -1,0 +1,392 @@
+!=0
+'#'=1
+'$'=37539
+'*'=( pipefail )
+-=569Xl
+0=-euo
+'?'=0
+@=( pipefail )
+ARGC=1
+CDPATH=''
+CODEX_CI=1
+CODEX_INTERNAL_ORIGINATOR_OVERRIDE='Codex Desktop'
+CODEX_SHELL=1
+CODEX_THREAD_ID=019e9015-6e7f-7e43-8486-49046a17534b
+COLORTERM=''
+COLUMNS=0
+COMMAND_MODE=unix2003
+CONDA_DEFAULT_ENV=base
+CONDA_EXE=/Users/jmajor/miniconda3/bin/conda
+CONDA_PREFIX=/Users/jmajor/miniconda3
+CONDA_PROMPT_MODIFIER='(base)'
+CONDA_PYTHON_EXE=/Users/jmajor/miniconda3/bin/python
+CONDA_SHLVL=1
+CPUTYPE=arm64
+DISABLE_AUTO_UPDATE=true
+EGID=20
+EUID=501
+FIGNORE=''
+FPATH=/usr/local/share/zsh/site-functions:/usr/share/zsh/site-functions:/usr/share/zsh/5.9/functions
+FUNCNEST=700
+GH_PAGER=cat
+GID=20
+GIT_PAGER=cat
+HISTCHARS='!^#'
+HISTCMD=0
+HISTSIZE=30
+HOME=/Users/jmajor
+HOST=Johns-MacBook-Pro.local
+IFS=$' \t\n\C-@'
+KEYBOARD_HACK=''
+KEYTIMEOUT=40
+LANG=C.UTF-8
+LC_ALL=C.UTF-8
+LC_CTYPE=C.UTF-8
+LINENO=1
+LINES=0
+LISTMAX=100
+LOGNAME=jmajor
+LOG_FORMAT=json
+MACHTYPE=x86_64
+MAILCHECK=60
+MAILPATH=''
+MANPATH=''
+MODULE_PATH=/usr/lib/zsh/5.9
+MallocNanoZone=0
+NO_COLOR=1
+NULLCMD=cat
+OLDPWD=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+OPTARG=''
+OPTIND=1
+OSLogRateLimit=64
+OSTYPE=darwin25.0
+PAGER=cat
+PATH=/usr/local/bin:/System/Cryptexes/App/usr/bin:/usr/bin:/bin:/usr/sbin:/sbin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin:/var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin:/pkg/env/global/bin:/Library/Apple/usr/bin:/opt/homebrew/bin:/Users/jmajor/.codex/tmp/arg0/codex-arg0wVr1rQ:/Users/jmajor/miniconda3/bin:/Users/jmajor/miniconda3/condabin:/Applications/Codex.app/Contents/Resources
+PPID=37528
+PROMPT=''
+PROMPT2=''
+PROMPT3='?# '
+PROMPT4='+%N:%i> '
+PS1=''
+PS2=''
+PS3='?# '
+PS4='+%N:%i> '
+PSVAR=''
+PWD=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster
+RANDOM=77
+READNULLCMD=more
+RUST_LOG=warn
+SAVEHIST=0
+SECONDS=0
+SHELL=/bin/zsh
+SHLVL=3
+SPROMPT='zsh: correct '\''%R'\'' to '\''%r'\'' [nyae]? '
+SSH_AUTH_SOCK=/var/run/com.apple.launchd.n46yQXkmau/Listeners
+TERM=dumb
+TIMEFMT='%J  %U user %S system %P cpu %*E total'
+TMPDIR=/var/folders/rk/2n95m40s1zs48qr48ynwhxwm0000gn/T/
+TMPPREFIX=/tmp/zsh
+TRY_BLOCK_ERROR=-1
+TRY_BLOCK_INTERRUPT=-1
+TTY=''
+TTYIDLE=-1
+UID=501
+USER=jmajor
+USERNAME=jmajor
+VENDOR=apple
+WATCH
+WORDCHARS='*?_-.[]~=/&;!#$%^(){}<>'
+XPC_FLAGS=0x0
+XPC_SERVICE_NAME=0
+ZSH_ARGZERO=-euo
+ZSH_EVAL_CONTEXT=cmdarg
+ZSH_EXECUTION_STRING=set
+ZSH_NAME=zsh
+ZSH_PATCHLEVEL=zsh-5.9-0-g73d3173
+ZSH_SUBSHELL=0
+ZSH_TMUX_AUTOSTART=false
+ZSH_TMUX_AUTOSTARTED=true
+ZSH_VERSION=5.9
+_=set
+_CE_CONDA=''
+_CE_M=''
+_CONDA_EXE=/Users/jmajor/miniconda3/bin/conda
+_CONDA_ROOT=/Users/jmajor/miniconda3
+__CFBundleIdentifier=com.openai.codex
+__CF_USER_TEXT_ENCODING=0x1F5:0x0:0x0
+aliases
+argv=( pipefail )
+builtins
+cdpath=(  )
+commands
+dirstack
+dis_aliases
+dis_builtins
+dis_functions
+dis_functions_source
+dis_galiases
+dis_patchars
+dis_reswords
+dis_saliases
+fignore=(  )
+fpath=( /usr/local/share/zsh/site-functions /usr/share/zsh/site-functions /usr/share/zsh/5.9/functions )
+funcfiletrace
+funcsourcetrace
+funcstack
+functions
+functions_source
+functrace
+galiases
+histchars='!^#'
+history
+historywords
+jobdirs
+jobstates
+jobtexts
+keymaps
+mailpath=(  )
+manpath=(  )
+module_path=( /usr/lib/zsh/5.9 )
+modules
+nameddirs
+options
+parameters
+patchars
+path=( /usr/local/bin /System/Cryptexes/App/usr/bin /usr/bin /bin /usr/sbin /sbin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/local/bin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/bin /var/run/com.apple.security.cryptexd/codex.system/bootstrap/usr/appleinternal/bin /pkg/env/global/bin /Library/Apple/usr/bin /opt/homebrew/bin /Users/jmajor/.codex/tmp/arg0/codex-arg0wVr1rQ /Users/jmajor/miniconda3/bin /Users/jmajor/miniconda3/condabin /Applications/Codex.app/Contents/Resources )
+pipestatus=( 0 )
+prompt=''
+psvar=(  )
+reswords
+saliases
+signals=( EXIT HUP INT QUIT ILL TRAP ABRT EMT FPE KILL BUS SEGV SYS PIPE ALRM TERM URG STOP TSTP CONT CHLD TTIN TTOU IO XCPU XFSZ VTALRM PROF WINCH INFO USR1 USR2 ZERR DEBUG )
+status=0
+termcap
+terminfo
+userdirs
+usergroups
+watch
+widgets
+zsh_eval_context=( cmdarg )
+zsh_scheduled_events
+{
+  "command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'aligners=[\"sent\"]' 'dedupers=[\"dmd\"]' 'snv_callers=[\"sentdhiomr\"]' 'sv_callers=[\"sentdhiomr\"]' 'sentdhiomr={\"segdup_genes\":\"CYP11B1,NCF1,SMN1\"}' 'multiqc_qc={\"enable_tools\":[\"vep\",\"contam_identity\"]}' -j 125 -p -k --rerun-triggers mtime -n",
+  "completed_at": "2026-06-06T11:00:21Z",
+  "exit_code": 1,
+  "repo_path": "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis",
+  "session_name": "hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z",
+  "started_at": "2026-06-06T10:59:53Z"
+}
+
+## LOGS
+DAY-EC activated.
+DAY-EC activated.
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/65b1d6df12278175b9f30fb65980f024_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/78f3045fcae4980edd6182a4d4c7b898_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/7c29ee1ebe032a24169825719f2e1a4d_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8ad11a3ecec11ba3035b130d80e455bf_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/8d1cfbb0e385ff40e65802642a116261_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/a2363387ce455d48f02d1fd7a1643fdc_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/adc26e8656bed67f886fa90365098b54_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/aeb93d5e853ec27fe200a4a0e6b1cb1b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/b63d181b1412fcb12187b3f526fa0fb7_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/b7b00565f6d6e15ef0dac3373783b014_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/bc1a74e52dbef168e070adef567b9cfa_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/be5f834cbbdb5fa84aa89d321fd38c36_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/cb3e084a2b91b0f9dbf54b67853eb975_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/cbbbc9232aca1ecab85b8cd15aaa8927_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/e16773008a9eb117d91285f7b1cb6ab6_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/eba8eddca110a7475a7d6f3081ca273b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/ece8bf2dfb9a32ee5a36d91fa49a722b_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/fb5136439b50c216431e912fdab988a8_
+                       /fsx/resources/environments/conda/ubuntu/ip-10-0-0-81/ff4326369a074729b1ce16ec028c4a31_
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'hyb-only' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project hyb-only .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+Using sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic from ~/.config/daylily/daylily_cli_global.yaml
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38_broad  
+       _______ GREAT SUCCESS _______       
+[INFO] Patched goleft empty-sex/no-usable-chromosomes repair: workflow/rules/go_left.smk
+[INFO] Patched mosdepth empty-output repair: workflow/rules/mosdepth.smk
+[INFO] Patched RTG vcfeval parse/JVM-memory repair: workflow/rules/rtg_vcfeval.smk
+[INFO] Patched VEP zero-variant concat repair: workflow/rules/vep.smk
+[INFO] Patched contamination identity zero-variant repair: workflow/rules/contam_identity.smk
+Remote call detected. Activating conda hack
+Your config files in /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/config/day_profiles/slurm produce_sent_align produce_dmd_dedup_cram produce_sentdhiomr_snv_vcf produce_sentdhiomr_sv produce_snv_concordances produce_sentdhiomr_cnv produce_sentdhiomr_segdup produce_sentdhiomr_mito produce_expansionhunter produce_alignstats produce_relatedness produce_gatk_contam_estimate produce_site_mix_contam_estimate produce_global_contam_check produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config aligners=["sent"] dedupers=["dmd"] snv_callers=["sentdhiomr"] sv_callers=["sentdhiomr"] sentdhiomr={"segdup_genes":"CYP11B1,NCF1,SMN1"} multiqc_qc={"enable_tools":["vep","contam_identity"]} -j 125 -p -k --rerun-triggers mtime -n
+Config file config/global.yaml is extended by additional config specified via the command line.
+loading global: /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/config/global_AWSPC.yaml
+Config file config/global_AWSPC.yaml is extended by additional config specified via the command line.
+loading profile rule_config: /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+Config file config/day_profiles/slurm/rule_config.yaml is extended by additional config specified via the command line.
+INFO::: The genome build hg38_broad is supported.  The genome build prefix is 'chr''.
+aligners: [sent]
+aligners (final): [sent]
+...INFO: Auto-detected dedupers. DDUP updated to: ['dmd']
+deduper (final): [dmd]
+SNV Callers:[sentdhiomr]
+SNV Callers (final): [sentdhiomr]
+Somatic SNV Callers:[senttn]
+SV Callers:[sentdhiomr]
+SV Callers (final): [sentdhiomr]
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/config/units.tsv
+Building DAG of jobs...
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip2-NA00232-SMN-chip2-barcode18-chip2-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip4-NA00232-SMN-chip4-barcode18-chip4-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip1-NA09677-SMN-chip1-barcode19-chip1-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip2-NA09677-SMN-chip2-barcode19-chip2-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip3-NA09677-SMN-chip3-barcode19-chip3-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip3-NA09677-SMN-chip3-barcode19-chip3-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip3-NA09677-SMN-chip3-barcode19-chip3-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip1-NA03986-DMPK-chip1-barcode20-chip1-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip2-NA03986-DMPK-chip2-barcode20-chip2-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip4-NA03986-DMPK-chip4-barcode20-chip4-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip1-NA05164-DMPK-chip1-barcode21-chip1-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip1-NA05164-DMPK-chip1-barcode21-chip1-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip1-NA05164-DMPK-chip1-barcode21-chip1-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ILMN-NOVASEQ/align/ont/ ... 
+PREP CRAM:: results/day/hg38_broad//HYB-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ILMN-NOVASEQ/align/ont/ ... 
+InputFunctionException in rule aggregate_report_components in file /fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/workflow/rules/multiqc_final_wgs.smk, line 548:
+Error:
+  WorkflowError:
+    contam_identity.primary_snv_caller must be present in the explicit snv_callers config; observed primary_snv_caller='sentd', snv_callers=['sentdhiomr'].
+Wildcards:
+
+Traceback:
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/workflow/rules/multiqc_final_wgs.smk", line 385, in _final_component_inputs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/workflow/rules/multiqc_final_wgs.smk", line 350, in _variant_component_inputs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/workflow/rules/multiqc_final_wgs.smk", line 57, in _alignment_component_inputs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/workflow/rules/contam_identity.smk", line 228, in _contam_identity_native_inputs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/workflow/rules/contam_identity.smk", line 183, in _haplocheck_outputs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/workflow/rules/contam_identity.smk", line 169, in _haplocheck_vcf_outputs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/workflow/rules/contam_identity.smk", line 96, in _contam_identity_primary_snv_pairs
+  File "/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis/workflow/rules/contam_identity.smk", line 48, in contam_identity_primary_snv_caller
+RETURN CODE: 1
+[INFO] Workflow exited with status 1
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-81:/fsx/analysis_results/ubuntu/hybonly_hybrid_hiomr_na4_dryrun_20260606T105700Z/daylily-omics-analysis$
+
+## QUEUE
+DAY-EC activated.
+DAY-EC activated.
+JOBID  PARTITION  CPUS  ST  NODELIST  MIN_CPUS  STATE  MIN_MEMORY  TIME  NODES  NAME
+901  i192mem  191  R  i192mem-dy-all-2  191  RUNNING  300000M  6:17  1  sent_snv_ont-ONT-4Coriells-chip4-NA05164-DMPK-chip4-barcode21-chip4-PF-ONT-PROMETHION
+900  i192mem  191  R  i192mem-dy-all-4  191  RUNNING  300000M  6:27  1  sent_snv_ont-ONT-4Coriells-chip1-NA05164-DMPK-chip1-barcode21-chip1-PF-ONT-PROMETHION
+899  i192mem  191  R  i192mem-dy-all-5  191  RUNNING  300000M  7:17  1  sent_snv_ont-ONT-4Coriells-chip2-NA05164-DMPK-chip2-barcode21-chip2-PF-ONT-PROMETHION
+898  i192mem  191  R  i192mem-dy-all-1  191  RUNNING  300000M  7:27  1  sent_snv_ont-ONT-4Coriells-chip4-NA09677-SMN-chip4-barcode19-chip4-PF-ONT-PROMETHION
+897  i192mem  191  R  i192mem-dy-all-3  191  RUNNING  300000M  7:37  1  sent_snv_ont-ONT-4Coriells-chip1-NA00232-SMN-chip1-barcode18-chip1-PF-ONT-PROMETHION

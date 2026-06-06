@@ -1,0 +1,93 @@
+docs/running_nextflow_workflows.md:80:result = run_shell(target.instance_id, region, script, profile=profile, as_user="ubuntu")
+docs/running_nextflow_workflows.md:132:result = run_shell(target.instance_id, region, script, profile=profile, as_user="ubuntu", timeout=900)
+docs/running_nextflow_workflows.md:231:result = run_shell(target.instance_id, region, script, profile=profile, as_user="ubuntu", timeout=900)
+docs/running_nextflow_workflows.md:320:result = run_shell(target.instance_id, region, script, profile=profile, as_user="ubuntu", timeout=180)
+daylily_ec/aws/ssm.py:264:def run_shell(
+daylily_ec/aws/ssm.py:367:    return run_shell(
+docs/running_nextflow_pipes.md:195:result = run_shell(target.instance_id, region, script, profile=profile, as_user="ubuntu")
+docs/running_nextflow_pipes.md:241:result = run_shell(target.instance_id, region, script, profile=profile, as_user="ubuntu")
+docs/running_nextflow_pipes.md:299:result = run_shell(target.instance_id, region, script, profile=profile, as_user="ubuntu", timeout=900)
+docs/running_nextflow_pipes.md:392:result = run_shell(target.instance_id, region, script, profile=profile, as_user="ubuntu", timeout=900)
+docs/running_nextflow_pipes.md:482:result = run_shell(target.instance_id, region, script, profile=profile, as_user="ubuntu", timeout=900)
+docs/running_nextflow_pipes.md:592:result = run_shell(target.instance_id, region, script, profile=profile, as_user="ubuntu", timeout=180)
+docs/running_nextflow_pipes.md:664:result = run_shell(target.instance_id, region, script, profile=profile, as_user="ubuntu", timeout=300)
+tests/test_ssm.py:152:        result = run_shell("i-abc123", "us-west-2", "echo hi", profile="dev")
+tests/test_ssm.py:191:        result = run_shell(
+tests/test_ssm.py:210:            run_shell("i-abc123", "us-west-2", "echo hi", profile="dev", as_user=as_user)
+tests/test_ssm.py:226:            run_shell("i-abc123", "us-west-2", "false", profile="dev")
+tests/test_ssm.py:248:            run_shell(
+tests/test_ssm.py:265:            run_shell("i-abc123", "us-west-2", "echo hi", profile="dev", timeout=3, poll_interval=0)
+tests/test_cli_registry_v2.py:1299:    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+tests/test_cli_registry_v2.py:1348:    def fake_run_shell(*args, **kwargs):
+tests/test_cli_registry_v2.py:2180:    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+tests/test_cli_registry_v2.py:2234:    def fake_run_shell(instance_id: str, region: str, script: str, **kwargs):
+tests/test_cluster_info.py:126:    def fake_run_shell(_instance_id, _region, script, **_kwargs):
+docs/plans/20260603T084759Z_dyec_dayoa_public_docs_benchmark/scripts/preflight_hg003_5x.py:157:        result = run_shell(
+daylily_ec/run_mounts.py:1443:    return run_shell(
+daylily_ec/headnode_readiness.py:95:    return run_shell(
+docs/jem_working_docs/plans/20260528T043733Z_inflection_20x10x_kitchensink_j250_ledger.md:124:Remote baseline through `daylily_ec.aws.ssm.run_shell(..., as_user="ubuntu")`:
+daylily_ec/cli.py:338:        run_shell(
+daylily_ec/cli.py:2055:        result = run_shell(
+daylily_ec/cli.py:3293:        return run_shell(
+daylily_ec/scripts/daylily_run_ephemeral_cluster_remote_tests.py:82:    result = run_shell(
+daylily_ec/workflow/create_cluster.py:2043:            run_shell(
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:399:    result = run_shell(
+daylily_ec/scripts/daylily_run_omics_analysis_headnode.py:1988:    result = run_shell(
+docs/plans/20260531T083038Z_bcl_lane_thread_benchmark_driver.py:35:    result = run_shell(
+daylily_ec/ssh_to_ssm_e2e_runner.py:433:    result = run_shell(
+daylily_ec/ssh_to_ssm_e2e_runner.py:561:    result = run_shell(
+docs/plans/20260603T134149Z_dyec5128_promote_runtime_env_caches_inspect_remote.py:77:        result = run_shell(
+docs/plans/20260603T090602Z_dyec5127_command_catalog_validation/driver.py:448:        result = run_shell(
+docs/plans/20260603T090602Z_dyec5127_command_catalog_validation/driver.py:625:    result = run_shell(
+docs/plans/20260526T223700Z_goodole3_remote_inspect.py:49:    result = run_shell(
+docs/plans/20260527T050613Z_kahlo_reachability_driver.py:231:        command = run_shell(
+docs/plans/20260526T223700Z_goodole3_catalog_driver_retry1.py:295:    verify = run_shell(
+docs/plans/20260603T134149Z_dyec5128_promote_runtime_env_caches_sync_remote.py:82:        result = run_shell(
+docs/plans/20260526T223700Z_goodole3_catalog_driver.py:299:    verify = run_shell(
+docs/plans/20260604T020327Z_forked_catalog_j100_jitter_validation/driver.py:469:        result = run_shell(
+docs/plans/20260604T020327Z_forked_catalog_j100_jitter_validation/driver.py:646:    result = run_shell(
+docs/plans/20260527T050613Z_kahlo_compute_ssm_driver.py:66:        command = run_shell(
+docs/plans/20260603T134149Z_dyec5128_promote_runtime_env_caches_map_apptainer_remote.py:79:        result = run_shell(
+docs/plans/20260603T134149Z_dyec5128_promote_runtime_env_caches_focused_inventory.py:89:        result = run_shell(
+docs/plans/20260603T011121Z_bcl2fq_scratch_to_dra_logs/apply_dayoa_bcl_scratch_patch.py:72:result = run_shell(
+docs/plans/20260603T011121Z_bcl2fq_scratch_to_dra_logs/remote_prepare.stderr.txt:20:    return run_shell(
+docs/plans/20260606T010256Z_hyb_only_coriell_altair_platform_solo_logs/headnode_probe.py:29:    result = run_shell(
+docs/plans/20260526T224018Z_blahab44_catalog_driver.py:238:    verify = run_shell(
+docs/plans/20260603T134149Z_dyec5128_promote_runtime_env_caches_full_env_inventory.py:77:        result = run_shell(
+docs/plans/20260603T122558Z_dyec5128_command_catalog_validation/driver.py:448:        result = run_shell(
+docs/plans/20260603T122558Z_dyec5128_command_catalog_validation/driver.py:625:    result = run_shell(
+docs/plans/20260603T134149Z_dyec5128_promote_runtime_env_caches_check_staging_write.py:29:        result = run_shell(
+docs/plans/20260602T203117Z_bcl_full_25b_batched_resume_and_cluster_cleanup_logs/delete_phase1_L001_L003_20260602T210008Z.log:11:    result = run_shell(
+docs/plans/20260602T203117Z_bcl_full_25b_batched_resume_and_cluster_cleanup_logs/bcl_batch_tools.py:78:        result = run_shell(
+docs/plans/20260603T134149Z_dyec5128_cleanup_runtime_env_failures.py:66:        result = run_shell(
+docs/plans/20260603T134149Z_dyec5128_promote_runtime_env_caches_inventory.py:55:        result = run_shell(
+docs/plans/20260527T020500Z_goodole3_serial_kitchensink_driver.py:313:    verify = run_shell(
+docs/plans/20260527T020500Z_goodole3_serial_kitchensink_driver.py:437:    resp = run_shell(
+docs/plans/20260527T020500Z_goodole3_serial_kitchensink_driver.py:510:    resp = run_shell(
+docs/plans/20260602T115314Z_bcl_full_25b_shard008_experiment/scripts/fetch_terminal_failed_bcl_logs.py:65:    result = run_shell(
+docs/plans/20260602T115314Z_bcl_full_25b_shard008_experiment/scripts/collect_node_load_io.py:76:    result = run_shell(
+docs/plans/20260602T115314Z_bcl_full_25b_shard008_experiment/scripts/preflight_full_flowcell.py:109:    result = run_shell(
+docs/plans/20260602T115314Z_bcl_full_25b_shard008_experiment/scripts/fetch_failed_job_diagnostics.py:97:    result = run_shell(
+docs/plans/20260602T115314Z_bcl_full_25b_shard008_experiment/scripts/collect_node_load_io_v2.py:168:    result = run_shell(
+docs/plans/20260602T115314Z_bcl_full_25b_shard008_experiment/scripts/harvest_successful_shards_and_delete.py:173:    result = run_shell(
+docs/plans/20260602T115314Z_bcl_full_25b_shard008_experiment/scripts/collect_node_load_io_compact.py:146:    result = run_shell(
+docs/plans/20260602T115314Z_bcl_full_25b_shard008_experiment/scripts/fetch_compact_slurm_failures.py:57:    result = run_shell(
+docs/plans/20260602T115314Z_bcl_full_25b_shard008_experiment/scripts/stop_and_delete_failed_full_attempt.py:120:    result = run_shell(
+docs/plans/20260603T134149Z_dyec5128_promote_runtime_env_caches_promote_conda.py:61:        result = run_shell(
+docs/plans/20260603T132908Z_dyec5128_command_catalog_failed_retries_2_0_41/driver.py:418:        result = run_shell(
+docs/plans/20260603T132908Z_dyec5128_command_catalog_failed_retries_2_0_41/driver.py:595:    result = run_shell(
+docs/plans/20260603T132908Z_dyec5128_command_catalog_failed_retries_2_0_41/launch_non_dra_all_j100.py:430:        result = run_shell(
+docs/plans/20260603T132908Z_dyec5128_command_catalog_failed_retries_2_0_41/launch_non_dra_all_j100.py:607:    result = run_shell(
+docs/plans/20260526T051948Z_tstclu411c_logs/headnode_probe.py:42:result = run_shell(
+docs/plans/20260601T234556Z_bcl_l003_25b_shard_experiment/scripts/aggregate_shard_resources.py:108:        result = run_shell(
+docs/plans/20260601T234556Z_bcl_l003_25b_shard_experiment/scripts/aggregate_shard_resources.py:163:        result = run_shell(
+docs/plans/20260601T234556Z_bcl_l003_25b_shard_experiment/scripts/remote_metadata.py:82:    result = run_shell(
+docs/plans/20260601T234556Z_bcl_l003_25b_shard_experiment/scripts/check_fsx_capacity.py:82:    remote = run_shell(
+docs/plans/20260601T234556Z_bcl_l003_25b_shard_experiment/scripts/headnode_live_status.py:48:    result = run_shell(
+docs/plans/20260601T234556Z_bcl_l003_25b_shard_experiment/scripts/harvest_arm.py:68:    result = run_shell(
+docs/plans/20260601T234556Z_bcl_l003_25b_shard_experiment/scripts/delete_collected_outputs.py:63:    result = run_shell(
+docs/plans/20260601T234556Z_bcl_l003_25b_shard_experiment/scripts/live_shard_status.py:109:    result = run_shell(
+docs/plans/20260601T234556Z_bcl_l003_25b_shard_experiment/scripts/install_puppeteer_chrome.py:52:        result = run_shell(
+docs/plans/20260601T234556Z_bcl_l003_25b_shard_experiment/scripts/collect_completed_outputs.py:106:        result = run_shell(
+docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/dyec_test_catalog_driver.py:273:        result = run_shell(
+docs/plans/20260529T194248Z_dyec_test_command_catalog_validation_logs/dyec_test_catalog_driver.py:337:        result = run_shell(

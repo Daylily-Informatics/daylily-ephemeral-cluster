@@ -177,6 +177,31 @@ def test_auto_export_rejected_without_admin_override() -> None:
     ) == ["NEW"]
 
 
+def test_run_dir_mount_policy_forbids_writeback_under_run_mounts() -> None:
+    with pytest.raises(run_mounts.RunMountError, match="always read-only"):
+        run_mounts.enforce_run_mount_readonly_policy(
+            file_system_path="/run_dir_mounts/RUN123/",
+            read_only=False,
+            auto_export_events=[],
+        )
+    with pytest.raises(run_mounts.RunMountError, match="AutoExport"):
+        run_mounts.enforce_run_mount_readonly_policy(
+            file_system_path="/run_dir_mounts/RUN123/",
+            read_only=True,
+            auto_export_events=["NEW"],
+        )
+    run_mounts.enforce_run_mount_readonly_policy(
+        file_system_path="/run_dir_mounts/RUN123/",
+        read_only=True,
+        auto_export_events=[],
+    )
+    run_mounts.enforce_run_mount_readonly_policy(
+        file_system_path="/writeback/RUN123/",
+        read_only=False,
+        auto_export_events=["NEW"],
+    )
+
+
 def test_atlas_rw_marker_candidates_exclude_bucket_root() -> None:
     assert run_mounts.atlas_rw_marker_candidates("s3://bucket/derived/validation/run/") == [
         ("bucket", "derived/validation/run/.atlas_rw"),
@@ -279,6 +304,8 @@ def test_create_readwrite_mount_requires_atlas_rw_marker(tmp_path, monkeypatch) 
                 read_only=False,
                 allow_writeback_admin=True,
                 auto_export_events=["NEW", "CHANGED"],
+                purpose=run_mounts.MOUNT_PURPOSE_CUSTOM,
+                file_system_path="/writeback/RUN123/",
                 wait=False,
             ),
             fsx_client=fake,
@@ -306,6 +333,8 @@ def test_create_readwrite_mount_accepts_atlas_rw_ancestor_marker(tmp_path, monke
             read_only=False,
             allow_writeback_admin=True,
             auto_export_events=["NEW", "CHANGED"],
+            purpose=run_mounts.MOUNT_PURPOSE_CUSTOM,
+            file_system_path="/writeback/RUN123/",
             wait=False,
         ),
         fsx_client=fake,
@@ -317,6 +346,68 @@ def test_create_readwrite_mount_accepts_atlas_rw_ancestor_marker(tmp_path, monke
     assert fake_s3.head_requests[-1] == "s3://bucket/derived/.atlas_rw"
     assert record.read_only is False
     assert "s3://bucket/derived/.atlas_rw" in record.warnings[0]
+
+
+def test_create_run_mount_rejects_run_dir_writeback_before_marker_lookup(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    fake = FakeFsxClient()
+    fake_s3 = FakeS3Client(markers={"s3://bucket/derived/.atlas_rw"})
+
+    with pytest.raises(run_mounts.RunMountError, match="always read-only"):
+        run_mounts.create_run_mount(
+            run_mounts.CreateRunMountRequest(
+                cluster_name="cluster-a",
+                fsx_file_system_id="fs-123",
+                region="us-west-2",
+                profile="lsmc",
+                source_s3_uri="s3://bucket/derived/validation/run",
+                mount_id="RUN123",
+                run_id="RUN123",
+                platform="ILMN",
+                read_only=False,
+                allow_writeback_admin=True,
+                auto_export_events=[],
+                wait=False,
+            ),
+            fsx_client=fake,
+            s3_client=fake_s3,
+        )
+
+    assert fake.created_params is None
+    assert fake_s3.head_requests == []
+
+
+def test_create_run_mount_rejects_run_dir_autoexport_before_create(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    fake = FakeFsxClient()
+    fake_s3 = FakeS3Client(markers={"s3://bucket/derived/.atlas_rw"})
+
+    with pytest.raises(run_mounts.RunMountError, match="AutoExport"):
+        run_mounts.create_run_mount(
+            run_mounts.CreateRunMountRequest(
+                cluster_name="cluster-a",
+                fsx_file_system_id="fs-123",
+                region="us-west-2",
+                profile="lsmc",
+                source_s3_uri="s3://bucket/derived/validation/run",
+                mount_id="RUN123",
+                run_id="RUN123",
+                platform="ILMN",
+                read_only=False,
+                allow_writeback_admin=True,
+                auto_export_events=["NEW", "CHANGED"],
+                wait=False,
+            ),
+            fsx_client=fake,
+            s3_client=fake_s3,
+        )
+
+    assert fake.created_params is None
+    assert fake_s3.head_requests == []
 
 
 def test_delete_run_mount_handles_sparse_deleted_association(tmp_path, monkeypatch) -> None:

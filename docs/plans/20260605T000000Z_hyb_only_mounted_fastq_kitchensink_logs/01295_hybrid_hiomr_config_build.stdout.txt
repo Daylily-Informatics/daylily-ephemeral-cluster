@@ -1,0 +1,10 @@
+samples=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/hybrid_hiomr_na4_config/20260606T105700Z_hybrid_hiomr_na4_samples.tsv
+units=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/hybrid_hiomr_na4_config/20260606T105700Z_hybrid_hiomr_na4_units.tsv
+manifest=/Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260605T000000Z_hyb_only_mounted_fastq_kitchensink_logs/hybrid_hiomr_na4_config/20260606T105700Z_hybrid_hiomr_na4_source_manifest.tsv
+sample_rows=4
+unit_rows=13
+units_by_sample:
+NA00232	chip1,chip2,chip4
+NA09677	chip1,chip2,chip3,chip4
+NA03986	chip1,chip2,chip4
+NA05164	chip1,chip2,chip4

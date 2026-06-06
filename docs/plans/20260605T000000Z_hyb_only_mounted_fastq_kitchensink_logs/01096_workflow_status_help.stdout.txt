@@ -1,0 +1,30 @@
+                                                                                
+ Usage: dyec workflow status [OPTIONS]                                          
+                                                                                
+ Read a workflow status.json file from the headnode.                            
+                                                                                
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ --profile                       TEXT  AWS CLI profile.                       │
+│ --region                        TEXT  AWS region.                            │
+│ --cluster,--cluster-name        TEXT                                         │
+│ --session                       TEXT  Tmux session/run name.                 │
+│ --run-dir                       TEXT  Explicit run directory.                │
+│ --help                                Show this message and exit.            │
+╰──────────────────────────────────────────────────────────────────────────────╯
+
+                                                                                
+ Usage: dyec workflow logs [OPTIONS]                                            
+                                                                                
+ Tail a workflow tmux.log file from the headnode.                               
+                                                                                
+╭─ Options ────────────────────────────────────────────────────────────────────╮
+│ --profile                       TEXT     AWS CLI profile.                    │
+│ --region                        TEXT     AWS region.                         │
+│ --cluster,--cluster-name        TEXT                                         │
+│ --session                       TEXT     Tmux session/run name.              │
+│ --run-dir                       TEXT     Explicit run directory.             │
+│ --lines                         INTEGER  Number of tmux log lines to print.  │
+│                                          [default: 200]                      │
+│ --help                                   Show this message and exit.         │
+╰──────────────────────────────────────────────────────────────────────────────╯
+

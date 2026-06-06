@@ -1,0 +1,228 @@
+
+
+def reject_retired_stage_path(path: str) -> None:
+    if is_retired_stage_path(path):
+        raise CommandError(
+            f"The retired staging path {path} is not supported; "
+            f"use {ACTIVE_EXTERNAL_STAGE_ROOT} for external sequencing staging."
+        )
+
+
+def is_mounted_run_dir_path(path: str) -> bool:
+    return any(path == root or path.startswith(f"{root}/") for root in MOUNT_PATH_ROOTS)
+
+
+def validate_mount_id(value: str) -> str:
+    mount_id = (value or "").strip()
+    if not mount_id:
+        raise CommandError(f"{MOUNT_ID} is required for STAGE_DIRECTIVE=mounted_readonly.")
+    if mount_id in {".", ".."} or not MOUNT_ID_RE.fullmatch(mount_id):
+        raise CommandError(
+            f"{MOUNT_ID} must be a safe path component containing only letters, numbers, "
+            f"underscore, dash, or dot: {value}"
+        )
+    return mount_id
+
+
+def parse_mounted_run_dir_path(path: str, *, field: str) -> Tuple[str, str, Tuple[str, ...]]:
+    for root in MOUNT_PATH_ROOTS:
+        if path != root and not path.startswith(f"{root}/"):
+            continue
+        relative = path[len(root) :]
+        if relative.startswith("/"):
+            relative = relative[1:]
+        if relative.endswith("/"):
+            relative = relative[:-1]
+        parts = tuple(relative.split("/")) if relative else ()
+        if not parts:
+            raise CommandError(
+                f"{field} must include {MOUNT_ID} under /fsx/run_dir_mounts/ "
+                f"or /run_dir_mounts/: {path}"
+            )
+        if any(part in {"", ".", ".."} for part in parts):
+            raise CommandError(
+                f"{field} mounted path must not contain empty, '.', or '..' components: {path}"
+            )
+        mount_id = validate_mount_id(parts[0])
+        return root, mount_id, parts[1:]
+    raise CommandError(
+        f"{field} must be under /fsx/run_dir_mounts/<{MOUNT_ID}>/ "
+        f"or /run_dir_mounts/<{MOUNT_ID}>/: {path}"
+    )
+
+
+def require_mounted_source_path(path: str, *, field: str, expected_mount_id: str) -> None:
+    _root, actual_mount_id, relative_parts = parse_mounted_run_dir_path(path, field=field)
+    if actual_mount_id != expected_mount_id:
+        raise CommandError(
+            f"{field} uses mount ID {actual_mount_id}, but {MOUNT_ID} is {expected_mount_id}: {path}"
+        )
+    if not relative_parts or path.endswith("/"):
+        raise CommandError(
+
+
+def raw_groups_present(row: Mapping[str, str]) -> List[Tuple[str, str, str, str]]:
+    present: List[Tuple[str, str, str, str]] = []
+    for spec in RAW_SOURCE_SPECS:
+        if get_entry_value(row, spec[0]) or get_entry_value(row, spec[1]):
+            present.append(spec)
+    return present
+
+
+def normalize_stage_directive(value: str) -> str:
+    directive = (value or "").strip().lower()
+    if directive in {"", "na"}:
+        return ""
+    if directive in {"stage_data", "pass_through", "mounted_readonly"}:
+        return directive
+    raise CommandError(
+        f"Unsupported STAGE_DIRECTIVE '{value}'. Supported values are "
+        "stage_data, pass_through, mounted_readonly, or blank."
+    )
+
+
+def is_populated_path(value: str) -> bool:
+    return bool(value) and value.lower() != "na"
+
+
+def resolve_concordance_source(row: Mapping[str, str]) -> str:
+    candidates = {
+        field: get_entry_value(row, field)
+        for field in (PATH_TO_CONCORDANCE, CONCORDANCE_CONTROL_PATH, TRUTH_DATA_DIR)
+    }
+    populated = {field: value for field, value in candidates.items() if is_populated_path(value)}
+    unique_values = set(populated.values())
+    if len(unique_values) > 1:
+        details = ", ".join(f"{field}={value}" for field, value in populated.items())
+        raise CommandError(
+            except CommandError as exc:
+                add_issue(MOUNT_FSX_PATH, str(exc), mount_fsx_path)
+
+        if ont_fastq_prefix:
+            add_issue(
+                ONT_FASTQ_PREFIX,
+                (
+                    f"Row {row_number} uses STAGE_DIRECTIVE=mounted_readonly, which requires "
+                    "mounted FASTQ/CRAM/BAM file paths instead of ONT_FASTQ_PREFIX."
+                ),
+                ont_fastq_prefix,
+            )
+
+        if expected_mount_id:
+            for field, path in mounted_readonly_source_paths(normalized):
+                try:
+                    require_mounted_source_path(
+                        path,
+                        field=field,
+                        expected_mount_id=expected_mount_id,
+                    )
+                except CommandError as exc:
+                    add_issue(field, str(exc), path)
+
+    if ont_fastq_prefix:
+        vendor = canonical_manifest_seq_vendor(get_entry_value(normalized, SEQ_VENDOR))
+        if vendor != "ONT":
+            add_issue(
+                SEQ_VENDOR,
+                f"Row {row_number} requires {SEQ_VENDOR}=ONT for {ONT_FASTQ_PREFIX}.",
+                get_entry_value(normalized, SEQ_VENDOR),
+            )
+        ont_conflicts = [
+            field
+            for field in (ONT_R1_FQ, ONT_R2_FQ, ONT_CRAM, ONT_BAM)
+            if get_entry_value(normalized, field)
+        ]
+        if raw_groups or aligned_fields or ont_conflicts:
+            add_issue(
+                ONT_FASTQ_PREFIX,
+                (
+                    f"Row {row_number} must not combine {ONT_FASTQ_PREFIX} "
+                    "with other staged data source columns."
+                ),
+                ont_fastq_prefix,
+            )
+        if directive == "pass_through":
+            add_issue(
+                STAGE_DIRECTIVE,
+                f"Row {row_number} requires STAGE_DIRECTIVE=stage_data for {ONT_FASTQ_PREFIX}.",
+                get_entry_value(normalized, STAGE_DIRECTIVE),
+            )
+        try:
+            parse_ont_fastq_prefix(ont_fastq_prefix)
+        except CommandError as exc:
+            add_issue(ONT_FASTQ_PREFIX, str(exc), ont_fastq_prefix)
+
+    for r1_field, r2_field, _unit_r1, _unit_r2 in raw_groups:
+        r1_value = get_entry_value(normalized, r1_field)
+        r2_value = get_entry_value(normalized, r2_field)
+        try:
+            r1_paths, r2_paths = paired_fastq_path_lists(
+                r1_value,
+                r2_value,
+                r1_field=r1_field,
+                r2_field=r2_field,
+                row_number=row_number,
+                require_r2=r1_field != ONT_R1_FQ,
+            )
+            if len(r1_paths) > 1 and (r1_field, r2_field) != (ILMN_R1_FQ, ILMN_R2_FQ):
+                add_issue(
+                    f"{r1_field}/{r2_field}",
+                    (
+                        f"Row {row_number} comma-separated FASTQ lists are only supported for "
+                        f"{ILMN_R1_FQ}/{ILMN_R2_FQ}."
+                    ),
+                    r1_value,
+                )
+            if len(r1_paths) > 1 and r2_paths:
+                try:
+                    validate_fastq_pair_order(
+                        r1_paths,
+                        r2_paths,
+                        row_number=row_number,
+                        r1_field=r1_field,
+                        r2_field=r2_field,
+                    )
+                except CommandError as exc:
+                    add_issue(f"{r1_field}/{r2_field}", str(exc), r1_value)
+            if r1_field == ONT_R1_FQ and not r2_paths and directive != "pass_through":
+                add_issue(
+                    f"{r1_field}/{r2_field}",
+                    (
+                        f"Row {row_number} uses single-end ONT raw FASTQ; "
+                        f"set {STAGE_DIRECTIVE}=pass_through or use {ONT_FASTQ_PREFIX} "
+                        "for staged ONT shards."
+                    ),
+                    r1_value,
+                )
+        except CommandError as exc:
+            r1_paths = [r1_value] if r1_value else []
+            r2_paths = [r2_value] if r2_value else []
+            add_issue(f"{r1_field}/{r2_field}", str(exc), r1_value or r2_value)
+        for source_path in r1_paths:
+            if is_headnode_scratch_path(source_path) and directive != "pass_through":
+                add_issue(
+                    r1_field,
+                    (
+                        f"Row {row_number} uses scratch source {source_path}; "
+                        f"set {STAGE_DIRECTIVE}=pass_through for /fsx/scratch inputs."
+                    ),
+                    source_path,
+                )
+            maybe_check_source_path(r1_field, source_path)
+        for source_path in r2_paths:
+            if is_headnode_scratch_path(source_path) and directive != "pass_through":
+                file=sys.stderr,
+            )
+            return 1
+        stage_data_rows = [
+            row.row_number for row in prechecked_rows if row.staging.stage_directive == "stage_data"
+        ]
+        if stage_data_rows:
+            print(
+                "--config-only requires all rows to use STAGE_DIRECTIVE=pass_through or "
+                f"mounted_readonly; stage_data rows: {stage_data_rows}.",
+                file=sys.stderr,
+            )
+            return 1
+
+    if not args.config_only:
