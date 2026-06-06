@@ -1,0 +1,47 @@
+DAY-EC activated.
+DAY-EC activated.
+time_utc=2026-06-06T02:39:04Z
+df=/fsx
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T   64G  8.7T   1% /fsx
+tmux=hybonly_stage_ont_20260606T010256Z
+tmux_state=running
+DAY-EC activated.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+ont_dir
+total 98K
+drwxrwxr-x 2 ubuntu ubuntu 33K Jun  6 02:32 logs
+drwxrwxr-x 2 ubuntu ubuntu 33K Jun  6 02:32 manifests
+drwxrwxr-x 2 ubuntu ubuntu 33K Jun  6 02:32 tmp
+ont_tmp_dir
+total 32G
+-rw-rw-r-- 1 ubuntu ubuntu 25K Jun  6 02:32 NA00232.paths.25844
+-rw-rw-r-- 1 ubuntu ubuntu 32G Jun  6 02:39 NA00232_SMN_R1_all.fastq.gz.tmp.25844
+ont_log_tail
+start_ont	2026-06-06T02:32:53Z
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T   92M  8.8T   1% /fsx
+CMD	2026-06-06T02:32:53Z	cat 219 sources to /fsx/scratch/ONT/NA00232_SMN_R1_all.fastq.gz
+ont_rc

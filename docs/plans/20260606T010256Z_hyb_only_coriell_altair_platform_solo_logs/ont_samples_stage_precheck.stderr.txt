@@ -1,0 +1,13 @@
+⚠ Active conda environment is 'base', not DAY-EC. Continuing anyway; the 
+supported path is `source ./activate`.
+Precheck failed; no files were copied.
+Summary: rows checked=4, samples checked=4, source objects checked=4, concordance directories checked=0.
+Blockers:
+- row 2; SAMPLE_ID=NA00232; RUN_ID=hyb-only-platform-solo
+  - field=ONT_R1_FQ/ONT_R2_FQ; path=/fsx/scratch/ONT/NA00232_SMN_R1_all.fastq.gz: must populate both ONT_R1_FQ and ONT_R2_FQ.
+- row 3; SAMPLE_ID=NA09677; RUN_ID=hyb-only-platform-solo
+  - field=ONT_R1_FQ/ONT_R2_FQ; path=/fsx/scratch/ONT/NA09677_SMN_R1_all.fastq.gz: must populate both ONT_R1_FQ and ONT_R2_FQ.
+- row 4; SAMPLE_ID=NA03986; RUN_ID=hyb-only-platform-solo
+  - field=ONT_R1_FQ/ONT_R2_FQ; path=/fsx/scratch/ONT/NA03986_DMPK_R1_all.fastq.gz: must populate both ONT_R1_FQ and ONT_R2_FQ.
+- row 5; SAMPLE_ID=NA05164; RUN_ID=hyb-only-platform-solo
+  - field=ONT_R1_FQ/ONT_R2_FQ; path=/fsx/scratch/ONT/NA05164_DMPK_R1_all.fastq.gz: must populate both ONT_R1_FQ and ONT_R2_FQ.

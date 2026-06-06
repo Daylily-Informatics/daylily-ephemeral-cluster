@@ -1,0 +1,22 @@
+{
+    "CommandId": "2fb1f2d7-1db7-4c28-afb5-ff3852f82e16",
+    "InstanceId": "i-05374380b57fad901",
+    "Comment": "Daylily remote command",
+    "DocumentName": "AWS-RunShellScript",
+    "DocumentVersion": "$DEFAULT",
+    "PluginName": "aws:runShellScript",
+    "ResponseCode": 1,
+    "ExecutionStartDateTime": "2026-06-06T02:30:50.201Z",
+    "ExecutionElapsedTime": "PT6.578S",
+    "ExecutionEndDateTime": "2026-06-06T02:30:56.201Z",
+    "Status": "Failed",
+    "StatusDetails": "Failed",
+    "StandardOutputContent": "DAY-EC activated.\nDAY-EC activated.\nDAY-EC activated.\n",
+    "StandardOutputUrl": "",
+    "StandardErrorContent": "failed to run commands: exit status 1",
+    "StandardErrorUrl": "",
+    "CloudWatchOutputConfig": {
+        "CloudWatchLogGroupName": "",
+        "CloudWatchOutputEnabled": false
+    }
+}

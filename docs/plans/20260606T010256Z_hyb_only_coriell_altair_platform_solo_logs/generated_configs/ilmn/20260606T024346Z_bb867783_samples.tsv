@@ -1,0 +1,12 @@
+SAMPLEID	SAMPLESOURCE	SAMPLECLASS	BIOLOGICAL_SEX	CONCORDANCE_CONTROL_PATH	IS_POSITIVE_CONTROL	IS_NEGATIVE_CONTROL	SAMPLE_TYPE	TUM_NRM_SAMPLEID_MATCH	EXTERNAL_SAMPLE_ID	N_X	N_Y	TRUTH_DATA_DIR
+HG001	gdna	research	na	na	false	false	gdna	na	HG001	0	0	na
+HG002	gdna	research	na	na	false	false	gdna	na	HG002	0	0	na
+HG003	gdna	research	na	na	false	false	gdna	na	HG003	0	0	na
+HG004	gdna	research	na	na	false	false	gdna	na	HG004	0	0	na
+HG005	gdna	research	na	na	false	false	gdna	na	HG005	0	0	na
+HG006	gdna	research	na	na	false	false	gdna	na	HG006	0	0	na
+HG007	gdna	research	na	na	false	false	gdna	na	HG007	0	0	na
+NA00232	gdna	research	na	na	false	false	gdna	na	NA00232	0	0	na
+NA03986	gdna	research	na	na	false	false	gdna	na	NA03986	0	0	na
+NA05164	gdna	research	na	na	false	false	gdna	na	NA05164	0	0	na
+NA09677	gdna	research	na	na	false	false	gdna	na	NA09677	0	0	na

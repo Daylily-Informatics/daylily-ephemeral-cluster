@@ -1,0 +1,13 @@
+DAY-EC activated.
+DAY-EC activated.
+DAY-EC activated.
+ubuntu
+/opt/slurm/bin/squeue
+Filesystem                Size  Used Avail Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v  8.8T   92M  8.8T   1% /fsx
+Filesystem                   1B-blocks     Used     Available Use% Mounted on
+10.0.1.131@tcp:/ovxjlb4v 9571133292544 95944704 9571020570624   1% /fsx
+drwxrwxrwt 12 root root 33280 Jun  6 00:18 /fsx
+drwxrwxrwx  5 root root 33280 Jun  6 00:20 /fsx/analysis_results
+drwxrwxrwt  2 root root 33280 Jun  6 00:18 /fsx/scratch
+             JOBID PARTITION     NAME     USER ST       TIME  NODES NODELIST(REASON)

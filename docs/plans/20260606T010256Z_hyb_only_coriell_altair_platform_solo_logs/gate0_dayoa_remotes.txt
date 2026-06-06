@@ -1,0 +1,2 @@
+origin	git@github.com:lsmc-bio/daylily-omics-analysis.git (fetch)
+origin	git@github.com:lsmc-bio/daylily-omics-analysis.git (push)

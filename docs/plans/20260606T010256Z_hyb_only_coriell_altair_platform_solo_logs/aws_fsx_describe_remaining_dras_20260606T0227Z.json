@@ -1,0 +1,54 @@
+{
+    "Associations": [
+        {
+            "AssociationId": "dra-0fd8deafaec933073",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-004f69f7d11ad28ba/dra-0fd8deafaec933073",
+            "FileSystemId": "fs-004f69f7d11ad28ba",
+            "Lifecycle": "CREATING",
+            "FileSystemPath": "/run_dir_mounts/ilmn-lh01121-b23ww2nlt4-fastq/",
+            "DataRepositoryPath": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/lh01121/2026/20260526_LH01121_0004_B23WW2NLT4/Analysis/1/Data/BCLConvert/fastq/",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "S3": {
+                "AutoImportPolicy": {
+                    "Events": [
+                        "NEW",
+                        "CHANGED"
+                    ]
+                }
+            },
+            "Tags": [
+                {
+                    "Key": "lsmc:purpose",
+                    "Value": "run-dir-mount"
+                }
+            ],
+            "CreationTime": 1780708422.84
+        },
+        {
+            "AssociationId": "dra-06364fb31665cf24d",
+            "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-004f69f7d11ad28ba/dra-06364fb31665cf24d",
+            "FileSystemId": "fs-004f69f7d11ad28ba",
+            "Lifecycle": "CREATING",
+            "FileSystemPath": "/run_dir_mounts/ont-4coriells-chip3/",
+            "DataRepositoryPath": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260522_ONT_4Coriells_chip3/20260522_ONT_4Coriells_chip3/20260523_0038_1F_PBK89072_e28a4508/",
+            "BatchImportMetaDataOnCreate": true,
+            "ImportedFileChunkSize": 1024,
+            "S3": {
+                "AutoImportPolicy": {
+                    "Events": [
+                        "NEW",
+                        "CHANGED"
+                    ]
+                }
+            },
+            "Tags": [
+                {
+                    "Key": "lsmc:purpose",
+                    "Value": "run-dir-mount"
+                }
+            ],
+            "CreationTime": 1780708292.38
+        }
+    ]
+}
