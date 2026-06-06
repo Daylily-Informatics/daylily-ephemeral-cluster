@@ -517,6 +517,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "produce_relatedness",
         "produce_vep",
         "produce_multiqc_all",
+        "results/day/hg38_broad/reports/DAY_final_multiqc.html",
+        "results/day/hg38_broad/reports/dayoa_evidence_manifest.json",
     ]
     assert ont_kitchensink.aligners == ["ont"]
     assert ont_kitchensink.dedupers == ["na"]
@@ -526,6 +528,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "--rerun-triggers mtime" in ont_kitchensink.dy_command
     assert "--rerun-triggers mtime -n" in ont_kitchensink.dryrun_dy_command
     assert "produce_multiqc_all" in ont_kitchensink.dy_command
+    assert "results/day/hg38_broad/reports/DAY_final_multiqc.html" in ont_kitchensink.dy_command
+    assert "results/day/hg38_broad/reports/dayoa_evidence_manifest.json" in ont_kitchensink.dy_command
     assert "multiqc_qc=" in ont_kitchensink.dy_command
 
     hybrid_kitchensink = catalog.get_command("hybrid_ilmn_ont_snv_kitchensink")
