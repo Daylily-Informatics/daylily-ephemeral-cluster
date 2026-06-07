@@ -13,6 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
+DAYOA_BLESSED_TAG = "5.0.11"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG_PATH = (
@@ -198,7 +199,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert command.dedupers == ["dmd"]
     assert command.snv_callers == ["sentd"]
     assert command.sv_callers == []
-    assert command.git_tag == "5.0.5"
+    assert command.git_tag == DAYOA_BLESSED_TAG
     assert len(command.validation_runs) == 1
     validation_run = command.validation_runs[0]
     assert validation_run.run_id == "tstver411b_dayoa_catalog_recipe_validation"
@@ -251,7 +252,7 @@ def test_repository_catalog_loads_initial_blessed_command() -> None:
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "5.0.5" in launch_argv
+    assert DAYOA_BLESSED_TAG in launch_argv
 
     export_argv = command.launch_argv(
         analysis_id="run-1",
@@ -362,7 +363,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
             assert command.dryrun_dy_command.endswith(" -n")
             assert command.compatible_platforms
             assert command.compatible_data_modes
-            assert command.git_tag == "5.0.5"
+            assert command.git_tag == DAYOA_BLESSED_TAG
             assert (
                 command.input_requirements.required_source_columns
                 or command.input_requirements.accepted_source_column_sets
@@ -391,7 +392,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         assert command.dryrun_dy_command.endswith(" -n")
         assert command.compatible_platforms
         assert command.compatible_data_modes
-        assert command.git_tag == "5.0.5"
+        assert command.git_tag == DAYOA_BLESSED_TAG
         assert (
             command.input_requirements.required_source_columns
             or command.input_requirements.accepted_source_column_sets

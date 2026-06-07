@@ -23,6 +23,8 @@ from daylily_ec.state.models import StateRecord
 runner = CliRunner()
 
 
+DAYOA_BLESSED_TAG = "5.0.11"
+
 EXPECTED_COMMANDS = {
     ("version",),
     ("info",),
@@ -1636,7 +1638,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "--executing-entity" in launch_argv
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
-    assert "5.0.5" in launch_argv
+    assert DAYOA_BLESSED_TAG in launch_argv
     assert "--dy-command" in launch_argv
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
     assert "produce_cgt7p_snv_vcf" in dy_command
