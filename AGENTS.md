@@ -18,6 +18,32 @@
 - Example DayOA smoke/dry-run command: `dy-r help -p -k -j 1 -n`.
 - For BCL/DayOA execution, send these commands into the persistent `tmux` pane as separate commands. Do not collapse setup and execution into a one-shot non-interactive SSM script.
 
+# DayOA Benchmark Collection
+
+When comparing DayOA workflow runtime, threads, instance mix, or task cost from DAY-EC/headnode work, collect the combined benchmark report from the target DayOA analysis repo root instead of scraping partial summaries. Run from the headnode as `ubuntu` in an interactive bash login shell after initializing DayOA:
+
+```bash
+source dyoainit
+dy-a slurm <genome_build>
+bash bin/util/benchmarks/collect_day_benchmark_data.sh <genome_build>
+```
+
+For hybrid Broad-reference runs, the genome build is usually `hg38_broad`, producing:
+
+```text
+results/day/hg38_broad/reports/benchmarks_summary.tsv
+```
+
+Use the collector output because it adds the authoritative `sample` column from the benchmark file directory structure. Raw task benchmark files live under:
+
+```text
+results/day/<genome_build>/**/benchmarks/*.bench.tsv
+```
+
+The combined benchmark TSV contains task-level runtime/cost metadata, including `sample`, `rule`, `s`, `h:m:s`, memory fields, `io_in`, `io_out`, `mean_load`, `cpu_time`, `hostname`, `ip`, `nproc`, `cpu_efficiency`, `instance_type`, `region_az`, `spot_cost`, `snakemake_threads`, and `task_cost`.
+
+For cost/performance reports, aggregate directly from those rows: `sum(s)` for task wall time, `sum(cpu_time)` for observed CPU time, `sum(s * snakemake_threads / 3600)` for allocated vCPU-hours, and `sum(task_cost)` for task cost. Keep this separate from cluster startup, Slurm pending/configuring time, and controller wall clock unless the user explicitly asks for broader accounting.
+
 # Safety Preferences
 
 - Do not execute destructive AWS resource changes unless the user gives a second explicit approval after being told the action is destructive.
