@@ -17,6 +17,33 @@ session-manager-plugin
 
 `dyec` and `daylily-ec` are the same Python entrypoint.
 
+## ParallelCluster Target
+
+This repo targets exactly:
+
+```text
+aws-parallelcluster==3.15.0
+```
+
+Refresh the checkout-managed environment with the existing install path:
+
+```bash
+source ./activate
+python -m pip install --upgrade pip
+python -m pip install -e .
+pcluster version
+```
+
+`pcluster version` must report `3.15.0`. Do not use unpinned install commands such as `pip install --upgrade aws-parallelcluster`.
+
+For safe config validation, use a rendered cluster YAML, not the unresolved `config/day_cluster/prod_cluster.yaml` template:
+
+```bash
+pcluster validate-cluster-configuration --cluster-configuration <rendered-cluster.yaml> --region us-west-2
+```
+
+If the installed `pcluster` does not provide `validate-cluster-configuration`, record that as a tooling blocker. Do not substitute `pcluster create-cluster --dryrun true` without explicit approval, because even dry-run create is outside this upgrade pass.
+
 ## Package Contract
 
 Python packaging is defined by `pyproject.toml`. The active package includes:
@@ -31,13 +58,14 @@ The repository catalog must remain synchronized between:
 - `config/daylily_pipeline_command_catalog.yaml`
 - `daylily_ec/resources/payload/config/daylily_pipeline_command_catalog.yaml`
 
-Current DayOA catalog pins are `2.0.44`.
+Current DayOA catalog pins are `8.0.0`.
 
 ## Stale Editable Installs
 
 If a command imports code from a different checkout, refresh the editable install:
 
 ```bash
+python -m pip install --upgrade pip
 python -m pip install -e .
 dyec info
 ```

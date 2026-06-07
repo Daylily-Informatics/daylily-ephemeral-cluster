@@ -129,3 +129,5 @@ session-manager-plugin
 ```
 
 The supported checkout environment is `DAY-EC`.
+
+This repo targets exactly `aws-parallelcluster==3.15.0`; `pcluster version` must report `3.15.0` before cluster lifecycle work. This target only affects local/repo tooling until a separately approved live cluster create or update is performed.

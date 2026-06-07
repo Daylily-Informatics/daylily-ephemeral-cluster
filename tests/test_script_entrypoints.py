@@ -676,7 +676,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'replace_required_scalar("conversion_threads", "4")' in script
         assert 'replace_required_scalar("compression_threads", "64")' in script
         assert 'replace_required_scalar("decompression_threads", "32")' in script
-        assert 'upsert_scalar("shared_thread_odirect_output", "auto")' in script
+        assert 'upsert_scalar("shared_thread_odirect_output", "false")' in script
         assert 'upsert_scalar("num_unknown_barcodes_reported", "1000")' in script
         assert 'upsert_scalar("output_legacy_stats", "true")' in script
         assert 'upsert_scalar("barcode_mismatches_index1", "0")' in script

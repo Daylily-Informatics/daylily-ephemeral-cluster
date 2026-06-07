@@ -21,6 +21,7 @@ Expected:
 - `dyec` and `daylily-ec` resolve to the same CLI
 - runtime backend is `day-ec-conda`
 - `aws`, `pcluster`, and `session-manager-plugin` are available
+- `pcluster version` reports `3.15.0`
 - missing dependencies fail clearly instead of being guessed
 
 ## 2. Set Variables
@@ -61,6 +62,14 @@ dyec preflight \
 ```
 
 Preflight checks identity, IAM, quotas, repository catalog validity, bucket access, network resources, and rendered cluster demand. Treat failures as contract gaps to fix explicitly.
+
+For a pcluster-only schema check, validate only a rendered cluster YAML:
+
+```bash
+pcluster validate-cluster-configuration --cluster-configuration <rendered-cluster.yaml> --region "$REGION"
+```
+
+Do not run `pcluster create-cluster`, `pcluster update-cluster`, or `pcluster delete-cluster` while only validating the pinned CLI upgrade.
 
 ## 4. Create
 
@@ -151,7 +160,7 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --repository daylily-omics-analysis \
-  --git-tag 2.0.44 \
+  --git-tag 8.0.0 \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "$EXECUTING_ENTITY" \

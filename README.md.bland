@@ -1,6 +1,6 @@
 # Daylily Ephemeral Cluster
 
-DayEC creates short-lived AWS ParallelCluster environments for Daylily analysis work. Current clusters use a DRA-backed FSx for Lustre filesystem:
+DayEC creates short-lived AWS ParallelCluster environments for Daylily analysis work. The repo targets exactly `aws-parallelcluster==3.15.0` for local tooling. Current clusters use a DRA-backed FSx for Lustre filesystem:
 
 - references: `/fsx/data`
 - run folders: `/fsx/run_dir_mounts/<mount_id>`

@@ -1279,7 +1279,7 @@ AWS_CLI_USER=$(aws sts get-caller-identity --region $region --profile $AWS_PROFI
 
 # Ensure pcluster is installed
 echo "Checking pcluster version..."
-expected_pcluster_version="3.13.2"
+expected_pcluster_version="3.15.0"
 pcluster_version=$(AWS_PROFILE=${AWS_PROFILE} pcluster version | grep 'version' | cut -d '"' -f 4)
 if [[ "$pcluster_version" != "$expected_pcluster_version" ]]; then
     handle_warning "Warning: Expected pcluster version $expected_pcluster_version, but found version $pcluster_version."

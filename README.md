@@ -51,7 +51,7 @@ Prerequisites:
 - AWS credentials for a non-default profile with ParallelCluster, EC2, IAM, CloudFormation, S3, FSx, SSM, CloudWatch, and related read/write permissions.
 - AWS region and availability zone selected for the cluster.
 - AWS Session Manager plugin installed locally.
-- AWS ParallelCluster CLI available through this repo environment.
+- AWS ParallelCluster CLI available through this repo environment. This repo targets exactly `aws-parallelcluster==3.15.0`.
 - Configured S3 buckets for references, optional control data, staging, and analysis exports.
 - A Daylily config file, normally `~/.config/daylily/daylily_ephemeral_cluster.yaml`, with explicit bucket and cluster settings.
 
@@ -64,7 +64,10 @@ dyec --json version
 dyec --help
 dyec runtime status
 dyec --json repositories commands
+pcluster version
 ```
+
+`pcluster version` must report `3.15.0`. Refresh the pinned checkout environment with `python -m pip install --upgrade pip` followed by `python -m pip install -e .`; do not install `aws-parallelcluster` unpinned or from `latest`.
 
 Use placeholders in examples until your environment has real values:
 
@@ -185,14 +188,14 @@ The Slurm accounting helper manages external accounting infrastructure when conf
 
 ## Repository Catalog
 
-`config/daylily_pipeline_command_catalog.yaml` is the source of truth for blessed repositories and commands. The packaged copy under `daylily_ec/resources/payload/config/` must match it. The current catalog default for DayOA is `2.0.44`; `daylily-sarek` is also present as a Nextflow/nf-core Sarek repository entry.
+`config/daylily_pipeline_command_catalog.yaml` is the source of truth for blessed repositories and commands. The packaged copy under `daylily_ec/resources/payload/config/` must match it. The current catalog default for DayOA is `8.0.0`; `daylily-sarek` is also present as a Nextflow/nf-core Sarek repository entry.
 
 On the headnode, `day-clone` consumes the same repository catalog:
 
 ```bash
 day-clone --list
-day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 2.0.44 --executing-entity "$EXECUTING_ENTITY"
-day-clone -d "$ANALYSIS_ID" -t 2.0.44
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 8.0.0 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 8.0.0
 ```
 
 `-t` is the short form of `--git-tag`; `-d` is the short form of the required `--destination`. When `--repository` is omitted, `day-clone` uses the catalog `default_repository`. When `--git-tag`/`-t` is omitted, it uses the selected repository's `default_ref`. The checkout lands at `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`, where `relative_path` comes from the catalog row.

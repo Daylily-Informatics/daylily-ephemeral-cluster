@@ -73,7 +73,7 @@ dyec samples run "$ANALYSIS_SAMPLES" \
   --dry-run
 ```
 
-The catalog pin for DayOA commands is `2.0.44`.
+The catalog pin for DayOA commands is `8.0.0`.
 
 ## Attach Run Folders
 
@@ -144,7 +144,7 @@ dyec workflow launch \
   --stage-dir "/fsx/staging/staged_external_sequencing_data/remote_stage_<timestamp>" \
   --analysis-id dayoa \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.44 \
+  --git-tag 8.0.0 \
   --genome hg38_broad \
   --target produce_alignstats
 ```
@@ -159,7 +159,7 @@ dyec workflow launch \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "${EXECUTING_ENTITY:-ubuntu}" \
-  --git-tag 2.0.44 \
+  --git-tag 8.0.0 \
   --genome hg38_broad \
   --jobs 5 \
   --target produce_illumina_run_qc \
@@ -172,8 +172,8 @@ For repo-native work that is not a catalog workflow command, clone the pinned re
 
 ```bash
 day-clone --list
-day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 2.0.44 --executing-entity "$EXECUTING_ENTITY"
-day-clone -d "$ANALYSIS_ID" -t 2.0.44
+day-clone --repository daylily-omics-analysis --destination "$ANALYSIS_ID" --git-tag 8.0.0 --executing-entity "$EXECUTING_ENTITY"
+day-clone -d "$ANALYSIS_ID" -t 8.0.0
 ```
 
 `-t` is the short form of `--git-tag`; `-d` is required and is the short form of `--destination`. The clone target is `/fsx/analysis_results/<executing_entity>/<analysis_id>/<relative_path>`.
