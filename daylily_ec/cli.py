@@ -48,6 +48,7 @@ from daylily_ec._registry_v2 import (
     required_policy,
 )
 from daylily_ec.resources import ensure_extracted
+from daylily_ec.workflow.snakemake_resources import DEFAULT_JOB_MAX_RUNTIME_MINUTES
 
 
 EXPORT_TRIGGERS = {"none", "on-success", "on-fail", "all"}
@@ -2380,6 +2381,14 @@ def samples_run(
         help="Skip or enable upstream project validation in dyoainit.",
     ),
     dry_run: bool = typer.Option(False, "--dry-run", help="Launch the catalog dry-run command."),
+    max_runtime_minutes: int = typer.Option(
+        DEFAULT_JOB_MAX_RUNTIME_MINUTES,
+        "--max-runtime-minutes",
+        help=(
+            "Default Snakemake job time resource in minutes. "
+            "Set 0 to omit; explicit --default-resources time=... in the command wins."
+        ),
+    ),
     export_destination_s3_uri: Optional[str] = typer.Option(
         None,
         "--export-destination-s3-uri",
@@ -2552,6 +2561,7 @@ def samples_run(
             dewey_run_artifact_euid=dewey_run_artifact_euid,
             dewey_ursa_analysis_euid=dewey_ursa_analysis_euid,
         )
+        workflow_cli_argv.extend(["--max-runtime-minutes", str(max_runtime_minutes)])
         launch_stdout_buffer = io.StringIO()
         with contextlib.redirect_stdout(launch_stdout_buffer):
             launch_rc = _invoke_workflow_launch(workflow_cli_argv[2:])
@@ -2576,6 +2586,7 @@ def samples_run(
             "dy_command": command.dryrun_dy_command if dry_run else command.dy_command,
             "export_destination_s3_uri": export_destination_s3_uri,
             "export_trigger": export_trigger,
+            "max_runtime_minutes": max_runtime_minutes,
             "delete_on_export_success": delete_on_export_success,
             "replace_existing_analysis_dir": replace_existing_analysis_dir,
             "dewey_analysis_dir_external_object_id": dewey_analysis_dir_external_object_id,
@@ -2708,6 +2719,14 @@ def workflow_launch(
         "--snakemake-extra",
         help="Additional arguments appended to dy-r.",
     ),
+    max_runtime_minutes: int = typer.Option(
+        DEFAULT_JOB_MAX_RUNTIME_MINUTES,
+        "--max-runtime-minutes",
+        help=(
+            "Default Snakemake job time resource in minutes. "
+            "Set 0 to omit; explicit --default-resources time=... in the command wins."
+        ),
+    ),
     no_containerized: bool = typer.Option(
         False,
         "--no-containerized",
@@ -2828,6 +2847,7 @@ def workflow_launch(
         ("--target", target),
         ("--dy-command", dy_command),
         ("--snakemake-extra", snakemake_extra),
+        ("--max-runtime-minutes", str(max_runtime_minutes)),
         ("--export-destination-s3-uri", export_destination_s3_uri),
         ("--export-trigger", export_trigger),
         ("--artifact-registration-command-id", artifact_registration_command_id),
@@ -3672,6 +3692,152 @@ def state_show(
     typer.echo(json.dumps(payload, indent=2, sort_keys=False))
 
 
+def tests_pytest(
+    coverage: bool = typer.Option(
+        False,
+        "--coverage",
+        help="Run pytest with branch coverage for daylily_ec and fail below 80%.",
+    ),
+    pytest_args: Optional[List[str]] = typer.Argument(
+        None,
+        help="Arguments passed to pytest after `--`.",
+    ),
+) -> None:
+    """Run the local pytest suite through the active Python environment."""
+
+    from daylily_ec.tests_runner import run_pytest
+
+    _warn_if_dayec_env_inactive()
+    raise typer.Exit(run_pytest(coverage=coverage, pytest_args=pytest_args or []))
+
+
+def tests_command_catalog(
+    cluster: str = typer.Option(..., "--cluster", "--cluster-name", help="Target cluster name."),
+    profile: str = typer.Option(..., "--profile", help="AWS CLI profile."),
+    region: str = typer.Option(..., "--region", help="AWS region."),
+    command_codes: str = typer.Option(
+        ...,
+        "--command-codes",
+        help="Comma/space-separated catalog command ids, or all.",
+    ),
+    evidence_s3_uri: str = typer.Option(
+        ...,
+        "--evidence-s3-uri",
+        help="S3 root for command-catalog evidence export.",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Launch only dry-run workflow phases.",
+    ),
+    create_missing_mounts: bool = typer.Option(
+        False,
+        "--create-missing-mounts",
+        help="Create missing unique run-directory DRAs after read-only preflight.",
+    ),
+    parallel: int = typer.Option(3, "--parallel", help="Maximum concurrent launched phases."),
+    jobs: int = typer.Option(150, "--jobs", help="Snakemake job count for rendered commands."),
+    max_runtime_minutes: int = typer.Option(
+        DEFAULT_JOB_MAX_RUNTIME_MINUTES,
+        "--max-runtime-minutes",
+        help=(
+            "Default Snakemake job time resource in minutes. "
+            "Set 0 to omit; explicit --default-resources time=... in the command wins."
+        ),
+    ),
+    executing_entity: str = typer.Option(
+        "ubuntu",
+        "--executing-entity",
+        "-u",
+        help="Analysis-result owner under /fsx/analysis_results.",
+    ),
+    output_dir: Optional[Path] = typer.Option(
+        None,
+        "--output-dir",
+        help="Local evidence directory. Defaults to docs/plans/<stamp>_dyec_tests_command_catalog_logs.",
+    ),
+    stamp: Optional[str] = typer.Option(
+        None,
+        "--stamp",
+        help="UTC stamp for reproducible evidence paths. Defaults to current UTC.",
+    ),
+    timeout_minutes: int = typer.Option(
+        360,
+        "--timeout-minutes",
+        help="Minutes to wait for each launched workflow phase to finish.",
+    ),
+    poll_interval_seconds: int = typer.Option(
+        30,
+        "--poll-interval-seconds",
+        help="Seconds between workflow status polls.",
+    ),
+    catalog_config: Optional[Path] = typer.Option(
+        None,
+        "--catalog-config",
+        help="Path to daylily_pipeline_command_catalog.yaml.",
+    ),
+) -> None:
+    """Run command-catalog prep tests on a cluster with exported evidence."""
+
+    from daylily_ec.tests_runner import (
+        CommandCatalogOptions,
+        RenderedPhase,
+        TestsRunnerError,
+        WorkflowLaunchMetadata,
+        run_command_catalog,
+    )
+
+    _warn_if_dayec_env_inactive()
+
+    def status_reader(
+        metadata: WorkflowLaunchMetadata,
+        phase: RenderedPhase,
+    ) -> dict[str, Any]:
+        session_name = metadata.session_name or phase.session_name
+        result = _read_workflow_file(
+            profile=profile,
+            region=region,
+            cluster=cluster,
+            session=session_name,
+            run_dir=None if session_name else (metadata.run_dir or None),
+            filename="status.json",
+        )
+        return _parse_workflow_status_payload(result.stdout)
+
+    try:
+        result = run_command_catalog(
+            CommandCatalogOptions(
+                cluster=cluster,
+                profile=profile,
+                region=region,
+                command_codes=command_codes,
+                evidence_s3_uri=evidence_s3_uri,
+                dry_run_only=dry_run,
+                create_missing_mounts=create_missing_mounts,
+                parallel=parallel,
+                jobs=jobs,
+                max_runtime_minutes=max_runtime_minutes,
+                executing_entity=executing_entity,
+                output_dir=output_dir,
+                stamp=stamp,
+                timeout_minutes=timeout_minutes,
+                poll_interval_seconds=poll_interval_seconds,
+                catalog_config=catalog_config,
+            ),
+            launch_func=_invoke_workflow_launch,
+            status_func=status_reader,
+        )
+    except (TestsRunnerError, RuntimeError, ValueError) as exc:
+        _exit_headnode_error(exc)
+
+    payload = result.to_payload()
+    if _json_mode():
+        output.emit_json(payload)
+    else:
+        typer.echo(json.dumps(payload, indent=2, sort_keys=True))
+    raise typer.Exit(result.rc)
+
+
 def register(registry, cli_spec) -> None:
     _ = cli_spec
     register_root_command(
@@ -3805,6 +3971,19 @@ def register(registry, cli_spec) -> None:
         "repositories",
         "Repository catalog and blessed analysis command helpers.",
         [("commands", repositories_commands, EXEMPT_JSON)],
+    )
+    register_group_commands(
+        registry,
+        "tests",
+        "Local and cluster prep-test helpers.",
+        [
+            ("pytest", tests_pytest, REQUIRED_LONG_RUNNING),
+            (
+                "command-catalog",
+                tests_command_catalog,
+                required_policy(supports_json=True, mutates_state=True, long_running=True),
+            ),
+        ],
     )
     register_group_commands(
         registry,

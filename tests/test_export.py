@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import base64
 import json
 from pathlib import Path
 from typing import Any
@@ -14,12 +15,28 @@ from typer.testing import CliRunner
 
 from daylily_ec.repositories import load_repository_catalog
 from daylily_ec.workflow.dewey_registration import (
+    DeweyRegistrationError,
+    analysis_parts_from_receipt,
     build_registration_requests,
+    dayoa_s3_root,
+    directory_artifact,
+    file_artifact_from_record,
+    load_export_receipt,
+    load_json,
+    mime_type_for_path,
     register_exported_analysis_directory_links,
+    s3_join,
+    selected_manifest_files,
+    validate_relative_path,
 )
 from daylily_ec.workflow.export_data import (
     ExportOptions,
     RegisterExistingExportOptions,
+    _build_s3_inventory_manifest,
+    _classify_exported_artifact,
+    _parser_relevant,
+    _selected_by_policy,
+    _sha256_from_head_object,
     attach_export_dra,
     detach_export_dra,
     normalize_export_source_path,
@@ -261,6 +278,252 @@ def test_validate_s3_destination_prefix_rejects_existing_objects() -> None:
             "MaxKeys": 1,
         }
     ]
+
+
+def test_export_inventory_classification_and_parser_relevance() -> None:
+    cases = {
+        "config/samples.tsv": "samples_manifest",
+        "config/units.tsv": "units_manifest",
+        "notes/readme.txt": "",
+        "results/day/hg38/reports/DAY_final_multiqc.html": "multiqc_html",
+        "results/day/hg38/reports/DAY_final_multiqc_data/multiqc_data.json": (
+            "multiqc_data_json"
+        ),
+        "results/day/hg38/reports/DAY_final_multiqc_data/multiqc_general_stats.txt": (
+            "multiqc_general_stats"
+        ),
+        "results/day/hg38/reports/DAY_final_multiqc_data/multiqc_sources.txt": (
+            "multiqc_sources"
+        ),
+        "results/day/hg38/reports/DAY_final_multiqc_data/multiqc.log": "multiqc_log",
+        "results/day/hg38/reports/DAY_final_multiqc_data/extra.tsv": "multiqc_data_file",
+        "results/day/hg38/reports/multiqc_inputs/final/manifest.tsv": "staging_manifest",
+        "results/day/hg38/reports/custom_mqc.tsv": "custom_mqc_tsv",
+        "results/day/hg38/benchmark/runtime.json": "benchmark",
+        "results/day/hg38/crams/HG002.cram": "alignment_cram",
+        "results/day/hg38/crams/HG002.cram.crai": "alignment_cram_index",
+        "results/day/hg38/bams/HG002.bam": "alignment_bam",
+        "results/day/hg38/bams/HG002.bam.bai": "alignment_bam_index",
+        "results/day/hg38/bams/HG002.bam.csi": "alignment_bam_index",
+        "results/day/hg38/vcfs/HG002.vcf.gz": "variant_vcf",
+        "results/day/hg38/vcfs/HG002.vcf.gz.tbi": "variant_vcf_index",
+        "results/day/hg38/vcfs/HG002.csi": "variant_vcf_index",
+        "results/day/hg38/other.bin": "",
+    }
+
+    for relative_path, expected in cases.items():
+        assert _classify_exported_artifact(relative_path) == expected
+
+    assert _parser_relevant("multiqc_data_json", "results/x/multiqc_data.json") is True
+    assert _parser_relevant("multiqc_data_file", "results/x/table.tsv") is True
+    assert _parser_relevant("multiqc_data_file", "results/x/image.png") is False
+    assert _parser_relevant("alignment_bam", "results/x/sample.bam") is False
+
+
+def test_s3_inventory_manifest_selects_policy_files_with_sha_metadata() -> None:
+    digest = "a" * 64
+    command = load_repository_catalog().get_command("illumina_run_qc_bclconvert")
+    dayoa_prefix = (
+        "s3://bucket/ubuntu/ccv20260530r57_illumina_run_qc_bclconvert/"
+        "daylily-omics-analysis/"
+    )
+    listed = {
+        dayoa_prefix + "results/runs/RUN1/run_qc/illumina/multiqc_report.html": {
+            "ContentLength": 10,
+            "Metadata": {"sha256": digest},
+            "ETag": '"html"',
+        },
+        dayoa_prefix + "results/runs/RUN1/run_qc/illumina/multiqc_report_data/multiqc_data.json": {
+            "ContentLength": 11,
+            "Metadata": {"file-sha256": digest},
+            "ETag": '"json"',
+        },
+        dayoa_prefix + "results/runs/RUN1/run_qc/illumina/multiqc_report_data/extra.log": {
+            "ContentLength": 12,
+            "Metadata": {"checksum-sha256": digest},
+            "ETag": '"log"',
+        },
+        dayoa_prefix + "results/runs/RUN1/ignored.bin": {
+            "ContentLength": 13,
+            "Metadata": {"sha256": digest},
+            "ETag": '"ignored"',
+        },
+    }
+
+    manifest = _build_s3_inventory_manifest(
+        client=FakeS3Client(listed_objects=listed),
+        export_receipt={
+            "status": "success",
+            "analysis_dir": "ubuntu/ccv20260530r57_illumina_run_qc_bclconvert",
+            "dayoa_s3_root": dayoa_prefix,
+        },
+        policy=command.artifact_registration,
+        genome=command.genome,
+        command_id=command.command_id,
+    )
+
+    paths = [record["relative_path"] for record in manifest["files"]]
+    assert "results/runs/RUN1/run_qc/illumina/multiqc_report.html" in paths
+    assert "results/runs/RUN1/ignored.bin" not in paths
+    by_path = {record["relative_path"]: record for record in manifest["files"]}
+    assert by_path[
+        "results/runs/RUN1/run_qc/illumina/multiqc_report_data/extra.log"
+    ]["parser_relevant"] is True
+    assert by_path[
+        "results/runs/RUN1/run_qc/illumina/multiqc_report.html"
+    ]["metadata"]["result_scope"] == "runs"
+
+
+def test_sha256_from_head_object_accepts_metadata_and_s3_checksum() -> None:
+    digest = "b" * 64
+    assert _sha256_from_head_object({"Metadata": {"sha256": digest}}, uri="s3://b/k") == digest
+    assert (
+        _sha256_from_head_object(
+            {"ChecksumSHA256": base64.b64encode(bytes.fromhex(digest)).decode("ascii")},
+            uri="s3://b/k",
+        )
+        == digest
+    )
+    with pytest.raises(RuntimeError, match="malformed ChecksumSHA256"):
+        _sha256_from_head_object({"ChecksumSHA256": "not-base64"}, uri="s3://b/k")
+
+
+def test_dewey_registration_small_validation_helpers(tmp_path: Path) -> None:
+    good_json = tmp_path / "good.json"
+    good_json.write_text('{"ok": true}', encoding="utf-8")
+    assert load_json(str(good_json)) == {"ok": True}
+    bad_json = tmp_path / "bad.json"
+    bad_json.write_text("{not json", encoding="utf-8")
+    with pytest.raises(DeweyRegistrationError, match="malformed"):
+        load_json(str(bad_json))
+    list_json = tmp_path / "list.json"
+    list_json.write_text("[]", encoding="utf-8")
+    with pytest.raises(DeweyRegistrationError, match="must be an object"):
+        load_json(str(list_json))
+
+    receipt = tmp_path / "receipt.yaml"
+    receipt.write_text("fsx_export:\n  status: success\n", encoding="utf-8")
+    assert load_export_receipt(str(receipt)) == {"status": "success"}
+    bad_receipt = tmp_path / "bad_receipt.yaml"
+    bad_receipt.write_text("status: success\n", encoding="utf-8")
+    with pytest.raises(DeweyRegistrationError, match="missing fsx_export"):
+        load_export_receipt(str(bad_receipt))
+
+    assert validate_relative_path("results/file.txt") == "results/file.txt"
+    for value in ("", "/absolute", "a/../b"):
+        with pytest.raises(DeweyRegistrationError):
+            validate_relative_path(value)
+    assert s3_join("s3://bucket/root/", "results/file.txt") == "s3://bucket/root/results/file.txt"
+    with pytest.raises(DeweyRegistrationError, match="S3 root must use"):
+        s3_join("https://bucket/root", "results/file.txt")
+    assert analysis_parts_from_receipt({"analysis_dir": "ubuntu/analysis1"}) == (
+        "ubuntu",
+        "analysis1",
+    )
+    with pytest.raises(DeweyRegistrationError, match="analysis_dir must be"):
+        analysis_parts_from_receipt({"analysis_dir": "analysis1"})
+    assert dayoa_s3_root({"status": "success", "dayoa_s3_root": "s3://bucket/root"}) == (
+        "s3://bucket/root/"
+    )
+    for receipt_payload in (
+        {"status": "error", "dayoa_s3_root": "s3://bucket/root"},
+        {"status": "success"},
+        {"status": "success", "dayoa_s3_root": "https://bucket/root"},
+    ):
+        with pytest.raises(DeweyRegistrationError):
+            dayoa_s3_root(receipt_payload)
+
+
+def test_dewey_manifest_selection_and_artifact_helpers() -> None:
+    command = load_repository_catalog().get_command(
+        "illumina_snv_alignstats_relatedness_vep_multiqc"
+    )
+    policy = command.artifact_registration
+    digest = "c" * 64
+    selected = selected_manifest_files(
+        manifest={
+            "files": [
+                "not-a-record",
+                {
+                    "relative_path": "results/day/hg38_broad/reports/DAY_final_multiqc.html",
+                    "classification": "multiqc_html",
+                    "sha256": digest,
+                },
+                {
+                    "relative_path": "results/day/hg38_broad/reports/multiqc_inputs/final/manifest.tsv",
+                    "classification": "staging_manifest",
+                    "sha256": digest,
+                },
+                {
+                    "relative_path": "config/samples.tsv",
+                    "classification": "samples_manifest",
+                    "sha256": digest,
+                },
+                {
+                    "relative_path": "config/units.tsv",
+                    "classification": "units_manifest",
+                    "sha256": digest,
+                },
+            ]
+        },
+        policy=policy,
+        genome=command.genome,
+        analysis_id="analysis1",
+        executing_entity="ubuntu",
+    )
+    assert {record["classification"] for record in selected} >= {
+        "multiqc_html",
+        "samples_manifest",
+        "units_manifest",
+        "staging_manifest",
+    }
+    with pytest.raises(DeweyRegistrationError, match="selected zero"):
+        selected_manifest_files(
+            manifest={"files": []},
+            policy=policy,
+            genome=command.genome,
+            analysis_id="analysis1",
+            executing_entity="ubuntu",
+        )
+    with pytest.raises(DeweyRegistrationError, match="missing files list"):
+        selected_manifest_files(
+            manifest={},
+            policy=policy,
+            genome=command.genome,
+            analysis_id="analysis1",
+            executing_entity="ubuntu",
+        )
+
+    assert mime_type_for_path("results/") == "inode/directory"
+    assert mime_type_for_path("table.tsv") == "text/tab-separated-values"
+    assert mime_type_for_path("sample.unknownext") == "application/octet-stream"
+    artifact = file_artifact_from_record(
+        record={
+            "relative_path": "config/samples.tsv",
+            "sha256": digest,
+            "size_bytes": 12,
+            "classification": "samples_manifest",
+            "tags": ["sample:HG002", "", "sample:HG002"],
+            "metadata": {"sample_names": ["HG002"]},
+        },
+        storage_root="s3://bucket/root/",
+        produced_by="dayoa",
+    )
+    assert artifact["metadata"]["tags"] == ["sample:HG002"]
+    with pytest.raises(DeweyRegistrationError, match="invalid sha256"):
+        file_artifact_from_record(
+            record={"relative_path": "x", "sha256": "bad"},
+            storage_root="s3://bucket/root/",
+            produced_by="dayoa",
+        )
+    directory = directory_artifact(
+        relative_path="results/day/hg38_broad/reports/DAY_final_multiqc_data/",
+        storage_root="s3://bucket/root/",
+        manifest_sha256=digest,
+        produced_by="dayoa",
+    )
+    assert directory["mime_type"] == "inode/directory"
+    assert directory["logical_name"] == "DAY_final_multiqc_data"
 
 
 def test_attach_export_dra_uses_analysis_dir_without_auto_export_policy() -> None:

@@ -373,6 +373,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'repo_key = "daylily-omics-analysis"' in script
         assert "DAY_CONTAINERIZED=true" in script
         assert "DY_COMMAND='DAY_CONTAINERIZED=true" in script
+        assert "--default-resources time=100" in script
         assert "shopt -s expand_aliases" in script
         assert (
             'MERMAID_CHROME="$HOME/.cache/puppeteer/chrome/linux-148.0.7778.97/chrome-linux64/chrome"'
@@ -1168,7 +1169,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "bootstrap_test_config()" in script
         assert "[INFO] Bootstrapped DayOA test samples and units tables." in script
         assert 'cp "$STAGE_SAMPLES" config/samples.tsv' in script
-        assert ("DY_COMMAND='source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help'") in script
+        assert "DY_COMMAND='source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help" in script
+        assert "--default-resources time=100'" in script
         assert 'if [[ "$command" == source\\ dyoainit\\;* ]]; then' in script
         assert "set --" in script
         assert "source dyoainit" in script

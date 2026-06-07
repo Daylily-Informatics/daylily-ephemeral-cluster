@@ -66,6 +66,8 @@ EXPECTED_COMMANDS = {
     ("workflow", "logs"),
     ("workflow", "stop"),
     ("repositories", "commands"),
+    ("tests", "pytest"),
+    ("tests", "command-catalog"),
     ("mounts", "list"),
     ("mounts", "create"),
     ("mounts", "describe"),
@@ -189,6 +191,8 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     workflow_logs_cmd = registry.get_command(("workflow", "logs"))
     workflow_stop_cmd = registry.get_command(("workflow", "stop"))
     repositories_commands_cmd = registry.get_command(("repositories", "commands"))
+    tests_pytest_cmd = registry.get_command(("tests", "pytest"))
+    tests_command_catalog_cmd = registry.get_command(("tests", "command-catalog"))
     mounts_list_cmd = registry.get_command(("mounts", "list"))
     mounts_create_cmd = registry.get_command(("mounts", "create"))
     mounts_describe_cmd = registry.get_command(("mounts", "describe"))
@@ -307,6 +311,15 @@ def test_cli_registry_exposes_v2_command_tree_and_policies() -> None:
     assert repositories_commands_cmd is not None
     assert repositories_commands_cmd.policy.supports_json is True
     assert repositories_commands_cmd.policy.runtime_guard == "exempt"
+
+    assert tests_pytest_cmd is not None
+    assert tests_pytest_cmd.policy.long_running is True
+    assert tests_pytest_cmd.policy.mutates_state is False
+
+    assert tests_command_catalog_cmd is not None
+    assert tests_command_catalog_cmd.policy.supports_json is True
+    assert tests_command_catalog_cmd.policy.mutates_state is True
+    assert tests_command_catalog_cmd.policy.long_running is True
 
     assert mounts_list_cmd is not None
     assert mounts_list_cmd.policy.supports_json is True
@@ -1606,6 +1619,8 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
             "CGT7P:CG:/tmp/cgt7p.fofn",
             "--session-name",
             "cg-session",
+            "--max-runtime-minutes",
+            "240",
             "--dry-run",
         ],
     )
@@ -1639,6 +1654,8 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     assert "johnm" in launch_argv
     assert "--git-tag" in launch_argv
     assert DAYOA_BLESSED_TAG in launch_argv
+    assert "--max-runtime-minutes" in launch_argv
+    assert launch_argv[launch_argv.index("--max-runtime-minutes") + 1] == "240"
     assert "--dy-command" in launch_argv
     dy_command = launch_argv[launch_argv.index("--dy-command") + 1]
     assert "produce_cgt7p_snv_vcf" in dy_command
@@ -1653,6 +1670,7 @@ def test_samples_run_stages_then_launches_catalog_command(monkeypatch, tmp_path)
     receipt = config_dir / "20260425T000000Z_samples_run_receipt.json"
     payload = json.loads(receipt.read_text(encoding="utf-8"))
     assert payload["detected_data_modes"] == ["complete_genomics_solo"]
+    assert payload["max_runtime_minutes"] == 240
     assert payload["workflow_launch"]["session_name"] == "cg-session"
 
 
@@ -1951,6 +1969,8 @@ def test_workflow_launch_calls_python_launch_entrypoint(monkeypatch) -> None:
     assert "M-DGX-9SD7" in argv
     assert "--sv-callers" in argv
     assert "tiddit" in argv
+    assert "--max-runtime-minutes" in argv
+    assert "100" in argv
     assert "--strict-project-check" in argv
     assert "--dry-run" in argv
 

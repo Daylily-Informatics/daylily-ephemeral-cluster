@@ -654,7 +654,6 @@ repositories:
             - [ONT_CRAM, ONT_CRAM_ALIGNER, ONT_CRAM_SNV_CALLER]
             - [ONT_BAM, ONT_BAM_ALIGNER, ONT_BAM_SNV_CALLER]
         targets:
-          - produce_sentmm2ont_align
           - produce_alignstats
           - produce_na_dedup_cram
           - produce_sentdont_snv_vcf
@@ -667,14 +666,14 @@ repositories:
         genome: hg38_broad
         jobs: 250
         aligners:
-          - sentmm2ont
+          - ont
         dedupers:
           - na
         snv_callers:
           - sentdont
         sv_callers: []
-        dy_command: "bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 250 -k --rerun-triggers mtime"
-        dryrun_dy_command: "bin/day_run produce_sentmm2ont_align produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 250 -k --rerun-triggers mtime -n"
+        dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 250 -k --rerun-triggers mtime"
+        dryrun_dy_command: "bin/day_run produce_alignstats produce_na_dedup_cram produce_sentdont_snv_vcf produce_snv_concordances produce_relatedness produce_vep produce_multiqc_all results/day/hg38_broad/reports/DAY_final_multiqc.html results/day/hg38_broad/reports/dayoa_evidence_manifest.json --config 'multiqc_qc={\"enable_tools\":[\"vep\"]}' -p -j 250 -k --rerun-triggers mtime -n"
         compatible_platforms:
           - ONT
         compatible_data_modes:

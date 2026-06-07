@@ -184,6 +184,23 @@ dyec workflow status --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLU
 dyec workflow logs --profile "$AWS_PROFILE" --region "$REGION" --cluster "$CLUSTER_NAME" --session <session> --lines 100
 ```
 
+Local and cluster prep-test commands:
+
+```bash
+dyec tests pytest
+dyec tests pytest --coverage
+
+dyec tests command-catalog \
+  --cluster dyec800 \
+  --profile lsmc \
+  --region us-west-2 \
+  --command-codes "illumina_snv_alignstats,illumina_hg002_kitchensink_multiqc,ultima_snv_alignstats,ultima_snv_alignstats_kitchensink,ont_snv_alignstats,ont_snv_alignstats_kitchensink,hybrid_ilmn_ont_snv,hybrid_ilmn_ont_snv_kitchensink,illumina_run_qc,ont_run_qc,ultima_run_qc" \
+  --evidence-s3-uri "s3://<evidence-root>/" \
+  --dry-run
+```
+
+`dyec tests command-catalog` writes local command evidence under `docs/plans/<stamp>_dyec_tests_command_catalog_logs` unless `--output-dir` is set. Successful workflow phases export to `<evidence-s3-uri>/<cluster>/command_catalog_results/<dayoa-version>-<UTCSTAMP>/ubuntu/<analysis-id>/`. Missing run-directory DRAs fail hard unless `--create-missing-mounts` is supplied.
+
 The Slurm accounting helper manages external accounting infrastructure when configured. A running cluster can have the `sacct` binary installed while accounting storage is disabled; in that state `sacct` cannot provide job accounting records even though the command exists.
 
 ## Repository Catalog

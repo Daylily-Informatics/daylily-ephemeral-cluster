@@ -21,6 +21,11 @@ from daylily_ec.aws.ssm import (
 from daylily_ec.analysis_identity import analysis_source_path, validate_analysis_segment
 from daylily_ec.headnode_readiness import validate_headnode_readiness
 from daylily_ec.scripts.common import CommandError, need_cmd, resolve_cluster, resolve_region
+from daylily_ec.workflow.snakemake_resources import (
+    DEFAULT_JOB_MAX_RUNTIME_MINUTES,
+    append_default_job_runtime,
+    validate_job_max_runtime_minutes,
+)
 
 
 STAGE_CONFIG_DISCOVERY_TIMEOUT_SECONDS = 180
@@ -546,6 +551,15 @@ def build_parser() -> argparse.ArgumentParser:
     parser.add_argument("--dy-command", help="Override the dy-r command entirely")
     parser.add_argument("--snakemake-extra", help="Additional arguments appended to dy-r")
     parser.add_argument(
+        "--max-runtime-minutes",
+        type=int,
+        default=DEFAULT_JOB_MAX_RUNTIME_MINUTES,
+        help=(
+            "Default Snakemake job time resource in minutes. "
+            "Set 0 to omit; explicit --default-resources time=... in the command wins."
+        ),
+    )
+    parser.add_argument(
         "--no-containerized",
         action="store_true",
         help="Disable DAY_CONTAINERIZED (enabled by default)",
@@ -649,6 +663,10 @@ def main(argv: Optional[List[str]] = None) -> int:
     if not args.profile:
         raise CommandError("AWS profile is required. Set AWS_PROFILE or use --profile.")
     validate_export_registration_args(args)
+    try:
+        validate_job_max_runtime_minutes(args.max_runtime_minutes)
+    except ValueError as exc:
+        raise CommandError(str(exc)) from exc
 
     need_cmd("aws")
     need_cmd("pcluster")
@@ -756,6 +774,10 @@ def main(argv: Optional[List[str]] = None) -> int:
             dry_run=args.dry_run,
             extra=args.snakemake_extra,
         )
+    dy_command = append_default_job_runtime(
+        dy_command,
+        max_runtime_minutes=args.max_runtime_minutes,
+    )
 
     project_arg = shlex.quote(args.project) if args.project else ""
     repository_literal = json.dumps(args.repository)
