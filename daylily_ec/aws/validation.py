@@ -36,7 +36,7 @@ from daylily_ec.workflow.create_cluster import (
 ValidationMode = Literal["permissions", "quotas", "all"]
 SUPPORTED_MODES: tuple[str, ...] = ("permissions", "quotas", "all")
 DEFAULT_CONFIG_PATH = "config/daylily_ephemeral_cluster_template.yaml"
-DEFAULT_CLUSTER_TEMPLATE_PATH = "config/day_cluster/prod_cluster.yaml"
+DEFAULT_CLUSTER_TEMPLATE_PATH = "config/day_cluster/prod_cluster_v8.yaml"
 SSM_SESSION_DOCUMENT = "SSM-SessionManagerRunShell"
 
 
@@ -1524,6 +1524,36 @@ def _validation_substitutions(
         "REGSUB_MAX_COUNT_8I": _effective_config_value(cfg, "max_count_8I", "1"),
         "REGSUB_MAX_COUNT_128I": _effective_config_value(cfg, "max_count_128I", "1"),
         "REGSUB_MAX_COUNT_192I": _effective_config_value(cfg, "max_count_192I", "1"),
+        "REGSUB_MAX_COUNT_128I_C": _effective_config_value(cfg, "max_count_128I_C", "1"),
+        "REGSUB_MAX_COUNT_128I_M": _effective_config_value(cfg, "max_count_128I_M", "1"),
+        "REGSUB_MAX_COUNT_128I_R": _effective_config_value(cfg, "max_count_128I_R", "1"),
+        "REGSUB_MAX_COUNT_128I_NVME": _effective_config_value(
+            cfg, "max_count_128I_NVME", "1"
+        ),
+        "REGSUB_MAX_COUNT_192I_C": _effective_config_value(cfg, "max_count_192I_C", "1"),
+        "REGSUB_MAX_COUNT_192I_M": _effective_config_value(cfg, "max_count_192I_M", "1"),
+        "REGSUB_MAX_COUNT_192I_R": _effective_config_value(cfg, "max_count_192I_R", "1"),
+        "REGSUB_MAX_COUNT_192I_NVME_C": _effective_config_value(
+            cfg, "max_count_192I_NVME_C", "1"
+        ),
+        "REGSUB_MAX_COUNT_192I_NVME_M": _effective_config_value(
+            cfg, "max_count_192I_NVME_M", "1"
+        ),
+        "REGSUB_MAX_COUNT_192I_NVME_R": _effective_config_value(
+            cfg, "max_count_192I_NVME_R", "1"
+        ),
+        "REGSUB_MAX_COUNT_192I_HUGENVME": _effective_config_value(
+            cfg, "max_count_192I_HUGENVME", "1"
+        ),
+        "REGSUB_MAX_COUNT_384I_NVME_C": _effective_config_value(
+            cfg, "max_count_384I_NVME_C", "1"
+        ),
+        "REGSUB_MAX_COUNT_384I_NVME_M": _effective_config_value(
+            cfg, "max_count_384I_NVME_M", "1"
+        ),
+        "REGSUB_MAX_COUNT_384I_NVME_R": _effective_config_value(
+            cfg, "max_count_384I_NVME_R", "1"
+        ),
         "REGSUB_HEADNODE_INSTANCE_TYPE": _effective_config_value(
             cfg,
             "headnode_instance_type",

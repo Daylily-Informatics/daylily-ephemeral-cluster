@@ -36,7 +36,7 @@ pcluster version
 
 `pcluster version` must report `3.15.0`. Do not use unpinned install commands such as `pip install --upgrade aws-parallelcluster`.
 
-For safe config validation, use a rendered cluster YAML, not the unresolved `config/day_cluster/prod_cluster.yaml` template:
+For safe config validation, use a rendered cluster YAML, not the unresolved `config/day_cluster/prod_cluster_v8.yaml` template:
 
 ```bash
 pcluster validate-cluster-configuration --cluster-configuration <rendered-cluster.yaml> --region us-west-2

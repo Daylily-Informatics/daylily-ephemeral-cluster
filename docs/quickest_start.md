@@ -160,7 +160,7 @@ dyec workflow launch \
   --region "$REGION" \
   --cluster "$CLUSTER_NAME" \
   --repository daylily-omics-analysis \
-  --git-tag 8.0.0 \
+  --git-tag 9.0.0 \
   --run-context-file ./runs.tsv \
   --analysis-id run-qc \
   --executing-entity "$EXECUTING_ENTITY" \

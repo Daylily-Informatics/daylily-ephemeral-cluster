@@ -1545,9 +1545,9 @@ def run_create_workflow(
             "cluster_template_yaml",
             "Cluster template YAML",
             non_interactive=non_interactive,
-            default_fallback="config/day_cluster/prod_cluster.yaml",
+            default_fallback="config/day_cluster/prod_cluster_v8.yaml",
         )
-        or "config/day_cluster/prod_cluster.yaml"
+        or "config/day_cluster/prod_cluster_v8.yaml"
     )
     if not Path(template_yaml).is_file():
         template_yaml = str(resource_path(template_yaml))
@@ -1623,14 +1623,70 @@ def run_create_workflow(
             "spot_instance_allocation_strategy",
             "Spot allocation strategy",
             non_interactive=non_interactive,
-            default_fallback="capacity-optimized",
+            default_fallback="price-capacity-optimized",
         )
-        or "capacity-optimized",
+        or "price-capacity-optimized",
         # Tag value must be non-empty (AWS min length = 1).
         "REGSUB_DAYLILY_GIT_DEETS": "none",
         "REGSUB_MAX_COUNT_8I": str(max_8i),
         "REGSUB_MAX_COUNT_128I": str(max_128i),
         "REGSUB_MAX_COUNT_192I": str(max_192i),
+        "REGSUB_MAX_COUNT_128I_C": _resolve_nonprompt_config_value(
+            cfg, "max_count_128I_C", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_128I_M": _resolve_nonprompt_config_value(
+            cfg, "max_count_128I_M", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_128I_R": _resolve_nonprompt_config_value(
+            cfg, "max_count_128I_R", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_128I_NVME": _resolve_nonprompt_config_value(
+            cfg, "max_count_128I_NVME", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_192I_C": _resolve_nonprompt_config_value(
+            cfg, "max_count_192I_C", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_192I_M": _resolve_nonprompt_config_value(
+            cfg, "max_count_192I_M", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_192I_R": _resolve_nonprompt_config_value(
+            cfg, "max_count_192I_R", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_192I_NVME_C": _resolve_nonprompt_config_value(
+            cfg, "max_count_192I_NVME_C", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_192I_NVME_M": _resolve_nonprompt_config_value(
+            cfg, "max_count_192I_NVME_M", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_192I_NVME_R": _resolve_nonprompt_config_value(
+            cfg, "max_count_192I_NVME_R", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_192I_HUGENVME": _resolve_nonprompt_config_value(
+            cfg, "max_count_192I_HUGENVME", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_384I_NVME_C": _resolve_nonprompt_config_value(
+            cfg, "max_count_384I_NVME_C", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_384I_NVME_M": _resolve_nonprompt_config_value(
+            cfg, "max_count_384I_NVME_M", "1"
+        )
+        or "1",
+        "REGSUB_MAX_COUNT_384I_NVME_R": _resolve_nonprompt_config_value(
+            cfg, "max_count_384I_NVME_R", "1"
+        )
+        or "1",
         "REGSUB_HEADNODE_INSTANCE_TYPE": _resolve_headnode_instance_type(
             cfg,
             non_interactive=non_interactive,

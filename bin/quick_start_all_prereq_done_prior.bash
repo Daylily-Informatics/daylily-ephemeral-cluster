@@ -110,6 +110,6 @@ for key, value in updates.items():
 write_config(cfg, os.environ["DAY_EX_CFG"])
 '
 
-daylily-ec pricing snapshot --region "$REGION" --config config/day_cluster/prod_cluster.yaml --profile "$AWS_PROFILE"
+daylily-ec pricing snapshot --region "$REGION" --config config/day_cluster/prod_cluster_v8.yaml --profile "$AWS_PROFILE"
 daylily-ec preflight --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG" --pass-on-warn
 yes '' | daylily-ec create --region-az "$REGION_AZ" --profile "$AWS_PROFILE" --config "$DAY_EX_CFG" --pass-on-warn

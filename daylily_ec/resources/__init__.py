@@ -39,6 +39,7 @@ def _xdg_config_home() -> Path:
 def _expected_subpaths(root: Path) -> Iterable[Path]:
     # Minimum layout required for the CLI + legacy scripts.
     yield root / "config"
+    yield root / "config" / "day_cluster" / "prod_cluster_v8.yaml"
     yield root / "config" / "day_cluster" / "prod_cluster.yaml"
     yield root / "config" / "day_cluster" / "pcluster_env.yml"
     yield root / "config" / "day_cluster" / "slurm_accounting_mysql_ec2.yml"
@@ -62,6 +63,7 @@ def _validate_resources_dir(root: Path) -> None:
 def _resources_need_refresh(dest: Path, src: Path) -> bool:
     for rel in (
         "config/daylily_pipeline_command_catalog.yaml",
+        "config/day_cluster/prod_cluster_v8.yaml",
         "config/day_cluster/prod_cluster.yaml",
         "config/day_cluster/slurm_accounting_mysql_ec2.yml",
         "config/day_cluster/post_install_ubuntu_combined.sh",

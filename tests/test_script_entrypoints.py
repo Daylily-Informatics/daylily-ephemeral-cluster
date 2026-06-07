@@ -672,7 +672,7 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert 'replace_required_scalar("force", "true")' in script
         assert 'upsert_scalar("merge_lane_fastqs", "false")' in script
         assert 'upsert_scalar("merge_tile_fastqs", "false")' in script
-        assert 'replace_required_scalar("partition", "i192mem,i192bigmem")' in script
+        assert 'replace_required_scalar("partition", "i192hugenvme")' in script
         assert 'replace_required_scalar("parallel_tiles", "24")' in script
         assert 'replace_required_scalar("conversion_threads", "4")' in script
         assert 'replace_required_scalar("compression_threads", "64")' in script

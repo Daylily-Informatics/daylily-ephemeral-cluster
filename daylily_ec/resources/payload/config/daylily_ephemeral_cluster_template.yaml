@@ -14,7 +14,7 @@ ephemeral_cluster:
     global_allowed_budget_users: [PROMPTUSER, "ubuntu", ""]
     global_budget_amount: [PROMPTUSER, "200", ""]
     enforce_budget: [PROMPTUSER, "skip", ""]
-    cluster_template_yaml: [PROMPTUSER, "config/day_cluster/prod_cluster.yaml", ""]
+    cluster_template_yaml: [PROMPTUSER, "config/day_cluster/prod_cluster_v8.yaml", ""]
     headnode_instance_type: [PROMPTUSER, "r7i.2xlarge", ""]
     fsx_fs_size: [PROMPTUSER, "4800", ""]
     enable_detailed_monitoring: [PROMPTUSER, "false", ""]
@@ -33,6 +33,20 @@ ephemeral_cluster:
     max_count_8I: [PROMPTUSER, "1", ""]
     max_count_128I: [PROMPTUSER, "1", ""]
     max_count_192I: [PROMPTUSER, "1", ""]
+    max_count_128I_C: [PROMPTUSER, "1", ""]
+    max_count_128I_M: [PROMPTUSER, "1", ""]
+    max_count_128I_R: [PROMPTUSER, "1", ""]
+    max_count_128I_NVME: [PROMPTUSER, "1", ""]
+    max_count_192I_C: [PROMPTUSER, "1", ""]
+    max_count_192I_M: [PROMPTUSER, "1", ""]
+    max_count_192I_R: [PROMPTUSER, "1", ""]
+    max_count_192I_NVME_C: [PROMPTUSER, "1", ""]
+    max_count_192I_NVME_M: [PROMPTUSER, "1", ""]
+    max_count_192I_NVME_R: [PROMPTUSER, "1", ""]
+    max_count_192I_HUGENVME: [PROMPTUSER, "1", ""]
+    max_count_384I_NVME_C: [PROMPTUSER, "1", ""]
+    max_count_384I_NVME_M: [PROMPTUSER, "1", ""]
+    max_count_384I_NVME_R: [PROMPTUSER, "1", ""]
   template_defaults:
     # keep as you had; these are fallbacks if default_value is empty
     headnode_instance_type: "r7i.2xlarge"
@@ -50,3 +64,17 @@ ephemeral_cluster:
     max_count_8I: "1"
     max_count_128I: "1"
     max_count_192I: "1"
+    max_count_128I_C: "1"
+    max_count_128I_M: "1"
+    max_count_128I_R: "1"
+    max_count_128I_NVME: "1"
+    max_count_192I_C: "1"
+    max_count_192I_M: "1"
+    max_count_192I_R: "1"
+    max_count_192I_NVME_C: "1"
+    max_count_192I_NVME_M: "1"
+    max_count_192I_NVME_R: "1"
+    max_count_192I_HUGENVME: "1"
+    max_count_384I_NVME_C: "1"
+    max_count_384I_NVME_M: "1"
+    max_count_384I_NVME_R: "1"

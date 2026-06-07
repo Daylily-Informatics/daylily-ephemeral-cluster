@@ -11,6 +11,7 @@ from daylily_ec.workflow import create_cluster
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ACTIVE_CLUSTER_TEMPLATES = (
+    "config/day_cluster/prod_cluster_v8.yaml",
     "config/day_cluster/prod_cluster.yaml",
     "config/day_cluster/prod_cluster_dragen.yaml",
     "config/day_cluster/prod_cluster_variant.yaml",
@@ -48,7 +49,7 @@ def test_write_init_artifacts_accepts_packaged_template(tmp_path, monkeypatch):
     monkeypatch.delenv("DAYLILY_EC_RESOURCES_DIR", raising=False)
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
 
-    template = str(resource_path("config/day_cluster/prod_cluster.yaml"))
+    template = str(resource_path("config/day_cluster/prod_cluster_v8.yaml"))
     substitutions = {
         "REGSUB_REGION": "us-west-2",
         "REGSUB_PUB_SUBNET": "subnet-123",
@@ -106,6 +107,31 @@ def test_active_cluster_templates_use_contract_role_dras() -> None:
         assert all(
             item["AutoImportPolicy"] == ["NEW", "CHANGED", "DELETED"] for item in associations
         )
+
+
+def test_prod_cluster_v8_uses_expected_partition_contract() -> None:
+    text = (REPO_ROOT / "config/day_cluster/prod_cluster_v8.yaml").read_text(encoding="utf-8")
+    payload = yaml.safe_load(text)
+    queues = payload["Scheduling"]["SlurmQueues"]
+    names = [queue["Name"] for queue in queues]
+    assert names == ["i8", "i128", "i128nvme", "i192", "i192nvme", "i384nvme", "i192hugenvme"]
+    assert payload["Scheduling"]["SlurmSettings"]["EnableMemoryBasedScheduling"] is True
+    assert "i192mem" not in names
+    assert "i192bigmem" not in names
+    assert "bcl-convert" not in names
+    assert "bcl2fq-i384-nvme-test" not in names
+    for queue in queues:
+        if queue["Name"].endswith("nvme"):
+            assert queue["JobExclusiveAllocation"] is True
+            assert (
+                queue["ComputeSettings"]["LocalStorage"]["EphemeralVolume"]["MountDir"]
+                == "/scratch"
+            )
+        else:
+            assert "ComputeSettings" not in queue
+    assert "c8a." not in text
+    assert "r8in.48xlarge" not in text
+    assert "r8ib.48xlarge" not in text
 
 
 def test_packaged_cluster_templates_match_source_templates() -> None:

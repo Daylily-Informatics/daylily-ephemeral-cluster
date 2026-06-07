@@ -48,7 +48,7 @@ def _full_subs() -> dict[str, str]:
 
 class TestConstants:
     def test_all_keys_count(self):
-        assert len(ALL_SUBSTITUTION_KEYS) == 33
+        assert len(ALL_SUBSTITUTION_KEYS) == 47
 
     def test_required_keys_subset(self):
         assert REQUIRED_KEYS.issubset(ALL_SUBSTITUTION_KEYS)
@@ -171,6 +171,20 @@ class TestAllSubstitutionKeys:
             "REGSUB_MAX_COUNT_8I",
             "REGSUB_MAX_COUNT_128I",
             "REGSUB_MAX_COUNT_192I",
+            "REGSUB_MAX_COUNT_128I_C",
+            "REGSUB_MAX_COUNT_128I_M",
+            "REGSUB_MAX_COUNT_128I_R",
+            "REGSUB_MAX_COUNT_128I_NVME",
+            "REGSUB_MAX_COUNT_192I_C",
+            "REGSUB_MAX_COUNT_192I_M",
+            "REGSUB_MAX_COUNT_192I_R",
+            "REGSUB_MAX_COUNT_192I_NVME_C",
+            "REGSUB_MAX_COUNT_192I_NVME_M",
+            "REGSUB_MAX_COUNT_192I_NVME_R",
+            "REGSUB_MAX_COUNT_192I_HUGENVME",
+            "REGSUB_MAX_COUNT_384I_NVME_C",
+            "REGSUB_MAX_COUNT_384I_NVME_M",
+            "REGSUB_MAX_COUNT_384I_NVME_R",
             "REGSUB_HEADNODE_INSTANCE_TYPE",
             "REGSUB_HEARTBEAT_EMAIL",
             "REGSUB_HEARTBEAT_SCHEDULE",
@@ -182,7 +196,7 @@ class TestAllSubstitutionKeys:
 
     def test_accounting_disabled_template_has_no_dangling_tokens(self):
         template = (
-            Path(__file__).resolve().parents[1] / "config/day_cluster/prod_cluster.yaml"
+            Path(__file__).resolve().parents[1] / "config/day_cluster/prod_cluster_v8.yaml"
         ).read_text(encoding="utf-8")
         subs = _full_subs()
         subs.update(empty_slurm_accounting_render_blocks())
@@ -197,7 +211,7 @@ class TestAllSubstitutionKeys:
 
     def test_accounting_enabled_template_includes_slurm_database(self):
         template = (
-            Path(__file__).resolve().parents[1] / "config/day_cluster/prod_cluster.yaml"
+            Path(__file__).resolve().parents[1] / "config/day_cluster/prod_cluster_v8.yaml"
         ).read_text(encoding="utf-8")
         db = SlurmAccountingDb(
             stack_name="dayec-slurm-accounting-us-west-2b",
