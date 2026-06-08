@@ -84,6 +84,8 @@ STRIP_FLAGS = {
     "--conda-create-envs-only",
 }
 
+SHELL_CONTROL_TOKENS = {";"}
+
 
 @dataclass(frozen=True)
 class CommandCatalogOptions:
@@ -240,6 +242,27 @@ def ordered_commands(commands: Sequence[AnalysisCommand]) -> tuple[AnalysisComma
     return tuple(kitchen + other)
 
 
+def split_shell_command(command: str) -> list[str]:
+    """Split a catalog command while preserving shell control punctuation."""
+    lexer = shlex.shlex(command, posix=True, punctuation_chars=True)
+    lexer.whitespace_split = True
+    return list(lexer)
+
+
+def join_shell_command(tokens: Sequence[str]) -> str:
+    """Join shell tokens without quoting supported control punctuation."""
+    parts: list[str] = []
+    for token in tokens:
+        if token in SHELL_CONTROL_TOKENS:
+            if not parts:
+                parts.append(token)
+            else:
+                parts[-1] = f"{parts[-1]}{token}"
+            continue
+        parts.append(shlex.quote(token))
+    return " ".join(parts)
+
+
 def render_dy_command(
     command: str,
     *,
@@ -249,7 +272,7 @@ def render_dy_command(
     max_runtime_minutes: int = DEFAULT_JOB_MAX_RUNTIME_MINUTES,
 ) -> str:
     """Normalize Snakemake flags in a catalog dy_command string."""
-    tokens = shlex.split(command)
+    tokens = split_shell_command(command)
     rendered: list[str] = []
     skip_next = False
     for token in tokens:
@@ -276,7 +299,7 @@ def render_dy_command(
     if warmup:
         rendered.append("--conda-create-envs-only")
     return append_default_job_runtime(
-        shlex.join(rendered),
+        join_shell_command(rendered),
         max_runtime_minutes=max_runtime_minutes,
     )
 

@@ -186,6 +186,14 @@ def test_render_dy_command_normalizes_flags_and_warmup() -> None:
         ).count("time=")
         == 1
     )
+    simple_test = render_dy_command(
+        "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help",
+        jobs=150,
+        dry_run=True,
+    )
+    assert simple_test.startswith("source dyoainit; dy-a local hg38; dy-r help ")
+    assert "'dyoainit;'" not in simple_test
+    assert "'hg38;'" not in simple_test
 
 
 def test_ont_kitchensink_slim_fixture_does_not_require_fastq_alignment() -> None:

@@ -40,6 +40,9 @@ against existing cluster `dyec8c` in `us-west-2`.
 | FIX-002 | PASS | Updated CG/MGI fixture to verified control-data HG003 pair under `s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/complete_genomics/`; DYEC `10.0.2` committed, tagged, pushed, installed locally. |
 | RETRY-002 | FAIL | Retry3 launched all 14 non-run-directory catalog dry-runs, but the goleft native-guard marker still mismatched DayOA's escaped Snakemake shell text; all 14 returned nonzero. |
 | FIX-003 | PASS | Corrected the generated marker to match DayOA's escaped `${{sex_args[@]}}` shell text; focused tests passed and full DYEC suite passed: `1068 passed, 8 skipped`. |
-| REL-003 | RUNNING | Preparing DYEC `10.0.3` commit/tag/push and local reinstall before the next `dyec8c` dry-run. |
-| RETRY-003 | PENDING | Retry dry-run after installing/pushing DYEC `10.0.3`. |
-| REPORT-001 | PENDING | Final status after retry. |
+| REL-003 | PASS | DYEC `10.0.3` committed, annotated-tagged, pushed, and installed locally; `dyec --json version` reports `10.0.3`. |
+| RETRY-003 | FAIL | Retry4 rendered and launched all 14 non-run-directory catalog dry-runs with DYEC `10.0.3`; 13 exited `2` because DayOA dynamic BWA-MEM2A Spot ordering requires headnode-role permission for `ec2:DescribeInstanceTypes`; `simple-test` exited `1` because shell semicolons were quoted by the catalog renderer. |
+| FIX-004 | PASS | Patched catalog command rendering to preserve supported shell control punctuation; regression test added for `source dyoainit; dy-a local hg38; dy-r ...`; full DYEC suite passed: `1068 passed, 8 skipped`. |
+| REL-004 | RUNNING | Preparing DYEC `10.0.4` commit/tag/push and local reinstall before a focused `simple-test` verification. |
+| BLOCK-001 | BLOCKED | Full dry-run pass on `dyec8c` requires read-only headnode IAM permission `ec2:DescribeInstanceTypes` for dynamic BWA-MEM2A Spot partition ordering; all-catalog pass also requires the three run-directory DRA mounts unless `--create-missing-mounts` is explicitly approved. |
+| REPORT-001 | PENDING | Final status after focused verification. |
