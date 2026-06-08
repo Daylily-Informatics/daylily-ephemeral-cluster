@@ -35,6 +35,8 @@ against existing cluster `dyec8c` in `us-west-2`.
 | SLIM-002 | FAIL | Retried 13 supported slim commands excluding CG/MGI; all 13 launched, all failed before dry-run on `[ERROR] goleft runtime repair target not found in workflow/rules/go_left.smk`. |
 | FIX-001 | PASS | Patched DYEC headnode launcher to skip the old goleft runtime repair when DayOA already has native guarded `sex_args`; added `complete_genomics_solo` command-catalog manifest support. |
 | TEST-001 | PASS | Focused tests: 65 passed. Full DYEC suite: 1068 passed, 8 skipped. |
-| REL-001 | RUNNING | Preparing DYEC `10.0.1` patch release; DayOA remains `10.0.0`. |
-| RETRY-001 | PENDING | Retry dry-run after installing/pushing DYEC `10.0.1`. |
+| REL-001 | PASS | DYEC `10.0.1` committed, tagged, pushed, and installed locally. |
+| RETRY-001 | BLOCKED | Retry2 recognized CG/MGI but config generation failed because the initial CG FASTQ fixture paths were absent from `s3://lsmc-dayoa-references-usw2/`. |
+| FIX-002 | RUNNING | Updating CG/MGI fixture to verified control-data HG003 pair under `s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/complete_genomics/`; preparing DYEC `10.0.2`. |
+| RETRY-002 | PENDING | Retry dry-run after installing/pushing DYEC `10.0.2`. |
 | REPORT-001 | PENDING | Final status after retry. |
