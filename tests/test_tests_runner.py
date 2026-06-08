@@ -43,6 +43,7 @@ from daylily_ec.tests_runner import (
     run_pytest,
     selected_dayoa_version,
     wait_for_phase,
+    write_sample_manifest,
     write_phase_plan,
 )
 
@@ -199,6 +200,18 @@ def test_ont_kitchensink_slim_fixture_does_not_require_fastq_alignment() -> None
         for column_set in command.input_requirements.accepted_source_column_sets
         for column in column_set
     }
+
+
+def test_complete_genomics_slim_fixture_can_be_written(tmp_path: Path) -> None:
+    command = load_repository_catalog().get_command("complete_genomics_mgi_snv_concordance")
+
+    manifest = write_sample_manifest(command, tmp_path)
+
+    text = manifest.read_text(encoding="utf-8")
+    assert "CG_R1_FQ" in text
+    assert "CG_R2_FQ" in text
+    assert "CG/MGI" in text
+    assert "\tpass_through\t/fsx/staging/staged_external_sequencing_data\t" in text
 
 
 def test_prepare_run_mounts_blocks_then_creates_missing() -> None:

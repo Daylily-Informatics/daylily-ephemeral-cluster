@@ -926,6 +926,8 @@ class TestRunOmicsAnalysisHeadnodeScript:
         assert "goleft indexcov --directory $gl --sex {params.sexchrms:q}" in script
         assert "goleft indexcov --directory $gl " in script
         assert "goleft_status=$?" in script
+        assert "goleft empty-sex guard already native in DayOA" in script
+        assert 'goleft indexcov --directory $gl "${sex_args[@]}"' in script
         assert "no usable chroms?omes|no usable chromosomes" in script
         assert "--fai {params.huref}.fai {input.crai}" in script
         assert "\nPYGOLEFT\n" in script

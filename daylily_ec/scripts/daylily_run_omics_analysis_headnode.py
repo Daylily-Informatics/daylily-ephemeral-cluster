@@ -1325,6 +1325,13 @@ text = path.read_text(encoding="utf-8")
 if new in text:
     print(f"[INFO] goleft empty-sex/no-usable-chromosomes repair already present: {{path}}")
     raise SystemExit(0)
+native_guard_markers = (
+    "sex_args=()",
+    'goleft indexcov --directory $gl "${{sex_args[@]}}" --fai {{params.huref}}.fai {{input.crai}}',
+)
+if all(marker in text for marker in native_guard_markers):
+    print(f"[INFO] goleft empty-sex guard already native in DayOA: {{path}}")
+    raise SystemExit(0)
 if old_with_sex in text:
     text = text.replace(old_with_sex, new, 1)
 elif old_without_sex in text:

@@ -68,6 +68,9 @@ MODE_MANIFESTS = {
     "hybrid_ilmn_ont": Path("examples/staging/hybrid_ilmn_ont/analysis_samples_manifest.tsv"),
     "pacbio_solo": Path("examples/staging/pacbio_solo/analysis_samples_manifest.tsv"),
     "roche_solo": Path("examples/staging/roche_solo/analysis_samples_manifest.tsv"),
+    "complete_genomics_solo": Path(
+        "examples/staging/complete_genomics_solo/analysis_samples_manifest.tsv"
+    ),
 }
 
 SKIP_VALUE_FLAGS = {"-j", "--jobs", "-T", "--timestamp"}

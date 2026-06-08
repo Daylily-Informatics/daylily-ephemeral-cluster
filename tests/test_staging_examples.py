@@ -15,6 +15,10 @@ CONTROL_DATA_ROOT = "s3://lsmc-dayoa-control-data-usw2/genomic_data/"
 SEQUENCING_ROOT = "s3://lsmc-ssf-sequencing-data/basecalls/"
 
 EXAMPLES = {
+    "complete_genomics_solo": {
+        "rows": 1,
+        "unit_fields": ("ILMN_R1_PATH", "ILMN_R2_PATH"),
+    },
     "ilmn_solo": {
         "rows": 3,
         "unit_fields": ("ILMN_R1_PATH", "ILMN_R2_PATH"),
@@ -50,6 +54,8 @@ SOURCE_PATH_FIELDS = {
     module.PATH_TO_CONCORDANCE,
     module.CONCORDANCE_CONTROL_PATH,
     module.TRUTH_DATA_DIR,
+    module.CG_R1_FQ,
+    module.CG_R2_FQ,
     module.ILMN_R1_FQ,
     module.ILMN_R2_FQ,
     module.PACBIO_R1_FQ,
@@ -135,6 +141,7 @@ def _has_source_group(row: dict[str, str]) -> bool:
 def test_staging_example_manifests_have_supported_schema_and_s3_sources() -> None:
     assert sorted(path.name for path in EXAMPLE_ROOT.iterdir()) == [
         "README.md",
+        "complete_genomics_solo",
         "hybrid_ilmn_ont",
         "ilmn_solo",
         "ont_fastq_solo",
