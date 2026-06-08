@@ -1327,7 +1327,7 @@ if new in text:
     raise SystemExit(0)
 native_guard_markers = (
     "sex_args=()",
-    'goleft indexcov --directory $gl "${{sex_args[@]}}" --fai {{params.huref}}.fai {{input.crai}}',
+    'goleft indexcov --directory $gl "${{{{sex_args[@]}}}}" --fai {{params.huref}}.fai {{input.crai}}',
 )
 if all(marker in text for marker in native_guard_markers):
     print(f"[INFO] goleft empty-sex guard already native in DayOA: {{path}}")

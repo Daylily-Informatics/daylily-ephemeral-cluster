@@ -37,6 +37,9 @@ against existing cluster `dyec8c` in `us-west-2`.
 | TEST-001 | PASS | Focused tests: 65 passed. Full DYEC suite: 1068 passed, 8 skipped. |
 | REL-001 | PASS | DYEC `10.0.1` committed, tagged, pushed, and installed locally. |
 | RETRY-001 | BLOCKED | Retry2 recognized CG/MGI but config generation failed because the initial CG FASTQ fixture paths were absent from `s3://lsmc-dayoa-references-usw2/`. |
-| FIX-002 | RUNNING | Updating CG/MGI fixture to verified control-data HG003 pair under `s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/complete_genomics/`; preparing DYEC `10.0.2`. |
-| RETRY-002 | PENDING | Retry dry-run after installing/pushing DYEC `10.0.2`. |
+| FIX-002 | PASS | Updated CG/MGI fixture to verified control-data HG003 pair under `s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/complete_genomics/`; DYEC `10.0.2` committed, tagged, pushed, installed locally. |
+| RETRY-002 | FAIL | Retry3 launched all 14 non-run-directory catalog dry-runs, but the goleft native-guard marker still mismatched DayOA's escaped Snakemake shell text; all 14 returned nonzero. |
+| FIX-003 | PASS | Corrected the generated marker to match DayOA's escaped `${{sex_args[@]}}` shell text; focused tests passed and full DYEC suite passed: `1068 passed, 8 skipped`. |
+| REL-003 | RUNNING | Preparing DYEC `10.0.3` commit/tag/push and local reinstall before the next `dyec8c` dry-run. |
+| RETRY-003 | PENDING | Retry dry-run after installing/pushing DYEC `10.0.3`. |
 | REPORT-001 | PENDING | Final status after retry. |
