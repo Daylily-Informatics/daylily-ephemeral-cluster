@@ -273,7 +273,7 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
     assert result.rc == 0
     assert result.evidence_prefix_s3_uri == (
         "s3://evidence-root/validation/dyec800/command_catalog_results/"
-        "9.0.0-20260607T000000Z/"
+        "10.0.0-20260607T000000Z/"
     )
     assert [phase.phase.phase for phase in result.phases] == ["dryrun", "dryrun"]
     assert all("20260607T000000Z" in call[call.index("--analysis-id") + 1] for call in launch_calls)
@@ -328,7 +328,7 @@ def test_command_catalog_cli_emits_json(monkeypatch: pytest.MonkeyPatch, tmp_pat
     payload = {
         "rc": 0,
         "output_dir": str(tmp_path),
-        "evidence_prefix_s3_uri": "s3://bucket/dyec800/command_catalog_results/9.0.0-stamp/",
+        "evidence_prefix_s3_uri": "s3://bucket/dyec800/command_catalog_results/10.0.0-stamp/",
         "command_ids": ["illumina_snv_alignstats"],
         "dry_run_only": True,
         "phases": [],
@@ -459,7 +459,7 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
     with pytest.raises(RunnerError, match="multiple DayOA git tags"):
         selected_dayoa_version(
             [
-                SimpleNamespace(git_tag="9.0.0"),
+                SimpleNamespace(git_tag="10.0.0"),
                 SimpleNamespace(git_tag="9.0.1"),
             ]
         )
@@ -482,9 +482,9 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
     assert build_evidence_prefix(
         evidence_s3_uri="s3://bucket/root",
         cluster="dyec800",
-        dayoa_version="9.0.0",
+        dayoa_version="10.0.0",
         stamp="20260607T000000Z",
-    ) == "s3://bucket/root/dyec800/command_catalog_results/9.0.0-20260607T000000Z/"
+    ) == "s3://bucket/root/dyec800/command_catalog_results/10.0.0-20260607T000000Z/"
     assert (
         role_root_uri(
             mount_path="/fsx/references",
@@ -548,7 +548,7 @@ def test_catalog_role_and_input_error_branches(tmp_path: Path) -> None:
             catalog=catalog,
             output_dir=tmp_path,
             role_uris=roles,
-            evidence_prefix_s3_uri="s3://bucket/root/dyec800/command_catalog_results/9.0.0-stamp/",
+            evidence_prefix_s3_uri="s3://bucket/root/dyec800/command_catalog_results/10.0.0-stamp/",
             profile="lsmc",
             region="us-west-2",
             cluster="dyec800",
@@ -561,7 +561,7 @@ def test_catalog_role_and_input_error_branches(tmp_path: Path) -> None:
         catalog=catalog,
         output_dir=tmp_path,
         role_uris=roles,
-        evidence_prefix_s3_uri="s3://bucket/root/dyec800/command_catalog_results/9.0.0-stamp/",
+        evidence_prefix_s3_uri="s3://bucket/root/dyec800/command_catalog_results/10.0.0-stamp/",
         profile="lsmc",
         region="us-west-2",
         cluster="dyec800",
@@ -576,7 +576,7 @@ def test_catalog_role_and_input_error_branches(tmp_path: Path) -> None:
             catalog=catalog,
             output_dir=tmp_path,
             role_uris=roles,
-            evidence_prefix_s3_uri="s3://bucket/root/dyec800/command_catalog_results/9.0.0-stamp/",
+            evidence_prefix_s3_uri="s3://bucket/root/dyec800/command_catalog_results/10.0.0-stamp/",
             profile="lsmc",
             region="us-west-2",
             cluster="dyec800",
@@ -611,7 +611,7 @@ def test_manifest_conversion_and_stage_failure(tmp_path: Path) -> None:
             catalog=catalog,
             output_dir=tmp_path,
             role_uris=roles,
-            evidence_prefix_s3_uri="s3://bucket/root/dyec800/command_catalog_results/9.0.0-stamp/",
+            evidence_prefix_s3_uri="s3://bucket/root/dyec800/command_catalog_results/10.0.0-stamp/",
             profile="lsmc",
             region="us-west-2",
             cluster="dyec800",
@@ -624,7 +624,7 @@ def test_render_phase_none_contract_and_execution_failure_paths(tmp_path: Path) 
     command = SimpleNamespace(
         command_id="simple_test",
         repository="daylily-omics-analysis",
-        git_tag="9.0.0",
+        git_tag="10.0.0",
         genome="hg38",
         dy_command="dy-r help -j 1",
         no_containerized=True,
@@ -634,7 +634,7 @@ def test_render_phase_none_contract_and_execution_failure_paths(tmp_path: Path) 
         command,
         phase="dryrun",
         manifests={},
-        evidence_prefix_s3_uri="s3://bucket/root/dyec800/command_catalog_results/9.0.0-stamp/",
+        evidence_prefix_s3_uri="s3://bucket/root/dyec800/command_catalog_results/10.0.0-stamp/",
         executing_entity="ubuntu",
         profile="lsmc",
         region="us-west-2",

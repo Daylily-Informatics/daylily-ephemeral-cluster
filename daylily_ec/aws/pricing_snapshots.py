@@ -29,7 +29,9 @@ def _now_iso() -> str:
 
 
 def _default_cluster_config_path() -> Path:
-    return resource_path("config/day_cluster/prod_cluster_v8.yaml")
+    return resource_path(
+        "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+    )
 
 
 def resolve_cluster_config_path(cluster_config_path: Optional[str] = None) -> Path:

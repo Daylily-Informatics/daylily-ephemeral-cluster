@@ -1545,9 +1545,12 @@ def run_create_workflow(
             "cluster_template_yaml",
             "Cluster template YAML",
             non_interactive=non_interactive,
-            default_fallback="config/day_cluster/prod_cluster_v8.yaml",
+            default_fallback=(
+                "config/day_cluster/"
+                "prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+            ),
         )
-        or "config/day_cluster/prod_cluster_v8.yaml"
+        or "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
     )
     if not Path(template_yaml).is_file():
         template_yaml = str(resource_path(template_yaml))

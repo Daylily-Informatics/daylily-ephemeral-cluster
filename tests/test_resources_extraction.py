@@ -15,6 +15,10 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
     root = ensure_extracted()
     assert root.is_dir()
 
+    assert (
+        root
+        / "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+    ).is_file()
     assert (root / "config/day_cluster/prod_cluster_v8.yaml").is_file()
     assert (root / "config/day_cluster/prod_cluster.yaml").is_file()
     assert (root / "config/day_cluster/pcluster_env.yml").is_file()
@@ -25,7 +29,9 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
         resource_path("quarantine/README.md")
 
     # resource_path should return the same filesystem location.
-    p = resource_path("config/day_cluster/prod_cluster_v8.yaml")
+    p = resource_path(
+        "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+    )
     assert isinstance(p, Path)
     assert p.is_file()
 

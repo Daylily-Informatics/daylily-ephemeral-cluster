@@ -11,6 +11,7 @@ from daylily_ec.workflow import create_cluster
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ACTIVE_CLUSTER_TEMPLATES = (
+    "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml",
     "config/day_cluster/prod_cluster_v8.yaml",
     "config/day_cluster/prod_cluster.yaml",
     "config/day_cluster/prod_cluster_dragen.yaml",
@@ -49,7 +50,11 @@ def test_write_init_artifacts_accepts_packaged_template(tmp_path, monkeypatch):
     monkeypatch.delenv("DAYLILY_EC_RESOURCES_DIR", raising=False)
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path / "xdg"))
 
-    template = str(resource_path("config/day_cluster/prod_cluster_v8.yaml"))
+    template = str(
+        resource_path(
+            "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+        )
+    )
     substitutions = {
         "REGSUB_REGION": "us-west-2",
         "REGSUB_PUB_SUBNET": "subnet-123",

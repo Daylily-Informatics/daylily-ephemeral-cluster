@@ -36,7 +36,9 @@ from daylily_ec.workflow.create_cluster import (
 ValidationMode = Literal["permissions", "quotas", "all"]
 SUPPORTED_MODES: tuple[str, ...] = ("permissions", "quotas", "all")
 DEFAULT_CONFIG_PATH = "config/daylily_ephemeral_cluster_template.yaml"
-DEFAULT_CLUSTER_TEMPLATE_PATH = "config/day_cluster/prod_cluster_v8.yaml"
+DEFAULT_CLUSTER_TEMPLATE_PATH = (
+    "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+)
 SSM_SESSION_DOCUMENT = "SSM-SessionManagerRunShell"
 
 
