@@ -712,6 +712,11 @@ def test_repository_catalog_run_analysis_commands_require_run_context() -> None:
     assert "produce_ont_run_qc_and_demux_multiqc" not in ont_dy_command
     assert "run_context_file=config/runs.tsv" in ont_dy_command
 
+    ultima_profile = catalog.test_data_profiles["ultima_run_directory"]
+    assert ultima_profile.run_context_values == {
+        "METRICS_PATH": ".test_data/data/ultima_run_qc/ultima_demux_summary_mqc.tsv"
+    }
+
 
 def test_repository_catalog_rejects_run_analysis_without_run_dra_profile(
     tmp_path: Path,

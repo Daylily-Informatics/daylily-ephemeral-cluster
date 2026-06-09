@@ -184,6 +184,18 @@ for index in range(bcl_start + 1, len(lines)):
         bcl_end = index
         break
 
+bcl_child_indent = None
+for index in range(bcl_start + 1, bcl_end):
+    stripped = lines[index].strip()
+    if not stripped or lines[index].lstrip().startswith("#"):
+        continue
+    indent = len(lines[index]) - len(lines[index].lstrip())
+    if indent > bcl_indent:
+        bcl_child_indent = " " * indent
+        break
+if bcl_child_indent is None:
+    bcl_child_indent = " " * (bcl_indent + 2)
+
 
 def replace_required_scalar(key, value):
     target_index = None
@@ -205,8 +217,7 @@ def upsert_scalar(key, value):
             target_index = index
             break
     if target_index is None:
-        child_indent = " " * (bcl_indent + 4)
-        lines.insert(bcl_end, f'{child_indent}{key}: "{value}"\n')
+        lines.insert(bcl_end, f'{bcl_child_indent}{key}: "{value}"\n')
         bcl_end += 1
         return
     indent = re.match(r"^(\s*)", lines[target_index]).group(1)
@@ -687,17 +698,10 @@ def main(argv: Optional[List[str]] = None) -> int:
         args.session_name = analysis_id
     if args.export_destination_s3_uri:
         from daylily_ec.workflow.export_data import (
-            _create_session,
             validate_export_destination_s3_uri,
-            validate_s3_destination_prefix_empty,
         )
 
         validate_export_destination_s3_uri(
-            args.export_destination_s3_uri,
-            source_path=source_path,
-        )
-        validate_s3_destination_prefix_empty(
-            _create_session(region, args.profile).client("s3"),
             args.export_destination_s3_uri,
             source_path=source_path,
         )

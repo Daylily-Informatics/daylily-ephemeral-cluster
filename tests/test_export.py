@@ -647,6 +647,37 @@ def test_run_export_workflow_success_writes_v4_receipt(tmp_path, monkeypatch) ->
     assert fake.deleted_association_id == "dra-export"
 
 
+def test_run_export_workflow_does_not_preflight_list_destination_prefix(
+    tmp_path, monkeypatch
+) -> None:
+    fake = FakeFsxClient()
+    fake_s3 = FakeS3Client(key_count=1)
+    monkeypatch.setattr(
+        "daylily_ec.workflow.export_data._create_session",
+        lambda _region, _profile: FakeSession(fake, s3_client=fake_s3),
+    )
+
+    rc = run_export_workflow(
+        ExportOptions(
+            cluster_name="alpha",
+            fsx_file_system_id="fs-123",
+            source_path="/fsx/analysis_results/johnm/illumina_run_qc",
+            destination_s3_uri="s3://bucket/analysis_results/johnm/illumina_run_qc/",
+            region="us-west-2",
+            profile="prof",
+            output_dir=tmp_path,
+        )
+    )
+
+    assert rc == 0
+    assert fake_s3.list_calls == []
+    receipt = yaml.safe_load((tmp_path / "fsx_export.yaml").read_text(encoding="utf-8"))[
+        "fsx_export"
+    ]
+    assert receipt["status"] == "success"
+    assert receipt["task_lifecycle"] == "SUCCEEDED"
+
+
 def _dayoa_evidence_manifest() -> str:
     digest = "a" * 64
     payload = {

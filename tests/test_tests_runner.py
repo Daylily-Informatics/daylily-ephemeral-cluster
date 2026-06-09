@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import csv
 import json
 from pathlib import Path
 from types import SimpleNamespace
@@ -270,7 +271,9 @@ def test_prepare_run_mounts_blocks_then_creates_missing() -> None:
 def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) -> None:
     catalog = load_repository_catalog()
     ont = catalog.get_command("ont_run_qc")
-    source = catalog.test_data_profiles[ont.test_data_profile].source_s3_uri_template
+    ultima = catalog.get_command("ultima_run_qc")
+    ont_source = catalog.test_data_profiles[ont.test_data_profile].source_s3_uri_template
+    ultima_source = catalog.test_data_profiles[ultima.test_data_profile].source_s3_uri_template
     launch_calls: list[list[str]] = []
 
     result = run_command_catalog(
@@ -278,7 +281,7 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
             cluster="dyec800",
             profile="lsmc",
             region="us-west-2",
-            command_codes="illumina_snv_alignstats ont_run_qc",
+            command_codes="illumina_snv_alignstats ont_run_qc ultima_run_qc",
             evidence_s3_uri="s3://evidence-root/validation",
             dry_run_only=True,
             output_dir=tmp_path,
@@ -288,18 +291,31 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
         stage_func=_fake_stage,
         launch_func=_fake_launch_factory(launch_calls),
         status_func=lambda _metadata, _phase: {"exit_code": 0},
-        mount_list_func=lambda **_kwargs: [_run_mount_record(source_s3_uri=source, platform="ONT")],
+        mount_list_func=lambda **_kwargs: [
+            _run_mount_record(source_s3_uri=ont_source, mount_id="ONT-RUN", platform="ONT"),
+            _run_mount_record(source_s3_uri=ultima_source, mount_id="ULTIMA-RUN", platform="ULTIMA"),
+        ],
     )
 
     assert result.rc == 0
     assert result.evidence_prefix_s3_uri == (
         "s3://evidence-root/validation/dyec800/command_catalog_results/"
-        "10.0.0-20260607T000000Z/"
+        "10.0.1-20260607T000000Z/"
     )
-    assert [phase.phase.phase for phase in result.phases] == ["dryrun", "dryrun"]
+    assert [phase.phase.phase for phase in result.phases] == ["dryrun", "dryrun", "dryrun"]
     assert all("20260607T000000Z" in call[call.index("--analysis-id") + 1] for call in launch_calls)
     assert all("--dry-run" in call for call in launch_calls)
     assert all("-n" in call[call.index("--dy-command") + 1] for call in launch_calls)
+    ont_call = next(call for call in launch_calls if "ont_run_qc" in call[call.index("--analysis-id") + 1])
+    ont_command = ont_call[ont_call.index("--dy-command") + 1]
+    assert "run_context_file=config/runs.tsv" in ont_command
+    assert "samples_table=.test_data/data/samples.tsv" in ont_command
+    assert "units_table=.test_data/data/units.tsv" in ont_command
+    with (tmp_path / "ultima_run_qc" / "runs.tsv").open(newline="", encoding="utf-8") as handle:
+        ultima_rows = list(csv.DictReader(handle, delimiter="\t"))
+    assert ultima_rows[0]["METRICS_PATH"] == (
+        ".test_data/data/ultima_run_qc/ultima_demux_summary_mqc.tsv"
+    )
     assert (tmp_path / "command_registry.json").is_file()
     assert (tmp_path / "summary.json").is_file()
 

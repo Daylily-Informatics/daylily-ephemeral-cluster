@@ -1,0 +1,11 @@
+DAY-EC activated.
+DAY-EC activated.
+__DAYLILY_SESSION__=ccv_dryrun_ont_run_qc_20260609T083613Z
+__DAYLILY_TMUX_SESSION__=ccv_dryrun_ont_run_qc_20260609T083613Z
+__DAYLILY_RUN_DIR__=/home/ubuntu/daylily-runs/ccv_dryrun_ont_run_qc_20260609T083613Z
+__DAYLILY_REPO_PATH__=/fsx/analysis_results/ubuntu/ccv_dryrun_ont_run_qc_20260609T083613Z/daylily-omics-analysis
+Tmux session 'ccv_dryrun_ont_run_qc_20260609T083613Z' created on the head node.
+Run state directory: /home/ubuntu/daylily-runs/ccv_dryrun_ont_run_qc_20260609T083613Z
+Workflow repo path: /fsx/analysis_results/ubuntu/ccv_dryrun_ont_run_qc_20260609T083613Z/daylily-omics-analysis
+Reconnect with: daylily-ssh-into-headnode --profile lsmc --region us-west-2 --cluster dyecX4
+Then run: tmux attach -t ccv_dryrun_ont_run_qc_20260609T083613Z

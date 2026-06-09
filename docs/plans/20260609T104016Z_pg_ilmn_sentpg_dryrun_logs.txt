@@ -1,0 +1,164 @@
+DAY-EC activated.
+DAY-EC activated.
+Cloning into '/fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis'...
+Updating files:  58% (771/1315)Updating files:  59% (776/1315)Updating files:  60% (789/1315)Updating files:  61% (803/1315)Updating files:  62% (816/1315)Updating files:  63% (829/1315)Updating files:  64% (842/1315)Updating files:  65% (855/1315)Updating files:  66% (868/1315)Updating files:  67% (882/1315)Updating files:  68% (895/1315)Updating files:  69% (908/1315)Updating files:  69% (912/1315)Updating files:  70% (921/1315)Updating files:  71% (934/1315)Updating files:  72% (947/1315)Updating files:  73% (960/1315)Updating files:  74% (974/1315)Updating files:  75% (987/1315)Updating files:  76% (1000/1315)Updating files:  77% (1013/1315)Updating files:  78% (1026/1315)Updating files:  79% (1039/1315)Updating files:  80% (1052/1315)Updating files:  81% (1066/1315)Updating files:  82% (1079/1315)Updating files:  83% (1092/1315)Updating files:  84% (1105/1315)Updating files:  85% (1118/1315)Updating files:  86% (1131/1315)Updating files:  87% (1145/1315)Updating files:  88% (1158/1315)Updating files:  89% (1171/1315)Updating files:  90% (1184/1315)Updating files:  91% (1197/1315)Updating files:  91% (1203/1315)Updating files:  92% (1210/1315)Updating files:  93% (1223/1315)Updating files:  94% (1237/1315)Updating files:  95% (1250/1315)Updating files:  96% (1263/1315)Updating files:  97% (1276/1315)Updating files:  98% (1289/1315)Updating files:  99% (1302/1315)Updating files: 100% (1315/1315)Updating files: 100% (1315/1315), done.
+Cloning repository...
+
+Great success! Daylily repository cloned.
+Repository: https://github.com/lsmc-bio/daylily-omics-analysis.git
+Reference : jem-dev
+Location  : /fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis
+
+To get started:
+  cd /fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis
+  # initialize and run the analysis repository per its documentation
+Notice: --project not set. Using default project name: dyecX4
+Project: dyecX4
+Skip Project Check: true
+Skipping project validation as --skip-project-check was passed.
+
+________________________________________________________
+AWS Budget lookup skipped for project 'dyecX4' in region 'us-west-2'.
+  Total: NA
+  Used: NA
+  Percent Used: NA
+________________________________________________________
+Using configured Sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic
+
+# conda environments:
+#
+base                   /home/ubuntu/miniconda3
+DAY-EC               * /home/ubuntu/miniconda3/envs/DAY-EC
+DAYOA                  /home/ubuntu/miniconda3/envs/DAYOA
+
+Day CLI initialized for project 'dyecX4' in region 'us-west-2'.
+The Daylily CLI is now available.
+Available commands (tab completion is enabled for all):
+ 
+	(day-activate / dy-a) [slurm|local] ([hg38|hg38_broad|b37])- Activate a Slurm or local environment.
+	                           
+	{day-set-genome-build / dy-g) [b37|hg38|hg38_broad] - Set the genome build for the current environment.
+	                           
+	(day-run / dy-r)          - Run a command in the current environment.
+	                           <tab> for exposed targets, -<tab> for all command line flags.
+	                           
+	(day-monitor / dy-m)      - Monitor workflow status (Snakemake, SLURM, logs).
+	                           Use --block-and-poll to wait for completion.
+	                           
+	(day-deactivate / dy-d)   - Deactivate the current environment.
+	                           Use 'dy-d reset' to hard reset the environment.
+	                           
+	                           
+	                           
+	                           
+	. To Stage Sample Data, see daylily-ephemeral-cluster docs for running ~/projects/daylily-ephemeral-cluster/bin/daylily-stage-analysis-samples-headnode 
+	  ... which once run, you will copy the samples.tsv and units.tsv files to config/ in this directory.
+	                           
+	(example): ACTIVATE AN ANALYSIS ENV
+
+
+
+
+
+		dy-a slurm hg38 # or hg38_broad or b37
+
+	(example): RUN ANALYSES
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.samples.tsv config/samples.tsv
+
+		cp .test_data/data/0.01xwgs_HG002_hg38.units.tsv config/units.tsv
+
+
+
+		# Use target names directly (tab-complete available):
+
+		dy-r produce_snv_concordances -p -k -j 20 -n   # Illumina short-read SNV concordance
+
+		dy-r produce_alignstats -p -k -j 20 -n         # Alignment statistics
+
+
+
+		# Platform-specific targets:
+
+		dy-r produce_sentdont_vcf -p -k -j 20 -n       # ONT SNV calling
+
+		dy-r produce_sentdpb_vcf -p -k -j 20 -n        # PacBio SNV calling
+
+		dy-r produce_sentdug_vcf -p -k -j 20 -n        # Ultima SNV calling (use hg38_broad)
+
+
+
+		# Hybrid workflow targets:
+
+		dy-r produce_sentdhio_vcf -p -k -j 20 -n       # Hybrid Illumina+ONT CLI
+
+		dy-r produce_sentdhuo_vcf -p -k -j 20 -n       # Hybrid Ultima+ONT CLI (use hg38_broad)
+
+		dy-r produce_sentdhiom_vcf -p -k -j 20 -n      # Hybrid Illumina+ONT Modular
+
+		dy-r produce_sentdhuom_vcf -p -k -j 20 -n      # Hybrid Ultima+ONT Modular (use hg38_broad)
+
+
+
+		# Remove -n to execute (not dry-run)
+
+Requesting profile: slurm
+Attempting to deactivate existing environments & re-init with --project dyecX4 .
+Remote call detected. Activating conda hack
+ > >> >>> 
+ACTIVE CONFIG FILES NOT FOUND IN /fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis/config/day_profiles/slurm ... copying
+Copying template yaml files to active config files /fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis/config/day_profiles/slurm
+Copying template bash files to active config files /fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis/config/day_profiles/slurm
+yq is already installed.
+Using sentieon license file: /fsx/references/runtime_assets/cached_envs/Life_Sciences_Manufacturing_Corporation_eval.lic from ~/.config/daylily/daylily_cli_global.yaml
+
+!!!!
+!!!!
+    WARNING: gittag:null not found touched in  ~/.config/daylily/null 
+     This might be fine if you have cloned a more recent release of daylily compared to the tagged version used to create this ephemeral cluster.
+     ... however, this is not expected. If you are running an ephemeral cluster headnode for days+, this is not the intended use of daylily, a fresh build might be called for.
+     This is checked by testing if ~/.config/daylily/null exists .
+!!!!
+ > >> >>>   genome build set to ::: hg38  
+       _______ GREAT SUCCESS _______       
+Remote call detected. Activating conda hack
+bwa_mem2a_aln_sort.partition=i192nvme,i384nvme
+i192nvme: avg=2.970233 min=2.235800 c8id.48xlarge=3.293200,c8id.metal-48xl=2.235800,m8id.48xlarge=2.775000,m8id.metal-48xl=3.639000,r8id.48xlarge=3.568300,r8id.metal-48xl=2.310100
+i384nvme: avg=4.633083 min=3.296800 c8id.96xlarge=3.689700,c8id.metal-96xl=3.296800,m8id.96xlarge=7.116200,m8id.metal-96xl=4.617100,r8id.96xlarge=4.835800,r8id.metal-96xl=4.242900
+Your config files in /fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis/config/day_profiles/slurm are newer than the templates. clear 2 go.
+...AUTO-CONFIG: snv_callers=sentpg (from target rules → env)
+Executing: snakemake --profile=/fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis/config/day_profiles/slurm produce_sentpg_snv_vcf -p -j 150 -k -T 0 --rerun-triggers mtime -n --default-resources time=100
+loading global: /fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis/config/global_AWSPC.yaml
+loading profile rule_config: /fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis/config/day_profiles/slurm/rule_config.yaml
+INFO::: The genome build hg38 is supported.  The genome build prefix is 'chr''.
+...WARNING: No aligners set in the config.
+aligners (final): []
+...INFO: No dedupers set in config. Defaulting to na (no dedup).
+deduper (final): [na]
+...WARNING: No snv_callers set in the config.
+...INFO: Auto-detected SNV callers from env: ['sentpg']
+SNV Callers (final): [sentpg]
+Somatic SNV Callers:[senttn]
+... WARNING: No sv_callers set in the config.
+SV Callers (final): []
+A    N   A   L  Y S I S    SAMPLE TABLE DETECTED ::: /fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis/config/samples.tsv
+A    N   A   L  Y S I S    UNIT TABLE DETECTED ::: /fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis/config/units.tsv
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_1x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_5x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R1.fastq.gz'
+[Errno 2] No such file or directory: '/fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_40x_R1.fastq.gz'
+Building DAG of jobs...
+MissingInputException in rule pre_prep_raw_fq in file /fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis/workflow/rules/prep_input_sample_files.smk, line 361:
+Missing input files for rule pre_prep_raw_fq:
+    output: results/day/hg38/R15x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/R15x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.R1.fastq.gz, results/day/hg38/R15x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/R15x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.R2.fastq.gz
+    wildcards: sample=R15x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ, sample_lane=R15x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ
+    affected files:
+        /fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R2.fastq.gz
+        /fsx/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/HG003_15x_R1.fastq.gz
+RETURN CODE: 1
+[INFO] Workflow exited with status 1
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-45:/fsx/analysis_results/ubuntu/pg_ilmn_sentpg_dryrun_20260609T104016Z/daylily-omics-analysis$

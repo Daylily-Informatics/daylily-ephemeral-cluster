@@ -16,7 +16,12 @@ from typing import Any, Callable, Iterable, Mapping, Optional, Sequence
 from urllib.parse import urlparse
 
 from daylily_ec.analysis_identity import analysis_source_path, validate_analysis_segment
-from daylily_ec.repositories import AnalysisCommand, RepositoryCatalog, load_repository_catalog
+from daylily_ec.repositories import (
+    AnalysisCommand,
+    RepositoryCatalog,
+    TestDataProfile,
+    load_repository_catalog,
+)
 from daylily_ec.run_mounts import (
     CreateRunMountRequest,
     MOUNT_PURPOSE_RUN,
@@ -300,6 +305,37 @@ def render_dy_command(
         rendered.append("--conda-create-envs-only")
     return append_default_job_runtime(
         join_shell_command(rendered),
+        max_runtime_minutes=max_runtime_minutes,
+    )
+
+
+def render_catalog_dy_command(
+    command: AnalysisCommand,
+    *,
+    jobs: int,
+    dry_run: bool,
+    warmup: bool = False,
+    max_runtime_minutes: int = DEFAULT_JOB_MAX_RUNTIME_MINUTES,
+) -> str:
+    """Render a catalog command with runtime config plus runner-normalized flags."""
+    dy_command = (
+        getattr(command, "dryrun_dy_command", command.dy_command) if dry_run else command.dy_command
+    )
+    if command.input_contract == "run_context":
+        runtime_parameters = getattr(command, "runtime_parameters", {})
+        if "run_context_file" not in runtime_parameters:
+            raise TestsRunnerError(
+                f"runtime_parameters.run_context_file is required for {command.command_id}"
+            )
+        runtime_config = " ".join(
+            shlex.quote(f"{key}={value}") for key, value in runtime_parameters.items()
+        )
+        dy_command = f"{dy_command} --config {runtime_config}"
+    return render_dy_command(
+        dy_command,
+        jobs=jobs,
+        dry_run=dry_run,
+        warmup=warmup,
         max_runtime_minutes=max_runtime_minutes,
     )
 
@@ -660,6 +696,7 @@ def prepare_command_inputs(
                 run_context,
                 command=command,
                 record=record,
+                test_data_profile=catalog.test_data_profiles[command.test_data_profile],
                 profile=profile,
                 region=region,
             )
@@ -743,6 +780,7 @@ def write_run_context(
     *,
     command: AnalysisCommand,
     record: RunMountRecord,
+    test_data_profile: TestDataProfile,
     profile: str,
     region: str,
 ) -> None:
@@ -762,6 +800,7 @@ def write_run_context(
         "REGION": region,
         "PROFILE": profile,
     }
+    row.update(test_data_profile.run_context_values)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("w", newline="", encoding="utf-8") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(row), delimiter="\t")
@@ -876,8 +915,8 @@ def render_phase(
         executing_entity=executing_entity,
         analysis_id=analysis_id,
     )
-    dy_command = render_dy_command(
-        command.dy_command,
+    dy_command = render_catalog_dy_command(
+        command,
         jobs=jobs,
         dry_run=dry_run,
         warmup=warmup,

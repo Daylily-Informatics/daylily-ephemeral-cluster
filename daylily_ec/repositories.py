@@ -189,6 +189,7 @@ class TestDataProfile(BaseModel):
     locations: List[str] = Field(default_factory=list)
     run_context_source_s3_column: str = ""
     run_context_mount_id_column: str = ""
+    run_context_values: Dict[str, str] = Field(default_factory=dict)
     source_notes: List[str] = Field(default_factory=list)
 
     @field_validator("description", "source_mount_mode")
@@ -230,6 +231,14 @@ class TestDataProfile(BaseModel):
     def _validate_optional_strings(cls, value: str) -> str:
         return str(value or "").strip()
 
+    @field_validator("run_context_values")
+    @classmethod
+    def _validate_run_context_values(cls, values: Dict[str, str]) -> Dict[str, str]:
+        return {
+            _clean_id(str(key), field_name="run_context_values key"): str(value or "").strip()
+            for key, value in values.items()
+        }
+
     @model_validator(mode="after")
     def _validate_mount_contract(self) -> "TestDataProfile":
         if self.source_mount_mode == "none":
@@ -237,6 +246,8 @@ class TestDataProfile(BaseModel):
                 raise ValueError("source_mount_mode none must not declare source locations")
             if self.run_context_source_s3_column or self.run_context_mount_id_column:
                 raise ValueError("source_mount_mode none must not declare run-context columns")
+            if self.run_context_values:
+                raise ValueError("source_mount_mode none must not declare run-context values")
         elif self.source_mount_mode == "default_mounted":
             if not self.locations:
                 raise ValueError("default_mounted profiles must declare locations")
@@ -246,6 +257,8 @@ class TestDataProfile(BaseModel):
                 raise ValueError("default_mounted profiles must declare source_fsx_prefix")
             if self.run_context_source_s3_column or self.run_context_mount_id_column:
                 raise ValueError("default_mounted profiles must not declare run-context columns")
+            if self.run_context_values:
+                raise ValueError("default_mounted profiles must not declare run-context values")
         elif self.source_mount_mode == "run_dra_required":
             if not self.source_s3_uri_template:
                 raise ValueError("run_dra_required profiles must declare source_s3_uri_template")

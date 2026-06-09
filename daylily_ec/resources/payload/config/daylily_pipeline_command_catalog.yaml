@@ -158,6 +158,8 @@ test_data_profiles:
     source_fsx_prefix: /fsx/run_dir_mounts/{MOUNT_ID}/
     run_context_source_s3_column: SOURCE_S3_URI
     run_context_mount_id_column: MOUNT_ID
+    run_context_values:
+      METRICS_PATH: .test_data/data/ultima_run_qc/ultima_demux_summary_mqc.tsv
     locations:
       - default_control_run_data
     source_notes:
@@ -182,6 +184,8 @@ test_data_profiles:
     source_fsx_prefix: /fsx/run_dir_mounts/{MOUNT_ID}/
     run_context_source_s3_column: SOURCE_S3_URI
     run_context_mount_id_column: MOUNT_ID
+    run_context_values:
+      METRICS_PATH: .test_data/data/ultima_run_qc/ultima_demux_summary_mqc.tsv
     locations:
       - default_control_run_data
     source_notes:

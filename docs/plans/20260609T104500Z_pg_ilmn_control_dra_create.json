@@ -1,0 +1,19 @@
+{
+    "Association": {
+        "AssociationId": "dra-025df65da949d4968",
+        "ResourceARN": "arn:aws:fsx:us-west-2:108782052779:association/fs-04960a3a07c091cf3/dra-025df65da949d4968",
+        "FileSystemId": "fs-04960a3a07c091cf3",
+        "Lifecycle": "CREATING",
+        "FileSystemPath": "/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/",
+        "DataRepositoryPath": "s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/",
+        "BatchImportMetaDataOnCreate": true,
+        "ImportedFileChunkSize": 1024,
+        "Tags": [
+            {
+                "Key": "lsmc:purpose",
+                "Value": "pangenome-control-data"
+            }
+        ],
+        "CreationTime": 1781001856.397
+    }
+}

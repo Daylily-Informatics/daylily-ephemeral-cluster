@@ -955,7 +955,6 @@ def run_export_workflow(options: ExportOptions) -> int:
         return 1
     session = _create_session(options.region, options.profile)
     client = session.client("fsx")
-    s3_client = session.client("s3")
     record: Optional[ExportDraRecord] = None
     task_payload: Dict[str, Any] = {}
     detach_payload: Dict[str, Any] = {}
@@ -964,11 +963,6 @@ def run_export_workflow(options: ExportOptions) -> int:
 
     try:
         receipt["fsx_export"]["phase"] = "preflight"
-        validate_s3_destination_prefix_empty(
-            s3_client,
-            options.destination_s3_uri,
-            source_path=options.source_path,
-        )
         def _capture_created_dra(created_record: ExportDraRecord) -> None:
             nonlocal record
             record = created_record
@@ -1044,7 +1038,7 @@ def run_export_workflow(options: ExportOptions) -> int:
                         _run_dewey_registration(
                             options=options,
                             receipt=receipt,
-                            s3_client=s3_client,
+                            s3_client=session.client("s3"),
                         )
                     )
                 except (RuntimeError, ExportError, BotoCoreError, ClientError) as exc:

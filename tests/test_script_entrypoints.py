@@ -4,6 +4,7 @@ from types import SimpleNamespace
 from unittest.mock import patch
 
 import pytest
+import yaml
 
 from daylily_ec.aws.ssm import HeadNodeTarget, SsmError
 from daylily_ec.scripts.common import CommandError
@@ -112,6 +113,54 @@ class TestSshIntoHeadnodeScript:
 
 
 class TestRunOmicsAnalysisHeadnodeScript:
+    def test_bclconvert_profile_patch_inserts_yaml_keys_at_existing_child_indent(self, tmp_path, monkeypatch):
+        run_dir = tmp_path / "run-dir"
+        run_dir.mkdir()
+        (tmp_path / "config").mkdir()
+        (tmp_path / "config" / "runs.tsv").write_text(
+            "RUNID\tPLATFORM\tRUN_DIR\n"
+            f"RUN-1\tILMN\t{run_dir}\n",
+            encoding="utf-8",
+        )
+        profile_dir = tmp_path / "profile"
+        profile_dir.mkdir()
+        rule_config = profile_dir / "rule_config.yaml"
+        rule_config.write_text(
+            "\n".join(
+                [
+                    "other:",
+                    "  value: true",
+                    "bclconvert:",
+                    "  run_dir: ''",
+                    "  force: 'false'",
+                    "  threads: '1'",
+                    "  partition: i1",
+                    "  parallel_tiles: '1'",
+                    "  conversion_threads: '1'",
+                    "  compression_threads: '1'",
+                    "  decompression_threads: '1'",
+                    "  fastq_gzip_compression_level: '4'",
+                    "  tmpdir: /tmp",
+                    "next:",
+                    "  value: true",
+                    "",
+                ]
+            ),
+            encoding="utf-8",
+        )
+        monkeypatch.chdir(tmp_path)
+        monkeypatch.setenv("DAY_PROFILE_DIR", str(profile_dir))
+
+        exec(run_omics_module.BCLCONVERT_PROFILE_PATCH_SCRIPT, {})
+
+        text = rule_config.read_text(encoding="utf-8")
+        parsed = yaml.safe_load(text)
+        assert parsed["bclconvert"]["adapter_read1"] == ""
+        assert parsed["bclconvert"]["sample_sheet_settings"] == "{}"
+        assert parsed["bclconvert"]["barcode_mismatches_index1"] == "0"
+        assert "\n  adapter_read1:" in text
+        assert "\n    adapter_read1:" not in text
+
     def test_parse_remote_config_success(self):
         result = run_omics_module.parse_remote_config(
             "\n".join(
