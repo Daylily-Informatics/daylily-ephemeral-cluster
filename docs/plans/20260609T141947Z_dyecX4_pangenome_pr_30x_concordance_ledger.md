@@ -59,7 +59,7 @@ Deletion is not approved yet. Before any deletion, print and reconfirm the exact
 | G0-001 | Gate 0 | Record repo, cluster, mounts, tmux, evidence, and analysis inventory before mutation | SUCCESS | config_or_startup_contract | Gate 0 | agent-orchestrator | Commands: `git status`, `git describe`, `dyec --json version`, `dyec --json cluster describe`, `dyec --json mounts list`, S3 object inventories, SSM tmux/FSx inventory |  | Baseline recorded above; tracked DYEC files were clean and cluster was running. |
 | EVID-001 | Evidence | Verify pangenome command-catalog live attempts are terminal and exported | SUCCESS | feature_implementation | Gate 0 | agent-evidence-pr | `docs/plans/20260609T130830Z_dyecX4_pangenome_catalog_live_logs/summary.json` -> 6 phases, all `exit_code=0`; S3 live export object counts above |  | Both live pangenome analyses exited 0 and exported to the evidence root. |
 | EVID-002 | Evidence | Write command-catalog runbook markdown and upload it to the evidence root | SUCCESS | feature_implementation | Gate 1 | agent-evidence-pr | Local: `docs/plans/20260609T141947Z_dyecX4_10.0.10_command_catalog_runbook.md`; S3: `s3://lsmc-dayoa-analysis-results-usw2/validation/dyecX4/command_catalog_results/jem-dev-20260609T130830Z/20260609T141947Z_dyecX4_10.0.10_command_catalog_runbook.md`; `head-object` -> 7,688 bytes |  | Runbook written and uploaded to the evidence root. |
-| PR-001 | PR | Create or update PR from `jem-dev` to `prod` with evidence/runbook comment naming Mike Kennemer and archived stderr path | OPEN | feature_implementation | Gate 1 | agent-evidence-pr | Gate 0 `gh pr list --base prod --head jem-dev --state all` -> no existing PR |  |  |
+| PR-001 | PR | Create or update PR from `jem-dev` to `prod` with evidence/runbook comment naming Mike Kennemer and archived stderr path | SUCCESS | feature_implementation | Gate 1 | agent-evidence-pr | PR: `https://github.com/lsmc-bio/daylily-ephemeral-cluster/pull/4`; comment: `https://github.com/lsmc-bio/daylily-ephemeral-cluster/pull/4#issuecomment-4660761100` |  | Existing draft PR #4 was updated from stale 5.0.2 text to current 10.0.10 evidence content and commented with Mike Kennemer, the S3 root, runbook URI, ledger path, and archived stderr reference. |
 | CLEAN-001 | Cleanup | Delete only ledger-listed `/fsx/analysis_results/ubuntu/<analysis-id>` paths before fresh 30x runs | BLOCKED | legitimate_safety_handling | Destructive approval | agent-orchestrator | Cleanup candidate list above | Separate explicit destructive approval is required before deleting FSx analysis directories. | Blocked until the user explicitly approves deletion of the listed paths in this thread. |
 | ILMN-001 | Fresh 30x | Run HG002 30x ILMN pangenome plus `produce_snv_concordances`, export via DRA, and verify VCF/concordance outputs | BLOCKED | feature_implementation | After cleanup | agent-ilmn-30x | Pending fresh launch after cleanup approval | Depends on `CLEAN-001`. | Blocked until cleanup gate is approved/completed. |
 | ILMN-002 | Fresh 30x | Run HG003 30x ILMN pangenome plus `produce_snv_concordances`, export via DRA, and verify VCF/concordance outputs | BLOCKED | feature_implementation | After cleanup | agent-ilmn-30x | Pending fresh launch after cleanup approval | Depends on `CLEAN-001`. | Blocked until cleanup gate is approved/completed. |
@@ -68,7 +68,7 @@ Deletion is not approved yet. Before any deletion, print and reconfirm the exact
 
 ## Final State Counts
 
-- `OPEN`: 1
-- `SUCCESS`: 3
+- `OPEN`: 0
+- `SUCCESS`: 4
 - `BLOCKED`: 5
 - `FAIL`: 0
