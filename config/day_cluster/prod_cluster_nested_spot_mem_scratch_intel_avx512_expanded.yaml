@@ -6,6 +6,7 @@ HeadNode:
   Networking:
     ElasticIp: true
     SubnetId: ${REGSUB_PUB_SUBNET}
+    # ${REGSUB_SLURM_ACCOUNTING_HEADNODE_NETWORKING}
   DisableSimultaneousMultithreading: false
   Dcv:
     Enabled: false
@@ -43,6 +44,7 @@ Scheduling:
     Dns:
       DisableManagedDns: false
     QueueUpdateStrategy: DRAIN
+    # ${REGSUB_SLURM_ACCOUNTING_DATABASE}
   SlurmQueues:
   - Name: i8
     CapacityType: SPOT
@@ -125,7 +127,7 @@ Scheduling:
       - InstanceType: r8i.32xlarge
       - InstanceType: x8i.32xlarge
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_128I}
+      MaxCount: ${REGSUB_MAX_COUNT_128I_C}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
       SchedulableMemory: 262144
@@ -158,7 +160,7 @@ Scheduling:
       - InstanceType: r8i.32xlarge
       - InstanceType: x8i.32xlarge
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_128I}
+      MaxCount: ${REGSUB_MAX_COUNT_128I_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 200
       SchedulableMemory: 498073
@@ -182,7 +184,7 @@ Scheduling:
       - InstanceType: r8i.32xlarge
       - InstanceType: x8i.32xlarge
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_128I}
+      MaxCount: ${REGSUB_MAX_COUNT_128I_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 300
       SchedulableMemory: 996147
@@ -227,7 +229,7 @@ Scheduling:
       - InstanceType: i4i.32xlarge
       - InstanceType: i4i.metal
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_128I}
+      MaxCount: ${REGSUB_MAX_COUNT_128I_NVME}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
       SchedulableMemory: 996147
@@ -283,7 +285,7 @@ Scheduling:
       - InstanceType: x8i.48xlarge
       - InstanceType: x8i.metal-48xl
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_192I}
+      MaxCount: ${REGSUB_MAX_COUNT_192I_C}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
       SchedulableMemory: 364544
@@ -309,7 +311,7 @@ Scheduling:
       - InstanceType: x8i.48xlarge
       - InstanceType: x8i.metal-48xl
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_192I}
+      MaxCount: ${REGSUB_MAX_COUNT_192I_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 200
       SchedulableMemory: 747110
@@ -331,7 +333,7 @@ Scheduling:
       - InstanceType: x8i.48xlarge
       - InstanceType: x8i.metal-48xl
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_192I}
+      MaxCount: ${REGSUB_MAX_COUNT_192I_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 300
       SchedulableMemory: 1494220
@@ -378,7 +380,7 @@ Scheduling:
       - InstanceType: i7ie.48xlarge
       - InstanceType: i7ie.metal-48xl
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_192I}
+      MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_C}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
       SchedulableMemory: 364544
@@ -394,7 +396,7 @@ Scheduling:
       - InstanceType: i7ie.48xlarge
       - InstanceType: i7ie.metal-48xl
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_192I}
+      MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 200
       SchedulableMemory: 747110
@@ -410,7 +412,7 @@ Scheduling:
       - InstanceType: i7ie.48xlarge
       - InstanceType: i7ie.metal-48xl
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_192I}
+      MaxCount: ${REGSUB_MAX_COUNT_192I_NVME_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 300
       SchedulableMemory: 1494220
@@ -464,7 +466,7 @@ Scheduling:
       - InstanceType: r8idn.96xlarge      # us-west-2=a/b/c; us-east-1=a/b/d; ap-south-1=none; eu-central-1=none
       - InstanceType: r8idb.96xlarge      # us-west-2=a/b/c; us-east-1=a/b/d; ap-south-1=none; eu-central-1=none
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_192I}
+      MaxCount: ${REGSUB_MAX_COUNT_384I_NVME_C}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
       SchedulableMemory: 747110
@@ -485,7 +487,7 @@ Scheduling:
       - InstanceType: r8idn.96xlarge      # us-west-2=a/b/c; us-east-1=a/b/d; ap-south-1=none; eu-central-1=none
       - InstanceType: r8idb.96xlarge      # us-west-2=a/b/c; us-east-1=a/b/d; ap-south-1=none; eu-central-1=none
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_192I}
+      MaxCount: ${REGSUB_MAX_COUNT_384I_NVME_M}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 200
       SchedulableMemory: 1494220
@@ -502,7 +504,7 @@ Scheduling:
       - InstanceType: r8idn.96xlarge      # us-west-2=a/b/c; us-east-1=a/b/d; ap-south-1=none; eu-central-1=none
       - InstanceType: r8idb.96xlarge      # us-west-2=a/b/c; us-east-1=a/b/d; ap-south-1=none; eu-central-1=none
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_192I}
+      MaxCount: ${REGSUB_MAX_COUNT_384I_NVME_R}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 300
       SchedulableMemory: 2988441
@@ -549,7 +551,7 @@ Scheduling:
       - InstanceType: i7ie.48xlarge
       - InstanceType: i7ie.metal-48xl
       MinCount: 0
-      MaxCount: ${REGSUB_MAX_COUNT_192I}
+      MaxCount: ${REGSUB_MAX_COUNT_192I_HUGENVME}
       SpotPrice: CALCULATE_MAX_SPOT_PRICE
       DynamicNodePriority: 100
       SchedulableMemory: 1494220

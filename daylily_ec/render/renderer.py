@@ -47,6 +47,7 @@ ALL_SUBSTITUTION_KEYS: FrozenSet[str] = frozenset(
         "REGSUB_MAX_COUNT_8I",
         "REGSUB_MAX_COUNT_128I",
         "REGSUB_MAX_COUNT_192I",
+        "REGSUB_MAX_COUNT_384I",
         "REGSUB_MAX_COUNT_128I_C",
         "REGSUB_MAX_COUNT_128I_M",
         "REGSUB_MAX_COUNT_128I_R",
@@ -98,7 +99,7 @@ def render_template(
     Parameters
     ----------
     template_text:
-        Raw template content (e.g. from ``config/day_cluster/prod_cluster.yaml``).
+        Raw template content.
     substitutions:
         Mapping of key → value.  Keys should include the ``REGSUB_`` prefix
         (e.g. ``{"REGSUB_REGION": "us-west-2", ...}``).

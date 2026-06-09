@@ -1172,6 +1172,16 @@ def run_create_workflow(
         )
         or "1"
     )
+    max_384i = int(
+        _resolve_config_value(
+            cfg,
+            "max_count_384I",
+            "Max 384xlarge count",
+            non_interactive=non_interactive,
+            default_fallback="1",
+        )
+        or "1"
+    )
 
     reference_s3_uri = _resolve_s3_role_config_value(
         cfg,
@@ -1220,6 +1230,7 @@ def run_create_workflow(
             max_count_8i=max_8i,
             max_count_128i=max_128i,
             max_count_192i=max_192i,
+            max_count_384i=max_384i,
             non_interactive=non_interactive,
         ),
         # 6: S3 Role Validator
@@ -1634,6 +1645,7 @@ def run_create_workflow(
         "REGSUB_MAX_COUNT_8I": str(max_8i),
         "REGSUB_MAX_COUNT_128I": str(max_128i),
         "REGSUB_MAX_COUNT_192I": str(max_192i),
+        "REGSUB_MAX_COUNT_384I": str(max_384i),
         "REGSUB_MAX_COUNT_128I_C": _resolve_nonprompt_config_value(
             cfg, "max_count_128I_C", "1"
         )
@@ -2238,6 +2250,7 @@ def run_preflight_only(
     max_8i = int(get_effective_default(cfg, "max_count_8I", "1") or "1")
     max_128i = int(get_effective_default(cfg, "max_count_128I", "1") or "1")
     max_192i = int(get_effective_default(cfg, "max_count_192I", "1") or "1")
+    max_384i = int(get_effective_default(cfg, "max_count_384I", "1") or "1")
 
     preflight_steps: List[PreflightStep] = [
         make_iam_preflight_step(aws_ctx, interactive=not non_interactive),
@@ -2247,6 +2260,7 @@ def run_preflight_only(
             max_count_8i=max_8i,
             max_count_128i=max_128i,
             max_count_192i=max_192i,
+            max_count_384i=max_384i,
             non_interactive=non_interactive,
         ),
         make_s3_bucket_preflight_step(

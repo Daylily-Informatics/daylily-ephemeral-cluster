@@ -45,8 +45,6 @@ def _expected_subpaths(root: Path) -> Iterable[Path]:
         / "day_cluster"
         / "prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
     )
-    yield root / "config" / "day_cluster" / "prod_cluster_v8.yaml"
-    yield root / "config" / "day_cluster" / "prod_cluster.yaml"
     yield root / "config" / "day_cluster" / "pcluster_env.yml"
     yield root / "config" / "day_cluster" / "slurm_accounting_mysql_ec2.yml"
     yield root / "environment.yaml"
@@ -70,8 +68,7 @@ def _resources_need_refresh(dest: Path, src: Path) -> bool:
     for rel in (
         "config/daylily_pipeline_command_catalog.yaml",
         "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml",
-        "config/day_cluster/prod_cluster_v8.yaml",
-        "config/day_cluster/prod_cluster.yaml",
+        "config/day_cluster/pcluster_env.yml",
         "config/day_cluster/slurm_accounting_mysql_ec2.yml",
         "config/day_cluster/post_install_ubuntu_combined.sh",
         "config/day_cluster/sbatch",
@@ -145,7 +142,7 @@ def resource_path(rel_path: str) -> Path:
     Parameters
     ----------
     rel_path:
-        Repo-relative path inside the payload (e.g. ``config/day_cluster/prod_cluster.yaml``).
+        Repo-relative path inside the payload.
     """
     rel = rel_path.lstrip("/").replace("\\", "/")
     root = ensure_extracted()

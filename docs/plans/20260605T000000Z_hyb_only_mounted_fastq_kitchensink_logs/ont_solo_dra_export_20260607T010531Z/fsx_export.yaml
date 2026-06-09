@@ -1,0 +1,25 @@
+fsx_export:
+  schema_version: 4
+  status: success
+  phase: complete
+  cluster_name: hyb-only
+  region: us-west-2
+  analysis_dir: ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z
+  source_path: /analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/
+  headnode_path: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/
+  fsx_root: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/
+  dayoa_analysis_root: /fsx/analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/daylily-omics-analysis/
+  detached: true
+  delete_data_in_file_system: false
+  failure_details: {}
+  fsx_file_system_id: fs-004f69f7d11ad28ba
+  file_system_path: /analysis_results/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/
+  association_id: dra-0a808c5d8a139fb57
+  lifecycle: AVAILABLE
+  task_id: task-02b33fdd09e81dfcd
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/hybonly_ont_chipbarcode_limited_live_20260606T090222Z/_daylily_monitor/fsx-export/20260607T010752Z/export-report/
+  detach_lifecycle: DELETED

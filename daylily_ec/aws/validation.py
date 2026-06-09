@@ -479,11 +479,13 @@ def run_quota_checks(
     max_8i = _int_config_value(cfg, "max_count_8I", 1)
     max_128i = _int_config_value(cfg, "max_count_128I", 1)
     max_192i = _int_config_value(cfg, "max_count_192I", 1)
+    max_384i = _int_config_value(cfg, "max_count_384I", 1)
     checks = check_all_quotas(
         aws_ctx,
         max_count_8i=max_8i,
         max_count_128i=max_128i,
         max_count_192i=max_192i,
+        max_count_384i=max_384i,
         non_interactive=True,
     )
     checks.append(_check_baseline_stack_presence(aws_ctx))
@@ -1526,6 +1528,7 @@ def _validation_substitutions(
         "REGSUB_MAX_COUNT_8I": _effective_config_value(cfg, "max_count_8I", "1"),
         "REGSUB_MAX_COUNT_128I": _effective_config_value(cfg, "max_count_128I", "1"),
         "REGSUB_MAX_COUNT_192I": _effective_config_value(cfg, "max_count_192I", "1"),
+        "REGSUB_MAX_COUNT_384I": _effective_config_value(cfg, "max_count_384I", "1"),
         "REGSUB_MAX_COUNT_128I_C": _effective_config_value(cfg, "max_count_128I_C", "1"),
         "REGSUB_MAX_COUNT_128I_M": _effective_config_value(cfg, "max_count_128I_M", "1"),
         "REGSUB_MAX_COUNT_128I_R": _effective_config_value(cfg, "max_count_128I_R", "1"),

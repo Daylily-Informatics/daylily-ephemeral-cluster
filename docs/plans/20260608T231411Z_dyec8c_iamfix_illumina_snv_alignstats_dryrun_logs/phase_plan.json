@@ -1,0 +1,45 @@
+{
+  "phases": [
+    {
+      "analysis_id": "ccv_dryrun_illumina_snv_alignstats_20260608T231411Z",
+      "command_id": "illumina_snv_alignstats",
+      "dy_command": "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -j 100 -p -k -T 0 -n --default-resources time=100",
+      "export_destination_s3_uri": "s3://lsmc-ssf-sequencing-data/derived/validation/dyec8c/command_catalog_results/10.0.0-20260608T231411Z/ubuntu/ccv_dryrun_illumina_snv_alignstats_20260608T231411Z/",
+      "phase": "dryrun",
+      "workflow_argv": [
+        "workflow",
+        "launch",
+        "--repository",
+        "daylily-omics-analysis",
+        "--analysis-id",
+        "ccv_dryrun_illumina_snv_alignstats_20260608T231411Z",
+        "--executing-entity",
+        "ubuntu",
+        "--git-tag",
+        "10.0.0",
+        "--genome",
+        "hg38_broad",
+        "--dy-command",
+        "bin/day_run produce_sent_align produce_dmd_dedup_cram produce_sentd_snv_vcf produce_snv_concordances produce_alignstats -j 100 -p -k -T 0 -n --default-resources time=100",
+        "--profile",
+        "lsmc",
+        "--region",
+        "us-west-2",
+        "--cluster",
+        "dyec8c",
+        "--session-name",
+        "ccv_dryrun_illumina_snv_alignstats_20260608T231411Z",
+        "--export-destination-s3-uri",
+        "s3://lsmc-ssf-sequencing-data/derived/validation/dyec8c/command_catalog_results/10.0.0-20260608T231411Z/ubuntu/ccv_dryrun_illumina_snv_alignstats_20260608T231411Z/",
+        "--export-trigger",
+        "on-success",
+        "--skip-project-check",
+        "--dry-run",
+        "--samples-file",
+        "docs/plans/20260608T231411Z_dyec8c_iamfix_illumina_snv_alignstats_dryrun_logs/illumina_snv_alignstats/config/20260608T231413Z_52c9a454_samples.tsv",
+        "--units-file",
+        "docs/plans/20260608T231411Z_dyec8c_iamfix_illumina_snv_alignstats_dryrun_logs/illumina_snv_alignstats/config/20260608T231413Z_52c9a454_units.tsv"
+      ]
+    }
+  ]
+}

@@ -67,35 +67,34 @@ def get_spot_price(
         return FALLBACK_SPOT_PRICE
 
 
-# ── queue-level calculation ──────────────────────────────────────────
+# ── compute-resource-level calculation ───────────────────────────────
 
 
-def calculate_queue_spot_price(
+def calculate_compute_resource_spot_price(
     ec2_client: Any,
-    queue_config: Dict[str, Any],
+    resource_config: Dict[str, Any],
     az: str,
     bump_price: float = DEFAULT_BUMP_PRICE,
 ) -> Optional[float]:
-    """Return the bumped median spot price for all instances in a queue.
+    """Return the bumped median spot price for one compute resource.
 
-    Iterates over every ``ComputeResources[].Instances[].InstanceType``,
-    looks up the current spot price, then returns
-    ``round(median + bump_price, 4)``.
+    Iterates over ``Instances[].InstanceType`` within one
+    ``ComputeResources[]`` entry, looks up the current spot price, then
+    returns ``round(median + bump_price, 4)``.
 
     Returns ``None`` if no prices could be collected.
     """
-    all_prices: List[float] = []
-    for resource in queue_config.get("ComputeResources", []):
-        for inst in resource.get("Instances", []):
-            itype = inst.get("InstanceType")
-            if itype:
-                price = get_spot_price(ec2_client, itype, az)
-                all_prices.append(price)
+    prices: List[float] = []
+    for inst in resource_config.get("Instances", []):
+        itype = inst.get("InstanceType")
+        if itype:
+            price = get_spot_price(ec2_client, itype, az)
+            prices.append(price)
 
-    if not all_prices:
+    if not prices:
         return None
 
-    return round(statistics.median(all_prices) + bump_price, 4)
+    return round(statistics.median(prices) + bump_price, 4)
 
 
 def apply_spot_to_queue(
@@ -104,20 +103,19 @@ def apply_spot_to_queue(
     az: str,
     bump_price: float = DEFAULT_BUMP_PRICE,
 ) -> None:
-    """Set ``SpotPrice`` on every ComputeResource in *queue_config* (in-place).
+    """Set resource-specific ``SpotPrice`` values in *queue_config* (in-place).
 
     Adds a YAML end-of-line comment when the config is a
     :class:`~ruamel.yaml.comments.CommentedMap`.
     """
-    spot = calculate_queue_spot_price(ec2_client, queue_config, az, bump_price)
-    if spot is None:
-        return
-
     for resource in queue_config.get("ComputeResources", []):
+        spot = calculate_compute_resource_spot_price(ec2_client, resource, az, bump_price)
+        if spot is None:
+            continue
         resource["SpotPrice"] = spot
         if isinstance(resource, CommentedMap):
             resource.yaml_add_eol_comment(
-                "Calculated using (median spot price).",
+                "Calculated using resource median spot price.",
                 key="SpotPrice",
                 column=0,
             )
@@ -175,4 +173,3 @@ def apply_spot_prices(
     out_yaml.explicit_end = True
     with open(output_path, "w", encoding="utf-8") as fh:
         out_yaml.dump(config, fh)
-

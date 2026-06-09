@@ -1727,6 +1727,7 @@ def _build_workflow_config(
         "max_count_8I": ["USESETVALUE", "", "1"],
         "max_count_128I": ["USESETVALUE", "", "1"],
         "max_count_192I": ["USESETVALUE", "", "1"],
+        "max_count_384I": ["USESETVALUE", "", "1"],
         "cluster_template_yaml": ["USESETVALUE", "", str(template_path)],
         "fsx_fs_size": ["USESETVALUE", "", "2400"],
         "enable_detailed_monitoring": ["USESETVALUE", "", "false"],

@@ -12,15 +12,20 @@ from daylily_ec.workflow import create_cluster
 REPO_ROOT = Path(__file__).resolve().parents[1]
 ACTIVE_CLUSTER_TEMPLATES = (
     "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml",
-    "config/day_cluster/prod_cluster_v8.yaml",
-    "config/day_cluster/prod_cluster.yaml",
-    "config/day_cluster/prod_cluster_dragen.yaml",
-    "config/day_cluster/prod_cluster_variant.yaml",
-    "config/day_cluster/cromwell_test.yaml",
-    "config/day_cluster/regions/all_clusters.yaml",
 )
 ACTIVE_CFN_TEMPLATES = (
     "config/day_cluster/slurm_accounting_mysql_ec2.yml",
+)
+ACTIVE_IAM_POLICY_TEMPLATES = (
+    "config/day_cluster/pcluster_env.yml",
+    "config/day_cluster/pcluster_env.yml.new",
+    "config/day_cluster/pcluster_env.yml.expanded",
+    "config/day_cluster/ap-south-1-stack.yml",
+)
+DAYOA_RUNTIME_SPOT_ACTIONS = (
+    "ec2:DescribeInstanceTypes",
+    "ec2:DescribeInstanceTypeOfferings",
+    "ec2:DescribeSpotPriceHistory",
 )
 
 
@@ -114,8 +119,11 @@ def test_active_cluster_templates_use_contract_role_dras() -> None:
         )
 
 
-def test_prod_cluster_v8_uses_expected_partition_contract() -> None:
-    text = (REPO_ROOT / "config/day_cluster/prod_cluster_v8.yaml").read_text(encoding="utf-8")
+def test_active_cluster_template_uses_expected_partition_contract() -> None:
+    text = (
+        REPO_ROOT
+        / "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+    ).read_text(encoding="utf-8")
     payload = yaml.safe_load(text)
     queues = payload["Scheduling"]["SlurmQueues"]
     names = [queue["Name"] for queue in queues]
@@ -155,3 +163,14 @@ def test_packaged_cfn_templates_match_source_templates() -> None:
             encoding="utf-8"
         )
         assert packaged == source
+
+
+def test_pcluster_env_policies_allow_dayoa_runtime_spot_discovery() -> None:
+    for relative_path in ACTIVE_IAM_POLICY_TEMPLATES:
+        source = (REPO_ROOT / relative_path).read_text(encoding="utf-8")
+        packaged = (REPO_ROOT / "daylily_ec/resources/payload" / relative_path).read_text(
+            encoding="utf-8"
+        )
+        assert packaged == source
+        for action in DAYOA_RUNTIME_SPOT_ACTIONS:
+            assert action in source

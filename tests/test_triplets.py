@@ -321,7 +321,7 @@ class TestLoadConfig:
             pytest.skip("template file not found")
         cfg = load_config(tpl)
         ec = cfg.ephemeral_cluster
-        assert len(ec.config) == 47
+        assert len(ec.config) == 48
         assert "ssh_key_name" not in ec.config
         assert ec.config["export_destination_s3_uri"].action == "PROMPTUSER"
         assert ec.config["slurm_accounting_enabled"].default_value == "false"
@@ -331,6 +331,7 @@ class TestLoadConfig:
         assert ec.config["global_allowed_budget_users"].default_value == "ubuntu"
         assert ec.template_defaults["fsx_fs_size"] == "7200"
         assert ec.template_defaults["max_count_192I_HUGENVME"] == "1"
+        assert ec.config["max_count_384I"].default_value == "1"
         assert ec.config["max_count_384I_NVME_R"].default_value == "1"
 
 

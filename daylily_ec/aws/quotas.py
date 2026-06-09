@@ -46,7 +46,7 @@ SPOT_VCPU_QUOTA_CODE = "L-34B43A08"
 
 
 # ---------------------------------------------------------------------------
-# Spot vCPU computation (exact Bash parity)
+# Spot vCPU computation
 # ---------------------------------------------------------------------------
 
 
@@ -54,16 +54,18 @@ def compute_spot_vcpu_demand(
     max_count_8i: int,
     max_count_128i: int,
     max_count_192i: int,
+    max_count_384i: int,
 ) -> int:
     """Compute total spot vCPUs requested.
 
-    Matches Bash::
-
-        tot_vcpu=$(( (CONFIG_MAX_COUNT_8I * 8)
-                    + (CONFIG_MAX_COUNT_128I * 128)
-                    + (CONFIG_MAX_COUNT_192I * 192) ))
+    Matches the cluster-template max-count families used for quota preflight.
     """
-    return (max_count_8i * 8) + (max_count_128i * 128) + (max_count_192i * 192)
+    return (
+        (max_count_8i * 8)
+        + (max_count_128i * 128)
+        + (max_count_192i * 192)
+        + (max_count_384i * 384)
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -101,6 +103,7 @@ def check_all_quotas(
     max_count_8i: int = 1,
     max_count_128i: int = 1,
     max_count_192i: int = 1,
+    max_count_384i: int = 1,
     non_interactive: bool = False,
 ) -> List[CheckResult]:
     """Run all 6 quota checks and return a list of :class:`CheckResult`.
@@ -111,10 +114,16 @@ def check_all_quotas(
         max_count_8i: Max 8xlarge instance count from config.
         max_count_128i: Max 128xlarge instance count from config.
         max_count_192i: Max 192xlarge instance count from config.
+        max_count_384i: Max 384xlarge instance count from config.
         non_interactive: If *True*, spot vCPU demand >= quota produces FAIL;
             otherwise WARN (caller handles interactive prompt).
     """
-    tot_vcpu = compute_spot_vcpu_demand(max_count_8i, max_count_128i, max_count_192i)
+    tot_vcpu = compute_spot_vcpu_demand(
+        max_count_8i,
+        max_count_128i,
+        max_count_192i,
+        max_count_384i,
+    )
     sq_client = aws_ctx.client("service-quotas")
     results: List[CheckResult] = []
 
@@ -201,6 +210,7 @@ def make_quota_preflight_step(
     max_count_8i: int = 1,
     max_count_128i: int = 1,
     max_count_192i: int = 1,
+    max_count_384i: int = 1,
     non_interactive: bool = False,
 ) -> Callable[[PreflightReport], PreflightReport]:
     """Return a preflight step that appends quota :class:`CheckResult` s.
@@ -217,10 +227,10 @@ def make_quota_preflight_step(
             max_count_8i=max_count_8i,
             max_count_128i=max_count_128i,
             max_count_192i=max_count_192i,
+            max_count_384i=max_count_384i,
             non_interactive=non_interactive,
         )
         report.checks.extend(checks)
         return report
 
     return step
-

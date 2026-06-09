@@ -102,7 +102,7 @@ from daylily_ec.aws.spot_pricing import (
     FALLBACK_SPOT_PRICE,
     apply_spot_prices,
     apply_spot_to_queue,
-    calculate_queue_spot_price,
+    calculate_compute_resource_spot_price,
     get_spot_price,
     process_slurm_queues,
 )
@@ -181,7 +181,7 @@ __all__ = [
     "budget_exists",
     "bucket_url",
     "bucket_name_from_role_value",
-    "calculate_queue_spot_price",
+    "calculate_compute_resource_spot_price",
     "check_all_quotas",
     "cluster_budget_name",
     "collect_pricing_snapshot",

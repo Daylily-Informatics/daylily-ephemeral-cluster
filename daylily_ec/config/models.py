@@ -117,6 +117,7 @@ REQUIRED_CONFIG_KEYS: list[str] = [
     "iam_policy_arn",
     "max_count_128I",
     "max_count_192I",
+    "max_count_384I",
     "max_count_8I",
     "max_count_128I_C",
     "max_count_128I_M",

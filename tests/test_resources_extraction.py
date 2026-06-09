@@ -19,8 +19,6 @@ def test_ensure_extracted_extracts_expected_files(tmp_path, monkeypatch):
         root
         / "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
     ).is_file()
-    assert (root / "config/day_cluster/prod_cluster_v8.yaml").is_file()
-    assert (root / "config/day_cluster/prod_cluster.yaml").is_file()
     assert (root / "config/day_cluster/pcluster_env.yml").is_file()
     assert (root / "environment.yaml").is_file()
     assert (root / "etc/analysis_samples_template.tsv").is_file()

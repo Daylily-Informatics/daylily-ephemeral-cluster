@@ -33,6 +33,7 @@ ephemeral_cluster:
     max_count_8I: [PROMPTUSER, "1", ""]
     max_count_128I: [PROMPTUSER, "1", ""]
     max_count_192I: [PROMPTUSER, "1", ""]
+    max_count_384I: [PROMPTUSER, "1", ""]
     max_count_128I_C: [PROMPTUSER, "1", ""]
     max_count_128I_M: [PROMPTUSER, "1", ""]
     max_count_128I_R: [PROMPTUSER, "1", ""]
@@ -64,6 +65,7 @@ ephemeral_cluster:
     max_count_8I: "1"
     max_count_128I: "1"
     max_count_192I: "1"
+    max_count_384I: "1"
     max_count_128I_C: "1"
     max_count_128I_M: "1"
     max_count_128I_R: "1"

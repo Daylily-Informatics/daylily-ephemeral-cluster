@@ -10,7 +10,7 @@ from daylily_ec.aws.spot_pricing import (
     DEFAULT_BUMP_PRICE,
     FALLBACK_SPOT_PRICE,
     apply_spot_to_queue,
-    calculate_queue_spot_price,
+    calculate_compute_resource_spot_price,
     get_spot_price,
     process_slurm_queues,
 )
@@ -35,6 +35,10 @@ def _queue(instance_types: list[str]) -> dict:
             {"Instances": [{"InstanceType": t} for t in instance_types]}
         ],
     }
+
+
+def _resource(instance_types: list[str]) -> dict:
+    return {"Instances": [{"InstanceType": t} for t in instance_types]}
 
 
 def _config(queues: list[dict]) -> dict:
@@ -89,32 +93,37 @@ class TestGetSpotPrice:
         )
 
 
-# ── TestCalculateQueueSpotPrice ──────────────────────────────────────
+# ── TestCalculateComputeResourceSpotPrice ────────────────────────────
 
 
-class TestCalculateQueueSpotPrice:
+class TestCalculateComputeResourceSpotPrice:
     def test_median_plus_bump(self):
         # Two instance types both at 1.0 → median 1.0 + bump 4.14 = 5.14
         ec2 = _mock_ec2(1.0)
-        q = _queue(["m5.xlarge", "m5.2xlarge"])
-        result = calculate_queue_spot_price(ec2, q, "us-west-2a")
+        resource = _resource(["m5.xlarge", "m5.2xlarge"])
+        result = calculate_compute_resource_spot_price(ec2, resource, "us-west-2a")
         assert result == round(1.0 + DEFAULT_BUMP_PRICE, 4)
 
     def test_custom_bump(self):
         ec2 = _mock_ec2(2.0)
-        q = _queue(["m5.xlarge"])
-        result = calculate_queue_spot_price(ec2, q, "us-west-2a", bump_price=1.0)
+        resource = _resource(["m5.xlarge"])
+        result = calculate_compute_resource_spot_price(
+            ec2, resource, "us-west-2a", bump_price=1.0
+        )
         assert result == 3.0
 
     def test_no_instances_returns_none(self):
         ec2 = _mock_ec2()
-        q = {"Name": "empty", "ComputeResources": [{"Instances": []}]}
-        assert calculate_queue_spot_price(ec2, q, "us-west-2a") is None
+        assert (
+            calculate_compute_resource_spot_price(
+                ec2, {"Instances": []}, "us-west-2a"
+            )
+            is None
+        )
 
-    def test_empty_resources_returns_none(self):
+    def test_missing_instances_returns_none(self):
         ec2 = _mock_ec2()
-        q = {"Name": "empty", "ComputeResources": []}
-        assert calculate_queue_spot_price(ec2, q, "us-west-2a") is None
+        assert calculate_compute_resource_spot_price(ec2, {}, "us-west-2a") is None
 
 
 # ── TestApplySpotToQueue ─────────────────────────────────────────────
@@ -134,6 +143,37 @@ class TestApplySpotToQueue:
         q = {"Name": "empty", "ComputeResources": []}
         apply_spot_to_queue(ec2, q, "us-west-2a")
         # No crash, nothing set
+
+    def test_sets_each_resource_from_its_own_instances(self):
+        ec2 = MagicMock()
+        prices = {
+            "c6i.32xlarge": "1.0",
+            "c6i.metal": "3.0",
+            "r6i.32xlarge": "9.0",
+        }
+
+        def _price_for(InstanceTypes, **_kwargs):
+            return {"SpotPriceHistory": [{"SpotPrice": prices[InstanceTypes[0]]}]}
+
+        ec2.describe_spot_price_history.side_effect = _price_for
+        q = {
+            "Name": "i128",
+            "ComputeResources": [
+                {
+                    "Name": "c128",
+                    "Instances": [
+                        {"InstanceType": "c6i.32xlarge"},
+                        {"InstanceType": "c6i.metal"},
+                    ],
+                },
+                {"Name": "r128", "Instances": [{"InstanceType": "r6i.32xlarge"}]},
+            ],
+        }
+
+        apply_spot_to_queue(ec2, q, "us-west-2a", bump_price=1.0)
+
+        assert q["ComputeResources"][0]["SpotPrice"] == 3.0
+        assert q["ComputeResources"][1]["SpotPrice"] == 10.0
 
 
 # ── TestProcessSlurmQueues ───────────────────────────────────────────
@@ -155,4 +195,3 @@ class TestProcessSlurmQueues:
     def test_missing_scheduling_key(self):
         ec2 = _mock_ec2()
         process_slurm_queues({"Scheduling": {}}, "us-west-2a", ec2)
-

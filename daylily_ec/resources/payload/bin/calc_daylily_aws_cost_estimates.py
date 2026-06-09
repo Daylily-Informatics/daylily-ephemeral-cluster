@@ -34,8 +34,12 @@ def parse_args(argv: list[str]) -> argparse.Namespace:
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument(
         "--config",
-        default=str(resource_path("config/day_cluster/prod_cluster_v8.yaml")),
-        help="Path to cluster YAML (default: packaged prod_cluster_v8.yaml).",
+        default=str(
+            resource_path(
+                "config/day_cluster/prod_cluster_nested_spot_mem_scratch_intel_avx512_expanded.yaml"
+            )
+        ),
+        help="Path to cluster YAML (default: packaged active production template).",
     )
     p.add_argument(
         "--profile",
@@ -99,4 +103,3 @@ def main(argv: list[str] | None = None) -> int:
 
 if __name__ == "__main__":
     raise SystemExit(main())
-

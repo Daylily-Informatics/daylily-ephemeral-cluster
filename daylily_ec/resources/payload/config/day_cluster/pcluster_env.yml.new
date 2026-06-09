@@ -62,6 +62,8 @@ Resources:
               - 'ec2:DeleteTags'
               - 'ec2:DescribeTags'
               - 'ec2:CreateTags'
+              - 'ec2:DescribeInstanceTypes'
+              - 'ec2:DescribeInstanceTypeOfferings'
               - 'ec2:DescribeSpotPriceHistory'
             Resource: '*'
           - Effect: Allow
