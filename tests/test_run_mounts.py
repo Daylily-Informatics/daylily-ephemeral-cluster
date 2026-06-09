@@ -285,6 +285,29 @@ def test_create_describe_list_delete_run_mount_records(tmp_path, monkeypatch) ->
     assert deleted.lifecycle == "DELETING"
 
 
+def test_create_run_mount_omits_empty_tags_from_fsx_payload(tmp_path, monkeypatch) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    fake = FakeFsxClient()
+
+    run_mounts.create_run_mount(
+        run_mounts.CreateRunMountRequest(
+            cluster_name="cluster-a",
+            fsx_file_system_id="fs-123",
+            region="us-west-2",
+            profile="lsmc",
+            source_s3_uri="s3://bucket/runs/RUN123",
+            mount_id="RUN123",
+            run_id="RUN123",
+            platform="ILMN",
+            wait=False,
+        ),
+        fsx_client=fake,
+    )
+
+    assert fake.created_params is not None
+    assert "Tags" not in fake.created_params
+
+
 def test_create_readwrite_mount_requires_atlas_rw_marker(tmp_path, monkeypatch) -> None:
     monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
     fake = FakeFsxClient()

@@ -1224,8 +1224,9 @@ def _create_association_params(
         "FileSystemPath": file_system_path,
         "DataRepositoryPath": source_s3_uri,
         "BatchImportMetaDataOnCreate": batch_import_metadata_on_create,
-        "Tags": [{"Key": key, "Value": value} for key, value in sorted(tags.items())],
     }
+    if tags:
+        params["Tags"] = [{"Key": key, "Value": value} for key, value in sorted(tags.items())]
     s3_policy: Dict[str, Any] = {}
     if auto_import_events:
         s3_policy["AutoImportPolicy"] = {"Events": list(auto_import_events)}
