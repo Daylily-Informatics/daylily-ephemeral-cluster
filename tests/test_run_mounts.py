@@ -202,6 +202,38 @@ def test_run_dir_mount_policy_forbids_writeback_under_run_mounts() -> None:
     )
 
 
+def test_import_mount_purposes_are_always_readonly() -> None:
+    for purpose in (
+        run_mounts.MOUNT_PURPOSE_RUN,
+        run_mounts.MOUNT_PURPOSE_REFERENCE,
+        run_mounts.MOUNT_PURPOSE_CONTROL_DATA,
+        run_mounts.MOUNT_PURPOSE_STAGING,
+    ):
+        run_mounts.enforce_import_mount_readonly_policy(
+            purpose=purpose,
+            read_only=True,
+            auto_export_events=[],
+        )
+        with pytest.raises(run_mounts.RunMountError, match="import-only"):
+            run_mounts.enforce_import_mount_readonly_policy(
+                purpose=purpose,
+                read_only=False,
+                auto_export_events=[],
+            )
+        with pytest.raises(run_mounts.RunMountError, match="AutoExport"):
+            run_mounts.enforce_import_mount_readonly_policy(
+                purpose=purpose,
+                read_only=True,
+                auto_export_events=["NEW"],
+            )
+
+    run_mounts.enforce_import_mount_readonly_policy(
+        purpose=run_mounts.MOUNT_PURPOSE_CUSTOM,
+        read_only=False,
+        auto_export_events=["NEW"],
+    )
+
+
 def test_atlas_rw_marker_candidates_exclude_bucket_root() -> None:
     assert run_mounts.atlas_rw_marker_candidates("s3://bucket/derived/validation/run/") == [
         ("bucket", "derived/validation/run/.atlas_rw"),
@@ -389,6 +421,38 @@ def test_create_run_mount_rejects_run_dir_writeback_before_marker_lookup(
                 mount_id="RUN123",
                 run_id="RUN123",
                 platform="ILMN",
+                read_only=False,
+                allow_writeback_admin=True,
+                auto_export_events=[],
+                wait=False,
+            ),
+            fsx_client=fake,
+            s3_client=fake_s3,
+        )
+
+    assert fake.created_params is None
+    assert fake_s3.head_requests == []
+
+
+def test_create_run_mount_rejects_reference_writeback_before_marker_lookup(
+    tmp_path, monkeypatch
+) -> None:
+    monkeypatch.setenv("XDG_CONFIG_HOME", str(tmp_path))
+    fake = FakeFsxClient()
+    fake_s3 = FakeS3Client(markers={"s3://bucket/references/.atlas_rw"})
+
+    with pytest.raises(run_mounts.RunMountError, match="import-only"):
+        run_mounts.create_run_mount(
+            run_mounts.CreateRunMountRequest(
+                cluster_name="cluster-a",
+                fsx_file_system_id="fs-123",
+                region="us-west-2",
+                profile="lsmc",
+                source_s3_uri="s3://bucket/references/hg38",
+                mount_id="hg38",
+                run_id="hg38",
+                platform="OTHER",
+                purpose=run_mounts.MOUNT_PURPOSE_REFERENCE,
                 read_only=False,
                 allow_writeback_admin=True,
                 auto_export_events=[],
