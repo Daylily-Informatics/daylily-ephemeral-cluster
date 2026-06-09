@@ -20,5 +20,5 @@ Objective: publish a DayOA patch tag, update DYEC DayOA pins in `pyproject.toml`
 | REL-002 | DayOA | Push `jem-dev` and tag `10.0.1` | COMPLETE | `git push origin jem-dev`; `git push origin 10.0.1` |
 | REL-003 | DYEC | Update DayOA pins to `10.0.1` in package metadata, catalog, payload catalog, and tests | COMPLETE | No remaining selected-surface `10.0.0` DayOA refs; focused validation passed |
 | REL-004 | DYEC | Include FSx DRA empty-tags bugfix found during dyec8c catalog mount creation | COMPLETE | `pytest tests/test_run_mounts.py tests/test_repository_catalog.py tests/test_lsmc_bio_fork_contract.py tests/test_cli_registry_v2.py -q`: `152 passed` |
-| REL-005 | DYEC | Commit/push/tag first DYEC release | PENDING | Target version: `10.0.5` |
-| REL-006 | DYEC | Update DYEC self-pins and commit/push/tag second DYEC release | PENDING | Target version: `10.0.6` |
+| REL-005 | DYEC | Commit/push/tag first DYEC release | COMPLETE | Commit `c78f2c1acd248f0efd073d91c4a492ee0a2ea306`; annotated tag `10.0.5` pushed |
+| REL-006 | DYEC | Update DYEC self-pins and commit/push/tag second DYEC release | COMPLETE | `git_ephemeral_cluster_repo_tag` and `git_ephemeral_cluster_repo_release_tag` set to `10.0.6`; `pytest tests/test_lsmc_bio_fork_contract.py tests/test_packaged_defaults.py -q`: `11 passed`; annotated tag `10.0.6` |
