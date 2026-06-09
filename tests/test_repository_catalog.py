@@ -13,7 +13,7 @@ from daylily_ec.repositories import load_repository_catalog
 runner = CliRunner()
 
 
-DAYOA_BLESSED_TAG = "10.0.1"
+DAYOA_BLESSED_TAG = "10.0.2"
 REPO_ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = REPO_ROOT / "config" / "daylily_pipeline_command_catalog.yaml"
 PACKAGED_CATALOG_PATH = (
@@ -416,7 +416,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     illumina_pangenome = catalog.get_command("illumina_pangenome_snv")
     assert illumina_pangenome.type == "dev"
-    assert illumina_pangenome.git_tag == "jem-dev"
+    assert illumina_pangenome.git_tag == "10.0.2"
     assert illumina_pangenome.genome == "hg38_broad"
     assert illumina_pangenome.targets == ["produce_sentpg_snv_vcf"]
     assert illumina_pangenome.snv_callers == ["sentpg"]
@@ -425,7 +425,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
 
     ultima_pangenome = catalog.get_command("ultima_pangenome_snv")
     assert ultima_pangenome.type == "dev"
-    assert ultima_pangenome.git_tag == "jem-dev"
+    assert ultima_pangenome.git_tag == "10.0.2"
     assert ultima_pangenome.genome == "hg38_broad"
     assert ultima_pangenome.targets == ["produce_pangenome_ug_vcf"]
     assert ultima_pangenome.aligners == ["pangenome_ug"]

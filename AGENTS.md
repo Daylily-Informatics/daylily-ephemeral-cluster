@@ -4,6 +4,7 @@
 - For AWS EC2, ParallelCluster, and other remote Linux hosts, default to an interactive `bash` login shell as `ubuntu`. Do not use `root` unless the user explicitly grants permission for that specific work; use targeted `sudo` from `ubuntu` when escalation is required.
 - For Daylily/DayOA/DAY-EC headnode workflow work, use an interactive `ubuntu` tmux/login-shell pane for controllers and workflow commands. Run setup as separate commands in that pane (`source dyoainit`, then `dy-a ...`, then `dy-r ...`) so aliases/functions are defined before use.
 - SSM Run Command is for simple inspection or for writing helper scripts through the supported helpers. Do not launch workflow controllers or rely on `dy-*` aliases from non-interactive SSM scripts.
+- Before any DayOA workflow work, read `/Users/jmajor/.codex/AGENTS-HOW-TO-RUN-DAYOA.md`. Never invoke `snakemake` directly for DayOA work. Always use `dy-r` inside a persistent, meaningfully named `tmux` session running an interactive bash login shell as `ubuntu`; `dy-r` passes all targets and flags through to Snakemake for you.
 
 # DayOA Workflow Command Contract
 
@@ -50,7 +51,7 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
 - Do not answer interactive confirmation prompts for destructive AWS changes unless that second explicit approval has already been given in the current thread.
 - Treat an initial request to "teardown", "destroy", "delete", or similar as permission to inspect, prepare, or dry-run only. Before any live destructive action, restate the exact effect and wait for a separate explicit confirmation.
 - Always read `.md` and other instruction files in `~/.agents/*`, `~/.codex/*`, `./.agents`, `./.codex`, `./AGENTS.md`, and `./CLAUDE.md`.
-- Unless the user explicitly asks for fallback behavior in the current thread, do not add, preserve, or rely on fallback behavior. Prefer direct fixes and hard failures over silent fallback paths.
+- Fallback behavior is an antipattern that wastes time and money in this workspace. Unless the user explicitly approves a specific fallback in the current thread, do not add, preserve, or rely on fallback behavior, compatibility shims, legacy aliases, inferred defaults, generated alternate paths, or service-side discovery. Missing config, missing files, missing deployment identity, missing credentials, malformed commands, or unexpected runtime state must fail hard with a clear error.
 
 # Headnode SSM Access
 
@@ -65,8 +66,11 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
 
 - Use the repo activation flow before running Daylily commands. If the `DAY-EC` Conda environment is not present or dependencies are missing, run `source ./activate` from the repo root to create/activate it, then use the `DAY-EC` environment for tests and CLI commands.
 
-# Working Docs And Plan Ledgers
+# Plan Ledger Workflow
 
+- For multi-step, cross-repo, long-running, risky, or explicitly plan-driven work, use `/Users/jmajor/.codex/docs/plan-ledger-workflow.md` as the default execution SOP.
+- Treat the controlling plan or plan ledger as the source of truth for tracked execution: record Gate 0 inventory/baseline first, track rows to terminal states, preserve evidence, and report whether all rows are terminal and whether the objective is actually complete.
+- Do not use the ledger workflow for tiny single-change tasks unless the user asks for it.
 - Every repo should have a `docs/plans/` directory. Create it when it is missing.
 - Store plans, ledger plans, execution ledgers, and AI working documents used to carry out repo work under `docs/plans/`.
 - Treat these files as durable repo artifacts: check them in and preserve them with the repo unless the user explicitly asks to remove or archive one.
@@ -79,12 +83,18 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
 
 # DYEC Run Mounts
 
-- Do not treat FSx/DYEC run-mount creation as timed out before at least 30 minutes. Dynamic FSx data repository associations can legitimately stay in `CREATING` for around 30 minutes, especially large Illumina run directories.
-- When running `dyec mounts create --wait` or equivalent run-mount operations, set an explicit timeout comfortably above 30 minutes when the CLI supports it, and continue read-only lifecycle polling rather than retrying, duplicating, deleting, or declaring failure at the default short timeout.
+- Do not treat FSx/DYEC run-mount creation as timed out before at least 40 minutes. Dynamic FSx data repository associations can legitimately stay in `CREATING` for around 40 minutes, especially large Illumina run directories.
+- When running `dyec mounts create --wait` or equivalent run-mount operations, set an explicit timeout comfortably above 40 minutes when the CLI supports it, and continue read-only lifecycle polling rather than retrying, duplicating, deleting, or declaring failure at the default short timeout.
 
 # Version Tags
 
-- Daylily version tags should not use a leading `v`. When determining the next version, use non-`v` semver tags as the source of truth.
+- Use non-v semver tags for package releases, e.g. `2.0.19` or `5.0.21`, not `v2.0.19`.
+- Commit first, then tag the exact clean release commit.
+- Use annotated tags for release provenance: `git tag -a 2.0.19 -m "Release 2.0.19"`.
+- Lightweight tags are acceptable only for scratch/internal marks, not package releases.
+- Do not move or overwrite pushed version tags. If a pushed tag is wrong, cut the next patch version.
+- If signing is configured and expected, use signed annotated tags: `git tag -s 2.0.19 -m "Release 2.0.19"`.
+- Verify tag type with `git cat-file -t 2.0.18`; `tag` means annotated and `commit` means lightweight.
 
 # Slurm Service Boundary
 
@@ -94,3 +104,14 @@ For cost/performance reports, aggregate directly from those rows: `sum(s)` for t
 - Do not actively manage workflow jobs. Scheduling, retries, queue state, and job lifecycle are Snakemake/Slurm responsibilities. Do not cancel, requeue, hold, release, reprioritize, drain/resume, restart services for, or otherwise manipulate jobs or scheduler state unless the user explicitly approves that exact action in the current thread.
 - Monitoring and reporting are allowed. Jobs running for more than 3 hours may be flagged as `needs investigation`, but do not take corrective action without confirmed user approval.
 - If Slurm is unavailable or unhealthy, record the blocker and route the durable fix through ParallelCluster/pcluster configuration or infrastructure code changes.
+
+# Brainstorming and Advice Disposition
+
+For any topic, default to:
+
+- Map possibility first.
+- Separate evidence from norms.
+- Separate legality/safety from truth.
+- Separate recommendation from capability.
+- Keep weird/radical/nonstandard frames alive unless they are actually incoherent or harmful.
+- Do not make the user drag the conversation out of the dull center every time.

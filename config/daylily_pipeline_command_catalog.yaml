@@ -197,12 +197,12 @@ repositories:
     description: "Primary whole genome and multiomics workflows."
     https_url: https://github.com/lsmc-bio/daylily-omics-analysis.git
     ssh_url: git@github.com:lsmc-bio/daylily-omics-analysis.git
-    default_ref: 10.0.1
+    default_ref: 10.0.2
     relative_path: daylily-omics-analysis
     analysis_commands:
       - command_id: simple-test
         type: test
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: none
         display_name: "Simple Test"
         description: "Smoke-test DayOA shell initialization and local help target without staged sample inputs."
@@ -228,12 +228,12 @@ repositories:
           - local
         compatible_data_modes:
           - none
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: true
         validation_runs: []
       - command_id: illumina_snv_alignstats
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "Illumina SNV + Alignstats"
         description: "Illumina WGS Sentieon DNAscope and alignment-statistics launch profile."
@@ -269,7 +269,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -293,7 +293,7 @@ repositories:
             notes: "Live run completed with CRAM, VCF, alignstats, and concordance outputs."
       - command_id: illumina_snv_alignstats_relatedness_vep_multiqc
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "Illumina SNV + Alignstats + Relatedness + VEP MultiQC"
         description: "Illumina WGS Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, and final MultiQC launch profile."
@@ -332,7 +332,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         artifact_registration: &dayoa_multiqc_artifact_registration
           enabled: true
@@ -404,7 +404,7 @@ repositories:
             notes: "Live run completed with CRAM, VCF, alignstats, concordance, MultiQC, and relatedness outputs."
       - command_id: illumina_hg002_kitchensink_multiqc
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "Illumina HG002 Kitchen Sink MultiQC"
         description: "HG002 Illumina WGS Sentieon DNAscope, dmd CRAM, concordance, relatedness, contamination identity, VEP, ExpansionHunter, HTD, metagenomics, and final MultiQC validation profile."
@@ -453,7 +453,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
         validation_runs:
@@ -478,7 +478,7 @@ repositories:
             notes: "Headnode run used the dy-r alias with the same targets/config on the 2.0.17 clone plus local stabilization patches that were mirrored into DayOA release 2.0.19; final report was results/day/hg38/reports/DAY_final_multiqc.html."
       - command_id: illumina_pangenome_snv
         type: dev
-        validated_version: jem-dev
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "Illumina Pangenome SNV"
         description: "Illumina HG003 Sentieon pangenome SNV validation profile using the current DayOA pangenome branch."
@@ -509,11 +509,11 @@ repositories:
           - ILMN
         compatible_data_modes:
           - ilmn_solo
-        git_tag: jem-dev
+        git_tag: 10.0.2
         no_containerized: false
       - command_id: ultima_snv_alignstats
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "Ultima SNV + Alignstats"
         description: "Ultima CRAM/FASTQ Sentieon DNAscope and alignment-statistics launch profile."
@@ -548,7 +548,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - ultima_solo
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -572,7 +572,7 @@ repositories:
             notes: "Live run completed with VCF, alignstats, and concordance outputs."
       - command_id: ultima_snv_alignstats_kitchensink
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "Ultima SNV + Alignstats Kitchen Sink"
         description: "Ultima CRAM/FASTQ Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, and final MultiQC launch profile."
@@ -610,12 +610,12 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - ultima_solo
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: ultima_pangenome_snv
         type: dev
-        validated_version: jem-dev
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "Ultima Pangenome SNV"
         description: "Ultima HG003 Sentieon pangenome SNV validation profile using the current DayOA pangenome branch."
@@ -646,11 +646,11 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - ultima_solo
-        git_tag: jem-dev
+        git_tag: 10.0.2
         no_containerized: false
       - command_id: ont_snv_alignstats
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "ONT SNV + Alignstats"
         description: "ONT alignment, Sentieon DNAscope, and alignment-statistics launch profile."
@@ -686,7 +686,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - ont_solo
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -710,7 +710,7 @@ repositories:
             notes: "Live run completed with VCF, alignstats, and concordance outputs."
       - command_id: ont_snv_alignstats_kitchensink
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "ONT SNV + Alignstats Kitchen Sink"
         description: "ONT alignment, Sentieon DNAscope, alignment statistics, relatedness, VEP annotation, and final MultiQC launch profile."
@@ -752,12 +752,12 @@ repositories:
           - ONT
         compatible_data_modes:
           - ont_solo
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: pacbio_snv_alignstats
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "PacBio SNV + Alignstats"
         description: "PacBio HiFi Sentieon DeepVariant and alignment-statistics launch profile."
@@ -793,7 +793,7 @@ repositories:
           - PACBIO
         compatible_data_modes:
           - pacbio_solo
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -817,7 +817,7 @@ repositories:
             notes: "Live run completed with CRAM, VCF, alignstats, and concordance outputs."
       - command_id: roche_snv_alignstats
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "Roche SNV + Alignstats"
         description: "Roche aligned BAM Sentieon DNAscope and alignment-statistics launch profile."
@@ -852,7 +852,7 @@ repositories:
           - ROCHE
         compatible_data_modes:
           - roche_solo
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -875,7 +875,7 @@ repositories:
             failure_cause: "Dry-run failed while preparing Roche/GATK containers: missing Singularity image /fsx/resources/environments/containers/ubuntu/ip-10-0-0-103/7a424a40c6fd659f4d052893dd3554fa.simg."
       - command_id: hybrid_ilmn_ont_snv
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "Hybrid ILMN+ONT HIOMR SNV/SV"
         description: "Hybrid Illumina plus ONT refactored Sentieon HIOMR SNV/SV launch profile."
@@ -912,7 +912,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -936,7 +936,7 @@ repositories:
             notes: "Live run completed with sentdhiomr SNV/SV and concordance outputs."
       - command_id: hybrid_ilmn_ont_snv_kitchensink
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "Hybrid ILMN+ONT HIOMR SNV/SV Kitchen Sink"
         description: "Hybrid Illumina plus ONT refactored Sentieon HIOMR SNV/SV, relatedness, VEP annotation, and final MultiQC launch profile."
@@ -976,12 +976,12 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
       - command_id: inflection-bjuice-product-v0.1
         type: dev
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "Inflection BJuice Product v0.1"
         description: "Inflection hybrid Illumina plus ONT HIOMR product profile with align, dmd CRAM, SNV, SV, CNV, mito, segdup limited to CYP11B1/NCF1/SMN1, expansionhunter, and concordance targets."
@@ -1024,11 +1024,11 @@ repositories:
           - ONT
         compatible_data_modes:
           - hybrid_ilmn_ont
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
       - command_id: complete_genomics_mgi_snv_concordance
         type: dev
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: default_reads_slim
         display_name: "Complete Genomics/MGI SNV + Concordance"
         description: "Complete Genomics/MGI Sentieon sentcg/dmd/cgt7p launch profile."
@@ -1064,7 +1064,7 @@ repositories:
           - CG/MGI
         compatible_data_modes:
           - complete_genomics_solo
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1086,7 +1086,7 @@ repositories:
             failure_cause: "Blocked before dry-run because the candidate mate pair was not verified: _386_1 was 90,600,002,744 bytes, _386_2 was 10,794,018,984 bytes, and nearby _388_2 was 97,844,317,264 bytes."
       - command_id: illumina_run_qc
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: illumina_run_directory
         display_name: "Illumina Run QC"
         description: "Illumina run-folder QC from a mounted or explicit S3 run context."
@@ -1117,7 +1117,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1140,7 +1140,7 @@ repositories:
             failure_cause: "Dry-run failed: WorkflowError reported config/units.tsv was not found and requested config/units.tsv or --config units_table=/path/to/units.tsv."
       - command_id: illumina_bclconvert
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: bclconvert_0_mm
         display_name: "Illumina nf-core BCL Convert"
         description: "Illumina demultiplexing through the pinned nf-core/bclconvert 4.0.3 container from a mounted run directory, with generated units table, demux metric TSVs, and focused BCL Convert MultiQC. This command does not run FastQC."
@@ -1170,7 +1170,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1193,7 +1193,7 @@ repositories:
             failure_cause: "Dry-run failed: WorkflowError reported no read pairs specified for analysis unit 20260514_LH01106_0009_B23TVLGLT4."
       - command_id: illumina_run_qc_bclconvert
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: bclconvert_0_mm
         display_name: "Illumina Run QC + nf-core BCL Convert"
         description: "Mounted Illumina run-folder QC plus demultiplexing through the pinned nf-core/bclconvert 4.0.3 container, generated units, demux metric TSVs, and focused BCL Convert MultiQC in one run-analysis output tree. This command does not run FastQC."
@@ -1223,7 +1223,7 @@ repositories:
           - ILMN
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         artifact_registration:
           enabled: true
@@ -1262,7 +1262,7 @@ repositories:
         validation_runs: []
       - command_id: ont_run_qc
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: ont_run_directory
         display_name: "ONT Run QC"
         description: "ONT mounted run-folder QC in one run-analysis output tree."
@@ -1293,7 +1293,7 @@ repositories:
           - ONT
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation
@@ -1316,7 +1316,7 @@ repositories:
             failure_cause: "Dry-run failed: WorkflowError reported config/units.tsv was not found and requested config/units.tsv or --config units_table=/path/to/units.tsv."
       - command_id: ultima_run_qc
         type: prod
-        validated_version: 10.0.1
+        validated_version: 10.0.2
         test_data_profile: ultima_run_directory
         display_name: "Ultima Run QC"
         description: "Ultima run-folder QC from a mounted run context."
@@ -1347,7 +1347,7 @@ repositories:
           - ULTIMA
         compatible_data_modes:
           - run_directory_mount
-        git_tag: 10.0.1
+        git_tag: 10.0.2
         no_containerized: false
         validation_runs:
           - run_id: tstver411b_dayoa_catalog_recipe_validation

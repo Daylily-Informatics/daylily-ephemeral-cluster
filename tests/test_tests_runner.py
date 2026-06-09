@@ -309,7 +309,7 @@ def test_run_command_catalog_dry_run_only_renders_and_exports(tmp_path: Path) ->
     assert result.rc == 0
     assert result.evidence_prefix_s3_uri == (
         "s3://evidence-root/validation/dyec800/command_catalog_results/"
-        "10.0.1-20260607T000000Z/"
+        "10.0.2-20260607T000000Z/"
     )
     assert [phase.phase.phase for phase in result.phases] == ["dryrun", "dryrun", "dryrun"]
     assert all("20260607T000000Z" in call[call.index("--analysis-id") + 1] for call in launch_calls)
