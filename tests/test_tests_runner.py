@@ -138,7 +138,15 @@ def test_command_code_parser_exact_all_duplicate_and_unknown() -> None:
         "illumina_snv_alignstats",
         "ont_snv_alignstats",
     ]
-    assert len(parse_command_codes("all", catalog)) == len(catalog.commands())
+    all_commands = parse_command_codes("all", catalog)
+    assert len(all_commands) == sum(1 for command in catalog.commands() if command.type == "prod")
+    assert "complete_genomics_mgi_snv_concordance" not in {
+        command.command_id for command in all_commands
+    }
+    assert (
+        parse_command_codes("complete_genomics_mgi_snv_concordance", catalog)[0].command_id
+        == "complete_genomics_mgi_snv_concordance"
+    )
     with pytest.raises(RunnerError, match="Duplicate command id"):
         parse_command_codes("ont_snv_alignstats ont_snv_alignstats", catalog)
     with pytest.raises(RunnerError, match="Unknown analysis command"):

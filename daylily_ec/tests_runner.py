@@ -215,7 +215,7 @@ def parse_command_codes(command_codes: str, catalog: RepositoryCatalog) -> tuple
     if not requested:
         raise TestsRunnerError("--command-codes is required.")
     if requested.lower() == "all":
-        return tuple(catalog.commands())
+        return tuple(command for command in catalog.commands() if command.type == "prod")
     tokens = [token for token in requested.replace(",", " ").split() if token]
     commands: list[AnalysisCommand] = []
     seen: set[str] = set()

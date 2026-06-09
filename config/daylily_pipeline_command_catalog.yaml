@@ -957,7 +957,7 @@ repositories:
         git_tag: 10.0.1
         no_containerized: false
       - command_id: complete_genomics_mgi_snv_concordance
-        type: prod
+        type: dev
         validated_version: 10.0.1
         test_data_profile: default_reads_slim
         display_name: "Complete Genomics/MGI SNV + Concordance"

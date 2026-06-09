@@ -399,6 +399,7 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         )
 
     complete_genomics = catalog.get_command("complete_genomics_mgi_snv_concordance")
+    assert complete_genomics.type == "dev"
     assert complete_genomics.compatible_platforms == ["CG/MGI"]
     assert complete_genomics.compatible_data_modes == ["complete_genomics_solo"]
     assert complete_genomics.aligners == ["sentcg"]
