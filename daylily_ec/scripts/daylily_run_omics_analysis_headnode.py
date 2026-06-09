@@ -566,8 +566,8 @@ def build_parser() -> argparse.ArgumentParser:
         type=int,
         default=DEFAULT_JOB_MAX_RUNTIME_MINUTES,
         help=(
-            "Default Snakemake job time resource in minutes. "
-            "Set 0 to omit; explicit --default-resources time=... in the command wins."
+            "Deprecated compatibility option. DYEC does not append Snakemake "
+            "--default-resources."
         ),
     )
     parser.add_argument(

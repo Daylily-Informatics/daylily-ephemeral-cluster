@@ -2385,8 +2385,8 @@ def samples_run(
         DEFAULT_JOB_MAX_RUNTIME_MINUTES,
         "--max-runtime-minutes",
         help=(
-            "Default Snakemake job time resource in minutes. "
-            "Set 0 to omit; explicit --default-resources time=... in the command wins."
+            "Deprecated compatibility option. DYEC does not append Snakemake "
+            "--default-resources."
         ),
     ),
     export_destination_s3_uri: Optional[str] = typer.Option(
@@ -2723,8 +2723,8 @@ def workflow_launch(
         DEFAULT_JOB_MAX_RUNTIME_MINUTES,
         "--max-runtime-minutes",
         help=(
-            "Default Snakemake job time resource in minutes. "
-            "Set 0 to omit; explicit --default-resources time=... in the command wins."
+            "Deprecated compatibility option. DYEC does not append Snakemake "
+            "--default-resources."
         ),
     ),
     no_containerized: bool = typer.Option(
@@ -3741,8 +3741,8 @@ def tests_command_catalog(
         DEFAULT_JOB_MAX_RUNTIME_MINUTES,
         "--max-runtime-minutes",
         help=(
-            "Default Snakemake job time resource in minutes. "
-            "Set 0 to omit; explicit --default-resources time=... in the command wins."
+            "Deprecated compatibility option. DYEC does not append Snakemake "
+            "--default-resources."
         ),
     ),
     executing_entity: str = typer.Option(

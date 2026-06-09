@@ -182,10 +182,10 @@ def test_render_dy_command_normalizes_flags_and_warmup() -> None:
     assert " -k " in f" {dry} "
     assert " -T 0 " in f" {dry} "
     assert " -n " in f" {dry} "
-    assert dry.endswith("--default-resources time=100")
+    assert "--default-resources" not in dry
     assert " -n" not in f" {live} "
     assert " --conda-create-envs-only " in f" {warmup} "
-    assert warmup.endswith("--default-resources time=100")
+    assert "--default-resources" not in warmup
     assert "x={\"y\":1}" in dry
     assert (
         render_dy_command(
@@ -514,7 +514,7 @@ def test_parser_and_rendering_error_branches(tmp_path: Path) -> None:
         jobs=150,
         dry_run=False,
     )
-    assert compact == "dy-r target -j 150 -p -k -T 0 --default-resources time=100"
+    assert compact == "dy-r target -j 150 -p -k -T 0"
     assert (
         render_dy_command(
             "dy-r target -j20",
