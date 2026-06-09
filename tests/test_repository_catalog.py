@@ -40,6 +40,8 @@ UNVALIDATED_COMMAND_IDS = {
     "ont_snv_alignstats_kitchensink",
     "hybrid_ilmn_ont_snv_kitchensink",
     "inflection-bjuice-product-v0.1",
+    "illumina_pangenome_snv",
+    "ultima_pangenome_snv",
 }
 SIMPLE_TEST_DY_COMMAND = "source dyoainit; dy-a local hg38; dy-r -p -k -j 1 help"
 
@@ -337,6 +339,8 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
         "roche_snv_alignstats",
         "hybrid_ilmn_ont_snv",
         "hybrid_ilmn_ont_snv_kitchensink",
+        "illumina_pangenome_snv",
+        "ultima_pangenome_snv",
         "complete_genomics_mgi_snv_concordance",
     } <= command_ids
 
@@ -409,6 +413,25 @@ def test_repository_catalog_commands_have_run_metadata() -> None:
     assert "produce_dmd_dedup_cram" in complete_genomics.dy_command
     assert "produce_smd_dedup_cram" not in complete_genomics.dy_command
     assert "aligners=['sentcg']" not in complete_genomics.dy_command
+
+    illumina_pangenome = catalog.get_command("illumina_pangenome_snv")
+    assert illumina_pangenome.type == "dev"
+    assert illumina_pangenome.git_tag == "jem-dev"
+    assert illumina_pangenome.genome == "hg38_broad"
+    assert illumina_pangenome.targets == ["produce_sentpg_snv_vcf"]
+    assert illumina_pangenome.snv_callers == ["sentpg"]
+    assert illumina_pangenome.compatible_platforms == ["ILMN"]
+    assert illumina_pangenome.compatible_data_modes == ["ilmn_solo"]
+
+    ultima_pangenome = catalog.get_command("ultima_pangenome_snv")
+    assert ultima_pangenome.type == "dev"
+    assert ultima_pangenome.git_tag == "jem-dev"
+    assert ultima_pangenome.genome == "hg38_broad"
+    assert ultima_pangenome.targets == ["produce_pangenome_ug_vcf"]
+    assert ultima_pangenome.aligners == ["pangenome_ug"]
+    assert ultima_pangenome.snv_callers == ["sentpg"]
+    assert ultima_pangenome.compatible_platforms == ["ULTIMA"]
+    assert ultima_pangenome.compatible_data_modes == ["ultima_solo"]
 
     hybrid_ilmn_ont = catalog.get_command("hybrid_ilmn_ont_snv")
     assert hybrid_ilmn_ont.aligners == ["sent"]

@@ -476,6 +476,41 @@ repositories:
             live_analysis_id: dayoa_2017_hg002_kitchensink_j200_readhapsfix2_151101
             stage_or_context: /fsx/analysis_results/ubuntu/2.0.17/daylily-omics-analysis
             notes: "Headnode run used the dy-r alias with the same targets/config on the 2.0.17 clone plus local stabilization patches that were mirrored into DayOA release 2.0.19; final report was results/day/hg38/reports/DAY_final_multiqc.html."
+      - command_id: illumina_pangenome_snv
+        type: dev
+        validated_version: jem-dev
+        test_data_profile: default_reads_slim
+        display_name: "Illumina Pangenome SNV"
+        description: "Illumina HG003 Sentieon pangenome SNV validation profile using the current DayOA pangenome branch."
+        datasource: Illumina
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          required_source_columns:
+            - ILMN_R1_FQ
+            - ILMN_R2_FQ
+        targets:
+          - produce_sentpg_snv_vcf
+        genome: hg38_broad
+        jobs: 150
+        aligners:
+          - sent
+        dedupers: []
+        snv_callers:
+          - sentpg
+        sv_callers: []
+        dy_command: "bin/day_run produce_sentpg_snv_vcf -p -j 150 -k -T 0 --rerun-triggers mtime"
+        dryrun_dy_command: "bin/day_run produce_sentpg_snv_vcf -p -j 150 -k -T 0 --rerun-triggers mtime -n"
+        compatible_platforms:
+          - ILMN
+        compatible_data_modes:
+          - ilmn_solo
+        git_tag: jem-dev
+        no_containerized: false
       - command_id: ultima_snv_alignstats
         type: prod
         validated_version: 10.0.1
@@ -578,6 +613,41 @@ repositories:
         git_tag: 10.0.1
         no_containerized: false
         artifact_registration: *dayoa_multiqc_artifact_registration
+      - command_id: ultima_pangenome_snv
+        type: dev
+        validated_version: jem-dev
+        test_data_profile: default_reads_slim
+        display_name: "Ultima Pangenome SNV"
+        description: "Ultima HG003 Sentieon pangenome SNV validation profile using the current DayOA pangenome branch."
+        datasource: Ultima
+        launcher: workflow_launch
+        command_class: sample_analysis
+        input_contract: sample_manifest
+        requires_staging: true
+        requires_run_mount: false
+        runtime_parameters: {}
+        input_requirements:
+          accepted_source_column_sets:
+            - [UG_R1_FQ, UG_R2_FQ]
+            - [ULTIMA_CRAM, ULTIMA_CRAM_ALIGNER, ULTIMA_CRAM_SNV_CALLER]
+        targets:
+          - produce_pangenome_ug_vcf
+        genome: hg38_broad
+        jobs: 150
+        aligners:
+          - pangenome_ug
+        dedupers: []
+        snv_callers:
+          - sentpg
+        sv_callers: []
+        dy_command: "bin/day_run produce_pangenome_ug_vcf -p -j 150 -k -T 0 --rerun-triggers mtime"
+        dryrun_dy_command: "bin/day_run produce_pangenome_ug_vcf -p -j 150 -k -T 0 --rerun-triggers mtime -n"
+        compatible_platforms:
+          - ULTIMA
+        compatible_data_modes:
+          - ultima_solo
+        git_tag: jem-dev
+        no_containerized: false
       - command_id: ont_snv_alignstats
         type: prod
         validated_version: 10.0.1

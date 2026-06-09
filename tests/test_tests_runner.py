@@ -14,6 +14,7 @@ from daylily_ec.run_mounts import MOUNT_PURPOSE_RUN, RunMountRecord
 from daylily_ec.tests_runner import (
     DYEC800_COMMAND_IDS,
     KITCHEN_SINK_COMMAND_IDS,
+    LIVE_VALIDATION_COMMAND_IDS,
     CommandCatalogOptions,
     PhaseResult,
     RenderedPhase,
@@ -359,7 +360,7 @@ def test_run_command_catalog_live_only_runs_kitchen_sinks_after_dryrun(tmp_path:
     assert phase_names.count("dryrun") == 3
     assert phase_names.count("live") == 2
     live_ids = {phase.phase.command_id for phase in result.phases if phase.phase.phase == "live"}
-    assert live_ids <= KITCHEN_SINK_COMMAND_IDS
+    assert live_ids <= LIVE_VALIDATION_COMMAND_IDS
     warmup_commands = [
         call[call.index("--dy-command") + 1]
         for call in launch_calls
@@ -367,6 +368,64 @@ def test_run_command_catalog_live_only_runs_kitchen_sinks_after_dryrun(tmp_path:
     ]
     assert warmup_commands
     assert all("--conda-create-envs-only" in command for command in warmup_commands)
+
+
+def test_run_command_catalog_live_runs_pangenome_dev_commands(tmp_path: Path) -> None:
+    launch_calls: list[list[str]] = []
+
+    result = run_command_catalog(
+        CommandCatalogOptions(
+            cluster="dyec800",
+            profile="lsmc",
+            region="us-west-2",
+            command_codes="illumina_pangenome_snv ultima_pangenome_snv",
+            evidence_s3_uri="s3://evidence-root/validation",
+            dry_run_only=False,
+            output_dir=tmp_path,
+            stamp="20260607T000000Z",
+            parallel=1,
+            poll_interval_seconds=1,
+        ),
+        stage_func=_fake_stage,
+        launch_func=_fake_launch_factory(launch_calls),
+        status_func=lambda _metadata, _phase: {"exit_code": 0},
+        mount_list_func=lambda **_kwargs: [],
+    )
+
+    assert result.rc == 0
+    phase_names = [phase.phase.phase for phase in result.phases]
+    assert phase_names == ["warmup", "warmup", "dryrun", "dryrun", "live", "live"]
+    live_ids = {phase.phase.command_id for phase in result.phases if phase.phase.phase == "live"}
+    assert live_ids == {"illumina_pangenome_snv", "ultima_pangenome_snv"}
+    assert all(phase.phase.command_type == "dev" for phase in result.phases)
+
+
+def test_run_command_catalog_ignores_dev_commands_for_aggregate_rc(tmp_path: Path) -> None:
+    launch_calls: list[list[str]] = []
+
+    result = run_command_catalog(
+        CommandCatalogOptions(
+            cluster="dyec800",
+            profile="lsmc",
+            region="us-west-2",
+            command_codes="complete_genomics_mgi_snv_concordance",
+            evidence_s3_uri="s3://evidence-root/validation",
+            dry_run_only=True,
+            output_dir=tmp_path,
+            stamp="20260607T000000Z",
+            parallel=1,
+            poll_interval_seconds=1,
+        ),
+        stage_func=_fake_stage,
+        launch_func=_fake_launch_factory(launch_calls),
+        status_func=lambda _metadata, _phase: {"exit_code": 1},
+        mount_list_func=lambda **_kwargs: [],
+    )
+
+    assert result.rc == 0
+    assert len(result.phases) == 1
+    assert result.phases[0].phase.command_type == "dev"
+    assert result.phases[0].succeeded is False
 
 
 def test_command_catalog_cli_emits_json(monkeypatch: pytest.MonkeyPatch, tmp_path: Path) -> None:
@@ -393,6 +452,7 @@ def test_command_catalog_cli_emits_json(monkeypatch: pytest.MonkeyPatch, tmp_pat
             ),
             RenderedPhase(
                 command_id="illumina_snv_alignstats",
+                command_type="prod",
                 phase="dryrun",
                 analysis_id="ccv_dryrun_illumina_snv_alignstats",
                 session_name="ccv_dryrun_illumina_snv_alignstats",
@@ -439,6 +499,7 @@ def test_command_catalog_cli_emits_json(monkeypatch: pytest.MonkeyPatch, tmp_pat
 def test_runner_payloads_and_small_helpers(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
     phase = RenderedPhase(
         command_id="illumina_snv_alignstats",
+        command_type="prod",
         phase="dryrun",
         analysis_id="ccv_dryrun_illumina_snv_alignstats",
         session_name="ccv_dryrun_illumina_snv_alignstats",
@@ -668,6 +729,7 @@ def test_manifest_conversion_and_stage_failure(tmp_path: Path) -> None:
 def test_render_phase_none_contract_and_execution_failure_paths(tmp_path: Path) -> None:
     command = SimpleNamespace(
         command_id="simple_test",
+        type="prod",
         repository="daylily-omics-analysis",
         git_tag="10.0.0",
         genome="hg38",
@@ -720,6 +782,7 @@ def test_render_phase_none_contract_and_execution_failure_paths(tmp_path: Path) 
 
     dry = RenderedPhase(
         command_id="simple_test",
+        command_type="prod",
         phase="dryrun",
         analysis_id="dry",
         session_name="dry",
@@ -729,6 +792,7 @@ def test_render_phase_none_contract_and_execution_failure_paths(tmp_path: Path) 
     )
     live = RenderedPhase(
         command_id="simple_test",
+        command_type="prod",
         phase="live",
         analysis_id="live",
         session_name="live",

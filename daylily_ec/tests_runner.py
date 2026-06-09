@@ -66,6 +66,15 @@ KITCHEN_SINK_COMMAND_IDS = frozenset(
     }
 )
 
+PANGENOME_COMMAND_IDS = frozenset(
+    {
+        "illumina_pangenome_snv",
+        "ultima_pangenome_snv",
+    }
+)
+
+LIVE_VALIDATION_COMMAND_IDS = KITCHEN_SINK_COMMAND_IDS | PANGENOME_COMMAND_IDS
+
 MODE_MANIFESTS = {
     "ilmn_solo": Path("examples/staging/ilmn_solo/analysis_samples_manifest.tsv"),
     "ultima_solo": Path("examples/staging/ultima_solo/analysis_samples_manifest.tsv"),
@@ -122,6 +131,7 @@ class WorkflowLaunchMetadata:
 @dataclass(frozen=True)
 class RenderedPhase:
     command_id: str
+    command_type: str
     phase: str
     analysis_id: str
     session_name: str
@@ -176,6 +186,7 @@ class CommandCatalogResult:
             "phases": [
                 {
                     "command_id": phase.phase.command_id,
+                    "command_type": phase.phase.command_type,
                     "phase": phase.phase.phase,
                     "analysis_id": phase.phase.analysis_id,
                     "session_name": phase.phase.session_name,
@@ -493,7 +504,8 @@ def run_command_catalog(
         poll_interval_seconds=options.poll_interval_seconds,
         output_dir=output_dir,
     )
-    rc = 0 if all(result.succeeded for result in results) else 1
+    reportable_results = [result for result in results if result.phase.command_type != "dev"]
+    rc = 0 if all(result.succeeded for result in reportable_results) else 1
     final = CommandCatalogResult(
         rc=rc,
         output_dir=output_dir,
@@ -826,7 +838,7 @@ def render_phases(
     phases: list[RenderedPhase] = []
     if not dry_run_only:
         for command in commands:
-            if command.command_id in KITCHEN_SINK_COMMAND_IDS:
+            if command.command_id in LIVE_VALIDATION_COMMAND_IDS:
                 phases.append(
                     render_phase(
                         command,
@@ -866,7 +878,7 @@ def render_phases(
         )
     if not dry_run_only:
         for command in commands:
-            if command.command_id in KITCHEN_SINK_COMMAND_IDS:
+            if command.command_id in LIVE_VALIDATION_COMMAND_IDS:
                 phases.append(
                     render_phase(
                         command,
@@ -966,6 +978,7 @@ def render_phase(
         output_dir / command.command_id / f"{phase}_rendered.json",
         {
             "analysis_id": analysis_id,
+            "command_type": command.type,
             "dy_command": dy_command,
             "workflow_argv": argv,
             "export_destination_s3_uri": export_destination,
@@ -973,6 +986,7 @@ def render_phase(
     )
     return RenderedPhase(
         command_id=command.command_id,
+        command_type=command.type,
         phase=phase,
         analysis_id=analysis_id,
         session_name=session_name,
@@ -993,6 +1007,7 @@ def write_phase_plan(path: Path, phases: Sequence[RenderedPhase]) -> None:
             "phases": [
                 {
                     "command_id": phase.command_id,
+                    "command_type": phase.command_type,
                     "phase": phase.phase,
                     "analysis_id": phase.analysis_id,
                     "dy_command": phase.dy_command,
