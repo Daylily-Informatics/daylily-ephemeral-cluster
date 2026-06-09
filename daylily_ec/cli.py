@@ -2206,6 +2206,14 @@ def samples_stage(
             "Can be specified multiple times."
         ),
     ),
+    fsx_s3_uri_map: Optional[List[str]] = typer.Option(
+        None,
+        "--fsx-s3-uri-map",
+        help=(
+            "Explicit FSx-to-S3 mapping for mounted read-only subpaths. "
+            "Use /fsx/prefix=s3://bucket/prefix; can be specified multiple times."
+        ),
+    ),
     profile: Optional[str] = typer.Option(
         None,
         "--profile",
@@ -2267,6 +2275,8 @@ def samples_stage(
     ]
     for spec in run_metric_staging or []:
         argv.extend(["--run-metric-staging", spec])
+    for mapping in fsx_s3_uri_map or []:
+        argv.extend(["--fsx-s3-uri-map", mapping])
     if config_dir:
         argv.extend(["--config-dir", str(config_dir)])
     if profile:

@@ -98,6 +98,35 @@ def _write_manifest(tmp_path: Path, header: str, rows: list[str]) -> Path:
     return path
 
 
+def test_build_reference_uri_uses_explicit_fsx_s3_mapping_before_role_root() -> None:
+    roles = module.S3RoleUris(
+        reference_s3_uri="s3://reference-bucket",
+        control_data_s3_uri="s3://control-data-bucket",
+        stage_s3_uri="s3://stage-bucket",
+        fsx_s3_uri_maps=module.parse_fsx_s3_uri_maps(
+            [
+                (
+                    "/fsx/control_data/ssf_derived/dyecX4/10.0.10/PR-evidence/input="
+                    "s3://lsmc-ssf-sequencing-data/derived/dyecX4/10.0.10/PR-evidence/input"
+                )
+            ]
+        ),
+    )
+
+    uri = module.build_reference_uri(
+        (
+            "/fsx/control_data/ssf_derived/dyecX4/10.0.10/PR-evidence/input/"
+            "20260609T193111Z/illumina_30x/HG002_30x_R1.fastq.gz"
+        ),
+        roles,
+    )
+
+    assert uri == (
+        "s3://lsmc-ssf-sequencing-data/derived/dyecX4/10.0.10/PR-evidence/input/"
+        "20260609T193111Z/illumina_30x/HG002_30x_R1.fastq.gz"
+    )
+
+
 def _prechecked_rows(
     monkeypatch: pytest.MonkeyPatch,
     analysis_samples: Path,

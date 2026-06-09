@@ -421,6 +421,7 @@ class S3RoleUris:
     reference_s3_uri: str
     control_data_s3_uri: str = ""
     stage_s3_uri: str = ""
+    fsx_s3_uri_maps: Tuple[Tuple[str, str], ...] = ()
 
 
 GIAB_TRUTH_SUFFIXES = (".bed", ".vcf.gz", ".vcf.gz.tbi")
@@ -459,6 +460,16 @@ def parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
         help=(
             "S3 URI (s3://bucket[/prefix]) used as the exact root for external "
             "staging remote_stage_* prefixes"
+        ),
+    )
+    parser.add_argument(
+        "--fsx-s3-uri-map",
+        action="append",
+        default=[],
+        metavar="/fsx/prefix=s3://bucket/prefix",
+        help=(
+            "Explicit FSx-to-S3 mapping for mounted read-only subpaths. "
+            "Can be specified multiple times; longest prefix wins."
         ),
     )
     parser.add_argument(
@@ -912,6 +923,31 @@ def _join_s3_uri(base: str, relative: str) -> str:
     return f"{base}/{relative}" if relative else base
 
 
+def parse_fsx_s3_uri_maps(values: Optional[Sequence[str]]) -> Tuple[Tuple[str, str], ...]:
+    mappings: List[Tuple[str, str]] = []
+    for raw in values or []:
+        if "=" not in raw:
+            raise CommandError(
+                "--fsx-s3-uri-map must use /fsx/prefix=s3://bucket/prefix syntax."
+            )
+        fsx_prefix, s3_uri = (part.strip() for part in raw.split("=", 1))
+        fsx_prefix = fsx_prefix.rstrip("/")
+        s3_uri = s3_uri.rstrip("/")
+        if not fsx_prefix.startswith("/fsx/"):
+            raise CommandError(f"--fsx-s3-uri-map FSx prefix must start with /fsx/: {raw}")
+        if not s3_uri.startswith("s3://"):
+            raise CommandError(f"--fsx-s3-uri-map S3 URI must start with s3://: {raw}")
+        mappings.append((fsx_prefix, s3_uri))
+    return tuple(sorted(mappings, key=lambda item: len(item[0]), reverse=True))
+
+
+def _explicit_mapped_s3_uri(path: str, roles: S3RoleUris) -> Optional[str]:
+    for fsx_prefix, s3_uri in roles.fsx_s3_uri_maps:
+        if path == fsx_prefix or path.startswith(f"{fsx_prefix}/"):
+            return _join_s3_uri(s3_uri, _role_relative(path, fsx_prefix))
+    return None
+
+
 def build_reference_uri(path: str, reference_s3_uri: str | S3RoleUris) -> str:
     roles = _coerce_s3_role_uris(reference_s3_uri)
     if is_mounted_run_dir_path(path):
@@ -930,6 +966,9 @@ def build_reference_uri(path: str, reference_s3_uri: str | S3RoleUris) -> str:
             "The /fsx/runtime_assets namespace is not supported; use /fsx/references/runtime_assets."
         )
     reject_retired_stage_path(path)
+    explicit_uri = _explicit_mapped_s3_uri(path, roles)
+    if explicit_uri:
+        return explicit_uri
     if path == "/fsx/references" or path.startswith("/fsx/references/"):
         return _join_s3_uri(roles.reference_s3_uri, _role_relative(path, "/fsx/references"))
     if path == "/fsx/control_data" or path.startswith("/fsx/control_data/"):
@@ -942,7 +981,7 @@ def build_reference_uri(path: str, reference_s3_uri: str | S3RoleUris) -> str:
 def check_source_path(
     path: str,
     *,
-    reference_s3_uri: str,
+    reference_s3_uri: str | S3RoleUris,
     aws_env: Dict[str, str],
     debug: bool,
     allow_directory: bool = False,
@@ -3914,6 +3953,7 @@ def main(argv: Optional[Sequence[str]] = None) -> int:
         reference_s3_uri=args.reference_s3_uri,
         control_data_s3_uri=args.control_data_s3_uri,
         stage_s3_uri=args.stage_s3_uri,
+        fsx_s3_uri_maps=parse_fsx_s3_uri_maps(args.fsx_s3_uri_map),
     )
     stage = build_stage_paths(args.stage_target, args.stage_s3_uri)
     run_metric_specs = parse_run_metric_staging_specs(args.run_metric_staging)
