@@ -1,0 +1,202 @@
+DAY-EC activated.
+DAY-EC activated.
+        start_time=$(date +%s);
+        epocsec=$(date +'%s');
+
+        ulimit -n 65536 || echo "ulimit mod failed" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+
+        timestamp=$(date +%Y%m%d%H%M%S);
+        export TMPDIR="/scratch/sentpg_tmp_${timestamp}_$$";
+        export SENTIEON_TMPDIR="$TMPDIR";
+        mkdir -p "$TMPDIR";
+        if [ ! -d "$TMPDIR" ]; then
+            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+            exit 5;
+        fi
+        echo "TMPDIR created: $TMPDIR" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        ls -ld "$TMPDIR" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        df -h /scratch >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        export APPTAINER_HOME="$TMPDIR";
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+
+        # Find the jemalloc library in the active conda environment
+        jemalloc_path="";
+        for _dir in "$CONDA_PREFIX/lib" "$CONDA_PREFIX/lib64" "$CONDA_PREFIX/lib/x86_64-linux-gnu"; do
+            if [[ -d "$_dir" ]]; then
+                for _ext in so dylib; do
+                    _candidate=$(find "$_dir" -maxdepth 1 -name "libjemalloc*.$_ext*" 2>/dev/null | head -n 1);
+                    if [[ -n "$_candidate" && -r "$_candidate" ]]; then
+                        jemalloc_path="$_candidate";
+                        break 2;
+                    fi
+                done
+            fi
+        done
+
+        if [[ -n "$jemalloc_path" ]]; then
+            export LD_PRELOAD="$jemalloc_path";
+            export MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000;
+            echo "LD_PRELOAD set to: $LD_PRELOAD" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log;
+            echo "MALLOC_CONF set to: $MALLOC_CONF" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log;
+        else
+            echo "WARNING: libjemalloc not found in CONDA_PREFIX=$CONDA_PREFIX" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log;
+        fi
+
+        # --- Build optional flags ---
+        pcr_flag="";
+        if [[ "true" == "true" ]]; then
+            pcr_flag="--pcr_free";
+        fi
+
+        # --- bin/dayoa_sentieon_cli sentieon-pangenome ---
+        cli_out="$TMPDIR/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sentpg";
+
+        echo "bin/dayoa_sentieon_cli sentieon-pangenome starting" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        echo "  model=/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaPangenomeRealignWGS1.2.bundle" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        echo "  hapl=/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/hprc-v2.0-mc-grch38.hapl" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        echo "  gbz=/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/hprc-v2.0-mc-grch38.gbz" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        set +e;
+        bin/dayoa_sentieon_cli sentieon-pangenome             -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta             --hapl "/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/hprc-v2.0-mc-grch38.hapl"             --gbz "/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/hprc-v2.0-mc-grch38.gbz"             -m "/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaPangenomeRealignWGS1.2.bundle"             --pop_vcf "/fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz"             --r1_fastq results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.R1.fastq.gz             --r2_fastq results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.R2.fastq.gz             --readgroup "@RG\tID:R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ-$epocsec\tSM:R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ\tLB:R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ-LB-1\tPL:ILLUMINA"             -b "/fsx/references/genomic_data/organism_references/H_sapiens/panhg38/hg38_canonical.bed"             --dbsnp "/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/gatk/Homo_sapiens_assembly38.dbsnp138.vcf.gz"             $pcr_flag             -t 192             "${cli_out}.vcf.gz" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        cli_rc=$?;
+        set -e;
+        echo "sentieon-cli exit code: $cli_rc" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        if [ $cli_rc -ne 0 ]; then
+            echo "ERROR: bin/dayoa_sentieon_cli sentieon-pangenome failed with exit code $cli_rc" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+            exit $cli_rc;
+        fi
+
+        # --- Reheader VCF: rename sample to cluster_sample ---
+        if [ -f "${cli_out}.vcf.gz" ]; then
+            oldname=$(bcftools query -l "${cli_out}.vcf.gz" | head -n1);
+            echo -e "${oldname}\tR1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ" > "$TMPDIR/rename.txt";
+            bcftools reheader -s "$TMPDIR/rename.txt" -o results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.sort.vcf.gz "${cli_out}.vcf.gz" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+            bcftools index -f -t --threads 192 -o results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.sort.vcf.gz.tbi results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.sort.vcf.gz >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        else
+            echo "ERROR: VCF not produced by sentieon-cli" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+            exit 20;
+        fi
+
+        end_time=$(date +%s);
+        elapsed_time=$((($end_time - $start_time) / 60));
+        echo "Elapsed-Time-min:\t$itype\t$elapsed_time" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+
+        
+Submitted job 1 with external jobid '1'.
+[Tue Jun  9 11:08:02 2026]
+Error in rule sent_aln_sort_snv:
+    jobid: 1
+    input: results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.dirsetup.ready, results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.R1.fastq.gz, results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.R2.fastq.gz
+    output: results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.sort.vcf.gz, results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.sort.vcf.gz.tbi
+    log: results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log (check log file(s) for error details)
+    conda-env: /fsx/resources/environments/conda/ubuntu/ip-10-0-0-45/b8fa9e5cfce13a445a73f153b28c6515_
+    shell:
+        
+
+        if [ -z "$SENTIEON_LICENSE" ]; then
+            echo "SENTIEON_LICENSE not set. Please set the SENTIEON_LICENSE environment variable to the license file path & make this update to your dyinit file as well." >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+            exit 3;
+        fi
+
+        if [ ! -f "$SENTIEON_LICENSE" ]; then
+            echo "The file referenced by SENTIEON_LICENSE ('$SENTIEON_LICENSE') does not exist. Please provide a valid file path." >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+            exit 4;
+        fi
+
+        TOKEN=$(curl -s -X PUT 'http://169.254.169.254/latest/api/token' -H 'X-aws-ec2-metadata-token-ttl-seconds: 21600');
+        itype=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/instance-type);
+        echo "INSTANCE TYPE: $itype" > results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log;
+        start_time=$(date +%s);
+        epocsec=$(date +'%s');
+
+        ulimit -n 65536 || echo "ulimit mod failed" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+
+        timestamp=$(date +%Y%m%d%H%M%S);
+        export TMPDIR="/scratch/sentpg_tmp_${timestamp}_$$";
+        export SENTIEON_TMPDIR="$TMPDIR";
+        mkdir -p "$TMPDIR";
+        if [ ! -d "$TMPDIR" ]; then
+            echo "ERROR: Failed to create TMPDIR: $TMPDIR" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+            exit 5;
+        fi
+        echo "TMPDIR created: $TMPDIR" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        ls -ld "$TMPDIR" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        df -h /scratch >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        export APPTAINER_HOME="$TMPDIR";
+        trap 'rm -rf "$TMPDIR" 2>/dev/null || true' EXIT;
+
+        # Find the jemalloc library in the active conda environment
+        jemalloc_path="";
+        for _dir in "$CONDA_PREFIX/lib" "$CONDA_PREFIX/lib64" "$CONDA_PREFIX/lib/x86_64-linux-gnu"; do
+            if [[ -d "$_dir" ]]; then
+                for _ext in so dylib; do
+                    _candidate=$(find "$_dir" -maxdepth 1 -name "libjemalloc*.$_ext*" 2>/dev/null | head -n 1);
+                    if [[ -n "$_candidate" && -r "$_candidate" ]]; then
+                        jemalloc_path="$_candidate";
+                        break 2;
+                    fi
+                done
+            fi
+        done
+
+        if [[ -n "$jemalloc_path" ]]; then
+            export LD_PRELOAD="$jemalloc_path";
+            export MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:5000,muzzy_decay_ms:5000;
+            echo "LD_PRELOAD set to: $LD_PRELOAD" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log;
+            echo "MALLOC_CONF set to: $MALLOC_CONF" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log;
+        else
+            echo "WARNING: libjemalloc not found in CONDA_PREFIX=$CONDA_PREFIX" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log;
+        fi
+
+        # --- Build optional flags ---
+        pcr_flag="";
+        if [[ "true" == "true" ]]; then
+            pcr_flag="--pcr_free";
+        fi
+
+        # --- bin/dayoa_sentieon_cli sentieon-pangenome ---
+        cli_out="$TMPDIR/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sentpg";
+
+        echo "bin/dayoa_sentieon_cli sentieon-pangenome starting" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        echo "  model=/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaPangenomeRealignWGS1.2.bundle" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        echo "  hapl=/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/hprc-v2.0-mc-grch38.hapl" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        echo "  gbz=/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/hprc-v2.0-mc-grch38.gbz" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        set +e;
+        bin/dayoa_sentieon_cli sentieon-pangenome             -r /fsx/references/genomic_data/organism_references/H_sapiens/hg38/fasta_fai_minalt/GRCh38_no_alt_analysis_set.fasta             --hapl "/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/hprc-v2.0-mc-grch38.hapl"             --gbz "/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/hprc-v2.0-mc-grch38.gbz"             -m "/fsx/references/runtime_assets/cached_envs/sentieon-genomics-202503.02/bundles/SentieonIlluminaPangenomeRealignWGS1.2.bundle"             --pop_vcf "/fsx/references/genomic_data/organism_references/H_sapiens/panhg38/pop-v20g41-20251216.vcf.gz"             --r1_fastq results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.R1.fastq.gz             --r2_fastq results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.R2.fastq.gz             --readgroup "@RG\tID:R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ-$epocsec\tSM:R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ\tLB:R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ-LB-1\tPL:ILLUMINA"             -b "/fsx/references/genomic_data/organism_references/H_sapiens/panhg38/hg38_canonical.bed"             --dbsnp "/fsx/references/genomic_data/organism_annotations/H_sapiens/hg38/gatk/Homo_sapiens_assembly38.dbsnp138.vcf.gz"             $pcr_flag             -t 192             "${cli_out}.vcf.gz" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        cli_rc=$?;
+        set -e;
+        echo "sentieon-cli exit code: $cli_rc" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        if [ $cli_rc -ne 0 ]; then
+            echo "ERROR: bin/dayoa_sentieon_cli sentieon-pangenome failed with exit code $cli_rc" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+            exit $cli_rc;
+        fi
+
+        # --- Reheader VCF: rename sample to cluster_sample ---
+        if [ -f "${cli_out}.vcf.gz" ]; then
+            oldname=$(bcftools query -l "${cli_out}.vcf.gz" | head -n1);
+            echo -e "${oldname}\tR1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ" > "$TMPDIR/rename.txt";
+            bcftools reheader -s "$TMPDIR/rename.txt" -o results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.sort.vcf.gz "${cli_out}.vcf.gz" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+            bcftools index -f -t --threads 192 -o results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.sort.vcf.gz.tbi results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.sort.vcf.gz >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+        else
+            echo "ERROR: VCF not produced by sentieon-cli" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+            exit 20;
+        fi
+
+        end_time=$(date +%s);
+        elapsed_time=$((($end_time - $start_time) / 60));
+        echo "Elapsed-Time-min:\t$itype\t$elapsed_time" >> results/day/hg38/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ/align/sent/snv/sentpg/log/R1x-HG003-D0-0-D0-PCR-FREE-ILMN-NOVASEQ.sent.sentpg.snv.log 2>&1;
+
+        
+        (one of the commands exited with non-zero exit code; note that snakemake uses bash strict mode!)
+    cluster_jobid: 1
+
+Error executing rule sent_aln_sort_snv on cluster (jobid: 1, external: 1, jobscript: /fsx/analysis_results/ubuntu/pg_ilmn_sentpg_live_20260609T110000Z/daylily-omics-analysis/.snakemake/tmp.0hefomhy/snakejob.sent_aln_sort_snv.1.sh). For error details see the cluster log and the log files of the involved rule(s).
+Exiting because a job execution failed. Look above for error message
+ 
+        Womp Womp.  something went awry---- 
+RETURN CODE: 1
+[INFO] Workflow exited with status 1
+To run a command as administrator (user "root"), use "sudo <command>".
+See "man sudo_root" for details.
+
+DAY-EC activated.
+(DAY-EC) ubuntu@ip-10-0-0-45:/fsx/analysis_results/ubuntu/pg_ilmn_sentpg_live_20260609T110000Z/daylily-omics-analysis$

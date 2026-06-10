@@ -1,0 +1,8 @@
+{
+  "command": "bin/day_run produce_pangenome_ug_vcf -p -j 150 -k -T 0 --rerun-triggers mtime -n --default-resources time=100",
+  "completed_at": "2026-06-09T10:51:32Z",
+  "exit_code": 0,
+  "repo_path": "/fsx/analysis_results/ubuntu/pg_ultima_ug_dryrun_20260609T104950Z/daylily-omics-analysis",
+  "session_name": "pg_ultima_ug_dryrun_20260609T104950Z",
+  "started_at": "2026-06-09T10:50:59Z"
+}
