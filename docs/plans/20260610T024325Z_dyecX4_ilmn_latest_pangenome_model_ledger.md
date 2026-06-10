@@ -105,14 +105,14 @@ Created: `2026-06-10T02:43:25Z`
 | EXPORT-001 | Evidence | Verify workflow exit, DRA export receipt, output VCF/index files, and giabHC concordance F-scores | OPEN | feature_implementation | Gate 3 | orchestrator | Pending |  | Pending terminal workflow/export evidence. |
 | HG38-001 | Comparison run | Launch the same HG002/HG003 ILMN 30x samples using legacy `hg38` solo SNV concordance workflow | IN_PROGRESS | feature_implementation | Gate 2 | agent-ilmn | `dyec workflow launch` returned tmux session and repo path; `dyec workflow status` started at `2026-06-10T03:07:22Z`; activation log shows `genome build set to ::: hg38`; DAG resolved `sent`/`dmd`/`sentd`; Slurm jobs `61`/`62` submitted for `sentieon_bwa_sort`; exact command recorded above |  | Controller active; standard hg38 alignment jobs submitted. |
 | HG38-002 | Comparison evidence | Verify legacy `hg38` solo run exits 0, exports by DRA, and produces giabHC concordance metrics for HG002/HG003 | OPEN | feature_implementation | Gate 3 | orchestrator | Pending |  | Pending workflow/export evidence. |
-| ONT-001 | Comparison run | Launch HG003 ONT solo `produce_snv_concordances` with current `DNAscopeONT2.3.bundle` | IN_PROGRESS | feature_implementation | Gate 2 | agent-ont | `dyec workflow launch` returned tmux session `ont_hg003_5x_current_model_concordance_20260610T031836Z`, run dir `/home/ubuntu/daylily-runs/ont_hg003_5x_current_model_concordance_20260610T031836Z`, repo path `/fsx/analysis_results/ubuntu/ont_hg003_5x_current_model_concordance_20260610T031836Z/daylily-omics-analysis`; export destination recorded above |  | Controller launched; terminal workflow/export evidence pending. |
-| ONT-002 | Comparison run | Launch HG003 ONT solo `produce_snv_concordances` with old `DNAscopeONT2.2.bundle` after current-model conda-build window clears | OPEN | feature_implementation | Gate 2 | agent-ont | Input/model preflight complete; launch pending |  | Pending launch. |
+| ONT-001 | Comparison run | Launch HG003 ONT solo `produce_snv_concordances` with current `DNAscopeONT2.3.bundle` | IN_PROGRESS | feature_implementation | Gate 2 | agent-ont | `dyec workflow launch` returned tmux session `ont_hg003_5x_current_model_concordance_20260610T031836Z`, run dir `/home/ubuntu/daylily-runs/ont_hg003_5x_current_model_concordance_20260610T031836Z`, repo path `/fsx/analysis_results/ubuntu/ont_hg003_5x_current_model_concordance_20260610T031836Z/daylily-omics-analysis`; export destination recorded above; after isolated conda env creation, Slurm job `63` submitted for `pre_prep_ont_cram` |  | Controller active; terminal workflow/export evidence pending. |
+| ONT-002 | Comparison run | Launch HG003 ONT solo `produce_snv_concordances` with old `DNAscopeONT2.2.bundle` after current-model conda-build window clears | IN_PROGRESS | feature_implementation | Gate 2 | agent-ont | `dyec workflow launch` returned tmux session `ont_hg003_5x_old_model_concordance_20260610T031836Z`, run dir `/home/ubuntu/daylily-runs/ont_hg003_5x_old_model_concordance_20260610T031836Z`, repo path `/fsx/analysis_results/ubuntu/ont_hg003_5x_old_model_concordance_20260610T031836Z/daylily-omics-analysis`; export destination recorded above |  | Controller launched after current-model conda-build gate cleared; terminal workflow/export evidence pending. |
 | ONT-003 | Comparison evidence | Verify both ONT model-comparison runs exit 0, export by DRA, and produce giabHC concordance metrics | OPEN | feature_implementation | Gate 3 | orchestrator | Pending |  | Pending workflow/export evidence. |
 
 ## Final State Counts
 
-- `OPEN`: 4
-- `IN_PROGRESS`: 3
+- `OPEN`: 3
+- `IN_PROGRESS`: 4
 - `ATTEMPTING_BUGFIX`: 0
 - `SUCCESS`: 3
 - `BLOCKED`: 0
