@@ -1,0 +1,116 @@
+DAY-EC activated.
+DAY-EC activated.
+SECTION identity
+ubuntu
+ip-10-0-0-45
+2026-06-11T01:04:31Z
+SECTION paths
+MISSING	/fsx/analysis_results/4_nas_ds_to_20x	0
+MISSING	/fsx/analysis_results/ubuntu/4_nas_ds_to_20x_realcopy	0
+MISSING	/fsx/run_dir_mounts/ont-4coriells-chip1	0
+MISSING	/fsx/run_dir_mounts/ont-4coriells-chip2	0
+MISSING	/fsx/run_dir_mounts/ont-4coriells-chip3	0
+MISSING	/fsx/run_dir_mounts/ont-4coriells-chip4	0
+EXISTS	/fsx/control_data/ssf_derived	1
+MISSING	/fsx/staging/staged_external_sequencing_data	0
+SECTION ilmn_fastqs
+SECTION ont_fastqs
+chip1	barcode18	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip1/fastq_pass/barcode18
+chip1	barcode19	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip1/fastq_pass/barcode19
+chip1	barcode20	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip1/fastq_pass/barcode20
+chip1	barcode21	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip1/fastq_pass/barcode21
+chip2	barcode18	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip2/fastq_pass/barcode18
+chip2	barcode19	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip2/fastq_pass/barcode19
+chip2	barcode20	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip2/fastq_pass/barcode20
+chip2	barcode21	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip2/fastq_pass/barcode21
+chip3	barcode18	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip3/fastq_pass/barcode18
+chip3	barcode19	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip3/fastq_pass/barcode19
+chip3	barcode20	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip3/fastq_pass/barcode20
+chip3	barcode21	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip3/fastq_pass/barcode21
+chip4	barcode18	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip4/fastq_pass/barcode18
+chip4	barcode19	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip4/fastq_pass/barcode19
+chip4	barcode20	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip4/fastq_pass/barcode20
+chip4	barcode21	0	MISSING:/fsx/run_dir_mounts/ont-4coriells-chip4/fastq_pass/barcode21
+SECTION dra
+[
+    {
+        "Id": "dra-017fbd3485261fb2c",
+        "Lifecycle": "CREATING",
+        "Path": "/analysis_results/ubuntu/ccv_dryrun_hybrid_ilmn_ont_snv_20260609T063015Z/",
+        "S3": "s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/ccv_dryrun_hybrid_ilmn_ont_snv_20260609T063015Z/",
+        "Name": "ubuntu/ccv_dryrun_hybrid_ilmn_ont_snv_20260609T063015Z",
+        "Purpose": "output-export"
+    },
+    {
+        "Id": "dra-0f9ff9f59c7a64530",
+        "Lifecycle": "CREATING",
+        "Path": "/analysis_results/ubuntu/ccv_dryrun_complete_genomics_mgi_snv_concordance_20260609T063015Z/",
+        "S3": "s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/ccv_dryrun_complete_genomics_mgi_snv_concordance_20260609T063015Z/",
+        "Name": "ubuntu/ccv_dryrun_complete_genomics_mgi_snv_concordance_20260609T063015Z",
+        "Purpose": "output-export"
+    },
+    {
+        "Id": "dra-0af1b3871d0ec466d",
+        "Lifecycle": "AVAILABLE",
+        "Path": "/analysis_results/ubuntu/ccv_dryrun_hybrid_ilmn_ont_snv_20260609T083613Z/",
+        "S3": "s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/ccv_dryrun_hybrid_ilmn_ont_snv_20260609T083613Z/",
+        "Name": "ubuntu/ccv_dryrun_hybrid_ilmn_ont_snv_20260609T083613Z",
+        "Purpose": "output-export"
+    },
+    {
+        "Id": "dra-021b674814a92ea8f",
+        "Lifecycle": "AVAILABLE",
+        "Path": "/control_data/ssf_derived/dyecX4/10.0.10/PR-evidence/input/20260609T193111Z/illumina_30x/NovaSeqX_WHGS_TruSeqPF_HG002-007/",
+        "S3": "s3://lsmc-ssf-sequencing-data/derived/dyecX4/10.0.10/PR-evidence/input/20260609T193111Z/illumina_30x/NovaSeqX_WHGS_TruSeqPF_HG002-007/",
+        "Name": null,
+        "Purpose": "control-data-30x"
+    },
+    {
+        "Id": "dra-0d7c2f7e65eecadb6",
+        "Lifecycle": "AVAILABLE",
+        "Path": "/control_data/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ug/",
+        "S3": "s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/giab/agbt_2026/ug/",
+        "Name": null,
+        "Purpose": "pangenome-control-data"
+    },
+    {
+        "Id": "dra-025df65da949d4968",
+        "Lifecycle": "AVAILABLE",
+        "Path": "/control_data/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/",
+        "S3": "s3://lsmc-dayoa-control-data-usw2/genomic_data/organism_reads/H_sapiens/giab/NovaSeqX_WHGS_TruSeqPF_HG002-007/downsampled/",
+        "Name": null,
+        "Purpose": "pangenome-control-data"
+    },
+    {
+        "Id": "dra-09a619392c7f2bdc0",
+        "Lifecycle": "AVAILABLE",
+        "Path": "/run_dir_mounts/602221-20260417_2346/",
+        "S3": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/RUN602221/2026/602221-20260417_2346/",
+        "Name": null,
+        "Purpose": "run-dir-mount"
+    },
+    {
+        "Id": "dra-0c94f040d9917cdf4",
+        "Lifecycle": "AVAILABLE",
+        "Path": "/run_dir_mounts/20260513_ONT_HG003/",
+        "S3": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/pca100/2026/20260513_ONT_HG003/",
+        "Name": null,
+        "Purpose": "run-dir-mount"
+    },
+    {
+        "Id": "dra-0a0713fd9cfac78c7",
+        "Lifecycle": "AVAILABLE",
+        "Path": "/run_dir_mounts/20260514_LH01106_0009_B23TVLGLT4/",
+        "S3": "s3://lsmc-ssf-sequencing-data/basecalls/lsmc/ssf-hq/LH01106/2026/20260514_LH01106_0009_B23TVLGLT4/",
+        "Name": null,
+        "Purpose": null
+    },
+    {
+        "Id": "dra-0b33dfe0885363e1c",
+        "Lifecycle": "AVAILABLE",
+        "Path": "/references/",
+        "S3": "s3://lsmc-dayoa-references-usw2",
+        "Name": "reference-data",
+        "Purpose": null
+    }
+]

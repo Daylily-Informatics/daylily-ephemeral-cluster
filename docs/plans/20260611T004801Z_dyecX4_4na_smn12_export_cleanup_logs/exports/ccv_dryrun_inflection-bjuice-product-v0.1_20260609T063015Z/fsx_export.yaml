@@ -1,0 +1,20 @@
+fsx_export:
+  schema_version: 4
+  status: error
+  phase: preflight
+  cluster_name: dyecX4
+  region: us-west-2
+  analysis_dir: ubuntu/ccv_dryrun_inflection-bjuice-product-v0.1_20260609T063015Z
+  source_path: /analysis_results/ubuntu/ccv_dryrun_inflection-bjuice-product-v0.1_20260609T063015Z/
+  headnode_path: /fsx/analysis_results/ubuntu/ccv_dryrun_inflection-bjuice-product-v0.1_20260609T063015Z/
+  destination_s3_uri: s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/ccv_dryrun_inflection-bjuice-product-v0.1_20260609T063015Z/
+  fsx_root: /fsx/analysis_results/ubuntu/ccv_dryrun_inflection-bjuice-product-v0.1_20260609T063015Z/
+  s3_root: s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/ccv_dryrun_inflection-bjuice-product-v0.1_20260609T063015Z/
+  dayoa_analysis_root: /fsx/analysis_results/ubuntu/ccv_dryrun_inflection-bjuice-product-v0.1_20260609T063015Z/daylily-omics-analysis/
+  dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/ccv_dryrun_inflection-bjuice-product-v0.1_20260609T063015Z/daylily-omics-analysis/
+  detached: false
+  delete_data_in_file_system: false
+  failure_details:
+    message: 'Unable to create export data repository association: An error occurred
+      (BadRequest) when calling the CreateDataRepositoryAssociation operation: You
+      have reached the maximum allowed DRAs for this filesystem.'

@@ -1,0 +1,11 @@
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+
+╭─────────────────────────────── Export failed ────────────────────────────────╮
+│                                                                              │
+│  Unable to create export data repository association: An error occurred      │
+│  (BadRequest) when calling the CreateDataRepositoryAssociation operation:    │
+│  You have reached the maximum allowed DRAs for this filesystem.              │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
