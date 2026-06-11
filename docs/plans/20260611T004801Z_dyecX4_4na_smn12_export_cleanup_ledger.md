@@ -11,7 +11,8 @@ Implement the approved plan for cluster `dyecX4`, AWS profile `lsmc`, region `us
 - Treat `fsx_export.yaml` receipts as export authority; do not preflight destination emptiness.
 - Do not delete any FSx directory until every ledger-listed export succeeds and the user gives a second explicit destructive approval after seeing the exact path list.
 - Prepare DayOA to dry-run 8 4NA hybrid chip-pair analyses with full SMN12 orthogonal callers plus Gauchian and Cyrius.
-- Run only `dy-r ... -p -T 0 -k -j 500 -n` dry-runs in persistent `ubuntu` tmux login panes.
+- Run `dy-r ... -p -T 0 -k -j 500 -n` dry-runs in persistent `ubuntu` tmux login panes.
+- If all eight `-n` dry-runs exit `0`, immediately run the same targets live with the same flags minus `-n`.
 
 ## Gate 0 Baseline
 
@@ -46,6 +47,7 @@ Implement the approved plan for cluster `dyecX4`, AWS profile `lsmc`, region `us
 | TEST-001 | tests | Run focused DayOA pytest/compile checks | SUCCESS | contract_test | Gate 2 | agent-validation | `python -m pytest -q ...` -> `67 passed in 0.52s`; `python -m compileall -q workflow/scripts/htd_calls_mqc.py workflow/scripts/smn12_orthogonal_calls_mqc.py` |  | Focused source checks passed before tag `10.0.4`. |
 | STAGE-001 | 4NA setup | Derive 4NA sample/barcode/chip-pair inputs from existing manifests and create 8 dry-run analysis configs | BLOCKED | config_or_startup_contract | Gate 3 | agent-runs | `4na_inputs/4na_intended_analyses.tsv`; `4na_source_check.stdout.txt`; prior source docs `docs/smn12_and_friends_solo_Ailmn_ds_files_multiqc.md`, `docs/ONT_ILMN_SOLO_CMD_LOG.md` | dyecX4 does not have `/fsx/analysis_results/4_nas_ds_to_20x`, `/fsx/analysis_results/ubuntu/4_nas_ds_to_20x_realcopy`, or `/fsx/run_dir_mounts/ont-4coriells-chip{1..4}`. DRA max blocks creating staging/mount DRAs. | Eight intended `analysis_samples.tsv` files were generated locally, but no precheck/config/stage was run against missing sources. |
 | RUN-001 | dry-run | Execute 8 `dy-r produce_smn12_orthogonal_calls produce_htd_calls produce_sentdhiomr_segdup -p -T 0 -k -j 500 -n` dry-runs in persistent tmux panes | BLOCKED | config_or_startup_contract | Gate 4 | agent-runs | `4na_source_check.stdout.txt` | Required 4NA source paths are not visible on the headnode. | No tmux workflow dry-runs launched. |
+| RUN-002 | live-run | If all 8 dry-runs exit `0`, execute 8 live `dy-r produce_smn12_orthogonal_calls produce_htd_calls produce_sentdhiomr_segdup -p -T 0 -k -j 500` runs in the same persistent tmux workflow contract | BLOCKED | config_or_startup_contract | Gate 4b | agent-runs | User instruction on 2026-06-10: "if commands with -n run, please run w/out next" | Waiting for `RUN-001` to launch and pass for all eight analyses. | Authorized next step after dry-run success; no live runs launched yet. |
 | FINAL-001 | final | Ledger has no `OPEN`, `IN_PROGRESS`, or `ATTEMPTING_BUGFIX` rows | BLOCKED | legitimate_safety_handling | Gate 5 | orchestrator | This ledger | Export cleanup and dry-run launch are blocked on the DRA capacity/destructive-approval gate. | Current state has no `OPEN`, `IN_PROGRESS`, or `ATTEMPTING_BUGFIX`; blocked rows remain. |
 
 ## Export Inventory
