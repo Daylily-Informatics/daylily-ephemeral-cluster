@@ -1,7 +1,7 @@
 fsx_export:
   schema_version: 4
-  status: error
-  phase: preflight
+  status: success
+  phase: complete
   cluster_name: dyecX4
   region: us-west-2
   analysis_dir: ubuntu/ccv_dryrun_ont_run_qc_20260609T083613Z
@@ -12,9 +12,14 @@ fsx_export:
   s3_root: s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/ccv_dryrun_ont_run_qc_20260609T083613Z/
   dayoa_analysis_root: /fsx/analysis_results/ubuntu/ccv_dryrun_ont_run_qc_20260609T083613Z/daylily-omics-analysis/
   dayoa_s3_root: s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/ccv_dryrun_ont_run_qc_20260609T083613Z/daylily-omics-analysis/
-  detached: false
+  detached: true
   delete_data_in_file_system: false
-  failure_details:
-    message: 'Unable to create export data repository association: An error occurred
-      (BadRequest) when calling the CreateDataRepositoryAssociation operation: You
-      have reached the maximum allowed DRAs for this filesystem.'
+  failure_details: {}
+  fsx_file_system_id: fs-04960a3a07c091cf3
+  file_system_path: /analysis_results/ubuntu/ccv_dryrun_ont_run_qc_20260609T083613Z/
+  association_id: dra-006d899545b76877c
+  lifecycle: AVAILABLE
+  task_id: task-0252f891b296114cc
+  task_lifecycle: SUCCEEDED
+  report_path: s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/ccv_dryrun_ont_run_qc_20260609T083613Z/_daylily_monitor/fsx-export/20260611T033742Z/export-report/
+  detach_lifecycle: DELETED

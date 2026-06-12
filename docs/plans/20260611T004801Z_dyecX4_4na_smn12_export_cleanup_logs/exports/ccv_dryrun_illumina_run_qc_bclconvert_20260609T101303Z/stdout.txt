@@ -1,11 +1,23 @@
 
 ── EXPORT ──
   › Preparing direct FSx export DRA
+  · Attached export DRA dra-089e8e448db247ab9 at 
+/fsx/analysis_results/ubuntu/ccv_dryrun_illumina_run_qc_bclconvert_20260609T1013
+03Z/
 
-╭─────────────────────────────── Export failed ────────────────────────────────╮
+╭────────────────────────────── Export complete ───────────────────────────────╮
 │                                                                              │
-│  Unable to create export data repository association: An error occurred      │
-│  (BadRequest) when calling the CreateDataRepositoryAssociation operation:    │
-│  You have reached the maximum allowed DRAs for this filesystem.              │
+│  Cluster: dyecX4                                                             │
+│  FSx: fs-04960a3a07c091cf3                                                   │
+│  Source:                                                                     │
+│  /analysis_results/ubuntu/ccv_dryrun_illumina_run_qc_bclconvert_20260609T10  │
+│  1303Z/                                                                      │
+│  S3:                                                                         │
+│  s3://lsmc-ssf-sequencing-data/derived/analysis_results/hyb-only/ubuntu/ccv  │
+│  _dryrun_illumina_run_qc_bclconvert_20260609T101303Z/                        │
+│  Status file:                                                                │
+│  /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260611T  │
+│  004801Z_dyecX4_4na_smn12_export_cleanup_logs/exports/ccv_dryrun_illumina_r  │
+│  un_qc_bclconvert_20260609T101303Z/fsx_export.yaml                           │
 │                                                                              │
 ╰──────────────────────────────────────────────────────────────────────────────╯

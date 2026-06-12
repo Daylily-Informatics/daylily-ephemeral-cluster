@@ -201,3 +201,98 @@ HapSMA `dayoa_hg38_broad.SMA.config` candidate:
 | `singularity` or `apptainer` | disabled inside Nextflow if a Snakemake container is used | HapSMA modules declare containers, but user instruction requires containerization through Snakemake. A compliant setup needs either a single Snakemake-managed HapSMA image with all module tools on `$PATH`, or a non-container conda/module runtime. |
 | `executor` | local | Run Nextflow inside the already allocated Snakemake Slurm job; do not submit nested Slurm jobs. |
 | `mail.smtp.host` | `localhost` | Upstream configs use localhost; needed because HapSMA calls `sendMail` on completion. |
+
+## 20260612T020432Z Full 4NA Chip4-Substitution Launch
+
+- User approved substitution rule: if chip3 is missing, use chip4 only.
+- Analysis: `/fsx/analysis_results/ubuntu/hiomr_smn12_4na_chip4sub_20260612T015845Z/daylily-omics-analysis`
+- tmux session: `dayoa_smn12_4na_chip4sub_20260612T015845Z`
+- DayOA checkout: `d1ed88c`
+- Input manifest includes eight requested units:
+  - `NA00232` chip1+chip2: exact chip1+chip2, `146` ONT FASTQs
+  - `NA00232` chip4-only-sub-for-missing-chip3: approved chip4-only substitute, `73` ONT FASTQs
+  - `NA09677` chip1+chip2: exact chip1+chip2, `146` ONT FASTQs
+  - `NA09677` chip3+chip4: exact chip3+chip4, `82` ONT FASTQs
+  - `NA03986` chip1+chip2: exact chip1+chip2, `146` ONT FASTQs
+  - `NA03986` chip4-only-sub-for-missing-chip3: approved chip4-only substitute, `73` ONT FASTQs
+  - `NA05164` chip1+chip2: exact chip1+chip2, `146` ONT FASTQs
+  - `NA05164` chip4-only-sub-for-missing-chip3: approved chip4-only substitute, `73` ONT FASTQs
+- Dry-run command:
+  - `dy-r produce_smn12_orthogonal_calls produce_htd_calls produce_sentdhiomr_segdup -p -T 0 -k -j 500 --rerun-triggers mtime -n`
+  - Log: `logs/dryrun_smn12_4na_chip4sub_20260612T015845Z.log`
+  - Exit: `RETURN CODE: 0`
+  - Planned jobs: `104`
+  - Planned 192-thread rules include `hapsma`, `sma_finder`, `smaca`, `smn_copynumbercaller`, `sentdhiomr_call_segdup_gene`, `sentmm2ont_align_sort`, and `sentdhiomr_sr_align`.
+- Runtime patch log:
+  - `config/day_profiles/slurm/rule_config.yaml` patched.
+  - `htd_callers ['smn12', 'smaca', 'sma_finder', 'hapsma']`
+  - `hapsma.minimap_index /fsx/references/genomic_data/organism_references/H_sapiens/hg38_broad/Homo_sapiens_assembly38.map-ont.mmi`
+  - `sentdhiomr.segdup_genes SMN1`
+- Live command launched at `2026-06-12T02:03Z` after dry-run success:
+  - `dy-r produce_smn12_orthogonal_calls produce_htd_calls produce_sentdhiomr_segdup -p -T 0 -k -j 500 --rerun-triggers mtime`
+  - Log: `logs/live_smn12_4na_chip4sub_20260612T015845Z.log`
+  - Initial status at `2026-06-12T02:04Z`: running; setup/local steps complete; first `sentmm2ont` Slurm jobs submitted across `i192nvme` and `i384nvme` queues.
+
+## 20260612T040444Z Full 4NA First Live Failure And Fixed Rerun
+
+- First full live command reached terminal state with `RETURN CODE: 1`.
+- Terminal monitor timestamp: `2026-06-12T04:00:53Z`.
+- Completed before failure: `84` of `104` steps.
+- Caller output counts at first failure:
+  - `smn12`: `7`
+  - `smaca`: `7`
+  - `sma_finder`: `7`
+  - `hapsma`: `3`
+  - `segdup_smn1_yaml`: `7`
+- First failure classes:
+  - Four HapSMA low-coverage units hard-failed below the requested 4x coverage gate instead of emitting structured no-call summaries.
+  - One `sentmm2ont_align_sort` stream for `NA03986` chip1+chip2 failed on a SIGPIPE path before producing retained CRAM/CRAI outputs.
+- DayOA fixes committed and pushed to `jem-dev`:
+  - `a2a41c9 Emit HapSMA low coverage no-calls`
+  - `3aa01bc Validate sentmm2ont outputs after SIGPIPE`
+- Analysis checkout update:
+  - Before: `d1ed88c`
+  - After: `3aa01bc`
+  - Generated analysis files preserved: `config/input_manifest.tsv` and `config/patch_smn12_runtime.py`
+- Rerun setup in persistent tmux session `dayoa_smn12_4na_chip4sub_20260612T015845Z`:
+  - `source dyoainit`
+  - `dy-a slurm hg38_broad`
+  - `python config/patch_smn12_runtime.py | tee logs/smn12_runtime_patch_full_4na_rerun_20260612T0418Z.log`
+  - `dy-r --unlock`
+- Rerun command launched through `dy-r`:
+  - `dy-r produce_smn12_orthogonal_calls produce_htd_calls produce_sentdhiomr_segdup -p -T 0 -k -j 500 --rerun-triggers mtime --rerun-incomplete`
+  - Log: `logs/live_smn12_4na_chip4sub_rerun_20260612T0418Z.log`
+  - Launch status at `2026-06-12T04:04:30Z`: `bin/day_run` active; no Slurm jobs had appeared yet in the first immediate poll.
+
+## 20260612T065847Z Full 4NA Terminal Success
+
+- Additional DayOA fix committed and pushed to `jem-dev`:
+  - `eb9dcb2 Raise sentmm2ont sort memory`
+- Fix reason:
+  - `sentmm2ont_align_sort` for `NA03986` chip1+chip2 repeatedly OOM-killed `samtools sort` with the old active Slurm profile (`mem_mb=200000`).
+  - The repaired run used `partition=i384nvme`, `threads=192`, `minimap2_threads=160`, `sort_threads=32`, `sort_thread_mem=3G`, and `mem_mb=650000`.
+- Analysis checkout update:
+  - Before: `3aa01bc`
+  - After: `eb9dcb2`
+  - Active profile patch file: `logs/sentmm2ont_resource_patch_20260612T0443Z.log`
+- High-memory rerun command:
+  - `dy-r produce_smn12_orthogonal_calls produce_htd_calls produce_sentdhiomr_segdup -p -T 0 -k -j 500 --rerun-triggers mtime --rerun-incomplete`
+  - Log: `logs/live_smn12_4na_chip4sub_rerun_20260612T0443Z.log`
+- `sentmm2ont_align_sort` repair evidence for `NA03986` chip1+chip2:
+  - Slurm job: `339`
+  - Node/instance: `c8id.96xlarge`
+  - Log pipeline status: `sentmm2ont pipeline statuses: 0 0 0 0`
+  - Elapsed: `23` minutes
+  - Output CRAM: `results/day/hg38_broad/HYB-4NA-smn12-20260612-NA03986-DMPK-chip1-chip2-barcode20-PF-ILMN-NOVASEQ/align/sentmm2ont/HYB-4NA-smn12-20260612-NA03986-DMPK-chip1-chip2-barcode20-PF-ILMN-NOVASEQ.sentmm2ont.cram`
+  - Output CRAM size: `45619993286` bytes
+  - Output CRAI size: `442988` bytes
+- Terminal status at `2026-06-12T06:58:47Z`:
+  - Queue: no `ubuntu` Slurm jobs.
+  - Controllers: no `dy-r`, `day_run`, or `snakemake` processes.
+  - Return code: `RETURN CODE: 0`
+- Final caller output counts:
+  - `smn12`: `8`
+  - `smaca`: `8`
+  - `sma_finder`: `8`
+  - `hapsma`: `8`
+  - `segdup_smn1_yaml`: `8`

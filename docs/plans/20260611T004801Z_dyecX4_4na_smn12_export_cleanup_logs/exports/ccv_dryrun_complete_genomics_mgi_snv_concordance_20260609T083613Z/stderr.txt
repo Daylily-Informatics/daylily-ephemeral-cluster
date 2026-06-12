@@ -1,3 +1,6 @@
-2026-06-10 17:59:46,064 INFO Found credentials in shared credentials file: ~/.aws/credentials
-2026-06-10 17:59:47,706 ERROR FSx export failed: Unable to create export data repository association: An error occurred (BadRequest) when calling the CreateDataRepositoryAssociation operation: You have reached the maximum allowed DRAs for this filesystem.
-2026-06-10 17:59:47,708 INFO Wrote export status to /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260611T004801Z_dyecX4_4na_smn12_export_cleanup_logs/exports/ccv_dryrun_complete_genomics_mgi_snv_concordance_20260609T083613Z/fsx_export.yaml
+2026-06-10 18:45:40,578 INFO Found credentials in shared credentials file: ~/.aws/credentials
+2026-06-10 18:48:46,314 INFO Task task-0c59d1f2f8b60380e status: PENDING
+2026-06-10 18:49:16,513 INFO Task task-0c59d1f2f8b60380e status: EXECUTING
+2026-06-10 18:49:46,877 INFO Task task-0c59d1f2f8b60380e status: EXECUTING
+2026-06-10 18:50:17,123 INFO Task task-0c59d1f2f8b60380e status: SUCCEEDED
+2026-06-10 18:54:37,393 INFO Wrote export status to /Users/jmajor/projects/lsmc/daylily-ephemeral-cluster/docs/plans/20260611T004801Z_dyecX4_4na_smn12_export_cleanup_logs/exports/ccv_dryrun_complete_genomics_mgi_snv_concordance_20260609T083613Z/fsx_export.yaml

@@ -1,0 +1,12 @@
+
+── EXPORT ──
+  › Preparing direct FSx export DRA
+
+╭─────────────────────────────── Export failed ────────────────────────────────╮
+│                                                                              │
+│  source_path overlaps existing FSx data repository association               │
+│  dra-08aaca7f88d3546c1 at                                                    │
+│  /analysis_results/ubuntu/ccv_dryrun_pacbio_snv_alignstats_20260609T063015Z  │
+│  /.                                                                          │
+│                                                                              │
+╰──────────────────────────────────────────────────────────────────────────────╯
