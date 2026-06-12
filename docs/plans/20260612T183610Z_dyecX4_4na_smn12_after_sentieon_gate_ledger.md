@@ -39,6 +39,12 @@ Local copied launch manifests:
 - `docs/plans/20260612T183610Z_dyecX4_4na_smn12_after_sentieon_gate_inputs/samples.tsv`
 - `docs/plans/20260612T183610Z_dyecX4_4na_smn12_after_sentieon_gate_inputs/units.tsv`
 
+Durable local gate monitor:
+- Script: `docs/plans/20260612T183610Z_dyecX4_4na_smn12_after_sentieon_gate_monitor.py`
+- State: `docs/plans/20260612T183610Z_dyecX4_4na_smn12_after_sentieon_gate_state.json`
+- Log: `docs/plans/20260612T183610Z_dyecX4_4na_smn12_after_sentieon_gate_monitor.log`
+- Behavior: poll every 7 minutes; fail hard on any nonzero acceptance/dry-run/live exit; launch 4NA dry-run only after all five Sentieon acceptance analyses have `exit_code=0` plus successful DRA receipts; launch live 4NA only after the dry-run exits `0`.
+
 ## Intended Future Command Shape
 
 Use `dyec workflow launch` with local copies of the reusable `samples.tsv` and `units.tsv`, not raw `snakemake`.
@@ -62,3 +68,4 @@ Export destination:
 | R4NA-004 | dry-run | Run a 4NA SMN12 dry-run from DayOA `10.0.16` with `-j 350 -n`. | OPEN | Must use persistent `ubuntu` tmux via `dyec workflow launch` / `dy-r`. |
 | R4NA-005 | live-run | Launch the 4NA SMN12 live run without `-n`, with `-j 350`. | OPEN | Only after R4NA-002 and R4NA-004 pass. |
 | R4NA-006 | evidence | Export successful 4NA rerun via DRA and summarize outputs. | OPEN | DRA receipt is export authority. |
+| R4NA-007 | monitor | Run a durable local monitor that enforces R4NA-002 before R4NA-004/R4NA-005. | IN_PROGRESS | Script compiles with `python3 -m py_compile`. Fixed receipt parsing to handle nested/indented `fsx_export.yaml` fields, verified the three completed acceptance receipts parse as `success/SUCCEEDED/detached=true/delete=false`, and started local tmux session `dyecX4_4na_smn12_gate_20260612T1920Z`. First fixed poll holds on the two still-running acceptance analyses only. |
