@@ -13,8 +13,8 @@ Requested rerun:
 - AWS profile: `lsmc`
 - Region: `us-west-2`
 - Executing entity: `ubuntu`
-- DayOA tag for future launch: `10.0.15`
-- DYEC tag/local CLI for future launch: `10.0.24`
+- DayOA tag for future launch: `10.0.16`
+- DYEC tag/local CLI for future launch: `10.0.25`
 - Snakemake/DYEC jobs flag: `-j 350`
 - Samples: `NA00232`, `NA09677`, `NA03986`, `NA05164`
 - Units: each sample as `chip1+chip2` and second unit as `chip3+chip4` where present, with chip4-only substitutions where chip3 is missing.
@@ -35,6 +35,10 @@ Observed shape from read-only inspection:
 Prior local intended-analysis manifest:
 `docs/plans/20260611T004801Z_dyecX4_4na_smn12_export_cleanup_logs/4na_inputs/4na_intended_analyses.tsv`
 
+Local copied launch manifests:
+- `docs/plans/20260612T183610Z_dyecX4_4na_smn12_after_sentieon_gate_inputs/samples.tsv`
+- `docs/plans/20260612T183610Z_dyecX4_4na_smn12_after_sentieon_gate_inputs/units.tsv`
+
 ## Intended Future Command Shape
 
 Use `dyec workflow launch` with local copies of the reusable `samples.tsv` and `units.tsv`, not raw `snakemake`.
@@ -53,9 +57,8 @@ Export destination:
 | ID | Owner | Scope | Status | Evidence / Notes |
 | --- | --- | --- | --- | --- |
 | R4NA-001 | orchestrator | Record user request and gate behind Sentieon acceptance. | COMPLETE | Request recorded 2026-06-12T18:33Z in the DayOA Sentieon acceptance ledger; this DYEC ledger created for the eventual 4NA launch. |
-| R4NA-002 | acceptance-gate | Verify remaining Sentieon acceptance analyses pass and export. | OPEN | Waiting on `sentup_hg003_ilmn30x_hg38_solo_20260612T181511Z` and `sentup_hg003_hiomr_kitchensink_20260612T175000Z`; both non-terminal at 2026-06-12T18:34Z. |
-| R4NA-003 | inputs | Copy/reuse 4NA combined `samples.tsv` and `units.tsv` from the previous completed analysis. | OPEN | Source files exist on dyecX4 headnode with expected 4 sample / 8 unit shape. |
-| R4NA-004 | dry-run | Run a 4NA SMN12 dry-run from DayOA `10.0.15` with `-j 350 -n`. | OPEN | Must use persistent `ubuntu` tmux via `dyec workflow launch` / `dy-r`. |
+| R4NA-002 | acceptance-gate | Verify remaining Sentieon acceptance analyses pass and export. | OPEN | Waiting on `sentup_hg003_ilmn30x_hg38_solo_20260612T181511Z` and replacement HiOMR `sentup_hg003_hiomr_kitchensink_20260612T185650Z`; both need terminal `exit_code=0` plus DRA export receipts before the 4NA rerun can launch. The older HiOMR `sentup_hg003_hiomr_kitchensink_20260612T175000Z` is left running and not used as the gate because its target-wrapper bugs were fixed in DayOA `10.0.16`. |
+| R4NA-003 | inputs | Copy/reuse 4NA combined `samples.tsv` and `units.tsv` from the previous completed analysis. | COMPLETE | Copied to `docs/plans/20260612T183610Z_dyecX4_4na_smn12_after_sentieon_gate_inputs/`; `samples.tsv` has 5 lines and `units.tsv` has 9 lines. Unit keys are `NA00232/NA09677/NA03986/NA05164` crossed with `chip1-chip2` and `chip3-chip4` where present, with `chip4-only-sub-for-missing-chip3` for `NA00232`, `NA03986`, and `NA05164`. Source files were `/fsx/analysis_results/ubuntu/hiomr_smn12_4na_chip4sub_20260612T015845Z/daylily-omics-analysis/config/{samples.tsv,units.tsv}`. |
+| R4NA-004 | dry-run | Run a 4NA SMN12 dry-run from DayOA `10.0.16` with `-j 350 -n`. | OPEN | Must use persistent `ubuntu` tmux via `dyec workflow launch` / `dy-r`. |
 | R4NA-005 | live-run | Launch the 4NA SMN12 live run without `-n`, with `-j 350`. | OPEN | Only after R4NA-002 and R4NA-004 pass. |
 | R4NA-006 | evidence | Export successful 4NA rerun via DRA and summarize outputs. | OPEN | DRA receipt is export authority. |
-
