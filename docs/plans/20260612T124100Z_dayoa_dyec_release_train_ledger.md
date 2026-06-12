@@ -23,7 +23,7 @@ Release the current `daylily-omics-analysis` `jem-dev` state as `10.0.5`, update
 | Row | Action | Evidence | Status |
 | --- | --- | --- | --- |
 | R1 | Tag and push DayOA `10.0.5` from `jem-dev` HEAD. | `python -m pytest tests/test_sentieon_model_bundle_config.py tests/test_htd_callers_contract.py -q` passed: 19 tests. `git push origin jem-dev` was up to date. `git push origin 10.0.5` created tag. `git cat-file -t 10.0.5` returned `tag`. | Complete |
-| R2 | Update DYEC DayOA pins from `10.0.3` to `10.0.5` and commit with existing dirty DYEC plan/export evidence. | Pending | Pending |
-| R3 | Update DYEC self pins from `10.0.9` to `10.0.14` and commit. | Pending | Pending |
+| R2 | Update DYEC DayOA pins from `10.0.3` to `10.0.5` and commit with existing dirty DYEC plan/export evidence. | Updated `pyproject.toml`, `config/daylily_pipeline_command_catalog.yaml`, packaged payload catalog, and tests. `python -m pytest tests/test_lsmc_bio_fork_contract.py tests/test_repository_catalog.py -q` passed: 15 tests. Commit: `ed190f94 Update DayOA release pins`. `git diff --check` flagged trailing spaces in captured export `stdout.txt` evidence; evidence was preserved as captured. | Complete |
+| R3 | Update DYEC self pins from `10.0.9` to `10.0.14` and commit. | Updated `config/daylily_cli_global.yaml`, packaged payload global config, and `tests/test_lsmc_bio_fork_contract.py`. Stale-pin `rg` check found no `10.0.3` DayOA pins or `10.0.9` DYEC self pins in active surfaces. `python -m pytest tests/test_lsmc_bio_fork_contract.py tests/test_repository_catalog.py -q` passed: 15 tests. | Complete |
 | R4 | Tag and push DYEC `10.0.14` from the final DYEC release commit. | Pending | Pending |
 | R5 | Verify final git status, tags, and focused tests. | Pending | Pending |
